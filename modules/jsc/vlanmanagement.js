@@ -221,7 +221,7 @@ function getQinqByLogin(login, interface, swid) {
 
 }
 
-function validateVlanUsernameForm(oltId, onuId, port, vlan, type, interface, interface_olt) {
+function validateVlanUsernameForm(oltId, onuId, port, vlan, type, interface, interface_olt, snmp_index) {
     let formId = 'usernameForm---' + oltId + '---' + onuId + '---' + port;
     let usernameId = 'usernameInput---' + oltId + '---' + onuId + '---' + port;
     let container = document.getElementById(formId);
@@ -229,8 +229,7 @@ function validateVlanUsernameForm(oltId, onuId, port, vlan, type, interface, int
     let modalContent = document.getElementById("content-cvmodal");
 
     let xhr = new XMLHttpRequest();
-    console.log("/?module=vlanmanagement_onu_apply&ajax_username_validate=true&username=" + username + "&oltid=" + oltId + "&onuid=" + onuId + "&port=" + port + "&vlan=" + vlan + "&type=" + type + "&interface=" + interface + "&interface_olt=" + interface_olt);
-    xhr.open("GET", "/?module=vlanmanagement_onu_apply&ajax_username_validate=true&username=" + username + "&oltid=" + oltId + "&onuid=" + onuId + "&port=" + port + "&vlan=" + vlan + "&type=" + type + "&interface=" + interface + "&interface_olt=" + interface_olt, true);
+    xhr.open("GET", "/?module=vlanmanagement_onu_apply&ajax_username_validate=true&username=" + username + "&oltid=" + oltId + "&onuid=" + onuId + "&port=" + port + "&vlan=" + vlan + "&type=" + type + "&interface=" + interface + "&interface_olt=" + interface_olt + "&snmp_index=" + snmp_index, true);
     xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
 
     xhr.send();

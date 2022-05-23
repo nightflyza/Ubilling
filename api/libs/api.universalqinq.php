@@ -604,13 +604,22 @@ class UniversalQINQ {
      * 
      * @return void
      */
-    protected function logAdd() {
+    public function logAdd($login = '', $svlan = '', $cvlan = '') {
+        if (empty($login)) {
+            $login = $this->routing->get('login', 'mres');
+        }
+        if (empty($svlan)) {
+            $svlan = $this->routing->get('svlan', 'int');
+        }
+        if (empty($cvlan)) {
+            $cvlan = $this->routing->get('cvlan_num', 'int');
+        }
         log_register('CREATE universalqinq ('
-                . trim($this->routing->get('login', 'mres'))
+                . trim($login)
                 . ') s'
-                . trim($this->routing->get('svlan', 'int'))
+                . trim($svlan)
                 . '/c'
-                . trim($this->routing->get('cvlan_num', 'int'))
+                . trim($cvlan)
         );
     }
 

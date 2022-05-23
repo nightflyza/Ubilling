@@ -91,6 +91,12 @@ class VlanChange {
      * @var string
      */
     protected $onuSerial = '';
+
+    /**
+     * Contains all realnames
+     * 
+     * @var array
+     */
     protected $allRealnames = array();
 
     /**
@@ -99,11 +105,55 @@ class VlanChange {
      * @var string
      */
     protected $mode = 'none';
+
+    /**
+     * Contains all possible cvlans for olt
+     * 
+     * @var array
+     */
     protected $oltCvlans = array();
+
+    /**
+     * Contains all used cvlans
+     * 
+     * @var array
+     */
     protected $usedCvlans = array();
+
+    /**
+     * Contains all universal qinq assignments 
+     * 
+     * @var array
+     */
     protected $universalAssign = array();
+
+    /**
+     * CVLAN placeholder
+     * 
+     * @var int
+     */
     protected $cvlan = -1;
+
+    /**
+     * SVLAN placeholder
+     * 
+     * @var int
+     */
     protected $svlan = -1;
+
+    /**
+     * SVLAN id placeholder
+     * 
+     * @var int
+     */
+    protected $svlanid = -1;
+
+    /**
+     * Contains all switchmodels
+     * 
+     * @var array
+     */
+    protected $allModelsData = array();
 
     /**
      * Placeholder for snmp helper object
@@ -181,10 +231,22 @@ class VlanChange {
         $this->realNameDB = new NyanORM('realname');
         $this->usernameGuess($username);
         if ($this->oltId) {
+            $this->allModelsData = $this->switchModelsDB->getAll('id');
             $this->setSnmpTemplateFile();
+            $this->loadSnmpTemplate();
+            $this->loadAllOnu();
+            $this->loadAllRealnames();
+            $this->setVlanMode();
         }
     }
 
+    /**
+     * Dirty hacks to set up environment with $_GET param or by onu
+     * 
+     * @param string $username
+     * 
+     * @return void
+     */
     protected function usernameGuess($username) {
         if (!empty($username)) {
             $this->username = $username;
@@ -199,11 +261,23 @@ class VlanChange {
         }
     }
 
+    /**
+     * Load all ONU
+     * 
+     * @return void
+     */
     protected function loadAllOnu() {
         $this->allMac = $data = $this->ponDB->getAll('mac');
         $this->alLSerial = $this->ponDB->getAll('serial');
     }
 
+    /**
+     * Check if onu already exist and linked to some user
+     * 
+     * @param string $onuid
+     * @param bool $check
+     * @return string
+     */
     protected function getUsernameByOnu($onuid = '', $check = false) {
         if (empty($onuid)) {
             $onuid = ubRouting::get('onuid', 'mres');
@@ -242,10 +316,6 @@ class VlanChange {
     public function checkOltGuestVlan() {
         $this->setGuestVlans();
         $this->checkUserOnu();
-        $this->loadSnmpTemplate();
-        $this->loadAllOnu();
-        $this->loadAllRealnames();
-        $this->setVlanMode();
         $this->pollOlt();
     }
 
@@ -261,6 +331,11 @@ class VlanChange {
         $this->altCfg = $ubillingConfig->getAlter();
     }
 
+    /**
+     * Loads all realnames
+     * 
+     * @return void
+     */
     protected function loadAllRealnames() {
         $this->allRealnames = $this->realNameDB->getAll('login');
     }
@@ -367,24 +442,44 @@ class VlanChange {
         }
     }
 
+    /**
+     * load all data from table switches related to olt
+     * 
+     * @return array
+     */
     protected function loadOltDetails() {
         $this->switchesDB->where('id', '=', $this->oltId);
         $data = $this->switchesDB->getAll('id');
         return ($data);
     }
 
+    /**
+     * Load all available assigns
+     * 
+     * @return void
+     */
     protected function loadCvlans() {
         $this->loadUniversalAssign();
         $this->loadOltCvlans();
         $this->loadUsedCvlans();
     }
 
+    /**
+     * Load olt pool
+     * 
+     * @return void
+     */
     protected function loadOltCvlans() {
         $this->oltqinqDB->where('swid', '=', $this->oltId);
         $this->oltqinqDB->where('port', '=', $this->oltInterface);
         $this->oltCvlans = $this->oltqinqDB->getAll('swid');
     }
 
+    /**
+     * Load all assignments from universal qinq by svlan
+     * 
+     * @return void
+     */
     protected function loadUsedCvlans() {
         if (!empty($this->oltCvlans)) {
             if (isset($this->oltCvlans[$this->oltId])) {
@@ -394,8 +489,12 @@ class VlanChange {
         }
     }
 
+    /**
+     * load assignment from universal qinq if exist for user
+     * 
+     * @return void
+     */
     protected function loadUniversalAssign() {
-        $this->cvlanDB->where('login', '=', $this->username);
         $this->universalAssign = $this->cvlanDB->getAll('login');
     }
 
@@ -411,6 +510,11 @@ class VlanChange {
         }
     }
 
+    /**
+     * Compare available and used arrays to get free one
+     * 
+     * @return void
+     */
     protected function setCvlanFromPool() {
         $freeCvlans = array();
         $usedRange = array();
@@ -428,18 +532,35 @@ class VlanChange {
         $this->cvlan = $firstCvlan;
     }
 
+    /**
+     * Find svlan number by id
+     * 
+     * @return void
+     */
     protected function setSvlanFromPool() {
         $this->svlanDB->where('id', '=', $this->oltCvlans[$this->oltId]['svlan_id']);
         $data = $this->svlanDB->getAll('id');
         $this->svlan = $data[$this->oltCvlans[$this->oltId]['svlan_id']]['svlan'];
+        $this->svlanid = $this->oltCvlans[$this->oltId]['svlan_id'];
     }
 
+    /**
+     * Set svlan number from universal assignment 
+     * 
+     * @return void
+     */
     protected function setSvlanFromUniversal() {
         $this->svlanDB->where('id', '=', $this->universalAssign[$this->username]['svlan_id']);
         $data = $this->svlanDB->getAll('id');
         $this->svlan = $data[$this->universalAssign[$this->username]['svlan_id']]['svlan'];
+        $this->svlanid = $this->universalAssign[$this->username]['svlan_id'];
     }
 
+    /**
+     * Get cvlan from universal qinq or from pool
+     * 
+     * @return void
+     */
     protected function setFreeCvlan() {
         if (empty($this->universalAssign)) {
             $this->setCvlanFromPool();
@@ -452,9 +573,14 @@ class VlanChange {
         }
     }
 
+    /**
+     * Set svlan from universal qinq or from pool
+     * 
+     * @return void
+     */
     protected function setSvlan() {
         if ($this->cvlan) {
-            if (empty($this->universalAssign)) {
+            if (!empty($this->universalAssign)) {
                 $this->setSvlanFromPool();
             } else {
                 if (!isset($this->universalAssign[$this->username])) {
@@ -466,6 +592,11 @@ class VlanChange {
         }
     }
 
+    /**
+     * Set svlan and cvlan
+     * 
+     * @return void
+     */
     protected function getVlanPair() {
         $this->loadCvlans();
         $this->setFreeCvlan();
@@ -498,6 +629,11 @@ class VlanChange {
         }
     }
 
+    /**
+     * List all unknown onu from olt
+     * 
+     * @return void
+     */
     protected function pollOlt() {
         switch ($this->mode) {
             case 'bdcom_b':
@@ -579,21 +715,20 @@ class VlanChange {
                         if ($eachGuest == $value) {
                             if (isset($allOnuIndex[$onuId])) {
                                 //$allOnuPvid[$onuId][$portNumber] = $value;
-                                $this->guestOnus[$allOnuIndex[$onuId]] = array('id' => $allOnuIndex[$onuId], 'port' => $portNumber, 'vlan' => $value, 'interface' => $interfaceIndex[$onuId], 'interface_olt' => $interfaceOltIndex[$onuId], 'type' => 'epon');
+                                $this->guestOnus[$allOnuIndex[$onuId]] = array('id' => $allOnuIndex[$onuId], 'port' => $portNumber, 'vlan' => $value, 'interface' => $interfaceIndex[$onuId], 'interface_olt' => $interfaceOltIndex[$onuId], 'type' => 'epon', 'snmp_index' => $onuId);
                             }
                         }
                     }
                 }
             }
         }
-        /*
-          debarr($allOnuIndex);
-          debarr($allOnuPvid);
-          debarr($this->guestOnus);
-         * 
-         */
     }
 
+    /**
+     * Ajax loader for onu list
+     * 
+     * @return string
+     */
     public function onuListShow() {
         $result = '';
         $add = '&oltid=' . ubRouting::get('oltid', 'mres');
@@ -630,9 +765,9 @@ class VlanChange {
                     $currentUsername = $altUsername;
                 }
                 if ($currentUsername) {
-                    $controls = wf_modalAuto(wf_img_sized('skins/add_icon.png', '', '16', '16'), __('Assign VLAN'), $this->changeVlanForm($each['id'], $each['port'], $each['vlan'], $each['type'], $each['interface'], $each['interface_olt']));
+                    $controls = wf_modalAuto(wf_img_sized('skins/add_icon.png', '', '16', '16'), __('Assign VLAN'), $this->changeVlanForm($each['id'], $each['port'], $each['vlan'], $each['type'], $each['interface'], $each['interface_olt'], $each['snmp_index']));
                 } else {
-                    $controls = wf_modalAuto(wf_img_sized('skins/add_icon.png', '', '16', '16'), __('Assign VLAN'), $this->userNameForm($each['id'], $each['port'], $each['vlan'], $each['type'], $each['interface'], $each['interface_olt']));
+                    $controls = wf_modalAuto(wf_img_sized('skins/add_icon.png', '', '16', '16'), __('Assign VLAN'), $this->userNameForm($each['id'], $each['port'], $each['vlan'], $each['type'], $each['interface'], $each['interface_olt'], $each['snmp_index']));
                 }
                 $data[] = trim($each['interface']);
                 $data[] = trim($each['id']);
@@ -650,56 +785,207 @@ class VlanChange {
         $json->getJson();
     }
 
+    protected function onuModelsSelector() {
+        $models = array();
+        if (!empty($this->allModelsData)) {
+            foreach ($this->allModelsData as $io => $each) {
+                if (@$this->altCfg['ONUMODELS_FILTER']) {
+                    if (ispos($each['modelname'], 'ONU')) {
+                        $models[$each['id']] = $each['modelname'];
+                    }
+                } else {
+                    $models[$each['id']] = $each['modelname'];
+                }
+            }
+        }
+        return($models);
+    }
+
     /**
      * Returns ONU creation form
      *
      * @return string
      */
-    protected function userNameForm($onuId, $port, $vlan, $type, $interface, $interface_olt) {
+    protected function userNameForm($onuId, $port, $vlan, $type, $interface, $interface_olt, $snmp_index) {
         $result = '';
         $inputs = wf_TextInput('username', __('Login'), '', true, 20, '', '', 'usernameInput---' . ubRouting::get('oltid', 'mres') . '---' . $onuId . '---' . $port);
         $inputs .= wf_Submit(__('Validate'));
-        $result .= wf_Form('', 'POST', $inputs, 'glamour', '', 'usernameForm---' . ubRouting::get('oltid', 'mres') . '---' . $onuId . '---' . $port, '', 'onsubmit="return validateVlanUsernameForm(' . ubRouting::get('oltid', 'mres') . ",'" . $onuId . "', " . $port . ',' . $vlan . ",'" . $type . "','" . $interface . "','" . $interface_olt . "'" . ')"');
+        $result .= wf_Form('', 'POST', $inputs, 'glamour', '', 'usernameForm---' . ubRouting::get('oltid', 'mres') . '---' . $onuId . '---' . $port, '', 'onsubmit="return validateVlanUsernameForm(' . ubRouting::get('oltid', 'mres') . ",'" . $onuId . "', " . $port . ',' . $vlan . ",'" . $type . "','" . $interface . "','" . $interface_olt . "'," . $snmp_index . ')"');
 
         return ($result);
     }
 
-    public function changeVlanForm($onuId, $port, $vlan, $type, $interface, $interface_olt) {
+    /**
+     * Show form to change cvlan on onu
+     * 
+     * @param string $onuId
+     * @param int $port
+     * @param int $vlan
+     * @param string $type
+     * @param string $interface
+     * @param string $interface_olt
+     * 
+     * @return string
+     */
+    public function changeVlanForm($onuId, $port, $vlan, $type, $interface, $interface_olt, $snmp_index) {
         $result = '';
         $oltDetails = $this->loadOltDetails();
         $this->clearInterface($interface_olt);
         $this->getVlanPair();
+        $models = $this->onuModelsSelector();
+        $inputs = wf_HiddenInput('change_cvlan', true);
+        $inputs .= wf_HiddenInput('interface_olt', $interface_olt);
+        $inputs .= wf_HiddenInput('interface', $interface);
+        $inputs .= wf_HiddenInput('onuid', $onuId);
+        $inputs .= wf_HiddenInput('port', $port);
+        $inputs .= wf_HiddenInput('cvlan', $this->cvlan);
+        $inputs .= wf_HiddenInput('svlan', $this->svlan);
+        $inputs .= wf_HiddenInput('svlanid', $this->svlanid);
+        $inputs .= wf_HiddenInput('snmp_index', $snmp_index);
+        $inputs .= wf_HiddenInput('type', $type);
 
-        $inputs = wf_TextInput('username', __('Login'), $this->username, true, 20);
+        $cells = wf_TableCell(__('Login'));
+        $cells .= wf_TableCell(wf_TextInput('username', '', $this->username, false, 20));
+        $rows = wf_TableRow($cells);
         $checkedUsername = $this->getUsernameByOnu($onuId, true);
         if (!empty($checkedUsername)) {
             if ($this->username != $checkedUsername) {
-                $inputs .= 'this onu is assigned to another user: ' . wf_Link('?module=userprofile&username=' . $checkedUsername, $checkedUsername);
+                $rows .= 'this onu is assigned to another user: ' . wf_Link('?module=userprofile&username=' . $checkedUsername, $checkedUsername);
             }
         }
-        $inputs .= wf_delimiter() . $oltDetails[$this->oltId]['ip'] . ' ' . $oltDetails[$this->oltId]['location'] . wf_delimiter();
+        $cells = wf_TableCell(__('OLT'));
+        $cells .= wf_TableCell($oltDetails[$this->oltId]['ip'] . ' ' . $oltDetails[$this->oltId]['location']);
+        $rows .= wf_TableRow($cells);
+        $cells = wf_TableCell(__('Model'));
+        $cells .= wf_tableCell(wf_Selector('onumodelid', $models, '', '', ''));
+        $rows .= wf_TableRow($cells);
         if ($this->cvlan) {
             if (!empty($this->universalAssign)) {
                 if (isset($this->universalAssign[$this->username])) {
-                    $inputs .= 'Found UniversalQINQ assignment: ';
+                    $cells = wf_TableCell('Found UniversalQINQ assignment: ');
                 } else {
-                    $inputs .= 'New vlan pair assigned from pool: ';
+                    $cells = wf_TableCell('New vlan pair assigned from pool: ');
                 }
             } else {
-                $inputs .= 'New vlan pair assigned from pool: ';
+                $cells = wf_TableCell('New vlan pair assigned from pool: ');
             }
-            $inputs .= 'svlan - ' . $this->svlan . ", ";
-            $inputs .= 'cvlan - ' . $this->cvlan . wf_delimiter();
+            $rows .= wf_TableRow($cells);
+            $cells = wf_TableCell('svlan');
+            $cells .= wf_TableCell($this->svlan);
+            $rows .= wf_TableRow($cells);
+            $cells = wf_TableCell('cvlan');
+            $cells .= wf_TableCell($this->cvlan);
+            $rows .= wf_TableRow($cells);
         } else {
-            $inputs .= 'There is no vlan pool for OLT or UniversalQINQ assignment for user' . wf_delimiter();
+            $rows .= 'There is no vlan pool for OLT or UniversalQINQ assignment for user' . wf_delimiter();
         }
-        $inputs .= 'olt interface ' . $interface_olt . wf_delimiter();
-        $inputs .= 'onu interface ' . $interface . wf_delimiter();
-        $inputs .= 'onu identifier ' . $onuId . wf_delimiter();
-        $inputs .= 'port ' . $port . wf_delimiter();
-        $inputs .= 'guest vlan ' . $vlan . wf_delimiter();
+        $cells = wf_TableCell('olt interface');
+        $cells .= wf_TableCell($interface_olt);
+        $rows .= wf_TableRow($cells);
+        $cells = wf_TableCell('onu interface');
+        $cells .= wf_TableCell($interface);
+        $rows .= wf_TableRow($cells);
+        $cells = wf_TableCell('onu identifier');
+        $cells .= wf_TableCell($onuId);
+        $rows .= wf_TableRow($cells);
+        $cells = wf_TableCell('port');
+        $cells .= wf_TableCell($port);
+        $rows .= wf_TableRow($cells);
+        $cells = wf_TableCell('guest vlan');
+        $cells .= wf_TableCell($vlan);
+        $rows .= wf_TableRow($cells);
+        if ($this->cvlan) {
+            $cells = wf_TableCell(wf_Submit(__('Apply')));
+            $rows .= wf_TableRow($cells);
+        }
+        $inputs .= wf_TableBody($rows, '100%', 0, 'sortable');
         $result .= wf_Form('', 'POST', $inputs, 'glamour');
         return($result);
+    }
+
+    /**
+     * Apply cvlan on onu
+     * 
+     * @return void
+     */
+    public function changeVlan() {
+        switch ($this->mode) {
+            case 'bdcom_b':
+                $this->changeOltBdcom();
+                break;
+            default:
+                return ('');
+        }
+        $this->routineAdd();
+    }
+
+    protected function changeOltBdcom() {
+        $this->loadCvlans();
+
+        $pvidData['oid'] = $this->snmpTemplate['vlan']['PVID'] . '.' . ubRouting::post('snmp_index', 'vf') . '.' . ubRouting::post('port', 'vf');
+        $pvidData['type'] = 'i';
+        $pvidData['value'] = ubRouting::post('cvlan', 'vf');
+
+        $saveData['oid'] = $this->snmpTemplate['vlan']['SAVE'];
+        $saveData['type'] = 'i';
+        $saveData['value'] = '1';
+
+        $setData[] = $pvidData;
+        $setData[] = $saveData;
+        @$this->snmp->set($this->oltIp, $this->oltCommunityWrite, $setData);
+
+        rcms_redirect(VlanManagement::MODULE_ONU_APPLY . '&oltid=' . ubRouting::get('oltid', 'mres'));
+    }
+
+    protected function routineAdd() {
+        $this->ponizerRoutineAdd();
+        $this->universalRoutineAdd();
+    }
+
+    protected function ponizerRoutineAdd() {
+        $type = ubRouting::post('type', 'mres');
+        $onuid = ubRouting::post('onuid', 'mres');
+        $oltid = ubRouting::post('oltid', 'mres');
+        $login = ubRouting::post('username', 'mres');
+        $onumodelid = ubRouting::post('onumodelid', 'mres');
+        if (!isset($this->onuMac[$onuid])) {
+            $this->ponizerAdd($type, $oltid, $onumodelid, $onuid, $login);
+        } else {
+            if ($this->onuMac[$onuid]['oltid'] !== $oltid) {
+                $this->ponizerFixOlt($type, $oltid, $onumodelid, $onuid, $login);
+            }
+        }
+    }
+
+    protected function ponizerAdd($type, $oltid, $onumodelid, $onuid, $login) {
+        $pon = new PONizer();
+        switch ($type) {
+            case 'epon':
+                $pon->onuCreate($onumodelid, $oltid, '', $onuid, '', $login);
+        }
+    }
+
+    protected function ponizerFixOlt($type, $oltid, $onumodelid, $onuid, $login) {
+        $pon = new PONizer();
+        switch ($type) {
+            case 'epon':
+                $pon->onuCreate($onumodelid, $oltid, '', $onuid, '', $login);
+        }
+    }
+
+    protected function universalRoutineAdd() {
+        $login = trim(ubRouting::post('username', 'mres'));
+        $svlanid = trim(ubRouting::post('svlanid', 'int'));
+        $svlan = trim(ubRouting::post('svlan', 'int'));
+        $cvlan = trim(ubRouting::post('cvlan', 'int'));
+        if (!isset($this->universalAssign[$login])) {
+            $universal = new UniversalQINQ();
+            $this->cvlanDB->data('login', $login);
+            $this->cvlanDB->data('svlan_id', $svlanid);
+            $this->cvlanDB->data('cvlan', $cvlan);
+            $this->cvlanDB->create();
+            $universal->logAdd($login, $svlan, $cvlan);
+        }
     }
 
 }

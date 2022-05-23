@@ -1,7 +1,5 @@
 <?php
 
-debarr($_POST);
-
 $altCfg = $ubillingConfig->getAlter();
 if ($altCfg['VLAN_MANAGEMENT_ENABLED']) {
     if (cfr('VLANMANAGEMENT')) {
@@ -15,10 +13,14 @@ if ($altCfg['VLAN_MANAGEMENT_ENABLED']) {
             $universalqinq = new UniversalQINQ();
             $userCheck = $universalqinq->isUserExists();
             if ($userCheck) {
-                die($change->changeVlanForm($routing->get('onuid', 'mres'), $routing->get('port', 'mres'), $routing->get('vlan', 'mres'), $routing->get('type', 'mres'), $routing->get('interface', 'mres'), $routing->get('interface_olt', 'mres')));
+                die($change->changeVlanForm($routing->get('onuid', 'mres'), $routing->get('port', 'mres'), $routing->get('vlan', 'mres'), $routing->get('type', 'mres'), $routing->get('interface', 'mres'), $routing->get('interface_olt', 'mres'), $routing->get('snmp_index', 'vf')));
             } else {
                 die("error: user doesn't exist");
             }
+        }
+
+        if ($routing->checkPost('change_cvlan')) {
+            $change->changeVlan();
         }
 
         if ($routing->checkGet('ajaxOltList')) {
