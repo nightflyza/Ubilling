@@ -1905,4 +1905,58 @@ function zb_SanitizeSNMPValue($data) {
     return($result);
 }
 
-?>
+/**
+ * Standard parser for values with units and possible division necessity
+ * for data without ports info
+ *
+ * @param string $data
+ * @param int $divBy 
+ * @param string $units min|max|yellow|red
+ *
+ * @return mixed|string
+ */
+function sp_parse_division_temperature($data, $divBy = '', $units = '') {
+    $result = '';
+    if (!empty($data)
+            and ! ispos($data, 'No Such Object available')
+            and ! ispos($data, 'No more variables left')
+    ) {
+
+        $data = trimSNMPOutput($data, '');
+        $value = $data[1];
+        $value = ubRouting::filters($value, 'float');
+
+        if (!empty($divBy) and is_numeric($divBy)) {
+            $value = $value / $divBy;
+        }
+
+        $min = 5;
+        $max = 100;
+        $yellow = 30;
+        $red = 50;
+        if (!empty($units)) {
+            //mapped from units format: min|max|yellow|red
+            $chartOpts = explode('|', $units);
+            $min = $chartOpts[0];
+            $max = $chartOpts[1];
+            $yellow = $chartOpts[2];
+            $red = $chartOpts[3];
+        }
+
+        $options = 'max: ' . $max . ',
+                    min: ' . $min . ',
+                    width: 280, height: 280,
+                    greenFrom: ' . ($min + 1) . ', greenTo: ' . $yellow . ',
+                    yellowFrom:' . $yellow . ', yellowTo: ' . $red . ',
+                    redFrom: ' . $red . ', redTo: ' . ($max - 1) . ',
+                    minorTicks: 5';
+
+        $result = wf_renderTemperature($value, '', $options);
+    } else {
+        $cells = wf_TableCell(__('Empty reply received'));
+        $rows = wf_TableRow($cells, 'row3');
+        $result = wf_TableBody($rows, '100%', 0, '');
+    }
+
+    return ($result);
+}

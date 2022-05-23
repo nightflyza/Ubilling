@@ -34,6 +34,10 @@ if (cfr('SYSLOAD')) {
     if (wf_CheckGet(array('ajaxcachedata'))) {
         die(zb_ListCacheInform('data'));
     }
+    //cache key data preview 
+    if (wf_CheckGet(array('datacachekeyview'))) {
+        die(zb_CacheInformKeyView(ubRouting::get('datacachekeyview')));
+    }
     // Clear cache
     if (wf_CheckGet(array('ajaxcacheclear'))) {
         die(zb_ListCacheInform('clear'));
@@ -118,14 +122,39 @@ if (cfr('SYSLOAD')) {
         }
     }
 
-    $top = $globconf['TOP'];
-    $top_output = wf_tag('pre') . shell_exec($top) . wf_tag('pre', true);
-    $uptime = $globconf['UPTIME'];
-    $uptime_output = wf_tag('pre') . shell_exec($uptime) . wf_tag('pre', true);
+//system health here
 
-    show_window(__('Process'), $top_output);
-    show_window(__('Uptime'), $uptime_output);
+    $sysHealthControls = wf_AjaxLink('?module=report_sysload&ajsysload=health', wf_img('skins/icon_health.png') . ' ' . __('System health'), 'reportsysloadcontainer', false, 'ubButton') . ' ';
+    $sysHealthControls .= wf_AjaxLink('?module=report_sysload&ajsysload=top', wf_img('skins/icon_process.png') . ' ' . __('Process'), 'reportsysloadcontainer', false, 'ubButton') . ' ';
+    $sysHealthControls .= wf_AjaxLink('?module=report_sysload&ajsysload=uptime', wf_img('skins/icon_uptime.png') . ' ' . __('Uptime'), 'reportsysloadcontainer', false, 'ubButton') . ' ';
+    $sysHealthControls .= wf_AjaxLink('?module=report_sysload&ajsysload=df', wf_img('skins/icon_disks.png') . ' ' . __('Free space'), 'reportsysloadcontainer', false, 'ubButton') . ' ';
+    show_window('', $sysHealthControls);
+
+    $defaultContainerContent = web_ReportSysloadRenderLA();
+    $defaultContainerContent.= web_ReportSysloadRenderDisksCapacity();
+    $sysLoadContainer = wf_AjaxContainer('reportsysloadcontainer', '', $defaultContainerContent);
+
+    if (ubRouting::checkGet('ajsysload')) {
+        $renderAjData = ubRouting::get('ajsysload');
+        switch ($renderAjData) {
+            case 'health':
+                die($defaultContainerContent);
+                break;
+            case 'top':
+                die(web_ReportSysloadRenderTop());
+                break;
+            case 'uptime':
+                die(web_ReportSysloadRenderUptime());
+                break;
+            case 'df':
+                die(web_ReportSysloadRenderDF());
+                break;
+        }
+    }
+
+
+    show_window(__('System health'), $sysLoadContainer);
 } else {
     show_error(__('You cant control this module'));
 }
-?>
+

@@ -997,7 +997,7 @@ function zb_UserRegister($user_data, $goprofile = true) {
     } elseif ($billingconf['REGRANDOM_MAC']) {
 // if random mac needed
 // funny random mac, yeah? :)
-        $mac = '14:' . '88' . ':' . rand(10, 99) . ':' . rand(10, 99) . ':' . rand(10, 99) . ':' . rand(10, 99);
+        $mac = zb_MacGetRandom();
     } else {
         $mac = null;
     }

@@ -946,13 +946,25 @@ class UbillingBranches {
     public function renderUserListJson() {
         $json = new wf_JqDtHelper();
         if (!empty($this->branchesLogins)) {
+
             $allAddress = zb_AddressGetFulladdresslistCached();
             $allRealNames = zb_UserGetAllRealnames();
             $allUserData = zb_UserGetAllStargazerDataAssoc();
             $dnFlag = ($this->altCfg['DN_ONLINE_DETECT']) ? true : false;
             $contractFlag = ($this->altCfg['ONLINE_SHOW_CONTRACT_FIELD']) ? true : false;
             $phonesFlag = (@$this->altCfg['ONLINE_SHOW_PHONES']) ? true : false;
-
+            $ishimuraOption = MultiGen::OPTION_ISHIMURA;
+            $ishimuraTable = MultiGen::NAS_ISHIMURA;
+            $additionalTraffic = array();
+            if (@$this->altCfg[$ishimuraOption]) {
+                $query_hideki = "SELECT `login`,`D0`,`U0` from `" . $ishimuraTable . "` WHERE `month`='" . date("n") . "' AND `year`='" . curyear() . "'";
+                $dataHideki = simple_queryall($query_hideki);
+                if (!empty($dataHideki)) {
+                    foreach ($dataHideki as $io => $each) {
+                        $additionalTraffic[$each['login']] = $each['D0'] + $each['U0'];
+                    }
+                }
+            }
             if ($contractFlag) {
                 $allContracts = zb_UserGetAllLoginContracts();
             }
@@ -964,6 +976,16 @@ class UbillingBranches {
             foreach ($this->branchesLogins as $login => $branchId) {
                 if ($this->isMyUser($login)) {
                     if (isset($allUserData[$login])) {
+                        $tinet = 0;
+                        for ($classcounter = 0; $classcounter <= 9; $classcounter++) {
+                            $dc = 'D' . $classcounter . '';
+                            $uc = 'U' . $classcounter . '';
+                            $tinet = $tinet + ($allUserData[$login][$dc] + $allUserData[$login][$uc]);
+                        }
+                        //ishimura traffic mixing
+                        $currentAdditionalTraff = (isset($additionalTraffic[$login])) ? $additionalTraffic[$login] : 0;
+                        $tinet = $tinet + $currentAdditionalTraff;
+
                         $userLinks = wf_Link(self::URL_TRAFFSTATS . $login, web_stats_icon()) . ' ';
                         $userLinks .= wf_Link(self::URL_USERPROFILE . $login, web_profile_icon()) . ' ';
                         if ($this->altCfg['FAST_CASH_LINK']) {
@@ -989,7 +1011,7 @@ class UbillingBranches {
                             $onlineFlag = (file_exists('content/dn/' . $login)) ? web_star() . ' ' . __('Yes') : web_star_black() . ' ' . __('No');
                             $data[] = $onlineFlag;
                         }
-                        $data[] = zb_TraffToGb(($allUserData[$login]['D0'] + $allUserData[$login]['U0']));
+                        $data[] = zb_TraffToGb($tinet);
                         $data[] = $allUserData[$login]['Cash'];
                         $data[] = $allUserData[$login]['Credit'];
                         $json->addRow($data);

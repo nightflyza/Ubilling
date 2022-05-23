@@ -463,3 +463,7 @@ $lang['def']['No'] = 'Нет';
 $lang['def']['Resume'] = 'Возобновить';
 $lang['def']['on another tariff'] = 'на другой тариф';
 $lang['def']['Day of the next tariff fee'] = 'День начисления абонплаты';
+$lang['def']['Empty reply received'] = 'Получен пустой ответ';
+$lang['def']['Wrong reply received'] = 'Получен неверный ответ';
+$lang['def']['Aerial alert'] = 'Воздушная тревога';
+$lang['def']['since'] = 'с';

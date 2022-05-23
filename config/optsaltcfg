@@ -88,14 +88,6 @@ EXPORT_ENCODING=VARCHAR|Export encoding
 IMPORT_ENCODING=VARCHAR|Import encoding
 CHAPTEREND_PAYEX=true
 
-CHAPTER_BS=Bank statements
-BS_ENABLED=TRIGGER|Bank statements support
-BS_INCHARSET=VARCHAR|Import encoding
-BS_OUTCHARSET=VARCHAR|Export encoding
-BS_OPTIONS=VARCHAR|Bank statements options
-BS_CASHTYPE=VARCHAR|Cash type
-CHAPTEREND_BS=true
-
 CHAPTER_SNMP=SNMP options
 SNMPWALK_PATH=VARCHAR|Path to snmpwalk with needed options
 SNMPCACHE_TIME=VARCHAR|Time to store SNMP raw data cache
@@ -138,13 +130,6 @@ ARPDIAG_LOG=VARCHAR|arpdiag log file
 MACVEN_ENABLED=TRIGGER|Vendor detection by MAC
 MACVEN_CACHE=TRIGGER|Cache mac address vendors
 CHAPTEREND_ARP=true
-
-CHAPTER_NDS=NDS accounting
-NDS_ENABLED=TRIGGER|NDS processing support enabled
-NDS_TAGID=VARCHAR|NDS tag ID
-NDS_TAX_PERCENT=VARCHAR|NDS tax rate
-CHAPTEREND_NDS=true
-
 
 CHAPTER_DISCOUNT=Discounts support
 DISCOUNTS_ENABLED=TRIGGER|Discount support is enabled
@@ -213,7 +198,6 @@ REMOTEAPI_ENABLED=TRIGGER|Remote API calls enabled
 ONEPUNCH_ENABLED=TRIGGER|One-Punch scripts RemoteAPI calls enabled
 SWYMAP_ENABLED=TRIGGER|Switch map enabled
 CUSTMAP_ENABLED=TRIGGER|Custom maps enabled
-FREERADIUS_ENABLED=TRIGGER|Support of Free Radius is enabled
 MULTIGEN_ENABLED=TRIGGER|Multigen support is enabled
 MASSRESET_ENABLED=TRIGGER|Massreset function enabled
 UBIM_REFRESH=VARCHAR|Instant messenger refresh timeout in seconds

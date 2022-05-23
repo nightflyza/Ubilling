@@ -55,6 +55,68 @@ class OpenPayz {
     protected $messages = '';
 
     /**
+     * Placeholder for UbillingConfig object
+     *
+     * @var null
+     */
+    protected $ubConfig = null;
+
+    /**
+     * Placeholder for OP_SMS_NOTIFY_PAYMENTS_PULL_INTERVAL alter.ini option
+     *
+     * @var int
+     */
+    protected $smsNotysPullInterval = 10;
+
+    /**
+     * Placeholder for OP_SMS_NOTIFY_USE_EXTMOBILES alter.ini option
+     *
+     * @var bool
+     */
+    protected $smsUseExtMobiles = false;
+
+    /**
+     * Placeholder for OP_SMS_NOTIFY_FORCED_TRANSLIT alter.ini option
+     *
+     * @var bool
+     */
+    protected $smsForceTranslit = false;
+
+    /**
+     * Placeholder for OP_SMS_NOTIFY_DEBUG_ON alter.ini option
+     *
+     * @var bool
+     */
+    protected $smsDebugON = false;
+
+    /**
+     * Placeholder for OP_SMS_NOTIFY_TEXT alter.ini option
+     *
+     * @var string
+     */
+    protected $smsNotysText = '';
+
+    /**
+     * Placeholder for OP_SMS_NOTIFY_RESPECT_REMINDER_TAGID alter.ini option
+     *
+     * @var bool
+     */
+    protected $smsRespectReminderTagID = false;
+
+    /**
+     * Placeholder for REMINDER_TAGID alter.ini option
+     *
+     * @var int
+     */
+    protected $smsReminderTagID = 0;
+
+    /**
+     * All users tags to use if $smsRespectReminderTagID is true
+     *
+     * @var array
+     */
+    protected $allUsersTags = array();
+    /**
      * Transactions list ajax callback URL
      */
     const URL_AJAX_SOURCE = '?module=openpayz&ajax=true';
@@ -70,9 +132,17 @@ class OpenPayz {
      * @return void
      */
     public function __construct() {
+        global $ubillingConfig;
+        $this->ubConfig = $ubillingConfig;
+
         $this->loadAlter();
+        $this->loadOptions();
         $this->initMessages();
         $this->loadPaySys();
+
+        if ($this->smsRespectReminderTagID) {
+            $this->allUsersTags = zb_UserGetAllTags();
+        }
     }
 
     /**
@@ -87,6 +157,18 @@ class OpenPayz {
         $this->altCfg = $ubillingConfig->getAlter();
     }
 
+    /**
+     * Getting an alter.ini options
+     */
+    protected function loadOptions() {
+        $this->smsNotysPullInterval     = ubRouting::filters($this->ubConfig->getAlterParam('OP_SMS_NOTIFY_PAYMENTS_PULL_INTERVAL', 5), 'int');
+        $this->smsUseExtMobiles         = ubRouting::filters($this->ubConfig->getAlterParam('OP_SMS_NOTIFY_USE_EXTMOBILES'), 'fi', FILTER_VALIDATE_BOOLEAN);
+        $this->smsForceTranslit         = ubRouting::filters($this->ubConfig->getAlterParam('OP_SMS_NOTIFY_FORCED_TRANSLIT'), 'fi', FILTER_VALIDATE_BOOLEAN);
+        $this->smsDebugON               = ubRouting::filters($this->ubConfig->getAlterParam('OP_SMS_NOTIFY_DEBUG_ON'), 'fi', FILTER_VALIDATE_BOOLEAN);
+        $this->smsNotysText             = $this->ubConfig->getAlterParam('OP_SMS_NOTIFY_TEXT', '');
+        $this->smsRespectReminderTagID  = ubRouting::filters($this->ubConfig->getAlterParam('OP_SMS_NOTIFY_RESPECT_REMINDER_TAGID'), 'fi', FILTER_VALIDATE_BOOLEAN);
+        $this->smsReminderTagID         = ubRouting::filters($this->ubConfig->getAlterParam('REMINDER_TAGID', 0), 'int');
+    }
     /**
      * Loads users address list into protected property
      * 
@@ -113,10 +195,9 @@ class OpenPayz {
     protected function loadCustomers() {
         $query = "SELECT * from `op_customers`";
         $allcustomers = simple_queryall($query);
-        $result = array();
+
         if (!empty($allcustomers)) {
             foreach ($allcustomers as $io => $eachcustomer) {
-                $result[$eachcustomer['virtualid']] = $eachcustomer['realid'];
                 $this->allCustomers[$eachcustomer['virtualid']] = $eachcustomer['realid'];
             }
         }
@@ -585,6 +666,182 @@ class OpenPayz {
         show_window(__('Transaction') . ': ' . $transactionId, $result);
     }
 
+    /**
+     * Pulls payments from payment DB for further SMS notifications processing
+     *
+     * @throws Exception
+     *
+     * @return void
+     */
+    public function pullNotysPayments() {
+        $paymentsFound      = array();
+        $paymentsFoundCnt   = 0;
+        $tabPayments        = new NyanORM('payments');
+        $tabNotifications   = new NyanORM('op_sms_notifications');
+
+        if ($this->smsDebugON) {
+            $tabPayments->setDebug(true, true);
+            $tabNotifications->setDebug(true, true);
+        }
+
+        // trying to get timestamp of the very last pulled payment
+        // if nothing was pulled yet - current datetime used
+        $tabNotifications->selectable('MAX(date) AS max_date');
+        $pullDateTimeLast = $tabNotifications->getAll();
+
+        if (!empty($pullDateTimeLast[0]['max_date'])) {
+            $pullDateTimeLast = $pullDateTimeLast[0]['max_date'];
+        } else {
+            $pullDateTimeLast = curdatetime();
+        }
+
+        $pullDateTimeFrom = date('Y:m:d H:i:s', strtotime($pullDateTimeLast . '-' . $this->smsNotysPullInterval . 'min'));
+
+        $tabPayments->where('date', '>=', $pullDateTimeFrom);
+        $tabPayments->where('admin', '=', 'openpayz');
+        $paymentsFound = $tabPayments->getAll('id');
+
+        if (!empty($paymentsFound)) {
+            // get the payments IDs
+            $tmpPaymIDs = array_keys($paymentsFound);
+            $tmpPaymIDs = implode(',', $tmpPaymIDs);
+
+            if ($this->smsDebugON) {
+                log_register('OPAYZ SMS NOTIFY: found payments IDs: ' . $tmpPaymIDs);
+            }
+
+            // try to select those IDs from 'op_sms_notifications'
+            $tabNotifications->whereRaw(' `payment_id` IN (' . $tmpPaymIDs . ') ');
+            $tabNotifications->selectable(array('payment_id'));
+            $tmpNotysFound = $tabNotifications->getAll('payment_id');
+
+            // exclude found payments IDs
+            if (!empty($tmpNotysFound)) {
+                $paymentsFound = array_diff_key($paymentsFound, $tmpNotysFound);
+
+                if ($this->smsDebugON) {
+                    log_register('OPAYZ SMS NOTIFY: found payments IDs with already sent notifications: ' . print_r($tmpNotysFound, true));
+                    log_register('OPAYZ SMS NOTIFY: found payments IDs after exclusion of IDs with already sent notifications: ' . print_r($paymentsFound, true));
+                }
+            }
+
+            if (!empty($paymentsFound)) {
+                foreach ($paymentsFound as $eachID => $eachRec) {
+                    $tmpLogin = $eachRec['login'];
+
+                    // check logins for REMINDER_TAGID presence if $this->smsRespectReminderTagID is true
+                    if ($this->smsRespectReminderTagID and !empty($this->allUsersTags)) {
+                        // skip this payment if login doesn't have REMINDER_TAGID assigned
+                        if (empty($this->allUsersTags[$tmpLogin][$this->smsReminderTagID])) {
+                            if ($this->smsDebugON) {
+                                log_register('OPAYZ SMS NOTIFY: skipping payment with ID: '. $eachID . ' for login: (' . $tmpLogin . ') as it doesn\'t have REMINDER_TAGID [' . $this->smsReminderTagID . '] assigned');
+                            }
+
+                            continue;
+                        }
+                    }
+
+                    $tmpRec = array('payment_id' => $eachID,
+                                    'date'       => $eachRec['date'],
+                                    'login'      => $tmpLogin,
+                                    'balance'    => $eachRec['balance'] + $eachRec['summ'],
+                                    'summ'       => $eachRec['summ']
+                                   );
+
+                    $tabNotifications->dataArr($tmpRec);
+                    $tabNotifications->create();
+                    $paymentsFoundCnt++;
+                }
+            }
+        }
+
+        if (!empty($paymentsFoundCnt) or $this->smsDebugON) {
+            log_register('OPAYZ SMS NOTIFY: pulled ' . $paymentsFoundCnt . ' payment records, starting from: ' . $pullDateTimeFrom);
+        }
+    }
+
+    /**
+     * Handles notifications processing for collected payments
+     *
+     * @throws Exception
+     *
+     * @return void
+     */
+    public function processNotys() {
+        $sentCount = 0;
+        $tabNotifications = new NyanORM('op_sms_notifications');
+
+        if ($this->smsDebugON) {
+            $tabNotifications->setDebug(true, true);
+        }
+
+        $tabNotifications->where('processed', '=', '0');
+        $notysToPush = $tabNotifications->getAll('id');
+
+        if (!empty($notysToPush)) {
+            $ubSMS      = new UbillingSMS();
+            $allPhones  = zb_GetAllAllPhonesCache();
+
+            // init SMS directions cache
+            if ($this->ubConfig->getAlterParam('SMS_SERVICES_ADVANCED_ENABLED')) {
+                $smsDirections = new SMSDirections();
+            }
+
+            foreach ($notysToPush as $eachID => $eachRec) {
+                $login = $eachRec['login'];
+                $noMobilesfound = false;
+
+                if ($this->smsDebugON) {
+                    log_register('OPAYZ SMS NOTIFY: sending message for payment: ' . print_r($eachRec, true));
+                }
+
+                if (isset($allPhones[$login])) {
+                    $usrMobiles = array($allPhones[$login]['mobile']);
+
+                    if ($this->smsUseExtMobiles) {
+                        $usrMobiles = array_merge($usrMobiles, $allPhones[$login]['mobiles']);
+                    }
+
+                    if (!empty($usrMobiles)) {
+                        if ($this->smsDebugON) {
+                            log_register('OPAYZ SMS NOTIFY: found cell numbers: ' . implode(',', $usrMobiles) . ' for user (' . $login . ')');
+                        }
+
+                        $msgText = $this->smsNotysText;
+                        $msgText = str_ireplace('{ROUNDBALANCE}', round($eachRec['balance'], 2), $msgText);
+                        $msgText = str_ireplace('{ROUNDPAYMENTAMOUNT}', round($eachRec['summ'], 2), $msgText);
+
+                        foreach ($usrMobiles as $mobile) {
+                            $mobile = zb_CleanMobileNumber($mobile);
+                            $queueFile = $ubSMS->sendSMS($mobile, $msgText, $this->smsForceTranslit, 'OPENPAYZ');
+                            $ubSMS->setDirection($queueFile, 'user_login', $login);
+
+                            if ($this->smsDebugON) {
+                                log_register('OPAYZ SMS NOTIFY: sent message for user (' . $login . ') to ' . $mobile);
+                            }
+                        }
+
+                        $tabNotifications->where('id', '=', $eachID);
+                        $tabNotifications->data('processed', '1');
+                        $tabNotifications->save();
+                        $sentCount++;
+                    } else {
+                        $noMobilesfound = true;
+                    }
+                } else {
+                    $noMobilesfound = true;
+                }
+
+                if ($this->smsDebugON and $noMobilesfound) {
+                    log_register('OPAYZ SMS NOTIFY: unable to send message for user (' . $login . ') - no assigned cell phone numbers found');
+                }
+            }
+        }
+
+        if ($sentCount > 0 or $this->smsDebugON) {
+            log_register('OPAYZ SMS NOTIFY: sent ' . $sentCount . ' messages');
+        }
+    }
 }
 
 ?>

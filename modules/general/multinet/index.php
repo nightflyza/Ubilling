@@ -11,12 +11,7 @@ if (cfr('MULTINET')) {
             $firstip = ubRouting::post('firstip');
             $lastip = ubRouting::post('lastip');
             $nettype = ubRouting::post('nettypesel');
-            if ($altcfg['FREERADIUS_ENABLED']) {
-                $use_radius = ubRouting::post('use_radius');
-            } else {
-                $use_radius = 0;
-            }
-            multinet_add_network($desc, $firstip, $lastip, $nettype, $use_radius);
+            multinet_add_network($desc, $firstip, $lastip, $nettype);
             ubRouting::nav($urlMe);
         } else {
             show_error(__('No all of required fields is filled'));
@@ -77,7 +72,6 @@ if (cfr('MULTINET')) {
                     simple_update_field('networks', 'endip', $_POST['editendip'], "WHERE `id`='" . $editnet . "'");
                     simple_update_field('networks', 'desc', $_POST['editdesc'], "WHERE `id`='" . $editnet . "'");
                     simple_update_field('networks', 'nettype', $_POST['nettypesel'], "WHERE `id`='" . $editnet . "'");
-                    simple_update_field('networks', 'use_radius', $_POST['edituse_radius'], "WHERE `id`='" . $editnet . "'");
                     log_register('MODIFY MultiNetNet [' . $editnet . ']');
                     ubRouting::nav($urlMe);
                 } else {

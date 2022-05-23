@@ -41,3 +41,7 @@ $lang['def']['cant detect username for'] = 'не получилось опред
 $lang['def']['Multigen sessions'] = 'Сессии КучаГен-а';
 $lang['def']['Show only unfinished'] = 'Показывать только незавершенные';
 $lang['def']['cant detect data columns'] = 'не могу определить структуру данных';
+$lang['def']['Extra chromosome NASes'] = 'NAS-ы с дополнительной хромосомой';
+$lang['def']['Extra chromosome NAS'] = 'NAS с лишней хромосомой';
+$lang['def']['Custom NAS configuration'] = 'Кастомные настройки NAS';
+$lang['def']['IP duplicate'] = 'Дубликат IP';

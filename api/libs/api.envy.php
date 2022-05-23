@@ -649,6 +649,24 @@ class Envy {
 
             foreach ($this->allDevices as $io => $each) {
                 $switchData = @$this->allSwitches[$each['switchid']];
+                $rowClass = 'row5';
+                //this switch may be deleted
+                if (empty($switchData)) {
+                    $switchData = array(
+                        'id' => $each['switchid'],
+                        'modelid' => 0,
+                        'ip' => __('Deleted'),
+                        'desc' => '',
+                        'location' => __('Deleted'),
+                        'snmp' => '',
+                        'geo' => '',
+                        'parentid' => '',
+                        'swid' => '',
+                        'snmpwrite' => '',
+                    );
+                    $rowClass = 'sigdeleteduser';
+                }
+
                 $scriptAvailable = (isset($this->allScripts[$switchData['modelid']])) ? true : false;
                 $modelLabel = ($scriptAvailable) ? wf_img_sized('skins/icon_ok.gif', __('Envy script available'), '12') : wf_img_sized('skins/delete_small.png', __('Envy script unavailable'), '12');
                 $cells = wf_TableCell($each['switchid']);
@@ -671,7 +689,7 @@ class Envy {
                 $devControls .= wf_Link(self::URL_ME . '&' . self::ROUTE_DIFF . '=true' . '&devfilter=' . $each['switchid'], wf_img('skins/diff_icon.png', __('Changes')));
                 $cells .= wf_TableCell($devControls);
 
-                $rows .= wf_TableRow($cells, 'row5');
+                $rows .= wf_TableRow($cells, $rowClass);
 
                 if ($each['active']) {
                     $countActive++;
@@ -812,6 +830,13 @@ class Envy {
             foreach ($this->allConfigs as $io => $each) {
                 if (!$devFilter OR $devFilter == $each['switchid']) {
                     @$switchData = $this->allSwitches[$each['switchid']];
+                    //maybe deleted switch?
+                    if (empty($switchData)) {
+                        $switchData = array(
+                            'ip' => __('Deleted'),
+                            'location' => __('ID') . ' [' . $each['switchid'] . '] ' . __('Deleted'),
+                        );
+                    }
                     $data[] = $each['date'];
                     $data[] = @$switchData['ip'];
                     $data[] = @$switchData['location'];

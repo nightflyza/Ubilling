@@ -77,6 +77,10 @@ class ReportMaster {
      * Creates new ReportMaster instance
      */
     public function __construct() {
+        // All this time I've been waiting
+        // For someone or something to guide me
+        // All this time I've been searching
+        // For truth in my heart
         $this->initMessages();
         $this->setLogin();
         $this->loadReports();
@@ -660,7 +664,7 @@ class ReportMaster {
                         // outside of current protected scope.
                         $result .= $reportCode;
                     } else {
-                        show_error(__('One-Punch') . ' ' . __('script') . ' ' . __('Not exists'));
+                        show_error(__('One-Punch') . ' ' . __('script') . ' [' . $reportData['REPORT_QUERY'] . '] ' . __('Not exists'));
                     }
                 }
             } else {
@@ -820,7 +824,11 @@ class ReportMaster {
             if ($reportData['REPORT_TYPE'] == 'ONEPUNCH') {
                 $onePunch = new OnePunch($reportData['REPORT_QUERY']);
                 $opScript = $onePunch->getAllScripts();
-                $opScript = $opScript[$reportData['REPORT_QUERY']];
+                if (isset($opScript[$reportData['REPORT_QUERY']])) {
+                    $opScript = $opScript[$reportData['REPORT_QUERY']];
+                } else {
+                    $opScript = '';
+                }
                 if (empty($opScript)) {
                     //onepunch script requred for this report not exists?
                     $isOk = false;

@@ -1,6 +1,6 @@
 <?php
 
-$lang['def']['Multigen NAS parameters'] = 'Параметри сервервів КупаГен';
+$lang['def']['Multigen NAS parameters'] = 'Параметри серверів доступу КупаГен';
 $lang['def']['right to control multigen'] = 'Право керувати КупаГеном';
 $lang['def']['Multigen support is enabled'] = 'Підтримка КупаГен увімкнена';
 $lang['def']['Configure Multigen NAS'] = 'Сконфігурувати NAS КупаГен';
@@ -41,3 +41,10 @@ $lang['def']['cant detect username for'] = 'не вийшло визначити
 $lang['def']['Multigen sessions'] = 'Сесії КупаГен-а';
 $lang['def']['Show only unfinished'] = 'Показувати тільки незавершені';
 $lang['def']['cant detect data columns'] = 'не можу визначити структуру даних';
+$lang['def']['Extra chromosome NASes'] = 'NAS-и з додатковою хромосомою';
+$lang['def']['Extra chromosome NAS'] = 'NAS із зайвою хромосомою';
+$lang['def']['Custom NAS configuration'] = 'Кастомні налаштування NAS';
+$lang['def']['IP duplicate'] = 'Дублікат IP';
+$lang['def'][''] = '';
+$lang['def'][''] = '';
+$lang['def'][''] = '';

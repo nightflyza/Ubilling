@@ -27,7 +27,7 @@ if (cfr('PERMISSIONS')) {
 //writing changes
         if ($system->setRightsForUser($targetUser, $targetRights, $rootUser, '1')) {
             show_window('', __('Rights cloned'));
-            log_register("CLONE AdminPermissions FROM {" . $sourceUser . "} TO {" . $targetUser . "}");
+            log_register("UBADMIN CLONE PERMISSIONS FROM {" . $sourceUser . "} TO {" . $targetUser . "}");
             rcms_redirect("?module=permissions&edit=" . $targetUser);
         } else {
             show_error(__('Error occurred'));
@@ -72,8 +72,11 @@ if (cfr('PERMISSIONS')) {
 
         if (!empty($alladmins)) {
             foreach ($alladmins as $eachadmin) {
-                $actions = wf_JSAlert('?module=permissions&delete=' . $eachadmin, web_delete_icon(), 'Removing this may lead to irreparable results') . ' ';
-                $actions .= wf_Link('?module=permissions&passwd=' . $eachadmin, web_key_icon()) . ' ';
+                $deletionUrl = '?module=adminreg&deleteadministrator=' . $eachadmin;
+                $cancelUrl = '?module=permissions';
+                $deleteControl = wf_ConfirmDialog($deletionUrl, web_delete_icon(), __('Removing this may lead to irreparable results'), '', $cancelUrl, __('Delete') . ' ' . $eachadmin . '?');
+                $actions = $deleteControl . ' ';
+                $actions .= wf_Link('?module=adminreg&editadministrator=' . $eachadmin, web_key_icon()) . ' ';
                 $actions .= wf_Link('?module=permissions&edit=' . $eachadmin, web_edit_icon('Rights')) . ' ';
                 if (cfr('ROOT')) {
                     if ($myLogin != $eachadmin) {
@@ -516,59 +519,24 @@ if (cfr('PERMISSIONS')) {
         show_window(__('Rights for') . ' ' . $login, $permission_forms);
     }
 
-    /**
-     * Shows administrator editing form
-     *
-     * @param string $login
-     */
-    function web_admineditform($login) {
-        $userdata = load_user_info($login);
-        $frm = new InputForm('', 'post', __('Submit'));
-        $frm->hidden('username', $userdata['username']);
-        $frm->hidden('save', '1');
-        $frm->addrow(__('Username'), $userdata['username']);
-        $frm->addrow(__('New password') . '<br><small>' . __('if you do not want change password you must leave this field empty'), $frm->text_box('password', ''));
-        $frm->addrow(__('Confirm password'), $frm->text_box('confirmation', ''));
-        $frm->addrow(__('Nickname'), $frm->text_box('nickname', $userdata['nickname']));
-        $frm->addrow(__('E-mail'), $frm->text_box('email', $userdata['email']));
-        $frm->addrow(__('Hide e-mail from other users'), $frm->checkbox('userdata[hideemail]', '1', '', ((!isset($userdata['hideemail'])) ? true : ($userdata['hideemail']) ? true : false)));
-        $frm->addrow(__('Time zone'), user_tz_select($userdata['tz'], 'userdata[tz]'));
-
-        show_window(__('Edit') . ' ' . $login, $frm->show(true));
-    }
-
     //if someone editing administrator permissions
     if (isset($_GET['edit'])) {
         $editname = vf($_GET['edit']);
         if (!empty($_POST['save'])) {
             if ($system->setRightsForUser($editname, @$_POST['_rights'], @$_POST['rootuser'], @$_POST['level'])) {
                 show_window('', __('Rights changed'));
-                log_register("CHANGE AdminPermissions {" . $editname . "}");
+                log_register('UBADMIN PERMISSIONS CHANGE {' . $editname . '} SUCCESS');
                 rcms_redirect("?module=permissions&edit=" . $editname);
             } else {
                 show_error(__('Error occurred'));
+                log_register('UBADMIN PERMISSIONS CHANGE {' . $editname . '} FAIL');
             }
         }
 
         web_permissions_editor($editname);
     }
 
-    //if someone deleting admin
-    if (isset($_GET['delete'])) {
-        user_delete($_GET['delete']);
-        log_register("DELETE AdminAccount {" . $_GET['delete'] . "}");
-        rcms_redirect("?module=permissions");
-    }
 
-    //if editing admins password
-    if (isset($_GET['passwd'])) {
-        if (!empty($_POST['username']) && !empty($_POST['save'])) {
-            $system->updateUser($_POST['username'], $_POST['nickname'], $_POST['password'], $_POST['confirmation'], $_POST['email'], $_POST['userdata'], true);
-            log_register("CHANGE AdminAccountData {" . $_POST['username'] . "}");
-            rcms_redirect("?module=permissions");
-        }
-        web_admineditform($_GET['passwd']);
-    }
 
     //if cloning some rights
     if (wf_CheckPost(array('clonerightsnow', 'admincopyselector'))) {
@@ -589,13 +557,16 @@ if (cfr('PERMISSIONS')) {
         }
     }
 
-    show_window(__('Admins'), web_list_admins());
+    if (!ubRouting::checkGet('passwd') AND ! ubRouting::checkGet('edit')) {
+        //list of existing administrators
+        show_window(__('Admins'), web_list_admins());
 
-    $primaryControls = '';
-    $primaryControls .= wf_Link('?module=adminreg', web_icon_create() . ' ' . __('Administrators registration'), false, 'ubButton');
-    $primaryControls .= wf_Link('?module=admstats', web_icon_charts() . ' ' . __('Administrators timeline'), false, 'ubButton');
-    show_window('', $primaryControls);
+        //other module controls
+        $primaryControls = wf_Link('?module=adminreg', web_icon_create() . ' ' . __('Administrators registration'), false, 'ubButton');
+        $primaryControls .= wf_Link('?module=admstats', web_icon_charts() . ' ' . __('Administrators timeline'), false, 'ubButton');
+        show_window('', $primaryControls);
+    }
 } else {
     show_error(__('You cant control this module'));
 }
-?>
+

@@ -763,8 +763,13 @@ function zbs_XMLAgentRender($data, $mainSection = '', $subSection = '', $format 
 
 
     //pushing result to client
+    $contentType = 'text';
+    if ($format == 'json') {
+        $contentType = 'application/json';
+    }
+
     header('Last-Modified: ' . gmdate('r'));
-    header('Content-Type: text/html; charset=utf-8');
+    header('Content-Type: ' . $contentType . '; charset=UTF-8');
     header("Cache-Control: no-store, no-cache, must-revalidate"); // HTTP/1.1
     header("Pragma: no-cache");
     header('Access-Control-Allow-Origin: *');
@@ -1000,9 +1005,10 @@ function zbs_UserShowXmlAgentData($login) {
     $reqResult[] = array('email' => $email);
     $reqResult[] = array('credit' => @$userdata['Credit']);
     $reqResult[] = array('creditexpire' => $credexpire);
-    $reqResult[] = array('payid' => $paymentid);
+    $reqResult[] = array('payid' => strval($paymentid));
     $reqResult[] = array('contract' => $contract);
     $reqResult[] = array('tariff' => $userdata['Tariff']);
+    $reqResult[] = array('tariffalias' => __($userdata['Tariff']));
     $reqResult[] = array('tariffnm' => $tariffNm);
     $reqResult[] = array('traffdownload' => zbs_convert_size($traffdown));
     $reqResult[] = array('traffupload' => zbs_convert_size($traffup));
@@ -2567,7 +2573,7 @@ function zbs_getFreezeDaysChargeData($login) {
 /**
  * Performs RemoteAPI request to preconfigured billing instance
  * 
- * @param string $requestUrl
+ * @param string $requestUrl RemoteAPI request URL for example: "&action=someaction"
  * 
  * @return string
  */
@@ -2587,4 +2593,55 @@ function zbs_remoteApiRequest($requestUrl) {
     return($result);
 }
 
-?>
+/**
+ * Renders aerial alerts notification
+ * 
+ * @global array $us_config
+ * 
+ * @return void
+ */
+function zbs_AerialAlertNotification() {
+    global $us_config;
+    $rawData = zbs_remoteApiRequest('&action=aerialalerts');
+    $skinPath = zbs_GetCurrentSkinPath($us_config);
+    $iconsPath = $skinPath . 'iconz/';
+    if (!empty($rawData)) {
+        $alertsData = @json_decode($rawData, true);
+        if (is_array($alertsData)) {
+            if (!empty($alertsData)) {
+                if (isset($alertsData['region']) AND isset($alertsData['alert']) AND isset($alertsData['changed'])) {
+                    if ($alertsData['alert']) {
+                        $alertStyle = la_tag('style');
+                        $alertStyle .= '
+                              .alert_aerial {
+                                display: block;
+                                width: 95%;
+                                margin: 20px 3% 0 3%;
+                                margin-top: 2px;
+                                -webkit-border-radius: 5px;
+                                -moz-border-radius: 5px;
+                                border-radius: 5px;
+                                background: #F5F3BA;
+                                border: 1px solid #C7A20D;
+                                color: #796616;
+                                padding: 10px 0;
+                                text-indent: 40px;
+                                font-size: 24px;
+                                } 
+                            ';
+                        $alertStyle .= la_tag('style', true);
+                        $alertText = $alertStyle;
+                        $alertText .= la_tag('div', false, 'alert_aerial');
+                        $alertText .= la_img($iconsPath . 'nuclear_bomb.png', __('Aerial alert')) . ' ' . $alertsData['region'] . ' ' . __('since') . ' ' . $alertsData['changed'];
+                        $alertText .= la_tag('div', true);
+                        show_window(__('Aerial alert') . '!', $alertText);
+                    }
+                }
+            } else {
+                show_window(__('Error'), __('Empty reply received') . ': ' . $rawData);
+            }
+        } else {
+            show_window(__('Error'), __('Wrong reply received') . ': ' . $rawData);
+        }
+    }
+}

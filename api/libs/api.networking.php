@@ -167,9 +167,6 @@ function multinet_show_available_networks() {
     $cells .= wf_TableCell(__('Last IP'));
     $cells .= wf_TableCell(__('Network/CIDR'));
     $cells .= wf_TableCell(__('Network type'));
-    if ($ubillingConfig->getAlterParam('FREERADIUS_ENABLED')) {
-        $cells .= wf_TableCell(__('Use Radius'));
-    }
     $cells .= wf_TableCell(__('Actions'));
     $rows = wf_TableRow($cells, 'row1');
     if (!empty($networks)) {
@@ -179,14 +176,8 @@ function multinet_show_available_networks() {
             $cells .= wf_TableCell($network['endip']);
             $cells .= wf_TableCell($network['desc']);
             $cells .= wf_TableCell($network['nettype']);
-            if ($ubillingConfig->getAlterParam('FREERADIUS_ENABLED')) {
-                $cells .= wf_TableCell(web_bool_led($network['use_radius']));
-            }
             $actions = wf_JSAlert('?module=multinet&deletenet=' . $network['id'], web_delete_icon(), 'Removing this may lead to irreparable results');
             $actions .= wf_JSAlert('?module=multinet&editnet=' . $network['id'], web_edit_icon(), 'Are you serious');
-            if ($ubillingConfig->getAlterParam('FREERADIUS_ENABLED') && $network['use_radius']) {
-                $actions .= wf_Link('?module=freeradius&netid=' . $network['id'], web_icon_freeradius('Set RADIUS-attributes'));
-            }
             $cells .= wf_TableCell($actions);
             $rows .= wf_TableRow($cells, 'row5');
         }
@@ -210,19 +201,12 @@ function multinet_show_neteditform($netid) {
     $netid = vf($netid, 3);
     $netdata = multinet_get_network_params($netid);
 
-    $useRadArr = array('0' => __('No'), '1' => __('Yes'));
-
     $sup = wf_tag('sup') . '*' . wf_tag('sup', true);
     $inputs = wf_HiddenInput('netedit', 'true');
     $inputs .= wf_TextInput('editstartip', __('First IP') . $sup, $netdata['startip'], true, '20', 'ip');
     $inputs .= wf_TextInput('editendip', __('Last IP') . $sup, $netdata['endip'], true, '20', 'ip');
     $inputs .= multinet_nettype_selector($netdata['nettype']) . ' ' . __('Network type') . wf_tag('br');
     $inputs .= wf_TextInput('editdesc', __('Network/CIDR') . $sup, $netdata['desc'], true, '20', 'net-cidr');
-    if ($ubillingConfig->getAlterParam('FREERADIUS_ENABLED')) {
-        $inputs .= wf_Selector('edituse_radius', $useRadArr, __('Use Radius'), $netdata['use_radius'], true);
-    } else {
-        $inputs .= wf_HiddenInput('edituse_radius', '0');
-    }
     $inputs .= wf_Submit(__('Save'));
 
     $form = wf_Form('', "POST", $inputs, 'glamour');
@@ -346,20 +330,12 @@ function multinet_nettype_selector($curnettype = '') {
 function multinet_show_networks_create_form() {
     global $ubillingConfig;
 
-    $useRadArr = array('0' => __('No'), '1' => __('Yes'));
-
     $sup = wf_tag('sup') . '*' . wf_tag('sup', true);
     $inputs = wf_HiddenInput('addnet', 'true');
     $inputs .= wf_TextInput('firstip', __('First IP') . $sup, '', true, '20', 'ip');
     $inputs .= wf_TextInput('lastip', __('Last IP') . $sup, '', true, '20', 'ip');
     $inputs .= multinet_nettype_selector() . ' ' . __('Network type') . wf_tag('br');
     $inputs .= wf_TextInput('desc', __('Network/CIDR') . $sup, '', true, '20', 'net-cidr');
-    if ($ubillingConfig->getAlterParam('FREERADIUS_ENABLED')) {
-        $inputs .= wf_Selector('use_radius', $useRadArr, __('Use Radius'), '', true);
-        $inputs .= wf_tag('br');
-    } else {
-        $inputs .= wf_HiddenInput('use_radius', '0');
-    }
     $inputs .= wf_Submit(__('Create'));
     $form = wf_Form('', 'POST', $inputs, 'glamour');
 
@@ -485,17 +461,16 @@ function multinet_show_service_add_form() {
  * @param string $firstip
  * @param string $lastip
  * @param string $nettype
- * @param int $use_radius
  * 
  * @return void
  */
-function multinet_add_network($desc, $firstip, $lastip, $nettype, $use_radius) {
+function multinet_add_network($desc, $firstip, $lastip, $nettype) {
     $desc = mysql_real_escape_string($desc);
     $firstip = vf($firstip);
     $lastip = vf($lastip);
     $nettype = vf($nettype);
     $query = "INSERT INTO `networks` (`id`, `desc`, `startip`, `endip`, `nettype`, `use_radius` ) VALUES
-              (NULL, '" . $desc . "', '" . $firstip . "', '" . $lastip . "', '" . $nettype . "', '" . $use_radius . "');";
+              (NULL, '" . $desc . "', '" . $firstip . "', '" . $lastip . "', '" . $nettype . "', '0');";
     nr_query($query);
     log_register('ADD MultiNetNet `' . $desc . '`');
 }
@@ -1630,6 +1605,35 @@ function zb_NasAdd($netid, $nasip, $nasname, $nastype, $bandw) {
 }
 
 /**
+ * Updates existing NAS parameters in database
+ * 
+ * @param int $nasid
+ * @param string $nastype
+ * @param string $nasip
+ * @param string $nasname
+ * @param string $nasbwdurl
+ * @param int $netid
+ * 
+ * @return void
+ */
+function zb_NasUpdateParams($nasid, $nastype, $nasip, $nasname, $nasbwdurl, $netid) {
+    $nasid = ubRouting::filters($nasid, 'int');
+    $nastype = ubRouting::filters($nastype, 'mres');
+    $nasip = ubRouting::filters($nasip, 'mres');
+    $nasname = ubRouting::filters($nasname, 'mres');
+    $nasbwdurl = trim(ubRouting::filters($nasbwdurl, 'mres'));
+    $netid = ubRouting::filters($netid, 'int');
+
+    $targetnas = "WHERE `id` = '" . $nasid . "'";
+    simple_update_field('nas', 'nastype', $nastype, $targetnas);
+    simple_update_field('nas', 'nasip', $nasip, $targetnas);
+    simple_update_field('nas', 'nasname', $nasname, $targetnas);
+    simple_update_field('nas', 'bandw', $nasbwdurl, $targetnas);
+    simple_update_field('nas', 'netid', $netid, $targetnas);
+    log_register('NAS EDIT [' . $nasid . '] `' . $nasip . '`');
+}
+
+/**
  * Returns all available NAS data
  * 
  * @return array
@@ -1737,12 +1741,16 @@ function zb_NasConfigSave() {
  * @return void
  */
 function multinet_RestartDhcp() {
-    $config = rcms_parse_ini_file(CONFIG_PATH . 'billing.ini');
-    $sudo = $config['SUDO'];
-    $dhcpd = $config['RC_DHCPD'];
-    $command = $sudo . ' ' . $dhcpd . ' restart';
-    shell_exec($command);
-    log_register("RESTART DHCPD");
+    global $ubillingConfig;
+    $altCfg = $ubillingConfig->getAlter();
+    if (@$altCfg['DHCP_ENABLED']) {
+        $config = $ubillingConfig->getBilling();
+        $sudo = $config['SUDO'];
+        $dhcpd = $config['RC_DHCPD'];
+        $command = $sudo . ' ' . $dhcpd . ' restart';
+        shell_exec($command);
+        log_register('RESTART DHCPD');
+    }
 }
 
 /**
@@ -1990,6 +1998,7 @@ function zb_NewMacShow() {
     $rawdata = shell_exec($command);
     $allusedMacs = zb_getAllUsedMac();
     $result = '';
+    $unknownMacCount = 0;
 
 //fdb cache preprocessing  
     $fdbData_raw = rcms_scandir('./exports/', '*_fdb');
@@ -2051,12 +2060,18 @@ function zb_NewMacShow() {
                         $cells .= wf_TableCell($lookupVendorLink, '350');
                     }
                     $rows .= wf_TableRow($cells, 'row3');
+                    $unknownMacCount++;
                 }
             }
         }
     }
-
-    $result .= wf_TableBody($rows, '100%', '0', 'sortable');
+    if ($unknownMacCount > 0) {
+        $result .= wf_TableBody($rows, '100%', '0', 'sortable');
+    } else {
+        $messages = new UbillingMessageHelper();
+        $result .= $messages->getStyledMessage(__('Nothing to show'), 'info');
+        $result .= wf_delimiter();
+    }
 
 
     return($result);
@@ -2605,4 +2620,27 @@ function ipcidrToStartEndIP($ipcidr, $excludeNetworkAddr = false, $excludeBroadc
     return ($range);
 }
 
-?>
+/**
+ * Just returns random-generated MAC
+ * 
+ * @return string
+ */
+function zb_MacGetRandom() {
+    $result = '14:' . '88' . ':' . rand(10, 99) . ':' . rand(10, 99) . ':' . rand(10, 99) . ':' . rand(10, 99);
+    return($result);
+}
+
+/**
+ * Checks have some IP valid format or not?
+ * 
+ * @param string $ip
+ * 
+ * @return bool
+ */
+function zb_isIPValid($ip) {
+    $result = false;
+    if (filter_var($ip, FILTER_VALIDATE_IP)) {
+        $result = true;
+    }
+    return($result);
+}

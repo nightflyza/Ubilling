@@ -785,9 +785,10 @@ class SendDogAdvanced extends SendDog {
                 if ($io === $lastArrayKey) {
                     $arrayEnd = true;
 // if we're at the end of array and $TmpMessPack is empty - that means that probably array consists only of one element
-                    if (empty($tmpMessagePack)) {
+// but if $TmpMessPack is NOT empty - that probably means that we've reached the last message for the current SMS service(smssrvid)
+                    //if (empty($tmpMessagePack)) {
                         $tmpMessagePack[] = $eachmessage;
-                    }
+                    //}
                 }
 
                 if (is_null($nextServiceId) and is_null($currentServiceId)) {
@@ -836,10 +837,12 @@ class SendDogAdvanced extends SendDog {
             $serviceId = $this->defaultSmsServiceId;
             $serviceApi = $this->defaultSmsServiceApi;
         } else {
-            $serviceApi = $this->servicesApiId[$serviceId];
+            $serviceApi = (empty($this->servicesApiId[$serviceId])) ? '' : $this->servicesApiId[$serviceId];
         }
 
-        if (!empty($serviceApi)) {
+        if (empty($serviceApi)) {
+            log_register('SENDDOG SMS service with ID [' . $serviceId . '] does not exists');
+        } else {
             include_once (self::API_IMPL_PATH . $serviceApi . '.php');
             $tmpApiObj = new $serviceApi($serviceId, $messagePack);
 

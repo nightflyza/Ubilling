@@ -223,7 +223,7 @@ class MobiClubSms extends SMSServiceApi {
                         }
                     }
 
-                    log_register('SENDDOG MobiClubSms checked statuses for ' . count($checkMessages) . ' messages.');
+                    log_register('SENDDOG MobiClubSms checked statuses for ' . count($messagesIDs) . ' messages.');
                 } else {
                     log_register('SENDDOG MobiClubSms failed to check messages statuses. Server answer: ' . $serverAnswer);
                 }

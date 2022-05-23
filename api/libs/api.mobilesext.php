@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Additional users mobile numbers
+ * Additional users mobile numbers basic class
  */
 class MobilesExt {
 
@@ -20,6 +20,13 @@ class MobilesExt {
     protected $allMobiles = array();
 
     /**
+     * Additional mobiles database abstraction layer here.
+     *
+     * @var object
+     */
+    protected $mobilesDb = '';
+
+    /**
      * System message helper object placeholder
      *
      * @var obejct
@@ -27,19 +34,32 @@ class MobilesExt {
     protected $messages = '';
 
     /**
-     * Basic mobule URL
+     * Some predefined stuff such as routes, URLs, etc..
      */
     const URL_ME = '?module=mobileedit';
+    const TABLE_MOBILES = 'mobileext';
+    const ROUTE_LOGIN = 'username';
+    const ROUTE_DELETE_ID = 'deletemobileextid';
+    const PROUTE_NEW_LOGIN = 'newmobileextlogin';
+    const PROUTE_NEW_NUMBER = 'newmobileextnumber';
+    const PROUTE_NEW_NOTES = 'newmobileextnotes';
+    const PROUTE_ED_ID = 'editmobileextid';
+    const PROUTE_ED_NUMBER = 'editmobileextnumber';
+    const PROUTE_ED_NOTES = 'editmobileextnotes';
 
     /**
      * Creates new MobilesExt instance
      * 
-     * 
      * @return void
      */
     public function __construct() {
+        /**
+         * Шива-Шиво, чому так паршиво?
+         * Чому, повинні все це бачити на живо?
+         */
         $this->initMessages();
         $this->loadAlter();
+        $this->initDb();
         $this->loadAllMobiles();
     }
 
@@ -65,19 +85,21 @@ class MobilesExt {
     }
 
     /**
+     * Inits database abstraction layer for further usage.
+     * 
+     * @return void
+     */
+    protected function initDb() {
+        $this->mobilesDb = new NyanORM(self::TABLE_MOBILES);
+    }
+
+    /**
      * Loads all additional mobiles data from database
      * 
      * @return void
      */
     protected function loadAllMobiles() {
-        //loading all additional mobiles from database
-        $query = "SELECT * from `mobileext`";
-        $all = simple_queryall($query);
-        if (!empty($all)) {
-            foreach ($all as $io => $each) {
-                $this->allMobiles[$each['id']] = $each;
-            }
-        }
+        $this->allMobiles = $this->mobilesDb->getAll('id');
     }
 
     /**
@@ -117,16 +139,13 @@ class MobilesExt {
      */
     public function createUserMobile($login, $mobile, $notes = '') {
         $result = '';
-        $loginF = mysql_real_escape_string($login);
-        $mobileF = mysql_real_escape_string($mobile);
-        $notesF = mysql_real_escape_string($notes);
-        if ((!empty($loginF)) AND ( !empty($mobileF))) {
-            $query = "INSERT INTO `mobileext` (`id`,`login`,`mobile`,`notes`) VALUES "
-                    . "(NULL,'" . $loginF . "','" . $mobileF . "','" . $notesF . "');";
-            nr_query($query);
-            $newId = simple_get_lastid('mobileext');
-            $result = $newId;
-            log_register('MOBILEEXT CREATE (' . $login . ') MOBILE `' . $mobile . '` [' . $newId . ']');
+        if ((!empty($login)) AND ( !empty($mobile))) {
+            $this->mobilesDb->data('login', ubRouting::filters($login, 'mres'));
+            $this->mobilesDb->data('mobile', ubRouting::filters($mobile, 'mres'));
+            $this->mobilesDb->data('notes', ubRouting::filters($notes, 'mres'));
+            $this->mobilesDb->create();
+            $result = $this->mobilesDb->getLastId();
+            log_register('MOBILEEXT CREATE (' . $login . ') MOBILE `' . $mobile . '` [' . $result . ']');
         }
         return ($result);
     }
@@ -139,11 +158,11 @@ class MobilesExt {
      * @return void
      */
     public function deleteUserMobile($mobileId) {
-        $mobileId = vf($mobileId, 3);
+        $mobileId = ubRouting::filters($mobileId, 'int');
         if (isset($this->allMobiles[$mobileId])) {
             $mobileData = $this->allMobiles[$mobileId];
-            $query = "DELETE from `mobileext` WHERE `id`='" . $mobileId . "';";
-            nr_query($query);
+            $this->mobilesDb->where('id', '=', $mobileId);
+            $this->mobilesDb->delete();
             log_register('MOBILEEXT DELETE (' . $mobileData['login'] . ') MOBILE `' . $mobileData['mobile'] . '` [' . $mobileId . ']');
         }
     }
@@ -158,18 +177,27 @@ class MobilesExt {
      * @return void
      */
     public function updateUserMobile($mobileId, $mobile, $notes = '') {
-        $mobileId = vf($mobileId, 3);
+        $mobileId = ubRouting::filters($mobileId, 'int');
         if (isset($this->allMobiles[$mobileId])) {
             $mobileData = $this->allMobiles[$mobileId];
-            $where = "WHERE `id`='" . $mobileId . "';";
+            $somethingChanged = false;
+
             if ((!empty($mobile)) AND ( $mobileData['mobile'] != $mobile)) {
-                simple_update_field('mobileext', 'mobile', $mobile, $where);
+                $somethingChanged = true;
+                $this->mobilesDb->data('mobile', ubRouting::filters($mobile, 'mres'));
                 log_register('MOBILEEXT CHANGE (' . $mobileData['login'] . ') MOBILE ON `' . $mobile . '` [' . $mobileId . ']');
             }
 
             if ($mobileData['notes'] != $notes) {
-                simple_update_field('mobileext', 'notes', $notes, $where);
+                $somethingChanged = true;
+                $this->mobilesDb->data('notes', ubRouting::filters($notes, 'mres'));
                 log_register('MOBILEEXT CHANGE (' . $mobileData['login'] . ') NOTES');
+            }
+
+            //push changes to DB
+            if ($somethingChanged) {
+                $this->mobilesDb->where('id', '=', $mobileId);
+                $this->mobilesDb->save();
             }
         }
     }
@@ -183,9 +211,9 @@ class MobilesExt {
         $result = '';
         if (!empty($login)) {
             $formFilter = (@$this->altCfg['MOBILE_FILTERS_DISABLED']) ? '' : 'mobile';
-            $inputs = wf_HiddenInput('newmobileextlogin', $login);
-            $inputs .= wf_TextInput('newmobileextnumber', __('New mobile'), '', false, '20', $formFilter);
-            $inputs .= wf_TextInput('newmobileextnotes', __('New notes'), '', false, '40');
+            $inputs = wf_HiddenInput(self::PROUTE_NEW_LOGIN, $login);
+            $inputs .= wf_TextInput(self::PROUTE_NEW_NUMBER, __('New mobile'), '', false, '20', $formFilter);
+            $inputs .= wf_TextInput(self::PROUTE_NEW_NOTES, __('New notes'), '', false, '40');
             $inputs .= wf_Submit(__('Create'));
             $result .= wf_Form('', 'POST', $inputs, 'glamour');
             $result .= wf_CleanDiv();
@@ -206,9 +234,9 @@ class MobilesExt {
         if (isset($this->allMobiles[$mobileId])) {
             $formFilter = (@$this->altCfg['MOBILE_FILTERS_DISABLED']) ? '' : 'mobile';
             $mobileData = $this->allMobiles[$mobileId];
-            $inputs = wf_HiddenInput('editmobileextid', $mobileId);
-            $inputs .= wf_TextInput('editmobileextnumber', __('Mobile'), $mobileData['mobile'], true, '20', $formFilter);
-            $inputs .= wf_TextInput('editmobileextnotes', __('Notes'), $mobileData['notes'], true, '40');
+            $inputs = wf_HiddenInput(self::PROUTE_ED_ID, $mobileId);
+            $inputs .= wf_TextInput(self::PROUTE_ED_NUMBER, __('Mobile'), $mobileData['mobile'], true, '20', $formFilter);
+            $inputs .= wf_TextInput(self::PROUTE_ED_NOTES, __('Notes'), $mobileData['notes'], true, '40');
             $inputs .= wf_Submit(__('Save'));
             $result .= wf_Form('', 'POST', $inputs, 'glamour');
             $result .= wf_CleanDiv();
@@ -234,7 +262,11 @@ class MobilesExt {
             foreach ($userMobiles as $io => $each) {
                 $cells = wf_TableCell($each['mobile']);
                 $cells .= wf_TableCell($each['notes']);
-                $actLinks = wf_JSAlert(self::URL_ME . '&username=' . $login . '&deleteext=' . $each['id'], web_delete_icon(), $this->messages->getDeleteAlert()) . ' ';
+                $deleteUrl = self::URL_ME . '&' . self::ROUTE_LOGIN . '=' . $login . '&' . self::ROUTE_DELETE_ID . '=' . $each['id'];
+                $cancelUrl = self::URL_ME . '&' . self::ROUTE_LOGIN . '=' . $login;
+                $dialogTitle = __('Delete') . ' ' . __('Additional mobile') . '?';
+                $alertLabel = __('Delete') . ' ' . __('Additional mobile') . ' ' . $each['mobile'] . '? ' . $this->messages->getDeleteAlert();
+                $actLinks = wf_ConfirmDialog($deleteUrl, web_delete_icon(), $alertLabel, '', $cancelUrl, $dialogTitle);
                 $actLinks .= wf_modalAuto(web_edit_icon(), __('Edit') . ' ' . $each['mobile'], $this->renderEditForm($each['id']));
                 $cells .= wf_TableCell($actLinks);
                 $rows .= wf_TableRow($cells, 'row3');
@@ -321,9 +353,9 @@ class MobilesExt {
             //new extmobile form rendering
             if (!empty($numsTmp)) {
                 if (!empty($login)) {
-                    $inputs = wf_HiddenInput('newmobileextlogin', $login);
-                    $inputs .= wf_Selector('newmobileextnumber', $numsTmp, __('New mobile'), '', false);
-                    $inputs .= wf_TextInput('newmobileextnotes', __('New notes'), '', false, '40');
+                    $inputs = wf_HiddenInput(self::PROUTE_NEW_LOGIN, $login);
+                    $inputs .= wf_Selector(self::PROUTE_NEW_NUMBER, $numsTmp, __('New mobile'), '', false);
+                    $inputs .= wf_TextInput(self::PROUTE_NEW_NOTES, __('New notes'), '', false, '40');
                     $inputs .= wf_Submit(__('Create'));
                     $result .= wf_Form('', 'POST', $inputs, 'glamour');
                     $result .= wf_CleanDiv();

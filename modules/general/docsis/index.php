@@ -522,7 +522,7 @@ if (wf_CheckGet(array('ajaxsnmp'))) {
        docsis_ModemProfileShow($_GET['showmodem']); 
    }    
     
- 
+   zb_BillingStats(true);
 } else {
     show_window(__('Error'),__('DOCSIS support is not enabled'));
 }

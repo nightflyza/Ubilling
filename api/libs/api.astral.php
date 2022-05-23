@@ -3988,8 +3988,6 @@ function wf_doSound($url) {
  */
 function wf_renderTemperature($temperature, $title = '', $options = '') {
     $result = '';
-    $gaugeId = wf_InputId();
-
     if (empty($options)) {
         $options = ' max: 100,
                      min: 0,
@@ -3999,10 +3997,40 @@ function wf_renderTemperature($temperature, $title = '', $options = '') {
                      redFrom: 70, redTo: 100,
                      minorTicks: 5';
     }
+    $result = wf_renderGauge($temperature, $title, '°C', $options);
+    return ($result);
+}
 
-    $containerStyle = 'width: 300px; height: 300px; float:left; ';
+/**
+ * Renders generic gauge
+ *
+ * @param float $value
+ * @param string $title
+ * @param string $units
+ * @param string $options
+ * @param int $size
+ *
+ * @return string
+ */
+function wf_renderGauge($value, $title = '', $units = '', $options = '', $size = 300) {
+    $result = '';
+    $gaugeId = wf_InputId();
+    $sizeContainer = $size;
+    $sizeContent = $sizeContainer - 20;
+
+    if (empty($options)) {
+        $options = ' max: 100,
+                     min: 0,
+                     width: ' . $sizeContent . ', height: ' . $sizeContent . ',
+                     greenFrom: 10, greenTo: 60,
+                     yellowFrom:60, yellowTo: 70,
+                     redFrom: 70, redTo: 100,
+                     minorTicks: 5';
+    }
+
+    $containerStyle = 'width: ' . $sizeContainer . 'px; height: ' . $sizeContainer . 'px; float:left; ';
     $result .= wf_tag('div', false, '', 'style="' . $containerStyle . '"');
-    $result .= wf_tag('div', false, '', 'id="temperature_div' . $gaugeId . '"');
+    $result .= wf_tag('div', false, '', 'id="gengauge_div' . $gaugeId . '"');
     $result .= wf_tag('div', true);
     $result .= wf_tag('center') . wf_tag('b') . $title . wf_tag('b', true) . wf_tag('center', true);
     $result .= wf_tag('div', true);
@@ -4017,7 +4045,7 @@ function wf_renderTemperature($temperature, $title = '', $options = '') {
 
             var data = google.visualization.arrayToDataTable([
               [\'Label\', \'Value\'],
-              [\'°C\', ' . $temperature . ']
+              [\'' . $units . '\', ' . $value . ']
 
             ]);
 
@@ -4025,7 +4053,7 @@ function wf_renderTemperature($temperature, $title = '', $options = '') {
              ' . $options . '
             };
 
-            var chart = new google.visualization.Gauge(document.getElementById(\'temperature_div' . $gaugeId . '\'));
+            var chart = new google.visualization.Gauge(document.getElementById(\'gengauge_div' . $gaugeId . '\'));
 
             chart.draw(data, options);
         
@@ -4170,7 +4198,7 @@ function wf_DatesTimesRangeFilter($inTable = true, $tableCellsOnly = false, $tab
 }
 
 /**
- * Jqeury Data tables JSON formatting class
+ * JQuery Data Tables JSON formatting class
  */
 class wf_JqDtHelper {
 
@@ -4237,5 +4265,3 @@ class wf_JqDtHelper {
     }
 
 }
-
-?>

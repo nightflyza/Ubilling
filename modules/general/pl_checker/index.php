@@ -56,8 +56,8 @@ if (cfr('PLCHECKER')) {
         $result = '';
         if (($flag != 1)) {
             $inputs = wf_HiddenInput('fixme', $field);
-            $inputs.= wf_Submit(__('Fix'));
-            $result.=wf_Form('', 'POST', $inputs, '');
+            $inputs .= wf_Submit(__('Fix'));
+            $result .= wf_Form('', 'POST', $inputs, '');
         }
         return($result);
     }
@@ -96,7 +96,7 @@ if (cfr('PLCHECKER')) {
             $userIp = zb_UserGetIP($login);
             if (!empty($userIp)) {
                 $userNetwork = zb_NetworkGetByIp($userIp);
-                $randommac = '14:' . '88' . ':' . rand(10, 99) . ':' . rand(10, 99) . ':' . rand(10, 99) . ':' . rand(10, 99);
+                $randommac = zb_MacGetRandom();
                 if (zb_mac_unique($randommac)) {
                     $newMacvalue = $randommac;
                 } else {
@@ -142,54 +142,54 @@ if (cfr('PLCHECKER')) {
         $nethosts = zb_plchecknethost($login);
 
         $cells = wf_TableCell(__('Status'));
-        $cells.= wf_TableCell(__('Parameter'));
-        $cells.= wf_TableCell(__('Actions'));
+        $cells .= wf_TableCell(__('Parameter'));
+        $cells .= wf_TableCell(__('Actions'));
         $rows = wf_TableRow($cells, 'row1');
 
 
         $cells = wf_TableCell(web_bool_led($emails));
-        $cells.= wf_TableCell(__('Email'));
-        $cells.= wf_TableCell(web_plfixerform($login, 'emails', $emails));
-        $rows.= wf_TableRow($cells, 'row3');
+        $cells .= wf_TableCell(__('Email'));
+        $cells .= wf_TableCell(web_plfixerform($login, 'emails', $emails));
+        $rows .= wf_TableRow($cells, 'row3');
 
         $cells = wf_TableCell(web_bool_led($contracts));
-        $cells.= wf_TableCell(__('Contract'));
-        $cells.= wf_TableCell(web_plfixerform($login, 'contracts', $contracts));
-        $rows.= wf_TableRow($cells, 'row3');
+        $cells .= wf_TableCell(__('Contract'));
+        $cells .= wf_TableCell(web_plfixerform($login, 'contracts', $contracts));
+        $rows .= wf_TableRow($cells, 'row3');
 
         $cells = wf_TableCell(web_bool_led($phones));
-        $cells.= wf_TableCell(__('Phone') . '/' . __('Mobile'));
-        $cells.= wf_TableCell(web_plfixerform($login, 'phones', $phones));
-        $rows.= wf_TableRow($cells, 'row3');
+        $cells .= wf_TableCell(__('Phone') . '/' . __('Mobile'));
+        $cells .= wf_TableCell(web_plfixerform($login, 'phones', $phones));
+        $rows .= wf_TableRow($cells, 'row3');
 
         $cells = wf_TableCell(web_bool_led($realname));
-        $cells.= wf_TableCell(__('Real Name'));
-        $cells.= wf_TableCell(web_plfixerform($login, 'realname', $realname));
-        $rows.= wf_TableRow($cells, 'row3');
+        $cells .= wf_TableCell(__('Real Name'));
+        $cells .= wf_TableCell(web_plfixerform($login, 'realname', $realname));
+        $rows .= wf_TableRow($cells, 'row3');
 
         $cells = wf_TableCell(web_bool_led($userspeeds));
-        $cells.= wf_TableCell(__('Speed override'));
-        $cells.= wf_TableCell(web_plfixerform($login, 'userspeeds', $userspeeds));
-        $rows.= wf_TableRow($cells, 'row3');
+        $cells .= wf_TableCell(__('Speed override'));
+        $cells .= wf_TableCell(web_plfixerform($login, 'userspeeds', $userspeeds));
+        $rows .= wf_TableRow($cells, 'row3');
 
         switch ($nethosts) {
             case 0:
-                $nhProblemType = web_bool_led(0).__('Not exists');
+                $nhProblemType = web_bool_led(0) . __('Not exists');
                 break;
             case -1:
-                $nhProblemType = web_bool_led(0).__('Duplicate');
+                $nhProblemType = web_bool_led(0) . __('Duplicate');
                 break;
             case 1:
                 $nhProblemType = web_bool_led(1);
                 break;
         }
         $cells = wf_TableCell($nhProblemType);
-        $cells.= wf_TableCell(__('Network'));
-        $cells.= wf_TableCell(web_plfixerform($login, 'nethosts', $nethosts));
-        $rows.= wf_TableRow($cells, 'row3');
+        $cells .= wf_TableCell(__('Network'));
+        $cells .= wf_TableCell(web_plfixerform($login, 'nethosts', $nethosts));
+        $rows .= wf_TableRow($cells, 'row3');
 
-        $result.=wf_TableBody($rows, '100%', 0);
-        $result.=web_UserControls($login);
+        $result .= wf_TableBody($rows, '100%', 0);
+        $result .= web_UserControls($login);
         return($result);
     }
 

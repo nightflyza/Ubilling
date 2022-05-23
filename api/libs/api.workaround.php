@@ -283,78 +283,6 @@ function web_EditorStringDataFormContract($fieldnames, $fieldkey, $useraddress, 
 }
 
 /**
- * Returns MAC address changing form - manual input
- * 
- * @param array $fieldnames
- * @param string $fieldkey
- * @param string $useraddress
- * @param string $olddata
- * @return string
- */
-function web_EditorStringDataFormMAC($fieldnames, $fieldkey, $useraddress, $olddata = '') {
-    global $ubillingConfig;
-    $field1 = $fieldnames['fieldname1'];
-    $field2 = $fieldnames['fieldname2'];
-    $altconf = $ubillingConfig->getAlter();
-//mac vendor search
-    if ($altconf['MACVEN_ENABLED']) {
-        $optionState = $altconf['MACVEN_ENABLED'];
-        switch ($optionState) {
-            case 1:
-                $lookupUrl = '?module=macvendor&modalpopup=true&mac=' . $olddata . '&username=';
-                $lookuplink = wf_AjaxLink($lookupUrl, wf_img('skins/macven.gif', __('Device vendor')), 'macvendorcontainer', false);
-                $lookuplink .= wf_AjaxContainerSpan('macvendorcontainer', '', '');
-                break;
-            case 2:
-                $vendorframe = wf_tag('iframe', false, '', 'src="?module=macvendor&mac=' . $olddata . '" width="360" height="160" frameborder="0"');
-                $vendorframe .= wf_tag('iframe', true);
-                $lookuplink = wf_modalAuto(wf_img('skins/macven.gif', __('Device vendor')), __('Device vendor'), $vendorframe, '');
-                break;
-            case 3:
-                $lookupUrl = '?module=macvendor&raw=true&mac=' . $olddata;
-                $lookuplink = wf_AjaxLink($lookupUrl, wf_img('skins/macven.gif', __('Device vendor')), 'macvendorcontainer', false);
-                $lookuplink .= wf_AjaxContainerSpan('macvendorcontainer', '', '');
-                break;
-        }
-    } else {
-        $lookuplink = '';
-    }
-
-
-    if ($altconf['MACCHANGERANDOMDEFAULT']) {
-// funny random mac, yeah? :)
-        $randommac = '14:' . '88' . ':' . rand(10, 99) . ':' . rand(10, 99) . ':' . rand(10, 99) . ':' . rand(10, 99);
-        if (zb_mac_unique($randommac)) {
-            $newvalue = $randommac;
-        } else {
-            show_error('Oops');
-            $newvalue = '';
-        }
-    } else {
-        $newvalue = '';
-    }
-
-
-    $cells = wf_TableCell(__('User'), '', 'row2');
-    $cells .= wf_TableCell($useraddress, '', 'row3');
-    $rows = wf_TableRow($cells);
-    $cells = wf_TableCell($field1 . ' ' . $lookuplink, '', 'row2');
-    $cells .= wf_TableCell($olddata, '', 'row3');
-    $rows .= wf_TableRow($cells);
-    $cells = wf_TableCell($field2, '', 'row2');
-    $cells .= wf_TableCell(wf_TextInput($fieldkey, '', $newvalue, false, ''), '', 'row3');
-    $rows .= wf_TableRow($cells);
-    $table = wf_TableBody($rows, '100%', 0);
-
-    $inputs = $table;
-    $inputs .= wf_Submit(__('Change'));
-    $inputs .= wf_delimiter();
-    $form = wf_Form("", 'POST', $inputs, '');
-
-    return($form);
-}
-
-/**
  * Returns simple MAC address selector
  * 
  * @global object $ubillingConfig
@@ -414,62 +342,82 @@ function zb_NewMacSelect($name = 'newmac') {
 }
 
 /**
- * Returns MAC editing form with default select box
+ * Renders user MAC editing form
  * 
- * @param array  $fieldnames
- * @param string $fieldkey (deprecated?)
- * @param string $useraddress
- * @param string $olddata
- * @return string
+ * @global object $ubillingConfig
+ * @param string $userAddress
+ * @param bool $manualInput
+ * @param string $currentMac
+ * 
+ * @return string 
  */
-function web_EditorStringDataFormMACSelect($fieldnames, $fieldkey, $useraddress, $olddata = '') {
-    $field1 = $fieldnames['fieldname1'];
-    $field2 = $fieldnames['fieldname2'];
-//mac vendor search
+function web_MacEditForm($userAddress = '', $manualInput = false, $currentMac = '') {
     global $ubillingConfig;
-    $alterconf = $ubillingConfig->getAlter();
-    if ($alterconf['MACVEN_ENABLED']) {
-        $optionState = $alterconf['MACVEN_ENABLED'];
+    $altCfg = $ubillingConfig->getAlter();
+    $lookuplink = '';
+    $newValue = '';
+    $result = '';
+    //mac vendor search
+    if ($altCfg['MACVEN_ENABLED']) {
+        $optionState = $altCfg['MACVEN_ENABLED'];
         switch ($optionState) {
             case 1:
-                $lookupUrl = '?module=macvendor&modalpopup=true&mac=' . $olddata . '&username=';
+                $lookupUrl = '?module=macvendor&modalpopup=true&mac=' . $currentMac . '&username=';
                 $lookuplink = wf_AjaxLink($lookupUrl, wf_img('skins/macven.gif', __('Device vendor')), 'macvendorcontainer', false);
                 $lookuplink .= wf_AjaxContainerSpan('macvendorcontainer', '', '');
                 break;
             case 2:
-                $vendorframe = wf_tag('iframe', false, '', 'src="?module=macvendor&mac=' . $olddata . '" width="360" height="160" frameborder="0"');
+                $vendorframe = wf_tag('iframe', false, '', 'src="?module=macvendor&mac=' . $currentMac . '" width="360" height="160" frameborder="0"');
                 $vendorframe .= wf_tag('iframe', true);
                 $lookuplink = wf_modalAuto(wf_img('skins/macven.gif', __('Device vendor')), __('Device vendor'), $vendorframe, '');
                 break;
             case 3:
-                $lookupUrl = '?module=macvendor&raw=true&mac=' . $olddata;
+                $lookupUrl = '?module=macvendor&raw=true&mac=' . $currentMac;
                 $lookuplink = wf_AjaxLink($lookupUrl, wf_img('skins/macven.gif', __('Device vendor')), 'macvendorcontainer', false);
                 $lookuplink .= wf_AjaxContainerSpan('macvendorcontainer', '', '');
                 break;
         }
+    }
+
+    //only for manual input form
+    if ($manualInput) {
+        //random MAC preset
+        if ($altCfg['MACCHANGERANDOMDEFAULT']) {
+            $randomMac = zb_MacGetRandom();
+            if (zb_mac_unique($randomMac)) {
+                $newValue = $randomMac;
+            } else {
+                show_error('Oops');
+                $newValue = '';
+            }
+        }
+    }
+
+    //custom input types here
+    if ($manualInput) {
+        $macInput = wf_TextInput('newmac', '', $newValue, false, '', 'mac');
     } else {
-        $lookuplink = '';
+        $macInput = zb_NewMacSelect();
     }
 
     $cells = wf_TableCell(__('User'), '', 'row2');
-    $cells .= wf_TableCell($useraddress, '', 'row3');
+    $cells .= wf_TableCell($userAddress, '', 'row3');
     $rows = wf_TableRow($cells);
-
-    $cells = wf_TableCell($field1 . ' ' . $lookuplink, '', 'row2');
-    $cells .= wf_TableCell($olddata, '', 'row3');
+    $cells = wf_TableCell(__('Current MAC') . ' ' . $lookuplink, '', 'row2');
+    $cells .= wf_TableCell($currentMac, '', 'row3');
     $rows .= wf_TableRow($cells);
+    $cells = wf_TableCell(__('New MAC'), '', 'row2');
 
-    $cells = wf_TableCell($field2, '', 'row2');
-    $cells .= wf_TableCell(zb_NewMacSelect(), '', 'row3');
+    $cells .= wf_TableCell($macInput, '', 'row3');
     $rows .= wf_TableRow($cells);
     $table = wf_TableBody($rows, '100%', 0);
 
     $inputs = $table;
     $inputs .= wf_Submit(__('Change'));
     $inputs .= wf_delimiter();
-    $form = wf_Form("", 'POST', $inputs, '');
+    $result .= wf_Form('', 'POST', $inputs, '');
 
-    return($form);
+    return($result);
 }
 
 /**
@@ -1699,6 +1647,25 @@ function web_DirectionsEditForm($ruleid) {
 }
 
 /**
+ * Renders some content with title in floating containers. 
+ * 
+ * @param string $title
+ * @param string $content
+ * 
+ * @return string
+ */
+function web_FinRepControls($title = '', $content) {
+    $result = '';
+    $style = 'style="float:left; display:block; height:90px; margin-right: 20px;"';
+    $result .= wf_tag('div', false, '', $style);
+    $result .= wf_tag('h3') . $title . wf_tag('h3', true);
+    $result .= wf_tag('br');
+    $result .= $content;
+    $result .= wf_tag('div', true);
+    return($result);
+}
+
+/**
  * Renders payments extracted from database with some query
  * 
  * @param string $query
@@ -2108,88 +2075,70 @@ function web_GridEditor($titles, $keys, $alldata, $module, $delete = true, $edit
 }
 
 /**
- * Returns NAS editing grid
+ * Returns existing NAS servers list with some controls
  * 
- * @param array $titles
- * @param array $keys
- * @param array $alldata
- * @param string $module
- * @param bool $delete
- * @param bool $edit
- * @param string $prefix
+ * @global object $ubillingConfig
+ * 
  * @return string
  */
-function web_GridEditorNas($titles, $keys, $alldata, $module, $delete = true, $edit = true, $prefix = '') {
+function web_NasList() {
     global $ubillingConfig;
     $altCfg = $ubillingConfig->getAlter();
+    $allNasData = zb_NasGetAllData();
     $messages = new UbillingMessageHelper();
-// Получаем список сетей
     $networks = multinet_get_all_networks();
     $cidrs = array();
+    $result = '';
+    $availableTypes = zb_NasGetTypes();
+
+    //preprocessing networks data
     if (!empty($networks)) {
         foreach ($networks as $network)
             $cidrs[$network['id']] = $network['desc'];
     }
-// Заголовок таблицы
-    $cells = '';
-    foreach ($titles as $title)
-        $cells .= wf_TableCell(__($title));
-    $cells .= wf_TableCell(__('Actions'));
-    $rows = wf_TableRow($cells, 'row1');
 
-// Содержимое таблицы
-    if (!empty($alldata)) {
-        foreach ($alldata as $data) {
-            $cells = '';
+    if (!empty($allNasData)) {
+        $cells = wf_TableCell(__('ID'));
+        $cells .= wf_TableCell(__('Network'));
+        $cells .= wf_TableCell(__('IP'));
+        $cells .= wf_TableCell(__('NAS name'));
+        $cells .= wf_TableCell(__('NAS type'));
+        $cells .= wf_TableCell(__('Graphs URL'));
+        $cells .= wf_TableCell(__('Actions'));
+        $rows = wf_TableRow($cells, 'row1');
+
+        foreach ($allNasData as $io => $eachNasData) {
             $actions = '';
-            if ($delete) {
-                $deleteUrl = '?module=' . $module . '&' . $prefix . 'delete=' . $data['id'];
-                $cancelUrl = '?module=nas';
-                $deleteDialogTitle = __('Delete') . ' ' . __('NAS') . ' ' . $data['nasip'] . '?';
-                $actions .= wf_ConfirmDialog($deleteUrl, web_delete_icon(), $messages->getDeleteAlert(), '', $cancelUrl, $deleteDialogTitle);
+            $deleteUrl = '?module=nas&delete=' . $eachNasData['id'];
+            $cancelUrl = '?module=nas';
+            $deleteDialogTitle = __('Delete') . ' ' . __('NAS') . ' ' . $eachNasData['nasip'] . '?';
+            $actions .= wf_ConfirmDialog($deleteUrl, web_delete_icon(), $messages->getDeleteAlert(), '', $cancelUrl, $deleteDialogTitle);
+            $actions .= wf_Link('?module=nas&edit=' . $eachNasData['id'], web_edit_icon());
+            if ($eachNasData['nastype'] == 'mikrotik' AND $altCfg['MIKROTIK_SUPPORT']) {
+                $actions .= wf_Link('?module=mikrotikextconf&nasid=' . $eachNasData['id'], web_icon_extended('MikroTik extended configuration'));
+            }
+            if ($altCfg['MULTIGEN_ENABLED']) {
+                $actions .= wf_Link('?module=multigen&editnasoptions=' . $eachNasData['id'], web_icon_settings(__('Configure Multigen NAS')));
             }
 
-            if ($edit) {
-                $actions .= wf_Link('?module=' . $module . '&' . $prefix . 'edit=' . $data['id'], web_edit_icon());
-            }
 
-            foreach ($keys as $key) {
-                if (array_key_exists($key, $data)) {
-                    switch ($key) {
-                        case 'netid':
-                            $cells .= wf_TableCell($data[$key] . ': ' . ( ( array_key_exists($data[$key], $cidrs) ) ? $cidrs[$data[$key]] : __('Network not found')));
-                            break;
-                        case 'nastype':
-                            if ($data[$key] == 'mikrotik') {
-                                if ($altCfg['MIKROTIK_SUPPORT']) {
-                                    $actions .= wf_Link('?module=mikrotikextconf&nasid=' . $data['id'], web_icon_extended('MikroTik extended configuration'));
-                                }
-                            }
-                            if ($data[$key] == 'radius') {
-                                if ($altCfg['FREERADIUS_ENABLED']) {
-                                    $actions .= wf_Link('?module=freeradius&nasid=' . $data['id'], web_icon_freeradius('Set RADIUS-attributes'));
-                                }
-                            }
-
-                            if ($altCfg['MULTIGEN_ENABLED']) {
-                                $actions .= wf_Link('?module=multigen&editnasoptions=' . $data['id'], web_icon_settings(__('Configure Multigen NAS')));
-                            }
-                            $cells .= wf_TableCell($data[$key]);
-                            break;
-                        default:
-                            $cells .= wf_TableCell($data[$key]);
-                            break;
-                    }
-                }
-            }
+            $netCidr = (isset($cidrs[$eachNasData['netid']])) ? $cidrs[$eachNasData['netid']] : $eachNasData['netid'] . ': ' . __('Network not found');
+            $nasTypeLabel = (isset($availableTypes[$eachNasData['nastype']])) ? $availableTypes[$eachNasData['nastype']] : $eachNasData['nastype'];
+            $cells = wf_TableCell($eachNasData['id']);
+            $cells .= wf_TableCell($netCidr);
+            $cells .= wf_TableCell($eachNasData['nasip']);
+            $cells .= wf_TableCell($eachNasData['nasname']);
+            $cells .= wf_TableCell($nasTypeLabel);
+            $cells .= wf_TableCell($eachNasData['bandw']);
             $cells .= wf_TableCell($actions);
             $rows .= wf_TableRow($cells, 'row5');
         }
+        $result = wf_TableBody($rows, '100%', 0, 'sortable');
+    } else {
+        $result .= $messages->getStyledMessage(__('Nothing to show'), 'warning');
     }
-// Результат - таблица
-    $result = wf_TableBody($rows, '100%', 0, 'sortable');
-// Отображаем результат
-    return $result;
+
+    return($result);
 }
 
 /**
@@ -2255,20 +2204,27 @@ function web_GridEditorVservices($titles, $keys, $alldata, $module, $delete = tr
 }
 
 /**
- * Retruns nas creation form
+ * Returns array of available NAS types as nastype=>nastypename
  * 
- * @return string
+ * @return array
  */
-function web_NasAddForm() {
-
+function zb_NasGetTypes() {
     $nastypes = array(
         'local' => 'Local NAS',
         'rscriptd' => 'rscriptd',
         'mikrotik' => 'MikroTik',
-        'radius' => 'Radius'
+        'radius' => 'RADIUS'
     );
+    return($nastypes);
+}
 
-
+/**
+ * Retruns NAS creation form
+ * 
+ * @return string
+ */
+function web_NasAddForm() {
+    $nastypes = zb_NasGetTypes();
     $inputs = multinet_network_selector() . wf_tag('label', false, '', 'for="networkselect"') . __('Network') . wf_tag('label', true) . wf_tag('br');
     $inputs .= wf_Selector('newnastype', $nastypes, __('NAS type'), '', true);
     $inputs .= wf_TextInput('newnasip', __('IP'), '', true, '15', 'ip');
@@ -2279,6 +2235,38 @@ function web_NasAddForm() {
     $form = wf_Form('', 'POST', $inputs, 'glamour');
 
     return($form);
+}
+
+/**
+ * Returns NAS editing form
+ * 
+ * @param int $nasId
+ * 
+ * @return string
+ */
+function web_NasEditForm($nasId) {
+    $nasId = ubRouting::filters($nasId, 'int');
+    $nasdata = zb_NasGetData($nasId);
+    $nastypes = zb_NasGetTypes();
+    $currentnetid = $nasdata['netid'];
+    $currentnasip = $nasdata['nasip'];
+    $currentnasname = $nasdata['nasname'];
+    $currentnastype = $nasdata['nastype'];
+    $currentbwdurl = $nasdata['bandw'];
+
+
+
+    //rendering editing form
+    $editinputs = multinet_network_selector($currentnetid) . "<br>";
+    $editinputs .= wf_Selector('editnastype', $nastypes, 'NAS type', $currentnastype, true);
+    $editinputs .= wf_TextInput('editnasip', 'IP', $currentnasip, true, '15', 'ip');
+    $editinputs .= wf_TextInput('editnasname', 'NAS name', $currentnasname, true, '15');
+    $editinputs .= wf_TextInput('editnasbwdurl', 'Graphs URL', $currentbwdurl, true, '25');
+    $editinputs .= wf_Submit('Save');
+    $result = wf_Form('', 'POST', $editinputs, 'glamour');
+    $result .= wf_delimiter();
+    $result .= wf_BackLink('?module=nas');
+    return($result);
 }
 
 /**
@@ -3126,13 +3114,18 @@ function zb_NumUnEncode($data) {
 function web_UserArrayShower($usersarr) {
     global $ubillingConfig;
     $alterconf = $ubillingConfig->getAlter();
+    $useCacheFlag = (@$alterconf['USERLISTS_USE_CACHE']) ? true : false;
 
     if (!empty($usersarr)) {
         $totalCount = 0;
         $activeCount = 0;
         $deadCount = 0;
         $frozenCount = 0;
-        $allUserData = zb_UserGetAllDataCache();
+        if ($useCacheFlag) {
+            $allUserData = zb_UserGetAllDataCache();
+        } else {
+            $allUserData = zb_UserGetAllData();
+        }
 
         if ($alterconf['ONLINE_LAT']) {
             $allUserLat = zb_LatGetAllUsers();
@@ -3234,8 +3227,10 @@ function web_UserArrayShower($usersarr) {
 
         $result = wf_TableBody($tablerows, '100%', '0', 'sortable');
 
-        $result .= wf_img_sized('skins/icon_stats_16.gif', '', '12') . ' ' . __('Total') . ': ' . $totalCount . wf_tag('br');
+        $totalsIcon = ($useCacheFlag) ? wf_img_sized('skins/icon_cache.png', __('From cache'), '12') : wf_img_sized('skins/icon_stats_16.gif', '', '12');
+        $result .= $totalsIcon . ' ' . __('Total') . ': ' . $totalCount . wf_tag('br');
         $result .= wf_img_sized('skins/icon_ok.gif', '', '12') . ' ' . __('Alive') . ': ' . $activeCount . wf_tag('br');
+        $result .= wf_img_sized('skins/icon_inactive.gif', '', '12') . ' ' . __('Inactive') . ': ' . $deadCount . wf_tag('br');
         $result .= wf_img_sized('skins/icon_passive.gif', '', '12') . ' ' . __('Frozen') . ': ' . $frozenCount . wf_tag('br');
         $result .= wf_tag('br');
     } else {
@@ -4347,7 +4342,7 @@ function zb_TranslitString($string, $caseSensetive = false) {
             "ё" => "e", "Ё" => "E",
             "ж" => "zh", "Ж" => "Zh",
             "з" => "z", "З" => "Z",
-            "и" => "i", "И" => "I",
+            "и" => "y", "И" => "Y",
             "й" => "y", "Й" => "Y",
             "к" => "k", "К" => "K",
             "л" => "l", "Л" => "L",
@@ -4376,6 +4371,11 @@ function zb_TranslitString($string, $caseSensetive = false) {
             "є" => "e", "Є" => "E",
             "ґ" => "g", "Ґ" => "G"
         );
+
+        if (curlang() == 'ru') {
+            $replace['и'] = 'i';
+            $replace['И'] = 'I';
+        }
     } else {
         $replace = array(
             "'" => "",
@@ -4389,7 +4389,7 @@ function zb_TranslitString($string, $caseSensetive = false) {
             "ё" => "e", "Ё" => "e",
             "ж" => "zh", "Ж" => "zh",
             "з" => "z", "З" => "z",
-            "и" => "i", "И" => "i",
+            "и" => "y", "И" => "y",
             "й" => "y", "Й" => "y",
             "к" => "k", "К" => "k",
             "л" => "l", "Л" => "l",
@@ -4418,6 +4418,11 @@ function zb_TranslitString($string, $caseSensetive = false) {
             "є" => "e", "Є" => "e",
             "ґ" => "g", "Ґ" => "g"
         );
+
+        if (curlang() == 'ru') {
+            $replace['и'] = 'i';
+            $replace['И'] = 'i';
+        }
     }
     return $str = iconv("UTF-8", "UTF-8//IGNORE", strtr($string, $replace));
 }
@@ -4585,307 +4590,6 @@ function zb_AnalyticsTaskmanGetCountYear($year) {
 }
 
 /**
- * Returns graph with dynamics if ARPU change during the year
- * 
- * @param int $year
- * @return string
- */
-function web_AnalyticsArpuMonthGraph($year) {
-    global $ubillingConfig;
-    $year = vf($year, 3);
-    $months = months_array();
-    $tmpArr = array();
-    $chartData = array(0 => array(__('Month'), __('ARPU')));
-    $chartOptions = "
-            'focusTarget': 'category',
-                        'hAxis': {
-                        'color': 'none',
-                            'baselineColor': 'none',
-                    },
-                        'vAxis': {
-                        'color': 'none',
-                            'baselineColor': 'none',
-                    },
-                        'curveType': 'function',
-                        'pointSize': 5,
-                        'crosshair': {
-                        trigger: 'none'
-                    },";
-
-// Exclude some Cash types ID from query
-    $dopWhere = '';
-    if ($ubillingConfig->getAlterParam('REPORT_FINANCE_IGNORE_ID')) {
-        $exIdArr = array_map('trim', explode(',', $ubillingConfig->getAlterParam('REPORT_FINANCE_IGNORE_ID')));
-        $exIdArr = array_filter($exIdArr);
-// Create and WHERE to query
-        if (!empty($exIdArr)) {
-            $dopWhere = ' AND ';
-            $dopWhere .= ' `cashtypeid` != ' . implode(' AND `cashtypeid` != ', $exIdArr);
-        }
-    }
-
-    $query = "SELECT * from `payments` WHERE `date` LIKE '" . $year . "-%' AND `summ` > 0 " . $dopWhere;
-    $allPayments = simple_queryall($query);
-
-    if (!empty($allPayments)) {
-        foreach ($allPayments as $io => $each) {
-            $time = strtotime($each['date']);
-            $month = date("m", $time);
-            if (isset($tmpArr[$month])) {
-                $tmpArr[$month]['count'] ++;
-                $tmpArr[$month]['summ'] = $tmpArr[$month]['summ'] + $each['summ'];
-            } else {
-                $tmpArr[$month]['count'] = 1;
-                $tmpArr[$month]['summ'] = $each['summ'];
-            }
-        }
-    }
-
-    foreach ($months as $eachmonth => $monthname) {
-        $month_summ = isset($tmpArr[$eachmonth]) ? $tmpArr[$eachmonth]['summ'] : 0;
-        $paycount = isset($tmpArr[$eachmonth]) ? $tmpArr[$eachmonth]['count'] : 0;
-        if ($paycount != 0) {
-            $arpu = round($month_summ / $paycount, 2);
-        } else {
-            $arpu = 0;
-        }
-        $chartData[] = array($year . '-' . $eachmonth, $arpu);
-    }
-
-    $result = wf_gchartsLine($chartData, __('Dynamics of changes in ARPU for the year'), '100%', '400px', $chartOptions) . wf_delimiter();
-
-    return ($result);
-}
-
-/**
- * Returns graph of per month payment dynamics
- * 
- * @param int $year
- * @return string
- */
-function web_AnalyticsPaymentsMonthGraph($year) {
-    global $ubillingConfig;
-    $year = vf($year, 3);
-    $months = months_array();
-    $tmpArr = array();
-    $chartData = array(0 => array(__('Month'), __('Payments count'), __('Cash')));
-
-    $chartOptions = "
-            'focusTarget': 'category',
-                        'hAxis': {
-                        'color': 'none',
-                            'baselineColor': 'none',
-                    },
-                        'vAxis': {
-                        'color': 'none',
-                            'baselineColor': 'none',
-                    },
-                        'curveType': 'function',
-                        'pointSize': 5,
-                        'crosshair': {
-                        trigger: 'none'
-                    },";
-
-// Exclude some Cash types ID from query
-    $dopWhere = '';
-    if ($ubillingConfig->getAlterParam('REPORT_FINANCE_IGNORE_ID')) {
-        $exIdArr = array_map('trim', explode(',', $ubillingConfig->getAlterParam('REPORT_FINANCE_IGNORE_ID')));
-        $exIdArr = array_filter($exIdArr);
-// Create and WHERE to query
-        if (!empty($exIdArr)) {
-            $dopWhere = ' AND ';
-            $dopWhere .= ' `cashtypeid` != ' . implode(' AND `cashtypeid` != ', $exIdArr);
-        }
-    }
-
-    $query = "SELECT * from `payments` WHERE `date` LIKE '" . $year . "-%' AND `summ` > 0 " . $dopWhere;
-    $allPayments = simple_queryall($query);
-
-    if (!empty($allPayments)) {
-        foreach ($allPayments as $io => $each) {
-            $time = strtotime($each['date']);
-            $month = date("m", $time);
-            if (isset($tmpArr[$month])) {
-                $tmpArr[$month]['count'] ++;
-                $tmpArr[$month]['summ'] = $tmpArr[$month]['summ'] + $each['summ'];
-            } else {
-                $tmpArr[$month]['count'] = 1;
-                $tmpArr[$month]['summ'] = $each['summ'];
-            }
-        }
-    }
-
-    foreach ($months as $eachmonth => $monthname) {
-        $month_summ = isset($tmpArr[$eachmonth]) ? $tmpArr[$eachmonth]['summ'] : 0;
-        $paycount = isset($tmpArr[$eachmonth]) ? $tmpArr[$eachmonth]['count'] : 0;
-        $chartData[] = array($year . '-' . $eachmonth, $paycount, $month_summ);
-    }
-
-    $result = wf_gchartsLine($chartData, __('Dynamics of cash flow for the year'), '100%', '400px', $chartOptions) . wf_delimiter();
-    return ($result);
-}
-
-/**
- * Returns graph of signups per year dynamics
- * 
- * @param int $year
- * @return string
- */
-function web_AnalyticsSignupsMonthGraph($year) {
-    $allmonths = months_array();
-    $yearcount = zb_AnalyticsSignupsGetCountYear($year);
-    $chartData = array(0 => array(__('Month'), __('Signups')));
-
-    $chartOptions = "
-            'focusTarget': 'category',
-                        'hAxis': {
-                        'color': 'none',
-                            'baselineColor': 'none',
-                    },
-                        'vAxis': {
-                        'color': 'none',
-                            'baselineColor': 'none',
-                    },
-                        'curveType': 'function',
-                        'pointSize': 5,
-                        'crosshair': {
-                        trigger: 'none'
-                    },";
-
-    foreach ($yearcount as $eachmonth => $count) {
-        $chartData[] = array($year . '-' . $eachmonth, $count);
-    }
-
-    $result = wf_gchartsLine($chartData, __('Dynamics of change signups of the year'), '100%', '400px', $chartOptions) . wf_delimiter();
-    return ($result);
-}
-
-/**
- * Returns graph of received signup requests
- * 
- * @param int $year
- * @return string
- */
-function web_AnalyticsSigReqMonthGraph($year) {
-    $allmonths = months_array();
-    $yearcount = zb_AnalyticsSigReqGetCountYear($year);
-
-    $chartData = array(0 => array(__('Month'), __('Signup requests')));
-
-    $chartOptions = "
-            'focusTarget': 'category',
-                        'hAxis': {
-                        'color': 'none',
-                            'baselineColor': 'none',
-                    },
-                        'vAxis': {
-                        'color': 'none',
-                            'baselineColor': 'none',
-                    },
-                        'curveType': 'function',
-                        'pointSize': 5,
-                        'crosshair': {
-                        trigger: 'none'
-                    },";
-
-
-    foreach ($yearcount as $eachmonth => $count) {
-        $chartData[] = array($year . '-' . $eachmonth, $count);
-    }
-
-    $result = wf_gchartsLine($chartData, __('Signup requests received during the year'), '100%', '400px', $chartOptions) . wf_delimiter();
-    return ($result);
-}
-
-/**
- * Returns graph of received user tickets in helpdesk
- * 
- * @param int $year
- * @return string
- */
-function web_AnalyticsTicketingMonthGraph($year) {
-    $allmonths = months_array();
-    $yearcount = zb_AnalyticsTicketingGetCountYear($year);
-    $chartData = array(0 => array(__('Month'), __('Ticket')));
-
-    $chartOptions = "
-            'focusTarget': 'category',
-                        'hAxis': {
-                        'color': 'none',
-                            'baselineColor': 'none',
-                    },
-                        'vAxis': {
-                        'color': 'none',
-                            'baselineColor': 'none',
-                    },
-                        'curveType': 'function',
-                        'pointSize': 5,
-                        'crosshair': {
-                        trigger: 'none'
-                    },";
-
-
-    foreach ($yearcount as $eachmonth => $count) {
-        $chartData[] = array($year . '-' . $eachmonth, $count);
-    }
-
-    $result = wf_gchartsLine($chartData, __('Ticketing activity during the year'), '100%', '400px', $chartOptions) . wf_delimiter();
-    return ($result);
-}
-
-/**
- * Returns graph of planned tasks in taskmanager
- * 
- * @param int $year
- * @return string
- */
-function web_AnalyticsTaskmanMonthGraph($year) {
-    $allmonths = months_array();
-    $yearcount = zb_AnalyticsTaskmanGetCountYear($year);
-    $chartData = array(0 => array(__('Month'), __('Jobs')));
-    $chartOptions = "
-            'focusTarget': 'category',
-                        'hAxis': {
-                        'color': 'none',
-                            'baselineColor': 'none',
-                    },
-                        'vAxis': {
-                        'color': 'none',
-                            'baselineColor': 'none',
-                    },
-                        'curveType': 'function',
-                        'pointSize': 5,
-                        'crosshair': {
-                        trigger: 'none'
-                    },";
-
-
-    foreach ($yearcount as $eachmonth => $count) {
-        $chartData[] = array($year . '-' . $eachmonth, $count);
-    }
-
-
-    $result = wf_gchartsLine($chartData, __('Task manager activity during the year'), '100%', '400px', $chartOptions) . wf_delimiter();
-    return ($result);
-}
-
-/**
- * Returns all analytics report charts
- * 
- * @param int $year
- * @return string
- */
-function web_AnalyticsAllGraphs($year) {
-    $graphs = web_AnalyticsArpuMonthGraph($year);
-    $graphs .= web_AnalyticsPaymentsMonthGraph($year);
-    $graphs .= web_AnalyticsSignupsMonthGraph($year);
-    $graphs .= web_AnalyticsSigReqMonthGraph($year);
-    $graphs .= web_AnalyticsTicketingMonthGraph($year);
-    $graphs .= web_AnalyticsTaskmanMonthGraph($year);
-    return ($graphs);
-}
-
-/**
  * Initializes file download procedure
  * 
  * @param string $filePath
@@ -4909,6 +4613,10 @@ function zb_DownloadFile($filePath, $contentType = '') {
                     $contentType = 'text/csv; charset=Windows-1251';
                 }
 
+                if ($contentType == 'excel') {
+                    $contentType = 'application/vnd.ms-excel';
+                }
+
                 if ($contentType == 'text') {
                     $contentType = 'text/plain;';
                 }
@@ -4916,13 +4624,19 @@ function zb_DownloadFile($filePath, $contentType = '') {
                 if ($contentType == 'jpg') {
                     $contentType = 'Content-Type: image/jpeg';
                 }
+
+                if ($contentType == 'png') {
+                    $contentType = 'Content-Type: image/png';
+                }
             }
 
             header('Content-Type: ' . $contentType);
             header("Content-Transfer-Encoding: Binary");
             header("Content-disposition: attachment; filename=\"" . basename($filePath) . "\"");
             header("Content-Description: File Transfer");
+            header("Accept-Ranges: 'bytes'");
             header("Content-Length: " . filesize($filePath));
+
 
             flush(); // this doesn't really matter.
             $fp = fopen($filePath, "r");
@@ -5154,32 +4868,6 @@ function zb_CreditLogGetAll() {
             $result[$each['login']] = $each['date'];
         }
     }
-    return ($result);
-}
-
-/**
- * returns list of available free radius clients/nases
- * 
- * @return string
- */
-function web_FreeRadiusListClients() {
-    $result = __('Nothing found');
-    $query = "SELECT * from `radius_clients`";
-    $all = simple_queryall($query);
-    if (!empty($all)) {
-        $cells = wf_TableCell(__('IP'));
-        $cells .= wf_TableCell(__('NAS name'));
-        $cells .= wf_TableCell(__('Radius secret'));
-        $rows = wf_TableRow($cells, 'row1');
-        foreach ($all as $io => $each) {
-            $cells = wf_TableCell($each['nasname']);
-            $cells .= wf_TableCell($each['shortname']);
-            $cells .= wf_TableCell($each['secret']);
-            $rows .= wf_TableRow($cells, 'row3');
-        }
-        $result = wf_TableBody($rows, '100%', '0', 'sortable');
-    }
-
     return ($result);
 }
 
@@ -5824,9 +5512,34 @@ function zb_ListCacheInformRenderContainer() {
 }
 
 /**
+ * Renders cache data as auto-open modal dialog
+ * 
+ * @param string $dataKey
+ * 
+ * @return string
+ */
+function zb_CacheInformKeyView($dataKey) {
+    $result = '';
+    $cache = new UbillingCache();
+    $allCache = $cache->getAllcache(true);
+    if (!empty($allCache)) {
+        foreach ($allCache as $io => $each) {
+            if ($each['key'] == $dataKey) {
+                $readableData = print_r($each['value'], true);
+                $value = wf_tag('pre') . htmlspecialchars($readableData) . wf_tag('pre', true);
+                $result .= wf_modalOpened(__('Cache information') . ': ' . $dataKey, $value, '800', '600');
+            }
+        }
+    }
+    return($result);
+}
+
+/**
  * Renders list of cache data
  * 
  * @global object $system
+ * 
+ * @param string $param
  * 
  * @return string
  */
@@ -5834,13 +5547,13 @@ function zb_ListCacheInform($param = '') {
     $cache = new UbillingCache();
     $messages = new UbillingMessageHelper();
     ($param == 'clear') ? $cache->deleteAllcache() : '';
-    $data = ($param == 'data') ? $cache->getAllcache($param) : $cache->getAllcache();
+    $data = (ispos($param, 'data')) ? $cache->getAllcache($param) : $cache->getAllcache();
     $result = '';
     if (!empty($data) and $param != 'clear') {
         $cells = wf_TableCell(__('ID'));
         $cells .= wf_TableCell(__('Key'));
 
-        if ($param == 'data') {
+        if (ispos($param, 'data')) {
             $cells .= wf_TableCell(__('Entries'));
             $cells .= wf_TableCell(__('Data'));
         }
@@ -5848,7 +5561,7 @@ function zb_ListCacheInform($param = '') {
 
         foreach ($data as $id => $key) {
             $cells = wf_TableCell($id);
-            if ($param == 'data') {
+            if (ispos($param, 'data')) {
                 $cells .= wf_TableCell($key['key'], '', '', 'sorttable_customkey="' . $id . '"');
                 if (is_array($key['value'])) { // needed to prevent e_warnings on PHP 7.3
                     $dataCount = sizeof($key['value']);
@@ -5857,15 +5570,18 @@ function zb_ListCacheInform($param = '') {
                 }
                 $readableData = print_r($key['value'], true);
                 $dataSize = stg_convert_size(strlen($readableData));
-                $value = wf_tag('pre') . htmlspecialchars($readableData) . wf_tag('pre', true);
                 $cells .= wf_TableCell($dataCount . ' ~ ' . $dataSize);
                 $keyActions = '';
-                $viewControls = wf_modal(wf_img_sized('skins/icon_search_small.gif', '', '10') . ' ' . __('Cache data'), __('Cache information') . ': ' . $key['key'], $value, 'ubButton', '800', '600') . ' ';
+
+                $viewContainerId = 'aj_viewcachekey' . $key['key'];
+                $viewUrl = '?module=report_sysload&datacachekeyview=' . $key['key'];
+                $viewAjLink = wf_AjaxLink($viewUrl, wf_img_sized('skins/icon_search_small.gif', '', '10') . ' ' . __('Cache data'), $viewContainerId, false, 'ubButton');
+                $viewControls = $viewAjLink;
                 $ajDeleteContainerId = 'aj_deletecachekey' . $key['key'];
                 $deleteUrl = '?module=report_sysload&deletecachekey=' . $key['key'];
                 $deleteControls = wf_AjaxLink($deleteUrl, wf_img_sized('skins/icon_del.gif', '', '10') . ' ' . __('Delete'), $ajDeleteContainerId, false, 'ubButton');
                 $keyActions .= wf_AjaxContainer($ajDeleteContainerId, '', $deleteControls . $viewControls);
-
+                $keyActions .= wf_AjaxContainerSpan($viewContainerId, '');
 
                 $cells .= wf_TableCell($keyActions);
             } else {
@@ -6613,29 +6329,24 @@ function zb_split_mb($string, $length = 1) {
 }
 
 /**
- * Returns list of available free Juniper NASes
- * 
- * @return string
+ * Tries to re-format incorrectly inputted cell number to bring it to the correct form
+ *
+ * @param $number
+ *
+ * @return bool|mixed|string
  */
-function web_JuniperListClients() {
-    $result = __('Nothing found');
-    $query = "SELECT * from `jun_clients`";
-    $all = simple_queryall($query);
-    if (!empty($all)) {
-        $cells = wf_TableCell(__('IP'));
-        $cells .= wf_TableCell(__('NAS name'));
-        $cells .= wf_TableCell(__('Radius secret'));
-        $rows = wf_TableRow($cells, 'row1');
-        foreach ($all as $io => $each) {
-            $cells = wf_TableCell($each['nasname']);
-            $cells .= wf_TableCell($each['shortname']);
-            $cells .= wf_TableCell($each['secret']);
-            $rows .= wf_TableRow($cells, 'row3');
-        }
-        $result = wf_TableBody($rows, '100%', '0', 'sortable');
+function zb_CleanMobileNumber($number) {
+    if (!empty($number) and substr(trim($number), 0, 1) != '+') {
+        global $ubillingConfig;
+        $prefix = $ubillingConfig->getAlterParam('REMINDER_PREFIX', '');
+
+        $number = trim($number);
+        $number = ubRouting::filters($number, 'int');
+        $number = SendDog::cutInternationalsFromPhoneNum($number);
+        $number = $prefix . $number;
     }
 
-    return ($result);
+    return ($number);
 }
 
 /**
@@ -6644,22 +6355,220 @@ function web_JuniperListClients() {
  * @return string
  */
 function web_MultigenListClients() {
-    $result = __('Nothing found');
-    $query = "SELECT * from `" . MultiGen::CLIENTS . "`";
-    $all = simple_queryall($query);
-    if (!empty($all)) {
+    $result = '';
+    $mlgClientsDb = new NyanORM(MultiGen::CLIENTS);
+    $allClients = $mlgClientsDb->getAll();
+    $mlgEcn = new MultigenECN();
+    if (!empty($allClients)) {
         $cells = wf_TableCell(__('IP'));
         $cells .= wf_TableCell(__('NAS name'));
-        $cells .= wf_TableCell(__('Radius secret'));
+        $cells .= wf_TableCell(__('RADIUS secret'));
         $rows = wf_TableRow($cells, 'row1');
-        foreach ($all as $io => $each) {
+        foreach ($allClients as $io => $each) {
             $cells = wf_TableCell($each['nasname']);
-            $cells .= wf_TableCell($each['shortname']);
+            $cells .= wf_TableCell($each['shortname'] . $mlgEcn->getIndicator($each['nasname']));
             $cells .= wf_TableCell($each['secret']);
-            $rows .= wf_TableRow($cells, 'row3');
+            $rows .= wf_TableRow($cells, 'row5');
         }
-        $result = wf_TableBody($rows, '100%', '0', 'sortable');
+        $result .= wf_TableBody($rows, '100%', '0', 'sortable');
+    } else {
+        $messages = new UbillingMessageHelper();
+        $result .= $messages->getStyledMessage(__('Nothing found'), 'warning');
     }
+    $result .= wf_delimiter();
+    $result .= wf_Link(MultigenECN::URL_ME, wf_img('skins/icon_servers.png') . ' ' . __('Custom NAS configuration'), false, 'ubButton');
 
     return ($result);
+}
+
+/**
+ * Renders current system load average stats
+ * 
+ * @return string
+ */
+function web_ReportSysloadRenderLA() {
+    $loadAvg = sys_getloadavg();
+    $laGauges = '';
+    $laGauges .= wf_tag('h3') . __('Load Average') . wf_tag('h3', true);
+    $laOpts = '
+             max: 10,
+             min: 0,
+             width: ' . 280 . ', height: ' . 280 . ',
+             greenFrom: 0, greenTo: 2,
+             yellowFrom:2, yellowTo: 5,
+             redFrom: 5, redTo: 10,
+             minorTicks: 5
+                      ';
+    $laGauges .= wf_renderGauge(round($loadAvg[0], 2), '1' . ' ' . __('minutes'), 'LA', $laOpts, 300);
+    $laGauges .= wf_renderGauge(round($loadAvg[1], 2), '5' . ' ' . __('minutes'), 'LA', $laOpts, 300);
+    $laGauges .= wf_renderGauge(round($loadAvg[2], 2), '15' . ' ' . __('minutes'), 'LA', $laOpts, 300);
+    $laGauges .= wf_CleanDiv();
+    return($laGauges);
+}
+
+/**
+ * Renders some free space data about free disk space
+ * 
+ * @return string
+ */
+function web_ReportSysloadRenderDisksCapacity() {
+    global $ubillingConfig;
+    $altCfg = $ubillingConfig->getAlter();
+    $usedSpaceArr = array();
+    $mountPoints = array('/');
+    if (@$altCfg['SYSLOAD_DISKS']) {
+        $mountPoints = explode(',', $altCfg['SYSLOAD_DISKS']);
+    }
+    if (!empty($mountPoints)) {
+        foreach ($mountPoints as $io => $each) {
+            $totalSpace = disk_total_space($each);
+            $freeSpace = disk_free_space($each);
+            $usedSpaceArr[$each]['percent'] = zb_PercentValue($totalSpace, ($totalSpace - $freeSpace));
+            $usedSpaceArr[$each]['total'] = $totalSpace;
+            $usedSpaceArr[$each]['free'] = $freeSpace;
+        }
+    }
+
+    $result = '';
+    $result .= wf_tag('h3') . __('Disks capacity') . wf_tag('h3', true);
+    $opts = '
+             max: 100,
+             min: 0,
+             width: ' . 280 . ', height: ' . 280 . ',
+             greenFrom: 0, greenTo: 70,
+             yellowFrom:70, yellowTo: 90,
+             redFrom: 90, redTo: 100,
+             minorTicks: 5
+                      ';
+    if (!empty($usedSpaceArr)) {
+        foreach ($usedSpaceArr as $mountPoint => $spaceStats) {
+            $partitionLabel = $mountPoint . ' - ' . stg_convert_size($spaceStats['free']) . ' ' . __('Free');
+            $result .= wf_renderGauge(round($spaceStats['percent']), $partitionLabel, '%', $opts, 300);
+        }
+    }
+    $result .= wf_CleanDiv();
+    return($result);
+}
+
+/**
+ * Renders current system process list
+ * 
+ * @global object $ubillingConfig
+ * 
+ * @return string
+ */
+function web_ReportSysloadRenderTop() {
+    global $ubillingConfig;
+    $billCfg = $ubillingConfig->getBilling();
+    $result = '';
+    if (!empty($billCfg['TOP'])) {
+        $result .= wf_tag('pre') . shell_exec($billCfg['TOP']) . wf_tag('pre', true);
+    } else {
+        $messages = new UbillingMessageHelper();
+        $result .= $messages->getStyledMessage(__('batch top path') . ' ' . __('is empty'), 'error');
+    }
+    return($result);
+}
+
+/**
+ * Renders current system process list
+ * 
+ * @global object $ubillingConfig
+ * 
+ * @return string
+ */
+function web_ReportSysloadRenderUptime() {
+    global $ubillingConfig;
+    $billCfg = $ubillingConfig->getBilling();
+    $result = '';
+    if (!empty($billCfg['UPTIME'])) {
+        $result .= wf_tag('pre') . shell_exec($billCfg['UPTIME']) . wf_tag('pre', true);
+    } else {
+        $messages = new UbillingMessageHelper();
+        $result .= $messages->getStyledMessage(__('uptime path') . ' ' . __('is empty'), 'error');
+    }
+    return($result);
+}
+
+/**
+ * Renders current system process list
+ * 
+ * 
+ * @return string
+ */
+function web_ReportSysloadRenderDF() {
+    $result = '';
+    $result .= wf_tag('pre') . shell_exec('df -h') . wf_tag('pre', true);
+    return($result);
+}
+
+/**
+ * Returns simple new administrator registration form
+ * 
+ * @return string
+ */
+function web_AdministratorRegForm() {
+    $result = '';
+    $inputs = '';
+    $inputs .= wf_img_sized('skins/admreganim.gif', '', '', '', 'display:block; float:right;');
+    $inputs .= wf_HiddenInput('registernewadministrator', 'true');
+    $inputs .= wf_TextInput('newadmusername', __('Username'), '', true, 20, 'alphanumeric') . wf_delimiter(0);
+    $inputs .= wf_PasswordInput('newadmpass', __('Password'), '', true, 20) . wf_delimiter(0);
+    $inputs .= wf_PasswordInput('newadmconf', __('Confirm password'), '', true, 20) . wf_delimiter(0);
+    $inputs .= wf_TextInput('email', __('Email'), '', true, 20, 'email') . wf_delimiter(1);
+    $inputs .= wf_HiddenInput('userdata[hideemail]', '1');
+    $inputs .= wf_HiddenInput('userdata[tz]', '2');
+    $inputs .= wf_Submit(__('Administrators registration'));
+
+    $result .= wf_Form('', 'POST', $inputs, 'floatpanels', '', '', '', 'autocomplete="off"');
+    return($result);
+}
+
+/**
+ * Returns simple existing administrator editing form
+ * 
+ * @param string $adminLogin 
+ * 
+ * @return string
+ */
+function web_AdministratorEditForm($adminLogin) {
+    $result = '';
+    $userdata = load_user_info($adminLogin);
+    if (!empty($userdata)) {
+        $inputs = '';
+        $avatarImage = gravatar_ShowAdminAvatar($adminLogin, 128);
+        $inputs .= wf_tag('div', false, '', 'style="display:block; float:right;"') . $avatarImage . wf_tag('div', true);
+        $inputs .= wf_HiddenInput('save', '1');
+        $inputs .= wf_HiddenInput('edadmusername', $userdata['username']);
+        $passLabel = wf_tag('small') . __('if you do not want change password you must leave this field empty') . wf_tag('small', true);
+        $inputs .= wf_PasswordInput('edadmpass', __('New password'), '', true, 20);
+        $inputs .= $passLabel . wf_delimiter(0);
+        $inputs .= wf_PasswordInput('edadmconf', __('Confirm password'), '', true, 20) . wf_delimiter(0);
+        $inputs .= wf_TextInput('email', __('Email'), $userdata['email'], true, 20, 'email') . wf_delimiter(1);
+        $inputs .= wf_HiddenInput('userdata[hideemail]', '1');
+        $inputs .= wf_HiddenInput('userdata[tz]', '2');
+        $inputs .= wf_Submit(__('Save'));
+        $result .= wf_Form('', 'POST', $inputs, 'floatpanels', '', '', '', 'autocomplete="off"');
+    } else {
+        $messages = new UbillingMessageHelper();
+        $result .= $messages->getStyledMessage(__('User') . ' ' . $adminLogin, 256 . ' ' . __('Not exists'), 'error');
+    }
+    return($result);
+}
+
+/**
+ * Returns bank statements file upload form.
+ * Backported from old banksta API as HotFix. 
+ * TODO: need to be replaced where it used with normal forms.
+ * 
+ * @param string $action
+ * @param string $method
+ * @param string $inputs
+ * @param string $class
+ * 
+ * @return string
+ */
+function bs_UploadFormBody($action, $method, $inputs, $class = '') {
+    $form = wf_Form($action, $method, $inputs, $class, '', '', '', 'enctype="multipart/form-data"');
+    return ($form);
 }
