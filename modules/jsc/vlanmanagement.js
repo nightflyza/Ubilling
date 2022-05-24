@@ -99,7 +99,6 @@ function occupiedByOltNonZte(element) {
     let svlan = data[1];
     let cvlan = data[2];
     let switchid = data[3];
-    console.log(switchid);
     let xhr = new XMLHttpRequest();
     xhr.open("GET", "?module=vlanmanagement&action=ajaxoltnonzte&realm_id=" + realm + "&svlan_id=" + svlan + "&cvlan_num=" + cvlan + "&switchid=" + switchid, true);
     xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
@@ -203,7 +202,6 @@ function getQinqByLogin(login, interface, swid) {
 
     xhr.onload = function () {
         let response = xhr.response;
-        console.log(response);
         let decoded = JSON.parse(response);
         container.innerHTML = decoded.main;
         if (decoded.svlan != 'none') {
@@ -223,3 +221,23 @@ function getQinqByLogin(login, interface, swid) {
 
 }
 
+function validateVlanUsernameForm(oltId, onuId, port, vlan, type, interface, interface_olt, snmp_index) {
+    let formId = 'usernameForm---' + oltId + '---' + onuId + '---' + port;
+    let usernameId = 'usernameInput---' + oltId + '---' + onuId + '---' + port;
+    let container = document.getElementById(formId);
+    let username = document.getElementById(usernameId).value;
+    let modalContent = document.getElementById("content-cvmodal");
+
+    let xhr = new XMLHttpRequest();
+    xhr.open("GET", "/?module=vlanmanagement_onu_apply&ajax_username_validate=true&username=" + username + "&oltid=" + oltId + "&onuid=" + onuId + "&port=" + port + "&vlan=" + vlan + "&type=" + type + "&interface=" + interface + "&interface_olt=" + interface_olt + "&snmp_index=" + snmp_index, true);
+    xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+
+    xhr.send();
+    xhr.onload = function () {
+        let response = xhr.response;
+        modalContent.innerHTML = response;
+        modalOpen();
+    };
+
+    return false;
+}
