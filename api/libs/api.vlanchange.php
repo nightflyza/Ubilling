@@ -156,6 +156,20 @@ class VlanChange {
     protected $allModelsData = array();
 
     /**
+     * Containts all pononu data with serial key
+     * 
+     * @var array
+     */
+    protected $allSerial = array();
+
+    /**
+     * Containts all pononu data with mac key
+     * 
+     * @var array
+     */
+    protected $allMac = array();
+
+    /**
      * Placeholder for snmp helper object
      * 
      * @var object
@@ -267,7 +281,7 @@ class VlanChange {
      * @return void
      */
     protected function loadAllOnu() {
-        $this->allMac = $data = $this->ponDB->getAll('mac');
+        $this->allMac = $this->ponDB->getAll('mac');
         $this->alLSerial = $this->ponDB->getAll('serial');
     }
 
@@ -295,7 +309,7 @@ class VlanChange {
             }
         } else {
             if (!empty($data)) {
-                if (isset(alLSerial[$onuid])) {
+                if (isset($this->allSerial[$onuid])) {
                     if (!empty($this->allMac[$onuid]['login'])) {
                         if (!$check) {
                             $this->username = $this->alLSerial[$onuid]['login'];
