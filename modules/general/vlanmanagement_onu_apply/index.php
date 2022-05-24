@@ -36,5 +36,9 @@ if ($altCfg['VLAN_MANAGEMENT_ENABLED']) {
             }
             show_window(__('Available') . " ONU", $change->onuListShow());
         }
+    } else {
+        show_error(__('Access denied'));
     }
+} else {
+    show_error(__('This module is disabled'));
 }

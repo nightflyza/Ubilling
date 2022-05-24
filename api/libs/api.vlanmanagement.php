@@ -554,7 +554,7 @@ class VlanManagement {
      * @return bool
      */
     protected function checkSvlanRange() {
-        if (!$this->vlanNumTooLow() and!$this->vlanNumTooHigh()) {
+        if (!$this->vlanNumTooLow() and ! $this->vlanNumTooHigh()) {
             return (true);
         }
         //add error if not exited previously
@@ -570,7 +570,7 @@ class VlanManagement {
      * @return bool
      */
     protected function checkCvlanRange($cvlan) {
-        if (!$this->vlanNumTooLow($cvlan) and!$this->vlanNumTooHigh($cvlan)) {
+        if (!$this->vlanNumTooLow($cvlan) and ! $this->vlanNumTooHigh($cvlan)) {
             return (true);
         }
         //add error if not exited previously
@@ -917,7 +917,10 @@ class VlanManagement {
      * @return void
      */
     public function linksMain() {
-        $urls = wf_Link(self::MODULE_UNIVERSALQINQ, web_icon_extended() . 'UniversalQINQ', false, 'ubButton');
+        $urls = '';
+        if (@$this->altCfg[self::UNIVERSAL_QINQ_OPTION]) {
+            $urls .= wf_Link(self::MODULE_UNIVERSALQINQ, web_icon_extended() . 'UniversalQINQ', false, 'ubButton');
+        }
         $urls .= wf_Link(self::MODULE_SVLAN . '&realm_id=1', web_icon_extended() . 'SVLAN', false, 'ubButton');
         $urls .= wf_link(self::MODULE_REALMS, web_icon_extended() . __('Realms'), false, 'ubButton');
         $urls .= wf_Link(self::MODULE_ONU_APPLY, web_icon_extended() . __('Apply on') . ' ONU/ONT', false, 'ubButton');

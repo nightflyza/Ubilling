@@ -749,7 +749,7 @@ class VlanChange {
         if (ubRouting::checkGet('username')) {
             $add .= "&username=" . $this->username;
         }
-        $columns = array('Interface', 'MAC/Serial', 'Port', 'VLAN', 'Realname', 'Actions');
+        $columns = array('Interface', 'MAC/Serial', 'Port', 'VLAN', 'Real Name', 'Actions');
         $opts = '"order": [[ 0, "asc" ]]';
         $result .= wf_JqDtLoader($columns, self::MODULE_ONU_APPLY_AJAXONULIST . $add, false, __('Request'), 100, $opts);
         $result .= $this->loadVlanmanagementJs();
