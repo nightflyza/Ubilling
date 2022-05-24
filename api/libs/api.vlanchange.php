@@ -876,43 +876,43 @@ class VlanChange {
         if ($this->cvlan) {
             if (!empty($this->universalAssign)) {
                 if (isset($this->universalAssign[$this->username])) {
-                    $cells = wf_TableCell('Found UniversalQINQ assignment: ');
+                    $cells = wf_TableCell('Found UniversalQINQ assignment');
                 } else {
-                    $cells = wf_TableCell('New vlan pair assigned from pool: ');
+                    $cells = wf_TableCell('New vlan pair assigned from pool');
                 }
             } else {
-                $cells = wf_TableCell('New vlan pair assigned from pool: ');
+                $cells = wf_TableCell('New vlan pair assigned from pool');
             }
             $rows .= wf_TableRow($cells);
-            $cells = wf_TableCell('svlan');
+            $cells = wf_TableCell('SVLAN');
             $cells .= wf_TableCell($this->svlan);
             $rows .= wf_TableRow($cells);
-            $cells = wf_TableCell('cvlan');
+            $cells = wf_TableCell('CVLAN');
             $cells .= wf_TableCell($this->cvlan);
             $rows .= wf_TableRow($cells);
         } else {
             $rows .= 'There is no vlan pool for OLT or UniversalQINQ assignment for user' . wf_delimiter();
         }
-        $cells = wf_TableCell('olt interface');
+        $cells = wf_TableCell('OLT ' . __('Interface'));
         $cells .= wf_TableCell($interface_olt);
         $rows .= wf_TableRow($cells);
-        $cells = wf_TableCell('onu interface');
+        $cells = wf_TableCell('ONU ' . __('Interface'));
         $cells .= wf_TableCell($interface);
         $rows .= wf_TableRow($cells);
-        $cells = wf_TableCell('onu identifier');
+        $cells = wf_TableCell('ONU MAC/SN');
         $cells .= wf_TableCell($onuId);
         $rows .= wf_TableRow($cells);
-        $cells = wf_TableCell('port');
+        $cells = wf_TableCell(__('Port'));
         $cells .= wf_TableCell($port);
         $rows .= wf_TableRow($cells);
-        $cells = wf_TableCell('guest vlan');
+        $cells = wf_TableCell('Guest vlan');
         $cells .= wf_TableCell($vlan);
         $rows .= wf_TableRow($cells);
         if ($this->cvlan) {
             $cells = wf_TableCell(wf_Submit(__('Apply')));
             $rows .= wf_TableRow($cells);
         }
-        $inputs .= wf_TableBody($rows, '100%', 0, 'sortable');
+        $inputs .= wf_TableBody($rows, '100%', 1, 'sortable');
         $result .= wf_Form('', 'POST', $inputs, 'glamour');
         return($result);
     }
