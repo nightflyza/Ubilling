@@ -9,6 +9,8 @@ class VlanManagement {
     const MODULE_SVLAN = '?module=vlanmanagement&svlan=true';
     const MODULE_REALMS = '?module=vlanmanagement&realms=true';
     const MODULE_UNIVERSALQINQ = '?module=universalqinq';
+    const MODULE_ONU_APPLY = '?module=vlanmanagement_onu_apply';
+    const MODULE_ONU_APPLY_AJAXOLTLIST = '?module=vlanmanagement_onu_apply&ajaxOltList=true';
     const EMPTY_SELECTOR_OPTION = '---';
     const ARRAY_RANGE_STEP = 1;
     const ARRAY_RANGE_START = 1;
@@ -515,10 +517,16 @@ class VlanManagement {
      * 
      * @return bool
      */
-    protected function vlanNumTooLow() {
-        if ($this->routing->get('svlan', 'int') < 0) {
-            return (true);
+    protected function vlanNumTooLow($vlan = -1) {
+        if (!$vlan) {
+            if ($this->routing->get('svlan', 'int') < 0) {
+                return (true);
+            }
+        } else {
+            if ($vlan < 0)
+                return (true);
         }
+
         return (false);
     }
 
@@ -527,15 +535,21 @@ class VlanManagement {
      * 
      * @return bool
      */
-    protected function vlanNumTooHigh() {
-        if ($this->routing->get('svlan', 'int') > 4096) {
-            return (true);
+    protected function vlanNumTooHigh($vlan = -1) {
+        if (!$vlan) {
+            if ($this->routing->get('svlan', 'int') > 4094) {
+                return (true);
+            }
+        } else {
+            if ($vlan > 4094) {
+                return (true);
+            }
         }
         return (false);
     }
 
     /**
-     * Check if SVLAN has correct format from 0 to 4096.
+     * Check if SVLAN has correct format from 0 to 4094.
      * 
      * @return bool
      */
@@ -545,6 +559,22 @@ class VlanManagement {
         }
         //add error if not exited previously
         $this->error[] = __('Wrong value') . ': SVLAN ' . $this->routing->get('svlan_num', 'int');
+        return (false);
+    }
+
+    /**
+     * Check if CVLAN has correct range from 0 to 4094
+     * 
+     * @param int $cvlan
+     * 
+     * @return bool
+     */
+    protected function checkCvlanRange($cvlan) {
+        if (!$this->vlanNumTooLow($cvlan) and!$this->vlanNumTooHigh($cvlan)) {
+            return (true);
+        }
+        //add error if not exited previously
+        $this->error[] = __('Wrong value') . ': CVLAN ' . $cvlan;
         return (false);
     }
 
@@ -890,6 +920,7 @@ class VlanManagement {
         $urls = wf_Link(self::MODULE_UNIVERSALQINQ, web_icon_extended() . 'UniversalQINQ', false, 'ubButton');
         $urls .= wf_Link(self::MODULE_SVLAN . '&realm_id=1', web_icon_extended() . 'SVLAN', false, 'ubButton');
         $urls .= wf_link(self::MODULE_REALMS, web_icon_extended() . __('Realms'), false, 'ubButton');
+        $urls .= wf_Link(self::MODULE_ONU_APPLY, web_icon_extended() . __('Apply on') . ' ONU/ONT', false, 'ubButton');
         show_window('', $urls);
         show_window('', $this->realmAndSvlanSelectors());
     }
@@ -1379,8 +1410,12 @@ class VlanManagement {
                     if ($check['used']) {
                         break;
                     }
+                    $checkRange = $this->checkCvlanRange($cvlan);
+                    if (!$checkRange) {
+                        break;
+                    }
                 }
-                if (!$check['used']) {
+                if (!$check['used'] && $checkRange) {
                     $this->zteqinqDb->data('swid', $this->routing->get('swid', 'int'));
                     $this->zteqinqDb->data('slot_number', $this->routing->get('slot_number', 'int'));
                     $this->zteqinqDb->data('port', $this->routing->get('port', 'int'));
@@ -1411,8 +1446,12 @@ class VlanManagement {
                     if ($check['used']) {
                         break;
                     }
+                    $checkRange = $this->checkCvlanRange($cvlan);
+                    if (!$checkRange) {
+                        break;
+                    }
                 }
-                if (!$check['used']) {
+                if (!$check['used'] && $checkRange) {
 
                     $this->oltqinqDb->data('swid', $this->routing->get('swid', 'int'));
                     $this->oltqinqDb->data('port', $this->routing->get('port', 'int'));
@@ -1458,20 +1497,22 @@ class VlanManagement {
             $modelid = $this->allSwitches[$this->routing->get('qinqswitchid', 'int')]['modelid'];
             $port_number = $this->allSwitchModels[$modelid]['ports'];
             $lastCvlan = $this->routing->get('cvlan_num', 'int') + $port_number - 1;
-            for ($cvlan = $this->routing->get('cvlan_num', 'int'); $cvlan <= $lastCvlan; $cvlan++) {
-                $check = $this->checkCvlanFree($cvlan);
-                if ($check['used']) {
-                    break;
+            if ($this->checkCvlanRange($lastCvlan)) {
+                for ($cvlan = $this->routing->get('cvlan_num', 'int'); $cvlan <= $lastCvlan; $cvlan++) {
+                    $check = $this->checkCvlanFree($cvlan);
+                    if ($check['used']) {
+                        break;
+                    }
                 }
-            }
-            if (!$check['used']) {
-                $switchesQinQ = new SwitchesQinQ();
-                $qinqSaveResult = $switchesQinQ->saveQinQ();
-                if (!empty($qinqSaveResult)) {
-                    $this->error[] = $qinqSaveResult;
+                if (!$check['used']) {
+                    $switchesQinQ = new SwitchesQinQ();
+                    $qinqSaveResult = $switchesQinQ->saveQinQ();
+                    if (!empty($qinqSaveResult)) {
+                        $this->error[] = $qinqSaveResult;
+                    }
+                } else {
+                    $this->errorOccupied($check, $cvlan, $lastCvlan);
                 }
-            } else {
-                $this->errorOccupied($check, $cvlan, $lastCvlan);
             }
         }
     }
@@ -1497,7 +1538,7 @@ class VlanManagement {
                     $this->addNewSwitchBinding();
                     break;
                 case 'qinqoltzte':
-                    $this->addNewOltBinding();
+                    $this->addNewOltZteBinding();
                     break;
                 case 'qinqoltnonzte':
                     $this->addNewOltNonZteBinding();
@@ -1976,7 +2017,7 @@ class VlanManagement {
         if ($this->routing->checkGet(array('realm_id', 'svlan_id'))) {
             $result .= $this->createMatrixMainContainer();
 
-            for ($cvlan = 1; $cvlan <= 4096; $cvlan++) {
+            for ($cvlan = 1; $cvlan <= 4094; $cvlan++) {
                 $result .= $this->createMatrixDataContainer($cvlan);
             }
 
@@ -2067,6 +2108,76 @@ class VlanManagement {
      */
     public function getAllRealms() {
         return ($this->allRealms);
+    }
+
+    /**
+     * Generate ajax list of OLTs.
+     * 
+     * @return string
+     */
+    public function oltListAjaxRender() {
+        $add = '';
+        $json = new wf_JqDtHelper();
+        $query = 'SELECT `switches`.`id`,`switches`.`ip`,`switches`.`location`,`switchmodels`.`snmptemplate`,`switchmodels`.`modelname` FROM `switches` JOIN `switchmodels` ON (`switches`.`modelid` = `switchmodels`.`id`) WHERE `switches`.`desc` LIKE "%OLT%" AND `switchmodels`.`snmptemplate` NOT LIKE "ZTE%"';
+        $olts = simple_queryall($query);
+        if ($this->routing->checkGet('username')) {
+            $add .= "&username=" . $this->routing->get('username', 'mres');
+        }
+
+
+        if (!empty($olts)) {
+            foreach ($olts as $io => $each) {
+                $data[] = trim($each['id']);
+                $data[] = trim($each['ip']);
+                $data[] = trim($each['location']);
+                $data[] = trim($each['modelname']);
+                $vlancontrols = wf_Link(self::MODULE_ONU_APPLY . "&oltid=" . $each['id'] . $add, wf_img('skins/snmp.png'));
+                $data[] = $vlancontrols;
+                $json->addRow($data);
+
+                unset($data);
+            }
+        }
+
+        /*
+          $countersSummary = wf_tag('br');
+          $countersSummary .= wf_tag('br') . wf_tag('b') . __('Total') . ': ' . $countTotal . wf_tag('b', true) . wf_tag('br');
+         * 
+         */
+
+        $json->getJson();
+    }
+
+    /**
+     * JQDT container for olt selections
+     * 
+     * @return string
+     */
+    public function oltListShow() {
+        $result = '';
+        $add = '';
+        $columns = array('ID', 'IP', 'Location', 'Model', 'Actions');
+        $opts = '"order": [[ 0, "asc" ]]';
+        if ($this->routing->checkGet('username')) {
+            $add .= "&username=" . $this->routing->get('username', 'mres');
+        }
+        $result .= wf_JqDtLoader($columns, self::MODULE_ONU_APPLY_AJAXOLTLIST . $add, false, __('Request'), 100, $opts);
+        return($result);
+    }
+
+    /**
+     * Create main container and load stylesheets.
+     * 
+     * @return string
+     */
+    public function vlanChangeModal() {
+        $result = '<link rel="stylesheet" href="./skins/vlanmanagement.css" type="text/css" media="screen" />';
+        $result .= wf_tag('div', false, 'cvmodal', 'id = "dialog-modal_cvmodal" title = "' . __('Choose') . '" style = "display:none; width:1px; height:1px;"');
+        $result .= wf_tag('p', false, '', 'id = "content-cvmodal"');
+        $result .= wf_tag('p', true);
+        $result .= wf_tag('div', true);
+
+        return ($result);
     }
 
     /**
