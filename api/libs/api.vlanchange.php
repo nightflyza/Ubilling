@@ -912,7 +912,7 @@ class VlanChange {
             $cells = wf_TableCell(wf_Submit(__('Apply')));
             $rows .= wf_TableRow($cells);
         }
-        $inputs .= wf_TableBody($rows, '100%', 1, 'sortable');
+        $inputs .= wf_TableBody($rows, '100%', 0, 'sortable');
         $result .= wf_Form('', 'POST', $inputs, 'glamour');
         return($result);
     }
