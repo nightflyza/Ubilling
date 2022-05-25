@@ -45,6 +45,7 @@ if (cfr('SWITCHSONIC')) {
                         show_window(__('Graphs'), $sonic->renderCharts());
                     }
                 }
+                zb_BillingStats(true);
             } else {
                 show_error(__('Something went wrong') . ': ' . __('Authorization failed'));
             }
