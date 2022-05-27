@@ -33,7 +33,7 @@ $starttime = $starttime[1] + $starttime[0];
  * Maintance mode
  */
 if (file_exists('UPDATE')) {
-    die("Ubilling maintance in progress");
+    die('Ubilling maintance in progress');
 }
 
 /**
@@ -64,6 +64,7 @@ if ($checkStgPid) {
  */
 if (@$ubillingMainConf['IPACL_ENABLED']) {
     $ipAclAllowedIps = rcms_scandir(IPACLALLOWED_PATH);
+    //checks only if at least one ACL exists
     if (!empty($ipAclAllowedIps)) {
         $ipAclAllowedFlag = false;
         $remoteIp = $_SERVER['REMOTE_ADDR'];
@@ -75,7 +76,10 @@ if (@$ubillingMainConf['IPACL_ENABLED']) {
                     $ipAclAllowedFlag = true;
                 }
             }
+        } else {
+            $ipAclAllowedFlag = true;
         }
+
         //Interrupt execution if remote user is not allowed explicitly
         if (!$ipAclAllowedFlag) {
             $ipAclDeniedBody = file_get_contents('modules/jsc/acldenied.html');
