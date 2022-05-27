@@ -62,23 +62,25 @@ if ($checkStgPid) {
 /**
  * IP ACL implementation
  */
-$ipAclAllowedIps = rcms_scandir(IPACLALLOWED_PATH);
-if (!empty($ipAclAllowedIps)) {
-    $ipAclAllowedFlag = false;
-    $remoteIp = $_SERVER['REMOTE_ADDR'];
-    //localhost is always allowed
-    if ($remoteIp != '127.0.0.1') {
-        //checking all list of allowed IPs
-        foreach ($ipAclAllowedIps as $ipAclIndex => $ipAcleach) {
-            if (strpos($remoteIp, $ipAcleach) !== false) {
-                $ipAclAllowedFlag = true;
+if (@$ubillingMainConf['IPACL_ENABLED']) {
+    $ipAclAllowedIps = rcms_scandir(IPACLALLOWED_PATH);
+    if (!empty($ipAclAllowedIps)) {
+        $ipAclAllowedFlag = false;
+        $remoteIp = $_SERVER['REMOTE_ADDR'];
+        //localhost is always allowed
+        if ($remoteIp != '127.0.0.1') {
+            //checking all list of allowed IPs
+            foreach ($ipAclAllowedIps as $ipAclIndex => $ipAcleach) {
+                if (strpos($remoteIp, $ipAcleach) !== false) {
+                    $ipAclAllowedFlag = true;
+                }
             }
         }
-    }
-    //Interrupt execution if remote user is not allowed explicitly
-    if (!$ipAclAllowedFlag) {
-        $ipAclDeniedBody = file_get_contents('modules/jsc/acldenied.html');
-        die($ipAclDeniedBody);
+        //Interrupt execution if remote user is not allowed explicitly
+        if (!$ipAclAllowedFlag) {
+            $ipAclDeniedBody = file_get_contents('modules/jsc/acldenied.html');
+            die($ipAclDeniedBody);
+        }
     }
 }
 
