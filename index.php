@@ -69,11 +69,11 @@ if (@$ubillingMainConf['IPACL_ENABLED']) {
     if (!empty($ipAclAllowedIps) OR ! empty($ipAclAllowedNets)) {
         $ipAclAllowedFlag = false;
         $ipAclAllowedIps = array_flip($ipAclAllowedIps);
-        $remoteIp = $_SERVER['REMOTE_ADDR'];
+        $ipAclRemoteIp = $_SERVER['REMOTE_ADDR'];
         //localhost is always allowed
-        if ($remoteIp != '127.0.0.1') {
+        if ($ipAclRemoteIp != '127.0.0.1') {
             //checking is remote IP in allowed list
-            if (isset($ipAclAllowedIps[$remoteIp])) {
+            if (isset($ipAclAllowedIps[$ipAclRemoteIp])) {
                 $ipAclAllowedFlag = true;
             }
         } else {
@@ -84,7 +84,7 @@ if (@$ubillingMainConf['IPACL_ENABLED']) {
         if (!$ipAclAllowedFlag) {
             if (!empty($ipAclAllowedNets)) {
                 foreach ($ipAclAllowedNets as $ipAclIndex => $ipAclNeteach) {
-                    if (strpos($remoteIp, $ipAclNeteach) !== false) {
+                    if (strpos($ipAclRemoteIp, $ipAclNeteach) !== false) {
                         $ipAclAllowedFlag = true;
                     }
                 }
