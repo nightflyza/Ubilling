@@ -60,7 +60,8 @@ define('FILES_PATH', DATA_PATH . 'uploads/');
 define('GALLERY_PATH', DATA_PATH . 'gallery/');
 define('FORUM_PATH', DATA_PATH . 'forum/');
 define('LOGS_PATH', DATA_PATH . 'logs/');
-define('IPACLALLOWED_PATH', DATA_PATH . 'documents/ipaclallowed/');
+define('IPACLALLOWIP_PATH', DATA_PATH . 'documents/ipacl/ip/');
+define('IPACLALLOWNETS_PATH', DATA_PATH . 'documents/ipacl/nets/');
 
 // Cookies
 define('FOREVER_COOKIE', time() + 3600 * 24 * 365 * 5);

@@ -63,9 +63,10 @@ if ($checkStgPid) {
  * IP ACL implementation
  */
 if (@$ubillingMainConf['IPACL_ENABLED']) {
-    $ipAclAllowedIps = rcms_scandir(IPACLALLOWED_PATH);
+    $ipAclAllowedIps = rcms_scandir(IPACLALLOWIP_PATH);
+    $ipAclAllowedNets = rcms_scandir(IPACLALLOWNETS_PATH);
     //checks only if at least one ACL exists
-    if (!empty($ipAclAllowedIps)) {
+    if (!empty($ipAclAllowedIps) OR ! empty($ipAclAllowedNets)) {
         $ipAclAllowedFlag = false;
         $ipAclAllowedIps = array_flip($ipAclAllowedIps);
         $remoteIp = $_SERVER['REMOTE_ADDR'];
