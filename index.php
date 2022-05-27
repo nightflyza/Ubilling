@@ -80,6 +80,17 @@ if (@$ubillingMainConf['IPACL_ENABLED']) {
             $ipAclAllowedFlag = true;
         }
 
+        //if user IP isnt still allowed as-is - check on nets ACL
+        if (!$ipAclAllowedFlag) {
+            if (!empty($ipAclAllowedNets)) {
+                foreach ($ipAclAllowedNets as $ipAclIndex => $ipAclNeteach) {
+                    if (strpos($remoteIp, $ipAclNeteach) !== false) {
+                        $ipAclAllowedFlag = true;
+                    }
+                }
+            }
+        }
+
         //Interrupt execution if remote user is not allowed explicitly
         if (!$ipAclAllowedFlag) {
             $ipAclDeniedBody = file_get_contents('modules/jsc/acldenied.html');
