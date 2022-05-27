@@ -67,14 +67,13 @@ if (@$ubillingMainConf['IPACL_ENABLED']) {
     //checks only if at least one ACL exists
     if (!empty($ipAclAllowedIps)) {
         $ipAclAllowedFlag = false;
+        $ipAclAllowedIps = array_flip($ipAclAllowedIps);
         $remoteIp = $_SERVER['REMOTE_ADDR'];
         //localhost is always allowed
         if ($remoteIp != '127.0.0.1') {
-            //checking all list of allowed IPs
-            foreach ($ipAclAllowedIps as $ipAclIndex => $ipAcleach) {
-                if (strpos($remoteIp, $ipAcleach) !== false) {
-                    $ipAclAllowedFlag = true;
-                }
+            //checking is remote IP in allowed list
+            if (isset($ipAclAllowedIps[$remoteIp])) {
+                $ipAclAllowedFlag = true;
             }
         } else {
             $ipAclAllowedFlag = true;
