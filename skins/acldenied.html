@@ -1,19 +1,19 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <title>Access Denied</title>
         <meta charset="utf-8"/>
         <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
         <link rel="stylesheet" href="modules/jsc/w3css/w3.css">
+        <title>Ubilling - <?=__('Access denied');?></title>
     </head>
     <body>
         <div class="w3-display-middle">
-            <h1 class="w3-jumbo w3-animate-top w3-center"><code>Access Denied</code></h1>
+            <h1 class="w3-jumbo w3-animate-top w3-center"><code><?=__('Access denied');?></code></h1>
             <hr class="w3-border-white w3-animate-left" style="margin:auto;width:50%">
             <center>
-                <img src="skins/ipacldenied.png" alt="Angry unicorn" class="w3-image" title="Unicorn doesnt want to see you here">
+                <img src="skins/ipacldenied.png" alt="Angry unicorn" class="w3-image" title="<?=__('Unicorn doesnt want to see you here'); ?>">
             </center>
-            <h3 class="w3-center w3-animate-zoom">Just go away {REMOTEIP}</h3>
+            <h3 class="w3-center w3-animate-zoom"><?=__('Just go away');?> <?=$_SERVER['REMOTE_ADDR'];?></h3>
         </div>
     </body>
 </html>

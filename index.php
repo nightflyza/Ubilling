@@ -10,13 +10,6 @@ if (XHPROF) {
     xhprof_enable(XHPROF_FLAGS_CPU + XHPROF_FLAGS_MEMORY);
 }
 
-
-// Send main headers
-header('Last-Modified: ' . gmdate('r'));
-header('Content-Type: text/html; charset=' . $system->config['encoding']);
-header("Cache-Control: no-store, no-cache, must-revalidate"); // HTTP/1.1 
-header("Pragma: no-cache");
-
 ////////////////////////////////////////////////////////////////////////////////
 // Initializations                                                            //
 ////////////////////////////////////////////////////////////////////////////////
@@ -27,6 +20,13 @@ $menu_points = parse_ini_file(CONFIG_PATH . 'menus.ini', true);
 // Page gentime start 
 $starttime = explode(' ', microtime());
 $starttime = $starttime[1] + $starttime[0];
+
+
+// Send main headers
+header('Last-Modified: ' . gmdate('r'));
+header('Content-Type: text/html; charset=' . $system->config['encoding']);
+header("Cache-Control: no-store, no-cache, must-revalidate"); // HTTP/1.1 
+header("Pragma: no-cache");
 
 
 /**
@@ -54,7 +54,6 @@ if ($checkStgPid) {
     $stgPidPath = $ubillingMainConf['STGPID'];
     if (!file_exists($stgPidPath)) {
         $stgPidAlert = __('Stargazer currently not running. We strongly advise against trying to use Ubilling in this case. If you are absolutely sure of what you are doing - you can turn off this alert with the option NOSTGCHECKPID');
-
         die($stgPidAlert);
     }
 }
@@ -84,7 +83,9 @@ if (@$ubillingMainConf['IPACL_ENABLED']) {
         if (!$ipAclAllowedFlag) {
             if (!empty($ipAclAllowedNets)) {
                 foreach ($ipAclAllowedNets as $ipAclIndex => $ipAclNeteach) {
-                    if (strpos($ipAclRemoteIp, $ipAclNeteach) !== false) {
+                    $ipAclNetCidr = str_replace('_', '/', $ipAclNeteach);
+                    $ipAclNetParams = ipcidrToStartEndIP($ipAclNetCidr);
+                    if (multinet_checkIP($ipAclRemoteIp, $ipAclNetParams['startip'], $ipAclNetParams['endip'])) {
                         $ipAclAllowedFlag = true;
                     }
                 }
@@ -93,9 +94,8 @@ if (@$ubillingMainConf['IPACL_ENABLED']) {
 
         //Interrupt execution if remote user is not allowed explicitly
         if (!$ipAclAllowedFlag) {
-            $ipAclDeniedBody = file_get_contents('modules/jsc/acldenied.html');
-            $ipAclDeniedBody = str_replace('{REMOTEIP}', $ipAclRemoteIp, $ipAclDeniedBody);
-            die($ipAclDeniedBody);
+            require_once(SKIN_PATH . 'acldenied.html');
+            die();
         }
     }
 }

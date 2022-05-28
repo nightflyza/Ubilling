@@ -2604,7 +2604,7 @@ function trimSNMPOutput($snmpData, $oid, $returnAsStr = false, $oidValue = array
  * @param bool $excludeNetworkAddr
  * @param bool $excludeBroadcastAddr
  *
- * @return array
+ * @return array startip/endip
  */
 function ipcidrToStartEndIP($ipcidr, $excludeNetworkAddr = false, $excludeBroadcastAddr = false) {
     $range = array();
