@@ -224,13 +224,13 @@ if ($altcfg['ASKOZIA_ENABLED']) {
             $chartData = array();
 
             $cells = wf_TableCell('#');
-            $cells.= wf_TableCell(__('Time'));
-            $cells.= wf_TableCell(__('From'));
-            $cells.= wf_TableCell(__('To'));
-            $cells.= wf_TableCell(__('Picked up'));
-            $cells.= wf_TableCell(__('Type'));
-            $cells.= wf_TableCell(__('Status'));
-            $cells.= wf_TableCell(__('Talk time'));
+            $cells .= wf_TableCell(__('Time'));
+            $cells .= wf_TableCell(__('From'));
+            $cells .= wf_TableCell(__('To'));
+            $cells .= wf_TableCell(__('Picked up'));
+            $cells .= wf_TableCell(__('Type'));
+            $cells .= wf_TableCell(__('Status'));
+            $cells .= wf_TableCell(__('Talk time'));
 
             $rows = wf_TableRow($cells, 'row1');
 
@@ -285,10 +285,10 @@ if ($altcfg['ASKOZIA_ENABLED']) {
                     $answerTime = explode(' ', $each[10]);
                     @$answerTime = $answerTime[1];
                     $tmpStats = __('Taken up the phone') . ': ' . $answerTime . "\n";
-                    $tmpStats.=__('End of call') . ': ' . $endTime;
+                    $tmpStats .= __('End of call') . ': ' . $endTime;
                     $sessionTimeStats = wf_tag('abbr', false, '', 'title="' . $tmpStats . '"');
-                    $sessionTimeStats.=$startTime;
-                    $sessionTimeStats.=wf_tag('abbr', true);
+                    $sessionTimeStats .= $startTime;
+                    $sessionTimeStats .= wf_tag('abbr', true);
                     $callDirection = '';
                     if (ispos($each[4], 'SIP-PROVIDER')) {
                         $providerId = explode('-', $each[4]);
@@ -318,15 +318,15 @@ if ($altcfg['ASKOZIA_ENABLED']) {
 
 
                     $cells = wf_TableCell($callIdData, '', '', 'sorttable_customkey="' . $callsCounter . '"');
-                    $cells.= wf_TableCell($callDirection . $sessionTimeStats, '', '', 'sorttable_customkey="' . strtotime($each[9]) . '"');
-                    $cells.= wf_TableCell(zb_AskoziaGetNumAlias($each[1]));
-                    $cells.= wf_TableCell(zb_AskoziaGetNumAlias($toNumber));
+                    $cells .= wf_TableCell($callDirection . $sessionTimeStats, '', '', 'sorttable_customkey="' . strtotime($each[9]) . '"');
+                    $cells .= wf_TableCell(zb_AskoziaGetNumAlias($each[1]));
+                    $cells .= wf_TableCell(zb_AskoziaGetNumAlias($toNumber));
                     $receiveCid = '';
                     if (!empty($each[6])) {
                         $tmpRcid = explode('-', $each[6]);
                         @$receiveCid = vf($tmpRcid[0], 3);
                     }
-                    $cells.= wf_TableCell(zb_AskoziaGetNumAlias($receiveCid));
+                    $cells .= wf_TableCell(zb_AskoziaGetNumAlias($receiveCid));
 
                     $CallType = __('Dial');
                     if (ispos($each[3], 'internal-caller-transfer')) {
@@ -338,7 +338,7 @@ if ($altcfg['ASKOZIA_ENABLED']) {
                         $CallType = __('Voice mail');
                     }
 
-                    $cells.= wf_TableCell($CallType);
+                    $cells .= wf_TableCell($CallType);
 
                     $callStatus = $each[14];
                     $statusIcon = '';
@@ -374,7 +374,7 @@ if ($altcfg['ASKOZIA_ENABLED']) {
                             if ($directionFlag == 'in') {
                                 if (isset($providerStats[$providerId])) {
                                     $providerStats[$providerId]['answered'] ++;
-                                    $providerStats[$providerId]['time'] +=$each[13];
+                                    $providerStats[$providerId]['time'] += $each[13];
                                 } else {
                                     $providerStats[$providerId]['answered'] = 1;
                                     $providerStats[$providerId]['unanswered'] = 0;
@@ -433,7 +433,7 @@ if ($altcfg['ASKOZIA_ENABLED']) {
                         $statusIcon = wf_img('skins/calls/phone_fail.png');
                     }
 
-                    $cells.= wf_TableCell($statusIcon . ' ' . $callStatus);
+                    $cells .= wf_TableCell($statusIcon . ' ' . $callStatus);
                     $speekTimeRaw = $each[13];
                     $totalTime = $totalTime + $each[13];
                     $speekTime = zb_AskoziaFormatTime($speekTimeRaw);
@@ -467,7 +467,7 @@ if ($altcfg['ASKOZIA_ENABLED']) {
 
 
 
-                    $cells.= wf_TableCell($speekTime, '', '', 'sorttable_customkey="' . $each[13] . '"');
+                    $cells .= wf_TableCell($speekTime, '', '', 'sorttable_customkey="' . $each[13] . '"');
                     //default rowclass
                     $rowClass = 'row3';
 
@@ -510,31 +510,31 @@ if ($altcfg['ASKOZIA_ENABLED']) {
                     }
 
 
-                    $rows.= wf_TableRow($cells, $rowClass);
+                    $rows .= wf_TableRow($cells, $rowClass);
                 }
             }
 
 
             if (!empty($controlStats)) {
                 $ccells = wf_TableCell(__('Phone'));
-                $ccells.= wf_TableCell(__('Total calls'));
-                $ccells.= wf_TableCell(__('Time'));
-                $ccells.= wf_TableCell(__('Answered'));
+                $ccells .= wf_TableCell(__('Total calls'));
+                $ccells .= wf_TableCell(__('Time'));
+                $ccells .= wf_TableCell(__('Answered'));
                 $crows = wf_TableRow($ccells, 'row1');
                 foreach ($controlStats as $io => $each) {
                     $ccells = wf_TableCell(zb_AskoziaGetNumAlias($io));
-                    $ccells.= wf_TableCell(@$each['answered'] + $each['noanswer']);
-                    $ccells.= wf_TableCell(zb_AskoziaFormatTime($each['time']));
-                    $ccells.= @wf_TableCell($each['answered'] . ' (' . zb_PercentValue(($each['answered'] + $each['noanswer']), $each['answered']) . '%)');
-                    $crows.= wf_TableRow($ccells, 'row3');
+                    $ccells .= wf_TableCell(@$each['answered'] + $each['noanswer']);
+                    $ccells .= wf_TableCell(zb_AskoziaFormatTime($each['time']));
+                    $ccells .= @wf_TableCell($each['answered'] . ' (' . zb_PercentValue(($each['answered'] + $each['noanswer']), $each['answered']) . '%)');
+                    $crows .= wf_TableRow($ccells, 'row3');
                 }
             }
 
             if (!empty($callersData)) {
                 if (!empty($customCfg)) {
                     $gcells = wf_TableCell(__('Phone'));
-                    $gcells.= wf_TableCell(__('Total calls'));
-                    $gcells.= wf_TableCell(__('Time'));
+                    $gcells .= wf_TableCell(__('Total calls'));
+                    $gcells .= wf_TableCell(__('Time'));
                     $grows = wf_TableRow($gcells, 'row1');
                 }
 
@@ -542,9 +542,9 @@ if ($altcfg['ASKOZIA_ENABLED']) {
                     if (!empty($customCfg)) {
                         if ((zb_AskoziaCheckPrefix($customCfg[0], $cix)) AND ( strlen($cix) < 4)) {
                             $gcells = wf_TableCell(zb_AskoziaGetNumAlias($cix));
-                            $gcells.= wf_TableCell($eachcdat['calls']);
-                            $gcells.= wf_TableCell(zb_AskoziaFormatTime($eachcdat['time']), '', '', 'sorttable_customkey="' . $eachcdat['time'] . '"');
-                            $grows.= wf_TableRow($gcells, 'row3');
+                            $gcells .= wf_TableCell($eachcdat['calls']);
+                            $gcells .= wf_TableCell(zb_AskoziaFormatTime($eachcdat['time']), '', '', 'sorttable_customkey="' . $eachcdat['time'] . '"');
+                            $grows .= wf_TableRow($gcells, 'row3');
                         }
                     }
                 }
@@ -556,14 +556,14 @@ if ($altcfg['ASKOZIA_ENABLED']) {
                 if (sizeof($chartData) >= 2) {
                     $gdata = __('Date') . ',' . __('Total') . ',' . __('Answered') . ',' . __('No answer') . "\n";
                     foreach ($chartData as $io => $each) {
-                        @$gdata.=$io . ',' . ($each['answered'] + $each['noanswer']) . ',' . $each['answered'] . ',' . $each['noanswer'] . "\n";
+                        @$gdata .= $io . ',' . ($each['answered'] + $each['noanswer']) . ',' . $each['answered'] . ',' . $each['noanswer'] . "\n";
                     }
 
-                    $result.=wf_tag('div', false, '', '');
-                    $result.=wf_tag('h2') . __('Stats') . wf_tag('h2', true) . wf_tag('br');
-                    $result.= wf_Graph($gdata, '800', '200', false);
-                    $result.=wf_tag('div', true);
-                    $result.=wf_delimiter();
+                    $result .= wf_tag('div', false, '', '');
+                    $result .= wf_tag('h2') . __('Stats') . wf_tag('h2', true) . wf_tag('br');
+                    $result .= wf_Graph($gdata, '800', '200', false);
+                    $result .= wf_tag('div', true);
+                    $result .= wf_delimiter();
                 }
             }
 
@@ -593,44 +593,44 @@ if ($altcfg['ASKOZIA_ENABLED']) {
                 }
             }
 
-            $result.=__('Time spent on calls') . ': ' . zb_AskoziaFormatTime($totalTime) . wf_tag('br');
-            $result.=__('Total') . ': ' . __('Answered') . ' / ' . __('No answer') . ': ' . $answerCounter . ' / ' . $noAnswerCounter . ' (' . zb_PercentValue($answerCounter + $noAnswerCounter, $answerCounter) . '%)' . wf_tag('br');
-            $result.=wf_tag('b') . __('Working hours') . ': ' . __('Answered') . ' / ' . __('No answer') . ': ' . $WorkHoursAnswerCounter . ' / ' . $WorkHoursNoAnswerCounter . ' (' . zb_PercentValue($WorkHoursAnswerCounter + $WorkHoursNoAnswerCounter, $WorkHoursAnswerCounter) . '%)' . wf_tag('b', true) . wf_tag('br');
-            $result.=__('Not working hours') . ': ' . __('Answered') . ' / ' . __('No answer') . ': ' . ($answerCounter - $WorkHoursAnswerCounter) . ' / ' . ($noAnswerCounter - $WorkHoursNoAnswerCounter) . ' (' . zb_PercentValue(($answerCounter - $WorkHoursAnswerCounter) + ($noAnswerCounter - $WorkHoursNoAnswerCounter), ($answerCounter - $WorkHoursAnswerCounter)) . '%)' . wf_tag('br');
-            $result.= __('Missing calls because of overlap with the previous by time') . ' (' . __('Working hours') . '): ' . $busycount . wf_tag('br');
-            $result.=__('Total calls') . ': ' . $callsCounter;
+            $result .= __('Time spent on calls') . ': ' . zb_AskoziaFormatTime($totalTime) . wf_tag('br');
+            $result .= __('Total') . ': ' . __('Answered') . ' / ' . __('No answer') . ': ' . $answerCounter . ' / ' . $noAnswerCounter . ' (' . zb_PercentValue($answerCounter + $noAnswerCounter, $answerCounter) . '%)' . wf_tag('br');
+            $result .= wf_tag('b') . __('Working hours') . ': ' . __('Answered') . ' / ' . __('No answer') . ': ' . $WorkHoursAnswerCounter . ' / ' . $WorkHoursNoAnswerCounter . ' (' . zb_PercentValue($WorkHoursAnswerCounter + $WorkHoursNoAnswerCounter, $WorkHoursAnswerCounter) . '%)' . wf_tag('b', true) . wf_tag('br');
+            $result .= __('Not working hours') . ': ' . __('Answered') . ' / ' . __('No answer') . ': ' . ($answerCounter - $WorkHoursAnswerCounter) . ' / ' . ($noAnswerCounter - $WorkHoursNoAnswerCounter) . ' (' . zb_PercentValue(($answerCounter - $WorkHoursAnswerCounter) + ($noAnswerCounter - $WorkHoursNoAnswerCounter), ($answerCounter - $WorkHoursAnswerCounter)) . '%)' . wf_tag('br');
+            $result .= __('Missing calls because of overlap with the previous by time') . ' (' . __('Working hours') . '): ' . $busycount . wf_tag('br');
+            $result .= __('Total calls') . ': ' . $callsCounter;
             //rendering provider stats
             if (!empty($providerStats)) {
                 $cellsp = wf_TableCell(__('SIP trunk'));
-                $cellsp.= wf_TableCell(__('Answered'));
-                $cellsp.= wf_TableCell(__('No answer'));
-                $cellsp.= wf_TableCell(__('Total calls'));
-                $cellsp.= wf_TableCell(__('Talk time'));
+                $cellsp .= wf_TableCell(__('Answered'));
+                $cellsp .= wf_TableCell(__('No answer'));
+                $cellsp .= wf_TableCell(__('Total calls'));
+                $cellsp .= wf_TableCell(__('Talk time'));
                 $rowsp = wf_TableRow($cellsp, 'row1');
                 foreach ($providerStats as $ioz => $eachz) {
                     $cellsp = wf_TableCell(zb_AskoziaGetNumAlias($ioz, true));
-                    $cellsp.= wf_TableCell($eachz['answered']);
-                    $cellsp.= wf_TableCell($eachz['unanswered']);
-                    $cellsp.= wf_TableCell($eachz['unanswered'] + $eachz['answered']);
-                    $cellsp.= wf_TableCell(zb_AskoziaFormatTime($eachz['time']));
-                    $rowsp.= wf_TableRow($cellsp, 'row3');
+                    $cellsp .= wf_TableCell($eachz['answered']);
+                    $cellsp .= wf_TableCell($eachz['unanswered']);
+                    $cellsp .= wf_TableCell($eachz['unanswered'] + $eachz['answered']);
+                    $cellsp .= wf_TableCell(zb_AskoziaFormatTime($eachz['time']));
+                    $rowsp .= wf_TableRow($cellsp, 'row3');
                 }
-                $result.=wf_delimiter();
-                $result.=wf_TableBody($rowsp, '100%', 0, 'sortable');
-                $result.=wf_delimiter();
+                $result .= wf_delimiter();
+                $result .= wf_TableBody($rowsp, '100%', 0, 'sortable');
+                $result .= wf_delimiter();
             }
 
             if (!empty($controlStats)) {
-                $result.=wf_tag('h3') . __('Contol groups stats') . wf_tag('h3', true);
-                @$result.= wf_TableBody($crows, '100%', '0', 'sortable') . wf_delimiter();
+                $result .= wf_tag('h3') . __('Contol groups stats') . wf_tag('h3', true);
+                @$result .= wf_TableBody($crows, '100%', '0', 'sortable') . wf_delimiter();
             }
             if (!empty($customCfg)) {
-                @$result.= wf_TableBody($grows, '100%', '0', 'sortable') . wf_delimiter();
+                @$result .= wf_TableBody($grows, '100%', '0', 'sortable') . wf_delimiter();
             }
 
 
 
-            $result.=wf_TableBody($rows, '100%', '0', 'sortable');
+            $result .= wf_TableBody($rows, '100%', '0', 'sortable');
 
 
             show_window('', $result);
@@ -710,9 +710,9 @@ if ($altcfg['ASKOZIA_ENABLED']) {
      */
     function web_AskoziaDateForm() {
         $inputs = wf_Link("?module=askozia&config=true", wf_img('skins/settings.png', __('Settings'))) . ' ';
-        $inputs.= wf_DatePickerPreset('datefrom', curdate()) . ' ' . __('From');
-        $inputs.= wf_DatePickerPreset('dateto', curdate()) . ' ' . __('To');
-        $inputs.= wf_Submit(__('Show'));
+        $inputs .= wf_DatePickerPreset('datefrom', curdate()) . ' ' . __('From');
+        $inputs .= wf_DatePickerPreset('dateto', curdate()) . ' ' . __('To');
+        $inputs .= wf_Submit(__('Show'));
         $result = wf_Form("", "POST", $inputs, 'glamour');
         return ($result);
     }
@@ -731,11 +731,11 @@ if ($altcfg['ASKOZIA_ENABLED']) {
         global $askoziaUrl, $askoziaLogin, $askoziaPassword, $askoziaCacheTime;
         $result = wf_BackLink('?module=askozia') . wf_delimiter();
         $inputs = wf_TextInput('newurl', __('AskoziaPBX URL'), $askoziaUrl, true);
-        $inputs.= wf_TextInput('newlogin', __('Administrator login'), $askoziaLogin, true);
-        $inputs.= wf_TextInput('newpassword', __('Password'), $askoziaPassword, true);
-        $inputs.= wf_TextInput('newcachetime', __('Cache time'), $askoziaCacheTime, true);
-        $inputs.= wf_Submit(__('Save'));
-        $result.= wf_Form("", "POST", $inputs, 'glamour');
+        $inputs .= wf_TextInput('newlogin', __('Administrator login'), $askoziaLogin, true);
+        $inputs .= wf_TextInput('newpassword', __('Password'), $askoziaPassword, true);
+        $inputs .= wf_TextInput('newcachetime', __('Cache time'), $askoziaCacheTime, true);
+        $inputs .= wf_Submit(__('Save'));
+        $result .= wf_Form("", "POST", $inputs, 'glamour');
         return ($result);
     }
 
@@ -749,8 +749,8 @@ if ($altcfg['ASKOZIA_ENABLED']) {
     function web_AskoziaAliasesForm() {
         global $numAliases;
         $createinputs = wf_TextInput('newaliasnum', __('Phone'), '', true);
-        $createinputs.=wf_TextInput('newaliasname', __('Alias'), '', true);
-        $createinputs.=wf_Submit(__('Create'));
+        $createinputs .= wf_TextInput('newaliasname', __('Alias'), '', true);
+        $createinputs .= wf_Submit(__('Create'));
         $createform = wf_Form('', 'POST', $createinputs, 'glamour');
         $result = $createform;
 
@@ -761,9 +761,9 @@ if ($altcfg['ASKOZIA_ENABLED']) {
                 $delArr[$num] = $num . ' - ' . $eachname;
             }
             $delinputs = wf_Selector('deletealias', $delArr, __('Delete alias'), '', false);
-            $delinputs.= wf_Submit(__('Delete'));
+            $delinputs .= wf_Submit(__('Delete'));
             $delform = wf_Form('', 'POST', $delinputs, 'glamour');
-            $result.= $delform;
+            $result .= $delform;
         }
 
         return ($result);
@@ -818,19 +818,19 @@ if ($altcfg['ASKOZIA_ENABLED']) {
         }
 
         $cells = wf_TableCell(__('Phones'));
-        $cells.= wf_TableCell(__('Current calls'));
-        $cells.= wf_TableCell(__('Calls processed'));
-        $cells.= wf_TableCell(__('Uptime'));
-        $cells.= wf_TableCell(__('Memory usage'));
-        $cells.= wf_TableCell(__('External storage'));
+        $cells .= wf_TableCell(__('Current calls'));
+        $cells .= wf_TableCell(__('Calls processed'));
+        $cells .= wf_TableCell(__('Uptime'));
+        $cells .= wf_TableCell(__('Memory usage'));
+        $cells .= wf_TableCell(__('External storage'));
         $rows = wf_TableRow($cells, 'row2');
         $cells = wf_TableCell($data['phones']);
-        $cells.= wf_TableCell($data['curcalls']);
-        $cells.= wf_TableCell($data['totalcalls']);
-        $cells.= wf_TableCell($data['uptime']);
-        $cells.= wf_TableCell(web_bar($data['ram'], '100') . ' ' . $data['ram'] . '%');
-        $cells.= wf_TableCell(web_bar($data['disk'], '100') . ' ' . $data['disk'] . '%');
-        $rows.= wf_TableRow($cells, 'row3');
+        $cells .= wf_TableCell($data['curcalls']);
+        $cells .= wf_TableCell($data['totalcalls']);
+        $cells .= wf_TableCell($data['uptime']);
+        $cells .= wf_TableCell(web_bar($data['ram'], '100') . ' ' . $data['ram'] . '%');
+        $cells .= wf_TableCell(web_bar($data['disk'], '100') . ' ' . $data['disk'] . '%');
+        $rows .= wf_TableRow($cells, 'row3');
         $result = wf_TableBody($rows, '100%', 0, '');
         return ($result);
     }
@@ -921,9 +921,9 @@ if ($altcfg['ASKOZIA_ENABLED']) {
             $parseDate = $curYear . '-' . $curMonth;
 
             $dateInputs = wf_YearSelectorPreset('numyear', __('Year'), false, $curYear) . ' ';
-            $dateInputs.= wf_MonthSelector('nummonth', __('Month'), $curMonth, false) . ' ';
-            $dateInputs.= wf_Submit(__('Show'));
-            $result.=wf_Form('', 'POST', $dateInputs, 'glamour');
+            $dateInputs .= wf_MonthSelector('nummonth', __('Month'), $curMonth, false) . ' ';
+            $dateInputs .= wf_Submit(__('Show'));
+            $result .= wf_Form('', 'POST', $dateInputs, 'glamour');
 
             $rawLog = shell_exec($catPath . ' ' . $logPath . ' | ' . $grepPath . ' ' . $parseDate . '-');
             if (!empty($rawLog)) {
@@ -944,15 +944,15 @@ if ($altcfg['ASKOZIA_ENABLED']) {
 
                     if (!empty($replyStats)) {
                         $cells = wf_TableCell(__('Reply'));
-                        $cells.=wf_TableCell(__('Count'));
+                        $cells .= wf_TableCell(__('Count'));
                         $rows = wf_TableRow($cells, 'row1');
                         foreach ($replyStats as $replyCode => $callsCount) {
                             $cells = wf_TableCell($replyNames[$replyCode]);
-                            $cells.=wf_TableCell($callsCount);
-                            $rows.= wf_TableRow($cells, 'row3');
+                            $cells .= wf_TableCell($callsCount);
+                            $rows .= wf_TableRow($cells, 'row3');
                         }
-                        $result.=wf_TableBody($rows, '100%', 0, 'sortable');
-                        $result.=__('Total') . ': ' . $replyCount;
+                        $result .= wf_TableBody($rows, '100%', 0, 'sortable');
+                        $result .= __('Total') . ': ' . $replyCount;
                     }
                 }
             }
@@ -1021,19 +1021,20 @@ if ($altcfg['ASKOZIA_ENABLED']) {
             //showing call history form
             show_window(__('Calls history'), web_AskoziaDateForm());
         }
+
+
+        if (wf_CheckPost(array('datefrom', 'dateto'))) {
+            zb_AskoziaGetCallHistory($_POST['datefrom'], $_POST['dateto']);
+        } else {
+            if (!wf_CheckGet(array('config'))) {
+                zb_AskoziaGetCurrentStatus();
+                zb_AskoziaRenderNumLog();
+            }
+        }
     } else {
         show_error(__('Permission denied'));
-    }
-
-    if (wf_CheckPost(array('datefrom', 'dateto'))) {
-        zb_AskoziaGetCallHistory($_POST['datefrom'], $_POST['dateto']);
-    } else {
-        if (!wf_CheckGet(array('config'))) {
-            zb_AskoziaGetCurrentStatus();
-            zb_AskoziaRenderNumLog();
-        }
     }
 } else {
     show_error(__('AskoziaPBX integration now disabled'));
 }
-?>
+
