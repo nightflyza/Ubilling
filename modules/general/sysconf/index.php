@@ -89,8 +89,11 @@ if (cfr('SYSCONF')) {
     //appending presets controls
     $configsList .= wf_modalAuto(web_icon_extended() . ' ' . __('Settings'), __('Settings'), web_RenderEditableConfigPresetsForm($editableConfigs), 'ubButton');
     //appending crontab editor link
-    $crontabEditor = wf_Link(CrontabEditor::URL_ME, wf_img('skins/clock.png') . ' ' . __('Crontab editor'), true, 'ubButton');
-    show_window(__('Edit'), $configsList . $crontabEditor);
+    if (cfr('ROOT')) {
+        $configsList .= wf_Link(CrontabEditor::URL_ME, wf_img('skins/clock.png') . ' ' . __('Crontab editor'), false, 'ubButton');
+        $configsList .= wf_Link(IpACLMgr::URL_ME, wf_img('skins/icon_ipaclmgr.png') . ' ' . __('IP Access restrictions'), false, 'ubButton');
+    }
+    show_window(__('Edit'), $configsList);
 
     if (wf_CheckGet(array('editconfig'))) {
         $editingConfigPath = base64_decode($_GET['editconfig']);

@@ -3380,3 +3380,4 @@ $lang['def']['Unable to load data'] = 'Не получилось загрузи�
 $lang['def']['Show the most annoying'] = 'Показать самых назойливых';
 $lang['def']['Just go away'] = 'Просто уходи отсюда';
 $lang['def']['Unicorn doesnt want to see you here'] = 'Единорог не хочет тебя видеть';
+$lang['def']['IP Access restrictions'] = 'Ограничение доступа по IP';
