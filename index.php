@@ -94,6 +94,7 @@ if (@$ubillingMainConf['IPACL_ENABLED']) {
         //Interrupt execution if remote user is not allowed explicitly
         if (!$ipAclAllowedFlag) {
             $ipAclDeniedBody = file_get_contents('modules/jsc/acldenied.html');
+            $ipAclDeniedBody = str_replace('{REMOTEIP}', $ipAclRemoteIp, $ipAclDeniedBody);
             die($ipAclDeniedBody);
         }
     }
