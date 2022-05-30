@@ -3170,3 +3170,5 @@ CREATE TABLE IF NOT EXISTS `op_sms_notifications` (
   KEY `date` (`date`),
   KEY `summ` (`summ`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
+
+UPDATE `sms_services` SET `api_file_name` = 'SmsClubMobi' WHERE `api_file_name` = 'MobiClubSms'

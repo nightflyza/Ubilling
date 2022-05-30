@@ -184,6 +184,14 @@ function zb_TemplateGetAllUserData() {
             @$userdata[$eachuser['login']]['pstreet'] = $allpdata[$eachuser['login']]['pstreet'];
             @$userdata[$eachuser['login']]['pbuild'] = $allpdata[$eachuser['login']]['pbuild'];
             @$userdata[$eachuser['login']]['papt'] = $allpdata[$eachuser['login']]['papt'];
+
+            // {LACK} parameter support
+            if (@empty($eachuser['TariffChange'])) {
+                $userdata[$eachuser['login']]['moneylack'] = @$tariffprices[$eachuser['Tariff']] - $eachuser['Cash'];
+            } else {
+                $userdata[$eachuser['login']]['moneylack'] = @$tariffprices[$eachuser['TariffChange']] - $eachuser['Cash'];
+            }
+
         }
     }
 
@@ -210,6 +218,7 @@ function zb_TemplateReplaceAll($template, $alluserdata) {
             $result = str_ireplace('{TARIFFPRICE}', $each['tariffprice'], $result);
             $result = str_ireplace('{CASH}', $each['cash'], $result);
             $result = str_ireplace('{CREDIT}', $each['credit'], $result);
+            $result = str_ireplace('{LACK}', $each['moneylack'], $result);
             $result = str_ireplace('{DOWN}', $each['down'], $result);
             $result = str_ireplace('{PASSIVE}', $each['passive'], $result);
             $result = str_ireplace('{AO}', $each['ao'], $result);
@@ -277,6 +286,7 @@ function zb_TemplateReplace($login, $template, $alluserdata) {
         $result = str_ireplace('{ROUNDCASH}', round($alluserdata[$login]['cash'], 2), $result);
         $result = str_ireplace('{CURDATE}', curdate(), $result);
         $result = str_ireplace('{CREDIT}', $alluserdata[$login]['credit'], $result);
+        $result = str_ireplace('{LACK}', $alluserdata[$login]['moneylack'], $result);
         $result = str_ireplace('{DOWN}', $alluserdata[$login]['down'], $result);
         $result = str_ireplace('{PASSIVE}', $alluserdata[$login]['passive'], $result);
         $result = str_ireplace('{AO}', $alluserdata[$login]['ao'], $result);

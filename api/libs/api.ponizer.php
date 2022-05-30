@@ -866,7 +866,7 @@ class PONizer {
                                 $recalcIfaceOffset = (($recalcIfaceOffset - 10) * 256) + 16779776;
                             }
 
-                            if ($devId > $recalcIfaceOffset) {
+                            if ($devId >= $recalcIfaceOffset) {
                                 $currentInterface = $intefaceOffset;
                                 $onuNum = $devId - $recalcIfaceOffset;
                             }
@@ -878,6 +878,76 @@ class PONizer {
 
                 $result = serialize($result);
                 file_put_contents(self::INTCACHE_PATH . $oltid . '_' . self::INTCACHE_EXT, $result);
+            }
+        }
+    }
+
+    /**
+     * Parses & stores in cache ONU last dereg reasons
+     *
+     * @param int   $oltid
+     * @param array $deregIndex
+     * @param array $macIndex
+     *
+     * @return void
+     */
+    protected function lastDeregParseStels12($oltid, $deregIndex, $macIndex) {
+        $oltid = vf($oltid, 3);
+        $deregTmp = array();
+        $macTmp = array();
+        $result = array();
+
+//dereg index preprocessing
+        if ((!empty($deregIndex)) and ( !empty($macIndex))) {
+            foreach ($deregIndex as $io => $eachdereg) {
+                $line = explode('=', $eachdereg);
+//dereg is present
+
+                if (isset($line[1])) {
+                    $lastDeregRaw = trim($line[1]); // last dereg reason
+                    $devIndex = trim($line[0]); // device index
+                    $deregTmp[$devIndex] = $lastDeregRaw;
+                }
+            }
+
+//mac index preprocessing
+            foreach ($macIndex as $io => $eachmac) {
+                $line = explode('=', $eachmac);
+//mac is present
+                if (isset($line[1])) {
+                    $macRaw = trim($line[1]); //mac address
+                    $devIndex = trim($line[0]); //device index
+                    $macRaw = str_replace(' ', ':', $macRaw);
+                    $macRaw = strtolower($macRaw);
+                    $macTmp[$devIndex] = $macRaw;
+                }
+            }
+
+//storing results
+            if (!empty($macTmp)) {
+                foreach ($macTmp as $devId => $eachMac) {
+                    $currentInterface = '';
+
+                    if (!empty($deregTmp)) {
+                        foreach ($deregTmp as $intefaceOffset => $interfaceName) {
+
+                            // dirty hack for firmware > 1.4.0 - some shitty math used
+                            $recalcIfaceOffset = $intefaceOffset;
+                            if ($recalcIfaceOffset < 100) {
+                                $recalcIfaceOffset = (($recalcIfaceOffset - 10) * 256) + 16779776;
+                            }
+
+                            if ($devId >= $recalcIfaceOffset) {
+                                $currentInterface = $intefaceOffset;
+                            }
+                        }
+
+                        $result[$eachMac] = (isset($deregTmp[$currentInterface])) ? $deregTmp[$currentInterface] : __('On ho');
+                    }
+                }
+
+                $result = serialize($result);
+                file_put_contents(self::DEREGCACHE_PATH . $oltid . '_' . self::DEREGCACHE_EXT, $result);
             }
         }
     }
@@ -1583,8 +1653,7 @@ class PONizer {
             if (!empty($onuTmp)) {
                 foreach ($onuTmp as $devId => $eachMac) {
                     if (isset($deregTmp[$devId])) {
-                        $distance = $deregTmp[$devId];
-                        $result[$eachMac] = $distance;
+                        $result[$eachMac] = $deregTmp[$devId];
                     }
                 }
                 $result = serialize($result);
@@ -2286,7 +2355,19 @@ class PONizer {
                                         $intIndex = $this->snmp->walk($oltIp . ':' . self::SNMPPORT, $oltCommunity, $intIndexOid, self::SNMPCACHE);
                                         $intIndex = str_replace($intIndexOid . '.', '', $intIndex);
                                         $intIndex = str_replace($this->snmpTemplates[$oltModelId]['misc']['INTERFACEVALUE'], '', $intIndex);
+                                        $intIndex = str_replace('"','', $intIndex);
                                         $intIndex = explodeRows($intIndex);
+                                    }
+                                }
+
+                                if (isset($this->snmpTemplates[$oltModelId]['misc']['DEREGREASON'])) {
+                                    if (!empty($this->snmpTemplates[$oltModelId]['misc']['DEREGREASON'])) {
+                                        $lastDeregIndexOID = $this->snmpTemplates[$oltModelId]['misc']['DEREGREASON'];
+                                        $lastDeregIndex    = $this->snmp->walk($oltIp . ':' .
+                                                                               self::SNMPPORT, $oltCommunity, $lastDeregIndexOID, self::SNMPCACHE);
+                                        $lastDeregIndex    = str_replace($lastDeregIndexOID . '.', '', $lastDeregIndex);
+                                        $lastDeregIndex    = str_replace($this->snmpTemplates[$oltModelId]['misc']['DEREGVALUE'], '', $lastDeregIndex);
+                                        $lastDeregIndex    = explodeRows($lastDeregIndex);
                                     }
                                 }
                             }
@@ -2306,6 +2387,12 @@ class PONizer {
                                         $this->distanceParseBd($oltid, $distIndex, $macIndex);
 //processing interfaces data
                                         $this->interfaceParseStels12($oltid, $intIndex, $macIndex);
+                                    }
+                                }
+
+                                if (isset($this->snmpTemplates[$oltModelId]['misc']['DEREGREASON'])) {
+                                    if (!empty($this->snmpTemplates[$oltModelId]['misc']['DEREGREASON'])) {
+                                        $this->lastDeregParseStels12($oltid, $lastDeregIndex, $macIndex);
                                     }
                                 }
                             }
