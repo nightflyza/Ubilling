@@ -3399,9 +3399,6 @@ $lang['def']['right to manage administrators accounts'] = 'Право керув
 $lang['def']['Alerts map'] = 'Тривожна мапа';
 $lang['def']['Unable to load data'] = 'Не вдалось завантажити дані';
 $lang['def']['Show the most annoying'] = 'Показати найбільш надокучливих';
-$lang['def']['Just go away'] = 'Просто йди звідси';
-$lang['def']['Unicorn doesnt want to see you here'] = 'Єдиноріг не хоче тебе бачити';
-$lang['def']['IP Access restrictions'] = 'Обмеження доступу за IP';
 $lang['def'][''] = '';
 
 
