@@ -1,6 +1,6 @@
 <?php
 
-class MobiClubSms extends SMSServiceApi {
+class SmsClubMobi extends SMSServiceApi {
     public function __construct($smsServiceId, array $smsPack = array()) {
         parent::__construct($smsServiceId, $smsPack);
     }
@@ -94,7 +94,7 @@ class MobiClubSms extends SMSServiceApi {
 
                 if (strtolower($sendStatus) == 'ok') {
                     $smsPacketId = strtoupper(md5(uniqid(rand(), true)));
-                    log_register('SENDDOG MobiClubSms packet ' . $smsPacketId . ' sent successfully');
+                    log_register('SENDDOG SmsClubMobi packet ' . $smsPacketId . ' sent successfully');
 
                     if ($smsHistoryEnabled) {
                         $messagePhone = '';
@@ -137,7 +137,7 @@ class MobiClubSms extends SMSServiceApi {
                         }
                     }
                 } else {
-                    log_register('SENDDOG MobiClubSms failed to send SMS packet. Server answer: ' . $serverAnswer);
+                    log_register('SENDDOG SmsClubMobi failed to send SMS packet. Server answer: ' . $serverAnswer);
 
                     if ($smsHistoryEnabled) {
                         $idsAsStr = implode(',', $smsHistoryTabFreshIds);
@@ -223,9 +223,9 @@ class MobiClubSms extends SMSServiceApi {
                         }
                     }
 
-                    log_register('SENDDOG MobiClubSms checked statuses for ' . count($messagesIDs) . ' messages.');
+                    log_register('SENDDOG SmsClubMobi checked statuses for ' . count($messagesIDs) . ' messages.');
                 } else {
-                    log_register('SENDDOG MobiClubSms failed to check messages statuses. Server answer: ' . $serverAnswer);
+                    log_register('SENDDOG SmsClubMobi failed to check messages statuses. Server answer: ' . $serverAnswer);
                 }
             }
         }

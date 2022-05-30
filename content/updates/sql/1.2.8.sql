@@ -28,3 +28,5 @@ from `mlg_nascustom`
 LEFT JOIN nas ON (mlg_nascustom.ip = nas.nasip) 
 where nasname is null
 GROUP BY `ip`;
+
+UPDATE `sms_services` SET `api_file_name` = 'SmsClubMobi' WHERE `api_file_name` = 'MobiClubSms'

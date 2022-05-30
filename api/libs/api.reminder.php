@@ -83,6 +83,11 @@ class Reminder {
     protected $rmdTemplate = '';
 
     /**
+     * Placeholder for REMINDER_FORCE_TRANSLIT alter.ini option
+     */
+    protected $rmdForceTranslit = true;
+
+    /**
      * Placeholder for REMINDER_USE_EXTMOBILES alter.ini option
      *
      * @var bool
@@ -240,6 +245,7 @@ class Reminder {
         $this->rmdTemplateCredit = $this->ubConfig->getAlterParam('REMINDER_TEMPLATE_CREDIT');
         $this->rmdTemplateCAP = $this->ubConfig->getAlterParam('REMINDER_TEMPLATE_CAP');
         $this->rmdTemplateFrozen = $this->ubConfig->getAlterParam('REMINDER_TEMPLATE_FROZEN');
+        $this->rmdForceTranslit = ubRouting::filters($this->ubConfig->getAlterParam('REMINDER_FORCE_TRANSLIT', true), 'fi', FILTER_VALIDATE_BOOLEAN);
 
         if (!ubRouting::filters($this->ubConfig->getAlterParam('CAP_ENABLED'), 'fi', FILTER_VALIDATE_BOOLEAN)
                 or empty($this->rmdCAPDayLimit)) {
@@ -361,7 +367,8 @@ class Reminder {
 
             if (!empty($template)) {
                 $message = zb_TemplateReplace($login, $template, $this->AllTemplates);
-                $forceTranslit = ($forced) ? true : false;
+                $forceTranslit = $this->rmdForceTranslit;
+
                 if (!empty($message)) {
                     foreach ($numbers as $number) {
                         $number = trim($number);
