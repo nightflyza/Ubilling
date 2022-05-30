@@ -16,5 +16,5 @@ $lang['def']['Access is allowed from anywhere'] = 'Доступ дозволен
 $lang['def']['This is you'] = 'Це ти';
 $lang['def']['You are here'] = 'Ти тут';
 $lang['def']['Think twice. This may block access for you'] = 'Подумай двічі. Це може призвести до блокування доступу для тебе самого';
-
-
+$lang['def']['Your IP address now is'] = 'Твоя поточна IP-адреса';
+$lang['def']['Who am i'] = 'Хто я';

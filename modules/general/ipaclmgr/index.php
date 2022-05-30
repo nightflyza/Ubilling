@@ -14,6 +14,16 @@ if (cfr('ROOT')) {
         }
     }
 
+    //editing IP ACL notes
+    if (ubRouting::checkPost($aclMgr::PROUTE_EDIPACLIP)) {
+        $editingResult = $aclMgr->saveIpAcl(ubRouting::post($aclMgr::PROUTE_EDIPACLIP), ubRouting::post($aclMgr::PROUTE_EDIPACLNOTE));
+        if (empty($editingResult)) {
+            ubRouting::nav($aclMgr::URL_ME);
+        } else {
+            show_error($editingResult);
+        }
+    }
+
     //IP ACL deletion
     if (ubRouting::checkGet($aclMgr::ROUTE_DELIPACL)) {
         $deletionResult = $aclMgr->deleteIpAcl(ubRouting::get($aclMgr::ROUTE_DELIPACL));
@@ -31,6 +41,16 @@ if (cfr('ROOT')) {
             ubRouting::nav($aclMgr::URL_ME);
         } else {
             show_error($creationResult);
+        }
+    }
+
+    //editing network ACL notes
+    if (ubRouting::checkPost($aclMgr::PROUTE_EDNETACLNET)) {
+        $editingResult = $aclMgr->saveNetAcl(ubRouting::post($aclMgr::PROUTE_EDNETACLNET), ubRouting::post($aclMgr::PROUTE_EDNETACLNOTE));
+        if (empty($editingResult)) {
+            ubRouting::nav($aclMgr::URL_ME);
+        } else {
+            show_error($editingResult);
         }
     }
 
