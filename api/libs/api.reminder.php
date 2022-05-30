@@ -367,7 +367,6 @@ class Reminder {
 
             if (!empty($template)) {
                 $message = zb_TemplateReplace($login, $template, $this->AllTemplates);
-                $forceTranslit = $this->rmdForceTranslit;
 
                 if (!empty($message)) {
                     foreach ($numbers as $number) {
@@ -376,7 +375,7 @@ class Reminder {
                         $number = ubRouting::filters($number, 'int');
                         $number = $this->rmdPhonePrefix . $number;
 
-                        $queueFile = $this->sms->sendSMS($number, $message, $forceTranslit, 'REMINDER');
+                        $queueFile = $this->sms->sendSMS($number, $message, $this->rmdForceTranslit, 'REMINDER');
                         $this->sms->setDirection($queueFile, 'user_login', $login);
 
                         if ($forced) {
