@@ -5,15 +5,15 @@ class PONBdcomGP extends PONBdcom {
     /**
      * Receives, preprocess and stores all required data from BDCOM GPXXXX OLT device
      * 
-     * @param int $oltModelId
-     * @param int $oltid
-     * @param string $oltIp
-     * @param string $oltCommunity
-     * @param bool $oltNoFDBQ
-     * 
      * @return void
      */
-    public function collect($oltModelId, $oltid, $oltIp, $oltCommunity, $oltNoFDBQ) {
+    public function collect() {
+        $oltModelId = $this->oltParameters['MODELID'];
+        $oltid = $this->oltParameters['ID'];
+        $oltIp = $this->oltParameters['IP'];
+        $oltCommunity = $this->oltParameters['COMMUNITY'];
+        $oltNoFDBQ = $this->oltParameters['NOFDB'];
+
         $sigIndexOID = $this->snmpTemplates[$oltModelId]['signal']['SIGINDEX'];
         $sigIndex = $this->snmp->walk($oltIp . ':' . self::SNMPPORT, $oltCommunity, $sigIndexOID, self::SNMPCACHE);
         $sigIndex = str_replace($sigIndexOID . '.', '', $sigIndex);
@@ -49,6 +49,23 @@ class PONBdcomGP extends PONBdcom {
                         $FDBIndex = explodeRows($FDBIndex);
                     }
                 }
+            }
+        }
+
+//getting others system data from OLT
+        if (isset($this->snmpTemplates[$oltModelId]['system'])) {
+            //OLT uptime
+            if (isset($this->snmpTemplates[$oltModelId]['system']['UPTIME'])) {
+                $uptimeIndexOid = $this->snmpTemplates[$oltModelId]['system']['UPTIME'];
+                $oltSystemUptimeRaw = $this->snmp->walk($oltIp . ':' . self::SNMPPORT, $oltCommunity, $uptimeIndexOid, self::SNMPCACHE);
+                $this->uptimeParse($oltid, $oltSystemUptimeRaw);
+            }
+
+            //OLT temperature
+            if (isset($this->snmpTemplates[$oltModelId]['system']['TEMPERATURE'])) {
+                $temperatureIndexOid = $this->snmpTemplates[$oltModelId]['system']['TEMPERATURE'];
+                $oltTemperatureRaw = $this->snmp->walk($oltIp . ':' . self::SNMPPORT, $oltCommunity, $temperatureIndexOid, self::SNMPCACHE);
+                $this->temperatureParse($oltid, $oltTemperatureRaw);
             }
         }
 //getting MAC index.

@@ -581,10 +581,8 @@ class PONizer {
         return ($result);
     }
 
-   
-
     /**
-     * Performs  OLT device polling with snmp
+     * Performs OLT device polling with snmp
      *
      * @param int $oltid
      *
@@ -604,7 +602,25 @@ class PONizer {
                         $pollingStart = time();
                         $collector = '';
                         $collectorName = '';
+                        $oltParameters = array(
+                            'MODELID' => $oltModelId,
+                            'ID' => $oltid,
+                            'IP' => $oltIp,
+                            'COMMUNITY' => $oltCommunity,
+                            'NOFDB' => $oltNoFDBQ
+                        );
+
                         switch ($this->snmpTemplates[$oltModelId]['signal']['SIGNALMODE']) {
+                            case 'HAL':
+                                /**
+                                 * Switchable OLT devices polling abstraction layer
+                                 */
+                                $collectorName = $this->snmpTemplates[$oltModelId]['signal']['COLLECTORNAME'];
+                                break;
+                            /**
+                             * Following cases is legacy for old or custom device templates 
+                             * without collector hardware abstraction layer specified explictly
+                             */
                             case 'BDCOM':
                                 /**
                                  * BDCOM/Eltex/Extralink devices polling
@@ -623,24 +639,17 @@ class PONizer {
                                  */
                                 $collectorName = 'PONStels';
                                 break;
-                            /**
-                             * Stels FD11XX devices polling
-                             */
                             case 'STELSFD':
+                                /**
+                                 * Stels FD11XX devices polling
+                                 */
                                 $collectorName = 'PONStelsFD';
                                 break;
-                            /**
-                             * V-Solution 1600D devices polling
-                             */
                             case 'VSOL':
+                                /**
+                                 * V-Solution 1600D devices polling
+                                 */
                                 $collectorName = 'PONStelsFD';
-                                break;
-
-                            /**
-                             * Custom OLT Devices Polling
-                             */
-                            case 'CUSTOM':
-                                $collectorName = $this->snmpTemplates[$oltModelId]['signal']['COLLECTORNAME'];
                                 break;
 
                             /**
@@ -671,30 +680,14 @@ class PONizer {
 
                         //Run OLT HAL instance for device polling
                         if (!empty($collectorName)) {
-                            $collector = new $collectorName($this->snmpTemplates);
-                            $collector->collect($oltModelId, $oltid, $oltIp, $oltCommunity, $oltNoFDBQ);
-                        }
-
-
-//getting others system data from OLTs (Stels, ZTE)
-                        //TODO: do something about following 
-                        if ($this->snmpTemplates[$oltModelId]['signal']['SIGNALMODE'] != 'BDCOM') {
-                            if (isset($this->snmpTemplates[$oltModelId]['system'])) {
-                                //OLT uptime
-                                if (isset($this->snmpTemplates[$oltModelId]['system']['UPTIME'])) {
-                                    $uptimeIndexOid = $this->snmpTemplates[$oltModelId]['system']['UPTIME'];
-                                    $oltSystemUptimeRaw = $this->snmp->walk($oltIp . ':' . self::SNMPPORT, $oltCommunity, $uptimeIndexOid, self::SNMPCACHE);
-                                    $this->uptimeParse($oltid, $oltSystemUptimeRaw);
-                                }
-
-                                //OLT temperature
-                                if (isset($this->snmpTemplates[$oltModelId]['system']['TEMPERATURE'])) {
-                                    $temperatureIndexOid = $this->snmpTemplates[$oltModelId]['system']['TEMPERATURE'];
-                                    $oltTemperatureRaw = $this->snmp->walk($oltIp . ':' . self::SNMPPORT, $oltCommunity, $temperatureIndexOid, self::SNMPCACHE);
-                                    $this->temperatureParse($oltid, $oltTemperatureRaw);
-                                }
+                            if (class_exists($collectorName)) {
+                                $collector = new $collectorName($oltParameters, $this->snmpTemplates);
+                                $collector->collect();
+                            } else {
+                                throw new Exception('EX_HAL_COLLECTOR_NOT_EXISTS:' . $collectorName);
                             }
                         }
+
 
                         //filling OLT polling stats
                         $pollingEnd = time();

@@ -5,15 +5,15 @@ class PONStels extends PONProto {
     /**
      * Stels FD12XX devices polling
      * 
-     * @param int $oltModelId
-     * @param int $oltid
-     * @param string $oltIp
-     * @param string $oltCommunity
-     * @param bool $oltNoFDBQ
-     * 
      * @return void
      */
-    public function collect($oltModelId, $oltid, $oltIp, $oltCommunity, $oltNoFDBQ) {
+    public function collect() {
+        $oltModelId = $this->oltParameters['MODELID'];
+        $oltid = $this->oltParameters['ID'];
+        $oltIp=$this->oltParameters['IP'];
+        $oltCommunity = $this->oltParameters['COMMUNITY'];
+        $oltNoFDBQ = $this->oltParameters['NOFDB'];
+        
         $sigIndexOID = $this->snmpTemplates[$oltModelId]['signal']['SIGINDEX'];
 
         $sigIndex = $this->snmp->walk($oltIp . ':' . self::SNMPPORT, $oltCommunity, $sigIndexOID, self::SNMPCACHE);

@@ -68,11 +68,18 @@ class PonZte {
     protected $oltid = 0;
 
     /**
-     * Current OLT IP
+     * Current OLT IP with SNMP port
      * 
      * @var string
      */
-    protected $oltFullIp = '';
+    protected $oltIp = '';
+
+    /**
+     * Current OLT IP with SNMP port
+     * 
+     * @var string
+     */
+    protected $oltFullAddress = '';
 
     /**
      * Current OLT snmp community
@@ -140,6 +147,7 @@ class PonZte {
     public function __construct($oltModelId, $oltid, $oltIp, $oltCommunity) {
         $this->oltid = $oltid;
         $this->oltCommunity = $oltCommunity;
+        $this->oltIp = $oltIp;
         $this->oltFullAddress = $oltIp . ':' . PONizer::SNMPPORT;
 
         $this->initSNMP();
@@ -758,7 +766,7 @@ class PonZte {
         $macTmp = array();
         $result = array();
 //fdb index preprocessing
-        if ((!empty($this->fdbIndex)) AND (!empty($this->macIndex))) {
+        if ((!empty($this->fdbIndex)) AND ( !empty($this->macIndex))) {
             foreach ($this->fdbIndex as $io => $eachfdb) {
                 $line = explode('=', $eachfdb);
                 $devOid = trim($line[0]);
@@ -823,7 +831,7 @@ class PonZte {
      */
     protected function signalParseEpon() {
         $result = array();
-        if ((!empty($this->sigIndex)) AND (!empty($this->macIndex))) {
+        if ((!empty($this->sigIndex)) AND ( !empty($this->macIndex))) {
             $this->signalIndexProcessing();
             $this->macIndexEponProcessing();
             $realData = array_intersect_key($this->macIndex, $this->sigIndex);
@@ -853,7 +861,7 @@ class PonZte {
         $curDate = curdatetime();
 
 //signal index preprocessing
-        if ((!empty($this->sigIndex)) AND (!empty($this->snIndex))) {
+        if ((!empty($this->sigIndex)) AND ( !empty($this->snIndex))) {
             $this->signalIndexProcessing();
             $this->serialIndexGponProcessing();
             $realData = array_intersect_key($this->snIndex, $this->sigIndex);
@@ -886,7 +894,7 @@ class PonZte {
         $result = array();
 
 //distance index preprocessing
-        if (!empty($this->distanceIndex) AND!empty($this->snIndex)) {
+        if (!empty($this->distanceIndex) AND ! empty($this->snIndex)) {
             $realData = array_intersect_key($this->snIndex, $this->distanceIndex);
             foreach ($realData as $io => $eachsn) {
                 $result[$this->snIndex[$io]] = $this->distanceIndex[$io];
@@ -907,7 +915,7 @@ class PonZte {
         $snTmp = array();
         $result = array();
 //fdb index preprocessing
-        if ((!empty($this->fdbIndex)) AND (!empty($this->snIndex))) {
+        if ((!empty($this->fdbIndex)) AND ( !empty($this->snIndex))) {
             foreach ($this->fdbIndex as $io => $eachfdb) {
                 $line = explode('=', $eachfdb);
                 $devOid = trim($line[0]);
@@ -1070,6 +1078,44 @@ class PonZte {
         }
     }
 
+    /**
+     * Parses uptime data and saves it into uptime cache
+     *
+     * @param int $oltid
+     * @param string $uptimeRaw
+     *
+     * @return void
+     */
+    protected function uptimeParse() {
+        $uptimeIndexOid = $this->currentSnmpTemplate['system']['UPTIME'];
+        $uptimeRaw = $this->snmp->walk($this->oltFullAddress, $this->oltCommunity, $uptimeIndexOid, PONizer::SNMPCACHE);
+        if (!empty($this->oltid) and ! empty($uptimeRaw)) {
+            $uptimeRaw = explode(')', $uptimeRaw);
+            $uptimeRaw = $uptimeRaw[1];
+            $uptimeRaw = trim($uptimeRaw);
+            file_put_contents(PONizer::UPTIME_PATH . $this->oltid . '_' . PONizer::UPTIME_EXT, $uptimeRaw);
+        }
+    }
+
+    /**
+     * Parses temperature data and saves it into uptime cache
+     *
+     * @param int $oltid
+     * @param string $uptimeRaw
+     *
+     * @return void
+     */
+    protected function temperatureParse() {
+        $temperatureIndexOid = $this->currentSnmpTemplate['system']['TEMPERATURE'];
+        $tempRaw = $this->snmp->walk($this->oltFullAddress, $this->oltCommunity, $temperatureIndexOid, PONizer::SNMPCACHE);
+        if (!empty($this->oltid) and ! empty($tempRaw)) {
+            $tempRaw = explode(':', $tempRaw);
+            $tempRaw = $tempRaw[1];
+            $tempRaw = trim($tempRaw);
+            file_put_contents(PONizer::TEMPERATURE_PATH . $this->oltid . '_' . PONizer::TEMPERATURE_EXT, $tempRaw);
+        }
+    }
+
 //Main section
 
     /**
@@ -1109,12 +1155,27 @@ class PonZte {
             $this->distanceIndexProcess();
             $this->distanceParseGpon();
         }
+
+
+
         if (isset($this->currentSnmpTemplate['misc'])) {
             if (isset($this->currentSnmpTemplate['misc']['CARDOFFSET'])) {
                 $this->fdbCalc();
                 $this->fdbParseGpon();
                 $this->interfaceParseGpon();
                 $this->onuidParseGpon();
+            }
+        }
+
+        //getting others system data from OLT
+        if (isset($this->currentSnmpTemplate['system'])) {
+            //OLT uptime
+            if (isset($this->currentSnmpTemplate['system']['UPTIME'])) {
+                $this->uptimeParse();
+            }
+            //OLT temperature
+            if (isset($this->currentSnmpTemplate['system']['TEMPERATURE'])) {
+                $this->temperatureParse();
             }
         }
     }

@@ -6,6 +6,13 @@
 class PONProto {
 
     /**
+     * Contains current HAL instance OLT parameters
+     *
+     * @var array
+     */
+    protected $oltParameters = array();
+
+    /**
      * Contains available SNMP templates for OLT modelids
      *
      * @var array
@@ -48,9 +55,11 @@ class PONProto {
     /**
      * Creates new PON poller/parser proto
      * 
+     * @param array $oltParameters
      * @param array $snmpTemplates
      */
-    public function __construct($snmpTemplates) {
+    public function __construct($oltParameters, $snmpTemplates) {
+        $this->oltParameters = $oltParameters;
         $this->snmpTemplates = $snmpTemplates;
         $this->initSNMP();
     }
