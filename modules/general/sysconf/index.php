@@ -1,39 +1,6 @@
 <?php
 
 if (cfr('SYSCONF')) {
-
-    /**
-     * Renders list with some controls of available editable config presets
-     * 
-     * @param array $editableConfigs
-     * 
-     * @return string
-     */
-    function web_RenderEditableConfigPresetsForm($editableConfigs) {
-        $result = '';
-        $messages = new UbillingMessageHelper();
-        if (!empty($editableConfigs)) {
-            $cells = wf_TableCell(__('Path'));
-            $cells .= wf_TableCell(__('Name'));
-            $cells .= wf_TableCell(__('Actions'));
-            $rows = wf_TableRow($cells, 'row1');
-            foreach ($editableConfigs as $eachPath => $eachName) {
-                $cells = wf_TableCell($eachPath);
-                $cells .= wf_TableCell($eachName);
-                $actLinks = wf_JSAlert('?module=sysconf&delconfpath=' . base64_encode($eachPath), web_delete_icon(), $messages->getDeleteAlert());
-                $cells .= wf_TableCell($actLinks);
-                $rows .= wf_TableRow($cells, 'row3');
-            }
-            $result .= wf_TableBody($rows, '100%', 0, '');
-        }
-
-        $inputs = wf_TextInput('newconfpath', __('Path'), '', false, 10) . ' ';
-        $inputs .= wf_TextInput('newconfname', __('Name'), '', false, 10) . ' ';
-        $inputs .= wf_Submit(__('Create'));
-        $result .= wf_Form('', 'POST', $inputs, 'glamour');
-        return ($result);
-    }
-
     //getting some editable configs presets
     $editableConfigsPresetsPath = DATA_PATH . '/documents/editableconfigs/settings.dat';
     if (file_exists($editableConfigsPresetsPath)) {
@@ -48,31 +15,32 @@ if (cfr('SYSCONF')) {
             CONFIG_PATH . 'billing.ini' => 'billing.ini',
             CONFIG_PATH . 'ymaps.ini' => 'ymaps.ini',
             CONFIG_PATH . 'config.ini' => 'config.ini',
+            'userstats/config/userstats.ini' => 'userstats.ini',
         );
         file_put_contents($editableConfigsPresetsPath, json_encode($editableConfigs));
     }
 
     //deleting presets if required
-    if (wf_CheckGet(array('delconfpath'))) {
-        $pathToDelete = base64_decode($_GET['delconfpath']);
+    if (ubRouting::checkGet('delconfpath')) {
+        $pathToDelete = base64_decode(ubRouting::get('delconfpath'));
         if (isset($editableConfigs[$pathToDelete])) {
             unset($editableConfigs[$pathToDelete]);
             file_put_contents($editableConfigsPresetsPath, json_encode($editableConfigs));
             log_register('SYSCONF DELETE PRESET `' . $pathToDelete . '`');
-            rcms_redirect('?module=sysconf');
+            ubRouting::nav('?module=sysconf');
         }
     }
 
     //creating some new presets
-    if (wf_CheckPost(array('newconfpath', 'newconfname'))) {
-        $createConfPath = $_POST['newconfpath'];
-        $createConfName = $_POST['newconfname'];
+    if (ubRouting::checkPost(array('newconfpath', 'newconfname'))) {
+        $createConfPath = ubRouting::post('newconfpath');
+        $createConfName = ubRouting::post('newconfname');
         if (!isset($editableConfigs[$createConfPath])) {
             if (file_exists($createConfPath)) {
                 $editableConfigs[$createConfPath] = $createConfName;
                 file_put_contents($editableConfigsPresetsPath, json_encode($editableConfigs));
                 log_register('SYSCONF CREATE PRESET `' . $createConfPath . '`');
-                rcms_redirect('?module=sysconf');
+                ubRouting::nav('?module=sysconf');
             } else {
                 show_error(__('File not exist') . ': ' . $createConfPath);
             }
@@ -80,6 +48,14 @@ if (cfr('SYSCONF')) {
     }
 
     $configsList = '';
+    //appending crontab editor link
+    if (cfr('ROOT')) {
+        $configsList .= wf_Link(CrontabEditor::URL_ME, wf_img('skins/clock.png') . ' ' . __('Crontab editor'), false, 'ubButton');
+        $configsList .= wf_Link(IpACLMgr::URL_ME, wf_img('skins/icon_ipaclmgr.png') . ' ' . __('IP Access restrictions'), false, 'ubButton');
+        $configsList .= wf_delimiter(1);
+    }
+
+    //existing editable configs list
     if (!empty($editableConfigs)) {
         foreach ($editableConfigs as $eachConfigPath => $eachConfigName) {
             $configsList .= wf_Link('?module=sysconf&editconfig=' . base64_encode($eachConfigPath), web_edit_icon() . ' ' . $eachConfigName, false, 'ubButton') . ' ';
@@ -88,18 +64,14 @@ if (cfr('SYSCONF')) {
 
     //appending presets controls
     $configsList .= wf_modalAuto(web_icon_extended() . ' ' . __('Settings'), __('Settings'), web_RenderEditableConfigPresetsForm($editableConfigs), 'ubButton');
-    //appending crontab editor link
-    if (cfr('ROOT')) {
-        $configsList .= wf_Link(CrontabEditor::URL_ME, wf_img('skins/clock.png') . ' ' . __('Crontab editor'), false, 'ubButton');
-        $configsList .= wf_Link(IpACLMgr::URL_ME, wf_img('skins/icon_ipaclmgr.png') . ' ' . __('IP Access restrictions'), false, 'ubButton');
-    }
+
     show_window(__('Edit'), $configsList);
 
-    if (wf_CheckGet(array('editconfig'))) {
-        $editingConfigPath = base64_decode($_GET['editconfig']);
+    if (ubRouting::checkGet('editconfig')) {
+        $editingConfigPath = base64_decode(ubRouting::get('editconfig'));
         if (file_exists($editingConfigPath)) {
-            if (wf_CheckPost(array('editfilepath', 'editfilecontent'))) {
-                $changedFilePath = $_POST['editfilepath'];
+            if (ubRouting::checkPost(array('editfilepath', 'editfilecontent'))) {
+                $changedFilePath = ubRouting::post('editfilepath');
                 if (file_exists($changedFilePath)) {
                     $canUpdate = false;
                     if (!is_writable($changedFilePath)) {
@@ -165,9 +137,9 @@ if (cfr('SYSCONF')) {
 
         $grid = wf_tag('script');
         $grid .= '$(function() {
-    $( "#tabs" ).tabs().addClass( "ui-tabs-vertical ui-helper-clearfix" );
-    $( "#tabs li" ).removeClass( "ui-corner-top" ).addClass( "ui-corner-left" );
-  });';
+                        $( "#tabs" ).tabs().addClass( "ui-tabs-vertical ui-helper-clearfix" );
+                        $( "#tabs li" ).removeClass( "ui-corner-top" ).addClass( "ui-corner-left" );
+                      });';
         $grid .= wf_tag('script', true);
         $grid .= wf_tag('style');
         $grid .= file_get_contents('skins/tabs_v.css');
@@ -188,4 +160,3 @@ if (cfr('SYSCONF')) {
 } else {
     show_error(__('You cant control this module'));
 }
-?>
