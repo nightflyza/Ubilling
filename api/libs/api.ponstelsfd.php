@@ -3,7 +3,7 @@
 class PONStelsFD extends PONStels {
 
     /**
-     * Receives, preprocess and stores all required data from BDCOM GPXXXX OLT device
+     * Receives, preprocess and stores all required data from Stels FD11XX or V-Solution 1600D
      * 
      * @param int $oltModelId
      * @param int $oltid

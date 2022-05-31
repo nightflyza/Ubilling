@@ -71,7 +71,7 @@ class PONStels extends PONProto {
             if (isset($this->snmpTemplates[$oltModelId]['misc']['DISTINDEX'])) {
                 if (!empty($this->snmpTemplates[$oltModelId]['misc']['DISTINDEX'])) {
 // processing distance data
-                    $this->distanceParseBd($oltid, $distIndex, $macIndex);
+                    $this->distanceParse($oltid, $distIndex, $macIndex);
 //processing interfaces data
                     $this->interfaceParseStels12($oltid, $intIndex, $macIndex);
                 }
