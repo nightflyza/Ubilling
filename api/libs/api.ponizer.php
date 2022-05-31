@@ -677,6 +677,7 @@ class PONizer {
 
 
 //getting others system data from OLTs (Stels, ZTE)
+                        //TODO: do something about following 
                         if ($this->snmpTemplates[$oltModelId]['signal']['SIGNALMODE'] != 'BDCOM') {
                             if (isset($this->snmpTemplates[$oltModelId]['system'])) {
                                 //OLT uptime
