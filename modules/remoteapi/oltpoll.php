@@ -3,7 +3,7 @@
 /**
  * Polling PON OLT data
  */
-if ($_GET['action'] == 'oltpoll') {
+if (ubRouting::get('action') == 'oltpoll') {
     if ($alterconf['PON_ENABLED']) {
         $pony = new PONizer();
         $pony->oltDevicesPolling();
