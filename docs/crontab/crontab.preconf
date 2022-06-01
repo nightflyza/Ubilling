@@ -13,3 +13,4 @@
 10 10 1 * *     /bin/ubapi "autocleandb"
 10 */1 * * *    /bin/ubapi "fdbarchive"
 */10 * * * *    /bin/ubapi "oltpoll"
+*/20 * * * *    /bin/ubapi "cachedog"
