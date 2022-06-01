@@ -602,20 +602,31 @@ class PONizer {
                         $pollingStart = time();
                         $collector = '';
                         $collectorName = '';
+                        $collectorMethod = 'collect';
                         $oltParameters = array(
                             'MODELID' => $oltModelId,
                             'ID' => $oltid,
                             'IP' => $oltIp,
                             'COMMUNITY' => $oltCommunity,
-                            'NOFDB' => $oltNoFDBQ
+                            'NOFDB' => $oltNoFDBQ,
+                            'TYPE' => 'PON'
                         );
 
                         switch ($this->snmpTemplates[$oltModelId]['signal']['SIGNALMODE']) {
+                            /**
+                             * Switchable OLT devices polling abstraction layer
+                             */
                             case 'HAL':
-                                /**
-                                 * Switchable OLT devices polling abstraction layer
-                                 */
+                                //setting collector class name
                                 $collectorName = $this->snmpTemplates[$oltModelId]['signal']['COLLECTORNAME'];
+                                //setting optional primary collector method name to call
+                                if (isset($this->snmpTemplates[$oltModelId]['signal']['COLLECTORMETHOD'])) {
+                                    $collectorMethod = $this->snmpTemplates[$oltModelId]['signal']['COLLECTORMETHOD'];
+                                }
+                                //setting custom collector type
+                                if (isset($this->snmpTemplates[$oltModelId]['signal']['COLLECTORTYPE'])) {
+                                    $oltParameters['TYPE'] = $this->snmpTemplates[$oltModelId]['signal']['COLLECTORTYPE'];
+                                }
                                 break;
                             /**
                              * Following cases is legacy for old or custom device templates 
@@ -656,25 +667,26 @@ class PONizer {
                              * ZTE EPON OLTs polling
                              */
                             case 'ZTE':
-                                $ztePoller = new PonZte($oltModelId, $oltid, $oltIp, $oltCommunity);
-                                $ztePoller->ponType = 'EPON';
-                                $ztePoller->pollEpon();
+                                $collectorName = 'PonZte';
+                                $collectorMethod = 'pollEpon';
+                                $oltParameters['TYPE'] = 'EPON';
+
                                 break;
                             /**
                              * ZTE GPON OLTs polling
                              */
                             case 'ZTE_GPON':
-                                $ztePoller = new PonZte($oltModelId, $oltid, $oltIp, $oltCommunity);
-                                $ztePoller->ponType = 'GPON';
-                                $ztePoller->pollGpon();
+                                $collectorName = 'PonZte';
+                                $collectorMethod = 'pollGpon';
+                                $oltParameters['TYPE'] = 'GPON';
                                 break;
                             /**
                              * Huawei EPON OLTs polling
                              */
                             case 'HUAWEI_GPON':
-                                $ztePoller = new PonZte($oltModelId, $oltid, $oltIp, $oltCommunity);
-                                $ztePoller->ponType = 'GPON';
-                                $ztePoller->huaweiPollGpon();
+                                $collectorName = 'PonZte';
+                                $collectorMethod = 'huaweiPollGpon';
+                                $oltParameters['TYPE'] = 'GPON';
                                 break;
                         }
 
@@ -682,7 +694,12 @@ class PONizer {
                         if (!empty($collectorName)) {
                             if (class_exists($collectorName)) {
                                 $collector = new $collectorName($oltParameters, $this->snmpTemplates);
-                                $collector->collect();
+                                if (method_exists($collector, 'setOfflineSignal')) {
+                                    $collector->setOfflineSignal($this->onuOfflineSignalLevel);
+                                }
+                                if (method_exists($collector, $collectorMethod)) {
+                                    $collector->$collectorMethod();
+                                }
                             } else {
                                 throw new Exception('EX_HAL_COLLECTOR_NOT_EXISTS:' . $collectorName);
                             }

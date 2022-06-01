@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * OLT BDCOM GPXXXX hardware abstraction layer
+ */
 class PONBdcomGP extends PONBdcom {
 
     /**

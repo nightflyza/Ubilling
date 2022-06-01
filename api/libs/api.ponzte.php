@@ -12,6 +12,13 @@ class PonZte {
     CONST DESC_ONU = 5;
 
     /**
+     * Contains current HAL instance OLT parameters
+     *
+     * @var array
+     */
+    protected $oltParameters = array();
+
+    /**
      * Array for checking ports count for EPON cards
      * 
      * @var array
@@ -124,7 +131,7 @@ class PonZte {
     protected $fdbIndex = array();
 
     /**
-     * Contains type epon or gpon.
+     * Contains type EPON or GPON.
      * 
      * @var string
      */
@@ -144,16 +151,34 @@ class PonZte {
      */
     protected $distanceIndex = array();
 
-    public function __construct($oltModelId, $oltid, $oltIp, $oltCommunity) {
+    /**
+     * Creates new PON poller/parser proto
+     * 
+     * @param array $oltParameters
+     * @param array $snmpTemplates
+     */
+    public function __construct($oltParameters, $snmpTemplates) {
+        $this->oltParameters = $oltParameters;
+        
+        //unpacking OLT settings
+        $oltModelId = $this->oltParameters['MODELID'];
+        $oltid = $this->oltParameters['ID'];
+        $oltIp = $this->oltParameters['IP'];
+        $oltCommunity = $this->oltParameters['COMMUNITY'];
+        $oltNoFDBQ = $this->oltParameters['NOFDB'];
+        $ponType = $this->oltParameters['TYPE'];
+
+        //setting some object properties
         $this->oltid = $oltid;
         $this->oltCommunity = $oltCommunity;
         $this->oltIp = $oltIp;
         $this->oltFullAddress = $oltIp . ':' . PONizer::SNMPPORT;
+        $this->ponType = $ponType;
 
         $this->initSNMP();
         $this->loadOltDevices();
         $this->loadOltModels();
-        $this->loadSnmpTemplates();
+        $this->snmpTemplates = $snmpTemplates;
         $this->currentSnmpTemplate = $this->snmpTemplates[$oltModelId];
         $this->eponCards = OnuRegister::allEponCards();
         $this->gponCards = OnuRegister::allGponCards();
@@ -205,33 +230,6 @@ class PonZte {
                     $this->allOltSnmp[$each['id']]['community'] = $each['snmp'];
                     $this->allOltSnmp[$each['id']]['modelid'] = $each['modelid'];
                     $this->allOltSnmp[$each['id']]['ip'] = $each['ip'];
-                }
-            }
-        }
-    }
-
-    /**
-     * Performs snmp templates preprocessing for OLT devices
-     * 
-     * @return void
-     */
-    protected function loadSnmpTemplates() {
-        if (!empty($this->allOltDevices)) {
-            foreach ($this->allOltDevices as $oltId => $eachOltData) {
-                if (isset($this->allOltSnmp[$oltId])) {
-                    $oltModelid = $this->allOltSnmp[$oltId]['modelid'];
-                    if ($oltModelid) {
-                        if (isset($this->allOltModels[$oltModelid])) {
-                            $templateFile = 'config/snmptemplates/' . $this->allOltModels[$oltModelid]['snmptemplate'];
-                            $privateTemplateFile = DATA_PATH . 'documents/mysnmptemplates/' . $this->allOltModels[$oltModelid]['snmptemplate'];
-                            if (file_exists($templateFile)) {
-                                $this->snmpTemplates[$oltModelid] = rcms_parse_ini_file($templateFile, true);
-                                if (file_exists($privateTemplateFile)) {
-                                    $this->snmpTemplates[$oltModelid] = rcms_parse_ini_file($privateTemplateFile, true);
-                                }
-                            }
-                        }
-                    }
                 }
             }
         }

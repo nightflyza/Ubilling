@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * OLT BDCOM 36xx/33xx or Eltex and Extralink hardware abstraction layer
+ */
 class PONBdcom extends PONProto {
 
     /**
@@ -10,7 +13,7 @@ class PONBdcom extends PONProto {
     public function collect() {
         $oltModelId = $this->oltParameters['MODELID'];
         $oltid = $this->oltParameters['ID'];
-        $oltIp=$this->oltParameters['IP'];
+        $oltIp = $this->oltParameters['IP'];
         $oltCommunity = $this->oltParameters['COMMUNITY'];
         $oltNoFDBQ = $this->oltParameters['NOFDB'];
 

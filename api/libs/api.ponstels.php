@@ -1,5 +1,7 @@
 <?php
-
+/**
+ * OLT Stels FD12XX hardware abstraction layer
+ */
 class PONStels extends PONProto {
 
     /**
@@ -10,10 +12,10 @@ class PONStels extends PONProto {
     public function collect() {
         $oltModelId = $this->oltParameters['MODELID'];
         $oltid = $this->oltParameters['ID'];
-        $oltIp=$this->oltParameters['IP'];
+        $oltIp = $this->oltParameters['IP'];
         $oltCommunity = $this->oltParameters['COMMUNITY'];
         $oltNoFDBQ = $this->oltParameters['NOFDB'];
-        
+
         $sigIndexOID = $this->snmpTemplates[$oltModelId]['signal']['SIGINDEX'];
 
         $sigIndex = $this->snmp->walk($oltIp . ':' . self::SNMPPORT, $oltCommunity, $sigIndexOID, self::SNMPCACHE);
@@ -85,96 +87,7 @@ class PONStels extends PONProto {
         }
     }
 
-    /**
-     * Performs signal preprocessing for sig/mac index arrays and stores it into cache
-     *
-     * @param int $oltid
-     * @param array $sigIndex
-     * @param array $macIndex
-     * @param array $snmpTemplate
-     *
-     * @return void
-     */
-    public function signalParseStels($oltid, $sigIndex, $macIndex, $snmpTemplate) {
-        $oltid = vf($oltid, 3);
-        $sigTmp = array();
-        $macTmp = array();
-        $macDevIdx = array();
-        $result = array();
-        $curDate = curdatetime();
-        $plasticIndexSig = 0;
-        $plasticIndexMac = 0;
-
-//signal index preprocessing
-        if ((!empty($sigIndex)) and ( !empty($macIndex))) {
-            foreach ($sigIndex as $io => $eachsig) {
-                $line = explode('=', $eachsig);
-//signal is present
-                if (isset($line[1])) {
-                    $signalRaw = trim($line[1]); // signal level
-                    $signalOnuPort = str_replace($snmpTemplate['SIGINDEX'], '', $line[0]);
-                    $signalOnuPort = explode('.', $signalOnuPort);
-                    $plasticIndexSig = trim($signalOnuPort[1]);
-//                    $plasticIndexSig = ($plasticIndexSig * 256) + 1; // realy shitty index
-                    if ($signalRaw == $snmpTemplate['DOWNVALUE'] or empty($signalRaw)) {
-                        $signalRaw = 'Offline';
-                    } else {
-                        if ($snmpTemplate['OFFSETMODE'] == 'logm') {
-                            if ($snmpTemplate['OFFSET']) {
-                                $signalRaw = round(10 * log10($signalRaw) - $snmpTemplate['OFFSET'], 2);
-                            }
-                        }
-                    }
-
-                    $sigTmp[$signalOnuPort[0] . ':' . $plasticIndexSig] = $signalRaw;
-                }
-            }
-
-
-//mac index preprocessing
-            foreach ($macIndex as $io => $eachmac) {
-                $line = explode('=', $eachmac);
-//mac is present
-                if (isset($line[1])) {
-                    $macRaw = trim($line[1]); //mac address
-                    $macOnuPort = str_replace($snmpTemplate['MACINDEX'], '', $line[0]);
-                    $macOnuPort = explode('.', $macOnuPort);
-                    $plasticIndexMac = trim($macOnuPort[1]);
-                    $macRaw = str_replace(' ', ':', $macRaw);
-                    $macRaw = strtolower($macRaw);
-                    $macTmp[$macOnuPort[0] . ':' . $plasticIndexMac] = $macRaw;
-                    $macDevIdx[$macRaw] = $macOnuPort[0] . ':' . $plasticIndexMac;
-//                    $macDevIdx[$macRaw] = $macOnuPort[0] . '.' . (($plasticIndexMac - 1) / 256);
-                }
-            }
-
-
-//storing results
-            if (!empty($macTmp)) {
-                foreach ($macTmp as $devId => $eachMac) {
-                    if (isset($sigTmp[$devId])) {
-                        $signal = $sigTmp[$devId];
-                        $result[$eachMac] = $signal;
-//signal history filling
-                        $historyFile = self::ONUSIG_PATH . md5($eachMac);
-                        if ($signal == 'Offline') {
-                            $signal = $this->onuOfflineSignalLevel; //over 9000 offline signal level :P
-                        }
-                        file_put_contents($historyFile, $curDate . ',' . $signal . "\n", FILE_APPEND);
-                    }
-                }
-
-                $result = serialize($result);
-                $onuTmp = serialize($macTmp);
-                $macDevIdx = serialize($macDevIdx);
-
-                file_put_contents(self::SIGCACHE_PATH . $oltid . '_' . self::SIGCACHE_EXT, $result);
-                file_put_contents(self::ONUCACHE_PATH . $oltid . '_' . self::ONUCACHE_EXT, $onuTmp);
-                file_put_contents(self::INTCACHE_PATH . $oltid . '_' . self::INTCACHE_EXT, $macDevIdx);
-                file_put_contents(self::MACDEVIDCACHE_PATH . $oltid . '_' . self::MACDEVIDCACHE_EXT, $macDevIdx);
-            }
-        }
-    }
+ 
 
     /**
      * Parses & stores in cache OLT ONU interfaces
@@ -314,70 +227,6 @@ class PONStels extends PONProto {
 
                 $result = serialize($result);
                 file_put_contents(self::DEREGCACHE_PATH . $oltid . '_' . self::DEREGCACHE_EXT, $result);
-            }
-        }
-    }
-
-    /**
-     * Parses & stores in cache OLT ONU distances
-     *
-     * @param int $oltid
-     * @param array $distIndex
-     * @param array $macIndex
-     *
-     * @return void
-     */
-    protected function distanceParseStels($oltid, $distIndex, $macIndex) {
-        $oltid = vf($oltid, 3);
-        $distTmp = array();
-        $onuTmp = array();
-        $result = array();
-        $curDate = curdatetime();
-
-//distance index preprocessing
-        if ((!empty($distIndex)) and ( !empty($macIndex))) {
-            foreach ($distIndex as $io => $eachdist) {
-                $line = explode('=', $eachdist);
-//distance is present
-                if (isset($line[1])) {
-                    $distanceRaw = trim($line[1]); // distance
-                    $devIndex = $line[0];
-                    $devIndex = explode('.', $devIndex);
-                    $portIndex = trim($devIndex[0]);
-                    $devIndex = trim($devIndex[1]);
-//                    $devIndex = (($devIndex * 256) + 1);
-                    $distTmp[$portIndex . ':' . $devIndex] = $distanceRaw;
-                }
-            }
-
-
-//mac index preprocessing
-            foreach ($macIndex as $io => $eachmac) {
-                $line = explode('=', $eachmac);
-//mac is present
-                if (isset($line[1])) {
-                    $macRaw = trim($line[1]); //mac address
-                    $devIndex = trim($line[0]);
-                    $devIndex = explode('.', $devIndex);
-                    $portIndex = trim($devIndex[0]);
-                    $devIndex = $devIndex[1];
-                    $macRaw = str_replace(' ', ':', $macRaw);
-                    $macRaw = strtolower($macRaw);
-                    $onuTmp[$portIndex . ':' . $devIndex] = $macRaw;
-                }
-            }
-
-
-//storing results
-            if (!empty($onuTmp)) {
-                foreach ($onuTmp as $devId => $eachMac) {
-                    if (isset($distTmp[$devId])) {
-                        $distance = $distTmp[$devId];
-                        $result[$eachMac] = $distance;
-                    }
-                }
-                $result = serialize($result);
-                file_put_contents(self::DISTCACHE_PATH . $oltid . '_' . self::DISTCACHE_EXT, $result);
             }
         }
     }

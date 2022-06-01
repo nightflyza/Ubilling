@@ -20,6 +20,13 @@ class PONProto {
     protected $snmpTemplates = array();
 
     /**
+     * Default ONU offline signal level
+     *
+     * @var int
+     */
+    protected $onuOfflineSignalLevel = '-9000';
+
+    /**
      * SNMPHelper object instance
      *
      * @var array
@@ -71,6 +78,28 @@ class PONProto {
      */
     protected function initSNMP() {
         $this->snmp = new SNMPHelper();
+    }
+
+    /**
+     * Sets current instance ONU offline signal level
+     * 
+     * @param int $level
+     * 
+     * @return void
+     */
+    public function setOfflineSignal($level) {
+        $this->onuOfflineSignalLevel = $level;
+    }
+
+    /**
+     * Main data collector method placeholder
+     * 
+     * @return void
+     */
+    public function collect() {
+        /**
+         * Ab esse ad posse valet, a posse ad esse non valet consequentia
+         */
     }
 
     /**
