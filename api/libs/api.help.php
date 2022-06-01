@@ -10,9 +10,14 @@
 function web_HelpChapterGet($chapter) {
     $lang = curlang();
     $chapter = vf($chapter);
+    $wikiChapterMark = 'WIKI:';
     $result = '';
     if (file_exists(DATA_PATH . "help/" . $lang . "/" . $chapter)) {
         $result .= file_get_contents(DATA_PATH . "help/" . $lang . "/" . $chapter);
+        if (ispos($result, $wikiChapterMark)) {
+            //TODO:
+            //$result=
+        }
         $result = nl2br($result);
     }
     return ($result);
