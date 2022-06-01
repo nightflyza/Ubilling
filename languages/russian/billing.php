@@ -3378,3 +3378,4 @@ $lang['def']['right to manage administrators accounts'] = 'Право упрвл
 $lang['def']['Alerts map'] = 'Тревожная карта';
 $lang['def']['Unable to load data'] = 'Не получилось загрузить данные';
 $lang['def']['Show the most annoying'] = 'Показать самых назойливых';
+$lang['def']['For example'] = 'Например';
