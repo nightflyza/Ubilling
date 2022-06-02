@@ -1,7 +1,7 @@
 <?php
 
 /**
- *  Returns help chapter in current locale
+ *  Returns help chapter content in current locale
  * 
  *  @param   $chapter Help chapter name
  * 
@@ -32,20 +32,18 @@ function web_HelpChapterGet($chapter) {
  *  @return  string
  */
 function web_HelpIconShow() {
-    $lang = curlang();
     $result = '';
     if (cfr('HELP')) {
-        if (isset($_GET['module'])) {
-            $modulename = vf($_GET['module']);
-        } else {
-            $modulename = 'taskbar';
-        }
-        if (file_exists(DATA_PATH . "help/" . $lang . "/" . $modulename)) {
-            $help_chapter = web_HelpChapterGet($modulename);
+        $lang = curlang();
+        $currentModuleName = (ubRouting::checkGet('module')) ? ubRouting::get('module') : 'taskbar';
+        if (file_exists(DATA_PATH . "help/" . $lang . "/" . $currentModuleName)) {
+            $helpChapterContent = web_HelpChapterGet($currentModuleName);
             if (cfr('PROCRAST')) {
-                $help_chapter .= wf_delimiter() . wf_Link('?module=procrast', wf_img('skins/gamepad.png', __('Procrastination helper')));
+                $helpChapterContent .= wf_delimiter(1) . wf_Link('?module=procrast', wf_img('skins/gamepad.png', __('Procrastination helper')));
             }
-            $result = wf_modal(wf_img_sized("skins/help.gif", __('Context help'), 20), __('Context help'), $help_chapter, '', '800', '300');
+            $containerStyle = 'style="min-width:400px; max-width:800px; min-height:200px; max-height:500px;"';
+            $helpChapterContent = wf_AjaxContainer('contexthelpchapter', $containerStyle, $helpChapterContent);
+            $result = wf_modalAuto(wf_img_sized("skins/help.gif", __('Context help'), 20), __('Context help'), $helpChapterContent, '');
         }
     }
     return ($result);
