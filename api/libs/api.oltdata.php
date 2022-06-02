@@ -61,6 +61,44 @@ class OLTData {
     }
 
     /**
+     * Returns some data container content
+     * 
+     * @param string $dataContainer Path to data container
+     * @param bool $isArray returned value type
+     * 
+     * @return array/string
+     */
+    protected function getData($dataContainer, $isArray = true) {
+        $result = ($isArray) ? array() : '';
+        if (file_exists($dataContainer)) {
+            $result = file_get_contents($dataContainer);
+            if ($isArray) {
+                $result = unserialize($result);
+            }
+        }
+        return($result);
+    }
+
+    /**
+     * Saves some data in container
+     * 
+     * @param string $dataContainer
+     * @param array/string $dataToSave data to save
+     * 
+     * @return void
+     */
+    protected function saveData($dataContainer, $dataToSave) {
+        if (is_array($dataToSave)) {
+            $dataToSave = serialize($dataToSave);
+        }
+        file_put_contents($dataContainer, $dataToSave);
+    }
+
+    /**
+     * OLT data manipulation subroutines
+     */
+
+    /**
      * Saves current OLT temperature
      * Input format: float
      * 
@@ -71,7 +109,8 @@ class OLTData {
     public function writeTemperature($tempRaw) {
         $dataToSave = trim($tempRaw);
         if (!empty($dataToSave)) {
-            file_put_contents(self::TEMPERATURE_PATH . $this->oltId . '_' . self::TEMPERATURE_EXT, $dataToSave);
+            $dataContainer = self::TEMPERATURE_PATH . $this->oltId . '_' . self::TEMPERATURE_EXT;
+            $this->saveData($dataContainer, $dataToSave);
         }
     }
 
@@ -82,9 +121,8 @@ class OLTData {
      */
     public function readTemperature() {
         $result = '';
-        if (file_exists(self::TEMPERATURE_PATH . $this->oltId . '_' . self::TEMPERATURE_EXT)) {
-            $result = file_get_contents(self::TEMPERATURE_PATH . $this->oltId . '_' . self::TEMPERATURE_EXT);
-        }
+        $dataContainer = self::TEMPERATURE_PATH . $this->oltId . '_' . self::TEMPERATURE_EXT;
+        $result = $this->getData($dataContainer, false);
         return($result);
     }
 
@@ -99,7 +137,8 @@ class OLTData {
     public function writeUptime($uptimeRaw) {
         $dataToSave = trim($uptimeRaw);
         if (!empty($dataToSave)) {
-            file_put_contents(self::UPTIME_PATH . $this->oltId . '_' . self::UPTIME_EXT, $dataToSave);
+            $dataContainer = self::UPTIME_PATH . $this->oltId . '_' . self::UPTIME_EXT;
+            $this->saveData($dataContainer, $dataToSave);
         }
     }
 
@@ -110,10 +149,34 @@ class OLTData {
      */
     public function readUptime() {
         $result = '';
-        if (file_exists(self::UPTIME_PATH . $this->oltId . '_' . self::UPTIME_EXT)) {
-            $result = file_get_contents(self::UPTIME_PATH . $this->oltId . '_' . self::UPTIME_EXT);
-        }
+        $dataContainer = self::UPTIME_PATH . $this->oltId . '_' . self::UPTIME_EXT;
+        $result = $this->getData($dataContainer, false);
         return($result);
+    }
+
+    /**
+     * Saves latest OLT all ONUs signals
+     * Input format: array onuMac=>signalString
+     * 
+     * @param array $signalsArr
+     * 
+     * @return void
+     */
+    public function writeSignals($signalsArr) {
+        $dataToSave = $signalsArr;
+        $dataContainer = self::SIGCACHE_PATH . $this->oltId . '_' . self::SIGCACHE_EXT;
+        $this->saveData($dataContainer, $dataToSave);
+    }
+
+    /**
+     * Returns latest OLT all ONUs signals
+     * 
+     * 
+     * @return array as onuMac=>signalString
+     */
+    public function readSignals() {
+        $dataContainer = self::SIGCACHE_PATH . $this->oltId . '_' . self::SIGCACHE_EXT;
+        $this->getData($dataContainer);
     }
 
 }

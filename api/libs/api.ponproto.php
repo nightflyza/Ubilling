@@ -95,7 +95,7 @@ class PONProto {
     }
 
     /**
-     * Inits OLTData abstraction layer for further usage
+     * Inits current OLT data abstraction layer for further usage
      */
     protected function initOltData() {
         $this->olt = new OLTData($this->oltParameters['ID']);
@@ -193,8 +193,7 @@ class PONProto {
                     }
                 }
 
-                $result = serialize($result);
-                file_put_contents(self::SIGCACHE_PATH . $oltid . '_' . self::SIGCACHE_EXT, $result);
+                $this->olt->writeSignals($result);
 
                 // saving macindex as MAC => devID
                 $macTmp = array_flip($macTmp);
@@ -270,7 +269,7 @@ class PONProto {
      * @return void
      */
     protected function uptimeParse($oltid, $uptimeRaw) {
-        if (empty($uptimeRaw)) {
+        if (!empty($uptimeRaw)) {
             $uptimeRaw = explode(')', $uptimeRaw);
             $uptimeRaw = $uptimeRaw[1];
             $this->olt->writeUptime($uptimeRaw);
