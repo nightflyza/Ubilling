@@ -17,7 +17,8 @@ function web_HelpChapterGet($chapter) {
         $result .= file_get_contents(DATA_PATH . "help/" . $lang . "/" . $chapter);
         if (ispos($result, $wikiChapterMark)) {
             $searchRegex = "#\[wiki\](.*?)\[/wiki\]#is";
-            $replace = '<a href="' . $wikiBaseUrl . '\\1" target="_blank" class="ubButton">' . __('Wiki article') . '</a>';
+            $wikiIcon = '<img src="skins/icon_wiki_small.png">';
+            $replace = '<a href="' . $wikiBaseUrl . '\\1" target="_blank" class="ubButton">' . $wikiIcon . ' ' . __('Wiki article') . '</a>';
             $result = preg_replace($searchRegex, $replace, $result);
         }
         $result = nl2br($result);
