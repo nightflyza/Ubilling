@@ -82,7 +82,7 @@ class PONProto {
         $this->oltParameters = $oltParameters;
         $this->snmpTemplates = $snmpTemplates;
         $this->initSNMP();
-        $this->initOltData();
+        $this->initOltAttractor();
     }
 
     /**
@@ -97,7 +97,7 @@ class PONProto {
     /**
      * Inits current OLT data abstraction layer for further usage
      */
-    protected function initOltData() {
+    protected function initOltAttractor() {
         $this->olt = new OLTAttractor($this->oltParameters['ID']);
     }
 
@@ -138,7 +138,6 @@ class PONProto {
         $sigTmp = array();
         $macTmp = array();
         $result = array();
-        $curDate = curdatetime();
 
 //signal index preprocessing
         if ((!empty($sigIndex)) and ( !empty($macIndex))) {
@@ -184,12 +183,13 @@ class PONProto {
                     if (isset($sigTmp[$devId])) {
                         $signal = $sigTmp[$devId];
                         $result[$eachMac] = $signal;
-//signal history filling
-                        $historyFile = self::ONUSIG_PATH . md5($eachMac);
+                        //signal history preprocessing
                         if ($signal == 'Offline') {
                             $signal = $this->onuOfflineSignalLevel; //over 9000 offline signal level :P
                         }
-                        file_put_contents($historyFile, $curDate . ',' . $signal . "\n", FILE_APPEND);
+
+                        //saving each ONU signal history
+                        $this->olt->writeSignalHistory($eachMac, $signal);
                     }
                 }
 
@@ -252,10 +252,12 @@ class PONProto {
                         $result[$eachMac] = $distance;
                     }
                 }
-                $result = serialize($result);
-                file_put_contents(self::DISTCACHE_PATH . $oltid . '_' . self::DISTCACHE_EXT, $result);
-                $onuTmp = serialize($onuTmp);
-                file_put_contents(self::ONUCACHE_PATH . $oltid . '_' . self::ONUCACHE_EXT, $onuTmp);
+
+                //saving distance cache
+                $this->olt->writeDistances($result);
+
+                //saving ONU cache
+                $this->olt->writeOnuCache($onuTmp);
             }
         }
     }
@@ -280,7 +282,7 @@ class PONProto {
      * Parses BDCom temperature data and saves it into uptime cache
      *
      * @param int $oltid
-     * @param string $uptimeRaw
+     * @param string $tempRaw
      *
      * @return void
      */

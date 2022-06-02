@@ -120,7 +120,6 @@ class OLTAttractor {
      * @return float
      */
     public function readTemperature() {
-        $result = '';
         $dataContainer = self::TEMPERATURE_PATH . $this->oltId . '_' . self::TEMPERATURE_EXT;
         $result = $this->getData($dataContainer, false);
         return($result);
@@ -148,7 +147,6 @@ class OLTAttractor {
      * @return string
      */
     public function readUptime() {
-        $result = '';
         $dataContainer = self::UPTIME_PATH . $this->oltId . '_' . self::UPTIME_EXT;
         $result = $this->getData($dataContainer, false);
         return($result);
@@ -156,7 +154,7 @@ class OLTAttractor {
 
     /**
      * Saves latest OLT all ONUs signals
-     * Input format: array onuMac=>signalString
+     * Input format: array  onuMac or onuSerial => signalString
      * 
      * @param array $signalsArr
      * 
@@ -172,11 +170,12 @@ class OLTAttractor {
      * Returns latest OLT all ONUs signals
      * 
      * 
-     * @return array as onuMac=>signalString
+     * @return array as onuMac or onuSerial => signalString
      */
     public function readSignals() {
         $dataContainer = self::SIGCACHE_PATH . $this->oltId . '_' . self::SIGCACHE_EXT;
         $result = $this->getData($dataContainer);
+        return($result);
     }
 
     /**
@@ -201,6 +200,72 @@ class OLTAttractor {
     public function readMacIndex() {
         $dataContainer = self::MACDEVIDCACHE_PATH . $this->oltId . '_' . self::MACDEVIDCACHE_EXT;
         $result = $this->getData($dataContainer);
+        return($result);
+    }
+
+    /**
+     * Creates single ONU signal history record
+     * 
+     * @param string $onuIdent onuMac or OnuSerial
+     * @param float $signalLevel latest ONU signal in dB
+     * 
+     * @return void
+     */
+    public function writeSignalHistory($onuIdent, $signalLevel) {
+        if (!empty($onuIdent)) {
+            $dataContainer = self::ONUSIG_PATH . md5($onuIdent);
+            file_put_contents($dataContainer, curdatetime() . ',' . $signalLevel . PHP_EOL, FILE_APPEND);
+        }
+    }
+
+    /**
+     * Saves latest OLT all ONUs distances
+     * Input format: array  onuMac or onuSerial => onuDistance in meters
+     * 
+     * @param array $distArr
+     * 
+     * @return void
+     */
+    public function writeDistances($distsArr) {
+        $dataToSave = $distsArr;
+        $dataContainer = self::DISTCACHE_PATH . $this->oltId . '_' . self::DISTCACHE_EXT;
+        $this->saveData($dataContainer, $dataToSave);
+    }
+
+    /**
+     * Returns latest OLT all ONUs distances
+     * 
+     * @return array as onuMac or onuSerial => onuDistance in meters
+     */
+    public function readDistances() {
+        $dataContainer = self::DISTCACHE_PATH . $this->oltId . '_' . self::DISTCACHE_EXT;
+        $result = $this->getData($dataContainer);
+        return($result);
+    }
+
+    /**
+     * Saves latest OLT all ONUs devices cache
+     * Input format: array  deviceId=>onuMac or onuSerial
+     * 
+     * @param array $onusArr
+     * 
+     * @return void
+     */
+    public function writeOnuCache($onusArr) {
+        $dataToSave = $onusArr;
+        $dataContainer = self::ONUCACHE_PATH . $this->oltId . '_' . self::ONUCACHE_EXT;
+        $this->saveData($dataContainer, $dataToSave);
+    }
+
+    /**
+     * Returns latest OLT all ONUs devices cache
+     * 
+     * @return array as deviceId=>onuMac or onuSerial
+     */
+    public function readOnuCache() {
+        $dataContainer = self::ONUCACHE_PATH . $this->oltId . '_' . self::ONUCACHE_EXT;
+        $result = $this->getData($dataContainer);
+        return($result);
     }
 
 }
