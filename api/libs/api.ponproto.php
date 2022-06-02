@@ -193,12 +193,12 @@ class PONProto {
                     }
                 }
 
+                //writing signals cache
                 $this->olt->writeSignals($result);
 
                 // saving macindex as MAC => devID
                 $macTmp = array_flip($macTmp);
-                $macTmp = serialize($macTmp);
-                file_put_contents(self::MACDEVIDCACHE_PATH . $oltid . '_' . self::MACDEVIDCACHE_EXT, $macTmp);
+                $this->olt->writeMacIndex($macTmp);
             }
         }
     }

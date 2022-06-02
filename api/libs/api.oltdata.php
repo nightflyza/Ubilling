@@ -176,7 +176,31 @@ class OLTData {
      */
     public function readSignals() {
         $dataContainer = self::SIGCACHE_PATH . $this->oltId . '_' . self::SIGCACHE_EXT;
-        $this->getData($dataContainer);
+        $result = $this->getData($dataContainer);
+    }
+
+    /**
+     * Saves latest OLT all ONUs MAC index
+     * Input format: array onuMac=>deviceId
+     * 
+     * @param array $macIndexArr
+     * 
+     * @return void
+     */
+    public function writeMacIndex($macIndexArr) {
+        $dataToSave = $macIndexArr;
+        $dataContainer = self::MACDEVIDCACHE_PATH . $this->oltId . '_' . self::MACDEVIDCACHE_EXT;
+        $this->saveData($dataContainer, $dataToSave);
+    }
+
+    /**
+     * Returns latest OLT all ONUs MAC index
+     * 
+     * @return array as onuMac=>deviceId
+     */
+    public function readMacIndex() {
+        $dataContainer = self::MACDEVIDCACHE_PATH . $this->oltId . '_' . self::MACDEVIDCACHE_EXT;
+        $result = $this->getData($dataContainer);
     }
 
 }
