@@ -100,9 +100,8 @@ class OLTAttractor {
 
     /**
      * Saves current OLT temperature
-     * Input format: float
      * 
-     * @param float $tempRaw
+     * @param float $tempRaw current OLT temperature in celsius
      * 
      * @return void
      */
@@ -115,7 +114,7 @@ class OLTAttractor {
     }
 
     /**
-     * Returns current OLT temperature
+     * Returns current OLT temperature in celsius
      * 
      * @return float
      */
@@ -127,9 +126,8 @@ class OLTAttractor {
 
     /**
      * Saves last OLT uptime
-     * Input format: string
      * 
-     * @param float $uptimeRaw
+     * @param string $uptimeRaw readable string like "666 days"
      * 
      * @return void
      */
@@ -142,7 +140,7 @@ class OLTAttractor {
     }
 
     /**
-     * Returns last OLT uptime
+     * Returns last OLT uptime just as readable string
      * 
      * @return string
      */
@@ -154,9 +152,8 @@ class OLTAttractor {
 
     /**
      * Saves latest OLT all ONUs signals
-     * Input format: array  onuMac or onuSerial => signalString
      * 
-     * @param array $signalsArr
+     * @param array $signalsArr array of [onuMac or onuSerial] => signalString
      * 
      * @return void
      */
@@ -169,8 +166,7 @@ class OLTAttractor {
     /**
      * Returns latest OLT all ONUs signals
      * 
-     * 
-     * @return array as onuMac or onuSerial => signalString
+     * @return array as [onuMac or onuSerial] => signalString
      */
     public function readSignals() {
         $dataContainer = self::SIGCACHE_PATH . $this->oltId . '_' . self::SIGCACHE_EXT;
@@ -180,9 +176,8 @@ class OLTAttractor {
 
     /**
      * Saves latest OLT all ONUs MAC index
-     * Input format: array onuMac=>deviceId
      * 
-     * @param array $macIndexArr
+     * @param array $macIndexArr array of [onuMac]=>deviceId
      * 
      * @return void
      */
@@ -195,7 +190,7 @@ class OLTAttractor {
     /**
      * Returns latest OLT all ONUs MAC index
      * 
-     * @return array as onuMac=>deviceId
+     * @return array as [onuMac]=>deviceId
      */
     public function readMacIndex() {
         $dataContainer = self::MACDEVIDCACHE_PATH . $this->oltId . '_' . self::MACDEVIDCACHE_EXT;
@@ -220,9 +215,8 @@ class OLTAttractor {
 
     /**
      * Saves latest OLT all ONUs distances
-     * Input format: array  onuMac or onuSerial => onuDistance in meters
      * 
-     * @param array $distArr
+     * @param array $distsArr array of [onuMac or onuSerial] => onuDistance in meters
      * 
      * @return void
      */
@@ -235,7 +229,7 @@ class OLTAttractor {
     /**
      * Returns latest OLT all ONUs distances
      * 
-     * @return array as onuMac or onuSerial => onuDistance in meters
+     * @return array as [onuMac or onuSerial] => onuDistance in meters
      */
     public function readDistances() {
         $dataContainer = self::DISTCACHE_PATH . $this->oltId . '_' . self::DISTCACHE_EXT;
@@ -245,9 +239,8 @@ class OLTAttractor {
 
     /**
      * Saves latest OLT all ONUs devices cache
-     * Input format: array  deviceId=>onuMac or onuSerial
      * 
-     * @param array $onusArr
+     * @param array $onusArr array of [onuIdx]=>onuMac or onuSerial
      * 
      * @return void
      */
@@ -260,12 +253,143 @@ class OLTAttractor {
     /**
      * Returns latest OLT all ONUs devices cache
      * 
-     * @return array as deviceId=>onuMac or onuSerial
+     * @return array as [onuIdx]=>onuMac or onuSerial
      */
     public function readOnuCache() {
         $dataContainer = self::ONUCACHE_PATH . $this->oltId . '_' . self::ONUCACHE_EXT;
         $result = $this->getData($dataContainer);
         return($result);
+    }
+
+    /**
+     * Saves latest OLT all ONUs interfaces cache
+     * 
+     * @param array $ifacesArr array of [onuMac or onuSerial]=>InterfaceName like EPON0/5:1
+     * 
+     * @return void
+     */
+    public function writeInterfaces($ifacesArr) {
+        $dataToSave = $ifacesArr;
+        $dataContainer = self::INTCACHE_PATH . $this->oltId . '_' . self::INTCACHE_EXT;
+        $this->saveData($dataContainer, $dataToSave);
+    }
+
+    /**
+     * Returns latest OLT all ONUs interfaces cache
+     * 
+     * @return array as array [onuMac or onuSerial]=>interfaceName like EPON0/5:1
+     */
+    public function readInterfaces() {
+        $dataContainer = self::INTCACHE_PATH . $this->oltId . '_' . self::INTCACHE_EXT;
+        $result = $this->getData($dataContainer);
+        return($result);
+    }
+
+    /**
+     * Saves latest OLT interfaces description cache
+     * 
+     * @param array $ifdescrsArr array of [interfaceName]=>description
+     * 
+     * @return void
+     */
+    public function writeInterfacesDescriptions($ifdescrsArr) {
+        $dataToSave = $ifdescrsArr;
+        $dataContainer = self::INTCACHE_PATH . $this->oltId . '_' . self::INTDESCRCACHE_EXT;
+        $this->saveData($dataContainer, $dataToSave);
+    }
+
+    /**
+     * Returns atest OLT interfaces description cache
+     * 
+     * @return array as [interfaceName]=>description
+     */
+    public function readInterfacesDescriptions() {
+        $dataContainer = self::INTCACHE_PATH . $this->oltId . '_' . self::INTDESCRCACHE_EXT;
+        $result = $this->getData($dataContainer);
+        return($result);
+    }
+
+    /**
+     * Saves OLT full FDB table into cache
+     * 
+     * @param array $fdbStruct array of [onuMac/onuSerial][id]=>mac+vlan
+     * 
+     * @return void
+     */
+    public function writeFdb($fdbStruct) {
+        /**
+         * Expected input data structure:
+         * 
+         * [onuMac/onuSerial] => Array
+         *    (
+         *        [someId] => Array
+         *           (
+         *                [mac] => e8:ba:70:c6:49:aa
+         *                [vlan] => 1
+         *            )
+         *
+         *        [anotherId] => Array
+         *            (
+         *                [mac] => e8:ba:70:c6:49:bb
+         *                [vlan] => 1
+         *            )
+         * */
+        $dataToSave = $fdbStruct;
+        $dataContainer = self::FDBCACHE_PATH . $this->oltId . '_' . self::FDBCACHE_EXT;
+        $this->saveData($dataContainer, $dataToSave);
+    }
+
+    /**
+     * Returns OLT full FDB table into cache
+     * 
+     * @return array as array of [onuMac/onuSerial][id]=>mac+vlan
+     */
+    public function readFdb() {
+        $dataContainer = self::FDBCACHE_PATH . $this->oltId . '_' . self::FDBCACHE_EXT;
+        $result = $this->getData($dataContainer);
+        /**
+         * Expected return data struct:
+         * 
+         * [onuMac/onuSerial] => Array
+         *    (
+         *        [someId] => Array
+         *           (
+         *                [mac] => e8:ba:70:c6:49:aa
+         *                [vlan] => 1
+         *            )
+         *
+         *        [anotherId] => Array
+         *            (
+         *                [mac] => e8:ba:70:c6:49:bb
+         *                [vlan] => 1
+         *            )
+         * */
+        return($result);
+    }
+
+    /**
+     * Saves all OLT ONUs deregistrations reasons
+     * 
+     * @param array $onuDeregsArr array of [onuMac/onuSerial]=>deregReason like "wire down"
+     * 
+     * @return void
+     */
+    public function writeDeregs($onuDeregsArr) {
+        $dataToSave = $onuDeregsArr;
+        $dataContainer = self::DEREGCACHE_PATH . $this->oltId . '_' . self::DEREGCACHE_EXT;
+        $this->saveData($dataContainer, $dataToSave);
+    }
+
+    /**
+     * Returns all OLT ONUs deregistrations reasons
+     * 
+     * @param array $onuDeregsArr 
+     * 
+     * @return array as array of [onuMac/onuSerial]=>deregReason like "wire down"
+     */
+    public function readDeregs() {
+        $dataContainer = self::DEREGCACHE_PATH . $this->oltId . '_' . self::DEREGCACHE_EXT;
+        $result = $this->getData($dataContainer);
     }
 
 }

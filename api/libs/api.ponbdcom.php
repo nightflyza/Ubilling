@@ -199,10 +199,10 @@ class PONBdcom extends PONProto {
                     }
                 }
 
-                $result = serialize($result);
-                $ifaceCustDescrArr = serialize($ifaceCustDescrArr);
-                file_put_contents(self::INTCACHE_PATH . $oltid . '_' . self::INTCACHE_EXT, $result);
-                file_put_contents(self::INTCACHE_PATH . $oltid . '_' . self::INTDESCRCACHE_EXT, $ifaceCustDescrArr);
+                //saving interfaces cache as mac=>interface name
+                $this->olt->writeInterfaces($result);
+                //saving interfaces custom descriptions as interface=>desctription
+                $this->olt->writeInterfacesDescriptions($ifaceCustDescrArr);
             }
         }
     }
@@ -268,8 +268,9 @@ class PONBdcom extends PONProto {
                         $result[$eachMac] = $fdb;
                     }
                 }
-                $result = serialize($result);
-                file_put_contents(self::FDBCACHE_PATH . $oltid . '_' . self::FDBCACHE_EXT, $result);
+
+                //saving FDB cache
+                $this->olt->writeFdb($result);
             }
         }
     }
@@ -348,9 +349,8 @@ class PONBdcom extends PONProto {
                         $result[$eachMac] = $fdb;
                     }
                 }
-
-                $result = serialize($result);
-                file_put_contents(self::FDBCACHE_PATH . $oltid . '_' . self::FDBCACHE_EXT, $result);
+                //saving FDB cache
+                $this->olt->writeFDB($result);
             }
         }
     }
@@ -457,9 +457,8 @@ class PONBdcom extends PONProto {
                         $result[$eachMac] = $lastDereg;
                     }
                 }
-
-                $result = serialize($result);
-                file_put_contents(self::DEREGCACHE_PATH . $oltid . '_' . self::DEREGCACHE_EXT, $result);
+                //saving dereg reasons cache
+                $this->olt->writeDeregs($result);
             }
         }
     }
