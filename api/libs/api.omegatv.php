@@ -1147,7 +1147,7 @@ class OmegaTV {
     public function generateCustormerId($login) {
         $result = '';
         if (!empty($login)) {
-            $result = crc16($login);
+            $result = crc32($login);
         }
         return($result);
     }
