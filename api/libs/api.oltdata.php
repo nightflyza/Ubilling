@@ -39,7 +39,7 @@ class OLTData {
     /**
      * Creates new OLT data manipulation instance
      * 
-     * @param int $oltId
+     * @param int $oltId Existing OLT device ID
      */
     public function __construct($oltId = '') {
         if (!empty($oltId)) {
@@ -64,7 +64,7 @@ class OLTData {
      * Returns some data container content
      * 
      * @param string $dataContainer Path to data container
-     * @param bool $isArray returned value type
+     * @param bool $isArray is container data an serialized array?
      * 
      * @return array/string
      */
