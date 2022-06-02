@@ -29,33 +29,46 @@ class PONProto {
     /**
      * SNMPHelper object instance
      *
-     * @var array
+     * @var object
      */
     protected $snmp = '';
 
     /**
-     * Replicated paths from primary PONizer class
+     * Contains OLTData
+     *
+     * @var object
      */
-    const SIGCACHE_PATH = PONizer::SIGCACHE_PATH;
-    const SIGCACHE_EXT = PONizer::SIGCACHE_EXT;
-    const DISTCACHE_PATH = PONizer::DISTCACHE_PATH;
-    const DISTCACHE_EXT = PONizer::DISTCACHE_EXT;
-    const ONUCACHE_PATH = PONizer::ONUCACHE_PATH;
-    const ONUCACHE_EXT = PONizer::ONUCACHE_EXT;
-    const INTCACHE_PATH = PONizer::INTCACHE_PATH;
-    const INTCACHE_EXT = PONizer::INTCACHE_EXT;
-    const INTDESCRCACHE_EXT = PONizer::INTDESCRCACHE_EXT;
-    const FDBCACHE_PATH = PONizer::FDBCACHE_PATH;
-    const FDBCACHE_EXT = PONizer::FDBCACHE_EXT;
-    const DEREGCACHE_PATH = PONizer::DEREGCACHE_PATH;
-    const DEREGCACHE_EXT = PONizer::DEREGCACHE_EXT;
-    const UPTIME_PATH = PONizer::UPTIME_PATH;
-    const UPTIME_EXT = PONizer::UPTIME_EXT;
-    const TEMPERATURE_PATH = PONizer::TEMPERATURE_PATH;
-    const TEMPERATURE_EXT = PONizer::TEMPERATURE_EXT;
-    const MACDEVIDCACHE_PATH = PONizer::MACDEVIDCACHE_PATH;
-    const MACDEVIDCACHE_EXT = PONizer::MACDEVIDCACHE_EXT;
-    const ONUSIG_PATH = PONizer::ONUSIG_PATH;
+    protected $olt = '';
+
+    /**
+     * Replicated paths from primary PONizer class. 
+     * This is here only for legacy of manual data manipulations wit self::
+     * instead of usage $this->olt abstraction in HAL libs.
+     */
+    const SIGCACHE_PATH = OLTData::SIGCACHE_PATH;
+    const SIGCACHE_EXT = OLTData::SIGCACHE_EXT;
+    const DISTCACHE_PATH = OLTData::DISTCACHE_PATH;
+    const DISTCACHE_EXT = OLTData::DISTCACHE_EXT;
+    const ONUCACHE_PATH = OLTData::ONUCACHE_PATH;
+    const ONUCACHE_EXT = OLTData::ONUCACHE_EXT;
+    const INTCACHE_PATH = OLTData::INTCACHE_PATH;
+    const INTCACHE_EXT = OLTData::INTCACHE_EXT;
+    const INTDESCRCACHE_EXT = OLTData::INTDESCRCACHE_EXT;
+    const FDBCACHE_PATH = OLTData::FDBCACHE_PATH;
+    const FDBCACHE_EXT = OLTData::FDBCACHE_EXT;
+    const DEREGCACHE_PATH = OLTData::DEREGCACHE_PATH;
+    const DEREGCACHE_EXT = OLTData::DEREGCACHE_EXT;
+    const UPTIME_PATH = OLTData::UPTIME_PATH;
+    const UPTIME_EXT = OLTData::UPTIME_EXT;
+    const TEMPERATURE_PATH = OLTData::TEMPERATURE_PATH;
+    const TEMPERATURE_EXT = OLTData::TEMPERATURE_EXT;
+    const MACDEVIDCACHE_PATH = OLTData::MACDEVIDCACHE_PATH;
+    const MACDEVIDCACHE_EXT = OLTData::MACDEVIDCACHE_EXT;
+    const ONUSIG_PATH = OLTData::ONUSIG_PATH;
+
+    /**
+     * Other instance parameters
+     */
     const SNMPCACHE = PONizer::SNMPCACHE;
     const SNMPPORT = PONizer::SNMPPORT;
 
@@ -69,6 +82,7 @@ class PONProto {
         $this->oltParameters = $oltParameters;
         $this->snmpTemplates = $snmpTemplates;
         $this->initSNMP();
+        $this->initOltData();
     }
 
     /**
@@ -78,6 +92,13 @@ class PONProto {
      */
     protected function initSNMP() {
         $this->snmp = new SNMPHelper();
+    }
+
+    /**
+     * Inits OLTData abstraction layer for further usage
+     */
+    protected function initOltData() {
+        $this->olt = new OLTData($this->oltParameters['ID']);
     }
 
     /**
@@ -249,12 +270,10 @@ class PONProto {
      * @return void
      */
     protected function uptimeParse($oltid, $uptimeRaw) {
-        $oltid = ubRouting::filters($oltid, 'int');
-        if (!empty($oltid) and ! empty($uptimeRaw)) {
+        if (empty($uptimeRaw)) {
             $uptimeRaw = explode(')', $uptimeRaw);
             $uptimeRaw = $uptimeRaw[1];
-            $uptimeRaw = trim($uptimeRaw);
-            file_put_contents(self::UPTIME_PATH . $oltid . '_' . self::UPTIME_EXT, $uptimeRaw);
+            $this->olt->writeUptime($uptimeRaw);
         }
     }
 
@@ -267,12 +286,10 @@ class PONProto {
      * @return void
      */
     protected function temperatureParse($oltid, $tempRaw) {
-        $oltid = ubRouting::filters($oltid, 'int');
-        if (!empty($oltid) and ! empty($tempRaw)) {
+        if (!empty($tempRaw)) {
             $tempRaw = explode(':', $tempRaw);
             $tempRaw = $tempRaw[1];
-            $tempRaw = trim($tempRaw);
-            file_put_contents(self::TEMPERATURE_PATH . $oltid . '_' . self::TEMPERATURE_EXT, $tempRaw);
+            $this->olt->writeTemperature($tempRaw);
         }
     }
 

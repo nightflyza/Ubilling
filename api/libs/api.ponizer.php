@@ -323,29 +323,33 @@ class PONizer {
     /**
      * Some predefined paths, etc
      */
-    const SIGCACHE_PATH = 'exports/';
-    const SIGCACHE_EXT = 'OLTSIGNALS';
-    const DISTCACHE_PATH = 'exports/';
-    const DISTCACHE_EXT = 'OLTDISTANCE';
-    const ONUCACHE_PATH = 'exports/';
-    const ONUCACHE_EXT = 'ONUINDEX';
-    const INTCACHE_PATH = 'exports/';
-    const INTCACHE_EXT = 'ONUINTERFACE';
-    const INTDESCRCACHE_EXT = 'OLTINTERFACEDESCR';
-    const FDBCACHE_PATH = 'exports/';
-    const FDBCACHE_EXT = 'OLTFDB';
-    const DEREGCACHE_PATH = 'exports/';
-    const DEREGCACHE_EXT = 'ONUDEREGS';
-    const UPTIME_PATH = 'exports/';
-    const UPTIME_EXT = 'OLTUPTIME';
-    const TEMPERATURE_PATH = 'exports/';
-    const TEMPERATURE_EXT = 'OLTTEMPERATURE';
-    const MACDEVIDCACHE_PATH = 'exports/';
-    const MACDEVIDCACHE_EXT = 'ONUMACDEVINDEX';
+    const SIGCACHE_PATH = OLTData::SIGCACHE_PATH;
+    const SIGCACHE_EXT = OLTData::SIGCACHE_EXT;
+    const DISTCACHE_PATH = OLTData::DISTCACHE_PATH;
+    const DISTCACHE_EXT = OLTData::DISTCACHE_EXT;
+    const ONUCACHE_PATH = OLTData::ONUCACHE_PATH;
+    const ONUCACHE_EXT = OLTData::ONUCACHE_EXT;
+    const INTCACHE_PATH = OLTData::INTCACHE_PATH;
+    const INTCACHE_EXT = OLTData::INTCACHE_EXT;
+    const INTDESCRCACHE_EXT = OLTData::INTDESCRCACHE_EXT;
+    const FDBCACHE_PATH = OLTData::FDBCACHE_PATH;
+    const FDBCACHE_EXT = OLTData::FDBCACHE_EXT;
+    const DEREGCACHE_PATH = OLTData::DEREGCACHE_PATH;
+    const DEREGCACHE_EXT = OLTData::DEREGCACHE_EXT;
+    const UPTIME_PATH = OLTData::UPTIME_PATH;
+    const UPTIME_EXT = OLTData::UPTIME_EXT;
+    const TEMPERATURE_PATH = OLTData::TEMPERATURE_PATH;
+    const TEMPERATURE_EXT = OLTData::TEMPERATURE_EXT;
+    const MACDEVIDCACHE_PATH = OLTData::MACDEVIDCACHE_PATH;
+    const MACDEVIDCACHE_EXT = OLTData::MACDEVIDCACHE_EXT;
+    const ONUSIG_PATH = OLTData::ONUSIG_PATH;
+    const POLL_STATS = 'exports/PONY_';
+
+    /**
+     * Other predefined constants
+     */
     const SNMPCACHE = false;
     const SNMPPORT = 161;
-    const ONUSIG_PATH = 'content/documents/onusig/';
-    const POLL_STATS = 'exports/PONY_';
     const KEY_ALLONU = 'ALLONU';
     const KEY_ONUOLT = 'ONUOLTID_';
     const KEY_ONULISTAJ = 'ONULISTAJ_';
@@ -2380,6 +2384,7 @@ class PONizer {
 
         if ((!empty($oltInterfacesFilled)) and ( !empty($oltOnuFilled))) {
             foreach ($oltOnuFilled as $oltId => $oltFilledPercent) {
+                $oltData = new OLTData($oltId);
                 $oltControls = '';
                 $result .= wf_tag('h3');
                 $result .= $this->allOltDevices[$oltId] . ' ' . __('filled on') . ' ' . $oltFilledPercent . '%';
@@ -2476,13 +2481,13 @@ class PONizer {
                     }
                     $result .= wf_TableBody($rows, '100%', 0, 'sortable');
                     //gettin uptime
-                    if (file_exists(self::UPTIME_PATH . $oltId . '_' . self::UPTIME_EXT)) {
-                        $oltUptime = file_get_contents(self::UPTIME_PATH . $oltId . '_' . self::UPTIME_EXT);
+                    $oltUptime = $oltData->readUptime();
+                    if (!empty($oltUptime)) {
                         $result .= __('Uptime') . ': ' . $oltUptime;
                     }
                     //getting temperature
-                    if (file_exists(self::TEMPERATURE_PATH . $oltId . '_' . self::TEMPERATURE_EXT)) {
-                        $oltTemperature = file_get_contents(self::TEMPERATURE_PATH . $oltId . '_' . self::TEMPERATURE_EXT);
+                    $oltTemperature = $oltData->readTemperature();
+                    if (!empty($oltTemperature)) {
                         $oltsTemps[$oltId] = $oltTemperature; //filling temp array
                         $result .= ' / ' . __('Temperature') . ': ' . $oltTemperature . '  °C';
                     }
