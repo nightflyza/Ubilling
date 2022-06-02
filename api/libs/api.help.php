@@ -10,13 +10,15 @@
 function web_HelpChapterGet($chapter) {
     $lang = curlang();
     $chapter = vf($chapter);
-    $wikiChapterMark = 'WIKI:';
+    $wikiChapterMark = 'wiki]';
+    $wikiBaseUrl = 'https://wiki.ubilling.net.ua/doku.php?id=';
     $result = '';
     if (file_exists(DATA_PATH . "help/" . $lang . "/" . $chapter)) {
         $result .= file_get_contents(DATA_PATH . "help/" . $lang . "/" . $chapter);
         if (ispos($result, $wikiChapterMark)) {
-            //TODO:
-            //$result=
+            $searchRegex = "#\[wiki\](.*?)\[/wiki\]#is";
+            $replace = '<a href="' . $wikiBaseUrl . '\\1" target="_blank" class="ubButton">' . __('Wiki article') . '</a>';
+            $result = preg_replace($searchRegex, $replace, $result);
         }
         $result = nl2br($result);
     }
@@ -47,5 +49,3 @@ function web_HelpIconShow() {
     }
     return ($result);
 }
-
-?>
