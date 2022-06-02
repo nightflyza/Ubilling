@@ -91,7 +91,7 @@ class OmegaTvFrontend {
         $this->apiUrl = $this->usConfig['API_URL'];
         $this->apiKey = $this->usConfig['API_KEY'];
         if (isset($this->usConfig['OM_MAXDEV'])) {
-            $this->maxDevices= $this->usConfig['OM_MAXDEV'];
+            $this->maxDevices = $this->usConfig['OM_MAXDEV'];
         }
     }
 
@@ -192,7 +192,7 @@ class OmegaTvFrontend {
     public function generateCustormerId($login) {
         $result = '';
         if (!empty($login)) {
-            $result = crc32($login);
+            $result = crc16($login);
         }
         return($result);
     }
