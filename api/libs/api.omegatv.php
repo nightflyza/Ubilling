@@ -1147,7 +1147,7 @@ class OmegaTV {
     public function generateCustormerId($login) {
         $result = '';
         if (!empty($login)) {
-            $result = crc32($login);
+            $result = crc16($login);
         }
         return($result);
     }
@@ -1568,7 +1568,7 @@ class OmegaTV {
                 $data[] = web_bool_led($each['active'], true);
                 $data[] = $each['customerid'];
                 $actLinks = wf_Link(self::URL_ME . '&customerprofile=' . $each['customerid'], web_edit_icon());
-                $actLinks.= wf_Link('https://admin.hls.tv/customers/operator#page=1&search=' . $each['customerid'], web_icon_search());
+                $actLinks .= wf_Link('https://admin.hls.tv/customers/operator#page=1&search=' . $each['customerid'], web_icon_search());
                 $data[] = $actLinks;
                 $json->addRow($data);
                 unset($data);
