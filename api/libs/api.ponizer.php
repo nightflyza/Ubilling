@@ -323,26 +323,26 @@ class PONizer {
     /**
      * Some predefined paths, etc
      */
-    const SIGCACHE_PATH = OLTData::SIGCACHE_PATH;
-    const SIGCACHE_EXT = OLTData::SIGCACHE_EXT;
-    const DISTCACHE_PATH = OLTData::DISTCACHE_PATH;
-    const DISTCACHE_EXT = OLTData::DISTCACHE_EXT;
-    const ONUCACHE_PATH = OLTData::ONUCACHE_PATH;
-    const ONUCACHE_EXT = OLTData::ONUCACHE_EXT;
-    const INTCACHE_PATH = OLTData::INTCACHE_PATH;
-    const INTCACHE_EXT = OLTData::INTCACHE_EXT;
-    const INTDESCRCACHE_EXT = OLTData::INTDESCRCACHE_EXT;
-    const FDBCACHE_PATH = OLTData::FDBCACHE_PATH;
-    const FDBCACHE_EXT = OLTData::FDBCACHE_EXT;
-    const DEREGCACHE_PATH = OLTData::DEREGCACHE_PATH;
-    const DEREGCACHE_EXT = OLTData::DEREGCACHE_EXT;
-    const UPTIME_PATH = OLTData::UPTIME_PATH;
-    const UPTIME_EXT = OLTData::UPTIME_EXT;
-    const TEMPERATURE_PATH = OLTData::TEMPERATURE_PATH;
-    const TEMPERATURE_EXT = OLTData::TEMPERATURE_EXT;
-    const MACDEVIDCACHE_PATH = OLTData::MACDEVIDCACHE_PATH;
-    const MACDEVIDCACHE_EXT = OLTData::MACDEVIDCACHE_EXT;
-    const ONUSIG_PATH = OLTData::ONUSIG_PATH;
+    const SIGCACHE_PATH = OLTAttractor::SIGCACHE_PATH;
+    const SIGCACHE_EXT = OLTAttractor::SIGCACHE_EXT;
+    const DISTCACHE_PATH = OLTAttractor::DISTCACHE_PATH;
+    const DISTCACHE_EXT = OLTAttractor::DISTCACHE_EXT;
+    const ONUCACHE_PATH = OLTAttractor::ONUCACHE_PATH;
+    const ONUCACHE_EXT = OLTAttractor::ONUCACHE_EXT;
+    const INTCACHE_PATH = OLTAttractor::INTCACHE_PATH;
+    const INTCACHE_EXT = OLTAttractor::INTCACHE_EXT;
+    const INTDESCRCACHE_EXT = OLTAttractor::INTDESCRCACHE_EXT;
+    const FDBCACHE_PATH = OLTAttractor::FDBCACHE_PATH;
+    const FDBCACHE_EXT = OLTAttractor::FDBCACHE_EXT;
+    const DEREGCACHE_PATH = OLTAttractor::DEREGCACHE_PATH;
+    const DEREGCACHE_EXT = OLTAttractor::DEREGCACHE_EXT;
+    const UPTIME_PATH = OLTAttractor::UPTIME_PATH;
+    const UPTIME_EXT = OLTAttractor::UPTIME_EXT;
+    const TEMPERATURE_PATH = OLTAttractor::TEMPERATURE_PATH;
+    const TEMPERATURE_EXT = OLTAttractor::TEMPERATURE_EXT;
+    const MACDEVIDCACHE_PATH = OLTAttractor::MACDEVIDCACHE_PATH;
+    const MACDEVIDCACHE_EXT = OLTAttractor::MACDEVIDCACHE_EXT;
+    const ONUSIG_PATH = OLTAttractor::ONUSIG_PATH;
     const POLL_STATS = 'exports/PONY_';
 
     /**
@@ -2384,7 +2384,7 @@ class PONizer {
 
         if ((!empty($oltInterfacesFilled)) and ( !empty($oltOnuFilled))) {
             foreach ($oltOnuFilled as $oltId => $oltFilledPercent) {
-                $oltData = new OLTData($oltId);
+                $oltData = new OLTAttractor($oltId);
                 $oltControls = '';
                 $result .= wf_tag('h3');
                 $result .= $this->allOltDevices[$oltId] . ' ' . __('filled on') . ' ' . $oltFilledPercent . '%';

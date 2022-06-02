@@ -1,9 +1,9 @@
 <?php
 
 /**
- * OLT local data abstraction layer
+ * OLT local data manipultaion abstraction layer
  */
-class OLTData {
+class OLTAttractor {
 
     /**
      * Contains current instance OLT device ID
