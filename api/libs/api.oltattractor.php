@@ -44,8 +44,6 @@ class OLTAttractor {
     public function __construct($oltId = '') {
         if (!empty($oltId)) {
             $this->oltId = $oltId;
-        } else {
-            throw new Exception('EX_OLTID_EMPTY');
         }
     }
 
@@ -84,7 +82,7 @@ class OLTAttractor {
     }
 
     /**
-     * Returns some data container content
+     * Returns some data container unpacked content
      * 
      * @param string $dataContainer Path to data container
      * @param bool $isArray is container data an serialized array?
@@ -93,11 +91,15 @@ class OLTAttractor {
      */
     protected function getData($dataContainer, $isArray = true) {
         $result = ($isArray) ? array() : '';
-        if (file_exists($dataContainer)) {
-            $result = file_get_contents($dataContainer);
-            if ($isArray) {
-                $result = unserialize($result);
+        if (!empty($this->oltId)) {
+            if (file_exists($dataContainer)) {
+                $result = file_get_contents($dataContainer);
+                if ($isArray) {
+                    $result = unserialize($result);
+                }
             }
+        } else {
+            throw new Exception('EX_OLTID_EMPTY');
         }
         return($result);
     }
@@ -111,10 +113,54 @@ class OLTAttractor {
      * @return void
      */
     protected function saveData($dataContainer, $dataToSave) {
-        if (is_array($dataToSave)) {
-            $dataToSave = serialize($dataToSave);
+        if (!empty($this->oltId)) {
+            if (is_array($dataToSave)) {
+                $dataToSave = serialize($dataToSave);
+            }
+            file_put_contents($dataContainer, $dataToSave);
+        } else {
+            throw new Exception('EX_OLTID_EMPTY');
         }
-        file_put_contents($dataContainer, $dataToSave);
+    }
+
+    /**
+     * Extracts OLT ID from data container name
+     * 
+     * @param string $dataContainerName
+     * 
+     * @return int/bool on error
+     */
+    protected function extractOltID($dataContainerName) {
+        $result = false;
+        if (!empty($dataContainerName)) {
+            $anyDigits = preg_replace("#[^0-9]#Uis", '', $dataContainerName);
+            if (!empty($anyDigits)) {
+                $result = $anyDigits;
+            }
+        }
+        return($result);
+    }
+
+    /**
+     * Return list of available OLT data containers as oltId=>containerName
+     * 
+     * @param string $containerPath
+     * @param string $containerMark
+     * 
+     * @return array
+     */
+    protected function getContainers($containerPath, $containerMark) {
+        $result = array();
+        $availContainers = rcms_scandir($containerPath, '*_' . $containerMark);
+        if (!empty($availContainers)) {
+            foreach ($availContainers as $io => $eachContainer) {
+                $oltId = $this->extractOltID($eachContainer);
+                if ($oltId !== false) {
+                    $result[$oltId] = $eachContainer;
+                }
+            }
+        }
+        return($result);
     }
 
     /**
@@ -309,7 +355,7 @@ class OLTAttractor {
     }
 
     /**
-     * Saves latest OLT interfaces description cache
+     * Saves latest OLT all interfaces description cache
      * 
      * @param array $ifdescrsArr array of [interfaceName]=>description
      * 
@@ -322,7 +368,7 @@ class OLTAttractor {
     }
 
     /**
-     * Returns atest OLT interfaces description cache
+     * Returns latest OLT all interfaces description cache
      * 
      * @return array as [interfaceName]=>description
      */
@@ -363,7 +409,7 @@ class OLTAttractor {
     }
 
     /**
-     * Returns OLT full FDB table into cache
+     * Returns OLT full FDB table from cache
      * 
      * @return array as array of [onuMac/onuSerial][id]=>mac+vlan
      */
@@ -391,7 +437,7 @@ class OLTAttractor {
     }
 
     /**
-     * Saves all OLT ONUs deregistrations reasons
+     * Saves OLT all ONUs deregistrations reasons
      * 
      * @param array $onuDeregsArr array of [onuMac/onuSerial]=>deregReason like "wire down"
      * 
@@ -404,15 +450,29 @@ class OLTAttractor {
     }
 
     /**
-     * Returns all OLT ONUs deregistrations reasons
-     * 
-     * @param array $onuDeregsArr 
+     * Returns OLT all ONUs deregistrations reasons
      * 
      * @return array as array of [onuMac/onuSerial]=>deregReason like "wire down"
      */
     public function readDeregs() {
         $dataContainer = self::DEREGCACHE_PATH . $this->oltId . '_' . self::DEREGCACHE_EXT;
         $result = $this->getData($dataContainer);
+    }
+
+    /**
+     * Available contained data listers
+     */
+
+    /**
+     * 
+     * 
+     * @return array
+     */
+    public function listDistances() {
+        $containerPath = self::DISTCACHE_PATH;
+        $containerMark = self::DISTCACHE_EXT;
+        $result = $this->getContainers($containerPath, $containerMark);
+        return($result);
     }
 
 }
