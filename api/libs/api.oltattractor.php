@@ -54,7 +54,7 @@ class OLTAttractor {
      * 
      * @return void
      */
-    protected function setOltId($oltId) {
+    public function setOltId($oltId) {
         $this->oltId = $oltId;
         //                                    __    _                                   
         //                               _wr""        "-q__                             
@@ -464,14 +464,40 @@ class OLTAttractor {
      */
 
     /**
-     * 
+     * Returns list of available distances containers as oltId=>containerName
      * 
      * @return array
      */
-    public function listDistances() {
+    protected function listDistances() {
         $containerPath = self::DISTCACHE_PATH;
         $containerMark = self::DISTCACHE_EXT;
         $result = $this->getContainers($containerPath, $containerMark);
+        return($result);
+    }
+
+    /**
+     * Public data getters here
+     */
+
+    /**
+     * Returns list of all OLTs available ONU distances as [onuMac/onuSerial]=>distance in meters
+     * 
+     * @return array
+     */
+    public function getDistancesAll() {
+        $result = array();
+        $oltData = new OLTAttractor();
+        $availDataContainers = $oltData->listDistances();
+        if (!empty($availDataContainers)) {
+            foreach ($availDataContainers as $eachContainerKey => $eachContainerName) {
+                $oltData->setOltId($eachContainerKey);
+                //need to replace this with parametric container data loader like getData
+                $containerData = $oltData->readDistances();
+                if (!empty($containerData)) {
+                    $result += $containerData;
+                }
+            }
+        }
         return($result);
     }
 

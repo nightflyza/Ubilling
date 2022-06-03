@@ -2625,7 +2625,7 @@ class PONizer {
      * @return string
      */
     protected function getRandomMac() {
-        $result = 'ff:' . '00' . ':' . rand(10, 99) . ':' . rand(10, 99) . ':' . rand(10, 99) . ':' . '00';
+        $result= zb_MacGetRandom();
         return ($result);
     }
 
@@ -2662,23 +2662,19 @@ class PONizer {
      * @return void
      */
     protected function loadDistanceCache() {
-        $availCacheData = rcms_scandir(self::DISTCACHE_PATH, '*_' . self::DISTCACHE_EXT);
-        if (!empty($availCacheData)) {
-            foreach ($availCacheData as $io => $each) {
-                $raw = file_get_contents(self::DISTCACHE_PATH . $each);
-                $raw = unserialize($raw);
-                foreach ($raw as $mac => $distance) {
-                    if ($this->validateONUMACEnabled and ! $this->validateONUMAC($mac)) {
-                        if ($this->replaceInvalidONUMACWithRandom) {
-                            $macRandom = $this->getRandomMac();
-                            $this->distanceCache[$macRandom] = $distance;
-                        }
-
-                        continue;
+        $oltData = new OLTAttractor();
+        $allDistances = $oltData->getDistancesAll();
+        if (!empty($allDistances)) {
+            foreach ($allDistances as $onuIdent => $distance) {
+                if ($this->validateONUMACEnabled and ! $this->validateONUMAC($onuIdent)) {
+                    if ($this->replaceInvalidONUMACWithRandom) {
+                        $macRandom = $this->getRandomMac();
+                        $this->distanceCache[$macRandom] = $distance;
                     }
-
-                    $this->distanceCache[$mac] = $distance;
+                    continue;
                 }
+
+                $this->distanceCache[$onuIdent] = $distance;
             }
         }
     }
