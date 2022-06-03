@@ -321,6 +321,13 @@ class PONizer {
     protected $onuCacheTimeout = 0;
 
     /**
+     * Contains instance of OltAttractor
+     *
+     * @var object
+     */
+    protected $oltData = '';
+
+    /**
      * Some predefined paths, etc
      */
     const SIGCACHE_PATH = OLTAttractor::SIGCACHE_PATH;
@@ -384,6 +391,7 @@ class PONizer {
 
         $this->loadAlter();
         $this->initMessages();
+        $this->initOltAttractor();
         $this->initCache();
         $this->loadOltDevices();
         $this->loadOltModels();
@@ -436,6 +444,15 @@ class PONizer {
      */
     protected function initMessages() {
         $this->messages = new UbillingMessageHelper();
+    }
+
+    /**
+     * Inits anonymous OLT attractor instance for further usage
+     * 
+     * @return void
+     */
+    protected function initOltAttractor() {
+        $this->oltData = new OLTAttractor();
     }
 
     /**
@@ -2620,40 +2637,12 @@ class PONizer {
     }
 
     /**
-     * Just generates random MAC address to replace invalid ONU MAC
-     *
-     * @return string
-     */
-    protected function getRandomMac() {
-        $result= zb_MacGetRandom();
-        return ($result);
-    }
-
-    /**
      * Loads existing signal cache from FS
      *
      * @return void
      */
     protected function loadSignalsCache() {
-        $availCacheData = rcms_scandir(self::SIGCACHE_PATH, '*_' . self::SIGCACHE_EXT);
-        if (!empty($availCacheData)) {
-            foreach ($availCacheData as $io => $each) {
-                $raw = file_get_contents(self::SIGCACHE_PATH . $each);
-                $raw = unserialize($raw);
-                foreach ($raw as $mac => $signal) {
-                    if ($this->validateONUMACEnabled and ! $this->validateONUMAC($mac)) {
-                        if ($this->replaceInvalidONUMACWithRandom) {
-                            $macRandom = $this->getRandomMac();
-                            $this->signalCache[$macRandom] = $signal;
-                        }
-
-                        continue;
-                    }
-
-                    $this->signalCache[$mac] = $signal;
-                }
-            }
-        }
+        $this->signalCache = $this->reviewDataSet($this->oltData->getSignalsAll());
     }
 
     /**
@@ -2662,21 +2651,7 @@ class PONizer {
      * @return void
      */
     protected function loadDistanceCache() {
-        $oltData = new OLTAttractor();
-        $allDistances = $oltData->getDistancesAll();
-        if (!empty($allDistances)) {
-            foreach ($allDistances as $onuIdent => $distance) {
-                if ($this->validateONUMACEnabled and ! $this->validateONUMAC($onuIdent)) {
-                    if ($this->replaceInvalidONUMACWithRandom) {
-                        $macRandom = $this->getRandomMac();
-                        $this->distanceCache[$macRandom] = $distance;
-                    }
-                    continue;
-                }
-
-                $this->distanceCache[$onuIdent] = $distance;
-            }
-        }
+        $this->distanceCache = $this->reviewDataSet($this->oltData->getDistancesAll());
     }
 
     /**
@@ -2685,25 +2660,7 @@ class PONizer {
      * @return void
      */
     protected function loadLastDeregCache() {
-        $availCacheData = rcms_scandir(self::DEREGCACHE_PATH, '*_' . self::DEREGCACHE_EXT);
-        if (!empty($availCacheData)) {
-            foreach ($availCacheData as $io => $each) {
-                $raw = file_get_contents(self::DEREGCACHE_PATH . $each);
-                $raw = unserialize($raw);
-                foreach ($raw as $mac => $dereg) {
-                    if ($this->validateONUMACEnabled and ! $this->validateONUMAC($mac)) {
-                        if ($this->replaceInvalidONUMACWithRandom) {
-                            $macRandom = $this->getRandomMac();
-                            $this->lastDeregCache[$macRandom] = $dereg;
-                        }
-
-                        continue;
-                    }
-
-                    $this->lastDeregCache[$mac] = $dereg;
-                }
-            }
-        }
+        $this->lastDeregCache = $this->reviewDataSet($this->oltData->getDeregsAll());
     }
 
     /**
@@ -3376,12 +3333,14 @@ class PONizer {
         $availOnuSigCache = rcms_scandir(self::SIGCACHE_PATH, '*_' . self::SIGCACHE_EXT);
         $failedOnuFound = false;
         $repairConfirmed = (ubRouting::checkGet('autorepairconfirmed')) ? true : false;
+        $totalCount = 0;
         if (!empty($availOnuSigCache)) {
             foreach ($availOnuSigCache as $io => $eachFile) {
                 $oltId = explode('_', $eachFile);
                 $oltId = $oltId[0];
                 $oltDesc = @$this->allOltDevices[$oltId];
                 $fileData = file_get_contents(self::SIGCACHE_PATH . '/' . $eachFile);
+
                 if (!empty($fileData)) {
                     $fileData = unserialize($fileData);
 
@@ -3392,6 +3351,7 @@ class PONizer {
                             if ($onuRealId) {
                                 $wrongOltFlag = (!$this->checkOnuOLTid($onuMac, $oltId)) ? true : false;
                                 if ($wrongOltFlag) {
+                                    $totalCount++;
                                     $failedOnuFound = true; //set once
                                     $onuData = $this->allOnu[$onuRealId];
                                     $wrongOltId = $onuData['oltid'];
@@ -3429,6 +3389,8 @@ class PONizer {
         }
 
         if ($failedOnuFound) {
+            //totals rendering
+            $result .= $this->messages->getStyledMessage(__('Total') . ' ' . __('ONU') . ' ' . __('wrong') . ': ' . $totalCount, 'info');
             $result .= wf_delimiter();
             $repairConfirmUrl = self::URL_ME . '&fdbcachelist=true&fixonuoltassings=true&autorepairconfirmed=true';
             $result .= wf_JSAlert($repairConfirmUrl, wf_img('skins/icon_repair.gif') . ' ' . __('Fix') . '?', $this->messages->getEditAlert(), '', 'ubButton');
@@ -3574,6 +3536,16 @@ class PONizer {
     }
 
     /**
+     * Just generates random MAC address to replace invalid ONU MAC
+     *
+     * @return string
+     */
+    protected function getRandomMac() {
+        $result = zb_MacGetRandom();
+        return ($result);
+    }
+
+    /**
      * Validate ONUs MAC against regex and return bool value
      *
      * @param $onuMAC
@@ -3585,6 +3557,43 @@ class PONizer {
         preg_match($this->onuMACValidateRegex, $onuMAC, $matches);
 
         return (!empty($matches[0]));
+    }
+
+    /**
+     * Returns validated MAC or replaces it with random one
+     * 
+     * @param string $mac
+     * 
+     * @return string
+     */
+    protected function validatedMac($mac) {
+        if ($this->validateONUMACEnabled and ! $this->validateONUMAC($mac)) {
+            if ($this->replaceInvalidONUMACWithRandom) {
+                $mac = $this->getRandomMac();
+            }
+        }
+        return($mac);
+    }
+
+    /**
+     * Performs validation of some data set if required as onuMac=>someValue
+     * 
+     * @param array $dataSet
+     * 
+     * @return array
+     */
+    protected function reviewDataSet($dataSet) {
+        $result = array();
+        if ($this->validateONUMACEnabled) {
+            if (!empty($dataSet)) {
+                foreach ($dataSet as $onuIdent => $someValue) {
+                    $result[$this->validatedMac($onuIdent)] = $someValue;
+                }
+            }
+        } else {
+            return($dataSet);
+        }
+        return($result);
     }
 
     /**

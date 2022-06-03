@@ -124,6 +124,17 @@ class OLTAttractor {
     }
 
     /**
+     * Returns full content of data container
+     * 
+     * @param string $dataContainer
+     * 
+     * @return array
+     */
+    public function loadContainerData($dataContainer) {
+        return($this->getData($dataContainer));
+    }
+
+    /**
      * Extracts OLT ID from data container name
      * 
      * @param string $dataContainerName
@@ -156,7 +167,31 @@ class OLTAttractor {
             foreach ($availContainers as $io => $eachContainer) {
                 $oltId = $this->extractOltID($eachContainer);
                 if ($oltId !== false) {
-                    $result[$oltId] = $eachContainer;
+                    $result[$oltId] = $containerPath . $eachContainer;
+                }
+            }
+        }
+        return($result);
+    }
+
+    /**
+     * Returns content of all OLT data containers with some path and mark
+     * 
+     * @param string $containerPath
+     * @param string $containerPath
+     * 
+     * @return array 
+     */
+    protected function getContainersContent($containerPath, $containerMark) {
+        $result = array();
+        $oltData = new OLTAttractor();
+        $availDataContainers = $this->getContainers($containerPath, $containerMark);
+        if (!empty($availDataContainers)) {
+            foreach ($availDataContainers as $eachContainerKey => $eachContainerName) {
+                $oltData->setOltId($eachContainerKey);
+                $containerData = $oltData->loadContainerData($eachContainerName);
+                if (!empty($containerData)) {
+                    $result += $containerData;
                 }
             }
         }
@@ -460,45 +495,40 @@ class OLTAttractor {
     }
 
     /**
-     * Available contained data listers
-     */
-
-    /**
-     * Returns list of available distances containers as oltId=>containerName
-     * 
-     * @return array
-     */
-    protected function listDistances() {
-        $containerPath = self::DISTCACHE_PATH;
-        $containerMark = self::DISTCACHE_EXT;
-        $result = $this->getContainers($containerPath, $containerMark);
-        return($result);
-    }
-
-    /**
      * Public data getters here
      */
 
     /**
-     * Returns list of all OLTs available ONU distances as [onuMac/onuSerial]=>distance in meters
+     * Returns list of all OLTs available ONUs distances as [onuMac/onuSerial]=>distance in meters
      * 
      * @return array
      */
     public function getDistancesAll() {
-        $result = array();
-        $oltData = new OLTAttractor();
-        $availDataContainers = $oltData->listDistances();
-        if (!empty($availDataContainers)) {
-            foreach ($availDataContainers as $eachContainerKey => $eachContainerName) {
-                $oltData->setOltId($eachContainerKey);
-                //need to replace this with parametric container data loader like getData
-                $containerData = $oltData->readDistances();
-                if (!empty($containerData)) {
-                    $result += $containerData;
-                }
-            }
-        }
-        return($result);
+        $containerPath = self::DISTCACHE_PATH;
+        $containerMark = self::DISTCACHE_EXT;
+        return($this->getContainersContent($containerPath, $containerMark));
+    }
+
+    /**
+     * Returns list of all OLTs available ONUs dereg reasons as [onuMac/onuSerial]=>reason
+     * 
+     * @return array
+     */
+    public function getDeregsAll() {
+        $containerPath = self::DEREGCACHE_PATH;
+        $containerMark = self::DEREGCACHE_EXT;
+        return($this->getContainersContent($containerPath, $containerMark));
+    }
+
+    /**
+     * Returns list of all OLTs available ONUs signals as [onuMac/onuSerial]=>signal in db
+     * 
+     * @return array
+     */
+    public function getSignalsAll() {
+        $containerPath = self::SIGCACHE_PATH;
+        $containerMark = self::SIGCACHE_EXT;
+        return($this->getContainersContent($containerPath, $containerMark));
     }
 
 }
