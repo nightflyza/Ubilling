@@ -178,8 +178,8 @@ class PONBdcomGP extends PONBdcom {
                     }
                 }
 
-                $result = serialize($result);
-                file_put_contents(self::FDBCACHE_PATH . $oltid . '_' . self::FDBCACHE_EXT, $result);
+                //saving FDB data
+                $this->olt->writeFdb($result);
             }
         }
     }
@@ -239,10 +239,11 @@ class PONBdcomGP extends PONBdcom {
                         }
                     }
                 }
-                $result = serialize($result);
-                file_put_contents(self::DISTCACHE_PATH . $oltid . '_' . self::DISTCACHE_EXT, $result);
-                $onuTmp = serialize($onuTmp);
-                file_put_contents(self::ONUCACHE_PATH . $oltid . '_' . self::ONUCACHE_EXT, $onuTmp);
+                //saving ONUs distances
+                $this->olt->writeDistances($result);
+
+                //saving ONUs cache
+                $this->olt->writeOnuCache($onuTmp);
             }
         }
     }
