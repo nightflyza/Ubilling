@@ -2669,49 +2669,18 @@ class PONizer {
      * @return void
      */
     protected function loadInterfaceCache() {
-        $availCacheData = rcms_scandir(self::INTCACHE_PATH, '*_' . self::INTCACHE_EXT);
-        if (!empty($availCacheData)) {
-            foreach ($availCacheData as $io => $each) {
-                $raw = file_get_contents(self::INTCACHE_PATH . $each);
-                $raw = unserialize($raw);
-                foreach ($raw as $mac => $interface) {
-                    if ($this->validateONUMACEnabled and ! $this->validateONUMAC($mac)) {
-                        if ($this->replaceInvalidONUMACWithRandom) {
-                            $macRandom = $this->getRandomMac();
-                            $this->interfaceCache[$macRandom] = $interface;
-                        }
-
-                        continue;
-                    }
-
-                    $this->interfaceCache[$mac] = $interface;
-                }
-            }
-        }
+        $this->interfaceCache = $this->reviewDataSet($this->oltData->getInterfacesAll());
     }
 
     /**
      * Loads available OLTs PON interfaces descriptions
+     * 
+     * TODO: test this on real data from 3310 or vsol
      *
      * @return void
      */
     protected function loadPONIfaceDescrCache() {
-        $availCacheData = rcms_scandir(self::INTCACHE_PATH, '*_' . self::INTDESCRCACHE_EXT);
-
-        if (!empty($availCacheData)) {
-            foreach ($availCacheData as $io => $each) {
-                $tmpArr = array();
-                $oltID = strstr($each, '_', true);
-                $raw = file_get_contents(self::INTCACHE_PATH . $each);
-                $raw = unserialize($raw);
-
-                foreach ($raw as $interface => $ifDescr) {
-                    $tmpArr[$interface] = $ifDescr;
-                }
-
-                $this->ponIfaceDescrCache[$oltID] = $tmpArr;
-            }
-        }
+        $this->ponIfaceDescrCache = $this->oltData->getInterfacesDescriptions();
     }
 
     /**
@@ -2720,82 +2689,32 @@ class PONizer {
      * @return void
      */
     protected function loadFDBCache() {
-        $availCacheData = rcms_scandir(self::FDBCACHE_PATH, '*_' . self::FDBCACHE_EXT);
-        if (!empty($availCacheData)) {
-            foreach ($availCacheData as $io => $each) {
-                $raw = file_get_contents(self::FDBCACHE_PATH . $each);
-                $raw = unserialize($raw);
-                foreach ($raw as $oidMac => $FDB) {
-                    if ($this->validateONUMACEnabled and ! $this->validateONUMAC($oidMac)) {
-                        if ($this->replaceInvalidONUMACWithRandom) {
-                            $macRandom = $this->getRandomMac();
-                            $this->FDBCache[$macRandom] = $FDB;
-                        }
-
-                        continue;
-                    }
-
-                    $this->FDBCache[$oidMac] = $FDB;
-                }
-            }
-        }
+        $this->FDBCache = $this->reviewDataSet($this->oltData->getFdbAll());
     }
 
     /**
      * Loads ONU MAC cache
+     * 
+     * TODO: why $this->interfaceCache + $this->onuMACDevIDCache? WHY?!
      *
      * @return void
      */
     protected function loadONUMACDevIDCache() {
-        $availCacheData = rcms_scandir(self::MACDEVIDCACHE_PATH, '*_' . self::MACDEVIDCACHE_EXT);
-        if (!empty($availCacheData)) {
-            foreach ($availCacheData as $io => $each) {
-                $raw = file_get_contents(self::MACDEVIDCACHE_PATH . $each);
-                $raw = unserialize($raw);
-                foreach ($raw as $mac => $devID) {
-                    if ($this->validateONUMACEnabled and ! $this->validateONUMAC($mac)) {
-                        if ($this->replaceInvalidONUMACWithRandom) {
-                            $macRandom = $this->getRandomMac();
-                            $this->interfaceCache[$macRandom] = $devID;
-                        }
-
-                        continue;
-                    }
-
-                    $this->onuMACDevIDCache[$mac] = $devID;
-                }
-            }
-        }
+        $macDevIdCache = $this->reviewDataSet($this->oltData->getMacIndexAll());
+        $this->interfaceCache = $macDevIdCache;
+        $this->onuMACDevIDCache = $macDevIdCache;
     }
 
     /**
      * Fills onuIndexCache array
+     * 
+     * NOTICE: not similar with previous all - in readOnuCache() is [onuIdx]=>onuMac
+     * REQUIRED: onuMac=>oltId
      *
      * @return void
      */
     protected function fillONUIndexCache() {
-        $availCacheData = rcms_scandir(self::ONUCACHE_PATH, '*_' . self::ONUCACHE_EXT);
-
-        if (!empty($availCacheData)) {
-            foreach ($availCacheData as $io => $each) {
-                $raw = file_get_contents(self::ONUCACHE_PATH . $each);
-                $raw = unserialize($raw);
-                $oltId = explode('_', $each);
-                $oltId = @vf($oltId[0], 3);
-                foreach ($raw as $index => $mac) {
-                    if ($this->validateONUMACEnabled and ! $this->validateONUMAC($mac)) {
-                        if ($this->replaceInvalidONUMACWithRandom) {
-                            $macRandom = $this->getRandomMac();
-                            $this->onuIndexCache[$macRandom] = $oltId;
-                        }
-
-                        continue;
-                    }
-
-                    $this->onuIndexCache[$mac] = $oltId;
-                }
-            }
-        }
+        $this->onuIndexCache = $this->reviewDataSet($this->oltData->getONUonOLTAll());
     }
 
     /**

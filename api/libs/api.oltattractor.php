@@ -531,4 +531,82 @@ class OLTAttractor {
         return($this->getContainersContent($containerPath, $containerMark));
     }
 
+    /**
+     * Returns list of all OLTs available ONUs interfaces as [onuMac/onuSerial]=>interfaceName
+     * 
+     * @return array
+     */
+    public function getInterfacesAll() {
+        $containerPath = self::INTCACHE_PATH;
+        $containerMark = self::INTCACHE_EXT;
+        return($this->getContainersContent($containerPath, $containerMark));
+    }
+
+    /**
+     * Returns list of all ONUs FDB data as [onuMac/onuSerial]=>fdbStruct
+     * 
+     * @return array
+     */
+    public function getFdbAll() {
+        $containerPath = self::FDBCACHE_PATH;
+        $containerMark = self::FDBCACHE_EXT;
+        return($this->getContainersContent($containerPath, $containerMark));
+    }
+
+    /**
+     * Returns list of all OLTs available ONUs interfaces as [oltId][interfaceName]=>interfaceDescr
+     * 
+     * @return array
+     */
+    public function getInterfacesDescriptions() {
+        $containerPath = self::INTCACHE_PATH;
+        $containerMark = self::INTDESCRCACHE_EXT;
+        $oltData = new OLTAttractor();
+        $result = array();
+        $allContainers = $this->getContainers($containerPath, $containerMark);
+        if (!empty($allContainers)) {
+            foreach ($allContainers as $eachOltId => $eachContainer) {
+                $oltData->setOltId($eachOltId);
+                $result[$eachOltId] = $oltData->getInterfacesDescriptions();
+            }
+        }
+        return($result);
+    }
+
+    /**
+     * Returns list of all ONUs MAC index as [onuMac]=>deviceId
+     * 
+     * @return array
+     */
+    public function getMacIndexAll() {
+        $containerPath = self::MACDEVIDCACHE_PATH;
+        $containerMark = self::MACDEVIDCACHE_EXT;
+        return($this->getContainersContent($containerPath, $containerMark));
+    }
+
+    /**
+     * Returns list of all ONUs MACs on OLTs as [onuMac]=>oltId
+     * 
+     * @return array
+     */
+    public function getONUonOLTAll() {
+        $containerPath = self::ONUCACHE_PATH;
+        $containerMark = self::ONUCACHE_EXT;
+        $oltData = new OLTAttractor();
+        $result = array();
+        $allContainers = $this->getContainers($containerPath, $containerMark);
+        if (!empty($allContainers)) {
+            foreach ($allContainers as $eachOltId => $eachContainer) {
+                $oltData->setOltId($eachOltId);
+                $allOltOnus = $oltData->readOnuCache();
+                if (!empty($allOltOnus)) {
+                    foreach ($allOltOnus as $eachDevId => $eachOnuMac) {
+                        $result[$eachOnuMac] = $eachOltId;
+                    }
+                }
+            }
+        }
+        return($result);
+    }
+
 }
