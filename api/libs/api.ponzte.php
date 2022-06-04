@@ -292,9 +292,20 @@ class PonZte {
      */
     protected function signalIndexProcessing() {
         foreach ($this->sigIndex as $devIndex => &$eachsig) {
-            if ($eachsig == $this->currentSnmpTemplate['signal']['DOWNVALUE'] || $eachsig == $this->currentSnmpTemplate['signal']['DOWNVALUE2'] || $eachsig == $this->currentSnmpTemplate['signal']['DOWNVALUE3']) {
+            if ($eachsig == $this->currentSnmpTemplate['signal']['DOWNVALUE']) {
                 $eachsig = 'Offline';
-            } else {
+            }
+            if (isset($this->currentSnmpTemplate['signal']['DOWNVALUE2'])) {
+                if ($eachsig == $this->currentSnmpTemplate['signal']['DOWNVALUE2']) {
+                    $eachsig = 'Offline';
+                }
+            }
+            if (isset($this->currentSnmpTemplate['signal']['DOWNVALUE3'])) {
+                if ($eachsig == $this->currentSnmpTemplate['signal']['DOWNVALUE3']) {
+                    $eachsig = 'Offline';
+                }
+            }
+            if ($eachsig != 'Offline') {
                 $eachsig = str_replace('"', '', $eachsig);
                 if ($this->currentSnmpTemplate['signal']['OFFSETMODE'] == 'div') {
                     if ($this->currentSnmpTemplate['signal']['OFFSET']) {
