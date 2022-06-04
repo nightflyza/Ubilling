@@ -254,7 +254,7 @@ class PONStelsFD extends PONStels {
             foreach ($macIndexProcessed as $devId => $eachMac) {
                 if (isset($ONUsSignals[$devId])) {
 //signal history filling
-                    $historyFile = self::ONUSIG_PATH . md5($eachMac);
+
                     $signal = $ONUsSignals[$devId]['SignalRXdBm'];
 
                     if (!empty($signal)) {
@@ -265,16 +265,23 @@ class PONStelsFD extends PONStels {
                         $signal = $this->onuOfflineSignalLevel; //over 9000 offline signal level :P
                     }
 
-                    file_put_contents($historyFile, $curDate . ',' . $signal . "\n", FILE_APPEND);
+                    //saving each ONU signal history
+                    $this->olt->writeSignalHistory($eachMac, $signal);
                 }
             }
 
-            $result = serialize($result);
-            $macDevID = serialize(array_flip($macIndexProcessed));
-            $macIndexProcessed = serialize($macIndexProcessed);
-            file_put_contents(self::SIGCACHE_PATH . $oltid . '_' . self::SIGCACHE_EXT, $result);
-            file_put_contents(self::ONUCACHE_PATH . $oltid . '_' . self::ONUCACHE_EXT, $macIndexProcessed);
-            file_put_contents(self::MACDEVIDCACHE_PATH . $oltid . '_' . self::MACDEVIDCACHE_EXT, $macDevID);
+            $macDevID = array_flip($macIndexProcessed);
+
+
+            //writing signals cache
+            $this->olt->writeSignals($result);
+
+
+            //saving ONU cache
+            $this->olt->writeOnuCache($macIndexProcessed);
+
+            // saving macindex as MAC => devID
+            $this->olt->writeMacIndex($macDevID);
         }
     }
 
@@ -311,8 +318,8 @@ class PONStelsFD extends PONStels {
                 }
             }
 
-            $result = serialize($result);
-            file_put_contents(self::DISTCACHE_PATH . $oltid . '_' . self::DISTCACHE_EXT, $result);
+            //saving distances
+            $this->olt->writeDistances($result);
         }
     }
 
@@ -386,10 +393,9 @@ class PONStelsFD extends PONStels {
                 $result[$eachMac] = $tPONIfaceStr;
             }
 
-            $result = serialize($result);
-            $ifaceCustDescrArr = serialize($ifaceCustDescrArr);
-            file_put_contents(self::INTCACHE_PATH . $oltid . '_' . self::INTCACHE_EXT, $result);
-            file_put_contents(self::INTCACHE_PATH . $oltid . '_' . self::INTDESCRCACHE_EXT, $ifaceCustDescrArr);
+            //saving ONU interfaces and interfaces descriptions
+            $this->olt->writeInterfaces($result);
+            $this->olt->writeInterfacesDescriptions($ifaceCustDescrArr);
         }
     }
 
@@ -450,8 +456,8 @@ class PONStelsFD extends PONStels {
                 }
             }
 
-            $result = serialize($result);
-            file_put_contents(self::DEREGCACHE_PATH . $oltid . '_' . self::DEREGCACHE_EXT, $result);
+            //saving ONUs deregs reasons
+            $this->olt->writeDeregs($result);
         }
     }
 
@@ -518,8 +524,8 @@ class PONStelsFD extends PONStels {
             }
         }
 
-        $fdbCahce = serialize($fdbCahce);
-        file_put_contents(self::FDBCACHE_PATH . $oltID . '_' . self::FDBCACHE_EXT, $fdbCahce);
+        //saving OLT FDB
+        $this->olt->writeFdb($fdbCahce);
     }
 
     /**
@@ -593,22 +599,27 @@ class PONStelsFD extends PONStels {
                         $signal = $sigTmp[$devId];
                         $result[$eachMac] = $signal;
 //signal history filling
-                        $historyFile = self::ONUSIG_PATH . md5($eachMac);
+
                         if ($signal == 'Offline') {
                             $signal = $this->onuOfflineSignalLevel; //over 9000 offline signal level :P
                         }
-                        file_put_contents($historyFile, $curDate . ',' . $signal . "\n", FILE_APPEND);
+
+                        //saving each ONU signal history
+                        $this->olt->writeSignalHistory($eachMac, $signal);
                     }
                 }
 
-                $result = serialize($result);
-                $onuTmp = serialize($macTmp);
-                $macDevIdx = serialize($macDevIdx);
+                //saving ONUs signals
+                $this->olt->writeSignals($result);
 
-                file_put_contents(self::SIGCACHE_PATH . $oltid . '_' . self::SIGCACHE_EXT, $result);
-                file_put_contents(self::ONUCACHE_PATH . $oltid . '_' . self::ONUCACHE_EXT, $onuTmp);
-                file_put_contents(self::INTCACHE_PATH . $oltid . '_' . self::INTCACHE_EXT, $macDevIdx);
-                file_put_contents(self::MACDEVIDCACHE_PATH . $oltid . '_' . self::MACDEVIDCACHE_EXT, $macDevIdx);
+                //saving ONUs cache
+                $this->olt->writeOnuCache($macTmp);
+
+                //saving ONUs interfaces
+                $this->olt->writeInterfaces($macDevIdx);
+
+                //saving ONUs MAC index
+                $this->olt->writeMacIndex($macDevIdx);
             }
         }
     }
@@ -671,8 +682,9 @@ class PONStelsFD extends PONStels {
                         $result[$eachMac] = $distance;
                     }
                 }
-                $result = serialize($result);
-                file_put_contents(self::DISTCACHE_PATH . $oltid . '_' . self::DISTCACHE_EXT, $result);
+
+                //saving distances
+                $this->olt->writeDistances($result);
             }
         }
     }

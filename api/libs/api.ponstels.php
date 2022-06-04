@@ -1,4 +1,5 @@
 <?php
+
 /**
  * OLT Stels FD12XX hardware abstraction layer
  */
@@ -87,8 +88,6 @@ class PONStels extends PONProto {
         }
     }
 
- 
-
     /**
      * Parses & stores in cache OLT ONU interfaces
      *
@@ -155,8 +154,8 @@ class PONStels extends PONProto {
                     }
                 }
 
-                $result = serialize($result);
-                file_put_contents(self::INTCACHE_PATH . $oltid . '_' . self::INTCACHE_EXT, $result);
+                //saving ONUs interfaces
+                $this->olt->writeInterfaces($result);
             }
         }
     }
@@ -225,8 +224,8 @@ class PONStels extends PONProto {
                     }
                 }
 
-                $result = serialize($result);
-                file_put_contents(self::DEREGCACHE_PATH . $oltid . '_' . self::DEREGCACHE_EXT, $result);
+                //saving ONUs dereg reasons
+                $this->olt->writeDeregs($result);
             }
         }
     }
@@ -286,8 +285,9 @@ class PONStels extends PONProto {
                         $result[$eachMac] = $interface;
                     }
                 }
-                $result = serialize($result);
-                file_put_contents(self::INTCACHE_PATH . $oltid . '_' . self::INTCACHE_EXT, $result);
+
+                //saving ONUs interfaces
+                $this->olt->writeInterfaces($result);
             }
         }
     }
@@ -346,8 +346,8 @@ class PONStels extends PONProto {
                         $result[$eachMac] = $deregTmp[$devId];
                     }
                 }
-                $result = serialize($result);
-                file_put_contents(self::DEREGCACHE_PATH . $oltid . '_' . self::DEREGCACHE_EXT, $result);
+                //saving ONUs dereg reasons
+                $this->olt->writeDeregs($result);
             }
         }
     }
@@ -456,8 +456,8 @@ class PONStels extends PONProto {
             }
         }
 
-        $fdbCahce = serialize($fdbCahce);
-        file_put_contents(self::FDBCACHE_PATH . $oltID . '_' . self::FDBCACHE_EXT, $fdbCahce);
+        //saving OLT FDB
+        $this->olt->writeFdb($fdbCahce);
     }
 
 }
