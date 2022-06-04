@@ -567,7 +567,7 @@ class OLTAttractor {
         if (!empty($allContainers)) {
             foreach ($allContainers as $eachOltId => $eachContainer) {
                 $oltData->setOltId($eachOltId);
-                $result[$eachOltId] = $oltData->getInterfacesDescriptions();
+                $result[$eachOltId] = $oltData->readInterfacesDescriptions();
             }
         }
         return($result);

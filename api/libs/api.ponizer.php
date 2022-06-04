@@ -3460,7 +3460,7 @@ class PONizer {
      * @return string
      */
     protected function getRandomMac() {
-        $result = zb_MacGetRandom();
+        $result = $result = 'ff:' . '00' . ':' . rand(10, 99) . ':' . rand(10, 99) . ':' . rand(10, 99) . ':' . '00';
         return ($result);
     }
 
