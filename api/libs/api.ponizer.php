@@ -2675,8 +2675,6 @@ class PONizer {
     /**
      * Loads available OLTs PON interfaces descriptions
      * 
-     * TODO: test this on real data from 3310 or vsol
-     *
      * @return void
      */
     protected function loadPONIfaceDescrCache() {
