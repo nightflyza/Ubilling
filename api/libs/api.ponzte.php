@@ -159,7 +159,7 @@ class PonZte {
      */
     public function __construct($oltParameters, $snmpTemplates) {
         $this->oltParameters = $oltParameters;
-        
+
         //unpacking OLT settings
         $oltModelId = $this->oltParameters['MODELID'];
         $oltid = $this->oltParameters['ID'];
@@ -775,7 +775,7 @@ class PonZte {
         $macTmp = array();
         $result = array();
 //fdb index preprocessing
-        if ((!empty($this->fdbIndex)) AND ( !empty($this->macIndex))) {
+        if ((!empty($this->fdbIndex)) AND (!empty($this->macIndex))) {
             foreach ($this->fdbIndex as $io => $eachfdb) {
                 $line = explode('=', $eachfdb);
                 $devOid = trim($line[0]);
@@ -840,7 +840,7 @@ class PonZte {
      */
     protected function signalParseEpon() {
         $result = array();
-        if ((!empty($this->sigIndex)) AND ( !empty($this->macIndex))) {
+        if ((!empty($this->sigIndex)) AND (!empty($this->macIndex))) {
             $this->signalIndexProcessing();
             $this->macIndexEponProcessing();
             $realData = array_intersect_key($this->macIndex, $this->sigIndex);
@@ -870,7 +870,7 @@ class PonZte {
         $curDate = curdatetime();
 
 //signal index preprocessing
-        if ((!empty($this->sigIndex)) AND ( !empty($this->snIndex))) {
+        if ((!empty($this->sigIndex)) AND (!empty($this->snIndex))) {
             $this->signalIndexProcessing();
             $this->serialIndexGponProcessing();
             $realData = array_intersect_key($this->snIndex, $this->sigIndex);
@@ -903,7 +903,7 @@ class PonZte {
         $result = array();
 
 //distance index preprocessing
-        if (!empty($this->distanceIndex) AND ! empty($this->snIndex)) {
+        if (!empty($this->distanceIndex) AND!empty($this->snIndex)) {
             $realData = array_intersect_key($this->snIndex, $this->distanceIndex);
             foreach ($realData as $io => $eachsn) {
                 $result[$this->snIndex[$io]] = $this->distanceIndex[$io];
@@ -924,7 +924,7 @@ class PonZte {
         $snTmp = array();
         $result = array();
 //fdb index preprocessing
-        if ((!empty($this->fdbIndex)) AND ( !empty($this->snIndex))) {
+        if ((!empty($this->fdbIndex)) AND (!empty($this->snIndex))) {
             foreach ($this->fdbIndex as $io => $eachfdb) {
                 $line = explode('=', $eachfdb);
                 $devOid = trim($line[0]);
@@ -1098,7 +1098,7 @@ class PonZte {
     protected function uptimeParse() {
         $uptimeIndexOid = $this->currentSnmpTemplate['system']['UPTIME'];
         $uptimeRaw = $this->snmp->walk($this->oltFullAddress, $this->oltCommunity, $uptimeIndexOid, PONizer::SNMPCACHE);
-        if (!empty($this->oltid) and ! empty($uptimeRaw)) {
+        if (!empty($this->oltid) and!empty($uptimeRaw)) {
             $uptimeRaw = explode(')', $uptimeRaw);
             $uptimeRaw = $uptimeRaw[1];
             $uptimeRaw = trim($uptimeRaw);
@@ -1117,7 +1117,7 @@ class PonZte {
     protected function temperatureParse() {
         $temperatureIndexOid = $this->currentSnmpTemplate['system']['TEMPERATURE'];
         $tempRaw = $this->snmp->walk($this->oltFullAddress, $this->oltCommunity, $temperatureIndexOid, PONizer::SNMPCACHE);
-        if (!empty($this->oltid) and ! empty($tempRaw)) {
+        if (!empty($this->oltid) and!empty($tempRaw)) {
             $tempRaw = explode(':', $tempRaw);
             $tempRaw = $tempRaw[1];
             $tempRaw = trim($tempRaw);
