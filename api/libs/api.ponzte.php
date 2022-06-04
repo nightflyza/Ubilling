@@ -40,6 +40,13 @@ class PonZte {
     protected $snmp;
 
     /**
+     * Contains OLTData
+     *
+     * @var object
+     */
+    protected $olt = '';
+
+    /**
      * Contains all OLTs snmp tmplates
      * 
      * @var array
@@ -176,6 +183,7 @@ class PonZte {
         $this->ponType = $ponType;
 
         $this->initSNMP();
+        $this->initOltAttractor();
         $this->loadOltDevices();
         $this->loadOltModels();
         $this->snmpTemplates = $snmpTemplates;
@@ -197,6 +205,13 @@ class PonZte {
      */
     protected function initSNMP() {
         $this->snmp = new SNMPHelper();
+    }
+
+    /**
+     * Inits current OLT data abstraction layer for further usage
+     */
+    protected function initOltAttractor() {
+        $this->olt = new OLTAttractor($this->oltParameters['ID']);
     }
 
     /**
@@ -738,8 +753,7 @@ class PonZte {
             $eachMac = str_replace(" ", ":", $eachMac);
             $macTmp[$ioIndex] = $eachMac;
         }
-        $macTmp = serialize($macTmp);
-        file_put_contents(PONizer::ONUCACHE_PATH . $this->oltid . '_' . PONizer::ONUCACHE_EXT, $macTmp);
+        $this->olt->writeOnuCache($macTmp);
     }
 
     /**
@@ -806,7 +820,7 @@ class PonZte {
                 $result[$macTmp[$devId]] = $fdbTmp[$devId];
             }
         }
-        file_put_contents(PONizer::FDBCACHE_PATH . $this->oltid . '_' . PONizer::FDBCACHE_EXT, serialize($result));
+        $this->olt->writeFdb($result);
     }
 
     /**
@@ -829,8 +843,7 @@ class PonZte {
                 $result[$eachMac] = $this->interfaceDecode($ioIndex);
             }
         }
-        $result = serialize($result);
-        file_put_contents(PONizer::INTCACHE_PATH . $this->oltid . '_' . PONizer::INTCACHE_EXT, $result);
+        $this->olt->writeInterfaces($result);
     }
 
     /**
@@ -852,11 +865,10 @@ class PonZte {
                     $tmpSig = -9000;
                 }
 
-                $historyFile = PONizer::ONUSIG_PATH . md5($this->macIndex[$devId]);
-                file_put_contents($historyFile, curdatetime() . ',' . $tmpSig . "\n", FILE_APPEND);
+                $this->olt->writeSignalHistory($this->macIndex[$devId], $tmpSig);
             }
         }
-        file_put_contents(PONizer::SIGCACHE_PATH . $this->oltid . '_' . PONizer::SIGCACHE_EXT, serialize($result));
+        $this->olt->writeSignals($result);
     }
 
     /**
@@ -883,13 +895,10 @@ class PonZte {
                     $tmpSig = -9000;
                 }
 //signal history filling
-                $historyFile = PONizer::ONUSIG_PATH . md5($this->snIndex[$devId]);
-
-                file_put_contents($historyFile, $curDate . ',' . $tmpSig . "\n", FILE_APPEND);
+                $this->olt->writeSignalHistory($this->snIndex[$devId], $tmpSig);
             }
         }
-        $result = serialize($result);
-        file_put_contents(PONizer::SIGCACHE_PATH . $this->oltid . '_' . PONizer::SIGCACHE_EXT, $result);
+        $this->olt->writeSignals($result);
     }
 
     /**
@@ -909,8 +918,7 @@ class PonZte {
                 $result[$this->snIndex[$io]] = $this->distanceIndex[$io];
             }
         }
-        $result = serialize($result);
-        file_put_contents(PONizer::DISTCACHE_PATH . $this->oltid . '_' . PONizer::DISTCACHE_EXT, $result);
+        $this->olt->writeDistances($result);
     }
 
     /**
@@ -958,7 +966,7 @@ class PonZte {
                 $result[$snTmp[$devId]] = $fdbTmp[$devId];
             }
         }
-        file_put_contents(PONizer::FDBCACHE_PATH . $this->oltid . '_' . PONizer::FDBCACHE_EXT, serialize($result));
+        $this->olt->writeFdb($result);
     }
 
     /**
@@ -975,8 +983,7 @@ class PonZte {
             $ioIndexSplit = explode(".", $ioIndex);
             $result[$eachSn] = $this->gponOltInterfaceDecode($ioIndexSplit[0]) . $ioIndexSplit[1];
         }
-        $result = serialize($result);
-        file_put_contents(PONizer::INTCACHE_PATH . $this->oltid . '_' . PONizer::INTCACHE_EXT, $result);
+        $this->olt->writeFdb($result);
     }
 
     /**
@@ -990,8 +997,7 @@ class PonZte {
         foreach ($this->snIndex as $ioIndex => $eachSn) {
             $snTmp[$this->interfaceDecode($ioIndex)] = $eachSn;
         }
-        $snTmp = serialize($snTmp);
-        file_put_contents(PONizer::ONUCACHE_PATH . $this->oltid . '_' . PONizer::ONUCACHE_EXT, $snTmp);
+        $this->olt->writeOnuCache($snTmp);
     }
 
     /**
@@ -1102,7 +1108,7 @@ class PonZte {
             $uptimeRaw = explode(')', $uptimeRaw);
             $uptimeRaw = $uptimeRaw[1];
             $uptimeRaw = trim($uptimeRaw);
-            file_put_contents(PONizer::UPTIME_PATH . $this->oltid . '_' . PONizer::UPTIME_EXT, $uptimeRaw);
+            $this->olt->writeUptime($uptimeRaw);
         }
     }
 
@@ -1121,7 +1127,7 @@ class PonZte {
             $tempRaw = explode(':', $tempRaw);
             $tempRaw = $tempRaw[1];
             $tempRaw = trim($tempRaw);
-            file_put_contents(PONizer::TEMPERATURE_PATH . $this->oltid . '_' . PONizer::TEMPERATURE_EXT, $tempRaw);
+            $this->olt->writeTemperature($tempRaw);
         }
     }
 
