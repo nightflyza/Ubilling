@@ -2693,19 +2693,6 @@ class PONizer {
     }
 
     /**
-     * Loads ONU MAC cache
-     * 
-     * TODO: why $this->interfaceCache + $this->onuMACDevIDCache? WHY?!
-     *
-     * @return void
-     */
-    protected function loadONUMACDevIDCache() {
-        $macDevIdCache = $this->reviewDataSet($this->oltData->getMacIndexAll());
-        $this->interfaceCache = $macDevIdCache;
-        $this->onuMACDevIDCache = $macDevIdCache;
-    }
-
-    /**
      * Fills onuIndexCache array
      * 
      * NOTICE: not similar with previous all - in readOnuCache() is [onuIdx]=>onuMac
