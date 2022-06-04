@@ -707,6 +707,7 @@ class PONizer {
                         }
 
                         //Run OLT HAL instance for device polling
+                        //TODO: print collectorname->collectormethod debug output
                         if (!empty($collectorName)) {
                             if (class_exists($collectorName)) {
                                 $collector = new $collectorName($oltParameters, $this->snmpTemplates);
