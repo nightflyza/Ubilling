@@ -378,6 +378,7 @@ class PONizer {
     const COLOR_BAD = '#AB0000';
     const COLOR_NOSIG = '#000000';
     const NO_SIGNAL = 'Offline';
+    const POLL_RUNNING = '🏁';
 
     /**
      * Creates new PONizer object instance
@@ -2321,7 +2322,7 @@ class PONizer {
             if ($this->OLTIndividualRepollAJAX) {
                 if ($this->ponizerUseTabUI) {
                     if ($this->isPollingNow($oltId)) {
-                        $refresh_button = '🏁';
+                        $refresh_button = wf_tag('span', false, '', 'title="' . __('In progress now') . '"') . self::POLL_RUNNING . wf_tag('span', true);
                     } else {
                         $refresh_button = wf_tag('span', false, '', 'href="#" id="' . $OLTIDStr . '" title="' . __('Refresh data for this OLT') . '" style="cursor: pointer;"');
                         $refresh_button .= wf_img('skins/refresh.gif');
@@ -2669,7 +2670,8 @@ class PONizer {
                                 $pollingEndLabel = date("Y-m-d H:i:s", $pollStats['end']);
                                 $visualLabel = web_bar($pollStats['time'], $totalTime);
                             } else {
-                                $pollingTimeLabel = '🏁 ' . __('In progress now');
+                                $pollingTimeLabel = wf_tag('span', false, '', 'title="' . __('In progress now') . '"') . self::POLL_RUNNING . wf_tag('span', true);
+                                $pollingTimeLabel .= ' ' . __('In progress now');
                                 $pollingEndLabel = '-';
                                 $visualLabel = '∞';
                             }
