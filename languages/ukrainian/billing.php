@@ -3401,6 +3401,7 @@ $lang['def']['Unable to load data'] = 'Не вдалось завантажит�
 $lang['def']['Show the most annoying'] = 'Показати найбільш надокучливих';
 $lang['def']['For example'] = 'Для прикладу';
 $lang['def']['Wiki article'] = 'Стаття в Wiki';
+$lang['def']['In progress now'] = 'Триває зараз';
 $lang['def'][''] = '';
 
 

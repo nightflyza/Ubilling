@@ -91,7 +91,7 @@ class PollsReport extends Polls {
                                         'disabled' => __('Disabled'),
                                         'nostarted' => __('Not yet started'),
                                         'finished' => __('Finished'),
-                                        'progress' => __('In progress'),
+                                        'progress' => __('Poll in progress'),
                                         );
         $param_selector_polls = array('');
         foreach ($this->pollsOptions as $poll_id => $poll_opt) {

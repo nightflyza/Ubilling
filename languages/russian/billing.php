@@ -3380,3 +3380,4 @@ $lang['def']['Unable to load data'] = 'Не получилось загрузи�
 $lang['def']['Show the most annoying'] = 'Показать самых назойливых';
 $lang['def']['For example'] = 'Например';
 $lang['def']['Wiki article'] = 'Статья в Wiki';
+$lang['def']['In progress now'] = 'В процессе сейчас';

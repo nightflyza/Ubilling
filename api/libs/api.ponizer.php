@@ -350,7 +350,7 @@ class PONizer {
     const MACDEVIDCACHE_PATH = OLTAttractor::MACDEVIDCACHE_PATH;
     const MACDEVIDCACHE_EXT = OLTAttractor::MACDEVIDCACHE_EXT;
     const ONUSIG_PATH = OLTAttractor::ONUSIG_PATH;
-    const POLL_STATS = 'exports/PONY_';
+    const POLL_STATS = 'exports/PONYRUN_';
 
     /**
      * Other predefined constants
@@ -620,124 +620,127 @@ class PONizer {
                 $oltNoFDBQ = $this->allOltSnmp[$oltid]['nofdbquery'];
                 if (isset($this->snmpTemplates[$oltModelId])) {
                     if (isset($this->snmpTemplates[$oltModelId]['signal'])) {
-                        $pollingStart = time();
-                        $collector = '';
-                        $collectorName = '';
-                        $collectorMethod = 'collect';
-                        $oltParameters = array(
-                            'MODELID' => $oltModelId,
-                            'ID' => $oltid,
-                            'IP' => $oltIp,
-                            'COMMUNITY' => $oltCommunity,
-                            'NOFDB' => $oltNoFDBQ,
-                            'TYPE' => 'PON'
-                        );
+                        //preventing simultaneously device polling within different processes
+                        if (!$this->isPollingNow($oltid)) {
+                            //prefilling polling stats
+                            $pollingStartTime = time();
+                            $this->pollingStatsUpdate($oltid, $pollingStartTime, 0, false);
 
-                        switch ($this->snmpTemplates[$oltModelId]['signal']['SIGNALMODE']) {
-                            /**
-                             * Switchable OLT devices polling abstraction layer
-                             */
-                            case 'HAL':
-                                //setting collector class name
-                                $collectorName = $this->snmpTemplates[$oltModelId]['signal']['COLLECTORNAME'];
-                                //setting optional primary collector method name to call
-                                if (isset($this->snmpTemplates[$oltModelId]['signal']['COLLECTORMETHOD'])) {
-                                    $collectorMethod = $this->snmpTemplates[$oltModelId]['signal']['COLLECTORMETHOD'];
-                                }
-                                break;
-                            /**
-                             * Following cases is legacy for old or custom device templates 
-                             * without collector hardware abstraction layer specified explictly
-                             */
-                            case 'BDCOM':
-                                /**
-                                 * BDCOM/Eltex/Extralink devices polling
-                                 */
-                                $collectorName = 'PONBdcom';
-                                break;
-                            case 'GPBDCOM':
-                                /**
-                                 * BDCOM GP3600
-                                 */
-                                $collectorName = 'PONBdcomGP';
-                                break;
-                            case 'STELS12':
-                                /**
-                                 * Stels FD12XX devices polling
-                                 */
-                                $collectorName = 'PONStels';
-                                break;
-                            case 'STELSFD':
-                                /**
-                                 * Stels FD11XX devices polling
-                                 */
-                                $collectorName = 'PONStelsFD';
-                                break;
-                            case 'VSOL':
-                                /**
-                                 * V-Solution 1600D devices polling
-                                 */
-                                $collectorName = 'PONStelsFD';
-                                break;
+                            $collector = '';
+                            $collectorName = '';
+                            $collectorMethod = 'collect';
+                            $oltParameters = array(
+                                'MODELID' => $oltModelId,
+                                'ID' => $oltid,
+                                'IP' => $oltIp,
+                                'COMMUNITY' => $oltCommunity,
+                                'NOFDB' => $oltNoFDBQ,
+                                'TYPE' => 'PON'
+                            );
 
-                            /**
-                             * ZTE EPON OLTs polling
-                             */
-                            case 'ZTE':
-                                $collectorName = 'PonZte';
-                                $collectorMethod = 'pollEpon';
-                                $oltParameters['TYPE'] = 'EPON';
+                            switch ($this->snmpTemplates[$oltModelId]['signal']['SIGNALMODE']) {
+                                /**
+                                 * Switchable OLT devices polling abstraction layer
+                                 */
+                                case 'HAL':
+                                    //setting collector class name
+                                    $collectorName = $this->snmpTemplates[$oltModelId]['signal']['COLLECTORNAME'];
+                                    //setting optional primary collector method name to call
+                                    if (isset($this->snmpTemplates[$oltModelId]['signal']['COLLECTORMETHOD'])) {
+                                        $collectorMethod = $this->snmpTemplates[$oltModelId]['signal']['COLLECTORMETHOD'];
+                                    }
+                                    break;
+                                /**
+                                 * Following cases is legacy for old or custom device templates 
+                                 * without collector hardware abstraction layer specified explictly
+                                 */
+                                case 'BDCOM':
+                                    /**
+                                     * BDCOM/Eltex/Extralink devices polling
+                                     */
+                                    $collectorName = 'PONBdcom';
+                                    break;
+                                case 'GPBDCOM':
+                                    /**
+                                     * BDCOM GP3600
+                                     */
+                                    $collectorName = 'PONBdcomGP';
+                                    break;
+                                case 'STELS12':
+                                    /**
+                                     * Stels FD12XX devices polling
+                                     */
+                                    $collectorName = 'PONStels';
+                                    break;
+                                case 'STELSFD':
+                                    /**
+                                     * Stels FD11XX devices polling
+                                     */
+                                    $collectorName = 'PONStelsFD';
+                                    break;
+                                case 'VSOL':
+                                    /**
+                                     * V-Solution 1600D devices polling
+                                     */
+                                    $collectorName = 'PONStelsFD';
+                                    break;
 
-                                break;
-                            /**
-                             * ZTE GPON OLTs polling
-                             */
-                            case 'ZTE_GPON':
-                                $collectorName = 'PonZte';
-                                $collectorMethod = 'pollGpon';
-                                $oltParameters['TYPE'] = 'GPON';
-                                break;
-                            /**
-                             * Huawei EPON OLTs polling
-                             */
-                            case 'HUAWEI_GPON':
-                                $collectorName = 'PonZte';
-                                $collectorMethod = 'huaweiPollGpon';
-                                $oltParameters['TYPE'] = 'GPON';
-                                break;
-                        }
+                                /**
+                                 * ZTE EPON OLTs polling
+                                 */
+                                case 'ZTE':
+                                    $collectorName = 'PonZte';
+                                    $collectorMethod = 'pollEpon';
+                                    $oltParameters['TYPE'] = 'EPON';
 
-                        //Run OLT HAL instance for device polling
-                        if (!empty($collectorName)) {
-                            if (class_exists($collectorName)) {
-                                $collector = new $collectorName($oltParameters, $this->snmpTemplates);
-                                print('Using PON HAL collector:' . $collectorName . ' WITH PARAMETERS' . PHP_EOL);
-                                print('OLT ID: ' . $oltParameters['ID'] . ' IP:' . $oltParameters['IP'] . PHP_EOL);
-                                if (method_exists($collector, 'setOfflineSignal')) {
-                                    $collector->setOfflineSignal($this->onuOfflineSignalLevel);
-                                }
-                                if (method_exists($collector, $collectorMethod)) {
-                                    print('Running PON HAL collector method:' . $collectorName . '->' . $collectorMethod . PHP_EOL);
-                                    $collector->$collectorMethod();
+                                    break;
+                                /**
+                                 * ZTE GPON OLTs polling
+                                 */
+                                case 'ZTE_GPON':
+                                    $collectorName = 'PonZte';
+                                    $collectorMethod = 'pollGpon';
+                                    $oltParameters['TYPE'] = 'GPON';
+                                    break;
+                                /**
+                                 * Huawei EPON OLTs polling
+                                 */
+                                case 'HUAWEI_GPON':
+                                    $collectorName = 'PonZte';
+                                    $collectorMethod = 'huaweiPollGpon';
+                                    $oltParameters['TYPE'] = 'GPON';
+                                    break;
+                            }
+
+                            //Run OLT HAL instance for device polling
+                            if (!empty($collectorName)) {
+                                if (class_exists($collectorName)) {
+                                    $collector = new $collectorName($oltParameters, $this->snmpTemplates);
+                                    print('Using PON HAL collector:' . $collectorName . ' WITH PARAMETERS' . PHP_EOL);
+                                    print('OLT ID: ' . $oltParameters['ID'] . ' IP:' . $oltParameters['IP'] . PHP_EOL);
+                                    if (method_exists($collector, 'setOfflineSignal')) {
+                                        $collector->setOfflineSignal($this->onuOfflineSignalLevel);
+                                    }
+                                    if (method_exists($collector, $collectorMethod)) {
+                                        print('Running PON HAL collector method:' . $collectorName . '->' . $collectorMethod . PHP_EOL);
+                                        $collector->$collectorMethod();
+                                    } else {
+                                        print('Failed PON HAL collector:' . $collectorName . '->' . $collectorMethod . ' METHOD_NOT_EXISTS' . PHP_EOL);
+                                    }
                                 } else {
-                                    print('Failed PON HAL collector:' . $collectorName . '->' . $collectorMethod . ' METHOD_NOT_EXISTS' . PHP_EOL);
+                                    throw new Exception('EX_HAL_COLLECTOR_NOT_EXISTS:' . $collectorName);
                                 }
                             } else {
-                                throw new Exception('EX_HAL_COLLECTOR_NOT_EXISTS:' . $collectorName);
+                                print('Failed: collector name not defined' . PHP_EOL);
                             }
+
+
+                            //finishing OLT polling stats
+                            $pollingEndTime = time();
+                            $this->pollingStatsUpdate($oltid, $pollingStartTime, $pollingEndTime, true);
                         } else {
-                            print('Failed: collector name not defined' . PHP_EOL);
+                            print('SKIPPING: polling already in progress');
                         }
-
-
-                        //filling OLT polling stats
-                        $pollingEnd = time();
-                        $statsPath = self::POLL_STATS . $oltid;
-                        $cachedStats = array();
-                        $cachedStats['start'] = $pollingStart;
-                        $cachedStats['end'] = $pollingEnd;
-                        $cachedStats = serialize($cachedStats);
-                        file_put_contents($statsPath, $cachedStats);
                     } else {
                         print('Failed polling due signal section is not exists' . PHP_EOL);
                     }
@@ -778,6 +781,61 @@ class PONizer {
                 }
             }
         }
+    }
+
+    /**
+     * Checks some OLT for running collector process
+     * 
+     * @param int $oltId Existing OLT device ID
+     * 
+     * @return bool
+     */
+    protected function isPollingNow($oltId) {
+        $result = false;
+        //Не плач, моє серце, не плач,
+        //Не муч душу свою картонну!
+        $pollingStats = $this->pollingStatsRead($oltId);
+        if (!empty($pollingStats)) {
+            $result = $pollingStats['finished'] ? false : true;
+        }
+        return($result);
+    }
+
+    /**
+     * Returns polling stats for some OLT
+     * 
+     * @param int $oltId
+     * 
+     * @return array
+     */
+    protected function pollingStatsRead($oltId) {
+        $result = array();
+        $statsPath = self::POLL_STATS . $oltId;
+        if (file_exists($statsPath)) {
+            $resultRaw = file_get_contents($statsPath);
+            $result = json_decode($resultRaw, true);
+        }
+        return($result);
+    }
+
+    /**
+     * Updates some OLT polling stats
+     * 
+     * @param int $oltId Existing OLT ID
+     * @param int $pollingStartTime polling start timestame
+     * @param int $pollingEndTime polling end timestamp
+     * @param bool $finished polling finished or not flag
+     * 
+     * @return void
+     */
+    protected function pollingStatsUpdate($oltId, $pollingStartTime = 0, $pollingEndTime = 0, $finished = false) {
+        $statsPath = self::POLL_STATS . $oltId;
+        $finishedData = ($finished) ? 1 : 0;
+        $dataToSave['start'] = $pollingStartTime;
+        $dataToSave['end'] = $pollingEndTime;
+        $dataToSave['finished'] = $finishedData;
+        $dataToSave = json_encode($dataToSave);
+        file_put_contents($statsPath, $dataToSave);
     }
 
     /**
@@ -2207,6 +2265,7 @@ class PONizer {
             $QuickOLTLink = wf_tag('span', false, '', 'id="' . $QuickOLTLinkID . '"') .
                     wf_img('skins/menuicons/switches.png') . wf_tag('span', true);
 
+
             if ($this->EnableQuickOLTLinks) {
                 if ($this->ponizerUseTabUI) {
                     $QuickOLTDDLName = 'QuickOLTDDL_100500';
@@ -2237,9 +2296,13 @@ class PONizer {
 
             if ($this->OLTIndividualRepollAJAX) {
                 if ($this->ponizerUseTabUI) {
-                    $refresh_button = wf_tag('span', false, '', 'href="#" id="' . $OLTIDStr . '" title="' . __('Refresh data for this OLT') . '" style="cursor: pointer;"');
-                    $refresh_button .= wf_img('skins/refresh.gif');
-                    $refresh_button .= wf_tag('span', true);
+                    if ($this->isPollingNow($oltId)) {
+                        $refresh_button = '🏁';
+                    } else {
+                        $refresh_button = wf_tag('span', false, '', 'href="#" id="' . $OLTIDStr . '" title="' . __('Refresh data for this OLT') . '" style="cursor: pointer;"');
+                        $refresh_button .= wf_img('skins/refresh.gif');
+                        $refresh_button .= wf_tag('span', true);
+                    }
                 } else {
                     $refresh_button = wf_tag('a', false, '', 'href="#" id="' . $OLTIDStr . '" title="' . __('Refresh data for this OLT') . '"');
                     $refresh_button .= wf_img('skins/refresh.gif');
@@ -2537,20 +2600,20 @@ class PONizer {
                     $totalTime = 0;
                     $devicesPolled = 0;
                     $pollTimings = array();
+
                     $cells = wf_TableCell(__('OLT'));
-                    $cells .= wf_TableCell(__('from'));
-                    $cells .= wf_TableCell(__('to'));
-                    $cells .= wf_TableCell(__('time'));
-                    $cells .= wf_TableCell(__('Visual'));
+                    $cells .= wf_TableCell('⏳ ' . __('from'));
+                    $cells .= wf_TableCell('⌛ ' . __('to'));
+                    $cells .= wf_TableCell('⏱️ ' . __('time'));
+                    $cells .= wf_TableCell('📊 ' . __('Visual'));
                     $rows = wf_TableRow($cells, 'row1');
 
                     //poll timing preprocessing
                     foreach ($this->allOltDevices as $oltId => $eachDevice) {
-                        $pollStatsPath = self::POLL_STATS . $oltId;
-                        if (file_exists($pollStatsPath)) {
-                            $pollStatsRaw = file_get_contents($pollStatsPath);
-                            if (!empty($pollStatsRaw)) {
-                                $pollStats = unserialize($pollStatsRaw);
+                        $pollStats = $this->pollingStatsRead($oltId);
+                        if (!empty($pollStats)) {
+                            $devPollTime = 0;
+                            if (!empty($pollStats['start']) AND ! empty($pollStats['end'])) {
                                 $devPollTime = $pollStats['end'] - $pollStats['start'];
                                 if ($herdEnabledFlag) {
                                     if ($devPollTime > $totalTime) {
@@ -2559,21 +2622,40 @@ class PONizer {
                                 } else {
                                     $totalTime += $devPollTime;
                                 }
-                                $pollTimings[$oltId]['start'] = $pollStats['start'];
-                                $pollTimings[$oltId]['end'] = $pollStats['end'];
-                                $pollTimings[$oltId]['time'] = $devPollTime;
                             }
+
+                            $pollTimings[$oltId]['start'] = $pollStats['start'];
+                            $pollTimings[$oltId]['end'] = $pollStats['end'];
+                            $pollTimings[$oltId]['finished'] = $pollStats['finished'];
+                            $pollTimings[$oltId]['time'] = $devPollTime;
                         }
                     }
 
                     //rendering stats
                     if (!empty($pollTimings)) {
                         foreach ($pollTimings as $oltId => $pollStats) {
+                            $pollingFinished = $pollStats['finished'];
+                            if (!empty($pollStats['start'])) {
+                                $pollingStartLabel = date("Y-m-d H:i:s", $pollStats['start']);
+                            } else {
+                                $pollingStartLabel = '-';
+                            }
+                            if (($pollingFinished) AND ( !empty($pollStats['start'])) AND ( !empty($pollStats['end']))) {
+                                $pollingTimeLabel = zb_formatTime($pollStats['time']);
+                                $pollingEndLabel = date("Y-m-d H:i:s", $pollStats['end']);
+                                $visualLabel = web_bar($pollStats['time'], $totalTime);
+                            } else {
+                                $pollingTimeLabel = '🏁 ' . __('In progress now');
+                                $pollingEndLabel = '-';
+                                $visualLabel = '∞';
+                            }
+
+
                             $cells = wf_TableCell($this->allOltDevices[$oltId]);
-                            $cells .= wf_TableCell(date("Y-m-d H:i:s", $pollStats['start']));
-                            $cells .= wf_TableCell(date("Y-m-d H:i:s", $pollStats['end']));
-                            $cells .= wf_TableCell(zb_formatTime($pollStats['time']), '', '', 'sorttable_customkey="' . $pollStats['time'] . '"');
-                            $cells .= wf_TableCell(web_bar($pollStats['time'], $totalTime), '20%', '', 'sorttable_customkey="' . $pollStats['time'] . '"');
+                            $cells .= wf_TableCell($pollingStartLabel);
+                            $cells .= wf_TableCell($pollingEndLabel);
+                            $cells .= wf_TableCell($pollingTimeLabel, '', '', 'sorttable_customkey="' . $pollStats['time'] . '"');
+                            $cells .= wf_TableCell($visualLabel, '20%', '', 'sorttable_customkey="' . $pollStats['time'] . '"');
                             $rows .= wf_TableRow($cells, 'row5');
                             $devicesPolled++;
                         }

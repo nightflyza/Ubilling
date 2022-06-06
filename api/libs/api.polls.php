@@ -535,7 +535,7 @@ class Polls {
             } elseif (time() > strtotime($this->pollsAvaible[$poll_id]['end_date'])) {
                 $result = wf_img('skins/icon_active2.gif') . ' ' . __('Finished');
             } elseif ($this->pollsAvaible[$poll_id]['enabled'] AND time() > strtotime($this->pollsAvaible[$poll_id]['start_date']) AND time() < strtotime($this->pollsAvaible[$poll_id]['end_date'])) {
-                $result = wf_img('skins/icon_active.gif') . ' ' . __('In progress');
+                $result = wf_img('skins/icon_active.gif') . ' ' . __('Poll in progress');
             }
         }
         return ($result);
