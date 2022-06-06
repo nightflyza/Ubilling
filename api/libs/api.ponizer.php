@@ -350,6 +350,7 @@ class PONizer {
     const MACDEVIDCACHE_PATH = OLTAttractor::MACDEVIDCACHE_PATH;
     const MACDEVIDCACHE_EXT = OLTAttractor::MACDEVIDCACHE_EXT;
     const ONUSIG_PATH = OLTAttractor::ONUSIG_PATH;
+    const POLL_PID = 'oltpoll_';
     const POLL_STATS = 'exports/PONYRUN_';
     const POLL_LOG = 'exports/oltpoll.log';
 
@@ -624,7 +625,7 @@ class PONizer {
                 if (isset($this->snmpTemplates[$oltModelId])) {
                     if (isset($this->snmpTemplates[$oltModelId]['signal'])) {
                         //preventing simultaneously device polling within different processes
-                        if (!$this->isPollingNow($oltid)) {
+                        if (!$this->isPollingLocked($oltid)) {
                             //prefilling polling stats
                             $pollingStartTime = time();
                             $this->pollingStatsUpdate($oltid, $pollingStartTime, 0, false);
@@ -733,7 +734,6 @@ class PONizer {
                                     }
                                 } else {
                                     $this->logPoll($oltid, 'FATAL run PON HAL collector:' . $collectorName . ' EX_HAL_COLLECTOR_NOT_EXISTS');
-                                    throw new Exception('EX_HAL_COLLECTOR_NOT_EXISTS:' . $collectorName);
                                 }
                             } else {
                                 $this->logPoll($oltid, 'Failed: collector name not defined');
@@ -794,7 +794,7 @@ class PONizer {
     }
 
     /**
-     * Checks some OLT for running collector process
+     * Fast check some OLT for running collector process.
      * 
      * @param int $oltId Existing OLT device ID
      * 
@@ -808,6 +808,21 @@ class PONizer {
         if (!empty($pollingStats)) {
             $result = $pollingStats['finished'] ? false : true;
         }
+        return($result);
+    }
+
+    /**
+     * Performs check of OLT polling lock via DB
+     * 
+     * @param int $oltId
+     * 
+     * @return bool 
+     */
+    protected function isPollingLocked($oltId) {
+        $oltId = ubRouting::filters($oltId, 'int');
+        $query = "SELECT  IS_FREE_LOCK('" . self::POLL_PID . $oltId . "') AS oltLockFree";
+        $rawReply = simple_query($query);
+        $result = ($rawReply['oltLockFree']) ? false : true;
         return($result);
     }
 
@@ -839,6 +854,7 @@ class PONizer {
      * @return void
      */
     protected function pollingStatsUpdate($oltId, $pollingStartTime = 0, $pollingEndTime = 0, $finished = false) {
+        $oltId = ubRouting::filters($oltId, 'int');
         $statsPath = self::POLL_STATS . $oltId;
         $finishedData = ($finished) ? 1 : 0;
         $dataToSave['start'] = $pollingStartTime;
@@ -846,6 +862,14 @@ class PONizer {
         $dataToSave['finished'] = $finishedData;
         $dataToSave = json_encode($dataToSave);
         file_put_contents($statsPath, $dataToSave);
+        //collector process locking and releasing of locks here
+        if ($finished) {
+            //release lock
+            nr_query("SELECT RELEASE_LOCK('" . self::POLL_PID . $oltId . "')");
+        } else {
+            //set lock for polling of some OLT
+            nr_query("SELECT GET_LOCK('" . self::POLL_PID . $oltId . "',1)");
+        }
     }
 
     /**
