@@ -812,21 +812,6 @@ class PONizer {
     }
 
     /**
-     * Performs check of OLT polling lock via DB
-     * 
-     * @param int $oltId
-     * 
-     * @return bool 
-     */
-    protected function isPollingLocked($oltId) {
-        $oltId = ubRouting::filters($oltId, 'int');
-        $query = "SELECT  IS_FREE_LOCK('" . self::POLL_PID . $oltId . "') AS oltLockFree";
-        $rawReply = simple_query($query);
-        $result = ($rawReply['oltLockFree']) ? false : true;
-        return($result);
-    }
-
-    /**
      * Returns polling stats for some OLT
      * 
      * @param int $oltId
@@ -885,6 +870,22 @@ class PONizer {
         $logData = $curdate . ' | OLT[' . $oltId . '] | ' . $logData . PHP_EOL;
         print($logData); // for manual debug of oltpoll and herd remoteapi calls
         file_put_contents(self::POLL_LOG, $logData, FILE_APPEND);
+    }
+
+    /**
+     * Performs check of OLT polling lock via DB. 
+     * Using this only for checks of possibility real collector runs.
+     * 
+     * @param int $oltId
+     * 
+     * @return bool 
+     */
+    protected function isPollingLocked($oltId) {
+        $oltId = ubRouting::filters($oltId, 'int');
+        $query = "SELECT  IS_FREE_LOCK('" . self::POLL_PID . $oltId . "') AS oltLockFree";
+        $rawReply = simple_query($query);
+        $result = ($rawReply['oltLockFree']) ? false : true;
+        return($result);
     }
 
     /**
@@ -2650,7 +2651,8 @@ class PONizer {
                     $devicesPolled = 0;
                     $pollTimings = array();
 
-                    $cells = wf_TableCell(__('OLT'));
+                    $cells = wf_TableCell(__('ID'));
+                    $cells .= wf_TableCell(__('OLT'));
                     $cells .= wf_TableCell('⏳ ' . __('from'));
                     $cells .= wf_TableCell('⌛ ' . __('to'));
                     $cells .= wf_TableCell('⏱️ ' . __('time'));
@@ -2701,7 +2703,8 @@ class PONizer {
                             }
 
 
-                            $cells = wf_TableCell($this->allOltDevices[$oltId]);
+                            $cells = wf_TableCell($oltId);
+                            $cells .= wf_TableCell($this->allOltDevices[$oltId]);
                             $cells .= wf_TableCell($pollingStartLabel);
                             $cells .= wf_TableCell($pollingEndLabel);
                             $cells .= wf_TableCell($pollingTimeLabel, '', '', 'sorttable_customkey="' . $pollStats['time'] . '"');
