@@ -351,6 +351,7 @@ class PONizer {
     const MACDEVIDCACHE_EXT = OLTAttractor::MACDEVIDCACHE_EXT;
     const ONUSIG_PATH = OLTAttractor::ONUSIG_PATH;
     const POLL_STATS = 'exports/PONYRUN_';
+    const POLL_LOG = 'exports/oltpoll.log';
 
     /**
      * Other predefined constants
@@ -611,6 +612,7 @@ class PONizer {
      */
     public function pollOltSignal($oltid) {
         $oltid = vf($oltid, 3);
+        $this->logPoll($oltid, 'STARTING: polling');
         if (isset($this->allOltDevices[$oltid])) {
             if (isset($this->allOltSnmp[$oltid])) {
                 $this->flushOnuAjListCache($oltid);
@@ -716,38 +718,45 @@ class PONizer {
                             if (!empty($collectorName)) {
                                 if (class_exists($collectorName)) {
                                     $collector = new $collectorName($oltParameters, $this->snmpTemplates);
-                                    print('Using PON HAL collector:' . $collectorName . ' WITH PARAMETERS' . PHP_EOL);
-                                    print('OLT ID: ' . $oltParameters['ID'] . ' IP:' . $oltParameters['IP'] . PHP_EOL);
+                                    $logCollector = 'Polling prepare using PON HAL collector:' . $collectorName . ' ';
+                                    $logCollector .= 'with parameters OLT ID: ' . $oltParameters['ID'] . ' IP:' . $oltParameters['IP'];
+                                    $this->logPoll($oltid, $logCollector);
                                     if (method_exists($collector, 'setOfflineSignal')) {
                                         $collector->setOfflineSignal($this->onuOfflineSignalLevel);
                                     }
                                     if (method_exists($collector, $collectorMethod)) {
-                                        print('Running PON HAL collector method:' . $collectorName . '->' . $collectorMethod . PHP_EOL);
+                                        $this->logPoll($oltid, 'RUNNING: PON HAL collector method:' . $collectorName . '->' . $collectorMethod);
                                         $collector->$collectorMethod();
                                     } else {
-                                        print('Failed PON HAL collector:' . $collectorName . '->' . $collectorMethod . ' METHOD_NOT_EXISTS' . PHP_EOL);
+                                        $this->logPoll($oltid, 'FAILED run PON HAL collector:' . $collectorName . '->' . $collectorMethod . ' METHOD_NOT_EXISTS');
                                     }
                                 } else {
+                                    $this->logPoll($oltid, 'FATAL run PON HAL collector:' . $collectorName . ' EX_HAL_COLLECTOR_NOT_EXISTS');
                                     throw new Exception('EX_HAL_COLLECTOR_NOT_EXISTS:' . $collectorName);
                                 }
                             } else {
-                                print('Failed: collector name not defined' . PHP_EOL);
+                                $this->logPoll($oltid, 'Failed: collector name not defined');
                             }
 
 
                             //finishing OLT polling stats
                             $pollingEndTime = time();
                             $this->pollingStatsUpdate($oltid, $pollingStartTime, $pollingEndTime, true);
+                            $this->logPoll($oltid, 'FINISHED: polled successfully');
                         } else {
-                            print('SKIPPING: polling already in progress');
+                            $this->logPoll($oltid, 'FINISHED: skipped, polling already in progress');
                         }
                     } else {
-                        print('Failed polling due signal section is not exists' . PHP_EOL);
+                        $this->logPoll($oltid, 'Failed polling due signal section is not exists');
                     }
                 } else {
-                    print('SKIPPING_MODELID:' . $oltModelId . ' NO_SNMP_TEMPLATE_BODY' . PHP_EOL);
+                    $this->logPoll($oltid, 'SKIPPING MODELID:' . $oltModelId . ' NO_SNMP_TEMPLATE_BODY');
                 }
+            } else {
+                $this->logPoll($oltid, 'SKIPPING No snmp data for this OLT');
             }
+        } else {
+            $this->logPoll($oltid, 'SKIPPING Not in OLT devices list');
         }
     }
 
@@ -836,6 +845,21 @@ class PONizer {
         $dataToSave['finished'] = $finishedData;
         $dataToSave = json_encode($dataToSave);
         file_put_contents($statsPath, $dataToSave);
+    }
+
+    /**
+     * Performs logging of OLT polling 
+     * 
+     * @param int $oltId
+     * @param string $logData
+     * 
+     * @return void
+     */
+    public function logPoll($oltId, $logData) {
+        $curdate = curdatetime();
+        $logData = $curdate . ' | OLT[' . $oltId . '] | ' . $logData . PHP_EOL;
+        print($logData); // for manual debug of oltpoll and herd remoteapi calls
+        file_put_contents(self::POLL_LOG, $logData, FILE_APPEND);
     }
 
     /**
