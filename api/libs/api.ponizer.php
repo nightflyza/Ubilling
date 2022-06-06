@@ -2312,6 +2312,7 @@ class PONizer {
     public function renderOltStats() {
         $oltOnuCounters = $this->getOltOnuCounts();
         $onuMaxCountConf = @$this->altCfg['PON_ONU_PORT_MAX'];
+        $herdEnabledFlag = (@$this->altCfg['HERD_OF_PONIES']) ? true : false;
         $oltOnuFilled = array();
         $oltOnuPonPortMax = array();
         $oltInterfacesFilled = array();
@@ -2520,7 +2521,6 @@ class PONizer {
             if (ubRouting::checkGet('temperature')) {
                 $result = $statsControls . wf_tag('br');
                 if (!empty($oltsTemps)) {
-                    $result .= wf_tag('script', false, '', 'type="text/javascript" src="https://www.gstatic.com/charts/loader.js"') . wf_tag('script', true);
                     foreach ($oltsTemps as $oltTempId => $oltTempValue) {
                         $result .= wf_renderTemperature($oltTempValue, $this->allOltDevices[$oltTempId]);
                     }
@@ -2552,7 +2552,13 @@ class PONizer {
                             if (!empty($pollStatsRaw)) {
                                 $pollStats = unserialize($pollStatsRaw);
                                 $devPollTime = $pollStats['end'] - $pollStats['start'];
-                                $totalTime += $devPollTime;
+                                if ($herdEnabledFlag) {
+                                    if ($devPollTime > $totalTime) {
+                                        $totalTime = $devPollTime;
+                                    }
+                                } else {
+                                    $totalTime += $devPollTime;
+                                }
                                 $pollTimings[$oltId]['start'] = $pollStats['start'];
                                 $pollTimings[$oltId]['end'] = $pollStats['end'];
                                 $pollTimings[$oltId]['time'] = $devPollTime;
