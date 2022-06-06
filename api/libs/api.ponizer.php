@@ -644,6 +644,7 @@ class PONizer {
                                 if (isset($this->snmpTemplates[$oltModelId]['signal']['COLLECTORMETHOD'])) {
                                     $collectorMethod = $this->snmpTemplates[$oltModelId]['signal']['COLLECTORMETHOD'];
                                 }
+                                break;
                             /**
                              * Following cases is legacy for old or custom device templates 
                              * without collector hardware abstraction layer specified explictly
@@ -707,19 +708,25 @@ class PONizer {
                         }
 
                         //Run OLT HAL instance for device polling
-                        //TODO: print collectorname->collectormethod debug output
                         if (!empty($collectorName)) {
                             if (class_exists($collectorName)) {
                                 $collector = new $collectorName($oltParameters, $this->snmpTemplates);
+                                print('Using PON HAL collector:' . $collectorName . ' WITH PARAMETERS' . PHP_EOL);
+                                print('OLT ID: ' . $oltParameters['ID'] . ' IP:' . $oltParameters['IP'] . PHP_EOL);
                                 if (method_exists($collector, 'setOfflineSignal')) {
                                     $collector->setOfflineSignal($this->onuOfflineSignalLevel);
                                 }
                                 if (method_exists($collector, $collectorMethod)) {
+                                    print('Running PON HAL collector method:' . $collectorName . '->' . $collectorMethod . PHP_EOL);
                                     $collector->$collectorMethod();
+                                } else {
+                                    print('Failed PON HAL collector:' . $collectorName . '->' . $collectorMethod . ' METHOD_NOT_EXISTS' . PHP_EOL);
                                 }
                             } else {
                                 throw new Exception('EX_HAL_COLLECTOR_NOT_EXISTS:' . $collectorName);
                             }
+                        } else {
+                            print('Failed: collector name not defined' . PHP_EOL);
                         }
 
 
@@ -731,6 +738,8 @@ class PONizer {
                         $cachedStats['end'] = $pollingEnd;
                         $cachedStats = serialize($cachedStats);
                         file_put_contents($statsPath, $cachedStats);
+                    } else {
+                        print('Failed polling due signal section is not exists' . PHP_EOL);
                     }
                 } else {
                     print('SKIPPING_MODELID:' . $oltModelId . ' NO_SNMP_TEMPLATE_BODY' . PHP_EOL);
