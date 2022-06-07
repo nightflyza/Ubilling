@@ -328,7 +328,8 @@ class PONizer {
     protected $oltData = '';
 
     /**
-     * Some predefined paths, etc
+     * Some predefined paths, marks etc. 
+     * This is here for legacy purpoces for external modules.
      */
     const SIGCACHE_PATH = OLTAttractor::SIGCACHE_PATH;
     const SIGCACHE_EXT = OLTAttractor::SIGCACHE_EXT;
@@ -2323,12 +2324,9 @@ class PONizer {
      * @return string
      */
     public function renderOnuList() {
-        $distCacheAvail = rcms_scandir(self::DISTCACHE_PATH, '*_' . self::DISTCACHE_EXT);
-        $intCacheAvail = rcms_scandir(self::INTCACHE_PATH, '*_' . self::INTCACHE_EXT);
-        $lastDeregCacheAvail = rcms_scandir(self::DEREGCACHE_PATH, '*_' . self::DEREGCACHE_EXT);
-        $distCacheAvail = !empty($distCacheAvail) ? true : false;
-        $intCacheAvail = !empty($intCacheAvail) ? true : false;
-        $lastDeregCacheAvail = !empty($lastDeregCacheAvail) ? true : false;
+        $distCacheAvail = $this->oltData->isDistancesAvailable();
+        $intCacheAvail = $this->oltData->isInterfacesAvailable();
+        $lastDeregCacheAvail = $this->oltData->isDeregsAvailable();
         $oltOnuCounters = $this->getOltOnuCounts();
         $columns = array('ID');
 
@@ -2499,6 +2497,7 @@ class PONizer {
         $badSignals = array();
         $avgSignals = array();
         $oltsTemps = array(); //oltId=>temperature
+        $oltData = new OLTAttractor();
 
         $statsControls = wf_BackLink(self::URL_ME);
         $statsControls .= wf_Link(self::URL_ME . '&oltstats=true', wf_img('skins/icon_stats_16.gif') . ' ' . __('Stats') . ' ' . __('OLT'), false, 'ubButton') . ' ';
@@ -2522,61 +2521,48 @@ class PONizer {
                 $snmpTemplatesMaxPort = @$this->snmpTemplates[$oltModelId]['define']['PON_ONU_PORT_MAX'];
                 $onuMaxCount = (!empty($snmpTemplatesMaxPort)) ? $snmpTemplatesMaxPort : $onuMaxCountConf;
                 if ((!empty($oltModelId)) and ( !empty($oltPorts)) and ( !empty($onuMaxCount))) {
+                    $oltData->setOltId($oltId); //switching attractor scope
                     $maxOnuPerOlt = $oltPorts * $onuMaxCount;
                     $oltOnuFilled[$oltId] = zb_PercentValue($maxOnuPerOlt, $onuCount);
                     $oltOnuPonPortMax[$oltId] = $onuMaxCount;
-                    $onuInterfacesCache = self::INTCACHE_PATH . $oltId . '_' . self::INTCACHE_EXT;
-                    $onuSignalsCache = self::SIGCACHE_PATH . $oltId . '_' . self::SIGCACHE_EXT;
-                    $oltInterfaceDescrsCache = self::INTCACHE_PATH . $oltId . '_' . self::INTDESCRCACHE_EXT;
 
-                    if (file_exists($onuInterfacesCache)) {
-                        $interfaces = file_get_contents($onuInterfacesCache);
-                        $interfaces = unserialize($interfaces);
-                        if (file_exists($onuSignalsCache)) {
-                            $signals = file_get_contents($onuSignalsCache);
-                            $signals = unserialize($signals);
-                        }
+                    $interfaces = $oltData->readInterfaces();
+                    //is any ONU interfaces here?
+                    if (!empty($interfaces)) {
+                        $signals = $oltData->readSignals();
+                        $ifaceDescrs = $oltData->readInterfacesDescriptions();
 
-                        if (!empty($interfaces)) {
-                            $ifaceDescrs = array();
-                            if (file_exists($oltInterfaceDescrsCache)) {
-                                $ifaceDescrs = file_get_contents($oltInterfaceDescrsCache);
-                                $ifaceDescrs = unserialize($ifaceDescrs);
+                        foreach ($interfaces as $eachMac => $eachInterface) {
+                            $cleanInterface = strstr($eachInterface, ':', true);
+
+                            if (isset($oltInterfacesFilled[$oltId][$cleanInterface])) {
+                                $oltInterfacesFilled[$oltId][$cleanInterface] ++;
+                            } else {
+                                $oltInterfacesFilled[$oltId][$cleanInterface] = 1;
                             }
 
-                            foreach ($interfaces as $eachMac => $eachInterface) {
-                                $cleanInterface = strstr($eachInterface, ':', true);
-
-                                if (isset($oltInterfacesFilled[$oltId][$cleanInterface])) {
-                                    $oltInterfacesFilled[$oltId][$cleanInterface] ++;
-                                } else {
-                                    $oltInterfacesFilled[$oltId][$cleanInterface] = 1;
-                                }
-
-                                if (isset($signals[$eachMac])) {
-                                    $macSignal = $signals[$eachMac];
-                                    if ((($macSignal > -27) and ( $macSignal < -25))) {
-                                        if (isset($avgSignals[$oltId][$cleanInterface])) {
-                                            $avgSignals[$oltId][$cleanInterface] ++;
-                                        } else {
-                                            $avgSignals[$oltId][$cleanInterface] = 1;
-                                        }
-                                    }
-                                    if ((($macSignal > 0) or ( $macSignal < -27))) {
-                                        if (isset($badSignals[$oltId][$cleanInterface])) {
-                                            $badSignals[$oltId][$cleanInterface] ++;
-                                        } else {
-                                            $badSignals[$oltId][$cleanInterface] = 1;
-                                        }
+                            if (isset($signals[$eachMac])) {
+                                $macSignal = $signals[$eachMac];
+                                if ((($macSignal > -27) and ( $macSignal < -25))) {
+                                    if (isset($avgSignals[$oltId][$cleanInterface])) {
+                                        $avgSignals[$oltId][$cleanInterface] ++;
+                                    } else {
+                                        $avgSignals[$oltId][$cleanInterface] = 1;
                                     }
                                 }
-
-                                //storing PON ifaces descriptions, if not stored yet
-                                if (!isset($oltInterfaceDescrs[$oltId][$cleanInterface])
-                                        and ! empty($ifaceDescrs) and ! empty($ifaceDescrs[$cleanInterface])) {
-
-                                    $oltInterfaceDescrs[$oltId][$cleanInterface] = ' | ' . $ifaceDescrs[$cleanInterface];
+                                if ((($macSignal > 0) or ( $macSignal < -27))) {
+                                    if (isset($badSignals[$oltId][$cleanInterface])) {
+                                        $badSignals[$oltId][$cleanInterface] ++;
+                                    } else {
+                                        $badSignals[$oltId][$cleanInterface] = 1;
+                                    }
                                 }
+                            }
+
+                            //storing PON ifaces descriptions, if not stored yet
+                            if (!isset($oltInterfaceDescrs[$oltId][$cleanInterface])
+                                    and ! empty($ifaceDescrs) and ! empty($ifaceDescrs[$cleanInterface])) {
+                                $oltInterfaceDescrs[$oltId][$cleanInterface] = ' | ' . $ifaceDescrs[$cleanInterface];
                             }
                         }
                     }
@@ -2586,7 +2572,7 @@ class PONizer {
 
         if ((!empty($oltInterfacesFilled)) and ( !empty($oltOnuFilled))) {
             foreach ($oltOnuFilled as $oltId => $oltFilledPercent) {
-                $oltData = new OLTAttractor($oltId);
+                $oltData->setOltId($oltId);
                 $oltControls = '';
                 $result .= wf_tag('h3');
                 $result .= $this->allOltDevices[$oltId] . ' ' . __('filled on') . ' ' . $oltFilledPercent . '%';
@@ -3067,43 +3053,31 @@ class PONizer {
 
             $this->loadSignalsCache();
 
-            $distCacheAvail = rcms_scandir(self::DISTCACHE_PATH, '*_' . self::DISTCACHE_EXT);
-            if (!empty($distCacheAvail)) {
-                $distCacheAvail = true;
+            $distCacheAvail = $this->oltData->isDistancesAvailable();
+            if ($distCacheAvail) {
                 $this->loadDistanceCache();
-            } else {
-                $distCacheAvail = false;
             }
 
-            $intCacheAvail = rcms_scandir(self::INTCACHE_PATH, '*_' . self::INTCACHE_EXT);
-            if (!empty($intCacheAvail)) {
-                $intCacheAvail = true;
+            $intCacheAvail = $this->oltData->isInterfacesAvailable();
+            if ($intCacheAvail) {
                 $this->loadInterfaceCache();
-            } else {
-                $intCacheAvail = false;
             }
 
-            $intDescrCacheAvail = rcms_scandir(self::INTCACHE_PATH, '*_' . self::INTDESCRCACHE_EXT);
+            $intDescrCacheAvail = $this->oltData->isInterfacesDescriptionsAvailable();
             $curOLTIfaceDescrs = array();
-            if (!empty($intDescrCacheAvail)) {
+            if ($intDescrCacheAvail) {
                 $this->loadPONIfaceDescrCache();
-
                 if (!empty($this->ponIfaceDescrCache[$OltId])) {
                     $intDescrCacheAvail = true;
                     $curOLTIfaceDescrs = $this->ponIfaceDescrCache[$OltId];
                 } else {
                     $intDescrCacheAvail = false;
                 }
-            } else {
-                $intDescrCacheAvail = false;
             }
 
-            $lastDeregCacheAvail = rcms_scandir(self::DEREGCACHE_PATH, '*_' . self::DEREGCACHE_EXT);
-            if (!empty($lastDeregCacheAvail)) {
-                $lastDeregCacheAvail = true;
+            $lastDeregCacheAvail = $this->oltData->isDeregsAvailable();
+            if ($lastDeregCacheAvail) {
                 $this->loadLastDeregCache();
-            } else {
-                $lastDeregCacheAvail = false;
             }
 
             if (!empty($OnuByOLT)) {
@@ -3264,9 +3238,8 @@ class PONizer {
             $allUserTariffs = zb_TariffsGetAllUsers();
             $onuMacId = @$this->allOnu[$OnuId]['mac'];
             $onuSerialId = @$this->allOnu[$OnuId]['serial'];
-            $fdbCacheAvail = rcms_scandir(self::FDBCACHE_PATH, '*_' . self::FDBCACHE_EXT);
-            if (!empty($fdbCacheAvail)) {
-                $fdbCacheAvail = true;
+            $fdbCacheAvail = $this->oltData->isFdbAvailable();
+            if ($fdbCacheAvail) {
                 $this->loadFDBCache();
             } else {
                 $fdbCacheAvail = false;
@@ -3445,53 +3418,46 @@ class PONizer {
     public function fixOnuOltAssigns() {
         $result = '';
         $result = wf_BackLink(self::URL_ME . '&fdbcachelist=true');
-        $availOnuSigCache = rcms_scandir(self::SIGCACHE_PATH, '*_' . self::SIGCACHE_EXT);
+
         $failedOnuFound = false;
         $repairConfirmed = (ubRouting::checkGet('autorepairconfirmed')) ? true : false;
         $totalCount = 0;
+        $availOnuSigCache = $this->oltData->getSignalsOLTAll();
         if (!empty($availOnuSigCache)) {
-            foreach ($availOnuSigCache as $io => $eachFile) {
-                $oltId = explode('_', $eachFile);
-                $oltId = $oltId[0];
+            foreach ($availOnuSigCache as $oltId => $eachOltSignals) {
                 $oltDesc = @$this->allOltDevices[$oltId];
-                $fileData = file_get_contents(self::SIGCACHE_PATH . '/' . $eachFile);
+                if (!empty($eachOltSignals)) {
+                    foreach ($eachOltSignals as $onuMac => $onuSignal) {
+                        $onuRealId = $this->getONUIDByMAC($onuMac);
+                        $onuLink = ($onuRealId) ? wf_Link(self::URL_ME . '&editonu=' . $onuRealId, $onuRealId) : '';
+                        if ($onuRealId) {
+                            $wrongOltFlag = (!$this->checkOnuOLTid($onuMac, $oltId)) ? true : false;
+                            if ($wrongOltFlag) {
+                                $totalCount++;
+                                $failedOnuFound = true; //set once
+                                $onuData = $this->allOnu[$onuRealId];
+                                $wrongOltId = $onuData['oltid'];
+                                $wrongOltDesc = @$this->allOltDevices[$wrongOltId];
+                                if (empty($wrongOltDesc)) {
+                                    $wrongOltDesc = '[' . $wrongOltId . '] ' . __('Unknown');
+                                }
 
-                if (!empty($fileData)) {
-                    $fileData = unserialize($fileData);
-
-                    if (!empty($fileData)) {
-                        foreach ($fileData as $onuMac => $onuSignal) {
-                            $onuRealId = $this->getONUIDByMAC($onuMac);
-                            $onuLink = ($onuRealId) ? wf_Link(self::URL_ME . '&editonu=' . $onuRealId, $onuRealId) : '';
-                            if ($onuRealId) {
-                                $wrongOltFlag = (!$this->checkOnuOLTid($onuMac, $oltId)) ? true : false;
-                                if ($wrongOltFlag) {
-                                    $totalCount++;
-                                    $failedOnuFound = true; //set once
-                                    $onuData = $this->allOnu[$onuRealId];
-                                    $wrongOltId = $onuData['oltid'];
-                                    $wrongOltDesc = @$this->allOltDevices[$wrongOltId];
-                                    if (empty($wrongOltDesc)) {
-                                        $wrongOltDesc = '[' . $wrongOltId . '] ' . __('Unknown');
-                                    }
-
-                                    $missmatchLabel = __('ONU') . ' [ ' . $onuLink . '] ' . __('wrong') . ' ' . __('OLT') . ' ' . $wrongOltDesc . ', ';
-                                    $missmatchLabel .= __('must be') . ' ' . $oltDesc;
-                                    $result .= $this->messages->getStyledMessage($missmatchLabel, 'warning');
-                                    if ($repairConfirmed) {
-                                        if (isset($this->allOltDevices[$oltId])) {
-                                            if (isset($this->allOnu[$onuRealId])) {
-                                                $where = "WHERE `id`='" . $onuRealId . "'";
-                                                simple_update_field('pononu', 'oltid', $oltId, $where);
-                                                log_register('PON REMAP ONU [' . $onuRealId . '] MAC `' . $onuData['mac'] . '` OLT [' . $wrongOltId . '] TO [' . $oltId . ']');
-                                                $repairLabel = __('ONU') . ' [ ' . $onuLink . '] ' . __('assigned') . ' ' . __('OLT') . ' ' . $oltDesc . '!';
-                                                $result .= $this->messages->getStyledMessage($repairLabel, 'success');
-                                            } else {
-                                                $result .= $this->messages->getStyledMessage(__('ONU') . ' [' . $onuRealId . '] ' . __('Not exists'), 'error');
-                                            }
+                                $missmatchLabel = __('ONU') . ' [ ' . $onuLink . '] ' . __('wrong') . ' ' . __('OLT') . ' ' . $wrongOltDesc . ', ';
+                                $missmatchLabel .= __('must be') . ' ' . $oltDesc;
+                                $result .= $this->messages->getStyledMessage($missmatchLabel, 'warning');
+                                if ($repairConfirmed) {
+                                    if (isset($this->allOltDevices[$oltId])) {
+                                        if (isset($this->allOnu[$onuRealId])) {
+                                            $where = "WHERE `id`='" . $onuRealId . "'";
+                                            simple_update_field('pononu', 'oltid', $oltId, $where);
+                                            log_register('PON REMAP ONU [' . $onuRealId . '] MAC `' . $onuData['mac'] . '` OLT [' . $wrongOltId . '] TO [' . $oltId . ']');
+                                            $repairLabel = __('ONU') . ' [ ' . $onuLink . '] ' . __('assigned') . ' ' . __('OLT') . ' ' . $oltDesc . '!';
+                                            $result .= $this->messages->getStyledMessage($repairLabel, 'success');
                                         } else {
-                                            $result .= $this->messages->getStyledMessage(__('OLT') . ' [' . $oltId . '] ' . __('Not exists'), 'error');
+                                            $result .= $this->messages->getStyledMessage(__('ONU') . ' [' . $onuRealId . '] ' . __('Not exists'), 'error');
                                         }
+                                    } else {
+                                        $result .= $this->messages->getStyledMessage(__('OLT') . ' [' . $oltId . '] ' . __('Not exists'), 'error');
                                     }
                                 }
                             }
@@ -3609,45 +3575,42 @@ class PONizer {
      */
     public static function getAllONUSignals() {
         global $ubillingConfig;
-        $allOnuSignals = array();
-        $signalCache = array();
+        $result = array();
+        $oltData = new OLTAttractor();
+        $signalCache = $oltData->getSignalsAll();
         $onuMACValidateRegex = '/^([[:xdigit:]]{2}[\s:.-]?){5}[[:xdigit:]]{2}$/';
         $validateONUMACEnabled = $ubillingConfig->getAlterParam('PON_ONU_MAC_VALIDATE');
-        $availCacheData = rcms_scandir(self::SIGCACHE_PATH, '*_' . self::SIGCACHE_EXT);
 
         $query = "SELECT * from `pononu` WHERE `login` != '' and NOT ISNULL(`login`)";
         $allOnuRecs = simple_queryall($query);
 
-        if (!empty($allOnuRecs) and ! empty($availCacheData)) {
-            foreach ($availCacheData as $io => $each) {
-                $raw = file_get_contents(self::SIGCACHE_PATH . $each);
-                $raw = unserialize($raw);
-
-                foreach ($raw as $mac => $signal) {
+        if (!empty($allOnuRecs) and ! empty($signalCache)) {
+            //Preprocess MACs if enabled. 
+            //Not using reviewDataSet here, because static method call possible
+            if ($validateONUMACEnabled) {
+                foreach ($signalCache as $mac => $signal) {
                     if ($validateONUMACEnabled) {
                         $matches = array();
                         preg_match($onuMACValidateRegex, $mac, $matches);
 
                         if (empty($matches[0])) {
-                            continue;
+                            unset($signalCache[$mac]);
                         }
                     }
-
-                    $signalCache[$mac] = $signal;
                 }
             }
 
             foreach ($allOnuRecs as $io => $each) {
                 if (isset($signalCache[$each['mac']])) {
-                    $allOnuSignals[$each['login']] = $signalCache[$each['mac']];
+                    $result[$each['login']] = $signalCache[$each['mac']];
                 }
                 if (isset($signalCache[$each['serial']])) {
-                    $allOnuSignals[$each['login']] = $signalCache[$each['serial']];
+                    $result[$each['login']] = $signalCache[$each['serial']];
                 }
             }
         }
 
-        return ($allOnuSignals);
+        return ($result);
     }
 
     /**

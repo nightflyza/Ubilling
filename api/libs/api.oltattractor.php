@@ -199,6 +199,23 @@ class OLTAttractor {
     }
 
     /**
+     * Checks is any data containers available for some path/mark?
+     * 
+     * @param string $containerPath
+     * @param string $containerMark
+     * 
+     * @return bool
+     */
+    protected function checkContainersAvailable($containerPath, $containerMark) {
+        $result = false;
+        $availContainers = rcms_scandir($containerPath, '*_' . $containerMark);
+        if (!empty($availContainers)) {
+            $result = true;
+        }
+        return($result);
+    }
+
+    /**
      * OLT data manipulation subroutines
      */
 
@@ -607,6 +624,86 @@ class OLTAttractor {
             }
         }
         return($result);
+    }
+
+    /**
+     * Returns list of all ONUs signals on OLTS as [oltId][onuMac/onuSerial]=>signal in db
+     * 
+     * @return array
+     */
+    public function getSignalsOLTAll() {
+        $containerPath = self::SIGCACHE_PATH;
+        $containerMark = self::SIGCACHE_EXT;
+        $oltData = new OLTAttractor();
+        $result = array();
+        $allContainers = $this->getContainers($containerPath, $containerMark);
+        if (!empty($allContainers)) {
+            foreach ($allContainers as $eachOltId => $eachContainer) {
+                $oltData->setOltId($eachOltId);
+                $eachOltSignals = $oltData->readSignals();
+                $result[$eachOltId] = $eachOltSignals;
+            }
+        }
+        return($result);
+    }
+
+    /**
+     * Public methods to perform fast data availability checks without containers reading
+     */
+
+    /**
+     * Checks is any distances data available?
+     * 
+     * @return bool
+     */
+    public function isDistancesAvailable() {
+        $containerPath = self::DISTCACHE_PATH;
+        $containerMark = self::DISTCACHE_EXT;
+        return($this->checkContainersAvailable($containerPath, $containerMark));
+    }
+
+    /**
+     * Checks is any interfaces data available?
+     * 
+     * @return bool
+     */
+    public function isInterfacesAvailable() {
+        $containerPath = self::INTCACHE_PATH;
+        $containerMark = self::INTCACHE_EXT;
+        return($this->checkContainersAvailable($containerPath, $containerMark));
+    }
+
+    /**
+     * Checks is any deregs data available?
+     * 
+     * @return bool
+     */
+    public function isDeregsAvailable() {
+        $containerPath = self::DEREGCACHE_PATH;
+        $containerMark = self::DEREGCACHE_EXT;
+        return($this->checkContainersAvailable($containerPath, $containerMark));
+    }
+
+    /**
+     * Checks is any interface descriptions data available?
+     * 
+     * @return bool
+     */
+    public function isInterfacesDescriptionsAvailable() {
+        $containerPath = self::INTCACHE_PATH;
+        $containerMark = self::INTDESCRCACHE_EXT;
+        return($this->checkContainersAvailable($containerPath, $containerMark));
+    }
+
+    /**
+     * Checks is any ONU FDB data available?
+     * 
+     * @return bool
+     */
+    public function isFdbAvailable() {
+        $containerPath = self::FDBCACHE_PATH;
+        $containerMark = self::FDBCACHE_EXT;
+        return($this->checkContainersAvailable($containerPath, $containerMark));
     }
 
 }
