@@ -692,11 +692,11 @@ class PONizer {
                                     /**
                                      * V-Solution 1600D devices polling
                                      */
-                                    $collectorName = 'PONStelsFD';
+                                    $collectorName = 'PONVsol';
                                     break;
 
                                 /**
-                                 * ZTE EPON OLTs polling
+                                 * ZTE-like EPON OLTs polling
                                  */
                                 case 'ZTE':
                                     $collectorName = 'PonZte';
