@@ -153,8 +153,18 @@ if ($altCfg['PON_ENABLED']) {
                     } else {
                         if (ubRouting::checkGet('oltstats')) {
                             if (!ubRouting::checkGet(array('oltid', 'if'))) {
-                                //rendering OLT stats
-                                show_window(__('Stats'), $pon->renderOltStats());
+                                if (!ubRouting::checkGet('polllogs')) {
+                                    //rendering just OLT stats
+                                    show_window(__('Stats'), $pon->renderOltStats());
+                                } else {
+                                    show_window(__('OLT polling log'), $pon->renderLogControls());
+                                    if (ubRouting::checkGet('zenlog')) {
+                                        $ponyZen = new ZenFlow('oltpollzen', $pon->renderPollingLog(), 3000);
+                                        show_window(__('Zen') . ' ' . __('Log'), $ponyZen->render());
+                                    } else {
+                                        show_window(__('Log'), $pon->renderPollingLog());
+                                    }
+                                }
                             } else {
                                 //saving manual descriptions
                                 if (ubRouting::checkPost(array('newoltiddesc', 'newoltif'))) {
@@ -249,4 +259,3 @@ if ($altCfg['PON_ENABLED']) {
 } else {
     show_error(__('This module disabled'));
 }
-?>

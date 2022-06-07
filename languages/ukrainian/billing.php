@@ -3402,6 +3402,9 @@ $lang['def']['Show the most annoying'] = 'Показати найбільш на
 $lang['def']['For example'] = 'Для прикладу';
 $lang['def']['Wiki article'] = 'Стаття в Wiki';
 $lang['def']['In progress now'] = 'Триває зараз';
+$lang['def']['OLT polling log'] = 'Лог опиту OLT-ів';
+$lang['def']['does not exist'] = 'не існує';
+$lang['def']['Log'] = 'Лог';
 $lang['def'][''] = '';
 
 

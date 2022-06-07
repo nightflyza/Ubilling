@@ -889,6 +889,62 @@ class PONizer {
     }
 
     /**
+     * Returns some polllog viewer controls
+     * 
+     * @return string
+     */
+    public function renderLogControls() {
+        $result = '';
+        $result .= wf_BackLink(self::URL_ME . '&oltstats=true') . ' ';
+        $result .= wf_Link(self::URL_ME . '&oltstats=true&polllogs=true', wf_img('skins/log_icon_small.png') . ' ' . __('Log'), false, 'ubButton') . '';
+        $result .= wf_Link(self::URL_ME . '&oltstats=true&polllogs=true&zenlog=true', wf_img('skins/zen.png') . ' ' . __('Zen'), false, 'ubButton') . '';
+        return($result);
+    }
+
+    /**
+     * Renders last lines from OLT polling log
+     * 
+     * @return string
+     */
+    public function renderPollingLog() {
+        $result = '';
+        $renderLimit = 100;
+        //$result .= wf_BackLink(self::URL_ME . '&oltstats=true');
+        if (file_exists(self::POLL_LOG)) {
+            $rawLog = zb_ReadLastLines(self::POLL_LOG, $renderLimit);
+            if (!empty($rawLog)) {
+                $rawLog = explodeRows($rawLog);
+                $rawLog = array_reverse($rawLog);
+                if (!empty($rawLog)) {
+                    $cells = wf_TableCell(__('Date'));
+                    $cells .= wf_TableCell(__('OLT'));
+                    $cells .= wf_TableCell(__('Event'));
+                    $rows = wf_TableRow($cells, 'row1');
+                    foreach ($rawLog as $io => $eachLine) {
+                        if (!empty($eachLine)) {
+                            $eachLine = explode('|', $eachLine);
+                            //normal format: time|OLT|event
+                            if (sizeof($eachLine) == 3) {
+                                $oltId = ubRouting::filters($eachLine[1], 'int');
+                                $cells = wf_TableCell($eachLine[0]);
+                                $cells .= wf_TableCell('[' . $oltId . '] ' . @$this->allOltDevices[$oltId]);
+                                $cells .= wf_TableCell($eachLine[2]);
+                                $rows .= wf_TableRow($cells, 'row5');
+                            }
+                        }
+                    }
+                    $result .= wf_TableBody($rows, '100%', 0, 'sortable');
+                }
+            } else {
+                $result .= $this->messages->getStyledMessage(__('Nothing to show') . ': ' . __('Logs') . ' ' . __('is empty'), 'warning');
+            }
+        } else {
+            $result .= $this->messages->getStyledMessage(__('Nothing to show') . ': ' . __('OLT polling log') . ' ' . __('does not exist'), 'warning');
+        }
+        return($result);
+    }
+
+    /**
      * Loads avaliable ONUs from database into private data property
      * 
      * @param int $oltId load ONU only for selected OLT
@@ -2436,12 +2492,14 @@ class PONizer {
         $oltsTemps = array(); //oltId=>temperature
 
         $statsControls = wf_BackLink(self::URL_ME);
+        $statsControls .= wf_Link(self::URL_ME . '&oltstats=true', wf_img('skins/icon_stats_16.gif') . ' ' . __('Stats') . ' ' . __('OLT'), false, 'ubButton') . ' ';
         if (!ubRouting::checkGet('temperature')) {
-            $statsControls .= wf_Link(self::URL_ME . '&oltstats=true&temperature=true', wf_img('skins/temperature.png') . ' ' . __('Temperature'), false, 'ubButton');
+            $statsControls .= wf_Link(self::URL_ME . '&oltstats=true&temperature=true', wf_img('skins/temperature.png') . ' ' . __('Temperature'), false, 'ubButton') . ' ';
         } else {
-            $statsControls .= wf_Link(self::URL_ME . '&oltstats=true', wf_img('skins/notemperature.png') . ' ' . __('Temperature'), false, 'ubButton');
+            $statsControls .= wf_Link(self::URL_ME . '&oltstats=true', wf_img('skins/notemperature.png') . ' ' . __('Temperature'), false, 'ubButton') . ' ';
         }
-        $statsControls .= wf_Link(self::URL_ME . '&oltstats=true&pollstats=true', wf_img('skins/log_icon_small.png') . ' ' . __('Devices polling stats'), false, 'ubButton');
+        $statsControls .= wf_Link(self::URL_ME . '&oltstats=true&pollstats=true', wf_img('skins/icon_time_small.png') . ' ' . __('Devices polling stats'), false, 'ubButton') . ' ';
+        $statsControls .= wf_Link(self::URL_ME . '&oltstats=true&polllogs=true', wf_img('skins/log_icon_small.png') . ' ' . __('OLT polling log'), false, 'ubButton') . ' ';
 
         $result = '';
         $result .= $statsControls;

@@ -6573,34 +6573,55 @@ function bs_UploadFormBody($action, $method, $inputs, $class = '') {
     return ($form);
 }
 
-    /**
-     * Renders list with some controls of available editable config presets
-     * 
-     * @param array $editableConfigs
-     * 
-     * @return string
-     */
-    function web_RenderEditableConfigPresetsForm($editableConfigs) {
-        $result = '';
-        $messages = new UbillingMessageHelper();
-        if (!empty($editableConfigs)) {
-            $cells = wf_TableCell(__('Path'));
-            $cells .= wf_TableCell(__('Name'));
-            $cells .= wf_TableCell(__('Actions'));
-            $rows = wf_TableRow($cells, 'row1');
-            foreach ($editableConfigs as $eachPath => $eachName) {
-                $cells = wf_TableCell($eachPath);
-                $cells .= wf_TableCell($eachName);
-                $actLinks = wf_JSAlert('?module=sysconf&delconfpath=' . base64_encode($eachPath), web_delete_icon(), $messages->getDeleteAlert());
-                $cells .= wf_TableCell($actLinks);
-                $rows .= wf_TableRow($cells, 'row3');
-            }
-            $result .= wf_TableBody($rows, '100%', 0, '');
+/**
+ * Renders list with some controls of available editable config presets
+ * 
+ * @param array $editableConfigs
+ * 
+ * @return string
+ */
+function web_RenderEditableConfigPresetsForm($editableConfigs) {
+    $result = '';
+    $messages = new UbillingMessageHelper();
+    if (!empty($editableConfigs)) {
+        $cells = wf_TableCell(__('Path'));
+        $cells .= wf_TableCell(__('Name'));
+        $cells .= wf_TableCell(__('Actions'));
+        $rows = wf_TableRow($cells, 'row1');
+        foreach ($editableConfigs as $eachPath => $eachName) {
+            $cells = wf_TableCell($eachPath);
+            $cells .= wf_TableCell($eachName);
+            $actLinks = wf_JSAlert('?module=sysconf&delconfpath=' . base64_encode($eachPath), web_delete_icon(), $messages->getDeleteAlert());
+            $cells .= wf_TableCell($actLinks);
+            $rows .= wf_TableRow($cells, 'row3');
         }
-
-        $inputs = wf_TextInput('newconfpath', __('Path'), '', false, 10) . ' ';
-        $inputs .= wf_TextInput('newconfname', __('Name'), '', false, 10) . ' ';
-        $inputs .= wf_Submit(__('Create'));
-        $result .= wf_Form('', 'POST', $inputs, 'glamour');
-        return ($result);
+        $result .= wf_TableBody($rows, '100%', 0, '');
     }
+
+    $inputs = wf_TextInput('newconfpath', __('Path'), '', false, 10) . ' ';
+    $inputs .= wf_TextInput('newconfname', __('Name'), '', false, 10) . ' ';
+    $inputs .= wf_Submit(__('Create'));
+    $result .= wf_Form('', 'POST', $inputs, 'glamour');
+    return ($result);
+}
+
+/**
+ * Returns X last lines from some text file
+ * 
+ * @global object $ubillingConfig
+ * @param string $filePath
+ * @param int $linesCount
+ * 
+ * @return string
+ */
+function zb_ReadLastLines($filePath, $linesCount) {
+    global $ubillingConfig;
+    $result = '';
+    if (file_exists($filePath)) {
+        $billCfg = $ubillingConfig->getBilling();
+        $tailPath = $billCfg['TAIL'];
+        $command = $tailPath . ' -n ' . $linesCount . ' ' . $filePath;
+        $result = shell_exec($command);
+    }
+    return($result);
+}
