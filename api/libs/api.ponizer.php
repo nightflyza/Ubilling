@@ -608,11 +608,12 @@ class PONizer {
     /**
      * Performs OLT device polling via PON HAL instance
      *
-     * @param int $oltid
+     * @param int $oltid Existing OLT id to perform polling
+     * @param bool $quiet dont output debug info to viewport
      *
      * @return void
      */
-    public function pollOltSignal($oltid) {
+    public function pollOltSignal($oltid, $quiet = false) {
         $oltid = vf($oltid, 3);
         $this->logPoll($oltid, 'STARTING: polling');
         if (isset($this->allOltDevices[$oltid])) {
@@ -769,7 +770,7 @@ class PONizer {
     /**
      * Performs available OLT devices polling. Use only in remote API.
      *
-     * @param bool $quiet
+     * @param bool $quiet dont output debug data into viewport
      *
      * @return void
      */
@@ -781,7 +782,7 @@ class PONizer {
                 }
 
                 if (@!$this->altCfg['HERD_OF_PONIES']) {
-                    $this->pollOltSignal($oltid);
+                    $this->pollOltSignal($oltid, $quiet);
                 } else {
                     //starting herd of apocalypse pony here!
                     $herdTimeout = 0;
@@ -867,13 +868,16 @@ class PONizer {
      * 
      * @param int $oltId
      * @param string $logData
+     * @param bool $quiet
      * 
      * @return void
      */
-    public function logPoll($oltId, $logData) {
+    public function logPoll($oltId, $logData, $quiet = false) {
         $curdate = curdatetime();
         $logData = $curdate . ' | OLT[' . $oltId . '] | ' . $logData . PHP_EOL;
-        print($logData); // for manual debug of oltpoll and herd remoteapi calls
+        if (!$quiet) {
+            print($logData); // for manual debug of oltpoll and herd remoteapi calls
+        }
         file_put_contents(self::POLL_LOG, $logData, FILE_APPEND);
     }
 
