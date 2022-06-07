@@ -4018,13 +4018,6 @@ class PONizer {
 
                     if (!empty($lastRegTime) or ! empty($lastDeregTime) or ! empty($lastAliveTime)) {
                         if ($snmpSignalOIDs['SIGNALMODE'] == 'BDCOM') {
-                            /* if (ispos($snmpDevice, '3310')) {
-                              $lastAliveTime = explode(')', $lastAliveTime);
-                              $lastAliveTime = trim($lastAliveTime[1]);
-                              } else {
-                              $lastAliveTime = zb_formatTime($lastAliveTime);
-                              } */
-
                             $lastAliveTime = (empty($lastAliveTime) or ! is_numeric($lastAliveTime)) ? 0 : $lastAliveTime;
                             $lastAliveTime = zb_formatTime($lastAliveTime);
 
