@@ -606,7 +606,7 @@ class PONizer {
     }
 
     /**
-     * Performs OLT device polling with snmp
+     * Performs OLT device polling via PON HAL instance
      *
      * @param int $oltid
      *
@@ -623,7 +623,12 @@ class PONizer {
                 $oltIp = $this->allOltSnmp[$oltid]['ip'];
                 $oltNoFDBQ = $this->allOltSnmp[$oltid]['nofdbquery'];
                 if (isset($this->snmpTemplates[$oltModelId])) {
+                    $this->logPoll($oltid, 'Using device SNMP template "' . $this->snmpTemplates[$oltModelId]['define']['DEVICE'] . '"');
                     if (isset($this->snmpTemplates[$oltModelId]['signal'])) {
+                        //logging collector signalmode and collector
+                        $logTemplate = 'Template mode:"' . $this->snmpTemplates[$oltModelId]['signal']['SIGNALMODE'] . '" ';
+                        $logTemplate .= 'collector name:"' . @$this->snmpTemplates[$oltModelId]['signal']['COLLECTORNAME'] . '"';
+                        $this->logPoll($oltid, $logTemplate);
                         //preventing simultaneously device polling within different processes
                         if (!$this->isPollingLocked($oltid)) {
                             //prefilling polling stats
@@ -720,7 +725,7 @@ class PONizer {
                             if (!empty($collectorName)) {
                                 if (class_exists($collectorName)) {
                                     $collector = new $collectorName($oltParameters, $this->snmpTemplates);
-                                    $logCollector = 'Polling prepare using PON HAL collector:' . $collectorName . ' ';
+                                    $logCollector = 'Polling prepare using PON HAL collector:"' . $collectorName . '" ';
                                     $logCollector .= 'with parameters OLT ID: ' . $oltParameters['ID'] . ' IP:' . $oltParameters['IP'];
                                     $this->logPoll($oltid, $logCollector);
                                     if (method_exists($collector, 'setOfflineSignal')) {
