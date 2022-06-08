@@ -15,24 +15,24 @@ class OLTAttractor {
     /**
      * Some basic paths and data parameters here
      */
-    const SIGCACHE_PATH = 'exports/pondata/signals';
+    const SIGCACHE_PATH = 'exports/pondata/signals/';
     const SIGCACHE_EXT = 'OLTSIGNALS';
-    const DISTCACHE_PATH = 'exports/pondata/dist';
+    const DISTCACHE_PATH = 'exports/pondata/dist/';
     const DISTCACHE_EXT = 'OLTDISTANCE';
-    const ONUCACHE_PATH = 'exports/pondata/onucache';
+    const ONUCACHE_PATH = 'exports/pondata/onucache/';
     const ONUCACHE_EXT = 'ONUINDEX';
-    const INTCACHE_PATH = 'exports/pondata/iface';
+    const INTCACHE_PATH = 'exports/pondata/iface/';
     const INTCACHE_EXT = 'ONUINTERFACE';
     const INTDESCRCACHE_EXT = 'OLTINTERFACEDESCR';
-    const FDBCACHE_PATH = 'exports/pondata/fdb';
+    const FDBCACHE_PATH = 'exports/pondata/fdb/';
     const FDBCACHE_EXT = 'OLTFDB';
-    const DEREGCACHE_PATH = 'exports/pondata/dereg';
+    const DEREGCACHE_PATH = 'exports/pondata/dereg/';
     const DEREGCACHE_EXT = 'ONUDEREGS';
-    const UPTIME_PATH = 'exports/pondata/uptime';
+    const UPTIME_PATH = 'exports/pondata/uptime/';
     const UPTIME_EXT = 'OLTUPTIME';
-    const TEMPERATURE_PATH = 'exports/pondata/temp';
+    const TEMPERATURE_PATH = 'exports/pondata/temp/';
     const TEMPERATURE_EXT = 'OLTTEMPERATURE';
-    const MACDEVIDCACHE_PATH = 'exports/pondata/macdev';
+    const MACDEVIDCACHE_PATH = 'exports/pondata/macdev/';
     const MACDEVIDCACHE_EXT = 'ONUMACDEVINDEX';
 
     /**
