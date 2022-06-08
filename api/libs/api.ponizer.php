@@ -328,6 +328,27 @@ class PONizer {
     protected $oltData = '';
 
     /**
+     * Quiet mode flag
+     *
+     * @var bool
+     */
+    protected $supressOutput = false;
+
+    /**
+     * ONUs database abstraction layer
+     *
+     * @var object
+     */
+    protected $onuDb = '';
+
+    /**
+     * ONUs database abstraction layer
+     *
+     * @var object
+     */
+    protected $onuExtUsersDb = '';
+
+    /**
      * Some predefined paths, marks etc. 
      * This is here for legacy purpoces for external modules.
      */
@@ -360,6 +381,9 @@ class PONizer {
      */
     const SNMPCACHE = false;
     const SNMPPORT = 161;
+    const TABLE_ONUS = 'pononu';
+    const TABLE_SWITCHES = 'switches';
+    const TABLE_ONUEXTUSERS = 'pononuextusers';
     const KEY_ALLONU = 'ALLONU';
     const KEY_ONUOLT = 'ONUOLTID_';
     const KEY_ONULISTAJ = 'ONULISTAJ_';
@@ -396,6 +420,8 @@ class PONizer {
         $this->loadAlter();
         $this->initMessages();
         $this->initOltAttractor();
+        $this->initOnuDb();
+        $this->initOnuExtUsersDb();
         $this->initCache();
         $this->loadOltDevices();
         $this->loadOltModels();
@@ -460,18 +486,42 @@ class PONizer {
     }
 
     /**
+     * Inits ONUs database abstraction layer
+     * 
+     * @return void
+     */
+    protected function initOnuDb() {
+        $this->onuDb = new NyanORM(self::TABLE_ONUS);
+    }
+
+    /**
+     * Inits ONUs additional users database abstraction layer
+     * 
+     * @return void
+     */
+    protected function initOnuExtUsersDb() {
+        $this->onuExtUsersDb = new NyanORM(self::TABLE_ONUEXTUSERS);
+    }
+
+    /**
      * Loads all available devices set as OLT
      *
      * @return void
      */
     protected function loadOltDevices() {
-        $query = "SELECT `id`,`ip`,`location`,`snmp`,`modelid`, `desc` from `switches` WHERE `desc` LIKE '%OLT%';";
-        $raw = simple_queryall($query);
+        $switchesDb = new NyanORM(self::TABLE_SWITCHES);
+        $requiredFields = array('`id`', '`ip`', '`location`', '`snmp`', '`modelid`', '`desc`');
+        $switchesDb->selectable($requiredFields);
+        $switchesDb->where('desc', 'LIKE', '%OLT%');
+        $raw = $switchesDb->getAll();
+
         if (!empty($raw)) {
             foreach ($raw as $io => $each) {
-                $this->allOltDevices[$each['id']] = $each['ip'] . ' - ' . $each['location'];
-                $this->allOltNames[$each['id']] = $each['location'];
+                //OLT must have non empty community
                 if (!empty($each['snmp'])) {
+                    $this->allOltDevices[$each['id']] = $each['ip'] . ' - ' . $each['location'];
+                    $this->allOltNames[$each['id']] = $each['location'];
+
                     $this->allOltSnmp[$each['id']]['community'] = $each['snmp'];
                     $this->allOltSnmp[$each['id']]['modelid'] = $each['modelid'];
                     $this->allOltSnmp[$each['id']]['ip'] = $each['ip'];
@@ -615,7 +665,8 @@ class PONizer {
      * @return void
      */
     public function pollOltSignal($oltid, $quiet = false) {
-        $oltid = vf($oltid, 3);
+        $oltid = ubRouting::filters($oltid, 'int');
+        $this->supressOutput = $quiet;
         $this->logPoll($oltid, 'STARTING: polling');
         if (isset($this->allOltDevices[$oltid])) {
             if (isset($this->allOltSnmp[$oltid])) {
@@ -869,14 +920,14 @@ class PONizer {
      * 
      * @param int $oltId
      * @param string $logData
-     * @param bool $quiet
+
      * 
      * @return void
      */
-    public function logPoll($oltId, $logData, $quiet = false) {
+    public function logPoll($oltId, $logData) {
         $curdate = curdatetime();
         $logData = $curdate . ' | OLT[' . $oltId . '] | ' . $logData . PHP_EOL;
-        if (!$quiet) {
+        if (!$this->supressOutput) {
             print($logData); // for manual debug of oltpoll and herd remoteapi calls
         }
         file_put_contents(self::POLL_LOG, $logData, FILE_APPEND);
@@ -962,13 +1013,8 @@ class PONizer {
      * @return void
      */
     protected function loadOnu($oltId = '') {
-        $fromCache = false;
-
         $oltId = ubRouting::filters($oltId, 'int');
-        $query = "SELECT * from `pononu`";
-        if ($oltId) {
-            $query .= " WHERE `oltid`='" . $oltId . "'";
-        }
+        $fromCache = false;
 
         if ($this->onuCacheTimeout) {
             //specific OLT ONU data
@@ -988,9 +1034,13 @@ class PONizer {
             }
         }
 
+        //perform database query if no cached data available
         if (!$fromCache) {
-            //perform database query if no cached data available
-            $all = simple_queryall($query);
+            //optional OLT ID filter
+            if ($oltId) {
+                $this->onuDb->where('oltid', '=', $oltId);
+            }
+            $all = $this->onuDb->getAll();
         }
 
         if (!empty($all)) {
@@ -1020,13 +1070,7 @@ class PONizer {
      * @return void
      */
     protected function loadOnuExtUsers() {
-        $query = "SELECT * from `pononuextusers`";
-        $all = simple_queryall($query);
-        if (!empty($all)) {
-            foreach ($all as $io => $each) {
-                $this->allOnuExtUsers[$each['id']] = $each;
-            }
-        }
+        $this->allOnuExtUsers = $this->onuExtUsersDb->getAll('id');
     }
 
     /**
@@ -1293,31 +1337,32 @@ class PONizer {
      * @return int
      */
     public function onuCreate($onumodelid, $oltid, $ip, $mac, $serial, $login) {
-        $mac = strtolower($mac);
-        $mac = trim($mac);
-        $onumodelid = vf($onumodelid, 3);
-        $oltid = vf($oltid, 3);
-        $ip = mysql_real_escape_string($ip);
-        $macRaw = $mac;
-        $mac = mysql_real_escape_string($mac);
-        $serial = mysql_real_escape_string($serial);
-        $login = mysql_real_escape_string($login);
+        $macF = strtolower($mac);
+        $macF = trim($macF);
+        $macF = ubRouting::filters($mac, 'mres');
+        $onumodelid = ubRouting::filters($onumodelid, 'int');
+        $oltid = ubRouting::filters($oltid, 'int');
+        $ip = ubRouting::filters($ip, 'mres');
+        $serial = ubRouting::filters($serial, 'mres');
         $login = trim($login);
+        $login = ubRouting::filters($login, 'mres');
+
         $result = 0;
         $modelid = @$this->allOltSnmp[$oltid]['modelid'];
-        if (!empty($mac)) {
-            if (check_mac_format($mac) or @ $this->snmpTemplates[$modelid]['signal']['SIGNALMODE'] == 'GPBDCOM') {
-                if ($this->checkMacUnique($mac)) {
+        if (!empty($macF)) {
+            if (check_mac_format($macF) or @ $this->snmpTemplates[$modelid]['signal']['SIGNALMODE'] == 'GPBDCOM') {
+                if ($this->checkMacUnique($macF)) {
+                    //TODO: finish refactor here
                     $query = "INSERT INTO `pononu` (`id`, `onumodelid`, `oltid`, `ip`, `mac`, `serial`, `login`) " .
-                            "VALUES (NULL, '" . $onumodelid . "', '" . $oltid . "', '" . $ip . "', '" . $mac . "', '" . $serial . "', '" . $login . "');";
+                            "VALUES (NULL, '" . $onumodelid . "', '" . $oltid . "', '" . $ip . "', '" . $macF . "', '" . $serial . "', '" . $login . "');";
                     nr_query($query);
                     $result = simple_get_lastid('pononu');
-                    log_register('PON CREATE ONU [' . $result . '] MAC `' . $macRaw . '`');
+                    log_register('PON CREATE ONU [' . $result . '] MAC `' . $mac . '`');
                 } else {
-                    log_register('PON MACDUPLICATE TRY `' . $macRaw . '`');
+                    log_register('PON MACDUPLICATE TRY `' . $mac . '`');
                 }
             } else {
-                log_register('PON MACINVALID TRY `' . $macRaw . '`');
+                log_register('PON MACINVALID TRY `' . $mac . '`');
             }
         }
         $this->flushOnuCache();
@@ -1665,11 +1710,11 @@ class PONizer {
      * @return void
      */
     public function deleteOnuExtUser($extUserId) {
-        $extUserId = vf($extUserId, 3);
+        $extUserId = ubRouting::filters($extUserId, 'int');
         if (isset($this->allOnuExtUsers[$extUserId])) {
             $oldData = $this->allOnuExtUsers[$extUserId];
-            $query = "DELETE FROM `pononuextusers` WHERE `id`='" . $extUserId . "';";
-            nr_query($query);
+            $this->onuExtUsersDb->where('id', '=', $extUserId);
+            $this->onuExtUsersDb->delete();
             log_register('PON EDIT ONU [' . $oldData['onuid'] . '] DELETE EXTUSER (' . $oldData['login'] . ')');
         }
     }
@@ -1702,12 +1747,12 @@ class PONizer {
      * @return void
      */
     public function createOnuExtUser($onuId, $login) {
-        $onuId = vf($onuId, 3);
+        $onuId = ubRouting::filters($onuId, 'int');
         if (isset($this->allOnu[$onuId])) {
-            $loginF = mysql_real_escape_string($login);
-            $query = "INSERT INTO `pononuextusers` (`id`,`onuid`,`login`) VALUES "
-                    . "(NULL,'" . $onuId . "','" . $loginF . "');";
-            nr_query($query);
+            $loginF = ubRouting::filters($login, 'mres');
+            $this->onuExtUsersDb->data('onuid', $onuId);
+            $this->onuExtUsersDb->data('login', $loginF);
+            $this->onuExtUsersDb->create();
             log_register('PON EDIT ONU [' . $onuId . '] ASSIGN EXTUSER (' . $login . ')');
         }
     }
@@ -3575,8 +3620,11 @@ class PONizer {
         $onuMACValidateRegex = '/^([[:xdigit:]]{2}[\s:.-]?){5}[[:xdigit:]]{2}$/';
         $validateONUMACEnabled = $ubillingConfig->getAlterParam('PON_ONU_MAC_VALIDATE');
 
-        $query = "SELECT * from `pononu` WHERE `login` != '' and NOT ISNULL(`login`)";
-        $allOnuRecs = simple_queryall($query);
+        //not using $this->onuDb here, because static method call possible
+        $onuDb = new NyanORM(self::TABLE_ONUS);
+        $onuDb->whereRaw("`login` != '' and NOT ISNULL(`login`)");
+        $allOnuRecs = $onuDb->getAll();
+
 
         if (!empty($allOnuRecs) and ! empty($signalCache)) {
             //Preprocess MACs if enabled. 
