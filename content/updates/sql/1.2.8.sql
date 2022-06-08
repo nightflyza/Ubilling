@@ -30,3 +30,6 @@ where nasname is null
 GROUP BY `ip`;
 
 UPDATE `sms_services` SET `api_file_name` = 'SmsClubMobi' WHERE `api_file_name` = 'MobiClubSms';
+
+-- must be last query in this update
+ALTER TABLE `mlg_acct` CHANGE `nasportid` `nasportid` VARCHAR(120) NULL DEFAULT NULL;
