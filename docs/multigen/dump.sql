@@ -6,7 +6,7 @@ CREATE TABLE IF NOT EXISTS `mlg_acct` (
   `groupname` varchar(64) NOT NULL DEFAULT '',
   `realm` varchar(64) DEFAULT '',
   `nasipaddress` varchar(15) NOT NULL DEFAULT '',
-  `nasportid` varchar(15) DEFAULT NULL,
+  `nasportid` varchar(120) DEFAULT NULL,
   `nasporttype` varchar(32) DEFAULT NULL,
   `acctstarttime` datetime DEFAULT NULL,
   `acctstoptime` datetime DEFAULT NULL,
