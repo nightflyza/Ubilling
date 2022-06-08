@@ -1109,31 +1109,30 @@ class PONizer {
     }
 
     /**
-     * Returns ONU ID by ONU MAC or 0 if not found
-     * Now also checks serial number
+     * Returns ONU ID by ONU MAC or serial
      *
-     * @param string $mac
+     * @param string $onuIdent existing ONU MAC or serial 
      *
-     * @return int
+     * @return int/0 - on not found
      */
-    public function getONUIDByMAC($mac) {
-        $mac = strtolower($mac);
-        $sn = strtoupper($mac);
-        $ONUID = 0;
+    public function getOnuIDbyIdent($onuIdent) {
+        $result = 0;
+        $onuIdent = strtolower($onuIdent);
+        $sn = strtoupper($onuIdent);
 
         if (!empty($this->onuMacIdList)) {
-            if (isset($this->onuMacIdList[$mac])) {
-                $ONUID = $this->onuMacIdList[$mac];
+            if (isset($this->onuMacIdList[$onuIdent])) {
+                $result = $this->onuMacIdList[$onuIdent];
             }
         }
 
         if (!empty($this->onuSerialIdList)) {
             if (isset($this->onuSerialIdList[$sn])) {
-                $ONUID = $this->onuSerialIdList[$sn];
+                $result = $this->onuSerialIdList[$sn];
             }
         }
 
-        return $ONUID;
+        return ($result);
     }
 
     /**
@@ -3353,8 +3352,9 @@ class PONizer {
      */
     public function ajaxFdbCacheList() {
         $json = new wf_JqDtHelper();
-        $availOnuFdbCache = rcms_scandir(self::FDBCACHE_PATH, '*_' . self::FDBCACHE_EXT);
+        $availOnuFdbCache = $this->oltData->isFdbAvailable();
         if (!empty($availOnuFdbCache)) {
+            $availOnuFdbCache = $this->oltData->getFdbOLTAll();
             $allAddress = zb_AddressGetFulladdresslistCached();
             $allRealnames = zb_UserGetAllRealnames();
             $allUserMac = zb_UserGetAllMACs();
@@ -3362,45 +3362,39 @@ class PONizer {
             $allUserMac = array_flip($allUserMac);
             $allUserTariffs = zb_TariffsGetAllUsers();
 
-            foreach ($availOnuFdbCache as $io => $eachFile) {
-                $oltId = explode('_', $eachFile);
-                $oltId = $oltId[0];
+            foreach ($availOnuFdbCache as $oltId => $eachOltFdb) {
                 $oltDesc = @$this->allOltDevices[$oltId];
-                $fileData = file_get_contents(self::FDBCACHE_PATH . '/' . $eachFile);
-                if (!empty($fileData)) {
-                    $fileData = unserialize($fileData);
-                    if (!empty($fileData)) {
-                        foreach ($fileData as $onuMac => $onuTmp) {
-                            if (!empty($onuTmp)) {
-                                foreach ($onuTmp as $id => $onuData) {
-                                    $onuRealId = $this->getONUIDByMAC($onuMac);
-                                    if ($onuRealId) {
-                                        $associatedUserLogin = $this->allOnu[$onuRealId]['login'];
-                                    } else {
-                                        $associatedUserLogin = '';
-                                    }
-                                    $userLogin = (isset($allUserMac[$onuData['mac']])) ? $allUserMac[$onuData['mac']] : '';
-                                    $onuLink = ($onuRealId) ? wf_Link(self::URL_ME . '&editonu=' . $onuRealId, $id) : $id;
-                                    @$userAddress = $allAddress[$userLogin];
-                                    @$userRealName = $allRealnames[$userLogin];
-                                    @$userTariff = $allUserTariffs[$userLogin];
-                                    $userLink = (!empty($userLogin)) ? wf_Link('?module=userprofile&username=' . $userLogin, web_profile_icon() . ' ' . $userAddress) : '';
-                                    $oltCheck = (!$this->checkOnuOLTid($onuMac, $oltId)) ? ' ' . wf_img('skins/createtask.gif', __('Wrong OLT')) . ' ' . __('Oh no') : '';
-                                    $userCheck = (!$this->checkOnuUserAssign($onuRealId, $userLogin)) ? ' ' . wf_img('skins/createtask.gif', __('Wrong associated user')) . ' ' . __('Oh no') : '';
-
-                                    $data[] = $oltDesc . $oltCheck;
-                                    $data[] = $onuMac;
-                                    $data[] = $onuLink;
-                                    $data[] = $onuData['vlan'];
-                                    $data[] = $onuData['mac'] . $userCheck;
-                                    $data[] = $userLink;
-                                    $data[] = $associatedUserLogin;
-                                    $data[] = $userRealName;
-                                    $data[] = $userTariff;
-
-                                    $json->addRow($data);
-                                    unset($data);
+                if (!empty($eachOltFdb)) {
+                    foreach ($eachOltFdb as $onuMac => $onuTmp) {
+                        if (!empty($onuTmp)) {
+                            foreach ($onuTmp as $id => $onuData) {
+                                $onuRealId = $this->getOnuIDbyIdent($onuMac);
+                                if ($onuRealId) {
+                                    $associatedUserLogin = $this->allOnu[$onuRealId]['login'];
+                                } else {
+                                    $associatedUserLogin = '';
                                 }
+                                $userLogin = (isset($allUserMac[$onuData['mac']])) ? $allUserMac[$onuData['mac']] : '';
+                                $onuLink = ($onuRealId) ? wf_Link(self::URL_ME . '&editonu=' . $onuRealId, $id) : $id;
+                                @$userAddress = $allAddress[$userLogin];
+                                @$userRealName = $allRealnames[$userLogin];
+                                @$userTariff = $allUserTariffs[$userLogin];
+                                $userLink = (!empty($userLogin)) ? wf_Link('?module=userprofile&username=' . $userLogin, web_profile_icon() . ' ' . $userAddress) : '';
+                                $oltCheck = (!$this->checkOnuOLTid($onuMac, $oltId)) ? ' ' . wf_img('skins/createtask.gif', __('Wrong OLT')) . ' ' . __('Oh no') : '';
+                                $userCheck = (!$this->checkOnuUserAssign($onuRealId, $userLogin)) ? ' ' . wf_img('skins/createtask.gif', __('Wrong associated user')) . ' ' . __('Oh no') : '';
+
+                                $data[] = $oltDesc . $oltCheck;
+                                $data[] = $onuMac;
+                                $data[] = $onuLink;
+                                $data[] = $onuData['vlan'];
+                                $data[] = $onuData['mac'] . $userCheck;
+                                $data[] = $userLink;
+                                $data[] = $associatedUserLogin;
+                                $data[] = $userRealName;
+                                $data[] = $userTariff;
+
+                                $json->addRow($data);
+                                unset($data);
                             }
                         }
                     }
@@ -3428,7 +3422,7 @@ class PONizer {
                 $oltDesc = @$this->allOltDevices[$oltId];
                 if (!empty($eachOltSignals)) {
                     foreach ($eachOltSignals as $onuMac => $onuSignal) {
-                        $onuRealId = $this->getONUIDByMAC($onuMac);
+                        $onuRealId = $this->getOnuIDbyIdent($onuMac);
                         $onuLink = ($onuRealId) ? wf_Link(self::URL_ME . '&editonu=' . $onuRealId, $onuRealId) : '';
                         if ($onuRealId) {
                             $wrongOltFlag = (!$this->checkOnuOLTid($onuMac, $oltId)) ? true : false;
@@ -3633,7 +3627,6 @@ class PONizer {
     public function validateONUMAC($onuMAC) {
         $matches = array();
         preg_match($this->onuMACValidateRegex, $onuMAC, $matches);
-
         return (!empty($matches[0]));
     }
 

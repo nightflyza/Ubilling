@@ -405,8 +405,11 @@ class PONVsol extends PONProto {
                             continue;
                         } else {
                             $tmpFDBVLAN = empty($fdbIdxVLAN[$eachFDBMAC]) ? '' : $fdbIdxVLAN[$eachFDBMAC];
-                            $tmpONUID = $this->getONUIDByMAC($eachONUMAC);
-                            $tmpONUID = (empty($tmpONUID)) ? $io : $tmpONUID;
+                            // not applicable with PON HAL now
+                            // i dont know nahooya this was here
+                            //$tmpONUID = $this->getONUIDByMAC($eachONUMAC);
+                            //$tmpONUID = (empty($tmpONUID)) ? $io : $tmpONUID;
+                            $tmpONUID = $io;
                             $tmpFDBArr[$tmpONUID] = array('mac' => $eachFDBMAC, 'vlan' => $tmpFDBVLAN);
                         }
                     }

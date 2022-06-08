@@ -444,8 +444,11 @@ class PONStels extends PONProto {
                             } else {
                                 $tmpFDBMAC = strtolower(AddMacSeparator(RemoveMacAddressSeparator($tmpFDBMAC, array(':', '-', '.', ' '))));
                                 $tmpFDBVLAN = empty($fdbIdxVLAN[$eachIdx]) ? '' : $fdbIdxVLAN[$eachIdx];
-                                $tmpONUID = $this->getONUIDByMAC($tmpONUMAC);
-                                $tmpONUID = (empty($tmpONUID)) ? $eachIdx : $tmpONUID;
+                                // not applicable with PON HAL now.
+                                // i dont know nahooya this was here
+                                //$tmpONUID = $this->getONUIDByMAC($tmpONUMAC);
+                                //$tmpONUID = (empty($tmpONUID)) ? $eachIdx : $tmpONUID;
+                                $tmpONUID=$eachIdx;
                                 $tmpFDBArr[$tmpONUID] = array('mac' => $tmpFDBMAC, 'vlan' => $tmpFDBVLAN);
                             }
                         }

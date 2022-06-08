@@ -652,6 +652,27 @@ class OLTAttractor {
     }
 
     /**
+     * Returns per-OLT ONUs FDB cache as [oltId]=>fdbStruct (see readFdb)
+     * 
+     * @return array
+     */
+    public function getFdbOLTAll() {
+        $containerPath = self::FDBCACHE_PATH;
+        $containerMark = self::FDBCACHE_EXT;
+        $oltData = new OLTAttractor();
+        $result = array();
+        $allContainers = $this->getContainers($containerPath, $containerMark);
+        if (!empty($allContainers)) {
+            foreach ($allContainers as $eachOltId => $eachContainer) {
+                $oltData->setOltId($eachOltId);
+                $eachOltFdb = $oltData->readFdb();
+                $result[$eachOltId] = $eachOltFdb;
+            }
+        }
+        return($result);
+    }
+
+    /**
      * Public methods to perform fast data availability checks without containers reading
      */
 

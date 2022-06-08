@@ -1170,7 +1170,7 @@ function zb_UserRegister($user_data, $goprofile = true) {
         if ($PONAPIObject->checkMacUnique($ONUMAC)) {
             $PONAPIObject->onuCreate($ONUModelID, $OLTID, $ONUIP, $ONUMAC, $ONUSerial, $login);
         } else {
-            $ONUID = $PONAPIObject->getONUIDByMAC($ONUMAC);
+            $ONUID = $PONAPIObject->getOnuIDbyIdent($ONUMAC);
             $PONAPIObject->onuAssign($ONUID, $login);
         }
     }

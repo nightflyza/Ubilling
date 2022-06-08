@@ -231,7 +231,7 @@ if ($altCfg['PON_ENABLED']) {
             $oltData = '';
             $onuMAC = ubRouting::get('onumac');
 
-            $ONUAssignment = $pon->checkONUAssignment($pon->getONUIDByMAC($onuMAC), true, true);
+            $ONUAssignment = $pon->checkONUAssignment($pon->getOnuIDbyIdent($onuMAC), true, true);
 
             $tStatus = $ONUAssignment['status'];
             $tLogin = $ONUAssignment['login'];
