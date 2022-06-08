@@ -19,3 +19,13 @@
 /content/documents/wifi_cpe_sig_hist/
 exports/*
 !exports/pondata/
+exports/pondata/dereg/*
+exports/pondata/dist/*
+exports/pondata/iface/*
+exports/pondata/iface/*
+exports/pondata/macdev/*
+exports/pondata/onucache/*
+exports/pondata/signals/*
+exports/pondata/temp/*
+exports/pondata/uptime/*
+
