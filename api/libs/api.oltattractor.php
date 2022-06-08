@@ -13,27 +13,31 @@ class OLTAttractor {
     protected $oltId = '';
 
     /**
-     * Some paths and data parameters here
+     * Some basic paths and data parameters here
      */
-    const SIGCACHE_PATH = 'exports/';
+    const SIGCACHE_PATH = 'content/pondata/signals';
     const SIGCACHE_EXT = 'OLTSIGNALS';
-    const DISTCACHE_PATH = 'exports/';
+    const DISTCACHE_PATH = 'content/pondata/dist';
     const DISTCACHE_EXT = 'OLTDISTANCE';
-    const ONUCACHE_PATH = 'exports/';
+    const ONUCACHE_PATH = 'content/pondata/onucache';
     const ONUCACHE_EXT = 'ONUINDEX';
-    const INTCACHE_PATH = 'exports/';
+    const INTCACHE_PATH = 'content/pondata/iface';
     const INTCACHE_EXT = 'ONUINTERFACE';
     const INTDESCRCACHE_EXT = 'OLTINTERFACEDESCR';
-    const FDBCACHE_PATH = 'exports/';
+    const FDBCACHE_PATH = 'content/pondata/fdb';
     const FDBCACHE_EXT = 'OLTFDB';
-    const DEREGCACHE_PATH = 'exports/';
+    const DEREGCACHE_PATH = 'content/pondata/dereg';
     const DEREGCACHE_EXT = 'ONUDEREGS';
-    const UPTIME_PATH = 'exports/';
+    const UPTIME_PATH = 'content/pondata/uptime';
     const UPTIME_EXT = 'OLTUPTIME';
-    const TEMPERATURE_PATH = 'exports/';
+    const TEMPERATURE_PATH = 'content/pondata/temp';
     const TEMPERATURE_EXT = 'OLTTEMPERATURE';
-    const MACDEVIDCACHE_PATH = 'exports/';
+    const MACDEVIDCACHE_PATH = 'content/pondata/macdev';
     const MACDEVIDCACHE_EXT = 'ONUMACDEVINDEX';
+
+    /**
+     * ONUs signal history path
+     */
     const ONUSIG_PATH = 'content/documents/onusig/';
 
     /**
