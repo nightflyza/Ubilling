@@ -22,7 +22,7 @@ exports/*
 exports/pondata/dereg/*
 exports/pondata/dist/*
 exports/pondata/iface/*
-exports/pondata/iface/*
+exports/pondata/fdb/*
 exports/pondata/macdev/*
 exports/pondata/onucache/*
 exports/pondata/signals/*
