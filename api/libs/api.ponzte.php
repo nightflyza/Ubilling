@@ -983,7 +983,7 @@ class PonZte {
             $ioIndexSplit = explode(".", $ioIndex);
             $result[$eachSn] = $this->gponOltInterfaceDecode($ioIndexSplit[0]) . $ioIndexSplit[1];
         }
-        $this->olt->writeFdb($result);
+        $this->olt->writeInterfaces($result);
     }
 
     /**
