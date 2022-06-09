@@ -162,7 +162,7 @@ class PONONUMAP {
      */
     protected function renderControls() {
         $result = '';
-        $result .= wf_BackLink(PONizer::URL_ME) . ' ';
+        $result .= wf_BackLink(PONizer::URL_ONULIST) . ' ';
         if ($this->filterOltId) {
             $result .= wf_Link(self::URL_ME, wf_img('skins/ponmap_icon.png') . ' ' . __('All') . ' ' . __('OLT'), false, 'ubButton');
         }

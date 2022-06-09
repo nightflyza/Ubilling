@@ -18,7 +18,6 @@ if ($altCfg['PON_ENABLED']) {
             $pon = new PONizerLegacy();
         } else {
             $oltLoadData = '';
-
             if (ubRouting::checkGet(array('ajaxonu', 'oltid'))) {
                 //load only selected OLTs data on ONU list rendering
                 $oltLoadData = ubRouting::get('oltid');
@@ -82,7 +81,7 @@ if ($altCfg['PON_ENABLED']) {
             if ($ubillingConfig->getAlterParam('OPT82_ENABLED')) {
                 multinet_rebuild_all_handlers();
             }
-            ubRouting::nav($pon::URL_ME);
+            ubRouting::nav($pon::URL_ONULIST);
         }
 
         //burial of some ONU
@@ -114,99 +113,114 @@ if ($altCfg['PON_ENABLED']) {
                 ubRouting::nav($pon::URL_ME . '&unknownonulist=true');
             } else {
                 //or just to OLT list
-                ubRouting::nav($pon::URL_ME);
+                ubRouting::nav($pon::URL_ONULIST);
             }
         }
 
         //force single OLT polling
         if (ubRouting::checkGet('forceoltidpoll')) {
             $pon->pollOltSignal(ubRouting::get('forceoltidpoll'));
-
             if (!ubRouting::checkGet('IndividualRefresh') OR ! wf_getBoolFromVar(ubRouting::get('IndividualRefresh'), true)) {
                 ubRouting::nav($pon::URL_ME);
             }
         }
 
-
-        if (!ubRouting::checkGet('editonu')) {
-            if (ubRouting::checkGet('username')) {
-                //try to detect ONU id by user login
-                $login = ubRouting::get('username');
-                $userOnuId = $pon->getOnuIdByUser($login);
-                //redirecting to assigned ONU
-                if ($userOnuId) {
-                    ubRouting::nav($pon::URL_ME . '&editonu=' . $userOnuId);
-                } else {
-                    //rendering assign form
-                    show_window(__('ONU assign'), $pon->onuAssignForm($login));
-                }
+        //user assigned ONU search or assign form
+        if (ubRouting::checkGet('username')) {
+            //try to detect ONU id by user login
+            $login = ubRouting::get('username');
+            $userOnuId = $pon->getOnuIdByUser($login);
+            //redirecting to assigned ONU
+            if ($userOnuId) {
+                ubRouting::nav($pon::URL_ME . '&editonu=' . $userOnuId);
             } else {
-                if (ubRouting::checkGet('unknownonulist')) {
-                    if (ubRouting::checkGet(array('fastreg', 'oltid', 'onumac'))) {
-                        $newOltId = ubRouting::get('oltid', 'int');
-                        $newOnuMac = ubRouting::get('onumac', 'mres');
-                        show_window(__('Register new ONU'), wf_BackLink($pon::URL_ME . '&unknownonulist=true', __('Back'), true) . $pon->onuRegisterForm($newOltId, $newOnuMac));
-                    } else {
-                        show_window(__('Unknown ONU'), $pon->controls() . $pon->renderUnknownOnuList());
-                    }
-                } else {
-                    if (ubRouting::checkGet('fdbcachelist')) {
-                        if (ubRouting::checkGet('ajaxfdblist')) {
-                            $pon->ajaxFdbCacheList();
-                        }
-                        if (ubRouting::checkGet('fixonuoltassings')) {
-                            show_window(__('Fix OLT inconsistencies'), $pon->fixOnuOltAssigns());
-                        } else {
-                            show_window(__('Current FDB cache'), $pon->renderOnuFdbCache());
-                        }
-                    } else {
-                        if (ubRouting::checkGet('oltstats')) {
-                            if (!ubRouting::checkGet(array('oltid', 'if'))) {
-                                if (!ubRouting::checkGet('polllogs')) {
-                                    //rendering just OLT stats
-                                    show_window(__('Stats'), $pon->renderOltStats());
-                                } else {
-                                    show_window(__('OLT polling log'), $pon->renderLogControls());
-                                    if (ubRouting::checkGet('zenlog')) {
-                                        $ponyZen = new ZenFlow('oltpollzen', $pon->renderPollingLog(), 3000);
-                                        show_window(__('Zen') . ' ' . __('Log'), $ponyZen->render());
-                                    } else {
-                                        show_window(__('Log'), $pon->renderPollingLog());
-                                    }
-                                }
-                            } else {
-                                //saving manual descriptions
-                                if (ubRouting::checkPost(array('newoltiddesc', 'newoltif'))) {
-                                    $pon->ponInterfaces->save();
-                                    ubRouting::nav($pon::URL_ME . '&oltstats=true&oltid=' . ubRouting::post('newoltiddesc') . '&if=' . ubRouting::post('newoltif'));
-                                }
-                                //manual interface description controller
-                                show_window(__('Description'), $pon->ponInterfaces->renderIfForm(ubRouting::get('oltid'), ubRouting::get('if')));
-                            }
-                        } else {
-                            //ONU search results
-                            if (ubRouting::checkPost('onusearchquery')) {
-                                show_window('', wf_BackLink($pon::URL_ME));
-                                if (@$altCfg['PON_ONU_SEARCH_ENABLED']) {
-                                    show_window(__('Search') . ' ' . __('ONU'), $pon->renderOnuSearchForm());
-                                    show_window(__('Search results'), $pon->renderOnuSearchResult());
-                                } else {
-                                    show_error(__('Search') . ' ' . __('ONU') . ' ' . __('Disabled'));
-                                }
-                            } else {
-                                //rendering available ONU list
-                                show_window(__('ONU directory'), $pon->controls());
+                //rendering assign form
+                show_window(__('ONU assign'), $pon->onuAssignForm($login));
+            }
+        }
 
-                                $pon->renderOnuList();
-                                zb_BillingStats(true);
-                            }
-                        }
-                    }
+        //unknown ONU list
+        if (ubRouting::checkGet('unknownonulist')) {
+            if (ubRouting::checkGet(array('fastreg', 'oltid', 'onumac'))) {
+                $newOltId = ubRouting::get('oltid', 'int');
+                $newOnuMac = ubRouting::get('onumac', 'mres');
+                show_window(__('Register new ONU'), wf_BackLink($pon::URL_ME . '&unknownonulist=true', __('Back'), true) . $pon->onuRegisterForm($newOltId, $newOnuMac));
+            } else {
+                show_window(__('Unknown ONU'), $pon->controls() . $pon->renderUnknownOnuList());
+            }
+        }
+
+        //All OLTs FDB cache list
+        if (ubRouting::checkGet('fdbcachelist')) {
+            if (ubRouting::checkGet('ajaxfdblist')) {
+                $pon->ajaxFdbCacheList();
+            }
+            if (ubRouting::checkGet('fixonuoltassings')) {
+                show_window(__('Fix OLT inconsistencies'), $pon->fixOnuOltAssigns());
+            } else {
+                show_window(__('Current FDB cache'), $pon->renderOnuFdbCache());
+            }
+        }
+
+
+        //Custom OLT interfaces description
+        if (ubRouting::checkGet(array('oltid', 'if'))) {
+            //saving manual descriptions
+            if (ubRouting::checkPost(array('newoltiddesc', 'newoltif'))) {
+                $pon->ponInterfaces->save();
+                ubRouting::nav($pon::URL_ME . '&oltstats=true&oltid=' . ubRouting::post('newoltiddesc') . '&if=' . ubRouting::post('newoltif'));
+            }
+            //manual interface description controller
+            show_window(__('Description'), $pon->ponInterfaces->renderIfForm(ubRouting::get('oltid'), ubRouting::get('if')));
+        }
+
+        //Basic OLTs stats
+        if (ubRouting::checkGet('oltstats')) {
+            show_window(__('Stats'), $pon->renderOltStats());
+        }
+
+        //OLTs polling log render here
+        if (ubRouting::checkGet('polllogs')) {
+            show_window(__('OLT polling log'), $pon->renderLogControls());
+            if (ubRouting::checkGet('zenlog')) {
+                $ponyZen = new ZenFlow('oltpollzen', $pon->renderPollingLog(), 3000);
+                show_window(__('Zen') . ' ' . __('Log'), $ponyZen->render());
+            } else {
+                show_window(__('Log'), $pon->renderPollingLog());
+            }
+        }
+
+        //ONU search
+        if (ubRouting::checkGet('onusearch')) {
+            if (ubRouting::checkPost('onusearchquery')) {
+                show_window('', wf_BackLink($pon::URL_ONULIST));
+                if (@$altCfg['PON_ONU_SEARCH_ENABLED']) {
+                    show_window(__('Search') . ' ' . __('ONU'), $pon->renderOnuSearchForm());
+                    show_window(__('Search results'), $pon->renderOnuSearchResult());
+                } else {
+                    show_error(__('Search') . ' ' . __('ONU') . ' ' . __('Disabled'));
                 }
             }
         }
 
-        //ONU editing form/profile here
+        //ONU assigment check
+        if (ubRouting::get('action') == 'checkONUAssignment' AND ubRouting::checkGet('onumac')) {
+            $pon->checkONUAssignmentReply();
+        }
+
+
+        // background ONU creation form callback
+        if (ubRouting::checkGet(array('renderCreateForm'))) {
+            if (ubRouting::checkGet('renderDynamically') && wf_getBoolFromVar(ubRouting::get('renderDynamically'), true)) {
+                $CPECreateForm = $pon->onuRegisterForm(ubRouting::get('oltid'), ubRouting::get('onumac'), ubRouting::get('userLogin'), ubRouting::get('userIP'), wf_getBoolFromVar(ubRouting::get('renderedOutside'), true), wf_getBoolFromVar(ubRouting::get('reloadPageAfterDone'), true), ubRouting::get('ActionCtrlID'), ubRouting::get('ModalWID'));
+                die(wf_modalAutoForm(__('Register new ONU'), $CPECreateForm, ubRouting::get('ModalWID'), ubRouting::get('ModalWBID'), true));
+            } else {
+                die($pon->onuRegisterForm(ubRouting::get('oltid'), ubRouting::get('onumac'), ubRouting::get('userLogin'), ubRouting::get('userIP'), wf_getBoolFromVar(ubRouting::get('renderedOutside'), true), wf_getBoolFromVar(ubRouting::get('reloadPageAfterDone'), true), ubRouting::get('ActionCtrlID'), ubRouting::get('ModalWID')));
+            }
+        }
+
+
+        //ONU editing form aka ONU profile here
         if (ubRouting::checkGet('editonu')) {
             //deleting additional users
             if (ubRouting::checkGet(array('deleteextuser'))) {
@@ -226,43 +240,20 @@ if ($altCfg['PON_ENABLED']) {
             $pon->loadonuSignalHistory(ubRouting::get('editonu'), true);
         }
 
-        if (ubRouting::checkGet(array('renderCreateForm'))) {
-            if (ubRouting::checkGet('renderDynamically') && wf_getBoolFromVar(ubRouting::get('renderDynamically'), true)) {
-                $CPECreateForm = $pon->onuRegisterForm(ubRouting::get('oltid'), ubRouting::get('onumac'), ubRouting::get('userLogin'), ubRouting::get('userIP'), wf_getBoolFromVar(ubRouting::get('renderedOutside'), true), wf_getBoolFromVar(ubRouting::get('reloadPageAfterDone'), true), ubRouting::get('ActionCtrlID'), ubRouting::get('ModalWID'));
-                die(wf_modalAutoForm(__('Register new ONU'), $CPECreateForm, ubRouting::get('ModalWID'), ubRouting::get('ModalWBID'), true));
-            } else {
-                die($pon->onuRegisterForm(ubRouting::get('oltid'), ubRouting::get('onumac'), ubRouting::get('userLogin'), ubRouting::get('userIP'), wf_getBoolFromVar(ubRouting::get('renderedOutside'), true), wf_getBoolFromVar(ubRouting::get('reloadPageAfterDone'), true), ubRouting::get('ActionCtrlID'), ubRouting::get('ModalWID')));
-            }
+        //Rendering all OLTs ONUs list and main module controls
+        if (ubRouting::checkGet('onulist')) {
+            show_window(__('ONU directory'), $pon->controls());
+            //rendering available ONU list
+            $pon->renderOnuList();
+            zb_BillingStats(true);
         }
 
-        //ONU assigment check
-        if (ubRouting::get('action') == 'checkONUAssignment' AND ubRouting::checkGet('onumac')) {
-            $tString = '';
-            $tStatus = 0;
-            $tLogin = '';
-            $oltData = '';
-            $onuMAC = ubRouting::get('onumac');
 
-            $ONUAssignment = $pon->checkONUAssignment($pon->getOnuIDbyIdent($onuMAC), true, true);
 
-            $tStatus = $ONUAssignment['status'];
-            $tLogin = $ONUAssignment['login'];
-            $oltData = $ONUAssignment['oltdata'];
-
-            switch ($tStatus) {
-                case 0:
-                    $tString = __('ONU is not assigned');
-                    break;
-
-                case 1:
-                    $tString = __('ONU is already assigned, but such login is not exists anymore') . '. ' . __('Login') . ': ' . $tLogin . '. OLT: ' . $oltData;
-                    break;
-
-                case 2:
-                    $tString = __('ONU is already assigned') . '. ' . __('Login') . ': ' . $tLogin . '. OLT: ' . $oltData;
-                    break;
-            }
-            die($tString);
+        //no extra routes or extra post data received
+        if (sizeof(ubRouting::rawGet()) == 1 AND sizeof(ubRouting::rawPost()) == 1) {
+            show_error(__('Strange exeption'));
+            show_window('', wf_img('skins/ponywrong.png'));
         }
     } else {
         show_error(__('You cant control this module'));
@@ -270,3 +261,4 @@ if ($altCfg['PON_ENABLED']) {
 } else {
     show_error(__('This module disabled'));
 }
+    

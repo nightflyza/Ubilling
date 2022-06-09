@@ -394,6 +394,7 @@ class PONizer {
      * Some routes here
      */
     const URL_ME = '?module=ponizer';
+    const URL_ONULIST = '?module=ponizer&onulist=true';
     const URL_USERPROFILE = '?module=userprofile&username=';
 
     /**
@@ -958,8 +959,8 @@ class PONizer {
     public function renderLogControls() {
         $result = '';
         $result .= wf_BackLink(self::URL_ME . '&oltstats=true') . ' ';
-        $result .= wf_Link(self::URL_ME . '&oltstats=true&polllogs=true', wf_img('skins/log_icon_small.png') . ' ' . __('Log'), false, 'ubButton') . '';
-        $result .= wf_Link(self::URL_ME . '&oltstats=true&polllogs=true&zenlog=true', wf_img('skins/zen.png') . ' ' . __('Zen'), false, 'ubButton') . '';
+        $result .= wf_Link(self::URL_ME . '&polllogs=true', wf_img('skins/log_icon_small.png') . ' ' . __('Log'), false, 'ubButton') . '';
+        $result .= wf_Link(self::URL_ME . '&polllogs=true&zenlog=true', wf_img('skins/zen.png') . ' ' . __('Zen'), false, 'ubButton') . '';
         return($result);
     }
 
@@ -2040,7 +2041,7 @@ class PONizer {
             }
 
             $result .= wf_delimiter();
-            $result .= wf_BackLink(self::URL_ME);
+            $result .= wf_BackLink(self::URL_ONULIST);
 
             //back to primary user profile control
             if (!empty($this->allOnu[$onuId]['login'])) {
@@ -2217,7 +2218,7 @@ class PONizer {
                 $result .= wf_modalAuto(web_icon_extended() . ' ' . __('ZTE'), __('ZTE'), $zteControls, 'ubButton');
             }
         } else {
-            $result .= wf_BackLink(self::URL_ME);
+            $result .= wf_BackLink(self::URL_ONULIST);
             $result .= wf_Link(self::URL_ME . '&forcepoll=true&uol=true', wf_img_sized('skins/refresh.gif', '', '16', '16') . ' ' . __('Force query'), false, 'ubButton');
         }
 
@@ -2565,7 +2566,7 @@ class PONizer {
         $oltsTemps = array(); //oltId=>temperature
         $oltData = new OLTAttractor();
 
-        $statsControls = wf_BackLink(self::URL_ME);
+        $statsControls = wf_BackLink(self::URL_ONULIST);
         $statsControls .= wf_Link(self::URL_ME . '&oltstats=true', wf_img('skins/icon_stats_16.gif') . ' ' . __('Stats') . ' ' . __('OLT'), false, 'ubButton') . ' ';
         if (!ubRouting::checkGet('temperature')) {
             $statsControls .= wf_Link(self::URL_ME . '&oltstats=true&temperature=true', wf_img('skins/temperature.png') . ' ' . __('Temperature'), false, 'ubButton') . ' ';
@@ -2573,7 +2574,7 @@ class PONizer {
             $statsControls .= wf_Link(self::URL_ME . '&oltstats=true', wf_img('skins/notemperature.png') . ' ' . __('Temperature'), false, 'ubButton') . ' ';
         }
         $statsControls .= wf_Link(self::URL_ME . '&oltstats=true&pollstats=true', wf_img('skins/icon_time_small.png') . ' ' . __('Devices polling stats'), false, 'ubButton') . ' ';
-        $statsControls .= wf_Link(self::URL_ME . '&oltstats=true&polllogs=true', wf_img('skins/log_icon_small.png') . ' ' . __('OLT polling log'), false, 'ubButton') . ' ';
+        $statsControls .= wf_Link(self::URL_ME . '&polllogs=true', wf_img('skins/log_icon_small.png') . ' ' . __('OLT polling log'), false, 'ubButton') . ' ';
 
         $result = '';
         $result .= $statsControls;
@@ -2870,7 +2871,7 @@ class PONizer {
      * @return string
      */
     public function renderOnuFdbCache() {
-        $result = wf_BackLink(self::URL_ME);
+        $result = wf_BackLink(self::URL_ONULIST);
 
         //auto OLT associtation fixing interface
         $fixCancelUrl = self::URL_ME . '&fdbcachelist=true';
@@ -3775,7 +3776,7 @@ class PONizer {
             $inputs .= wf_delimiter(0);
             $inputs .= wf_Submit(__('Search'));
 
-            $result .= wf_Form('', 'POST', $inputs, 'glamour');
+            $result .= wf_Form(self::URL_ME . '&onusearch=true', 'POST', $inputs, 'glamour');
         } else {
             $result .= $this->messages->getStyledMessage(__('Nothing found'), 'warning', 'style="width:300px;"');
         }
@@ -4174,6 +4175,38 @@ class PONizer {
         }
 
         return ($result);
+    }
+
+    /**
+     * Performs reply on ONU assigment check
+     */
+    public function checkONUAssignmentReply() {
+        $tString = '';
+        $tStatus = 0;
+        $tLogin = '';
+        $oltData = '';
+        $onuMAC = ubRouting::get('onumac');
+
+        $ONUAssignment = $this->checkONUAssignment($this->getOnuIDbyIdent($onuMAC), true, true);
+
+        $tStatus = $ONUAssignment['status'];
+        $tLogin = $ONUAssignment['login'];
+        $oltData = $ONUAssignment['oltdata'];
+
+        switch ($tStatus) {
+            case 0:
+                $tString = __('ONU is not assigned');
+                break;
+
+            case 1:
+                $tString = __('ONU is already assigned, but such login is not exists anymore') . '. ' . __('Login') . ': ' . $tLogin . '. OLT: ' . $oltData;
+                break;
+
+            case 2:
+                $tString = __('ONU is already assigned') . '. ' . __('Login') . ': ' . $tLogin . '. OLT: ' . $oltData;
+                break;
+        }
+        die($tString);
     }
 
 }
