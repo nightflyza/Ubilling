@@ -943,7 +943,7 @@ class PONizer {
      */
     protected function isPollingLocked($oltId) {
         $oltId = ubRouting::filters($oltId, 'int');
-        $query = "SELECT  IS_FREE_LOCK('" . self::POLL_PID . $oltId . "') AS oltLockFree";
+        $query = "SELECT IS_FREE_LOCK('" . self::POLL_PID . $oltId . "') AS oltLockFree";
         $rawReply = simple_query($query);
         $result = ($rawReply['oltLockFree']) ? false : true;
         return($result);
@@ -3508,8 +3508,9 @@ class PONizer {
                                 if ($repairConfirmed) {
                                     if (isset($this->allOltDevices[$oltId])) {
                                         if (isset($this->allOnu[$onuRealId])) {
-                                            $where = "WHERE `id`='" . $onuRealId . "'";
-                                            simple_update_field('pononu', 'oltid', $oltId, $where);
+                                            $this->onuDb->where('id', '=', $onuRealId);
+                                            $this->onuDb->data('oltid', $oltId);
+                                            $this->onuDb->save();
                                             log_register('PON REMAP ONU [' . $onuRealId . '] MAC `' . $onuData['mac'] . '` OLT [' . $wrongOltId . '] TO [' . $oltId . ']');
                                             $repairLabel = __('ONU') . ' [ ' . $onuLink . '] ' . __('assigned') . ' ' . __('OLT') . ' ' . $oltDesc . '!';
                                             $result .= $this->messages->getStyledMessage($repairLabel, 'success');
