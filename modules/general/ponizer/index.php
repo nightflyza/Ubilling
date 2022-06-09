@@ -13,7 +13,7 @@ if ($altCfg['PON_ENABLED']) {
             }
         }
 
-        //Creating required ponizer object instance
+        //Creating new PONizer object instance
         if ($legacyPonizerView) {
             $pon = new PONizerLegacy();
         } else {
@@ -26,30 +26,16 @@ if ($altCfg['PON_ENABLED']) {
             $pon = new PONizer($oltLoadData);
         }
 
-        //getting ONU json data for list
+        //getting ONU json data from some OLT
         if (ubRouting::checkGet(array('ajaxonu', 'oltid'))) {
             $pon->ajaxOnuData(ubRouting::get('oltid', 'int'));
         }
 
+        //getting full ONU list json data
         if ($legacyPonizerView) {
             if (ubRouting::checkGet(array('ajaxonu', 'legacyView'))) {
                 $pon->ajaxOnuData();
             }
-        }
-
-
-        if (ubRouting::checkGet(array('searchunknownonu', 'searchunknownmac'))) {
-            die($pon->getUserByONUMAC(ubRouting::get('searchunknownmac'), ubRouting::get('searchunknownincrement'), ubRouting::get('searchunknownserialize')));
-        }
-
-        //getting unregistered ONU list
-        if (ubRouting::checkGet('ajaxunknownonu')) {
-            $pon->ajaxOnuUnknownData();
-        }
-
-        //getting OLT FDB list
-        if (ubRouting::checkGet(array('ajaxoltfdb', 'onuid'))) {
-            $pon->ajaxOltFdbData(ubRouting::get('onuid', 'int'));
         }
 
         //creating new ONU device
@@ -64,6 +50,21 @@ if ($altCfg['PON_ENABLED']) {
             } else {
                 show_error(__('This MAC have wrong format'));
             }
+        }
+
+        //????
+        if (ubRouting::checkGet(array('searchunknownonu', 'searchunknownmac'))) {
+            die($pon->getUserByONUMAC(ubRouting::get('searchunknownmac'), ubRouting::get('searchunknownincrement'), ubRouting::get('searchunknownserialize')));
+        }
+
+        //getting unregistered ONU list
+        if (ubRouting::checkGet('ajaxunknownonu')) {
+            $pon->ajaxOnuUnknownData();
+        }
+
+        //getting OLT FDB list
+        if (ubRouting::checkGet(array('ajaxoltfdb', 'onuid'))) {
+            $pon->ajaxOltFdbData(ubRouting::get('onuid', 'int'));
         }
 
         //edits existing ONU in database
@@ -203,7 +204,10 @@ if ($altCfg['PON_ENABLED']) {
                     }
                 }
             }
-        } else {
+        }
+
+        //ONU editing form/profile here
+        if (ubRouting::checkGet('editonu')) {
             //deleting additional users
             if (ubRouting::checkGet(array('deleteextuser'))) {
                 $pon->deleteOnuExtUser(ubRouting::get('deleteextuser'));
@@ -258,7 +262,6 @@ if ($altCfg['PON_ENABLED']) {
                     $tString = __('ONU is already assigned') . '. ' . __('Login') . ': ' . $tLogin . '. OLT: ' . $oltData;
                     break;
             }
-
             die($tString);
         }
     } else {

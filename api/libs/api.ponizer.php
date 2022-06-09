@@ -787,6 +787,7 @@ class PONizer {
                                     if (method_exists($collector, $collectorMethod)) {
                                         $this->logPoll($oltid, 'RUNNING: PON HAL collector method:' . $collectorName . '->' . $collectorMethod);
                                         $collector->$collectorMethod();
+                                        $this->logPoll($oltid, 'ENDED: PON HAL collector method:' . $collectorName . '->' . $collectorMethod);
                                     } else {
                                         $this->logPoll($oltid, 'FAILED run PON HAL collector:' . $collectorName . '->' . $collectorMethod . ' METHOD_NOT_EXISTS');
                                     }
