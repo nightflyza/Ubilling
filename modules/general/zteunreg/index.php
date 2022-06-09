@@ -21,7 +21,7 @@ if (@$altcfg[OnuRegister::MODULE_CONFIG]) {
             $avidity_w = $avidity['M']['REAPER'];
             show_window(__('Check for unauthenticated ONU/ONT'), $register->$avidity_z());
 
-            show_window(OnuRegister::EMPTY_FIELD, wf_BackLink(PONizer::URL_ME));
+            show_window(OnuRegister::EMPTY_FIELD, wf_BackLink(PONizer::URL_ONULIST));
 
             if (wf_CheckGet(array(OnuRegister::OLTIP_FIELD, OnuRegister::INTERFACE_FIELD, OnuRegister::TYPE_FIELD))) {
                 if (wf_CheckGet(array(OnuRegister::MACONU_FIELD))) {

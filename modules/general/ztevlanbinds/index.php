@@ -50,7 +50,7 @@ if (@$altcfg[OnuRegister::MODULE_CONFIG]) {
                 show_window('', $register->$avidity_h($_GET[$avidity['P']['EAI']]));
             } else {
                 show_window(__('All ZTE OLTs'), $register->$avidity_b());
-                show_window('', wf_BackLink(PONizer::URL_ME));
+                show_window('', wf_BackLink(PONizer::URL_ONULIST));
             }
             if (wf_CheckPost(array('createZteCard', 'swid', 'card_name'))) {
                 $register->createZteCard($_POST['swid'], $_POST['chasis_number'], $_POST['slot_number'], $_POST['card_name']);
