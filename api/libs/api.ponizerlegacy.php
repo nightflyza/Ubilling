@@ -35,7 +35,7 @@ class PONizerLegacy extends PONizer {
 
             $this->loadSignalsCache();
 
-            $distCacheAvail = rcms_scandir(self::DISTCACHE_PATH, '*_' . self::DISTCACHE_EXT);
+            $distCacheAvail = $this->oltData->isDistancesAvailable();
             if (!empty($distCacheAvail)) {
                 $distCacheAvail = true;
                 $this->loadDistanceCache();
@@ -43,7 +43,7 @@ class PONizerLegacy extends PONizer {
                 $distCacheAvail = false;
             }
 
-            $intCacheAvail = rcms_scandir(self::INTCACHE_PATH, '*_' . self::INTCACHE_EXT);
+            $intCacheAvail = $this->oltData->isInterfacesAvailable();
             if (!empty($intCacheAvail)) {
                 $intCacheAvail = true;
                 $this->loadInterfaceCache();
@@ -51,7 +51,7 @@ class PONizerLegacy extends PONizer {
                 $intCacheAvail = false;
             }
 
-            $lastDeregCacheAvail = rcms_scandir(self::DEREGCACHE_PATH, '*_' . self::DEREGCACHE_EXT);
+            $lastDeregCacheAvail = $this->oltData->isDeregsAvailable();
             if (!empty($lastDeregCacheAvail)) {
                 $lastDeregCacheAvail = true;
                 $this->loadLastDeregCache();
@@ -130,7 +130,9 @@ class PONizerLegacy extends PONizer {
                         $data[] = @$this->interfaceCache[$each['mac']];
                     }
                     $data[] = $this->getModelName($each['onumodelid']);
-                    $data[] = $each['ip'];
+                    if ($this->ipColumnVisible) {
+                        $data[] = $each['ip'];
+                    }
                     $data[] = $each['mac'];
                     $data[] = wf_tag('font', false, '', 'color=' . $sigColor . '') . $signal . wf_tag('font', true);
 
@@ -169,9 +171,9 @@ class PONizerLegacy extends PONizer {
      * @return string
      */
     public function renderOnuList() {
-        $distCacheAvail = rcms_scandir(self::DISTCACHE_PATH, '*_' . self::DISTCACHE_EXT);
-        $intCacheAvail = rcms_scandir(self::INTCACHE_PATH, '*_' . self::INTCACHE_EXT);
-        $lastDeregCacheAvail = rcms_scandir(self::DEREGCACHE_PATH, '*_' . self::DEREGCACHE_EXT);
+        $distCacheAvail = $this->oltData->isDistancesAvailable();
+        $intCacheAvail = $this->oltData->isInterfacesAvailable();
+        $lastDeregCacheAvail = $this->oltData->isDeregsAvailable();
 
         $distCacheAvail = !empty($distCacheAvail) ? true : false;
         $intCacheAvail = !empty($intCacheAvail) ? true : false;
@@ -188,10 +190,12 @@ class PONizerLegacy extends PONizer {
         }
 
         $columns[] = 'Model';
-        if (@$this->altCfg['PON_ONUIPASIF']) {
-            $columns[] = 'Interface';
-        } else {
-            $columns[] = 'IP';
+        if ($this->ipColumnVisible) {
+            if (@$this->altCfg['PON_ONUIPASIF']) {
+                $columns[] = 'Interface';
+            } else {
+                $columns[] = 'IP';
+            }
         }
         $columns[] = 'MAC';
         $columns[] = 'Signal';

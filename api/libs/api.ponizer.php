@@ -300,6 +300,13 @@ class PONizer {
     public $ponInterfaces = '';
 
     /**
+     * IP column rendering flag
+     *
+     * @var bool
+     */
+    protected $ipColumnVisible = true;
+
+    /**
      * System message helper object placeholder
      *
      * @var object
@@ -447,7 +454,7 @@ class PONizer {
         $this->ponIfDescribe = $this->ubConfig->getAlterParam('PON_IFDESC');
         $this->onuOfflineSignalLevel = $this->ubConfig->getAlterParam('PON_ONU_OFFLINE_SIGNAL', $this->onuOfflineSignalLevel);
         $this->deferredLoadingFlag = $this->ubConfig->getAlterParam('PON_DEFERRED_LOADING', false);
-
+        $this->ipColumnVisible = ($this->ubConfig->getAlterParam('PONIZER_NO_IP_COLUMN')) ? false : true;
         if ($this->ponIfDescribe) {
             $this->ponInterfaces = new PONIfDesc();
         }
@@ -2402,10 +2409,12 @@ class PONizer {
         }
 
         $columns[] = 'Model';
-        if (@$this->altCfg['PON_ONUIPASIF']) {
-            $columns[] = 'Interface';
-        } else {
-            $columns[] = 'IP';
+        if ($this->ipColumnVisible) {
+            if (@$this->altCfg['PON_ONUIPASIF']) {
+                $columns[] = 'Interface';
+            } else {
+                $columns[] = 'IP';
+            }
         }
         $columns[] = 'MAC';
         $columns[] = 'Signal';
@@ -3245,7 +3254,9 @@ class PONizer {
                         }
 
                         $data[] = $this->getModelName($each['onumodelid']);
-                        $data[] = $each['ip'];
+                        if ($this->ipColumnVisible) {
+                            $data[] = $each['ip'];
+                        }
                         $data[] = $each['mac'];
                         $data[] = wf_tag('font', false, '', 'color=' . $sigColor . '') . $signal . wf_tag('font', true);
 
@@ -3866,7 +3877,9 @@ class PONizer {
             $cells = wf_TableCell(__('ID'));
             $cells .= wf_TableCell(__('OLT'));
             $cells .= wf_TableCell(__('Model'));
-            $cells .= wf_TableCell(__('IP'));
+            if ($this->ipColumnVisible) {
+                $cells .= wf_TableCell(__('IP'));
+            }
             $cells .= wf_TableCell(__('Serial number'));
             $cells .= wf_TableCell(__('MAC'));
             $cells .= wf_TableCell(__('User'));
@@ -3877,7 +3890,9 @@ class PONizer {
                 $cells = wf_TableCell($eachOnuId);
                 $cells .= wf_TableCell(@$this->allOltNames[$eachOnuData['oltid']]);
                 $cells .= wf_TableCell(@$this->allModelsData[$eachOnuData['onumodelid']]['modelname']);
-                $cells .= wf_TableCell($eachOnuData['ip']);
+                if ($this->ipColumnVisible) {
+                    $cells .= wf_TableCell($eachOnuData['ip']);
+                }
                 $cells .= wf_TableCell($eachOnuData['serial']);
                 $cells .= wf_TableCell($eachOnuData['mac']);
                 if (!empty($eachOnuData['login'])) {

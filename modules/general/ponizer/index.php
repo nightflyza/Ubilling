@@ -51,7 +51,7 @@ if ($altCfg['PON_ENABLED']) {
             }
         }
 
-        //????
+        //perform search in nethosts for a MAC and a login linked to it
         if (ubRouting::checkGet(array('searchunknownonu', 'searchunknownmac'))) {
             die($pon->getUserByONUMAC(ubRouting::get('searchunknownmac'), ubRouting::get('searchunknownincrement'), ubRouting::get('searchunknownserialize')));
         }
@@ -247,8 +247,6 @@ if ($altCfg['PON_ENABLED']) {
             $pon->renderOnuList();
             zb_BillingStats(true);
         }
-
-
 
         //no extra routes or extra post data received
         if (sizeof(ubRouting::rawGet()) == 1 AND sizeof(ubRouting::rawPost()) == 1) {
