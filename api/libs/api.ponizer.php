@@ -2190,7 +2190,7 @@ class PONizer {
      */
     public function controls() {
         $result = '';
-        if (!wf_CheckGet(array('unknownonulist'))) {
+        if (!ubRouting::checkGet('unknownonulist')) {
             $result .= wf_modalAuto(wf_img_sized('skins/add_icon.png', '', '16', '16') . ' ' . __('Create') . ' ' . __('ONU'), __('Register new ONU'), $this->onuCreateForm(), 'ubButton') . ' ';
             $availOnuCache = rcms_scandir(self::ONUCACHE_PATH, '*_' . self::ONUCACHE_EXT);
             $result .= wf_Link(self::URL_ME . '&forcepoll=true', wf_img_sized('skins/refresh.gif', '', '16', '16') . ' ' . __('Force query'), false, 'ubButton');
@@ -2871,6 +2871,8 @@ class PONizer {
         $columns = array('OLT', 'Login', 'Address', 'Real Name', 'Tariff', 'IP', 'MAC', 'Actions');
         $opts = '"order": [[ 0, "desc" ]]';
         $result = wf_JqDtLoader($columns, self::URL_ME . '&ajaxunknownonu=true', false, 'ONU', 100, $opts);
+        $result .= wf_delimiter(0);
+        $result .= wf_Link(self::URL_ME . '&onumassreg=true', wf_img_sized('skins/icon_addrow.png') . ' ' . __('Register all unknown ONUs'), false, 'ubButton');
         return ($result);
     }
 
@@ -4222,6 +4224,48 @@ class PONizer {
                 break;
         }
         die($tString);
+    }
+
+    /**
+     * Returns filtered array of unknown ONUs as mac=>oltId
+     * 
+     * @return array
+     */
+    protected function getOnuUnknownAll() {
+        $result = array();
+        $this->fillONUIndexCache();
+        if (!empty($this->onuIndexCache)) {
+            foreach ($this->onuIndexCache as $onuMac => $oltId) {
+                //ONU not registered yet?
+                if ($this->checkMacUnique($onuMac)) {
+                    if (!isset($this->hideOnuMac[$onuMac])) {
+                        if (!ispos($onuMac, 'no:such')) {
+                            $result[$onuMac] = $oltId;
+                        }
+                    }
+                }
+            }
+        }
+        return($result);
+    }
+
+    /**
+     * Renders batch unknown ONU registration/confirmation form
+     * 
+     * @return string
+     */
+    public function renderBatchOnuRegForm() {
+        $result = '';
+        $result .= wf_BackLink('?module=ponizer&unknownonulist=true');
+        $result.= wf_delimiter(0);
+        $allUnknownOnus = $this->getOnuUnknownAll();
+        if (!empty($allUnknownOnus)) {
+            //TODO
+            $result.='In progress yet';
+        } else {
+            $result.=$this->messages->getStyledMessage(__('Nothing to show'), 'success');
+        }
+        return($result);
     }
 
 }

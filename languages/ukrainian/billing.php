@@ -3405,6 +3405,8 @@ $lang['def']['In progress now'] = 'Триває зараз';
 $lang['def']['OLT polling log'] = 'Лог опиту OLT-ів';
 $lang['def']['does not exist'] = 'не існує';
 $lang['def']['Log'] = 'Лог';
+$lang['def']['Register all unknown ONUs'] = 'Зареєструвати усі невідомі ONU';
 $lang['def'][''] = '';
+
 
 

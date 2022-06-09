@@ -219,6 +219,10 @@ if ($altCfg['PON_ENABLED']) {
             }
         }
 
+        //Unknown ONU batch registration here
+        if (ubRouting::checkGet('onumassreg')) {
+            show_window(__('Register all unknown ONUs'), $pon->renderBatchOnuRegForm());
+        }
 
         //ONU editing form aka ONU profile here
         if (ubRouting::checkGet('editonu')) {
