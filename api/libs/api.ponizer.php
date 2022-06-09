@@ -1334,7 +1334,7 @@ class PONizer {
      * @param string $serial
      * @param string $login
      *
-     * @return int
+     * @return int/0 - if something went wrong
      */
     public function onuCreate($onumodelid, $oltid, $ip, $mac, $serial, $login) {
         $macF = strtolower($mac);
@@ -1347,26 +1347,32 @@ class PONizer {
         $login = trim($login);
         $login = ubRouting::filters($login, 'mres');
 
-        $result = 0;
+        $newId = 0;
         $modelid = @$this->allOltSnmp[$oltid]['modelid'];
         if (!empty($macF)) {
             if (check_mac_format($macF) or @ $this->snmpTemplates[$modelid]['signal']['SIGNALMODE'] == 'GPBDCOM') {
                 if ($this->checkMacUnique($macF)) {
-                    //TODO: finish refactor here
-                    $query = "INSERT INTO `pononu` (`id`, `onumodelid`, `oltid`, `ip`, `mac`, `serial`, `login`) " .
-                            "VALUES (NULL, '" . $onumodelid . "', '" . $oltid . "', '" . $ip . "', '" . $macF . "', '" . $serial . "', '" . $login . "');";
-                    nr_query($query);
-                    $result = simple_get_lastid('pononu');
-                    log_register('PON CREATE ONU [' . $result . '] MAC `' . $mac . '`');
+                    $this->onuDb->data('onumodelid', $onumodelid);
+                    $this->onuDb->data('oltid', $oltid);
+                    $this->onuDb->data('ip', $ip);
+                    $this->onuDb->data('mac', $macF);
+                    $this->onuDb->data('serial', $serial);
+                    $this->onuDb->data('login', $login);
+                    $this->onuDb->create();
+
+                    $newId = $this->onuDb->getLastId();
+                    log_register('PON CREATE ONU [' . $newId . '] MAC `' . $mac . '`');
                 } else {
                     log_register('PON MACDUPLICATE TRY `' . $mac . '`');
                 }
             } else {
                 log_register('PON MACINVALID TRY `' . $mac . '`');
             }
+        } else {
+            log_register('PON MAC EMPTY TRY');
         }
         $this->flushOnuCache();
-        return ($result);
+        return ($newId);
     }
 
     /**
@@ -1383,26 +1389,29 @@ class PONizer {
      * @return void
      */
     public function onuSave($onuId, $onumodelid, $oltid, $ip, $mac, $serial, $login) {
-        $mac = strtolower($mac);
-        $mac = trim($mac);
-        $onuId = vf($onuId, 3);
-        $onumodelid = vf($onumodelid, 3);
-        $oltid = vf($oltid, 3);
-        $ip = mysql_real_escape_string($ip);
-        $mac = mysql_real_escape_string($mac);
-        $serial = mysql_real_escape_string($serial);
-        $login = mysql_real_escape_string($login);
+        $macF = strtolower($mac);
+        $macF = trim($macF);
+        $macF = ubRouting::filters($macF);
+        $onuId = ubRouting::filters($onuId, 'int');
+        $onumodelid = ubRouting::filters($onumodelid, 'int');
+        $oltid = ubRouting::filters($oltid, 'int');
+        $ip = ubRouting::filters($ip,'mres');
+        
+        $serial = ubRouting::filters($serial);
+        $login = ubRouting::filters($login);
         $login = trim($login);
+
         $where = " WHERE `id`='" . $onuId . "';";
         simple_update_field('pononu', 'onumodelid', $onumodelid, $where);
         simple_update_field('pononu', 'oltid', $oltid, $where);
         simple_update_field('pononu', 'ip', $ip, $where);
-        if (!empty($mac)) {
-            if (check_mac_format($mac)) {
+
+        if (!empty($macF)) {
+            if (check_mac_format($macF)) {
                 $currentMac = $this->allOnu[$onuId]['mac'];
-                if ($currentMac != $mac) {
-                    if ($this->checkMacUnique($mac)) {
-                        simple_update_field('pononu', 'mac', $mac, $where);
+                if ($currentMac != $macF) {
+                    if ($this->checkMacUnique($macF)) {
+                        simple_update_field('pononu', 'mac', $macF, $where);
                     } else {
                         log_register('PON MACDUPLICATE TRY `' . $mac . '`');
                     }

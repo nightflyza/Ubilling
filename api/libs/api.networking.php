@@ -303,15 +303,35 @@ function multinet_get_all_networks_assoc() {
  * @return string
  */
 function multinet_nettype_selector($curnettype = '') {
-    $params = array(
-        'dhcpstatic' => 'DHCP static hosts',
-        'dhcpdynamic' => 'DHCP dynamic hosts',
-        'dhcp82' => 'DHCP option 82',
-        'dhcp82_vpu' => 'DHCP option 82 + vlan per user',
-        'dhcp82_bdcom' => 'DHCP option 82 + mac onu (BDCOM)',
-        'dhcp82_zte' => 'DHCP option 82 + mac onu (ZTE)',
-        'pppstatic' => 'PPP static network',
-        'pppdynamic' => 'PPP dynamic network',
+    global $ubillingConfig;
+    $dhcpFlag = $ubillingConfig->getAlterParam('DHCP_ENABLED');
+    $opt82Flag = $ubillingConfig->getAlterParam('OPT82_ENABLED');
+    $pppFlag = $ubillingConfig->getAlterParam('PPP_ENABLED');
+
+    $params = array();
+    if ($dhcpFlag) {
+        $params += array(
+            'dhcpstatic' => 'DHCP static hosts',
+            'dhcpdynamic' => 'DHCP dynamic hosts',
+        );
+    }
+
+    if ($opt82Flag) {
+        $params += array(
+            'dhcp82' => 'DHCP option 82',
+            'dhcp82_vpu' => 'DHCP option 82 + vlan per user',
+            'dhcp82_bdcom' => 'DHCP option 82 + mac onu (BDCOM)',
+            'dhcp82_zte' => 'DHCP option 82 + mac onu (ZTE)',
+        );
+    }
+
+    if ($pppFlag) {
+        $params += array(
+            'pppstatic' => 'PPP static network',
+            'pppdynamic' => 'PPP dynamic network',
+        );
+    }
+    $params += array(
         'other' => 'Other type'
     );
 
@@ -1064,7 +1084,11 @@ function multinet_nethosts_get_all() {
  */
 function multinet_rebuild_all_handlers() {
     global $ubillingConfig;
+    $dhcpEnabledFlag = $ubillingConfig->getAlterParam('DHCP_ENABLED');
+    $opt82EnabledFlag = $ubillingConfig->getAlterParam('OPT82_ENABLED');
+    $pppEnabledFlag = $ubillingConfig->getAlterParam('PPP_ENABLED');
     $ddnsFlag = $ubillingConfig->getAlterParam('DHCP_DDNS_ENABLED');
+
     if ($ddnsFlag) {
         $loginIps = zb_UserGetAllIPs();
         $loginIps = array_flip($loginIps); //IP=>login
@@ -1082,46 +1106,63 @@ function multinet_rebuild_all_handlers() {
         foreach ($allnets as $io => $eachnet) {
             switch ($eachnet['nettype']) {
                 case 'dhcpstatic':
-                    if (isset($allDhcpData[$eachnet['id']])) {
-                        $dhcpdata = $allDhcpData[$eachnet['id']];
-                        handle_dhcp_rebuild_static($eachnet['id'], @$dhcpdata['confname'], $useDdns, $loginIps, $allNethosts);
+                    if ($dhcpEnabledFlag) {
+                        if (isset($allDhcpData[$eachnet['id']])) {
+                            $dhcpdata = $allDhcpData[$eachnet['id']];
+                            handle_dhcp_rebuild_static($eachnet['id'], @$dhcpdata['confname'], $useDdns, $loginIps, $allNethosts);
+                        }
                     }
                     break;
 
                 case 'dhcp82':
-                    $dhcpdata82 = $allDhcpData[$eachnet['id']];
-                    handle_dhcp_rebuild_option82($eachnet['id'], $dhcpdata82['confname']);
+                    if ($opt82EnabledFlag) {
+                        $dhcpdata82 = $allDhcpData[$eachnet['id']];
+                        handle_dhcp_rebuild_option82($eachnet['id'], $dhcpdata82['confname']);
+                    }
                     break;
 
                 case 'dhcp82_vpu':
-                    $dhcpdata82_vpu = $allDhcpData[$eachnet['id']];
-                    handle_dhcp_rebuild_option82_vpu($eachnet['id'], $dhcpdata82_vpu['confname']);
+                    if ($opt82EnabledFlag) {
+                        $dhcpdata82_vpu = $allDhcpData[$eachnet['id']];
+                        handle_dhcp_rebuild_option82_vpu($eachnet['id'], $dhcpdata82_vpu['confname']);
+                    }
                     break;
 
                 case 'dhcp82_bdcom':
-                    $dhcpdata82_bdcom = $allDhcpData[$eachnet['id']];
-                    handle_dhcp_rebuild_option82_bdcom($eachnet['id'], $dhcpdata82_bdcom['confname']);
+                    if ($opt82EnabledFlag) {
+                        $dhcpdata82_bdcom = $allDhcpData[$eachnet['id']];
+                        handle_dhcp_rebuild_option82_bdcom($eachnet['id'], $dhcpdata82_bdcom['confname']);
+                    }
                     break;
 
                 case 'dhcp82_zte':
-                    $dhcpdata82_zte = $allDhcpData[$eachnet['id']];
-                    handle_dhcp_rebuild_option82_zte($eachnet['id'], $dhcpdata82_zte['confname']);
+                    if ($opt82EnabledFlag) {
+                        $dhcpdata82_zte = $allDhcpData[$eachnet['id']];
+                        handle_dhcp_rebuild_option82_zte($eachnet['id'], $dhcpdata82_zte['confname']);
+                    }
                     break;
 
                 case 'pppstatic':
-                    handle_ppp_rebuild_static($eachnet['id']);
+                    if ($pppEnabledFlag) {
+                        handle_ppp_rebuild_static($eachnet['id']);
+                    }
                     break;
 
                 case 'pppdynamic':
-                    handle_ppp_rebuild_dynamic($eachnet['id']);
+                    if ($pppEnabledFlag) {
+                        handle_ppp_rebuild_dynamic($eachnet['id']);
+                    }
                     break;
             }
         }
     }
-    //rebuilding global conf 
-    multinet_rebuild_globalconf();
-    //restarting dhcpd
-    multinet_RestartDhcp();
+
+    if ($dhcpEnabledFlag or $opt82EnabledFlag) {
+        //rebuilding global conf 
+        multinet_rebuild_globalconf();
+        //restarting dhcpd
+        multinet_RestartDhcp();
+    }
 }
 
 /**

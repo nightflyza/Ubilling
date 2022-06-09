@@ -57,7 +57,9 @@ if ($altCfg['PON_ENABLED']) {
             $onuCreateResult = $pon->onuCreate(ubRouting::post('newonumodelid'), ubRouting::post('newoltid'), ubRouting::post('newip'), ubRouting::post('newmac'), ubRouting::post('newserial'), ubRouting::post('newlogin'));
             if ($onuCreateResult) {
                 $newCreatedONUId = simple_get_lastid('pononu');
-                multinet_rebuild_all_handlers();
+                if ($ubillingConfig->getAlterParam('OPT82_ENABLED')) {
+                    multinet_rebuild_all_handlers();
+                }
                 ubRouting::nav($pon::URL_ME . '&editonu=' . $newCreatedONUId);
             } else {
                 show_error(__('This MAC have wrong format'));
@@ -67,14 +69,18 @@ if ($altCfg['PON_ENABLED']) {
         //edits existing ONU in database
         if (ubRouting::checkPost(array('editonu', 'editoltid', 'editmac'))) {
             $pon->onuSave(ubRouting::post('editonu'), ubRouting::post('editonumodelid'), ubRouting::post('editoltid'), ubRouting::post('editip'), ubRouting::post('editmac'), ubRouting::post('editserial'), ubRouting::post('editlogin'));
-            multinet_rebuild_all_handlers();
+            if ($ubillingConfig->getAlterParam('OPT82_ENABLED')) {
+                multinet_rebuild_all_handlers();
+            }
             ubRouting::nav($pon::URL_ME . '&editonu=' . ubRouting::post('editonu'));
         }
 
         //deleting existing ONU
         if (ubRouting::checkGet('deleteonu')) {
             $pon->onuDelete(ubRouting::get('deleteonu'));
-            multinet_rebuild_all_handlers();
+            if ($ubillingConfig->getAlterParam('OPT82_ENABLED')) {
+                multinet_rebuild_all_handlers();
+            }
             ubRouting::nav($pon::URL_ME);
         }
 
@@ -93,7 +99,9 @@ if ($altCfg['PON_ENABLED']) {
         //assigning ONU with some user
         if (ubRouting::checkPost(array('assignonulogin', 'assignonuid'))) {
             $pon->onuAssign(ubRouting::post('assignonuid'), ubRouting::post('assignonulogin'));
-            multinet_rebuild_all_handlers();
+            if ($ubillingConfig->getAlterParam('OPT82_ENABLED')) {
+                multinet_rebuild_all_handlers();
+            }
             ubRouting::nav($pon::URL_ME . '&editonu=' . ubRouting::post('assignonuid'));
         }
 
