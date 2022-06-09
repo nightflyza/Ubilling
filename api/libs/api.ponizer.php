@@ -1391,27 +1391,29 @@ class PONizer {
     public function onuSave($onuId, $onumodelid, $oltid, $ip, $mac, $serial, $login) {
         $macF = strtolower($mac);
         $macF = trim($macF);
-        $macF = ubRouting::filters($macF);
+        $macF = ubRouting::filters($macF, 'mres');
         $onuId = ubRouting::filters($onuId, 'int');
         $onumodelid = ubRouting::filters($onumodelid, 'int');
         $oltid = ubRouting::filters($oltid, 'int');
-        $ip = ubRouting::filters($ip,'mres');
-        
-        $serial = ubRouting::filters($serial);
-        $login = ubRouting::filters($login);
+        $ip = ubRouting::filters($ip, 'mres');
+        $onuId = ubRouting::filters($onuId, 'int');
+
+        $serial = ubRouting::filters($serial, 'mres');
+        $login = ubRouting::filters($login, 'mres');
         $login = trim($login);
 
-        $where = " WHERE `id`='" . $onuId . "';";
-        simple_update_field('pononu', 'onumodelid', $onumodelid, $where);
-        simple_update_field('pononu', 'oltid', $oltid, $where);
-        simple_update_field('pononu', 'ip', $ip, $where);
+
+        $this->onuDb->where('id', '=', $onuId);
+        $this->onuDb->data('onumodelid', $onumodelid);
+        $this->onuDb->data('oltid', $oltid);
+        $this->onuDb->data('ip', $ip);
 
         if (!empty($macF)) {
             if (check_mac_format($macF)) {
                 $currentMac = $this->allOnu[$onuId]['mac'];
                 if ($currentMac != $macF) {
                     if ($this->checkMacUnique($macF)) {
-                        simple_update_field('pononu', 'mac', $macF, $where);
+                        $this->onuDb->data('mac', $macF);
                     } else {
                         log_register('PON MACDUPLICATE TRY `' . $mac . '`');
                     }
@@ -1422,8 +1424,11 @@ class PONizer {
         } else {
             log_register('PON MACEMPTY TRY `' . $mac . '`');
         }
-        simple_update_field('pononu', 'serial', $serial, $where);
-        simple_update_field('pononu', 'login', $login, $where);
+
+        $this->onuDb->data('serial', $serial);
+        $this->onuDb->data('login', $login);
+        $this->onuDb->save();
+
         log_register('PON EDIT ONU [' . $onuId . '] MAC `' . $mac . '`');
         $this->flushOnuCache();
     }
@@ -1437,9 +1442,11 @@ class PONizer {
      * @return void
      */
     public function onuAssign($onuid, $login) {
-        $onuid = vf($onuid, 3);
+        $onuid = ubRouting::filters($onuid, 'int');
         if (isset($this->allOnu[$onuid])) {
-            simple_update_field('pononu', 'login', $login, "WHERE `id`='" . $onuid . "'");
+            $this->onuDb->where('id', '=', $onuid);
+            $this->onuDb->data('login', $login);
+            $this->onuDb->save();
             log_register('PON ASSIGN ONU [' . $onuid . '] WITH (' . $login . ')');
             $this->flushOnuCache();
         } else {
@@ -1453,9 +1460,9 @@ class PONizer {
      * @param int $onuId
      */
     public function onuDelete($onuId) {
-        $onuId = vf($onuId, 3);
-        $query = "DELETE from `pononu` WHERE `id`='" . $onuId . "';";
-        nr_query($query);
+        $onuId = ubRouting::filters($onuId, 'int');
+        $this->onuDb->where('id', '=', $onuId);
+        $this->onuDb->delete();
         log_register('PON DELETE ONU [' . $onuId . ']');
         $this->flushOnuCache();
     }
@@ -1909,7 +1916,9 @@ class PONizer {
     public function onuBurial($onuId) {
         $onuid = ubRouting::filters($onuId, 'int');
         if (isset($this->allOnu[$onuId])) {
-            simple_update_field('pononu', 'login', 'dead', "WHERE `id`='" . $onuId . "'");
+            $this->onuDb->where('id', '=', $onuId);
+            $this->onuDb->data('login', 'dead');
+            $this->onuDb->save();
             log_register('PON BURIAL ONU [' . $onuId . ']');
             $this->flushOnuCache();
         } else {
@@ -1927,7 +1936,10 @@ class PONizer {
     public function onuResurrect($onuId) {
         $onuid = ubRouting::filters($onuId, 'int');
         if (isset($this->allOnu[$onuId])) {
-            simple_update_field('pononu', 'login', '', "WHERE `id`='" . $onuId . "'");
+            $this->onuDb->where('id', '=', $onuId);
+            $this->onuDb->data('login', '');
+            $this->onuDb->save();
+
             log_register('PON RESURRECT ONU [' . $onuId . ']');
         } else {
             log_register('PON RESURRECT ONU [' . $onuId . '] FAILED');
