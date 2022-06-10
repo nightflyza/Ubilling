@@ -190,7 +190,7 @@ if ($altCfg['PON_ENABLED']) {
             }
         }
 
-        //ONU search
+        //ONU search here
         if (ubRouting::checkGet('onusearch')) {
             if (ubRouting::checkPost('onusearchquery')) {
                 show_window('', wf_BackLink($pon::URL_ONULIST));
@@ -221,7 +221,16 @@ if ($altCfg['PON_ENABLED']) {
 
         //Unknown ONU batch registration here
         if (ubRouting::checkGet('onumassreg')) {
-            show_window(__('Register all unknown ONUs'), $pon->renderBatchOnuRegForm());
+            if (!ubRouting::checkPost('runmassonureg')) {
+                //Unknown ONU list and form here
+                show_window('', wf_BackLink('?module=ponizer&unknownonulist=true'));
+                show_window(__('Register all unknown ONUs'), $pon->renderBatchOnuRegForm());
+                show_window(__('Unknown ONU'), $pon->renderBatchOnuRegList());
+                
+            } else {
+                //running batch ONU register subroutine
+                show_window(__('Register all unknown ONUs'), $pon->runBatchOnuRegister());
+            }
         }
 
         //ONU editing form aka ONU profile here

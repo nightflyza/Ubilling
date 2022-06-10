@@ -3385,3 +3385,5 @@ $lang['def']['OLT polling log'] = 'Лог опроса OLT-ов';
 $lang['def']['does not exist'] = 'Не существует';
 $lang['def']['Log'] = 'Лог';
 $lang['def']['Register all unknown ONUs'] = 'Зарегистрировать все неизвестные ONU';
+$lang['def']['Oh you are a lazy ass'] = 'Ах ты ж ленивая задница';
+$lang['def']['Registering'] = 'Регистрируем';

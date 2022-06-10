@@ -2227,6 +2227,11 @@ class PONizer {
         } else {
             $result .= wf_BackLink(self::URL_ONULIST);
             $result .= wf_Link(self::URL_ME . '&forcepoll=true&uol=true', wf_img_sized('skins/refresh.gif', '', '16', '16') . ' ' . __('Force query'), false, 'ubButton');
+            $massRegUrl = self::URL_ME . '&onumassreg=true';
+            $massRegCancelUrl = '?module=ponizer&unknownonulist=true';
+            $alertLabel = __('Register all unknown ONUs') . '? ' . __('Are you serious');
+            $dialogLink = wf_img('skins/icon_addrow.png') . ' ' . __('Register all unknown ONUs');
+            $result .= wf_ConfirmDialog($massRegUrl, $dialogLink, $alertLabel, 'ubButton', $massRegCancelUrl, __('Are you serious'));
         }
 
         $result .= wf_tag('script', false, '', 'type="text/javascript"');
@@ -2872,7 +2877,6 @@ class PONizer {
         $opts = '"order": [[ 0, "desc" ]]';
         $result = wf_JqDtLoader($columns, self::URL_ME . '&ajaxunknownonu=true', false, 'ONU', 100, $opts);
         $result .= wf_delimiter(0);
-        $result .= wf_Link(self::URL_ME . '&onumassreg=true', wf_img_sized('skins/icon_addrow.png') . ' ' . __('Register all unknown ONUs'), false, 'ubButton');
         return ($result);
     }
 
@@ -4250,21 +4254,136 @@ class PONizer {
     }
 
     /**
-     * Renders batch unknown ONU registration/confirmation form
+     * Renders batch unknown ONU registration list
+     * 
+     * @return string
+     */
+    public function renderBatchOnuRegList() {
+        $result = '';
+        $allUnknownOnus = $this->getOnuUnknownAll();
+        if (!empty($allUnknownOnus)) {
+            $onuLabel = __('Oh you are a lazy ass') . '... ' . sizeof($allUnknownOnus) . ' ' . __('Unknown ONU') . '!';
+            $result .= $this->messages->getStyledMessage($onuLabel, 'info');
+            foreach ($allUnknownOnus as $eachOnuMac => $eachOnuOltId) {
+                $onuLabel = __('MAC') . ' ' . $eachOnuMac . ' ' . __('on') . ' ' . __('OLT') . ' ' . @$this->allOltDevices[$eachOnuOltId];
+                $result .= $this->messages->getStyledMessage($onuLabel, 'warning');
+            }
+        } else {
+            $result .= $this->messages->getStyledMessage(__('Nothing to show'), 'success');
+        }
+        return($result);
+    }
+
+    /**
+     * Renders batch unknown ONU registration form
      * 
      * @return string
      */
     public function renderBatchOnuRegForm() {
         $result = '';
-        $result .= wf_BackLink('?module=ponizer&unknownonulist=true');
-        $result.= wf_delimiter(0);
-        $allUnknownOnus = $this->getOnuUnknownAll();
-        if (!empty($allUnknownOnus)) {
-            //TODO
-            $result.='In progress yet';
-        } else {
-            $result.=$this->messages->getStyledMessage(__('Nothing to show'), 'success');
+        $models = array();
+
+        if (!empty($this->allModelsData)) {
+            foreach ($this->allModelsData as $io => $each) {
+                if (@$this->altCfg['ONUMODELS_FILTER']) {
+                    if (ispos($each['modelname'], 'ONU')) {
+                        $models[$each['id']] = $each['modelname'];
+                    }
+                } else {
+                    $models[$each['id']] = $each['modelname'];
+                }
+            }
         }
+
+        if (!empty($models)) {
+            $inputs = wf_HiddenInput('runmassonureg', 'true');
+            $inputs .= wf_Selector('massonuregonumodelid', $models, __('ONU model') . $this->sup, '', true);
+            $inputs .= wf_delimiter(0);
+            $confirmLabel = __('I also understand well that no one will correct my mistakes for me and only I bear full financial responsibility for my mistakes');
+            $inputs .= wf_CheckInput('massonuregconfirmation', $confirmLabel, true, false);
+            $inputs .= wf_delimiter(0);
+            $inputs .= wf_Submit(__('Register all unknown ONUs'));
+            $result .= wf_Form('', 'POST', $inputs, 'glamour');
+        } else {
+            $result .= $this->messages->getStyledMessage(__('Any available ONU models exist'), 'error');
+        }
+
+        return($result);
+    }
+
+    /**
+     * Performs batch unknown ONUs registration
+     * 
+     * @return string
+     */
+    public function runBatchOnuRegister() {
+        set_time_limit(0);
+        $result = '';
+        $onuList = '';
+        $result .= wf_BackLink('?module=ponizer&onumassreg=true');
+        $result .= wf_delimiter(0);
+        $errorCount = 0;
+        $succCount = 0;
+        if (ubRouting::checkPost('massonuregconfirmation')) {
+            if (ubRouting::checkPost('massonuregonumodelid')) {
+                $newOnusModelId = ubRouting::post('massonuregonumodelid', 'int');
+                if (!empty($newOnusModelId) AND isset($this->allModelsData)) {
+                    $allUnknownOnus = $this->getOnuUnknownAll();
+                    if (!empty($allUnknownOnus)) {
+                        $onuLabel = __('Oh you are a lazy ass') . '... ' . sizeof($allUnknownOnus) . ' ' . __('Unknown ONU') . '!';
+                        $onuList .= $this->messages->getStyledMessage($onuLabel, 'warning');
+                        foreach ($allUnknownOnus as $eachOnuMac => $eachOnuOltId) {
+                            $oltLabel = ' [' . $eachOnuOltId . '] ' . $this->allOltDevices[$eachOnuOltId];
+                            $onuLabel = __('Registering') . ' ' . __('MAC') . ' ' . $eachOnuMac . ' ' . __('on') . ' ' . __('OLT') . ' ' . $oltLabel;
+                            $onuList .= $this->messages->getStyledMessage($onuLabel, 'info');
+                            if (isset($this->allOltDevices[$eachOnuOltId])) {
+                                if ($this->checkMacUnique($eachOnuMac)) {
+                                    if (check_mac_format($eachOnuMac)) {
+                                        $newOnuId = $this->onuCreate($newOnusModelId, $eachOnuOltId, '', $eachOnuMac, '', '');
+                                        if ($newOnuId) {
+                                            $oltLabel = ' [' . $eachOnuOltId . '] ' . $this->allOltDevices[$eachOnuOltId] . '. ';
+                                            $onuLabel = __('Registered') . ' ' . __('MAC') . ' ' . $eachOnuMac . ' ' . __('ONU') . ' [' . $newOnuId . '] ' . __('on') . ' ' . __('OLT') . ' ' . $oltLabel;
+                                            $onuLabel .= __('Success') . '!';
+                                            $onuList .= $this->messages->getStyledMessage($onuLabel, 'success');
+                                            $succCount++;
+                                        } else {
+                                            $errorCount++;
+                                            $onuList .= $this->messages->getStyledMessage(__('Registering') . ' ' . __('Failed') . ' "' . $eachOnuMac . '" ', 'error');
+                                        }
+                                    } else {
+                                        $errorCount++;
+                                        $onuList .= $this->messages->getStyledMessage(__('This MAC have wrong format') . ' "' . $eachOnuMac . '" ', 'error');
+                                    }
+                                } else {
+                                    $errorCount++;
+                                    $onuList .= $this->messages->getStyledMessage(__('MAC duplicate') . ' ' . $eachOnuMac . ' ', 'error');
+                                }
+                            } else {
+                                $errorCount++;
+                                $result .= $this->messages->getStyledMessage(__('Something went wrong') . ': ' . __('OLT') . ' [' . $eachOnuOltId . '] ' . __('Not exists'), 'error');
+                            }
+                        }
+                    } else {
+                        $result .= $this->messages->getStyledMessage(__('Nothing to show'), 'success');
+                    }
+                } else {
+                    $result .= $this->messages->getStyledMessage(__('Something went wrong') . ': ' . __('ONU model') . ' ' . __('Not exists'), 'error');
+                }
+            } else {
+                $result .= $this->messages->getStyledMessage(__('Something went wrong') . ': ' . __('No') . ' ' . __('ONU model'), 'error');
+            }
+        } else {
+            $result .= $this->messages->getStyledMessage(__('You are not mentally prepared for this'), 'error');
+        }
+
+        //some summary here
+        if ($succCount > 0) {
+            $result .= $this->messages->getStyledMessage(__('Registered') . ': ' . $succCount, 'success');
+        }
+        if ($errorCount > 0) {
+            $result .= $this->messages->getStyledMessage(__('Error') . ': ' . $succCount, 'error');
+        }
+        $result .= $onuList;
         return($result);
     }
 
