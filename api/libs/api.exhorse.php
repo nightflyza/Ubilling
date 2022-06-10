@@ -1197,9 +1197,10 @@ class ExistentialHorse {
                             foreach ($sigDataTmp as $sigCity => $cityCount) {
                                 $cityCells = wf_TableCell($sigCity);
                                 $cityCells .= wf_TableCell($cityCount);
-                                $cityRows .= wf_TableRow($cityCells, 'row3');
+                                $cityRows .= wf_TableRow($cityCells, 'row5');
                             }
-                            $citySigs .= wf_TableBody($cityRows, '100%', 0, 'sortable');
+                            $containerStyle = 'max-height:500px; min-width:400px;';
+                            $citySigs .= wf_AjaxContainer('ctsigs', 'style="' . $containerStyle . '"', wf_TableBody($cityRows, '100%', 0, 'sortable'));
                         }
                         $signupData .= wf_modalAuto($each['u_signups'], __('Cities'), $citySigs);
                     } else {
