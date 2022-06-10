@@ -226,7 +226,6 @@ if ($altCfg['PON_ENABLED']) {
                 show_window('', wf_BackLink('?module=ponizer&unknownonulist=true'));
                 show_window(__('Register all unknown ONUs'), $pon->renderBatchOnuRegForm());
                 show_window(__('Unknown ONU'), $pon->renderBatchOnuRegList());
-                
             } else {
                 //running batch ONU register subroutine
                 show_window(__('Register all unknown ONUs'), $pon->runBatchOnuRegister());
