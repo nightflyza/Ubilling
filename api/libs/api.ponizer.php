@@ -2778,12 +2778,17 @@ class PONizer {
 
                         $eachInterfaceLabel = $eachInterface;
                         if ($this->ponIfDescribe) {
-                            $controllerUrl = self::URL_ME . '&oltstats=true&oltid=' . $oltId . '&if=' . $eachInterface;
+                            $controllerUrl = self::URL_ME . '&oltid=' . $oltId . '&if=' . $eachInterface;
                             $ponIfDescr = $this->ponInterfaces->getDescription($oltId, $eachInterface);
                             if (!empty($ponIfDescr)) {
                                 $ponIfDescr = ' ' . $ponIfDescr;
                             }
-                            $eachInterfaceLabel = wf_Link($controllerUrl, $eachInterface) . $ponIfDescr;
+
+                            if (cfr('PONEDIT')) {
+                                $eachInterfaceLabel = wf_Link($controllerUrl, $eachInterface) . $ponIfDescr;
+                            } else {
+                                $eachInterfaceLabel = $eachInterface . ' ' . $ponIfDescr;
+                            }
                         }
 
                         $cells = wf_TableCell($eachInterfaceLabel . $oltIfaceDescr);

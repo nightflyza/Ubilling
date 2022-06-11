@@ -195,13 +195,21 @@ if ($altCfg['PON_ENABLED']) {
 
         //Custom OLT interfaces description
         if (ubRouting::checkGet(array('oltid', 'if'))) {
-            //saving manual descriptions
-            if (ubRouting::checkPost(array('newoltiddesc', 'newoltif'))) {
-                $pon->ponInterfaces->save();
-                ubRouting::nav($pon::URL_ME . '&oltstats=true&oltid=' . ubRouting::post('newoltiddesc') . '&if=' . ubRouting::post('newoltif'));
+            if (cfr('PONEDIT')) {
+                if (@$altCfg['PON_IFDESC']) {
+                    //saving manual descriptions
+                    if (ubRouting::checkPost(array('newoltiddesc', 'newoltif'))) {
+                        $pon->ponInterfaces->save();
+                        ubRouting::nav($pon::URL_ME . '&oltid=' . ubRouting::post('newoltiddesc') . '&if=' . ubRouting::post('newoltif'));
+                    }
+                    //manual interface description controller
+                    show_window(__('Description'), $pon->ponInterfaces->renderIfForm(ubRouting::get('oltid'), ubRouting::get('if')));
+                } else {
+                    show_error(__('This module is disabled'));
+                }
+            } else {
+                show_error(__('Access denied'));
             }
-            //manual interface description controller
-            show_window(__('Description'), $pon->ponInterfaces->renderIfForm(ubRouting::get('oltid'), ubRouting::get('if')));
         }
 
         //Basic OLTs stats
