@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * OLT ZTE-EPON hardware abstraction layer
+ */
 class PONZteEpon extends PonZte {
 
     public function __construct($oltParameters, $snmpTemplates) {

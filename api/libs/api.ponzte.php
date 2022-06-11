@@ -1,7 +1,7 @@
 <?php
 
 /**
- * ZTE PON devices management
+ * ZTE-like PON devices management
  */
 class PonZte {
 

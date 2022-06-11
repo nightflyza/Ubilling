@@ -742,4 +742,15 @@ class OLTAttractor {
         return($this->checkContainersAvailable($containerPath, $containerMark));
     }
 
+    /**
+     * Checks is any ONU signals cache data available?
+     * 
+     * @return bool
+     */
+    public function isSignalsAvailable() {
+        $containerPath = self::SIGCACHE_PATH;
+        $containerMark = self::SIGCACHE_EXT;
+        return($this->checkContainersAvailable($containerPath, $containerMark));
+    }
+
 }

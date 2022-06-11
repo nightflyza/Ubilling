@@ -398,11 +398,12 @@ class PONizer {
     const SNMP_PRIVATE_TEMPLATES_PATH = 'documents/mysnmptemplates/';
 
     /**
-     * Some routes here
+     * Some URLs here
      */
     const URL_ME = '?module=ponizer';
     const URL_ONULIST = '?module=ponizer&onulist=true';
     const URL_USERPROFILE = '?module=userprofile&username=';
+    const URL_ONU = '?module=ponizer&editonu=';
 
     /**
      * Views/stats coloring
@@ -1153,7 +1154,7 @@ class PONizer {
     }
 
     /**
-     * Getter for loaded ONU devices
+     * Getter for loaded ONU devices as id=>onuData
      *
      * @return array
      */
@@ -1783,17 +1784,23 @@ class PONizer {
     }
 
     /**
-     * Returns styled current ONU signal
-     *
+     *  Returns some ONU signal level as array with following keys: raw/color/type/styled/isoffline
+     * 
      * @param int $onuId
-     *
-     * @return string
+     * 
+     * @return array
      */
-    protected function renderOnuSignalBig($onuId) {
-        $result = '';
+    public function getOnuSignalLevelData($onuId) {
+        $result = array();
         if (isset($this->allOnu[$onuId])) {
-            $this->loadSignalsCache();
             $onuData = $this->allOnu[$onuId];
+            //load cache once
+            if (empty($this->signalCache)) {
+                if ($this->oltData->isSignalsAvailable()) {
+                    $this->loadSignalsCache();
+                }
+            }
+
             $offlineFlag = false;
 
             if (isset($this->signalCache[$onuData['mac']])) {
@@ -1844,14 +1851,38 @@ class PONizer {
                 $offlineFlag = true;
             }
 
-            $result .= wf_tag('div', false, 'onusignalbig');
-            $result .= __('Current') . ' ' . __('Signal') . ' ' . __('ONU');
-            $result .= wf_delimiter();
-            $result .= wf_tag('font', false, '', 'color="' . $sigColor . '" size="16pt"') . $signal . wf_tag('font', true);
-            $result .= wf_delimiter();
-            $result .= __($sigLabel);
-            $result .= $this->renderOnuMiscStats($onuId, $offlineFlag);
-            $result .= wf_tag('div', true);
+            $result['raw'] = $signal;
+            $result['color'] = $sigColor;
+            $result['type'] = $sigLabel;
+            $result['styled'] = wf_tag('font', false, '', 'color="' . $sigColor . '"') . $signal . wf_tag('font', true);
+            $result['isoffline'] = $offlineFlag;
+        }
+        return($result);
+    }
+
+    /**
+     * Returns styled current ONU signal
+     *
+     * @param int $onuId
+     *
+     * @return string
+     */
+    protected function renderOnuSignalBig($onuId) {
+        $result = '';
+        if (isset($this->allOnu[$onuId])) {
+            $this->loadSignalsCache();
+            $onuData = $this->allOnu[$onuId];
+            $onuSignal = $this->getOnuSignalLevelData($onuId);
+            if (!empty($onuSignal)) {
+                $result .= wf_tag('div', false, 'onusignalbig');
+                $result .= __('Current') . ' ' . __('Signal') . ' ' . __('ONU');
+                $result .= wf_delimiter();
+                $result .= wf_tag('font', false, '', 'color="' . $onuSignal['color'] . '" size="16pt"') . $onuSignal['raw'] . wf_tag('font', true);
+                $result .= wf_delimiter();
+                $result .= __($onuSignal['type']);
+                $result .= $this->renderOnuMiscStats($onuId, $onuSignal['isoffline']);
+                $result .= wf_tag('div', true);
+            }
         }
         return ($result);
     }

@@ -113,12 +113,25 @@ if (cfr('REPORTSIGNUP')) {
 
         $sigMapLinkControls = '';
         if (cfr('REPORTSIGNUP') AND cfr('USERSMAP')) {
-            $sigMapLinkControls .= wf_tag('div', false, '', 'style="float:right; padding-top: 0px;"');
-            $sigMapLinkControls .= wf_Link('?module=report_sigmap', wf_img_sized('skins/swmapsmall.png', '', '12') . ' ' . __('Signups map'), false, 'ubButton');
+            $sigMapLinkControls .= wf_tag('div', false, '', 'style="float:right; margin-left: 5px; padding-top: 0px;"');
+            $sigMapLinkControls .= wf_Link('?module=report_sigmap', wf_img_sized('skins/swmapsmall.png', '', '12') . ' ' . __('Signups map'), false, 'ubButton') . ' ';
             $sigMapLinkControls .= wf_tag('div', true);
         }
 
-        show_window(__('User signups by year') . ' ' . $year, $result . $sigMapLinkControls);
+        $ponLastLinkControls = '';
+        if (cfr('PON')) {
+            if ($ubillingConfig->getAlterParam('PON_ENABLED')) {
+                $ponLastLinkControls .= wf_tag('div', false, '', 'style="float:right;  margin-left: 5px; padding-top: 0px;"');
+                $ponLastLinkControls .= wf_Link('?module=report_ponlastsig', wf_img_sized('skins/switch_models.png', '', '12') . ' ' . __('Latest ONU signals'), false, 'ubButton') . ' ';
+                $ponLastLinkControls .= wf_tag('div', true);
+            }
+        }
+
+        //some additional controls here
+        $result .= $sigMapLinkControls;
+        $result .= $ponLastLinkControls;
+
+        show_window(__('User signups by year') . ' ' . $year, $result);
     }
 
     /**

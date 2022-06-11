@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * OLT ZTE-GPON hardware abstraction layer
+ */
 class PONZteGpon extends PonZte {
 
     public function __construct($oltParameters, $snmpTemplates) {
