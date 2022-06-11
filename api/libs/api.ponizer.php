@@ -2038,8 +2038,9 @@ class PONizer {
                     $inputs .= wf_tag('input', false, '', 'name="onuextlogin_' . $each['id'] . '" type="text" value="' . $each['login'] . '" size="20" DISABLED') . ' ';
                     if (cfr('PONEDIT')) {
                         $inputs .= wf_JSAlert(self::URL_ME . '&editonu=' . $onuId . '&deleteextuser=' . $each['id'], wf_img_sized('skins/icon_del.gif', __('Delete'), '13'), $messages->getDeleteAlert()) . ' ';
-                        $inputs .= wf_Link(self::URL_USERPROFILE . $each['login'], web_profile_icon());
                     }
+                    $inputs .= wf_Link(self::URL_USERPROFILE . $each['login'], web_profile_icon());
+                    $inputs .= wf_tag('br');
                 }
             }
 
