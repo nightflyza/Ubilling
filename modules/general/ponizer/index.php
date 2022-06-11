@@ -156,7 +156,11 @@ if ($altCfg['PON_ENABLED']) {
                 $pon->ajaxFdbCacheList();
             }
             if (ubRouting::checkGet('fixonuoltassings')) {
-                show_window(__('Fix OLT inconsistencies'), $pon->fixOnuOltAssigns());
+                if (cfr('ROOT')) {
+                    show_window(__('Fix OLT inconsistencies'), $pon->fixOnuOltAssigns());
+                } else {
+                    show_error(__('Access denied'));
+                }
             } else {
                 show_window(__('Current FDB cache'), $pon->renderOnuFdbCache());
             }
@@ -221,14 +225,18 @@ if ($altCfg['PON_ENABLED']) {
 
         //Unknown ONU batch registration here
         if (ubRouting::checkGet('onumassreg')) {
-            if (!ubRouting::checkPost('runmassonureg')) {
-                //Unknown ONU list and form here
-                show_window('', wf_BackLink('?module=ponizer&unknownonulist=true'));
-                show_window(__('Register all unknown ONUs'), $pon->renderBatchOnuRegForm());
-                show_window(__('Unknown ONU'), $pon->renderBatchOnuRegList());
+            if (cfr('ROOT')) {
+                if (!ubRouting::checkPost('runmassonureg')) {
+                    //Unknown ONU list and form here
+                    show_window('', wf_BackLink('?module=ponizer&unknownonulist=true'));
+                    show_window(__('Register all unknown ONUs'), $pon->renderBatchOnuRegForm());
+                    show_window(__('Unknown ONU'), $pon->renderBatchOnuRegList());
+                } else {
+                    //running batch ONU register subroutine
+                    show_window(__('Register all unknown ONUs'), $pon->runBatchOnuRegister());
+                }
             } else {
-                //running batch ONU register subroutine
-                show_window(__('Register all unknown ONUs'), $pon->runBatchOnuRegister());
+                show_error(__('Access denied'));
             }
         }
 

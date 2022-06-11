@@ -2227,11 +2227,14 @@ class PONizer {
         } else {
             $result .= wf_BackLink(self::URL_ONULIST);
             $result .= wf_Link(self::URL_ME . '&forcepoll=true&uol=true', wf_img_sized('skins/refresh.gif', '', '16', '16') . ' ' . __('Force query'), false, 'ubButton');
-            $massRegUrl = self::URL_ME . '&onumassreg=true';
-            $massRegCancelUrl = '?module=ponizer&unknownonulist=true';
-            $alertLabel = __('Register all unknown ONUs') . '? ' . __('Are you serious');
-            $dialogLink = wf_img('skins/icon_addrow.png') . ' ' . __('Register all unknown ONUs');
-            $result .= wf_ConfirmDialog($massRegUrl, $dialogLink, $alertLabel, 'ubButton', $massRegCancelUrl, __('Are you serious'));
+            if (cfr('ROOT')) {
+                //ONU batch registration accessible only for ROOT users now
+                $massRegUrl = self::URL_ME . '&onumassreg=true';
+                $massRegCancelUrl = '?module=ponizer&unknownonulist=true';
+                $alertLabel = __('Register all unknown ONUs') . '? ' . __('Are you serious');
+                $dialogLink = wf_img('skins/icon_addrow.png') . ' ' . __('Register all unknown ONUs');
+                $result .= wf_ConfirmDialog($massRegUrl, $dialogLink, $alertLabel, 'ubButton', $massRegCancelUrl, __('Are you serious'));
+            }
         }
 
         $result .= wf_tag('script', false, '', 'type="text/javascript"');
@@ -2888,12 +2891,14 @@ class PONizer {
     public function renderOnuFdbCache() {
         $result = wf_BackLink(self::URL_ONULIST);
 
-        //auto OLT associtation fixing interface
-        $fixCancelUrl = self::URL_ME . '&fdbcachelist=true';
-        $fixConfirmUrl = self::URL_ME . '&fdbcachelist=true&fixonuoltassings=true';
-        $fixDialogLabel = wf_img('skins/icon_repair.gif') . ' ' . __('Fix OLT inconsistencies');
-        $fixDialogNotice = __('This operation automatically remaps ONU assigns whith OLT devices from where last data was received for this ONUs');
-        $result .= wf_ConfirmDialog($fixConfirmUrl, $fixDialogLabel, $fixDialogNotice, 'ubButton', $fixCancelUrl);
+        if (cfr('ROOT')) {
+            //auto OLT associtation fixing interface
+            $fixCancelUrl = self::URL_ME . '&fdbcachelist=true';
+            $fixConfirmUrl = self::URL_ME . '&fdbcachelist=true&fixonuoltassings=true';
+            $fixDialogLabel = wf_img('skins/icon_repair.gif') . ' ' . __('Fix OLT inconsistencies');
+            $fixDialogNotice = __('This operation automatically remaps ONU assigns whith OLT devices from where last data was received for this ONUs');
+            $result .= wf_ConfirmDialog($fixConfirmUrl, $fixDialogLabel, $fixDialogNotice, 'ubButton', $fixCancelUrl);
+        }
 
         $result .= wf_delimiter();
         $columns = array('OLT', 'ONU', 'ID', 'Vlan', 'MAC', 'Address', 'Login', 'Real Name', 'Tariff');
