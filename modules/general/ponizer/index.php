@@ -77,11 +77,16 @@ if ($altCfg['PON_ENABLED']) {
 
         //deleting existing ONU
         if (ubRouting::checkGet('deleteonu')) {
-            $pon->onuDelete(ubRouting::get('deleteonu'));
-            if ($ubillingConfig->getAlterParam('OPT82_ENABLED')) {
-                multinet_rebuild_all_handlers();
+            if (cfr('PONDEL')) {
+                $pon->onuDelete(ubRouting::get('deleteonu'));
+                if ($ubillingConfig->getAlterParam('OPT82_ENABLED')) {
+                    multinet_rebuild_all_handlers();
+                }
+                ubRouting::nav($pon::URL_ONULIST);
+            } else {
+                log_register('PON DELETE ONU [' . ubRouting::get('deleteonu', 'int') . '] ACCESS VIOLATION');
+                show_error(__('Access denied'));
             }
-            ubRouting::nav($pon::URL_ONULIST);
         }
 
         //burial of some ONU
