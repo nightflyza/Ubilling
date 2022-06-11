@@ -39,15 +39,20 @@ if ($altCfg['PON_ENABLED']) {
 
         //creating new ONU device
         if (ubRouting::checkPost(array('createnewonu', 'newoltid', 'newmac'))) {
-            $onuCreateResult = $pon->onuCreate(ubRouting::post('newonumodelid'), ubRouting::post('newoltid'), ubRouting::post('newip'), ubRouting::post('newmac'), ubRouting::post('newserial'), ubRouting::post('newlogin'));
-            if ($onuCreateResult) {
-                $newCreatedONUId = simple_get_lastid('pononu');
-                if ($ubillingConfig->getAlterParam('OPT82_ENABLED')) {
-                    multinet_rebuild_all_handlers();
+            if (cfr('PONEDIT')) {
+                $onuCreateResult = $pon->onuCreate(ubRouting::post('newonumodelid'), ubRouting::post('newoltid'), ubRouting::post('newip'), ubRouting::post('newmac'), ubRouting::post('newserial'), ubRouting::post('newlogin'));
+                if ($onuCreateResult) {
+                    $newCreatedONUId = simple_get_lastid('pononu');
+                    if ($ubillingConfig->getAlterParam('OPT82_ENABLED')) {
+                        multinet_rebuild_all_handlers();
+                    }
+                    ubRouting::nav($pon::URL_ME . '&editonu=' . $newCreatedONUId);
+                } else {
+                    show_error(__('This MAC have wrong format'));
                 }
-                ubRouting::nav($pon::URL_ME . '&editonu=' . $newCreatedONUId);
             } else {
-                show_error(__('This MAC have wrong format'));
+                log_register('PON CREATE ONU ACCESS VIOLATION');
+                show_error(__('Access denied'));
             }
         }
 
@@ -91,23 +96,35 @@ if ($altCfg['PON_ENABLED']) {
 
         //burial of some ONU
         if (ubRouting::checkGet('onuburial')) {
-            $pon->onuBurial(ubRouting::get('onuburial'));
-            ubRouting::nav($pon::URL_ME . '&editonu=' . ubRouting::get('onuburial'));
+            if (cfr('PONEDIT')) {
+                $pon->onuBurial(ubRouting::get('onuburial'));
+                ubRouting::nav($pon::URL_ME . '&editonu=' . ubRouting::get('onuburial'));
+            } else {
+                show_error(__('Access denied'));
+            }
         }
 
         //resurrection of some ONU
         if (ubRouting::checkGet('onuresurrect')) {
-            $pon->onuResurrect(ubRouting::get('onuresurrect'));
-            ubRouting::nav($pon::URL_ME . '&editonu=' . ubRouting::get('onuresurrect'));
+            if (cfr('PONEDIT')) {
+                $pon->onuResurrect(ubRouting::get('onuresurrect'));
+                ubRouting::nav($pon::URL_ME . '&editonu=' . ubRouting::get('onuresurrect'));
+            } else {
+                show_error(__('Access denied'));
+            }
         }
 
         //assigning ONU with some user
         if (ubRouting::checkPost(array('assignonulogin', 'assignonuid'))) {
-            $pon->onuAssign(ubRouting::post('assignonuid'), ubRouting::post('assignonulogin'));
-            if ($ubillingConfig->getAlterParam('OPT82_ENABLED')) {
-                multinet_rebuild_all_handlers();
+            if (cfr('PONEDIT')) {
+                $pon->onuAssign(ubRouting::post('assignonuid'), ubRouting::post('assignonulogin'));
+                if ($ubillingConfig->getAlterParam('OPT82_ENABLED')) {
+                    multinet_rebuild_all_handlers();
+                }
+                ubRouting::nav($pon::URL_ME . '&editonu=' . ubRouting::post('assignonuid'));
+            } else {
+                show_error(__('Access denied'));
             }
-            ubRouting::nav($pon::URL_ME . '&editonu=' . ubRouting::post('assignonuid'));
         }
 
         //force OLT polling
@@ -146,12 +163,16 @@ if ($altCfg['PON_ENABLED']) {
 
         //unknown ONU list
         if (ubRouting::checkGet('unknownonulist')) {
-            if (ubRouting::checkGet(array('fastreg', 'oltid', 'onumac'))) {
-                $newOltId = ubRouting::get('oltid', 'int');
-                $newOnuMac = ubRouting::get('onumac', 'mres');
-                show_window(__('Register new ONU'), wf_BackLink($pon::URL_ME . '&unknownonulist=true', __('Back'), true) . $pon->onuRegisterForm($newOltId, $newOnuMac));
+            if (cfr('PONEDIT')) {
+                if (ubRouting::checkGet(array('fastreg', 'oltid', 'onumac'))) {
+                    $newOltId = ubRouting::get('oltid', 'int');
+                    $newOnuMac = ubRouting::get('onumac', 'mres');
+                    show_window(__('Register new ONU'), wf_BackLink($pon::URL_ME . '&unknownonulist=true', __('Back'), true) . $pon->onuRegisterForm($newOltId, $newOnuMac));
+                } else {
+                    show_window(__('Unknown ONU'), $pon->controls() . $pon->renderUnknownOnuList());
+                }
             } else {
-                show_window(__('Unknown ONU'), $pon->controls() . $pon->renderUnknownOnuList());
+                show_error(__('Access denied'));
             }
         }
 
@@ -249,14 +270,18 @@ if ($altCfg['PON_ENABLED']) {
         if (ubRouting::checkGet('editonu')) {
             //deleting additional users
             if (ubRouting::checkGet(array('deleteextuser'))) {
-                $pon->deleteOnuExtUser(ubRouting::get('deleteextuser'));
-                ubRouting::nav($pon::URL_ME . '&editonu=' . ubRouting::get('editonu'));
+                if (cfr('PONEDIT')) {
+                    $pon->deleteOnuExtUser(ubRouting::get('deleteextuser'));
+                    ubRouting::nav($pon::URL_ME . '&editonu=' . ubRouting::get('editonu'));
+                }
             }
 
             //creating new additional user
             if (ubRouting::checkPost(array('newpononuextid', 'newpononuextlogin'))) {
-                $pon->createOnuExtUser(ubRouting::post('newpononuextid'), ubRouting::post('newpononuextlogin'));
-                ubRouting::nav($pon::URL_ME . '&editonu=' . ubRouting::get('editonu'));
+                if (cfr('PONEDIT')) {
+                    $pon->createOnuExtUser(ubRouting::post('newpononuextid'), ubRouting::post('newpononuextlogin'));
+                    ubRouting::nav($pon::URL_ME . '&editonu=' . ubRouting::get('editonu'));
+                }
             }
 
             //show ONU editing interface aka ONU profile

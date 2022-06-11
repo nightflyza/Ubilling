@@ -731,4 +731,15 @@ class OLTAttractor {
         return($this->checkContainersAvailable($containerPath, $containerMark));
     }
 
+    /**
+     * Checks is any ONU cache data available?
+     * 
+     * @return bool
+     */
+    public function isOnusAvailable() {
+        $containerPath = self::ONUCACHE_PATH;
+        $containerMark = self::ONUCACHE_EXT;
+        return($this->checkContainersAvailable($containerPath, $containerMark));
+    }
+
 }

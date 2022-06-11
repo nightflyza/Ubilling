@@ -1965,6 +1965,7 @@ class PONizer {
     public function onuEditForm($onuId) {
         $onuId = vf($onuId, 3);
         $result = '';
+
         if (isset($this->allOnu[$onuId])) {
             $messages = new UbillingMessageHelper();
 
@@ -1987,7 +1988,7 @@ class PONizer {
             $onuCurrentExtUsers = sizeof($onuExtUsers);
 
             $inputs = wf_HiddenInput('editonu', $onuId);
-            $inputs .= wf_Selector('editoltid', $this->allOltDevices, __('OLT device') . $this->sup, $this->allOnu[$onuId]['oltid'], true);
+            $inputs .= wf_Selector('editoltid', $this->allOltDevices, __('OLT device') . $this->sup, $this->allOnu[$onuId]['oltid'], true, false);
             $inputs .= wf_Selector('editonumodelid', $models, __('ONU model') . $this->sup, $this->allOnu[$onuId]['onumodelid'], true);
             if (@$this->altCfg['PON_ONUIPASIF']) {
                 $ipFieldLabel = __('Interface');
@@ -2004,12 +2005,17 @@ class PONizer {
                 foreach ($onuExtUsers as $io => $each) {
                     //Editing feature: 100$ donate or do it yourself. Im to lazy right now.
                     $inputs .= wf_tag('input', false, '', 'name="onuextlogin_' . $each['id'] . '" type="text" value="' . $each['login'] . '" size="20" DISABLED') . ' ';
-                    $inputs .= wf_JSAlert(self::URL_ME . '&editonu=' . $onuId . '&deleteextuser=' . $each['id'], wf_img_sized('skins/icon_del.gif', __('Delete'), '13'), $messages->getDeleteAlert()) . ' ';
-                    $inputs .= wf_Link(self::URL_USERPROFILE . $each['login'], web_profile_icon());
-                    $inputs .= wf_tag('br');
+                    if (cfr('PONEDIT')) {
+                        $inputs .= wf_JSAlert(self::URL_ME . '&editonu=' . $onuId . '&deleteextuser=' . $each['id'], wf_img_sized('skins/icon_del.gif', __('Delete'), '13'), $messages->getDeleteAlert()) . ' ';
+                        $inputs .= wf_Link(self::URL_USERPROFILE . $each['login'], web_profile_icon());
+                    }
                 }
             }
-            $inputs .= wf_Submit(__('Save'));
+
+            if (cfr('PONEDIT')) {
+                $inputs .= wf_tag('br');
+                $inputs .= wf_Submit(__('Save'));
+            }
 
             $onuEditForm = wf_Form('', 'POST', $inputs, 'glamour');
             $gridCells = wf_TableCell($onuEditForm . wf_CleanDiv(), '50%', '');
@@ -2059,28 +2065,32 @@ class PONizer {
 
             //ONU burial or resurrection controls
             if (!empty($this->allOnu[$onuId]['login'])) {
-                if (@$this->altCfg['ONU_BURIAL_ENABLED']) {
-                    if ($this->allOnu[$onuId]['login'] != 'dead') {
-                        //this ONU is owned by some user. Burial controls here.
-                        $burCancelUrl = self::URL_ME . '&editonu=' . $onuId;
-                        $burConfirmUrl = self::URL_ME . '&onuburial=' . $onuId;
-                        $burAlertLabel = __('Bury this ONU') . '? ' . $messages->getEditAlert();
-                        $result .= wf_ConfirmDialog($burConfirmUrl, wf_img('skins/skull.png') . __('Bury this ONU'), $burAlertLabel, 'ubButton', $burCancelUrl);
-                    } else {
-                        //this ONU is already buried. Ressurection controls here.
-                        $resCancelUrl = self::URL_ME . '&editonu=' . $onuId;
-                        $resConfirmUrl = self::URL_ME . '&onuresurrect=' . $onuId;
-                        $resAlertLabel = __('Resurrect this ONU') . '? ' . $messages->getEditAlert() . ' ';
-                        $resAlertLabel .= __('After resurrection device will be marked as not belonging to anyone') . '.';
-                        $result .= wf_ConfirmDialog($resConfirmUrl, wf_img('skins/pigeon_icon.png') . ' ' . __('Resurrect this ONU'), $resAlertLabel, 'ubButton', $resCancelUrl);
+                if (cfr('PONEDIT')) {
+                    if (@$this->altCfg['ONU_BURIAL_ENABLED']) {
+                        if ($this->allOnu[$onuId]['login'] != 'dead') {
+                            //this ONU is owned by some user. Burial controls here.
+                            $burCancelUrl = self::URL_ME . '&editonu=' . $onuId;
+                            $burConfirmUrl = self::URL_ME . '&onuburial=' . $onuId;
+                            $burAlertLabel = __('Bury this ONU') . '? ' . $messages->getEditAlert();
+                            $result .= wf_ConfirmDialog($burConfirmUrl, wf_img('skins/skull.png') . __('Bury this ONU'), $burAlertLabel, 'ubButton', $burCancelUrl);
+                        } else {
+                            //this ONU is already buried. Ressurection controls here.
+                            $resCancelUrl = self::URL_ME . '&editonu=' . $onuId;
+                            $resConfirmUrl = self::URL_ME . '&onuresurrect=' . $onuId;
+                            $resAlertLabel = __('Resurrect this ONU') . '? ' . $messages->getEditAlert() . ' ';
+                            $resAlertLabel .= __('After resurrection device will be marked as not belonging to anyone') . '.';
+                            $result .= wf_ConfirmDialog($resConfirmUrl, wf_img('skins/pigeon_icon.png') . ' ' . __('Resurrect this ONU'), $resAlertLabel, 'ubButton', $resCancelUrl);
+                        }
                     }
                 }
             }
 
             //additional login append forms
-            if (sizeof($onuExtUsers) < $onuMaxUsers) {
-                $extCreationLabel = wf_img_sized('skins/add_icon.png', '', '13') . ' ' . __('Assign additional login');
-                $result .= wf_modalAuto($extCreationLabel, __('Additional login') . ' (' . ($onuMaxUsers - $onuCurrentExtUsers) . ' ' . __('remains') . ')', $this->renderOnuExtUserForm($onuId), 'ubButton');
+            if (cfr('PONEDIT')) {
+                if (sizeof($onuExtUsers) < $onuMaxUsers) {
+                    $extCreationLabel = wf_img_sized('skins/add_icon.png', '', '13') . ' ' . __('Assign additional login');
+                    $result .= wf_modalAuto($extCreationLabel, __('Additional login') . ' (' . ($onuMaxUsers - $onuCurrentExtUsers) . ' ' . __('remains') . ')', $this->renderOnuExtUserForm($onuId), 'ubButton');
+                }
             }
 
             //ONU deletion control
@@ -2191,14 +2201,18 @@ class PONizer {
     public function controls() {
         $result = '';
         if (!ubRouting::checkGet('unknownonulist')) {
-            $result .= wf_modalAuto(wf_img_sized('skins/add_icon.png', '', '16', '16') . ' ' . __('Create') . ' ' . __('ONU'), __('Register new ONU'), $this->onuCreateForm(), 'ubButton') . ' ';
-            $availOnuCache = rcms_scandir(self::ONUCACHE_PATH, '*_' . self::ONUCACHE_EXT);
+            if (cfr('PONEDIT')) {
+                $result .= wf_modalAuto(wf_img_sized('skins/add_icon.png', '', '16', '16') . ' ' . __('Create') . ' ' . __('ONU'), __('Register new ONU'), $this->onuCreateForm(), 'ubButton') . ' ';
+            }
+            $availOnuCache = $this->oltData->isOnusAvailable();
             $result .= wf_Link(self::URL_ME . '&forcepoll=true', wf_img_sized('skins/refresh.gif', '', '16', '16') . ' ' . __('Force query'), false, 'ubButton');
             if (!empty($availOnuCache)) {
-                $result .= wf_Link(self::URL_ME . '&unknownonulist=true', wf_img_sized('skins/question.png', '', '16', '16') . ' ' . __('Unknown ONU'), false, 'ubButton');
+                if (cfr('PONEDIT')) {
+                    $result .= wf_Link(self::URL_ME . '&unknownonulist=true', wf_img_sized('skins/question.png', '', '16', '16') . ' ' . __('Unknown ONU'), false, 'ubButton');
+                }
             }
 
-            $availOnuFdbCache = rcms_scandir(self::FDBCACHE_PATH, '*_' . self::FDBCACHE_EXT);
+            $availOnuFdbCache = $this->oltData->isFdbAvailable();
             if (!empty($availOnuFdbCache)) {
                 $result .= wf_Link(self::URL_ME . '&fdbcachelist=true', wf_img_sized('skins/icon_fdb.png', '', '16', '16') . ' ' . __('Current FDB cache'), false, 'ubButton');
             }

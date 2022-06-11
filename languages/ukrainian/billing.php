@@ -3408,6 +3408,7 @@ $lang['def']['Log'] = 'Лог';
 $lang['def']['Register all unknown ONUs'] = 'Зареєструвати усі невідомі ONU';
 $lang['def']['Oh you are a lazy ass'] = 'Ах ти ж лінива дупо';
 $lang['def']['Registering'] = 'Реєструємо';
+$lang['def']['right to add and edit PON ONUs'] = 'Право редагувати та додавати ONU';
 $lang['def'][''] = '';
 
 
