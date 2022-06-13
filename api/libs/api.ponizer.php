@@ -4439,7 +4439,7 @@ class PONizer {
             $result .= $this->messages->getStyledMessage(__('Registered') . ': ' . $succCount, 'success');
         }
         if ($errorCount > 0) {
-            $result .= $this->messages->getStyledMessage(__('Error') . ': ' . $succCount, 'error');
+            $result .= $this->messages->getStyledMessage(__('Error') . ': ' . $errorCount, 'error');
         }
         $result .= $onuList;
         return($result);
