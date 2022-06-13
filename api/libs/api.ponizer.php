@@ -4336,30 +4336,34 @@ class PONizer {
     public function renderBatchOnuRegForm() {
         $result = '';
         $models = array();
-
-        if (!empty($this->allModelsData)) {
-            foreach ($this->allModelsData as $io => $each) {
-                if (@$this->altCfg['ONUMODELS_FILTER']) {
-                    if (ispos($each['modelname'], 'ONU')) {
+        $allUnknownOnus = $this->getOnuUnknownAll();
+        if (!empty($allUnknownOnus)) {
+            if (!empty($this->allModelsData)) {
+                foreach ($this->allModelsData as $io => $each) {
+                    if (@$this->altCfg['ONUMODELS_FILTER']) {
+                        if (ispos($each['modelname'], 'ONU')) {
+                            $models[$each['id']] = $each['modelname'];
+                        }
+                    } else {
                         $models[$each['id']] = $each['modelname'];
                     }
-                } else {
-                    $models[$each['id']] = $each['modelname'];
                 }
             }
-        }
 
-        if (!empty($models)) {
-            $inputs = wf_HiddenInput('runmassonureg', 'true');
-            $inputs .= wf_Selector('massonuregonumodelid', $models, __('ONU model') . $this->sup, '', true);
-            $inputs .= wf_delimiter(0);
-            $confirmLabel = __('I also understand well that no one will correct my mistakes for me and only I bear full financial responsibility for my mistakes');
-            $inputs .= wf_CheckInput('massonuregconfirmation', $confirmLabel, true, false);
-            $inputs .= wf_delimiter(0);
-            $inputs .= wf_Submit(__('Register all unknown ONUs'));
-            $result .= wf_Form('', 'POST', $inputs, 'glamour');
+            if (!empty($models)) {
+                $inputs = wf_HiddenInput('runmassonureg', 'true');
+                $inputs .= wf_Selector('massonuregonumodelid', $models, __('ONU model') . $this->sup, '', true);
+                $inputs .= wf_delimiter(0);
+                $confirmLabel = __('I also understand well that no one will correct my mistakes for me and only I bear full financial responsibility for my mistakes');
+                $inputs .= wf_CheckInput('massonuregconfirmation', $confirmLabel, true, false);
+                $inputs .= wf_delimiter(0);
+                $inputs .= wf_Submit(__('Register all unknown ONUs'));
+                $result .= wf_Form('', 'POST', $inputs, 'glamour');
+            } else {
+                $result .= $this->messages->getStyledMessage(__('Any available ONU models exist'), 'error');
+            }
         } else {
-            $result .= $this->messages->getStyledMessage(__('Any available ONU models exist'), 'error');
+            $result .= $this->messages->getStyledMessage(__('Nothing to show'), 'success');
         }
 
         return($result);

@@ -46,7 +46,7 @@ if ($altCfg['PON_ENABLED']) {
                     if ($ubillingConfig->getAlterParam('OPT82_ENABLED')) {
                         multinet_rebuild_all_handlers();
                     }
-                    ubRouting::nav($pon::URL_ME . '&editonu=' . $newCreatedONUId);
+                    ubRouting::nav($pon::URL_ONU . $newCreatedONUId);
                 } else {
                     show_error(__('This MAC have wrong format'));
                 }
@@ -77,7 +77,7 @@ if ($altCfg['PON_ENABLED']) {
             if ($ubillingConfig->getAlterParam('OPT82_ENABLED')) {
                 multinet_rebuild_all_handlers();
             }
-            ubRouting::nav($pon::URL_ME . '&editonu=' . ubRouting::post('editonu'));
+            ubRouting::nav($pon::URL_ONU . ubRouting::post('editonu'));
         }
 
         //deleting existing ONU
@@ -98,7 +98,7 @@ if ($altCfg['PON_ENABLED']) {
         if (ubRouting::checkGet('onuburial')) {
             if (cfr('PONEDIT')) {
                 $pon->onuBurial(ubRouting::get('onuburial'));
-                ubRouting::nav($pon::URL_ME . '&editonu=' . ubRouting::get('onuburial'));
+                ubRouting::nav($pon::URL_ONU . ubRouting::get('onuburial'));
             } else {
                 show_error(__('Access denied'));
             }
@@ -108,7 +108,7 @@ if ($altCfg['PON_ENABLED']) {
         if (ubRouting::checkGet('onuresurrect')) {
             if (cfr('PONEDIT')) {
                 $pon->onuResurrect(ubRouting::get('onuresurrect'));
-                ubRouting::nav($pon::URL_ME . '&editonu=' . ubRouting::get('onuresurrect'));
+                ubRouting::nav($pon::URL_ONU . ubRouting::get('onuresurrect'));
             } else {
                 show_error(__('Access denied'));
             }
@@ -121,7 +121,7 @@ if ($altCfg['PON_ENABLED']) {
                 if ($ubillingConfig->getAlterParam('OPT82_ENABLED')) {
                     multinet_rebuild_all_handlers();
                 }
-                ubRouting::nav($pon::URL_ME . '&editonu=' . ubRouting::post('assignonuid'));
+                ubRouting::nav($pon::URL_ONU . ubRouting::post('assignonuid'));
             } else {
                 show_error(__('Access denied'));
             }
@@ -154,7 +154,7 @@ if ($altCfg['PON_ENABLED']) {
             $userOnuId = $pon->getOnuIdByUser($login);
             //redirecting to assigned ONU
             if ($userOnuId) {
-                ubRouting::nav($pon::URL_ME . '&editonu=' . $userOnuId);
+                ubRouting::nav($pon::URL_ONU . $userOnuId);
             } else {
                 //rendering assign form
                 show_window(__('ONU assign'), $pon->onuAssignForm($login));
@@ -280,7 +280,7 @@ if ($altCfg['PON_ENABLED']) {
             if (ubRouting::checkGet(array('deleteextuser'))) {
                 if (cfr('PONEDIT')) {
                     $pon->deleteOnuExtUser(ubRouting::get('deleteextuser'));
-                    ubRouting::nav($pon::URL_ME . '&editonu=' . ubRouting::get('editonu'));
+                    ubRouting::nav($pon::URL_ONU . ubRouting::get('editonu'));
                 }
             }
 
@@ -288,7 +288,7 @@ if ($altCfg['PON_ENABLED']) {
             if (ubRouting::checkPost(array('newpononuextid', 'newpononuextlogin'))) {
                 if (cfr('PONEDIT')) {
                     $pon->createOnuExtUser(ubRouting::post('newpononuextid'), ubRouting::post('newpononuextlogin'));
-                    ubRouting::nav($pon::URL_ME . '&editonu=' . ubRouting::get('editonu'));
+                    ubRouting::nav($pon::URL_ONU . ubRouting::get('editonu'));
                 }
             }
 
