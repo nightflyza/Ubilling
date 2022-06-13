@@ -2008,8 +2008,119 @@ function web_PaymentsShowGraph($year) {
         }
     }
 
+    $winControl = '';
+    if ($ubillingConfig->getAlterParam('BRANCHES_ENABLED')) {
+        $winControl .= wf_Link('?module=report_finance&branchreport=true', wf_img_sized('skins/icon_branch.png', __('Branches'), 12)) . ' ';
+    }
+    show_window($winControl . __('Payments by') . ' ' . $year, $result);
+}
 
-    show_window(__('Payments by') . ' ' . $year, $result);
+/**
+ * Shows payments year graph with caching
+ * 
+ * @param int $year
+ */
+function web_PaymentsShowGraphPerBranch($year) {
+    global $ubillingConfig;
+    $months = months_array();
+    $year_summ = zb_PaymentsGetYearSumm($year);
+    $curtime = time();
+    $yearPayData = array();
+    $yearStats = array();
+    $result = '';
+    $branches = new UbillingBranches();
+    $allBranches[0] = __('No');
+    $allBranches += $branches->getBranchesAvailable();
+
+
+
+    $dopWhere = '';
+    if ($ubillingConfig->getAlterParam('REPORT_FINANCE_IGNORE_ID')) {
+        $exIdArr = array_map('trim', explode(',', $ubillingConfig->getAlterParam('REPORT_FINANCE_IGNORE_ID')));
+        $exIdArr = array_filter($exIdArr);
+// Create and WHERE to query
+        if (!empty($exIdArr)) {
+            $dopWhere = ' AND ';
+            $dopWhere .= ' `cashtypeid` != ' . implode(' AND `cashtypeid` != ', $exIdArr);
+        }
+    }
+//extracting all of needed payments in one query
+    if ($ubillingConfig->getAlterParam('REPORT_FINANCE_CONSIDER_NEGATIVE')) {
+// ugly way to get payments with negative sums
+// performance degradation is kinda twice
+        $allYearPayments_q = "(SELECT * FROM `payments` 
+                                        WHERE `date` LIKE '" . $year . "-%' AND `summ` < '0' 
+                                            AND note NOT LIKE 'Service:%' 
+                                            AND note NOT LIKE 'PENALTY%' 
+                                            AND note NOT LIKE 'OMEGATV%' 
+                                            AND note NOT LIKE 'MEGOGO%' 
+                                            AND note NOT LIKE 'TRINITYTV%' " . $dopWhere . ") 
+                                  UNION ALL 
+                                  (SELECT * FROM `payments` WHERE `date` LIKE '" . $year . "-%' AND `summ` > '0' " . $dopWhere . ")";
+    } else {
+        $allYearPayments_q = "SELECT * FROM `payments` WHERE `date` LIKE '" . $year . "-%' AND `summ` > '0' " . $dopWhere;
+    }
+
+    $allYearPayments = simple_queryall($allYearPayments_q);
+    if (!empty($allYearPayments)) {
+        foreach ($allYearPayments as $idx => $eachYearPayment) {
+            $userBranchId = $branches->userGetBranch($eachYearPayment['login']);
+            if (empty($userBranchId)) {
+                $userBranchId = 0;
+            }
+            $statsMonth = date("m", strtotime($eachYearPayment['date']));
+            if (isset($yearStats[$userBranchId][$statsMonth])) {
+                $yearStats[$userBranchId][$statsMonth]['count'] ++;
+                $yearStats[$userBranchId][$statsMonth]['summ'] = $yearStats[$userBranchId][$statsMonth]['summ'] + $eachYearPayment['summ'];
+            } else {
+                $yearStats[$userBranchId][$statsMonth]['count'] = 1;
+                $yearStats[$userBranchId][$statsMonth]['summ'] = $eachYearPayment['summ'];
+            }
+        }
+    }
+
+
+
+    foreach ($allBranches as $eachBranchId => $eachBranchName) {
+        $branchTotalSumm = 0;
+        $result .= wf_tag('strong') . __('Branch') . ': ' . $eachBranchName . wf_tag('strong', true);
+        $result .= wf_tag('br');
+
+        $cells = wf_TableCell('');
+        $cells .= wf_TableCell(__('Month'));
+        $cells .= wf_TableCell(__('Payments count'));
+        $cells .= wf_TableCell(__('ARPU'));
+        $cells .= wf_TableCell(__('Cash'));
+        $cells .= wf_TableCell(__('Visual'), '50%');
+        $rows = wf_TableRow($cells, 'row1');
+
+        foreach ($months as $eachmonth => $monthname) {
+            $month_summ = (isset($yearStats[$eachBranchId][$eachmonth])) ? $yearStats[$eachBranchId][$eachmonth]['summ'] : 0;
+            $paycount = (isset($yearStats[$eachBranchId][$eachmonth])) ? $yearStats[$eachBranchId][$eachmonth]['count'] : 0;
+            $monthArpu = @round($month_summ / $paycount, 2);
+            $branchTotalSumm += $month_summ;
+            if (is_nan($monthArpu)) {
+                $monthArpu = 0;
+            }
+
+            $cells = wf_TableCell($eachmonth);
+            $cells .= wf_TableCell(rcms_date_localise($monthname));
+            $cells .= wf_TableCell($paycount);
+            $cells .= wf_TableCell($monthArpu);
+            $cells .= wf_TableCell(zb_CashBigValueFormat($month_summ), '', '', 'align="right"');
+            $cells .= wf_TableCell(web_bar($month_summ, $year_summ), '', '', 'sorttable_customkey="' . $month_summ . '"');
+            $rows .= wf_TableRow($cells, 'row3');
+        }
+
+        $result .= wf_TableBody($rows, '100%', '0', 'sortable');
+        $result .= __('Total money') . ': ' . zb_CashBigValueFormat($branchTotalSumm);
+        $result .= wf_delimiter();
+    }
+    $winControl = '';
+    if ($ubillingConfig->getAlterParam('BRANCHES_ENABLED')) {
+        $winControl .= wf_Link('?module=report_finance', wf_img_sized('skins/icon_dollar_16.gif', __('Normal'), 12)) . ' ';
+    }
+    show_window($winControl . __('Payments by') . ' ' . $year . ' / ' . __('Branches'), $result);
 }
 
 /**

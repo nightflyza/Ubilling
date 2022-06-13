@@ -6,7 +6,7 @@ if (cfr('REPORTFINANCE')) {
     $renderYear = (ubRouting::checkPost('yearsel')) ? ubRouting::post('yearsel', 'int') : curyear();
     $yearinputs = wf_YearSelectorPreset('yearsel', '', false, $renderYear);
     $yearinputs .= wf_Submit(__('Show'));
-    $yearform = wf_Form("?module=report_finance", 'POST', $yearinputs, 'glamour');
+    $yearform = wf_Form('', 'POST', $yearinputs, 'glamour');
 
 //date inputs
     $dateSelectorPreset = (ubRouting::checkPost('showdatepayments')) ? ubRouting::post('showdatepayments') : curdate();
@@ -38,7 +38,11 @@ if (cfr('REPORTFINANCE')) {
 
 
 //display year payments summary 
-    web_PaymentsShowGraph($renderYear);
+    if (!ubRouting::checkGet('branchreport')) {
+        web_PaymentsShowGraph($renderYear);
+    } else {
+        web_PaymentsShowGraphPerBranch($renderYear);
+    }
 
 // Exclude some Cash types ID from query
     $dopWhere = '';
