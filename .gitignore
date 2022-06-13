@@ -28,4 +28,5 @@ exports/pondata/onucache/*
 exports/pondata/signals/*
 exports/pondata/temp/*
 exports/pondata/uptime/*
+exports/pondata/races/*
 

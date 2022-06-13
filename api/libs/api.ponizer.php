@@ -380,7 +380,7 @@ class PONizer {
     const MACDEVIDCACHE_EXT = OLTAttractor::MACDEVIDCACHE_EXT;
     const ONUSIG_PATH = OLTAttractor::ONUSIG_PATH;
     const POLL_PID = 'oltpoll_';
-    const POLL_STATS = 'exports/PONYRUN_';
+    const POLL_STATS = 'exports/pondata/races/PONYRUN_';
     const POLL_LOG = 'exports/oltpoll.log';
 
     /**
@@ -796,7 +796,7 @@ class PONizer {
                                     if (method_exists($collector, $collectorMethod)) {
                                         $this->logPoll($oltid, 'RUNNING: PON HAL collector method:' . $collectorName . '->' . $collectorMethod);
                                         $collector->$collectorMethod();
-                                        $this->logPoll($oltid, 'ENDED: PON HAL collector method:' . $collectorName . '->' . $collectorMethod);
+                                        $this->logPoll($oltid, 'COMPLETED: PON HAL collector method:' . $collectorName . '->' . $collectorMethod);
                                     } else {
                                         $this->logPoll($oltid, 'FAILED run PON HAL collector:' . $collectorName . '->' . $collectorMethod . ' METHOD_NOT_EXISTS');
                                     }
