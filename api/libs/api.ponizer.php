@@ -1870,8 +1870,6 @@ class PONizer {
     protected function renderOnuSignalBig($onuId) {
         $result = '';
         if (isset($this->allOnu[$onuId])) {
-            $this->loadSignalsCache();
-            $onuData = $this->allOnu[$onuId];
             $onuSignal = $this->getOnuSignalLevelData($onuId);
             if (!empty($onuSignal)) {
                 $result .= wf_tag('div', false, 'onusignalbig');
