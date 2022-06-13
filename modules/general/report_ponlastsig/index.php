@@ -1,6 +1,6 @@
 <?php
 
-if (cfr('PON')) {
+if (cfr('PON') AND cfr('REPORTSIGNUP')) {
     if ($ubillingConfig->getAlterParam('PON_ENABLED')) {
         $signupsDb = new NyanORM('userreg');
         $signupsDb->where('date', 'LIKE', curmonth() . '%');

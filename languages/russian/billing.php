@@ -3389,3 +3389,4 @@ $lang['def']['Oh you are a lazy ass'] = 'Ах ты ж ленивая задни�
 $lang['def']['Registering'] = 'Регистрируем';
 $lang['def']['right to add and edit PON ONUs'] = 'Право редактировать и добавлять новые ONU';
 $lang['def']['Latest ONU signals'] = 'Сигналы последних ONU';
+$lang['def']['ONU signals'] = 'Сигналы ONU';

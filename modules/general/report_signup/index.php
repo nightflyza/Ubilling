@@ -122,7 +122,7 @@ if (cfr('REPORTSIGNUP')) {
         if (cfr('PON')) {
             if ($ubillingConfig->getAlterParam('PON_ENABLED')) {
                 $ponLastLinkControls .= wf_tag('div', false, '', 'style="float:right;  margin-left: 5px; padding-top: 0px;"');
-                $ponLastLinkControls .= wf_Link('?module=report_ponlastsig', wf_img_sized('skins/switch_models.png', '', '12') . ' ' . __('Latest ONU signals'), false, 'ubButton') . ' ';
+                $ponLastLinkControls .= wf_Link('?module=report_ponlastsig', wf_img_sized('skins/switch_models.png', '', '12') . ' ' . __('ONU signals'), false, 'ubButton') . ' ';
                 $ponLastLinkControls .= wf_tag('div', true);
             }
         }
