@@ -2223,7 +2223,7 @@ class MultiGen {
                     if (!empty($userNases)) {
                         foreach ($userNases as $eachNasId) {
                             @$nasOptions = $this->nasOptions[$eachNasId];
-                            $userNameType = $nasOptions['usernametype'];
+                            @$userNameType = $nasOptions['usernametype'];
 
                             //overriding username type if required
                             $userName = $this->getLoginUsername($userLogin, $eachUser, $userNameType);
