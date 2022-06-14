@@ -1403,7 +1403,7 @@ class Banksta2 {
                                 if (!empty($userLogin)) {
                                     if (isset($this->allUsersDataInet[$userLogin])) {
                                         // check for corporate user possibility
-                                        if ($checkForCorpUsers and bs_cu_IsParent($eachRec['userlogin'], $allParentUsers)) {
+                                        if ($checkForCorpUsers and !empty($allParentUsers[$eachRec['userlogin']])) {
                                             //corporate user
                                             $userLink = $allParentUsers[$eachRec['userlogin']];
                                             $allChildUsers = cu_GetAllChildUsers($userLink);
