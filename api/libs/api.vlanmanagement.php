@@ -517,17 +517,12 @@ class VlanManagement {
      * 
      * @return bool
      */
-    protected function vlanNumTooLow($vlan = -1) {
-        if (!$vlan) {
-            if ($this->routing->get('svlan', 'int') < 0) {
-                return (true);
-            }
+    protected function vlanNumTooLow($vlan) {
+        if ($vlan < 1) {
+            return (true);
         } else {
-            if ($vlan < 0)
-                return (true);
+            return (false);
         }
-
-        return (false);
     }
 
     /**
@@ -535,17 +530,12 @@ class VlanManagement {
      * 
      * @return bool
      */
-    protected function vlanNumTooHigh($vlan = -1) {
-        if (!$vlan) {
-            if ($this->routing->get('svlan', 'int') > 4094) {
-                return (true);
-            }
+    protected function vlanNumTooHigh($vlan) {
+        if ($vlan > 4094) {
+            return (true);
         } else {
-            if ($vlan > 4094) {
-                return (true);
-            }
+            return (false);
         }
-        return (false);
     }
 
     /**
@@ -554,11 +544,12 @@ class VlanManagement {
      * @return bool
      */
     protected function checkSvlanRange() {
-        if (!$this->vlanNumTooLow() and ! $this->vlanNumTooHigh()) {
+        $svlan = $vlan = $this->routing->get('svlan_num', 'int');
+        if (!$this->vlanNumTooLow($svlan) and!$this->vlanNumTooHigh($svlan)) {
             return (true);
         }
         //add error if not exited previously
-        $this->error[] = __('Wrong value') . ': SVLAN ' . $this->routing->get('svlan_num', 'int');
+        $this->error[] = __('Wrong value') . ': SVLAN ' . $svlan;
         return (false);
     }
 
@@ -570,7 +561,7 @@ class VlanManagement {
      * @return bool
      */
     protected function checkCvlanRange($cvlan) {
-        if (!$this->vlanNumTooLow($cvlan) and ! $this->vlanNumTooHigh($cvlan)) {
+        if (!$this->vlanNumTooLow($cvlan) and!$this->vlanNumTooHigh($cvlan)) {
             return (true);
         }
         //add error if not exited previously
