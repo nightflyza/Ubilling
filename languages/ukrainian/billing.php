@@ -3411,6 +3411,7 @@ $lang['def']['Registering'] = 'Реєструємо';
 $lang['def']['right to add and edit PON ONUs'] = 'Право редагувати та додавати ONU';
 $lang['def']['Latest ONU signals'] = 'Сигнали останніх ONU';
 $lang['def']['ONU signals'] = 'Сигнали ONU';
+$lang['def']['Strange exception'] = 'Підозріла помилка - взагалі дивно, що ви її бачите';
 $lang['def'][''] = '';
 $lang['def'][''] = '';
 
