@@ -181,7 +181,7 @@ class UserProfile {
             $this->loadHighlight();
             $this->loadUserdata();
             if (empty($this->userdata)) {
-                throw new Exception(self::EX_EMPTY_USERDATA . ' ' . print_r($this, true));
+                throw new Exception(self::EX_EMPTY_USERDATA);
             }
             $this->loadAptdata();
             $this->loadUserAlldata();
@@ -191,7 +191,7 @@ class UserProfile {
             $this->loadPlugins();
             $this->loadMobilesExt();
         } else {
-            throw new Exception(self::EX_EMPTY_LOGIN . ' ' . print_r($this, true));
+            throw new Exception(self::EX_EMPTY_LOGIN);
         }
     }
 
@@ -416,7 +416,7 @@ class UserProfile {
             foreach ($plugins as $modulename => $eachplugin) {
                 $renderable = true;
                 //checks for required pluging rights
-                if (isset($eachplugin['need_right']) AND!empty($eachplugin['need_right'])) {
+                if (isset($eachplugin['need_right']) AND ! empty($eachplugin['need_right'])) {
                     if (cfr($eachplugin['need_right'])) {
                         $renderable = true;
                     } else {
@@ -472,7 +472,7 @@ class UserProfile {
                 foreach ($rawPlugins as $modulename => $eachplugin) {
                     $renderable = true;
                     //checks for required pluging rights
-                    if (isset($eachplugin['need_right']) AND!empty($eachplugin['need_right'])) {
+                    if (isset($eachplugin['need_right']) AND ! empty($eachplugin['need_right'])) {
                         if (cfr($eachplugin['need_right'])) {
                             $renderable = true;
                         } else {
@@ -1104,20 +1104,20 @@ class UserProfile {
                             WHERE `switches`.`id` = " . $curOLTID;
                 $oltData = simple_queryall($query);
 
-                if (isset($oltData[0]) and!empty($oltData[0])) {
+                if (isset($oltData[0]) and ! empty($oltData[0])) {
                     $curOLTIP = $oltData[0]['ip'];
                     $curOLTModelName = $oltData[0]['modelname'];
                     $curOLTLocation = $oltData[0]['location'];
                 }
 
-                if ($curOLTAliveCheck and !empty($curOLTIP)) {
+                if ($curOLTAliveCheck and ! empty($curOLTIP)) {
                     $curOLTAlive = zb_PingICMPTimeout($curOLTIP, $curOLTAliveCheckTimeout);
                 }
 
                 if ($this->ubConfig->getAlterParam('USERPROFILE_ONU_INFO_SHOW')) {
                     $onuAdditionalData .= wf_TableCell(__('OLT'), '30%', 'row2');
 
-                    if (isset($oltData[0]) and!empty($oltData[0])) {
+                    if (isset($oltData[0]) and ! empty($oltData[0])) {
                         $webIfaceLink = wf_tag('a', false, '', 'href="http://' . $curOLTIP . '" target="_blank" title="' . __('Go to the web interface') . '"');
                         $webIfaceLink .= wf_img('skins/ymaps/network.png');
                         $webIfaceLink .= wf_tag('a', true);

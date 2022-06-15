@@ -308,7 +308,7 @@ if ($altCfg['PON_ENABLED']) {
 
         //no extra routes or extra post data received
         if (sizeof(ubRouting::rawGet()) == 1 AND sizeof(ubRouting::rawPost()) == 1) {
-            show_error(__('Strange exeption'));
+            show_error(__('Strange exception'));
             show_window('', wf_img('skins/ponywrong.png'));
         }
     } else {

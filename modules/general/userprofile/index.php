@@ -39,7 +39,8 @@ if (cfr('USERPROFILE')) {
                 }
             }
         } catch (Exception $exception) {
-            show_window(__('Error'), __('Strange exeption') . ': ' . wf_tag('pre') . $exception->getMessage() . wf_tag('pre', true));
+            show_error(__('Strange exception') . ': ' . $exception->getMessage());
+            show_window('', wf_tag('center') . wf_img('skins/unicornwrong.png') . wf_tag('center', true));
         }
     } else {
         throw new Exception('GET_NO_USERNAME');
