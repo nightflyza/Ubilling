@@ -2,16 +2,21 @@
 
 if (cfr('PLPINGER')) {
 
+    /**
+     * Returns ICMP ping configuration form
+     * 
+     * @return string
+     */
     function wf_PlPingerOptionsForm() {
         //previous setting
-        if (wf_CheckPost(array('packet'))) {
-            $currentpack = vf($_POST['packet'], 3);
+        if (ubRouting::checkPost('packet')) {
+            $currentpack = ubRouting::post('packet', 'int');
         } else {
             $currentpack = '';
         }
 
-        if (wf_CheckPost(array('count'))) {
-            $getCount = vf($_POST['count'], 3);
+        if (ubRouting::checkPost('count')) {
+            $getCount = ubRouting::post('count', 'int');
             if ($getCount <= 10000) {
                 $currentcount = $getCount;
             } else {
@@ -22,15 +27,15 @@ if (cfr('PLPINGER')) {
         }
 
         $inputs = wf_TextInput('packet', __('Packet size'), $currentpack, false, 5);
-        $inputs.= wf_TextInput('count', __('Count'), $currentcount, false, 5);
-        $inputs.= wf_Submit(__('Save'));
+        $inputs .= wf_TextInput('count', __('Count'), $currentcount, false, 5);
+        $inputs .= wf_Submit(__('Save'));
         $result = wf_Form('', 'POST', $inputs, 'glamour');
         return ($result);
     }
 
-    if (isset($_GET['username'])) {
-        $login = $_GET['username'];
-        $config = rcms_parse_ini_file(CONFIG_PATH . 'billing.ini');
+    if (ubRouting::checkGet('username')) {
+        $login = ubRouting::get('username');
+        $config = $ubillingConfig->getBilling();
         $ping_path = $config['PING'];
         $sudo_path = $config['SUDO'];
         $userdata = zb_UserGetStargazerData($login);
@@ -40,45 +45,45 @@ if (cfr('PLPINGER')) {
         $rttTmp = '';
         //setting ping parameters
         $addParams = '';
-        if (wf_CheckGet(array('packsize'))) {
-            $pingSize = vf($_GET['packsize'], 3);
-            $addParams.=' -s ' . $pingSize;
+        if (ubRouting::checkGet('packsize')) {
+            $pingSize = ubRouting::get('packsize', 'int');
+            $addParams .= ' -s ' . $pingSize;
         }
 
-        if (wf_CheckGet(array('packcount'))) {
-            $pingCount = vf($_GET['packcount'], 3);
-            $addParams.=' -c ' . $pingCount;
+        if (ubRouting::checkGet('packcount')) {
+            $pingCount = ubRouting::get('packcount', 'int');
+            $addParams .= ' -c ' . $pingCount;
         }
 
         //setting ajax background params
         $addAjax = '';
-        if (wf_CheckPost(array('packet'))) {
-            $pingSize = vf($_POST['packet'], 3);
-            $addAjax.="&packsize=" . $pingSize;
-            $addParams.=' -s ' . vf($_POST['packet'], 3);
+        if (ubRouting::checkPost('packet')) {
+            $pingSize = ubRouting::post('packet', 'int');
+            $addAjax .= "&packsize=" . $pingSize;
+            $addParams .= ' -s ' . $pingSize;
         }
 
-        if (wf_CheckPost(array('count'))) {
-            $pingCount = vf($_POST['count'], 3);
-            $addAjax.="&packcount=" . $pingCount;
-            $addParams.=' -c ' . $pingCount;
+        if (ubRouting::checkPost('count')) {
+            $pingCount = ubRouting::post('count', 'int');
+            $addAjax .= "&packcount=" . $pingCount;
+            $addParams .= ' -c ' . $pingCount;
         }
 
-        if (wf_CheckGet(array('charts'))) {
-            $addAjax.='&charts=true';
+        if (ubRouting::checkGet('charts')) {
+            $addAjax .= '&charts=true';
         }
 
         $command = $sudo_path . ' ' . $ping_path . ' -i 0.01 -c 10 ' . $addParams . ' ' . $user_ip;
         $ping_result = wf_AjaxLoader();
-        if (!wf_CheckGet(array('charts'))) {
-            $ping_result.=wf_Link('?module=pl_pinger&charts=true&username=' . $_GET['username'], wf_img_sized('skins/icon_stats.gif', '', '16') . ' ' . __('Graphs'), false, 'ubButton');
+        if (!ubRouting::checkGet('charts')) {
+            $ping_result .= wf_Link('?module=pl_pinger&charts=true&username=' . $login, wf_img_sized('skins/icon_stats.gif', '', '16') . ' ' . __('Graphs'), false, 'ubButton');
         } else {
-            $ping_result.=wf_Link('?module=pl_pinger&username=' . $_GET['username'], wf_img('skins/ping_icon.png') . ' ' . __('Normal'), false, 'ubButton');
+            $ping_result .= wf_Link('?module=pl_pinger&username=' . $login, wf_img('skins/ping_icon.png') . ' ' . __('Normal'), false, 'ubButton');
         }
-        $ping_result.= wf_AjaxLink('?module=pl_pinger&username=' . $login . '&ajax=true' . $addAjax, wf_img('skins/refresh.gif') . ' ' . __('Renew'), 'ajaxping', true, 'ubButton');
+        $ping_result .= wf_AjaxLink('?module=pl_pinger&username=' . $login . '&ajax=true' . $addAjax, wf_img('skins/refresh.gif') . ' ' . __('Renew'), 'ajaxping', true, 'ubButton');
         $rawResult = shell_exec($command);
         //some charts
-        if (wf_CheckGet(array('charts'))) {
+        if (ubRouting::checkGet('charts')) {
             /**
              * 心の声で散弾銃のように
              * 唄い続けた
@@ -89,20 +94,33 @@ if (cfr('PLPINGER')) {
                 for ($packCount = 0; $packCount <= $pingCount; $packCount++) {
                     $tmpArr[$packCount] = -1;
                 }
-                $succArray = array();
 
+                $succArray = array();
+                $firstSec = -2;
+                $secOffset = 0;
                 $params[0] = array(__('Packets'), __('Time'));
 
                 if (!empty($pingLines)) {
                     foreach ($pingLines as $io => $eachLine) {
+                        //each packet result
                         if (ispos($eachLine, 'ttl')) {
                             $latency = explode('=', $eachLine);
                             $seq = $latency[1];
-                            $seq = vf($seq, 3);
+                            $seq = ubRouting::filters($seq, 'int');
+                            //start couting packets
+                            if ($firstSec == -2) {
+                                $firstSec = $seq;
+                                //Linux system?
+                                if ($firstSec == 1) {
+                                    $secOffset = 1; //decrement value
+                                }
+                            }
+
                             if (isset($latency[3])) {
                                 $latency = explode(' ', $latency[3]);
                                 $latency = $latency[0];
-                                $succArray[$seq] = $latency;
+                                $sequenceNorm = $seq - $secOffset;
+                                $succArray[$sequenceNorm] = $latency;
                             }
                         } else {
                             //RTT here
@@ -114,6 +132,7 @@ if (cfr('PLPINGER')) {
                     }
                 }
             }
+
 
             if (!empty($tmpArr)) {
                 for ($packCount = 0; $packCount <= $pingCount - 1; $packCount++) {
@@ -146,7 +165,7 @@ if (cfr('PLPINGER')) {
             $pingParams = __('IP') . ': ' . $user_ip . ' ' . __('Packets count') . ': ' . $pingCount . ' ' . __('Packet size') . ': ' . $pingSize;
             $rawResult = $messages->getStyledMessage($pingParams, 'info');
 
-            $rawResult.= wf_gchartsLineZeroIsBad($params, '', '100%', '300px', $chartsOptions);
+            $rawResult .= wf_gchartsLineZeroIsBad($params, '', '100%', '300px', $chartsOptions);
             $lossPercent = (100 - zb_PercentValue($pingCount, sizeof($succArray)));
 
             if ($lossPercent > 0) {
@@ -157,16 +176,17 @@ if (cfr('PLPINGER')) {
                 $summaryStyle = 'info';
             }
             //loss stats
-            $rawResult.=$messages->getStyledMessage(__('Packets lost') . ': ' . $lossPercent . '%', $noticeStyle);
+            $rawResult .= $messages->getStyledMessage(__('Packets lost') . ': ' . $lossPercent . '%', $noticeStyle);
             $succCount = sizeof($succArray);
             $pingSummary = __('Packets received') . ': ' . $succCount . ' ' . __('Packets lost') . ': ' . ($pingCount - $succCount) . ' ' . $rttTmp;
-            $rawResult.= $messages->getStyledMessage($pingSummary, $summaryStyle);
+            $rawResult .= $messages->getStyledMessage($pingSummary, $summaryStyle);
         }
 
-        if (wf_CheckGet(array('ajax'))) {
+        if (ubRouting::checkGet('ajax')) {
             die($rawResult);
         }
-        $ping_result.=wf_tag('pre', false, '', 'id="ajaxping"') . $rawResult . wf_tag('pre', true);
+
+        $ping_result .= wf_tag('pre', false, '', 'id="ajaxping"') . $rawResult . wf_tag('pre', true);
         show_window(__('Settings'), wf_PlPingerOptionsForm());
         show_window(__('User pinger'), $ping_result);
 
@@ -175,4 +195,4 @@ if (cfr('PLPINGER')) {
 } else {
     show_error(__('You cant control this module'));
 }
-?>
+
