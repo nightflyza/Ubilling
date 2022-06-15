@@ -137,7 +137,7 @@ class mobipace extends SendDogProto {
      */
     public function mobipaceDecodeStatusMsg($statusMsgCode) {
         $msgStatusCodes = array(1 => 'Pending',
-            2 => 'Scheduled',
+            2 => 'Scheduled message',
             3 => 'Sent',
             4 => 'Insufficient funds to send messages',
             5 => 'Invalid cell number format',
