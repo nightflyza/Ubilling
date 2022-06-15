@@ -291,9 +291,10 @@ class GlobalMenu {
         $disabledFilename = self::CUSTOMS_PATH . $this->myLogin . '.disabled';
         $tmpData = '';
 
-        if (wf_CheckPost(array('_glmdisabled'))) {
-            if (!empty($_POST['_glmdisabled'])) {
-                foreach ($_POST['_glmdisabled'] as $modulename => $on) {
+        if (ubRouting::checkPost('_glmdisabled')) {
+            $glmDisabled = ubRouting::post('_glmdisabled');
+            if (!empty($glmDisabled)) {
+                foreach ($glmDisabled as $modulename => $on) {
                     $tmpData .= trim($modulename) . ',';
                 }
                 $tmpData = rtrim($tmpData, ",");
@@ -308,9 +309,10 @@ class GlobalMenu {
         $fastaccFilename = self::CUSTOMS_PATH . $this->myLogin . '.fastacc';
         $tmpData = '';
 
-        if (wf_CheckPost(array('_glmfastacc'))) {
-            if (!empty($_POST['_glmfastacc'])) {
-                foreach ($_POST['_glmfastacc'] as $modulename => $on) {
+        if (ubRouting::checkPost('_glmfastacc')) {
+            $glmFastacc = ubRouting::post('_glmfastacc');
+            if (!empty($glmFastacc)) {
+                foreach ($glmFastacc as $modulename => $on) {
                     $tmpData .= trim($modulename) . ',';
                 }
                 $tmpData = rtrim($tmpData, ",");
@@ -320,6 +322,20 @@ class GlobalMenu {
         } else {
             file_put_contents($fastaccFilename, '');
         }
+    }
+
+    /**
+     * Returns fast access menu customization control
+     * 
+     * @return string
+     */
+    protected function getCustomizeControl() {
+        $result = '';
+        if (cfr('GLMENUCONF')) {
+            $result .= wf_tag('div', false, 'breadcrumb_divider') . wf_tag('div', true);
+            $result .= wf_Link('?module=glmenuconf', '+', false, '', 'title="' . __('Personalize menu') . '"');
+        }
+        return($result);
     }
 
     /**
@@ -341,10 +357,8 @@ class GlobalMenu {
             }
         }
         //edit control here
-        if (cfr('GLMENUCONF')) {
-            $tmpData .= wf_tag('div', false, 'breadcrumb_divider') . wf_tag('div', true);
-            $tmpData .= wf_Link('?module=glmenuconf', '+', false, '', 'title="' . __('Personalize menu') . '"');
-        }
+        $tmpData .= $this->getCustomizeControl();
+
         file_put_contents($fastaccData, $tmpData);
     }
 
@@ -357,7 +371,11 @@ class GlobalMenu {
         $this->menuCodeFA .= wf_Link('?module=taskbar', __('Taskbar'), false);
         $fastaccData = self::CUSTOMS_PATH . $this->myLogin . '.fastaccdata';
         if (file_exists($fastaccData)) {
+            //load preprocessed data
             $this->menuCodeFA .= file_get_contents($fastaccData);
+        } else {
+            //append customize link if no precached data
+            $this->menuCodeFA .= $this->getCustomizeControl();
         }
     }
 
@@ -372,5 +390,3 @@ class GlobalMenu {
     }
 
 }
-
-?>
