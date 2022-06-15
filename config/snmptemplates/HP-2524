@@ -68,7 +68,7 @@ OIDS=".1.3.6.1.4.1.11.2.14.11.5.1.1.2.1.1.1.6.1"
 PARSER=sp_parse_ciscomemory
 
 [CPU]
-NAME="Загрузка CPU"
+NAME="CPU load"
 OIDS=".1.3.6.1.4.1.11.2.14.11.5.1.9.6.1.0"
 PARSER=sp_parse_ciscocpu
 
