@@ -56,7 +56,7 @@ if (cfr('BUILDPASSPORT')) {
                 $backControl = wf_BackLink($backUrl);
                 $editControl = '';
                 if (cfr('BUILDS')) {
-                    $editLabel = wf_img('skins/icon_passport.gif') . ' ' . __('Edit build passport');
+                    $editLabel = wf_img('skins/icon_buildpassport.png') . ' ' . __('Edit build passport');
                     $editTitle = __('Edit build passport') . ': ' . $buildLabel;
                     $editControl = wf_modalAuto($editLabel, $editTitle, $passport->renderEditForm($buildId), 'ubButton');
                 }

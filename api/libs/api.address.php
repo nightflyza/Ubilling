@@ -1419,7 +1419,12 @@ function renderBuildsListerJSON($streetid, $AutoEditBuildID = 0) {
             }
 
             if ($buildPassportFlag) {
-                $Actions .= ' ' . wf_modal(wf_img('skins/icon_passport.gif', __('Build passport')), __('Build passport'), $buildPassport->renderEditForm($eachbuild['id']), '', '600', '450');
+                $buildPassportEditForm = $buildPassport->renderEditForm($eachbuild['id']);
+                $buildPassportEditForm .= wf_delimiter();
+                $buildPassportUrl = $buildPassport::URL_PASSPORT . '&' . $buildPassport::ROUTE_BUILD . '=' . $eachbuild['id'];
+                $buildPassportUrl .= '&back=' . base64_encode('builds&action=edit&streetid=' . $streetid);
+                $buildPassportEditForm .= wf_Link($buildPassportUrl, wf_img('skins/icon_buildpassport.png') . ' ' . __('Go to build passport'), false, 'ubButton');
+                $Actions .= ' ' . wf_modal(wf_img('skins/icon_buildpassport.png', __('Build passport')), __('Build passport'), $buildPassportEditForm, '', '600', '550');
             }
 
             $data[] = $eachbuild['id'];

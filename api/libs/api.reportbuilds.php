@@ -426,7 +426,7 @@ class ReportBuilds {
                         if ($this->adCommentsFlag) {
                             $actionLinks .= $adComments->getCommentsIndicator($each['id']) . ' ';
                         }
-                        $actionLinks .= wf_Link($passportUrl . $each['id'], wf_img('skins/icon_passport.gif', __('Build passport'))) . ' ';
+                        $actionLinks .= wf_Link($passportUrl . $each['id'], wf_img('skins/icon_buildpassport.png', __('Build passport'))) . ' ';
                     }
 
                     if (!empty($each['geo'])) {
