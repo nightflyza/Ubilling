@@ -1335,16 +1335,24 @@ function ts_PreviousUserTasksRender($login, $address = '', $noFixedWidth = false
 function ts_PreviousBuildTasksRender($buildId, $noFixedWidth = false, $arrayResult = false) {
     $result = '';
     $buildTasks = array();
-
+    $tmpResult = array(
+        'today' => '',
+        'month' => '',
+        'year' => '',
+    );
     $allJobTypes = ts_GetAllJobtypes();
     $allEmployee = ts_GetAllEmployee();
     $allUserBuilds = zb_AddressGetBuildUsers();
-    $query = "SELECT * from `taskman` ORDER BY `id` DESC;";
+    $curYear = curyear();
+    $curMonth = curmonth();
+    $curDay = curdate();
+    $query = "SELECT * from `taskman` WHERE `startdate` LIKE '" . $curYear . "-%' ORDER BY `id` DESC;";
     $rawTasks = simple_queryall($query);
     if (!empty($rawTasks)) {
         if (!$noFixedWidth) {
             $result .= wf_tag('hr');
         }
+
         foreach ($rawTasks as $io => $each) {
             if (!empty($each['login'])) {
                 if (isset($allUserBuilds[$each['login']])) {
@@ -1360,13 +1368,36 @@ function ts_PreviousBuildTasksRender($buildId, $noFixedWidth = false, $arrayResu
         if (!$arrayResult) {
             if (!empty($buildTasks)) {
                 foreach ($buildTasks as $io => $each) {
-                    $telepathyFlag = (isset($telepathyTasks[$each['id']])) ? wf_tag('sup') . wf_tag('abbr', false, '', 'title="' . __('telepathically guessed') . '"') . '(?)' . wf_tag('abbr', true) . wf_tag('sup', true) : '';
+                    $resultScope = 'year'; //default scope
                     $taskColor = ($each['status']) ? 'donetask' : 'undone';
                     $divStyle = ($noFixedWidth) ? 'style="padding: 2px; margin: 2px;"' : 'style="width:400px;"';
-                    $result .= wf_tag('div', false, $taskColor, $divStyle);
-                    $taskdata = $each['startdate'] . ' ' . $each['address'] . ' - ' . @$allJobTypes[$each['jobtype']] . ', ' . @$allEmployee[$each['employee']] . ' ' . $telepathyFlag;
-                    $result .= wf_link('?module=taskman&edittask=' . $each['id'], wf_img('skins/icon_edit.gif')) . ' ' . $taskdata;
-                    $result .= wf_tag('div', true);
+                    $taskdata = $each['startdate'] . ' ' . $each['address'] . ' - ' . @$allJobTypes[$each['jobtype']] . ', ' . @$allEmployee[$each['employee']];
+                    //this month?
+                    if (ispos($each['startdate'], $curMonth)) {
+                        $resultScope = 'month';
+                    }
+                    //or today?
+                    if (ispos($each['startdate'], $curDay)) {
+                        $resultScope = 'today';
+                    }
+                    $tmpResult[$resultScope] .= wf_tag('div', false, $taskColor, $divStyle);
+                    $tmpResult[$resultScope] .= wf_link('?module=taskman&edittask=' . $each['id'], wf_img('skins/icon_edit.gif')) . ' ' . $taskdata;
+                    $tmpResult[$resultScope] .= wf_tag('div', true);
+                }
+                //build result body
+                if (!empty($tmpResult['today'])) {
+                    $result .= wf_tag('fieldset') . wf_tag('legend') . __('Today') . wf_tag('legend', true)
+                            . $tmpResult['today'] . wf_tag('fieldset', true);
+                }
+
+                if (!empty($tmpResult['month'])) {
+                    $result .= wf_tag('fieldset') . wf_tag('legend') . __('Month') . wf_tag('legend', true)
+                            . $tmpResult['month'] . wf_tag('fieldset', true);
+                }
+
+                if (!empty($tmpResult['year'])) {
+                    $result .= wf_tag('fieldset') . wf_tag('legend') . __('Year') . ' ' . $curYear . wf_tag('legend', true)
+                            . $tmpResult['year'] . wf_tag('fieldset', true);
                 }
             }
         } else {
@@ -1374,6 +1405,7 @@ function ts_PreviousBuildTasksRender($buildId, $noFixedWidth = false, $arrayResu
         }
     }
 
+    //$result='<fieldset>    <legend>Choose your favorite monster</legend>'.$result.'</fieldset>';
     return ($result);
 }
 

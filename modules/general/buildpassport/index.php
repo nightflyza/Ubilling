@@ -57,7 +57,7 @@ if (cfr('BUILDPASSPORT')) {
                         show_window(__('Mini-map'), $buildMiniMap);
                     }
                 }
-                
+
                 //Previous tasks on users in this build
                 if (cfr('TASKMAN')) {
                     $previousBuildTasks = ts_PreviousBuildTasksRender($buildId, true);
