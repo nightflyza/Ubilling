@@ -1405,7 +1405,6 @@ function ts_PreviousBuildTasksRender($buildId, $noFixedWidth = false, $arrayResu
         }
     }
 
-    //$result='<fieldset>    <legend>Choose your favorite monster</legend>'.$result.'</fieldset>';
     return ($result);
 }
 
@@ -2388,7 +2387,29 @@ function ts_TaskChangeForm($taskid) {
         $tablecells .= wf_TableCell(wf_tag('strong') . $taskdata['startdate'] . ' ' . $taskdata['starttime'] . wf_tag('strong', true));
         $tablerows .= wf_TableRow($tablecells, 'row3');
 
-        $tablecells = wf_TableCell(__('Task address'));
+        //here some build passport data
+        $bpData = '';
+        if ($altercfg['BUILD_EXTENDED']) {
+            if (!empty($taskLogin)) {
+                if (cfr('BUILDPASSPORT')) {
+                    $allUserBuilds = zb_AddressGetBuildUsers();
+                    if (isset($allUserBuilds[$taskLogin])) {
+                        $taskUserBuildId = $allUserBuilds[$taskLogin];
+                        $buildPassport = new BuildPassport();
+                        $buildPassportData = $buildPassport->renderPassportData($taskUserBuildId);
+                        if (!empty($buildPassportData)) {
+                            $bpLink = $buildPassport::URL_PASSPORT . '&' . $buildPassport::ROUTE_BUILD . '=' . $taskUserBuildId;
+                            $bpLink .= '&back=' . base64_encode('taskman&edittask=' . $taskid);
+                            $buildPassportData = wf_CleanDiv() . $buildPassportData;
+                            $buildPassportData .= wf_delimiter(0) . wf_Link($bpLink, wf_img('skins/icon_buildpassport.png') . ' ' . __('Go to build passport'), false, 'ubButton');
+                            $bpData .= wf_modal(wf_img_sized('skins/icon_buildpassport.png', __('Build passport'), 12), __('Build passport'), $buildPassportData, '', 700);
+                        }
+                    }
+                }
+            }
+        }
+
+        $tablecells = wf_TableCell(__('Task address') . $bpData);
         $tablecells .= wf_TableCell($addresslink);
         $tablerows .= wf_TableRow($tablecells, 'row3');
 
@@ -2504,7 +2525,7 @@ function ts_TaskChangeForm($taskid) {
         }
 
         $result .= wf_TableBody($tablerows, '100%', '0', 'glamour');
-        $result .= wf_tag('div', false, '', 'style="clear:both;"') . wf_tag('div', true);
+        $result .= wf_CleanDiv();
         // show task preview
         show_window(__('View task') . ' ' . $modform, $result);
 
