@@ -782,8 +782,19 @@ class UserProfile {
                         $inbuildNeigbors_raw = $inbuildNeigbors_raw[$this->aptdata['buildid']];
                         if (!empty($inbuildNeigbors_raw)) {
                             $inbuildNeigborsStat = '';
+
+                            //Build passports enabled?
+                            if ($this->alterCfg['BUILD_EXTENDED']) {
+                                $buildPassportUrl = BuildPassport::URL_PASSPORT . '&' . BuildPassport::ROUTE_BUILD . '=' . $this->aptdata['buildid'];
+                                $buildPassportUrl .= '&back=' . base64_encode('userprofile&username=' . $this->login);
+                                $bpStyle = 'style="width:85%;"';
+                                $buildPassportLink = wf_Link($buildPassportUrl, wf_img('skins/icon_buildpassport.png') . ' ' . __('Go to build passport'), false, 'ubButton', $bpStyle);
+                                $inbuildNeigborsStat .= $buildPassportLink;
+                            }
+
                             $inbuildNeigborsStat .= wf_TableBody($inbuildNeigbors_raw['rows'], '100%', '0', 'sortable');
                             $inbuildNeigborsStat .= wf_tag('br') . __('Active') . ' ' . $inbuildNeigbors_raw['aliveusers'] . '/' . $inbuildNeigbors_raw['userscount'];
+
                             $buildNeighborsIcon = wf_img_sized('skins/icon_build.gif', __('Neighbours'), 12);
                             $buildLocator .= ' ' . wf_modal($buildNeighborsIcon, __('Neighbours'), $inbuildNeigborsStat, '', 400, 400);
                         }

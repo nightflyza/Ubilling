@@ -6,9 +6,26 @@ if (cfr('BUILDPASSPORT')) {
         if (ubRouting::checkGet(BuildPassport::ROUTE_BUILD)) {
             $passport = new BuildPassport();
             $buildId = ubRouting::get(BuildPassport::ROUTE_BUILD, 'int');
+            $allBuildsAddress = zb_AddressGetBuildAllAddress();
+            $buildLabel = @$allBuildsAddress[$buildId];
+
+            //passport navigation here
+            if (ubRouting::checkGet('back')) {
+                $rawBack = ubRouting::get('back');
+                $backUrl = '?module=' . base64_decode($rawBack);
+                $backControl = wf_BackLink($backUrl);
+                $editControl = '';
+                if (cfr('BUILDS')) {
+                    $editLabel = wf_img('skins/icon_buildpassport.png') . ' ' . __('Edit build passport');
+                    $editTitle = __('Edit build passport') . ': ' . $buildLabel;
+                    $editControl = wf_modalAuto($editLabel, $editTitle, $passport->renderEditForm($buildId), 'ubButton');
+                }
+
+                //some controls here
+                show_window('', $backControl . ' ' . $editControl);
+            }
+
             if (!empty($buildId)) {
-                $allBuildsAddress = zb_AddressGetBuildAllAddress();
-                $buildLabel = @$allBuildsAddress[$buildId];
                 $passportData = $passport->getPassportData($buildId);
                 $buildData = zb_AddressGetBuildData($buildId);
 
@@ -48,21 +65,6 @@ if (cfr('BUILDPASSPORT')) {
                 }
             } else {
                 show_error(__('Something went wrong') . ': EX_WRONG_BUILDID');
-            }
-
-            if (ubRouting::checkGet('back')) {
-                $rawBack = ubRouting::get('back');
-                $backUrl = '?module=' . base64_decode($rawBack);
-                $backControl = wf_BackLink($backUrl);
-                $editControl = '';
-                if (cfr('BUILDS')) {
-                    $editLabel = wf_img('skins/icon_buildpassport.png') . ' ' . __('Edit build passport');
-                    $editTitle = __('Edit build passport') . ': ' . $buildLabel;
-                    $editControl = wf_modalAuto($editLabel, $editTitle, $passport->renderEditForm($buildId), 'ubButton');
-                }
-
-                //some controls here
-                show_window('', $backControl . ' ' . $editControl);
             }
         } else {
             show_error(__('Something went wrong') . ': EX_NO_BUILDID');
