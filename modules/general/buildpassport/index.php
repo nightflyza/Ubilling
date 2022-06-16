@@ -57,7 +57,14 @@ if (cfr('BUILDPASSPORT')) {
                         show_window(__('Mini-map'), $buildMiniMap);
                     }
                 }
-
+                
+                //Previous tasks on users in this build
+                if (cfr('TASKMAN')) {
+                    $previousBuildTasks = ts_PreviousBuildTasksRender($buildId, true);
+                    if (!empty($previousBuildTasks)) {
+                        show_window(__('Previous tasks in this build'), $previousBuildTasks);
+                    }
+                }
                 //Optional additional comments
                 if ($ubillingConfig->getAlterParam('ADCOMMENTS_ENABLED')) {
                     $adComments = new ADcomments('BUILDS');

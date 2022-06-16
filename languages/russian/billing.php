@@ -3392,3 +3392,4 @@ $lang['def']['Latest ONU signals'] = 'Сигналы последних ONU';
 $lang['def']['ONU signals'] = 'Сигналы ONU';
 $lang['def']['Strange exception'] = 'Подозрительная ошибка - вообще странно, что вы ее видите';
 $lang['def']['Go to build passport'] = 'Перейти в паспорт дома';
+$lang['def']['Previous tasks in this build'] = 'Предыдущие задачи в этом доме';

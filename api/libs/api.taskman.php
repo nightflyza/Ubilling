@@ -1324,6 +1324,60 @@ function ts_PreviousUserTasksRender($login, $address = '', $noFixedWidth = false
 }
 
 /**
+ * Renders list of all previous build user tasks by all time
+ * 
+ * @param int $buildId
+ * @param bool $noFixedWidth
+ * @param bool $arrayResult
+ * 
+ * @return string/array
+ */
+function ts_PreviousBuildTasksRender($buildId, $noFixedWidth = false, $arrayResult = false) {
+    $result = '';
+    $buildTasks = array();
+
+    $allJobTypes = ts_GetAllJobtypes();
+    $allEmployee = ts_GetAllEmployee();
+    $allUserBuilds = zb_AddressGetBuildUsers();
+    $query = "SELECT * from `taskman` ORDER BY `id` DESC;";
+    $rawTasks = simple_queryall($query);
+    if (!empty($rawTasks)) {
+        if (!$noFixedWidth) {
+            $result .= wf_tag('hr');
+        }
+        foreach ($rawTasks as $io => $each) {
+            if (!empty($each['login'])) {
+                if (isset($allUserBuilds[$each['login']])) {
+                    $taskBuildId = $allUserBuilds[$each['login']];
+                    if ($taskBuildId == $buildId) {
+                        $buildTasks[$each['id']] = $each;
+                    }
+                }
+            }
+        }
+
+
+        if (!$arrayResult) {
+            if (!empty($buildTasks)) {
+                foreach ($buildTasks as $io => $each) {
+                    $telepathyFlag = (isset($telepathyTasks[$each['id']])) ? wf_tag('sup') . wf_tag('abbr', false, '', 'title="' . __('telepathically guessed') . '"') . '(?)' . wf_tag('abbr', true) . wf_tag('sup', true) : '';
+                    $taskColor = ($each['status']) ? 'donetask' : 'undone';
+                    $divStyle = ($noFixedWidth) ? 'style="padding: 2px; margin: 2px;"' : 'style="width:400px;"';
+                    $result .= wf_tag('div', false, $taskColor, $divStyle);
+                    $taskdata = $each['startdate'] . ' ' . $each['address'] . ' - ' . @$allJobTypes[$each['jobtype']] . ', ' . @$allEmployee[$each['employee']] . ' ' . $telepathyFlag;
+                    $result .= wf_link('?module=taskman&edittask=' . $each['id'], wf_img('skins/icon_edit.gif')) . ' ' . $taskdata;
+                    $result .= wf_tag('div', true);
+                }
+            }
+        } else {
+            $result = $buildTasks;
+        }
+    }
+
+    return ($result);
+}
+
+/**
  * Returns task creation form unified (use this shit in your further code!)
  * 
  * @param string $address
@@ -2157,7 +2211,7 @@ function ts_CheckDailyDuplicates($taskData, $optionValue = 1) {
 
                 $windowLabel = __('Tasks with duplicate address created for same day');
                 if ($optionValue > 1) {
-                    $windowLabel .= ' ' . __('or in').' +-'.$optionValue.' '.__('days');
+                    $windowLabel .= ' ' . __('or in') . ' +-' . $optionValue . ' ' . __('days');
                 }
                 show_window($windowLabel, $result);
             }

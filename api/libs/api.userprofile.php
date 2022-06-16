@@ -796,7 +796,9 @@ class UserProfile {
                             $inbuildNeigborsStat .= wf_tag('br') . __('Active') . ' ' . $inbuildNeigbors_raw['aliveusers'] . '/' . $inbuildNeigbors_raw['userscount'];
 
                             $buildNeighborsIcon = wf_img_sized('skins/icon_build.gif', __('Neighbours'), 12);
-                            $buildLocator .= ' ' . wf_modal($buildNeighborsIcon, __('Neighbours'), $inbuildNeigborsStat, '', 400, 400);
+                            $fullUserData = $this->AllUserData[$this->login];
+                            $locatorTitle = __('Neighbours') . ' ' . __('on') . ' ' . @$fullUserData['streetname'] . ' ' . @$fullUserData['buildnum'];
+                            $buildLocator .= ' ' . wf_modal($buildNeighborsIcon, $locatorTitle, $inbuildNeigborsStat, '', 400, 400);
                         }
                     }
                 }
