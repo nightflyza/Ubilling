@@ -2047,7 +2047,6 @@ function zb_AddressGetCityUsers() {
     $full_adress = simple_queryall($query_full);
     if (!empty($full_adress)) {
         foreach ($full_adress as $ArrayData) {
-
             //only city display option
             $result[$ArrayData['login']] = $ArrayData['cityname'];
         }
@@ -2071,9 +2070,30 @@ function zb_AddressGetStreetUsers() {
     $full_adress = simple_queryall($query_full);
     if (!empty($full_adress)) {
         foreach ($full_adress as $ArrayData) {
-
             //only street display option
             $result[$ArrayData['login']] = $ArrayData['streetname'];
+        }
+    }
+
+    return($result);
+}
+
+/**
+ * Returns all user builds as  login=>buildId
+ * 
+ * @return array
+ */
+function zb_AddressGetBuildUsers() {
+    $result = array();
+    $query = "
+        SELECT `address`.`login`,`buildid` FROM `address` 
+        INNER JOIN `apt` ON `address`.`aptid`= `apt`.`id` 
+        INNER JOIN `build` ON `apt`.`buildid`=`build`.`id` 
+        INNER JOIN `street` ON `build`.`streetid`=`street`.`id`";
+    $rawData = simple_queryall($query);
+    if (!empty($rawData)) {
+        foreach ($rawData as $each) {
+            $result[$each['login']] = $each['buildid'];
         }
     }
 
