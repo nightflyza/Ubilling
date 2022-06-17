@@ -465,6 +465,10 @@ function web_SwitchDownlinksList($switchId) {
         $cells .= wf_TableCell(__('IP'));
         if ($switchesExtended) {
             $cells .= wf_TableCell(__('Uplink'));
+            //separate uplink port 
+            if ($switchesExtended == 3) {
+                $cells .= wf_TableCell(__('Port'));
+            }
         }
         $cells .= wf_TableCell(__('Location'));
         $cells .= wf_TableCell(__('Active'));
@@ -497,7 +501,12 @@ function web_SwitchDownlinksList($switchId) {
             $cells = wf_TableCell($each['id']);
             $cells .= wf_TableCell($each['ip']);
             if ($switchesExtended) {
-                $cells .= wf_TableCell($switchesUplinks->getUplinkTinyDesc($each['id']));
+                $includePortFlag = ($switchesExtended == 2) ? true : false;
+                $cells .= wf_TableCell($switchesUplinks->getUplinkTinyDesc($each['id'], $includePortFlag));
+                //separate uplink port
+                if ($switchesExtended==3) {
+                    $cells .= wf_TableCell($switchesUplinks->getUplinkPort($each['id']));
+                }
             }
             $cells .= wf_TableCell($each['location']);
             $cells .= wf_TableCell($aliveled);
@@ -1304,7 +1313,7 @@ function web_SwitchesRenderList() {
     if ($switchesExtended) {
         $columns[] = __('Uplink');
         //separate port column
-        if ($switchesExtended==3) {
+        if ($switchesExtended == 3) {
             $columns[] = __('Port');
         }
     }
