@@ -76,6 +76,20 @@ class TaskFlow {
     protected $messages = '';
 
     /**
+     * Task ranks instance placeholder
+     *
+     * @var object
+     */
+    protected $taskRanks = '';
+
+    /**
+     * Is TASKRANKS_ENABLED option enabled flag
+     *
+     * @var bool
+     */
+    protected $taskRanksEnabled = false;
+
+    /**
      * Predefined routes/URLs/etc
      */
     const URL_ME = '?module=taskflow';
@@ -95,9 +109,13 @@ class TaskFlow {
 
     public function __construct() {
         $this->loadAlter();
+        $this->setOptions();
         $this->initMessages();
         $this->loadEmployee();
         $this->initTaskStates();
+        if ($this->taskRanksEnabled) {
+            $this->initTaskRanks();
+        }
     }
 
     /**
@@ -119,6 +137,26 @@ class TaskFlow {
      */
     protected function initMessages() {
         $this->messages = new UbillingMessageHelper();
+    }
+
+    /**
+     * Creates new task ranks instance in protected property
+     * 
+     * @return void
+     */
+    protected function initTaskRanks() {
+        $this->taskRanks = new Stigma('TASKRANKS');
+    }
+
+    /**
+     * Sets some object properties due config setup
+     * 
+     * @return void
+     */
+    protected function setOptions() {
+        if ($this->altCfg['TASKRANKS_ENABLED']) {
+            $this->taskRanksEnabled = true;
+        }
     }
 
     /**
@@ -362,6 +400,7 @@ class TaskFlow {
             $allStateIcons = $this->taskStates->getStateIcons();
             $this->loadJobTypes();
 
+
             $cells = wf_TableCell(__('ID'));
             $cells .= wf_TableCell(__('Task state'));
             if (@$this->altCfg['PHOTOSTORAGE_ENABLED']) {
@@ -370,6 +409,11 @@ class TaskFlow {
             if (@$this->altCfg['WAREHOUSE_ENABLED']) {
                 $cells .= wf_TableCell(__('Outcoming operations'));
             }
+
+            if ($this->taskRanksEnabled) {
+                $cells .= wf_TableCell(__('Quality control'));
+            }
+
             $cells .= wf_TableCell(__('Date'));
             $cells .= wf_TableCell(__('Address'));
             $cells .= wf_TableCell(__('Job type'));
@@ -395,6 +439,15 @@ class TaskFlow {
                     $whOutcomesCount = (isset($this->allWarehouseOutcomes[$taskId])) ? $this->allWarehouseOutcomes[$taskId] : 0;
                     $cells .= wf_TableCell(web_bool_led($whOutcomesCount));
                 }
+
+                if ($this->taskRanksEnabled) {
+                    $eachTaskRank = '';
+                    if ($this->taskRanks->haveState($taskId)) {
+                        $eachTaskRank .= $this->taskRanks->renderItemStates($taskId, 16);
+                    }
+                    $cells .= wf_TableCell($eachTaskRank);
+                }
+
                 $cells .= wf_TableCell($taskData['startdate']);
                 $cells .= wf_TableCell($taskData['address']);
                 $cells .= wf_TableCell(@$this->allJobTypes[$taskData['jobtype']]);

@@ -348,7 +348,7 @@ class Stigma {
     }
 
     /**
-     * Renders stigma current state and editing interface
+     * Renders stigma current state and editing interface for some item
      * 
      * @param string $itemId item ID to render control panel
      * @param int $size optional size of state icons
@@ -405,6 +405,36 @@ class Stigma {
         $result .= wf_tag('div', true);
         $result .= wf_CleanDiv();
 
+        return($result);
+    }
+
+    /**
+     * Renders stigma states list or void if not set for some item
+     * 
+     * @param string $itemId item ID to render control panel
+     * @param int $size optional size of state icons
+     * 
+     * @return string/void
+     */
+    public function renderItemStates($itemId, $size = '') {
+        $result = '';
+        $currentStates = array();
+        //this itemid already have an stigma record
+
+        if (isset($this->allStigmas[$itemId])) {
+            $rawStates = explode(self::DELIMITER, $this->allStigmas[$itemId]['state']);
+            $currentStates = array_flip($rawStates);
+            unset($currentStates['']);
+            if (!empty($currentStates)) {
+                foreach ($currentStates as $eachStateId => $index) {
+                    if (isset($this->states[$eachStateId])) {
+                        $stateLabel = __($this->states[$eachStateId]);
+                        $stateIcon = $this->getStateIcon($eachStateId);
+                        $result .= wf_img_sized($stateIcon, $stateLabel, $size) . ' ';
+                    }
+                }
+            }
+        }
         return($result);
     }
 
