@@ -283,16 +283,42 @@ class SwitchUplinks {
      * Returns short uplink parameters text description
      * 
      * @param int $swithchId
+     * @param bool $includePort
      * 
      * @return string
      */
-    public function getUplinkTinyDesc($swithchId) {
+    public function getUplinkTinyDesc($swithchId, $includePort = false) {
         $result = '';
         if (isset($this->allUplinksData[$swithchId])) {
             $media = $this->allUplinksData[$swithchId]['media'];
             $speed = $this->allUplinksData[$swithchId]['speed'];
             $icon = (isset($this->mediaIcons[$media])) ? wf_img(self::PATH_ICONS . $this->mediaIcons[$media], $this->mediaTypes[$media]) : '';
             $result .= $icon . $media . $speed;
+            //optional append port
+            if ($includePort) {
+                $port = $this->allUplinksData[$swithchId]['port'];
+                if (!empty($port)) {
+                    $result .= 'p' . $port;
+                }
+            }
+        }
+        return($result);
+    }
+
+    /**
+     * Returns short uplink port or void if not set
+     * 
+     * @param int $swithchId
+     * 
+     * @return int/void
+     */
+    public function getUplinkPort($swithchId) {
+        $result = '';
+        if (isset($this->allUplinksData[$swithchId])) {
+            $port = $this->allUplinksData[$swithchId]['port'];
+            if (!empty($port)) {
+                $result .= $port;
+            }
         }
         return($result);
     }

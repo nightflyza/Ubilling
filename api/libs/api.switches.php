@@ -1303,6 +1303,10 @@ function web_SwitchesRenderList() {
 
     if ($switchesExtended) {
         $columns[] = __('Uplink');
+        //separate port column
+        if ($switchesExtended==3) {
+            $columns[] = __('Port');
+        }
     }
 
     if ($swGroupsEnabled) {
@@ -1310,6 +1314,7 @@ function web_SwitchesRenderList() {
     } else {
         array_push($columns, 'Location', 'Active', 'Model', 'SNMP community', 'Geo location', 'Description', 'Actions');
     }
+
     $opts = '"order": [[ 0, "desc" ]]';
     $result = wf_JqDtLoader($columns, '?module=switches&ajaxlist=true', false, __('Switch'), 100, $opts);
     if (file_exists($summaryCache)) {
@@ -1420,7 +1425,12 @@ function zb_SwitchesRenderAjaxList() {
             }
 
             if ($switchesExtended) {
-                $jsonItem[] = $switchesUplinks->getUplinkTinyDesc($eachswitch['id']);
+                $includePortFlag = ($switchesExtended == 2) ? true : false;
+                $jsonItem[] = $switchesUplinks->getUplinkTinyDesc($eachswitch['id'], $includePortFlag);
+                //port as separate column?
+                if ($switchesExtended == 3) {
+                    $jsonItem[] = $switchesUplinks->getUplinkPort($eachswitch['id']);
+                }
             }
 
             $jsonItem[] = $eachswitch['location'];
