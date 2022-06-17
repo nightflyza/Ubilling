@@ -419,8 +419,7 @@ class Stigma {
     public function renderItemStates($itemId, $size = '') {
         $result = '';
         $currentStates = array();
-        //this itemid already have an stigma record
-
+        //have this item existing stigma record?
         if (isset($this->allStigmas[$itemId])) {
             $rawStates = explode(self::DELIMITER, $this->allStigmas[$itemId]['state']);
             $currentStates = array_flip($rawStates);

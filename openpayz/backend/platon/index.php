@@ -8,6 +8,7 @@ $merchant_service = $conf_platon['MERCHANT_SERVICE'];
 $merchant_logo = $conf_platon['MERCHANT_LOGO'];
 $merchant_currency = $conf_platon['MERCHANT_CURRENCY'];
 $avail_prices = $conf_platon['AVAIL_PRICES'];
+$succes_url = $conf_platon['URL_OK'];
 
 function platonSumm($customer_id, $avail_prices, $merchant_currency) {
     $form = '<p> <form action="" method="POST">';
