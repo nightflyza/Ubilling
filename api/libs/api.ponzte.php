@@ -406,7 +406,7 @@ class PonZte {
         } else {
             switch (strlen($binary)) {
             case 29:
-                preg_match("/(\d{4})(\d{6})(\d{3})(\d{8})(\d{8})/", $binary, $match);
+                preg_match("/(\d{4})(\d{9})(\d{8})(\d{8})/", $binary, $match);
                 break;
             }
             foreach ($match as &$each) {
@@ -962,7 +962,7 @@ class PonZte {
                         $interfaceName = $interfaceVport . $interfaceVportDecode[3] . ':' . $interfaceVportDecode[4];
                         */
                         $interfaceVportDecode = $this->getDecodeType(decbin($devIndex));
-                        $interfaceName = $interfaceVport . $interfaceVportDecode[3];
+                        $interfaceName = $interfaceVport . $interfaceVportDecode[2];
                         if ($interfaceName) {
                             if (isset($decParts[0])) {
                                 $fdbVlan = trim($decParts[0]);
