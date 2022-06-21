@@ -3,15 +3,15 @@
 $altCfg = $ubillingConfig->getAlter();
 if ($altCfg['EXHORSE_ENABLED']) {
     if (cfr('EXHORSE')) {
-        
+
         $exhorse = new ExistentialHorse();
-        if (wf_CheckPost(array('yearsel'))) {
-            $exhorse->setYear($_POST['yearsel']);
+        if (ubRouting::checkPost('yearsel')) {
+            $exhorse->setYear(ubRouting::post('yearsel'));
         } else {
             $exhorse->setYear(date("Y"));
         }
-        
-        show_window(__('Existential horse'),$exhorse->renderReport());
+
+        show_window(__('Existential horse'), $exhorse->renderReport());
         zb_BillingStats(true);
     } else {
         show_error(__('Access denied'));
@@ -19,4 +19,3 @@ if ($altCfg['EXHORSE_ENABLED']) {
 } else {
     show_error(__('This module is disabled'));
 }
-?>

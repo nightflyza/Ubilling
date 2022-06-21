@@ -3414,6 +3414,8 @@ $lang['def']['ONU signals'] = 'Сигнали ONU';
 $lang['def']['Strange exception'] = 'Підозріла помилка - взагалі дивно, що ви її бачите';
 $lang['def']['Go to build passport'] = 'Перейти до паспорту будинку';
 $lang['def']['Previous tasks in this build'] = 'Попередні задачі в цьому будинку';
+$lang['def']['Telephony'] = 'Телефонія';
+$lang['def']['TelePony'] = 'ТелеПоні';
 $lang['def'][''] = '';
 
 

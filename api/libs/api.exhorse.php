@@ -97,6 +97,20 @@ class ExistentialHorse {
     protected $ukvDebtLimit = '';
 
     /**
+     * Is any PBX integration enabled?
+     *
+     * @var bool
+     */
+    protected $pbxFlag = false;
+
+    /**
+     * Is TelePony enabled?
+     *
+     * @var bool
+     */
+    protected $teleponyFlag = false;
+
+    /**
      * Is Askozia PBX integration enabled?
      *
      * @var bool
@@ -225,9 +239,16 @@ class ExistentialHorse {
         //Askozia PBX integration
         if ($this->altCfg['ASKOZIA_ENABLED']) {
             $this->askoziaFlag = true;
+            $this->pbxFlag = true;
             $this->askoziaUrl = zb_StorageGet('ASKOZIAPBX_URL');
             $this->askoziaLogin = zb_StorageGet('ASKOZIAPBX_LOGIN');
             $this->askoziaPassword = zb_StorageGet('ASKOZIAPBX_PASSWORD');
+        }
+
+        //TelePony integration
+        if ($this->altCfg['TELEPONY_ENABLED']) {
+            $this->pbxFlag = true;
+            $this->teleponyFlag = true;
         }
 
         //PONizer enabled?
@@ -1367,9 +1388,9 @@ class ExistentialHorse {
                 }
             }
 
-            //Askozia PBX
-            if ($this->askoziaFlag) {
-                $result .= wf_tag('h2') . __('AskoziaPBX integration') . wf_tag('h2', true);
+            //PBX integration
+            if ($this->pbxFlag) {
+                $result .= wf_tag('h2') . __('Telephony') . wf_tag('h2', true);
                 $cells = wf_TableCell(__('Month'));
                 $cells .= wf_TableCell(__('Incoming calls'));
                 $cells .= wf_TableCell(__('Total answered'));
