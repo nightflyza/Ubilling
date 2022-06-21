@@ -151,7 +151,7 @@ class ForWhomTheBellTolls {
          * Constant chill deep inside
          */
         $this->myLogin = whoami();
-        $this->dataSource= PBXNum::LOG_PATH;
+        $this->dataSource = PBXNum::LOG_PATH;
 
         if (@$this->altCfg['FWTBT_INTERVAL']) {
             $this->pollingInterval = $this->altCfg['FWTBT_INTERVAL'] * 1000; //option is in seconds
@@ -175,7 +175,6 @@ class ForWhomTheBellTolls {
          * On the fight, for they are right, yes, by who's to say?
          */
     }
-    
 
     /**
      * Renders calls data by last minute
@@ -228,7 +227,7 @@ class ForWhomTheBellTolls {
                                                 $style = 'warning';
                                                 $icon = 'skins/call_warning.png';
                                                 break;
-                                           default:
+                                            default:
                                                 //user not found
                                                 $style = 'info';
                                                 $icon = 'skins/call_info.png';
@@ -246,10 +245,10 @@ class ForWhomTheBellTolls {
 
 
                                         $notificationText = wf_tag('div', false, 'fwtbttext');
-                                        $notificationText.= __('Calling') . ' ' . $number . ' ' . $callerName;
-                                        $notificationText.= wf_tag('div', true);
-                                        $notificationText.= $profileControl;
-                                        
+                                        $notificationText .= __('Calling') . ' ' . $number . ' ' . $callerName;
+                                        $notificationText .= wf_tag('div', true);
+                                        $notificationText .= $profileControl;
+
 
                                         $reply[$count]['text'] = $notificationText;
                                         $reply[$count]['cleartext'] = $number . ' ' . $callerName;
@@ -283,9 +282,9 @@ class ForWhomTheBellTolls {
     protected function getCallsNotification() {
         $result = '';
         //some custom style
-        $result.= wf_tag('style');
+        $result .= wf_tag('style');
         //this style is inline for preventing of css caching
-        $result.= '
+        $result .= '
                 #noty_layout__bottomRight {
                 width: 425px !important;
                 }
@@ -302,18 +301,18 @@ class ForWhomTheBellTolls {
                 }
             ';
 
-        if(@$this->altCfg['FWTBT_DESKTOP']) {
-            $result.= '
+        if (@$this->altCfg['FWTBT_DESKTOP']) {
+            $result .= '
                 #noty_layout__bottomRight {
                 margin-bottom: 120px !important;
                 }
             ';
         }
 
-        $result.= wf_tag('style', true);
+        $result .= wf_tag('style', true);
         //basic notification frontend
-        $result.= wf_tag('script');
-        $result.= '
+        $result .= wf_tag('script');
+        $result .= '
                 $(document).ready(function() {
 
                 Notification.requestPermission().then(function(result) {
@@ -339,7 +338,7 @@ class ForWhomTheBellTolls {
                         }).show();
 
                         if (typeof (sendNotificationDesktop) === "function") {
-                            var title = "' . __('Calling') .'";
+                            var title = "' . __('Calling') . '";
                             var options = {
                                 body: key.cleartext,
                                 icon: key.icon,
@@ -356,11 +355,11 @@ class ForWhomTheBellTolls {
                     ' . $this->pollingInterval . ');
                 })
                 ';
-        $result.=  wf_tag('script', true);
+        $result .= wf_tag('script', true);
 
-        if(@$this->altCfg['FWTBT_DESKTOP']) {
-            $result.= wf_tag('script');
-            $result.= '
+        if (@$this->altCfg['FWTBT_DESKTOP']) {
+            $result .= wf_tag('script');
+            $result .= '
                    function sendNotificationDesktop(title, options, link) {
                         if (Notification.permission === "granted") {
                             var notification = new Notification(title, options);
@@ -384,7 +383,7 @@ class ForWhomTheBellTolls {
                         };
 
                     ';
-            $result.=  wf_tag('script', true);
+            $result .= wf_tag('script', true);
         }
         return ($result);
     }
@@ -400,10 +399,10 @@ class ForWhomTheBellTolls {
             if (@$this->altCfg['FWTBT_ENABLED']) {
                 $widget = $this->getCallsNotification();
                 if ($this->anywhere) {
-                    $result.= $widget;
+                    $result .= $widget;
                 } else {
                     if ((@$_GET['module'] == 'taskbar') OR ( !isset($_GET['module']))) {
-                        $result.= $widget;
+                        $result .= $widget;
                     }
                 }
 
