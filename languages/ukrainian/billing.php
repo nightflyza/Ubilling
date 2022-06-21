@@ -3418,8 +3418,6 @@ $lang['def']['Telephony'] = 'Телефонія';
 $lang['def']['TelePony'] = 'ТелеПоні';
 $lang['def']['right to listen telephony calls records'] = 'Право прослуховувати записи розмов телефонії';
 $lang['def']['Telephony calls records'] = 'Записи телефонних розмов';
+$lang['def']['right to use'] = 'Право використовувати';
 $lang['def'][''] = '';
 $lang['def'][''] = '';
-
-
-
