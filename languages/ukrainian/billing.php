@@ -3416,6 +3416,9 @@ $lang['def']['Go to build passport'] = 'Перейти до паспорту б�
 $lang['def']['Previous tasks in this build'] = 'Попередні задачі в цьому будинку';
 $lang['def']['Telephony'] = 'Телефонія';
 $lang['def']['TelePony'] = 'ТелеПоні';
+$lang['def']['right to listen telephony calls records'] = 'Право прослуховувати записи розмов телефонії';
+$lang['def']['Telephony calls records'] = 'Записи телефонних розмов';
+$lang['def'][''] = '';
 $lang['def'][''] = '';
 
 

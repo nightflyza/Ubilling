@@ -17,21 +17,14 @@ class PBXMonitor {
      *
      * @var string
      */
-    protected $voicePath = '/mnt/askozia/';
+    protected $voicePath = '';
 
     /**
      * Contains voice recors archive path
      *
      * @var string
      */
-    protected $archivePath = '/mnt/calls_archive/';
-
-    /**
-     * Contains default recorded files file extensions
-     *
-     * @var string
-     */
-    protected $callsFormat = '*.gsm';
+    protected $archivePath = '';
 
     /**
      * Flag for telepathy detection of users
@@ -62,11 +55,11 @@ class PBXMonitor {
     protected $ffmpegPath = '';
 
     /**
-     * Basic ffmpeg path to search. May be configurable in future.
+     * Basic ffmpeg path to search.
      *
      * @var string
      */
-    protected $baseConverterPath = '/usr/local/bin/ffmpeg';
+    protected $baseConverterPath = '';
 
     /**
      * File path for converted voice files
@@ -90,7 +83,7 @@ class PBXMonitor {
     /**
      * Default module path
      */
-    const URL_ME = '?module=askoziamonitor';
+    const URL_ME = '?module=pbxmonitor';
 
     /**
      * URL of user profile route
@@ -98,13 +91,19 @@ class PBXMonitor {
     const URL_PROFILE = '?module=userprofile&username=';
 
     /**
-     * Creates new askozia monitor instance
+     * Creates new PBX monitor instance
      * 
      * @return void
      */
     public function __construct() {
         $this->loadConfig();
         $this->detectFfmpeg();
+        //       _______
+        //     /` _____ `\;,
+        //    /__(^===^)__\';,
+        //      /  :::  \   ,;
+        //     |   :::   | ,;'
+        //     '._______.'`
     }
 
     /**
@@ -118,6 +117,10 @@ class PBXMonitor {
         if ((!isset($this->altCfg['WDYC_ONLY_MOBILE'])) OR ( !@$this->altCfg['WDYC_ONLY_MOBILE'])) {
             $this->onlyMobileFlag = false;
         }
+
+        $this->voicePath = $this->altCfg['PBXMON_RECORDS_PATH'];
+        $this->archivePath = $this->altCfg['PBXMON_ARCHIVE_PATH'];
+        $this->baseConverterPath = $this->altCfg['PBXMON_FFMPG_PATH'];
     }
 
     /**
@@ -147,8 +150,8 @@ class PBXMonitor {
      * @return void
      */
     public function catchFileDownload() {
-        if (ubRouting::checkGet('dlaskcall')) {
-            $origFileName = ubRouting::get('dlaskcall');
+        if (ubRouting::checkGet('dlpbxcall')) {
+            $origFileName = ubRouting::get('dlpbxcall');
             $downloadableName = '';
             //voice records
             if (file_exists($this->voicePath . $origFileName)) {
@@ -187,16 +190,31 @@ class PBXMonitor {
     }
 
     /**
+     * Returns list of all files in directory. Using this instead of rcms_scandir with filters
+     * to prevent of much of preg_match callbacks and performance issues.
+     * 
+     * @param string $directory
+     * 
+     * @return array
+     */
+    protected function scanDirectory($directory) {
+        $result = array();
+        if (!empty($directory)) {
+            if (file_exists($directory)) {
+                $raw = scandir($directory);
+                $result = array_diff($raw, array('.', '..'));
+            }
+        }
+        return($result);
+    }
+
+    /**
      * Returns available calls files array 
      * 
      * @return array
      */
     protected function getCallsDir() {
-        $result = array();
-        if (file_exists($this->voicePath)) {
-            $result = rcms_scandir($this->voicePath, $this->callsFormat, 'file');
-        }
-        return ($result);
+        return ($this->scanDirectory($this->voicePath));
     }
 
     /**
@@ -205,11 +223,7 @@ class PBXMonitor {
      * @return array
      */
     protected function getArchiveDir() {
-        $result = array();
-        if (file_exists($this->archivePath)) {
-            $result = rcms_scandir($this->archivePath, $this->callsFormat, 'file');
-        }
-        return ($result);
+        return ($this->scanDirectory($this->archivePath));
     }
 
     /**
@@ -285,12 +299,6 @@ class PBXMonitor {
 
         //normal voice records rendering
         if (!empty($allVoiceFiles)) {
-            /**
-             * Fuck a fucking placement, I don't need you motherfuckers
-             * I'ma get it on my own before I get on your production
-             * 'Cause you fucking pieces of shit don't show no motherfucking love to me
-             * I see right through your guise, you try and hide but you can't run from me
-             */
             foreach ($allVoiceFiles as $io => $each) {
                 $fileName = $each;
                 $explodedFile = explode('_', $fileName);
@@ -313,7 +321,7 @@ class PBXMonitor {
                     $userLink = (!empty($userLogin)) ? wf_Link('?module=userprofile&username=' . $userLogin, web_profile_icon() . ' ' . @$allAddress[$userLogin]) . ' ' . @$allRealnames[$userLogin] : '';
                     $newDateString = date_format(date_create_from_format('Y-m-d-H-i-s', $cleanDate), 'Y-m-d H:i:s');
                     $cleanDate = $newDateString;
-                    $fileUrl = self::URL_ME . '&dlaskcall=' . $fileName;
+                    $fileUrl = self::URL_ME . '&dlpbxcall=' . $fileName;
 
                     if ((empty($filterLogin)) OR ( $filterLogin == $userLogin)) {
                         if ($renderAll) {
@@ -364,7 +372,7 @@ class PBXMonitor {
                     $userLink = (!empty($userLogin)) ? wf_Link('?module=userprofile&username=' . $userLogin, web_profile_icon() . ' ' . @$allAddress[$userLogin]) . ' ' . @$allRealnames[$userLogin] : '';
                     $newDateString = date_format(date_create_from_format('Y-m-d-H-i-s', $cleanDate), 'Y-m-d H:i:s');
                     $cleanDate = $newDateString;
-                    $fileUrl = self::URL_ME . '&dlaskcall=' . $fileName;
+                    $fileUrl = self::URL_ME . '&dlpbxcall=' . $fileName;
                     if ((empty($filterLogin)) OR ( $filterLogin == $userLogin)) {
                         if ($renderAll) {
                             $data[] = wf_img($callDirection) . ' ' . $cleanDate;

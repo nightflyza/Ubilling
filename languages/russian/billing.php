@@ -3395,3 +3395,5 @@ $lang['def']['Go to build passport'] = 'Перейти в паспорт дом�
 $lang['def']['Previous tasks in this build'] = 'Предыдущие задачи в этом доме';
 $lang['def']['Telephony'] = 'Телефония';
 $lang['def']['TelePony'] = 'ТелеПони';
+$lang['def']['right to listen telephony calls records'] = 'Право прослушивать записи разговоров телефонии';
+$lang['def']['Telephony calls records'] = 'Записи телефонных разговоров';
