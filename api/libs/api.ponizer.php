@@ -1285,6 +1285,7 @@ class PONizer {
             foreach ($this->allOnu as $io => $each) {
                 if ($each['mac'] == $mac) {
                     $result = false;
+                    break;
                 }
             }
         }
