@@ -1,10 +1,11 @@
 <?php
 
 $altcfg = $ubillingConfig->getAlter();
-if ($altcfg['ASKOZIA_ENABLED']) {
+if ($altcfg['WDYC_ENABLED']) {
     if (cfr('WHYDOYOUCALL')) {
 
         $whydoyoucall = new WhyDoYouCall();
+
         show_window('', $whydoyoucall->panel());
         if (!ubRouting::checkGet('renderstats') AND ! ubRouting::checkGet('nightmode')) {
             show_window(__('Missed calls that require your response'), $whydoyoucall->renderMissedCallsReport());

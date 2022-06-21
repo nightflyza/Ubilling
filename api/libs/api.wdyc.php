@@ -163,7 +163,7 @@ class WhyDoYouCall {
      * 
      * @return array
      */
-    protected function fetchAskoziaCalls() {
+    public function fetchAskoziaCalls() {
         $unansweredCalls = array();
         $recalledCalls = array();
         $missedTries = array();
@@ -335,7 +335,7 @@ class WhyDoYouCall {
                 }
             }
         }
-        debarr($unansweredCalls);
+
         //filling recalled calls cache
         file_put_contents(self::CACHE_RECALLED, serialize($recalledCalls));
         return ($unansweredCalls);
@@ -347,7 +347,10 @@ class WhyDoYouCall {
      * @return void
      */
     public function pollUnansweredCalls() {
-        $unansweredCalls = $this->fetchAskoziaCalls();
+        $unansweredCalls = array();
+        if ($this->altCfg['ASKOZIA_ENABLED']) {
+            $unansweredCalls = $this->fetchAskoziaCalls();
+        }
         $storeData = serialize($unansweredCalls);
         file_put_contents(self::CACHE_FILE, $storeData);
     }
@@ -373,7 +376,10 @@ class WhyDoYouCall {
         $result = '';
         if (!ubRouting::checkGet('renderstats') AND ! ubRouting::checkGet('nightmode')) {
             $result .= wf_Link(self::URL_ME, wf_img_sized('skins/icon_phone.gif', '', '16', '16') . ' ' . __('Calls'), false, 'ubButton') . ' ';
-            $result .= wf_Link(self::URL_ME . '&nightmode=true', wf_img_sized('skins/icon_moon.png', '', '16', '16') . ' ' . __('Calls during non-business hours'), false, 'ubButton') . ' ';
+            //TODO: do something around this
+            if ($this->altCfg['ASKOZIA_ENABLED']) {
+                $result .= wf_Link(self::URL_ME . '&nightmode=true', wf_img_sized('skins/icon_moon.png', '', '16', '16') . ' ' . __('Calls during non-business hours'), false, 'ubButton') . ' ';
+            }
             $result .= wf_Link(self::URL_ME . '&renderstats=true', wf_img_sized('skins/icon_stats.gif', '', '16', '16') . ' ' . __('Stats'), false, 'ubButton');
         } else {
             $result .= wf_BackLink(self::URL_ME);
@@ -620,7 +626,7 @@ class WhyDoYouCall {
             $callersData = array();
             $nightMode = array();
             $data = explodeRows($rawResult);
-            $data= array_reverse($data);
+            $data = array_reverse($data);
             if (!empty($data)) {
                 foreach ($data as $eachline) {
                     $explode = explode(';', $eachline); //in 2.2.8 delimiter changed from ," to ;

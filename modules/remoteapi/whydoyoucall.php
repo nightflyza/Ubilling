@@ -1,12 +1,12 @@
 <?php
 
 //why do you call?
-if ($_GET['action'] == 'whydoyoucall') {
-    if ($alterconf['ASKOZIA_ENABLED']) {
+if (ubRouting::get('action') == 'whydoyoucall') {
+    if ($alterconf['WDYC_ENABLED']) {
         $whydoyoucall = new WhyDoYouCall();
         $whydoyoucall->pollUnansweredCalls();
         die('OK: WDYC');
     } else {
-        die('ERROR: ASKOIZA DISABLED');
+        die('ERROR: WDYC DISABLED');
     }
 }

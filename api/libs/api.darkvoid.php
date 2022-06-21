@@ -234,8 +234,8 @@ class DarkVoid {
             }
         }
 
-        //missed Askozia calls notification
-        if ($this->altCfg['ASKOZIA_ENABLED']) {
+        //missed calls notification
+        if (@$this->altCfg['WDYC_ENABLED']) {
             $wdycCache = 'exports/whydoyoucall.dat';
             if (file_exists($wdycCache)) {
                 $cacheData = file_get_contents($wdycCache);
