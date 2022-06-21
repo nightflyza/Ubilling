@@ -60,9 +60,8 @@ if (cfr('MOBILE')) {
                 $extList = $extMobiles->renderUserMobilesList($login);
                 show_window(__('Additional mobile phones'), $extList . $extCreateForm);
 
-                if ($altCfg['ASKOZIA_ENABLED']) {
-                    $extMobiles->fastNumAttachForm($login);
-                }
+                //Form with last incoming numbers to attach
+                $extMobiles->fastNumAttachForm($login);
             }
         }
         //User back to profile controls

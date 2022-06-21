@@ -3,14 +3,8 @@
 $altcfg = $ubillingConfig->getAlter();
 if ($altcfg['CALLSHIST_ENABLED']) {
     if (cfr('CALLSHIST')) {
-
-      
-
         $report = new CallsHistory();
 
-        /**
-         * main codepart
-         */
         if (wf_CheckGet(array('username'))) {
             //setting some login filtering if required
             $report->setLogin($_GET['username']);
@@ -50,4 +44,3 @@ if ($altcfg['CALLSHIST_ENABLED']) {
 } else {
     show_error(__('This module is disabled'));
 }
-?>

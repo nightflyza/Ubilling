@@ -86,7 +86,6 @@ class CallsHistory {
      * @return void
      */
     protected function loadCalls() {
-
         $where = (!empty($this->loginSearch)) ? " WHERE `login`='" . $this->loginSearch . "'" : '';
         if (!empty($this->loginSearch)) {
             $where = "WHERE `login`='" . $this->loginSearch . "'";
