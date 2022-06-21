@@ -174,14 +174,10 @@ class ExistentialHorse {
     protected $cashIds = array();
 
     /**
-     * Base module URL
+     * Some predefined urls, routes etc..
      */
     const URL_ME = '?module=exhorse';
-
-    /**
-     * Just debug flag
-     */
-    const DEBUG = false;
+    const PROUTE_YEAR = 'yearsel';
 
     public function __construct() {
         $this->loadConfig();
@@ -243,6 +239,11 @@ class ExistentialHorse {
             $this->askoziaUrl = zb_StorageGet('ASKOZIAPBX_URL');
             $this->askoziaLogin = zb_StorageGet('ASKOZIAPBX_LOGIN');
             $this->askoziaPassword = zb_StorageGet('ASKOZIAPBX_PASSWORD');
+        }
+
+        //Asterisk integration?
+        if ($this->altCfg['ASTERISK_ENABLED']) {
+            $this->pbxFlag = true;
         }
 
         //TelePony integration
@@ -981,10 +982,6 @@ class ExistentialHorse {
         $this->preprocessMisc();
         $this->saveHorseData();
         $this->cleanupDb();
-
-        if (self::DEBUG) {
-            debarr($this->storeTmp);
-        }
     }
 
     /**

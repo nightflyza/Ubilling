@@ -61,7 +61,7 @@ if (cfr('MOBILE')) {
                 show_window(__('Additional mobile phones'), $extList . $extCreateForm);
 
                 if ($altCfg['ASKOZIA_ENABLED']) {
-                    $extMobiles->fastAskoziaAttachForm($login);
+                    $extMobiles->fastNumAttachForm($login);
                 }
             }
         }

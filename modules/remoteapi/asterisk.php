@@ -59,7 +59,7 @@ if ($_GET['action'] == 'asterisk') {
                     die($result);
                 } else {
                     global $billing;
-                    $askNum = new AskoziaNum();
+                    $askNum = new PBXNum();
                     $askNum->setNumber($number);
 
                     switch ($apiParam) {

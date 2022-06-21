@@ -322,17 +322,17 @@ class MobilesExt {
      * 
      * @return void
      */
-    public function fastAskoziaAttachForm($login) {
+    public function fastNumAttachForm($login) {
         $result = '';
-        $askNum = new AskoziaNum();
-        $askoziaLog = $askNum->parseLog();
+        $pbxNum = new PBXNum();
+        $inCallsLog = $pbxNum->parseLog();
         $telepathy = new Telepathy(false, true, false, false);
         $telepathy->usePhones();
-        if (!empty($askoziaLog)) {
+        if (!empty($inCallsLog)) {
             $numsTmp = array();
             $curdate = curdate();
             $curhour = date("H:");
-            foreach ($askoziaLog as $io => $each) {
+            foreach ($inCallsLog as $io => $each) {
                 //only today calls
                 if ($each['date'] == $curdate) {
                     if ((empty($each['login'])) AND ( $each['reply'] == 0)) {

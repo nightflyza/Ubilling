@@ -894,7 +894,7 @@ if ($altcfg['ASKOZIA_ENABLED']) {
     function zb_AskoziaRenderNumLog() {
         global $ubillingConfig;
         $billCfg = $ubillingConfig->getBilling();
-        $logPath = AskoziaNum::LOG_PATH;
+        $logPath = PBXNum::LOG_PATH;
         $catPath = $billCfg['CAT'];
         $grepPath = $billCfg['GREP'];
         $replyOffset = 5;
@@ -943,7 +943,7 @@ if ($altcfg['ASKOZIA_ENABLED']) {
                     }
 
                     if (!empty($replyStats)) {
-                        $cells = wf_TableCell(__('Reply'));
+                        $cells = wf_TableCell(__('Calls'));
                         $cells .= wf_TableCell(__('Count'));
                         $rows = wf_TableRow($cells, 'row1');
                         foreach ($replyStats as $replyCode => $callsCount) {
@@ -958,7 +958,7 @@ if ($altcfg['ASKOZIA_ENABLED']) {
             }
 
             if (filesize($logPath) > 10) {
-                show_window(__('Stats') . ' AskoziaNum ' . $curYear . '-' . $curMonth, $result);
+                show_window(__('Stats') . ' ' . __('on') . ' ' . $curYear . '-' . $curMonth, $result);
             }
         }
     }

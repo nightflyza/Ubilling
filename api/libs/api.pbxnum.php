@@ -1,9 +1,9 @@
 <?php
 
 /**
- * Askozia PBX incoming calls processing class
+ * Universal PBX incoming calls processing class
  */
-class AskoziaNum {
+class PBXNum {
 
     /**
      * Telepathy object placeholder
@@ -13,6 +13,13 @@ class AskoziaNum {
     protected $telepathy = '';
 
     /**
+     * Mobile number placeholder
+     *
+     * @var string
+     */
+    protected $number = '';
+
+    /**
      * System cache object placeholder
      *
      * @var object
@@ -20,11 +27,9 @@ class AskoziaNum {
     protected $cache = '';
 
     /**
-     * Mobile number placeholder
-     *
-     * @var string
+     * Userdata cahe key name
      */
-    protected $number = '';
+    const CACHE_KEY = 'PBXUSERDATA';
 
     /**
      * Userdata caching time in seconds
@@ -34,20 +39,15 @@ class AskoziaNum {
     /**
      * Log path
      */
-    const LOG_PATH = 'content/documents/askozianum.log';
+    const LOG_PATH = 'content/documents/incallsnum.log';
 
     /**
-     * Default calls logging table
+     * Default incoming calls logging table
      */
     const LOG_TABLE = 'callshist';
 
     /**
-     * Debug/Log flag
-     */
-    const DEBUG = true;
-
-    /**
-     * Creates new AskoziaNum instance
+     * Creates new PBXNum instance
      * 
      * @return void
      */
@@ -110,12 +110,10 @@ class AskoziaNum {
      * @return void
      */
     protected function log($reply, $login) {
-        if (self::DEBUG) {
-            $curdateTime = curdatetime();
-            $logData = $curdateTime . ' NUMBER: ' . $this->number . ' REPLY: ' . $reply . ' LOGIN: ' . $login . "\n";
-            file_put_contents(self::LOG_PATH, $logData, FILE_APPEND);
-            $this->saveCallsHist($curdateTime, $this->number, $login);
-        }
+        $curdateTime = curdatetime();
+        $logData = $curdateTime . ' NUMBER: ' . $this->number . ' REPLY: ' . $reply . ' LOGIN: ' . $login . "\n";
+        file_put_contents(self::LOG_PATH, $logData, FILE_APPEND);
+        $this->saveCallsHist($curdateTime, $this->number, $login);
     }
 
     /**
@@ -140,7 +138,7 @@ class AskoziaNum {
 
         if (!empty($detectedLogin)) {
 
-            $userData = $this->cache->get('ASKUSERDATA', self::CACHE_TIME);
+            $userData = $this->cache->get(self::CACHE_KEY, self::CACHE_TIME);
             if (empty($userData) or $ignoreCache) {
                 $userData = array();
                 $userDataRaw = simple_queryall("SELECT `login`,`Cash`,`Credit`,`Passive`,`Down`,`AlwaysOnline`,`Fee` from `users` LEFT JOIN (SELECT `name`,`Fee` FROM `tariffs`) as T on (`users`.`Tariff`=`T`.`name`)");
@@ -149,7 +147,7 @@ class AskoziaNum {
                         $userData[$each['login']] = $each;
                     }
                 }
-                $this->cache->set('ASKUSERDATA', $userData, self::CACHE_TIME);
+                $this->cache->set(self::CACHE_KEY, $userData, self::CACHE_TIME);
             }
             if (isset($userData[$detectedLogin])) {
                 $userData = $userData[$detectedLogin];
@@ -203,7 +201,7 @@ class AskoziaNum {
     }
 
     /**
-     * Renders reply for Askozia external AGI application
+     * Renders reply for PBX external AGI application
      * 
      * @return void
      */

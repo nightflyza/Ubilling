@@ -92,7 +92,7 @@ class ForWhomTheBellTolls {
     /**
      * Default log path to parse
      */
-    protected $dataSource = 'content/documents/askozianum.log';
+    protected $dataSource = '';
 
     /**
      * Reply cache key name
@@ -151,6 +151,7 @@ class ForWhomTheBellTolls {
          * Constant chill deep inside
          */
         $this->myLogin = whoami();
+        $this->dataSource= PBXNum::LOG_PATH;
 
         if (@$this->altCfg['FWTBT_INTERVAL']) {
             $this->pollingInterval = $this->altCfg['FWTBT_INTERVAL'] * 1000; //option is in seconds

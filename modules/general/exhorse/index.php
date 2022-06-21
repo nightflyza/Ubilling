@@ -5,8 +5,8 @@ if ($altCfg['EXHORSE_ENABLED']) {
     if (cfr('EXHORSE')) {
 
         $exhorse = new ExistentialHorse();
-        if (ubRouting::checkPost('yearsel')) {
-            $exhorse->setYear(ubRouting::post('yearsel'));
+        if (ubRouting::checkPost($exhorse::PROUTE_YEAR)) {
+            $exhorse->setYear(ubRouting::post($exhorse::PROUTE_YEAR));
         } else {
             $exhorse->setYear(date("Y"));
         }
