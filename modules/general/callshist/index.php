@@ -5,18 +5,18 @@ if ($altcfg['CALLSHIST_ENABLED']) {
     if (cfr('CALLSHIST')) {
         $report = new CallsHistory();
 
-        if (wf_CheckGet(array('username'))) {
+        if (ubRouting::checkGet('username')) {
             //setting some login filtering if required
-            $report->setLogin($_GET['username']);
+            $report->setLogin(ubRouting::get('username'));
         }
 
         //rendering report json data
-        if (wf_CheckGet(array('ajaxcalls'))) {
+        if (ubRouting::checkGet('ajaxcalls')) {
             $report->renderCallsAjaxList();
         }
 
         //rendering report container
-        if (!wf_CheckGet(array('updateusers'))) {
+        if (!ubRouting::checkGet('updateusers')) {
             if (cfr('ROOT')) {
                 $updateControls = ' ' . wf_Link($report::URL_ME . '&updateusers=true', wf_img('skins/refresh.gif', __('User calls assign update')));
             } else {
@@ -32,9 +32,9 @@ if ($altcfg['CALLSHIST_ENABLED']) {
                 show_error(__('Access denied'));
             }
         }
-        if (wf_CheckGet(array('username'))) {
+        if (ubRouting::checkGet('username')) {
             //optional profile-return links
-            $controlsLinks = wf_BackLink($report::URL_PROFILE . $_GET['username']) . ' ';
+            $controlsLinks = wf_BackLink($report::URL_PROFILE . ubRouting::get('username')) . ' ';
             $controlsLinks .= wf_Link($report::URL_ME, wf_img('skins/done_icon.png') . ' ' . __('All calls'), false, 'ubButton');
             show_window('', $controlsLinks);
         }
