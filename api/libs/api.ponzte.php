@@ -1043,9 +1043,12 @@ class PonZte {
      */
     protected function onuidParseGpon() {
         $snTmp = array();
-
-        foreach ($this->snIndex as $ioIndex => $eachSn) {
-            $snTmp[$this->interfaceDecode($ioIndex)] = $eachSn;
+        if ($this->currentSnmpTemplate['onu_reg']['VERSION'] == 'C6XX') {
+            $snTmp = $this->snIndex;
+        } else {
+            foreach ($this->snIndex as $ioIndex => $eachSn) {
+                $snTmp[$this->interfaceDecode($ioIndex)] = $eachSn;
+            }
         }
         $this->olt->writeOnuCache($snTmp);
     }

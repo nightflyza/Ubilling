@@ -86,7 +86,7 @@ class FDBArchive {
     const PATH_CACHE = 'exports/';
 
     /**
-     * Contains default FDB caches storage path for OLT
+     * Contains default FDB caches storage path for OLTs
      */
     const OLT_PATH_CACHE = 'exports/pondata/fdb/';
 
@@ -309,6 +309,7 @@ class FDBArchive {
                     if (!empty($rawData)) {
                         $oltId = $this->extractOltId($cacheFile);
                         $oltIp = $this->getOltIp($oltId);
+
                         //filling new archive record
                         $this->archive->data('date', $newDate);
                         $this->archive->data('devid', $oltId);
