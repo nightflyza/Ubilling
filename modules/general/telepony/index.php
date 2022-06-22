@@ -3,20 +3,16 @@
 $altCfg = $ubillingConfig->getAlter();
 if ($altCfg['TELEPONY_ENABLED']) {
 
-
-
     if (cfr('TELEPONY')) {
         $telePony = new TelePony();
+
+        //basic calls stats
+        show_window(__('Stats') . ' ' . __('Incoming calls'), $telePony->renderNumLog());
 
         //showing call history form
         if ($altCfg['TELEPONY_CDR']) {
             show_window(__('Calls history'), $telePony->renderCdrDateForm());
         }
-
-        //basic calls stats
-        show_window(__('Stats') . ' ' . __('Incoming calls'), $telePony->renderNumLog());
-
-
 
         //rendering calls history here
         if ($altCfg['TELEPONY_CDR']) {

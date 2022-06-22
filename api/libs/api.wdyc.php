@@ -164,6 +164,10 @@ class WhyDoYouCall {
      * @return array
      */
     public function fetchAskoziaCalls() {
+        $result = array(
+            'unanswered' => array(),
+            'recalled' => array()
+        );
         $unansweredCalls = array();
         $recalledCalls = array();
         $missedTries = array();
@@ -336,9 +340,10 @@ class WhyDoYouCall {
             }
         }
 
-        //filling recalled calls cache
-        file_put_contents(self::CACHE_RECALLED, serialize($recalledCalls));
-        return ($unansweredCalls);
+        $result['unanswered'] = $unansweredCalls;
+        $result['recalled'] = $recalledCalls;
+
+        return($result);
     }
 
     /**
@@ -348,11 +353,31 @@ class WhyDoYouCall {
      */
     public function pollUnansweredCalls() {
         $unansweredCalls = array();
+        $recalledCalls = array();
+
         if ($this->altCfg['ASKOZIA_ENABLED']) {
-            $unansweredCalls = $this->fetchAskoziaCalls();
+            $fetchedData = $this->fetchAskoziaCalls();
+            $unansweredCalls = $fetchedData['unanswered'];
+            $recalledCalls = $fetchedData['recalled'];
+
+            print('ASKOZIA:FETCHED' . PHP_EOL);
         }
-        $storeData = serialize($unansweredCalls);
-        file_put_contents(self::CACHE_FILE, $storeData);
+
+        if ($this->altCfg['TELEPONY_ENABLED']) {
+            if ($this->altCfg['TELEPONY_CDR']) {
+                $telePony = new TelePony();
+                $fetchedData = $telePony->fetchMissedCalls();
+                $unansweredCalls = $fetchedData['unanswered'];
+                $recalledCalls = $fetchedData['recalled'];
+                print('TELEPONY:FETCHED' . PHP_EOL);
+            }
+        }
+
+
+        //filling recalled calls cache
+        file_put_contents(self::CACHE_RECALLED, serialize($recalledCalls));
+        //storing missed calls
+        file_put_contents(self::CACHE_FILE, serialize($unansweredCalls));
     }
 
     /**

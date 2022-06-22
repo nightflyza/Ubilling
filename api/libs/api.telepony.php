@@ -63,11 +63,6 @@ class TelePony {
         global $ubillingConfig;
         $this->altCfg = $ubillingConfig->getAlter();
         $this->billCfg = $ubillingConfig->getBilling();
-        //preload phonebook contacts
-        if ($this->altCfg['PHONEBOOK_ENABLED']) {
-            $phoneBook = new PhoneBook();
-            $this->allContacts = $phoneBook->getAllContacts();
-        }
     }
 
     /**
@@ -307,6 +302,7 @@ class TelePony {
                 $callStatus = __('Failed');
                 $statusIcon = wf_img('skins/calls/phone_fail.png');
                 break;
+
             default :
                 $callStatus = $rawStatus;
                 break;
@@ -345,6 +341,12 @@ class TelePony {
         $dateFrom = ubRouting::post('datefrom');
         $dateTo = ubRouting::post('dateto');
         $rawCdr = $this->getCDR($dateFrom, $dateTo);
+
+        //preload phonebook contacts
+        if ($this->altCfg['PHONEBOOK_ENABLED']) {
+            $phoneBook = new PhoneBook();
+            $this->allContacts = $phoneBook->getAllContacts();
+        }
 
         if ($rawCdr !== false) {
             $flows = array();
@@ -387,13 +389,118 @@ class TelePony {
                         $totalTime += $callData['realtime'];
                     }
                     $result .= wf_TableBody($rows, '100%', 0, 'sortable');
-                    $result.= __('Total calls').': '.$flowCounter. wf_delimiter(0);
-                    $result.= __('Time spent on calls').': '. zb_formatTime($totalTime). wf_delimiter(0);
+                    $result .= __('Total calls') . ': ' . $flowCounter . wf_delimiter(0);
+                    $result .= __('Time spent on calls') . ': ' . zb_formatTime($totalTime) . wf_delimiter(0);
                 }
             }
         } else {
             $result .= $this->messages->getStyledMessage(__('Wrong element format') . ': TELEPONY_CDR ' . __('is corrupted'), 'error');
         }
+        return($result);
+    }
+
+    /**
+     * Fetches and preprocess some missed calls from CDR
+     * 
+     * @return array
+     */
+    public function fetchMissedCalls() {
+        $result = array(
+            'unanswered' => array(),
+            'recalled' => array()
+        );
+
+        $minNumLen = 3;
+        $countryCode = '380';
+        $unansweredCalls = array();
+        $recalledCalls = array();
+        $missedTries = array();
+        $callsTmp = array();
+        $normalCalls = array();
+        $rawCalls = $this->getCDR(curdate(), curdate());
+
+        if (!empty($rawCalls)) {
+            $normalCalls = $this->groupCDRflows($rawCalls);
+        }
+        if (!empty($normalCalls)) {
+            foreach ($normalCalls as $io => $each) {
+                $callData = $this->parseCDRFlow($each);
+                $startTime = $callData['callstart'];
+                $incomingNumber = $callData['from'];
+                $destinationNumber = $callData['to'];
+                
+                if (ispos($incomingNumber, $countryCode)) {
+                    $incomingNumber = str_replace($countryCode, '', $incomingNumber);
+                }
+
+                if (ispos($destinationNumber, $countryCode)) {
+                    $destinationNumber = str_replace($countryCode, '', $destinationNumber);
+                }
+
+                //not answered call
+                if ($callData['status'] != 'ANSWERED' AND $callData['app'] == 'Queue') {
+                    //excluding internal numbers
+                    if (strlen((string) $incomingNumber) >= $minNumLen) {
+                        $unansweredCalls[$incomingNumber] = $callData;
+                        $unansweredCalls[$incomingNumber][9] = $startTime; //last time compat
+                        //unanswered calls count
+                        if (isset($missedTries[$incomingNumber])) {
+                            $missedTries[$incomingNumber] ++;
+                        } else {
+                            $missedTries[$incomingNumber] = 1;
+                        }
+                    }
+                }
+
+
+                //incoming answered calls after miss
+                if (isset($unansweredCalls[$incomingNumber])) {
+                    if ($callData['from'] == $incomingNumber AND $callData['status'] == 'ANSWERED') {
+                        unset($unansweredCalls[$incomingNumber]);
+                    }
+                }
+
+                //recall try on missed number
+                if (isset($unansweredCalls[$destinationNumber])) {
+                    $reactionTime = 0;
+                    $missTime = $unansweredCalls[$destinationNumber]['callend'];
+                    $missTime = strtotime($missTime);
+                    if ($callData['status'] == 'ANSWERED') {
+                        unset($unansweredCalls[$destinationNumber]);
+                        $answerTime = strtotime($callData['callstart']);
+                        $reactionTime = $answerTime - $missTime;
+                        $recalledCalls[$destinationNumber]['time'] = $callData['realtime'];
+                        $recalledCalls[$destinationNumber]['count'] = 1;
+                        $recalledCalls[$destinationNumber]['trytime'] = $reactionTime;
+                    } else {
+                        $reactionTime = time() - $missTime;
+                        $recalledCalls[$destinationNumber]['time'] = 0;
+                        @$recalledCalls[$destinationNumber]['count'] ++;
+                        @$recalledCalls[$destinationNumber]['trytime'] = $reactionTime;
+                    }
+                }
+
+                //Unknown numbers not require recall
+                if (ispos($incomingNumber, 'Unknown')) {
+                    unset($unansweredCalls[$incomingNumber]);
+                }
+            }
+        }
+
+
+        //appending tries to final result
+        if (!empty($missedTries)) {
+            foreach ($missedTries as $missedNumber => $missCount) {
+                if (isset($unansweredCalls[$missedNumber])) {
+                    $unansweredCalls[$missedNumber]['misscount'] = $missCount;
+                }
+            }
+        }
+
+        $result['unanswered'] = $unansweredCalls;
+        $result['recalled'] = $recalledCalls;
+
+        // print_r($result);
         return($result);
     }
 
