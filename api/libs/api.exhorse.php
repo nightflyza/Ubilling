@@ -241,7 +241,7 @@ class ExistentialHorse {
             $this->askoziaPassword = zb_StorageGet('ASKOZIAPBX_PASSWORD');
         }
 
-        //Asterisk integration?
+        //Asterisk integration (?)
         if ($this->altCfg['ASTERISK_ENABLED']) {
             $this->pbxFlag = true;
         }
@@ -800,27 +800,53 @@ class ExistentialHorse {
                         $this->storeTmp['a_averagecallduration'] = $this->storeTmp['a_totalcallsduration'] / $this->storeTmp['a_totalanswered'];
                     }
                 }
-
-                //why do you call stats saving if Askozia enabled and configured
-                $totalMissed = 0;
-                $totalRecalls = 0;
-                $totalUnsucc = 0;
-                $totalCalls = 0;
-                $totalReactTime = 0;
-                $query = "SELECT * from `wdycinfo` WHERE `date` LIKE '" . $this->curmonth . "-%';";
-                $allWdycStat = simple_queryall($query);
-                if (!empty($allWdycStat)) {
-                    foreach ($allWdycStat as $io => $each) {
-                        $totalMissed += $each['missedcount'];
-                        $totalRecalls += $each['recallscount'];
-                        $totalUnsucc += $each['unsucccount'];
-                        $totalReactTime += $each['totaltrytime'];
-                    }
-                }
-                $totalCalls = $totalRecalls + $totalMissed;
-                $this->storeTmp['a_recallunsuccess'] = zb_PercentValue($totalCalls, $totalMissed);
-                @$this->storeTmp['a_recalltrytime'] = round(($totalReactTime / ($totalRecalls + $totalUnsucc)));
             }
+        }
+    }
+
+    /**
+     * Telepony CDR data fetching and processing
+     * 
+     * @return void
+     */
+    protected function preprocessTeleponyData() {
+        if ($this->teleponyFlag) {
+            $telepony = new TelePony();
+            if ($this->altCfg['TELEPONY_CDR']) {
+                $teleponyData = $telepony->getHorseMonthData();
+                $this->storeTmp['a_totalanswered'] = $teleponyData['a_totalanswered'];
+                $this->storeTmp['a_totalcalls'] = $teleponyData['a_totalcalls'];
+                $this->storeTmp['a_totalcallsduration'] = $teleponyData['a_totalcallsduration'];
+                $this->storeTmp['a_averagecallduration'] = $teleponyData['a_averagecallduration'];
+            }
+        }
+    }
+
+    /**
+     * WDYC data loading and preprocessing
+     * 
+     * @return void
+     */
+    protected function preprocessWdycData() {
+        if ($this->altCfg['WDYC_ENABLED']) {
+            $totalMissed = 0;
+            $totalRecalls = 0;
+            $totalUnsucc = 0;
+            $totalCalls = 0;
+            $totalReactTime = 0;
+            $query = "SELECT * from `wdycinfo` WHERE `date` LIKE '" . $this->curmonth . "-%';";
+            $allWdycStat = simple_queryall($query);
+            if (!empty($allWdycStat)) {
+                foreach ($allWdycStat as $io => $each) {
+                    $totalMissed += $each['missedcount'];
+                    $totalRecalls += $each['recallscount'];
+                    $totalUnsucc += $each['unsucccount'];
+                    $totalReactTime += $each['totaltrytime'];
+                }
+            }
+            $totalCalls = $totalRecalls + $totalMissed;
+            $this->storeTmp['a_recallunsuccess'] = zb_PercentValue($totalCalls, $totalMissed);
+            @$this->storeTmp['a_recalltrytime'] = round(($totalReactTime / ($totalRecalls + $totalUnsucc)));
         }
     }
 
@@ -979,6 +1005,8 @@ class ExistentialHorse {
         $this->preprocessUkvData();
         $this->preprocessEquipmentData();
         $this->preprocessAskoziaData();
+        $this->preprocessTeleponyData();
+        $this->preprocessWdycData();
         $this->preprocessMisc();
         $this->saveHorseData();
         $this->cleanupDb();
@@ -1129,7 +1157,7 @@ class ExistentialHorse {
         $ukvfChartData = array(0 => array(__('Month'), __('Money'), __('Payments count'), __('Debt')));
         $ukvarpuChartData = array(0 => array(__('Month'), __('ARPU'), __('ARPAU')));
         $universeChartData = array(0 => array(__('Month'), __('Signup requests'), __('Tickets'), __('Tasks'), __('Signup capabilities'), __('Undone')));
-        $askoziaChartData = array(0 => array(__('Month'), __('Total calls'), __('Total answered'), __('No answer')));
+        $telephonyChartData = array(0 => array(__('Month'), __('Total calls'), __('Total answered'), __('No answer')));
 
         $equipChartData = array(0 => array(__('Month'), __('Switches')));
 
@@ -1415,12 +1443,12 @@ class ExistentialHorse {
                         $rows .= wf_TableRow($cells, 'row3');
                         //chart data
                         $yearDisplay = ($monthNum == '01') ? $yearDisplay : '';
-                        $askoziaChartData[] = array($yearDisplay . $months[$monthNum], $each['a_totalcalls'], $each['a_totalanswered'], ($each['a_totalcalls'] - $each['a_totalanswered']));
+                        $telephonyChartData[] = array($yearDisplay . $months[$monthNum], $each['a_totalcalls'], $each['a_totalanswered'], ($each['a_totalcalls'] - $each['a_totalanswered']));
                     }
                 }
                 $result .= wf_TableBody($rows, '100%', 0, '');
                 if ($chartsFlag) {
-                    $result .= wf_gchartsLine($askoziaChartData, __('Askozia'), '100%', '300px', $chartsOptions);
+                    $result .= wf_gchartsLine($telephonyChartData, __('Telephony'), '100%', '300px', $chartsOptions);
                 }
             }
 

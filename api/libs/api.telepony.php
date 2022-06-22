@@ -233,7 +233,9 @@ class TelePony {
     }
 
     /**
-     * Parses flow data into humanic array stats
+     * Parses flow data into humanic stats array.
+     * Fields: flowid, callstart, callend, from, to, records, direction,
+     * status,duration,realtime,takephone, context, app
      * 
      * @param array $flowData
      * 
@@ -499,6 +501,54 @@ class TelePony {
 
         $result['unanswered'] = $unansweredCalls;
         $result['recalled'] = $recalledCalls;
+
+        return($result);
+    }
+
+    /**
+     * Returns calls stats data for current month for the exhorse
+     * 
+     * @return array
+     */
+    public function getHorseMonthData() {
+        $result = array(
+            'a_totalcalls' => 0,
+            'a_totalanswered' => 0,
+            'a_totalcallsduration' => 0,
+            'a_averagecallduration' => 0,
+        );
+        //working time setup
+        $rawWorkTime = $this->altCfg['WORKING_HOURS'];
+        $rawWorkTime = explode('-', $rawWorkTime);
+        $workStartTime = $rawWorkTime[0];
+        $workEndTime = $rawWorkTime[1];
+
+        $rawCdr = $this->getCDR(curmonth() . '-01', curdate());
+        if ($rawCdr !== false) {
+            if (!empty($rawCdr)) {
+                $normalCalls = $this->groupCDRflows($rawCdr);
+
+                foreach ($normalCalls as $eachFlow => $flowData) {
+                    $callData = $this->parseCDRFlow($flowData);
+                    //Only incoming calls
+                    if ($callData['direction'] = 'in' OR $callData['app'] == 'Queue') {
+                        $callStartTime = $callData['callstart'];
+                        //Only work time
+                        if (zb_isTimeBetween($workStartTime, $workEndTime, $callStartTime)) {
+                            $result['a_totalcalls'] ++;
+                            $result['a_totalcallsduration'] += $callData['realtime'];
+                            if ($callData['status'] == 'ANSWERED') {
+                                $result['a_totalanswered'] ++;
+                            }
+                        }
+                    }
+                }
+                //prevent division by zero on no answered incoming calls
+                if ($result['a_totalanswered'] != 0) {
+                    $result['a_averagecallduration'] = $result['a_totalcallsduration'] / $result['a_totalanswered'];
+                }
+            }
+        }
 
         return($result);
     }
