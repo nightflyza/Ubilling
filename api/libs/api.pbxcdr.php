@@ -128,7 +128,7 @@ class PBXCdr {
         } else {
             $where .= " WHERE `calldate` LIKE '" . curdate() . "%'";
         }
-        $query = "SELECT * from `" . $this->table . "` " . $where;
+        $query = "SELECT * from `" . $this->table . "` " . $where . " ORDER BY `calldate` ASC";
         $result = $this->query($query);
         return($result);
     }

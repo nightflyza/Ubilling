@@ -3398,3 +3398,6 @@ $lang['def']['TelePony'] = 'ТелеПони';
 $lang['def']['right to listen telephony calls records'] = 'Право прослушивать записи разговоров телефонии';
 $lang['def']['Telephony calls records'] = 'Записи телефонных разговоров';
 $lang['def']['right to use'] = 'Право использовать';
+$lang['def']['Queue'] = 'Очередь';
+$lang['def']['ConfBridge'] = 'Конференция';
+$lang['def']['Playback'] = 'Проигрывание';
