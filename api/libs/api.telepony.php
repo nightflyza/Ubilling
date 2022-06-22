@@ -428,7 +428,7 @@ class TelePony {
                 $startTime = $callData['callstart'];
                 $incomingNumber = $callData['from'];
                 $destinationNumber = $callData['to'];
-                
+
                 if (ispos($incomingNumber, $countryCode)) {
                     $incomingNumber = str_replace($countryCode, '', $incomingNumber);
                 }
@@ -500,7 +500,6 @@ class TelePony {
         $result['unanswered'] = $unansweredCalls;
         $result['recalled'] = $recalledCalls;
 
-        // print_r($result);
         return($result);
     }
 
