@@ -191,7 +191,7 @@ class PBXMonitor {
 
     /**
      * Returns list of all files in directory. Using this instead of rcms_scandir with filters
-     * to prevent of much of preg_match callbacks and performance issues.
+     * to prevent of much of preg_match callbacks and avoid performance issues.
      * 
      * @param string $directory
      * 
@@ -301,48 +301,50 @@ class PBXMonitor {
         if (!empty($allVoiceFiles)) {
             foreach ($allVoiceFiles as $io => $each) {
                 $fileName = $each;
-                $explodedFile = explode('_', $fileName);
-                $cleanDate = explode('.', $explodedFile[2]);
-                $cleanDate = $cleanDate[0];
-                $callingNumber = $explodedFile[1];
-                $callDirection = ($explodedFile[0] == 'in') ? self::ICON_PATH . 'incoming.png' : self::ICON_PATH . 'outgoing.png';
-                //unfinished calls
-                if ((!ispos($cleanDate, 'in')) AND ( !ispos($cleanDate, 'out'))) {
-                    if (!isset($previousCalls[$fileName])) {
-                        //here onlyMobile flag used for mobile normalizing too
-                        $userLogin = $telepathy->getByPhoneFast($callingNumber, $this->onlyMobileFlag, $this->onlyMobileFlag);
-                        $askCalls->data('filename', ubRouting::filters($fileName, 'mres'));
-                        $askCalls->data('login', ubRouting::filters($userLogin, 'mres'));
-                        $askCalls->create();
-                    } else {
-                        $userLogin = $previousCalls[$fileName]['login'];
-                    }
-
-                    $userLink = (!empty($userLogin)) ? wf_Link('?module=userprofile&username=' . $userLogin, web_profile_icon() . ' ' . @$allAddress[$userLogin]) . ' ' . @$allRealnames[$userLogin] : '';
-                    $newDateString = date_format(date_create_from_format('Y-m-d-H-i-s', $cleanDate), 'Y-m-d H:i:s');
-                    $cleanDate = $newDateString;
-                    $fileUrl = self::URL_ME . '&dlpbxcall=' . $fileName;
-
-                    if ((empty($filterLogin)) OR ( $filterLogin == $userLogin)) {
-                        if ($renderAll) {
-                            $data[] = wf_img($callDirection) . ' ' . $cleanDate;
-                            $data[] = $callingNumber;
-                            $data[] = $userLink;
-                            $data[] = $this->renderUserTags($userLogin);
-                            $data[] = $this->getSoundcontrols($fileUrl) . $allCallsLabel;
-                            $json->addRow($data);
+                if (filesize($this->voicePath . $fileName) > 0) {
+                    $explodedFile = explode('_', $fileName);
+                    $cleanDate = explode('.', $explodedFile[2]);
+                    $cleanDate = $cleanDate[0];
+                    $callingNumber = $explodedFile[1];
+                    $callDirection = ($explodedFile[0] == 'in') ? self::ICON_PATH . 'incoming.png' : self::ICON_PATH . 'outgoing.png';
+                    //unfinished calls
+                    if ((!ispos($cleanDate, 'in')) AND ( !ispos($cleanDate, 'out'))) {
+                        if (!isset($previousCalls[$fileName])) {
+                            //here onlyMobile flag used for mobile normalizing too
+                            $userLogin = $telepathy->getByPhoneFast($callingNumber, $this->onlyMobileFlag, $this->onlyMobileFlag);
+                            $askCalls->data('filename', ubRouting::filters($fileName, 'mres'));
+                            $askCalls->data('login', ubRouting::filters($userLogin, 'mres'));
+                            $askCalls->create();
                         } else {
-                            if (ispos($cleanDate, $curYear)) {
+                            $userLogin = $previousCalls[$fileName]['login'];
+                        }
+
+                        $userLink = (!empty($userLogin)) ? wf_Link('?module=userprofile&username=' . $userLogin, web_profile_icon() . ' ' . @$allAddress[$userLogin]) . ' ' . @$allRealnames[$userLogin] : '';
+                        $newDateString = date_format(date_create_from_format('Y-m-d-H-i-s', $cleanDate), 'Y-m-d H:i:s');
+                        $cleanDate = $newDateString;
+                        $fileUrl = self::URL_ME . '&dlpbxcall=' . $fileName;
+
+                        if ((empty($filterLogin)) OR ( $filterLogin == $userLogin)) {
+                            if ($renderAll) {
                                 $data[] = wf_img($callDirection) . ' ' . $cleanDate;
                                 $data[] = $callingNumber;
                                 $data[] = $userLink;
                                 $data[] = $this->renderUserTags($userLogin);
                                 $data[] = $this->getSoundcontrols($fileUrl) . $allCallsLabel;
                                 $json->addRow($data);
+                            } else {
+                                if (ispos($cleanDate, $curYear)) {
+                                    $data[] = wf_img($callDirection) . ' ' . $cleanDate;
+                                    $data[] = $callingNumber;
+                                    $data[] = $userLink;
+                                    $data[] = $this->renderUserTags($userLogin);
+                                    $data[] = $this->getSoundcontrols($fileUrl) . $allCallsLabel;
+                                    $json->addRow($data);
+                                }
                             }
                         }
+                        unset($data);
                     }
-                    unset($data);
                 }
             }
         }
@@ -352,47 +354,49 @@ class PBXMonitor {
             $archiveLabel = wf_img('skins/calls/archived.png', __('Archive'));
             foreach ($allArchiveFiles as $io => $each) {
                 $fileName = $each;
-                $explodedFile = explode('_', $fileName);
-                $cleanDate = explode('.', $explodedFile[2]);
-                $cleanDate = $cleanDate[0];
-                $callingNumber = $explodedFile[1];
-                $callDirection = ($explodedFile[0] == 'in') ? self::ICON_PATH . 'incoming.png' : self::ICON_PATH . 'outgoing.png';
-                //unfinished calls
-                if ((!ispos($cleanDate, 'in')) AND ( !ispos($cleanDate, 'out'))) {
-                    if (!isset($previousCalls[$fileName])) {
-                        //here onlyMobile flag used for mobile normalizing too
-                        $userLogin = $telepathy->getByPhoneFast($callingNumber, $this->onlyMobileFlag, $this->onlyMobileFlag);
-                        $askCalls->data('filename', ubRouting::filters($fileName, 'mres'));
-                        $askCalls->data('login', ubRouting::filters($userLogin, 'mres'));
-                        $askCalls->create();
-                    } else {
-                        $userLogin = $previousCalls[$fileName]['login'];
-                    }
-
-                    $userLink = (!empty($userLogin)) ? wf_Link('?module=userprofile&username=' . $userLogin, web_profile_icon() . ' ' . @$allAddress[$userLogin]) . ' ' . @$allRealnames[$userLogin] : '';
-                    $newDateString = date_format(date_create_from_format('Y-m-d-H-i-s', $cleanDate), 'Y-m-d H:i:s');
-                    $cleanDate = $newDateString;
-                    $fileUrl = self::URL_ME . '&dlpbxcall=' . $fileName;
-                    if ((empty($filterLogin)) OR ( $filterLogin == $userLogin)) {
-                        if ($renderAll) {
-                            $data[] = wf_img($callDirection) . ' ' . $cleanDate;
-                            $data[] = $callingNumber;
-                            $data[] = $userLink;
-                            $data[] = $this->renderUserTags($userLogin);
-                            $data[] = $this->getSoundcontrols($fileUrl) . ' ' . $archiveLabel . $allCallsLabel;
-                            $json->addRow($data);
+                if (filesize($this->archivePath . $fileName) > 0) {
+                    $explodedFile = explode('_', $fileName);
+                    $cleanDate = explode('.', $explodedFile[2]);
+                    $cleanDate = $cleanDate[0];
+                    $callingNumber = $explodedFile[1];
+                    $callDirection = ($explodedFile[0] == 'in') ? self::ICON_PATH . 'incoming.png' : self::ICON_PATH . 'outgoing.png';
+                    //unfinished calls
+                    if ((!ispos($cleanDate, 'in')) AND ( !ispos($cleanDate, 'out'))) {
+                        if (!isset($previousCalls[$fileName])) {
+                            //here onlyMobile flag used for mobile normalizing too
+                            $userLogin = $telepathy->getByPhoneFast($callingNumber, $this->onlyMobileFlag, $this->onlyMobileFlag);
+                            $askCalls->data('filename', ubRouting::filters($fileName, 'mres'));
+                            $askCalls->data('login', ubRouting::filters($userLogin, 'mres'));
+                            $askCalls->create();
                         } else {
-                            if (ispos($cleanDate, $curYear)) {
+                            $userLogin = $previousCalls[$fileName]['login'];
+                        }
+
+                        $userLink = (!empty($userLogin)) ? wf_Link('?module=userprofile&username=' . $userLogin, web_profile_icon() . ' ' . @$allAddress[$userLogin]) . ' ' . @$allRealnames[$userLogin] : '';
+                        $newDateString = date_format(date_create_from_format('Y-m-d-H-i-s', $cleanDate), 'Y-m-d H:i:s');
+                        $cleanDate = $newDateString;
+                        $fileUrl = self::URL_ME . '&dlpbxcall=' . $fileName;
+                        if ((empty($filterLogin)) OR ( $filterLogin == $userLogin)) {
+                            if ($renderAll) {
                                 $data[] = wf_img($callDirection) . ' ' . $cleanDate;
                                 $data[] = $callingNumber;
                                 $data[] = $userLink;
                                 $data[] = $this->renderUserTags($userLogin);
                                 $data[] = $this->getSoundcontrols($fileUrl) . ' ' . $archiveLabel . $allCallsLabel;
                                 $json->addRow($data);
+                            } else {
+                                if (ispos($cleanDate, $curYear)) {
+                                    $data[] = wf_img($callDirection) . ' ' . $cleanDate;
+                                    $data[] = $callingNumber;
+                                    $data[] = $userLink;
+                                    $data[] = $this->renderUserTags($userLogin);
+                                    $data[] = $this->getSoundcontrols($fileUrl) . ' ' . $archiveLabel . $allCallsLabel;
+                                    $json->addRow($data);
+                                }
                             }
                         }
+                        unset($data);
                     }
-                    unset($data);
                 }
             }
         }
