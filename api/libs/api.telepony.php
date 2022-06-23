@@ -412,7 +412,7 @@ class TelePony {
             'recalled' => array()
         );
 
-        $minNumLen = 3;
+        $minNumLen = 5;
         $countryCode = '380';
         $unansweredCalls = array();
         $recalledCalls = array();
