@@ -246,6 +246,7 @@ class UserSideApi {
 
         $this->supportedChangeMethods = array(
             'balance_operation' => __('User balance operations'),
+            'balance_correct_operation' => __('User balance operations'),
             'name' => __('User name operations'),
             'comment' => __('User notes operations'),
             'tariff' => __('User tariff operations'),
@@ -1448,6 +1449,43 @@ class UserSideApi {
     }
 
     /**
+     * Do some user finance data correct
+     * 
+     * @param array $changeParams
+     * 
+     * @return array
+     */
+    protected function changeUserFinanceCorrect($changeParams) {
+        $result = array();
+        if (isset($changeParams['customerid'])) {
+            if (isset($this->allUserData[$changeParams['customerid']])) {
+                if (isset($changeParams['value'])) {
+                    if (zb_checkMoney($changeParams['value'])) {
+                        $paymentNotes = (isset($changeParams['comment'])) ? $changeParams['comment'] : '';
+                        $cashTypeId = 1; //like default
+                        if (isset($this->altCfg['USERSIDE_CASHTYPE'])) {
+                            if (!empty($this->altCfg['USERSIDE_CASHTYPE'])) {
+                                $cashTypeId = $this->altCfg['USERSIDE_CASHTYPE'];
+                            }
+                        }
+                        zb_CashAdd($changeParams['customerid'], $changeParams['value'], 'correct', $cashTypeId, $paymentNotes);
+                        $result = array('result' => 'ok');
+                    } else {
+                        $result = array('result' => 'error', 'error' => $this->errorNotices['EX_BAD_MONEY_FORMAT'] . ': ' . $changeParams['value']);
+                    }
+                } else {
+                    $result = array('result' => 'error', 'error' => $this->errorNotices['EX_PARAM_MISSED'] . ': value');
+                }
+            } else {
+                $result = array('result' => 'error', 'error' => $this->errorNotices['EX_USER_NOT_EXISTS'] . ': ' . $changeParams['customerid']);
+            }
+        } else {
+            $result = array('result' => 'error', 'error' => $this->errorNotices['EX_PARAM_MISSED'] . ': customer_id');
+        }
+        return ($result);
+    }
+
+    /**
      * Changes user RealName
      * 
      * @param array $changeParams
@@ -1699,6 +1737,9 @@ class UserSideApi {
                                     switch ($changeOperationType) {
                                         case 'balance_operation':
                                             $this->renderReply($this->changeUserFinance($changeParams));
+                                            break;
+                                        case 'balance_correct_operation':
+                                            $this->renderReply($this->changeUserFinanceCorrect($changeParams));
                                             break;
                                         case 'name':
                                             $this->renderReply($this->changeUserRealName($changeParams));
