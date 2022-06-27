@@ -34,6 +34,19 @@ class TelePony {
     protected $messages = '';
 
     /**
+     * Some predefined routes, URLs, paths etc..
+     */
+    const URL_ME = '?module=telepony';
+    const ROUTE_AJCALLSHIST = 'ajaxcallshist';
+    const ROUTE_INCALLSTATS = 'incallstats';
+    const ROUTE_CALLSHIST = 'callshistory';
+    const ROUTE_NIGHTCALLS = 'nightcalls';
+    const ROUTE_DFROM = 'datefrom';
+    const ROUTE_DTO = 'dateto';
+    const ROUTE_DLOADCDR = 'downloadcdr';
+    const PATH_CDRDEBUG = 'exports/teleponycdrdebug.log';
+
+    /**
      * Creates new TelePony instance
      * 
      * @return void
@@ -66,17 +79,18 @@ class TelePony {
     }
 
     /**
-     * Renders CDR date selection form
+     * Renders basic module controls
      * 
      * @return string
      */
-    public function renderCdrDateForm() {
-        $inputs = '';
-        $inputs .= wf_DatePickerPreset('datefrom', curdate()) . ' ' . __('From');
-        $inputs .= wf_DatePickerPreset('dateto', curdate()) . ' ' . __('To');
-        $inputs .= wf_Submit(__('Show'));
-        $result = wf_Form("", "POST", $inputs, 'glamour');
-        return ($result);
+    public function renderControls() {
+        $result = '';
+        $result .= wf_Link(self::URL_ME . '&' . self::ROUTE_INCALLSTATS . '=true', wf_img('skins/icon_stats_16.gif') . ' ' . __('Stats') . ' ' . __('Incoming calls'), false, 'ubButton') . ' ';
+        if ($this->altCfg['TELEPONY_CDR']) {
+            $result .= wf_Link(self::URL_ME . '&' . self::ROUTE_CALLSHIST . '=true', wf_img('skins/icon_cdr.png') . ' ' . __('Calls history'), false, 'ubButton') . ' ';
+            $result .= wf_Link(self::URL_ME . '&' . self::ROUTE_NIGHTCALLS . '=true', wf_img('skins/icon_moon.png') . ' ' . __('Calls during non-business hours'), false, 'ubButton') . ' ';
+        }
+        return($result);
     }
 
     /**
@@ -331,18 +345,67 @@ class TelePony {
     }
 
     /**
-     * Renders some calls history
-     * 
-     * @param string $cdrConf
+     * Renders CDR date selection form
      * 
      * @return string
      */
+    public function renderCdrDateForm() {
+        $inputs = '';
+        if (ubRouting::checkPost(array(self::ROUTE_DFROM, self::ROUTE_DTO))) {
+            $dateFrom = ubRouting::post(self::ROUTE_DFROM);
+            $dateTo = ubRouting::post(self::ROUTE_DTO);
+        } else {
+            $dateFrom = curdate();
+            $dateTo = curdate();
+        }
+        $inputs .= wf_DatePickerPreset(self::ROUTE_DFROM, $dateFrom) . ' ' . __('From') . ' ';
+        $inputs .= wf_DatePickerPreset(self::ROUTE_DTO, $dateTo) . ' ' . __('To') . ' ';
+        $inputs .= wf_Submit(__('Show'));
+        $result = wf_Form('', 'POST', $inputs, 'glamour');
+        return ($result);
+    }
+
+    /**
+     * Renders calls history data container
+     * 
+     * @return void
+     */
     public function renderCDR() {
         $result = '';
+        if (ubRouting::checkPost(array(self::ROUTE_DFROM, self::ROUTE_DTO))) {
+            $dateFrom = ubRouting::post(self::ROUTE_DFROM);
+            $dateTo = ubRouting::post(self::ROUTE_DTO);
+        } else {
+            $dateFrom = curdate();
+            $dateTo = curdate();
+        }
+        $columns = array('#', __('Time'), __('From'), __('To'), __('Picked up'), __('Type'), __('Status'), __('Talk time'));
+        $opts = '"order": [[ 0, "desc" ]]';
+        $ajDataUrl = self::URL_ME . '&' . self::ROUTE_CALLSHIST . '=true' . '&' . self::ROUTE_AJCALLSHIST . '=true';
+        $ajDataUrl .= '&' . self::ROUTE_DFROM . '=' . $dateFrom . '&' . self::ROUTE_DTO . '=' . $dateTo;
+        $result .= wf_JqDtLoader($columns, $ajDataUrl, false, __('Calls'), 50, $opts);
 
-        $dateFrom = ubRouting::post('datefrom');
-        $dateTo = ubRouting::post('dateto');
+        if (cfr('ROOT')) {
+            if (file_exists(self::PATH_CDRDEBUG)) {
+                $result .= wf_delimiter(0);
+                $dlUrl = self::URL_ME . '&' . self::ROUTE_CALLSHIST . '=true' . '&' . self::ROUTE_DLOADCDR . '=true';
+                $result .= wf_Link($dlUrl, wf_img('skins/icon_download.png') . ' ' . __('Download') . ' ' . __('CDR'), false, 'ubButton');
+            }
+        }
+        return($result);
+    }
+
+    /**
+     * Renders some calls history JSON data
+     * 
+     * @return void
+     */
+    public function getCDRJson() {
+        $result = '';
+        $dateFrom = ubRouting::get('datefrom');
+        $dateTo = ubRouting::get('dateto');
         $rawCdr = $this->getCDR($dateFrom, $dateTo);
+        $json = new wf_JqDtHelper();
 
         //preload phonebook contacts
         if ($this->altCfg['PHONEBOOK_ENABLED']) {
@@ -355,16 +418,6 @@ class TelePony {
             if (!empty($rawCdr)) {
                 $flows = $this->groupCDRflows($rawCdr);
                 $flowCounter = 0;
-                $totalTime = 0;
-                $cells = wf_TableCell('#');
-                $cells .= wf_TableCell(__('Time'));
-                $cells .= wf_TableCell(__('From'));
-                $cells .= wf_TableCell(__('To'));
-                $cells .= wf_TableCell(__('Picked up'));
-                $cells .= wf_TableCell(__('Type'));
-                $cells .= wf_TableCell(__('Status'));
-                $cells .= wf_TableCell(__('Talk time'));
-                $rows = wf_TableRow($cells, 'row1');
 
                 if (!empty($flows)) {
                     foreach ($flows as $eachFlowId => $eachFlowData) {
@@ -372,33 +425,29 @@ class TelePony {
                         $callData = $this->parseCDRFlow($eachFlowData);
                         $callDirection = '';
                         //setting call direction icon
-                        if ($callData['direction'] == 'in') {
+                        if ($callData['direction'] == 'in' OR $callData['app'] == 'Queue') {
                             $callDirection = wf_img('skins/calls/incoming.png') . ' ';
                         } else {
                             $callDirection = wf_img('skins/calls/outgoing.png') . ' ';
                         }
 
-                        $cells = wf_TableCell($flowCounter);
-                        $cells .= wf_TableCell($callDirection . $callData['callstart']);
-                        $cells .= wf_TableCell($this->renderNumber($callData['from']));
-                        $cells .= wf_TableCell($this->renderNumber($callData['to']));
-                        $cells .= wf_TableCell($this->renderNumber($callData['takephone']));
-                        $cells .= wf_TableCell(__($callData['app']));
-                        $cells .= wf_TableCell($this->renderCallStatus($callData['status']));
-                        $cells .= wf_TableCell(zb_formatTime($callData['realtime']));
-                        $rows .= wf_TableRow($cells, 'row5');
-
-                        $totalTime += $callData['realtime'];
+                        $data[] = $flowCounter;
+                        $data[] = $callDirection . $callData['callstart'];
+                        $data[] = $this->renderNumber($callData['from']);
+                        $data[] = $this->renderNumber($callData['to']);
+                        $data[] = $this->renderNumber($callData['takephone']);
+                        $data[] = __($callData['app']);
+                        $data[] = $this->renderCallStatus($callData['status']);
+                        $data[] = zb_formatTime($callData['realtime']);
+                        $json->addRow($data);
+                        unset($data);
                     }
-                    $result .= wf_TableBody($rows, '100%', 0, 'sortable');
-                    $result .= __('Total calls') . ': ' . $flowCounter . wf_delimiter(0);
-                    $result .= __('Time spent on calls') . ': ' . zb_formatTime($totalTime) . wf_delimiter(0);
                 }
             }
-        } else {
-            $result .= $this->messages->getStyledMessage(__('Wrong element format') . ': TELEPONY_CDR ' . __('is corrupted'), 'error');
+            //writing debug log
+            file_put_contents(self::PATH_CDRDEBUG, print_r($rawCdr, true));
         }
-        return($result);
+        $json->getJson();
     }
 
     /**
@@ -550,6 +599,118 @@ class TelePony {
             }
         }
 
+        return($result);
+    }
+
+    /**
+     * Renders calls during non-business hours list
+     * 
+     * @return string
+     */
+    public function renderNightCalls() {
+        $result = '';
+        $nightMode = array();
+        $minNumLen = 5;
+        //date range setup
+        $dateFrom = curmonth() . '-01';
+        $dateTo = curdate();
+        //working time setup
+        $rawWorkTime = $this->altCfg['WORKING_HOURS'];
+        $rawWorkTime = explode('-', $rawWorkTime);
+        $workStartTime = $rawWorkTime[0];
+        $workEndTime = $rawWorkTime[1];
+
+        //filling WDYC recalled cache
+        $recalledCache = array();
+        if ($this->altCfg['WDYC_ENABLED']) {
+            if (file_exists(WhyDoYouCall::CACHE_RECALLED)) {
+                $recalledCache = file_get_contents(WhyDoYouCall::CACHE_RECALLED);
+                $recalledCache = unserialize($recalledCache);
+            }
+        }
+
+        $rawCdr = $this->getCDR($dateFrom, $dateTo);
+        if ($rawCdr !== false) {
+            $flows = array();
+            if (!empty($rawCdr)) {
+                $flows = $this->groupCDRflows($rawCdr);
+                $flowCounter = 0;
+
+                if (!empty($flows)) {
+                    foreach ($flows as $eachFlowId => $eachFlowData) {
+                        $flowCounter++;
+                        $callData = $this->parseCDRFlow($eachFlowData);
+                        $number = $callData['from'];
+
+                        $date = date("Y-m-d", strtotime($callData['callstart']));
+                        $cutTime = date("H:i:s", strtotime($callData['callstart']));
+
+                        //night calls preprocessing
+                        if (!zb_isTimeBetween($workStartTime, $workEndTime, $cutTime)) {
+                            if (strlen((string) $number) >= $minNumLen) {
+                                $nightMode[$date][$number][] = $cutTime;
+                            }
+                        }
+                    }
+
+                    //render data
+                    if (!empty($nightMode)) {
+                        krsort($nightMode);
+                        $allAddress = zb_AddressGetFulladdresslistCached();
+                        $telepathy = new Telepathy(false, true, false, true);
+                        $telepathy->usePhones();
+                        $cells = wf_TableCell(__('Date'));
+                        $cells .= wf_TableCell(__('Phones'));
+
+                        $rows = wf_TableRow($cells, 'row1');
+                        foreach ($nightMode as $date => $numbers) {
+                            $cells = wf_TableCell($date);
+                            $nums = '';
+                            $times = '';
+                            $guessedLogin = '';
+                            $ncells = wf_TableCell(__('Number'), '30%');
+                            $ncells .= wf_TableCell(__('User'), '30%');
+                            $ncells .= wf_TableCell(__('Time'), '30%');
+                            $nrows = wf_TableRow($ncells, 'row1');
+                            $nums .= wf_TableBody($nrows, '100%', 0);
+                            foreach ($numbers as $eachNumber => $eachTime) {
+                                $guessedLogin = $telepathy->getByPhoneFast($eachNumber, true, true);
+                                if ($guessedLogin) {
+                                    $userLabel = wf_link(UserProfile::URL_PROFILE . $guessedLogin, web_profile_icon() . ' ' . @$allAddress[$guessedLogin]);
+                                } else {
+                                    $userLabel = '';
+                                }
+
+                                $eachTime = implode(', ', $eachTime);
+                                $ncells = wf_TableCell($eachNumber, '30%');
+                                $ncells .= wf_TableCell($userLabel, '30%');
+                                $ncells .= wf_TableCell($eachTime, '30%');
+                                if (isset($recalledCache[$eachNumber])) {
+                                    $numClass = 'todaysig';
+                                } else {
+                                    $numClass = 'row5';
+                                }
+
+                                $nrows = wf_TableRow($ncells, $numClass);
+                                $nums .= wf_TableBody($nrows, '100%', 0);
+                            }
+                            $cells .= wf_TableCell($nums);
+
+                            $rows .= wf_TableRow($cells, 'row3');
+                        }
+
+
+                        $result .= wf_TableBody($rows, '100%', 0, '');
+                    } else {
+                        $result .= $this->messages->getStyledMessage(__('Nothing to show'), 'info');
+                    }
+                }
+            } else {
+                $result .= $this->messages->getStyledMessage(__('Nothing to show'), 'warning');
+            }
+        } else {
+            $result .= $this->messages->getStyledMessage(__('Strange exception') . ' EX_CDR_GET_FAIL', 'error');
+        }
         return($result);
     }
 

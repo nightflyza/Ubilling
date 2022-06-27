@@ -401,10 +401,11 @@ class WhyDoYouCall {
         $result = '';
         if (!ubRouting::checkGet('renderstats') AND ! ubRouting::checkGet('nightmode')) {
             $result .= wf_Link(self::URL_ME, wf_img_sized('skins/icon_phone.gif', '', '16', '16') . ' ' . __('Calls'), false, 'ubButton') . ' ';
-            //TODO: do something around this
-            if ($this->altCfg['ASKOZIA_ENABLED']) {
+
+            if ($this->altCfg['ASKOZIA_ENABLED'] OR $this->altCfg['TELEPONY_CDR']) {
                 $result .= wf_Link(self::URL_ME . '&nightmode=true', wf_img_sized('skins/icon_moon.png', '', '16', '16') . ' ' . __('Calls during non-business hours'), false, 'ubButton') . ' ';
             }
+
             $result .= wf_Link(self::URL_ME . '&renderstats=true', wf_img_sized('skins/icon_stats.gif', '', '16', '16') . ' ' . __('Stats'), false, 'ubButton');
         } else {
             $result .= wf_BackLink(self::URL_ME);
@@ -607,6 +608,24 @@ class WhyDoYouCall {
      * @return string
      */
     public function renderNightModeCalls() {
+        $result = '';
+        if ($this->altCfg['ASKOZIA_ENABLED']) {
+            $result .= $this->getAskoziaNightModeCalls();
+        }
+
+        if ($this->altCfg['TELEPONY_ENABLED'] AND $this->altCfg['TELEPONY_CDR']) {
+            $telePony = new TelePony();
+            $result .= $telePony->renderNightCalls();
+        }
+        return($result);
+    }
+
+    /**
+     * Fetches unanswered night-mode calls from Askozia
+     * 
+     * @return string
+     */
+    public function getAskoziaNightModeCalls() {
         $result = '';
         $askoziaUrl = zb_StorageGet('ASKOZIAPBX_URL');
         $askoziaLogin = zb_StorageGet('ASKOZIAPBX_LOGIN');

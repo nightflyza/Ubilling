@@ -28,6 +28,7 @@ if ($altcfg['WDYC_ENABLED']) {
                 }
                 show_window(__('Stats'), $whydoyoucall->renderStats());
             }
+
             //rendering night-mode calls
             if (ubRouting::checkGet('nightmode')) {
                 show_window(__('Calls during non-business hours'), $whydoyoucall->renderNightModeCalls());
