@@ -1,0 +1,83 @@
+set timeout 20
+set IP [lindex $argv 0]
+set LOGIN [lindex $argv 1]
+set PASSWORD [lindex $argv 2]
+set METHOD [lindex $argv 3]
+set PON_INT [lindex $argv 4]
+set ONU_INT [lindex $argv 5]
+set ONU_NUM [lindex $argv 6]
+set VLAN [lindex $argv 7]
+set SVLAN [lindex $argv 8]
+set SN [lindex $argv 9]
+set DESCRIPTION [lindex $argv 10]
+set DHCPSNOOPING [lindex $argv 11]
+set LOOPDETECT [lindex $argv 12]
+
+if {[string match "TELNET" $METHOD]} {
+    spawn telnet $IP
+    expect "Username:*"
+    send "$LOGIN\r"
+} elseif {[string match "SSH" $METHOD]} {
+    spawn ssh $LOGIN@$IP
+    expect {
+	"(yes/no)?*" {
+		send "yes\r"
+		}
+    }
+}
+
+expect "Password:*"
+send "$PASSWORD\r"
+expect "*#"
+send "configure terminal\r"
+
+expect "*(config)#"
+send "interface $PON_INT\r"
+expect "*(config-if)#"
+send "onu $ONU_NUM type 1ETH sn $SN\r"
+expect "*(config-if)#"
+send "exit\r"
+
+expect "*(config)#"
+send "interface $ONU_INT:$ONU_NUM\r"
+
+if {![string match "__empty" $DESCRIPTION]} {
+    expect "*(config-if)#"
+    send "description $DESCRIPTION\r"
+}
+
+expect "*(config-if)#"
+send "tcont 1 profile unlim\r"
+expect "*(config-if)#"
+send "gemport 1 name unlim tcont 1\r"
+expect "*(config-if)#"
+send "gemport 1 traffic-limit upstream unlim downstream unlim\r"
+expect "*(config-if)#"
+send "switchport mode hybrid vport 1\r"
+expect "*(config-if)#"
+send "service-port 1 vport 1 user-vlan $VLAN svlan $SVLAN\r"
+
+if {![string match "__empty" $DHCPSNOOPING]} {
+    expect "*(config-if)#"
+    send "ip dhcp snooping enable vport 1\r"
+}
+
+expect "*(config-if)#"
+send "exit\r"
+
+expect "*(config)#"
+send "pon-onu-mng $ONU_INT:$ONU_NUM\r"
+
+if {![string match "__empty" $LOOPDETECT]} {
+    expect "*(gpon-onu-mng *"
+    send "loop-detect ethuni eth_0/1 enable\r"
+}
+
+expect "*(gpon-onu-mng *"
+send "service HSI gemport 1 vlan $VLAN\r"
+expect "*(gpon-onu-mng *"
+send "vlan port eth_0/1 mode tag vlan $VLAN\r"
+expect "*(gpon-onu-mng *"
+send "end\r"
+expect "*#"
+send "exit\r"
