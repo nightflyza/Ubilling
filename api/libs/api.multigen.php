@@ -2105,7 +2105,7 @@ class MultiGen {
                     foreach ($userNases as $eachNasId) {
                         @$nasOptions = $this->nasOptions[$eachNasId];
                         @$userNameType = $nasOptions['usernametype'];
-                        if ($userNameType == 'mac' or $userNameType == 'macju' or $userNameType == 'ip' or $userNameType == 'macup') {
+                        if ($userNameType != 'login') {
                             $userName = $this->getLoginUsername($userLogin, $userData, $userNameType);
                             if (!empty($userName)) {
                                 if (!empty($nasOptions)) {
