@@ -325,25 +325,26 @@ class PBXMonitor {
                         $fileUrl = self::URL_ME . '&dlpbxcall=' . $fileName;
 
                         if ((empty($filterLogin)) OR ( $filterLogin == $userLogin)) {
+                            $rowFiltered = false;
                             if ($renderAll) {
+                                $rowFiltered = true;
+                            } else {
+                                if (ispos($cleanDate, $curYear)) {
+                                    $rowFiltered = true;
+                                }
+                            }
+
+                            //append data to results
+                            if ($rowFiltered) {
                                 $data[] = wf_img($callDirection) . ' ' . $cleanDate;
                                 $data[] = $callingNumber;
                                 $data[] = $userLink;
                                 $data[] = $this->renderUserTags($userLogin);
                                 $data[] = $this->getSoundcontrols($fileUrl) . $allCallsLabel;
                                 $json->addRow($data);
-                            } else {
-                                if (ispos($cleanDate, $curYear)) {
-                                    $data[] = wf_img($callDirection) . ' ' . $cleanDate;
-                                    $data[] = $callingNumber;
-                                    $data[] = $userLink;
-                                    $data[] = $this->renderUserTags($userLogin);
-                                    $data[] = $this->getSoundcontrols($fileUrl) . $allCallsLabel;
-                                    $json->addRow($data);
-                                }
+                                unset($data);
                             }
                         }
-                        unset($data);
                     }
                 }
             }
@@ -377,25 +378,26 @@ class PBXMonitor {
                         $cleanDate = $newDateString;
                         $fileUrl = self::URL_ME . '&dlpbxcall=' . $fileName;
                         if ((empty($filterLogin)) OR ( $filterLogin == $userLogin)) {
+                            $rowFiltered = false;
                             if ($renderAll) {
-                                $data[] = wf_img($callDirection) . ' ' . $cleanDate;
-                                $data[] = $callingNumber;
-                                $data[] = $userLink;
-                                $data[] = $this->renderUserTags($userLogin);
-                                $data[] = $this->getSoundcontrols($fileUrl) . ' ' . $archiveLabel . $allCallsLabel;
-                                $json->addRow($data);
+                                $rowFiltered = true;
                             } else {
                                 if (ispos($cleanDate, $curYear)) {
-                                    $data[] = wf_img($callDirection) . ' ' . $cleanDate;
-                                    $data[] = $callingNumber;
-                                    $data[] = $userLink;
-                                    $data[] = $this->renderUserTags($userLogin);
-                                    $data[] = $this->getSoundcontrols($fileUrl) . ' ' . $archiveLabel . $allCallsLabel;
-                                    $json->addRow($data);
+                                    $rowFiltered = true;
                                 }
                             }
                         }
-                        unset($data);
+
+                        //append data to results
+                        if ($rowFiltered) {
+                            $data[] = wf_img($callDirection) . ' ' . $cleanDate;
+                            $data[] = $callingNumber;
+                            $data[] = $userLink;
+                            $data[] = $this->renderUserTags($userLogin);
+                            $data[] = $this->getSoundcontrols($fileUrl) . $archiveLabel . $allCallsLabel;
+                            $json->addRow($data);
+                            unset($data);
+                        }
                     }
                 }
             }
