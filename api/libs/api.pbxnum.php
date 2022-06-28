@@ -27,6 +27,13 @@ class PBXNum {
     protected $cache = '';
 
     /**
+     * Incoming calls database abstraction layer
+     *
+     * @var object
+     */
+    protected $callsDb = '';
+
+    /**
      * Userdata cahe key name
      */
     const CACHE_KEY = 'PBXUSERDATA';
@@ -54,6 +61,7 @@ class PBXNum {
     public function __construct() {
         $this->initTelepathy();
         $this->initCache();
+        $this->initDb();
     }
 
     /**
@@ -87,18 +95,29 @@ class PBXNum {
     }
 
     /**
+     * Inits incoming calls database abstraction layer
+     * 
+     * @return void
+     */
+    protected function initDb() {
+        $this->callsDb = new NyanORM(self::LOG_TABLE);
+    }
+
+    /**
      * Saves incoming call into database
      * 
      * @return void
      */
     protected function saveCallsHist($date, $number, $login = '') {
-        $login = mysql_real_escape_string($login);
-        $number = mysql_real_escape_string($number);
+        $login = ubRouting::filters($login, 'mres');
+        $number = ubRouting::filters($number, 'mres');
         $number = trim($number);
         $login = trim($login);
-        $query = "INSERT INTO `" . self::LOG_TABLE . "` (`id`,`date`,`number`,`login`) VALUES "
-                . "(NULL, '" . $date . "', '" . $number . "','" . $login . "');";
-        nr_query($query);
+
+        $this->callsDb->data('date', $date);
+        $this->callsDb->data('number', $number);
+        $this->callsDb->data('login', $login);
+        $this->callsDb->create();
     }
 
     /**
@@ -111,7 +130,7 @@ class PBXNum {
      */
     protected function log($reply, $login) {
         $curdateTime = curdatetime();
-        $logData = $curdateTime . ' NUMBER: ' . $this->number . ' REPLY: ' . $reply . ' LOGIN: ' . $login . "\n";
+        $logData = $curdateTime . ' NUMBER: ' . $this->number . ' REPLY: ' . $reply . ' LOGIN: ' . $login . PHP_EOL;
         file_put_contents(self::LOG_PATH, $logData, FILE_APPEND);
         $this->saveCallsHist($curdateTime, $this->number, $login);
     }
