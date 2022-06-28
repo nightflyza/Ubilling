@@ -164,6 +164,10 @@ class ExistentialHorse {
      */
     const URL_ME = '?module=exhorse';
     const PROUTE_YEAR = 'yearsel';
+    const COLOR_GOOD = '009f04';
+    const COLOR_BAD = 'b50000';
+    const ICON_RISE = 'skins/rise_icon.png';
+    const ICON_DRAIN = 'skins/drain_icon.png';
 
     /**
      * Some database data sources here
@@ -1140,11 +1144,11 @@ class ExistentialHorse {
                         $starDelimiter = ' / ';
                         $riseTotal = $each['u_activeusers'] - $riseOfTheNorthStar['active'];
                         if ($riseTotal > 0) {
-                            $fontColor = wf_tag('font', false, '', 'color="#009f04"');
-                            $riseUsersIcon = wf_img_sized('skins/rise_icon.png', '', '10', '10');
+                            $fontColor = wf_tag('font', false, '', 'color="#' . self::COLOR_GOOD . '"');
+                            $riseUsersIcon = wf_img_sized(self::ICON_RISE, __('Increased'), '10', '10');
                         } else {
-                            $fontColor = wf_tag('font', false, '', 'color="#b50000"');
-                            $riseUsersIcon = wf_img_sized('skins/drain_icon.png', '', '10', '10');
+                            $fontColor = wf_tag('font', false, '', 'color="#' . self::COLOR_BAD . '"');
+                            $riseUsersIcon = wf_img_sized(self::ICON_DRAIN, __('Decreased'), '10', '10');
                         }
                     } else {
                         $fontColor = '';
@@ -1158,11 +1162,11 @@ class ExistentialHorse {
                     if (!empty($riseOfTheNorthStar['active'])) {
                         $riseActive = ($each['u_activeusers'] - ($riseOfTheNorthStar['active'] + $each['u_signups']));
                         if ($riseActive > 0) {
-                            $fontColorActive = wf_tag('font', false, '', 'color="#009f04"');
-                            $riseActiveIcon = wf_img_sized('skins/rise_icon.png', '', '10', '10');
+                            $fontColorActive = wf_tag('font', false, '', 'color="#' . self::COLOR_GOOD . '"');
+                            $riseActiveIcon = wf_img_sized(self::ICON_RISE, __('Increased'), '10', '10');
                         } else {
-                            $fontColorActive = wf_tag('font', false, '', 'color="#b50000"');
-                            $riseActiveIcon = wf_img_sized('skins/drain_icon.png', '', '10', '10');
+                            $fontColorActive = wf_tag('font', false, '', 'color="#' . self::COLOR_BAD . '"');
+                            $riseActiveIcon = wf_img_sized(self::ICON_DRAIN, __('Decreased'), '10', '10');
                         }
                     } else {
                         $fontColorActive = '';

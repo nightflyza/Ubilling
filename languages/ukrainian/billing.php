@@ -3422,4 +3422,6 @@ $lang['def']['right to use'] = 'Право використовувати';
 $lang['def']['Queue'] = 'Черга';
 $lang['def']['ConfBridge'] = 'Конференція';
 $lang['def']['Playback'] = 'Програвання';
+$lang['def']['Increased'] = 'Зросло';
+$lang['def']['Decreased'] = 'Зменшилось';
 $lang['def'][''] = '';
