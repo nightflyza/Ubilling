@@ -70,7 +70,7 @@ class SMSHistory {
                                 $data[] = '';
                             } else {
                                 $usrAddress = (empty($allAddresses[$FieldVal])) ? '' : $allAddresses[$FieldVal];
-                                $data[] = wf_Link('?module=userprofile&username=' . $FieldVal, web_profile_icon() . ' ' . $FieldVal, false, '', 'style="color:#000fd4"')
+                                $data[] = wf_Link('?module=userprofile&username=' . $FieldVal, web_profile_icon() . ' ' . $FieldVal, false, '', 'style="color:#341e19"')
                                           . wf_delimiter(0) . $usrAddress;
                             }
                             break;
@@ -121,16 +121,19 @@ class SMSHistory {
                     if ( data[' . $CheckCol1 . '] == "' . __('No') . '" && data[' . $CheckCol2 . '] == "' . __('Yes') . '" ) {
                         $(\'td\', row).css(\'background-color\', \'red\');
                         $(\'td\', row).css(\'color\', \'#FFFF44\');
+                        $(\'td\', row).css(\'opacity\', \'0.8\');
                     }
                     
                     if ( data[' . $CheckCol1 . '] == "' . __('Yes') . '" && data[' . $CheckCol2 . '] == "' . __('Yes') . '") {
-                        $(\'td\', row).css(\'background-color\', \'#4f7318\');
+                        $(\'td\', row).css(\'background-color\', \'#228B22\');
                         $(\'td\', row).css(\'color\', \'white\');
+                        $(\'td\', row).css(\'opacity\', \'0.8\');
                     }
                     
                     if ( data[' . $CheckCol1 . '] == "' . __('No') . '" && data[' . $CheckCol2 . '] == "' . __('No') . '") {
-                        $(\'td\', row).css(\'background-color\', \'#FFFF00\');
+                        $(\'td\', row).css(\'background-color\', \'#fffc5e\');
                         $(\'td\', row).css(\'color\', \'#4800FF\');
+                        $(\'td\', row).css(\'opacity\', \'0.8\');
                     }
                   }
                 ';
