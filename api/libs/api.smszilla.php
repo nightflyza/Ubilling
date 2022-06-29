@@ -2255,6 +2255,10 @@ class SMSZilla {
                             $data[] = $messageText;
                             $data[] = $textLen;
                             $data[] = $smsCount;
+                            if ($this->sms->smsRoutingFlag) {
+                                $data[] = $this->sms->smsDirections->getDirectionNameById();
+                            }
+
                             $json->addRow($data);
                             unset($data);
 
@@ -2281,6 +2285,10 @@ class SMSZilla {
                             $data[] = $messageText;
                             $data[] = $textLen;
                             $data[] = $smsCount;
+                            if ($this->sms->smsRoutingFlag) {
+                                $data[] = $this->sms->smsDirections->getDirectionNameById();
+                            }
+
                             $json->addRow($data);
                             unset($data);
 
@@ -2305,6 +2313,10 @@ class SMSZilla {
                             $data[] = $messageText;
                             $data[] = $textLen;
                             $data[] = $smsCount;
+                            if ($this->sms->smsRoutingFlag) {
+                                $data[] = $this->sms->smsDirections->getDirectionNameById();
+                            }
+
                             $json->addRow($data);
                             unset($data);
 
