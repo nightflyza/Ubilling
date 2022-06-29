@@ -3415,4 +3415,6 @@ $lang['def']['Insufficient funds to send this message'] = 'Недостаточ�
 $lang['def']['Message on moderation'] = 'Сообщение на модерации';
 $lang['def']['Message reserved by the system'] = 'Сообщение зарезервировано системой';
 $lang['def']['Message prepared for refund'] = 'Сообщение подготовлено к возврату средств';
-$lang['def'][''] = '';
+$lang['def']['Increased'] = 'Увеличилось';
+$lang['def']['Decreased'] = 'Уменьшилось';
+

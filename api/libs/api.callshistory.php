@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * Performs view/search/display of incoming calls data received with PBXNum
+ */
 class CallsHistory {
 
     /**
@@ -17,7 +20,7 @@ class CallsHistory {
     protected $dataSource = '';
 
     /**
-     * Contains previously loaded calls
+     * Contains previously loaded calls as id=>callData
      *
      * @var array
      */
@@ -38,6 +41,13 @@ class CallsHistory {
     protected $userTags = array();
 
     /**
+     * Incoming calls database abstraction layer
+     *
+     * @var object
+     */
+    protected $callsDb = '';
+
+    /**
      * URL of user profile route
      */
     const URL_PROFILE = '?module=userprofile&username=';
@@ -54,6 +64,7 @@ class CallsHistory {
      */
     public function __construct() {
         $this->loadConfig();
+        $this->initDb();
     }
 
     /**
@@ -64,7 +75,7 @@ class CallsHistory {
      * @return void
      */
     public function setLogin($login = '') {
-        $this->loginSearch = mysql_real_escape_string($login);
+        $this->loginSearch = ubRouting::filters($login, 'mres');
     }
 
     /**
@@ -81,25 +92,29 @@ class CallsHistory {
     }
 
     /**
+     * Inits incoming calls database abstraction layer
+     * 
+     * @return void
+     */
+    protected function initDb() {
+        $this->callsDb = new NyanORM($this->dataSource);
+    }
+
+    /**
      * Loads some calls list into protected property
      * 
      * @return void
      */
     protected function loadCalls() {
-        $where = (!empty($this->loginSearch)) ? " WHERE `login`='" . $this->loginSearch . "'" : '';
         if (!empty($this->loginSearch)) {
-            $where = "WHERE `login`='" . $this->loginSearch . "'";
+            //login search with full date range
+            $this->callsDb->where('login', '=', $this->loginSearch);
         } else {
-            $where = "WHERE `date` LIKE '" . curyear() . "-%'";
+            //or just for current year
+            $this->callsDb->where('date', 'LIKE', curyear() . '-%');
         }
-        $query = "SELECT * from `" . $this->dataSource . "` " . $where;
-        // die($query);
-        $all = simple_queryall($query);
-        if (!empty($all)) {
-            foreach ($all as $io => $each) {
-                $this->allCalls[$each['id']] = $each;
-            }
-        }
+
+        $this->allCalls = $this->callsDb->getAll('id');
     }
 
     /**
@@ -204,7 +219,9 @@ class CallsHistory {
                 if (empty($each['login'])) {
                     $detectedLogin = $telepathy->getByPhone($each['number'], true, true);
                     if (!empty($detectedLogin)) {
-                        simple_update_field($this->dataSource, 'login', $detectedLogin, "WHERE `id`='" . $each['id'] . "'");
+                        $this->callsDb->data('login', $detectedLogin);
+                        $this->callsDb->where('id', '=', $each['id']);
+                        $this->callsDb->save();
                         $notification = $each['date'] . ' ' . $each['number'] . ' ' . __('Assigned') . ' ' . $detectedLogin;
                         $result .= $messages->getStyledMessage($notification, 'success');
                         $countGuessed++;

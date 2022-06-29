@@ -302,6 +302,7 @@ class PBXMonitor {
             foreach ($allVoiceFiles as $io => $each) {
                 $fileName = $each;
                 if (filesize($this->voicePath . $fileName) > 0) {
+                    $rowFiltered = false;
                     $explodedFile = explode('_', $fileName);
                     $cleanDate = explode('.', $explodedFile[2]);
                     $cleanDate = $cleanDate[0];
@@ -325,7 +326,6 @@ class PBXMonitor {
                         $fileUrl = self::URL_ME . '&dlpbxcall=' . $fileName;
 
                         if ((empty($filterLogin)) OR ( $filterLogin == $userLogin)) {
-                            $rowFiltered = false;
                             if ($renderAll) {
                                 $rowFiltered = true;
                             } else {
@@ -356,6 +356,7 @@ class PBXMonitor {
             foreach ($allArchiveFiles as $io => $each) {
                 $fileName = $each;
                 if (filesize($this->archivePath . $fileName) > 0) {
+                    $rowFiltered = false;
                     $explodedFile = explode('_', $fileName);
                     $cleanDate = explode('.', $explodedFile[2]);
                     $cleanDate = $cleanDate[0];
@@ -378,7 +379,6 @@ class PBXMonitor {
                         $cleanDate = $newDateString;
                         $fileUrl = self::URL_ME . '&dlpbxcall=' . $fileName;
                         if ((empty($filterLogin)) OR ( $filterLogin == $userLogin)) {
-                            $rowFiltered = false;
                             if ($renderAll) {
                                 $rowFiltered = true;
                             } else {
