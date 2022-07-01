@@ -55,10 +55,10 @@ class SmsFlyAPI2 extends SMSServiceApi {
                         $sessionID = strtoupper(md5(uniqid(rand(), true)));
                         $Login = $telepatia->getByPhoneFast($eachsms['number']);
                         if ($smsAdvancedEnabled) {
-                            $query = "INSERT INTO `sms_history` (`smssrvid`, `login`, `phone`, `srvmsgself_id`, `srvmsgpack_id`, `send_status`, `msg_text`) 
+                            $query = "INSERT INTO `sms_history` (`smssrvid`, `login`, `phone`, `srvmsgself_id`, `srvmsgpack_id`, `send_status`, `msg_text`, `date_send`)
                                              VALUES (" . $this->serviceId . ", '" . $Login . "', '" . $eachsms['number'] . "', '" . $smsMsgId . "', '" . $sessionID . "', '" . $decodedMessageStatus['DeliveredStatus'] . "', '" . $eachsms['message'] . "', '" . curdatetime() . "');";
                         } else {
-                            $query = "INSERT INTO `sms_history` (`login`, `phone`, `srvmsgself_id`, `srvmsgpack_id`, `send_status`, `msg_text`) 
+                            $query = "INSERT INTO `sms_history` (`login`, `phone`, `srvmsgself_id`, `srvmsgpack_id`, `send_status`, `msg_text`, `date_send`)
                                              VALUES ('" . $Login . "', '" . $eachsms['number'] . "', '" . $smsMsgId . "', '" . $sessionID . "', '" . $decodedMessageStatus['DeliveredStatus'] . "', '" . $eachsms['message'] . "', '" . curdatetime() . "');";
                         }
                         nr_query($query);
