@@ -2,6 +2,13 @@
 
 class SmsFlyAPI2 extends SMSServiceApi {
 
+    /**
+     * Contains country code for target country
+     *
+     * @var string
+     */
+    protected $countryCode = '38';
+
     public function __construct($smsServiceId, $smsPack = array()) {
         parent::__construct($smsServiceId, $smsPack);
     }
@@ -27,7 +34,7 @@ class SmsFlyAPI2 extends SMSServiceApi {
                 $params = array(
                     "action" => "SENDMESSAGE",
                     "data" => array(
-                        "recipient" => $this->cutInternationalsFromPhoneNum($eachsms['number']),
+                        "recipient" => $this->checkPhone($eachsms['number']),
                         "channels" => array("sms"),
                         "sms" => array(
                             "source" => $this->serviceAlphaName,
@@ -211,6 +218,46 @@ class SmsFlyAPI2 extends SMSServiceApi {
         }
 
         return ($statusArray);
+    }
+
+    /**
+     * As SMS-Fly needs phone numbers to be only in 38 0YY XXX XX XX format
+     * this function will try to make the phone number suitable
+     *
+     * @param $phoneNumber string
+     *
+     * @return string
+     */
+    protected function checkPhone($number) {
+        $valid_operators = [
+            "039" => "kstar",
+            "050" => "mts",
+            "063" => "life",
+            "066" => "mts",
+            "067" => "kstar",
+            "068" => "kstar",
+            "073" => "life",
+            "091" => "utel",
+            "092" => "peoplenet",
+            "093" => "life",
+            "094" => "intertelecom",
+            "095" => "mts",
+            "096" => "kstar",
+            "097" => "kstar",
+            "098" => "kstar",
+            "099" => "mts",
+        ];
+
+        preg_match_all("/([0-9]+)/", $number, $matches);
+        $number = implode("", $matches[1]);
+        $number = str_pad($number, 12, "0", STR_PAD_LEFT);
+        $phone = substr($number, -7);
+        $operator = substr($number, -10, 3);
+        if(!isset($valid_operators[$operator]) || 7 != strlen($phone)) {
+            return false;
+        }
+        $result = $this->countryCode . $operator . $phone;
+        return $result; 
     }
 
 }
