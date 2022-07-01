@@ -56,10 +56,10 @@ class SmsFlyAPI2 extends SMSServiceApi {
                         $Login = $telepatia->getByPhoneFast($eachsms['number']);
                         if ($smsAdvancedEnabled) {
                             $query = "INSERT INTO `sms_history` (`smssrvid`, `login`, `phone`, `srvmsgself_id`, `srvmsgpack_id`, `send_status`, `msg_text`, `date_send`)
-                                             VALUES (" . $this->serviceId . ", '" . $Login . "', '" . $eachsms['number'] . "', '" . $smsMsgId . "', '" . $sessionID . "', '" . $decodedMessageStatus['DeliveredStatus'] . "', '" . $eachsms['message'] . "', '" . curdatetime() . "');";
+                                     VALUES (" . $this->serviceId . ", '" . $Login . "', '" . $eachsms['number'] . "', '" . $smsMsgId . "', '" . $sessionID . "', '" . $decodedMessageStatus['DeliveredStatus'] . "', '" . $eachsms['message'] . "', '" . curdatetime() . "');";
                         } else {
                             $query = "INSERT INTO `sms_history` (`login`, `phone`, `srvmsgself_id`, `srvmsgpack_id`, `send_status`, `msg_text`, `date_send`)
-                                             VALUES ('" . $Login . "', '" . $eachsms['number'] . "', '" . $smsMsgId . "', '" . $sessionID . "', '" . $decodedMessageStatus['DeliveredStatus'] . "', '" . $eachsms['message'] . "', '" . curdatetime() . "');";
+                                     VALUES ('" . $Login . "', '" . $eachsms['number'] . "', '" . $smsMsgId . "', '" . $sessionID . "', '" . $decodedMessageStatus['DeliveredStatus'] . "', '" . $eachsms['message'] . "', '" . curdatetime() . "');";
                         }
                         nr_query($query);
                     }
@@ -220,16 +220,8 @@ class SmsFlyAPI2 extends SMSServiceApi {
         return ($statusArray);
     }
 
-    /**
-     * As SMS-Fly needs phone numbers to be only in 38 0YY XXX XX XX format
-     * this function will try to make the phone number suitable
-     *
-     * @param $phoneNumber string
-     *
-     * @return string
-     */
     protected function checkPhone($number) {
-        $valid_operators = [
+        $valid_operators = array(
             "039" => "kstar",
             "050" => "mts",
             "063" => "life",
@@ -246,7 +238,7 @@ class SmsFlyAPI2 extends SMSServiceApi {
             "097" => "kstar",
             "098" => "kstar",
             "099" => "mts",
-        ];
+        );
 
         preg_match_all("/([0-9]+)/", $number, $matches);
         $number = implode("", $matches[1]);
