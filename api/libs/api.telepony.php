@@ -463,16 +463,23 @@ class TelePony {
 
         $minNumLen = 5;
         $countryCode = '380';
+        $codeCutNum = 2; //number of leading digits to cut from country code
         $unansweredCalls = array();
         $recalledCalls = array();
         $missedTries = array();
         $callsTmp = array();
         $normalCalls = array();
+        //cut substr
+        $cutSubstr = '';
+        if (!empty($countryCode) AND $codeCutNum) {
+            $cutSubstr = substr($countryCode, 0, $codeCutNum);
+        }
         $rawCalls = $this->getCDR(curdate(), curdate());
 
         if (!empty($rawCalls)) {
             $normalCalls = $this->groupCDRflows($rawCalls);
         }
+
         if (!empty($normalCalls)) {
             foreach ($normalCalls as $io => $each) {
                 $callData = $this->parseCDRFlow($each);
@@ -480,12 +487,15 @@ class TelePony {
                 $incomingNumber = $callData['from'];
                 $destinationNumber = $callData['to'];
 
-                if (ispos($incomingNumber, $countryCode)) {
-                    $incomingNumber = str_replace($countryCode, '', $incomingNumber);
-                }
+                //number cleanup required?
+                if (!empty($cutSubstr)) {
+                    if (ispos($incomingNumber, $countryCode)) {
+                        $incomingNumber = str_replace($cutSubstr, '', $incomingNumber);
+                    }
 
-                if (ispos($destinationNumber, $countryCode)) {
-                    $destinationNumber = str_replace($countryCode, '', $destinationNumber);
+                    if (ispos($destinationNumber, $countryCode)) {
+                        $destinationNumber = str_replace($cutSubstr, '', $destinationNumber);
+                    }
                 }
 
                 //not answered call
@@ -504,9 +514,9 @@ class TelePony {
                 }
 
 
-                //incoming answered calls after miss
+                //incoming call answered after miss
                 if (isset($unansweredCalls[$incomingNumber])) {
-                    if ($callData['from'] == $incomingNumber AND $callData['status'] == 'ANSWERED') {
+                    if ($callData['app'] == 'Queue' AND $callData['status'] == 'ANSWERED') {
                         unset($unansweredCalls[$incomingNumber]);
                     }
                 }
@@ -532,7 +542,7 @@ class TelePony {
                 }
 
                 //Unknown numbers not require recall
-                if (ispos($incomingNumber, 'Unknown')) {
+                if (ispos($incomingNumber, 'nknown') OR ispos($incomingNumber, 'nonymous')) {
                     unset($unansweredCalls[$incomingNumber]);
                 }
             }
