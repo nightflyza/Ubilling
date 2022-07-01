@@ -24,17 +24,17 @@ class SmsFlyAPI2 extends SMSServiceApi {
         $allSmsQueue = $this->smsMessagePack;
         if (!empty($allSmsQueue)) {
             foreach ($allSmsQueue as $io => $eachsms) {
-                $params = [
+                $params = array(
                     "action" => "SENDMESSAGE",
-                    "data" => [
+                    "data" => array(
                         "recipient" => $this->cutInternationalsFromPhoneNum($eachsms['number']),
-                        "channels" => ["sms"],
-                        "sms" => [
+                        "channels" => array("sms"),
+                        "sms" => array(
                             "source" => $this->serviceAlphaName,
                             "text" => $eachsms['message']
-                        ]
-                    ]
-                ];
+                        )
+                    )
+                );
                 // Send SMS
                 $responce = $this->apiquery($params);
                 //remove old sent message
@@ -49,10 +49,10 @@ class SmsFlyAPI2 extends SMSServiceApi {
                         $Login = $telepatia->getByPhoneFast($eachsms['number']);
                         if ($smsAdvancedEnabled) {
                             $query = "INSERT INTO `sms_history` (`smssrvid`, `login`, `phone`, `srvmsgself_id`, `srvmsgpack_id`, `send_status`, `msg_text`) 
-                                             VALUES (" . $this->serviceId . ", '" . $Login . "', '" . $eachsms['number'] . "', '" . $smsMsgId . "', '" . $sessionID . "', '" . $decodedMessageStatus['DeliveredStatus']  . "', '" . $eachsms['message'] . "', '" . curdatetime() . "');";
+                                             VALUES (" . $this->serviceId . ", '" . $Login . "', '" . $eachsms['number'] . "', '" . $smsMsgId . "', '" . $sessionID . "', '" . $decodedMessageStatus['DeliveredStatus'] . "', '" . $eachsms['message'] . "', '" . curdatetime() . "');";
                         } else {
                             $query = "INSERT INTO `sms_history` (`login`, `phone`, `srvmsgself_id`, `srvmsgpack_id`, `send_status`, `msg_text`) 
-                                             VALUES ('" . $Login . "', '" . $eachsms['number'] . "', '" . $smsMsgId . "', '" . $sessionID . "', '" . $decodedMessageStatus['DeliveredStatus']  . "', '" . $eachsms['message'] . "', '" . curdatetime() . "');";
+                                             VALUES ('" . $Login . "', '" . $eachsms['number'] . "', '" . $smsMsgId . "', '" . $sessionID . "', '" . $decodedMessageStatus['DeliveredStatus'] . "', '" . $eachsms['message'] . "', '" . curdatetime() . "');";
                         }
                         nr_query($query);
                     }
@@ -69,22 +69,22 @@ class SmsFlyAPI2 extends SMSServiceApi {
     public function getBalance() {
         $result = '';
         $balance = '';
-        
-        $params = ["action" => "GETBALANCE"];
+
+        $params = array("action" => "GETBALANCE");
         $responce = $this->apiquery($params);
 
         if ($responce) {
             $balance = $responce['data']['balance'];
         }
-    
-        $result.= $this->instanceSendDog->getUBMsgHelperInstance()->getStyledMessage(__('Current account balance') . ': ' . $balance, 'info');
+
+        $result .= $this->instanceSendDog->getUBMsgHelperInstance()->getStyledMessage(__('Current account balance') . ': ' . $balance, 'info');
         die(wf_modalAutoForm(__('Balance'), $result, $_POST['modalWindowId'], '', true, 'false', '700'));
     }
 
     protected function apiquery(array $params) {
-        $params['auth'] = [
+        $params['auth'] = array(
             'key' => $this->serviceApiKey,
-        ];
+        );
 
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, FALSE);
@@ -92,7 +92,7 @@ class SmsFlyAPI2 extends SMSServiceApi {
         curl_setopt($ch, CURLOPT_URL, $this->serviceGatewayAddr);
         curl_setopt($ch, CURLOPT_HTTPHEADER, array("Content-Type: application/json", "Accept: application/json"));
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($params, JSON_UNESCAPED_UNICODE));
+        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($params, 256));
         $result = curl_exec($ch);
         curl_close($ch);
 
@@ -126,12 +126,12 @@ class SmsFlyAPI2 extends SMSServiceApi {
 
         if (!empty($checkMessages)) {
             foreach ($checkMessages as $io => $eachmessage) {
-                $params = [
+                $params = array(
                     "action" => "GETMESSAGESTATUS",
-                    "data" => [
+                    "data" => array(
                         "messageID" => $eachmessage['srvmsgself_id']
-                    ]
-                ];
+                    )
+                );
                 // Check SMS Status
                 $responce = $this->apiquery($params);
 
@@ -143,14 +143,14 @@ class SmsFlyAPI2 extends SMSServiceApi {
                                                        `delivered` = '" . $decodedMessageStatus['DeliveredStatus'] . "', 
                                                        `no_statuschk` = '" . $decodedMessageStatus['NoStatusCheck'] . "', 
                                                        `send_status` = '" . $decodedMessageStatus['StatusMsg'] . "' 
-                                        WHERE `srvmsgself_id` = '" .$eachmessage['srvmsgself_id'] . "';";
+                                        WHERE `srvmsgself_id` = '" . $eachmessage['srvmsgself_id'] . "';";
                     nr_query($query);
                 }
             }
         }
     }
 
-   /**
+    /**
      * SMS-Fly messages statuses codes decoding routine
      *
      * @param $statusMsgCode
@@ -212,6 +212,7 @@ class SmsFlyAPI2 extends SMSServiceApi {
 
         return ($statusArray);
     }
+
 }
 
 ?>
