@@ -38,17 +38,17 @@ class smsflyapi2 extends SendDogProto {
         $allSmsQueue = $this->smsQueue->getQueueData();
         if (!empty($allSmsQueue)) {
             foreach ($allSmsQueue as $io => $eachsms) {
-                $params = [
+                $params = array(
                     "action" => "SENDMESSAGE",
-                    "data" => [
+                    "data" => array(
                         "recipient" => $this->cutInternationalsFromPhoneNum($eachsms['number']),
-                        "channels" => ["sms"],
-                        "sms" => [
+                        "channels" => array("sms"),
+                        "sms" => array(
                             "source" => $this->source,
                             "text" => $eachsms['message']
-                        ]
-                    ]
-                ];
+                        )
+                    )
+                );
                 // Send SMS
                 $responce = $this->apiquery($params);
                 //remove old sent message
@@ -62,7 +62,7 @@ class smsflyapi2 extends SendDogProto {
                         $sessionID = strtoupper(md5(uniqid(rand(), true)));
                         $Login = $telepatia->getByPhoneFast($eachsms['number']);
                         $query = "INSERT INTO `sms_history` (`login`, `phone`, `srvmsgself_id`, `srvmsgpack_id`, `send_status`, `msg_text`, `date_send`) 
-                                                 VALUES ('" . $Login . "', '" . $eachsms['number'] . "', '" . $smsMsgId . "', '" . $sessionID . "', '" . $decodedMessageStatus['DeliveredStatus']  . "', '" . $eachsms['message'] . "', '" . curdatetime() . "');";
+                                                 VALUES ('" . $Login . "', '" . $eachsms['number'] . "', '" . $smsMsgId . "', '" . $sessionID . "', '" . $decodedMessageStatus['DeliveredStatus'] . "', '" . $eachsms['message'] . "', '" . curdatetime() . "');";
                         nr_query($query);
                     }
                 }
@@ -78,8 +78,8 @@ class smsflyapi2 extends SendDogProto {
     public function renderSmsflyBalance() {
         $result = '';
         $balance = '';
-        
-        $params = ["action" => "GETBALANCE"];
+
+        $params = array("action" => "GETBALANCE");
         $responce = $this->apiquery($params);
 
         if ($responce) {
@@ -89,7 +89,7 @@ class smsflyapi2 extends SendDogProto {
         $result .= wf_BackLink(self::URL_ME, '', true);
         $result .= $this->messages->getStyledMessage(__('Current account balance') . ': ' . $balance, 'info');
         return ($result);
-    }  
+    }
 
     /**
      * Renders current SMS-Fly service user balance
@@ -97,9 +97,9 @@ class smsflyapi2 extends SendDogProto {
      * @return array/bool
      */
     protected function apiquery(array $params) {
-        $params['auth'] = [
+        $params['auth'] = array(
             'key' => $this->apikey,
-        ];
+        );
 
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, FALSE);
@@ -107,7 +107,7 @@ class smsflyapi2 extends SendDogProto {
         curl_setopt($ch, CURLOPT_URL, $this->baseurl);
         curl_setopt($ch, CURLOPT_HTTPHEADER, array("Content-Type: application/json", "Accept: application/json"));
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($params, JSON_UNESCAPED_UNICODE));
+        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($params, 256));
         $result = curl_exec($ch);
         curl_close($ch);
 
@@ -138,12 +138,12 @@ class smsflyapi2 extends SendDogProto {
 
         if (!empty($checkMessages)) {
             foreach ($checkMessages as $io => $eachmessage) {
-                $params = [
+                $params = array(
                     "action" => "GETMESSAGESTATUS",
-                    "data" => [
+                    "data" => array(
                         "messageID" => $eachmessage['srvmsgself_id']
-                    ]
-                ];
+                    )
+                );
                 // Check SMS Status
                 $responce = $this->apiquery($params);
 
@@ -155,7 +155,7 @@ class smsflyapi2 extends SendDogProto {
                                                        `delivered` = '" . $decodedMessageStatus['DeliveredStatus'] . "', 
                                                        `no_statuschk` = '" . $decodedMessageStatus['NoStatusCheck'] . "', 
                                                        `send_status` = '" . $decodedMessageStatus['StatusMsg'] . "' 
-                                        WHERE `srvmsgself_id` = '" .$eachmessage['srvmsgself_id'] . "';";
+                                        WHERE `srvmsgself_id` = '" . $eachmessage['srvmsgself_id'] . "';";
                     nr_query($query);
                 }
             }
@@ -237,7 +237,7 @@ class smsflyapi2 extends SendDogProto {
             zb_StorageSet('SENDDOG_SMSFLYAPI2_GATEWAY', $smsgateway);
         }
 
-        $smskey= zb_StorageGet('SENDDOG_SMSFLYAPI2_KEY');
+        $smskey = zb_StorageGet('SENDDOG_SMSFLYAPI2_KEY');
         if (empty($smskey)) {
             $smskey = 'dtTXXXXXXXHUdZ5m2mCXXXXXXXXXX';
             zb_StorageSet('SENDDOG_SMSFLYAPI2_KEY', $smskey);
@@ -251,7 +251,7 @@ class smsflyapi2 extends SendDogProto {
         $this->settings['SMSFLYAPI2_GATEWAY'] = $smsgateway;
         $this->settings['SMSFLYAPI2_KEY'] = $smskey;
         $this->settings['SMSFLYAPI2_SIGN'] = $smssign;
-        
+
         $this->baseurl = $this->settings['SMSFLYAPI2_GATEWAY'];
         $this->apikey = $this->settings['SMSFLYAPI2_KEY'];
         $this->source = $this->settings['SMSFLYAPI2_SIGN'];
@@ -277,4 +277,5 @@ class smsflyapi2 extends SendDogProto {
             log_register('SENDDOG CONFIG SET SMSFLYAPI2SIGN `' . $_POST['editsmsflyapi2sign'] . '`');
         }
     }
+
 }
