@@ -89,7 +89,8 @@ function zbs_TariffSelector($tc_tariffsallowed, $user_tariff) {
     global $us_config;
     if ($us_config['SHOW_SPEED']) {
         $rawSpeedMbits = (@$us_config['SHOW_SPEED_MB']) ? true : false;
-        $allSpeeds = zbs_TariffGetAllSpeeds($rawSpeedMbits);
+        $speedOffset = (@$us_config['SHOW_SPEED_1000B']) ? 1000 : 1024;
+        $allSpeeds = zbs_TariffGetAllSpeeds($rawSpeedMbits, $speedOffset);
     }
     $params = array();
     if (!empty($tc_tariffsallowed)) {
