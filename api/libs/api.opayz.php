@@ -365,6 +365,49 @@ class OpenPayz {
     }
 
     /**
+     * Inits funds flow object instance
+     * 
+     * @return void
+     */
+    protected function initFundsFlow() {
+        $this->fundsFlow = new FundsFlow();
+        $this->fundsFlow->runDataLoders();
+    }
+
+    /**
+     * Returns user online left days without additional DB queries
+     * runDataLoaders() must be run once, before usage
+     * 
+     * @param string $login existing users login
+     * 
+     * @return int >=0: days left, -1: debt, -2: zero tariff price
+     */
+    protected function getUserOnlineLeftDayCount($login) {
+        $result = 0;
+        $onlineLeftCount = $this->fundsFlow->getOnlineLeftCountFast($login);
+        if ($onlineLeftCount >= 0) {
+            $result = $onlineLeftCount;
+        }
+        return ($result);
+        }
+
+    /**
+     * Returns user online to date
+     * 
+     * @param string $login existing users login
+     * 
+     * @return string
+     */
+    protected function getUserOnlineToDate($login) {
+        $result = date("d.m.Y");
+        $daysOnLine = $this->fundsFlow->getOnlineLeftCountFast($login);
+        if ($daysOnLine >= 0) {
+            $result = date("d.m.Y", time() + ($daysOnLine * 24 * 60 * 60));
+        }
+        return ($result);
+    }
+
+    /**
      * Renders year selection form for charts
      * 
      * @return string
@@ -781,6 +824,7 @@ class OpenPayz {
         if (!empty($notysToPush)) {
             $ubSMS      = new UbillingSMS();
             $allPhones  = zb_GetAllAllPhonesCache();
+            $this->initFundsFlow();
 
             // init SMS directions cache
             if ($this->ubConfig->getAlterParam('SMS_SERVICES_ADVANCED_ENABLED')) {
@@ -808,6 +852,9 @@ class OpenPayz {
                         }
 
                         $msgText = $this->smsNotysText;
+                        $msgText = str_ireplace('{LOGIN}', $login, $msgText);
+                        $msgText = str_ireplace('{USERONLINELEFTDAY}', $this->getUserOnlineLeftDayCount($login), $msgText);
+                        $msgText = str_ireplace('{USERONLINETODATE}', $this->getUserOnlineToDate($login), $msgText);
                         $msgText = str_ireplace('{ROUNDBALANCE}', round($eachRec['balance'], 2), $msgText);
                         $msgText = str_ireplace('{ROUNDPAYMENTAMOUNT}', round($eachRec['summ'], 2), $msgText);
 
