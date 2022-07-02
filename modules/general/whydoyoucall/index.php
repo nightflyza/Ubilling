@@ -34,6 +34,7 @@ if ($altcfg['WDYC_ENABLED']) {
                 show_window(__('Calls during non-business hours'), $whydoyoucall->renderNightModeCalls());
             }
         }
+        zb_BillingStats(true);
     } else {
         show_error(__('Access denied'));
     }
