@@ -1047,8 +1047,7 @@ function zbs_PaymentIDGet($login) {
  * 
  * @return string
  */
-function zbs_TariffGetSpeed($tariff, $raw = false) {
-    $offset = 1024;
+function zbs_TariffGetSpeed($tariff, $raw = false , $offset = 1024) {
     $query = "SELECT * from `speeds` where `Tariff`='" . $tariff . "'";
     $speedData = simple_query($query);
     $result = '';
@@ -1079,8 +1078,7 @@ function zbs_TariffGetSpeed($tariff, $raw = false) {
  * 
  * @return array
  */
-function zbs_TariffGetAllSpeeds($rawMbitSpeeds = false) {
-    $offset = 1024;
+function zbs_TariffGetAllSpeeds($rawMbitSpeeds = false, $offset = 1024) {
     $query = "SELECT * from `speeds`";
     $speedData = simple_queryall($query);
     $result = array();
@@ -1572,10 +1570,10 @@ function zbs_UserShowProfile($login) {
     //tariff speeds
     if ($us_config['SHOW_SPEED']) {
         $rawSpeedMbits = (@$us_config['SHOW_SPEED_MB']) ? true : false;
-        $speedOffset = 1024;
+        $speedOffset = (@$us_config['SHOW_SPEED_1000B']) ? 1000 : 1024;
         $userSpeedOverride = zbs_SpeedGetOverride($login);
         if ($userSpeedOverride == 0) {
-            $showSpeed = zbs_TariffGetSpeed($userdata['Tariff'], $rawSpeedMbits);
+            $showSpeed = zbs_TariffGetSpeed($userdata['Tariff'], $rawSpeedMbits, $speedOffset);
         } else {
             if (!$rawSpeedMbits) {
                 if ($userSpeedOverride < $speedOffset) {
