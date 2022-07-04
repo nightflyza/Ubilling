@@ -1,14 +1,13 @@
 <?php
 
-$conf_platon = parse_ini_file('config/platon.ini');
+$cfgPltn = parse_ini_file('config/platon.ini');
 
-$merchant_name = $conf_platon['MERCHANT_NAME'];
-$merchant_url = $conf_platon['MERCHANT_URL'];
-$merchant_service = $conf_platon['MERCHANT_SERVICE'];
-$merchant_logo = $conf_platon['MERCHANT_LOGO'];
-$merchant_currency = $conf_platon['MERCHANT_CURRENCY'];
-$avail_prices = $conf_platon['AVAIL_PRICES'];
-$succes_url = $conf_platon['URL_OK'];
+$merchant_name = $cfgPltn['MERCHANT_NAME'];
+$merchant_url = $cfgPltn['MERCHANT_URL'];
+$merchant_service = $cfgPltn['MERCHANT_SERVICE'];
+$merchant_logo = $cfgPltn['MERCHANT_LOGO'];
+$merchant_currency = $cfgPltn['MERCHANT_CURRENCY'];
+$avail_prices = $cfgPltn['AVAIL_PRICES'];
 
 function platonSumm($customer_id, $avail_prices, $merchant_currency) {
     $form = '<p> <form action="" method="POST">';
@@ -21,7 +20,7 @@ function platonSumm($customer_id, $avail_prices, $merchant_currency) {
             } else {
                 $selected = '';
             }
-            $label = '<label for="rbin' . $i . '">' . ($eachprice / 100) . ' ' . $merchant_currency . '</label>';
+            $label = '<label for="rbin' . $i . '">' . $eachprice . ' ' . $merchant_currency . '</label>';
             $form .= '<input id="rbin' . $i . '" type="radio" name="amount" value="' . $eachprice . '" ' . $selected . '> ' . $label . '<br>';
             $i++;
         }
@@ -45,28 +44,27 @@ if (!isset($_POST['amount']) AND ! isset($_POST['paymentid'])) {
         $payment_form = 'FAIL: no customer ID set';
     }
 } else {
-
+    //push form
     $customerId = $_POST['paymentid'];
     $amount = $_POST['amount'];
+    $amount = ($amount * 100) . '.00'; //required in cents with two finishing zeroes
     if (!empty($customerId) AND ! empty($amount)) {
-        $key = '***';
-        $pass = '*******';
-
+        $key = $cfgPltn['KEY'];
+        $pass = $cfgPltn['PASSWORD'];
         $payment = 'CC';
-
+        $req_token = 'Y';
+        $url = $cfgPltn['URL_OK'];
+        $apiUrl = $cfgPltn['API_URL'];
         $data = base64_encode(
                 json_encode(
                         array(
-                            'amount' => '100.00',
-                            'description' => 'Test',
+                            'amount' => $amount,
+                            'description' => $merchant_service,
                             'currency' => 'UAH',
                             'recurring' => 'Y'
                         )
                 )
         );
-
-        $req_token = 'Y';
-        $url = 'http://google.com';
 
         $sign = md5(
                 strtoupper(
@@ -78,7 +76,21 @@ if (!isset($_POST['amount']) AND ! isset($_POST['paymentid'])) {
                 )
         );
 
-        //form here
+        $form = '
+            <form action="' . $apiUrl . '" method="POST">
+                <input type="hidden" name="payment" value="' . $payment . '" />
+                <input type="hidden" name="key" value="' . $key . '" />
+                <input type="hidden" name="url" value="' . $url . '" />
+                <input type="hidden" name="data" value="' . $data . '" />
+                <input type="hidden" name="req_token" value="' . $req_token . '" />
+                <input type="hidden" name="sign" value="' . $sign . '" />
+              </form>   
+              
+              <script type="text/javascript">
+                document.forms[0].submit();
+              </script>
+              ';
+        print($form);
     }
 }
 
