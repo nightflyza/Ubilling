@@ -25,8 +25,9 @@ function platonSumm($customer_id, $avail_prices, $merchant_currency) {
             $i++;
         }
     } else {
-        $form .= '<input type="text" name="amount"> ' . $merchant_currency;
+        $form .= '<input type="text" name="amount" pattern="^\d+$" placeholder="0" > ' . $merchant_currency . '<br>';
     }
+
 
     $form .= '<input type="hidden" name="paymentid" value="' . $customer_id . '">';
     $form .= '<br> <input type="submit">';
