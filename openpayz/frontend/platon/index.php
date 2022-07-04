@@ -77,6 +77,7 @@ if (!empty($requestData)) {
                 $summ = $requestData['amount'];
                 $paysys = 'PLATON';
                 $hash = $paysys . '_' . $requestData['id'];
+                $note = $requestData['ip'] . ' ' . $requestData['date'] . ' ' . $requestData['description'];
                 if (platon_CheckTransaction($hash)) {
                     if ($requestData['status'] == 'SALE') {
                         op_TransactionAdd($hash, $summ, $customerId, $paysys, $note);
