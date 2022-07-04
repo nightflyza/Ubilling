@@ -87,7 +87,7 @@ if (!empty($requestData)) {
                         platon_reportError('Unknown callback status');
                     }
                 } else {
-                    platon_reportError('Transaction duplicate');
+                    platon_reportSuccess('Transaction processed');
                 }
             } else {
                 platon_reportError('User not found');
