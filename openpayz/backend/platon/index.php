@@ -60,7 +60,7 @@ if (!isset($_POST['amount']) AND ! isset($_POST['paymentid'])) {
                 json_encode(
                         array(
                             'amount' => $amount,
-                            'description' => $merchant_service,
+                            'description' => $customerId,
                             'currency' => 'UAH',
                             'recurring' => 'Y'
                         )
@@ -82,9 +82,11 @@ if (!isset($_POST['amount']) AND ! isset($_POST['paymentid'])) {
                 <input type="hidden" name="payment" value="' . $payment . '" />
                 <input type="hidden" name="key" value="' . $key . '" />
                 <input type="hidden" name="url" value="' . $url . '" />
+                <input type="hidden" name="error_url" value="' . $cfgPltn['URL_FAIL'] . '" />
                 <input type="hidden" name="data" value="' . $data . '" />
                 <input type="hidden" name="req_token" value="' . $req_token . '" />
                 <input type="hidden" name="sign" value="' . $sign . '" />
+                <input type="hidden" name="lang" value="UK" />
               </form>   
               
               <script type="text/javascript">
