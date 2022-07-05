@@ -2,7 +2,6 @@
 
 /**
  * Draft implementation of https://platon.atlassian.net/wiki/spaces/docs/pages/1315733632/Client+-+Server#Callback
- * 
  */
 error_reporting(E_ALL);
 //including required libs
@@ -39,6 +38,27 @@ function platon_reportSuccess($data) {
 }
 
 /**
+ * Returns request data
+ *
+ * @return array
+ */
+function platon_RequestGet() {
+    $result = array();
+    if (!empty($_POST)) {
+        $result = $_POST;
+    }
+    return ($result);
+}
+
+//                    __
+//         .,-;-;-,. /'_\
+//       _/_/_/_|_\_\) /
+//     '-<_><_><_><_>=/\
+//       `/_/====/_/-'\_\
+//        ""     ""    ""
+//    ^^^ CE CHEREPASHKA ^^^
+
+/**
  * Check is transaction unique?
  * 
  * @param $hash - hash string to check
@@ -55,21 +75,10 @@ function platon_CheckTransaction($hash) {
     }
 }
 
-/**
- * Returns request data
- *
- * @return string
- */
-function platon_RequestGet() {
-    $result = file_get_contents('php://input');
-    return ($result);
-}
-
 //processing callback
 $requestData = platon_RequestGet();
 if (!empty($requestData)) {
-    @$requestData = json_decode($requestData, true);
-    if (!empty($requestData)) {
+    if (is_array($requestData)) {
         if (isset($requestData['id']) AND isset($requestData['order']) AND isset($requestData['description'])) {
             $allCustomers = op_CustomersGetAll();
             $customerId = $requestData['description'];

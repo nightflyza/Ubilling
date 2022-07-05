@@ -48,7 +48,7 @@ if (!isset($_POST['amount']) AND ! isset($_POST['paymentid'])) {
     //push form
     $customerId = $_POST['paymentid'];
     $amount = $_POST['amount'];
-    $amount = ($amount * 100) . '.00'; //required in cents with two finishing zeroes
+    $amount = $amount . '.00'; //required with two finishing zeroes
     if (!empty($customerId) AND ! empty($amount)) {
         $key = $cfgPltn['KEY'];
         $pass = $cfgPltn['PASSWORD'];
