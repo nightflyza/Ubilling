@@ -1360,28 +1360,31 @@ class PONizer {
 
         $newId = 0;
         $modelid = @$this->allOltSnmp[$oltid]['modelid'];
-        if (!empty($macF)) {
-            if (check_mac_format($macF) or @ $this->snmpTemplates[$modelid]['signal']['SIGNALMODE'] == 'GPBDCOM') {
-                if ($this->checkMacUnique($macF)) {
-                    $this->onuDb->data('onumodelid', $onumodelid);
-                    $this->onuDb->data('oltid', $oltid);
-                    $this->onuDb->data('ip', $ip);
-                    $this->onuDb->data('mac', $macF);
-                    $this->onuDb->data('serial', $serial);
-                    $this->onuDb->data('login', $login);
-                    $this->onuDb->create();
+        //empty MAC workaround
+        if (empty($macF)) {
+            $macF = zb_MacGetRandom();
+            log_register('PON CREATE ONU MAC EMPTY TRY REPLACED WITH `' . $macF . '`');
+        }
 
-                    $newId = $this->onuDb->getLastId();
-                    log_register('PON CREATE ONU [' . $newId . '] MAC `' . $mac . '`');
-                } else {
-                    log_register('PON MACDUPLICATE TRY `' . $mac . '`');
-                }
+        if (check_mac_format($macF) or @ $this->snmpTemplates[$modelid]['signal']['SIGNALMODE'] == 'GPBDCOM') {
+            if ($this->checkMacUnique($macF)) {
+                $this->onuDb->data('onumodelid', $onumodelid);
+                $this->onuDb->data('oltid', $oltid);
+                $this->onuDb->data('ip', $ip);
+                $this->onuDb->data('mac', $macF);
+                $this->onuDb->data('serial', $serial);
+                $this->onuDb->data('login', $login);
+                $this->onuDb->create();
+
+                $newId = $this->onuDb->getLastId();
+                log_register('PON CREATE ONU [' . $newId . '] MAC `' . $macF . '`');
             } else {
-                log_register('PON MACINVALID TRY `' . $mac . '`');
+                log_register('PON CREATE ONU MACDUPLICATE TRY `' . $macF . '`');
             }
         } else {
-            log_register('PON MAC EMPTY TRY');
+            log_register('PON CREATE ONU MACINVALID TRY `' . $mac . '`');
         }
+
         $this->flushOnuCache();
         return ($newId);
     }
@@ -4332,7 +4335,7 @@ class PONizer {
     }
 
     /**
-     * Returns filtered array of unknown ONUs as mac=>oltId
+     * Returns filtered array of unknown ONUs as mac/serial=>oltId
      * 
      * @return array
      */
@@ -4365,8 +4368,15 @@ class PONizer {
         if (!empty($allUnknownOnus)) {
             $onuLabel = __('Oh you are a lazy ass') . '... ' . sizeof($allUnknownOnus) . ' ' . __('Unknown ONU') . '!';
             $result .= $this->messages->getStyledMessage($onuLabel, 'info');
-            foreach ($allUnknownOnus as $eachOnuMac => $eachOnuOltId) {
-                $onuLabel = __('MAC') . ' ' . $eachOnuMac . ' ' . __('on') . ' ' . __('OLT') . ' ' . @$this->allOltDevices[$eachOnuOltId];
+            foreach ($allUnknownOnus as $eachOnuIdent => $eachOnuOltId) {
+                if (check_mac_format($eachOnuIdent)) {
+                    //valid MAC?
+                    $identLabel = __('ONU') . ' ' . __('MAC');
+                } else {
+                    //looks like serial
+                    $identLabel = __('ONU') . ' ' . __('Serial');
+                }
+                $onuLabel = $identLabel . ' ' . $eachOnuIdent . ' ' . __('on') . ' ' . __('OLT') . ' ' . @$this->allOltDevices[$eachOnuOltId];
                 $result .= $this->messages->getStyledMessage($onuLabel, 'warning');
             }
         } else {
@@ -4437,31 +4447,36 @@ class PONizer {
                     if (!empty($allUnknownOnus)) {
                         $onuLabel = __('Oh you are a lazy ass') . '... ' . sizeof($allUnknownOnus) . ' ' . __('Unknown ONU') . '!';
                         $onuList .= $this->messages->getStyledMessage($onuLabel, 'warning');
-                        foreach ($allUnknownOnus as $eachOnuMac => $eachOnuOltId) {
+                        foreach ($allUnknownOnus as $eachOnuIdent => $eachOnuOltId) {
                             $oltLabel = ' [' . $eachOnuOltId . '] ' . $this->allOltDevices[$eachOnuOltId];
-                            $onuLabel = __('Registering') . ' ' . __('MAC') . ' ' . $eachOnuMac . ' ' . __('on') . ' ' . __('OLT') . ' ' . $oltLabel;
+                            $onuLabel = __('Registering') . ' ' . __('MAC') . '/' . __('Serial') . ' ' . $eachOnuIdent . ' ' . __('on') . ' ' . __('OLT') . ' ' . $oltLabel;
                             $onuList .= $this->messages->getStyledMessage($onuLabel, 'info');
                             if (isset($this->allOltDevices[$eachOnuOltId])) {
-                                if ($this->checkMacUnique($eachOnuMac)) {
-                                    if (check_mac_format($eachOnuMac)) {
-                                        $newOnuId = $this->onuCreate($newOnusModelId, $eachOnuOltId, '', $eachOnuMac, '', '');
-                                        if ($newOnuId) {
-                                            $oltLabel = ' [' . $eachOnuOltId . '] ' . $this->allOltDevices[$eachOnuOltId] . '. ';
-                                            $onuLabel = __('Registered') . ' ' . __('MAC') . ' ' . $eachOnuMac . ' ' . __('ONU') . ' [' . $newOnuId . '] ' . __('on') . ' ' . __('OLT') . ' ' . $oltLabel;
-                                            $onuLabel .= __('Success') . '!';
-                                            $onuList .= $this->messages->getStyledMessage($onuLabel, 'success');
-                                            $succCount++;
-                                        } else {
-                                            $errorCount++;
-                                            $onuList .= $this->messages->getStyledMessage(__('Registering') . ' ' . __('Failed') . ' "' . $eachOnuMac . '" ', 'error');
-                                        }
+                                if ($this->checkMacUnique($eachOnuIdent)) {
+
+                                    if (check_mac_format($eachOnuIdent)) {
+                                        //looks like normal MAC
+                                        $newOnuMac = $eachOnuIdent;
+                                        $newOnuSerial = '';
+                                    } else {
+                                        //seems its GPON device serial
+                                        $newOnuMac = zb_MacGetRandom();
+                                        $newOnuSerial = $eachOnuIdent;
+                                    }
+                                    $newOnuId = $this->onuCreate($newOnusModelId, $eachOnuOltId, '', $newOnuMac, $newOnuSerial, '');
+                                    if ($newOnuId) {
+                                        $oltLabel = ' [' . $eachOnuOltId . '] ' . $this->allOltDevices[$eachOnuOltId] . '. ';
+                                        $onuLabel = __('Registered') . ' ' . __('MAC') . ' ' . __('or') . ' ' . __('Serial') . ' ' . $eachOnuIdent . ' ' . __('ONU') . ' [' . $newOnuId . '] ' . __('on') . ' ' . __('OLT') . ' ' . $oltLabel;
+                                        $onuLabel .= __('Success') . '!';
+                                        $onuList .= $this->messages->getStyledMessage($onuLabel, 'success');
+                                        $succCount++;
                                     } else {
                                         $errorCount++;
-                                        $onuList .= $this->messages->getStyledMessage(__('This MAC have wrong format') . ' "' . $eachOnuMac . '" ', 'error');
+                                        $onuList .= $this->messages->getStyledMessage(__('Registering') . ' ' . __('Failed') . ' "' . $eachOnuIdent . '" ', 'error');
                                     }
                                 } else {
                                     $errorCount++;
-                                    $onuList .= $this->messages->getStyledMessage(__('MAC duplicate') . ' ' . $eachOnuMac . ' ', 'error');
+                                    $onuList .= $this->messages->getStyledMessage(__('MAC duplicate') . ' ' . $eachOnuIdent . ' ', 'error');
                                 }
                             } else {
                                 $errorCount++;

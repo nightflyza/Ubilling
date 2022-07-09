@@ -38,21 +38,24 @@ if ($altCfg['PON_ENABLED']) {
         }
 
         //creating new ONU device
-        if (ubRouting::checkPost(array('createnewonu', 'newoltid', 'newmac'))) {
-            if (cfr('PONEDIT')) {
-                $onuCreateResult = $pon->onuCreate(ubRouting::post('newonumodelid'), ubRouting::post('newoltid'), ubRouting::post('newip'), ubRouting::post('newmac'), ubRouting::post('newserial'), ubRouting::post('newlogin'));
-                if ($onuCreateResult) {
-                    $newCreatedONUId = simple_get_lastid('pononu');
-                    if ($ubillingConfig->getAlterParam('OPT82_ENABLED')) {
-                        multinet_rebuild_all_handlers();
+        if (ubRouting::checkPost(array('createnewonu', 'newoltid'))) {
+            //MAC or Serial is required
+            if (ubRouting::checkPost('newmac') OR ubRouting::checkPost('newserial')) {
+                if (cfr('PONEDIT')) {
+                    $onuCreateResult = $pon->onuCreate(ubRouting::post('newonumodelid'), ubRouting::post('newoltid'), ubRouting::post('newip'), ubRouting::post('newmac'), ubRouting::post('newserial'), ubRouting::post('newlogin'));
+                    if ($onuCreateResult) {
+                        $newCreatedONUId = simple_get_lastid('pononu');
+                        if ($ubillingConfig->getAlterParam('OPT82_ENABLED')) {
+                            multinet_rebuild_all_handlers();
+                        }
+                        ubRouting::nav($pon::URL_ONU . $newCreatedONUId);
+                    } else {
+                        show_error(__('This MAC have wrong format').' '.__('or').' '.__('MAC duplicate'));
                     }
-                    ubRouting::nav($pon::URL_ONU . $newCreatedONUId);
                 } else {
-                    show_error(__('This MAC have wrong format'));
+                    log_register('PON CREATE ONU ACCESS VIOLATION');
+                    show_error(__('Access denied'));
                 }
-            } else {
-                log_register('PON CREATE ONU ACCESS VIOLATION');
-                show_error(__('Access denied'));
             }
         }
 
