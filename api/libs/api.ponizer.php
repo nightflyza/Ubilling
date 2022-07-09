@@ -307,6 +307,13 @@ class PONizer {
     protected $ipColumnVisible = true;
 
     /**
+     * Contains all busy ONU MAC/serials as lowercase onuIdent=>onuId
+     *
+     * @var array
+     */
+    protected $existingOnuIdents = array();
+
+    /**
      * System message helper object placeholder
      *
      * @var object
@@ -1071,6 +1078,9 @@ class PONizer {
                 $this->onuSerialIdList[$each['serial']] = $each['id'];
                 $this->onuMacOltidList[$each['mac']] = $each['oltid'];
                 $this->onuSerialOltidList[$each['serial']] = $each['oltid'];
+                //filling used onuIdents array
+                $this->existingOnuIdents[strtolower($each['mac'])] = $each['id'];
+                $this->existingOnuIdents[strtolower($each['serial'])] = $each['id'];
             }
         }
 
@@ -1304,6 +1314,28 @@ class PONizer {
     }
 
     /**
+     * Check ONU MAC address or Serial unique or not?
+     *
+     * @param string $onuIdent
+     * 
+     * @return bool
+     */
+    public function checkOnuUnique($onuIdent) {
+        $result = true;
+        if (!empty($onuIdent)) {
+            $onuIdent = strtolower($onuIdent);
+            // We are heroes
+            // Heroes of the night
+            // We are ready to live forevermore
+            // Our gods lead us through this fight
+            if (isset($this->existingOnuIdents[$onuIdent])) {
+                $result = false;
+            }
+        }
+        return ($result);
+    }
+
+    /**
      * Flushes all ONU related cache keys
      * 
      * @return void
@@ -1376,9 +1408,10 @@ class PONizer {
             $macF = zb_MacGetRandom();
             log_register('PON CREATE ONU MAC EMPTY TRY REPLACED WITH `' . $macF . '`');
         }
+
         if (!empty($macF)) {
-            if (check_mac_format($macF) or @ $this->snmpTemplates[$modelid]['signal']['SIGNALMODE'] == 'GPBDCOM') {
-                if ($this->checkMacUnique($macF)) {
+            if ($this->checkOnuUnique($macF) AND $this->checkOnuUnique($serial)) {
+                if (check_mac_format($macF)) {
                     $this->onuDb->data('onumodelid', $onumodelid);
                     $this->onuDb->data('oltid', $oltid);
                     $this->onuDb->data('ip', $ip);
@@ -1388,12 +1421,12 @@ class PONizer {
                     $this->onuDb->create();
 
                     $newId = $this->onuDb->getLastId();
-                    log_register('PON CREATE ONU [' . $newId . '] MAC `' . $macF . '`');
+                    log_register('PON CREATE ONU [' . $newId . '] MAC `' . $macF . '` SERIAL `' . $serial . '`');
                 } else {
-                    log_register('PON CREATE ONU MACDUPLICATE TRY `' . $macF . '`');
+                    log_register('PON CREATE ONU MACINVALID TRY `' . $mac . '`');
                 }
             } else {
-                log_register('PON CREATE ONU MACINVALID TRY `' . $mac . '`');
+                log_register('PON CREATE ONU DUPLICATE TRY `' . $macF . '` SERIAL `' . $serial . '`');
             }
         } else {
             log_register('PON CREATE ONU MAC EMPTY TRY');
@@ -1440,7 +1473,7 @@ class PONizer {
             if (check_mac_format($macF)) {
                 $currentMac = $this->allOnu[$onuId]['mac'];
                 if ($currentMac != $macF) {
-                    if ($this->checkMacUnique($macF)) {
+                    if ($this->checkOnuUnique($macF)) {
                         $this->onuDb->data('mac', $macF);
                     } else {
                         log_register('PON MACDUPLICATE TRY `' . $mac . '`');
@@ -3093,7 +3126,7 @@ class PONizer {
                 }
 
 //not registered?
-                if ($this->checkMacUnique($onuMac)) {
+                if ($this->checkOnuUnique($onuMac)) {
                     $UnknownONUList[$onuMac] = $onuMac;
                 }
             }
@@ -3117,7 +3150,7 @@ class PONizer {
 
             foreach ($this->onuIndexCache as $onuMac => $oltId) {
 //not registered?
-                if ($this->checkMacUnique($onuMac)) {
+                if ($this->checkOnuUnique($onuMac)) {
                     $login = in_array($onuMac, array_map('strtolower', $allUsermacs)) ? array_search($onuMac, array_map('strtolower', $allUsermacs)) : '';
                     $userLink = $login ? wf_Link('?module=userprofile&username=' . $login, web_profile_icon() . ' ' . @$allUserData[$login]['login'] . '', false) : '';
                     $userLogin = $login ? @$allUserData[$login]['login'] : '';
@@ -4359,7 +4392,7 @@ class PONizer {
         if (!empty($this->onuIndexCache)) {
             foreach ($this->onuIndexCache as $onuMac => $oltId) {
                 //ONU not registered yet?
-                if ($this->checkMacUnique($onuMac)) {
+                if ($this->checkOnuUnique($onuMac)) {
                     if (!isset($this->hideOnuMac[$onuMac])) {
                         if (!ispos($onuMac, 'no:such')) {
                             $result[$onuMac] = $oltId;
@@ -4466,7 +4499,7 @@ class PONizer {
                             $onuLabel = __('Registering') . ' ' . __('MAC') . '/' . __('Serial') . ' ' . $eachOnuIdent . ' ' . __('on') . ' ' . __('OLT') . ' ' . $oltLabel;
                             $onuList .= $this->messages->getStyledMessage($onuLabel, 'info');
                             if (isset($this->allOltDevices[$eachOnuOltId])) {
-                                if ($this->checkMacUnique($eachOnuIdent)) {
+                                if ($this->checkOnuUnique($eachOnuIdent)) {
 
                                     if (check_mac_format($eachOnuIdent)) {
                                         //looks like normal MAC
