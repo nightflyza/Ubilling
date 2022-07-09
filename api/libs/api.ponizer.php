@@ -1360,29 +1360,32 @@ class PONizer {
 
         $newId = 0;
         $modelid = @$this->allOltSnmp[$oltid]['modelid'];
-        //empty MAC workaround
-        if (empty($macF)) {
+        //empty MAC workaround for GPON devices
+        if (empty($macF) AND ! empty($serial)) {
             $macF = zb_MacGetRandom();
             log_register('PON CREATE ONU MAC EMPTY TRY REPLACED WITH `' . $macF . '`');
         }
+        if (!empty($macF)) {
+            if (check_mac_format($macF) or @ $this->snmpTemplates[$modelid]['signal']['SIGNALMODE'] == 'GPBDCOM') {
+                if ($this->checkMacUnique($macF)) {
+                    $this->onuDb->data('onumodelid', $onumodelid);
+                    $this->onuDb->data('oltid', $oltid);
+                    $this->onuDb->data('ip', $ip);
+                    $this->onuDb->data('mac', $macF);
+                    $this->onuDb->data('serial', $serial);
+                    $this->onuDb->data('login', $login);
+                    $this->onuDb->create();
 
-        if (check_mac_format($macF) or @ $this->snmpTemplates[$modelid]['signal']['SIGNALMODE'] == 'GPBDCOM') {
-            if ($this->checkMacUnique($macF)) {
-                $this->onuDb->data('onumodelid', $onumodelid);
-                $this->onuDb->data('oltid', $oltid);
-                $this->onuDb->data('ip', $ip);
-                $this->onuDb->data('mac', $macF);
-                $this->onuDb->data('serial', $serial);
-                $this->onuDb->data('login', $login);
-                $this->onuDb->create();
-
-                $newId = $this->onuDb->getLastId();
-                log_register('PON CREATE ONU [' . $newId . '] MAC `' . $macF . '`');
+                    $newId = $this->onuDb->getLastId();
+                    log_register('PON CREATE ONU [' . $newId . '] MAC `' . $macF . '`');
+                } else {
+                    log_register('PON CREATE ONU MACDUPLICATE TRY `' . $macF . '`');
+                }
             } else {
-                log_register('PON CREATE ONU MACDUPLICATE TRY `' . $macF . '`');
+                log_register('PON CREATE ONU MACINVALID TRY `' . $mac . '`');
             }
         } else {
-            log_register('PON CREATE ONU MACINVALID TRY `' . $mac . '`');
+            log_register('PON CREATE ONU MAC EMPTY TRY');
         }
 
         $this->flushOnuCache();
