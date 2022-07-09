@@ -527,7 +527,6 @@ class PONizer {
         if (!empty($oltLoadOrderField)) {
             //is fileld valid?
             if (array_search('`' . $oltLoadOrderField . '`', $requiredFields) !== false) {
-                deb($oltLoadOrderField);
                 $switchesDb->orderBy($oltLoadOrderField, 'ASC');
             } else {
                 show_error(__('Wrong value') . ' PON_OLT_ORDER: ' . '"' . $oltLoadOrderField . '"');
