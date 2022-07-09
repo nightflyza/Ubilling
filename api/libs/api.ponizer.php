@@ -522,6 +522,18 @@ class PONizer {
         $requiredFields = array('`id`', '`ip`', '`location`', '`snmp`', '`modelid`', '`desc`');
         $switchesDb->selectable($requiredFields);
         $switchesDb->where('desc', 'LIKE', '%OLT%');
+        //custom field sorting?
+        $oltLoadOrderField = $this->ubConfig->getAlterParam('PON_OLT_ORDER');
+        if (!empty($oltLoadOrderField)) {
+            //is fileld valid?
+            if (array_search('`' . $oltLoadOrderField . '`', $requiredFields) !== false) {
+                deb($oltLoadOrderField);
+                $switchesDb->orderBy($oltLoadOrderField, 'ASC');
+            } else {
+                show_error(__('Wrong value') . ' PON_OLT_ORDER: ' . '"' . $oltLoadOrderField . '"');
+            }
+        }
+
         $raw = $switchesDb->getAll();
 
         if (!empty($raw)) {
