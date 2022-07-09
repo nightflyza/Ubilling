@@ -83,7 +83,7 @@ class PONizer {
     protected $allOltModels = array();
 
     /**
-     * Contains available SNMP templates for OLT modelids
+     * Contains available SNMP templates for OLT modelids as modelId=>snmpTemplateData
      *
      * @var array
      */
@@ -1509,7 +1509,7 @@ class PONizer {
                     $ipFieldLabel = __('IP');
                 }
                 $inputs .= wf_TextInput('newip', $ipFieldLabel, '', true, 20);
-                $inputs .= wf_TextInput('newmac', __('MAC') . $this->sup, '', true, 20);
+                $inputs .= wf_TextInput('newmac', __('MAC') . $this->sup, '', true, 20, 'mac');
                 $inputs .= wf_TextInput('newserial', __('Serial number'), '', true, 20);
                 $inputs .= wf_TextInput('newlogin', __('Login'), '', true, 20);
                 $inputs .= wf_Submit(__('Create'));
@@ -1539,6 +1539,14 @@ class PONizer {
         $models = array();
         $telepathyArray = array();
         $result = '';
+        $onuSerial = '';
+
+        if (!empty($onuMac)) {
+            if (!check_mac_format($onuMac)) {
+                $onuSerial = $onuMac; //this is something like not mac
+                $onuMac = zb_MacGetRandom(); //replacing MAC with random one
+            }
+        }
 
         if (!empty($this->allModelsData)) {
             foreach ($this->allModelsData as $io => $each) {
@@ -1567,8 +1575,8 @@ class PONizer {
                 $inputs .= wf_Selector('newoltid', $this->allOltDevices, __('OLT device') . $this->sup, $oltId, true);
                 $inputs .= wf_Selector('newonumodelid', $models, __('ONU model') . $this->sup, '', true);
                 $inputs .= wf_TextInput('newip', __('IP'), $UserIP, true, 20, '', '__NewONUIP');
-                $inputs .= wf_TextInput('newmac', __('MAC') . $this->sup, $onuMac, true, 20, '', '__NewONUMAC');
-                $inputs .= wf_TextInput('newserial', __('Serial number'), '', true, 20);
+                $inputs .= wf_TextInput('newmac', __('MAC') . $this->sup, $onuMac, true, 20, 'mac', '__NewONUMAC');
+                $inputs .= wf_TextInput('newserial', __('Serial number'), $onuSerial, true, 20);
                 $inputs .= wf_TextInput('newlogin', __('Login'), $UserLogin, true, 20, '', '__NewONULogin');
                 $inputs .= wf_Link('#', __('Check if ONU is assigned to any login already'), true, 'ubButton __CheckONUAssignmentBtn', 'style="width: 100%; text-align: center;padding: 6px 0; margin-top: 5px;"');
                 $inputs .= wf_tag('span', false, '', 'id="onuassignment2" style="font-weight: 600; color: #000"');
@@ -2455,35 +2463,8 @@ class PONizer {
         $intCacheAvail = $this->oltData->isInterfacesAvailable();
         $lastDeregCacheAvail = $this->oltData->isDeregsAvailable();
         $oltOnuCounters = $this->getOltOnuCounts();
-        $columns = array('ID');
 
-        if ($intCacheAvail) {
-            $columns[] = __('Interface');
-        }
 
-        $columns[] = 'Model';
-        if ($this->ipColumnVisible) {
-            if (@$this->altCfg['PON_ONUIPASIF']) {
-                $columns[] = 'Interface';
-            } else {
-                $columns[] = 'IP';
-            }
-        }
-        $columns[] = 'MAC';
-        $columns[] = 'Signal';
-
-        if ($distCacheAvail) {
-            $columns[] = __('Distance') . ' (' . __('m') . ')';
-        }
-
-        if ($lastDeregCacheAvail) {
-            $columns[] = __('Last dereg reason');
-        }
-
-        $columns[] = 'Address';
-        $columns[] = 'Real Name';
-        $columns[] = 'Tariff';
-        $columns[] = 'Actions';
         $opts = '"order": [[ 0, "desc" ]]';
         if ($this->deferredLoadingFlag) {
             $opts .= ', "deferLoading": 100';
@@ -2506,7 +2487,39 @@ class PONizer {
             $QuickOLTDDLName = 'QuickOLTDDL_' . wf_InputId();
             $QuickOLTLink = wf_tag('span', false, '', 'id="' . $QuickOLTLinkID . '"') .
                     wf_img('skins/menuicons/switches.png') . wf_tag('span', true);
+            $oltRenderMode = $this->getOltOnuRenderMode($oltId);
 
+            $columns = array('ID');
+            if ($intCacheAvail) {
+                $columns[] = __('Interface');
+            }
+            $columns[] = 'Model';
+            if ($this->ipColumnVisible) {
+                if (@$this->altCfg['PON_ONUIPASIF']) {
+                    $columns[] = 'Interface';
+                } else {
+                    $columns[] = 'IP';
+                }
+            }
+            $onuIdentColumn = '';
+            if ($oltRenderMode == 'mac') {
+                $onuIdentColumn = __('MAC');
+            } else {
+                $onuIdentColumn = __('Serial');
+            }
+            $columns[] = $onuIdentColumn;
+            $columns[] = 'Signal';
+
+            if ($distCacheAvail) {
+                $columns[] = __('Distance') . ' (' . __('m') . ')';
+            }
+            if ($lastDeregCacheAvail) {
+                $columns[] = __('Last dereg reason');
+            }
+            $columns[] = 'Address';
+            $columns[] = 'Real Name';
+            $columns[] = 'Tariff';
+            $columns[] = 'Actions';
 
             if ($this->EnableQuickOLTLinks) {
                 if ($this->ponizerUseTabUI) {
@@ -2926,7 +2939,7 @@ class PONizer {
      */
     public function renderUnknownOnuList() {
         $result = '';
-        $columns = array('OLT', 'Login', 'Address', 'Real Name', 'Tariff', 'IP', 'MAC', 'Actions');
+        $columns = array('OLT', 'Login', 'Address', 'Real Name', 'Tariff', 'IP', __('MAC') . ' ' . __('or') . ' ' . __('Serial'), 'Actions');
         $opts = '"order": [[ 0, "desc" ]]';
         $result = wf_JqDtLoader($columns, self::URL_ME . '&ajaxunknownonu=true', false, 'ONU', 100, $opts);
         $result .= wf_delimiter(0);
@@ -3156,6 +3169,30 @@ class PONizer {
     }
 
     /**
+     * Returns state of ONU_RENDER_MODE misc section option for some olt, if it exists.
+     * 
+     * @param int $oltId
+     * 
+     * @return string mac/serial
+     */
+    protected function getOltOnuRenderMode($oltId) {
+        $result = 'mac';
+        if (isset($this->allOltSnmp[$oltId])) {
+            $oltModelId = $this->allOltSnmp[$oltId]['modelid'];
+
+            if (isset($this->snmpTemplates[$oltModelId])) {
+                $oltTemplate = $this->snmpTemplates[$oltModelId];
+                if (isset($oltTemplate['misc'])) {
+                    if (isset($oltTemplate['misc']['ONU_RENDER_MODE'])) {
+                        $result = $oltTemplate['misc']['ONU_RENDER_MODE'];
+                    }
+                }
+            }
+        }
+        return($result);
+    }
+
+    /**
      * Renders json formatted data for jquery data tables list with ONU signals list
      *
      * @param string $OltId
@@ -3170,6 +3207,7 @@ class PONizer {
         $burialEnabled = @$this->altCfg['ONU_BURIAL_ENABLED'];
         $noSignalLabel = __('No');
         $fromCache = false;
+        $oltOnuRenderMode = $this->getOltOnuRenderMode($OltId);
 
         //try to get all data from cache
         if ($this->onuCacheTimeout) {
@@ -3318,7 +3356,15 @@ class PONizer {
                         if ($this->ipColumnVisible) {
                             $data[] = $each['ip'];
                         }
-                        $data[] = $each['mac'];
+
+                        //MAC/Serial column here
+                        if ($oltOnuRenderMode == 'mac') {
+                            $onuIdent = $each['mac'];
+                        } else {
+                            $onuIdent = $each['serial'];
+                        }
+                        $data[] = $onuIdent;
+
                         $data[] = wf_tag('font', false, '', 'color=' . $sigColor . '') . $signal . wf_tag('font', true);
 
                         if ($distCacheAvail) {
