@@ -1463,6 +1463,9 @@ class PONizer {
         $login = ubRouting::filters($login, 'mres');
         $login = trim($login);
 
+        $currentMac = $this->allOnu[$onuId]['mac'];
+        $currentSerial = $this->allOnu[$onuId]['serial'];
+
 
         $this->onuDb->where('id', '=', $onuId);
         $this->onuDb->data('onumodelid', $onumodelid);
@@ -1471,7 +1474,7 @@ class PONizer {
 
         if (!empty($macF)) {
             if (check_mac_format($macF)) {
-                $currentMac = $this->allOnu[$onuId]['mac'];
+
                 if ($currentMac != $macF) {
                     if ($this->checkOnuUnique($macF)) {
                         $this->onuDb->data('mac', $macF);
@@ -1486,7 +1489,14 @@ class PONizer {
             log_register('PON MACEMPTY TRY `' . $mac . '`');
         }
 
-        $this->onuDb->data('serial', $serial);
+        if ($currentSerial != $serial) {
+            if ($this->checkOnuUnique($serial)) {
+                $this->onuDb->data('serial', $serial);
+            } else {
+                log_register('PON SERIALDUPLICATE TRY `' . $serial . '`');
+            }
+        }
+
         $this->onuDb->data('login', $login);
         $this->onuDb->save();
 
