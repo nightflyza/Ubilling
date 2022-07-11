@@ -1221,7 +1221,8 @@ class PONizer {
     public function getUserByONUMAC($mac, $macIncrementWith = 0, $doSerialize = false) {
         if (!empty($macIncrementWith)) {
             $macAsHex = str_replace(':', '', $mac);
-            $macAsHex = dechex(('0x' . $macAsHex) + $macIncrementWith);
+            $macAsHex = dechex(hexdec($macAsHex) + $macIncrementWith);
+            $macAsHex = (strlen($macAsHex) < 12) ? str_pad($macAsHex, 12, '0', STR_PAD_LEFT) : $macAsHex;
 
             $mac = implode(":", str_split($macAsHex, 2));
         }

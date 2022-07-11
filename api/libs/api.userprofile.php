@@ -1174,7 +1174,7 @@ class UserProfile {
                         $raw = file_get_contents($onuInterfacesCache);
                         $raw = unserialize($raw);
                         foreach ($raw as $mac => $interface) {
-                            if ($mac == $onu_data['mac']) {
+                            if ($mac == $onu_data['mac'] or $mac == $onu_data['serial']) {
                                 $onuInterface = $interface;
                                 break;
                             }

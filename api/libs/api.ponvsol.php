@@ -146,7 +146,7 @@ class PONVsol extends PONProto {
      *
      * @param int $oltid
      * @param array $sigIndex
-     * @param array $macIndex
+     * @param array $macIndexProcessed
      *
      * @return void
      */
