@@ -214,6 +214,7 @@ class Warehouse {
     const PROUTE_RETURNSTORAGE = 'newreturnstorageid';
     const PROUTE_RETURNPRICE = 'newreturnprice';
     const PROUTE_RETURNNOTE = 'newreturnnote';
+    const PROUTE_EMPREPLACE = 'massoutemployeereplace';
 
     /**
      * Default debug log path
@@ -1226,6 +1227,35 @@ class Warehouse {
     }
 
     /**
+     * Renders mass out employee replacement form and performs some redirects if required.
+     * 
+     * @param int $employeeId
+     * 
+     * @return string
+     */
+    public function renderMassOutEmployyeReplaceForm($employeeId) {
+        $result = '';
+
+        //redirect to new employee reserve
+        if (ubRouting::checkPost(self::PROUTE_EMPREPLACE) AND ubRouting::checkGet('taskidpreset')) {
+            $newEmpId = ubRouting::post(self::PROUTE_EMPREPLACE, 'int');
+            $taskId = ubRouting::get('taskidpreset', 'int');
+            $newRoute = self::URL_ME . '&' . self::URL_RESERVE . '&massoutemployee=' . $newEmpId . '&taskidpreset=' . $taskId;
+            ubRouting::nav($newRoute);
+        }
+
+        //build some form
+        if (!empty($this->activeEmployee)) {
+            $inputs = wf_Selector(self::PROUTE_EMPREPLACE, $this->activeEmployee, __('Worker'), $employeeId, false) . ' ';
+            $inputs .= wf_Submit(__('Change'));
+            $result .= wf_Form('', 'POST', $inputs, 'glamour');
+        } else {
+            $result .= $this->messages->getStyledMessage(__('No job types and employee available'), 'error');
+        }
+        return($result);
+    }
+
+    /**
      * Renders mass outcome form for some employeeId reserved items
      * 
      * @param int $employeeId
@@ -1254,6 +1284,7 @@ class Warehouse {
                     foreach ($this->outDests as $destMark => $destName) {
                         $tmpDests[self::URL_ME . '&' . self::URL_OUT . '&' . self::URL_AJODSELECTOR . $destMark] = $destName;
                     }
+
                     $inputs = wf_HiddenInput(self::PROUTE_DOMASSRESOUT, $employeeId);
                     $inputs .= wf_AjaxSelectorAC('ajoutdestselcontainer', $tmpDests, __('Destination'), '', false);
                     $inputs .= wf_AjaxContainer('ajoutdestselcontainer', '', $this->outcomindAjaxDestSelector('task'));

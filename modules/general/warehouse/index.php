@@ -286,10 +286,12 @@ if (cfr('WAREHOUSE')) {
                                     show_window(__('Error'), $massResOutResult);
                                 }
                             } else {
-                                //rendering some UI
+                                //rendering some mass reserve outcome UI
                                 $massOutEmployeeId = ubRouting::get('massoutemployee');
                                 $massoutEmployeeName = $warehouse->getEmployeeName($massOutEmployeeId);
-                                $massOutWinLabel = __('Mass outcome') . ' ' . __('from reserved on') . ' ' . $massoutEmployeeName;
+                                $massOutWinLabel = __('Mass outcome') . ' ' . __('from reserved on') . ' ' . $massoutEmployeeName . ' ';
+                                $massEmpChForm = $warehouse->renderMassOutEmployyeReplaceForm($massOutEmployeeId);
+                                $massOutWinLabel .= wf_modalAuto(wf_img('skins/icon_replace_employee.png', __('Change employee')), __('Change employee'), $massEmpChForm);
                                 show_window($massOutWinLabel, $warehouse->renderMassOutForm($massOutEmployeeId));
                             }
                         }
