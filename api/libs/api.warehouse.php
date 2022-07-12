@@ -1237,10 +1237,13 @@ class Warehouse {
         $result = '';
 
         //redirect to new employee reserve
-        if (ubRouting::checkPost(self::PROUTE_EMPREPLACE) AND ubRouting::checkGet('taskidpreset')) {
+        if (ubRouting::checkPost(self::PROUTE_EMPREPLACE)) {
             $newEmpId = ubRouting::post(self::PROUTE_EMPREPLACE, 'int');
-            $taskId = ubRouting::get('taskidpreset', 'int');
-            $newRoute = self::URL_ME . '&' . self::URL_RESERVE . '&massoutemployee=' . $newEmpId . '&taskidpreset=' . $taskId;
+            $newRoute = self::URL_ME . '&' . self::URL_RESERVE . '&massoutemployee=' . $newEmpId;
+            if (ubRouting::checkGet('taskidpreset')) {
+                $taskId = ubRouting::get('taskidpreset', 'int');
+                $newRoute .= '&taskidpreset=' . $taskId;
+            }
             ubRouting::nav($newRoute);
         }
 
