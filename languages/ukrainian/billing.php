@@ -3441,4 +3441,6 @@ $lang['def']['Message prepared for refund'] = 'Повідомлення підг
 $lang['def']['Serial'] = 'Серійник';
 $lang['def']['Replace'] = 'Замінити';
 $lang['def']['Change employee'] = 'Замінити працівника';
+$lang['def']['Run the dog'] = 'Попідганяти собаку';
+$lang['def']['Already running'] = 'Вже запущено';
 $lang['def'][''] = '';
