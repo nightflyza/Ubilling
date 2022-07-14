@@ -1246,7 +1246,6 @@ class ExistentialHorse {
                         }
                     }
                 }
-                debarr($citySignupsChartData);
                 $result .= wf_gchartsLine($citySignupsChartData, __('Cities'), '100%', '300px', $chartsOptions);
             }
 
