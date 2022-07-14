@@ -1108,8 +1108,9 @@ class ExistentialHorse {
         $ukvarpuChartData = array(0 => array(__('Month'), __('ARPU'), __('ARPAU')));
         $universeChartData = array(0 => array(__('Month'), __('Signup requests'), __('Tickets'), __('Tasks'), __('Signup capabilities'), __('Undone')));
         $telephonyChartData = array(0 => array(__('Month'), __('Total calls'), __('Total answered'), __('No answer')));
-
         $equipChartData = array(0 => array(__('Month'), __('Switches')));
+        $citySignupsTmp = array();
+        ;
 
         if ($this->ponFlag AND $this->docsisFlag) {
             $equipChartData = array(0 => array(__('Month'), __('Switches'), __('PON ONU'), __('DOCSIS modems')));
@@ -1194,6 +1195,7 @@ class ExistentialHorse {
                                 $cityCells = wf_TableCell($sigCity);
                                 $cityCells .= wf_TableCell($cityCount);
                                 $cityRows .= wf_TableRow($cityCells, 'row5');
+                                $citySignupsTmp[$sigCity][$yearDisplay . $months[$monthNum]] = $cityCount;
                             }
                             $containerStyle = 'max-height:500px; min-width:400px;';
                             $citySigs .= wf_AjaxContainer('ctsigs', 'style="' . $containerStyle . '"', wf_TableBody($cityRows, '100%', 0, 'sortable'));
@@ -1221,10 +1223,34 @@ class ExistentialHorse {
             $result .= wf_tag('h2') . __('Internets users') . wf_tag('h2', true);
             $result .= wf_TableBody($rows, '100%', 0, '') . ' ';
             $result .= __('Total users registered') . ': ' . $totalSignups;
+
             if ($chartsFlag) {
                 $result .= wf_gchartsLine($usersChartData, __('Internets users'), '100%', '300px', $chartsOptions);
                 $result .= wf_gchartsLine($usersSignupsChartData, __('Signups'), '100%', '300px', $chartsOptions);
+                if (!empty($citySignupsTmp)) {
+                    $allSignupCities = array_keys($citySignupsTmp);
+                    $citySignupsChartData[0] = $allSignupCities;
+                    array_unshift($citySignupsChartData[0], __('Month'));
+                    $csCount = 0;
+                    foreach ($months as $csMonth => $csMonthName) {
+                        $csCount++;
+                        $monthLabel = $yearDisplay . $csMonthName;
+                        $citySignupsChartData[$csCount] = array($monthLabel);
+                        foreach ($citySignupsTmp as $eachCsCity => $csData) {
+                            if (isset($citySignupsTmp[$eachCsCity][$monthLabel])) {
+                                $emCount = $citySignupsTmp[$eachCsCity][$monthLabel];
+                            } else {
+                                $emCount = 0;
+                            }
+                            $citySignupsChartData[$csCount][] += $emCount;
+                        }
+                    }
+                }
+                debarr($citySignupsChartData);
+                $result .= wf_gchartsLine($citySignupsChartData, __('Cities'), '100%', '300px', $chartsOptions);
             }
+
+
 
 
             //complex data
