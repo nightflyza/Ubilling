@@ -1110,7 +1110,7 @@ class ExistentialHorse {
         $telephonyChartData = array(0 => array(__('Month'), __('Total calls'), __('Total answered'), __('No answer')));
         $equipChartData = array(0 => array(__('Month'), __('Switches')));
         $citySignupsTmp = array();
-        ;
+
 
         if ($this->ponFlag AND $this->docsisFlag) {
             $equipChartData = array(0 => array(__('Month'), __('Switches'), __('PON ONU'), __('DOCSIS modems')));
@@ -1246,6 +1246,7 @@ class ExistentialHorse {
                         }
                     }
                 }
+
                 $result .= wf_gchartsLine($citySignupsChartData, __('Cities'), '100%', '300px', $chartsOptions);
             }
 
