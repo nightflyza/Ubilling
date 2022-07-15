@@ -1033,7 +1033,7 @@ function sp_SnmpPollDevice($ip, $community, $alltemplates, $deviceTemplate, $all
 
         if (!empty($currentTemplate)) {
             $deviceDescription = $currentTemplate['define']['DEVICE'];
-            $deviceFdb = $currentTemplate['define']['FDB'];
+            $deviceFdb = (isset($currentTemplate['define']['FDB'])) ? $currentTemplate['define']['FDB'] : 'false';
             $deviceMAC = (isset($currentTemplate['define']['MAC'])) ? $currentTemplate['define']['MAC'] : 'false';
             $pollMode = (isset($currentTemplate['define']['POLLMODE'])) ? $currentTemplate['define']['POLLMODE'] : '';
             $sfpStartPort = (empty($currentTemplate['define']['SFPSTARTPORT'])) ? 1 : $currentTemplate['define']['SFPSTARTPORT'];
