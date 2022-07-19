@@ -2589,23 +2589,27 @@ function convertMACDec2Hex($decMAC, $inSeparator = '.', $outSeparator = ':', $re
  * TIP: if you need to trim some $snmpData without OID portion already
  * - just set $oid parameter to an empty string
  *
- * @param string $snmpData
- * @param string $oid
- * @param false $returnAsStr
+ * @param string       $snmpData
+ * @param string       $oid
+ * @param string       $removeValue
+ * @param bool         $rowsExplode
+ * @param false        $returnAsStr
  *
  * @param array|string $oidValue
+ *
  * @return array|string
  */
-function trimSNMPOutput($snmpData, $oid, $returnAsStr = false, $oidValue = array('Counter32:',
-    'Counter64:',
-    'Gauge32:',
-    'Gauge64:',
-    'INTEGER:',
-    'STRING:',
-    'OID:',
-    'Timeticks:',
-    'Hex-STRING:',
-    'Network Address:'
+function trimSNMPOutput($snmpData, $oid, $removeValue = '', $rowsExplode = false, $returnAsStr = false,
+                        $oidValue = array('Counter32:',
+                                          'Counter64:',
+                                          'Gauge32:',
+                                          'Gauge64:',
+                                          'INTEGER:',
+                                          'Hex-STRING:',
+                                          'OID:',
+                                          'Timeticks:',
+                                          'STRING:',
+                                          'Network Address:'
 )
 ) {
     $result = ($returnAsStr) ? '' : array('', '');
@@ -2619,16 +2623,22 @@ function trimSNMPOutput($snmpData, $oid, $returnAsStr = false, $oidValue = array
         $snmpData = str_replace($oid, '', $snmpData);
         // removing VALUE portion
         $snmpData = str_replace($oidValue, '', $snmpData);
-        // trimming leading and trailing dots and spaces
-        $snmpData = trim($snmpData, '. \n\r\t');
+        // removing some "specific" $removeValue
+        $snmpData = str_replace($removeValue, '', $snmpData);
 
         if (!$returnAsStr) {
-            $snmpData = explode('=', $snmpData);
+            if ($rowsExplode) {
+                $snmpData = explodeRows($snmpData);
+            } else {
+                // trimming leading and trailing dots and spaces
+                $snmpData = trim($snmpData, '. \n\r\t');
+                $snmpData = explode('=', $snmpData);
 
-            if (isset($snmpData[1])) {
-                // trimming possible extra spaces
-                $snmpData[0] = trim($snmpData[0]);
-                $snmpData[1] = trim($snmpData[1]);
+                if (isset($snmpData[1])) {
+                    // trimming possible extra spaces
+                    $snmpData[0] = trim($snmpData[0]);
+                    $snmpData[1] = trim($snmpData[1]);
+                }
             }
         }
 

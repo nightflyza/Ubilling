@@ -1972,6 +1972,7 @@ class PONizer {
             $this->loadLastDeregCache();
             $onuData = $this->allOnu[$onuId];
             $onuMiscStats = '';
+
             // interface
             $interfaceIcon = wf_img_sized('skins/pon_icon.gif', __('Interface'), '12');
             if (isset($this->interfaceCache[$onuData['mac']])) {
@@ -3480,22 +3481,27 @@ class PONizer {
     public function ajaxOltFdbData($OnuId) {
         $json = new wf_JqDtHelper();
         $fdbPointer = '';
+
         if (!empty($OnuId)) {
             $allUserTariffs = zb_TariffsGetAllUsers();
             $onuMacId = @$this->allOnu[$OnuId]['mac'];
             $onuSerialId = @$this->allOnu[$OnuId]['serial'];
             $fdbCacheAvail = $this->oltData->isFdbAvailable();
+
             if ($fdbCacheAvail) {
                 $this->loadFDBCache();
             } else {
                 $fdbCacheAvail = false;
             }
+
             if (isset($this->FDBCache[$onuMacId])) {
                 $fdbPointer = $this->FDBCache[$onuMacId];
             }
+
             if (isset($this->FDBCache[$onuSerialId])) {
                 $fdbPointer = $this->FDBCache[$onuSerialId];
             }
+
             if ($fdbCacheAvail and $fdbPointer) {
                 $GetLoginMac = zb_UserGetAllMACs();
                 $allAddress = zb_AddressGetFulladdresslistCached();
@@ -4265,7 +4271,7 @@ class PONizer {
                     }
 
                     if (!empty($lastRegTime) or ! empty($lastDeregTime) or ! empty($lastAliveTime)) {
-                        if ($snmpSignalOIDs['SIGNALMODE'] == 'BDCOM') {
+                        if ($snmpSignalOIDs['SIGNALMODE'] == 'BDCOM' or ispos($snmpDevice, 'FD12XXS')) {
                             $lastAliveTime = (empty($lastAliveTime) or ! is_numeric($lastAliveTime)) ? 0 : $lastAliveTime;
                             $lastAliveTime = zb_formatTime($lastAliveTime);
 

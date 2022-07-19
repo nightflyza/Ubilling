@@ -297,19 +297,17 @@ class PONProto {
     /**
      * Replaces standard 4-line routine with snmpwalking and removing OID and VALUE portions and returns an array of cleared values
      *
-     * @param      $snmpIPPORT
-     * @param      $snmpCommunity
-     * @param      $snmpOID
-     * @param      $replaceVALUE
-     * @param bool $snmpCacheON
+     * @param string $snmpIPPORT
+     * @param string $snmpCommunity
+     * @param string $snmpOID
+     * @param string $removeVALUE
+     * @param bool   $snmpCacheON
      *
      * @return array
      */
-    protected function walkCleared($snmpIPPORT, $snmpCommunity, $snmpOID, $replaceVALUE = '', $snmpCacheON = false) {
+    protected function walkCleared($snmpIPPORT, $snmpCommunity, $snmpOID, $removeVALUE = '', $snmpCacheON = false) {
         $oidIndex = $this->snmp->walk($snmpIPPORT, $snmpCommunity, $snmpOID, $snmpCacheON);
-        $oidIndex = str_replace($snmpOID . '.', '', $oidIndex);
-        $oidIndex = str_replace($replaceVALUE, '', $oidIndex);
-        $oidIndex = explodeRows($oidIndex);
+        $oidIndex = trimSNMPOutput($oidIndex, $snmpOID . '.', $removeVALUE, true);
 
         return ($oidIndex);
     }
