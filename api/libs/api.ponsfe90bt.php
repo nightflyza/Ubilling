@@ -53,7 +53,7 @@ class PONSFE90BT extends PONProto {
                                                           self::SNMPCACHE);
             }
 
-            $this->interfaceParseSF($oltid, $ifaceIndex, $SFMACsProcessed, $ifaceCustDescrIndex);
+            $this->interfaceParseSF($ifaceIndex, $SFMACsProcessed, $ifaceCustDescrIndex);
 
             $lastDeregIndex = $this->walkCleared($oltIPPORT, $oltCommunity,
                                                  $this->snmpTemplates[$oltModelId]['misc']['DEREGREASON'],
@@ -238,8 +238,10 @@ class PONSFE90BT extends PONProto {
      * @param $IfaceIndex
      * @param $macIndexProcessed
      * @param $ifaceCustDescrRaw
+     *
+     * @return void
      */
-    protected function interfaceParseSF($oltid, $IfaceIndex, $macIndexProcessed, $ifaceCustDescrRaw = array()) {
+    protected function interfaceParseSF($IfaceIndex, $macIndexProcessed, $ifaceCustDescrRaw = array()) {
         $ONUIfaces = array();
         $result = array();
         $processIfaceCustDescr = !empty($ifaceCustDescrRaw);
@@ -313,6 +315,8 @@ class PONSFE90BT extends PONProto {
      * @param $onuMACIndex
      * @param $fdbIndex
      * @param $fdbVLANIndex
+     *
+     * @return void
      */
     protected function fdbParseSF($onuMACIndex, $fdbIndex, $fdbVLANIndex) {
         if (!empty($onuMACIndex)) {
@@ -380,8 +384,9 @@ class PONSFE90BT extends PONProto {
      * Performs last dereg reason preprocessing for dereg reason/mac index arrays and stores it into cache
      *
      * @param $LastDeregIndex
-     * @param $macIndex
-     * @param $snmpTemplate
+     * @param $macIndexProcessed
+     *
+     * @return void
      */
     protected function lastDeregParseSF($LastDeregIndex, $macIndexProcessed) {
         $ONUDeRegs = array();
