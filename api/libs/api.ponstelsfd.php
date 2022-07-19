@@ -254,4 +254,120 @@ class PONStelsFD extends PONStels {
         }
     }
 
+
+    /**
+     * Parses & stores to cache ONUs FDB cache (MACs behind ONU)
+     *
+     * @param $oltID
+     * @param $onuMACIndex
+     * @param $fdbIndex
+     * @param $fdbMACIndex
+     * @param $fdbVLANIndex
+     */
+    protected function fdbParseStels($oltID, $onuMACIndex, $fdbIndex, $fdbMACIndex, $fdbVLANIndex) {
+        $macLLIDIndexes = array();
+        $fdbLLIDIndexes = array();
+        $fdbIdxMAC = array();
+        $fdbIdxVLAN = array();
+        $fdbCahce = array();
+
+// processing $onuMACIndex array to get pon port number + ONU LLID => ONU MAC mapping
+        if (!empty($onuMACIndex) and ! empty($fdbIndex)) {
+            foreach ($onuMACIndex as $eachIdx => $eachONUMAC) {
+                $line = explode('=', $eachONUMAC);
+// MAC is present
+                if (isset($line[1])) {
+                    $onuMAC = trim($line[1]);
+                    $tmpIndex = trim($line[0]);               // pon port number + device index
+                    $tmpIndex = explode('.', $tmpIndex);
+
+                    $portIndex = trim($tmpIndex[0]);           // pon port number
+                    $devIndexRaw = $tmpIndex[1];
+
+                    // seems next lines no needed no more
+                    // $devIndexLLID = ($devIndexRaw - 1) / 256;     // ONU LLID
+                    // $macLLIDIndexes[$portIndex . ':' . $devIndexLLID] = $onuMAC;     // pon port number + ONU LLID => ONU MAC
+
+                    $macLLIDIndexes[$portIndex . ':' . $devIndexRaw] = $onuMAC;     // pon port number + ONU LLID => ONU MAC
+                }
+            }
+
+// processing FDBIndex array to get FDB index number => pon port number + ONU LLID mapping
+            foreach ($fdbIndex as $each => $eachIdx) {
+                $line = explode('=', $eachIdx);
+// ONU LLID is present
+                if (isset($line[1])) {
+                    $devLLID = trim($line[1]);                   // ONU LLID
+                    $tmpIndex = trim($line[0]);                   // pon port number + FDB index
+                    $tmpIndex = explode('.', $tmpIndex);
+
+                    $portIndex = trim($tmpIndex[0]);               // pon port number
+                    $fdbIdxRaw = $tmpIndex[1];                     // FDB index number
+                    $fdbLLIDIndexes[$fdbIdxRaw] = $portIndex . ':' . $devLLID;       // FDB index number => pon port number + ONU LLID
+                }
+            }
+
+// processing $fdbMACIndex array to get FDB index number => FDB MAC mapping
+            foreach ($fdbMACIndex as $each => $eachIdx) {
+                $line = explode('=', $eachIdx);
+// FDB MAC is present
+                if (isset($line[1])) {
+                    $fdbMAC = trim($line[1]);                   // FDB MAC
+                    $tmpIndex = trim($line[0]);                   // pon port number + FDB index
+                    $tmpIndex = explode('.', $tmpIndex);
+
+                    $fdbIdxRaw = $tmpIndex[1];                     // FDB index number
+                    $fdbIdxMAC[$fdbIdxRaw] = $fdbMAC;               // FDB index number => FDB MAC
+                }
+            }
+
+// processing $fdbVLANIndex array to get FDB index number => FDB VLAN mapping
+            foreach ($fdbVLANIndex as $each => $eachIdx) {
+                $line = explode('=', $eachIdx);
+// FDB VLAN is present
+                if (isset($line[1])) {
+                    $fdbVLAN = trim($line[1]);                   // FDB VLAN
+                    $tmpIndex = trim($line[0]);                   // pon port number + FDB index
+                    $tmpIndex = explode('.', $tmpIndex);
+
+                    $fdbIdxRaw = $tmpIndex[1];                     // FDB index number
+                    $fdbIdxVLAN[$fdbIdxRaw] = $fdbVLAN;             // FDB index number => FDB VLAN
+                }
+            }
+
+            if (!empty($macLLIDIndexes) and ! empty($fdbLLIDIndexes)) {
+                foreach ($macLLIDIndexes as $eachLLID => $eachONUMAC) {
+                    $onuFDBIdxs = array_keys($fdbLLIDIndexes, $eachLLID);
+
+                    if (!empty($onuFDBIdxs)) {
+                        $tmpFDBArr = array();
+                        $tmpONUMAC = strtolower(AddMacSeparator(RemoveMacAddressSeparator($eachONUMAC, array(':', '-', '.', ' '))));
+
+                        foreach ($onuFDBIdxs as $io => $eachIdx) {
+                            $tmpFDBMAC = empty($fdbIdxMAC[$eachIdx]) ? '' : $fdbIdxMAC[$eachIdx];
+
+                            if (empty($tmpFDBMAC) or $tmpFDBMAC == $eachONUMAC) {
+                                continue;
+                            } else {
+                                $tmpFDBMAC = strtolower(AddMacSeparator(RemoveMacAddressSeparator($tmpFDBMAC, array(':', '-', '.', ' '))));
+                                $tmpFDBVLAN = empty($fdbIdxVLAN[$eachIdx]) ? '' : $fdbIdxVLAN[$eachIdx];
+                                // not applicable with PON HAL now.
+                                // i dont know nahooya this was here
+                                //$tmpONUID = $this->getONUIDByMAC($tmpONUMAC);
+                                //$tmpONUID = (empty($tmpONUID)) ? $eachIdx : $tmpONUID;
+                                $tmpONUID=$eachIdx;
+                                $tmpFDBArr[$tmpONUID] = array('mac' => $tmpFDBMAC, 'vlan' => $tmpFDBVLAN);
+                            }
+                        }
+
+                        $fdbCahce[$tmpONUMAC] = $tmpFDBArr;
+                    }
+                }
+            }
+        }
+
+        //saving OLT FDB
+        $this->olt->writeFdb($fdbCahce);
+    }
 }
+

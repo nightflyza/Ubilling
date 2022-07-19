@@ -45,6 +45,12 @@ function zb_CardGenerate(array $cardCreate) {
         for ($cardcount = 0; $cardcount < $count; $cardcount++) {
             if ($cardCreate['length'] == 16) {
                 $serial = mt_rand(1111, 9999) . mt_rand(1111, 9999) . mt_rand(1111, 9999) . mt_rand(1111, 9999);
+            } elseif ($cardCreate['length'] == 14) {
+                $serial = mt_rand(1111, 9999) . mt_rand(1111, 9999) . mt_rand(1111, 9999) . mt_rand(11, 99);
+            } elseif ($cardCreate['length'] == 12) {
+                $serial = mt_rand(1111, 9999) . mt_rand(1111, 9999) . mt_rand(1111, 9999);
+            } elseif ($cardCreate['length'] == 10) {
+                $serial = mt_rand(1111, 9999) . mt_rand(1111, 9999) . mt_rand(11, 99);
             } elseif ($cardCreate['length'] == 8) {
                 $serial = mt_rand(1111, 9999) . mt_rand(1111, 9999);
             }
@@ -178,7 +184,7 @@ function web_CardsGenerateForm() {
     $cells .= wf_TableCell(wf_TextInput('card_create[part]', '', '', false, '5'));
     $cells .= wf_TableCell(wf_TextInput('card_create[count]', '', '', false, '5'));
     $cells .= wf_TableCell(wf_TextInput('card_create[price]', '', '', false, '5', 'finance'));
-    $cells .= wf_TableCell(wf_Selector('card_create[length]', array('16' => 16, '8' => 8), '', ''));
+    $cells .= wf_TableCell(wf_Selector('card_create[length]', array('16' => 16, '14' => 14, '12' => 12, '10' => 10, '8' => 8), '', ''));
     $rows .= wf_TableRow($cells, 'row1');
 
     $rows .= wf_TableRow(wf_TableCell(wf_Submit('Create')));
