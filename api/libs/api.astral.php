@@ -4213,10 +4213,13 @@ function wf_SelectorSearchable($name, $params, $label, $selected = '', $br = fal
     $result = '';
     $inputId = wf_InputId();
     $ctrlClass = 'select2_' . $inputId;
-
-    $initCode = '<link href="modules/jsc/select2/css/select2.min.css" rel="stylesheet" />';
+    $curLang = curlang();
+    $initCode = '<link href="modules/jsc/select2/css/select2.css" rel="stylesheet" />';
     $initCode .= wf_tag('script', false, '', 'src="modules/jsc/select2/js/select2.min.js"');
     $initCode .= wf_tag('script', true);
+    $initCode .= wf_tag('script', false, '', 'src="modules/jsc/select2/js/i18n/' . $curLang . '.js"');
+    $initCode .= wf_tag('script', true);
+
     $initCode .= wf_tag('script');
     $initCode .= '$(document).ready(function() { $(".' . $ctrlClass . '").select2(); });';
     $initCode .= wf_tag('script', true);
