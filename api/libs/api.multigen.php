@@ -512,6 +512,11 @@ class MultiGen {
     const COA_PATH = 'exports/coa_queue_';
 
     /**
+     * Default RemoteAPI lock name
+     */
+    const MULTIGEN_PID = 'multigenrunning';
+
+    /**
      * Creates new MultiGen instance
      * 
      * @return void
@@ -3658,6 +3663,36 @@ class MultiGen {
                     . "('" . $login . "','" . $trafficDown . "','" . $trafficUp . "'," . $activity . ");";
             nr_query($query);
         }
+    }
+
+    /**
+     * Performs check of multigen-rebuild lock via DB. 
+     * 
+     * @return bool 
+     */
+    public function isMultigenRunning() {
+        $query = "SELECT IS_FREE_LOCK('" . self::MULTIGEN_PID . "') AS mlgLockFree";
+        $rawReply = simple_query($query);
+        $result = ($rawReply['mlgLockFree']) ? false : true;
+        return($result);
+    }
+
+    /**
+     * Locks Multigen regeneration
+     * 
+     * @return void
+     */
+    public function runPidStart() {
+        nr_query("SELECT GET_LOCK('" . self::MULTIGEN_PID . "',1)");
+    }
+
+    /**
+     * Releases Multigen regeneration lock
+     * 
+     * @return void
+     */
+    public function runPidEnd() {
+        nr_query("SELECT RELEASE_LOCK('" . self::MULTIGEN_PID . "')");
     }
 
 }
