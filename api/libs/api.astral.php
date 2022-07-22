@@ -4198,6 +4198,53 @@ function wf_DatesTimesRangeFilter($inTable = true, $tableCellsOnly = false, $tab
 }
 
 /**
+ * Returns select2 searchable input widget
+ * 
+ * @param string $name
+ * @param array $params
+ * @param string $label
+ * @param string $selected
+ * @param bool $br
+ * @param string $options
+ * 
+ * @return string
+ */
+function wf_SelectorSearchable($name, $params, $label, $selected = '', $br = false, $options = '') {
+    $result = '';
+    $inputId = wf_InputId();
+    $ctrlClass = 'select2_' . $inputId;
+
+    $initCode = '<link href="modules/jsc/select2/css/select2.min.css" rel="stylesheet" />';
+    $initCode .= wf_tag('script', false, '', 'src="modules/jsc/select2/js/select2.min.js"');
+    $initCode .= wf_tag('script', true);
+    $initCode .= wf_tag('script');
+    $initCode .= '$(document).ready(function() { $(".' . $ctrlClass . '").select2(); });';
+    $initCode .= wf_tag('script', true);
+
+    $result .= $initCode;
+    $result .= wf_Selector($name, $params, $label, $selected, $br, false, '', $ctrlClass, $options);
+    return($result);
+}
+
+/**
+ * Returns select2 searchable input widget with auto-submit function
+ * 
+ * @param string $name
+ * @param array $params
+ * @param string $label
+ * @param string $selected
+ * @param bool $br
+ * @param string $options
+ * 
+ * @return string
+ */
+function wf_SelectorSearchableAC($name, $params, $label, $selected = '', $br = false) {
+    $options = 'onChange="this.form.submit();"';
+    $result = wf_SelectorSearchable($name, $params, $label, $selected, $br, $options);
+    return($result);
+}
+
+/**
  * JQuery Data Tables JSON formatting class
  */
 class wf_JqDtHelper {
