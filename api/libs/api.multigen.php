@@ -412,6 +412,11 @@ class MultiGen {
     const NAS_ACCT = 'mlg_acct';
 
     /**
+     * Default postauth table name
+     */
+    const NAS_POSTAUTH = 'mlg_postauth';
+
+    /**
      * Default traffic aggregation table name
      */
     const NAS_TRAFFIC = 'mlg_traffic';
@@ -1215,6 +1220,33 @@ class MultiGen {
                 nr_query($query);
                 log_register('MULTIGEN FLUSH SCENARIO `' . $scenarioId . '`');
             }
+        }
+    }
+
+    /**
+     * Performs cleanup of accounting data for some period
+     * 
+     * @param int $days
+     * @param int $unfinished
+     * 
+     * @return void
+     */
+    public function cleanupAccounting($daysCount = 0, $unfinished = 0) {
+        $daysCount = ubRouting::filters($daysCount, 'int');
+        if ($daysCount) {
+            $intervalq = "<= NOW() - INTERVAL " . $daysCount . " DAY ";
+            //old finished sessions, accounting data
+            $query = "DELETE FROM `" . self::NAS_ACCT . "` WHERE `acctstarttime` " . $intervalq . " AND `acctstoptime` IS NOT NULL";
+            nr_query($query);
+            //postauth
+            $query = "DELETE FROM `" . self::NAS_POSTAUTH . "` WHERE `authdate` " . $intervalq;
+            nr_query($query);
+            if ($unfinished) {
+                //old unfinished sessions (seems its dead)
+                $query = "DELETE FROM `" . self::NAS_ACCT . "` WHERE `acctupdatetime` " . $intervalq . " AND `acctstoptime` IS NULL";
+                nr_query($query);
+            }
+            log_register('MULTIGEN ACCOUNTING CLEANUP `' . $daysCount . '` DAYS');
         }
     }
 
