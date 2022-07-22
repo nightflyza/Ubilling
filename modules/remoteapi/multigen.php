@@ -41,9 +41,15 @@ if (($remoteApiAction == 'multigen') OR ( $remoteApiAction == 'multigentotal') O
         }
 
         if ($remoteApiAction == 'multigentotal') {
-            $multigen->flushAllScenarios();
-            $multigen->generateNasAttributes();
-            die('OK: MULTIGEN_TOTAL');
+            if (!$multigen->isMultigenRunning()) {
+                $multigen->runPidStart();
+                $multigen->flushAllScenarios();
+                $multigen->generateNasAttributes();
+                $multigen->runPidEnd();
+                die('OK: MULTIGEN_TOTAL');
+            } else {
+                die('SKIP: MULTIGEN ALREADY RUNNING');
+            }
         }
 
         if ($remoteApiAction == 'multigentraff') {
