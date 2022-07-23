@@ -777,6 +777,8 @@ function web_CitySelector($FilterByCityId = 0) {
 function web_CitySelectorAc() {
     global $ubillingConfig;
     $altCfg = $ubillingConfig->getAlter();
+    $searchableFlag = (@$altCfg['CITYSEL_SEARCHBL']) ? true : false;
+    $selector = '';
     if ($altCfg['BRANCHES_ENABLED']) {
         global $branchControl;
         $branchControl->loadCities();
@@ -798,7 +800,11 @@ function web_CitySelectorAc() {
         }
     }
 
-    $selector = wf_SelectorAC('citysel', $allcity, '', '', false);
+    if ($searchableFlag) {
+        $selector .= wf_SelectorSearchableAC('citysel', $allcity, '', '', false);
+    } else {
+        $selector .= wf_SelectorAC('citysel', $allcity, '', '', false);
+    }
     $selector .= wf_tag('a', false, '', 'href="?module=city" target="_BLANK"') . web_city_icon() . wf_tag('a', true);
     return ($selector);
 }
@@ -829,7 +835,10 @@ function web_StreetSelector($cityid) {
  * @return string
  */
 function web_StreetSelectorAc($cityid) {
+    global $ubillingConfig;
+    $searchableFlag = $ubillingConfig->getAlterParam('STREETSEL_SEARCHBL');
     $allstreets = array();
+    $selector = '';
     $tmpStreets = zb_AddressGetStreetAllDataByCity($cityid);
 
     $allstreets['-'] = '-'; // placeholder
@@ -839,7 +848,11 @@ function web_StreetSelectorAc($cityid) {
         }
     }
 
-    $selector = wf_SelectorAC('streetsel', $allstreets, '', '', false);
+    if ($searchableFlag) {
+        $selector .= wf_SelectorSearchableAC('streetsel', $allstreets, '', '', false);
+    } else {
+        $selector .= wf_SelectorAC('streetsel', $allstreets, '', '', false);
+    }
     $selector .= wf_tag('a', false, '', 'href="?module=streets&citypreset=' . $cityid . '" target="_BLANK"') . web_street_icon() . wf_tag('a', true);
 
     return ($selector);
@@ -871,7 +884,10 @@ function web_BuildSelector($streetid) {
  * @return string
  */
 function web_BuildSelectorAc($streetid) {
+    global $ubillingConfig;
+    $searchableFlag = $ubillingConfig->getAlterParam('BUILDSEL_SEARCHBL');
     $allbuilds = array();
+    $selector = '';
     $tmpBuilds = zb_AddressGetBuildAllDataByStreet($streetid);
     $allbuilds['-'] = '-'; //placeholder
 
@@ -881,7 +897,11 @@ function web_BuildSelectorAc($streetid) {
         }
     }
 
-    $selector = wf_SelectorAC('buildsel', $allbuilds, '', '', false);
+    if ($searchableFlag) {
+        $selector .= wf_SelectorSearchableAC('buildsel', $allbuilds, '', '', false);
+    } else {
+        $selector .= wf_SelectorAC('buildsel', $allbuilds, '', '', false);
+    }
     $selector .= wf_tag('a', false, '', 'href="?module=builds&action=edit&streetid=' . $streetid . '" target="_BLANK"') . web_build_icon() . wf_tag('a', true);
     return ($selector);
 }
@@ -893,7 +913,10 @@ function web_BuildSelectorAc($streetid) {
  * @return string
  */
 function web_AptSelectorAc($buildid) {
+    global $ubillingConfig;
+    $searchableFlag = $ubillingConfig->getAlterParam('APTSEL_SEARCHBL');
     $allapts = array();
+
     $tmpApts = zb_AddressGetAptAllDataByBuild($buildid);
 
     $allapts['-'] = '-'; //placeholder
@@ -903,7 +926,13 @@ function web_AptSelectorAc($buildid) {
             $allapts[$each['id']] = $each['apt'];
         }
     }
-    $selector = wf_SelectorAC('aptsel', $allapts, '', '', false);
+
+    if ($searchableFlag) {
+        $selector = wf_SelectorSearchableAC('aptsel', $allapts, '', '', false);
+    } else {
+        $selector = wf_SelectorAC('aptsel', $allapts, '', '', false);
+    }
+
     return ($selector);
 }
 
