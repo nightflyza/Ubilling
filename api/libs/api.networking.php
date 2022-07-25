@@ -1634,6 +1634,7 @@ function zb_DirectionAdd($rulenumber, $rulename) {
 function zb_NasAdd($netid, $nasip, $nasname, $nastype, $bandw) {
     $netid = vf($netid, 3);
     $nasname = mysql_real_escape_string($nasname);
+    $nasname = trim($nasname);
     $nastype = vf($nastype);
     $bandw = trim($bandw);
     $bandw = mysql_real_escape_string($bandw);
@@ -1662,6 +1663,7 @@ function zb_NasUpdateParams($nasid, $nastype, $nasip, $nasname, $nasbwdurl, $net
     $nastype = ubRouting::filters($nastype, 'mres');
     $nasip = ubRouting::filters($nasip, 'mres');
     $nasname = ubRouting::filters($nasname, 'mres');
+    $nasname = trim($nasname);
     $nasbwdurl = trim(ubRouting::filters($nasbwdurl, 'mres'));
     $netid = ubRouting::filters($netid, 'int');
 
@@ -2599,17 +2601,16 @@ function convertMACDec2Hex($decMAC, $inSeparator = '.', $outSeparator = ':', $re
  *
  * @return array|string
  */
-function trimSNMPOutput($snmpData, $oid, $removeValue = '', $rowsExplode = false, $returnAsStr = false,
-                        $oidValue = array('Counter32:',
-                                          'Counter64:',
-                                          'Gauge32:',
-                                          'Gauge64:',
-                                          'INTEGER:',
-                                          'Hex-STRING:',
-                                          'OID:',
-                                          'Timeticks:',
-                                          'STRING:',
-                                          'Network Address:'
+function trimSNMPOutput($snmpData, $oid, $removeValue = '', $rowsExplode = false, $returnAsStr = false, $oidValue = array('Counter32:',
+    'Counter64:',
+    'Gauge32:',
+    'Gauge64:',
+    'INTEGER:',
+    'Hex-STRING:',
+    'OID:',
+    'Timeticks:',
+    'STRING:',
+    'Network Address:'
 )
 ) {
     $result = ($returnAsStr) ? '' : array('', '');
