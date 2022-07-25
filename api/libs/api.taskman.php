@@ -516,6 +516,25 @@ function ts_GetActiveEmployee() {
 }
 
 /**
+ * Returns array of active employees as id=>login
+ * 
+ * @return array
+ */
+function ts_GetActiveEmployeeLogins() {
+    $query = "SELECT * from `employee` WHERE `active`='1'";
+    $allemployee = simple_queryall($query);
+    $result = array();
+    if (!empty($allemployee)) {
+        foreach ($allemployee as $io => $each) {
+            if (!empty($each['admlogin'])) {
+                $result[$each['id']] = $each['admlogin'];
+            }
+        }
+    }
+    return ($result);
+}
+
+/**
  * Returns jq fullcalendar data for jobreport module
  * 
  * @return string
@@ -2312,7 +2331,7 @@ function ts_TaskChangeForm($taskid) {
             if ($altercfg['WAREHOUSE_ENABLED']) {
                 if ($altercfg['TASKMAN_WAREHOUSE_HLPR']) {
                     if ($taskdata['status'] == 0) {
-                        $massOutUrl = Warehouse::URL_ME.'&'.Warehouse::URL_RESERVE.'&massoutemployee=' . $taskdata['employee'] . '&taskidpreset=' . $taskid;
+                        $massOutUrl = Warehouse::URL_ME . '&' . Warehouse::URL_RESERVE . '&massoutemployee=' . $taskdata['employee'] . '&taskidpreset=' . $taskid;
                         $modform .= wf_Link($massOutUrl, wf_img('skins/drain_icon.png', __('Mass outcome')), false, '', 'target="_BLANK"');
                     }
                 }
