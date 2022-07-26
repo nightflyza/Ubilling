@@ -1150,21 +1150,27 @@ function web_ProfileSwitchControlForm($login) {
     $login = mysql_real_escape_string($login);
     $query = "SELECT * from `switchportassign` WHERE `login`='" . $login . "'";
 
-//switch selector arranged by id (default)
-    if (($alterconf['SWITCHPORT_IN_PROFILE'] == 1) OR ( $alterconf['SWITCHPORT_IN_PROFILE'] == 4)) {
-        $allswitches = zb_SwitchesGetAll();
-    }
-
-//switch selector arranged by location
-    if ($alterconf['SWITCHPORT_IN_PROFILE'] == 2) {
-        $allswitches_q = "SELECT * FROM `switches` ORDER BY `location` ASC";
-        $allswitches = simple_queryall($allswitches_q);
-    }
-
-//switch selector arranged by ip
-    if ($alterconf['SWITCHPORT_IN_PROFILE'] == 3) {
-        $allswitches_q = "SELECT * FROM `switches` ORDER BY `ip` ASC";
-        $allswitches = simple_queryall($allswitches_q);
+    //optional switches arrange
+    switch ($alterconf['SWITCHPORT_IN_PROFILE']) {
+        //switch selector arranged by id (default)
+        case 1:
+            $allswitches = zb_SwitchesGetAll();
+            break;
+        //switch selector arranged by location
+        case 2:
+            $allswitches = zb_SwitchesGetAll('ORDER BY `location` ASC');
+            break;
+        //switch selector arranged by ip
+        case 3:
+            $allswitches = zb_SwitchesGetAll('ORDER BY `ip` ASC');
+            break;
+        //switch selector arranged by id (default)
+        case 4:
+            $allswitches = zb_SwitchesGetAll();
+            break;
+        default :
+            $allswitches = zb_SwitchesGetAll();
+            break;
     }
 
 
