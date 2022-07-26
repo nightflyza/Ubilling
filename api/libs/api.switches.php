@@ -504,7 +504,7 @@ function web_SwitchDownlinksList($switchId) {
                 $includePortFlag = ($switchesExtended == 2) ? true : false;
                 $cells .= wf_TableCell($switchesUplinks->getUplinkTinyDesc($each['id'], $includePortFlag));
                 //separate uplink port
-                if ($switchesExtended==3) {
+                if ($switchesExtended == 3) {
                     $cells .= wf_TableCell($switchesUplinks->getUplinkPort($each['id']));
                 }
             }
@@ -1939,41 +1939,67 @@ function zb_SwitchReplaceForm($fromSwitchId) {
  * @return void
  */
 function zb_SwitchReplace($fromId, $toId, $employeeId) {
-    $fromId = vf($fromId, 3);
-    $toId = vf($toId, 3);
-    $employeeId = vf($employeeId, 3);
+    global $ubillingConfig;
+    $fromId = ubRouting::filters($fromId, 'int');
+    $toId = ubRouting::filters($toId, 'int');
+    $employeeId = ubRouting::filters($employeeId, 'int');
+
+    $switchesDb = new NyanORM('switches');
     $allEmployees = ts_GetAllEmployee();
     $fromData = zb_SwitchGetData($fromId);
     $toData = zb_SwitchGetData($toId);
+
+
     if (!empty($fromData)) {
+        //updating new switch device
+        $switchesDb->where('id', '=', $toId);
         //copy geo coordinates to new switch
-        simple_update_field('switches', 'geo', $fromData['geo'], "WHERE `id`='" . $toId . "'");
+        $switchesDb->data('geo', $fromData['geo']);
         //setting new description and remove NP flag
         $newDescriptionTo = str_replace('NP', 'm:' . @$allEmployees[$employeeId], $toData['desc']);
-        simple_update_field('switches', 'desc', $newDescriptionTo, "WHERE `id`='" . $toId . "'");
+        $switchesDb->data('desc', $newDescriptionTo);
         //copy location
-        simple_update_field('switches', 'location', $fromData['location'], "WHERE `id`='" . $toId . "'");
+        $switchesDb->data('location', $fromData['location']);
         //copy switch parent ID
         if (!empty($fromData['parentid'])) {
-            simple_update_field('switches', 'parentid', $fromData['parentid'], "WHERE `id`='" . $toId . "'");
+            $switchesDb->data('parentid', $fromData['parentid']);
         } else {
-            $parentId_q = "UPDATE `switches` SET `parentid`=NULL WHERE `id`='" . $toId . "';";
-            nr_query($parentId_q);
+            //or dropping if not set before
+            $switchesDb->data('parentid', 'NULL');
         }
-        //moving childs if it present
-        simple_update_field('switches', 'parentid', $toId, "WHERE `parentid`='" . $fromId . "'");
+        //saving new switch
+        $switchesDb->save();
+
+        //updating old switch device
+        $switchesDb->where('id', '=', $fromId);
 
         // doing old switch cleanup and disabling it
-        simple_update_field('switches', 'geo', '', "WHERE `id`='" . $fromId . "'");
+        $switchesDb->data('geo', ''); //not located anywhere now
         $newFromLocation = __('removed from') . ': ' . $fromData['location'];
-        simple_update_field('switches', 'location', $newFromLocation, "WHERE `id`='" . $fromId . "'");
+        $switchesDb->data('location', $newFromLocation); //unmouned from somwhere
         $newFromDesc = 'NP u:' . @$allEmployees[$employeeId];
-        simple_update_field('switches', 'desc', $newFromDesc, "WHERE `id`='" . $fromId . "'");
-        $parentIdFrom_q = "UPDATE `switches` SET `parentid`=NULL WHERE `id`='" . $fromId . "';";
-        nr_query($parentIdFrom_q);
-        log_register("SWITCH REPLACE FROM [" . $fromId . "] TO [" . $toId . "] EMPLOYEE [" . $employeeId . "]");
+        $switchesDb->data('desc', $newFromDesc); // NP + employee name
+        $switchesDb->data('parentid', 'NULL'); // unmounted switch have no parents
+        //saving old switch device
+        $switchesDb->save();
+
+        //moving childs if it present
+        $switchesDb->where('parentid', '=', $fromId);
+        $switchesDb->data('parentid', $toId);
+        $switchesDb->save();
+
+        //update user switchportassigns
+        if ($ubillingConfig->getAlterParam('SWITCHPORT_IN_PROFILE')) {
+            $switchPortAssignDb = new NyanORM('switchportassign');
+            $switchPortAssignDb->where('switchid', '=', $fromId);
+            $switchPortAssignDb->data('switchid', $toId);
+            $switchPortAssignDb->save();
+        }
+
+        //log this replace
+        log_register('SWITCH REPLACE FROM [' . $fromId . '] TO [' . $toId . '] EMPLOYEE [' . $employeeId . ']');
     } else {
-        show_error(__('Strange exeption') . ': FROM_SWITCH_EMPTY_DATA');
+        show_error(__('Strange exception') . ': FROM_SWITCH_EMPTY_DATA');
     }
 }
 

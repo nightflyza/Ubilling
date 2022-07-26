@@ -1,22 +1,23 @@
 <?php
+
 if (cfr('SWITCHESEDIT')) {
-    if (wf_CheckGet(array('switchid'))) {
+    if (ubRouting::checkGet('switchid')) {
         //run replace
-        if (wf_CheckPost(array('switchreplace','toswtichreplace','replaceemployeeid'))) {
-            zb_SwitchReplace($_POST['switchreplace'], $_POST['toswtichreplace'],$_POST['replaceemployeeid']);
-            rcms_redirect('?module=switches&edit='.$_POST['toswtichreplace']);
+        if (ubRouting::checkPost(array('switchreplace', 'toswtichreplace', 'replaceemployeeid'))) {
+            $oldSwitchId = ubRouting::post('switchreplace');
+            $newSwitchId = ubRouting::post('toswtichreplace');
+            zb_SwitchReplace($oldSwitchId, $newSwitchId, ubRouting::post('replaceemployeeid'));
+            ubRouting::nav('?module=switches&edit=' . $newSwitchId);
         }
-       
+
         //display form
-        $switchId=vf($_GET['switchid'],3);
-        $switchData=  zb_SwitchGetData($switchId);
-        show_window(__('Switch replacement').': '.$switchData['location'].' - '.$switchData['ip'],zb_SwitchReplaceForm($switchId));
+        $switchId = ubRouting::get('switchid', 'int');
+        $switchData = zb_SwitchGetData($switchId);
+        show_window(__('Switch replacement') . ': ' . $switchData['location'] . ' - ' . $switchData['ip'], zb_SwitchReplaceForm($switchId));
     } else {
         show_error(__('Strange exeption'));
     }
-    
 } else {
     show_error(__('Access denied'));
 }
 
-?>
