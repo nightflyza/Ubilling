@@ -1990,10 +1990,12 @@ function zb_SwitchReplace($fromId, $toId, $employeeId) {
 
         //update user switchportassigns
         if ($ubillingConfig->getAlterParam('SWITCHPORT_IN_PROFILE')) {
-            $switchPortAssignDb = new NyanORM('switchportassign');
-            $switchPortAssignDb->where('switchid', '=', $fromId);
-            $switchPortAssignDb->data('switchid', $toId);
-            $switchPortAssignDb->save();
+            if ($ubillingConfig->getAlterParam('USER_SWITCHPORT_AUTOREPLACE')) {
+                $switchPortAssignDb = new NyanORM('switchportassign');
+                $switchPortAssignDb->where('switchid', '=', $fromId);
+                $switchPortAssignDb->data('switchid', $toId);
+                $switchPortAssignDb->save();
+            }
         }
 
         //log this replace
