@@ -146,6 +146,37 @@ function sp_parse_raw_trim_tab($data) {
 }
 
 /**
+ * Raisecom Port state data parser
+ *
+ * @return string
+ */
+function sp_parse_raportstates($data) {
+    if (!empty($data)) {
+        $data = explode('=', $data);
+        $data[0] = trim($data[0]);
+        $portnum = substr($data[0], -2);
+        $portnum = str_replace('.', '', $portnum);
+        $portnum = $portnum - 32;
+
+        if (ispos($data[1], '1')) {
+            $cells = wf_TableCell($portnum, '24', '', 'style="height:20px;"');
+            $cells .= wf_TableCell(web_bool_led(true));
+            $rows = wf_TableRow($cells, 'row3');
+            $result = wf_TableBody($rows, '100%', 0, '');
+        } else {
+            $cells = wf_TableCell($portnum, '24', '', 'style="height:20px;"');
+            $cells .= wf_TableCell(web_bool_led(false));
+            $rows = wf_TableRow($cells, 'row3');
+            $result = wf_TableBody($rows, '100%', 0, '');
+        }
+        return ($result);
+    } else {
+        return (__('Empty reply received'));
+    }
+}
+
+
+/**
  * Zyxel Port state data parser
  * 
  * @return string
@@ -317,6 +348,39 @@ function sp_parse_zyportbytes($data) {
         $data = explode('=', $data);
         $data[0] = trim($data[0]);
         $portnum = substr($data[0], -2);
+        $portnum = str_replace('.', '', $portnum);
+
+        $bytes = str_replace(array('Counter32:', 'Counter64:'), '', $data[1]);
+        $bytes = trim($bytes);
+
+        if (ispos($data[1], 'up')) {
+            $cells = wf_TableCell($portnum, '24', '', 'style="height:20px;"');
+            $cells .= wf_TableCell($bytes);
+            $rows = wf_TableRow($cells, 'row3');
+            $result = wf_TableBody($rows, '100%', 0, '');
+        } else {
+            $cells = wf_TableCell($portnum, '24', '', 'style="height:20px;"');
+            $cells .= wf_TableCell($bytes);
+            $rows = wf_TableRow($cells, 'row3');
+            $result = wf_TableBody($rows, '100%', 0, '');
+        }
+        return ($result);
+    } else {
+        return (__('Empty reply received'));
+    }
+}
+
+/**
+ * Raisecom-ISCOM2624G-4GE-AC Port byte counters data parser
+ *
+ * @return string
+ */
+function sp_parse_raportbytes($data) {
+    if (!empty($data)) {
+        $data = explode('=', $data);
+        $data[0] = trim($data[0]);
+        $portnum = substr($data[0], -2);
+        $portnum = $portnum - 32;
         $portnum = str_replace('.', '', $portnum);
 
         $bytes = str_replace(array('Counter32:', 'Counter64:'), '', $data[1]);
@@ -526,6 +590,61 @@ function sp_parse_division_units($data, $divBy = '', $units = '') {
 
         $portnum = substr($data[0], -2);
         $portnum = str_replace('.', '', $portnum);
+
+        $value = $data[1];
+
+	// 10 G
+        if ($value == 1410065408 ) {
+                $value = 10000000;
+		$units = "Гбіт/с";
+        }
+
+
+        if (!empty($divBy) and is_numeric($divBy)) {
+            $value = $value / $divBy;
+        }
+
+        if (!empty($units)) {
+            $value = $value . ' ' . __($units);
+        }
+
+        $cells = wf_TableCell($portnum, '24', '', 'style="height:20px;"');
+        $cells .= wf_TableCell($value);
+        $rows = wf_TableRow($cells, 'row3');
+        $result = wf_TableBody($rows, '100%', 0, '');
+    } else {
+        $cells = wf_TableCell('', '24', '', 'style="height:20px;"');
+        $cells .= wf_TableCell(__('Empty reply received'));
+        $rows = wf_TableRow($cells, 'row3');
+        $result = wf_TableBody($rows, '100%', 0, '');
+    }
+
+    return ($result);
+}
+
+/**
+ * Raisecom-ISCOM2624G-4GE-AC parser for values with units and possible division necessity
+ *
+ * @param string $data
+ * @param string $divBy
+ * @param string $units
+ *
+ * @return mixed|string
+ */
+function sp_parse_division_units_ra($data, $divBy = '', $units = '') {
+    $result = '';
+
+    if (!empty($data)
+            and ! ispos($data, 'No Such Object available')
+            and ! ispos($data, 'No more variables left')
+    ) {
+
+        $data = trimSNMPOutput($data, '');
+
+        $portnum = substr($data[0], -2);
+        $portnum = str_replace('.', '', $portnum);
+        $portnum = $portnum - 32;
+
 
         $value = $data[1];
 
@@ -797,6 +916,32 @@ function sp_SnmpParseFdb($portTable) {
                 if (count($parts) == 7) {
                     $cleanMac = call_user_func_array('sprintf', $parts);
                     $portData[strtolower($cleanMac)] = vf($rawMac[1], 3);
+                }
+            }
+        }
+    }
+    return ($portData);
+}
+
+//  Parsing of FDB port table SNMP raw data for Raisecom
+//  Due crazy portindex
+function sp_SnmpParseFdbRa($portTable) {
+    $portData = array();
+    $arr_PortTable = explodeRows($portTable);
+    if (!empty($arr_PortTable)) {
+        foreach ($arr_PortTable as $eachEntry) {
+            if (!empty($eachEntry)) {
+                $eachEntry = str_replace('.1.3.6.1.2.1.17.7.1.2.2.1.2', '', $eachEntry);
+                $cleanMac = '';
+                $rawMac = explode('=', $eachEntry);
+                $parts = array('format' => '%02X:%02X:%02X:%02X:%02X:%02X') + explode('.', trim($rawMac[0], '.'));
+                $port = vf($rawMac[1], 3);
+                $port = $port - 2082476032;
+                unset($parts[0]);
+                // Some devices show CPU interface as port 0
+                if (count($parts) == 7 and intval($port) != 0) {
+                    $cleanMac = call_user_func_array('sprintf', $parts);
+                    $portData[strtolower($cleanMac)] = $port;
                 }
             }
         }
@@ -1315,7 +1460,7 @@ function sp_SnmpPollDevice($ip, $community, $alltemplates, $deviceTemplate, $all
                         $statusTable = $statusQTable;
                     }
                 } else {
-                    if ($deviceFdbMode == 'dlp') {
+                    if (($deviceFdbMode == 'dlp') OR ( $deviceFdbMode == 'ra')) {
                         //custom dlink port table with VLANS
                         $portTable = $snmp->walk($ip, $community, '.1.3.6.1.2.1.17.7.1.2.2.1.2', true);
                     }
@@ -1374,6 +1519,11 @@ function sp_SnmpPollDevice($ip, $community, $alltemplates, $deviceTemplate, $all
                         if ($deviceFdbMode == 'dlp') {
                             //exotic dlink parser
                             $portData = sp_SnmpParseFdbDl($portTable);
+                        }
+
+			if ($deviceFdbMode == 'ra') {
+                            //exotic Raisecom parser
+                            $portData = sp_SnmpParseFdbRa($portTable);
                         }
 
                         if (($deviceFdbMode == 'tlp5428ev2') OR ( $deviceFdbMode == 'tlp2428') OR ( $deviceFdbMode == 'tlp2210')) {
