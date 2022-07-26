@@ -1233,7 +1233,7 @@ function web_ProfileSwitchControlForm($login) {
     $controlForm = wf_Form('', "POST", $inputs, $formStyle);
 //form end
 
-    $switchAssignController = wf_modal(web_edit_icon(), __('Switch port assign'), $controlForm, '', '450', '220');
+    $switchAssignController = wf_modalAuto(web_edit_icon(), __('Switch port assign'), $controlForm);
 
 //switch location and polling controls
     $switchLocators = '';
