@@ -1,0 +1,15 @@
+$ip_tmp = explode('.', $this->ipProposal);
+            if (($ip_tmp[2] < 100) AND ( $ip_tmp[2] >= 10)) {
+                $ip_tmp[2] = '0' . $ip_tmp[2];
+            }
+            if (($ip_tmp[3] < 100) AND ( $ip_tmp[3] >= 10)) {
+                $ip_tmp[3] = '0' . $ip_tmp[3];
+            }
+            if ($ip_tmp[2] < 10) {
+                $ip_tmp[2] = '00' . $ip_tmp[2];
+            }
+            if ($ip_tmp[3] < 10) {
+                $ip_tmp[3] = '00' . $ip_tmp[3];
+            }
+
+            $this->loginProposal = $ip_tmp[2] . $ip_tmp[3];

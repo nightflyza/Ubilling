@@ -1,0 +1,7 @@
+    while (true) {
+                $nextIncrementProposal = zb_rand_digits();
+                if (!isset($this->busyLogins[$nextIncrementProposal])) {
+                    $this->loginProposal = $nextIncrementProposal;
+                    break;
+                }
+    }

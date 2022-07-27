@@ -289,252 +289,6 @@ function zb_AllBusyLogins() {
 }
 
 /**
- * Filters user login for only allowed symbols
- * 
- * @param string $login
- * @return string
- */
-function zb_RegLoginFilter($login) {
-    $login = str_replace(' ', '_', $login);
-    $result = preg_replace("#[^a-z0-9A-Z_]#Uis", '', $login);
-    return ($result);
-}
-
-/**
- * Returns new user login proposal by some params
- * 
- * @param string $cityalias
- * @param string $streetalias
- * @param string $buildnum
- * @param string $apt
- * @param string $ip_proposal
- * @param int    $agentid
- * @return string
- */
-function zb_RegLoginProposal($cityalias, $streetalias, $buildnum, $apt, $ip_proposal, $agentid = '') {
-    $alterconf = rcms_parse_ini_file(CONFIG_PATH . "alter.ini");
-    $result = '';
-    if (isset($alterconf['LOGIN_GENERATION'])) {
-        $type = $alterconf['LOGIN_GENERATION'];
-//default address based generation
-        if ($type == 'DEFAULT') {
-            $result = $cityalias . $streetalias . $buildnum . 'ap' . $apt . '_' . zb_rand_string();
-            $result = zb_RegLoginFilter($result);
-        }
-
-//same as default but without random
-        if ($type == 'ONLYADDRESS') {
-            $result = $cityalias . $streetalias . $buildnum . 'ap' . $apt;
-            $result = zb_RegLoginFilter($result);
-        }
-
-//use an timestamp
-        if ($type == 'TIMESTAMP') {
-            $result = time();
-        }
-
-//use an timestamp md5 hash
-        if ($type == 'TIMESTAMPMD5') {
-            $result = md5(time());
-        }
-
-//use an next incremented number
-        if ($type == 'INCREMENT') {
-            $busylogins = zb_AllBusyLogins();
-            for ($i = 1; $i < 100000; $i++) {
-                if (!isset($busylogins[$i])) {
-                    $result = $i;
-                    break;
-                }
-            }
-        }
-
-//use four digits increment with zero prefix
-        if ($type == 'INCREMENTFOUR') {
-            $busylogins = zb_AllBusyLogins();
-            $prefixSize = 4;
-            for ($i = 1; $i < 100000; $i++) {
-                $nextIncrementProposal = sprintf('%0' . $prefixSize . 'd', $i);
-                if (!isset($busylogins[$nextIncrementProposal])) {
-                    $result = $nextIncrementProposal;
-                    break;
-                }
-            }
-        }
-
-//use five five digits increment with zero prefix
-        if ($type == 'INCREMENTFIVE') {
-            $busylogins = zb_AllBusyLogins();
-            $prefixSize = 5;
-            for ($i = 1; $i < 100000; $i++) {
-                $nextIncrementProposal = sprintf('%0' . $prefixSize . 'd', $i);
-                if (!isset($busylogins[$nextIncrementProposal])) {
-                    $result = $nextIncrementProposal;
-                    break;
-                }
-            }
-        }
-
-//use six digits increment with zero prefix
-        if ($type == 'INCREMENTSIX') {
-            $busylogins = zb_AllBusyLogins();
-            $prefixSize = 6;
-            for ($i = 1; $i < 1000000; $i++) {
-                $nextIncrementProposal = sprintf('%0' . $prefixSize . 'd', $i);
-                if (!isset($busylogins[$nextIncrementProposal])) {
-                    $result = $nextIncrementProposal;
-                    break;
-                }
-            }
-        }
-
-//use four digits increment
-        if ($type == 'INCREMENTFOURREV') {
-            $busylogins = zb_AllBusyLogins();
-            $prefixSize = 4;
-            for ($i = 1; $i < 100000; $i++) {
-//$nextIncrementRevProposal = sprintf('%0' . $prefixSize . 'd', $i);
-//$nextIncrementRevProposal = strrev($nextIncrementRevProposal);
-                $nextIncrementRevProposal = sprintf('%-0' . $prefixSize . 's', $i);
-                if (!isset($busylogins[$nextIncrementRevProposal])) {
-                    $result = $nextIncrementRevProposal;
-                    break;
-                }
-            }
-        }
-
-//use five digits increment
-        if ($type == 'INCREMENTFIVEREV') {
-            $busylogins = zb_AllBusyLogins();
-            $prefixSize = 5;
-            for ($i = 1; $i < 100000; $i++) {
-//$nextIncrementRevProposal = sprintf('%0' . $prefixSize . 'd', $i);
-//$nextIncrementRevProposal = strrev($nextIncrementRevProposal);
-                $nextIncrementRevProposal = sprintf('%-0' . $prefixSize . 's', $i);
-                if (!isset($busylogins[$nextIncrementRevProposal])) {
-                    $result = $nextIncrementRevProposal;
-                    break;
-                }
-            }
-        }
-
-//use six digits increment
-        if ($type == 'INCREMENTSIXREV') {
-            $busylogins = zb_AllBusyLogins();
-            $prefixSize = 6;
-            for ($i = 1; $i < 1000000; $i++) {
-//$nextIncrementRevProposal = sprintf('%0' . $prefixSize . 'd', $i);
-//$nextIncrementRevProposal = strrev($nextIncrementRevProposal);
-                $nextIncrementRevProposal = sprintf('%-0' . $prefixSize . 's', $i);
-                if (!isset($busylogins[$nextIncrementRevProposal])) {
-                    $result = $nextIncrementRevProposal;
-                    break;
-                }
-            }
-        }
-
-//use an proposed IP last two octets
-        if ($type == 'IPBASED') {
-            $ip_tmp = str_replace('.', 'x', $ip_proposal);
-            $result = $ip_tmp;
-        }
-
-//use an proposed IP last two octets
-        if ($type == 'IPBASEDLAST') {
-            $ip_tmp = explode('.', $ip_proposal);
-            if (($ip_tmp[2] < 100) AND ( $ip_tmp[2] >= 10)) {
-                $ip_tmp[2] = '0' . $ip_tmp[2];
-            }
-            if (($ip_tmp[3] < 100) AND ( $ip_tmp[3] >= 10)) {
-                $ip_tmp[3] = '0' . $ip_tmp[3];
-            }
-            if ($ip_tmp[2] < 10) {
-                $ip_tmp[2] = '00' . $ip_tmp[2];
-            }
-            if ($ip_tmp[3] < 10) {
-                $ip_tmp[3] = '00' . $ip_tmp[3];
-            }
-
-            $result = $ip_tmp[2] . $ip_tmp[3];
-        }
-
-// just random string as login
-        if ($type == 'RANDOM') {
-            $result = zb_rand_string(10);
-        }
-
-// 8 random digits
-        if ($type == 'RANDOM8') {
-            $result = zb_rand_digits(8);
-        }
-
-// 4 random digits - yeah, shoot that fucking leg
-        if ($type == 'RANDOM4') {
-            $result = zb_rand_digits();
-        }
-
-// 4 random digits with check for uniqueness - may shoot your both legs
-        if ($type == 'RANDOM4_CHECK') {
-            $busylogins = zb_AllBusyLogins();
-
-            while (true) {
-                $nextIncrementProposal = zb_rand_digits();
-
-                if (!isset($busylogins[$nextIncrementProposal])) {
-                    $result = $nextIncrementProposal;
-                    break;
-                }
-            }
-        }
-
-// just random string as login
-        if ($type == 'RANDOMSAFE') {
-            $randomStringProposal = zb_rand_string(10);
-            $filteredChars = array('q', 'Q', 'i', 'I', 'l', 'L', 'j', 'J', 'o', 'O', '1', '0', 'g', 'G');
-            $result = str_replace($filteredChars, 'x', $randomStringProposal);
-        }
-
-//contrahent based model
-        if ($type == 'DEREBAN') {
-            $busylogins = zb_AllBusyLogins();
-            $agentPrefix = $agentid;
-            $prefixSize = 6;
-            for ($i = 1; $i < 1000000; $i++) {
-                $nextIncrementDerProposal = $agentPrefix . sprintf('%0' . $prefixSize . 'd', $i);
-                if (!isset($busylogins[$nextIncrementDerProposal])) {
-                    $result = $nextIncrementDerProposal;
-                    break;
-                }
-            }
-        }
-
-//Like DEFAULT but increment in the end. Increment counter unique per every alias.
-//So it can be unique for city, or for city + every street if alias for street was set.
-        if ($type == 'VSRAT_INCREMENT') {
-            $busylogins = zb_AllBusyLogins();
-            for ($i = 1; $i < 100000; $i++) {
-                $proposal = $cityalias . $streetalias . '_' . $i;
-                if (!isset($busylogins[$proposal])) {
-                    $result = $proposal;
-                    break;
-                }
-            }
-        }
-
-
-/////  if wrong option - use DEFAULT
-        if (empty($result)) {
-            $result = $cityalias . $streetalias . $buildnum . 'ap' . $apt . '_' . zb_rand_string();
-            $result = zb_RegLoginFilter($result);
-        }
-    } else {
-        die(strtoupper('you have missed a essential option. before update read release notes motherfucker!'));
-    }
-
-    return ($result);
-}
-
-/**
  * Returns new user password proposal
  * 
  * @return string
@@ -565,6 +319,18 @@ function zb_RegPasswordProposal() {
         die(strtoupper('you have missed a essential option. before update read release notes motherfucker!'));
     }
     return ($password_proposal);
+}
+
+/**
+ * Filters user login for only allowed symbols
+ * 
+ * @param string $login
+ * @return string
+ */
+function zb_RegLoginFilter($login) {
+    $login = str_replace(' ', '_', $login);
+    $result = preg_replace("#[^a-z0-9A-Z_]#Uis", '', $login);
+    return ($result);
 }
 
 /**
@@ -633,7 +399,8 @@ function web_UserRegFormNetData($newuser_data) {
     }
 
     $ip_proposal = multinet_get_next_freeip('nethosts', 'ip', multinet_get_service_networkid($newuser_data['service']));
-    $login_proposal = zb_RegLoginProposal($cityalias, $streetalias, $buildnum, $apt, $ip_proposal, $agentPrefixID);
+    $loginGenerator = new SayMyName($cityalias, $streetalias, $buildnum, $apt, $ip_proposal, $agentPrefixID);
+    $login_proposal = $loginGenerator->getLogin();
     $password_proposal = zb_RegPasswordProposal();
 
 

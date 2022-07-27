@@ -1,0 +1,1 @@
+$this->loginProposal = md5(time());

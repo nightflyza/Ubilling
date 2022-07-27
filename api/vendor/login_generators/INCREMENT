@@ -1,0 +1,6 @@
+   for ($i = $this->incrementsOffset; $i < $this->incrementsMaxLimit; $i++) {
+                if (!isset($this->busyLogins[$i])) {
+                    $this->loginProposal = $i;
+                    break;
+                }
+            }
