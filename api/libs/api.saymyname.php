@@ -196,6 +196,7 @@ class SayMyName {
     protected function filterLogin($login) {
         $login = str_replace(' ', '_', $login); //no spaces, lol
         $result = preg_replace("#[^a-z0-9A-Z_]#Uis", '', $login); //alphanumeric
+        $result = zb_TranslitString($result); //force translit
         return($result);
     }
 
