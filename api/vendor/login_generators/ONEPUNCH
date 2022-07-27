@@ -1,0 +1,18 @@
+$opAliasName='logingenerator';
+
+if (isset($this->altCfg['LOGIN_GENERATION_OPALIAS'])) {
+     $opAliasName=$this->altCfg['LOGIN_GENERATION_OPALIAS'];
+}
+     
+if (!empty($opAliasName)) {
+         $saitama=new OnePunch($opAliasName);
+         $opCode=$saitama->getScriptContent($opAliasName);
+            if (!empty($opCode)) {
+            eval($opCode);
+            } else {
+            throw new Exception('EX_EMPTY_ONEPUNCH_CODE:'.$opAliasName);
+            }
+        } else {
+         throw new Exception('EX_EMPTY_ONEPUNCH_ALIAS');
+        }
+   
