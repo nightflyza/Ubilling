@@ -175,7 +175,6 @@ function sp_parse_raportstates($data) {
     }
 }
 
-
 /**
  * Zyxel Port state data parser
  * 
@@ -593,10 +592,10 @@ function sp_parse_division_units($data, $divBy = '', $units = '') {
 
         $value = $data[1];
 
-	// 10 G
-        if ($value == 1410065408 ) {
-                $value = 10000000;
-		$units = "Гбіт/с";
+        // 10 G
+        if ($value == 1410065408) {
+            $value = 10000000;
+            $units = __('Gbit/s');
         }
 
 
@@ -1521,7 +1520,7 @@ function sp_SnmpPollDevice($ip, $community, $alltemplates, $deviceTemplate, $all
                             $portData = sp_SnmpParseFdbDl($portTable);
                         }
 
-			if ($deviceFdbMode == 'ra') {
+                        if ($deviceFdbMode == 'ra') {
                             //exotic Raisecom parser
                             $portData = sp_SnmpParseFdbRa($portTable);
                         }
