@@ -147,14 +147,19 @@ class SayMyName {
             }
 
             //setting some of new user parameters
-            $this->cityAlias = $cityAlias;
-            $this->streetAlias = $streetAlias;
-            $this->buildNum = $buildNum;
-            $this->apt = $apt;
+            $this->cityAlias = zb_TranslitString($cityAlias);
+            $this->streetAlias = zb_TranslitString($streetAlias);
+            $this->buildNum = zb_TranslitString($buildNum);
+            $this->apt = zb_TranslitString($apt);
             $this->ipProposal = $ipProposal;
             $this->agentId = $agentId;
             //loading all busy logins
             $this->loadBusyLogins();
+
+            //validation of increment custom offsets
+            if ($this->incrementsOffset >= $this->incrementsMaxLimit) {
+                die(self::OPTION_INCOFFSET . ' >= ' . self::OPTION_INCMAX);
+            }
         } else {
             die(__('You missed an important option') . ' ' . self::OPTION_MODE . '!');
         }
