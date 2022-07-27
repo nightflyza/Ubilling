@@ -62,28 +62,32 @@ class SayMyName {
     protected $agentId = 0;
 
     /**
-     * Contains increment-like logins start offset
+     * Contains increment-like logins start offset. 
+     * Mapped from LOGIN_GENERATION_INCOFFSET option.
      *
      * @var int
      */
     protected $incrementsOffset = 1;
 
     /**
-     * Contains default increments maximum value
+     * Contains default increments maximum value. 
+     * Mapped from LOGIN_GENERATION_INCMAX option.
      *
      * @var int
      */
     protected $incrementsMaxLimit = 100000;
 
     /**
-     * Contains default apartments number delimiter for address based logins
+     * Contains default apartments number delimiter for address based logins. 
+     * Mapped from LOGIN_GENERATION_AD option.
      *
      * @var string
      */
     protected $apartmentDelimiter = 'ap';
 
     /**
-     * Contains shared prefix for further usage in some generators
+     * Contains shared prefix for further usage in some generators.
+     * Mapped from LOGIN_GENERATION_SHPRFX option.
      *
      * @var string
      */
