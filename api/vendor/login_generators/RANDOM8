@@ -1,1 +1,1 @@
-$this->loginProposal=zb_rand_string(8);
+$this->loginProposal=zb_rand_digits(8);
