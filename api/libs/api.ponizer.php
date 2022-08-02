@@ -1864,6 +1864,9 @@ class PONizer {
         $result = array();
         if (isset($this->allOnu[$onuId])) {
             $onuData = $this->allOnu[$onuId];
+            $oltId = $onuData['oltid'];
+            $oltPollingStats = $this->pollingStatsRead($oltId);
+
             //load cache once
             if (empty($this->signalCache)) {
                 if ($this->oltData->isSignalsAvailable()) {
@@ -1926,6 +1929,17 @@ class PONizer {
             $result['type'] = $sigLabel;
             $result['styled'] = wf_tag('font', false, '', 'color="' . $sigColor . '"') . $signal . wf_tag('font', true);
             $result['isoffline'] = $offlineFlag;
+            $result['polltime'] = '';
+            $result['pollnow'] = 0;
+            if (!empty($oltPollingStats)) {
+                if (!$oltPollingStats['finished']) {
+                    $result['pollnow'] = 1;
+                }
+
+                if ($oltPollingStats['end']) {
+                    $result['polltime'] = $oltPollingStats['end'];
+                }
+            }
         }
         return($result);
     }
@@ -1948,7 +1962,7 @@ class PONizer {
                 $result .= wf_tag('font', false, '', 'color="' . $onuSignal['color'] . '" size="16pt"') . $onuSignal['raw'] . wf_tag('font', true);
                 $result .= wf_delimiter();
                 $result .= __($onuSignal['type']);
-                $result .= $this->renderOnuMiscStats($onuId, $onuSignal['isoffline']);
+                $result .= $this->renderOnuMiscStats($onuId, $onuSignal);
                 $result .= wf_tag('div', true);
             }
         }
@@ -1959,12 +1973,13 @@ class PONizer {
      * Renders ONU interface, distance and last dereg reason if available
      * 
      * @param int $onuId
-     * @param bool $offlineFlag
+     * @param array $signalStatsData
      * 
      * @return string 
      */
-    protected function renderOnuMiscStats($onuId, $offlineFlag = false) {
+    protected function renderOnuMiscStats($onuId, $signalStatsData) {
         $result = '';
+        $offlineFlag = ($signalStatsData['isoffline']) ? true : false;
 
         if (isset($this->allOnu[$onuId])) {
             $this->loadInterfaceCache();
@@ -2006,6 +2021,19 @@ class PONizer {
                     }
                 }
             }
+
+            //polling time here
+            $fullTime = '';
+            $shortTime = '';
+            if (!empty($signalStatsData['polltime'])) {
+                $fullTime = __('Time') . ': ' . date("Y-m-d H:i:s", $signalStatsData['polltime']);
+                $shortTime = date("H:i:s", $signalStatsData['polltime']);
+            } else {
+                $shortTime .= __('In progress now');
+            }
+
+            $pollTimeIcon = ($signalStatsData['pollnow']) ? self::POLL_RUNNING : wf_img_sized('skins/icon_time_small.png', $fullTime, '12');
+            $onuMiscStats .= $pollTimeIcon . ' ' . $shortTime;
 
             $containerStyle = 'style="font-size:10pt; padding:10px;"';
             $result .= wf_tag('div', false, '', $containerStyle);
@@ -2063,7 +2091,7 @@ class PONizer {
      * @return string
      */
     public function onuEditForm($onuId) {
-        $onuId = vf($onuId, 3);
+        $onuId = ubRouting::filters($onuId, 'int');
         $result = '';
 
         if (isset($this->allOnu[$onuId])) {
