@@ -458,7 +458,7 @@ function web_UserRegFormNetData($newuser_data) {
     if (isset($alterconf['USERREG_MAC_INPUT_ENABLED']) and $alterconf['USERREG_MAC_INPUT_ENABLED']) {
         $form .= wf_tag('tr', false, 'row3');
         $form .= wf_tag('td', false);
-        $form .= wf_tag('input', false, '', 'type="text" name="userMAC"');
+        $form .= wf_TextInput('userMAC', '', '', false, 12, 'mac');
         $form .= wf_tag('td', true);
         $form .= wf_tag('td', false);
         $form .= __('MAC');
