@@ -517,7 +517,6 @@ ALTER TABLE `build` ADD INDEX ( `streetid` );
 ALTER TABLE `cashtype` ADD INDEX ( `cashtype` );
 ALTER TABLE `city` ADD INDEX ( `cityname` );
 ALTER TABLE `contracts` ADD INDEX ( `login` );
-ALTER TABLE `contracts` ADD INDEX ( `login` );
 ALTER TABLE `directions` ADD INDEX ( `rulenumber` );
 ALTER TABLE `directions` ADD INDEX ( `rulename` );
 ALTER TABLE `emails` ADD INDEX ( `login` );
