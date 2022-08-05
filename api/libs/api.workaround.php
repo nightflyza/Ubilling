@@ -335,8 +335,12 @@ function zb_NewMacSelect($name = 'newmac') {
             }
         }
     }
-
-    $result = wf_Selector($name, $resultArr, '', '', false);
+//searchable MAC selector?
+    if (@$alter_conf['MACSEL_SEARCHBL']) {
+        $result = wf_SelectorSearchable($name, $resultArr, '', '', false);
+    } else {
+        $result = wf_Selector($name, $resultArr, '', '', false);
+    }
 
     return($result);
 }
