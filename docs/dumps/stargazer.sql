@@ -1,7 +1,10 @@
 
--- clean Stargazer MySQL dump. Must be applied before ubilling dump.
+-- clean Stargazer MySQL dump. 
+-- Must be applied before ubilling dump.
 
-DROP TABLE IF EXISTS `admins`;
+CREATE DATABASE stg;
+
+USE stg;
 
 CREATE TABLE `admins` (
   `login` varchar(40) NOT NULL DEFAULT '',
@@ -22,7 +25,6 @@ INSERT INTO `admins` VALUES ('admin','geahonjehjfofnhammefahbbbfbmpkmkmmefahbbbf
 UNLOCK TABLES;
 
 
-DROP TABLE IF EXISTS `info`;
 CREATE TABLE `info` (
   `version` int(11) NOT NULL
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
@@ -32,7 +34,6 @@ INSERT INTO `info` VALUES (1);
 UNLOCK TABLES;
 
 
-DROP TABLE IF EXISTS `messages`;
 CREATE TABLE `messages` (
   `login` varchar(40) DEFAULT '',
   `id` bigint(20) DEFAULT NULL,
@@ -46,7 +47,6 @@ CREATE TABLE `messages` (
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
 
-DROP TABLE IF EXISTS `stat`;
 CREATE TABLE `stat` (
   `login` varchar(50) DEFAULT NULL,
   `month` tinyint(4) DEFAULT NULL,
@@ -76,8 +76,6 @@ CREATE TABLE `stat` (
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
 
-
-DROP TABLE IF EXISTS `tariffs`;
 CREATE TABLE `tariffs` (
   `name` varchar(40) NOT NULL DEFAULT '',
   `PriceDayA0` double DEFAULT '0',
@@ -171,8 +169,6 @@ CREATE TABLE `tariffs` (
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
 
-
-DROP TABLE IF EXISTS `users`;
 CREATE TABLE `users` (
   `login` varchar(50) NOT NULL DEFAULT '',
   `Password` varchar(150) NOT NULL DEFAULT '*',
