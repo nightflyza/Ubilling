@@ -278,8 +278,14 @@ class WolfDispatcher {
                         //empty text actions here
                         $this->handleEmptyText();
                     }
+
+                    //this will be executed if some image received
+                    if ($this->isPhotoReceived()) {
+                        $this->handlePhotoReceived();
+                    }
                 }
             }
+
             //this shall be executed on any non empty data recieve
             $this->handleAnyWay();
         }
@@ -313,6 +319,15 @@ class WolfDispatcher {
     }
 
     /**
+     * Dummy method which will be executed on receive any image file
+     * 
+     * @return void
+     */
+    protected function handlePhotoReceived() {
+        //will be executed if any image received
+    }
+
+    /**
      * Listens for some events
      * 
      * @return array
@@ -324,6 +339,84 @@ class WolfDispatcher {
             $this->reactInput();
         }
         return($this->receivedData);
+    }
+
+    /**
+     * Checks is any image received?
+     * 
+     * @return bool
+     */
+    public function isPhotoReceived() {
+        $result = false;
+        if ($this->receivedData['photo'] OR $this->receivedData['document']) {
+            $imageMimeTypes = array('image/png', 'image/jpeg');
+            if ($this->receivedData['photo']) {
+                $result = true;
+            } else {
+                if ($this->receivedData['document']) {
+                    $imageMimeTypes = array_flip($imageMimeTypes);
+                    if (isset($imageMimeTypes[$this->receivedData['document']['mime_type']])) {
+                        $result = true;
+                    }
+                }
+            }
+        }
+        return($result);
+    }
+
+    /**
+     * Returns received image file content
+     * 
+     * @return mixed
+     */
+    public function getPhoto() {
+        $result = '';
+        $filePath = '';
+        $fileId = '';
+        $imageMimeTypes = array('image/png', 'image/jpeg');
+        //normal compressed image
+        if ($this->receivedData['photo']) {
+            $maxSizeFile = end($this->receivedData['photo']);
+            $fileId = $maxSizeFile['file_id'];
+        } else {
+            //image received as-is without compression
+            $imageMimeTypes = array_flip($imageMimeTypes);
+            if ($this->receivedData['document']) {
+                if (isset($imageMimeTypes[$this->receivedData['document']['mime_type']])) {
+                    $fileId = $this->receivedData['document']['file_id'];
+                }
+            }
+        }
+
+        //downloading remote file
+        if ($fileId) {
+            $filePath = $this->telegram->getFilePath($fileId);
+            if ($filePath) {
+                $result = $this->telegram->downloadFile($filePath);
+            }
+        }
+        return($result);
+    }
+
+    /**
+     * Saves received photo to the specified path on filesystem. Returns filename on success.
+     * 
+     * @param string $savePath
+     * 
+     * @return string/void
+     */
+    public function savePhoto($savePath) {
+        $result = '';
+        if (!empty($savePath)) {
+            if ($this->isPhotoReceived()) {
+                $receivedPhoto = $this->getPhoto();
+                if ($receivedPhoto) {
+                    file_put_contents($savePath, $receivedPhoto);
+                    $result = $savePath;
+                }
+            }
+        }
+        return($result);
     }
 
 }

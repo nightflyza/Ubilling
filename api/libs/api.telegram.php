@@ -783,6 +783,77 @@ class UbillingTelegram {
     }
 
     /**
+     * Returns file path by its file ID
+     * 
+     * @param string $fileId
+     * 
+     * @return string
+     */
+    public function getFilePath($fileId) {
+        $result = '';
+        if (!empty($this->botToken)) {
+            $method = 'getFile';
+            $url = $this->apiUrl . $this->botToken . '/' . $method . '?file_id=' . $fileId;
+            if ($this->debug) {
+                deb($url);
+            }
+            $ch = curl_init();
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+            curl_setopt($ch, CURLOPT_URL, $url);
+            curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json'));
+            if ($this->debug) {
+                $result = curl_exec($ch);
+                deb($result);
+                $curlError = curl_error($ch);
+                if (!empty($curlError)) {
+                    show_error(__('Error') . ' ' . __('Telegram') . ': ' . $curlError);
+                } else {
+                    show_success(__('Telegram API sending via') . ' ' . $this->apiUrl . ' ' . __('success'));
+                }
+            } else {
+                $result = curl_exec($ch);
+            }
+
+            curl_close($ch);
+
+            if (!empty($result)) {
+                $result = json_decode($result, true);
+                if (@$result['ok']) {
+                    //we got it!
+                    $result = $result['result']['file_path'];
+                } else {
+                    //something went wrong
+                    $result = '';
+                }
+            }
+        }
+        return($result);
+    }
+
+    /**
+     * Returns some file content
+     * 
+     * @param string $filePath
+     * 
+     * @return mixed
+     */
+    public function downloadFile($filePath) {
+        $result = '';
+        if (!empty($this->botToken)) {
+            $cleanApiUrl = str_replace('bot', '', $this->apiUrl);
+            $url = $cleanApiUrl . 'file/bot' . $this->botToken . '/' . $filePath;
+            file_put_contents('exports/fileurl.log', $url);
+            $ch = curl_init();
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+            curl_setopt($ch, CURLOPT_URL, $url);
+            curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json'));
+            $result = curl_exec($ch);
+            curl_close($ch);
+        }
+        return($result);
+    }
+
+    /**
      * Returns webhook data
      * 
      * @param bool $rawData receive raw reply or preprocess to something more simple.
@@ -812,6 +883,10 @@ class UbillingTelegram {
                         @$result['text'] = $postRaw['message']['text'];
                         @$result['photo'] = $postRaw['message']['photo'];
                         @$result['document'] = $postRaw['message']['document'];
+                        //photos and documents have only caption
+                        if (!empty($result['photo']) OR ! empty($result['document'])) {
+                            @$result['text'] = $postRaw['message']['caption'];
+                        }
                         @$result['voice'] = $postRaw['message']['voice'];
                         @$result['audio'] = $postRaw['message']['audio'];
                         @$result['video_note'] = $postRaw['message']['video_note'];
@@ -825,5 +900,3 @@ class UbillingTelegram {
     }
 
 }
-
-?>
