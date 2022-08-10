@@ -2115,7 +2115,7 @@ class MultiGen {
         $result = '';
         if (!empty($allUserNames)) {
             foreach ($allUserNames as $login => $each) {
-                if (array_search($userName, $each) !== false) {
+                if (array_search($userName, $each, true) !== false) {
                     $result = $login;
                     break;
                 }
