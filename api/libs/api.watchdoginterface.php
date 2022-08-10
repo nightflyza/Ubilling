@@ -144,7 +144,8 @@ class WatchDogInterface {
             'fileexists' => 'fileexists',
             'opentickets' => 'opentickets',
             'onepunch' => 'onepunch',
-            'snmpwalk'=>'snmpwalk'
+            'snmpwalk'=>'snmpwalk',
+            'freediskspace'=>'freediskspace'
         );
 
         $this->operators = array(

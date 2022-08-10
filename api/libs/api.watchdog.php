@@ -404,6 +404,21 @@ class WatchDog {
                         throw new Exception(self::PARAM_EX . 'SNMPWALK');
                     }
                     break;
+                case 'freediskspace':
+                    if (!empty($this->taskData[$taskID]['param'])) {
+                        if (ispos($this->taskData[$taskID]['param'], '/')) {
+                            $rawSpace = disk_free_space($this->taskData[$taskID]['param']);
+                            $result = $rawSpace / 1073741824; //in Gb
+                            $result = round($result, 2);
+                            $this->setOldValue($taskID, $result);
+                            $this->setCurValue($taskID, $result);
+                        } else {
+                            throw new Exception(self::PARAMFMT_EX . 'FREEDISKSPACE');
+                        }
+                    } else {
+                        throw new Exception(self::PARAM_EX . 'FREEDISKSPACE');
+                    }
+                    break;
                 // gets some user traffic by his login
                 case 'getusertraff':
                     if (!empty($this->taskData[$taskID]['param'])) {
