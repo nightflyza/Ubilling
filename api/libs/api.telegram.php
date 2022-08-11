@@ -955,7 +955,7 @@ class UbillingTelegram {
                 $result = $postRaw;
             }
         }
-        file_put_contents('exports/hookdebug.log', print_r($postRaw, true), FILE_APPEND);
+
         return($result);
     }
 
