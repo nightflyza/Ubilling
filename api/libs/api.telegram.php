@@ -877,16 +877,27 @@ class UbillingTelegram {
      * Returns preprocessed message in standard, fixed fields format
      * 
      * @param array $messageData
+     * @param bool $isChannel
      * 
      * @return array
      */
-    protected function preprocessMessageData($messageData) {
+    protected function preprocessMessageData($messageData, $isChannel = false) {
         $result = array();
         $result['message_id'] = $messageData['message_id'];
-        $result['from']['id'] = $messageData['from']['id'];
-        @$result['from']['username'] = $messageData['from']['username'];
-        $result['from']['first_name'] = $messageData['from']['first_name'];
-        @$result['from']['language_code'] = $messageData['from']['language_code'];
+
+        if (!$isChannel) {
+            //normal messages/groups
+            $result['from']['id'] = $messageData['from']['id'];
+            $result['from']['first_name'] = $messageData['from']['first_name'];
+            @$result['from']['username'] = $messageData['from']['username'];
+            @$result['from']['language_code'] = $messageData['from']['language_code'];
+        } else {
+            //channel posts
+            $result['from']['id'] = $messageData['sender_chat']['id'];
+            $result['from']['first_name'] = $messageData['sender_chat']['title'];
+            @$result['from']['username'] = $messageData['sender_chat']['username'];
+            @$result['from']['language_code'] = '';
+        }
         $result['chat']['id'] = $messageData['chat']['id'];
         $result['date'] = $messageData['date'];
         $result['chat']['type'] = $messageData['chat']['type'];
@@ -935,11 +946,16 @@ class UbillingTelegram {
                     if (isset($postRaw['message']['from'])) {
                         $result = $this->preprocessMessageData($postRaw['message']);
                     }
+                } else {
+                    if (isset($postRaw['channel_post'])) {
+                        $result = $this->preprocessMessageData($postRaw['channel_post'], true);
+                    }
                 }
             } else {
                 $result = $postRaw;
             }
         }
+        file_put_contents('exports/hookdebug.log', print_r($postRaw, true), FILE_APPEND);
         return($result);
     }
 

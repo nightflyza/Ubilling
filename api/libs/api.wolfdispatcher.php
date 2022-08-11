@@ -20,6 +20,13 @@ class WolfDispatcher {
     protected $commands = array();
 
     /**
+     * Group chats commands array which overrides normal actions only for group chats
+     *
+     * @var array
+     */
+    protected $groupChatCommands = array();
+
+    /**
      * Contains text reactions=>actions mappings
      *
      * @var array
@@ -32,6 +39,13 @@ class WolfDispatcher {
      * @var array
      */
     protected $ignoredChatIds = array();
+
+    /**
+     * Contains administrator users chatIds as chatId=>index
+     *
+     * @var array
+     */
+    protected $adminChatIds = array();
 
     /**
      * Array of chatIds which is allowed for actions execution. Ignored if empty.
@@ -174,6 +188,31 @@ class WolfDispatcher {
             if (is_array($commands)) {
                 $this->commands = $commands;
             }
+        }
+    }
+
+    /**
+     * Sets group commands
+     * 
+     * @param array $groupCommands
+     * 
+     * @return void
+     */
+    public function setGroupActions($groupCommands) {
+        $this->groupChatCommands = $groupCommands;
+    }
+
+    /**
+     * Sets administrative user chatIDs
+     * 
+     * @param array $chatIds
+     * 
+     * @return void
+     */
+    public function setAdminChatId($chatIds) {
+        if (!empty($chatIds)) {
+            $chatIds = array_flip($chatIds);
+            $this->adminChatIds = $chatIds;
         }
     }
 
@@ -460,6 +499,14 @@ class WolfDispatcher {
         if (!empty($this->receivedData)) {
             @$this->chatId = $this->receivedData['chat']['id'];
             @$this->messageId = $this->receivedData['message_id'];
+            //wow, some separate group commands here
+            if (!empty($this->groupChatCommands)) {
+                $chatType = $this->receivedData['chat']['type'];
+                if ($chatType != 'private') {
+                    //override actions with another set
+                    $this->setActions($this->groupChatCommands);
+                }
+            }
             $this->reactInput();
         }
         $this->writeDebugLog();
@@ -517,6 +564,19 @@ class WolfDispatcher {
         $result = false;
         if ($this->receivedData['left_chat_member']) {
             $result = $this->receivedData['left_chat_member'];
+        }
+        return($result);
+    }
+
+    /**
+     * Checks is current user chatId listed as administrator?
+     * 
+     * @return bool
+     */
+    protected function isAdmin() {
+        $result = false;
+        if (isset($this->adminChatIds[$this->chatId])) {
+            $result = true;
         }
         return($result);
     }
@@ -618,6 +678,40 @@ class WolfDispatcher {
             }
         }
         return($result);
+    }
+
+    /**
+     * Registers new web-hook URL for bot
+     *
+     * @param string $url  HTTPS url to send updates to. Use an empty string to remove webhook integration
+     * @param int $maxConnections Maximum allowed number of simultaneous HTTPS connections to the webhook for update delivery, 1-100. Defaults to 40.
+     *
+     * @return array
+     */
+    public function installHook($url, $maxConnections = 40) {
+        return($this->telegram->setWebHook($url, $maxConnections = 40));
+    }
+
+    /**
+     * Returns current bot web-hook data
+     * Fields: ok, result=>url,has_custom_certificate,pending_update_count,max_connections,ip_address
+     * 
+     * @return array
+     */
+    public function getHook() {
+        return($this->telegram->getWebHookInfo());
+    }
+
+    /**
+     * Registers new web-hook URL for bot
+     *
+     * @param string $url  HTTPS url to send updates to. Use an empty string to remove webhook integration
+     * @param int $maxConnections Maximum allowed number of simultaneous HTTPS connections to the webhook for update delivery, 1-100. Defaults to 40.
+     *
+     * @return array
+     */
+    public function autoSetupHook($url, $maxConnections = 40) {
+        //TODO
     }
 
 }
