@@ -55,6 +55,41 @@ class WolfDispatcher {
     protected $receivedData = array();
 
     /**
+     * Current conversation client chatId
+     *
+     * @var int
+     */
+    protected $chatId = 0;
+
+    /**
+     * Current conversation latest messageId
+     *
+     * @var int
+     */
+    protected $messageId = 0;
+
+    /**
+     * Method name which will be executed on any image receive
+     *
+     * @var string
+     */
+    protected $photoHandleMethod = '';
+
+    /**
+     * Method name which will be executed if any new chat member appears
+     *
+     * @var string
+     */
+    protected $chatMemberAppearMethod = '';
+
+    /**
+     * Method name which will be executed if any new chat member left chat
+     *
+     * @var string
+     */
+    protected $chatMemberLeftMethod = '';
+
+    /**
      * Dispatcher debugging flag
      * 
      * @var bool
@@ -62,11 +97,16 @@ class WolfDispatcher {
     protected $debugFlag = false;
 
     /**
-     * Current conversation client chatId
+     * Contains all called actions/methods
      *
-     * @var int
+     * @var string
      */
-    protected $chatId = '';
+    protected $calledActions = array();
+
+    /**
+     * Contains default debug log path
+     */
+    const LOG_PATH = 'exports/';
 
     /**
      * Creates new dispatcher instance
@@ -138,7 +178,7 @@ class WolfDispatcher {
     }
 
     /**
-     * Sets new dispatcher actions dataset
+     * Sets new dispatcher text reactions dataset
      * 
      * @param array $commands
      * 
@@ -149,6 +189,37 @@ class WolfDispatcher {
             if (is_array($commands)) {
                 $this->textReacts = $commands;
             }
+        }
+    }
+
+    /**
+     * Sets method name which will be executed on any image input
+     * 
+     * @param string $name
+     * 
+     * @return void
+     */
+    public function setPhotoHandler($name) {
+        if (!empty($name)) {
+            $this->photoHandleMethod = $name;
+        }
+    }
+
+    /**
+     * Sets method names which will be executed if some member appears or left chat
+     * 
+     * @param string $methodAppear
+     * @param string $methodLeft
+     * 
+     * @return void
+     */
+    public function setOnChatMemberActions($methodAppear = '', $methodLeft = '') {
+        if (!empty($methodAppear)) {
+            $this->chatMemberAppearMethod = $methodAppear;
+        }
+
+        if (!empty($methodLeft)) {
+            $this->chatMemberLeftMethod = $methodLeft;
         }
     }
 
@@ -189,10 +260,8 @@ class WolfDispatcher {
      */
     protected function getTextAction() {
         $result = '';
-
         //basic commands processing
         if (!empty($this->commands)) {
-
             foreach ($this->commands as $eachCommand => $eachAction) {
                 if (mb_stripos($this->receivedData['text'], $eachCommand, 0, 'UTF-8') !== false) {
                     $result = $eachAction;
@@ -218,28 +287,35 @@ class WolfDispatcher {
      * 
      * @param string $actionName
      * 
-     * @return string
+     * @return void
      */
     protected function runAction($actionName) {
-        $result = '';
         if (!empty($actionName)) {
             if (method_exists($this, $actionName)) {
                 //class methods have priority
                 $this->$actionName();
+                if ($this->debugFlag) {
+                    $this->calledActions[] = 'METHOD: ' . $actionName;
+                }
             } else {
                 if (function_exists($actionName)) {
                     $actionName($this->receivedData);
+                    if ($this->debugFlag) {
+                        $this->calledActions[] = 'FUNC: ' . $actionName;
+                    }
                 } else {
                     if ($this->debugFlag) {
                         //any command/reaction handler found
                         $chatId = $this->receivedData['chat']['id'];
                         $message = __('Any existing function on method named') . ' `' . $actionName . '` ' . __('not found by dispatcher');
                         $this->telegram->directPushMessage($chatId, $message);
+                        if ($this->debugFlag) {
+                            $this->calledActions[] = 'FAILED: ' . $actionName;
+                        }
                     }
                 }
             }
         }
-        return($result);
     }
 
     /**
@@ -279,7 +355,27 @@ class WolfDispatcher {
                         $this->handleEmptyText();
                     }
 
-                    //this will be executed if some image received
+                    //this method will be executed on image receive if set
+                    if (!empty($this->photoHandleMethod)) {
+                        if ($this->isPhotoReceived()) {
+                            $this->runAction($this->photoHandleMethod);
+                        }
+                    }
+
+                    //following methods will be executed while new member appears in chat or lefts the chat
+                    if (!empty($this->chatMemberAppearMethod)) {
+                        if ($this->isNewChatMemberAppear()) {
+                            $this->runAction($this->chatMemberAppearMethod);
+                        }
+                    }
+
+                    if (!empty($this->chatMemberLeftMethod)) {
+                        if ($this->isChatMemberLeft()) {
+                            $this->runAction($this->chatMemberLeftMethod);
+                        }
+                    }
+
+                    //this will be executed if some image received anyway
                     if ($this->isPhotoReceived()) {
                         $this->handlePhotoReceived();
                     }
@@ -328,6 +424,33 @@ class WolfDispatcher {
     }
 
     /**
+     * Writes debug data to separate per-class log if debugging flag enabled.
+     * 
+     * @global int $starttime
+     * @global int $query_counter
+     *      
+     * @return void
+     */
+    protected function writeDebugLog() {
+        global $starttime, $query_counter;
+        if ($this->debugFlag) {
+            $nowmtime = explode(' ', microtime());
+            $wtotaltime = $nowmtime[0] + $nowmtime[1] - $starttime;
+            $logData = curdatetime() . PHP_EOL;
+            $logData .= print_r($this->receivedData, true) . PHP_EOL;
+            $logData .= 'GT: ' . round($wtotaltime, 4) . ' QC: ' . $query_counter . PHP_EOL;
+            if (!empty($this->calledActions)) {
+                $logData .= PHP_EOL . 'Called actions: ' . print_r($this->calledActions, true) . PHP_EOL;
+            } else {
+                $logData .= PHP_EOL . 'Called actions: NONE' . PHP_EOL;
+            }
+            $logData .= '==================' . PHP_EOL;
+            $logFileName = get_class($this) . '.log';
+            file_put_contents(self::LOG_PATH . $logFileName, $logData, FILE_APPEND);
+        }
+    }
+
+    /**
      * Listens for some events
      * 
      * @return array
@@ -336,8 +459,10 @@ class WolfDispatcher {
         $this->receivedData = $this->telegram->getHookData();
         if (!empty($this->receivedData)) {
             @$this->chatId = $this->receivedData['chat']['id'];
+            @$this->messageId = $this->receivedData['message_id'];
             $this->reactInput();
         }
+        $this->writeDebugLog();
         return($this->receivedData);
     }
 
@@ -346,7 +471,7 @@ class WolfDispatcher {
      * 
      * @return bool
      */
-    public function isPhotoReceived() {
+    protected function isPhotoReceived() {
         $result = false;
         if ($this->receivedData['photo'] OR $this->receivedData['document']) {
             $imageMimeTypes = array('image/png', 'image/jpeg');
@@ -360,6 +485,38 @@ class WolfDispatcher {
                     }
                 }
             }
+        }
+        return($result);
+    }
+
+    /**
+     * Checks is new chat member appeared in chat? Returns his data on this event.
+     * Data fields: 
+     *   id, is_bot, first_name, username, language_code, is_premium - normal users
+     *   id, is_bot, first_name, username - bots
+     * 
+     * @return array/bool
+     */
+    protected function isNewChatMemberAppear() {
+        $result = false;
+        if ($this->receivedData['new_chat_member']) {
+            $result = $this->receivedData['new_chat_member'];
+        }
+        return($result);
+    }
+
+    /**
+     * Checks is any chat member lefts chat? Returns his chatId on this event.
+     * Data fields: 
+     *   id, is_bot, first_name, username, language_code, is_premium - normal users
+     *   id, is_bot, first_name, username - bots
+     * 
+     * @return array/bool
+     */
+    protected function isChatMemberLeft() {
+        $result = false;
+        if ($this->receivedData['left_chat_member']) {
+            $result = $this->receivedData['left_chat_member'];
         }
         return($result);
     }
@@ -399,7 +556,7 @@ class WolfDispatcher {
     }
 
     /**
-     * Saves received photo to the specified path on filesystem. Returns filename on success.
+     * Saves received photo to the specified path on filesystem. Returns filepath on success.
      * 
      * @param string $savePath
      * 
@@ -412,8 +569,52 @@ class WolfDispatcher {
                 $receivedPhoto = $this->getPhoto();
                 if ($receivedPhoto) {
                     file_put_contents($savePath, $receivedPhoto);
-                    $result = $savePath;
+                    if (file_exists($savePath)) {
+                        $result = $savePath;
+                    }
                 }
+            }
+        }
+        return($result);
+    }
+
+    /**
+     * Sends fast reply to current chat member
+     * 
+     * @param string $message
+     * @param array $keyboard
+     * 
+     * @return string/bool
+     */
+    protected function reply($message = '', $keyboard = array()) {
+        $result = '';
+        if (!empty($message)) {
+            $replyResult = $this->telegram->directPushMessage($this->chatId, $message, $keyboard);
+            if ($replyResult) {
+                $result = json_decode($replyResult, true);
+            }
+        }
+        return($result);
+    }
+
+    /**
+     * Sends fast reply to current chat member for latest message or some specified messageId
+     * 
+     * @param string $message
+     * @param array $keyboard
+     * @param int $replyToMsg
+     * 
+     * @return string/bool
+     */
+    protected function replyTo($message = '', $keyboard = array(), $replyToMsg = '') {
+        $result = '';
+        if (!empty($message)) {
+            if (empty($replyToMsg)) {
+                $replyToMsg = $this->messageId;
+            }
+            $replyResult = $this->telegram->directPushMessage($this->chatId, $message, $keyboard, false, $replyToMsg);
+            if ($replyResult) {
+                $result = json_decode($replyResult, true);
             }
         }
         return($result);
