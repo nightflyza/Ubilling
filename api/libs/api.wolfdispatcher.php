@@ -167,7 +167,7 @@ class WolfDispatcher {
     }
 
     /**
-     * Instance debugging flag setter
+     * Instance debugging flag setter. Debug log: exports/botname_debug.log
      * 
      * @param bool $state
      * 
@@ -209,7 +209,7 @@ class WolfDispatcher {
     /**
      * Sets new dispatcher actions dataset
      * 
-     * @param array $commands
+     * @param array $commands dataset as text input=>method or function name
      * 
      * @return void
      */
@@ -222,9 +222,10 @@ class WolfDispatcher {
     }
 
     /**
-     * Sets group commands
+     * Sets group commands data set
+     * If not empty data set its overrides all default actions for not private chats
      * 
-     * @param array $groupCommands
+     * @param array $groupCommands dataset as text input=>method or function name
      * 
      * @return void
      */
@@ -247,9 +248,9 @@ class WolfDispatcher {
     }
 
     /**
-     * Sets new dispatcher text reactions dataset
+     * Sets new dispatcher text reactions dataset. Basic setActions dataset overrides this.
      * 
-     * @param array $commands
+     * @param array $commands dataset as text input=>method or function name
      * 
      * @return void
      */
@@ -264,7 +265,7 @@ class WolfDispatcher {
     /**
      * Sets method name which will be executed on any image input
      * 
-     * @param string $name
+     * @param string $name existing method name to process received images
      * 
      * @return void
      */
@@ -295,7 +296,7 @@ class WolfDispatcher {
     /**
      * Sets allowed chat IDs for this instance
      * 
-     * @param array $chatIds
+     * @param array $chatIds chatIds which only allowed to interract this bot instance
      * 
      * @return void
      */
@@ -310,7 +311,7 @@ class WolfDispatcher {
     /**
      * Sets denied chat IDs for this instance
      * 
-     * @param array $chatIds
+     * @param array $chatIds chatIds which is denied from interraction with this instance
      * 
      * @return void
      */
