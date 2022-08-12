@@ -27,6 +27,13 @@ class WolfDispatcher {
     protected $groupChatCommands = array();
 
     /**
+     * Chats commands array which required user set in adminChatIds struct to be executed.
+     *
+     * @var array
+     */
+    protected $adminCommands = array();
+
+    /**
      * Contains text reactions=>actions mappings
      *
      * @var array
@@ -81,6 +88,13 @@ class WolfDispatcher {
      * @var int
      */
     protected $messageId = 0;
+
+    /**
+     * Current converstation chat type, like private,group 
+     *
+     * @var string
+     */
+    protected $chatType = '';
 
     /**
      * Method name which will be executed on any image receive
@@ -234,9 +248,20 @@ class WolfDispatcher {
     }
 
     /**
+     * Sets admin commands data set. This actions requires user to be isAdmin() for execution
+     * 
+     * @param array $adminCommands dataset as text input=>method or function name
+     * 
+     * @return void
+     */
+    public function setAdminActions($adminCommands) {
+        $this->adminCommands = $adminCommands;
+    }
+
+    /**
      * Sets administrative user chatIDs
      * 
-     * @param array $chatIds
+     * @param array $chatIds just array of chatids of administrative users like array('111111','222222')
      * 
      * @return void
      */
@@ -296,7 +321,7 @@ class WolfDispatcher {
     /**
      * Sets allowed chat IDs for this instance
      * 
-     * @param array $chatIds chatIds which only allowed to interract this bot instance
+     * @param array $chatIds chatIds which only allowed to interract this bot instance just like array('1234','4321')
      * 
      * @return void
      */
@@ -311,7 +336,7 @@ class WolfDispatcher {
     /**
      * Sets denied chat IDs for this instance
      * 
-     * @param array $chatIds chatIds which is denied from interraction with this instance
+     * @param array $chatIds chatIds which is denied from interraction with this instance just like array('1234','4321')
      * 
      * @return void
      */
@@ -335,6 +360,17 @@ class WolfDispatcher {
             foreach ($this->commands as $eachCommand => $eachAction) {
                 if (mb_stripos($this->receivedData['text'], $eachCommand, 0, 'UTF-8') !== false) {
                     $result = $eachAction;
+                }
+            }
+        }
+
+        //administrative commands processing
+        if (!empty($this->adminCommands)) {
+            if ($this->isAdmin()) {
+                foreach ($this->adminCommands as $eachCommand => $eachAction) {
+                    if (mb_stripos($this->receivedData['text'], $eachCommand, 0, 'UTF-8') !== false) {
+                        $result = $eachAction;
+                    }
                 }
             }
         }
@@ -533,11 +569,11 @@ class WolfDispatcher {
         if (!empty($this->receivedData)) {
             @$this->chatId = $this->receivedData['chat']['id'];
             @$this->messageId = $this->receivedData['message_id'];
+            @$this->chatType = $this->receivedData['chat']['type'];
             //wow, some separate group commands here. They overrides all another actions.
             if (!empty($this->groupChatCommands)) {
-                $chatType = $this->receivedData['chat']['type'];
-                if ($chatType != 'private') {
-                    //override actions with another set
+                if ($this->chatType != 'private') {
+                    //override actions with another group set
                     $this->setActions($this->groupChatCommands);
                 }
             }
@@ -604,21 +640,32 @@ class WolfDispatcher {
 
     /**
      * Checks is current user chatId listed as administrator? 
-     * Always return true, if adminChatIds is empty.
      * 
      * @return bool
      */
     protected function isAdmin() {
         $result = false;
         if (!empty($this->adminChatIds)) {
+            //direct message in private chat?
             if (isset($this->adminChatIds[$this->chatId])) {
                 $result = true;
+            } else {
+                //may be group chat message from admin user?
+                if (isset($this->adminChatIds[$this->receivedData['from']['id']])) {
+                    $result = true;
+                }
             }
-        } else {
-            $result = true;
         }
-
         return($result);
+    }
+
+    /**
+     * Returns current received message as receivedData struct
+     * 
+     * @return array
+     */
+    protected function message() {
+        return($this->receivedData);
     }
 
     /**
@@ -732,13 +779,13 @@ class WolfDispatcher {
     }
 
     /**
-     * Registers new web-hook URL for bot if isnt registered yet.
+     * Automatically registers new web-hook URL for bot if isnt registered yet.
      *
      * @return void
      */
     protected function installWebHook() {
         if ($this->hookAutoSetup) {
-            $listenerUrl = 'https://' . $_SERVER['HTTP_HOST'] . '/' . $_SERVER['REQUEST_URI'];
+            $listenerUrl = 'https://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
             $tokenHash = md5($this->botToken . $listenerUrl);
             $hookPidName = self::HOOK_PID_PATH . $this->botImplementation . $tokenHash . '.hook';
             //need to be installed?
@@ -760,7 +807,7 @@ class WolfDispatcher {
                     $logData = $this->botImplementation . ': ' . curdatetime() . PHP_EOL;
                     $logData .= 'INSTALLED WEB HOOK: ' . $listenerUrl . PHP_EOL;
                     $logData .= 'HOOK PID: ' . $hookPidName . PHP_EOL;
-                    file_put_contents(self::LOG_PATH . $logFileName, $logData,FILE_APPEND);
+                    file_put_contents(self::LOG_PATH . $logFileName, $logData, FILE_APPEND);
                 }
             } else {
                 //ok, hook is already installed
