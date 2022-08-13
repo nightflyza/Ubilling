@@ -167,6 +167,22 @@ class WolfDispatcher {
             $this->botToken = $token;
         }
 
+//                                ,     ,
+//                                |\---/|
+//                               /  , , |
+//                          __.-'|  / \ /
+//                 __ ___.-'        ._O|
+//              .-'  '        :      _/
+//             / ,    .        .     |
+//            :  ;    :        :   _/
+//            |  |   .'     __:   /
+//            |  :   /'----'| \  |
+//            \  |\  |      | /| |
+//             '.'| /       || \ |
+//             | /|.'       '.l \\_
+//             || ||             '-'
+//             '-''-'
+
         $this->initTelegram();
         $this->setBotName();
     }
@@ -768,9 +784,24 @@ class WolfDispatcher {
     }
 
     /**
+     * Sends some keyboard to current chat
+     * 
+     * @param array $buttons
+     * @param string $text
+     * 
+     * @return void
+     */
+    protected function castKeyboard($buttons, $text = '⌨️') {
+        if (!empty($buttons)) {
+            $keyboard = $this->telegram->makeKeyboard($buttons);
+            $this->reply($text, $keyboard);
+        }
+    }
+
+    /**
      * Enables or disables web-hook automatic installation
      * 
-     * @param bool $enabled
+     * @param bool $enabled is web-hook autosetup enabled?
      * 
      * @return void
      */
@@ -794,10 +825,14 @@ class WolfDispatcher {
                 if ($hookInfo['result']['url'] != $listenerUrl) {
                     //need to be installed new URL
                     $this->telegram->setWebHook($listenerUrl, 100);
-                    show_success($this->botImplementation . ' web-hook URL: ' . $hookInfo['result']['url']);
+                    if (function_exists('show_success')) {
+                        show_success($this->botImplementation . ' web-hook URL: ' . $hookInfo['result']['url']);
+                    }
                 } else {
                     //already set, but no PID
-                    show_warning($this->botImplementation . ' web-hook URL: ' . $hookInfo['result']['url']);
+                    if (function_exists('show_warning')) {
+                        show_warning($this->botImplementation . ' web-hook URL: ' . $hookInfo['result']['url']);
+                    }
                 }
                 //write hook pid
                 file_put_contents($hookPidName, $listenerUrl);
@@ -812,7 +847,9 @@ class WolfDispatcher {
             } else {
                 //ok, hook is already installed
                 $currentHookUrl = file_get_contents($hookPidName);
-                show_info($this->botImplementation . ' web-hook URL: ' . $currentHookUrl);
+                if (function_exists('show_info')) {
+                    show_info($this->botImplementation . ' web-hook URL: ' . $currentHookUrl);
+                }
             }
         }
     }
