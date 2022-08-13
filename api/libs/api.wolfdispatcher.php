@@ -209,17 +209,6 @@ class WolfDispatcher {
         }
     }
 
-    /**
-     * Loads required configs into protected props for further usage
-     * 
-     * @global object $ubillingConfig
-     * 
-     * @return void
-     */
-    protected function loadConfig() {
-        global $ubillingConfig;
-        $this->altCfg = $ubillingConfig->getAlter();
-    }
 
     /**
      * Inits protected telegram instance
