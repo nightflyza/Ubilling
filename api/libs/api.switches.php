@@ -1919,8 +1919,8 @@ function zb_SwitchReplaceForm($fromSwitchId) {
     }
 
     $inputs = wf_HiddenInput('switchreplace', $fromSwitchId);
-    $inputs .= wf_Selector('toswtichreplace', $paramsNp, 'NP ' . __('Switch'), '', false);
-    $inputs .= wf_Selector('replaceemployeeid', $employee, __('Worker'), '', false);
+    $inputs .= wf_SelectorSearchable('toswtichreplace', $paramsNp, 'NP ' . __('Switch'), '', false);
+    $inputs .= wf_SelectorSearchable('replaceemployeeid', $employee, __('Worker'), '', false);
     $inputs .= wf_Submit('Save');
     $result = wf_Form('', 'POST', $inputs, 'glamour');
     $result .= wf_CleanDiv();
