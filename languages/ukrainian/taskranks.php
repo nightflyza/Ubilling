@@ -41,4 +41,4 @@ $lang['def']['right to use tasks quality control report']='Право перег
 $lang['def']['What was going on']='Що взагалі робилось';
 $lang['def']['none']='нічого';
 $lang['def']['The problem is not solved']='Проблему не вирішено';
-
+$lang['def']['Late']='Запізнився';
