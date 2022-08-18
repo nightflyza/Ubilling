@@ -106,7 +106,7 @@ class TaskStates {
         $this->stateTypes['STATE_MOVED'] = ' ' . __('Moved');
         $this->stateTypes['STATE_CALLFAIL'] = '️ ' . __('Missed a phone call');
         $this->stateTypes['STATE_CANCELLED'] = ' ' . __('Canceled');
-        $this->stateTypes['STATE_LATE'] = ' ' . __('Late');
+        $this->stateTypes['STATE_LATE'] = ' ' . __('Didnt have time');
         if (!empty($this->princessList)) {
             $this->stateTypes['STATE_PRINCESS'] = ' ' . __('Princess was here'); //protected state. May be modified only by princess.
         }
