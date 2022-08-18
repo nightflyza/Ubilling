@@ -358,7 +358,7 @@ class EventView {
                     if (preg_match('!\((.*?)\)!si', $event, $tmpLoginMatches)) {
                         @$loginExtracted = $tmpLoginMatches[1];
                         if (!empty($loginExtracted)) {
-                            if (!ispos($event, '((')) { // ignore UKV user id-s 
+                            if (!ispos($event, '((') AND !ispos($event, 'SWITCH')) { // ignore UKV user id-s and switch locations
                                 $userProfileLink = wf_Link('?module=userprofile&username=' . $loginExtracted, web_profile_icon() . ' ' . $loginExtracted);
                                 $event = str_replace($loginExtracted, $userProfileLink, $event);
                             }
