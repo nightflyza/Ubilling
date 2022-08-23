@@ -283,6 +283,40 @@ if (cfr('SWITCHESEDIT')) {
             return ($result);
         }
 
+        /**
+         * Renders switches with duplicated IP addresses
+         * 
+         * @return string
+         */
+        public function renderSwitchIpDuplicates() {
+            $result = '';
+            $tmp = array();
+            $dupIpCount = 0;
+            if (!empty($this->allSwitchesData)) {
+                foreach ($this->allSwitchesData as $switchId => $switchData) {
+                    if (!empty($switchData['ip'])) {
+                        $tmp[$switchData['ip']][] = $switchData;
+                    }
+                }
+
+                foreach ($tmp as $switchIp => $switchesOn) {
+                    if (sizeof($switchesOn) > 1) {
+                        foreach ($switchesOn as $index => $swDupData) {
+                            $swLabel = wf_Link('?module=switches&edit=' . $swDupData['id'], '[' . $swDupData['id'] . ']') . ' ' . $swDupData['location'];
+                            $result .= $this->messages->getStyledMessage(__('IP') . ': ' . $switchIp . ' ' . $swLabel, 'warning');
+                            $dupIpCount++;
+                        }
+                    }
+                }
+            }
+
+            if (!$dupIpCount) {
+                $result .= $this->messages->getStyledMessage(__('Nothing found'), 'success');
+            }
+
+            return($result);
+        }
+
     }
 
     $scan = new SwitchScan();
@@ -292,6 +326,7 @@ if (cfr('SWITCHESEDIT')) {
     show_window(__('Scan for unknown devices'), $scan->renderForm());
     show_window(__('Scan for free IPs'), $scan->renderFormFree());
     show_window(__('Scan for online NP devices'), $scan->renderFormNP());
+    show_window(__('Duplicate') . ' ' . __('IP'), $scan->renderSwitchIpDuplicates());
 
 
     //searching for unknown devices
@@ -326,4 +361,3 @@ if (cfr('SWITCHESEDIT')) {
 } else {
     show_error(__('Access denied'));
 }
-?>
