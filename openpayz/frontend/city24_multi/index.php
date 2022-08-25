@@ -77,6 +77,7 @@ function getAgentData($userlogin) {
     @$result = file_get_contents($action);
     return ($result);
 }
+
 /**
  * Check is transaction unique?
  *
@@ -177,6 +178,7 @@ function pltz_parseXML($inXmlset) {
 function pltz_Check($login, $password, $payElementID, $transactionID, $account) {
     global $serviceId;
     $extTransactionID = 0; //Платеж в системе Вашей системе
+    $companyData = '';
     $result = 0; //Поле кода завершения (см. Приложение А. Список кодов завершения)
     $comment = ''; //Необязательном поле,  служебный комментарий.
     //Здесь записываем в базу поступивший запрос, для того что бы потом разобраться какие запросы к Вам приходили. Уникальный индификатор запроса - $transactionID
@@ -188,36 +190,36 @@ function pltz_Check($login, $password, $payElementID, $transactionID, $account) 
 //Здесь нужно сохранить платеж в базу, со статусом не оплачен
                 $extTransactionID = 'PLTZ_' . pltz_GetFreeId(); //Записываем сюда номер Вашей транзакции.  
                 $comment = 'Ожидание платежа'; //Коментарий не обязателен
-		$userlogin = $allcustomers[$account];
-		$userData = simple_query("SELECT * from `users` WHERE `login`='" . $userlogin . "'");
-		$allrealnames = cpay_UserGetAllRealnames();
-            $agentData = getAgentData($userlogin);
-              if (!empty($agentData)) {
-                $agentData = json_decode($agentData, true);
+                $userlogin = $allcustomers[$account];
+                $userData = simple_query("SELECT * from `users` WHERE `login`='" . $userlogin . "'");
+                $allrealnames = cpay_UserGetAllRealnames();
+                $agentData = getAgentData($userlogin);
                 if (!empty($agentData)) {
-                    $agentCode = '';
-                    $agentsOverrides = parse_ini_file('agentcodes.ini');
-                    if (PLA_USE_AGENTCODES) {
-                        if (isset($agentsOverrides[$agentData['id']])) {
-                            $agentCode = $agentsOverrides[$agentData['id']];
+                    $agentData = json_decode($agentData, true);
+                    if (!empty($agentData)) {
+                        $agentCode = '';
+                        $agentsOverrides = parse_ini_file('agentcodes.ini');
+                        if (PLA_USE_AGENTCODES) {
+                            if (isset($agentsOverrides[$agentData['id']])) {
+                                $agentCode = $agentsOverrides[$agentData['id']];
+                            } else {
+                                $agentCode = $agentData['id'];
+                            }
                         } else {
                             $agentCode = $agentData['id'];
                         }
-                    } else {
-                        $agentCode = $agentData['id'];
-                    }
-                    $companyData = '<fields>
+                        $companyData = '<fields>
 									<field1 name="FIO">' . @$allrealnames[$userlogin] . '</field1>
                                     <field2 name="Balance">' . @$userData['Cash'] . '</field2>
                                     <field3 name="SubProviderId">' . $agentCode . '</field3>
                       </fields>';
+                    } else {
+                        die('ERROR:WRONG_API_CONNECTION');
+                    }
                 } else {
-                    die('ERROR:WRONG_API_CONNECTION');
+                    $companyData = '';
                 }
             } else {
-                $companyData = '';
-            }
-	      } else {
                 $result = 5; //Идентификатор абонента не найден (Ошиблись номером). Здесь может быть другая ошибка, например 79 (Счет абонента не активен) 
                 $comment = 'Идентификатор абонента не найден'; //Коментарий не обязателен
             }
@@ -225,14 +227,14 @@ function pltz_Check($login, $password, $payElementID, $transactionID, $account) 
             $result = 7; //Прием платежа запрещен провайдером
         }
     } else {
-       $result = 7; //Прием платежа запрещен провайдером
+        $result = 7; //Прием платежа запрещен провайдером
     }
 
-    pltz_sendResponse("<extTransactionID>$extTransactionID</extTransactionID>
-     <account>$account</account>
-     <result>$result</result>
-     $companyData
-     <comment>$comment</comment>");
+    pltz_sendResponse('<extTransactionID>' . $extTransactionID . '</extTransactionID>
+     <account>' . $account . '</account>
+     <result>' . $result . '</result>
+     ' . $companyData . '
+     <comment>' . $comment . '</comment>');
 }
 
 function pltz_Payment($login, $password, $transactionID, $payTimestamp, $payID, $payElementID, $account, $amount, $terminalId) {
@@ -282,4 +284,4 @@ function pltz_Cancel($login, $password, $transactionID, $cancelPayID, $payElemen
 }
 
 pltz_parseXML(file_get_contents("php://input"));
-?>
+
