@@ -58,13 +58,12 @@ class tsmshttp extends SendDogProto {
                 if (!empty($eachSms['number']) AND ! empty($eachSms['message'])) {
                     $recipients = array($eachSms['number']);
 
-
                     $turboSmsApi->dataGet('token', $apiKey);
                     $turboSmsApi->dataGet('recipients[0]', $eachSms['number']);
-                    $turboSmsApi->dataGet('sms[sender]', $sign);
+                    $turboSmsApi->dataGet('sms[sender]', urlencode($sign));
                     $turboSmsApi->dataGet('sms[text]', urlencode($eachSms['message']));
 
-                    $sendingResult = $turboSmsApi->response();
+                    $sendingResultRaw = $turboSmsApi->response();
 
                     if ($turboSmsApi->error()) {
                         //log error to log
@@ -72,8 +71,8 @@ class tsmshttp extends SendDogProto {
                     }
 
                     //decode reply
-                    if ($sendingResult) {
-                        @$sendingResult = json_decode($sendingResult, true);
+                    if ($sendingResultRaw) {
+                        @$sendingResult = json_decode($sendingResultRaw, true);
                         if (!empty($sendingResult)) {
                             if (isset($sendingResult['response_code'])) {
                                 $responseCode = $sendingResult['response_code'];
@@ -87,7 +86,7 @@ class tsmshttp extends SendDogProto {
                                 $this->putLog('SOMETHING WENT WRONG: ' . print_r($sendingResult, true));
                             }
                         } else {
-                            $this->putLog('BROKEN SENDING REPLY RECEIVED');
+                            $this->putLog('BROKEN SENDING REPLY RECEIVED: ' . print_r($sendingResultRaw, true));
                         }
                     } else {
                         //something went wrong
