@@ -32,7 +32,7 @@ class StarDust {
     const LOCK_NAME = 'stardustLockfree';
     const LOCK_PREFIX = 'stardustPID_';
     const CACHE_TIMEOUT = 2592000;
-    const CACHE_KEY = 'STARDUST_PROCESSES';
+    const CACHE_KEY = 'STARDUST';
     const REALTIME_PRECISSION = 5;
 
     public function __construct($processName = '') {
@@ -270,19 +270,21 @@ class StarDust {
         $this->allProcessStates[$this->processName]['ms'] = $ms;
         $this->allProcessStates[$this->processName]['me'] = $me;
         $this->allProcessStates[$this->processName]['finished'] = $finishedData;
+        $this->allProcessStates[$this->processName]['pid'] = getmypid();
         //save current process data into cache
         $this->saveCache();
     }
 
 //
-//              ⠀   (\__/)
-//                  (•ㅅ•)      SONO CHI NO SADAME
-//                ＿ノヽ ノ＼＿   
+//               ⠀   (\__/)
+//                   (•ㅅ•)      SONO CHI NO SADAME
+//                 ＿ノヽ  ノ＼＿   
 //             `/　`/ ⌒Ｙ⌒ Ｙ  ヽ
 //             ( 　(三ヽ人　 /　  |
 //             |　ﾉ⌒＼ ￣￣ヽ   ノ
 //             ヽ＿＿＿＞､＿_／
-//                  ｜( 王 ﾉ〈   (\__/)
-//                   /ﾐ`ー―彡\  (•ㅅ•)
-//                  / ╰    ╯ \ /    \>
+//                   ｜( 王 ﾉ〈  (\__/)
+//                    /ﾐ`ー―彡\  (•ㅅ•)
+//                   / ╰    ╯ \ /    \>
+
 }
