@@ -33,6 +33,7 @@ class StarDust {
     const LOCK_PREFIX = 'stardustPID_';
     const CACHE_TIMEOUT = 2592000;
     const CACHE_KEY = 'STARDUST_PROCESSES';
+    const REALTIME_PRECISSION = 5;
 
     public function __construct($processName = '') {
         $this->setProcess($processName);
@@ -74,10 +75,21 @@ class StarDust {
      * @return void
      */
     protected function loadCache() {
-        $this->allProcessStates = $this->cache->get(self::CACHE_KEY, self::CACHE_TIMEOUT);
-        if (empty($this->allProcessStates)) {
-            $this->allProcessStates = array();
+        $this->allProcessStates = $this->getCachedData();
+    }
+
+    /**
+     * Returns process data from cache
+     * 
+     * @return array
+     */
+    protected function getCachedData() {
+        $result = array();
+        $cachedData = $this->cache->get(self::CACHE_KEY, self::CACHE_TIMEOUT);
+        if (!empty($cachedData)) {
+            $result = $cachedData;
         }
+        return($result);
     }
 
     /**
@@ -117,7 +129,7 @@ class StarDust {
     }
 
     /**
-     * Starts some process and 
+     * Starts some process
      * 
      * @return void
      */
@@ -127,6 +139,7 @@ class StarDust {
     }
 
     /**
+     * Stops some process
      * 
      * @return void
      */
@@ -164,6 +177,46 @@ class StarDust {
     }
 
     /**
+     * Returns current process execution stats
+     * 
+     * @return array
+     */
+    public function getState() {
+        $result = array();
+        $processData = $this->getCachedData();
+        if (isset($processData[$this->processName])) {
+            $result = $processData[$this->processName];
+            //process now running?
+            if (!$result['finished']) {
+                $result['realtime'] = round((microtime(true) - $result['ms']), self::REALTIME_PRECISSION);
+            }
+        }
+        return($result);
+    }
+
+    /**
+     * Returns all process execution stats
+     * 
+     * @return array
+     */
+    public function getAllStates() {
+        $result = array();
+        $processData = $this->getCachedData();
+        if (!empty($processData)) {
+            $microTime = microtime(true);
+            foreach ($processData as $processName => $eachProcessData) {
+                //updating realtime if process is still running
+                if (!$eachProcessData['finished']) {
+                    $eachProcessData['realtime'] = round($microTime - $eachProcessData['ms'], self::REALTIME_PRECISSION);
+                }
+                //append to results
+                $result[$processName] = $eachProcessData;
+            }
+        }
+        return($result);
+    }
+
+    /**
      * Updates some process execution stats
      * 
      * @param bool $finished process finished or not flag
@@ -173,30 +226,63 @@ class StarDust {
     protected function processStateUpdate($finished = false) {
         $startTime = 0;
         $endTime = 0;
+        $realTime = 0;
+        $ms = 0;
+        $me = 0;
 
         $nowTime = time();
+        $microTime = microtime(true);
         $finishedData = ($finished) ? 1 : 0;
 
         //process just started?
         if (!$finished) {
             $startTime = $nowTime;
+            $ms = $microTime;
         }
 
         //process finished?
-        if (($startTime == 0) AND $finished) {
+        if ($finished) {
             if (isset($this->allProcessStates[$this->processName])) {
                 $startTime = $this->allProcessStates[$this->processName]['start'];
+                $ms = $this->allProcessStates[$this->processName]['ms'];
             } else {
                 $startTime = $nowTime;
             }
+            $me = $microTime;
             $endTime = $nowTime;
         }
+
+        //process duration counter
+        if (isset($this->allProcessStates[$this->processName])) {
+            if ($finished) {
+                $realTime = $me - $ms;
+            } else {
+                $realTime = 0;
+            }
+        }
+
+        //getting latest data from cache
+        $this->loadCache();
+        //updating current process properties
         $this->allProcessStates[$this->processName]['start'] = $startTime;
         $this->allProcessStates[$this->processName]['end'] = $endTime;
-        $this->allProcessStates[$this->processName]['realtime'] = 0; //TODO
+        $this->allProcessStates[$this->processName]['realtime'] = round($realTime, self::REALTIME_PRECISSION);
+        $this->allProcessStates[$this->processName]['ms'] = $ms;
+        $this->allProcessStates[$this->processName]['me'] = $me;
         $this->allProcessStates[$this->processName]['finished'] = $finishedData;
         //save current process data into cache
         $this->saveCache();
     }
 
+//
+//              ⠀   (\__/)
+//                  (•ㅅ•)      SONO CHI NO SADAME
+//                ＿ノヽ ノ＼＿   
+//             `/　`/ ⌒Ｙ⌒ Ｙ  ヽ
+//             ( 　(三ヽ人　 /　  |
+//             |　ﾉ⌒＼ ￣￣ヽ   ノ
+//             ヽ＿＿＿＞､＿_／
+//                  ｜( 王 ﾉ〈   (\__/)
+//                   /ﾐ`ー―彡\  (•ㅅ•)
+//                  / ╰    ╯ \ /    \>
 }
