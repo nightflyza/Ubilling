@@ -134,8 +134,10 @@ class StarDust {
      * @return void
      */
     public function start() {
+    	if ($this->pidIsOk()) {
         $this->processStateUpdate(false);
         nr_query("SELECT GET_LOCK('" . self::LOCK_PREFIX . $this->processName . "',1)");
+        }
     }
 
     /**
@@ -144,8 +146,25 @@ class StarDust {
      * @return void
      */
     public function stop() {
+    	if ($this->pidIsOk()) {
         $this->processStateUpdate(true);
         nr_query("SELECT RELEASE_LOCK('" . self::LOCK_PREFIX . $this->processName . "')");
+    	}
+    }
+
+    /**
+    * Performs check is database lock available or not?
+    *
+    * @return bool
+    */
+    protected function isLocked() {
+    	$result=true;
+    	if ($this->pidIsOk()) {
+    		$query = "SELECT IS_FREE_LOCK('" . self::LOCK_PREFIX . $this->processName . "') AS " . self::LOCK_NAME;
+            $rawReply = simple_query($query);
+            $result = ($rawReply[self::LOCK_NAME]) ? false : true;
+        }
+        return($result);
     }
 
     /**
@@ -154,11 +173,8 @@ class StarDust {
      * @return bool 
      */
     public function isRunning() {
-        if ($this->pidIsOk()) {
-            $query = "SELECT IS_FREE_LOCK('" . self::LOCK_PREFIX . $this->processName . "') AS " . self::LOCK_NAME;
-            $rawReply = simple_query($query);
-            $result = ($rawReply[self::LOCK_NAME]) ? false : true;
-        }
+        $locked=$this->isLocked();
+        $result = ($locked) ? true : false;
         return($result);
     }
 
@@ -168,11 +184,8 @@ class StarDust {
      * @return bool 
      */
     public function notRunning() {
-        if ($this->pidIsOk()) {
-            $query = "SELECT IS_FREE_LOCK('" . self::LOCK_PREFIX . $this->processName . "') AS " . self::LOCK_NAME;
-            $rawReply = simple_query($query);
-            $result = ($rawReply[self::LOCK_NAME]) ? true : false;
-        }
+        $locked=$this->isLocked();
+        $result = ($locked) ? false : true;
         return($result);
     }
 
@@ -183,14 +196,16 @@ class StarDust {
      */
     public function getState() {
         $result = array();
-        $processData = $this->getCachedData();
-        if (isset($processData[$this->processName])) {
-            $result = $processData[$this->processName];
-            //process now running?
-            if (!$result['finished']) {
-                $result['realtime'] = round((microtime(true) - $result['ms']), self::REALTIME_PRECISSION);
-            }
-        }
+        if (!empty($this->processName)) {
+	        $processData = $this->getCachedData();
+	        if (isset($processData[$this->processName])) {
+	            $result = $processData[$this->processName];
+	            //process now running?
+	            if (!$result['finished']) {
+	                $result['realtime'] = round((microtime(true) - $result['ms']), self::REALTIME_PRECISSION);
+	            }
+	        }
+    	}
         return($result);
     }
 
