@@ -3422,3 +3422,4 @@ $lang['def']['Replace'] = 'Сменить';
 $lang['def']['Change employee'] = 'Сменить сотрудника';
 $lang['def']['Run the dog'] = 'Подгонять собаку';
 $lang['def']['Already running'] = 'Уже запущено';
+$lang['def']['Background processes'] = 'Фоновые процесы';

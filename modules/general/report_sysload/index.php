@@ -105,7 +105,12 @@ if (cfr('SYSLOAD')) {
     //Cache
     if ($cache_info == 'files' OR $cache_info = 'memcached') {
         $cacheInfo = zb_ListCacheInformRenderContainer();
-        $sysInfoData .= wf_modalAuto(wf_img('skins/icon_cache.png') . ' ' . __('Cache'), __('Cache information'), $cacheInfo, 'ubButton');
+        $sysInfoData .= wf_modalAuto(wf_img('skins/icon_cache.png') . ' ' . __('Cache'), __('Cache information'), $cacheInfo, 'ubButton') . ' ';
+    }
+
+    //process monitor
+    if (cfr('ROOT')) {
+        $sysInfoData .= wf_Link(ProcessMon::URL_ME, wf_img('skins/icon_thread.png') . ' ' . __('Background processes'), false, 'ubButton') . ' ';
     }
 
     //apachezen
@@ -131,7 +136,7 @@ if (cfr('SYSLOAD')) {
     show_window('', $sysHealthControls);
 
     $defaultContainerContent = web_ReportSysloadRenderLA();
-    $defaultContainerContent.= web_ReportSysloadRenderDisksCapacity();
+    $defaultContainerContent .= web_ReportSysloadRenderDisksCapacity();
     $sysLoadContainer = wf_AjaxContainer('reportsysloadcontainer', '', $defaultContainerContent);
 
     if (ubRouting::checkGet('ajsysload')) {
