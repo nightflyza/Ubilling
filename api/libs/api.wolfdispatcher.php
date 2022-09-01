@@ -220,10 +220,10 @@ class WolfDispatcher {
         if (!empty($this->botToken)) {
             if (class_exists('UbillingTelegram')) {
                 $this->telegram = new UbillingTelegram($this->botToken);
-            }
-
-            if (class_exists('WolfGram')) {
-                $this->telegram = new WolfGram($this->botToken);
+            } else {
+                if (class_exists('WolfGram')) {
+                    $this->telegram = new WolfGram($this->botToken);
+                }
             }
 
             if (empty($this->telegram)) {
