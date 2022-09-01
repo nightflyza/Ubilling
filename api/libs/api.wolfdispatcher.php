@@ -209,7 +209,6 @@ class WolfDispatcher {
         }
     }
 
-
     /**
      * Inits protected telegram instance
      * 
@@ -219,7 +218,17 @@ class WolfDispatcher {
      */
     protected function initTelegram() {
         if (!empty($this->botToken)) {
-            $this->telegram = new UbillingTelegram($this->botToken);
+            if (class_exists('UbillingTelegram')) {
+                $this->telegram = new UbillingTelegram($this->botToken);
+            }
+
+            if (class_exists('WolfGram')) {
+                $this->telegram = new WolfGram($this->botToken);
+            }
+
+            if (empty($this->telegram)) {
+                throw new Exception('EX_NO_TELEGRAM_LIB');
+            }
         } else {
             throw new Exception('EX_EMPTY_TOKEN');
         }
