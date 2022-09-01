@@ -377,6 +377,13 @@ class MultiGen {
     protected $instanceId = '';
 
     /**
+     * stardust process manager instance
+     *
+     * @var object
+     */
+    protected $stardust = '';
+
+    /**
      * Contains basic module path
      */
     const URL_ME = '?module=multigen';
@@ -514,7 +521,7 @@ class MultiGen {
     /**
      * Default RemoteAPI lock name
      */
-    const MULTIGEN_PID = 'multigenrunning';
+    const MULTIGEN_PID = 'MULTIGEN';
 
     /**
      * Creates new MultiGen instance
@@ -525,6 +532,7 @@ class MultiGen {
         $this->loadConfigs();
         $this->setOptions();
         $this->initMessages();
+        $this->initStarDust();
         $this->initCache();
         $this->loadNases();
         $this->loadNasAttributes();
@@ -703,6 +711,15 @@ class MultiGen {
      */
     protected function initCache() {
         $this->cache = new UbillingCache();
+    }
+
+    /**
+     * Inits process manager
+     * 
+     * @return void
+     */
+    protected function initStarDust() {
+        $this->stardust = new StarDust(self::MULTIGEN_PID);
     }
 
     /**
@@ -3666,15 +3683,12 @@ class MultiGen {
     }
 
     /**
-     * Performs check of multigen-rebuild lock via DB. 
+     * Performs check of multigen-rebuild lock
      * 
      * @return bool 
      */
     public function isMultigenRunning() {
-        $query = "SELECT IS_FREE_LOCK('" . self::MULTIGEN_PID . "') AS mlgLockFree";
-        $rawReply = simple_query($query);
-        $result = ($rawReply['mlgLockFree']) ? false : true;
-        return($result);
+        return($this->stardust->isRunning());
     }
 
     /**
@@ -3683,7 +3697,7 @@ class MultiGen {
      * @return void
      */
     public function runPidStart() {
-        nr_query("SELECT GET_LOCK('" . self::MULTIGEN_PID . "',1)");
+        $this->stardust->start();
     }
 
     /**
@@ -3692,7 +3706,7 @@ class MultiGen {
      * @return void
      */
     public function runPidEnd() {
-        nr_query("SELECT RELEASE_LOCK('" . self::MULTIGEN_PID . "')");
+        $this->stardust->stop();
     }
 
 }
