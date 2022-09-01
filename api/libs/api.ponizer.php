@@ -363,6 +363,13 @@ class PONizer {
     protected $onuExtUsersDb = '';
 
     /**
+     * Contains process manager instance
+     *
+     * @var object
+     */
+    protected $stardust = '';
+
+    /**
      * Some predefined paths, marks etc. 
      * This is here for legacy purpoces for external modules.
      */
@@ -386,7 +393,7 @@ class PONizer {
     const MACDEVIDCACHE_PATH = OLTAttractor::MACDEVIDCACHE_PATH;
     const MACDEVIDCACHE_EXT = OLTAttractor::MACDEVIDCACHE_EXT;
     const ONUSIG_PATH = OLTAttractor::ONUSIG_PATH;
-    const POLL_PID = 'oltpoll_';
+    const POLL_PID = 'OLTPOLL_';
     const POLL_STATS = 'exports/pondata/races/PONYRUN_';
     const POLL_LOG = 'exports/oltpoll.log';
 
@@ -435,6 +442,7 @@ class PONizer {
 
         $this->loadAlter();
         $this->initMessages();
+        $this->initStarDust();
         $this->initOltAttractor();
         $this->initOnuDb();
         $this->initOnuExtUsersDb();
@@ -517,6 +525,15 @@ class PONizer {
      */
     protected function initOnuExtUsersDb() {
         $this->onuExtUsersDb = new NyanORM(self::TABLE_ONUEXTUSERS);
+    }
+
+    /**
+     * Inits process manager
+     * 
+     * @return void
+     */
+    protected function initStarDust() {
+        $this->stardust = new StarDust();
     }
 
     /**
@@ -936,10 +953,12 @@ class PONizer {
         //collector process locking and releasing of locks here
         if ($finished) {
             //release lock
-            nr_query("SELECT RELEASE_LOCK('" . self::POLL_PID . $oltId . "')");
+            $this->stardust->setProcess(self::POLL_PID . $oltId);
+            $this->stardust->stop();
         } else {
             //set lock for polling of some OLT
-            nr_query("SELECT GET_LOCK('" . self::POLL_PID . $oltId . "',1)");
+            $this->stardust->setProcess(self::POLL_PID . $oltId);
+            $this->stardust->start();
         }
     }
 
@@ -971,9 +990,8 @@ class PONizer {
      */
     protected function isPollingLocked($oltId) {
         $oltId = ubRouting::filters($oltId, 'int');
-        $query = "SELECT IS_FREE_LOCK('" . self::POLL_PID . $oltId . "') AS oltLockFree";
-        $rawReply = simple_query($query);
-        $result = ($rawReply['oltLockFree']) ? false : true;
+        $this->stardust->setProcess(self::POLL_PID . $oltId);
+        $result = $this->stardust->isRunning();
         return($result);
     }
 

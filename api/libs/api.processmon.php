@@ -101,12 +101,12 @@ class ProcessMon {
         }
 
         if (!empty($this->allProcess)) {
-            $cells = wf_TableCell(__('PID'));
-            $cells .= wf_TableCell(__('Name'));
-            $cells .= wf_TableCell(__('Active'));
-            $cells .= wf_TableCell(__('from'));
-            $cells .= wf_TableCell(__('to'));
-            $cells .= wf_TableCell(__('time'));
+            $cells = wf_TableCell(__('PID'), '10%');
+            $cells .= wf_TableCell(__('Name'), '25%');
+            $cells .= wf_TableCell(__('Active'), '5%');
+            $cells .= wf_TableCell(__('from'), '15%');
+            $cells .= wf_TableCell(__('to'), '15%');
+            $cells .= wf_TableCell(__('time'), '30%');
             $rows = wf_TableRow($cells, 'row1');
 
             foreach ($this->allProcess as $processName => $processData) {
