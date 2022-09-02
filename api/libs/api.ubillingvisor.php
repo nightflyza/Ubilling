@@ -890,33 +890,35 @@ class UbillingVisor {
      */
     protected function renderUnassignedChannels($userId) {
         $result = '';
-        $userId = ubRouting::filters($userId, 'int');
-        $unassignedCount = 0;
-        $chanControlLinks = '';
-        if ($this->trassirEnabled) {
-            if (!empty($this->allDvrs)) {
-                foreach ($this->allDvrs as $io => $eachDvr) {
-                    if ($eachDvr['type'] == 'trassir') {
-                        $dvrGate = new TrassirServer($eachDvr['ip'], $eachDvr['login'], $eachDvr['password'], $eachDvr['apikey'], $eachDvr['port'], $this->trassirDebug);
-                        $dvrChannels = $dvrGate->getChannels();
-                        if (!empty($dvrChannels)) {
-                            foreach ($dvrChannels as $eachChanGuid => $eachChanName) {
-                                //not assigned to anyone
-                                if (!isset($this->channelUsers[$eachChanGuid])) {
-                                    $chanEditLink = self::URL_ME . self::URL_CHANEDIT . $eachChanGuid . '&dvrid=' . $eachDvr['id'] . '&useridpreset=' . $userId;
-                                    $chanControlLinks .= wf_Link($chanEditLink, web_edit_icon() . ' ' . $eachChanGuid . ' (' . $eachChanName . ')', false, 'ubButton') . ' ';
-                                    $unassignedCount++;
+        if (cfr('VISOREDIT')) {
+            $userId = ubRouting::filters($userId, 'int');
+            $unassignedCount = 0;
+            $chanControlLinks = '';
+            if ($this->trassirEnabled) {
+                if (!empty($this->allDvrs)) {
+                    foreach ($this->allDvrs as $io => $eachDvr) {
+                        if ($eachDvr['type'] == 'trassir') {
+                            $dvrGate = new TrassirServer($eachDvr['ip'], $eachDvr['login'], $eachDvr['password'], $eachDvr['apikey'], $eachDvr['port'], $this->trassirDebug);
+                            $dvrChannels = $dvrGate->getChannels();
+                            if (!empty($dvrChannels)) {
+                                foreach ($dvrChannels as $eachChanGuid => $eachChanName) {
+                                    //not assigned to anyone
+                                    if (!isset($this->channelUsers[$eachChanGuid])) {
+                                        $chanEditLink = self::URL_ME . self::URL_CHANEDIT . $eachChanGuid . '&dvrid=' . $eachDvr['id'] . '&useridpreset=' . $userId;
+                                        $chanControlLinks .= wf_Link($chanEditLink, web_edit_icon() . ' ' . $eachChanGuid . ' (' . $eachChanName . ')', false, 'ubButton') . ' ';
+                                        $unassignedCount++;
+                                    }
                                 }
                             }
                         }
                     }
                 }
             }
-        }
 
-        if ($unassignedCount > 0) {
-            $result .= wf_tag('h2') . __('No user assigned') . wf_tag('h2', true);
-            $result .= $chanControlLinks;
+            if ($unassignedCount > 0) {
+                $result .= wf_tag('h2') . __('No user assigned') . wf_tag('h2', true);
+                $result .= $chanControlLinks;
+            }
         }
         return($result);
     }
@@ -947,7 +949,11 @@ class UbillingVisor {
                                 $streamUrl = $dvrGate->getLiveVideoStream($eachChan['chan'], 'main', $this->chanPreviewContainer, $this->chanPreviewQuality, $this->chanPreviewFramerate, $chanDvrData['customurl']);
                                 $result .= wf_tag('div', false, 'whiteboard', 'style="width:' . $this->chanPreviewSize . ';"');
                                 $chanEditLabel = web_edit_icon() . ' ' . __('Edit') . ' ' . __('channel');
-                                $channelEditControl = wf_Link(self::URL_ME . self::URL_CHANEDIT . $eachChan['chan'] . '&dvrid=' . $eachChan['dvrid'], $chanEditLabel);
+                                if (cfr('VISOREDIT')) {
+                                    $channelEditControl = wf_Link(self::URL_ME . self::URL_CHANEDIT . $eachChan['chan'] . '&dvrid=' . $eachChan['dvrid'], $chanEditLabel);
+                                } else {
+                                    $channelEditControl = '';
+                                }
                                 $result .= $eachChan['chan'];
                                 $result .= wf_tag('br');
                                 $result .= $this->renderChannelPlayer($streamUrl, '90%', true);
