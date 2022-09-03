@@ -2011,7 +2011,7 @@ class MultiGen {
      * 
      * @return array
      */
-    protected function getAllUserNames() {
+    public function getAllUserNames() {
         $result = array();
         if (empty($this->allUserData)) {
             $this->loadUserData();
@@ -2033,7 +2033,7 @@ class MultiGen {
             foreach ($this->allUserData as $eachUserLogin => $eachUserData) {
                 foreach ($this->usernameTypes as $eachUsernameType => $usernameTypeName) {
                     $userName = $this->getLoginUsername($eachUserLogin, $eachUserData, $eachUsernameType);
-                    $result[$eachUserLogin][] = $userName;
+                    $result[$eachUserLogin][] = (string) $userName;
                 }
             }
         }
@@ -2128,9 +2128,10 @@ class MultiGen {
      * 
      * @return string
      */
-    protected function getUserLogin($userName, $allUserNames) {
+    public function getUserLogin($userName, $allUserNames) {
         $result = '';
         if (!empty($allUserNames)) {
+            $userName = (string) $userName;
             foreach ($allUserNames as $login => $each) {
                 if (array_search($userName, $each, true) !== false) {
                     $result = $login;
@@ -3056,8 +3057,8 @@ class MultiGen {
             $allUserNames = $this->getAllUserNames();
         }
 
-        if (wf_CheckGet(array('login'))) {
-            $filterLogin = $_GET['login'];
+        if (ubRouting::checkGet('login')) {
+            $filterLogin = ubRouting::get('login');
         } else {
             $filterLogin = '';
         }

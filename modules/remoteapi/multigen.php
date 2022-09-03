@@ -40,6 +40,7 @@ if (($remoteApiAction == 'multigen') OR ( $remoteApiAction == 'multigentotal') O
             }
         }
 
+        //this callback left here just for legacy
         if ($remoteApiAction == 'multigentotal') {
             if (!$multigen->isMultigenRunning()) {
                 $multigen->runPidStart();
