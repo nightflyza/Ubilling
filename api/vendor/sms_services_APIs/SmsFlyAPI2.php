@@ -189,6 +189,7 @@ class SmsFlyAPI2 extends SMSServiceApi {
             case 'PENDING':
             case 'INPROGRESS':
             case 'MODERATION':
+            case 'SENT':
                 $statusArray['StatusMsg'] = $statusMsg;
                 $statusArray['DeliveredStatus'] = 0;
                 $statusArray['NoStatusCheck'] = 0;
