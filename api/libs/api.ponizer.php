@@ -3254,8 +3254,8 @@ class PONizer {
                     $oltData = @$this->allOltDevices[$oltId];
 
                     if (!isset($this->hideOnuMac[$onuMac])) {
-                        //brand new BDCOM issue temorary workaround
-                        if (!ispos($onuMac, 'no:such')) {
+                        //brand new BDCOM issue temorary workaround. Broken serials too.
+                        if (!ispos($onuMac, 'no:such') AND ! ispos($onuMac, PHP_EOL)) {
                             $data[] = $oltData;
                             $data[] = $userLink;
                             $data[] = @$allUserData[$login]['fulladress'];
