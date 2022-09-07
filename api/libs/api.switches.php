@@ -1999,6 +1999,13 @@ function zb_SwitchReplace($fromId, $toId, $employeeId) {
                 $switchPortAssignDb->where('switchid', '=', $fromId);
                 $switchPortAssignDb->data('switchid', $toId);
                 $switchPortAssignDb->save();
+                 // update qinq swithc delegation
+                if ($ubillingConfig->getAlterParam('QINQ_ENABLED') and $ubillingConfig->getAlterParam('QINQ_SWITCH_AUTOREPLACE')) {
+                        $switchesQinqDb = new NyanORM('switches_qinq');
+                        $switchesQinqDb->where('switchid', '=', $fromId);
+                        $switchesQinqDb->data('switchid', $toId);
+                        $switchesQinqDb->save();
+                }
             }
         }
 
