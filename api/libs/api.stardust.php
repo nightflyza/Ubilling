@@ -291,8 +291,8 @@ class StarDust {
     }
 
 //
-//               ⠀   (\__/)
-//                   (•ㅅ•)      SONO CHI NO SADAME
+//                 ⠀   (\__/)
+//                     (•ㅅ•)      SONO CHI NO SADAME
 //                 ＿ノヽ  ノ＼＿   
 //             `/　`/ ⌒Ｙ⌒ Ｙ  ヽ
 //             ( 　(三ヽ人　 /　  |
