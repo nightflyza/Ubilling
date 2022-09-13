@@ -1,4 +1,5 @@
 <?php
+
 if (cfr('PRINTRECEIPTS')) {
     if ($ubillingConfig->getAlterParam('PRINT_RECEIPTS_ENABLED')) {
         $receiptsPrinter = new PrintReceipt();
@@ -9,14 +10,14 @@ if (cfr('PRINTRECEIPTS')) {
             $userLogin = (ubRouting::checkGet('usrlogin')) ? ubRouting::get('usrlogin') : '';
             $whereStr = '';
 
-            if (!empty($dateFrom) or !empty($dateTo)) {
+            if (!empty($dateFrom) or ! empty($dateTo)) {
                 if (!empty($dateFrom) and $dateFrom == $dateTo) {
                     $dateTo = $dateTo . ' 23:59:59';
                 }
 
                 if (!empty($dateFrom) and empty($dateTo)) {
                     $whereStr = " `invoice_date` >= '" . $dateFrom . "' ";
-                } elseif (empty($dateFrom) and !empty($dateTo)) {
+                } elseif (empty($dateFrom) and ! empty($dateTo)) {
                     $whereStr = " `invoice_date` <= '" . $dateTo . "' ";
                 } else {
                     $whereStr = " `invoice_date` BETWEEN '" . $dateFrom . "' AND '" . $dateTo . " 23:59:59' ";
@@ -24,8 +25,8 @@ if (cfr('PRINTRECEIPTS')) {
             }
 
             if (!empty($userLogin)) {
-                $whereStr.= (empty($whereStr)) ? '' : ' AND ';
-                $whereStr.= " `login` = '" . $userLogin . "' ";
+                $whereStr .= (empty($whereStr)) ? '' : ' AND ';
+                $whereStr .= " `login` = '" . $userLogin . "' ";
             }
 
             $data = $receiptsPrinter->getInvoicesData($whereStr);
@@ -61,19 +62,16 @@ if (cfr('PRINTRECEIPTS')) {
             $receiptSaveToDB = wf_getBoolFromVar(ubRouting::post('receiptsaveindb'));
             $receiptTemplate = (ubRouting::checkPost('receipttemplate') and ubRouting::post('receipttemplate') != '-') ? ubRouting::post('receipttemplate') : '';
 
-            $usersPrintData = $receiptsPrinter->getUsersPrintData($receiptServiceType, $receiptUsersStatus, $receiptUserLogin, $receiptDebtCash,
-                                                                  $receiptCity, $receiptStreet, $receiptBuild, $receiptTagID,
-                                                                  $receiptTariffID, $receiptFrozenStatus);
+            $usersPrintData = $receiptsPrinter->getUsersPrintData($receiptServiceType, $receiptUsersStatus, $receiptUserLogin, $receiptDebtCash, $receiptCity, $receiptStreet, $receiptBuild, $receiptTagID, $receiptTariffID, $receiptFrozenStatus);
 
             if (!empty($usersPrintData)) {
-                die($receiptsPrinter->printReceipts($usersPrintData, $receiptServiceName, $receiptPayTillDate, $receiptMonthsCnt,
-                                                    $receiptPayForPeriod, $receiptSaveToDB, $receiptTemplate));
-            } else{
+                die($receiptsPrinter->printReceipts($usersPrintData, $receiptServiceName, $receiptPayTillDate, $receiptMonthsCnt, $receiptPayForPeriod, $receiptSaveToDB, $receiptTemplate));
+            } else {
                 show_warning(__('Query returned empty result'));
             }
         } elseif (ubRouting::checkGet('showhistory')) {
             show_window(__('Issued receipts'), wf_BackLink($receiptsPrinter::URL_ME, __('Back'), true)
-                                               . wf_delimiter(0) . $receiptsPrinter->renderJQDT());
+                    . wf_delimiter(0) . $receiptsPrinter->renderJQDT());
         } else {
             show_window(__('Print receipts'), $receiptsPrinter->renderWebForm());
         }
@@ -83,4 +81,3 @@ if (cfr('PRINTRECEIPTS')) {
 } else {
     show_error(__('Access denied'));
 }
-?>

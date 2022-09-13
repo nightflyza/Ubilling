@@ -6746,3 +6746,20 @@ function zb_ReadLastLines($filePath, $linesCount) {
     }
     return($result);
 }
+
+/**
+ * Calculates something? Some hash? Ask what it was https://github.com/S0liter ;)
+ * 
+ * @param int $numbers Some INN?
+ * 
+ * @return string 
+ */
+function zb_OschadCSgen($numbers) {
+    $result = 0;
+    if (!empty($numbers)) {
+        if (strlen((string) $numbers) >= 10) {
+            $result = $numbers[0] * 10 + $numbers[1] * 11 + $numbers[2] * 12 + $numbers[3] * 13 + $numbers[4] * 14 + $numbers[5] * 15 + $numbers[6] * 16 + $numbers[7] * 17 + $numbers[8] * 18 + $numbers[9] * 19;
+        }
+    }
+    return ($result);
+}
