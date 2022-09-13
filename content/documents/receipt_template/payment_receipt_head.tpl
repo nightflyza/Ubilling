@@ -3,9 +3,9 @@
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no" />
-    <script type="text/javascript" src="../../../modules/jsc/jquery.min.js"></script>
-    <script type="text/javascript" src="../../../modules/jsc/qr_gen_inpage/jquery.qrcode.min.js"></script>
-    <script type="text/javascript" src="../../../modules/jsc/qr_gen_inpage/qrcode.min.js"></script>
+    <script type="text/javascript" src="modules/jsc/jquery.min.js"></script>
+    <script type="text/javascript" src="modules/jsc/qr_gen_inpage/jquery.qrcode.min.js"></script>
+    <script type="text/javascript" src="modules/jsc/qr_gen_inpage/qrcode.min.js"></script>
     <title>TITLE</title>
     <style>
         td.brdr-bottom {
