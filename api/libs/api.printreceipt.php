@@ -1,5 +1,15 @@
 <?php
 
+function oschadCSgen($numbers){
+        if (!empty($numbers)){
+                $numbers = $numbers[0] * 10 + $numbers[1] * 11 + $numbers[2] * 12 + $numbers[3] * 13 + $numbers[4] * 14 + $numbers[5] * 15 + $numbers[6] * 16 + $numbers[7] * 17 + $numbers[8] * 18 + $numbers[9] * 19;
+        }
+        else {
+                return 0;
+        }
+        return $numbers;
+        }
+
 /**
  * Receipts/Bills printing
  */
@@ -211,7 +221,7 @@ class PrintReceipt {
 
         return ($tmpArr);
     }
-
+    
     /**
      * Returns all tags list as tagid => tagname
      *
@@ -383,7 +393,7 @@ class PrintReceipt {
             $query = "SELECT * FROM
                           (SELECT `users`.`login`, `users`.`cash`, `realname`.`realname`, `users`.`Passive`, `tariffs`.`name` AS `tariffname`, `tariffs`.`fee` AS `tariffprice`, 
                                   `contracts`.`contract`, `contractdates`.`date` AS `contractdate`, `phones`.`phone`, `phones`.`mobile`, `emails`.`email`,   
-                                  `tmp_addr`.`cityname` AS `city`, `tmp_addr`.`streetname` AS `street`, `tmp_addr`.`buildnum` AS `build`, `tmp_addr`.`apt`, 
+                                  `tmp_addr`.`cityname` AS `city`, `tmp_addr`.`streetname` AS `street`, `tmp_addr`.`buildnum` AS `build`, `tmp_addr`.`apt`, `passportdata`.`pinn` AS `inn`,
                                   " . $tag_query_str . " 
                                   " . $addrexten_query . "
                                   " . $debtAsBalance . " AS `debtasbalance`                                  
@@ -393,7 +403,8 @@ class PrintReceipt {
                                   LEFT JOIN `contractdates` USING(`contract`)
                                   LEFT JOIN `realname` USING(`login`) 
                                   LEFT JOIN `phones` USING(`login`) 
-                                  LEFT JOIN `emails` USING(`login`)
+				  LEFT JOIN `emails` USING(`login`)
+				  LEFT JOIN `passportdata` USING(`login`)
                                   LEFT JOIN (SELECT `address`.`login`,`city`.`id`,`city`.`cityname`,`street`.`streetname`,`build`.`buildnum`,`apt`.`apt` 
                                                 FROM `address` 
                                                     INNER JOIN `apt` ON `address`.`aptid`= `apt`.`id` 
@@ -441,6 +452,7 @@ class PrintReceipt {
         $rcptTemplateFolder = (empty($rcptTemplateFolder) or $rcptTemplateFolder == '-') ? '' : $rcptTemplateFolder . '/';
         $rawTemplate = file_get_contents(self::TEMPLATE_PATH . $rcptTemplateFolder . "payment_receipt.tpl");
         $rawTemplateHeader = file_get_contents(self::TEMPLATE_PATH . $rcptTemplateFolder . "payment_receipt_head.tpl");
+
         $rawTemplateFooter = file_get_contents(self::TEMPLATE_PATH . $rcptTemplateFolder . "payment_receipt_footer.tpl");
         $printableTemplate = '';
         $qrCodeExtInfo = '';
@@ -577,7 +589,7 @@ class PrintReceipt {
                 $eachUser['realname'], $eachUser['city'], $eachUser['street'], $eachUser['build'],
                 (!empty($eachUser['apt'])) ? '/' . $eachUser['apt'] : '',
                 $eachUser['postal_code'], $eachUser['town_district'], $eachUser['address_exten'],
-                $eachUser['phone'], $eachUser['mobile'],
+                $eachUser['phone'], $eachUser['mobile'], $eachUser['inn'],
                 $eachUser['tariffname'], $eachUser['tariffprice'], $eachUser['tariffprice'] * 100,
                 number_format((float)$eachUser['tariffprice'], 2, '.', ''),
                 $receiptPaySum, $receiptPaySum * 100,
@@ -600,6 +612,7 @@ class PrintReceipt {
                 $rowtemplate = str_ireplace('{QR_CODE_EMBEDDED}', '', $rowtemplate);
             }
 
+
             $rowtemplate = $this->replaceMainTemplateMacro(
                 $rowtemplate,
                 date($formatDates), date($formatTime), date($formatDatesNoDelim),
@@ -607,9 +620,10 @@ class PrintReceipt {
                 date($formatMonthYear, strtotime("+1 month")),
                 $rcptPayTillDate, $rcptServiceName, $eachUser['contract'], $curUsrContractDate,
                 $eachUser['realname'], $eachUser['city'], $eachUser['street'], $eachUser['build'],
-                (!empty($eachUser['apt'])) ? '/' . $eachUser['apt'] : '',
+		(!empty($eachUser['apt'])) ? '/' . $eachUser['apt'] : '',
+		$eachUser['apt'],
                 $eachUser['postal_code'], $eachUser['town_district'], $eachUser['address_exten'],
-                $eachUser['phone'], $eachUser['mobile'],
+                $eachUser['phone'], $eachUser['mobile'], $eachUser['inn'], CSgen($eachUser['inn']),
                 $eachUser['tariffname'], $eachUser['tariffprice'], $eachUser['tariffprice'] * 100,
                 number_format((float)$eachUser['tariffprice'], 2, '.', ''),
                 $receiptPaySum, $receiptPaySum * 100,
@@ -676,9 +690,9 @@ class PrintReceipt {
                                              $tplCurTimeNoDelims = '', $tplInvoiceNum = '', $tplMonthCnt = '',
                                              $tplPayForPeriodStr = '', $tplPayTillMnthYr = '', $tplPayTillDate = '',
                                              $tplSrvName = '', $tplContract = '', $tplContractDate = '',
-                                             $tplRealName = '', $tplCity = '', $tplStreet = '', $tplBuild = '', $tplApt = '',
+                                             $tplRealName = '', $tplCity = '', $tplStreet = '', $tplBuild = '', $tplApt = '', $tplAPT2 = '',
                                              $tplEAddrPostCode = '', $tplEAddrTwnDstr = '', $tplEAddrExt = '',
-                                             $tplPhone = '', $tplMobile = '',
+                                             $tplPhone = '', $tplMobile = '', $tplInn = '', $tploshadCS = '',
                                              $tplTariff = '', $tplTrfPrice = 0, $tplTrfPriceCoins = 0, $tplTrfPriceDecimals = 0,
                                              $tplSumm = 0, $tplSummCoins = 0, $tplSummDecimals = 0
                                             ) {
@@ -699,11 +713,14 @@ class PrintReceipt {
         $rcptTemplate = str_ireplace('{CITY}', $tplCity, $rcptTemplate);
         $rcptTemplate = str_ireplace('{STREET}', $tplStreet, $rcptTemplate);
         $rcptTemplate = str_ireplace('{BUILD}', $tplBuild, $rcptTemplate);
-        $rcptTemplate = str_ireplace('{APT}', $tplApt, $rcptTemplate);
+	$rcptTemplate = str_ireplace('{APT}', $tplApt, $rcptTemplate);
+	$rcptTemplate = str_ireplace('{APT2}', $tplAPT2, $rcptTemplate);
         $rcptTemplate = str_ireplace('{EXTADDR_POSTALCODE}', $tplEAddrPostCode, $rcptTemplate);
         $rcptTemplate = str_ireplace('{EXTADDR_TOWNDISTR}', $tplEAddrTwnDstr, $rcptTemplate);
         $rcptTemplate = str_ireplace('{EXTADDR_ADDREXT}', $tplEAddrExt, $rcptTemplate);
-        $rcptTemplate = str_ireplace('{PHONE}', $tplPhone, $rcptTemplate);
+	$rcptTemplate = str_ireplace('{PHONE}', $tplPhone, $rcptTemplate);
+	$rcptTemplate = str_ireplace('{INN}', $tplInn, $rcptTemplate);
+	$rcptTemplate = str_ireplace('{oshadCS}', $tploshadCS, $rcptTemplate);
         $rcptTemplate = str_ireplace('{MOBILE}', $tplMobile, $rcptTemplate);
         $rcptTemplate = str_ireplace('{TARIFF}', $tplTariff, $rcptTemplate);
         $rcptTemplate = str_ireplace('{TARIFFPRICE}', $tplTrfPrice, $rcptTemplate);
