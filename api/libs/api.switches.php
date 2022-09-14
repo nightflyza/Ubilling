@@ -316,9 +316,13 @@ function ub_SwitchModelDelete($modelId) {
  * @return string
  */
 function web_SwitchUplinkSelector($name, $label = '', $selected = '', $currentSwitchId = '') {
+    global $ubillingConfig;
+    $result = '';
     $tmpArr = array('' => '-');
     $validSwitches = array();
     $allswitchesRaw = array();
+    $searchableFlag = ($ubillingConfig->getAlterParam('SWITCHUPL_SEARCHBL')) ? true : false;
+
     $query = "SELECT * from `switches` WHERE `desc` NOT LIKE '%NP%' AND `geo` != '' ORDER BY `location` ASC;";
     $allswitches = simple_queryall($query);
     if (!empty($allswitches)) {
@@ -353,7 +357,11 @@ function web_SwitchUplinkSelector($name, $label = '', $selected = '', $currentSw
         }
     }
 
-    $result = wf_Selector($name, $tmpArr, $label, $selected, false);
+    if ($searchableFlag) {
+        $result .= wf_SelectorSearchable($name, $tmpArr, $label, $selected, false);
+    } else {
+        $result .= wf_Selector($name, $tmpArr, $label, $selected, false);
+    }
     return ($result);
 }
 
@@ -1999,12 +2007,12 @@ function zb_SwitchReplace($fromId, $toId, $employeeId) {
                 $switchPortAssignDb->where('switchid', '=', $fromId);
                 $switchPortAssignDb->data('switchid', $toId);
                 $switchPortAssignDb->save();
-                 // update qinq swithc delegation
+                // update qinq swithc delegation
                 if ($ubillingConfig->getAlterParam('QINQ_ENABLED') and $ubillingConfig->getAlterParam('QINQ_SWITCH_AUTOREPLACE')) {
-                        $switchesQinqDb = new NyanORM('switches_qinq');
-                        $switchesQinqDb->where('switchid', '=', $fromId);
-                        $switchesQinqDb->data('switchid', $toId);
-                        $switchesQinqDb->save();
+                    $switchesQinqDb = new NyanORM('switches_qinq');
+                    $switchesQinqDb->where('switchid', '=', $fromId);
+                    $switchesQinqDb->data('switchid', $toId);
+                    $switchesQinqDb->save();
                 }
             }
         }
