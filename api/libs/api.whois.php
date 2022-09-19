@@ -194,4 +194,17 @@ class UbillingWhois {
         return ($result);
     }
 
+    /**
+     * Public resolved IP geo data getter
+     * 
+     * @return array
+     */
+    public function getIpData() {
+        $result = array();
+        if (!empty($this->ip) AND ! empty($this->ipData)) {
+            $result = $this->ipData[$this->ip];
+        }
+        return($result);
+    }
+
 }
