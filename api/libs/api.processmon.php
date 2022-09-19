@@ -154,7 +154,7 @@ class ProcessMon {
                     $cells .= wf_TableCell($activityLed, '', '', 'sorttable_customkey="' . $activityFlag . '"');
                     $cells .= wf_TableCell($startTime);
                     $cells .= wf_TableCell($endTime);
-                    $cells .= wf_TableCell($runningLabel . $execTime);
+                    $cells .= wf_TableCell($runningLabel . $execTime, '', '', 'sorttable_customkey="' . $processData['realtime'] . '"');
                     $rows .= wf_TableRow($cells, 'row5');
                     $counter++;
                 }
