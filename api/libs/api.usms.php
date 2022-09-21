@@ -125,14 +125,18 @@ class UbillingSMS {
         $smsQueue = rcms_scandir(self::QUEUE_PATH);
         if (!empty($smsQueue)) {
             foreach ($smsQueue as $io => $eachsmsfile) {
-                $smsDate = date("Y-m-d H:i:s", filectime(self::QUEUE_PATH . $eachsmsfile));
-                $smsData = rcms_parse_ini_file(self::QUEUE_PATH . $eachsmsfile);
-
-                $result[$io]['filename'] = $eachsmsfile;
-                $result[$io]['date'] = $smsDate;
-                $result[$io]['number'] = $smsData['NUMBER'];
-                $result[$io]['message'] = $smsData['MESSAGE'];
-                $result[$io]['smssrvid'] = (isset($smsData['SMSSRVID'])) ? $smsData['SMSSRVID'] : 0;
+                //try to prevent race condition due running sending process
+                if (file_exists(self::QUEUE_PATH . $eachsmsfile)) {
+                    $smsData = rcms_parse_ini_file(self::QUEUE_PATH . $eachsmsfile);
+                    @$smsDate = date("Y-m-d H:i:s", filectime(self::QUEUE_PATH . $eachsmsfile));
+                    if ($smsData) {
+                        $result[$io]['filename'] = $eachsmsfile;
+                        $result[$io]['date'] = $smsDate;
+                        $result[$io]['number'] = $smsData['NUMBER'];
+                        $result[$io]['message'] = $smsData['MESSAGE'];
+                        $result[$io]['smssrvid'] = (isset($smsData['SMSSRVID'])) ? $smsData['SMSSRVID'] : 0;
+                    }
+                }
             }
         }
         return ($result);
@@ -157,6 +161,7 @@ class UbillingSMS {
         }
         return ($result);
     }
+
 }
 
 ?>
