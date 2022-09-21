@@ -3424,3 +3424,4 @@ $lang['def']['Run the dog'] = 'Подгонять собаку';
 $lang['def']['Already running'] = 'Уже запущено';
 $lang['def']['Background processes'] = 'Фоновые процесы';
 $lang['def']['processes'] = 'процессов';
+$lang['def']['No branch'] = 'Без филиала';

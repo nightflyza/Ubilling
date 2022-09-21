@@ -647,7 +647,7 @@ class SMSZilla {
             $result = $onlineLeftCount;
         }
         return ($result);
-        }
+    }
 
     /**
      * Returns user online to date
@@ -689,6 +689,7 @@ class SMSZilla {
             'filteraddress' => 'Address contains',
             'filterao' => 'User is AlwaysOnline',
             'filterbranch' => 'Branch',
+            'filternobranch' => 'No branch',
             'filtercashdays' => 'Balance is enought less than days',
             'filtercashgreater' => 'Balance is greater than',
             'filtercashlesser' => 'Balance is less than',
@@ -1589,6 +1590,7 @@ class SMSZilla {
                 $inputs .= wf_CheckInput('newfilternotariff', __('User have no tariff assigned'), true, false);
                 $inputs .= wf_CheckInput('newfilterextmobiles', __('Use additional mobiles'), true, false);
                 $inputs .= wf_Selector('newfilterbranch', $branchParams, __('Branch'), '', true, false);
+                $inputs .= wf_CheckInput('newfilternobranch', __('No branch'), true, false);
                 $inputs .= wf_Selector('newfilterdistrict', $districtsParams, __('District'), '', true, false);
             }
 
@@ -2977,6 +2979,30 @@ class SMSZilla {
                     case 'login':
                         foreach ($this->filteredEntities as $io => $entity) {
                             if ($this->branches->userGetBranch($entity['login']) != $param) {
+                                unset($this->filteredEntities[$entity['login']]);
+                            }
+                        }
+                        break;
+                }
+            }
+        }
+    }
+
+    /**
+     * Users without branch filter
+     * 
+     * @param string $direction
+     * @param string $param
+     * 
+     * @return void
+     */
+    protected function filternobranch($direction, $param) {
+        if (!empty($param)) {
+            if (!empty($this->filteredEntities)) {
+                switch ($direction) {
+                    case 'login':
+                        foreach ($this->filteredEntities as $io => $entity) {
+                            if ($this->branches->userGetBranch($entity['login'])) {
                                 unset($this->filteredEntities[$entity['login']]);
                             }
                         }
