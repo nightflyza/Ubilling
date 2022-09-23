@@ -55,3 +55,4 @@ $lang['def']['All cameras live by themselves'] = 'Все камеры живут
 $lang['def']['no primary account set'] = 'не установлен основной аккаунт';
 $lang['def']['Funds for cameras will be charged from the main account at the end of the month'] = 'Денежные средства для камер будут сняты с основного аккаунта в конце месяца';
 $lang['def']['Main account is frozen'] = 'Основной аккаунт заморожен';
+$lang['def']['What are your forgot there'] = 'Что ты здесь забыл';

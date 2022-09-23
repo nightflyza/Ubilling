@@ -189,4 +189,3 @@ if (cfr('VISOR')) {
 } else {
     show_error(__('Access denied'));
 }
-?>

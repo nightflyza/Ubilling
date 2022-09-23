@@ -174,6 +174,13 @@ class UbillingVisor {
     protected $trassirDebug = false;
 
     /**
+     * Contains array of users with protected from unprivileged staff
+     *
+     * @var array
+     */
+    protected $protectedUserIds = array();
+
+    /**
      * Basic module URLs
      */
     const URL_ME = '?module=visor';
@@ -248,6 +255,11 @@ class UbillingVisor {
 
         if (@$this->altCfg['TRASSIR_DEBUG']) {
             $this->trassirDebug = $this->altCfg['TRASSIR_DEBUG'];
+        }
+
+        if (@$this->altCfg['VISOR_PROTUSERIDS']) {
+            $rawProtUsers = explode(',', $this->altCfg['VISOR_PROTUSERIDS']);
+            $this->protectedUserIds = array_flip($rawProtUsers);
         }
     }
 
@@ -924,6 +936,27 @@ class UbillingVisor {
     }
 
     /**
+     * Checks is channel operations protected for unpriviliged users?
+     * 
+     * @param int $userId
+     * 
+     * @return bool
+     */
+    protected function isChansProtected($userId) {
+        $result = false;
+        if (cfr('ROOT')) {
+            //thats is superuser
+            $result = false;
+        } else {
+            //is userId private?
+            if (isset($this->protectedUserIds[$userId])) {
+                $result = true;
+            }
+        }
+        return($result);
+    }
+
+    /**
      * Renders list of user assigned channels with their preview and optional assign form
      * 
      * @param int $userId
@@ -935,53 +968,60 @@ class UbillingVisor {
         $userId = ubRouting::filters($userId, 'int');
         if ($this->trassirEnabled) {
             if (ubRouting::checkGet('chanspreview')) {
-                $result .= wf_tag('h2', false) . __('Channels') . wf_tag('h2', true);
-                $result .= wf_tag('div', false);
+                if (!$this->isChansProtected($userId)) {
+                    $result .= wf_tag('h2', false) . __('Channels') . wf_tag('h2', true);
+                    $result .= wf_tag('div', false);
 
-                //assigned channels list
-                if (isset($this->allChannels[$userId])) {
-                    if (!empty($this->allChannels[$userId])) {
-                        foreach ($this->allChannels[$userId] as $io => $eachChan) {
-                            $chanDvrData = $this->allDvrs[$eachChan['dvrid']];
-                            if ($chanDvrData['type'] == 'trassir') {
-                                $dvrGate = new TrassirServer($chanDvrData['ip'], $chanDvrData['login'], $chanDvrData['password'], $chanDvrData['apikey'], $chanDvrData['port'], $this->trassirDebug);
+                    //assigned channels list
+                    if (isset($this->allChannels[$userId])) {
+                        if (!empty($this->allChannels[$userId])) {
+                            foreach ($this->allChannels[$userId] as $io => $eachChan) {
+                                $chanDvrData = $this->allDvrs[$eachChan['dvrid']];
+                                if ($chanDvrData['type'] == 'trassir') {
+                                    $dvrGate = new TrassirServer($chanDvrData['ip'], $chanDvrData['login'], $chanDvrData['password'], $chanDvrData['apikey'], $chanDvrData['port'], $this->trassirDebug);
 
-                                $streamUrl = $dvrGate->getLiveVideoStream($eachChan['chan'], 'main', $this->chanPreviewContainer, $this->chanPreviewQuality, $this->chanPreviewFramerate, $chanDvrData['customurl']);
-                                $result .= wf_tag('div', false, 'whiteboard', 'style="width:' . $this->chanPreviewSize . ';"');
-                                $chanEditLabel = web_edit_icon() . ' ' . __('Edit') . ' ' . __('channel');
-                                if (cfr('VISOREDIT')) {
-                                    $channelEditControl = wf_Link(self::URL_ME . self::URL_CHANEDIT . $eachChan['chan'] . '&dvrid=' . $eachChan['dvrid'], $chanEditLabel);
-                                } else {
-                                    $channelEditControl = '';
+                                    $streamUrl = $dvrGate->getLiveVideoStream($eachChan['chan'], 'main', $this->chanPreviewContainer, $this->chanPreviewQuality, $this->chanPreviewFramerate, $chanDvrData['customurl']);
+                                    $result .= wf_tag('div', false, 'whiteboard', 'style="width:' . $this->chanPreviewSize . ';"');
+                                    $chanEditLabel = web_edit_icon() . ' ' . __('Edit') . ' ' . __('channel');
+                                    if (cfr('VISOREDIT')) {
+                                        $channelEditControl = wf_Link(self::URL_ME . self::URL_CHANEDIT . $eachChan['chan'] . '&dvrid=' . $eachChan['dvrid'], $chanEditLabel);
+                                    } else {
+                                        $channelEditControl = '';
+                                    }
+                                    $result .= $eachChan['chan'];
+                                    $result .= wf_tag('br');
+                                    $result .= $this->renderChannelPlayer($streamUrl, '90%', true);
+
+                                    $result .= wf_tag('div', false, 'todaysig');
+                                    $result .= $channelEditControl;
+                                    $result .= wf_tag('div', true);
+
+                                    $result .= wf_CleanDiv();
+                                    $result .= wf_tag('div', true);
                                 }
-                                $result .= $eachChan['chan'];
-                                $result .= wf_tag('br');
-                                $result .= $this->renderChannelPlayer($streamUrl, '90%', true);
-
-                                $result .= wf_tag('div', false, 'todaysig');
-                                $result .= $channelEditControl;
-                                $result .= wf_tag('div', true);
-
-                                $result .= wf_CleanDiv();
-                                $result .= wf_tag('div', true);
                             }
                         }
+                    } else {
+                        $result .= $this->messages->getStyledMessage(__('User have no channels assigned'), 'warning');
                     }
+
+                    $result .= wf_CleanDiv();
+                    $result .= wf_tag('div', true, '');
+
+                    //unassigned channels list
+                    $result .= $this->renderUnassignedChannels($userId);
+
+                    $result .= wf_delimiter();
+                    $result .= wf_BackLink(self::URL_ME . self::URL_USERVIEW . $userId);
                 } else {
-                    $result .= $this->messages->getStyledMessage(__('User have no channels assigned'), 'warning');
+                    log_register('VISOR USER [' . $userId . '] CHAN ACCESS VIOLATION');
+                    show_error(__('What are your forgot there') . '?');
                 }
-
-                $result .= wf_CleanDiv();
-                $result .= wf_tag('div', true, '');
-
-                //unassigned channels list
-                $result .= $this->renderUnassignedChannels($userId);
-
-                $result .= wf_delimiter();
-                $result .= wf_BackLink(self::URL_ME . self::URL_USERVIEW . $userId);
             } else {
-                $result .= wf_delimiter();
-                $result .= wf_Link(self::URL_ME . self::URL_USERVIEW . $userId . '&chanspreview=true', web_green_led() . ' ' . __('Channels'), false, 'ubButton');
+                if (!$this->isChansProtected($userId)) {
+                    $result .= wf_delimiter();
+                    $result .= wf_Link(self::URL_ME . self::URL_USERVIEW . $userId . '&chanspreview=true', web_green_led() . ' ' . __('Channels'), false, 'ubButton');
+                }
             }
         }
         return($result);
