@@ -3703,7 +3703,7 @@ function zb_BillingStats($quiet = false, $modOverride = '') {
             $referrer = (isset($_SERVER['HTTP_REFERER'])) ? $_SERVER['HTTP_REFERER'] : '';
             $curlStats = curl_init($statsurl);
             curl_setopt($curlStats, CURLOPT_RETURNTRANSFER, 1);
-            curl_setopt($curlStats, CURLOPT_CONNECTTIMEOUT, 2);
+            curl_setopt($curlStats, CURLOPT_CONNECTTIMEOUT, 1);
             curl_setopt($curlStats, CURLOPT_TIMEOUT, 2);
             curl_setopt($curlStats, CURLOPT_USERAGENT, 'UBTRACK2');
             if (!empty($referrer)) {
