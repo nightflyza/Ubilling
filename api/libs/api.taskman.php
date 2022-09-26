@@ -25,28 +25,30 @@ function em_TagSelector($name, $label = '', $selected = '', $br = false) {
  * 
  * @return void
  */
-function em_EmployeeShowForm() {
+function em_EmployeeRenderList() {
     $show_q = "SELECT * from `employee`";
     $allemployee = simple_queryall($show_q);
     $allTagNames = stg_get_alltagnames();
-
-    $cells = wf_TableCell(__('ID'));
-    $cells .= wf_TableCell(__('Real Name'));
-    $cells .= wf_TableCell(__('Active'));
-    $cells .= wf_TableCell(__('Appointment'));
-    $cells .= wf_TableCell(__('Mobile'));
-    $cells .= wf_TableCell(__('Chat ID') . ' ' . __('Telegram'));
-    $cells .= wf_TableCell(__('Administrator'));
-    $cells .= wf_TableCell(__('Tag'));
-    $cells .= wf_TableCell(__('Monthly top up limit'));
-    $cells .= wf_TableCell(__('Actions'));
-    $rows = wf_TableRow($cells, 'row1');
+    $messages = new UbillingMessageHelper();
+    $result = '';
 
     if (!empty($allemployee)) {
+        $cells = wf_TableCell(__('ID'));
+        $cells .= wf_TableCell(__('Real Name'));
+        $cells .= wf_TableCell(__('Active'));
+        $cells .= wf_TableCell(__('Appointment'));
+        $cells .= wf_TableCell(__('Mobile'));
+        $cells .= wf_TableCell(__('Chat ID') . ' ' . __('Telegram'));
+        $cells .= wf_TableCell(__('Administrator'));
+        $cells .= wf_TableCell(__('Tag'));
+        $cells .= wf_TableCell(__('Monthly top up limit'));
+        $cells .= wf_TableCell(__('Actions'));
+        $rows = wf_TableRow($cells, 'row1');
+
         foreach ($allemployee as $ion => $eachemployee) {
             $cells = wf_TableCell($eachemployee['id']);
             $cells .= wf_TableCell($eachemployee['name']);
-            $cells .= wf_TableCell(web_bool_led($eachemployee['active']));
+            $cells .= wf_TableCell(web_bool_led($eachemployee['active']), '', '', 'sorttable_customkey="' . $eachemployee['active'] . '"');
             $cells .= wf_TableCell($eachemployee['appointment']);
             $cells .= wf_TableCell($eachemployee['mobile']);
             $cells .= wf_TableCell($eachemployee['telegram']);
@@ -62,32 +64,139 @@ function em_EmployeeShowForm() {
             $employeeTagLabel = (!empty($employeeTagName)) ? $employeeTagName . ' (' . $employeeTagId . ')' : '';
             $cells .= wf_TableCell($employeeTagLabel);
             $cells .= wf_TableCell($eachemployee['amountLimit']);
-            $actions = wf_JSAlert('?module=employee&delete=' . $eachemployee['id'], web_delete_icon(), 'Removing this may lead to irreparable results');
-            $actions .= wf_JSAlert('?module=employee&edit=' . $eachemployee['id'], web_edit_icon(), 'Are you serious');
+            $urlDelete = '?module=employee&deleteemployee=' . $eachemployee['id'];
+            $urlEdit = '?module=employee&editemployee=' . $eachemployee['id'];
+            $urlCancel = '?module=employee';
+
+            $actions = wf_ConfirmDialog($urlDelete, web_delete_icon(), $messages->getDeleteAlert(), '', $urlCancel, __('Delete') . '?');
+            $actions .= wf_Link($urlEdit, web_edit_icon());
             $cells .= wf_TableCell($actions);
             $rows .= wf_TableRow($cells, 'row5');
         }
+//existing employee list
+        $result = wf_TableBody($rows, '100%', '0', 'sortable');
+    } else {
+        $result .= $messages->getStyledMessage(__('Nothing to show'), 'warning');
     }
 
-    //new employee create form inputs  
+
+    $creationLink = wf_modalAuto(wf_img_sized('skins/add_icon.png', __('Create new employee')), __('Create new employee'), em_EmployeeCreateForm());
+    show_window(__('Employee') . ' ' . $creationLink, $result);
+}
+
+/**
+ * Renders employee creation form
+ * 
+ * @return string
+ */
+function em_EmployeeCreateForm() {
+    $result = '';
     $inputs = wf_HiddenInput('addemployee', 'true');
-    $inputs .= wf_TableCell('');
-    $inputs .= wf_TableCell(wf_TextInput('employeename', '', '', false, 15));
-    $inputs .= wf_TableCell('');
-    $inputs .= wf_TableCell(wf_TextInput('employeejob', '', '', false, 10));
-    $inputs .= wf_TableCell(wf_TextInput('employeemobile', '', '', false, 10, 'mobile'));
-    $inputs .= wf_TableCell(wf_TextInput('employeetelegram', '', '', false, 10));
-    $inputs .= wf_TableCell(wf_TextInput('employeeadmlogin', '', '', false, 8));
-    $inputs .= wf_TableCell(em_TagSelector('editadtagid'));
-    $inputs .= wf_TableCell(wf_TextInput('amountLimit', '', '', false, 5, 'finance'));
-    $inputs .= wf_TableCell(wf_Submit(__('Create')));
-    $inputs = wf_TableRow($inputs, 'row2');
-    $addForm = wf_Form("", 'POST', $inputs, '');
-    $rows .= $addForm;
+    $inputs .= wf_TextInput('employeename', 'Employee real name', '', true, 25);
+    $inputs .= wf_TextInput('employeejob', 'Appointment', '', true, 15);
+    $inputs .= wf_TextInput('employeemobile', 'Mobile', '', true, 15, 'mobile');
+    $inputs .= wf_TextInput('employeetelegram', 'Chat ID', '', true, 15, 'digits');
+    $inputs .= wf_TextInput('employeeadmlogin', 'Administrator', '', true, 15);
+    $inputs .= em_TagSelector('editadtagid', __('Tag'));
+    $inputs .= wf_delimiter(0);
+    $inputs .= wf_TextInput('amountLimit', 'Monthly top up limit', '', true, 5, 'finance');
+    $inputs .= wf_delimiter(0);
+    $inputs .= wf_Submit(__('Create new employee'));
 
-    $result = wf_TableBody($rows, '100%', '0', '');
+    $result .= wf_Form('', 'POST', $inputs, 'glamour');
+    return($result);
+}
 
-    show_window(__('Employee'), $result);
+/**
+ * Saves changes in existing employee
+ * 
+ * @param int $editemployee
+ * 
+ * @return void
+ */
+function em_EmployeeSave($editemployee) {
+    $editemployee = ubRouting::filters($editemployee, 'int');
+    if (ubRouting::checkPost('editname')) {
+        $employeeDb = new NyanORM('employee');
+        $actFlag = (ubRouting::checkPost('editactive')) ? 1 : 0;
+        $amountLim = (ubRouting::checkPost('amountLimit')) ? ubRouting::post('amountLimit') : 0;
+        $employeeDb->data('name', ubRouting::post('editname', 'mres'));
+        $employeeDb->data('appointment', ubRouting::post('editappointment', 'mres'));
+        $employeeDb->data('mobile', ubRouting::post('editmobile', 'mres'));
+        $employeeDb->data('telegram', ubRouting::post('edittelegram', 'mres'));
+        $employeeDb->data('admlogin', ubRouting::post('editadmlogin', 'mres'));
+        $employeeDb->data('tagid', ubRouting::post('editadtagid', 'int'));
+        $employeeDb->data('amountLimit', $amountLim);
+        $employeeDb->data('active', $actFlag);
+        $employeeDb->where('id', '=', $editemployee);
+        $employeeDb->save();
+
+        log_register('EMPLOYEE CHANGE [' . $editemployee . ']');
+    }
+}
+
+/**
+ * Renders employee editing form
+ * 
+ * @param int $editemployee
+ * 
+ * @return string
+ */
+function em_employeeEditForm($editemployee) {
+    $result = '';
+    $editemployee = ubRouting::filters($editemployee, 'int');
+    $employeedata = stg_get_employee_data($editemployee);
+    $actflag = ($employeedata['active']) ? true : false;
+
+    $editinputs = wf_TextInput('editname', 'Real Name', $employeedata['name'], true, 20);
+    $editinputs .= wf_TextInput('editappointment', 'Appointment', $employeedata['appointment'], true, 20);
+    $editinputs .= wf_TextInput('editmobile', __('Mobile'), $employeedata['mobile'], true, 20);
+    $editinputs .= wf_TextInput('edittelegram', __('Chat ID') . ' ' . __('Telegram'), $employeedata['telegram'], true, 20, 'digits');
+    $editinputs .= wf_TextInput('editadmlogin', __('Administrator'), $employeedata['admlogin'], true, 20);
+    $editinputs .= em_TagSelector('editadtagid', __('Tag'), $employeedata['tagid'], true);
+    $editinputs .= wf_TextInput('amountLimit', __('Monthly top up limit'), $employeedata['amountLimit'], true, 20, 'finance');
+    $editinputs .= wf_CheckInput('editactive', 'Active', true, $actflag);
+    $editinputs .= wf_Submit('Save');
+    $result .= wf_Form('', 'POST', $editinputs, 'glamour');
+
+    return($result);
+}
+
+/**
+ * Renders existing job type editing form
+ * 
+ * @param int $editjobId
+ * 
+ * @return string
+ */
+function em_JobTypeEditForm($editjobId) {
+    $result = '';
+    $editjobId = ubRouting::filters($editjobId, 'int');
+    $jobdata = stg_get_jobtype_name($editjobId);
+    $jobcolor = stg_get_jobtype_color($editjobId);
+    $jobinputs = wf_TextInput('editjobtype', 'Job type', $jobdata, true, 20);
+    $jobinputs .= wf_ColPicker('editjobcolor', __('Color'), $jobcolor, true, 10);
+    $jobinputs .= wf_Submit('Save');
+    $result .= wf_Form('', 'POST', $jobinputs, 'glamour');
+    return($result);
+}
+
+/**
+ * Saves changes in existing job type
+ * 
+ * @param type $editjobId
+ * 
+ * @return void
+ */
+function em_JobTypeSave($editjobId) {
+    if (ubRouting::checkPost('editjobtype')) {
+        $jobTypesDb = new NyanORM('jobtypes');
+        $jobTypesDb->data('jobname', ubRouting::post('editjobtype', 'mres'));
+        $jobTypesDb->data('jobcolor', ubRouting::post('editjobcolor', 'mres'));
+        $jobTypesDb->where('id', '=', $editjobId);
+        $jobTypesDb->save();
+        log_register('JOBTYPE CHANGE [' . $editjobId . '] `' . ubRouting::post('editjobtype') . '`');
+    }
 }
 
 /**
@@ -95,10 +204,10 @@ function em_EmployeeShowForm() {
  * 
  * @return void
  */
-function em_JobTypeForm() {
+function em_JobTypeRenderList() {
     $show_q = "SELECT * from `jobtypes`";
     $alljobs = simple_queryall($show_q);
-
+    $messages = new UbillingMessageHelper();
     $cells = wf_TableCell(__('ID'));
     $cells .= wf_TableCell(__('Job type'));
     $cells .= wf_TableCell(__('Color'));
@@ -111,25 +220,42 @@ function em_JobTypeForm() {
             $cells .= wf_TableCell($eachjob['jobname']);
             $jobColor = (!empty($eachjob['jobcolor'])) ? wf_tag('font', false, '', 'color="' . $eachjob['jobcolor'] . '"') . $eachjob['jobcolor'] . wf_tag('font', true) : '';
             $cells .= wf_TableCell($jobColor);
-            $actionlinks = wf_JSAlert('?module=employee&deletejob=' . $eachjob['id'], web_delete_icon(), 'Removing this may lead to irreparable results') . ' ';
-            $actionlinks .= wf_JSAlert('?module=employee&editjob=' . $eachjob['id'], web_edit_icon(), 'Are you serious');
+
+            $urlDelete = '?module=employee&deletejob=' . $eachjob['id'];
+            $urlEdit = '?module=employee&editjob=' . $eachjob['id'];
+            $urlCancel = '?module=employee';
+
+            $actionlinks = wf_ConfirmDialog($urlDelete, web_delete_icon(), $messages->getDeleteAlert(), '', $urlCancel, __('Delete') . '?');
+            $actionlinks .= wf_Link($urlEdit, web_edit_icon());
+
+
             $cells .= wf_TableCell($actionlinks);
-            $rows .= wf_TableRow($cells, 'row3');
+            $rows .= wf_TableRow($cells, 'row5');
         }
     }
 
+
+
+    $result = wf_TableBody($rows, '100%', '0', 'sortable');
+    $creationLink = wf_modalAuto(wf_img_sized('skins/add_icon.png', __('Create') . ' ' . __('Job type')), __('Create') . ' ' . __('Job type'), em_JobTypeCreateForm());
+    show_window(__('Job types') . ' ' . $creationLink, $result);
+}
+
+/**
+ * Returns new job type creation form
+ * 
+ * @return string
+ */
+function em_JobTypeCreateForm() {
+    $result = '';
     $inputs = wf_HiddenInput('addjobtype', 'true');
-    $inputs .= wf_TableCell('');
-    $inputs .= wf_TableCell(wf_TextInput('newjobtype', '', '', false, '30'));
-    $inputs .= wf_TableCell(wf_ColPicker('newjobcolor', __('Color'), '', false, 8));
-    $inputs .= wf_TableCell(wf_Submit(__('Create')));
-    $inputs = wf_TableRow($inputs, 'row2');
-    $createForm = wf_Form("", 'POST', $inputs, '');
-    $rows .= $createForm;
+    $inputs .= wf_TextInput('newjobtype', __('Job type'), '', true, 30);
+    $inputs .= wf_ColPicker('newjobcolor', __('Color'), '', true, 8);
+    $inputs .= wf_Submit(__('Create'));
 
-    $result = wf_TableBody($rows, '100%', '0', '');
+    $result .= wf_Form('', 'POST', $inputs, 'glamour');
 
-    show_window(__('Job types'), $result);
+    return($result);
 }
 
 /**
@@ -280,7 +406,7 @@ function web_showPreviousJobs($username) {
 
     if (!empty($alljobs)) {
         foreach ($alljobs as $ion => $eachjob) {
-            //backlink to taskman if some TASKID inside
+//backlink to taskman if some TASKID inside
             if (ispos($eachjob['note'], 'TASKID:[')) {
                 $taskid = vf($eachjob['note'], 3);
                 $jobnote = wf_Link("?module=taskman&&edittask=" . $taskid, __('Task is done') . ' #' . $taskid, false, '');
@@ -301,7 +427,7 @@ function web_showPreviousJobs($username) {
     }
 
     if (cfr('JOBSMGMT')) {
-        //onstruct job create form
+//onstruct job create form
         $curdatetime = curdatetime();
         $inputs = wf_HiddenInput('addjob', 'true');
         $inputs .= wf_HiddenInput('jobdate', $curdatetime);
@@ -485,7 +611,7 @@ function ts_GetAllJobtypesColorStyles() {
             }
         }
     }
-    //anyone optional coloring
+//anyone optional coloring
 
     $customJobColorStyle .= '.jobcoloranyone,
                                                    .jobcoloranyone div,
@@ -596,7 +722,7 @@ function ts_JGetUndoneTasks() {
     $branchConsider = ($ubillingConfig->getAlterParam('BRANCHES_ENABLED')
             and $ubillingConfig->getAlterParam('TASKMAN_BRANCHES_CONSIDER_ON'));
 
-    //ADcomments init
+//ADcomments init
     if ($altCfg['ADCOMMENTS_ENABLED']) {
         $adcomments = new ADcomments('TASKMAN');
         $adcFlag = true;
@@ -611,9 +737,9 @@ function ts_JGetUndoneTasks() {
     $appendQueryJOIN = '';
     $appendQuerySelect = '';
 
-    //per employee filtering
+//per employee filtering
     $displaytype = (isset($_POST['displaytype'])) ? $_POST['displaytype'] : 'all';
-    //administrator is cursed of some branch
+//administrator is cursed of some branch
     if (ts_isMeBranchCursed()) {
         $displaytype = 'onlyme';
     }
@@ -676,7 +802,7 @@ function ts_JGetUndoneTasks() {
                 $enddate = $startdate;
             }
 
-            //custom task color preprocessing
+//custom task color preprocessing
             if (isset($alljobdata[$eachtask['jobtype']])) {
                 if (!empty($alljobdata[$eachtask['jobtype']]['jobcolor'])) {
                     $jobColorClass = 'jobcolorcustom_' . $eachtask['jobtype'];
@@ -687,14 +813,14 @@ function ts_JGetUndoneTasks() {
                 $jobColorClass = 'undone';
             }
 
-            //anyone employee coloring
+//anyone employee coloring
             if ($anyoneId) {
                 if ($eachtask['employee'] == $anyoneId) {
                     $jobColorClass = 'jobcoloranyone';
                 }
             }
 
-            //time ordering
+//time ordering
             if (!empty($eachtask['starttime'])) {
                 $startTime = $eachtask['starttime'];
                 $startTime = substr($startTime, 0, 5) . ' ';
@@ -704,7 +830,7 @@ function ts_JGetUndoneTasks() {
                 $startTimeTimestamp = '';
             }
 
-            //adcomments detect
+//adcomments detect
             if ($adcFlag) {
                 $adcommentsCount = $adcomments->getCommentsCount($eachtask['id']);
             } else {
@@ -717,7 +843,7 @@ function ts_JGetUndoneTasks() {
                 $adcText = '';
             }
 
-            // get users's branch
+// get users's branch
             $branchName = ($branchConsider) ? ' ' . $eachtask['branch_name'] . ' ' : '';
 
             $result .= "
@@ -752,7 +878,7 @@ function ts_JGetDoneTasks() {
     $branchConsider = ($ubillingConfig->getAlterParam('BRANCHES_ENABLED')
             and $ubillingConfig->getAlterParam('TASKMAN_BRANCHES_CONSIDER_ON'));
 
-    //ADcomments init
+//ADcomments init
     if ($altCfg['ADCOMMENTS_ENABLED']) {
         $adcomments = new ADcomments('TASKMAN');
         $adcFlag = true;
@@ -761,17 +887,17 @@ function ts_JGetDoneTasks() {
     }
     $allemployee = ts_GetAllEmployee();
 
-    // unnecessary call - isn't it?
-    //$alljobtypes = ts_GetAllJobtypes();
+// unnecessary call - isn't it?
+//$alljobtypes = ts_GetAllJobtypes();
 
     $curyear = curyear();
     $curmonth = date("m");
     $appendQueryJOIN = '';
     $appendQuerySelect = '';
 
-    //per employee filtering
+//per employee filtering
     $displaytype = (isset($_POST['displaytype'])) ? $_POST['displaytype'] : 'all';
-    //administrator is cursed of some branch
+//administrator is cursed of some branch
     if (ts_isMeBranchCursed()) {
         $displaytype = 'onlyme';
     }
@@ -834,7 +960,7 @@ function ts_JGetDoneTasks() {
             }
 
 
-            //adcomments detect
+//adcomments detect
             if ($adcFlag) {
                 $adcommentsCount = $adcomments->getCommentsCount($eachtask['id']);
             } else {
@@ -868,7 +994,7 @@ function ts_JGetDoneTasks() {
                 $extendInfo = '';
             }
 
-            // get users's branch
+// get users's branch
             $branchName = ($branchConsider) ? ' ' . $eachtask['branch_name'] . ' ' : '';
 
             $result .= "
@@ -901,7 +1027,7 @@ function ts_JGetAllTasks() {
     $branchConsider = ($ubillingConfig->getAlterParam('BRANCHES_ENABLED')
             and $ubillingConfig->getAlterParam('TASKMAN_BRANCHES_CONSIDER_ON'));
 
-    //ADcomments init
+//ADcomments init
     if ($altCfg['ADCOMMENTS_ENABLED']) {
         $adcomments = new ADcomments('TASKMAN');
         $adcFlag = true;
@@ -916,9 +1042,9 @@ function ts_JGetAllTasks() {
     $appendQueryJOIN = '';
     $appendQuerySelect = '';
 
-    //per employee filtering
+//per employee filtering
     $displaytype = (isset($_POST['displaytype'])) ? $_POST['displaytype'] : 'all';
-    //administrator is cursed of some branch
+//administrator is cursed of some branch
     if (ts_isMeBranchCursed()) {
         $displaytype = 'onlyme';
     }
@@ -952,7 +1078,7 @@ function ts_JGetAllTasks() {
                     WHERE `startdate` LIKE '" . $curyear . "-%' " . $appendQuery . " ORDER BY `date` ASC";
     } else {
         if ($appendQuery) {
-            //$appendQuery = str_replace('AND', 'WHERE', $appendQuery);
+//$appendQuery = str_replace('AND', 'WHERE', $appendQuery);
             $appendQuery = preg_replace('/AND/', 'WHERE', $appendQuery, 1);
         }
         $query = "SELECT `taskman`.*, `jobtypes`.`jobname`" . $appendQuerySelect . " FROM `taskman` 
@@ -978,7 +1104,7 @@ function ts_JGetAllTasks() {
             $startdate = strtotime($eachtask['startdate']);
             $startdate = date("Y, n-1, j", $startdate);
 
-            //time ordering
+//time ordering
             if (!empty($eachtask['starttime'])) {
                 $startTime = $eachtask['starttime'];
                 $startTime = substr($startTime, 0, 5) . ' ';
@@ -1010,7 +1136,7 @@ function ts_JGetAllTasks() {
                 $coloring = '';
             }
 
-            //adcomments detect
+//adcomments detect
             if ($adcFlag) {
                 $adcommentsCount = $adcomments->getCommentsCount($eachtask['id']);
             } else {
@@ -1023,7 +1149,7 @@ function ts_JGetAllTasks() {
                 $adcText = '';
             }
 
-            // get users's branch
+// get users's branch
             $branchName = ($branchConsider) ? ' ' . $eachtask['branch_name'] . ' ' : '';
 
             $result .= "
@@ -1103,11 +1229,11 @@ function ts_TaskCreateForm() {
     $allemployee = ts_GetActiveEmployee();
 
     if (!empty($alljobtypes) AND ! empty($allemployee)) {
-        //construct sms sending inputs
+//construct sms sending inputs
         if ($altercfg['SENDDOG_ENABLED']) {
             $smsCheckBox = (@$altercfg['TASKMAN_SMS_PROFILE_CHECK']) ? true : false;
             $smsInputs = wf_CheckInput('newtasksendsms', __('Send SMS'), false, $smsCheckBox);
-            // SET checkbed TELEGRAM for creating task from Userprofile if TASKMAN_TELEGRAM_PROFILE_CHECK == 1
+// SET checkbed TELEGRAM for creating task from Userprofile if TASKMAN_TELEGRAM_PROFILE_CHECK == 1
             $telegramInputsCheck = (isset($altercfg['TASKMAN_TELEGRAM_PROFILE_CHECK']) && $altercfg['TASKMAN_TELEGRAM_PROFILE_CHECK']) ? TRUE : FALSE;
             $telegramInputs = wf_CheckInput('newtasksendtelegram', __('Telegram'), false, $telegramInputsCheck);
         } else {
@@ -1133,7 +1259,7 @@ function ts_TaskCreateForm() {
             $inputs .= wf_AutocompleteTextInput('newtaskaddress', $allAddress, __('Address') . '<sup>*</sup>', '', true, '30');
         }
         $inputs .= wf_tag('br');
-        //hidden for new task login input
+//hidden for new task login input
         $inputs .= wf_HiddenInput('newtasklogin', '');
         $inputs .= wf_TextInput('newtaskphone', __('Phone') . '<sup>*</sup>', '', true, '30');
         $inputs .= wf_tag('br');
@@ -1174,15 +1300,15 @@ function ts_TaskCreateFormProfile($address, $mobile, $phone, $login) {
     $allemployee = ts_GetActiveEmployee();
 
     if (!empty($alljobtypes) AND ! empty($allemployee)) {
-        // telepaticheskoe ugadivanie po tegu, kto dolzhen vipolnit rabotu
+// telepaticheskoe ugadivanie po tegu, kto dolzhen vipolnit rabotu
         $query = "SELECT `employee`.`id` FROM `tags` INNER JOIN employee USING (tagid) WHERE `login` = '" . $login . "'";
         $telepat_who_should_do = simple_query($query);
 
-        //construct sms sending inputs
+//construct sms sending inputs
         if ($ubillingConfig->getAlterParam('SENDDOG_ENABLED')) {
             $smsCheckBox = ($ubillingConfig->getAlterParam('TASKMAN_SMS_PROFILE_CHECK')) ? true : false;
             $smsInputs = wf_CheckInput('newtasksendsms', __('Send SMS'), false, $smsCheckBox);
-            // SET checkbed TELEGRAM for creating task from Userprofile if TASKMAN_TELEGRAM_PROFILE_CHECK == 1
+// SET checkbed TELEGRAM for creating task from Userprofile if TASKMAN_TELEGRAM_PROFILE_CHECK == 1
             $telegramInputsCheck = ($ubillingConfig->getAlterParam('TASKMAN_TELEGRAM_PROFILE_CHECK')) ? TRUE : FALSE;
             $telegramInputs = wf_CheckInput('newtasksendtelegram', __('Telegram'), false, $telegramInputsCheck);
         } else {
@@ -1190,7 +1316,7 @@ function ts_TaskCreateFormProfile($address, $mobile, $phone, $login) {
             $telegramInputs = '';
         }
 
-        //new task creation data/time generation
+//new task creation data/time generation
         if ($ubillingConfig->getAlterParam('TASKMAN_NEWTASK_AUTOTIME') == 1) {
             $TaskDate = new DateTime();
             $TaskDate->add(new DateInterval('PT1H'));
@@ -1200,7 +1326,7 @@ function ts_TaskCreateFormProfile($address, $mobile, $phone, $login) {
             $TaskDate = new DateTime();
             $TaskDate->add(new DateInterval('P1D'));
             $TaskDate->setTime(8, 00);
-            // В воскресенье работать не хочу
+// В воскресенье работать не хочу
             if ($newTaskDate = $TaskDate->format('w') == 0) {
                 $TaskDate->add(new DateInterval('P1D'));
             }
@@ -1228,7 +1354,7 @@ function ts_TaskCreateFormProfile($address, $mobile, $phone, $login) {
         $inputs .= wf_tag('label') . __('Target date') . $sup . wf_tag('label', true);
         $inputs .= wf_delimiter();
         $inputs .= wf_TextInput('newtaskaddress', __('Address') . $sup, $address, true, '30');
-        //hidden for new task login input
+//hidden for new task login input
         $inputs .= wf_HiddenInput('newtasklogin', $login);
         $inputs .= wf_tag('br');
         $inputs .= wf_TextInput('newtaskphone', __('Phone') . $sup, $mobile . ' ' . $phone, true, '30');
@@ -1293,7 +1419,7 @@ function ts_PreviousUserTasksRender($login, $address = '', $noFixedWidth = false
                     $userTasks[$each['id']] = $each;
                 }
 
-                //address guessing
+//address guessing
                 if (isset($addressLoginsCache[$each['address']])) {
                     $guessedLogin = $addressLoginsCache[$each['address']];
                 } else {
@@ -1310,7 +1436,7 @@ function ts_PreviousUserTasksRender($login, $address = '', $noFixedWidth = false
                     }
                 }
             } else {
-                //just address guessing
+//just address guessing
                 if (!empty($address)) {
                     if ($address == $each['address']) {
                         $userTasks[$each['id']] = $each;
@@ -1319,7 +1445,7 @@ function ts_PreviousUserTasksRender($login, $address = '', $noFixedWidth = false
                 }
             }
         }
-        //cache update
+//cache update
         $cache->set('ADDRESSTELEPATHY', $addressLoginsCache, 2592000);
 
         if (!$arrayResult) {
@@ -1391,11 +1517,11 @@ function ts_PreviousBuildTasksRender($buildId, $noFixedWidth = false, $arrayResu
                     $taskColor = ($each['status']) ? 'donetask' : 'undone';
                     $divStyle = ($noFixedWidth) ? 'style="padding: 2px; margin: 2px;"' : 'style="width:400px;"';
                     $taskdata = $each['startdate'] . ' ' . $each['address'] . ' - ' . @$allJobTypes[$each['jobtype']] . ', ' . @$allEmployee[$each['employee']];
-                    //this month?
+//this month?
                     if (ispos($each['startdate'], $curMonth)) {
                         $resultScope = 'month';
                     }
-                    //or today?
+//or today?
                     if (ispos($each['startdate'], $curDay)) {
                         $resultScope = 'today';
                     }
@@ -1403,7 +1529,7 @@ function ts_PreviousBuildTasksRender($buildId, $noFixedWidth = false, $arrayResu
                     $tmpResult[$resultScope] .= wf_link('?module=taskman&edittask=' . $each['id'], wf_img('skins/icon_edit.gif')) . ' ' . $taskdata;
                     $tmpResult[$resultScope] .= wf_tag('div', true);
                 }
-                //build result body
+//build result body
                 if (!empty($tmpResult['today'])) {
                     $result .= wf_tag('fieldset') . wf_tag('legend') . __('Today') . wf_tag('legend', true)
                             . $tmpResult['today'] . wf_tag('fieldset', true);
@@ -1447,11 +1573,11 @@ function ts_TaskCreateFormUnified($address, $mobile, $phone, $login = '', $custo
 
     if (!empty($alljobtypes) AND ! empty($allemployee)) {
 
-        //construct sms sending inputs
+//construct sms sending inputs
         if ($altercfg['SENDDOG_ENABLED']) {
             $smsCheckBox = ($ubillingConfig->getAlterParam('TASKMAN_SMS_PROFILE_CHECK')) ? true : false;
             $smsInputs = wf_CheckInput('newtasksendsms', __('Send SMS'), false, $smsCheckBox);
-            // SET checkbed TELEGRAM for creating task from Userprofile if TASKMAN_TELEGRAM_PROFILE_CHECK == 1
+// SET checkbed TELEGRAM for creating task from Userprofile if TASKMAN_TELEGRAM_PROFILE_CHECK == 1
             $telegramInputsCheck = (isset($altercfg['TASKMAN_TELEGRAM_PROFILE_CHECK']) && $altercfg['TASKMAN_TELEGRAM_PROFILE_CHECK']) ? TRUE : FALSE;
             $telegramInputs = wf_CheckInput('newtasksendtelegram', __('Telegram'), false, $telegramInputsCheck);
         } else {
@@ -1512,11 +1638,11 @@ function ts_TaskCreateFormSigreq($address, $phone) {
     $allemployee = ts_GetActiveEmployee();
 
     if (!empty($alljobtypes) AND ! empty($allemployee)) {
-        //construct sms sending inputs
+//construct sms sending inputs
         if ($altercfg['SENDDOG_ENABLED']) {
             $smsCheckBox = ($ubillingConfig->getAlterParam('TASKMAN_SMS_PROFILE_CHECK')) ? true : false;
             $smsInputs = wf_CheckInput('newtasksendsms', __('Send SMS'), false, $smsCheckBox);
-            // SET checkbed TELEGRAM for creating task from Userprofile if TASKMAN_TELEGRAM_PROFILE_CHECK == 1
+// SET checkbed TELEGRAM for creating task from Userprofile if TASKMAN_TELEGRAM_PROFILE_CHECK == 1
             $telegramInputsCheck = (isset($altercfg['TASKMAN_TELEGRAM_PROFILE_CHECK']) && $altercfg['TASKMAN_TELEGRAM_PROFILE_CHECK']) ? TRUE : FALSE;
             $telegramInputs = wf_CheckInput('newtasksendtelegram', __('Telegram'), false, $telegramInputsCheck);
         } else {
@@ -1531,7 +1657,7 @@ function ts_TaskCreateFormSigreq($address, $phone) {
         $inputs .= wf_tag('label') . __('Target date') . wf_tag('sup') . '*' . wf_tag('sup', true) . wf_tag('label', true);
         $inputs .= wf_delimiter();
         $inputs .= wf_TextInput('newtaskaddress', __('Address') . '<sup>*</sup>', $address, true, '30');
-        //hidden for new task login input
+//hidden for new task login input
         $inputs .= wf_HiddenInput('newtasklogin', '');
         $inputs .= wf_tag('br');
         $inputs .= wf_TextInput('newtaskphone', __('Phone') . '<sup>*</sup>', $phone, true, '30');
@@ -1615,7 +1741,7 @@ function ts_ShowPanel() {
         $result .= wf_modalAuto(web_icon_extended() . ' ' . __('Tools'), __('Tools'), $tools, 'ubButton');
     }
 
-    //show type selector
+//show type selector
     $whoami = whoami();
     $employeeid = ts_GetEmployeeByLogin($whoami);
     $advFiltersEnabled = $ubillingConfig->getAlterParam('TASKMAN_ADV_FILTERS');
@@ -1630,7 +1756,7 @@ function ts_ShowPanel() {
                 'all' => __('Show tasks for all users'),
                 'onlyme' => __('Show only mine tasks')
             );
-            //some other employee
+//some other employee
             $activeEmployeeTmp = ts_GetActiveEmployee();
             if (!empty($activeEmployeeTmp)) {
                 foreach ($activeEmployeeTmp as $actId => $empName) {
@@ -1727,7 +1853,7 @@ function ts_SendTelegram($employeeid, $message, $taskdata = array()) {
         $telegram->sendMessage($chatId, $message, false, 'TASKMAN');
         $result['chatid'] = $chatId;
         $result['message'] = $message;
-        //optional geo sending
+//optional geo sending
         if (!empty($taskdata)) {
             if (isset($taskdata['geo'])) {
                 ts_SendTelegramVenue($chatId, @$taskdata['jobtype'], @$taskdata['address'], $taskdata['geo']);
@@ -1815,10 +1941,10 @@ function ts_CreateTask($startdate, $starttime, $address, $login, $phone, $jobtyp
     $jobnote = mysql_real_escape_string($jobnote);
 
     $smsData = 'NULL';
-    //store messages for backround processing via senddog for SMS
+//store messages for backround processing via senddog for SMS
     if ($ubillingConfig->getAlterParam('SENDDOG_ENABLED')) {
         $jobtype = ts_GetAllJobtypes();
-        //SMS sending
+//SMS sending
         if (isset($_POST['newtasksendsms'])) {
             $newSmsText = $address . ' ' . $phone . ' ' . @$jobtype[$jobtypeid] . ' ' . $jobnote . $starttimeRaw;
             $smsDataRaw = ts_SendSMS($employeeid, $newSmsText);
@@ -1836,12 +1962,12 @@ function ts_CreateTask($startdate, $starttime, $address, $login, $phone, $jobtyp
     $taskid = simple_query("SELECT LAST_INSERT_ID() as id");
     $taskid = $taskid['id'];
 
-    //store messages for backround processing via senddog for Telegramm
+//store messages for backround processing via senddog for Telegramm
     if ($ubillingConfig->getAlterParam('SENDDOG_ENABLED')) {
         if (!empty($login)) {
             $userData = zb_UserGetAllData($login);
         }
-        //Telegram sending
+//Telegram sending
         if (isset($_POST['newtasksendtelegram'])) {
             $newTelegramText = __('ID') . ': ' . $taskid . '\r\n';
             $newTelegramText .= __('Address') . ': ' . $address . '\r\n';
@@ -1871,7 +1997,7 @@ function ts_CreateTask($startdate, $starttime, $address, $login, $phone, $jobtyp
                 $newTelegramText .= __('MAC') . ': ' . @$userData[$login]['mac'] . '\r\n';
                 $newTelegramText .= __('Tariff') . ': ' . @$userData[$login]['Tariff'] . '\r\n';
 
-                //data preprocessing for geo sending
+//data preprocessing for geo sending
                 if (@isset($userData[$login]['geo'])) {
                     if (!empty($userData[$login]['geo'])) {
                         $taskDataGeo['jobtype'] = @$jobtype[$jobtypeid];
@@ -1892,12 +2018,12 @@ function ts_CreateTask($startdate, $starttime, $address, $login, $phone, $jobtyp
                 }
             }
 
-            //some hack to append UKV users cable seals and maybe something else
+//some hack to append UKV users cable seals and maybe something else
             if (wf_CheckPost(array('unifiedformtelegramappend'))) {
                 $newTelegramText .= $_POST['unifiedformtelegramappend'];
             }
 
-            //appending task direct URL to task
+//appending task direct URL to task
             $fullBillingUrl = $ubillingConfig->getAlterParam('FULL_BILLING_URL');
             $appendTaskLinkFlag = $ubillingConfig->getAlterParam('TASKMAN_SEND_TASKURL');
             if (!empty($fullBillingUrl) AND $appendTaskLinkFlag) {
@@ -1905,12 +2031,12 @@ function ts_CreateTask($startdate, $starttime, $address, $login, $phone, $jobtyp
             }
 
 
-            //telegram messages sending
+//telegram messages sending
             ts_SendTelegram($employeeid, $newTelegramText, $taskDataGeo);
         }
     }
 
-    //flushing darkvoid
+//flushing darkvoid
     $darkVoid = new DarkVoid();
     $darkVoid->flushCache();
 
@@ -1952,11 +2078,11 @@ function ts_TaskModifyForm($taskid) {
     $allemployee = ts_GetAllEmployee();
     $activeemployee = ts_GetActiveEmployee();
     $alljobtypes = ts_GetAllJobtypes();
-    //construct sms sending inputs
+//construct sms sending inputs
     if ($altercfg['SENDDOG_ENABLED']) {
         $smsCheckBox = ($ubillingConfig->getAlterParam('TASKMAN_SMS_PROFILE_CHECK')) ? true : false;
         $smsInputs = wf_CheckInput('changetasksendsms', __('Send SMS'), false, $smsCheckBox);
-        // SET checkbed TELEGRAM for creating task from Userprofile if TASKMAN_TELEGRAM_PROFILE_CHECK == 1
+// SET checkbed TELEGRAM for creating task from Userprofile if TASKMAN_TELEGRAM_PROFILE_CHECK == 1
         $telegramInputsCheck = (isset($altercfg['TASKMAN_TELEGRAM_PROFILE_CHECK']) && $altercfg['TASKMAN_TELEGRAM_PROFILE_CHECK']) ? TRUE : FALSE;
         $telegramInputs = wf_CheckInput('changetasksendtelegram', __('Telegram'), false, $telegramInputsCheck);
     } else {
@@ -1977,14 +2103,14 @@ function ts_TaskModifyForm($taskid) {
         $inputs .= wf_tag('br');
         if ($altercfg['SEARCHADDR_AUTOCOMPLETE']) {
             $alladdress = zb_AddressGetFulladdresslistCached();
-            //Commented because significantly reduces performance. Waiting for feedback.
-            //natsort($alladdress);
+//Commented because significantly reduces performance. Waiting for feedback.
+//natsort($alladdress);
             $inputs .= wf_AutocompleteTextInput('modifytaskaddress', $alladdress, __('Address') . '<sup>*</sup>', $taskdata['address'], true, '30');
         } else {
             $inputs .= wf_TextInput('modifytaskaddress', __('Address') . '<sup>*</sup>', $taskdata['address'], true, '30');
         }
         $inputs .= wf_tag('br');
-        //custom login text input
+//custom login text input
         $inputs .= wf_TextInput('modifytasklogin', __('Login'), $taskdata['login'], true, 30);
         $inputs .= wf_tag('br');
         $inputs .= wf_TextInput('modifytaskphone', __('Phone') . '<sup>*</sup>', $taskdata['phone'], true, '30');
@@ -2046,7 +2172,7 @@ function ts_ModifyTask($taskid, $startdate, $starttime, $address, $login, $phone
     simple_update_field('taskman', 'jobnote', $jobnote, "WHERE `id`='" . $taskid . "'");
 
     $smsData = 'NULL';
-    //SMS sending
+//SMS sending
     if (isset($_POST['changetasksendsms'])) {
         $newSmsText = $address . ' ' . $phone . ' ' . @$jobtype[$jobtypeid] . ' ' . $jobnote . $starttimeRaw;
         $smsDataRaw = ts_SendSMS($employeeid, $newSmsText);
@@ -2056,7 +2182,7 @@ function ts_ModifyTask($taskid, $startdate, $starttime, $address, $login, $phone
         }
     }
 
-    //Telegram sending
+//Telegram sending
     if (isset($_POST['changetasksendtelegram'])) {
         if (!empty($login)) {
             $userData = zb_UserGetAllData($login);
@@ -2099,7 +2225,7 @@ function ts_ModifyTask($taskid, $startdate, $starttime, $address, $login, $phone
             }
         }
 
-        //appending task direct URL to task
+//appending task direct URL to task
         $fullBillingUrl = $ubillingConfig->getAlterParam('FULL_BILLING_URL');
         $appendTaskLinkFlag = $ubillingConfig->getAlterParam('TASKMAN_SEND_TASKURL');
         if (!empty($fullBillingUrl) AND $appendTaskLinkFlag) {
@@ -2109,7 +2235,7 @@ function ts_ModifyTask($taskid, $startdate, $starttime, $address, $login, $phone
         ts_SendTelegram($employeeid, $newTelegramText);
     }
 
-    // Unset parametr, that we dont diff
+// Unset parametr, that we dont diff
     unset($org_taskdata['date'], $org_taskdata['employeedone'], $org_taskdata['donenote'], $org_taskdata['enddate'], $org_taskdata['admin'], $org_taskdata['status'], $org_taskdata['change_admin'], $org_taskdata['smsdata']);
     $new_taskdata = array(
         'id' => $taskid,
@@ -2213,11 +2339,11 @@ function ts_CheckDailyDuplicates($taskData, $optionValue = 1) {
             $tasksDb = new NyanORM('taskman');
             if (!empty($taskData['login'])) {
                 $tasksDb->where('id', '!=', $taskData['id']);
-                //just the same date
+//just the same date
                 if ($optionValue == 1) {
                     $tasksDb->where('startdate', 'LIKE', $taskData['startdate'] . '%');
                 } else {
-                    //configurable days count interval
+//configurable days count interval
                     $startDateTimestamp = strtotime($taskData['startdate']);
                     $daysOffset = round($optionValue * 86400); //int
                     $dayBegin = date("Y-m-d", ($startDateTimestamp - $daysOffset)); // -X days
@@ -2233,11 +2359,11 @@ function ts_CheckDailyDuplicates($taskData, $optionValue = 1) {
 
             if (!empty($taskData['address'])) {
                 $tasksDb->where('id', '!=', $taskData['id']);
-                //just the same date
+//just the same date
                 if ($optionValue == 1) {
                     $tasksDb->where('startdate', 'LIKE', $taskData['startdate'] . '%');
                 } else {
-                    //configurable days count interval
+//configurable days count interval
                     $startDateTimestamp = strtotime($taskData['startdate']);
                     $daysOffset = round($optionValue * 86400); //int
                     $dayBegin = date("Y-m-d", ($startDateTimestamp - $daysOffset)); // -X days
@@ -2293,7 +2419,7 @@ function ts_TaskChangeForm($taskid) {
     $branchName = '';
 
     if (!empty($taskdata)) {
-        //not done task
+//not done task
         if (empty($taskdata['login'])) {
             $login_detected = ts_DetectUserByAddress($taskdata['address']);
             if ($login_detected) {
@@ -2311,7 +2437,7 @@ function ts_TaskChangeForm($taskid) {
             $loginType = '';
         }
 
-        //job generation form
+//job generation form
         if ($taskLogin) {
             $jobgencheckbox = wf_CheckInput('generatejob', __('Generate job performed for this task'), true, true);
             $jobgencheckbox .= wf_HiddenInput('generatelogin', $taskLogin);
@@ -2321,12 +2447,12 @@ function ts_TaskChangeForm($taskid) {
             $jobgencheckbox = '';
         }
 
-        //modify form handlers
+//modify form handlers
         $modform = '';
         if (cfr('TASKMANTRACK')) {
             $modform .= wf_Link('?module=taskmantrack&trackid=' . $taskid, wf_img('skins/track_icon.png', __('Track this task'))) . ' ';
         }
-        //warehouse mass-outcome helper
+//warehouse mass-outcome helper
         if (cfr('WAREHOUSEOUTRESERVE') OR cfr('WAREHOUSEOUT')) {
             if ($altercfg['WAREHOUSE_ENABLED']) {
                 if ($altercfg['TASKMAN_WAREHOUSE_HLPR']) {
@@ -2337,13 +2463,13 @@ function ts_TaskChangeForm($taskid) {
                 }
             }
         }
-        //task editing limitations
+//task editing limitations
         if (cfr('TASKMANEDITTASK')) {
             $modform .= wf_modal(web_edit_icon(), __('Edit'), ts_TaskModifyForm($taskid), '', '450', '550') . ' ';
         }
 
-        //modform end
-        //extracting sms data
+//modform end
+//extracting sms data
         if (!empty($taskdata['smsdata'])) {
             $rawSmsData = $taskdata['smsdata'];
             $rawSmsData = base64_decode($rawSmsData);
@@ -2361,7 +2487,7 @@ function ts_TaskChangeForm($taskid) {
 
             $smsData = wf_modal(wf_img('skins/icon_sms_micro.gif', __('SMS sent to employees')), __('SMS sent to employees'), $smsDataTable . $smsDataFlushControl, '', '400', '200');
         } else {
-            //post sending form
+//post sending form
             if ($altercfg['SENDDOG_ENABLED']) {
                 $smsAddress = str_replace('\'', '`', $taskdata['address']);
                 $smsAddress = mysql_real_escape_string($smsAddress);
@@ -2406,7 +2532,7 @@ function ts_TaskChangeForm($taskid) {
         $tablecells .= wf_TableCell(wf_tag('strong') . $taskdata['startdate'] . ' ' . $taskdata['starttime'] . wf_tag('strong', true));
         $tablerows .= wf_TableRow($tablecells, 'row3');
 
-        //here some build passport data
+//here some build passport data
         $bpData = '';
         if ($altercfg['BUILD_EXTENDED']) {
             if (!empty($taskLogin)) {
@@ -2432,7 +2558,7 @@ function ts_TaskChangeForm($taskid) {
         $tablecells .= wf_TableCell($addresslink);
         $tablerows .= wf_TableRow($tablecells, 'row3');
 
-        // getting user's branch name
+// getting user's branch name
         $branchConsider = (!empty($taskLogin)
                 and $ubillingConfig->getAlterParam('BRANCHES_ENABLED')
                 and $ubillingConfig->getAlterParam('TASKMAN_BRANCHES_CONSIDER_ON'));
@@ -2545,20 +2671,20 @@ function ts_TaskChangeForm($taskid) {
 
         $result .= wf_TableBody($tablerows, '100%', '0', 'glamour');
         $result .= wf_CleanDiv();
-        // show task preview
+// show task preview
         show_window(__('View task') . ' ' . $modform, $result);
 
-        // Task logs
+// Task logs
         if (cfr('TASKMANNWATCHLOG')) {
             show_window(__('View log'), ts_renderLogsListAjax($taskid));
         }
 
-        //Task duplicates check
+//Task duplicates check
         if (@$altercfg['TASKMAN_DUPLICATE_CHECK']) {
             ts_CheckDailyDuplicates($taskdata, $altercfg['TASKMAN_DUPLICATE_CHECK']);
         }
 
-        //Salary accounting
+//Salary accounting
         if ($altercfg['SALARY_ENABLED']) {
             if (cfr('SALARYTASKSVIEW')) {
                 $salary = new Salary($taskid);
@@ -2566,7 +2692,7 @@ function ts_TaskChangeForm($taskid) {
             }
         }
 
-        //warehouse integration
+//warehouse integration
         if ($altercfg['WAREHOUSE_ENABLED']) {
             if (cfr('WAREHOUSE') OR cfr('WAREVIEW')) {
                 $warehouse = new Warehouse($taskid);
@@ -2574,13 +2700,13 @@ function ts_TaskChangeForm($taskid) {
             }
         }
 
-        //if task undone
+//if task undone
         if ($taskdata['status'] == 0) {
             $sup = wf_tag('sup') . '*' . wf_tag('sup', false);
             $inputs = wf_HiddenInput('changetask', $taskid);
             $inputs .= wf_HiddenInput('change_admin', whoami());
             if ((cfr('TASKMANNODONDATE')) AND ( !cfr('ROOT'))) {
-                //manual done date selection forbidden
+//manual done date selection forbidden
                 $inputs .= wf_HiddenInput('editenddate', curdate());
             } else {
                 $inputs .= wf_DatePicker('editenddate') . wf_tag('label', false) . __('Finish date') . $sup . wf_tag('label', true) . wf_tag('br');
@@ -2600,7 +2726,7 @@ function ts_TaskChangeForm($taskid) {
                 show_window('', wf_JSAlertStyled('?module=taskman&deletetask=' . $taskid, web_delete_icon() . ' ' . __('Remove this task - it is an mistake'), $messages->getDeleteAlert(), 'ubButton'));
             }
 
-            //show editing form
+//show editing form
             if (cfr('TASKMANDONE')) {
                 show_window(__('If task is done'), $form);
             }
@@ -2648,7 +2774,7 @@ function ts_TaskChangeForm($taskid) {
  */
 function ts_DeleteTask($taskid) {
     $taskid = vf($taskid, 3);
-    // Before delete task - write task data to log
+// Before delete task - write task data to log
     $task_data = ts_GetTaskData($taskid);
     $queryLogTask = ("
         INSERT INTO `taskmanlogs` (`id`, `taskid`, `date`, `admin`, `ip`, `event`, `logs`) 
@@ -2675,7 +2801,7 @@ function ts_GetLogTask($taskid) {
     } else {
         $renderYear = (ubRouting::checkGet('renderyear')) ? ubRouting::get('renderyear', 'int') : curyear();
         if ($renderYear == '1488') {
-            //all time tasks
+//all time tasks
             $renderYear = '%';
         }
         $query = "SELECT * FROM `taskmanlogs` WHERE `date` LIKE '" . $renderYear . "-%' ORDER BY `id` DESC";
@@ -2696,7 +2822,7 @@ function ts_GetLogTask($taskid) {
  */
 function ts_renderLogsListAjax($taskid = '') {
     $result = '';
-    // Task logs
+// Task logs
     if (cfr('TASKMANNWATCHLOG')) {
         $resultLogAjax = '';
 
@@ -2719,7 +2845,7 @@ function ts_renderLogsListAjax($taskid = '') {
         }
         $result = wf_JqDtLoader($columns, $module_link, false, 'Logs', 100, $opts);
         if (empty($taskid)) {
-            //appending year selector form
+//appending year selector form
             $inputs = wf_YearSelectorPreset('renderyear', __('Year'), false, $renderYear, true) . ' ';
             $inputs .= wf_Submit(__('Show'));
             $result .= wf_delimiter(0);
@@ -2986,7 +3112,7 @@ function ts_logTaskChange($taskId, $parameter, $oldValue, $newValue, $weblog = f
 function ts_TaskProblemsEditForm() {
     $rawNotes = zb_StorageGet('PROBLEMS');
 
-    //extract old or create new typical problems array
+//extract old or create new typical problems array
     if (!empty($rawNotes)) {
         $rawNotes = base64_decode($rawNotes);
         $rawNotes = unserialize($rawNotes);
@@ -2998,7 +3124,7 @@ function ts_TaskProblemsEditForm() {
         $rawNotes = $emptyArray;
     }
 
-    //adding and deletion subroutines
+//adding and deletion subroutines
     if (wf_CheckPost(array('createtypicalnote'))) {
         $toPush = strip_tags($_POST['createtypicalnote']);
         array_push($rawNotes, $toPush);
@@ -3065,7 +3191,7 @@ function ts_isMeBranchCursed() {
         } else {
             if (cfr('BRANCHES') OR cfr('TASKMANGULAG')) {
                 if (cfr('TSUNCURSED')) {
-                    //glag and branches curse excluding right
+//glag and branches curse excluding right
                     $result = false;
                 } else {
                     $result = true;
@@ -3218,7 +3344,7 @@ function ts_PrintTasks($datefrom, $dateto) {
             $rows .= wf_TableRow($cells);
 
             $cells = wf_TableCell(__('Job type'));
-            //$cells.= wf_TableCell(@$alljobtypes[$each['jobtype']]);
+//$cells.= wf_TableCell(@$alljobtypes[$each['jobtype']]);
             $cells .= wf_TableCell($each['jobname']);
             $rows .= wf_TableRow($cells);
 
@@ -3238,7 +3364,7 @@ function ts_PrintTasks($datefrom, $dateto) {
         $result .= 'window.print();';
         $result .= wf_tag('script', true);
     } else {
-        //$_POST['showemptyqueryerror'] = 'true';
+//$_POST['showemptyqueryerror'] = 'true';
 
         $messages = new UbillingMessageHelper();
         $result = '<link rel="stylesheet" href="./skins/ubng/css/ubilling.css" type="text/css">';
@@ -3349,7 +3475,7 @@ function ts_PrintTasksTable($datefrom, $dateto, $nopagebreaks = false) {
                             $cells = wf_TableCell($each['startdate'] . ' ' . wf_tag('b') . @$each['starttime'] . wf_tag('b', true));
                             $cells .= wf_TableCell($each['address']);
                             $cells .= wf_TableCell($each['phone']);
-                            //$cells.= wf_TableCell(@$alljobtypes[$each['jobtype']]);
+//$cells.= wf_TableCell(@$alljobtypes[$each['jobtype']]);
                             $cells .= wf_TableCell($each['jobname']);
                             $cells .= wf_TableCell(nl2br($each['jobnote']));
                             $cells .= wf_TableCell('');
@@ -3365,7 +3491,7 @@ function ts_PrintTasksTable($datefrom, $dateto, $nopagebreaks = false) {
         $result .= 'window.print();';
         $result .= wf_tag('script', true);
     } else {
-        //$_POST['showemptyqueryerror'] = 'true';
+//$_POST['showemptyqueryerror'] = 'true';
 
         $messages = new UbillingMessageHelper();
         $result = '<link rel="stylesheet" href="./skins/ubng/css/ubilling.css" type="text/css">';

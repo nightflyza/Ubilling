@@ -4,98 +4,77 @@
 if (cfr('EMPLOYEEDIR')) {
     $ubCache = new UbillingCache();
 
-    if (wf_CheckPost(array('addemployee', 'employeename'))) {
-        em_EmployeeAdd($_POST['employeename'], $_POST['employeejob'], @$_POST['employeemobile'], @$_POST['employeetelegram'], @$_POST['employeeadmlogin'], @$_POST['editadtagid'], @$_POST['amountLimit']);
+    //new employee creation
+    if (ubRouting::checkPost(array('addemployee', 'employeename'))) {
+        $newEmpName = ubRouting::post('employeename');
+        $newEmpJob = ubRouting::post('employeejob');
+        $newEmpMobile = ubRouting::post('employeemobile');
+        $newEmpTlg = ubRouting::post('employeetelegram');
+        $newEmpAdmLogin = ubRouting::post('employeeadmlogin');
+        $newEmpTagId = ubRouting::post('editadtagid');
+        $newEmpAmLim = ubRouting::post('amountLimit');
+
+        em_EmployeeAdd($newEmpName, $newEmpJob, $newEmpMobile, $newEmpTlg, $newEmpAdmLogin, $newEmpTagId, $newEmpAmLim);
         $ubCache->delete('EMPLOYEE_LOGINS');
-        rcms_redirect("?module=employee");
+        ubRouting::nav('?module=employee');
     }
 
-    if (isset($_GET['delete'])) {
-        em_EmployeeDelete($_GET['delete']);
+    //existing employee deletion
+    if (ubRouting::checkGet('deleteemployee', false)) {
+        em_EmployeeDelete(ubRouting::get('deleteemployee'));
         $ubCache->delete('EMPLOYEE_LOGINS');
-        rcms_redirect("?module=employee");
+        ubRouting::nav('?module=employee');
     }
 
-    if (wf_CheckPost(array('addjobtype', 'newjobtype'))) {
-        stg_add_jobtype($_POST['newjobtype'], $_POST['newjobcolor']);
+    //jobtype creation
+    if (ubRouting::checkPost(array('addjobtype', 'newjobtype'))) {
+        stg_add_jobtype(ubRouting::post('newjobtype'), ubRouting::post('newjobcolor'));
+        ubRouting::nav('?module=employee');
     }
 
-    if (isset($_GET['deletejob'])) {
-        stg_delete_jobtype($_GET['deletejob']);
-        rcms_redirect("?module=employee");
+    //existing jobtype deletion
+    if (ubRouting::checkGet('deletejob', false)) {
+        stg_delete_jobtype(ubRouting::get('deletejob'));
+        ubRouting::nav('?module=employee');
     }
 
-    if (!wf_CheckGet(array('edit'))) {
-        if (!wf_CheckGet(array('editjob'))) {
-            //render employee and jobtypes lists/creation forms
-            em_EmployeeShowForm();
-            em_JobTypeForm();
-        } else {
-            //show jobeditor
-            $editjob = vf($_GET['editjob']);
+    //existing job type editing
+    if (ubRouting::checkGet('editjob', false)) {
+        $editjobId = ubRouting::get('editjob', 'int');
 
-            //edit job subroutine
-            if (wf_CheckPost(array('editjobtype'))) {
-                simple_update_field('jobtypes', 'jobname', $_POST['editjobtype'], "WHERE `id`='" . $editjob . "'");
-                simple_update_field('jobtypes', 'jobcolor', $_POST['editjobcolor'], "WHERE `id`='" . $editjob . "'");
-                log_register('JOBTYPE CHANGE [' . $editjob . '] `' . $_POST['editjobtype'] . '`');
-                rcms_redirect("?module=employee");
-            }
-
-            //edit jobtype form
-            $jobdata = stg_get_jobtype_name($editjob);
-            $jobcolor = stg_get_jobtype_color($editjob);
-            $jobinputs = wf_TextInput('editjobtype', 'Job type', $jobdata, true, 20);
-            $jobinputs.= wf_ColPicker('editjobcolor', __('Color'), $jobcolor, true, 10);
-            $jobinputs.=wf_Submit('Save');
-            $jobform = wf_Form("", "POST", $jobinputs, 'glamour');
-            show_window(__('Edit'), $jobform);
-            show_window('', wf_BackLink('?module=employee', 'Back', true, 'ubButton'));
-        }
-    } else {
-        $editemployee = vf($_GET['edit'], 3);
-
-        //if someone editing employee
-        if (isset($_POST['editname'])) {
-            simple_update_field('employee', 'name', $_POST['editname'], "WHERE `id`='" . $editemployee . "'");
-            simple_update_field('employee', 'appointment', $_POST['editappointment'], "WHERE `id`='" . $editemployee . "'");
-            simple_update_field('employee', 'mobile', $_POST['editmobile'], "WHERE `id`='" . $editemployee . "'");
-            simple_update_field('employee', 'telegram', $_POST['edittelegram'], "WHERE `id`='" . $editemployee . "'");
-            simple_update_field('employee', 'admlogin', $_POST['editadmlogin'], "WHERE `id`='" . $editemployee . "'");
-            simple_update_field('employee', 'tagid', $_POST['editadtagid'], "WHERE `id`='" . $editemployee . "'", true);
-            simple_update_field('employee', 'amountLimit', (!empty($_POST['amountLimit'])) ? $_POST['amountLimit'] : 0, "WHERE `id`='" . $editemployee . "'");
-
-            if (wf_CheckPost(array('editactive'))) {
-                simple_update_field('employee', 'active', '1', "WHERE `id`='" . $editemployee . "'");
-            } else {
-                simple_update_field('employee', 'active', '0', "WHERE `id`='" . $editemployee . "'");
-            }
-            log_register('EMPLOYEE CHANGE [' . $editemployee . ']');
-            $ubCache->delete('EMPLOYEE_LOGINS');
-            rcms_redirect("?module=employee");
+        //updating jobtype
+        if (ubRouting::checkPost('editjobtype')) {
+            em_JobTypeSave($editjobId);
+            ubRouting::nav('?module=employee');
         }
 
-
-        $employeedata = stg_get_employee_data($editemployee);
-        if ($employeedata['active']) {
-            $actflag = true;
-        } else {
-            $actflag = false;
-        }
-        $editinputs = wf_TextInput('editname', 'Real Name', $employeedata['name'], true, 20);
-        $editinputs.= wf_TextInput('editappointment', 'Appointment', $employeedata['appointment'], true, 20);
-        $editinputs.= wf_TextInput('editmobile', __('Mobile'), $employeedata['mobile'], true, 20);
-        $editinputs.= wf_TextInput('edittelegram', __('Chat ID') . ' ' . __('Telegram'), $employeedata['telegram'], true, 20);
-        $editinputs.= wf_TextInput('editadmlogin', __('Administrator'), $employeedata['admlogin'], true, 20);
-        $editinputs.= em_TagSelector('editadtagid', __('Tag'), $employeedata['tagid'], true);
-        $editinputs.= wf_TextInput('amountLimit', __('Monthly top up limit'), $employeedata['amountLimit'], true, 20, 'finance');
-        $editinputs.= wf_CheckInput('editactive', 'Active', true, $actflag);
-        $editinputs.= wf_Submit('Save');
-        $editform = wf_Form('', 'POST', $editinputs, 'glamour');
-        show_window(__('Edit'), $editform);
+        //rendering job type editing form
+        show_window(__('Edit') . ' ' . __('Job type'), em_JobTypeEditForm($editjobId));
         show_window('', wf_BackLink('?module=employee', 'Back', true, 'ubButton'));
+    }
+
+    //existing employee editing
+    if (ubRouting::checkGet('editemployee', false)) {
+        $editemployee = ubRouting::get('editemployee', 'int');
+
+        //updating employee
+        if (ubRouting::checkPost('editname')) {
+            em_EmployeeSave($editemployee);
+            $ubCache->delete('EMPLOYEE_LOGINS');
+            ubRouting::nav('?module=employee');
+        }
+
+        //rendering employee editing form
+        show_window(__('Edit') . ' ' . __('Worker'), em_employeeEditForm($editemployee));
+        show_window('', wf_BackLink('?module=employee', 'Back', true, 'ubButton'));
+    }
+
+
+    //listing available employee and jobtypes
+    if (!ubRouting::checkGet('editemployee') AND ! ubRouting::checkGet('editjob')) {
+        em_EmployeeRenderList();
+        em_JobTypeRenderList();
     }
 } else {
     show_error(__('You cant control this module'));
 }
-?>
