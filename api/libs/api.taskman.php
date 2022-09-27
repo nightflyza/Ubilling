@@ -237,7 +237,8 @@ function em_JobTypeRenderList() {
 
 
     $result = wf_TableBody($rows, '100%', '0', 'sortable');
-    $creationLink = wf_modalAuto(wf_img_sized('skins/add_icon.png', __('Create') . ' ' . __('Job type')), __('Create') . ' ' . __('Job type'), em_JobTypeCreateForm());
+    $createJtLabel = __('Create') . ' ' . __('Job type');
+    $creationLink = wf_modalAuto(wf_img_sized('skins/add_icon.png', $createJtLabel), $createJtLabel, em_JobTypeCreateForm());
     show_window(__('Job types') . ' ' . $creationLink, $result);
 }
 
