@@ -381,7 +381,11 @@ class UserProfile {
         if (!isset($this->alterCfg['NO_ADCOMMENTS_IN_PROFILE'])) {
             if ($this->alterCfg['ADCOMMENTS_ENABLED']) {
                 $adcomments = new ADcomments('USERNOTES');
-                $result = ' ' . wf_Link('?module=notesedit&username=' . $this->login, $adcomments->getCommentsIndicator($this->login, '12'), false, '');
+                if (cfr('NOTES')) {
+                    $result = ' ' . wf_Link('?module=notesedit&username=' . $this->login, $adcomments->getCommentsIndicator($this->login, '12'), false, '');
+                } else {
+                    $result = ' ' . $adcomments->getCommentsIndicator($this->login, '12');
+                }
             } else {
                 $result = '';
             }

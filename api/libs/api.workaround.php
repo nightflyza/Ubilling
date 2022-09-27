@@ -6763,3 +6763,24 @@ function zb_OschadCSgen($numbers) {
     }
     return ($result);
 }
+
+/**
+ * Check is some control allowed to output with current administrator rights
+ * 
+ * @param string $right
+ * @param string $controlString
+ * 
+ * @return string
+ */
+function zb_rightControl($right, $controlString) {
+    $result = '';
+    if (!empty($right)) {
+        if (cfr($right)) {
+            $result .= $controlString;
+        }
+    } else {
+        //no specific right required to output control
+        $result .= $controlString;
+    }
+    return($result);
+}
