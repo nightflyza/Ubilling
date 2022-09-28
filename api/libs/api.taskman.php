@@ -26,13 +26,12 @@ function em_TagSelector($name, $label = '', $selected = '', $br = false) {
  * @return void
  */
 function em_EmployeeRenderList() {
-    $show_q = "SELECT * from `employee`";
-    $allemployee = simple_queryall($show_q);
+    $result = '';
+    $allEmployee = ts_GetAllEmployeeData();
     $allTagNames = stg_get_alltagnames();
     $messages = new UbillingMessageHelper();
-    $result = '';
 
-    if (!empty($allemployee)) {
+    if (!empty($allEmployee)) {
         $cells = wf_TableCell(__('ID'));
         $cells .= wf_TableCell(__('Real Name'));
         $cells .= wf_TableCell(__('Active'));
@@ -45,7 +44,7 @@ function em_EmployeeRenderList() {
         $cells .= wf_TableCell(__('Actions'));
         $rows = wf_TableRow($cells, 'row1');
 
-        foreach ($allemployee as $ion => $eachemployee) {
+        foreach ($allEmployee as $ion => $eachemployee) {
             $cells = wf_TableCell($eachemployee['id']);
             $cells .= wf_TableCell($eachemployee['name']);
             $cells .= wf_TableCell(web_bool_led($eachemployee['active']), '', '', 'sorttable_customkey="' . $eachemployee['active'] . '"');
@@ -205,17 +204,17 @@ function em_JobTypeSave($editjobId) {
  * @return void
  */
 function em_JobTypeRenderList() {
-    $show_q = "SELECT * from `jobtypes`";
-    $alljobs = simple_queryall($show_q);
+    $result = '';
     $messages = new UbillingMessageHelper();
-    $cells = wf_TableCell(__('ID'));
-    $cells .= wf_TableCell(__('Job type'));
-    $cells .= wf_TableCell(__('Color'));
-    $cells .= wf_TableCell(__('Actions'));
-    $rows = wf_TableRow($cells, 'row1');
+    $allJobTypes = ts_GetAllJobtypesData();
 
-    if (!empty($alljobs)) {
-        foreach ($alljobs as $ion => $eachjob) {
+    if (!empty($allJobTypes)) {
+        $cells = wf_TableCell(__('ID'));
+        $cells .= wf_TableCell(__('Job type'));
+        $cells .= wf_TableCell(__('Color'));
+        $cells .= wf_TableCell(__('Actions'));
+        $rows = wf_TableRow($cells, 'row1');
+        foreach ($allJobTypes as $ion => $eachjob) {
             $cells = wf_TableCell($eachjob['id']);
             $cells .= wf_TableCell($eachjob['jobname']);
             $jobColor = (!empty($eachjob['jobcolor'])) ? wf_tag('font', false, '', 'color="' . $eachjob['jobcolor'] . '"') . $eachjob['jobcolor'] . wf_tag('font', true) : '';
@@ -232,11 +231,12 @@ function em_JobTypeRenderList() {
             $cells .= wf_TableCell($actionlinks);
             $rows .= wf_TableRow($cells, 'row5');
         }
+        $result .= wf_TableBody($rows, '100%', '0', 'sortable');
+    } else {
+        $result .= $messages->getStyledMessage(__('Nothing to show'), 'warning');
     }
 
 
-
-    $result = wf_TableBody($rows, '100%', '0', 'sortable');
     $createJtLabel = __('Create') . ' ' . __('Job type');
     $creationLink = wf_modalAuto(wf_img_sized('skins/add_icon.png', $createJtLabel), $createJtLabel, em_JobTypeCreateForm());
     show_window(__('Job types') . ' ' . $creationLink, $result);
@@ -583,8 +583,7 @@ function ts_GetAllJobtypesData() {
     $result = array();
     if (!empty($alljt)) {
         foreach ($alljt as $io => $each) {
-            $result[$each['id']]['jobname'] = $each['jobname'];
-            $result[$each['id']]['jobcolor'] = $each['jobcolor'];
+            $result[$each['id']] = $each;
         }
     }
     return ($result);
