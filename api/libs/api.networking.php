@@ -1116,29 +1116,37 @@ function multinet_rebuild_all_handlers() {
 
                 case 'dhcp82':
                     if ($opt82EnabledFlag) {
-                        $dhcpdata82 = $allDhcpData[$eachnet['id']];
-                        handle_dhcp_rebuild_option82($eachnet['id'], $dhcpdata82['confname']);
+                        if (isset($allDhcpData[$eachnet['id']])) {
+                            $dhcpdata82 = $allDhcpData[$eachnet['id']];
+                            handle_dhcp_rebuild_option82($eachnet['id'], $dhcpdata82['confname']);
+                        }
                     }
                     break;
 
                 case 'dhcp82_vpu':
                     if ($opt82EnabledFlag) {
-                        $dhcpdata82_vpu = $allDhcpData[$eachnet['id']];
-                        handle_dhcp_rebuild_option82_vpu($eachnet['id'], $dhcpdata82_vpu['confname']);
+                        if (isset($allDhcpData[$eachnet['id']])) {
+                            $dhcpdata82_vpu = $allDhcpData[$eachnet['id']];
+                            handle_dhcp_rebuild_option82_vpu($eachnet['id'], $dhcpdata82_vpu['confname']);
+                        }
                     }
                     break;
 
                 case 'dhcp82_bdcom':
                     if ($opt82EnabledFlag) {
-                        $dhcpdata82_bdcom = $allDhcpData[$eachnet['id']];
-                        handle_dhcp_rebuild_option82_bdcom($eachnet['id'], $dhcpdata82_bdcom['confname']);
+                        if (isset($allDhcpData[$eachnet['id']])) {
+                            $dhcpdata82_bdcom = $allDhcpData[$eachnet['id']];
+                            handle_dhcp_rebuild_option82_bdcom($eachnet['id'], $dhcpdata82_bdcom['confname']);
+                        }
                     }
                     break;
 
                 case 'dhcp82_zte':
                     if ($opt82EnabledFlag) {
-                        $dhcpdata82_zte = $allDhcpData[$eachnet['id']];
-                        handle_dhcp_rebuild_option82_zte($eachnet['id'], $dhcpdata82_zte['confname']);
+                        if (isset($allDhcpData[$eachnet['id']])) {
+                            $dhcpdata82_zte = $allDhcpData[$eachnet['id']];
+                            handle_dhcp_rebuild_option82_zte($eachnet['id'], $dhcpdata82_zte['confname']);
+                        }
                     }
                     break;
 
