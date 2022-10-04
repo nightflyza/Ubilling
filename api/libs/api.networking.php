@@ -694,40 +694,56 @@ function handle_dhcp_rebuild_static($netid, $confname, $ddns = false, $loginIps 
  * @return void
  */
 function handle_dhcp_rebuild_option82($netid, $confname) {
-    $query = "SELECT * from `nethosts` WHERE `netid`='" . $netid . "'";
+    $query = "SELECT `login`,`users`.`ip` as `ip`,`option`,`port`,`switches`.`ip` AS `swip`,`swid`
+              FROM `users` 
+              INNER JOIN `nethosts` USING (ip)
+              LEFT JOIN (SELECT * FROM `switchportassign`) as switchportassign USING (login)
+              LEFT JOIN `switches` ON (`switchportassign`.switchid=`switches`.`id`)
+              WHERE `netid` = '" . $netid . "'";
     if (!empty($confname)) {
         $confpath = 'multinet/' . $confname;
         $allhosts = simple_queryall($query);
         $result = '';
         if (!empty($allhosts)) {
+            $customTemplate = file_get_contents(CONFIG_PATH . "dhcp/option82.template");
+           if (empty($customTemplate)) {
+                $customTemplate = '
+class "{HOSTNAME}" {
+match if binary-to-ascii (16, 8, "", option agent.remote-id) = "{REMOTEID}" and binary-to-ascii (10, 8, "", option agent.circuit-id) = "{CIRCUITID}";
+}
+
+pool {
+range {IP};
+allow members of "{HOSTNAME}";
+}
+' . "\n";
+            }
             foreach ($allhosts as $io => $eachhost) {
+                $parseTemplate = $customTemplate;
                 $dhcphostname = 'm' . str_replace('.', 'x', $eachhost['ip']);
                 $options = explode('|', $eachhost['option']);
-                $customTemplate = file_get_contents(CONFIG_PATH . "dhcp/option82.template");
-                if (empty($customTemplate)) {
-                    $customTemplate = '
-       class "{HOSTNAME}" {
-        match if binary-to-ascii (16, 8, "", option agent.remote-id) = "{REMOTEID}" and binary-to-ascii (10, 8, "", option agent.circuit-id) = "{CIRCUITID}";
-       }
-
-        pool {
-        range {IP};
-        allow members of "{HOSTNAME}";
-        }
-        ' . "\n";
-                }
-
+                
                 if (isset($options[1])) {
-                    $parseTemplate = $customTemplate;
                     $parseTemplate = str_ireplace('{HOSTNAME}', $dhcphostname, $parseTemplate);
                     $parseTemplate = str_ireplace('{REMOTEID}', $options[0], $parseTemplate);
                     $parseTemplate = str_ireplace('{CIRCUITID}', $options[1], $parseTemplate);
                     $parseTemplate = str_ireplace('{IP}', $eachhost['ip'], $parseTemplate);
-
+                    $parseTemplate = str_ireplace('{SWITCHIP}', $eachhost['swip'], $parseTemplate);
+                    $parseTemplate = str_ireplace('{SWITCHMAC}', $eachhost['swid'], $parseTemplate);
+                    $parseTemplate = str_ireplace('{SWITCHPORT}', $eachhost['port'], $parseTemplate);
                     $result .= $parseTemplate;
+
+                } else {
+                    if (preg_match('/{SWITCHIP}|{SWITCHMAC}|{PORT}/', $customTemplate)) {
+                        $parseTemplate = str_ireplace('{HOSTNAME}', $dhcphostname, $parseTemplate);
+                        $parseTemplate = str_ireplace('{IP}', $eachhost['ip'], $parseTemplate);
+                        $parseTemplate = str_ireplace('{SWITCHIP}', $eachhost['swip'], $parseTemplate);
+                        $parseTemplate = str_ireplace('{SWITCHMAC}', $eachhost['swid'], $parseTemplate);
+                        $parseTemplate = str_ireplace('{SWITCHPORT}', $eachhost['port'], $parseTemplate);
+                        $result .= $parseTemplate;
+                    }
                 }
             }
-
             file_put_contents($confpath, $result);
         } else {
             file_put_contents($confpath, $result);
@@ -752,6 +768,16 @@ function handle_dhcp_rebuild_option82_vpu($netid, $confname) {
         $allIps = GetAllUserIp();
         $result = '';
         if (!empty($allhosts)) {
+            $customTemplate = file_get_contents(CONFIG_PATH . "dhcp/option82_vpu.template");
+            if (empty($customTemplate)) {
+                $customTemplate = '
+class "{HOSTNAME}" { match if binary-to-ascii (16, 8, "", option agent.remote-id) = "{REMOTEID}" and binary-to-ascii(10, 16, "", substring(option agent.circuit-id,2,2)) = "{CIRCUITID}"; }
+pool {
+range {IP};
+allow members of "{HOSTNAME}";
+}
+' . "\n";
+            }
             foreach ($allhosts as $io => $eachhost) {
                 $login = $allIps[$eachhost['ip']];
                 if (isset($allVlans[$login])) {
@@ -759,17 +785,7 @@ function handle_dhcp_rebuild_option82_vpu($netid, $confname) {
                     $remote = GetTermRemoteByNetid($netid);
                     $vlan = $allVlans[$login];
                     $dhcphostname = 'm' . str_replace('.', 'x', $eachhost['ip']);
-                    $customTemplate = file_get_contents(CONFIG_PATH . "dhcp/option82_vpu.template");
                     if (!empty($vlan)) {
-                        if (empty($customTemplate)) {
-                            $customTemplate = '
-class "{HOSTNAME}" { match if binary-to-ascii (16, 8, "", option agent.remote-id) = "{REMOTEID}" and binary-to-ascii(10, 16, "", substring(option agent.circuit-id,2,2)) = "{CIRCUITID}"; }
-pool {
-range {IP};
-allow members of "{HOSTNAME}";
-}
-' . "\n";
-                        }
                         $parseTemplate = $customTemplate;
                         $parseTemplate = str_ireplace('{HOSTNAME}', $dhcphostname, $parseTemplate);
                         $parseTemplate = str_ireplace('{CIRCUITID}', $vlan, $parseTemplate);
@@ -803,6 +819,16 @@ function handle_dhcp_rebuild_option82_bdcom($netid, $confname) {
         $allIps = GetAllUserIp();
         $result = '';
         if (!empty($allhosts)) {
+            $customTemplate = file_get_contents(CONFIG_PATH . "dhcp/option82_bdcom.template");
+            if (empty($customTemplate)) {
+                $customTemplate = '
+class "{HOSTNAME}" { match if binary-to-ascii(16,8,":",substring(option agent.remote-id,0,6)) = "{CIRCUITID}"; }
+pool {
+range {IP};
+allow members of "{HOSTNAME}";
+}
+' . "\n";
+            }
             foreach ($allhosts as $io => $eachhost) {
                 $login = $allIps[$eachhost['ip']];
                 $mac = '';
@@ -815,16 +841,7 @@ function handle_dhcp_rebuild_option82_bdcom($netid, $confname) {
                     $mac_len = strlen($mac);
                     $mac = substr($mac, 0, $mac_len - 1);
                     $dhcphostname = 'm' . str_replace('.', 'x', $eachhost['ip']);
-                    $customTemplate = file_get_contents(CONFIG_PATH . "dhcp/option82_bdcom.template");
-                    if (empty($customTemplate)) {
-                        $customTemplate = '
-class "{HOSTNAME}" { match if binary-to-ascii(16,8,":",substring(option agent.remote-id,0,6)) = "{CIRCUITID}"; }
-pool {
-range {IP};
-allow members of "{HOSTNAME}";
-}
-' . "\n";
-                    }
+
                     $parseTemplate = $customTemplate;
                     $parseTemplate = str_ireplace('{HOSTNAME}', $dhcphostname, $parseTemplate);
                     $parseTemplate = str_ireplace('{CIRCUITID}', $mac, $parseTemplate);
@@ -857,6 +874,16 @@ function handle_dhcp_rebuild_option82_zte($netid, $confname) {
         $allOltSnmpTemplates = loadOltSnmpTemplates();
         $result = '';
         if (!empty($allhosts)) {
+            $customTemplate = file_get_contents(CONFIG_PATH . "dhcp/option82_zte.template");
+            if (empty($customTemplate)) {
+                $customTemplate = '
+class "{HOSTNAME}" { match if substring(option agent.circuit-id,49,12) = "{CIRCUITID}"; }
+pool {
+range {IP};
+allow members of "{HOSTNAME}";
+}
+' . "\n";
+            }
             foreach ($allhosts as $io => $eachhost) {
                 $login = $allIps[$eachhost['ip']];
                 $onuId = '';
@@ -879,16 +906,7 @@ function handle_dhcp_rebuild_option82_zte($netid, $confname) {
                             $onuId .= strtoupper($eachOctet);
                         }
                         $dhcphostname = 'm' . str_replace('.', 'x', $eachhost['ip']);
-                        $customTemplate = file_get_contents(CONFIG_PATH . "dhcp/option82_zte.template");
-                        if (empty($customTemplate)) {
-                            $customTemplate = '
-class "{HOSTNAME}" { match if substring(option agent.circuit-id,49,12) = "{CIRCUITID}"; }
-pool {
-range {IP};
-allow members of "{HOSTNAME}";
-}
-' . "\n";
-                        }
+
                         $parseTemplate = $customTemplate;
                         $parseTemplate = str_ireplace('{HOSTNAME}', $dhcphostname, $parseTemplate);
                         $parseTemplate = str_ireplace('{CIRCUITID}', $onuId, $parseTemplate);
@@ -1116,29 +1134,37 @@ function multinet_rebuild_all_handlers() {
 
                 case 'dhcp82':
                     if ($opt82EnabledFlag) {
-                        $dhcpdata82 = $allDhcpData[$eachnet['id']];
-                        handle_dhcp_rebuild_option82($eachnet['id'], $dhcpdata82['confname']);
+                        if (isset($allDhcpData[$eachnet['id']])) {
+                            $dhcpdata82 = $allDhcpData[$eachnet['id']];
+                            handle_dhcp_rebuild_option82($eachnet['id'], $dhcpdata82['confname']);
+                        }
                     }
                     break;
 
                 case 'dhcp82_vpu':
                     if ($opt82EnabledFlag) {
-                        $dhcpdata82_vpu = $allDhcpData[$eachnet['id']];
-                        handle_dhcp_rebuild_option82_vpu($eachnet['id'], $dhcpdata82_vpu['confname']);
+                        if (isset($allDhcpData[$eachnet['id']])) {
+                            $dhcpdata82_vpu = $allDhcpData[$eachnet['id']];
+                            handle_dhcp_rebuild_option82_vpu($eachnet['id'], $dhcpdata82_vpu['confname']);
+                        }
                     }
                     break;
 
                 case 'dhcp82_bdcom':
                     if ($opt82EnabledFlag) {
-                        $dhcpdata82_bdcom = $allDhcpData[$eachnet['id']];
-                        handle_dhcp_rebuild_option82_bdcom($eachnet['id'], $dhcpdata82_bdcom['confname']);
+                        if (isset($allDhcpData[$eachnet['id']])) {
+                            $dhcpdata82_bdcom = $allDhcpData[$eachnet['id']];
+                            handle_dhcp_rebuild_option82_bdcom($eachnet['id'], $dhcpdata82_bdcom['confname']);
+                        }
                     }
                     break;
 
                 case 'dhcp82_zte':
                     if ($opt82EnabledFlag) {
-                        $dhcpdata82_zte = $allDhcpData[$eachnet['id']];
-                        handle_dhcp_rebuild_option82_zte($eachnet['id'], $dhcpdata82_zte['confname']);
+                        if (isset($allDhcpData[$eachnet['id']])) {
+                            $dhcpdata82_zte = $allDhcpData[$eachnet['id']];
+                            handle_dhcp_rebuild_option82_zte($eachnet['id'], $dhcpdata82_zte['confname']);
+                        }
                     }
                     break;
 
