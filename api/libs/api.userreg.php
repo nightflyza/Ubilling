@@ -123,7 +123,7 @@ function web_AddressBuildShowAptsCheck($buildid, $apt = '', $login = '') {
     }
 
 
-    //display of users which lives in this apt
+//display of users which lives in this apt
     if ($someoneLiveHere) {
         $allAddress = zb_AddressGetAddressAllData();
         if (!empty($allAddress)) {
@@ -140,7 +140,7 @@ function web_AddressBuildShowAptsCheck($buildid, $apt = '', $login = '') {
                 $result .= $messages->getStyledMessage(__('The apartment has one lives, we have nothing against, just be warned'), 'warning');
             }
 
-            //additional cosmetic delimiter for binder module
+//additional cosmetic delimiter for binder module
             if (!empty($login)) {
                 $result .= wf_delimiter(0);
             }
@@ -151,7 +151,7 @@ function web_AddressBuildShowAptsCheck($buildid, $apt = '', $login = '') {
         }
     }
 
-    //modal window width control for cosmetic purposes
+//modal window width control for cosmetic purposes
     if (!empty($result)) {
         $result .= wf_tag('div', false, '', 'style="width:900px;"') . wf_tag('div', true);
     }
@@ -372,6 +372,7 @@ function web_UserRegFormNetData($newuser_data) {
     global $registerSteps;
     global $ubillingConfig;
     $currentStep = 4;
+    $form = '';
     $alterconf = $ubillingConfig->getAlter();
     if ($alterconf['BRANCHES_ENABLED']) {
         global $branchControl;
@@ -399,8 +400,13 @@ function web_UserRegFormNetData($newuser_data) {
     }
 
     $ip_proposal = multinet_get_next_freeip('nethosts', 'ip', multinet_get_service_networkid($newuser_data['service']));
+    $login_proposal = '';
     $loginGenerator = new SayMyName($cityalias, $streetalias, $buildnum, $apt, $ip_proposal, $agentPrefixID);
-    $login_proposal = $loginGenerator->getLogin();
+    try {
+        $login_proposal = $loginGenerator->getLogin();
+    } catch (Exception $exception) {
+        show_error(__('Strange exception') . ': ' . $exception->getMessage());
+    }
     $password_proposal = zb_RegPasswordProposal();
 
 
@@ -419,7 +425,7 @@ function web_UserRegFormNetData($newuser_data) {
     } else {
         $modifier = '';
     }
-    $form = '';
+
     $addressCheck = web_AddressBuildShowAptsCheck($buildata['id'], $apt);
     if (!empty($addressCheck)) {
         $form .= wf_modalOpenedAuto(__('Warning'), $addressCheck, '800', '300');
@@ -429,7 +435,11 @@ function web_UserRegFormNetData($newuser_data) {
 
     $form .= wf_tag('tr', false, 'row3');
     $form .= wf_tag('td', false, '', 'width="65%"');
-    $form .= wf_tag('input', false, '', 'type="text" name="login" value="' . $login_proposal . '" ' . $modifier);
+    if ($safe_mode) {
+        $form .= wf_tag('input', false, '', 'type="text" name="login" value="' . $login_proposal . '" READONLY');
+    } else {
+        $form .= wf_TextInput('login', '', $login_proposal, false, '', 'login');
+    }
     $form .= wf_tag('td', true);
     $form .= wf_tag('td', false);
     $form .= __('Login') . ' ' . zb_CheckLoginRscriptdCompat($login_proposal);
@@ -654,6 +664,7 @@ function web_UserRegFormNetData($newuser_data) {
     $form .= wf_HiddenInput('repostdata', base64_encode(serialize($newuser_data)));
     $form .= wf_Submit(__('Let register that user'));
     $form .= wf_tag('form', true);
+
 
     $form .= wf_tag('div', false, '', 'style="clear:both;"') . wf_tag('div', true);
     $form .= wf_StepsMeter($registerSteps, $currentStep);
@@ -946,7 +957,7 @@ function zb_UserRegister($user_data, $goprofile = true) {
         zb_AddAddressExtenSave($login, false, $postCode, $extenTown, $extenAddr);
     }
 
-    ///////////////////////////////////
+///////////////////////////////////
     if ($goprofile) {
         rcms_redirect("?module=userprofile&username=" . $login . '&justregistered=true');
     }

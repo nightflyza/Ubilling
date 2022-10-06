@@ -219,20 +219,20 @@ class SayMyName {
                 //any login suggestions?
                 if (empty($this->loginProposal)) {
                     log_register('LOGIN_GENERATION `' . $this->generationMode . '` FAIL EMPTY_PROPOSAL');
-                    throw new Exception('Generator code in ' . ': ' . $generatorFullPath . ' doesnt set loginProposal property or returns empty proposal');
+                    throw new Exception(__('Generator code in') . ': ' . $generatorFullPath.' ' .__('doesnt set loginProposal property or returns empty proposal'));
                 }
             } else {
                 log_register('LOGIN_GENERATION `' . $this->generationMode . '` FAIL EMPTY_CODE');
-                throw new Exception('Generator code is empty' . ': ' . $generatorFullPath);
+                throw new Exception(__('Generator code is empty') . ': ' . $generatorFullPath);
             }
         } else {
             log_register('LOGIN_GENERATION `' . $this->generationMode . '` FAIL NOT_EXISTS');
-            throw new Exception('Login generation definition not exists' . ': ' . $generatorFullPath);
+            throw new Exception(__('Login generator definition not exists') . ': ' . $generatorFullPath);
         }
         $result = $this->filterLogin($this->loginProposal);
         if (isset($this->busyLogins[$result])) {
             log_register('LOGIN_GENERATION `' . $this->generationMode . '` FAIL DUPLICATE `' . $result . '`');
-            throw new Exception('Generator ' . $generatorFullPath . ' returned existing login as proposal');
+            throw new Exception(__('Generator').' ' . $generatorFullPath .' '. __('returned existing login as proposal'));
         }
         return($result);
     }
