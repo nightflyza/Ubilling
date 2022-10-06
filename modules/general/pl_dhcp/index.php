@@ -7,6 +7,7 @@ if (cfr('PLDHCP')) {
         $login = ubRouting::get('username');
         $config = $ubillingConfig->getBilling();
         $alter_conf = $ubillingConfig->getAlter();
+        $opt82Flag = $ubillingConfig->getAlterParam('OPT82_ENABLED');
         $cat_path = $config['CAT'];
         $grep_path = $config['GREP'];
         $tail_path = $config['TAIL'];
@@ -18,6 +19,10 @@ if (cfr('PLDHCP')) {
         $messages = new UbillingMessageHelper();
         $currentMacLabel = $messages->getStyledMessage(wf_tag('h2') . __('Current MAC') . ': ' . $user_mac . wf_tag('h2', true), 'info');
         show_window('', $currentMacLabel);
+        if ($opt82Flag) {
+            $grep_path = $grep_path . ' -E';
+            $user_mac = '"( ' . $user_ip . '(:)? )|(' . $user_mac . ')"';
+        }
         $command = $sudo_path . ' ' . $cat_path . ' ' . $leasefile . ' | ' . $grep_path . ' ' . $user_mac . ' | ' . $tail_path . '  -n 30';
         $output = shell_exec($command);
         if (!empty($output)) {
