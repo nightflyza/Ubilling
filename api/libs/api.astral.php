@@ -107,7 +107,7 @@ function wf_TextInput($name, $label = '', $value = '', $br = false, $size = '', 
     $pattern = ($pattern == 'email') ? 'pattern="^([\w\._-]+)@([\w\._-]+)\.([a-z]{2,6}\.?)$" placeholder="bobrik@bobrik.com" title="' . __('This field can only contain email address') . '"' : $pattern;
     $pattern = ($pattern == 'alpha') ? 'pattern="[a-zA-Z]+" placeholder="aZ" title="' . __('This field can only contain Latin letters') . '"' : $pattern;
     $pattern = ($pattern == 'alphanumeric') ? 'pattern="[a-zA-Z0-9]+" placeholder="aZ09" title="' . __('This field can only contain Latin letters and numbers') . '"' : $pattern;
-    $pattern = ($pattern == 'login') ? 'pattern="[a-zA-Z0-9_]+" placeholder="aZ09_" title="' . __('This field can only contain Latin letters and numbers') . '"' : $pattern;
+    $pattern = ($pattern == 'login') ? 'pattern="[a-zA-Z0-9_]+" placeholder="aZ09_" title="' . __('This field can only contain Latin letters and numbers') . ' ' . __('and') . ' _' . '"' : $pattern;
     $pattern = ($pattern == 'mac') ? 'pattern="^[a-fA-F0-9]{2}:[a-fA-F0-9]{2}:[a-fA-F0-9]{2}:[a-fA-F0-9]{2}:[a-fA-F0-9]{2}:[a-fA-F0-9]{2}$|^[a-fA-F0-9]{2}-[a-fA-F0-9]{2}-[a-fA-F0-9]{2}-[a-fA-F0-9]{2}-[a-fA-F0-9]{2}-[a-fA-F0-9]{2}$" placeholder="00:02:02:34:72:a5" title="' . __('This MAC have wrong format') . '"' : $pattern;
 
     $result = '<input type="text" name="' . $name . '" value="' . $value . '" ' . $input_size . ' id="' . $inputid . '" class="' . $class . '" ' . $opts . ' ' . $pattern . '>' . "\n";
