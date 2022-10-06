@@ -22,20 +22,20 @@ if (cfr('SWITCHES')) {
     }
 
 //switch adding
-    if (isset($_POST['newswitchmodel'])) {
+    if (ubRouting::checkPost('newswitchmodel')) {
         if (cfr('SWITCHESEDIT')) {
-            $modelid = $_POST['newswitchmodel'];
-            $ip = $_POST['newip'];
-            $desc = $_POST['newdesc'];
-            $location = $_POST['newlocation'];
-            $snmp = $_POST['newsnmp'];
-            $swid = ($altCfg['SWITCHES_EXTENDED']) ? $_POST['newswid'] : '';
-            $geo = $_POST['newgeo'];
-            $parentid = $_POST['newparentid'];
-            $snmpwrite = $_POST['newsnmpwrite'];
-            $switchgroup = (wf_CheckPost(array('newswgroup'))) ? $_POST['newswgroup'] : '';
+            $modelid = ubRouting::post('newswitchmodel');
+            $ip = ubRouting::post('newip');
+            $desc = ubRouting::post('newdesc');
+            $location = ubRouting::post('newlocation');
+            $snmp = ubRouting::post('newsnmp');
+            $swid = ($altCfg['SWITCHES_EXTENDED']) ? ubRouting::post('newswid') : '';
+            $geo = ubRouting::post('newgeo');
+            $parentid = ubRouting::post('newparentid');
+            $snmpwrite = ubRouting::post('newsnmpwrite');
+            $switchgroup = (ubRouting::checkPost('newswgroup')) ? ubRouting::post('newswgroup') : '';
             ub_SwitchAdd($modelid, $ip, $desc, $location, $snmp, $swid, $geo, $parentid, $snmpwrite, $switchgroup);
-            rcms_redirect("?module=switches");
+            ubRouting::nav("?module=switches");
         } else {
             show_window(__('Error'), __('Access denied'));
         }
@@ -174,8 +174,8 @@ if (cfr('SWITCHES')) {
                 if (cfr('SWITCHESEDIT')) {
                     simple_update_field('switches', 'modelid', $_POST['editmodel'], "WHERE `id`='" . $switchid . "'");
                     simple_update_field('switches', 'ip', $_POST['editip'], "WHERE `id`='" . $switchid . "'");
-                    simple_update_field('switches', 'location', $_POST['editlocation'], "WHERE `id`='" . $switchid . "'");
-                    simple_update_field('switches', 'desc', $_POST['editdesc'], "WHERE `id`='" . $switchid . "'");
+                    simple_update_field('switches', 'location', ub_SanitizeData(ubRouting::post('editlocation'), false), "WHERE `id`='" . $switchid . "'");
+                    simple_update_field('switches', 'desc', ub_SanitizeData(ubRouting::post('editdesc'), false), "WHERE `id`='" . $switchid . "'");
                     simple_update_field('switches', 'snmp', $_POST['editsnmp'], "WHERE `id`='" . $switchid . "'");
                     simple_update_field('switches', 'snmpwrite', $_POST['editsnmpwrite'], "WHERE `id`='" . $switchid . "'");
                     if ($altCfg['SWITCHES_EXTENDED']) {

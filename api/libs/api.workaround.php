@@ -6784,3 +6784,23 @@ function zb_rightControl($right, $controlString) {
     }
     return($result);
 }
+
+/**
+ * Replaces some sensitive characters with safer analogs
+ * 
+ * @param string $data
+ * @param bool   $mres
+ * 
+ * @return string
+ */
+function ub_SanitizeData($data, $mres = true) {
+    $result = '';
+    if ($mres) {
+        $result = ubRouting::filters($data, 'mres');
+    } else {
+        $result = $data;
+    }
+    $result = str_replace('"', '``', $result);
+    $result = str_replace("'", '`', $result);
+    return($result);
+}

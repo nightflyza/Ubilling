@@ -376,13 +376,13 @@ function web_SwitchFormAdd() {
     $swGroupsEnabled = $ubillingConfig->getAlterParam('SWITCH_GROUPS_ENABLED');
     $equipmentModels = zb_SwitchModelsGetAll();
     if (!empty($equipmentModels)) {
-        $addinputs = wf_TextInput('newip', 'IP', '', true, 20);
+        $addinputs = wf_TextInput('newip', 'IP', '', true, 20, 'ip');
         $addinputs .= wf_TextInput('newlocation', 'Location', '', true, 30);
         $addinputs .= wf_TextInput('newdesc', 'Description', '', true, 30);
         $addinputs .= wf_TextInput('newsnmp', 'SNMP community', '', true, 20);
         $addinputs .= wf_TextInput('newsnmpwrite', 'SNMP write community', '', true, 20);
         if ($altCfg['SWITCHES_EXTENDED']) {
-            $addinputs .= wf_TextInput('newswid', 'Switch ID', '', true, 20);
+            $addinputs .= wf_TextInput('newswid', 'Switch ID', '', true, 20, 'mac');
         }
         $addinputs .= wf_TextInput('newgeo', 'Geo location', '', true, 20, 'geo');
         $addinputs .= web_SwitchModelSelector('newswitchmodel', $equipmentModels);
@@ -551,7 +551,7 @@ function web_SwitchEditForm($switchid) {
 
 
     $editinputs = wf_Selector('editmodel', $allswitchmodels, 'Model', $switchdata['modelid'], true);
-    $editinputs .= wf_TextInput('editip', 'IP', $switchdata['ip'], true, 20);
+    $editinputs .= wf_TextInput('editip', 'IP', $switchdata['ip'], true, 20, 'ip');
     $editinputs .= wf_TextInput('editlocation', 'Location', $switchdata['location'], true, 30);
     $editinputs .= wf_TextInput('editdesc', 'Description', $switchdata['desc'], true, 30);
     $editinputs .= wf_TextInput('editsnmp', 'SNMP community', $switchdata['snmp'], true, 20);
@@ -564,7 +564,7 @@ function web_SwitchEditForm($switchid) {
         } else {
             $macVenControl = '';
         }
-        $editinputs .= wf_TextInput('editswid', __('Switch ID') . ' (MAC) ' . $macVenControl, $switchdata['swid'], true, 20);
+        $editinputs .= wf_TextInput('editswid', __('Switch ID') . ' (MAC) ' . $macVenControl, $switchdata['swid'], true, 20, 'mac');
     }
     $editinputs .= wf_TextInput('editgeo', 'Geo location', $switchdata['geo'], true, 20, 'geo');
     if (!empty($switchdata['parentid'])) {
@@ -1565,14 +1565,14 @@ function zb_SwitchesRenderAjaxList() {
  * @param int    $parentid
  */
 function ub_SwitchAdd($modelid, $ip, $desc, $location, $snmp, $swid, $geo, $parentid = '', $snmpwrite = '', $switchgroupid = '') {
-    $modelid = vf($modelid, 3);
-    $ip = mysql_real_escape_string($ip);
-    $desc = mysql_real_escape_string($desc);
-    $location = mysql_real_escape_string($location);
-    $snmp = mysql_real_escape_string($snmp);
-    $snmpwrite = mysql_real_escape_string($snmpwrite);
-    $swid = mysql_real_escape_string($swid);
-    $parentid = vf($parentid, 3);
+    $modelid = ubRouting::filters($modelid, 'int');
+    $ip = ubRouting::filters($ip, 'mres');
+    $desc = ub_SanitizeData($desc);
+    $location = ub_SanitizeData($location);
+    $snmp = ubRouting::filters($snmp, 'mres');
+    $snmpwrite = ubRouting::filters($snmpwrite, 'mres');
+    $swid = ubRouting::filters($swid, 'mres');
+    $parentid = ubRouting::filters($parentid, 'int');
     if (!empty($parentid)) {
         $parentid = "'" . $parentid . "'";
     } else {
