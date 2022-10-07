@@ -1283,6 +1283,14 @@ function web_ProfileSwitchControlForm($login) {
             nr_query("DELETE from `switchportassign` WHERE `login`='" . $_POST['swassignlogin'] . "'");
             nr_query("INSERT INTO `switchportassign` (`id` ,`login` ,`switchid` ,`port`) VALUES (NULL , '" . $_POST['swassignlogin'] . "', '" . $newswid . "', '" . $newport . "');");
             log_register("SWITCHPORT CHANGE (" . $login . ") ON SWITCHID [" . $newswid . "] PORT [" . $newport . "]");
+            // Rebuild DHCP if switch used on option82
+            $opt82EnabledFlag = $ubillingConfig->getAlterParam('OPT82_ENABLED');
+            if ($opt82EnabledFlag) {
+                $loginNetType = multinet_get_network_params_by_login($login);
+                if (!empty($loginNetType) and $loginNetType['nettype'] = 'dhcp82') {
+                    multinet_rebuild_all_handlers();
+                }
+            }
             rcms_redirect("?module=userprofile&username=" . $login);
         } else {
             log_register("SWITCHPORT FAIL (" . $login . ") ON SWITCHID [" . $newswid . "] PORT [" . $newport . "]");
@@ -1293,6 +1301,14 @@ function web_ProfileSwitchControlForm($login) {
     if (isset($_POST['swassigndelete'])) {
         nr_query("DELETE from `switchportassign` WHERE `login`='" . $_POST['swassignlogin'] . "'");
         log_register("SWITCHPORT DELETE (" . $login . ")");
+        // Rebuild DHCP if switch used on option82
+        $opt82EnabledFlag = $ubillingConfig->getAlterParam('OPT82_ENABLED');
+        if ($opt82EnabledFlag) {
+            $loginNetType = multinet_get_network_params_by_login($login);
+            if (!empty($loginNetType) and $loginNetType['nettype'] = 'dhcp82') {
+                multinet_rebuild_all_handlers();
+            }
+        }
         rcms_redirect("?module=userprofile&username=" . $login);
     }
     return ($result);
