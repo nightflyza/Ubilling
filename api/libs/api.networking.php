@@ -561,6 +561,24 @@ function multinet_get_network_params($network_id) {
 }
 
 /**
+ * Returns array of existing network parameters
+ * 
+ * @param var $login
+ * 
+ * @return array
+ */
+function multinet_get_network_params_by_login($login) {
+    $result = array();
+    $query = 'SELECT `networks`.* FROM `users`
+            INNER JOIN `nethosts` USING (`ip`)
+            INNER JOIN `networks` ON  `nethosts`.`netid` = `networks`.`id`
+            WHERE `login`="' . $login . '"';
+    $result = simple_query($query);
+
+    return($result);
+}
+
+/**
  * Returns array of existing service parameters
  * 
  * @param int $serviceid
