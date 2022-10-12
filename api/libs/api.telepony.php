@@ -469,6 +469,7 @@ class TelePony {
         $missedTries = array();
         $callsTmp = array();
         $normalCalls = array();
+        $firstRecallTime = array(); //contains first recall start times as destNum=>time
         //cut substr
         $cutSubstr = '';
         if (!empty($countryCode) AND $codeCutNum) {
@@ -526,15 +527,34 @@ class TelePony {
                     $reactionTime = 0;
                     $missTime = $unansweredCalls[$destinationNumber]['callend'];
                     $missTime = strtotime($missTime);
+                    $startTimeStamp = strtotime($startTime);
+
+                    //first recall try time here
+                    if ($startTimeStamp > $missTime) {
+                        if (!isset($firstRecallTime[$destinationNumber])) {
+                            $firstRecallTime[$destinationNumber] = $startTimeStamp;
+                        }
+                    } else {
+                        unset($firstRecallTime[$destinationNumber]);
+                    }
+
+                    //Yeah, seems we recalled missed number and he answered
                     if ($callData['status'] == 'ANSWERED') {
                         unset($unansweredCalls[$destinationNumber]);
                         $answerTime = strtotime($callData['callstart']);
-                        $reactionTime = $answerTime - $missTime;
+                        $recallTryTime = (isset($firstRecallTime[$destinationNumber])) ? $firstRecallTime[$destinationNumber] : strtotime($startTime);
+                        $reactionTime = $recallTryTime - $missTime;
                         $recalledCalls[$destinationNumber]['time'] = $callData['realtime'];
-                        $recalledCalls[$destinationNumber]['count'] = 1;
+                        if (isset($recalledCalls[$destinationNumber]['count'])) {
+                            $recalledCalls[$destinationNumber]['count'] ++;
+                        } else {
+                            $recalledCalls[$destinationNumber]['count'] = 1;
+                        }
                         $recalledCalls[$destinationNumber]['trytime'] = $reactionTime;
                     } else {
-                        $reactionTime = time() - $missTime;
+                        //We tried but without success
+                        $recallTryTime = (isset($firstRecallTime[$destinationNumber])) ? $firstRecallTime[$destinationNumber] : strtotime($startTime);
+                        $reactionTime = $recallTryTime - $missTime; //time of try to recall
                         $recalledCalls[$destinationNumber]['time'] = 0;
                         @$recalledCalls[$destinationNumber]['count'] ++;
                         @$recalledCalls[$destinationNumber]['trytime'] = $reactionTime;
