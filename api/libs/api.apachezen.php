@@ -261,7 +261,7 @@ class ApacheZen {
                             preg_match('~\] \[([a-z]*?)\] \[~', $eachLine, $type);
                             preg_match('~\] \[client ([0-9\.]*)\]~', $eachLine, $client);
                             preg_match('~\] (.*)$~', $eachLine, $message);
-                            $cleanMessage = $message[1];
+                            $cleanMessage = strip_tags($message[1]);
                             $cleanMessage = str_replace('[' . $type[1] . ']', '', $cleanMessage);
                             $cleanMessage = str_replace('[client ' . $client[1] . ']', '', $cleanMessage);
                             foreach ($stripPaths as $ia => $eachStripPath) {
@@ -282,16 +282,16 @@ class ApacheZen {
                                         if (!empty($lineOfCode)) {
                                             $sourceUrl .= '#L' . $lineOfCode;
                                         }
-                                        $sourceLink = wf_Link($sourceUrl, $sourceFiles[1]);
+                                        $sourceLink = wf_Link($sourceUrl, $sourceFiles[1], false, '', 'target="_BLANK"');
                                         $cleanMessage = str_replace($sourceFiles[1], $sourceLink, $cleanMessage);
                                     }
                                 }
                             }
 
                             $cells = '';
-                            if (!empty($date)) {
-                                $timeStamp = strtotime($date[1]);
-                                $cleanDate = date("Y-m-d H:i:s", $timeStamp);
+                            @$timeStamp = strtotime($date[1]);
+                            @$cleanDate = date("Y-m-d H:i:s", $timeStamp);
+                            if ($cleanDate != '1970-01-01 03:00:00') {
                                 $cells .= wf_TableCell($cleanDate);
                                 $cells .= wf_TableCell(htmlentities(strip_tags($client[1])));
                             }
