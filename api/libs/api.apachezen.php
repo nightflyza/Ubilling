@@ -286,7 +286,7 @@ class ApacheZen {
                                         if (!empty($lineOfCode)) {
                                             $lineUrl = $sourceUrl . '#L' . $lineOfCode;
                                             $lineMark = 'on line ' . $lineOfCode . ',';
-                                            $lineLink = wf_Link($lineUrl, wf_tag('u') . $lineMark . wf_tag('u', true));
+                                            $lineLink = wf_Link($lineUrl, wf_tag('u') . $lineMark . wf_tag('u', true), false, '', 'target="_BLANK"');
                                             $cleanMessage = str_replace($lineMark, $lineLink, $cleanMessage);
                                         }
                                     }
