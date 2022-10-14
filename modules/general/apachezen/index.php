@@ -6,7 +6,7 @@ if (cfr('ROOT')) {
         $apacheZen = new ApacheZen($errorLogFlag);
         $zenFlow = new ZenFlow($apacheZen->getFlowId(), $apacheZen->render(), $apacheZen->getTimeout());
         show_window('', $apacheZen->controls());
-        show_window(__('Apache') . ' ' . __('Zen').' '.$apacheZen->getCurrentSource(), $zenFlow->render());
+        show_window(__('Apache') . ' ' . __('Zen') . ' ' . $apacheZen->getCurrentSource(), $zenFlow->render());
         zb_BillingStats(true);
     } else {
         $apacheZen = new ApacheZen(true);

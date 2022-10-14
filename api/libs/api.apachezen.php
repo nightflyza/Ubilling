@@ -241,13 +241,17 @@ class ApacheZen {
             $stripPaths = array(
                 '/usr/local/www/apache22',
                 '/usr/local/www/apache24',
-                '/var/www/html',
+                '/var/www/html/',
                 '/data/',
                 'dev/ubilling/',
                 'billing/'
             );
             if (!empty($resultRaw)) {
                 $rows = '';
+                $date = '';
+                $type = '';
+                $client = '';
+                $message = '';
                 $resultRaw = explodeRows($resultRaw);
                 $resultRaw = array_reverse($resultRaw);
                 if (!empty($resultRaw)) {
@@ -283,10 +287,15 @@ class ApacheZen {
                                     }
                                 }
                             }
-                            $timeStamp = strtotime($date[1]);
-                            $cleanDate = date("Y-m-d H:i:s", $timeStamp);
-                            $cells = wf_TableCell($cleanDate);
-                            $cells .= wf_TableCell(htmlentities(strip_tags($client[1])));
+
+                            $cells = '';
+                            if (!empty($date)) {
+                                $timeStamp = strtotime($date[1]);
+                                $cleanDate = date("Y-m-d H:i:s", $timeStamp);
+                                $cells .= wf_TableCell($cleanDate);
+                                $cells .= wf_TableCell(htmlentities(strip_tags($client[1])));
+                            }
+
                             $cells .= wf_TableCell($cleanMessage);
                             $rows .= wf_TableRow($cells, 'row5');
                         }
