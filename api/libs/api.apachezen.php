@@ -246,24 +246,22 @@ class ApacheZen {
                 'dev/ubilling/',
                 'billing/'
             );
+
+            $hlights = array(
+                'PHP Notice' => 'de6666',
+                'PHP Warning' => 'd04545',
+                'PHP Parse error' => 'ae0000',
+                'PHP Fatal error' => 'e00808'
+            );
+
             if (!empty($resultRaw)) {
                 $rows = '';
-                $date = '';
-                $type = '';
-                $client = '';
-                $message = '';
                 $resultRaw = explodeRows($resultRaw);
                 $resultRaw = array_reverse($resultRaw);
                 if (!empty($resultRaw)) {
                     foreach ($resultRaw as $io => $eachLine) {
                         if (!empty($eachLine)) {
-                            preg_match('~^\[(.*?)\]~', $eachLine, $date);
-                            preg_match('~\] \[([a-z]*?)\] \[~', $eachLine, $type);
-                            preg_match('~\] \[client ([0-9\.]*)\]~', $eachLine, $client);
-                            preg_match('~\] (.*)$~', $eachLine, $message);
-                            $cleanMessage = strip_tags($message[1]);
-                            $cleanMessage = str_replace('[' . $type[1] . ']', '', $cleanMessage);
-                            $cleanMessage = str_replace('[client ' . $client[1] . ']', '', $cleanMessage);
+                            $cleanMessage = strip_tags($eachLine);
                             foreach ($stripPaths as $ia => $eachStripPath) {
                                 $cleanMessage = str_replace($eachStripPath, '', $cleanMessage);
                             }
@@ -274,29 +272,32 @@ class ApacheZen {
                                 preg_match('!on line (.*?),!si', $cleanMessage, $codeLines);
                                 $lineOfCode = '';
                                 if (isset($codeLines[1])) {
-                                    $lineOfCode = ubRouting::filters($codeLines[1], 'int');
+                                    $codeLines = explode(' ', $codeLines[1]);
+                                    $codeLines = $codeLines[0];
+                                    $lineOfCode = ubRouting::filters($codeLines, 'int');
                                 }
+
                                 if (isset($sourceFiles[1])) {
                                     if (file_exists($sourceFiles[1])) {
                                         $sourceUrl = self::URL_CODE . 'blob/master/' . $sourceFiles[1];
-                                        if (!empty($lineOfCode)) {
-                                            $sourceUrl .= '#L' . $lineOfCode;
-                                        }
                                         $sourceLink = wf_Link($sourceUrl, $sourceFiles[1], false, '', 'target="_BLANK"');
                                         $cleanMessage = str_replace($sourceFiles[1], $sourceLink, $cleanMessage);
+
+                                        if (!empty($lineOfCode)) {
+                                            $lineUrl = $sourceUrl . '#L' . $lineOfCode;
+                                            $lineMark = 'on line ' . $lineOfCode . ',';
+                                            $lineLink = wf_Link($lineUrl, wf_tag('u') . $lineMark . wf_tag('u', true));
+                                            $cleanMessage = str_replace($lineMark, $lineLink, $cleanMessage);
+                                        }
                                     }
                                 }
                             }
 
-                            $cells = '';
-                            @$timeStamp = strtotime($date[1]);
-                            @$cleanDate = date("Y-m-d H:i:s", $timeStamp);
-                            if ($cleanDate != '1970-01-01 03:00:00') {
-                                $cells .= wf_TableCell($cleanDate);
-                                $cells .= wf_TableCell(htmlentities(strip_tags($client[1])));
+                            //coloring results
+                            foreach ($hlights as $eachString => $eachColor) {
+                                $cleanMessage = $this->colorize($cleanMessage, $eachString, $eachColor);
                             }
-
-                            $cells .= wf_TableCell($cleanMessage);
+                            $cells = wf_TableCell($cleanMessage);
                             $rows .= wf_TableRow($cells, 'row5');
                         }
                     }
@@ -309,6 +310,28 @@ class ApacheZen {
         } else {
             $messages = new UbillingMessageHelper();
             $result .= $messages->getStyledMessage(__('File not exist') . ': ' . $readSource, 'error');
+        }
+        return($result);
+    }
+
+    /**
+     * Paints some subStr into some color if its appears in text
+     * 
+     * @param string $text
+     * @param string $subStr
+     * @param string $color
+     * 
+     * @return string
+     */
+    protected function colorize($text, $subStr, $color) {
+        $result = '';
+        if (!empty($text) AND ! empty($subStr) AND ! empty($color)) {
+            $colorizedSubstr = wf_tag('font', false, '', 'style="color:#' . $color . ';"');
+            $colorizedSubstr .= $subStr;
+            $colorizedSubstr .= wf_tag('font', true);
+            $result = str_replace($subStr, $colorizedSubstr, $text);
+        } else {
+            $result = $text;
         }
         return($result);
     }
