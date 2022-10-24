@@ -309,8 +309,12 @@ if (cfr('WAREHOUSE')) {
                     $warehouse->$avidity_m($warehouse::URL_ME . '&' . $warehouse::URL_IN);
                 }
 
-                if (wf_CheckGet(array('showoutid'))) {
-                    show_window(__('Outcoming operation') . ': ' . $_GET['showoutid'], $warehouse->outcomingView($_GET['showoutid']));
+                if (ubRouting::checkGet('showoutid')) {
+                    if (ubRouting::checkGet($warehouse::ROUTE_DELOUT)) {
+                        $warehouse->outcomingDelete(ubRouting::get($warehouse::ROUTE_DELOUT));
+                        ubRouting::nav($warehouse::URL_ME . '&' . $warehouse::URL_VIEWERS . '&showoutid=' . ubRouting::get($warehouse::ROUTE_DELOUT));
+                    }
+                    show_window(__('Outcoming operation') . ': ' . ubRouting::get('showoutid'), $warehouse->outcomingView(ubRouting::get('showoutid')));
                     $avidity_m = $avidity['M']['FALL'];
                     $warehouse->$avidity_m($warehouse::URL_ME . '&' . $warehouse::URL_OUT);
                 }

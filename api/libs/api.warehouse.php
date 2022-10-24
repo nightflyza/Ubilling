@@ -206,7 +206,7 @@ class Warehouse {
     const URL_VIEWERS = 'viewers=true';
     const URL_REPORTS = 'reports=true';
     const URL_RESERVE = 'reserve=true';
-    const PHOTOSTORAGE_SCOPE = 'WAREHOUSEITEMTYPE';
+    const ROUTE_DELOUT = 'outcomedelete';
     const PROUTE_MASSRESERVEOUT = 'massoutreserves';
     const PROUTE_MASSAGREEOUT = 'massoutagreement';
     const PROUTE_DOMASSRESOUT = 'runmassoutreserve';
@@ -215,6 +215,7 @@ class Warehouse {
     const PROUTE_RETURNPRICE = 'newreturnprice';
     const PROUTE_RETURNNOTE = 'newreturnnote';
     const PROUTE_EMPREPLACE = 'massoutemployeereplace';
+    const PHOTOSTORAGE_SCOPE = 'WAREHOUSEITEMTYPE';
 
     /**
      * Default debug log path
@@ -3197,6 +3198,7 @@ class Warehouse {
             $rows .= wf_TableRow($cells, 'row3');
 
             $result .= wf_TableBody($rows, '100%', 0, 'wh_viewer');
+
             //returns controls here
             if (@$this->altCfg['WAREHOUSE_RETURNS_ENABLED']) {
                 $this->loadReturns();
@@ -3220,8 +3222,19 @@ class Warehouse {
 
                     $result .= $this->messages->getStyledMessage($returnedLabel, 'warning');
                 }
-                $result .= wf_delimiter(0);
             }
+
+            //outcome deletion controls here
+            if (@$this->altCfg['WAREHOUSE_OUTDEL_ENABLED']) {
+                if (cfr('ROOT')) {
+                    $outDelUrl = self::URL_ME . '&' . self::URL_VIEWERS . '&showoutid=' . $id . '&' . self::ROUTE_DELOUT . '=' . $id;
+                    $outDelCancelUrl = self::URL_ME . '&' . self::URL_VIEWERS . '&showoutid=' . $id;
+                    $outDelLabel = $this->messages->getDeleteAlert();
+                    $result .= wf_ConfirmDialog($outDelUrl, web_delete_icon() . ' ' . __('Delete'), $outDelLabel, 'ubButton', $outDelCancelUrl, __('Delete') . '?');
+                }
+            }
+
+            $result .= wf_delimiter(0);
 
             //photostorage renderer
             if ($this->altCfg['PHOTOSTORAGE_ENABLED']) {
@@ -3240,6 +3253,33 @@ class Warehouse {
         }
 
         return ($result);
+    }
+
+    /**
+     * Deletes existing outcoming operation
+     * 
+     * @param int $outId
+     * 
+     * @return void
+     */
+    public function outcomingDelete($outId) {
+        $outId = ubRouting::filters($outId, 'int');
+        if (isset($this->allOutcoming[$outId])) {
+            if (cfr('ROOT')) {
+                if (@$this->altCfg['WAREHOUSE_OUTDEL_ENABLED']) {
+                    $outcomeData = $this->allOutcoming[$outId];
+                    $itemtypeId = $outcomeData['itemtypeid'];
+                    $count = $outcomeData['count'];
+                    $price = $outcomeData['price'];
+
+                    $outcomesDb = new NyanORM('wh_out');
+                    $outcomesDb->where('id', '=', $outId);
+                    $outcomesDb->delete();
+
+                    log_register('WAREHOUSE OUTCOME DELETE [' . $outId . '] ITEM [' . $itemtypeId . '] COUNT `' . $count . '` PRICE `' . $price . '`');
+                }
+            }
+        }
     }
 
     /**
