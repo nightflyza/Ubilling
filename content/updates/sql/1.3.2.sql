@@ -1,0 +1,1 @@
+ALTER TABLE `extcontras_money` ADD `date_payment` date DEFAULT NULL AFTER `summ_payment`;
