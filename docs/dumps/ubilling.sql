@@ -3026,6 +3026,7 @@ CREATE TABLE IF NOT EXISTS `extcontras_money` (
   `date_edit` datetime NOT NULL,
   `summ_accrual` double DEFAULT 0,
   `summ_payment` double DEFAULT 0,
+  `date_payment` date DEFAULT NULL,
   `incoming` tinyint(1) DEFAULT 0,
   `outgoing` tinyint(1) DEFAULT 0,
   `paynotes` varchar(255) NOT NULL DEFAULT '',

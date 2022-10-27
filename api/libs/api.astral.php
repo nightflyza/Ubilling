@@ -3349,13 +3349,13 @@ function wf_jsAjaxFormSubmit($submitFormClasses, $submitFormIDCtrlClass, $jqdtID
                                     $( \'#' . $errorModalWindowId . '\' ).dialog("open");                                                
                                 } else {
                                     var customJQDTToReload = $(\'#closestJQDTID\').val();
+
                                     if (!empty(customJQDTToReload)) {
                                         $(\'#\' + customJQDTToReload).DataTable().ajax.reload();
                                     } else {
-                                        ' . (empty($jqdtID) ? ' ' : '$(\'#' . $jqdtID . '\').DataTable().ajax.reload();') .
-            '
+                                        ' . (empty($jqdtID) ? ' ' : '$(\'#' . $jqdtID . '\').DataTable().ajax.reload();') . '
                                     }
-                                    $( \'#\'+$("' . $submitFormIDCtrlClass . '").val() ).dialog("close");
+                                    $( \'#\' + $("' . $submitFormIDCtrlClass . '").val() ).dialog("close");
                                 }
                             }                        
                 });
@@ -3669,7 +3669,7 @@ function wf_JSEmptyFunc() {
             // discuss at: http://phpjs.org/functions/empty
             
             var key;
-            if (mixed_var === "" || mixed_var === 0 || mixed_var === "0" || mixed_var === null || mixed_var === false || mixed_var === undefined ) {
+            if (mixed_var === "" || mixed_var === 0 || mixed_var === "0" || mixed_var === null || mixed_var === \'null\' || mixed_var === false || mixed_var === undefined || mixed_var === \'undefined\' ) {
                 return true;
             }
             

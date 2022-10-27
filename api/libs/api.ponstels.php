@@ -18,6 +18,8 @@ class PONStels extends PONProto {
         $oltNoFDBQ = $this->oltParameters['NOFDB'];
         $oltIPPORT = $oltIp . ':' . self::SNMPPORT;
         $deviceType = $this->snmpTemplates[$oltModelId]['define']['DEVICE'];
+        $ponPrefixAdd = (empty($this->snmpTemplates[$oltModelId]['misc']['INTERFACEADDPONPREFIX'])
+                        ? '' : $this->snmpTemplates[$oltModelId]['misc']['INTERFACEADDPONPREFIX']);
         $distIndex = array();
         $ifaceIndex = array();
 
@@ -51,7 +53,7 @@ class PONStels extends PONProto {
                 if (!empty($this->snmpTemplates[$oltModelId]['misc']['DEREGREASON'])) {
                     $lastDeregIndex = $this->walkCleared($oltIPPORT, $oltCommunity,
                                                          $this->snmpTemplates[$oltModelId]['misc']['DEREGREASON'],
-                                                         '',
+                                                         '"',
                                                          self::SNMPCACHE);
                 }
             }
@@ -72,7 +74,7 @@ class PONStels extends PONProto {
                     $this->distanceParse($oltid, $distIndex, $macIndex);
 //processing interfaces data
                     //$this->interfaceParseStels12($oltid, $ifaceIndex, $macIndex, $deviceType);
-                    $this->interfaceParseStels12($oltid, $ifaceIndex);
+                    $this->interfaceParseStels12($oltid, $ifaceIndex, $ponPrefixAdd);
                 }
             }
 
@@ -101,7 +103,7 @@ class PONStels extends PONProto {
      *
      * @return void
      */
-    protected function interfaceParseStels12($oltid, $ifaceIndex) {
+    protected function interfaceParseStels12($oltid, $ifaceIndex, $ponPrefixAdd = '') {
         $macIndex = $this->olt->readMacIndex();
         $oltid = vf($oltid, 3);
         $ifaceTmp = array();
@@ -148,7 +150,7 @@ class PONStels extends PONProto {
                         $LLID = __('On ho');
                     }
 //storing results
-                    $result[$eachMac] = $LLID;
+                    $result[$eachMac] = $ponPrefixAdd . $LLID;
                 }
             }
 //saving ONUs interfaces
