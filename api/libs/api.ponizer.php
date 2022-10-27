@@ -307,6 +307,13 @@ class PONizer {
     protected $ipColumnVisible = true;
 
     /**
+     * Placeholder for PON_UKNKOWN_ONU_LLID_SHOW alter.ini option
+     *
+     * @var bool
+     */
+    protected $llidColVisibleUnknownONU = false;
+
+    /**
      * Contains all busy ONU MAC/serials as lowercase onuIdent=>onuId
      *
      * @var array
@@ -471,6 +478,8 @@ class PONizer {
         $this->onuOfflineSignalLevel = $this->ubConfig->getAlterParam('PON_ONU_OFFLINE_SIGNAL', $this->onuOfflineSignalLevel);
         $this->deferredLoadingFlag = $this->ubConfig->getAlterParam('PON_DEFERRED_LOADING', false);
         $this->ipColumnVisible = ($this->ubConfig->getAlterParam('PONIZER_NO_IP_COLUMN')) ? false : true;
+        $this->llidColVisibleUnknownONU = $this->ubConfig->getAlterParam('PON_UKNKOWN_ONU_LLID_SHOW', false);
+
         if ($this->ponIfDescribe) {
             $this->ponInterfaces = new PONIfDesc();
         }
@@ -3047,7 +3056,12 @@ class PONizer {
      */
     public function renderUnknownOnuList() {
         $result = '';
-        $columns = array('OLT', 'Login', 'Address', 'Real Name', 'Tariff', 'IP', __('MAC') . ' ' . __('or') . ' ' . __('Serial'), 'Actions');
+
+        if ($this->llidColVisibleUnknownONU) {
+            $columns = array('OLT', 'Login', 'Address', 'Real Name', 'Tariff', 'IP', 'Interface', __('MAC') . ' ' . __('or') . ' ' . __('Serial'), 'Actions');
+        } else {
+            $columns = array('OLT', 'Login', 'Address', 'Real Name', 'Tariff', 'IP', __('MAC') . ' ' . __('or') . ' ' . __('Serial'), 'Actions');
+        }
         $opts = '"order": [[ 0, "desc" ]]';
         $result = wf_JqDtLoader($columns, self::URL_ME . '&ajaxunknownonu=true', false, 'ONU', 100, $opts);
         $result .= wf_delimiter(0);
@@ -3206,6 +3220,10 @@ class PONizer {
             $allUsermacs = zb_UserGetAllMACs();
             $allUserData = zb_UserGetAllDataCache();
 
+            if ($this->llidColVisibleUnknownONU) {
+                $this->loadInterfaceCache();
+            }
+
             foreach ($this->onuIndexCache as $onuMac => $oltId) {
 //not registered?
                 if ($this->checkOnuUnique($onuMac)) {
@@ -3216,6 +3234,10 @@ class PONizer {
                     $userTariff = $login ? @$allUserData[$login]['Tariff'] : '';
                     $userIP = $login ? @$allUserData[$login]['ip'] : '';
                     $LnkID = wf_InputId();
+
+                    if ($this->llidColVisibleUnknownONU) {
+                        $onuLLID = (empty($this->interfaceCache[$onuMac])? '' : $this->interfaceCache[$onuMac]);
+                    }
 
                     $actControls = wf_tag('a', false, '', 'id="' . $LnkID . '" href="#" title="' . __('Register new ONU') . '"');
                     $actControls .= web_icon_create();
@@ -3262,6 +3284,11 @@ class PONizer {
                             $data[] = $userRealnames;
                             $data[] = $userTariff;
                             $data[] = $userIP;
+
+                            if ($this->llidColVisibleUnknownONU) {
+                                $data[] = $onuLLID;
+                            }
+
                             $data[] = $onuMac;
                             $data[] = $actControls;
 
