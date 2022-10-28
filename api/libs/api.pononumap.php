@@ -3,7 +3,7 @@
 /**
  * Performs rendering of exiting user-assigned PON ONU devices on coverage map
  */
-class PONONUMAP {
+class PONONUMap {
 
     /**
      * Contains ymaps config as key=>value
@@ -41,10 +41,19 @@ class PONONUMAP {
     protected $filterOltId = '';
 
     /**
+     * Contains optional offline onu dereg reason filter substring.
+     * Only offline ONUs will be rendered if set.
+     *
+     * @var string
+     */
+    protected $onuDeregFilter = '';
+
+    /**
      * Predefined routes, URLs etc.
      */
     const URL_ME = '?module=ponmap';
     const ROUTE_FILTER_OLT = 'oltidfilter';
+    const ROUTE_FILTER_DEREG = 'deregfilter';
     const PROUTE_OLTSELECTOR = 'renderoltidonus';
 
     /**
@@ -55,6 +64,7 @@ class PONONUMAP {
     public function __construct($oltId = '') {
         $this->loadConfigs();
         $this->setOltIdFilter($oltId);
+        $this->setOnuDeregFilter();
         $this->initMessages();
         $this->initPonizer();
         $this->loadUsers();
@@ -70,6 +80,17 @@ class PONONUMAP {
     protected function setOltIdFilter($oltId = '') {
         if (!empty($oltId)) {
             $this->filterOltId = $oltId;
+        }
+    }
+
+    /**
+     * Sets optional ONU dereg reason filter.
+     * 
+     * @return void
+     */
+    protected function setOnuDeregFilter() {
+        if (ubRouting::checkGet(self::ROUTE_FILTER_DEREG)) {
+            $this->onuDeregFilter = ubRouting::get(self::ROUTE_FILTER_DEREG);
         }
     }
 
@@ -165,6 +186,10 @@ class PONONUMAP {
         $result .= wf_BackLink(PONizer::URL_ONULIST) . ' ';
         if ($this->filterOltId) {
             $result .= wf_Link(self::URL_ME, wf_img('skins/ponmap_icon.png') . ' ' . __('All') . ' ' . __('OLT'), false, 'ubButton');
+        } else {
+            $result .= wf_Link(self::URL_ME, wf_img('skins/ponmap_icon.png') . ' ' . __('All') . ' ' . __('ONU'), false, 'ubButton');
+            $result .= wf_Link(self::URL_ME . '&' . self::ROUTE_FILTER_DEREG . '=Power', wf_img('skins/icon_poweroutage.png') . ' ' . __('Power outages') . '?', false, 'ubButton');
+            $result .= wf_Link(self::URL_ME . '&' . self::ROUTE_FILTER_DEREG . '=Wire', wf_img('skins/icon_cable.png') . ' ' . __('Wire issues') . '?', false, 'ubButton');
         }
 
         $allOlts = array('' => __('All') . ' ' . __('OLT'));
@@ -186,6 +211,7 @@ class PONONUMAP {
         $result = '';
         $allOnu = $this->ponizer->getAllOnu();
         $allOnuSignals = $this->ponizer->getAllONUSignals();
+        $allDeregReasons = $this->ponizer->getAllONUDeregReasons();
         $placemarks = '';
         $marksRendered = 0;
         $marksNoGeo = 0;
@@ -201,13 +227,37 @@ class PONONUMAP {
                     if (isset($this->allUserData[$eachOnu['login']])) {
                         $userData = $this->allUserData[$eachOnu['login']];
                         if (!empty($userData['geo'])) {
+                            if ($this->onuDeregFilter) {
+                                $renderAllowedFlag = false;
+                            } else {
+                                $renderAllowedFlag = true;
+                            }
+
                             $onuSignal = (isset($allOnuSignals[$eachOnu['login']])) ? $allOnuSignals[$eachOnu['login']] : 'NO';
                             $onuIcon = $this->getIcon($onuSignal);
                             $onuControls = $this->getONUControls($eachOnu['id'], $eachOnu['login'], $userData['geo']);
                             $onuTitle = $userData['fulladress'];
-                            $signalLabel = ($onuSignal == 'NO' OR $onuSignal == 'Offline' OR $onuSignal == '-9000') ? __('No signal') : $onuSignal;
-                            $placemarks .= generic_mapAddMark($userData['geo'], $onuTitle, $signalLabel, $onuControls, $onuIcon, '', true);
-                            $marksRendered++;
+                            $deregState = '';
+                            if ($onuSignal == 'NO' OR $onuSignal == 'Offline' OR $onuSignal == '-9000') {
+                                $signalLabel = __('No signal');
+                                if (isset($allDeregReasons[$eachOnu['login']])) {
+                                    $deregLabel = $allDeregReasons[$eachOnu['login']]['styled'];
+                                    $deregState = $allDeregReasons[$eachOnu['login']]['raw'];
+                                    $signalLabel .= ' - ' . $deregLabel;
+                                    if ($this->onuDeregFilter) {
+                                        if (ispos($deregState, $this->onuDeregFilter)) {
+                                            $renderAllowedFlag = true;
+                                        }
+                                    }
+                                }
+                            } else {
+                                $signalLabel = $onuSignal;
+                            }
+
+                            if ($renderAllowedFlag) {
+                                $placemarks .= generic_mapAddMark($userData['geo'], $onuTitle, $signalLabel, $onuControls, $onuIcon, '', true);
+                                $marksRendered++;
+                            }
                         } else {
                             $marksNoGeo++;
                         }
@@ -251,6 +301,19 @@ class PONONUMAP {
             if (isset($allOltDevices[$this->filterOltId])) {
                 $result .= ': ' . $allOltDevices[$this->filterOltId];
             }
+        }
+
+        if ($this->onuDeregFilter) {
+            $onuFilterLabel = '';
+            switch ($this->onuDeregFilter) {
+                case 'Power':
+                    $onuFilterLabel .= __('Power outages') . '?';
+                    break;
+                case 'Wire':
+                    $onuFilterLabel .= __('Wire issues') . '?';
+                    break;
+            }
+            $result .= ' : ' . $onuFilterLabel;
         }
         return($result);
     }

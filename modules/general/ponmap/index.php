@@ -5,17 +5,19 @@ $altCfg = $ubillingConfig->getAlter();
 if (@$altCfg['PONMAP_ENABLED']) {
     if ($altCfg['PON_ENABLED']) {
         if (cfr('PON')) {
-            $oltIdFilter = (ubRouting::checkGet(PONONUMAP::ROUTE_FILTER_OLT)) ? ubRouting::get(PONONUMAP::ROUTE_FILTER_OLT) : '';
-            if (ubRouting::checkPost(PONONUMAP::PROUTE_OLTSELECTOR, false)) {
-                $navOltId = ubRouting::post(PONONUMAP::PROUTE_OLTSELECTOR);
+            $oltIdFilter = (ubRouting::checkGet(PONONUMap::ROUTE_FILTER_OLT)) ? ubRouting::get(PONONUMap::ROUTE_FILTER_OLT) : '';
+            if (ubRouting::checkPost(PONONUMap::PROUTE_OLTSELECTOR, false)) {
+                $navOltId = ubRouting::post(PONONUMap::PROUTE_OLTSELECTOR);
                 if (!empty($navOltId)) {
-                    ubRouting::nav(PONONUMAP::URL_ME . '&' . PONONUMAP::ROUTE_FILTER_OLT . '=' . $navOltId);
+                    ubRouting::nav(PONONUMap::URL_ME . '&' . PONONUMap::ROUTE_FILTER_OLT . '=' . $navOltId);
                 } else {
-                    ubRouting::nav(PONONUMAP::URL_ME);
+                    ubRouting::nav(PONONUMap::URL_ME);
                 }
             }
-            $ponMap = new PONONUMAP($oltIdFilter);
+            
+            $ponMap = new PONONUMap($oltIdFilter);
             show_window(__('ONU Map') . $ponMap->getFilteredOLTLabel(), $ponMap->renderOnuMap());
+            zb_BillingStats(true);
         } else {
             show_error(__('Access denied'));
         }

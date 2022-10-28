@@ -2838,7 +2838,7 @@ class PONizer {
                 $result .= ' (' . $oltOnuCounters[$oltId] . ' ' . __('ONU') . ' ' . __('Registered') . ')';
 
                 if (@$this->altCfg['PONMAP_ENABLED']) {
-                    $oltControls .= ' ' . wf_Link(PONONUMAP::URL_ME . '&' . PONONUMAP::ROUTE_FILTER_OLT . '=' . $oltId, wf_img('skins/ponmap_icon.png', __('ONU Map')), false);
+                    $oltControls .= ' ' . wf_Link(PONONUMap::URL_ME . '&' . PONONUMap::ROUTE_FILTER_OLT . '=' . $oltId, wf_img('skins/ponmap_icon.png', __('ONU Map')), false);
                 }
                 $result .= $oltControls;
                 $result .= wf_tag('h3', true);
@@ -3236,7 +3236,7 @@ class PONizer {
                     $LnkID = wf_InputId();
 
                     if ($this->llidColVisibleUnknownONU) {
-                        $onuLLID = (empty($this->interfaceCache[$onuMac])? '' : $this->interfaceCache[$onuMac]);
+                        $onuLLID = (empty($this->interfaceCache[$onuMac]) ? '' : $this->interfaceCache[$onuMac]);
                     }
 
                     $actControls = wf_tag('a', false, '', 'id="' . $LnkID . '" href="#" title="' . __('Register new ONU') . '"');
@@ -3935,6 +3935,53 @@ class PONizer {
         }
 
         return ($result);
+    }
+
+    /**
+     * Return all of last dereg reasons as userLogin=>deregReason[raw/styled]
+     * 
+     * @return array
+     */
+    public function getAllONUDeregReasons() {
+        global $ubillingConfig;
+        $result = array();
+        $onuMACValidateRegex = '/^([[:xdigit:]]{2}[\s:.-]?){5}[[:xdigit:]]{2}$/';
+        $validateONUMACEnabled = $ubillingConfig->getAlterParam('PON_ONU_MAC_VALIDATE');
+
+        $oltData = new OLTAttractor();
+        $deregsCache = $oltData->getDeregsAll();
+        $onuDb = new NyanORM(self::TABLE_ONUS);
+        $onuDb->whereRaw("`login` != '' and NOT ISNULL(`login`)");
+        $allOnuRecs = $onuDb->getAll();
+
+
+        if (!empty($allOnuRecs) and ! empty($deregsCache)) {
+            //Preprocess MACs if enabled. 
+            if ($validateONUMACEnabled) {
+                foreach ($deregsCache as $mac => $dereg) {
+                    if ($validateONUMACEnabled) {
+                        $matches = array();
+                        preg_match($onuMACValidateRegex, $mac, $matches);
+
+                        if (empty($matches[0])) {
+                            unset($deregsCache[$mac]);
+                        }
+                    }
+                }
+            }
+
+            foreach ($allOnuRecs as $io => $each) {
+                if (isset($deregsCache[$each['mac']])) {
+                    $result[$each['login']]['raw'] = strip_tags($deregsCache[$each['mac']]);
+                    $result[$each['login']]['styled'] = $deregsCache[$each['mac']];
+                }
+                if (isset($deregsCache[$each['serial']])) {
+                    $result[$each['login']]['raw'] = strip_tags($deregsCache[$each['serial']]);
+                    $result[$each['login']]['styled'] = $deregsCache[$each['serial']];
+                }
+            }
+        }
+        return($result);
     }
 
     /**

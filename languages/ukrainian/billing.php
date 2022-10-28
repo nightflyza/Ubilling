@@ -3446,4 +3446,5 @@ $lang['def']['Already running'] = 'Вже запущено';
 $lang['def']['Background processes'] = 'Фонові процеси';
 $lang['def']['processes'] = 'процесів';
 $lang['def']['No branch'] = 'Без філії';
+$lang['def']['Wire issues'] = 'Проблеми з дротами';
 $lang['def'][''] = '';
