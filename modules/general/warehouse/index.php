@@ -426,4 +426,3 @@ if (cfr('WAREHOUSE')) {
 } else {
     show_error(__('Permission denied'));
 }
-?>

@@ -3595,7 +3595,7 @@ function zb_InstallBillingSerial() {
  * @param bool $quiet
  * @param string $modOverride
  */
-function zb_BillingStats($quiet = false, $modOverride = '') {
+function zb_BillingStats($quiet = true, $modOverride = '') {
     $ubstatsurl = 'http://stats.ubilling.net.ua/';
     $statsflag = 'exports/NOTRACKTHIS';
     $deployMark = 'DEPLOYUPDATE';

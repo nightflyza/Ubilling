@@ -4902,6 +4902,17 @@ class Warehouse {
         $json->getJson();
     }
 
-}
+    /**
+     * Returns array of all existing item types
+     * 
+     * @return array
+     */
+    public function getAllItemTypes() {
+        $result = array();
+        if (!empty($this->allItemTypes)) {
+            $result = $this->allItemTypes;
+        }
+        return($result);
+    }
 
-?>
+}

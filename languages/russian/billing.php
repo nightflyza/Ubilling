@@ -3426,3 +3426,4 @@ $lang['def']['Background processes'] = 'Фоновые процесы';
 $lang['def']['processes'] = 'процессов';
 $lang['def']['No branch'] = 'Без филиала';
 $lang['def']['Wire issues'] = 'Проблемы с проводами';
+$lang['def']['Sales report'] = 'Отчет по продажам';
