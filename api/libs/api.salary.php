@@ -2330,7 +2330,7 @@ class Salary {
                         nr_query($query);
                     }
                 }
-                log_register('SALARY CREATE TIMESHEET EMPLOYEECOUUNT `' . $counter . '`');
+                log_register('SALARY CREATE TIMESHEET EMPLOYEECOUNT `' . $counter . '`');
             } else {
                 $result = 1;
                 log_register('SALARY CREATE TIMESHEET FAIL EXISTING DATE `' . $date . '`');
