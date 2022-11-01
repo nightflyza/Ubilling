@@ -3448,4 +3448,7 @@ $lang['def']['processes'] = 'процесів';
 $lang['def']['No branch'] = 'Без філії';
 $lang['def']['Wire issues'] = 'Проблеми з дротами';
 $lang['def']['Sales report'] = 'Звіт з продажів';
+$lang['def']['Search query'] = 'Пошуковий запит';
+$lang['def']['This user has multiple devices assigned'] = 'Цьому користувачу, призначено декілька пристроїв';
 $lang['def'][''] = '';
+

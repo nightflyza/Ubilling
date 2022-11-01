@@ -50,7 +50,7 @@ if ($altCfg['PON_ENABLED']) {
                         }
                         ubRouting::nav($pon::URL_ONU . $newCreatedONUId);
                     } else {
-                        show_error(__('This MAC have wrong format').' '.__('or').' '.__('MAC duplicate'));
+                        show_error(__('This MAC have wrong format') . ' ' . __('or') . ' ' . __('MAC duplicate'));
                     }
                 } else {
                     log_register('PON CREATE ONU ACCESS VIOLATION');
@@ -154,10 +154,17 @@ if ($altCfg['PON_ENABLED']) {
         if (ubRouting::checkGet('username')) {
             //try to detect ONU id by user login
             $login = ubRouting::get('username');
-            $userOnuId = $pon->getOnuIdByUser($login);
-            //redirecting to assigned ONU
-            if ($userOnuId) {
-                ubRouting::nav($pon::URL_ONU . $userOnuId);
+            $userOnuIds = $pon->getOnuIdByUserAll($login);
+
+            if ($userOnuIds) {
+                if (sizeof($userOnuIds) > 1) {
+                    //multiple ONUs here... rendering ONU navigation here
+                    show_window(__('This user has multiple devices assigned'), $pon->renderOnuNavBar($userOnuIds));
+                    show_window('', web_UserControls(ubRouting::get('username')));
+                } else {
+                    //redirecting to single assigned ONU
+                    ubRouting::nav($pon::URL_ONU . $userOnuIds[0]);
+                }
             } else {
                 //rendering assign form
                 show_window(__('ONU assign'), $pon->onuAssignForm($login));
@@ -241,6 +248,9 @@ if ($altCfg['PON_ENABLED']) {
                 } else {
                     show_error(__('Search') . ' ' . __('ONU') . ' ' . __('Disabled'));
                 }
+            } else {
+                show_window('', wf_BackLink($pon::URL_ONULIST));
+                show_warning(__('Search query') . ' ' . __('is empty'));
             }
         }
 

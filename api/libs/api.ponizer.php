@@ -692,6 +692,33 @@ class PONizer {
     }
 
     /**
+     * Trys to detect all ONU IDs by assigned users login as idx=>onuId
+     *
+     * @param string $login
+     * 
+     * @return array
+     */
+    public function getOnuIdByUserAll($login) {
+        $result = array();
+        if (!empty($this->allOnu)) {
+            foreach ($this->allOnu as $io => $each) {
+                if ($each['login'] == $login) {
+                    $result[] = $each['id'];
+                }
+            }
+
+            if (!empty($this->allOnuExtUsers)) {
+                foreach ($this->allOnuExtUsers as $io => $each) {
+                    if ($each['login'] == $login) {
+                        $result[] = $each['onuid'];
+                    }
+                }
+            }
+        }
+        return ($result);
+    }
+
+    /**
      * Returns array of ONUs assigned on some OLT
      *
      * @param string $OltId
@@ -1056,6 +1083,43 @@ class PONizer {
             }
         } else {
             $result .= $this->messages->getStyledMessage(__('Nothing to show') . ': ' . __('OLT polling log') . ' ' . __('does not exist'), 'warning');
+        }
+        return($result);
+    }
+
+    /**
+     * Renders some ONUs navigation list
+     * 
+     * @param array $onuArr
+     * 
+     * @return string
+     */
+    public function renderOnuNavBar($onuArr) {
+        $result = '';
+        if (!empty($onuArr)) {
+            $result .= wf_tag('div');
+            foreach ($onuArr as $io => $eachOnuId) {
+                if (isset($this->allOnu[$eachOnuId])) {
+                    $onuData = $this->allOnu[$eachOnuId];
+                    $onuUrl = self::URL_ONU . $eachOnuId;
+                    $onuLabel = '';
+                    if (!empty($onuData['mac'])) {
+                        $onuLabel .= ' ' . $onuData['mac'];
+                    }
+                    if (!empty($onuData['serial'])) {
+                        $onuLabel .= ' ' . $onuData['serial'];
+                    }
+                    $result .= wf_tag('div', false, 'dashtask');
+                    $result .= wf_Link($onuUrl, wf_img('skins/onudev.png'));
+                    $result .= wf_delimiter(0);
+                    $result .= __('ONU') . ' ' . $onuLabel;
+                    $result .= wf_tag('div', true);
+                }
+            }
+            $result .= wf_tag('div', true);
+            $result .= wf_CleanDiv();
+        } else {
+            $this->messages->getStyledMessage(__('Nothing to show'), 'warning');
         }
         return($result);
     }
