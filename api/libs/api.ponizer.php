@@ -1493,6 +1493,7 @@ class PONizer {
 
         $currentMac = $this->allOnu[$onuId]['mac'];
         $currentSerial = $this->allOnu[$onuId]['serial'];
+        $currentLogin = $this->allOnu[$onuId]['login'];
 
 
         $this->onuDb->where('id', '=', $onuId);
@@ -1525,7 +1526,23 @@ class PONizer {
             }
         }
 
-        $this->onuDb->data('login', $login);
+        if ($currentLogin != $login) {
+            $this->onuDb->data('login', $login);
+            if (!empty($login)) {
+                if (empty($currentLogin)) {
+                    log_register('PON EDIT ONU [' . $onuId . '] SET LOGIN (' . $login . ')');
+                } else {
+                    log_register('PON EDIT ONU [' . $onuId . '] SET LOGIN (' . $login . ') INSTEAD (' . $currentLogin . ')');
+                }
+            } else {
+                if (empty($currentLogin)) {
+                    log_register('PON EDIT ONU [' . $onuId . '] SET LOGIN EMPTY');
+                } else {
+                    log_register('PON EDIT ONU [' . $onuId . '] SET LOGIN EMPTY INSTEAD (' . $currentLogin . ')');
+                }
+            }
+        }
+
         $this->onuDb->save();
 
         log_register('PON EDIT ONU [' . $onuId . '] MAC `' . $mac . '`');
