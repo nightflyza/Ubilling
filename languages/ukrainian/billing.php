@@ -3450,5 +3450,11 @@ $lang['def']['Wire issues'] = 'Проблеми з дротами';
 $lang['def']['Sales report'] = 'Звіт з продажів';
 $lang['def']['Search query'] = 'Пошуковий запит';
 $lang['def']['This user has multiple devices assigned'] = 'Цьому користувачу, призначено декілька пристроїв';
+$lang['def']['Power stats'] = 'Статистика живлення';
+$lang['def']['Zoom'] = 'Збільшення';
+$lang['def']['Hour'] = 'Година';
+$lang['def']['Input volts'] = 'Вхідна напруга';
+$lang['def']['Output volts'] = 'Вихідна напруга';
 $lang['def'][''] = '';
+
 
