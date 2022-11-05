@@ -2361,7 +2361,7 @@ class UserProfile {
                 $profile .= wf_Link('?module=usertags&username=' . $this->login, web_add_icon(__('Tags')), false);
             }
 
-            $profile .= stg_show_user_tags($this->login);
+            $profile .= stg_show_user_tags($this->login, true);
         }
 
 //main profile controls here

@@ -103,7 +103,7 @@ if ((cfr('TAGS')) OR ( cfr('TAGSDIR'))) {
                 }
             }
 
-            show_window(__('Tags'), stg_show_user_tags($uname));
+            show_window(__('Tags'), stg_show_user_tags($uname, true));
             stg_tagadd_selector();
             stg_tagdel_selector($uname);
             show_window('', web_UserControls($uname));

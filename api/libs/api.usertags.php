@@ -186,22 +186,56 @@ function stg_get_tagtype_data($tagtypeid) {
 /**
  * Returns user applied tags as browsable html
  * 
- * @param string $login
+ * @param string $login existing user login
+ * @param bool $concat concatenate same tags as power?
+ * 
  * @return string
  */
-function stg_show_user_tags($login) {
+function stg_show_user_tags($login, $concat = false) {
+    global $ubillingConfig;
     $query = "SELECT * from `tags` INNER JOIN (SELECT * from `tagtypes`) AS tt ON (`tags`.`tagid`=`tt`.`id`) LEFT JOIN (SELECT `mobile`,`tagid` AS emtag FROM `employee` WHERE `tagid` != '') as tem ON (`tags`.`tagid`=`tem`.`emtag`) WHERE `login`='" . $login . "';";
     $alltags = simple_queryall($query);
     $result = '';
     if (!empty($alltags)) {
+        if (!$concat) {
+            //just render each tag as is
+            foreach ($alltags as $io => $eachtag) {
+                $emploeeMobile = ($eachtag['mobile']) ? wf_modal(wf_img('skins/icon_mobile.gif', $eachtag['tagname']), $eachtag['tagname'] . ' - ' . __('Mobile'), $eachtag['mobile'], '', 400, 200) : '';
+                $result .= wf_tag('font', false, '', 'color="' . $eachtag['tagcolor'] . '" size="' . $eachtag['tagsize'] . '"');
+                $result .= wf_tag('a', false, '', 'href="?module=tagcloud&tagid=' . $eachtag['tagid'] . '" style="color: ' . $eachtag['tagcolor'] . ';"') . $eachtag['tagname'] . wf_tag('a', true);
+                $result .= $emploeeMobile;
+                $result .= wf_tag('font', true);
+                $result .= '&nbsp;';
+            }
+        } else {
+            //appending counter of each tag type assigned to user
+            $userTagsCount = array();
+            $powerDelimiter = $ubillingConfig->getAlterParam('TAG_MULTPOWER_DELIMITER');
+            if (!$powerDelimiter) {
+                $powerDelimiter = '';
+            }
+            foreach ($alltags as $io => $eachtag) {
+                if (isset($userTagsCount[$eachtag['tagid']])) {
+                    $userTagsCount[$eachtag['tagid']]['count'] ++;
+                } else {
+                    $userTagsCount[$eachtag['tagid']] = $eachtag;
+                    $userTagsCount[$eachtag['tagid']]['count'] = 1;
+                }
+            }
 
-        foreach ($alltags as $io => $eachtag) {
-            $emploeeMobile = ($eachtag['mobile']) ? wf_modal(wf_img('skins/icon_mobile.gif', $eachtag['tagname']), $eachtag['tagname'] . ' - ' . __('Mobile'), $eachtag['mobile'], '', 400, 200) : '';
-            $result .= wf_tag('font', false, '', 'color="' . $eachtag['tagcolor'] . '" size="' . $eachtag['tagsize'] . '"');
-            $result .= wf_tag('a', false, '', 'href="?module=tagcloud&tagid=' . $eachtag['tagid'] . '" style="color: ' . $eachtag['tagcolor'] . ';"') . $eachtag['tagname'] . wf_tag('a', true);
-            $result .= $emploeeMobile;
-            $result .= wf_tag('font', true);
-            $result .= '&nbsp;';
+            foreach ($userTagsCount as $io => $eachtag) {
+                $emploeeMobile = ($eachtag['mobile']) ? wf_modal(wf_img('skins/icon_mobile.gif', $eachtag['tagname']), $eachtag['tagname'] . ' - ' . __('Mobile'), $eachtag['mobile'], '', 400, 200) : '';
+                $powerLabel = '';
+                if ($eachtag['count'] > 1) {
+                    $powerLabel = wf_tag('small') . wf_tag('sup') . $powerDelimiter . $eachtag['count'] . wf_tag('sup', true) . wf_tag('small', true);
+                }
+                $result .= wf_tag('font', false, '', 'color="' . $eachtag['tagcolor'] . '" size="' . $eachtag['tagsize'] . '"');
+                $result .= wf_tag('a', false, '', 'href="?module=tagcloud&tagid=' . $eachtag['tagid'] . '" style="color: ' . $eachtag['tagcolor'] . ';"') . $eachtag['tagname'] . wf_tag('a', true);
+                $result .= $powerLabel;
+                $result .= $emploeeMobile;
+                $result .= wf_tag('font', true);
+                $result .= '&nbsp;';
+            }
         }
     }
     return ($result);
@@ -213,6 +247,9 @@ function stg_show_user_tags($login) {
  * @return void
  */
 function stg_tagadd_selector() {
+    global $ubillingConfig;
+    $searchableFlag = $ubillingConfig->getAlterParam('TAGSEL_SEARCHBL');
+
     $query = "SELECT * from `tagtypes` ORDER by `id` ASC";
     $alltypes = simple_queryall($query);
     $tagArr = array();
@@ -222,7 +259,12 @@ function stg_tagadd_selector() {
         }
     }
 
-    $inputs = wf_Selector('tagselector', $tagArr, '', '', false);
+    if ($searchableFlag) {
+        $inputs = wf_SelectorSearchable('tagselector', $tagArr, '', '', false);
+    } else {
+        $inputs = wf_Selector('tagselector', $tagArr, '', '', false);
+    }
+
     $inputs .= wf_Submit(__('Save'));
     $result = wf_Form('', 'POST', $inputs, '');
 
