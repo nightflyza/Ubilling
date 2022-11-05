@@ -193,6 +193,7 @@ function stg_get_tagtype_data($tagtypeid) {
  */
 function stg_show_user_tags($login, $concat = false) {
     global $ubillingConfig;
+    $newLineFlag = $ubillingConfig->getAlterParam('TAG_NEWLINE_PZDTS');
     $query = "SELECT * from `tags` INNER JOIN (SELECT * from `tagtypes`) AS tt ON (`tags`.`tagid`=`tt`.`id`) LEFT JOIN (SELECT `mobile`,`tagid` AS emtag FROM `employee` WHERE `tagid` != '') as tem ON (`tags`.`tagid`=`tem`.`emtag`) WHERE `login`='" . $login . "';";
     $alltags = simple_queryall($query);
     $result = '';
@@ -235,6 +236,9 @@ function stg_show_user_tags($login, $concat = false) {
                 $result .= $emploeeMobile;
                 $result .= wf_tag('font', true);
                 $result .= '&nbsp;';
+                if ($newLineFlag) {
+                    $result .= wf_delimiter(0);
+                }
             }
         }
     }
