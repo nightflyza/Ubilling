@@ -5,7 +5,7 @@ if (cfr('AGENTS')) {
     $alter_conf = $ubillingConfig->getAlter();
 
     //if deleting agent
-    if (ubRouting::checkGet('delete', false) and !ubRouting::checkGet('extinfo')) {
+    if (ubRouting::checkGet('delete', false) and ! ubRouting::checkGet('extinfo')) {
         zb_ContrAhentDelete(ubRouting::get('delete'));
         ubRouting::nav("?module=contrahens");
     }
@@ -27,7 +27,7 @@ if (cfr('AGENTS')) {
         ubRouting::nav("?module=contrahens");
     }
 
-    if (ubRouting::checkGet('edit', false) and !ubRouting::checkGet('extinfo')) {
+    if (ubRouting::checkGet('edit', false) and ! ubRouting::checkGet('extinfo')) {
 
         //if someone changing agent
         if (ubRouting::post('changecontrname')) {
@@ -54,27 +54,22 @@ if (cfr('AGENTS')) {
     if (ubRouting::checkGet('extinfo')) {
         // edit extended agent info
         if (ubRouting::checkPost('extinfeditmode') and ubRouting::checkPost('extinfrecid') and ubRouting::checkPost('extinfagentid')) {
-            zb_EditAgentExtInfoRec(ubRouting::post('extinfrecid'), ubRouting::post('extinfagentid'),
-                                   ubRouting::post('extinfsrvtype'), ubRouting::post('extinfintpaysysname'),
-                                   ubRouting::post('extinfintpaysysid'), ubRouting::post('extinfintpaysyssrvid')
-                                  );
+            zb_EditAgentExtInfoRec(ubRouting::post('extinfrecid'), ubRouting::post('extinfagentid'), ubRouting::post('extinfsrvtype'), ubRouting::post('extinfintpaysysname'), ubRouting::post('extinfintpaysysid'), ubRouting::post('extinfintpaysyssrvid')
+            );
         } elseif (ubRouting::checkPost('extinfeditmode', false) and ubRouting::checkPost('extinfagentid')) {
-            zb_CreateAgentExtInfoRec(ubRouting::post('extinfagentid'), ubRouting::post('extinfsrvtype'),
-                                     ubRouting::post('extinfintpaysysname'), ubRouting::post('extinfintpaysysid'),
-                                     ubRouting::post('extinfintpaysyssrvid')
-                                    );
+            zb_CreateAgentExtInfoRec(ubRouting::post('extinfagentid'), ubRouting::post('extinfsrvtype'), ubRouting::post('extinfintpaysysname'), ubRouting::post('extinfintpaysysid'), ubRouting::post('extinfintpaysyssrvid')
+            );
         }
 
-        show_window(__('Extended info'),
-                    zb_RenderAgentExtInfoTable(ubRouting::get('extinfo')) .
-                    wf_delimiter() .
-                    (ubRouting::checkGet('edit') ? zb_AgentEditExtInfoForm(ubRouting::checkGet('edit')) : zb_AgentEditExtInfoForm()) .
-                    wf_delimiter() .
-                    wf_BackLink('?module=contrahens'));
+        show_window(__('Extended info'), zb_RenderAgentExtInfoTable(ubRouting::get('extinfo')) .
+                wf_delimiter() .
+                (ubRouting::checkGet('edit') ? zb_AgentEditExtInfoForm(ubRouting::checkGet('edit')) : zb_AgentEditExtInfoForm()) .
+                wf_delimiter() .
+                wf_BackLink('?module=contrahens'));
     }
 
     //list ahents if not editing
-    if (!ubRouting::checkGet(array('edit'), false) and ( !ubRouting::checkGet('agentstats')) and !ubRouting::checkGet('extinfo')) {
+    if (!ubRouting::checkGet(array('edit'), false) and ( !ubRouting::checkGet('agentstats')) and ! ubRouting::checkGet('extinfo')) {
         $statsControl = wf_Link('?module=contrahens&agentstats=true', web_icon_charts());
         show_window(__('Available contrahens') . ' ' . $statsControl, zb_ContrAhentShow());
         show_window(__('Add new'), zb_ContrAhentAddForm());
@@ -96,7 +91,7 @@ if (cfr('AGENTS')) {
 
 
         //list assigns if not editing
-        if ((!ubRouting::checkGet(array('edit'), false)) and ( !ubRouting::checkGet('agentstats')) and !ubRouting::checkGet('extinfo')) {
+        if ((!ubRouting::checkGet(array('edit'), false)) and ( !ubRouting::checkGet('agentstats')) and ! ubRouting::checkGet('extinfo')) {
             show_window(__('Contrahent assign'), web_AgentAssignForm());
             show_window(__('Available assigns'), web_AgentAssignShow());
             show_window(__('Assign overrides'), web_AgentAssignStrictShow());
@@ -104,7 +99,7 @@ if (cfr('AGENTS')) {
 
         //agent assigned users stats
         if (ubRouting::checkGet('agentstats')) {
-            $privateTariffsMask=@$alter_conf['PRIVATE_TARIFFS_MASK'];
+            $privateTariffsMask = @$alter_conf['PRIVATE_TARIFFS_MASK'];
             show_window(__('Available assigns'), zb_AgentStatsRender($privateTariffsMask));
             show_window('', wf_BackLink('?module=contrahens'));
         }
@@ -112,4 +107,4 @@ if (cfr('AGENTS')) {
 } else {
     show_error(__('You cant control this module'));
 }
-?>
+

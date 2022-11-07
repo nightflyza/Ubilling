@@ -262,7 +262,7 @@ function zb_ContrAhentSelectPreset($currentId = '') {
  * @return array
  */
 function zb_AgentAssignGetAllData() {
-    $query = "SELECT * from `ahenassign`";
+    $query = "SELECT * from `ahenassign` ORDER BY `id` DESC";
     $allassigns = simple_queryall($query);
     return($allassigns);
 }
