@@ -259,10 +259,12 @@ function zb_ContrAhentSelectPreset($currentId = '') {
 /**
  * Returns array of all agent=>street assigns 
  * 
+ * @param string $order
+ * 
  * @return array
  */
-function zb_AgentAssignGetAllData() {
-    $query = "SELECT * from `ahenassign` ORDER BY `id` DESC";
+function zb_AgentAssignGetAllData($order = '') {
+    $query = "SELECT * from `ahenassign` " . $order;
     $allassigns = simple_queryall($query);
     return($allassigns);
 }
@@ -336,7 +338,7 @@ function web_AgentAssignForm() {
  * @return string
  */
 function web_AgentAssignShow() {
-    $allassigns = zb_AgentAssignGetAllData();
+    $allassigns = zb_AgentAssignGetAllData("ORDER BY `id` DESC");
     $allahens = zb_ContrAhentGetAllData();
     $usedStreets = array();
     $agentnames = array();
@@ -901,7 +903,6 @@ function zb_PrintCheck($paymentid, $realpaymentId = false) {
     return($result);
 }
 
-
 /**
  * Returns ahent selector for registration form
  * 
@@ -1110,17 +1111,16 @@ function zb_GetAgentExtInfo($recID = '', $agentID = '', $getBaseAgentInfo = fals
     return ($result);
 }
 
-
 function zb_CreateAgentExtInfoRec($extinfoAgentID, $extinfoSrvType = '', $extinfoPaySysName = '', $extinfoPaySysID = '', $extinfoPaySysSrvID = '') {
     $tabAgentExtInfo = new NyanORM('contrahens_extinfo');
     $tabAgentExtInfo->dataArr(array(
-                                  'agentid'                => $extinfoAgentID,
-                                  'service_type'           => $extinfoSrvType,
-                                  'internal_paysys_name'   => $extinfoPaySysName,
-                                  'internal_paysys_id'     => $extinfoPaySysID,
-                                  'internal_paysys_srv_id' => $extinfoPaySysSrvID
-                                   )
-                             );
+        'agentid' => $extinfoAgentID,
+        'service_type' => $extinfoSrvType,
+        'internal_paysys_name' => $extinfoPaySysName,
+        'internal_paysys_id' => $extinfoPaySysID,
+        'internal_paysys_srv_id' => $extinfoPaySysSrvID
+            )
+    );
 
     $tabAgentExtInfo->create();
 }
@@ -1128,14 +1128,14 @@ function zb_CreateAgentExtInfoRec($extinfoAgentID, $extinfoSrvType = '', $extinf
 function zb_EditAgentExtInfoRec($recID, $extinfoAgentID, $extinfoSrvType = '', $extinfoPaySysName = '', $extinfoPaySysID = '', $extinfoPaySysSrvID = '') {
     $tabAgentExtInfo = new NyanORM('contrahens_extinfo');
     $tabAgentExtInfo->dataArr(array(
-                                    'id'                     => $recID,
-                                    'agentid'                => $extinfoAgentID,
-                                    'service_type'           => $extinfoSrvType,
-                                    'internal_paysys_name'   => $extinfoPaySysName,
-                                    'internal_paysys_id'     => $extinfoPaySysID,
-                                    'internal_paysys_srv_id' => $extinfoPaySysSrvID
-                                   )
-                             );
+        'id' => $recID,
+        'agentid' => $extinfoAgentID,
+        'service_type' => $extinfoSrvType,
+        'internal_paysys_name' => $extinfoPaySysName,
+        'internal_paysys_id' => $extinfoPaySysID,
+        'internal_paysys_srv_id' => $extinfoPaySysSrvID
+            )
+    );
     $tabAgentExtInfo->where('id', '=', $recID);
     $tabAgentExtInfo->save(true, true);
 }
@@ -1148,31 +1148,31 @@ function zb_EditAgentExtInfoRec($recID, $extinfoAgentID, $extinfoSrvType = '', $
  * @return string
  */
 function zb_AgentEditExtInfoForm($recID = '') {
-    $extinfoData        = (empty($recID) ? array() : zb_GetAgentExtInfo($recID));
-    $extinfoEditMode    = !empty($extinfoData);
-    $extinfoRecID       = '';
-    $extinfoAgentID     = ubRouting::checkGet('extinfo') ? ubRouting::get('extinfo') : '';
-    $extinfoSrvType     = '';
-    $extinfoPaySysName  = '';
-    $extinfoPaySysID    = '';
+    $extinfoData = (empty($recID) ? array() : zb_GetAgentExtInfo($recID));
+    $extinfoEditMode = !empty($extinfoData);
+    $extinfoRecID = '';
+    $extinfoAgentID = ubRouting::checkGet('extinfo') ? ubRouting::get('extinfo') : '';
+    $extinfoSrvType = '';
+    $extinfoPaySysName = '';
+    $extinfoPaySysID = '';
     $extinfoPaySysSrvID = '';
 
     if ($extinfoEditMode) {
-        $extinfoRecID       = $extinfoData[0]['id'];
-        $extinfoAgentID     = $extinfoData[0]['agentid'];
-        $extinfoSrvType     = $extinfoData[0]['service_type'];
-        $extinfoPaySysName  = $extinfoData[0]['internal_paysys_name'];
-        $extinfoPaySysID    = $extinfoData[0]['internal_paysys_id'];
+        $extinfoRecID = $extinfoData[0]['id'];
+        $extinfoAgentID = $extinfoData[0]['agentid'];
+        $extinfoSrvType = $extinfoData[0]['service_type'];
+        $extinfoPaySysName = $extinfoData[0]['internal_paysys_name'];
+        $extinfoPaySysID = $extinfoData[0]['internal_paysys_id'];
         $extinfoPaySysSrvID = $extinfoData[0]['internal_paysys_srv_id'];
     }
 
     $inputs = wf_Selector('extinfsrvtype', array('Internet' => __('Internet'), 'UKV' => __('UKV')), __('Choose service type'), $extinfoSrvType, true);
-    $inputs.= wf_TextInput('extinfintpaysysname', __('Payment system name'), $extinfoPaySysName, true);
-    $inputs.= wf_TextInput('extinfintpaysysid', __('Contragent code within payment system'), $extinfoPaySysID, true);
-    $inputs.= wf_TextInput('extinfintpaysyssrvid', __('Service code within payment system'), $extinfoPaySysSrvID, true);
-    $inputs.= wf_HiddenInput('extinfrecid', $extinfoRecID);
-    $inputs.= wf_HiddenInput('extinfagentid', $extinfoAgentID);
-    $inputs.= wf_HiddenInput('extinfeditmode', $extinfoEditMode);
+    $inputs .= wf_TextInput('extinfintpaysysname', __('Payment system name'), $extinfoPaySysName, true);
+    $inputs .= wf_TextInput('extinfintpaysysid', __('Contragent code within payment system'), $extinfoPaySysID, true);
+    $inputs .= wf_TextInput('extinfintpaysyssrvid', __('Service code within payment system'), $extinfoPaySysSrvID, true);
+    $inputs .= wf_HiddenInput('extinfrecid', $extinfoRecID);
+    $inputs .= wf_HiddenInput('extinfagentid', $extinfoAgentID);
+    $inputs .= wf_HiddenInput('extinfeditmode', $extinfoEditMode);
     $inputs .= wf_Submit(($extinfoEditMode) ? __('Edit') : __('Create'));
 
     $result = wf_Form("", 'POST', $inputs, 'glamour');
@@ -1212,4 +1212,5 @@ function zb_RenderAgentExtInfoTable($agentID) {
 
     return($result);
 }
+
 ?>
