@@ -463,7 +463,7 @@ class WHSales {
     }
 
     /**
-     * Renders existing report
+     * Renders existing sales report
      * 
      * @param int $reportId
      * 
@@ -490,7 +490,6 @@ class WHSales {
                     $eachItemMidPrice = $this->warehouse->getIncomeMiddlePrice($eachItemId);
                     $midPrices[$eachItemId] = $eachItemMidPrice;
                 }
-                
 
                 $allOutcomes = $this->warehouse->getAllOutcomes();
                 $yearOutcomes = $this->filterOutcomes($allOutcomes, $reportItemIds);
