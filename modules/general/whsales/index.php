@@ -30,15 +30,41 @@ if (cfr('WAREHOUSE')) {
 
             //editing existing report
             if (ubRouting::checkGet($salesReport::ROUTE_REPORT_EDIT)) {
+                $reportEditUrl = $salesReport::URL_ME . '&' . $salesReport::ROUTE_REPORT_EDIT . '=' . ubRouting::get($salesReport::ROUTE_REPORT_EDIT);
+                //deleting some itemtype record
+                if (ubRouting::checkGet($salesReport::ROUTE_ITEM_DEL)) {
+                    $salesReport->deleteReportItem(ubRouting::get($salesReport::ROUTE_REPORT_EDIT), ubRouting::get($salesReport::ROUTE_ITEM_DEL));
+                    ubRouting::nav($reportEditUrl);
+                }
+
+                //adding some itemtype to report
+                if (ubRouting::checkPost(array($salesReport::PROUTE_NEWREPORTITEM, $salesReport::PROUTE_NEWREPORTITEMID))) {
+                    $reportAddId = ubRouting::post($salesReport::PROUTE_NEWREPORTITEM);
+                    $reportAddItemId = ubRouting::post($salesReport::PROUTE_NEWREPORTITEMID);
+                    $itemAppendResult = $salesReport->addReportItem($reportAddId, $reportAddItemId);
+                    if (empty($itemAppendResult)) {
+                        ubRouting::nav($reportEditUrl);
+                    } else {
+                        show_error($itemAppendResult);
+                    }
+                }
+
                 show_window(__('Edit report'), $salesReport->renderEditForm(ubRouting::get($salesReport::ROUTE_REPORT_EDIT)));
                 show_window('', wf_BackLink($salesReport::URL_ME));
             }
 
-            //rendering available reports 
+            //rendering available reports list
             if (!ubRouting::checkGet($salesReport::ROUTE_REPORT_EDIT) AND ! ubRouting::checkGet($salesReport::ROUTE_REPORT_RENDER)) {
                 $creationControl = $salesReport->renderCreationForm();
                 show_window(__('Available reports') . ' ' . $creationControl, $salesReport->renderReportsList());
             }
+
+            //rendering existing report
+            if (ubRouting::checkGet($salesReport::ROUTE_REPORT_RENDER)) {
+                $reportIdToRender = ubRouting::get($salesReport::ROUTE_REPORT_RENDER);
+                show_window(__('Sales report') . ': ' . $salesReport->getReportName($reportIdToRender), $salesReport->renderReport($reportIdToRender));
+            }
+            zb_BillingStats();
         } else {
             show_error(__('No license key available'));
         }

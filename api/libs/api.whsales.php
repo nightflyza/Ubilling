@@ -34,14 +34,28 @@ class WHSales {
     protected $reportItemsDb = '';
 
     /**
-     * Contains all available warehouse item types
+     * Contains all available warehouse item types as id=>itemtypeData
      *
      * @var array
      */
     protected $allItemTypes = array();
 
     /**
-     * Contains all available sales sub-reports as id=>reportItemTypes
+     * Contains all available item type names as id=>itemTypeName
+     *
+     * @var array
+     */
+    protected $allItemTypeNames = array();
+
+    /**
+     * Contains all item types categories as itemtypeId=>categoryName
+     *
+     * @var array
+     */
+    protected $allItemCategories = array();
+
+    /**
+     * Contains all available sales sub-reports as id=>reportItemTypes[itemTypeId]=>recordId
      *
      * @var array
      */
@@ -55,6 +69,13 @@ class WHSales {
     protected $allReportNames = array();
 
     /**
+     * Contains year to render data
+     *
+     * @var int
+     */
+    protected $showYear = '';
+
+    /**
      * Some predefined constants like routes, URLs, etc here
      */
     const TABLE_SUBREPORTS = 'wh_salesreports';
@@ -64,10 +85,15 @@ class WHSales {
     const ROUTE_REPORT_RENDER = 'viewreport';
     const ROUTE_REPORT_EDIT = 'editreportid';
     const ROUTE_REPORT_DEL = 'deletereportid';
+    const ROUTE_ITEM_DEL = 'deletereportitemid';
     const PROUTE_NEWREPORT = 'newreportname';
+    const PROUTE_NEWREPORTITEM = 'addnewitemtoreportid';
+    const PROUTE_NEWREPORTITEMID = 'addthisitemtoreport';
+    const PROUTE_YEAR = 'settargetyear';
 
     public function __construct() {
         $this->initMessages();
+        $this->setYear();
         $this->initWarehouse();
         $this->initReportsDb();
         $this->initReportsItemsDb();
@@ -93,14 +119,26 @@ class WHSales {
         $this->messages = new UbillingMessageHelper();
     }
 
-    /*     * name
+    /**
      * Inits sub-reports database layer
      * 
      * @return void
      */
-
     protected function initReportsDb() {
         $this->reportsDb = new NyanORM(self::TABLE_SUBREPORTS);
+    }
+
+    /**
+     * Sets current instance target year
+     * 
+     * @return void
+     */
+    protected function setYear() {
+        if (ubRouting::checkPost(self::PROUTE_YEAR)) {
+            $this->showYear = ubRouting::post(self::PROUTE_YEAR, 'int');
+        } else {
+            $this->showYear = curyear();
+        }
     }
 
     /**
@@ -113,12 +151,21 @@ class WHSales {
     }
 
     /**
-     * Loads all existing itemtypes from warehouse
+     * Loads all existing itemtypes and categories from warehouse
      * 
      * @return void
      */
     protected function loadItemTypes() {
         $this->allItemTypes = $this->warehouse->getAllItemTypes();
+        $categoriesTmp = $this->warehouse->getAllItemCategories();
+        if (!empty($this->allItemTypes)) {
+            foreach ($this->allItemTypes as $io => $each) {
+                $this->allItemTypeNames[$each['id']] = $each['name'];
+                if (isset($categoriesTmp[$each['categoryid']])) {
+                    $this->allItemCategories[$each['id']] = $categoriesTmp[$each['categoryid']];
+                }
+            }
+        }
     }
 
     /**
@@ -243,6 +290,97 @@ class WHSales {
     }
 
     /**
+     * Renders form for addition some new item type to existing report
+     * 
+     * @param int $reportId
+     * 
+     * @return string
+     */
+    protected function renderItemTypeAddForm($reportId) {
+        $result = '';
+        $itemsAvail = $this->allItemTypeNames;
+        if (isset($this->allReports[$reportId])) {
+            //report exists?
+            foreach ($this->allReports[$reportId] as $eachItemTypeId => $eachRecordId) {
+                if (isset($itemsAvail[$eachItemTypeId])) {
+                    //already in report
+                    unset($itemsAvail[$eachItemTypeId]);
+                }
+            }
+
+            if (!empty($itemsAvail)) {
+                $itemsSelector = array();
+                //appending category to selector
+                foreach ($itemsAvail as $eachItemTypeId => $eachItemTypeName) {
+                    $itemCategory = (isset($this->allItemCategories[$eachItemTypeId])) ? $this->allItemCategories[$eachItemTypeId] . ' ' : '';
+                    $itemsSelector[$eachItemTypeId] = $itemCategory . $eachItemTypeName;
+                }
+
+                $inputs = wf_HiddenInput(self::PROUTE_NEWREPORTITEM, $reportId);
+                $inputs .= wf_SelectorSearchable(self::PROUTE_NEWREPORTITEMID, $itemsSelector, __('Warehouse item type'), '', false) . ' ';
+                $inputs .= wf_Submit(__('Append'));
+                $result .= wf_Form('', 'POST', $inputs, 'glamour');
+            }
+        }
+        return($result);
+    }
+
+    /**
+     * Returns item type name by its ID if it exists
+     * 
+     * @param int $itemTypeId
+     * 
+     * @return string
+     */
+    protected function getItemName($itemTypeId) {
+        $result = '';
+        if (isset($this->allItemTypeNames[$itemTypeId])) {
+            $result = $this->allItemTypeNames[$itemTypeId];
+        }
+        return($result);
+    }
+
+    /**
+     * Deletes some itemtype record ID from database
+     * 
+     * @param int $reportId
+     * @param int $itemRecordId
+     * 
+     * @return void
+     */
+    public function deleteReportItem($reportId, $itemRecordId) {
+        $reportId = ubRouting::filters($reportId, 'int');
+        $itemRecordId = ubRouting::filters($itemRecordId, 'int');
+        $this->reportItemsDb->where('id', '=', $itemRecordId);
+        $this->reportItemsDb->delete();
+        log_register('WHSALES DELETE REPORT [' . $reportId . '] ITEMRECID [' . $itemRecordId . ']');
+    }
+
+    /**
+     * Appends some itemtype record to existing report
+     * 
+     * @param int $reportId
+     * @param int $itemTypeId
+     * 
+     * @return void/string on error
+     */
+    public function addReportItem($reportId, $itemTypeId) {
+        $reportId = ubRouting::filters($reportId, 'int');
+        $itemTypeId = ubRouting::filters($itemTypeId, 'int');
+        $result = '';
+        if (isset($this->allReports[$reportId])) {
+            if (isset($this->allItemTypes[$itemTypeId])) {
+                $this->reportItemsDb->data('reportid', $reportId);
+                $this->reportItemsDb->data('itemtypeid', $itemTypeId);
+                $this->reportItemsDb->create();
+                $newRecId = $this->reportItemsDb->getLastId();
+                log_register('WHSALES ADD REPORT [' . $reportId . '] ITEMTYPE [' . $itemTypeId . '] AS ITEMRECID [' . $newRecId . ']');
+            }
+        }
+        return($result);
+    }
+
+    /**
      * Renders existing report editing form
      * 
      * @param int $reportId
@@ -255,13 +393,119 @@ class WHSales {
         if (isset($this->allReports[$reportId])) {
             $reportItemTypes = $this->allReports[$reportId];
             if (!empty($this->allItemTypes)) {
-                //TODO
+                //list of itemtypes in report
+                if (!empty($reportItemTypes)) {
+                    $cells = wf_TableCell(__('Category'));
+                    $cells .= wf_TableCell(__('Warehouse item type'));
+                    $cells .= wf_TableCell(__('Actions'));
+                    $rows = wf_TableRow($cells, 'row1');
+                    foreach ($reportItemTypes as $eachItemTypeId => $eachItmRecordId) {
+                        $eachItemCategory = (isset($this->allItemCategories[$eachItemTypeId])) ? $this->allItemCategories[$eachItemTypeId] : '';
+
+                        $cells = wf_TableCell($eachItemCategory);
+                        $cells .= wf_TableCell($this->getItemName($eachItemTypeId));
+                        $delUrl = self::URL_ME . '&' . self::ROUTE_REPORT_EDIT . '=' . $reportId . '&' . self::ROUTE_ITEM_DEL . '=' . $eachItmRecordId;
+                        $actLinks = wf_JSAlert($delUrl, web_delete_icon(), $this->messages->getDeleteAlert());
+                        $cells .= wf_TableCell($actLinks);
+                        $rows .= wf_TableRow($cells, 'row5');
+                    }
+                    $result .= wf_TableBody($rows, '100%', 0, 'sortable');
+                } else {
+                    $result .= $this->messages->getStyledMessage(__('Report doesnt contain any item types'), 'info');
+                }
+                //append form
+                $result .= wf_delimiter(0);
+                $result .= $this->renderItemTypeAddForm($reportId);
             } else {
                 $result .= $this->messages->getStyledMessage(__('Warehouse item types') . ' ' . __('Not found'), 'warning');
             }
         } else {
             $result .= $this->messages->getStyledMessage(__('Report') . ' ' . __('ID') . ' [' . $reportId . '] ' . __('Not exists'), 'error');
         }
+        return($result);
+    }
+
+    /**
+     * Returns existing report name by its ID
+     * 
+     * @return string
+     */
+    public function getReportName($reportId) {
+        $reportId = ubRouting::filters($reportId, 'int');
+        $result = '';
+        if (isset($this->allReportNames[$reportId])) {
+            $result .= $this->allReportNames[$reportId];
+        }
+        return($result);
+    }
+
+    /**
+     * Removes from outcomes non rendered years, move operations, not report itemtypes, etc
+     * 
+     * @param array $allOutcomes
+     * @param array $reportItemIds
+     * 
+     * @return array
+     */
+    protected function filterOutcomes($allOutcomes, $reportItemIds) {
+        $result = array();
+        $yearMask = $this->showYear . '-';
+        if (!empty($allOutcomes)) {
+            foreach ($allOutcomes as $io => $each) {
+                if (isset($reportItemIds[$each['itemtypeid']])) {
+                    if ($each['desttype'] != 'storage' AND ispos($each['date'], $yearMask)) {
+                        $result[$io] = $each;
+                    }
+                }
+            }
+        }
+        return($result);
+    }
+
+    /**
+     * Renders existing report
+     * 
+     * @param int $reportId
+     * 
+     * @return string
+     */
+    public function renderReport($reportId) {
+        $reportId = ubRouting::filters($reportId, 'int');
+        $result = '';
+        //default date intervals setting 
+        $dateCurrentDay = curdate();
+        $dateMonthBegin = curmonth() . '-01';
+        $dateMonthEnd = curmonth() . '-' . date("t");
+        $dateWeekBegin = date("Y-m-d", strtotime('monday this week'));
+        $dateWeekEnd = date("Y-m-d", strtotime('sunday this week'));
+        $dateYearBegin = $this->showYear . '-01-01';
+        $dateYearEnd = $this->showYear . '-12-31';
+
+        if (isset($this->allReports[$reportId])) {
+            //here itemtypeId=>midprice
+            $midPrices = array();
+            $reportItemIds = $this->allReports[$reportId];
+            if (!empty($reportItemIds)) {
+                foreach ($reportItemIds as $eachItemId => $eachRecId) {
+                    $eachItemMidPrice = $this->warehouse->getIncomeMiddlePrice($eachItemId);
+                    $midPrices[$eachItemId] = $eachItemMidPrice;
+                }
+                
+
+                $allOutcomes = $this->warehouse->getAllOutcomes();
+                $yearOutcomes = $this->filterOutcomes($allOutcomes, $reportItemIds);
+                if (!empty($yearOutcomes)) {
+                    //TODO
+                    debarr($yearOutcomes);
+                }
+            } else {
+                $result .= $this->messages->getStyledMessage(__('Report doesnt contain any item types'), 'info');
+            }
+        } else {
+            $result .= $this->messages->getStyledMessage(__('Report') . ' ' . __('ID') . ' [' . $reportId . '] ' . __('Not exists'), 'error');
+        }
+        $result .= wf_delimiter(0);
+        $result .= wf_BackLink(self::URL_ME);
         return($result);
     }
 

@@ -4200,7 +4200,7 @@ class Warehouse {
      * 
      * @return float
      */
-    protected function getIncomeMiddlePrice($itemtypeId) {
+    public function getIncomeMiddlePrice($itemtypeId) {
         $itemsCount = 0;
         $totalSumm = 0;
         if (!empty($this->allIncoming)) {
@@ -4913,6 +4913,37 @@ class Warehouse {
             $result = $this->allItemTypes;
         }
         return($result);
+    }
+
+    /**
+     * Returns array of all existing item type categories
+     * 
+     * @return array
+     */
+    public function getAllItemCategories() {
+        $result = array();
+        if (!empty($this->allCategories)) {
+            $result = $this->allCategories;
+        }
+        return($result);
+    }
+
+    /**
+     * Returns all available income operations
+     * 
+     * @return array
+     */
+    public function getAllIncomes() {
+        return($this->allIncoming);
+    }
+
+    /**
+     * Returns all available outcome operations
+     * 
+     * @return array
+     */
+    public function getAllOutcomes() {
+        return($this->allOutcoming);
     }
 
 }
