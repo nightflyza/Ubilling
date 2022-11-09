@@ -920,18 +920,17 @@ function zb_VservicesGetAllPricesPeriods() {
  */
 function zb_VservicesGetUserPrice($login) {
     $result = 0;
-    $allUserTags = zb_UserGetAllTags();
-    //user have some tags assigned
-    if (isset($allUserTags[$login])) {
-        if (!empty($allUserTags[$login])) {
-            $vservicePrices = zb_VservicesGetAllPrices();
-            foreach ($allUserTags[$login] as $tagId => $tagName) {
-                if (isset($vservicePrices[$tagId])) {
-                    $result += $vservicePrices[$tagId];
-                }
+    $allUserTags = zb_UserGetAllTagsUnique($login);
+    //user have some tags assigned?
+    if (!empty($allUserTags[$login])) {
+        $vservicePrices = zb_VservicesGetAllPrices();
+        foreach ($allUserTags[$login] as $tagRecordId => $tagId) {
+            if (isset($vservicePrices[$tagId])) {
+                $result += $vservicePrices[$tagId];
             }
         }
     }
+
     return ($result);
 }
 
