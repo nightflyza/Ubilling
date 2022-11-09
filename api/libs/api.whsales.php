@@ -768,7 +768,7 @@ class WHSales {
                         $cells .= wf_TableCell($sellStats['day']['summ']);
                         $cells .= wf_TableCell($sellStats['week']['summ']);
                         $cells .= wf_TableCell($sellStats['month']['summ']);
-                        $cells .= wf_TableCell($sellStats['year']['summ']);
+                        $cells .= wf_TableCell(round($sellStats['year']['summ']));
                         $rows .= wf_TableRow($cells, 'row5');
                     }
 
@@ -776,7 +776,7 @@ class WHSales {
                     $cells .= wf_TableCell($sellStats['summaryprice']['day']);
                     $cells .= wf_TableCell($sellStats['summaryprice']['week']);
                     $cells .= wf_TableCell($sellStats['summaryprice']['month']);
-                    $cells .= wf_TableCell($sellStats['summaryprice']['year']);
+                    $cells .= wf_TableCell(zb_CashBigValueFormat(round($sellStats['summaryprice']['year'])));
                     $rows .= wf_TableRow($cells, 'row2');
 
                     $result .= wf_tag('h2') . __('Money') . wf_tag('h2', true);
@@ -790,6 +790,31 @@ class WHSales {
                     $cells .= wf_TableCell(__('Month'), '15%');
                     $cells .= wf_TableCell(__('Year'), '15%');
                     $rows = wf_TableRow($cells, 'row1');
+                    $sellStats = array(
+                        'summarycount' => array(
+                            'day' => 0,
+                            'week' => 0,
+                            'month' => 0,
+                            'year' => 0,
+                        ),
+                        'summaryprice' => array(
+                            'day' => 0,
+                            'week' => 0,
+                            'month' => 0,
+                            'year' => 0,
+                        ),
+                    );
+
+                    $profitStats = array(
+                        'day' => 0,
+                        'week' => 0,
+                        'month' => 0,
+                        'year' => 0,
+                        'sumday' => 0,
+                        'sumweek' => 0,
+                        'summonth' => 0,
+                        'sumyear' => 0,
+                    );
 
                     foreach ($reportItemIds as $eachItemId => $eachRecId) {
                         $sellStats['day'] = $this->getItemTypeStat($dateCurrentDay, $dateCurrentDay, $eachItemId, $yearOutcomes);
@@ -807,20 +832,29 @@ class WHSales {
                         $sellStats['summaryprice']['month'] += $sellStats['month']['summ'];
                         $sellStats['summaryprice']['year'] += $sellStats['year']['summ'];
 
+                        $profitStats['day'] = $sellStats['day']['summ'] - ($sellStats['day']['count'] * $midPrices[$eachItemId]);
+                        $profitStats['week'] = $sellStats['week']['summ'] - ($sellStats['week']['count'] * $midPrices[$eachItemId]);
+                        $profitStats['month'] = $sellStats['month']['summ'] - ($sellStats['month']['count'] * $midPrices[$eachItemId]);
+                        $profitStats['year'] = $sellStats['year']['summ'] - ($sellStats['year']['count'] * $midPrices[$eachItemId]);
+
+                        $profitStats['sumday'] += $profitStats['day'];
+                        $profitStats['sumweek'] += $profitStats['week'];
+                        $profitStats['summonth'] += $profitStats['month'];
+                        $profitStats['sumyear'] += $profitStats['year'];
 
                         $cells = wf_TableCell($this->allItemTypeNames[$eachItemId] . ' (' . __('middle price') . ' ' . $midPrices[$eachItemId] . ')');
-                        $cells .= wf_TableCell($sellStats['day']['summ'] - ($sellStats['day']['count'] * $midPrices[$eachItemId]));
-                        $cells .= wf_TableCell($sellStats['week']['summ'] - ($sellStats['week']['count'] * $midPrices[$eachItemId]));
-                        $cells .= wf_TableCell($sellStats['month']['summ'] - ($sellStats['month']['count'] * $midPrices[$eachItemId]));
-                        $cells .= wf_TableCell($sellStats['year']['summ'] - ($sellStats['year']['count'] * $midPrices[$eachItemId]));
+                        $cells .= wf_TableCell($profitStats['day']);
+                        $cells .= wf_TableCell($profitStats['week']);
+                        $cells .= wf_TableCell($profitStats['month']);
+                        $cells .= wf_TableCell(round($profitStats['year']));
                         $rows .= wf_TableRow($cells, 'row5');
                     }
 
                     $cells = wf_TableCell(wf_tag('b') . __('Total') . ' ' . __('Profit') . ' ~' . wf_tag('b', true));
-                    $cells .= wf_TableCell($sellStats['summaryprice']['day'] - ($sellStats['summarycount']['day'] * $midPrices[$eachItemId]));
-                    $cells .= wf_TableCell($sellStats['summaryprice']['week'] - ($sellStats['summarycount']['week'] * $midPrices[$eachItemId]));
-                    $cells .= wf_TableCell($sellStats['summaryprice']['month'] - ($sellStats['summarycount']['month'] * $midPrices[$eachItemId]));
-                    $cells .= wf_TableCell($sellStats['summaryprice']['year'] - ($sellStats['summarycount']['year'] * $midPrices[$eachItemId]));
+                    $cells .= wf_TableCell($profitStats['sumday']);
+                    $cells .= wf_TableCell($profitStats['sumweek']);
+                    $cells .= wf_TableCell($profitStats['summonth']);
+                    $cells .= wf_TableCell(zb_CashBigValueFormat(round($profitStats['sumyear'])));
                     $rows .= wf_TableRow($cells, 'row2');
 
                     $result .= wf_tag('h2') . __('Profit') . wf_tag('h2', true);
