@@ -87,6 +87,7 @@ class WHSales {
     const ROUTE_REPORT_DEL = 'deletereportid';
     const ROUTE_ITEM_DEL = 'deletereportitemid';
     const PROUTE_NEWREPORT = 'newreportname';
+    const PROUTE_EDITREPORTNAME = 'editreportname';
     const PROUTE_NEWREPORTITEM = 'addnewitemtoreportid';
     const PROUTE_NEWREPORTITEMID = 'addthisitemtoreport';
     const PROUTE_YEAR = 'settargetyear';
@@ -244,6 +245,30 @@ class WHSales {
     }
 
     /**
+     * Renames sales sub-report in database
+     * 
+     * @param int $reportId
+     * @param string $name
+     * 
+     * @return void/string
+     */
+    public function renameReport($reportId, $name) {
+        $reportId = ubRouting::filters($reportId, 'int');
+        $nameF = ubRouting::filters($name, 'mres');
+        $result = '';
+        if (!empty($nameF) AND ! empty($reportId)) {
+            $this->reportsDb->where('id', '=', $reportId);
+            $this->reportsDb->data('name', $nameF);
+            $this->reportsDb->save();
+
+            log_register('WHSALES RENAME REPORT `' . $name . '` AS [' . $reportId . ']');
+        } else {
+            $result .= __('Name') . ' ' . __('is empty');
+        }
+        return($result);
+    }
+
+    /**
      * Deletes existing report from database
      * 
      * @param int $reportId
@@ -381,6 +406,24 @@ class WHSales {
     }
 
     /**
+     * Renders report rename form
+     * 
+     * @param int $reportId
+     * 
+     * @return string
+     */
+    protected function renderRenameForm($reportId) {
+        $result = '';
+        $reportId = ubRouting::filters($reportId, 'int');
+        if (isset($this->allReports[$reportId])) {
+            $inputs = wf_TextInput(self::PROUTE_EDITREPORTNAME, __('Name'), $this->getReportName($reportId), false, 20);
+            $inputs .= wf_Submit(__('Save'));
+            $result .= wf_Form('', 'POST', $inputs, 'glamour');
+        }
+        return($result);
+    }
+
+    /**
      * Renders existing report editing form
      * 
      * @param int $reportId
@@ -392,6 +435,10 @@ class WHSales {
         $result = '';
         if (isset($this->allReports[$reportId])) {
             $reportItemTypes = $this->allReports[$reportId];
+            //rename form
+            $result .= $this->renderRenameForm($reportId);
+            $result .= wf_delimiter(0);
+
             if (!empty($this->allItemTypes)) {
                 //list of itemtypes in report
                 if (!empty($reportItemTypes)) {
@@ -463,6 +510,152 @@ class WHSales {
     }
 
     /**
+     * Renders year selector form
+     * 
+     * @return string
+     */
+    protected function renderYearSelector() {
+        $result = '';
+        $inputs = wf_YearSelectorPreset(self::PROUTE_YEAR, __('Year'), false, ubRouting::post(self::PROUTE_YEAR)) . ' ';
+        $inputs .= wf_Submit(__('Show'));
+        $result .= wf_Form('', 'POST', $inputs, 'glamour');
+        return($result);
+    }
+
+    /**
+     * Returns selling stats by some itemTypeID from outcomes array
+     * 
+     * @param string $fromDate
+     * @param string $toDate
+     * @param int $itemTypeId
+     * @param array $allOutcomes
+     * 
+     * @return array
+     */
+    protected function getItemTypeStat($fromDate, $toDate, $itemTypeId, $allOutcomes) {
+        $result = array(
+            'count' => 0,
+            'price' => 0,
+            'summ' => 0
+        );
+
+        if (!empty($allOutcomes)) {
+            foreach ($allOutcomes as $io => $each) {
+                if ($each['itemtypeid'] == $itemTypeId) {
+                    if (zb_isDateBetween($fromDate, $toDate, $each['date'])) {
+                        $result['count'] += $each['count'];
+                        $result['price'] = $each['price'];
+                        $result['summ'] += ($each['price'] * $each['count']);
+                    }
+                }
+            }
+        }
+        return($result);
+    }
+
+    /**
+     * Render sold items year chart
+     * 
+     * @param array $allOutcomes
+     * 
+     * @return string
+     */
+    protected function renderChartCount($allOutcomes) {
+        $result = '';
+        $chartData = array();
+        $chartData[] = array(__('Month'), __('Count'));
+        if (!empty($allOutcomes)) {
+            $sellStats = array();
+            $chartOptions = "
+             'focusTarget': 'category',
+                                'hAxis': {
+                                'color': 'none',
+                                    'baselineColor': 'none',
+                            },
+                                'vAxis': {
+                                'color': 'none',
+                                    'baselineColor': 'none',
+                            },
+                                'curveType': 'function',
+                                'pointSize': 3,
+                                'crosshair': {
+                                trigger: 'none'
+                            },";
+
+            foreach ($allOutcomes as $io => $each) {
+                $monthNum = date("Y-m", strtotime($each['date']));
+
+                if (isset($sellStats[$monthNum])) {
+                    $sellStats[$monthNum] += $each['count'];
+                } else {
+                    $sellStats[$monthNum] = $each['count'];
+                }
+            }
+            if (!empty($sellStats)) {
+                foreach ($sellStats as $eachMonth => $monthStat) {
+                    $chartData[] = array($eachMonth, $monthStat);
+                }
+            }
+
+            if (sizeof($chartData) > 1) {
+                $result .= wf_gchartsLine($chartData, __('Count'), '100%;', '300px;', $chartOptions);
+            }
+        }
+        return($result);
+    }
+
+    /**
+     * Render sold items year profit chart
+     * 
+     * @param array $allOutcomes
+     * 
+     * @return string
+     */
+    protected function renderChartProfit($allOutcomes) {
+        $result = '';
+        $chartData = array();
+        $chartData[] = array(__('Month'), __('Money'));
+        if (!empty($allOutcomes)) {
+            $sellStats = array();
+            $chartOptions = "
+             'focusTarget': 'category',
+                                'hAxis': {
+                                'color': 'none',
+                                    'baselineColor': 'none',
+                            },
+                                'vAxis': {
+                                'color': 'none',
+                                    'baselineColor': 'none',
+                            },
+                                'curveType': 'function',
+                                'pointSize': 3,
+                                'crosshair': {
+                                trigger: 'none'
+                            },";
+
+            foreach ($allOutcomes as $io => $each) {
+                $monthNum = date("Y-m", strtotime($each['date']));
+
+                if (isset($sellStats[$monthNum])) {
+                    $sellStats[$monthNum] += ($each['price'] * $each['count']);
+                } else {
+                    $sellStats[$monthNum] = ($each['price'] * $each['count']);
+                }
+            }
+            if (!empty($sellStats)) {
+                foreach ($sellStats as $eachMonth => $monthStat) {
+                    $chartData[] = array($eachMonth, $monthStat);
+                }
+            }
+
+            if (sizeof($chartData) > 1) {
+                $result .= wf_gchartsLine($chartData, __('Money'), '100%;', '300px;', $chartOptions);
+            }
+        }
+        return($result);
+    }
+
+    /**
      * Renders existing sales report
      * 
      * @param int $reportId
@@ -480,7 +673,9 @@ class WHSales {
         $dateWeekEnd = date("Y-m-d", strtotime('sunday this week'));
         $dateYearBegin = $this->showYear . '-01-01';
         $dateYearEnd = $this->showYear . '-12-31';
-
+        //year selector here
+        $result .= $this->renderYearSelector();
+        $result .= wf_delimiter(0);
         if (isset($this->allReports[$reportId])) {
             //here itemtypeId=>midprice
             $midPrices = array();
@@ -494,8 +689,149 @@ class WHSales {
                 $allOutcomes = $this->warehouse->getAllOutcomes();
                 $yearOutcomes = $this->filterOutcomes($allOutcomes, $reportItemIds);
                 if (!empty($yearOutcomes)) {
-                    //TODO
-                    debarr($yearOutcomes);
+                    $sellStats = array(
+                        'summarycount' => array(
+                            'day' => 0,
+                            'week' => 0,
+                            'month' => 0,
+                            'year' => 0,
+                        ),
+                        'summaryprice' => array(
+                            'day' => 0,
+                            'week' => 0,
+                            'month' => 0,
+                            'year' => 0,
+                        ),
+                    );
+
+                    //sold item counts
+                    $cells = wf_TableCell(__('Warehouse item type'), '40%');
+                    $cells .= wf_TableCell(__('Day'), '15%');
+                    $cells .= wf_TableCell(__('Week'), '15%');
+                    $cells .= wf_TableCell(__('Month'), '15%');
+                    $cells .= wf_TableCell(__('Year'), '15%');
+                    $rows = wf_TableRow($cells, 'row1');
+
+                    foreach ($reportItemIds as $eachItemId => $eachRecId) {
+                        $sellStats['day'] = $this->getItemTypeStat($dateCurrentDay, $dateCurrentDay, $eachItemId, $yearOutcomes);
+                        $sellStats['week'] = $this->getItemTypeStat($dateWeekBegin, $dateWeekEnd, $eachItemId, $yearOutcomes);
+                        $sellStats['month'] = $this->getItemTypeStat($dateMonthBegin, $dateMonthEnd, $eachItemId, $yearOutcomes);
+                        $sellStats['year'] = $this->getItemTypeStat($dateYearBegin, $dateYearEnd, $eachItemId, $yearOutcomes);
+
+                        $sellStats['summarycount']['day'] += $sellStats['day']['count'];
+                        $sellStats['summarycount']['week'] += $sellStats['week']['count'];
+                        $sellStats['summarycount']['month'] += $sellStats['month']['count'];
+                        $sellStats['summarycount']['year'] += $sellStats['year']['count'];
+
+
+                        $cells = wf_TableCell($this->allItemTypeNames[$eachItemId]);
+                        $cells .= wf_TableCell($sellStats['day']['count']);
+                        $cells .= wf_TableCell($sellStats['week']['count']);
+                        $cells .= wf_TableCell($sellStats['month']['count']);
+                        $cells .= wf_TableCell($sellStats['year']['count']);
+                        $rows .= wf_TableRow($cells, 'row5');
+                    }
+
+                    $cells = wf_TableCell(wf_tag('b') . __('Total') . ' ' . __('pieces') . wf_tag('b', true));
+                    $cells .= wf_TableCell($sellStats['summarycount']['day']);
+                    $cells .= wf_TableCell($sellStats['summarycount']['week']);
+                    $cells .= wf_TableCell($sellStats['summarycount']['month']);
+                    $cells .= wf_TableCell($sellStats['summarycount']['year']);
+                    $rows .= wf_TableRow($cells, 'row2');
+
+                    $result .= wf_tag('h2') . __('Count') . wf_tag('h2', true);
+                    $result .= wf_TableBody($rows, '100%', 0, '');
+                    $result .= wf_delimiter(0);
+
+                    //sold items prices
+                    $cells = wf_TableCell(__('Warehouse item type'), '40%');
+                    $cells .= wf_TableCell(__('Day'), '15%');
+                    $cells .= wf_TableCell(__('Week'), '15%');
+                    $cells .= wf_TableCell(__('Month'), '15%');
+                    $cells .= wf_TableCell(__('Year'), '15%');
+                    $rows = wf_TableRow($cells, 'row1');
+
+                    foreach ($reportItemIds as $eachItemId => $eachRecId) {
+                        $sellStats['day'] = $this->getItemTypeStat($dateCurrentDay, $dateCurrentDay, $eachItemId, $yearOutcomes);
+                        $sellStats['week'] = $this->getItemTypeStat($dateWeekBegin, $dateWeekEnd, $eachItemId, $yearOutcomes);
+                        $sellStats['month'] = $this->getItemTypeStat($dateMonthBegin, $dateMonthEnd, $eachItemId, $yearOutcomes);
+                        $sellStats['year'] = $this->getItemTypeStat($dateYearBegin, $dateYearEnd, $eachItemId, $yearOutcomes);
+
+
+                        $sellStats['summaryprice']['day'] += $sellStats['day']['summ'];
+                        $sellStats['summaryprice']['week'] += $sellStats['week']['summ'];
+                        $sellStats['summaryprice']['month'] += $sellStats['month']['summ'];
+                        $sellStats['summaryprice']['year'] += $sellStats['year']['summ'];
+
+
+                        $cells = wf_TableCell($this->allItemTypeNames[$eachItemId]);
+                        $cells .= wf_TableCell($sellStats['day']['summ']);
+                        $cells .= wf_TableCell($sellStats['week']['summ']);
+                        $cells .= wf_TableCell($sellStats['month']['summ']);
+                        $cells .= wf_TableCell($sellStats['year']['summ']);
+                        $rows .= wf_TableRow($cells, 'row5');
+                    }
+
+                    $cells = wf_TableCell(wf_tag('b') . __('Total') . ' ' . __('money') . wf_tag('b', true));
+                    $cells .= wf_TableCell($sellStats['summaryprice']['day']);
+                    $cells .= wf_TableCell($sellStats['summaryprice']['week']);
+                    $cells .= wf_TableCell($sellStats['summaryprice']['month']);
+                    $cells .= wf_TableCell($sellStats['summaryprice']['year']);
+                    $rows .= wf_TableRow($cells, 'row2');
+
+                    $result .= wf_tag('h2') . __('Money') . wf_tag('h2', true);
+                    $result .= wf_TableBody($rows, '100%', 0, '');
+                    $result .= wf_delimiter(0);
+
+                    //profit prediction
+                    $cells = wf_TableCell(__('Warehouse item type'), '40%');
+                    $cells .= wf_TableCell(__('Day'), '15%');
+                    $cells .= wf_TableCell(__('Week'), '15%');
+                    $cells .= wf_TableCell(__('Month'), '15%');
+                    $cells .= wf_TableCell(__('Year'), '15%');
+                    $rows = wf_TableRow($cells, 'row1');
+
+                    foreach ($reportItemIds as $eachItemId => $eachRecId) {
+                        $sellStats['day'] = $this->getItemTypeStat($dateCurrentDay, $dateCurrentDay, $eachItemId, $yearOutcomes);
+                        $sellStats['week'] = $this->getItemTypeStat($dateWeekBegin, $dateWeekEnd, $eachItemId, $yearOutcomes);
+                        $sellStats['month'] = $this->getItemTypeStat($dateMonthBegin, $dateMonthEnd, $eachItemId, $yearOutcomes);
+                        $sellStats['year'] = $this->getItemTypeStat($dateYearBegin, $dateYearEnd, $eachItemId, $yearOutcomes);
+
+                        $sellStats['summarycount']['day'] += $sellStats['day']['count'];
+                        $sellStats['summarycount']['week'] += $sellStats['week']['count'];
+                        $sellStats['summarycount']['month'] += $sellStats['month']['count'];
+                        $sellStats['summarycount']['year'] += $sellStats['year']['count'];
+
+                        $sellStats['summaryprice']['day'] += $sellStats['day']['summ'];
+                        $sellStats['summaryprice']['week'] += $sellStats['week']['summ'];
+                        $sellStats['summaryprice']['month'] += $sellStats['month']['summ'];
+                        $sellStats['summaryprice']['year'] += $sellStats['year']['summ'];
+
+
+                        $cells = wf_TableCell($this->allItemTypeNames[$eachItemId] . ' (' . __('middle price') . ' ' . $midPrices[$eachItemId] . ')');
+                        $cells .= wf_TableCell($sellStats['day']['summ'] - ($sellStats['day']['count'] * $midPrices[$eachItemId]));
+                        $cells .= wf_TableCell($sellStats['week']['summ'] - ($sellStats['week']['count'] * $midPrices[$eachItemId]));
+                        $cells .= wf_TableCell($sellStats['month']['summ'] - ($sellStats['month']['count'] * $midPrices[$eachItemId]));
+                        $cells .= wf_TableCell($sellStats['year']['summ'] - ($sellStats['year']['count'] * $midPrices[$eachItemId]));
+                        $rows .= wf_TableRow($cells, 'row5');
+                    }
+
+                    $cells = wf_TableCell(wf_tag('b') . __('Total') . ' ' . __('Profit') . ' ~' . wf_tag('b', true));
+                    $cells .= wf_TableCell($sellStats['summaryprice']['day'] - ($sellStats['summarycount']['day'] * $midPrices[$eachItemId]));
+                    $cells .= wf_TableCell($sellStats['summaryprice']['week'] - ($sellStats['summarycount']['week'] * $midPrices[$eachItemId]));
+                    $cells .= wf_TableCell($sellStats['summaryprice']['month'] - ($sellStats['summarycount']['month'] * $midPrices[$eachItemId]));
+                    $cells .= wf_TableCell($sellStats['summaryprice']['year'] - ($sellStats['summarycount']['year'] * $midPrices[$eachItemId]));
+                    $rows .= wf_TableRow($cells, 'row2');
+
+                    $result .= wf_tag('h2') . __('Profit') . wf_tag('h2', true);
+                    $result .= wf_TableBody($rows, '100%', 0, '');
+                    $result .= wf_delimiter(0);
+
+                    //some charts here
+                    $result .= $this->renderChartCount($yearOutcomes);
+                    $result .= $this->renderChartProfit($yearOutcomes);
+                } else {
+                    $result .= $this->messages->getStyledMessage(__('Nothing to show'), 'info');
                 }
             } else {
                 $result .= $this->messages->getStyledMessage(__('Report doesnt contain any item types'), 'info');

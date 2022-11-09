@@ -30,6 +30,7 @@ if (cfr('WAREHOUSE')) {
 
             //editing existing report
             if (ubRouting::checkGet($salesReport::ROUTE_REPORT_EDIT)) {
+                $reportIdToEdit = ubRouting::get($salesReport::ROUTE_REPORT_EDIT);
                 $reportEditUrl = $salesReport::URL_ME . '&' . $salesReport::ROUTE_REPORT_EDIT . '=' . ubRouting::get($salesReport::ROUTE_REPORT_EDIT);
                 //deleting some itemtype record
                 if (ubRouting::checkGet($salesReport::ROUTE_ITEM_DEL)) {
@@ -49,7 +50,13 @@ if (cfr('WAREHOUSE')) {
                     }
                 }
 
-                show_window(__('Edit report'), $salesReport->renderEditForm(ubRouting::get($salesReport::ROUTE_REPORT_EDIT)));
+                //renaming existing report
+                if (ubRouting::checkGet($salesReport::ROUTE_REPORT_EDIT) AND ubRouting::checkPost($salesReport::PROUTE_EDITREPORTNAME)) {
+                    $salesReport->renameReport($reportIdToEdit, ubRouting::post($salesReport::PROUTE_EDITREPORTNAME));
+                    ubRouting::nav($reportEditUrl);
+                }
+
+                show_window(__('Edit report') . ': ' . $salesReport->getReportName($reportIdToEdit), $salesReport->renderEditForm($reportIdToEdit));
                 show_window('', wf_BackLink($salesReport::URL_ME));
             }
 
