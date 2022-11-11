@@ -25,8 +25,8 @@ class PONStels extends PONProto {
 
         $sigIndex = $this->walkCleared($oltIPPORT, $oltCommunity,
                                        $this->snmpTemplates[$oltModelId]['signal']['SIGINDEX'],
-                                       '.0.0 ',
-                                       self::SNMPCACHE);
+                                       '',
+                                       '.0.0 ', self::SNMPCACHE);
 
 //ONU distance polling for stels12 devices
         if (isset($this->snmpTemplates[$oltModelId]['misc'])) {
@@ -35,17 +35,17 @@ class PONStels extends PONProto {
                     $distIndex = $this->walkCleared($oltIPPORT, $oltCommunity,
                                                     $this->snmpTemplates[$oltModelId]['misc']['DISTINDEX'],
                                                     '',
-                                                    self::SNMPCACHE);
+                                                    '', self::SNMPCACHE);
 
                     $onuIndex = $this->walkCleared($oltIPPORT, $oltCommunity,
                                                    $this->snmpTemplates[$oltModelId]['misc']['ONUINDEX'],
-                                                   '.0.0 ',
-                                                   self::SNMPCACHE);
+                                                   '',
+                                                   '.0.0 ', self::SNMPCACHE);
 
                     $ifaceIndex = $this->walkCleared($oltIPPORT, $oltCommunity,
                                                      $this->snmpTemplates[$oltModelId]['misc']['INTERFACEINDEX'],
-                                                     '"',
-                                                     self::SNMPCACHE);
+                                                     '',
+                                                     '"', self::SNMPCACHE);
                 }
             }
 
@@ -53,8 +53,8 @@ class PONStels extends PONProto {
                 if (!empty($this->snmpTemplates[$oltModelId]['misc']['DEREGREASON'])) {
                     $lastDeregIndex = $this->walkCleared($oltIPPORT, $oltCommunity,
                                                          $this->snmpTemplates[$oltModelId]['misc']['DEREGREASON'],
-                                                         '"',
-                                                         self::SNMPCACHE);
+                                                         '',
+                                                         '"', self::SNMPCACHE);
                 }
             }
         }
@@ -63,7 +63,7 @@ class PONStels extends PONProto {
         $macIndex = $this->walkCleared($oltIPPORT, $oltCommunity,
                                        $this->snmpTemplates[$oltModelId]['signal']['MACINDEX'],
                                        '',
-                                       self::SNMPCACHE);
+                                       '', self::SNMPCACHE);
 
         $this->signalParse($oltid, $sigIndex, $macIndex, $this->snmpTemplates[$oltModelId]['signal']);
 
@@ -89,7 +89,7 @@ class PONStels extends PONProto {
             $fdbMACIndex = $this->walkCleared($oltIPPORT, $oltCommunity,
                                               $this->snmpTemplates[$oltModelId]['misc']['FDBMACINDEX'],
                                               '',
-                                              self::SNMPCACHE);
+                                              '', self::SNMPCACHE);
             $this->fdbParseStels12($fdbMACIndex);
         }
     }

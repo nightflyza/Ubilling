@@ -300,14 +300,15 @@ class PONProto {
      * @param string $snmpIPPORT
      * @param string $snmpCommunity
      * @param string $snmpOID
+     * @param string $removeOIDPart
      * @param string $removeVALUE
-     * @param bool   $snmpCacheON
+     * @param bool $snmpCacheON
      *
      * @return array
      */
-    protected function walkCleared($snmpIPPORT, $snmpCommunity, $snmpOID, $removeVALUE = '', $snmpCacheON = false) {
+    protected function walkCleared($snmpIPPORT, $snmpCommunity, $snmpOID, $removeOIDPart = '', $removeVALUE = '', $snmpCacheON = false) {
         $oidIndex = $this->snmp->walk($snmpIPPORT, $snmpCommunity, $snmpOID, $snmpCacheON);
-        $oidIndex = trimSNMPOutput($oidIndex, $snmpOID . '.', $removeVALUE, true);
+        $oidIndex = trimSNMPOutput($oidIndex, $snmpOID . '.' . $removeOIDPart, $removeVALUE, true);
 
         return ($oidIndex);
     }

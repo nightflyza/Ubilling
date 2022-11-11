@@ -139,6 +139,13 @@ class PONizer {
     protected $onuMACDevIDCache = array();
 
     /**
+     * Contains ONU UNI ports cache as MAC/Serial => (EtherPort => Status)
+     *
+     * @var array
+     */
+    protected $uniOperStatsCache = array();
+
+    /**
      * System alter.ini config stored as key=>value
      *
      * @var array
@@ -314,6 +321,13 @@ class PONizer {
     protected $llidColVisibleUnknownONU = false;
 
     /**
+     * Placeholder for PON_ONU_UNI_STATUS_ENABLED alter.ini option
+     *
+     * @var bool
+     */
+    protected $onuUniStatusEnabled = false;
+
+    /**
      * Contains all busy ONU MAC/serials as lowercase onuIdent=>onuId
      *
      * @var array
@@ -479,6 +493,7 @@ class PONizer {
         $this->deferredLoadingFlag = $this->ubConfig->getAlterParam('PON_DEFERRED_LOADING', false);
         $this->ipColumnVisible = ($this->ubConfig->getAlterParam('PONIZER_NO_IP_COLUMN')) ? false : true;
         $this->llidColVisibleUnknownONU = $this->ubConfig->getAlterParam('PON_UKNKOWN_ONU_LLID_SHOW', false);
+        $this->onuUniStatusEnabled = $this->ubConfig->getAlterParam('PON_ONU_UNI_STATUS_ENABLED', false);
 
         if ($this->ponIfDescribe) {
             $this->ponInterfaces = new PONIfDesc();
@@ -2071,6 +2086,7 @@ class PONizer {
                 $result .= wf_delimiter();
                 $result .= __($onuSignal['type']);
                 $result .= $this->renderOnuMiscStats($onuId, $onuSignal);
+                $result .= ($this->onuUniStatusEnabled) ? $this->renderONUUniStats($onuId, $onuSignal) : '';
                 $result .= wf_tag('div', true);
             }
         }
@@ -2148,6 +2164,63 @@ class PONizer {
             $result .= $onuMiscStats;
             $result .= wf_tag('div', true);
         }
+        return($result);
+    }
+
+    /**
+     * Renders ONU UNI port operational status if available
+     *
+     * @param $onuId
+     * @param $signalStatsData
+     *
+     * @return string
+     */
+    protected function renderONUUniStats($onuId, $signalStatsData) {
+        $result = '';
+        $onuMAC = '';
+        $onuSerial = '';
+        $uniStatsData = '';
+        $onuUniOperStats = '';
+        $offlineFlag = ($signalStatsData['isoffline']) ? true : false;
+
+        if (isset($this->allOnu[$onuId]) and !$offlineFlag) {
+            $this->loadUniOperStatsCache();
+
+            if (!empty($this->allOnu[$onuId]['mac'])) {
+                $onuMAC = $this->allOnu[$onuId]['mac'];
+            }
+
+            if (!empty($this->allOnu[$onuId]['serial'])) {
+                $onuSerial = $this->allOnu[$onuId]['serial'];
+            }
+
+            if (!empty($this->uniOperStatsCache[$onuMAC])) {
+                $uniStatsData = $this->uniOperStatsCache[$onuMAC];
+            } elseif (!empty($this->uniOperStatsCache[$onuSerial])) {
+                $uniStatsData = $this->uniOperStatsCache[$onuSerial];
+            }
+
+            if (!empty($uniStatsData)) {
+                foreach ($uniStatsData as $eachPort => $eachStatus) {
+                    if ($eachStatus) {
+                        $interfaceIcon = wf_img_sized('skins/icon_ether.gif', __('Interface')) . wf_nbsp()
+                                         . wf_img_sized('skins/rise_icon.png', __('Up'), '8', '10');
+                    } else {
+
+                        $interfaceIcon = wf_img_sized('skins/icon_ether_down.png', __('Interface')) . wf_nbsp()
+                                         . wf_img_sized('skins/drain_icon.png', __('Down'), '8', '10');
+                    }
+
+                    $onuUniOperStats.= $eachPort . ': ' . $interfaceIcon . wf_nbsp(4);
+                }
+
+                $containerStyle = 'style="font-size:10pt; padding:10px;"';
+                $result .= wf_tag('div', false, '', $containerStyle);
+                $result .= $onuUniOperStats;
+                $result .= wf_tag('div', true);
+            }
+        }
+
         return($result);
     }
 
@@ -3238,6 +3311,11 @@ class PONizer {
      */
     protected function loadFDBCache() {
         $this->FDBCache = $this->reviewDataSet($this->oltData->getFdbAll());
+    }
+
+
+    protected function loadUniOperStatsCache() {
+        $this->uniOperStatsCache = $this->reviewDataSet($this->oltData->getUniOperStatsAll());
     }
 
     /**
