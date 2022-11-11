@@ -34,6 +34,8 @@ class OLTAttractor {
     const TEMPERATURE_EXT = 'OLTTEMPERATURE';
     const MACDEVIDCACHE_PATH = 'exports/pondata/macdev/';
     const MACDEVIDCACHE_EXT = 'ONUMACDEVINDEX';
+    const UNIOPERSTATS_PATH = 'exports/pondata/unioperstats/';
+    const UNIOPERSTATS_EXT = 'UNIOPERSTATS';
 
     /**
      * ONUs signal history path
@@ -513,6 +515,35 @@ class OLTAttractor {
     public function readDeregs() {
         $dataContainer = self::DEREGCACHE_PATH . $this->oltId . '_' . self::DEREGCACHE_EXT;
         $result = $this->getData($dataContainer);
+        return ($result);
+    }
+
+    /**
+     * Saves OLT all ONUs UNI-ports operational statuses
+     *
+     * @param array $uniStatsArr array of [onuMac/onuSerial] => (ethPort => Status) like 1(up) or 0(down)
+     *
+     * @return void
+     *
+     * @throws Exception
+     */
+    public function writeUniOperStats($uniStatsArr) {
+        $dataToSave = $uniStatsArr;
+        $dataContainer = self::UNIOPERSTATS_PATH . $this->oltId . '_' . self::UNIOPERSTATS_EXT;
+        $this->saveData($dataContainer, $dataToSave);
+    }
+
+    /**
+     * Returns OLT all ONUs UNI-ports operational statuses
+     *
+     * @return array as array of [onuMac/onuSerial] => (ethPort => Status) like 1(up) or 0(down)
+     *
+     * @throws Exception
+     */
+    public function readUniOperStats() {
+        $dataContainer = self::UNIOPERSTATS_PATH . $this->oltId . '_' . self::UNIOPERSTATS_EXT;
+        $result = $this->getData($dataContainer);
+        return ($result);
     }
 
     /**
@@ -571,6 +602,17 @@ class OLTAttractor {
     public function getFdbAll() {
         $containerPath = self::FDBCACHE_PATH;
         $containerMark = self::FDBCACHE_EXT;
+        return($this->getContainersContent($containerPath, $containerMark));
+    }
+
+    /**
+     * Returns list of all OLTs available ONUs UNI-ports operational statuses [onuMac/onuSerial] => (ethPort => Status) like 1(up) or 0(down)
+     *
+     * @return array
+     */
+    public function getUniOperStatsAll() {
+        $containerPath = self::UNIOPERSTATS_PATH;
+        $containerMark = self::UNIOPERSTATS_EXT;
         return($this->getContainersContent($containerPath, $containerMark));
     }
 

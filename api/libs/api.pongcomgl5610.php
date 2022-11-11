@@ -1,9 +1,9 @@
 <?php
 
 /**
- * OLT SmartFiber E9004-BT hardware abstraction layer
+ * OLT GCOM GL5610 GPON hardware abstraction layer
  */
-class PONSFE90BT extends PONProto {
+class PONGCOMGL5610 extends PONProto {
 
     /**
      * Receives, preprocess and stores all required data from OLT
@@ -17,35 +17,36 @@ class PONSFE90BT extends PONProto {
         $oltCommunity = $this->oltParameters['COMMUNITY'];
         $oltNoFDBQ = $this->oltParameters['NOFDB'];
         $oltIPPORT = $oltIp . ':' . self::SNMPPORT;
+        $chassisIndexToRemove = '0.';    // this needed because with chassis index included - OIDs are not processable
 
         $sigIndex = $this->walkCleared($oltIPPORT, $oltCommunity,
                                        $this->snmpTemplates[$oltModelId]['signal']['SIGINDEX'],
-                                       '',
-                                       $this->snmpTemplates[$oltModelId]['signal']['SIGVALUE'],
+                                       $chassisIndexToRemove,
+                                       array($this->snmpTemplates[$oltModelId]['signal']['SIGVALUE'], '"'),
                                        self::SNMPCACHE);
 
         $macIndex = $this->walkCleared($oltIPPORT, $oltCommunity,
-                                      $this->snmpTemplates[$oltModelId]['signal']['MACINDEX'],
-                                       '',
-                                      $this->snmpTemplates[$oltModelId]['signal']['MACVALUE'],
-                                      self::SNMPCACHE);
+                                       $this->snmpTemplates[$oltModelId]['signal']['MACINDEX'],
+                                       $chassisIndexToRemove,
+                                       array($this->snmpTemplates[$oltModelId]['signal']['MACVALUE'], '"'),
+                                       self::SNMPCACHE);
 
-        $SFMACsProcessed = $this->macParseSF($macIndex);
+        $gcomgMACsProcessed = $this->macParseGCOMG($macIndex);
 
-        if (!empty($SFMACsProcessed)) {
-            $this->signalParseSF($sigIndex, $SFMACsProcessed);
+        if (!empty($gcomgMACsProcessed)) {
+            $this->signalParseGCOMG($sigIndex, $gcomgMACsProcessed);
 
             $distIndex = $this->walkCleared($oltIPPORT, $oltCommunity,
                                             $this->snmpTemplates[$oltModelId]['misc']['DISTINDEX'],
-                                            '',
-                                            $this->snmpTemplates[$oltModelId]['misc']['DISTVALUE'],
+                                            $chassisIndexToRemove,
+                                            array($this->snmpTemplates[$oltModelId]['misc']['DISTVALUE'], '"'),
                                             self::SNMPCACHE);
 
-            $this->distanceParseSF($distIndex, $SFMACsProcessed);
+            $this->distanceParseGCOMG($distIndex, $gcomgMACsProcessed);
 
             $ifaceIndex = $this->walkCleared($oltIPPORT, $oltCommunity,
                                              $this->snmpTemplates[$oltModelId]['misc']['IFACEDESCR'],
-                                             '',
+                                             $chassisIndexToRemove,
                                              array($this->snmpTemplates[$oltModelId]['misc']['IFACEVALUE'], '"'),
                                              self::SNMPCACHE);
 
@@ -53,20 +54,20 @@ class PONSFE90BT extends PONProto {
             if (isset($this->snmpTemplates[$oltModelId]['misc']['IFACECUSTOMDESCR'])) {
                 $ifaceCustDescrIndex = $this->walkCleared($oltIPPORT, $oltCommunity,
                                                           $this->snmpTemplates[$oltModelId]['misc']['IFACECUSTOMDESCR'],
-                                                          '',
+                                                          $chassisIndexToRemove,
                                                           array($this->snmpTemplates[$oltModelId]['misc']['IFACEVALUE'], '"'),
                                                           self::SNMPCACHE);
             }
 
-            $this->interfaceParseSF($ifaceIndex, $SFMACsProcessed, $ifaceCustDescrIndex);
+            $this->interfaceParseGCOMG($ifaceIndex, $gcomgMACsProcessed, $ifaceCustDescrIndex);
 
             $lastDeregIndex = $this->walkCleared($oltIPPORT, $oltCommunity,
                                                  $this->snmpTemplates[$oltModelId]['misc']['DEREGREASON'],
-                                                 '',
-                                                 $this->snmpTemplates[$oltModelId]['misc']['DEREGVALUE'],
+                                                 $chassisIndexToRemove,
+                                                 array($this->snmpTemplates[$oltModelId]['misc']['IFACEVALUE'], '"'),
                                                  self::SNMPCACHE);
 
-            $this->lastDeregParseSF($lastDeregIndex, $SFMACsProcessed);
+            $this->lastDeregParseGCOMG($lastDeregIndex, $gcomgMACsProcessed);
 
             if (!$oltNoFDBQ) {
                 // for some reason fdbVLANIndex for this OLT should be queried first
@@ -83,7 +84,18 @@ class PONSFE90BT extends PONProto {
                                                $this->snmpTemplates[$oltModelId]['misc']['FDBMACVALUE'],
                                                self::SNMPCACHE);
 
-                $this->fdbParseSF($SFMACsProcessed, $fdbIndex, $fdbVLANIndex);
+                $this->fdbParseGCOMG($gcomgMACsProcessed, $fdbIndex, $fdbVLANIndex);
+            }
+
+            $uniOperStatusIndex = array();
+            if (isset($this->snmpTemplates[$oltModelId]['misc']['UNIOPERSTATUS'])) {
+                $uniOperStatusIndex = $this->walkCleared($oltIPPORT, $oltCommunity,
+                                                         $this->snmpTemplates[$oltModelId]['misc']['UNIOPERSTATUS'],
+                                                         $chassisIndexToRemove,
+                                                         array($this->snmpTemplates[$oltModelId]['misc']['UNIOPERSTATUSVALUE'], '"'),
+                                                         self::SNMPCACHE);
+
+                $this->uniParseGCOMG($uniOperStatusIndex, $gcomgMACsProcessed);
             }
         }
 
@@ -113,7 +125,7 @@ class PONSFE90BT extends PONProto {
      *
      * @return array
      */
-    protected function macParseSF($macIndex) {
+    protected function macParseGCOMG($macIndex) {
         $ONUsMACs = array();
 
         if (!empty($macIndex)) {
@@ -126,7 +138,8 @@ class PONSFE90BT extends PONProto {
                 }
 
                 $tmpONUPortLLID = trim($line[0]);
-                $tmpONUMAC = strtolower(AddMacSeparator(RemoveMacAddressSeparator(trim($line[1]), array(':', '-', '.', ' '))));     //mac address
+//                $tmpONUMAC = strtolower(AddMacSeparator(RemoveMacAddressSeparator(trim($line[1]), array(':', '-', '.', ' '))));     //mac address
+                $tmpONUMAC = trim($line[1]);
 
 
 //mac is present
@@ -147,7 +160,7 @@ class PONSFE90BT extends PONProto {
      *
      * @return void
      */
-    protected function signalParseSF($sigIndex, $macIndexProcessed) {
+    protected function signalParseGCOMG($sigIndex, $macIndexProcessed) {
         $ONUsModulesTemps = array();
         $ONUsModulesVoltages = array();
         $ONUsModulesCurrents = array();
@@ -165,8 +178,9 @@ class PONSFE90BT extends PONProto {
                 if (isset($line[0])) {
                     $tmpONUPortLLID = trim($line[0]);
                     $SignalRaw = trim($line[1]);
-                    $ONUsSignals[$tmpONUPortLLID]['SignalRXRaw'] = $SignalRaw;
-                    $ONUsSignals[$tmpONUPortLLID]['SignalRXdBm'] = trim(substr(stristr(stristr(stristr($SignalRaw, '('), ')', true), 'dBm', true), 1));
+//                    $ONUsSignals[$tmpONUPortLLID]['SignalRXRaw'] = trim($SignalRaw, '"');
+//                    $ONUsSignals[$tmpONUPortLLID]['SignalRXdBm'] = trim(substr(stristr(stristr(stristr($SignalRaw, '('), ')', true), 'dBm', true), 1));
+                    $ONUsSignals[$tmpONUPortLLID]['SignalRXdBm'] = trim($SignalRaw);
                     }
                 }
 
@@ -209,7 +223,7 @@ class PONSFE90BT extends PONProto {
      * @param $DistIndex
      * @param $macIndexProcessed
      */
-    protected function distanceParseSF($DistIndex, $macIndexProcessed) {
+    protected function distanceParseGCOMG($DistIndex, $macIndexProcessed) {
         $ONUDistances = array();
         $result = array();
 
@@ -249,7 +263,7 @@ class PONSFE90BT extends PONProto {
      *
      * @return void
      */
-    protected function interfaceParseSF($IfaceIndex, $macIndexProcessed, $ifaceCustDescrRaw = array()) {
+    protected function interfaceParseGCOMG($IfaceIndex, $macIndexProcessed, $ifaceCustDescrRaw = array()) {
         $ONUIfaces = array();
         $result = array();
         $processIfaceCustDescr = !empty($ifaceCustDescrRaw);
@@ -326,7 +340,7 @@ class PONSFE90BT extends PONProto {
      *
      * @return void
      */
-    protected function fdbParseSF($onuMACIndex, $fdbIndex, $fdbVLANIndex) {
+    protected function fdbParseGCOMG($onuMACIndex, $fdbIndex, $fdbVLANIndex) {
         if (!empty($onuMACIndex)) {
             $fdbDevIdxMAC   = array();
             $fdbIdxVLAN     = array();
@@ -396,7 +410,7 @@ class PONSFE90BT extends PONProto {
      *
      * @return void
      */
-    protected function lastDeregParseSF($LastDeregIndex, $macIndexProcessed) {
+    protected function lastDeregParseGCOMG($LastDeregIndex, $macIndexProcessed) {
         $ONUDeRegs = array();
         $result = array();
 
@@ -450,4 +464,52 @@ class PONSFE90BT extends PONProto {
         }
     }
 
+    /**
+     * Performs UNI port oper status preprocessing for index array and stores it into cache
+     *
+     * @param $uniOperStatusIndex
+     * @param $macIndexProcessed
+     *
+     * @return void
+     */
+    protected function uniParseGCOMG($uniOperStatusIndex, $macIndexProcessed) {
+        $uniStats = array();
+        $result = array();
+
+        if (!empty($macIndexProcessed) and !empty($uniOperStatusIndex)) {
+//UniOperStats index preprocessing
+            foreach ($uniOperStatusIndex as $io => $eachRow) {
+                $line = explode('=', $eachRow);
+
+                if (empty($line[0]) || empty($line[1])) {
+                    continue;
+                }
+
+                // LLID + ether port index
+                $tmpLLIDEtherIdx = trim($line[0]);
+                $tmpLLIDEtherIdxLen = strlen($tmpLLIDEtherIdx);
+
+                // ehter port index
+                $tmpEtherIdx = strrchr($tmpLLIDEtherIdx, '.');
+                $tmpEtherIdxLen = strlen($tmpEtherIdx);
+                $tmpEtherIdx = 'eth' . trim($tmpEtherIdx, '.');
+
+                //LLID
+                $tmpONUPortLLID = substr($tmpLLIDEtherIdx, 0, $tmpLLIDEtherIdxLen - $tmpEtherIdxLen);
+                $tmpUniStatus = trim(trim($line[1]), '"');
+
+                $uniStats[$tmpONUPortLLID] = array($tmpEtherIdx => $tmpUniStatus);
+            }
+
+//storing results
+            foreach ($macIndexProcessed as $devId => $eachMac) {
+                if (isset($uniStats[$devId])) {
+                    $result[$eachMac] = $uniStats[$devId];
+                }
+            }
+
+            //saving UniOperStats
+            $this->olt->writeUniOperStats($result);
+        }
+    }
 }
