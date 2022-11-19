@@ -143,21 +143,26 @@ function generic_MapAddMark($coords, $title = '', $content = '', $footer = '', $
 }
 
 /**
- * Returns map circle
+ * Returns circle map placemark
  * 
  * @param string $coords - map coordinates
  * @param int $radius - circle radius in meters
- * @param string $content 
+ * @param string $content - popup balloon content
+ * @param string $hint - on mouseover hint
+ * @param string $color - circle border color, default: 009d25
+ * @param float  $opacity - border opacity from 0 to 1, default: 0.8
+ * @param string $fillColor - fill color of circle, default: 00a20b55
+ * @param float $fillOpacity - fill opacity from 0 to 1, default: 0.5
  * 
  * @return string
- *  
  */
-function generic_MapAddCircle($coords, $radius, $content = '', $hint = '') {
+function generic_MapAddCircle($coords, $radius, $content = '', $hint = '', $color = '009d25', $opacity = 0.8, $fillColor = '00a20b55', $fillOpacity = 0.5) {
     $result = '
            var circle = L.circle([' . $coords . '], {
-                    color: \'#009d25\',
-                    fillColor: \'#00a20b55\',
-                    fillOpacity: 0.5,
+                    color: \'#' . $color . '\',
+                    opacity: ' . $opacity . ',
+                    fillColor: \'#' . $fillColor . '\',
+                    fillOpacity: ' . $fillOpacity . ',
                     radius: ' . $radius . '
                 }).addTo(map);
             ';
