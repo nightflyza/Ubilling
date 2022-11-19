@@ -93,15 +93,20 @@ function generic_MapInit($center, $zoom, $type, $placemarks = '', $editor = '', 
 }
 
 /**
- * Returns map circle
+ * Returns circle map placemark
  * 
- * @param $coords - map coordinates
- * @param $radius - circle radius in meters
+ * @param string $coords - map coordinates
+ * @param int $radius - circle radius in meters
+ * @param string $content - popup balloon content
+ * @param string $hint - on mouseover hint
+ * @param string $color - circle border color, default: 009d25
+ * @param float  $opacity - border opacity from 0 to 1, default: 0.8
+ * @param string $fillColor - fill color of circle, default: 00a20b55
+ * @param float $fillOpacity - fill opacity from 0 to 1, default: 0.5
  * 
  * @return string
- *  
  */
-function generic_MapAddCircle($coords, $radius, $content = '', $hint = '') {
+function generic_MapAddCircle($coords, $radius, $content = '', $hint = '', $color = '009d25', $opacity = 0.8, $fillColor = '00a20b55', $fillOpacity = 0.5) {
     $result = '
              myCircle = new ymaps.Circle([
                     [' . $coords . '],
@@ -112,9 +117,10 @@ function generic_MapAddCircle($coords, $radius, $content = '', $hint = '') {
                 }, {
                     draggable: true,
              
-                    fillColor: "#00a20b55",
-                    strokeColor: "#006107",
-                    strokeOpacity: 0.5,
+                    fillColor: "#' . $fillColor . '",
+                    strokeColor: "#' . $color . '",
+                    strokeOpacity: ' . $opacity . ',
+                    fillOpacity: ' . $fillOpacity . ',
                     strokeWidth: 1
                 });
     
@@ -179,13 +185,17 @@ function generic_mapAddMark($coords, $title = '', $content = '', $footer = '', $
 /**
  * Returns maps empty container
  * 
+ * @param string $width
+ * @param string $height
+ * @param string $id
+ * 
  * @return string
  */
 function generic_MapContainer($width = '', $height = '', $id = '') {
     $width = (!empty($width)) ? $width : '100%';
     $height = (!empty($height)) ? $height : '800px';
     $id = (!empty($id)) ? $id : 'ubmap';
-    $result = wf_tag('div', false, '', 'id="' . $id . '" style="width:'.$width.'; height:'.$height.';"');
+    $result = wf_tag('div', false, '', 'id="' . $id . '" style="width:' . $width . '; height:' . $height . ';"');
     $result .= wf_tag('div', true);
     return ($result);
 }
