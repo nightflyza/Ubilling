@@ -41,6 +41,13 @@ class FastPing {
     protected $cachedData = array();
 
     /**
+     * Contains cached dead devices data as ip=>location
+     *
+     * @var array
+     */
+    protected $deadCache = array();
+
+    /**
      * Contains system sudo full path
      *
      * @var string
@@ -59,6 +66,7 @@ class FastPing {
      */
     const PID_NAME = 'FASTPING';
     const CACHE_KEY = 'FASTPING';
+    const CACHE_DEAD = 'FASTDEAD';
     const LIST_PATH = 'exports/fastping_iplist';
     const MASK_ALIVE = 'is alive';
     const CACHE_TIMEOUT = 2592000;
@@ -119,8 +127,12 @@ class FastPing {
      */
     protected function loadCache() {
         $this->cachedData = $this->cache->get(self::CACHE_KEY, self::CACHE_TIMEOUT);
+        $this->deadCache = $this->cache->get(self::CACHE_DEAD, self::CACHE_TIMEOUT);
         if (empty($this->cachedData)) {
             $this->cachedData = array();
+        }
+        if (empty($this->deadCache)) {
+            $this->deadCache = array();
         }
     }
 
@@ -128,14 +140,19 @@ class FastPing {
      * Saves fastping results to cache
      * 
      * @param array $data
+     * @param array $deadSwitches
      * 
      * @return void
      */
-    protected function saveCache($data) {
+    protected function saveCache($data, $deadSwitches) {
         if (empty($data)) {
             $data = array();
         }
+        if (empty($deadSwitches)) {
+            $deadSwitches = array();
+        }
         $this->cache->set(self::CACHE_KEY, $data, self::CACHE_TIMEOUT);
+        $this->cache->set(self::CACHE_DEAD, $deadSwitches, self::CACHE_TIMEOUT);
     }
 
     /**
@@ -201,12 +218,13 @@ class FastPing {
     }
 
     /**
-     * Performs fast ping of all available active devices from switches directory as ip=>state[1/0]
+     * Performs fast ping of all available active devices from switches directory
      * 
-     * @return array
+     * @return array dead siwtches as ip=>location
      */
     public function repingDevices() {
         $result = array();
+        $deadSwitches = array();
         if ($this->pid->notRunning()) {
             //starting process
             $this->pid->start();
@@ -219,7 +237,7 @@ class FastPing {
                     if (!empty($each['ip']) AND ! ispos($each['desc'], 'NP')) {
                         if (!isset($uniqueIps[$each['ip']])) {
                             $ipsList .= $each['ip'] . PHP_EOL;
-                            $uniqueIps[$each['ip']] = $each['id'];
+                            $uniqueIps[$each['ip']] = $each['location'];
                         }
                     }
                 }
@@ -229,29 +247,32 @@ class FastPing {
                     file_put_contents(self::LIST_PATH, $ipsList);
                     $fpingRaw = $this->runPing();
                     if (!empty($fpingRaw)) {
-                        foreach ($uniqueIps as $devIp => $devId) {
+                        foreach ($uniqueIps as $devIp => $devLoc) {
                             $aliveFilter = $devIp . ' ' . self::MASK_ALIVE;
                             if (ispos($fpingRaw, $aliveFilter)) {
                                 $result[$devIp] = 1;
                             } else {
                                 $result[$devIp] = 0;
+                                $deadSwitches[$devIp] = $devLoc;
                             }
                         }
                     }
 
                     //update cache
                     $this->cachedData = $result;
-                    $this->saveCache($result);
+                    $this->saveCache($result, $deadSwitches);
                     //stopping process
                     $this->pid->stop();
                 }
             }
         } else {
             //data from cache?
-            $result = $this->cachedData;
+            if (!empty($this->cachedData)) {
+                
+            }
         }
 
-        return($result);
+        return($deadSwitches);
     }
 
 }
