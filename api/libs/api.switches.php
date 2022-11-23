@@ -922,38 +922,47 @@ function zb_SwitchesRepingAll() {
     $switchRepingProcess = new StarDust('SWPING');
     $altCfg = $ubillingConfig->getAlter();
     $deadswitches = array();
-    $deathTime = zb_SwitchesGetAllDeathTime();
+    $fastPingFlag = $ubillingConfig->getAlterParam('FASTPING_ENABLED');
+    if ($fastPingFlag) {
+        $fastPing = new FastPing();
+    }
+
     if ($switchRepingProcess->notRunning()) {
         $switchRepingProcess->start();
+        $deathTime = zb_SwitchesGetAllDeathTime();
         $allswitches = zb_SwitchesGetAllLocationOrder();
         if (!empty($allswitches)) {
             foreach ($allswitches as $io => $eachswitch) {
-
-                if (!ispos($eachswitch['desc'], 'NP')) {
-                    if (!zb_PingICMP($eachswitch['ip'])) {
-                        $secondChance = zb_PingICMP($eachswitch['ip']);
-                        if (!$secondChance) {
-                            $lastChance = zb_PingICMP($eachswitch['ip']);
-                            if (!$lastChance) {
-                                if (empty($altCfg['SWITCH_PING_CUSTOM_SCRIPT'])) {
-                                    //yep, switch looks like it really down
-                                    $deadswitches[$eachswitch['ip']] = $eachswitch['location'];
-                                    if (!isset($deathTime[$eachswitch['ip']])) {
-                                        zb_SwitchDeathTimeSet($eachswitch['ip']);
-                                    }
-                                } else {
-                                    //really last-last chance
-                                    $customTestCommand = $altCfg['SWITCH_PING_CUSTOM_SCRIPT'] . ' ' . $eachswitch['ip'];
-                                    $customScriptRun = shell_exec($customTestCommand);
-                                    $customScriptRun = trim($customScriptRun);
-                                    if ($customScriptRun != '1') {
+                if (!empty($eachswitch['ip']) AND ! ispos($eachswitch['desc'], 'NP')) {
+                    if (!$fastPingFlag) {
+                        //regular per-device ICMP polling
+                        if (!zb_PingICMP($eachswitch['ip'])) {
+                            $secondChance = zb_PingICMP($eachswitch['ip']);
+                            if (!$secondChance) {
+                                $lastChance = zb_PingICMP($eachswitch['ip']);
+                                if (!$lastChance) {
+                                    if (empty($altCfg['SWITCH_PING_CUSTOM_SCRIPT'])) {
+                                        //yep, switch looks like it really down
                                         $deadswitches[$eachswitch['ip']] = $eachswitch['location'];
                                         if (!isset($deathTime[$eachswitch['ip']])) {
                                             zb_SwitchDeathTimeSet($eachswitch['ip']);
                                         }
                                     } else {
-                                        zb_SwitchDeathTimeResurrection($eachswitch['ip']);
+                                        //really last-last chance
+                                        $customTestCommand = $altCfg['SWITCH_PING_CUSTOM_SCRIPT'] . ' ' . $eachswitch['ip'];
+                                        $customScriptRun = shell_exec($customTestCommand);
+                                        $customScriptRun = trim($customScriptRun);
+                                        if ($customScriptRun != '1') {
+                                            $deadswitches[$eachswitch['ip']] = $eachswitch['location'];
+                                            if (!isset($deathTime[$eachswitch['ip']])) {
+                                                zb_SwitchDeathTimeSet($eachswitch['ip']);
+                                            }
+                                        } else {
+                                            zb_SwitchDeathTimeResurrection($eachswitch['ip']);
+                                        }
                                     }
+                                } else {
+                                    zb_SwitchDeathTimeResurrection($eachswitch['ip']);
                                 }
                             } else {
                                 zb_SwitchDeathTimeResurrection($eachswitch['ip']);
@@ -962,7 +971,16 @@ function zb_SwitchesRepingAll() {
                             zb_SwitchDeathTimeResurrection($eachswitch['ip']);
                         }
                     } else {
-                        zb_SwitchDeathTimeResurrection($eachswitch['ip']);
+                        //fast ping query
+                        if ($fastPing->isDead($eachswitch['ip'])) {
+                            zb_SwitchDeathTimeSet($eachswitch['ip']);
+                            $deadswitches[$eachswitch['ip']] = $eachswitch['location'];
+                            if (!isset($deathTime[$eachswitch['ip']])) {
+                                zb_SwitchDeathTimeSet($eachswitch['ip']);
+                            }
+                        } else {
+                            zb_SwitchDeathTimeResurrection($eachswitch['ip']);
+                        }
                     }
                 }
             }
@@ -988,6 +1006,7 @@ function zb_SwitchesForcePing() {
     $currenttime = time();
     $reping_timeout = $alterconf['SW_PINGTIMEOUT'];
     $deathTime = zb_SwitchesGetAllDeathTime();
+    $fastPingFlag = $ubillingConfig->getAlterParam('FASTPING_ENABLED');
 
     //counters
     $countTotal = 0;
@@ -1017,6 +1036,10 @@ function zb_SwitchesForcePing() {
 
     //force total reping and update cache
     if (wf_CheckGet(array('forcereping'))) {
+        if ($fastPingFlag) {
+            $fastPing = new FastPing();
+            $fastPing->repingDevices();
+        }
         zb_SwitchesRepingAll();
         zb_StorageSet('SWPINGTIME', $currenttime);
         if (wf_CheckGet(array('ajaxping'))) {
