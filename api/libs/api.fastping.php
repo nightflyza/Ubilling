@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * Fast ping implementation
+ */
 class FastPing {
 
     /**
@@ -110,20 +113,6 @@ class FastPing {
     }
 
     /**
-     * Runs fping system binary and returns it result
-     * 
-     * @return array
-     */
-    protected function runPing() {
-        $result = '';
-        if (file_exists(self::LIST_PATH)) {
-            $command = $this->sudoPath . ' ' . $this->fpingPath . ' -f ' . self::LIST_PATH;
-            $result = shell_exec($command);
-        }
-        return($result);
-    }
-
-    /**
      * Loads previous runs results into protected property cachedData
      * 
      * @return void
@@ -150,11 +139,73 @@ class FastPing {
     }
 
     /**
+     * Returns all devices states from previous run
+     * 
+     * @return array
+     */
+    public function getAllStates() {
+        return($this->cachedData);
+    }
+
+    /**
+     * Returns selected IP last state
+     * 
+     * @param string $ip
+     * 
+     * @return int
+     */
+    public function getState($ip) {
+        $result = false;
+        if (isset($this->cachedData[$ip])) {
+            $result = $this->cachedData[$ip];
+        }
+        return($result);
+    }
+
+    /**
+     * Performs fast check is some IP alive?
+     * 
+     * @param string $ip
+     * 
+     * @return bool
+     */
+    public function isAlive($ip) {
+        $result = ( $this->getState($ip)) ? true : false;
+        return($result);
+    }
+
+    /**
+     * Performs fast check is some IP dead?
+     * 
+     * @param string $ip
+     * 
+     * @return bool
+     */
+    public function isDead($ip) {
+        $result = ( $this->getState($ip)) ? false : true;
+        return($result);
+    }
+
+    /**
+     * Runs fping system binary and returns it result
+     * 
+     * @return array
+     */
+    protected function runPing() {
+        $result = '';
+        if (file_exists(self::LIST_PATH)) {
+            $command = $this->sudoPath . ' ' . $this->fpingPath . ' -f ' . self::LIST_PATH;
+            $result = shell_exec($command);
+        }
+        return($result);
+    }
+
+    /**
      * Performs fast ping of all available active devices from switches directory as ip=>state[1/0]
      * 
      * @return array
      */
-    public function repingSwitches() {
+    public function repingDevices() {
         $result = array();
         if ($this->pid->notRunning()) {
             //starting process
