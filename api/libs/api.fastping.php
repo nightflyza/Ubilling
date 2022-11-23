@@ -24,6 +24,20 @@ class FastPing {
     protected $pid = '';
 
     /**
+     * System caching engine instance placeholder
+     *
+     * @var object
+     */
+    protected $cache = '';
+
+    /**
+     * Contains cached data from previous runs as ip=>state[1/0]
+     *
+     * @var array
+     */
+    protected $cachedData = array();
+
+    /**
      * Contains system sudo full path
      *
      * @var string
@@ -41,11 +55,17 @@ class FastPing {
      * Contains some predefined stuff
      */
     const PID_NAME = 'FASTPING';
+    const CACHE_KEY = 'FASTPING';
+    const LIST_PATH = 'exports/fastping_iplist';
+    const MASK_ALIVE = 'is alive';
+    const CACHE_TIMEOUT = 2592000;
 
     public function __construct() {
         $this->loadConfigs();
         $this->setOptions();
         $this->initStarDust();
+        $this->initCache();
+        $this->loadCache();
     }
 
     /**
@@ -71,8 +91,116 @@ class FastPing {
         $this->sudoPath = $this->billCfg['SUDO'];
     }
 
+    /**
+     * Inits system process manager
+     * 
+     * @return void 
+     */
     protected function initStarDust() {
         $this->pid = new StarDust(self::PID_NAME);
+    }
+
+    /**
+     * Inits system cache
+     * 
+     * @return void
+     */
+    protected function initCache() {
+        $this->cache = new UbillingCache();
+    }
+
+    /**
+     * Runs fping system binary and returns it result
+     * 
+     * @return array
+     */
+    protected function runPing() {
+        $result = '';
+        if (file_exists(self::LIST_PATH)) {
+            $command = $this->sudoPath . ' ' . $this->fpingPath . ' -f ' . self::LIST_PATH;
+            $result = shell_exec($command);
+        }
+        return($result);
+    }
+
+    /**
+     * Loads previous runs results into protected property cachedData
+     * 
+     * @return void
+     */
+    protected function loadCache() {
+        $this->cachedData = $this->cache->get(self::CACHE_KEY, self::CACHE_TIMEOUT);
+        if (empty($this->cachedData)) {
+            $this->cachedData = array();
+        }
+    }
+
+    /**
+     * Saves fastping results to cache
+     * 
+     * @param array $data
+     * 
+     * @return void
+     */
+    protected function saveCache($data) {
+        if (empty($data)) {
+            $data = array();
+        }
+        $this->cache->set(self::CACHE_KEY, $data, self::CACHE_TIMEOUT);
+    }
+
+    /**
+     * Performs fast ping of all available active devices from switches directory as ip=>state[1/0]
+     * 
+     * @return array
+     */
+    public function repingSwitches() {
+        $result = array();
+        if ($this->pid->notRunning()) {
+            //starting process
+            $this->pid->start();
+            $allSwitches = zb_SwitchesGetAll();
+            $ipsList = '';
+            if (!empty($allSwitches)) {
+                $uniqueIps = array();
+                //preprocessing switches
+                foreach ($allSwitches as $io => $each) {
+                    if (!empty($each['ip']) AND ! ispos($each['desc'], 'NP')) {
+                        if (!isset($uniqueIps[$each['ip']])) {
+                            $ipsList .= $each['ip'] . PHP_EOL;
+                            $uniqueIps[$each['ip']] = $each['id'];
+                        }
+                    }
+                }
+
+                //saving IPs list and running fping
+                if (!empty($ipsList)) {
+                    file_put_contents(self::LIST_PATH, $ipsList);
+                    $fpingRaw = $this->runPing();
+                    if (!empty($fpingRaw)) {
+                        foreach ($uniqueIps as $devIp => $devId) {
+                            $aliveFilter = $devIp . ' ' . self::MASK_ALIVE;
+                            if (ispos($fpingRaw, $aliveFilter)) {
+                                $result[$devIp] = 1;
+                            } else {
+                                $result[$devIp] = 0;
+                            }
+                        }
+                    }
+
+                    //update cache
+                    $this->cachedData = $result;
+                    $this->saveCache($result);
+                    //stopping process
+                    $this->pid->stop();
+                }
+            }
+        } else {
+            //data from cache?
+            $result = $this->cachedData;
+        }
+
+        return($result);
     }
 
 }
