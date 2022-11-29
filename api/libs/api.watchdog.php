@@ -156,12 +156,14 @@ class WatchDog {
         $emails = zb_StorageGet('WATCHDOG_EMAILS');
         $telegramchats = zb_StorageGet('WATCHDOG_TELEGRAM');
         $maintenanceMode = zb_StorageGet('WATCHDOG_MAINTENANCE');
+        $smsSilenceMode = zb_StorageGet('WATCHDOG_SMSSILENCE');
 
         $this->settings['WATCHDOG_ALERT'] = $alert;
         $this->settings['WATCHDOG_PHONES'] = $phones;
         $this->settings['WATCHDOG_EMAILS'] = $emails;
         $this->settings['WATCHDOG_TELEGRAM'] = $telegramchats;
         $this->settings['WATCHDOG_MAINTENANCE'] = $maintenanceMode;
+        $this->settings['WATCHDOG_SMSSILENCE'] = $smsSilenceMode;
 
         if (empty($this->settings['WATCHDOG_ALERT'])) {
             throw new Exception(self::SETTINGS_EX);
@@ -781,40 +783,42 @@ class WatchDog {
                             }
 
                             //send sms messages
-                            if (ispos($taskActions, 'sms')) {
-                                if (!empty($this->settings['WATCHDOG_PHONES'])) {
-                                    $allNotifyPhones = explode(',', $this->settings['WATCHDOG_PHONES']);
-                                    $additionalPhones = array();
-                                    if (preg_match('!\{(.*?)\}!si', $taskActions, $tmpAddPhones)) {
-                                        $additionalPhones = explode(',', $tmpAddPhones[1]);
-                                        if (!empty($additionalPhones)) {
-                                            if (!ispos($taskActions, 'noprimary')) {
-                                                foreach ($additionalPhones as $ig => $eachAdditionalPhone) {
-                                                    if (!empty($eachAdditionalPhone)) {
-                                                        $allNotifyPhones[] = $eachAdditionalPhone;
+                            if (!$this->settings['WATCHDOG_SMSSILENCE']) {
+                                if (ispos($taskActions, 'sms')) {
+                                    if (!empty($this->settings['WATCHDOG_PHONES'])) {
+                                        $allNotifyPhones = explode(',', $this->settings['WATCHDOG_PHONES']);
+                                        $additionalPhones = array();
+                                        if (preg_match('!\{(.*?)\}!si', $taskActions, $tmpAddPhones)) {
+                                            $additionalPhones = explode(',', $tmpAddPhones[1]);
+                                            if (!empty($additionalPhones)) {
+                                                if (!ispos($taskActions, 'noprimary')) {
+                                                    foreach ($additionalPhones as $ig => $eachAdditionalPhone) {
+                                                        if (!empty($eachAdditionalPhone)) {
+                                                            $allNotifyPhones[] = $eachAdditionalPhone;
+                                                        }
                                                     }
+                                                } else {
+                                                    $allNotifyPhones = $additionalPhones;
                                                 }
-                                            } else {
-                                                $allNotifyPhones = $additionalPhones;
                                             }
                                         }
-                                    }
 
 
-                                    if (!empty($allNotifyPhones)) {
-                                        $notifyMessage = $this->settings['WATCHDOG_ALERT'] . ' ' . $alertTaskName;
-                                        //attach old result to sms if needed
-                                        if (ispos($taskActions, 'oldresult')) {
-                                            $notifyMessage .= ' ' . $this->taskData[$taskID]['oldresult'];
-                                        }
+                                        if (!empty($allNotifyPhones)) {
+                                            $notifyMessage = $this->settings['WATCHDOG_ALERT'] . ' ' . $alertTaskName;
+                                            //attach old result to sms if needed
+                                            if (ispos($taskActions, 'oldresult')) {
+                                                $notifyMessage .= ' ' . $this->taskData[$taskID]['oldresult'];
+                                            }
 
-                                        //attach current result to sms if needed
-                                        if (ispos($taskActions, 'andresult')) {
-                                            $notifyMessage .= ' ' . $this->curResults[$taskID];
-                                        }
+                                            //attach current result to sms if needed
+                                            if (ispos($taskActions, 'andresult')) {
+                                                $notifyMessage .= ' ' . $this->curResults[$taskID];
+                                            }
 
-                                        foreach ($allNotifyPhones as $iu => $eachmobile) {
-                                            $this->sendSMS($eachmobile, $notifyMessage);
+                                            foreach ($allNotifyPhones as $iu => $eachmobile) {
+                                                $this->sendSMS($eachmobile, $notifyMessage);
+                                            }
                                         }
                                     }
                                 }
