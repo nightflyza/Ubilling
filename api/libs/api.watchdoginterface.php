@@ -124,7 +124,7 @@ class WatchDogInterface {
         }
         $telegramchats = zb_StorageGet('WATCHDOG_TELEGRAM');
         $maintenanceMode = zb_StorageGet('WATCHDOG_MAINTENANCE');
-
+        $smsSilenceMode = zb_StorageGet('WATCHDOG_SMSSILENCE');
 
 
         $this->settings['WATCHDOG_ALERT'] = $alert;
@@ -132,6 +132,7 @@ class WatchDogInterface {
         $this->settings['WATCHDOG_EMAILS'] = $emails;
         $this->settings['WATCHDOG_TELEGRAM'] = $telegramchats;
         $this->settings['WATCHDOG_MAINTENANCE'] = $maintenanceMode;
+        $this->settings['WATCHDOG_SMSSILENCE'] = $smsSilenceMode;
 
         $this->checktypes = array(
             'icmpping' => 'icmpping',
@@ -144,8 +145,8 @@ class WatchDogInterface {
             'fileexists' => 'fileexists',
             'opentickets' => 'opentickets',
             'onepunch' => 'onepunch',
-            'snmpwalk'=>'snmpwalk',
-            'freediskspace'=>'freediskspace'
+            'snmpwalk' => 'snmpwalk',
+            'freediskspace' => 'freediskspace'
         );
 
         $this->operators = array(
@@ -370,7 +371,7 @@ class WatchDogInterface {
     }
 
     /**
-     * Sets maincente mode state
+     * Sets maintenance mode state
      * 
      * @param string $action
      * 
@@ -385,6 +386,29 @@ class WatchDogInterface {
         if ($action == 'disable') {
             zb_StorageDelete('WATCHDOG_MAINTENANCE');
             log_register('WATCHDOG MAINTENANCE DISABLED');
+        }
+
+        //update notification area
+        $darkVoid = new DarkVoid();
+        $darkVoid->flushCache();
+    }
+
+    /**
+     * Sets SMS silince mode state
+     * 
+     * @param string $action
+     * 
+     * @return void
+     */
+    public function setSmsSilence($action) {
+        if ($action == 'enable') {
+            zb_StorageSet('WATCHDOG_SMSSILENCE', 'enabled');
+            log_register('WATCHDOG SMSSILENCE ENABLED');
+        }
+
+        if ($action == 'disable') {
+            zb_StorageDelete('WATCHDOG_SMSSILENCE');
+            log_register('WATCHDOG SMSSILENCE DISABLED');
         }
 
         //update notification area
@@ -412,6 +436,13 @@ class WatchDogInterface {
                 $result .= wf_Link('?module=watchdog&maintenance=enable', wf_img('skins/icon_ok.gif') . ' ' . __('Watchdog') . ': ' . __('Enabled'), false, 'ubButton');
             } else {
                 $result .= wf_Link('?module=watchdog&maintenance=disable', wf_img('skins/icon_minus.png') . ' ' . __('Watchdog') . ': ' . __('Disabled'), false, 'ubButton');
+            }
+            $result .= ' ';
+            
+            if (!$this->settings['WATCHDOG_SMSSILENCE']) {
+                $result .= wf_Link('?module=watchdog&smssilence=enable', wf_img('skins/icon_smsenabled.png') . ' ' . __('SMS silence') . ': ' . __('Disabled'), false, 'ubButton');
+            } else {
+                $result .= wf_Link('?module=watchdog&smssilence=disable', wf_img('skins/icon_smsdisabled.png') . ' ' . __('SMS silence') . ': ' . __('Enabled'), false, 'ubButton');
             }
         }
         return ($result);
