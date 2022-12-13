@@ -1411,7 +1411,7 @@ function web_PaymentsByUser($login) {
     $alter_conf = $ubillingConfig->getAlter();
     $alltypes = zb_CashGetAllCashTypes();
     $allservicenames = zb_VservicesGetAllNamesLabeled();
-    $total_payments = "0";
+    $total_payments = 0;
     $curdate = curdate();
     $deletingAdmins = array();
     $editingAdmins = array();
@@ -1502,7 +1502,9 @@ function web_PaymentsByUser($login) {
             $cells .= wf_TableCell($deleteControls . $editControls . $printcheck);
             $rows .= wf_TableRow($cells, $hlight);
 
-            $total_payments = $total_payments + $eachpayment['summ'];
+            if (is_numeric($eachpayment['summ'])) {
+                $total_payments = $total_payments + $eachpayment['summ'];
+            }
         }
     }
 
