@@ -2183,7 +2183,7 @@ class PONizer {
         $onuUniOperStats = '';
         $offlineFlag = ($signalStatsData['isoffline']) ? true : false;
 
-        if (isset($this->allOnu[$onuId]) and !$offlineFlag) {
+        if (isset($this->allOnu[$onuId]) and ! $offlineFlag) {
             $this->loadUniOperStatsCache();
 
             if (!empty($this->allOnu[$onuId]['mac'])) {
@@ -2204,14 +2204,14 @@ class PONizer {
                 foreach ($uniStatsData as $eachPort => $eachStatus) {
                     if ($eachStatus) {
                         $interfaceIcon = wf_img_sized('skins/icon_ether.gif', __('Interface')) . wf_nbsp()
-                                         . wf_img_sized('skins/rise_icon.png', __('Up'), '8', '10');
+                                . wf_img_sized('skins/rise_icon.png', __('Up'), '8', '10');
                     } else {
 
                         $interfaceIcon = wf_img_sized('skins/icon_ether_down.png', __('Interface')) . wf_nbsp()
-                                         . wf_img_sized('skins/drain_icon.png', __('Down'), '8', '10');
+                                . wf_img_sized('skins/drain_icon.png', __('Down'), '8', '10');
                     }
 
-                    $onuUniOperStats.= $eachPort . ': ' . $interfaceIcon . wf_nbsp(4);
+                    $onuUniOperStats .= $eachPort . ': ' . $interfaceIcon . wf_nbsp(4);
                 }
 
                 $containerStyle = 'style="font-size:10pt; padding:10px;"';
@@ -2921,6 +2921,13 @@ class PONizer {
         }
         $statsControls .= wf_Link(self::URL_ME . '&oltstats=true&pollstats=true', wf_img('skins/icon_time_small.png') . ' ' . __('Devices polling stats'), false, 'ubButton') . ' ';
         $statsControls .= wf_Link(self::URL_ME . '&polllogs=true', wf_img('skins/log_icon_small.png') . ' ' . __('OLT polling log'), false, 'ubButton') . ' ';
+        if (cfr('ROOT')) {
+            $cleanupUrl = self::URL_ME . '&oltstats=true&pondatacleanup=true';
+            $cleanupCancel = self::URL_ME . '&oltstats=true';
+            $cleanupLabel = wf_img('skins/icon_cleanup.png') . ' ' . __('Cache cleanup');
+            $cleanupAlert = __('Clear all cache') . '?';
+            $statsControls .= wf_ConfirmDialog($cleanupUrl, $cleanupLabel, $cleanupAlert, 'ubButton', $cleanupCancel, __('Cleanup') . '?');
+        }
 
         $result = '';
         $result .= $statsControls;
@@ -3312,7 +3319,6 @@ class PONizer {
     protected function loadFDBCache() {
         $this->FDBCache = $this->reviewDataSet($this->oltData->getFdbAll());
     }
-
 
     protected function loadUniOperStatsCache() {
         $this->uniOperStatsCache = $this->reviewDataSet($this->oltData->getUniOperStatsAll());
