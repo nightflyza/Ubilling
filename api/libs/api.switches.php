@@ -311,17 +311,22 @@ function ub_SwitchModelDelete($modelId) {
  * 
  * @param string $name Input element name
  * @param string $label Input element label
+ * @param int $selected preselected in switch ID
  * @param int $currentSwitchId switch for whom this widget showed
+ * @param bool $notSearchable Explictly disables searchable functionality
  * 
  * @return string
  */
-function web_SwitchUplinkSelector($name, $label = '', $selected = '', $currentSwitchId = '') {
+function web_SwitchUplinkSelector($name, $label = '', $selected = '', $currentSwitchId = '', $notSearchable = false) {
     global $ubillingConfig;
     $result = '';
     $tmpArr = array('' => '-');
     $validSwitches = array();
     $allswitchesRaw = array();
     $searchableFlag = ($ubillingConfig->getAlterParam('SWITCHUPL_SEARCHBL')) ? true : false;
+    if ($notSearchable) {
+        $searchableFlag = false;
+    }
 
     $query = "SELECT * from `switches` WHERE `desc` NOT LIKE '%NP%' AND `geo` != '' ORDER BY `location` ASC;";
     $allswitches = simple_queryall($query);
@@ -387,7 +392,7 @@ function web_SwitchFormAdd() {
         $addinputs .= wf_TextInput('newgeo', 'Geo location', '', true, 20, 'geo');
         $addinputs .= web_SwitchModelSelector('newswitchmodel', $equipmentModels);
         $addinputs .= wf_tag('br');
-        $addinputs .= web_SwitchUplinkSelector('newparentid', __('Uplink switch'), '');
+        $addinputs .= web_SwitchUplinkSelector('newparentid', __('Uplink switch'), '', '', true);
         $addinputs .= wf_tag('br');
 
         if (cfr('SWITCHGROUPS') and $swGroupsEnabled) {
