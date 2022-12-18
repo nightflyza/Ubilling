@@ -15,6 +15,7 @@ class OLTAttractor {
     /**
      * Some basic paths and data parameters here
      */
+    const CACHE_ROOT_PATH = 'exports/pondata/';
     const SIGCACHE_PATH = 'exports/pondata/signals/';
     const SIGCACHE_EXT = 'OLTSIGNALS';
     const DISTCACHE_PATH = 'exports/pondata/dist/';
@@ -793,6 +794,30 @@ class OLTAttractor {
         $containerPath = self::SIGCACHE_PATH;
         $containerMark = self::SIGCACHE_EXT;
         return($this->checkContainersAvailable($containerPath, $containerMark));
+    }
+
+    /**
+     * Performs cleanup of all available cached data 
+     * 
+     * @return int
+     */
+    public function flushAllCacheData() {
+        $allContainers = rcms_scandir(self::CACHE_ROOT_PATH, '*', 'dir');
+        $result = 0;
+        if (!empty($allContainers)) {
+            foreach ($allContainers as $io => $each) {
+                $containerPath = self::CACHE_ROOT_PATH . $each . '/';
+                $containersList = rcms_scandir($containerPath);
+                if (!empty($containersList)) {
+                    foreach ($containersList as $index => $eachContainer)
+                        if ($eachContainer != 'placeholder') {
+                            rcms_delete_files($containerPath . $eachContainer);
+                            $result++;
+                        }
+                }
+            }
+        }
+        return($result);
     }
 
 }

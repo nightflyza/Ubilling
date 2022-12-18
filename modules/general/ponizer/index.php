@@ -227,6 +227,16 @@ if ($altCfg['PON_ENABLED']) {
             show_window(__('Stats'), $pon->renderOltStats());
         }
 
+        //pondata cache cleanup
+        if (ubRouting::checkGet('pondatacleanup')) {
+            if (cfr('ROOT')) {
+                $oltData = new OLTAttractor();
+                $ponDataCleanupResult = $oltData->flushAllCacheData();
+                log_register('PON DATACACHE FLUSHED `' . $ponDataCleanupResult . '` CONTAINERS');
+                ubRouting::nav($pon::URL_ME . '&oltstats=true');
+            }
+        }
+
         //OLTs polling log render here
         if (ubRouting::checkGet('polllogs')) {
             show_window(__('OLT polling log'), $pon->renderLogControls());
