@@ -6101,7 +6101,7 @@ function web_TariffCreateForm() {
     $inputs .= wf_TextInput('options[Fee]', __('Fee'), '0', true, 4, 'finance');
     $inputs .= wf_delimiter(0);
     $inputs .= $periodControls;
-    $inputs .= wf_TextInput('options[Free]', __('Prepaid traffic'), '0', true, 3, 'digits');
+    $inputs .= wf_TextInput('options[Free]', __('Prepaid traffic').' ('.__('Mb').')', '0', true, 3, 'digits');
     $inputs .= wf_delimiter(0);
     $inputs .= wf_Selector('options[TraffType]', $traffCountOptions, __('Counting traffic'), '', true);
     $inputs .= wf_delimiter(0);
@@ -6197,7 +6197,7 @@ function web_TariffEditForm($tariffname) {
         $inputs .= wf_TextInput('options[Fee]', __('Fee'), $tariffdata['Fee'], true, 4, 'finance');
         $inputs .= wf_delimiter(0);
         $inputs .= $periodControls;
-        $inputs .= wf_TextInput('options[Free]', __('Prepaid traffic'), $tariffdata['Free'], true, 3, 'digits');
+        $inputs .= wf_TextInput('options[Free]', __('Prepaid traffic').' ('.__('Mb').')', $tariffdata['Free'], true, 3, 'digits');
         $inputs .= wf_delimiter(0);
         $inputs .= wf_Selector('options[TraffType]', $traffCountOptions, __('Counting traffic'), $tariffdata['TraffType'], true);
         $inputs .= wf_delimiter(0);
