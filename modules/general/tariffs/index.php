@@ -69,7 +69,7 @@ if (cfr('TARIFFS')) {
                     if (zb_checkMoney($tariffOptions['Fee'])) {
                         $billing->edittariff($tariffName, $tariffOptions); //pushing new tariff options to stargazer
                         log_register('TARIFF CHANGE `' . $tariffName . '`');
-                        rcms_redirect('?module=tariffs&action=edit&tariffname=' . $tariffName);
+                     //   ubRouting::nav('?module=tariffs&action=edit&tariffname=' . $tariffName);
                     } else {
                         log_register('TARIFF CHANGE `' . $tariffName . '` FAIL FEE `' . $tariffOptions['Fee'] . '`');
                     }
