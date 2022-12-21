@@ -42,3 +42,4 @@ $lang['def']['What was going on']='Що взагалі робилось';
 $lang['def']['none']='нічого';
 $lang['def']['The problem is not solved']='Проблему не вирішено';
 $lang['def']['Didnt have time']='Не встиг';
+$lang['def']['Pet the cat']='Погладив кота';
