@@ -1448,7 +1448,12 @@ div.dhtml_menu div.vert_menu a.active:hover
 
 .nologinforms {
     float: right;
+    margin-top: 20px;
     margin-right: 20px;
+}
+
+.nologinforms form {
+    padding: 5px;
 }
 
 .fastaccmenu {
@@ -1495,5 +1500,5 @@ div.dhtml_menu div.vert_menu a.active:hover
 }
 
 .fastaccessmenutop a:before {
-    
+
 }
