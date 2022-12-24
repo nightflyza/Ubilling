@@ -115,10 +115,10 @@ if (ubRouting::get('action') == 'fullhostscan') {
         //renew DN data
         if (file_exists(DATA_PATH . "dn")) {
             //directory clanup
-            $oldDnData = rcms_scandir(DATA_PATH . "dn/");
+            $oldDnData = rcms_scandir(DATA_PATH . '"dn/');
             if (!empty($oldDnData)) {
                 foreach ($oldDnData as $deleteFile) {
-                    unlink(DATA_PATH . "dn/" . $deleteFile);
+                    unlink(DATA_PATH . 'dn/' . $deleteFile);
                 }
             }
 
@@ -128,10 +128,14 @@ if (ubRouting::get('action') == 'fullhostscan') {
                 $allUserIps = array_flip($allUserIps);
                 foreach ($activeIps as $ix => $aip) {
                     if (isset($allUserIps[$aip])) {
-                        file_put_contents(DATA_PATH . "dn/" . $allUserIps[$aip], 'alive');
+                        file_put_contents(DATA_PATH . 'dn/' . $allUserIps[$aip], 'alive');
                     }
                 }
             }
+
+            //put some timeline data 
+            $dnTimelineData = curdatetime() . ';' . sizeof($activeIps) . PHP_EOL;
+            file_put_contents('content/documents/dntimeline.log', $dnTimelineData, FILE_APPEND);
         } else {
             die('FAIL:NO_CONTENT_DN_EXISTS');
         }
