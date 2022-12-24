@@ -27,10 +27,11 @@ function gravatar_GetUrl($email, $secure = false) {
  * @global object $ubillingConfig
  * @param string $email  user email
  * @param int $size   user avatar size
+ * @param string $class custom image class
  * 
  * @return string
  */
-function gravatar_GetAvatar($email, $size = '64') {
+function gravatar_GetAvatar($email, $size = '64', $class = '') {
     global $ubillingConfig;
     $cachePath = DATA_PATH . 'avatars/';
     $gravatarOption = $ubillingConfig->getAlterParam('GRAVATAR_DEFAULT');
@@ -73,7 +74,7 @@ function gravatar_GetAvatar($email, $size = '64') {
         $fullUrl = $fullCachedPath;
     }
 
-    $result = wf_img($fullUrl);
+    $result = wf_tag('img', false, $class, 'src="' . $fullUrl . '"');
     return ($result);
 }
 

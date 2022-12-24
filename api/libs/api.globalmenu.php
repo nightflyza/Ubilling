@@ -368,14 +368,17 @@ class GlobalMenu {
      * @return void
      */
     protected function loadFastAccesMenu() {
-        $this->menuCodeFA .= wf_Link('?module=taskbar', __('Taskbar'), false);
-        $fastaccData = self::CUSTOMS_PATH . $this->myLogin . '.fastaccdata';
-        if (file_exists($fastaccData)) {
-            //load preprocessed data
-            $this->menuCodeFA .= file_get_contents($fastaccData);
-        } else {
-            //append customize link if no precached data
-            $this->menuCodeFA .= $this->getCustomizeControl();
+        //just single full-load of data due instance lifetime
+        if (empty($this->menuCodeFA)) {
+            $this->menuCodeFA .= wf_Link('?module=taskbar', __('Taskbar'), false);
+            $fastaccData = self::CUSTOMS_PATH . $this->myLogin . '.fastaccdata';
+            if (file_exists($fastaccData)) {
+                //load preprocessed data
+                $this->menuCodeFA .= file_get_contents($fastaccData);
+            } else {
+                //append customize link if no precached data
+                $this->menuCodeFA .= $this->getCustomizeControl();
+            }
         }
     }
 
