@@ -9,6 +9,7 @@
         <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i">
         <link rel="stylesheet" href="<?= CUR_SKIN_PATH ?>assets/css/ready.css">
         <link rel="stylesheet" href="<?= CUR_SKIN_PATH ?>assets/css/ubilling.css">
+        <link href="<?= CUR_SKIN_PATH ?>assets/css/stickynotes.css" rel="stylesheet" type="text/css">
     </head>
     <body>
         <div class="wrapper">
@@ -232,4 +233,9 @@ if ((LOGGED_IN) AND ( !file_exists('I_HATE_NEW_YEAR'))) {
 <script src="<?= CUR_SKIN_PATH ?>/assets/js/plugin/jquery-scrollbar/jquery.scrollbar.min.js"></script>
 <script src="<?= CUR_SKIN_PATH ?>/assets/js/ready.min.js"></script>
 <script src="modules/jsc/jquery.cookie.js" type="text/javascript"></script>
+<!-- bootstrap jquery ui hotfix -->
+<script>
+    var bootstrapButton = $.fn.button.noConflict();
+    $.fn.bootstrapBtn = bootstrapButton;
+</script>
 </html>

@@ -2175,6 +2175,8 @@ body {
 .sidebar .nav .nav-item {
     display: list-item;
 }
+
+
 .sidebar .nav .nav-item.active a {
     color: #575962;
     font-weight: 100;
@@ -2189,6 +2191,7 @@ body {
     content: '';
     left: 0;
     top: 0;
+
 }
 .sidebar .nav .nav-item.active:hover a:before {
     background: #ff0033;
@@ -2204,12 +2207,14 @@ body {
 .sidebar .nav .nav-item.active a i {
     color: #4d7cfe;
 }
+
 .sidebar .nav .nav-item a {
     display: flex;
     align-items: center;
     color: #83848a;
     padding: 12px;
-    width: 100%;
+    padding-left: 2px;
+    width: 94%;
     font-size: 14px;
     font-weight: 600;
     position: relative;
@@ -5860,6 +5865,7 @@ body {
 /*     User Dropdown    */
 .dropdown-user {
     width: 280px;
+    z-index: 9998 !important;
 }
 
 .user-box {
