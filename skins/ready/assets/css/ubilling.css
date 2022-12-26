@@ -704,6 +704,7 @@ div.dhtml_menu div.vert_menu a.active:hover
     background: #e0e0e0 !important;
     color: #7e7e7e !important;
     display: inline-block;
+    width:98%;
 }
 .ubimcontact:hover, .ubimcontact:focus {
     opacity: 1;
