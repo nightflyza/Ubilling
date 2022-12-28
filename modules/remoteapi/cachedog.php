@@ -10,7 +10,7 @@ if (ubRouting::get('action') == 'cachedog') {
             $cache = new UbillingCache();
             $cache->delete('HPONLINEJSON');
         }
-        if (@$alterconf['USERBYNUM_ENABLED']) {
+        if (@$alterconf['USERBYNUM_ENABLED'] OR @$alterconf['TELEPONY_ENABLED']) {
             $cache = new UbillingCache();
             $cache->delete('PHONEDATA');
             $cache->delete('EXTMOBILES');
