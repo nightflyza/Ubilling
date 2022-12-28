@@ -19,7 +19,7 @@ if {[string match "TELNET" $METHOD]} {
 } elseif {[string match "SSH" $METHOD]} {
     spawn ssh $LOGIN@$IP
     expect {
-	"(yes/no)?*" {
+	"(yes/no" {
 		send "yes\r"
 		}
     }
