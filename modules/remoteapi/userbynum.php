@@ -4,7 +4,7 @@ if (ubRouting::get('action') == 'userbynum') {
     if (@$alterconf['USERBYNUM_ENABLED']) {
         if (ubRouting::checkGet('number')) {
             $number = ubRouting::get('number');
-            $telepathy = new Telepathy(false, true, true, true);
+            $telepathy = new Telepathy(false, true, true, false);
             $telepathy->usePhones();
             $guessedLogin = $telepathy->getByPhoneFast($number, true, true);
             $result = array('result' => 0);
@@ -15,6 +15,13 @@ if (ubRouting::get('action') == 'userbynum') {
                     $result['userdata'] = $allUserData[$guessedLogin];
                 }
             }
+
+
+            header('Last-Modified: ' . gmdate('r'));
+            header('Content-Type: application/json; charset=UTF-8');
+            header("Cache-Control: no-store, no-cache, must-revalidate"); // HTTP/1.1
+            header("Pragma: no-cache");
+            header('Access-Control-Allow-Origin: *');
 
             print(json_encode($result));
             die();
