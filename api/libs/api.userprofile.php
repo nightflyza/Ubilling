@@ -1477,6 +1477,28 @@ class UserProfile {
     }
 
     /**
+     * Returns discount controller
+     * 
+     * @return string
+     */
+    protected function getDiscountController() {
+        $result = '';
+        if (isset($this->alterCfg['DISCOUNTS_ENABLED'])) {
+            if ($this->alterCfg['DISCOUNTS_ENABLED']) {
+                $discounts = new Discounts();
+                $userDiscountPercent = $discounts->getUserDiscount($this->login);
+                if ($userDiscountPercent) {
+                    $renderDiscountPerncent = $userDiscountPercent . '%';
+                } else {
+                    $renderDiscountPerncent = __('No');
+                }
+                $result = $this->addRow(__('Discount'), $renderDiscountPerncent, true);
+            }
+        }
+        return($result);
+    }
+
+    /**
      * returns easy credit controller if feature is enabled
      * 
      * @return
@@ -2228,9 +2250,9 @@ class UserProfile {
         $profile .= $this->addRow(__('Payment ID'), $this->paymentid, true);
 //LAT data row
         $profile .= $this->getUserLat();
-//login row
+//Login row
         $profile .= $this->addRow(__('Login'), $this->userdata['login'], true);
-//password row
+//Password row
         $profile .= $this->getUserPassword();
 //User IP data and extended networks controls if available
         $profile .= $this->addRow(__('IP') . ' ' . $this->getNasInfoControls($this->userdata['IP']), $this->userdata['IP'] . $this->getExtNetsControls() . $this->getNasInfoContrainer(), true);
@@ -2246,10 +2268,12 @@ class UserProfile {
         $profile .= $this->getVisorBacklinks();
 //Speed override row
         $profile .= $this->addRow(__('Speed override'), $this->speedoverride);
-// signup pricing row
+//Signup pricing row
         $profile .= $this->getSignupPricing();
 //User current cash row
         $profile .= $this->addRow(__('Balance') . $this->getEasyChargeController(), $this->getUserCash(), true);
+//User discount row
+        $profile .= $this->getDiscountController();
 //User credit row & easycredit control if needed
         $profile .= $this->addRow(__('Credit') . ' ' . $this->getEasyCreditController(), $this->userdata['Credit'], true);
 //credit expire row
