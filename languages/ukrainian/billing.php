@@ -3457,6 +3457,8 @@ $lang['def']['Input volts'] = 'Вхідна напруга';
 $lang['def']['Output volts'] = 'Вихідна напруга';
 $lang['def']['Report doesnt contain any item types'] = 'Звіт не містить жодних типів ТМЦ';
 $lang['def']['SMS silence'] = 'SMS мовчання';
+$lang['def']['right to control discounts'] = 'Право керувати користувацькими знижками';
+$lang['def']['Change discount'] = 'Змінити знижку';
 $lang['def'][''] = '';
 
 

@@ -3436,3 +3436,5 @@ $lang['def']['Input volts'] = 'Входное напряжение';
 $lang['def']['Output volts'] = 'Выходное напряжение';
 $lang['def']['Report doesnt contain any item types'] = 'Отчет не содержит типов ТМЦ';
 $lang['def']['SMS silence'] = 'SMS молчание';
+$lang['def']['right to control discounts'] = 'Право управлять пользовательскими скидками';
+$lang['def']['Change discount'] = 'Изменить скидку';
