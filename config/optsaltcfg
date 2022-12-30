@@ -133,7 +133,6 @@ CHAPTEREND_ARP=true
 
 CHAPTER_DISCOUNT=Discounts support
 DISCOUNTS_ENABLED=TRIGGER|Discount support is enabled
-DISCOUNT_PERCENT_CFID=VARCHAR|Discount rate custom profile field ID
 DISCOUNT_OPERATION=VARCHAR|Discount operation type
 DISCOUNT_CASHTYPEID=VARCHAR|Discount cash type
 CUD_ENABLED=TRIGGER|Is Cumulative discounts enabled

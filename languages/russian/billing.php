@@ -3438,3 +3438,6 @@ $lang['def']['Report doesnt contain any item types'] = 'Отчет не соде
 $lang['def']['SMS silence'] = 'SMS молчание';
 $lang['def']['right to control discounts'] = 'Право управлять пользовательскими скидками';
 $lang['def']['Change discount'] = 'Изменить скидку';
+$lang['def']['Current discount'] = 'Текущая скидка';
+$lang['def']['New discount'] = 'Новая скидка';
+$lang['def']['Discounts'] = 'Скидки';

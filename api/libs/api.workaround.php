@@ -3825,108 +3825,6 @@ function zb_MacVendorLookup($mac) {
     return ($result);
 }
 
-///////////////////////
-// discounts support //
-///////////////////////
-
-/**
- * Returns array of all users with their discounts
- * 
- * @return array
- */
-function zb_DiscountsGetAllUsers() {
-    $alterconf = rcms_parse_ini_file(CONFIG_PATH . "alter.ini");
-    $cfid = $alterconf['DISCOUNT_PERCENT_CFID'];
-    $cfid = vf($cfid, 3);
-    $result = array();
-    if (!empty($cfid)) {
-        $query = "SELECT * from `cfitems` WHERE `typeid`='" . $cfid . "'";
-        $alldiscountusers = simple_queryall($query);
-        if (!empty($alldiscountusers)) {
-            foreach ($alldiscountusers as $io => $each) {
-                $result[$each['login']] = vf($each['content']);
-            }
-        }
-    }
-    return ($result);
-}
-
-/**
- * Returns array of all month payments made during some month
- * 
- * @param string $month
- * @return array
- */
-function zb_DiscountsGetMonthPayments($month) {
-    $query = "SELECT * from `payments` WHERE `date` LIKE '" . $month . "%' AND `summ`>0";
-    $allpayments = simple_queryall($query);
-    $result = array();
-    if (!empty($allpayments)) {
-        foreach ($allpayments as $io => $each) {
-//if not only one payment
-            if (isset($result[$each['login']])) {
-                $result[$each['login']] = $result[$each['login']] + $each['summ'];
-            } else {
-                $result[$each['login']] = $each['summ'];
-            }
-        }
-    }
-    return ($result);
-}
-
-/**
- * Do the processing of discounts by the payments
- * 
- * @param bool $debug
- */
-function zb_DiscountProcessPayments($debug = false) {
-    $alterconf = rcms_parse_ini_file(CONFIG_PATH . "alter.ini");
-    $cashtype = $alterconf['DISCOUNT_CASHTYPEID'];
-    $operation = $alterconf['DISCOUNT_OPERATION'];
-
-
-    if (isset($alterconf['DISCOUNT_PREVMONTH'])) {
-        if ($alterconf['DISCOUNT_PREVMONTH']) {
-            $targetMonth = prevmonth();
-        } else {
-            $targetMonth = curmonth();
-        }
-    } else {
-        $targetMonth = curmonth();
-    }
-
-
-    $alldiscountusers = zb_DiscountsGetAllUsers();
-    $monthpayments = zb_DiscountsGetMonthPayments($targetMonth);
-
-    if ((!empty($alldiscountusers) AND ( !empty($monthpayments)))) {
-        foreach ($monthpayments as $login => $eachpayment) {
-//have this user discount?
-            if (isset($alldiscountusers[$login])) {
-//yes it have
-                $discount_percent = $alldiscountusers[$login];
-                $payment_summ = $eachpayment;
-                $discount_payment = ($payment_summ / 100) * $discount_percent;
-
-
-
-                if ($operation == 'CORR') {
-                    zb_CashAdd($login, $discount_payment, 'correct', $cashtype, 'DISCOUNT:' . $discount_percent);
-                }
-
-                if ($operation == 'ADD') {
-                    zb_CashAdd($login, $discount_payment, 'add', $cashtype, 'DISCOUNT:' . $discount_percent);
-                }
-
-                if ($debug) {
-                    print('USER:' . $login . ' SUMM:' . $payment_summ . ' DISCOUNT:' . $discount_percent . ' PAYMENT:' . $discount_payment . "\n");
-                    log_register("DISCOUNT " . $operation . " (" . $login . ") ON " . $discount_payment);
-                }
-            }
-        }
-    }
-}
-
 /**
  * Returns configuration editor to display in sysconf module
  * 
@@ -6101,7 +5999,7 @@ function web_TariffCreateForm() {
     $inputs .= wf_TextInput('options[Fee]', __('Fee'), '0', true, 4, 'finance');
     $inputs .= wf_delimiter(0);
     $inputs .= $periodControls;
-    $inputs .= wf_TextInput('options[Free]', __('Prepaid traffic').' ('.__('Mb').')', '0', true, 3, 'digits');
+    $inputs .= wf_TextInput('options[Free]', __('Prepaid traffic') . ' (' . __('Mb') . ')', '0', true, 3, 'digits');
     $inputs .= wf_delimiter(0);
     $inputs .= wf_Selector('options[TraffType]', $traffCountOptions, __('Counting traffic'), '', true);
     $inputs .= wf_delimiter(0);
@@ -6197,7 +6095,7 @@ function web_TariffEditForm($tariffname) {
         $inputs .= wf_TextInput('options[Fee]', __('Fee'), $tariffdata['Fee'], true, 4, 'finance');
         $inputs .= wf_delimiter(0);
         $inputs .= $periodControls;
-        $inputs .= wf_TextInput('options[Free]', __('Prepaid traffic').' ('.__('Mb').')', $tariffdata['Free'], true, 3, 'digits');
+        $inputs .= wf_TextInput('options[Free]', __('Prepaid traffic') . ' (' . __('Mb') . ')', $tariffdata['Free'], true, 3, 'digits');
         $inputs .= wf_delimiter(0);
         $inputs .= wf_Selector('options[TraffType]', $traffCountOptions, __('Counting traffic'), $tariffdata['TraffType'], true);
         $inputs .= wf_delimiter(0);
