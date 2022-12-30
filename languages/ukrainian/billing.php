@@ -3459,6 +3459,9 @@ $lang['def']['Report doesnt contain any item types'] = 'Звіт не місти
 $lang['def']['SMS silence'] = 'SMS мовчання';
 $lang['def']['right to control discounts'] = 'Право керувати користувацькими знижками';
 $lang['def']['Change discount'] = 'Змінити знижку';
+$lang['def']['Current discount'] = 'Поточна знижка';
+$lang['def']['New discount'] = 'Нова знижка';
+$lang['def']['Discounts'] = 'Знижки';
 $lang['def'][''] = '';
 
 
