@@ -21,6 +21,7 @@ if (cfr('DISCOUNTS')) {
 
             show_window(__('Change discount'), $discountEditor);
             show_window('', web_UserControls($login));
+            zb_BillingStats(true, 'discounts');
         } else {
             show_error(__('Strange exception') . ': ' . __('Empty login'));
             show_window('', wf_tag('center') . wf_img('skins/unicornwrong.png') . wf_tag('center', true));
