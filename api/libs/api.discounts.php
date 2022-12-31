@@ -229,6 +229,9 @@ class Discounts {
     /**
      * Returns array of all month payments made during some month
      * 
+     * TODO: make workaround for dayly runs of processPayments with option DISCOUNTS_DAILY. 
+     * TODO: Rename this method to getAllPeriodPayments.
+     * 
      * @param string $month
      * 
      * @return array
