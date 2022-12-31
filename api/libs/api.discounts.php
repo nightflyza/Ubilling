@@ -231,6 +231,7 @@ class Discounts {
      * 
      * TODO: make workaround for dayly runs of processPayments with option DISCOUNTS_DAILY. 
      * TODO: Rename this method to getAllPeriodPayments.
+     * TODO: $targetMonth/targetDate must be set inside this method instead of processPayments
      * 
      * @param string $month
      * 
