@@ -7,7 +7,7 @@ class SwitchPortAssign {
      *
      * @var array
      */
-    protected $allData = array();
+    protected $allPortSwitchData = array();
 
     /**
      * Contains array with login to port switch assign as key=>value
@@ -16,6 +16,20 @@ class SwitchPortAssign {
      */
     protected $data = array();
 
+    /**
+     * Contains available user address data as login=>address
+     *
+     * @var array
+     */
+    protected $allAddress = array();
+
+    /**
+     * Contains available user FIO
+     *
+     * @var array
+     */
+    protected $allrealnames = array();
+	
     protected $allusers = array();
     protected $diff = array();
 
@@ -31,6 +45,11 @@ class SwitchPortAssign {
     const SWITCHPORTASSIGN_TABLE = 'switchportassign';
     const URL_ME_SWA = '?module=report_switchportassign';
     const URL_ME_NOSWA = '?module=report_switchportassign';
+
+    /**
+     * Contains user navigation URL
+     */
+    const URL_USERPROFILE = '?module=userprofile&username=';
 
     /**
      * SwitchId
@@ -68,17 +87,17 @@ class SwitchPortAssign {
      */
     protected function loadData() {
         $switchPortAssign = new NyanORM(self::SWITCHPORTASSIGN_TABLE);
-        $switchPortAssign->selectable('`switchportassign`.`id`,`port`,`login`,`ip`,`location`');
+        $switchPortAssign->selectable('`switchportassign`.`id`,`port`,`login`,`ip`,`location`,`switchid`,`sw`.`id` swid');
         $switchPortAssign->joinOn('LEFT', '(SELECT * FROM `switches`) as sw', '`switchportassign`.`switchid` = `sw`.`id`', true);
 
         if (!empty($this->switchID)) {
             $switchPortAssign->where('switchid', '=', $this->switchID);
         }
 
-        $this->allData = $switchPortAssign->getAll();
+        $this->allPortSwitchData = $switchPortAssign->getAll();
 
-        if (!empty($this->allData)) {
-            foreach ($this->allData as $io => $rawData) {
+        if (!empty($this->allPortSwitchData)) {
+            foreach ($this->allPortSwitchData as $io => $rawData) {
                 $this->data[$rawData['login']] = $rawData;
             }
         }
@@ -106,6 +125,34 @@ class SwitchPortAssign {
                 $this->allusers[$each['login']] = $each['login'];
             }
         }
+    }
+
+    /**
+     * Loads address data required for user telepathy into protected property
+     * 
+     * @return void
+     */
+    public function loadUsersData() {
+        $this->loadAllRealnames();
+        $this->loadAddressData();
+    }
+	
+    /**
+     * Loads address data required for user telepathy into protected property
+     * 
+     * @return void
+     */
+    protected function loadAllRealnames() {
+        $this->allrealnames = zb_UserGetAllRealnames();
+    }
+
+    /**
+     * Loads address data required for user telepathy into protected property
+     * 
+     * @return void
+     */
+    protected function loadAddressData() {
+        $this->allAddress = zb_AddressGetFulladdresslistCached();
     }
 
     /**
@@ -141,12 +188,10 @@ class SwitchPortAssign {
      * @return string
      */
     public function renderSwitchPortAssign() {
-        $columns = array('ID', 'IP', 'Port', 'Location', 'Label', 'Login');
-        if (cfr('SWITCHESEDIT')) {
-            $columns[] = 'Actions';
-        }
-        $opts = '"order": [[ 0, "desc" ]]';
-        $result = wf_JqDtLoader($columns, self::URL_ME_SWA . '&ajaxswitchassign=true', false, 'switchportassign', 100, $opts);
+        $columns = array('ID', 'IP', 'Port', 'Location', 'Switch', 'Full address', 'User');
+        $opts = '"order": [[ 0, "desc" ]], "dom": \'<"F"lfB>rti<"F"ps>\', buttons: [\'csv\', \'excel\', \'pdf\']';
+
+        $result = wf_JqDtLoader($columns, self::URL_ME_SWA . '&ajaxswitchassign=true', false, 'Switch port assign', 100, $opts);
         return ($result);
     }
 
@@ -157,16 +202,20 @@ class SwitchPortAssign {
      */
     public function ajaxAvaibleSwitchPortAssign() {
         $json = new wf_JqDtHelper();
-        if (!empty($this->allData)) {
-            foreach ($this->allData as $io => $raw) {
+        if (!empty($this->allPortSwitchData)) {
+            foreach ($this->allPortSwitchData as $io => $raw) {
 
                 $data[] = $raw['id'];
-                $data[] = $raw['ip'];
+				if (cfr('SWITCHESEDIT')) {
+					$data[] = (!empty($raw['swid'])) ? $raw['ip'] . wf_Link('?module=switches&edit=' . $raw['swid'], web_edit_icon()) : '';
+				} else {
+					$data[] = $raw['ip'];
+				}
                 $data[] = $raw['port'];
                 $data[] = $raw['location'];
                 $data[] = $raw['ip'] . ' - ' . $raw['location'] . ' ' . __('Port') . ' ' . $raw['port'];
-                $data[] = $raw['login'];
-                $data[] = '';
+                $data[] = @$this->allAddress[$raw['login']];
+                $data[] = wf_Link(self::URL_USERPROFILE . $raw['login'], web_profile_icon() . ' ' . @$this->allrealnames[$raw['login']]) . '(' . $raw['login'] . ')';
 
                 $json->addRow($data);
                 unset($data);
