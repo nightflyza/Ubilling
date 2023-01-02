@@ -29,7 +29,7 @@ class SwitchPortAssign {
      * @var array
      */
     protected $allrealnames = array();
-	
+
     protected $allusers = array();
     protected $diff = array();
 
@@ -62,6 +62,8 @@ class SwitchPortAssign {
         global $ubillingConfig;
         $this->altCfg = $ubillingConfig->getAlter();
 
+        //set switchId
+        $this->setSwitchId();
         //load actual data by switch port assing
         $this->loadData();
         //loads full user list
@@ -74,8 +76,8 @@ class SwitchPortAssign {
      * @return void
      */
     protected function setSwitchId() {
-        if (ubRouting::checkGet('swid')) {
-            $switchId = ubRouting::get('swid');
+        if (ubRouting::checkGet('switchid')) {
+            $switchId = ubRouting::get('switchid');
             $this->switchID = ubRouting::filters($switchId, 'int');
         }
     }
@@ -89,13 +91,12 @@ class SwitchPortAssign {
         $switchPortAssign = new NyanORM(self::SWITCHPORTASSIGN_TABLE);
         $switchPortAssign->selectable('`switchportassign`.`id`,`port`,`login`,`ip`,`location`,`switchid`,`sw`.`id` swid');
         $switchPortAssign->joinOn('LEFT', '(SELECT * FROM `switches`) as sw', '`switchportassign`.`switchid` = `sw`.`id`', true);
-
         if (!empty($this->switchID)) {
             $switchPortAssign->where('switchid', '=', $this->switchID);
         }
 
         $this->allPortSwitchData = $switchPortAssign->getAll();
-
+//var_dump($this->allPortSwitchData);
         if (!empty($this->allPortSwitchData)) {
             foreach ($this->allPortSwitchData as $io => $rawData) {
                 $this->data[$rawData['login']] = $rawData;
@@ -128,7 +129,7 @@ class SwitchPortAssign {
     }
 
     /**
-     * Loads address data required for user telepathy into protected property
+     * Loads users data
      * 
      * @return void
      */
@@ -136,7 +137,7 @@ class SwitchPortAssign {
         $this->loadAllRealnames();
         $this->loadAddressData();
     }
-	
+    
     /**
      * Loads address data required for user telepathy into protected property
      * 
@@ -188,10 +189,10 @@ class SwitchPortAssign {
      * @return string
      */
     public function renderSwitchPortAssign() {
-        $columns = array('ID', 'IP', 'Port', 'Location', 'Switch', 'Full address', 'User');
+        $columns = array('ID', 'IP', 'Port', 'Location', 'Switch', 'User', 'Full address');
         $opts = '"order": [[ 0, "desc" ]], "dom": \'<"F"lfB>rti<"F"ps>\', buttons: [\'csv\', \'excel\', \'pdf\']';
-
-        $result = wf_JqDtLoader($columns, self::URL_ME_SWA . '&ajaxswitchassign=true', false, 'Switch port assign', 100, $opts);
+        $dopUrl = (!empty($this->switchID)) ? '&switchid=' . $this->switchID : '';
+        $result = wf_JqDtLoader($columns, self::URL_ME_SWA . '&ajaxswitchassign=true' . $dopUrl, false, 'Switch port assign', 100, $opts);
         return ($result);
     }
 
@@ -206,16 +207,12 @@ class SwitchPortAssign {
             foreach ($this->allPortSwitchData as $io => $raw) {
 
                 $data[] = $raw['id'];
-				if (cfr('SWITCHESEDIT')) {
-					$data[] = (!empty($raw['swid'])) ? $raw['ip'] . wf_Link('?module=switches&edit=' . $raw['swid'], web_edit_icon()) : '';
-				} else {
-					$data[] = $raw['ip'];
-				}
+                $data[] = $raw['ip'];
                 $data[] = $raw['port'];
                 $data[] = $raw['location'];
                 $data[] = $raw['ip'] . ' - ' . $raw['location'] . ' ' . __('Port') . ' ' . $raw['port'];
-                $data[] = @$this->allAddress[$raw['login']];
                 $data[] = wf_Link(self::URL_USERPROFILE . $raw['login'], web_profile_icon() . ' ' . @$this->allrealnames[$raw['login']]) . '(' . $raw['login'] . ')';
+                $data[] = @$this->allAddress[$raw['login']];
 
                 $json->addRow($data);
                 unset($data);
