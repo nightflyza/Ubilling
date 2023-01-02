@@ -12,13 +12,8 @@ if (cfr('REPORTSWPORT')) {
     /*
      * controller and view section
      */
+    show_window(__('Switch port assign'), $switchPortAssignReport->renderSwitchPortAssign());
 
-    $altercfg = $ubillingConfig->getAlter();
-    if ($altercfg['SWITCHPORT_IN_PROFILE']) {
-        show_window(__('Switch port assign'), $switchPortAssignReport->renderSwitchPortAssign());
-    } else {
-        show_error(__('This module disabled'));
-    }
 } else {
     show_error(__('You cant control this module'));
 }
