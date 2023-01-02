@@ -662,7 +662,7 @@ function web_SwitchEditForm($switchid) {
     }
 
     if (cfr('SWITCHESEDIT')) {
-        $result .= wf_AjaxLink('?module=switchhistory&ajax=true&&switchid=' . $switchid, wf_img('skins/log_icon_small.png') . ' ' . __('History'), 'icmppingcontainer', false, 'ubButton') . ' ';
+        $result .= wf_AjaxLink('?module=switchhistory&ajax=true&switchid=' . $switchid, wf_img('skins/log_icon_small.png') . ' ' . __('History'), 'icmppingcontainer', false, 'ubButton') . ' ';
     }
 
     if (cfr('SWCASH')) {
@@ -681,6 +681,10 @@ function web_SwitchEditForm($switchid) {
                 $result .= $taskCreateModal;
             }
         }
+    }
+
+    if (cfr('REPORTSWPORT')) {
+		$result .= wf_Link('?module=report_switchportassign&switchid=' . $switchid, wf_img('skins/icon_user_16.gif') . ' ' . __('Switch port assign'), false, 'ubButton');
     }
 
     if (cfr('SWITCHESEDIT')) {
