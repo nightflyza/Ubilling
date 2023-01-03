@@ -227,7 +227,11 @@ class FundsFlow {
                 }
 
                 if ((!ispos($eachpayment['note'], 'MOCK:')) AND ( !ispos($eachpayment['note'], 'BALANCESET:'))) {
-                    $cashto = $eachpayment['summ'] + $eachpayment['balance'];
+                    if (is_numeric($eachpayment['summ']) AND is_numeric($eachpayment['balance'])) {
+                        $cashto = $eachpayment['summ'] + $eachpayment['balance'];
+                    } else {
+                        $cashto = __('Corrupted');
+                    }
                 }
 
                 $result[$counter]['login'] = $login;

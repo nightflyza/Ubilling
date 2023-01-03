@@ -3436,5 +3436,11 @@ $lang['def']['Input volts'] = 'Входное напряжение';
 $lang['def']['Output volts'] = 'Выходное напряжение';
 $lang['def']['Report doesnt contain any item types'] = 'Отчет не содержит типов ТМЦ';
 $lang['def']['SMS silence'] = 'SMS молчание';
+$lang['def']['right to control discounts'] = 'Право управлять пользовательскими скидками';
+$lang['def']['Change discount'] = 'Изменить скидку';
+$lang['def']['Current discount'] = 'Текущая скидка';
+$lang['def']['New discount'] = 'Новая скидка';
+$lang['def']['Discounts'] = 'Скидки';
 $lang['def']['Users with port assigned on switch'] = 'Пользователи за портом, назначенным на коммутаторе';
 $lang['def']['Right to view report by users with port assigned on switch'] = 'Право просмотра отчета пользователями с назначенным портом на коммутаторе';
+

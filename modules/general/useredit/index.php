@@ -150,6 +150,16 @@ if (cfr('USEREDIT')) {
                 $cells .= wf_TableCell(zb_rightControl('CASH', wf_Link('?module=addcash&username=' . $login . '#cashfield', wf_img('skins/icon_dollar_16.gif') . ' ' . __('Finance operations'))));
                 $rows .= wf_TableRow($cells, 'row3');
 
+                if ($altCfg['DISCOUNTS_ENABLED']) {
+                    $discounts = new Discounts();
+                    $currentUserDiscount = $discounts->getUserDiscount($login);
+                    $renderUserDiscount = ($currentUserDiscount) ? $currentUserDiscount . '%' : __('No');
+                    $cells = wf_TableCell(__('Discount'));
+                    $cells .= wf_TableCell($renderUserDiscount);
+                    $cells .= wf_TableCell(zb_rightControl('DISCOUNTS', wf_Link('?module=discountedit&username=' . $login, wf_img('skins/icon_discount_16.png') . ' ' . __('Change discount'))));
+                    $rows .= wf_TableRow($cells, 'row3');
+                }
+
                 if (isset($altCfg['SIGNUP_PAYMENTS']) && !empty($altCfg['SIGNUP_PAYMENTS'])) {
                     $payment = zb_UserGetSignupPrice($login);
                     $paid = zb_UserGetSignupPricePaid($login);
