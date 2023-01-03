@@ -3457,6 +3457,8 @@ $lang['def']['Input volts'] = 'Вхідна напруга';
 $lang['def']['Output volts'] = 'Вихідна напруга';
 $lang['def']['Report doesnt contain any item types'] = 'Звіт не містить жодних типів ТМЦ';
 $lang['def']['SMS silence'] = 'SMS мовчання';
+$lang['def']['Users with port assigned on switch'] = 'Користувачі за портом, призначеним на комутаторі';
+$lang['def']['Right to view report by users with port assigned on switch'] = 'Право на перегляд звіту користувачів із портом, призначеним на комутаторі';
 $lang['def'][''] = '';
 
 
