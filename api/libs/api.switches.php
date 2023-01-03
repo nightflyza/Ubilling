@@ -684,7 +684,9 @@ function web_SwitchEditForm($switchid) {
     }
 
     if (cfr('REPORTSWPORT')) {
+        if(@$altCfg['SWITCHPORT_IN_PROFILE']) {
 		$result .= wf_Link('?module=report_switchportassign&switchid=' . $switchid, wf_img('skins/icon_user_16.gif') . ' ' . __('Switch port assign'), false, 'ubButton');
+        }
     }
 
     if (cfr('SWITCHESEDIT')) {

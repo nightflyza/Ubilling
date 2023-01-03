@@ -20,7 +20,9 @@ function web_UserSearchFieldsForm() {
     $fieldinputs .= wf_RadioInput('searchtype', 'Payment ID', 'payid', true);
     $fieldinputs .= wf_RadioInput('searchtype', 'IP', 'ip', true);
     $fieldinputs .= wf_RadioInput('searchtype', 'MAC', 'mac', true);
-    $fieldinputs .= wf_RadioInput('searchtype', 'Switch binding (SwIP/SwID/SwLocation)', 'switchassign', true);
+    if ($altCf['SWITCHPORT_IN_PROFILE']) {
+        $fieldinputs .= wf_RadioInput('searchtype', 'Switch binding (SwIP/SwID/SwLocation)', 'switchassign', true);
+    }
     if ($altCf['PON_ENABLED']) {
         $fieldinputs .= wf_RadioInput('searchtype', 'ONU MAC', 'onumac', true);
     }
@@ -99,23 +101,25 @@ function zb_UserSearchFields($query, $searchtype) {
         $mask = (isset($strictsearch[$searchtype]) ? '' : '%');
         $query = "SELECT `login` from `users` WHERE `ip` IN (SELECT `ip` FROM `nethosts` WHERE `option` LIKE '" . $mask . $query . $mask . "')";
     }
-    if ($searchtype == 'switchassign') {
-        $mask = (isset($strictsearch[$searchtype]) ? '' : '%');
-        $whereType = 'location';
-        // Change type for search on switch
-        if (zb_ExtractIpAddress($query)) {
-            $query = zb_ExtractIpAddress($query);
-            $whereType = 'ip';
-        }
-        if (!empty(zb_ExtractMacAddress($query))) {
-            $query = zb_ExtractMacAddress($query);
-            $whereType = 'swid';
-        }
-        $query = "
+    if ($altercfg['SWITCHPORT_IN_PROFILE']) {
+        if ($searchtype == 'switchassign') {
+            $mask = (isset($strictsearch[$searchtype]) ? '' : '%');
+            $whereType = 'location';
+            // Change type for search on switch
+            if (zb_ExtractIpAddress($query)) {
+                $query = zb_ExtractIpAddress($query);
+                $whereType = 'ip';
+            }
+            if (!empty(zb_ExtractMacAddress($query))) {
+                $query = zb_ExtractMacAddress($query);
+                $whereType = 'swid';
+            }
+            $query = "
             SELECT `login` from `users`
             INNER JOIN `switchportassign` USING (`login`)
             INNER JOIN `switches` ON (`switchportassign`.`switchid`=`switches`.`id`)
             WHERE `switches`.`" . $whereType . "` LIKE '" . $mask . $query . $mask . "'";
+        }
     }
     if ($altercfg['PON_ENABLED'] AND $searchtype == 'onumac') {
         $mask = (isset($strictsearch[$searchtype]) ? '' : '%');
@@ -186,7 +190,7 @@ function zb_UserSearchAllFields($query, $render = true) {
             if (!empty($allUserNotes)) {
                 foreach ($allUserNotes as $noteLogin => $noteText) {
                     if (isset($searh_data_array[$noteLogin])) {
-                        $searh_data_array[$noteLogin]['note']=$noteText;
+                        $searh_data_array[$noteLogin]['note'] = $noteText;
                     }
                 }
             }
