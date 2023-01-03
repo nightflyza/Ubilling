@@ -20,7 +20,7 @@ function web_UserSearchFieldsForm() {
     $fieldinputs .= wf_RadioInput('searchtype', 'Payment ID', 'payid', true);
     $fieldinputs .= wf_RadioInput('searchtype', 'IP', 'ip', true);
     $fieldinputs .= wf_RadioInput('searchtype', 'MAC', 'mac', true);
-    $fieldinputs .= wf_RadioInput('searchtype', 'Switch binding ' . '(SwIP/SwID/SwLocation)', 'switchassign', true);
+    $fieldinputs .= wf_RadioInput('searchtype', 'Switch binding (SwIP/SwID/SwLocation)', 'switchassign', true);
     if ($altCf['PON_ENABLED']) {
         $fieldinputs .= wf_RadioInput('searchtype', 'ONU MAC', 'onumac', true);
     }
