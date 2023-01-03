@@ -96,7 +96,7 @@ class SwitchPortAssign {
         }
 
         $this->allPortSwitchData = $switchPortAssign->getAll();
-//var_dump($this->allPortSwitchData);
+
         if (!empty($this->allPortSwitchData)) {
             foreach ($this->allPortSwitchData as $io => $rawData) {
                 $this->data[$rawData['login']] = $rawData;
@@ -189,10 +189,16 @@ class SwitchPortAssign {
      * @return string
      */
     public function renderSwitchPortAssign() {
+        if (empty($this->switchID)) {
+            $result = '';
+            $dopUrl = '';
+        } else {
+            $result = show_window('', wf_BackLink("?module=switches&edit=" . $this->switchID));
+            $dopUrl = '&switchid=' . $this->switchID;
+        }
         $columns = array('ID', 'IP', 'Port', 'Location', 'Switch', 'User', 'Full address');
         $opts = '"order": [[ 0, "desc" ]], "dom": \'<"F"lfB>rti<"F"ps>\', buttons: [\'csv\', \'excel\', \'pdf\']';
-        $dopUrl = (!empty($this->switchID)) ? '&switchid=' . $this->switchID : '';
-        $result = wf_JqDtLoader($columns, self::URL_ME_SWA . '&ajaxswitchassign=true' . $dopUrl, false, 'Switch port assign', 100, $opts);
+        $result.= wf_JqDtLoader($columns, self::URL_ME_SWA . '&ajaxswitchassign=true' . $dopUrl, false, 'Switch port assign', 100, $opts);
         return ($result);
     }
 
