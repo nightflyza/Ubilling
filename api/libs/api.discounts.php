@@ -13,13 +13,6 @@ class Discounts {
     protected $allDiscounts = array();
 
     /**
-     * Contains system alter config as key=>value
-     *
-     * @var array
-     */
-    protected $altCfg = array();
-
-    /**
      * Discounts bindings database abstraction layer placeholder
      *
      * @var object
@@ -52,7 +45,6 @@ class Discounts {
 
     public function __construct() {
         $this->initMessages();
-        $this->loadConfig();
         $this->initCache();
         $this->initDb();
         $this->loadAllDiscounts();
@@ -74,18 +66,6 @@ class Discounts {
      */
     protected function initCache() {
         $this->cache = new UbillingCache();
-    }
-
-    /**
-     * Loads required configs data
-     * 
-     * @global object $ubillingConfig
-     * 
-     * @return void
-     */
-    protected function loadConfig() {
-        global $ubillingConfig;
-        $this->altCfg = $ubillingConfig->getAlter();
     }
 
     /**
@@ -180,6 +160,7 @@ class Discounts {
      */
     public function saveDiscount($login = '') {
         $userLogin = '';
+
         if ($login) {
             $userLogin = $login;
         } else {
@@ -227,19 +208,21 @@ class Discounts {
     }
 
     /**
-     * Returns array of all month payments made during some month
+     * Returns array of all payments made during some optional period
      * 
      * TODO: make workaround for dayly runs of processPayments with option DISCOUNTS_DAILY. 
-     * TODO: Rename this method to getAllPeriodPayments.
-     * TODO: $targetMonth/targetDate must be set inside this method instead of processPayments
-     * 
-     * @param string $month
      * 
      * @return array
      */
-    protected function getAllMonthPayments($month) {
+    protected function getAllPeriodPayments() {
+        global $ubillingConfig;
+        $targetDate = ($ubillingConfig->getAlterParam('DISCOUNT_PREVMONTH')) ? prevmonth() : curmonth();
+        if ($ubillingConfig->getAlterParam('DISCOUNT_DAILY')) {
+            $targetDate = curdate();
+        }
+
         $paymentsDb = new NyanORM(self::PAYMENTS_TABLE);
-        $paymentsDb->where('date', 'LIKE', $month . '%');
+        $paymentsDb->where('date', 'LIKE', $targetDate . '%');
         $paymentsDb->where('summ', '>', '0');
         $paymentsDb->where('note', 'NOT LIKE', 'DISCOUNT:%');
         $allPayments = $paymentsDb->getAll();
@@ -266,10 +249,10 @@ class Discounts {
     public function processPayments() {
         global $ubillingConfig;
         $cashtypeId = ($ubillingConfig->getAlterParam('DISCOUNT_CASHTYPEID')) ? $ubillingConfig->getAlterParam('DISCOUNT_CASHTYPEID') : 1;
-        $targetMonth = ($ubillingConfig->getAlterParam('DISCOUNT_PREVMONTH')) ? prevmonth() : curmonth();
+
         $operation = ($ubillingConfig->getAlterParam('DISCOUNT_OPERATION') == 'CORR') ? 'correct' : 'add';
         $allUserDiscounts = $this->getAllUsersDiscounts();
-        $allMonthPayments = $this->getAllMonthPayments($targetMonth);
+        $allMonthPayments = $this->getAllPeriodPayments();
 
         if ((!empty($allUserDiscounts) AND ( !empty($allMonthPayments)))) {
             foreach ($allMonthPayments as $login => $eachPayment) {
