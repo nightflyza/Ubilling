@@ -2705,6 +2705,36 @@ class UbillingVisor {
     }
 
     /**
+     * Returns existing DVR name and IP
+     * 
+     * @param int $dvrId
+     * 
+     * @return string
+     */
+    public function getDvrLabel($dvrId) {
+        $result = '';
+        if (isset($this->allDvrs[$dvrId])) {
+            $result .= $this->allDvrs[$dvrId]['name'] . ' - ' . $this->allDvrs[$dvrId]['ip'];
+        }
+        return($result);
+    }
+
+    /**
+     * Returns existing DVR name
+     * 
+     * @param int $dvrId
+     * 
+     * @return string
+     */
+    public function getDvrName($dvrId) {
+        $result = '';
+        if (isset($this->allDvrs[$dvrId])) {
+            $result .= $this->allDvrs[$dvrId]['name'];
+        }
+        return($result);
+    }
+
+    /**
      * Performs default fee charge processing to prevent cameras offline
      * 
      * @return void
