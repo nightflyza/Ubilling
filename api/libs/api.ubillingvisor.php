@@ -863,7 +863,9 @@ class UbillingVisor {
                 $cells .= wf_TableCell($chargeFlag);
                 $rows .= wf_TableRow($cells, 'row3');
                 //global NVR secrets
-                $rows .= $this->renderUserSecrets($userId);
+                if (!$this->isChansProtected($userId)) {
+                    $rows .= $this->renderUserSecrets($userId);
+                }
 
                 //primary user account inline
                 $rows .= $this->renderUserPrimaryAccount($userId);
