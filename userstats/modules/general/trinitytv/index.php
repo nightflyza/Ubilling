@@ -43,6 +43,16 @@ if (@$us_config['TRINITYTV_ENABLED']) {
             }
         }
 
+        //device deletion by its ID
+        if (la_CheckGet(array('deletedeviceid'))) {
+            $delDeviceResult = $trinitytvFront->pushDeviceIdDeleteRequest($_GET['deletedeviceid']);
+            if (!$delDeviceResult) {
+                rcms_redirect('?module=trinitytv');
+            } else {
+                show_window(__('Sorry'), __($delDeviceResult));
+            }
+        }
+
         // manual add device
         if (la_CheckPost(array('device'))) {
             if ($trinitytvFront->canAddMoreDevices()) {
