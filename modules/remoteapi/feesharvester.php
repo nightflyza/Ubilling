@@ -7,9 +7,14 @@ if (ubRouting::get('action') == 'feesharvester') {
     if ($ubillingConfig->getAlterParam('FEES_HARVESTER')) {
         $harvesterProcess = new StarDust('FEESHARVESTER');
         if ($harvesterProcess->notRunning()) {
+            if (ubRouting::checkGet('full', false)) {
+                $curMonth = false;
+            } else {
+                $curMonth = true;
+            }
             $harvesterProcess->start();
             $fundsFlow = new FundsFlow();
-            $harvestedFees = $fundsFlow->harvestFees();
+            $harvestedFees = $fundsFlow->harvestFees($curMonth);
             $harvesterProcess->stop();
             die('OK: FEES HARVESTED `' . $harvestedFees . '`');
         } else {
