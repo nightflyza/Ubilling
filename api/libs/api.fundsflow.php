@@ -55,6 +55,20 @@ class FundsFlow {
     public $avoidDTKeysDuplicates = false;
 
     /**
+     * Is fees harvester enabled flag.
+     *
+     * @var bool
+     */
+    protected $feesHarvesterFlag = false;
+
+    /**
+     * Harvested fees database abstraction layer
+     *
+     * @var object
+     */
+    protected $feesDb = '';
+
+    /**
      * Rendering coloring settings
      */
     protected $colorPayment = '005304';
@@ -67,6 +81,20 @@ class FundsFlow {
     protected $colorCreditViolet = '552c82';
 
     /**
+     * some stargazer log data offsets here
+     */
+    const OFFSET_DATE = 0;
+    const OFFSET_TIME = 1;
+    const OFFSET_LOGIN = 7;
+    const OFFSET_FROM = 12;
+    const OFFSET_TO = 14;
+
+    /**
+     * other predefined stuff
+     */
+    const TABLE_FEES = 'fees';
+
+    /**
      * Creates new FundsFlow instance
      * 
      * @return void
@@ -74,6 +102,9 @@ class FundsFlow {
     public function __construct() {
         $this->loadConfigs();
         $this->initTmp();
+        if ($this->feesHarvesterFlag) {
+            $this->initFeesDb();
+        }
     }
 
     /**
@@ -86,6 +117,7 @@ class FundsFlow {
         $this->alterConf = $ubillingConfig->getAlter();
         $this->billingConf = $ubillingConfig->getBilling();
         $this->avoidDTKeysDuplicates = $ubillingConfig->getAlterParam('FF_REP_AVOID_DUPLICATE_DT_KEYS');
+        $this->feesHarvesterFlag = $ubillingConfig->getAlterParam('FEES_HARVESTER');
     }
 
     /**
@@ -98,6 +130,15 @@ class FundsFlow {
         $this->fundsTmp['col2'] = 0;
         $this->fundsTmp['col3'] = 0;
         $this->fundsTmp['col4'] = 0;
+    }
+
+    /**
+     * Inits fees database abstraction layer
+     * 
+     * @return void
+     */
+    protected function initFeesDb() {
+        $this->feesDb = new NyanORM(self::TABLE_FEES);
     }
 
     /**
@@ -146,7 +187,7 @@ class FundsFlow {
      * 
      * @return array
      */
-    public function getFees($login) {
+    public function getLogFees($login) {
         $login = mysql_real_escape_string($login);
 
         $sudo = $this->billingConf['SUDO'];
@@ -158,7 +199,7 @@ class FundsFlow {
 
         $feeadmin = 'stargazer';
         $feenote = '';
-        $feecashtype = 'z';
+        $feecashtype = 0;
         // monthly fees output
         $command = $sudo . ' ' . $cat . ' ' . $stglog . ' | ' . $grep . ' "fee charge"' . ' | ' . $grep . ' "User \'' . $login . '\'" ';
         $rawdata = shell_exec($command);
@@ -167,32 +208,146 @@ class FundsFlow {
             $cleardata = exploderows($rawdata);
             foreach ($cleardata as $eachline) {
                 $eachfee = explode(' ', $eachline);
-                if (isset($eachfee[1])) {
-                    $counter = strtotime($eachfee[0] . ' ' . $eachfee[1]);
+                if (!empty($eachline)) {
+                    if (isset($eachfee[self::OFFSET_TIME])) {
+                        $counter = strtotime($eachfee[self::OFFSET_DATE] . ' ' . $eachfee[self::OFFSET_TIME]);
 
-                    // trying to avoid duplicate keys
-                    while ($this->avoidDTKeysDuplicates and array_key_exists($counter, $result)) {
-                        $counter++;
+                        // trying to avoid duplicate keys
+                        while ($this->avoidDTKeysDuplicates and array_key_exists($counter, $result)) {
+                            $counter++;
+                        }
+
+                        $feefrom = str_replace("'.", '', $eachfee[self::OFFSET_FROM]);
+                        $feeto = str_replace("'.", '', $eachfee[self::OFFSET_TO]);
+                        $feefrom = str_replace("'", '', $feefrom);
+                        $feeto = str_replace("'", '', $feeto);
+
+                        $result[$counter]['login'] = $login;
+                        $result[$counter]['date'] = $eachfee[self::OFFSET_DATE] . ' ' . $eachfee[self::OFFSET_TIME];
+                        $result[$counter]['admin'] = $feeadmin;
+                        $result[$counter]['summ'] = $feeto - $feefrom;
+                        $result[$counter]['from'] = $feefrom;
+                        $result[$counter]['to'] = $feeto;
+                        $result[$counter]['operation'] = 'Fee';
+                        $result[$counter]['note'] = $feenote;
+                        $result[$counter]['cashtype'] = $feecashtype;
                     }
-
-                    $feefrom = str_replace("'.", '', $eachfee[12]);
-                    $feeto = str_replace("'.", '', $eachfee[14]);
-                    $feefrom = str_replace("'", '', $feefrom);
-                    $feeto = str_replace("'", '', $feeto);
-
-                    $result[$counter]['login'] = $login;
-                    $result[$counter]['date'] = $eachfee[0] . ' ' . $eachfee[1];
-                    $result[$counter]['admin'] = $feeadmin;
-                    $result[$counter]['summ'] = $feeto - $feefrom;
-                    $result[$counter]['from'] = $feefrom;
-                    $result[$counter]['to'] = $feeto;
-                    $result[$counter]['operation'] = 'Fee';
-                    $result[$counter]['note'] = $feenote;
-                    $result[$counter]['cashtype'] = $feecashtype;
                 }
             }
         }
         return ($result);
+    }
+
+    /**
+     * Returns array of fees by some login from harvested fees database
+     * 
+     * @param string $login existing user login
+     * 
+     * @return array
+     */
+    public function getDbFees($login) {
+        $result = array();
+        $login = ubRouting::filters($login, 'mres');
+        $this->feesDb->where('login', '=', $login);
+        $allFees = $this->feesDb->getAll();
+        if (!empty($allFees)) {
+            foreach ($allFees as $io => $each) {
+                $counter = strtotime($each['date']);
+                // trying to avoid duplicate keys
+                while ($this->avoidDTKeysDuplicates and array_key_exists($counter, $result)) {
+                    $counter++;
+                }
+
+                $result[$counter]['login'] = $each['login'];
+                $result[$counter]['date'] = $each['date'];
+                $result[$counter]['admin'] = $each['admin'];
+                ;
+                $result[$counter]['summ'] = $each['summ'];
+                $result[$counter]['from'] = $each['from'];
+                $result[$counter]['to'] = $each['to'];
+                $result[$counter]['operation'] = 'Fee';
+                $result[$counter]['note'] = $each['note'];
+                $result[$counter]['cashtype'] = $each['cashtype'];
+            }
+        }
+        return($result);
+    }
+
+    /**
+     * Returns array of fees by some login with parsing it from stargazer log
+     * 
+     * @param string $login existing user login
+     * 
+     * @return array
+     */
+    public function getFees($login) {
+        $result = array();
+        if ($this->feesHarvesterFlag) {
+            $result = $this->getDbFees($login);
+        } else {
+            $result = $this->getLogFees($login);
+        }
+        return($result);
+    }
+
+    /**
+     * Harvests some fees from stargazer log to database
+     * 
+     * @return int
+     */
+    public function harvestFees() {
+        $sudo = $this->billingConf['SUDO'];
+        $cat = $this->billingConf['CAT'];
+        $grep = $this->billingConf['GREP'];
+        $stglog = $this->alterConf['STG_LOG_PATH'];
+        $feeadmin = 'stargazer';
+        $feenote = '';
+        $feecashtype = 0;
+        $feeoperation = 'Fee';
+        $result = 0;
+
+        $command = $sudo . ' ' . $cat . ' ' . $stglog . ' | ' . $grep . ' "fee charge"';
+        $rawdata = shell_exec($command);
+
+        if (!empty($rawdata)) {
+            $alreadyHarvested = $this->feesDb->getAll('hash');
+
+            $cleardata = exploderows($rawdata);
+            foreach ($cleardata as $eachline) {
+                $eachfee = explode(' ', $eachline);
+                if (!empty($eachline)) {
+                    if (isset($eachfee[self::OFFSET_TIME])) {
+                        $feefrom = str_replace("'.", '', $eachfee[self::OFFSET_FROM]);
+                        $feeto = str_replace("'.", '', $eachfee[self::OFFSET_TO]);
+                        $feefrom = str_replace("'", '', $feefrom);
+                        $feeto = str_replace("'", '', $feeto);
+                        $login = $eachfee[self::OFFSET_LOGIN];
+                        $login = str_replace("'", '', $login);
+                        $login = str_replace(':', '', $login);
+                        $login = ubRouting::filters($login, 'mres');
+                        $date = $eachfee[self::OFFSET_DATE] . ' ' . $eachfee[self::OFFSET_TIME];
+                        $summ = $feeto - $feefrom;
+                        $hash = md5($date . $login . $summ . $feefrom . $feeto);
+                        if (!isset($alreadyHarvested[$hash])) {
+                            $this->feesDb->data('hash', $hash);
+                            $this->feesDb->data('login', $login);
+                            $this->feesDb->data('date', $date);
+                            $this->feesDb->data('admin', $feeadmin);
+                            $this->feesDb->data('from', $feefrom);
+                            $this->feesDb->data('to', $feeto);
+                            $this->feesDb->data('summ', $summ);
+                            $this->feesDb->data('note', $feenote);
+                            $this->feesDb->data('cashtype', $feecashtype);
+                            $this->feesDb->create();
+                            $alreadyHarvested[$hash] = array('harvested');
+                            $result++;
+                        }
+                    }
+                }
+            }
+        }
+        log_register('FEES HARVESTED `' . $result . '`');
+        return($result);
     }
 
     /**
@@ -339,7 +494,7 @@ class FundsFlow {
                 //default operation type
                 $operation = $each['operation'];
                 //cashtype setting
-                if ($each['cashtype'] != 'z') {
+                if ($each['cashtype'] != 0) {
                     @$cashtype = $allcashtypes[$each['cashtype']];
                 } else {
                     $cashtype = __('Fee');
