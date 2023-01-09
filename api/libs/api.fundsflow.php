@@ -299,53 +299,58 @@ class FundsFlow {
         $sudo = $this->billingConf['SUDO'];
         $cat = $this->billingConf['CAT'];
         $grep = $this->billingConf['GREP'];
-        $stglog = $this->alterConf['STG_LOG_PATH'];
+        $stgLog = $this->alterConf['STG_LOG_PATH'];
         $feeadmin = 'stargazer';
         $feenote = '';
         $feecashtype = 0;
         $feeoperation = 'Fee';
         $result = 0;
 
-        $command = $sudo . ' ' . $cat . ' ' . $stglog . ' | ' . $grep . ' "fee charge"';
-        $rawdata = shell_exec($command);
-
-        if (!empty($rawdata)) {
+        if (file_exists($stgLog)) {
+            $this->feesDb->selectable('id,hash');
             $alreadyHarvested = $this->feesDb->getAll('hash');
 
-            $cleardata = exploderows($rawdata);
-            foreach ($cleardata as $eachline) {
-                $eachfee = explode(' ', $eachline);
+            //here per-line file read to avoid memory overheads
+            $handle = fopen($stgLog, "r");
+            while (!feof($handle)) {
+                $eachline = fgets($handle);
                 if (!empty($eachline)) {
-                    if (isset($eachfee[self::OFFSET_TIME])) {
-                        $feefrom = str_replace("'.", '', $eachfee[self::OFFSET_FROM]);
-                        $feeto = str_replace("'.", '', $eachfee[self::OFFSET_TO]);
-                        $feefrom = str_replace("'", '', $feefrom);
-                        $feeto = str_replace("'", '', $feeto);
-                        $login = $eachfee[self::OFFSET_LOGIN];
-                        $login = str_replace("'", '', $login);
-                        $login = str_replace(':', '', $login);
-                        $login = ubRouting::filters($login, 'mres');
-                        $date = $eachfee[self::OFFSET_DATE] . ' ' . $eachfee[self::OFFSET_TIME];
-                        $summ = $feeto - $feefrom;
-                        $hash = md5($date . $login . $summ . $feefrom . $feeto);
-                        if (!isset($alreadyHarvested[$hash])) {
-                            $this->feesDb->data('hash', $hash);
-                            $this->feesDb->data('login', $login);
-                            $this->feesDb->data('date', $date);
-                            $this->feesDb->data('admin', $feeadmin);
-                            $this->feesDb->data('from', $feefrom);
-                            $this->feesDb->data('to', $feeto);
-                            $this->feesDb->data('summ', $summ);
-                            $this->feesDb->data('note', $feenote);
-                            $this->feesDb->data('cashtype', $feecashtype);
-                            $this->feesDb->create();
-                            $alreadyHarvested[$hash] = array('harvested');
-                            $result++;
+                    if (ispos($eachline, 'fee charge')) {
+                        $eachfee = explode(' ', $eachline);
+
+                        if (isset($eachfee[self::OFFSET_TIME])) {
+                            $feefrom = str_replace("'.", '', $eachfee[self::OFFSET_FROM]);
+                            $feeto = str_replace("'.", '', $eachfee[self::OFFSET_TO]);
+                            $feefrom = str_replace("'", '', $feefrom);
+                            $feeto = str_replace("'", '', $feeto);
+                            $login = $eachfee[self::OFFSET_LOGIN];
+                            $login = str_replace("'", '', $login);
+                            $login = str_replace(':', '', $login);
+                            $login = ubRouting::filters($login, 'mres');
+                            $date = $eachfee[self::OFFSET_DATE] . ' ' . $eachfee[self::OFFSET_TIME];
+                            $summ = $feeto - $feefrom;
+                            $hash = md5($date . $login . $summ . $feefrom . $feeto);
+                            if (!isset($alreadyHarvested[$hash])) {
+                                $this->feesDb->data('hash', $hash);
+                                $this->feesDb->data('login', $login);
+                                $this->feesDb->data('date', $date);
+                                $this->feesDb->data('admin', $feeadmin);
+                                $this->feesDb->data('from', $feefrom);
+                                $this->feesDb->data('to', $feeto);
+                                $this->feesDb->data('summ', $summ);
+                                $this->feesDb->data('note', $feenote);
+                                $this->feesDb->data('cashtype', $feecashtype);
+                                $this->feesDb->create();
+                                $alreadyHarvested[$hash] = array('harvested');
+                                $result++;
+                            }
                         }
                     }
                 }
             }
+            fclose($handle);
         }
+
         log_register('FEES HARVESTED `' . $result . '`');
         return($result);
     }
