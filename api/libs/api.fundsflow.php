@@ -296,9 +296,6 @@ class FundsFlow {
      * @return int
      */
     public function harvestFees() {
-        $sudo = $this->billingConf['SUDO'];
-        $cat = $this->billingConf['CAT'];
-        $grep = $this->billingConf['GREP'];
         $stgLog = $this->alterConf['STG_LOG_PATH'];
         $feeadmin = 'stargazer';
         $feenote = '';
