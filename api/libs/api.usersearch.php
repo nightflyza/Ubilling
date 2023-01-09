@@ -110,7 +110,8 @@ function zb_UserSearchFields($query, $searchtype) {
                 $query = zb_ExtractIpAddress($query);
                 $whereType = 'ip';
             }
-            if (!empty(zb_ExtractMacAddress($query))) {
+            $macExtracted = zb_ExtractMacAddress($query);
+            if (!empty($macExtracted)) {
                 $query = zb_ExtractMacAddress($query);
                 $whereType = 'swid';
             }
