@@ -92,6 +92,7 @@ class FundsFlow {
     /**
      * other predefined stuff
      */
+    const MASK_FEE = 'fee charge';
     const TABLE_FEES = 'fees';
 
     /**
@@ -201,7 +202,7 @@ class FundsFlow {
         $feenote = '';
         $feecashtype = 0;
         // monthly fees output
-        $command = $sudo . ' ' . $cat . ' ' . $stglog . ' | ' . $grep . ' "fee charge"' . ' | ' . $grep . ' "User \'' . $login . '\'" ';
+        $command = $sudo . ' ' . $cat . ' ' . $stglog . ' | ' . $grep . ' "' . self::MASK_FEE . '"' . ' | ' . $grep . ' "User \'' . $login . '\'" ';
         $rawdata = shell_exec($command);
 
         if (!empty($rawdata)) {
@@ -293,54 +294,74 @@ class FundsFlow {
     /**
      * Harvests some fees from stargazer log to database
      * 
+     * @param bool $curMonth parse only current month log records instead of full log scan
+     * 
      * @return int
      */
-    public function harvestFees() {
+    public function harvestFees($curMonth = true) {
         $stgLog = $this->alterConf['STG_LOG_PATH'];
         $feeadmin = 'stargazer';
         $feenote = '';
         $feecashtype = 0;
         $feeoperation = 'Fee';
         $result = 0;
+        $lineCount = 0;
+        $dateMask = curmonth() . '-';
+
 
         if (file_exists($stgLog)) {
             $this->feesDb->selectable('id,hash');
+            if ($curMonth) {
+                $this->feesDb->where('date', 'LIKE', $dateMask . '%');
+            }
             $alreadyHarvested = $this->feesDb->getAll('hash');
+
 
             //here per-line file read to avoid memory overheads
             $handle = fopen($stgLog, "r");
             while (!feof($handle)) {
                 $eachline = fgets($handle);
                 if (!empty($eachline)) {
-                    if (ispos($eachline, 'fee charge')) {
-                        $eachfee = explode(' ', $eachline);
+                    $requiredDateOffset = false;
+                    if ($curMonth) {
+                        if (ispos($eachline, $dateMask)) {
+                            $requiredDateOffset = true;
+                        }
+                    } else {
+                        $requiredDateOffset = true;
+                    }
 
-                        if (isset($eachfee[self::OFFSET_TIME])) {
-                            $feefrom = str_replace("'.", '', $eachfee[self::OFFSET_FROM]);
-                            $feeto = str_replace("'.", '', $eachfee[self::OFFSET_TO]);
-                            $feefrom = str_replace("'", '', $feefrom);
-                            $feeto = str_replace("'", '', $feeto);
-                            $login = $eachfee[self::OFFSET_LOGIN];
-                            $login = str_replace("'", '', $login);
-                            $login = str_replace(':', '', $login);
-                            $login = ubRouting::filters($login, 'mres');
-                            $date = $eachfee[self::OFFSET_DATE] . ' ' . $eachfee[self::OFFSET_TIME];
-                            $summ = $feeto - $feefrom;
-                            $hash = md5($date . $login . $summ . $feefrom . $feeto);
-                            if (!isset($alreadyHarvested[$hash])) {
-                                $this->feesDb->data('hash', $hash);
-                                $this->feesDb->data('login', $login);
-                                $this->feesDb->data('date', $date);
-                                $this->feesDb->data('admin', $feeadmin);
-                                $this->feesDb->data('from', $feefrom);
-                                $this->feesDb->data('to', $feeto);
-                                $this->feesDb->data('summ', $summ);
-                                $this->feesDb->data('note', $feenote);
-                                $this->feesDb->data('cashtype', $feecashtype);
-                                $this->feesDb->create();
-                                $alreadyHarvested[$hash] = array('harvested');
-                                $result++;
+                    if ($requiredDateOffset) {
+                        if (ispos($eachline, self::MASK_FEE)) {
+                            $eachfee = explode(' ', $eachline);
+                            if (isset($eachfee[self::OFFSET_TIME])) {
+                                $feefrom = str_replace("'.", '', $eachfee[self::OFFSET_FROM]);
+                                $feeto = str_replace("'.", '', $eachfee[self::OFFSET_TO]);
+                                $feefrom = str_replace("'", '', $feefrom);
+                                $feeto = str_replace("'", '', $feeto);
+                                $login = $eachfee[self::OFFSET_LOGIN];
+                                $login = str_replace("'", '', $login);
+                                $login = str_replace(':', '', $login);
+                                $login = ubRouting::filters($login, 'mres');
+                                $date = $eachfee[self::OFFSET_DATE] . ' ' . $eachfee[self::OFFSET_TIME];
+                                $summ = $feeto - $feefrom;
+                                $hash = md5($date . $login . $summ . $feefrom . $feeto);
+                                if (!isset($alreadyHarvested[$hash])) {
+                                    $this->feesDb->data('hash', $hash);
+                                    $this->feesDb->data('login', $login);
+                                    $this->feesDb->data('date', $date);
+                                    $this->feesDb->data('admin', $feeadmin);
+                                    $this->feesDb->data('from', $feefrom);
+                                    $this->feesDb->data('to', $feeto);
+                                    $this->feesDb->data('summ', $summ);
+                                    $this->feesDb->data('note', $feenote);
+                                    $this->feesDb->data('cashtype', $feecashtype);
+                                    $this->feesDb->create();
+                                    $alreadyHarvested[$hash] = array('harvested');
+                                    $result++;
+                                }
                             }
+                            $lineCount++;
                         }
                     }
                 }
@@ -348,7 +369,8 @@ class FundsFlow {
             fclose($handle);
         }
 
-        log_register('FEES HARVESTED `' . $result . '`');
+        $timeRange = ($curMonth) ? curmonth() : 'ALL_TIME';
+        log_register('FEES HARVESTED `' . $result . '` OF `' . $lineCount . '` RECORDS PARSED BY `' . $timeRange . '`');
         return($result);
     }
 

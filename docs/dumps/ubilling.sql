@@ -3183,5 +3183,6 @@ CREATE TABLE IF NOT EXISTS `fees` (
   `note` VARCHAR(200) DEFAULT NULL,
   `cashtype` INT(11) DEFAULT NULL,
   PRIMARY KEY (`id`),
-  KEY `login` (`login`)  
+  KEY `login` (`login`),  
+  KEY `date` (`date`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
