@@ -106,13 +106,14 @@ function zb_UserSearchFields($query, $searchtype) {
             $mask = (isset($strictsearch[$searchtype]) ? '' : '%');
             $whereType = 'location';
             // Change type for search on switch
-            if (zb_ExtractIpAddress($query)) {
-                $query = zb_ExtractIpAddress($query);
+            $extractedIpAddr = zb_ExtractIpAddress($query);
+            if ($extractedIpAddr) {
+                $query = $extractedIpAddr;
                 $whereType = 'ip';
             }
             $macExtracted = zb_ExtractMacAddress($query);
             if (!empty($macExtracted)) {
-                $query = zb_ExtractMacAddress($query);
+                $query = $macExtracted;
                 $whereType = 'swid';
             }
             $query = "
