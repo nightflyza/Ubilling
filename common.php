@@ -75,21 +75,6 @@ define('SAFEMODE_HACK_FTP', 'ftp://username:password@localhost/path/to/reloadcms
 ////////////////////////////////////////////////////////////////////////////////
 include_once(SYSTEM_MODULES_PATH . 'load.php');
 
-////////////////////////////////////////////////////////////////////////////////
-// magic_quotes_gpc fix                                                       //
-////////////////////////////////////////////////////////////////////////////////
-if (@get_magic_quotes_gpc())
-    unfck_gpc();
-
-function unfck($v) {
-    return is_array($v) ? array_map('unfck', $v) : stripslashes($v);
-}
-
-function unfck_gpc() {
-    foreach (array('POST', 'GET', 'REQUEST', 'COOKIE') as $gpc) {
-        $GLOBALS['_' . $gpc] = array_map('unfck', $GLOBALS['_' . $gpc]);
-    }
-}
 
 function rcms_showAdminMessage($mesg) {
     global $lang;
