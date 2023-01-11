@@ -895,6 +895,26 @@ function sp_SnmpGetAllModelTemplates() {
 }
 
 /**
+ * Convert splitted decimal MAC to normal view
+ * 
+ * @param array $parts
+ * 
+ * @return string
+ */
+function sp_PartsToMac($parts) {
+    $result = '';
+    //format + mac is present?
+    if (count($parts) == 6) {
+        foreach ($parts as $io => $eachPart) {
+            $result .= sprintf('%02X', $eachPart) . ':';
+        }
+        $result = rtrim($result, ':');
+        $result = strtolower($result);
+    }
+    return($result);
+}
+
+/**
  * Parsing of FDB port table SNMP raw data
  * 
  * @param   $portTable raw SNMP data
@@ -910,11 +930,10 @@ function sp_SnmpParseFdb($portTable) {
                 $eachEntry = str_replace('.1.3.6.1.2.1.17.4.3.1.2', '', $eachEntry);
                 $cleanMac = '';
                 $rawMac = explode('=', $eachEntry);
-                //this part of code designed by Han and here is some magic, which we do not understand :)
-                $parts = array('format' => '%02X:%02X:%02X:%02X:%02X:%02X') + explode('.', trim($rawMac[0], '.'));
-                if (count($parts) == 7) {
-                    $cleanMac = call_user_func_array('sprintf', $parts);
-                    $portData[strtolower($cleanMac)] = vf($rawMac[1], 3);
+                $parts = explode('.', trim($rawMac[0], '.'));
+                if (count($parts) == 6) {
+                    $cleanMac = sp_PartsToMac($parts);
+                    $portData[$cleanMac] = vf($rawMac[1], 3);
                 }
             }
         }
@@ -933,13 +952,13 @@ function sp_SnmpParseFdbRa($portTable) {
                 $eachEntry = str_replace('.1.3.6.1.2.1.17.7.1.2.2.1.2', '', $eachEntry);
                 $cleanMac = '';
                 $rawMac = explode('=', $eachEntry);
-                $parts = array('format' => '%02X:%02X:%02X:%02X:%02X:%02X') + explode('.', trim($rawMac[0], '.'));
+                $parts = explode('.', trim($rawMac[0], '.'));
                 $port = vf($rawMac[1], 3);
                 $port = $port - 2082476032;
                 unset($parts[0]);
                 // Some devices show CPU interface as port 0
-                if (count($parts) == 7 and intval($port) != 0) {
-                    $cleanMac = call_user_func_array('sprintf', $parts);
+                if (count($parts) == 6 and intval($port) != 0) {
+                    $cleanMac = sp_PartsToMac($parts);
                     $portData[strtolower($cleanMac)] = $port;
                 }
             }
@@ -964,10 +983,9 @@ function sp_SnmpParseFdbCisEb($portTable) {
                 $eachEntry = str_replace('.1.3.6.1.2.1.17.4.3.1.2', '', $eachEntry);
                 $cleanMac = '';
                 $rawMac = explode('=', $eachEntry);
-
-                $parts = array('format' => '%02X:%02X:%02X:%02X:%02X:%02X') + explode('.', trim($rawMac[0], '.'));
-                if (count($parts) == 7) {
-                    $cleanMac = call_user_func_array('sprintf', $parts);
+                $parts = explode('.', trim($rawMac[0], '.'));
+                if (count($parts) == 6) {
+                    $cleanMac = sp_PartsToMac($parts);
                     $port = ubRouting::filters($rawMac[1], 'int');
                     //A-A-A!!!!111
                     $portReplaceTable = array(
@@ -990,7 +1008,7 @@ function sp_SnmpParseFdbCisEb($portTable) {
                         }
                     }
 
-                    $portData[strtolower($cleanMac)] = $port;
+                    $portData[$cleanMac] = $port;
                 }
             }
         }
@@ -1014,13 +1032,13 @@ function sp_SnmpParseFdbDl($portTable) {
                 $eachEntry = str_replace('.1.3.6.1.2.1.17.7.1.2.2.1.2', '', $eachEntry);
                 $cleanMac = '';
                 $rawMac = explode('=', $eachEntry);
-                $parts = array('format' => '%02X:%02X:%02X:%02X:%02X:%02X') + explode('.', trim($rawMac[0], '.'));
+                $parts = explode('.', trim($rawMac[0], '.'));
                 $port = vf($rawMac[1], 3);
                 unset($parts[0]);
                 // Some devices show CPU interface as port 0
-                if (count($parts) == 7 and intval($port) != 0) {
-                    $cleanMac = call_user_func_array('sprintf', $parts);
-                    $portData[strtolower($cleanMac)] = $port;
+                if (count($parts) == 6 and intval($port) != 0) {
+                    $cleanMac = sp_PartsToMac($parts);
+                    $portData[$cleanMac] = $port;
                 }
             }
         }
@@ -1046,11 +1064,11 @@ function sp_SnmpParseFdbTlp($portTable, $oid) {
                 $rawMac = explode('=', $eachEntry);
                 $rawMac[0] = substr($rawMac[0], 0, -2); //drop last 01 octet
                 $rawMac[0] = '.1' . $rawMac[0]; // add .1 part. fuck this shit
-                $parts = array('format' => '%02X:%02X:%02X:%02X:%02X:%02X') + explode('.', trim($rawMac[0], '.'));
+                $parts = explode('.', trim($rawMac[0], '.'));
                 unset($parts[0]);
-                if (count($parts) == 7) {
-                    $cleanMac = call_user_func_array('sprintf', $parts);
-                    $portData[strtolower($cleanMac)] = vf($rawMac[1], 3);
+                if (count($parts) == 6) {
+                    $cleanMac = sp_PartsToMac($parts);
+                    $portData[$cleanMac] = vf($rawMac[1], 3);
                 }
             }
         }
@@ -1074,11 +1092,11 @@ function sp_SnmpParseFdbFlp($portTable, $oid) {
                 $eachEntry = str_replace($oid, '', $eachEntry);
                 $cleanMac = '';
                 $rawMac = explode('=', $eachEntry);
-                $parts = array('format' => '%02X:%02X:%02X:%02X:%02X:%02X') + explode('.', trim($rawMac[0], '.'));
+                $parts = explode('.', trim($rawMac[0], '.'));
                 unset($parts[0]);
-                if (count($parts) == 7) {
+                if (count($parts) == 6) {
                     $cleanMac = call_user_func_array('sprintf', $parts);
-                    $portData[strtolower($cleanMac)] = vf($rawMac[1], 3);
+                    $portData[$cleanMac] = vf($rawMac[1], 3);
                 }
             }
         }
