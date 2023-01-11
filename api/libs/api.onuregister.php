@@ -65,7 +65,7 @@ class OnuRegister {
     /**
      * Contains all data from billing.ini
      * 
-     * @var type 
+     * @var array 
      */
     protected $billingCfg = array();
 
@@ -129,6 +129,12 @@ class OnuRegister {
      * @var array
      */
     protected $onuArray = array();
+
+    /**
+     * Contains all ponizer ONUs
+     * @var array
+     */
+    protected $allOnu = array();
 
     /**
      * Alternative array for ONU snmp counter.
@@ -252,7 +258,7 @@ class OnuRegister {
     /**
      * Version to handle different config within different software versions.
      * 
-     * @var type 
+     * @var string 
      */
     public $currentPonVersion = "0";
 
@@ -294,9 +300,21 @@ class OnuRegister {
     /**
      * Placeholder for ONU VLAN.
      * 
-     * @var string
+     * @var int
      */
-    public $vlan = '';
+    public $vlan = -1;
+
+    /**
+     * Placeholder for ONU cvlan
+     * @var int
+     */
+    public $cvlan = -1;
+
+    /**
+     * Contains SVLAN database id.
+     * @var int
+     */
+    protected $svlanId = -1;
 
     /**
      * Contains all svlans
@@ -385,16 +403,22 @@ class OnuRegister {
     /**
      * Flag for enabling dhcp snooping
      * 
-     * @var type 
+     * @var string 
      */
     public $onuDhcpSnooping = '__empty';
 
     /**
      * Flag for enabling loopdetec
      * 
-     * @var type 
+     * @var string 
      */
     public $onuLoopdetect = '__empty';
+
+    /**
+     * All unreg ONU
+     * @var array
+     */
+    protected $allUnreg = array();
 
     /**
      * Contains all alter.ini options
@@ -847,6 +871,7 @@ class OnuRegister {
                 }
             }
         }
+        return -1;
     }
 
     /**
@@ -892,12 +917,12 @@ class OnuRegister {
     /**
      * Convert hex to string.
      * 
-     * @param hex-string $hex
+     * @param string $hex hex-string
      * 
      * @return string
      */
     protected function hexToString($hex) {
-        return (@pack('H*', $hex)); //TODO: something strange happens here after 1.2.1
+        return (@pack('H*', $hex)); 
     }
 
 //Main section
@@ -1116,7 +1141,7 @@ class OnuRegister {
      * @param string $uncfgSn
      * @param string $interfaceId
      * 
-     * @return array
+     * @return string
      */
     protected function parseUncfgGpon($rawSn) {
         $sn = '';
@@ -1276,7 +1301,7 @@ class OnuRegister {
     /**
      * Used to change mac format from xx:xx:xx:xx:xx:xx to xxxx.xxxx.xxxx
      *      
-     * @return void
+     * @return string
      */
     protected function transformMac() {
         $macRaw = explode(':', $this->onuIdentifier);
@@ -1355,13 +1380,13 @@ class OnuRegister {
                                 } else {
                                     if (count($this->existId) >= 64) {
                                         $this->error = self::ERROR_NEED_LICENSE_REISSUE_02;
-                                        return('');
+                                        exit();
                                     }
                                 }
                             } else {
                                 if (count($this->existId) >= 64) {
                                     $this->error = self::ERROR_TOO_MANY_REGISTERED_ONU;
-                                    return('');
+                                    exit();
                                 }
                             }
                         }
@@ -1371,7 +1396,7 @@ class OnuRegister {
                 if ($this->currentPonType == 'GPON') {
                     if (count($this->existId) >= 128) {
                         $this->error = self::ERROR_TOO_MANY_REGISTERED_ONU;
-                        return('');
+                        exit();
                     }
                 }
 
@@ -1594,8 +1619,8 @@ class OnuRegister {
     /**
      * Delete card entry from DB.
      * 
-     * @param type $swid
-     * @param type $slot
+     * @param string $swid
+     * @param string $slot
      * 
      * @return void
      */
@@ -1638,6 +1663,7 @@ class OnuRegister {
         log_register('ZTE Created new vlan bind. OLT ID: ' . $swid . '. Slot: `' . $slot . '`. Port: `' . $port . '`. VLAN: `' . $vlan . '`');
 
         rcms_redirect(self::MODULE_URL_EDIT_BIND . $swid);
+        return (true);
     }
 
     /**
