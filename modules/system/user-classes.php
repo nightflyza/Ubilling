@@ -216,7 +216,10 @@ class rcms_user extends rcms_access {
         $this->initialiseAccess($this->user['admin'], (int) @$userdata['accesslevel']);
 
         // Ability for guests to enter nick
-        $_POST['gst_nick'] = substr(trim(@$_POST['gst_nick']), 0, 32);
+        $gst_nickTmp = @$_POST['gst_nick'];
+        if (!empty($gst_nickTmp)) {
+            $_POST['gst_nick'] = substr(trim($gst_nickTmp), 0, 32);
+        }
         if (!empty($_POST['gst_nick']) && !$this->logged_in) {
             $this->user['nickname'] = $_POST['gst_nick'];
             setcookie('reloadcms_nick', $this->user['nickname']);
@@ -334,7 +337,7 @@ class rcms_user extends rcms_access {
         if (!$this->logged_in && $this->checkUserData($username, $password, 'user_login', false, $userdata)) {
             rcms_log_put('Notification', $this->user['username'], 'Logged in as ' . $username);
             // OK... Let's allow user to log in :)
-            setcookie($this->cookie_user, $username . ':' . $userdata['password'], ($remember) ? time() + 3600 * 24 * 365 : null);
+            setcookie($this->cookie_user, $username . ':' . $userdata['password'], ($remember) ? time() + 3600 * 24 * 365 : 0);
             $_COOKIE[$this->cookie_user] = $username . ':' . $userdata['password'];
             $this->initializeUser(true);
             return true;

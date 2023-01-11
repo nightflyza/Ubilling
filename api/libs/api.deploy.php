@@ -26,7 +26,7 @@ class Avarice {
         $result = '';
         for ($i = 0; $i < strlen($data);) {
             for ($j = 0; $j < strlen($key); $j++, $i++) {
-                @$result .= $data{$i} ^ $key{$j};
+                @$result .= $data[$i] ^ $key[$j];
             }
         }
         return($result);

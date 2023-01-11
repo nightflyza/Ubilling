@@ -2006,7 +2006,12 @@ function web_PaymentsShowGraph($year) {
         foreach ($months as $eachmonth => $monthname) {
             $month_summ = (isset($yearStats[$eachmonth])) ? $yearStats[$eachmonth]['summ'] : 0;
             $paycount = (isset($yearStats[$eachmonth])) ? $yearStats[$eachmonth]['count'] : 0;
-            $monthArpu = @round($month_summ / $paycount, 2);
+            if ($paycount != 0) {
+                $monthArpu = @round($month_summ / $paycount, 2);
+            } else {
+                $monthArpu = 0;
+            }
+            
             if (is_nan($monthArpu)) {
                 $monthArpu = 0;
             }
