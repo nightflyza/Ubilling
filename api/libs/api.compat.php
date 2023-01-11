@@ -1,9 +1,8 @@
 <?php
 
-/*
+/**
  * Framework abstraction functions and wrappers for old code backward compatibility
  */
-
 if (!function_exists('show_error')) {
 
     /**
@@ -222,4 +221,36 @@ if (!function_exists('rcms_redirect')) {
     }
 
 }
-?>
+
+
+if (!function_exists('each2')) {
+
+    /**
+     * (PHP 4, PHP 5, PHP 7)<br/>
+     * This function has been DEPRECATED as of PHP 7.2.0, and REMOVED as of PHP 8.0.0. 
+     * Return the current key and value pair from an array and advance the array cursor
+     * @link http://php.net/manual/en/function.each.php
+     * @param array $array <p>
+     * The input array.
+     * </p>
+     * @return array the current key and value pair from the array
+     * <i>array</i>. This pair is returned in a four-element
+     * array, with the keys 0, 1,
+     * key, and value. Elements
+     * 0 and key contain the key name of
+     * the array element, and 1 and value
+     * contain the data.
+     * </p>
+     * <p>
+     * If the internal pointer for the array points past the end of the
+     * array contents, <b>each</b> returns
+     * <b>FALSE</b>.
+     */
+    function each2($arr) {
+        $key = key($arr);
+        $result = ($key === null) ? false : array($key, current($arr), 'key' => $key, 'value' => current($arr));
+        next($arr);
+        return $result;
+    }
+
+}
