@@ -346,8 +346,8 @@ function uhw_ChangeMac($nethost_id, $newmac, $oldmac) {
             $mlg_old_mac = transformMacDotted($oldmac);
             break;
         case 'MACFML':
-            $mlg_mac = str_replace('.', '-', $this->transformMacDotted($newmac));
-            $mlg_old_mac = str_replace('.', '-', $this->transformMacDotted($oldmac));
+            $mlg_mac = str_replace('.', '-', transformMacDotted($newmac));
+            $mlg_old_mac = str_replace('.', '-', transformMacDotted($oldmac));
             break;
         case 'MACTMU':
             $mlg_mac = transformMacMinused($newmac, true);
