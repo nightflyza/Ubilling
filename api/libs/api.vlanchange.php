@@ -282,7 +282,7 @@ class VlanChange {
      */
     protected function loadAllOnu() {
         $this->allMac = $this->ponDB->getAll('mac');
-        $this->alLSerial = $this->ponDB->getAll('serial');
+        $this->allSerial = $this->ponDB->getAll('serial');
     }
 
     /**
@@ -312,14 +312,15 @@ class VlanChange {
                 if (isset($this->allSerial[$onuid])) {
                     if (!empty($this->allMac[$onuid]['login'])) {
                         if (!$check) {
-                            $this->username = $this->alLSerial[$onuid]['login'];
+                            $this->username = $this->allSerial[$onuid]['login'];
                         } else {
-                            return ($this->alLSerial[$onuid]['login']);
+                            return ($this->allSerial[$onuid]['login']);
                         }
                     }
                 }
             }
         }
+        return('');
     }
 
     /**
@@ -654,7 +655,7 @@ class VlanChange {
                 $this->pollOltBdcom();
                 break;
             default:
-                return ('');
+                exit();
         }
     }
 
@@ -928,7 +929,7 @@ class VlanChange {
                 $this->changeOltBdcom();
                 break;
             default:
-                return ('');
+                exit();
         }
         $this->routineAdd();
     }
