@@ -872,7 +872,7 @@ class VlanChange {
         $cells .= wf_TableCell($oltDetails[$this->oltId]['ip'] . ' ' . $oltDetails[$this->oltId]['location']);
         $rows .= wf_TableRow($cells);
         $cells = wf_TableCell(__('Model'));
-        $cells .= wf_tableCell(wf_Selector('onumodelid', $models, '', '', ''));
+        $cells .= wf_tableCell(wf_Selector('onumodelid', $models, '', ''));
         $rows .= wf_TableRow($cells);
         if ($this->cvlan) {
             if (!empty($this->universalAssign)) {
