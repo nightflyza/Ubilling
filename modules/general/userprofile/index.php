@@ -14,7 +14,8 @@ if (cfr('USERPROFILE')) {
         try {
             $profile = new UserProfile($login);
             show_window(__('User profile'), $profile->render());
-
+            //TODO: think about custom page titles
+            //$system->config['pagename'] = __('User profile') . ' ' . $profile->extractUserAddress();
             if (ubRouting::checkGet('justregistered')) {
                 if (!$ubillingConfig->getAlterParam('BORING_USERREG')) {
                     $newUserRegisteredNotification = '';
