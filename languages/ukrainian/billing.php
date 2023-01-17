@@ -3462,6 +3462,10 @@ $lang['def']['Change discount'] = 'Змінити знижку';
 $lang['def']['Current discount'] = 'Поточна знижка';
 $lang['def']['New discount'] = 'Нова знижка';
 $lang['def']['Discounts'] = 'Знижки';
+$lang['def']['Stop the process'] = 'Зупинити процес';
+$lang['def']['Stop the process with extreme cruelty'] = 'Вбити процес з особливою жорстокістю';
+$lang['def']['No matching process was found'] = 'Процес не знайдено';
+$lang['def']['No matching process PID was found'] = 'Відповідний процесу PID не знайдено';
 $lang['def'][''] = '';
 
 
