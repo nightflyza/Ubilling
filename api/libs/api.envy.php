@@ -76,6 +76,13 @@ class Envy {
     protected $messages = '';
 
     /**
+     * Contains process manager instance
+     *
+     * @var object
+     */
+    protected $stardust = '';
+
+    /**
      * Some other required consts for routing etc
      */
     const URL_ME = '?module=envy';
@@ -90,6 +97,8 @@ class Envy {
     const ROUTE_ARCHIVE_AJ = 'ajarchive';
     const ROUTE_FILTER = 'devicefilter';
     const ROUTE_CLEANUP = 'cleanuparchive';
+    const ENVYPROC_PID = 'ENVYPROC_';
+    const ENVY_STATS = 'exports/ENVYRUN_';
 
     /**
      *   ___ _ ____   ___   _ 
@@ -109,6 +118,7 @@ class Envy {
         $this->loadDeviceModels();
         $this->loadSwitches();
         $this->initScrips();
+        $this->initStarDust();
         $this->loadScripts();
         $this->initDevices();
         $this->loadDevices();
@@ -162,6 +172,59 @@ class Envy {
      */
     protected function initArchive() {
         $this->archive = new NyanORM('envydata');
+    }
+
+    /**
+     * Inits process manager
+     * 
+     * @return void
+     */
+    protected function initStarDust() {
+        $this->stardust = new StarDust();
+    }
+
+    /**
+     * Performs check of Switch envy process lock via DB. 
+     * Using this only for checks of possibility real collector runs.
+     * 
+     * @param int $swId
+     * 
+     * @return bool 
+     */
+    protected function isProcessLocked($swIP) {
+        $this->stardust->setProcess(self::ENVYPROC_PID . $swIP);
+        $result = $this->stardust->isRunning();
+        return($result);
+    }
+
+    /**
+     * Updates some Switch process stats
+     * 
+     * @param int $swIP Existing Switch IP
+     * @param int $pollingStartTime process start timestame
+     * @param int $pollingEndTime process end timestamp
+     * @param bool $finished process finished or not flag
+     * 
+     * @return void
+     */
+    protected function processStatsUpdate($swIP, $processStartTime = 0, $processEndTime = 0, $finished = false) {
+        $statsPath = self::ENVY_STATS . $swIP;
+        $finishedData = ($finished) ? 1 : 0;
+        $dataToSave['start'] = $processStartTime;
+        $dataToSave['end'] = $processEndTime;
+        $dataToSave['finished'] = $finishedData;
+        $dataToSave = json_encode($dataToSave);
+        file_put_contents($statsPath, $dataToSave);
+        //collector process locking and releasing of locks here
+        if ($finished) {
+            //release lock
+            $this->stardust->setProcess(self::ENVYPROC_PID . $swIP);
+            $this->stardust->stop();
+        } else {
+            //set lock for polling of some OLT
+            $this->stardust->setProcess(self::ENVYPROC_PID . $swIP);
+            $this->stardust->start();
+        }
     }
 
     /**
@@ -982,7 +1045,18 @@ class Envy {
             if (!empty($this->allDevices)) {
                 foreach ($this->allDevices as $io => $each) {
                     if ($each['active']) {
-                        $this->storeArchiveData($each['switchid'], $this->runDeviceScript($each['switchid']));
+                        if (!$this->isProcessLocked($this->allSwitches[$each['switchid']]['ip'])) {
+                            //prefilling Switch process envy stats
+                            $processStartTime = time();
+                            $this->processStatsUpdate($this->allSwitches[$each['switchid']]['ip'], $processStartTime, 0, false);
+
+                            // Main process
+                            $this->storeArchiveData($each['switchid'], $this->runDeviceScript($each['switchid']));
+
+                            //finishing Switch process envy stats
+                            $processEndTime = time();
+                            $this->processStatsUpdate($this->allSwitches[$each['switchid']]['ip'], $processStartTime, $processEndTime, true);
+                        }
                     }
                 }
             }
