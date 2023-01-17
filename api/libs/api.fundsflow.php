@@ -294,11 +294,11 @@ class FundsFlow {
     /**
      * Harvests some fees from stargazer log to database
      * 
-     * @param bool $curMonth parse only current month log records instead of full log scan
+     * @param string $customDateMask parse only explicit date range log records instead of full log scan
      * 
      * @return int
      */
-    public function harvestFees($curMonth = true) {
+    public function harvestFees($customDateMask = '') {
         $stgLog = $this->alterConf['STG_LOG_PATH'];
         $feeadmin = 'stargazer';
         $feenote = '';
@@ -306,16 +306,17 @@ class FundsFlow {
         $feeoperation = 'Fee';
         $result = 0;
         $lineCount = 0;
-        $dateMask = curmonth() . '-';
-
+        $dateMaskFilter = '';
+        if ($customDateMask) {
+            $dateMaskFilter = $customDateMask;
+        }
 
         if (file_exists($stgLog)) {
             $this->feesDb->selectable('id,hash');
-            if ($curMonth) {
-                $this->feesDb->where('date', 'LIKE', $dateMask . '%');
+            if ($customDateMask) {
+                $this->feesDb->where('date', 'LIKE', $dateMaskFilter . '%');
             }
             $alreadyHarvested = $this->feesDb->getAll('hash');
-
 
             //here per-line file read to avoid memory overheads
             $handle = fopen($stgLog, "r");
@@ -323,8 +324,8 @@ class FundsFlow {
                 $eachline = fgets($handle);
                 if (!empty($eachline)) {
                     $requiredDateOffset = false;
-                    if ($curMonth) {
-                        if (ispos($eachline, $dateMask)) {
+                    if ($customDateMask) {
+                        if (ispos($eachline, $dateMaskFilter)) {
                             $requiredDateOffset = true;
                         }
                     } else {
@@ -369,7 +370,7 @@ class FundsFlow {
             fclose($handle);
         }
 
-        $timeRange = ($curMonth) ? curmonth() : 'ALL_TIME';
+        $timeRange = (!empty($customDateMask)) ? $customDateMask : 'ALL_TIME';
         log_register('FEES HARVESTED `' . $result . '` OF `' . $lineCount . '` RECORDS PARSED BY `' . $timeRange . '`');
         return($result);
     }
