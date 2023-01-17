@@ -684,8 +684,8 @@ function web_SwitchEditForm($switchid) {
     }
 
     if (cfr('REPORTSWPORT')) {
-        if(@$altCfg['SWITCHPORT_IN_PROFILE']) {
-		$result .= wf_Link('?module=report_switchportassign&switchid=' . $switchid, wf_img('skins/icon_user_16.gif') . ' ' . __('Switch port assign'), false, 'ubButton');
+        if (@$altCfg['SWITCHPORT_IN_PROFILE']) {
+            $result .= wf_Link('?module=report_switchportassign&switchid=' . $switchid, wf_img('skins/icon_user_16.gif') . ' ' . __('Switch port assign'), false, 'ubButton');
         }
     }
 
@@ -1673,6 +1673,12 @@ function ub_SwitchDelete($switchid) {
     if ($swGroupsEnabled) {
         $switchGroups = new SwitchGroups();
         $switchGroups->removeSwitchFromGroup($switchid);
+    }
+
+    $switchesExtended = $ubillingConfig->getAlterParam('SWITCHES_EXTENDED');
+    if ($switchesExtended) {
+        $switchesUplinks = new SwitchUplinks();
+        $switchesUplinks->delete($switchid);
     }
 
     $query = 'DELETE FROM `switches_qinq` WHERE `switchid` = "' . $switchid . '"';
