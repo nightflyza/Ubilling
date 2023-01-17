@@ -227,6 +227,22 @@ class SwitchUplinks {
     }
 
     /**
+     * Delete switch uplink data record from database
+     * 
+     * @param int $switchId
+     * 
+     * @return void
+     */
+    public function delete($switchId) {
+        $switchId = ubRouting::filters($switchId, 'int');
+        if ($switchId) {
+            $this->switchUplinks->where('switchid', '=', $switchId);
+            $this->switchUplinks->delete();
+            log_register('SWITCHUPLINK DELETE [' . $switchId . ']');
+        }
+    }
+
+    /**
      * Renders current instance uplink data in compact format
      * 
      * @return string
