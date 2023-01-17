@@ -8,13 +8,18 @@ if (ubRouting::get('action') == 'feesharvester') {
         $harvesterProcess = new StarDust('FEESHARVESTER');
         if ($harvesterProcess->notRunning()) {
             if (ubRouting::checkGet('full', false)) {
-                $curMonth = false;
+                $customMonth = '';
             } else {
-                $curMonth = true;
+                $customMonth = curmonth();
             }
+
+            if (ubRouting::checkGet('today', false)) {
+                $customMonth = curdate();
+            }
+
             $harvesterProcess->start();
             $fundsFlow = new FundsFlow();
-            $harvestedFees = $fundsFlow->harvestFees($curMonth);
+            $harvestedFees = $fundsFlow->harvestFees($customMonth);
             $harvesterProcess->stop();
             die('OK: FEES HARVESTED `' . $harvestedFees . '`');
         } else {

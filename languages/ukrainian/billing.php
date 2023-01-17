@@ -3466,6 +3466,16 @@ $lang['def']['Stop the process'] = 'Зупинити процес';
 $lang['def']['Stop the process with extreme cruelty'] = 'Вбити процес з особливою жорстокістю';
 $lang['def']['No matching process was found'] = 'Процес не знайдено';
 $lang['def']['No matching process PID was found'] = 'Відповідний процесу PID не знайдено';
+$lang['def']['Migrate previous fees data into database'] = 'Мігрувати дані про попередні нарахування абонплати до БД';
+$lang['def']['Migrate all fees data for all time'] = 'Мігрувати усі дані про нарахування АП за весь час';
+$lang['def']['Migrate fees data by selected month'] = 'Мігрувати дані про нарахування АП за вибраний місяць';
+$lang['def']['This process make take a while, please be patient'] = 'Цей процес може бути тривалим, будьте терплячими';
+$lang['def']['Stargazer log file contains'] = 'Файл журналу Stargazer містить';
+$lang['def']['Ubilling database contains'] = 'База даних Ubilling містить';
+$lang['def']['fee records'] = 'записів про нарахування абонплати';
+$lang['def']['May be not all of fee records imported to database'] = 'Можливо не всі всі записи про нарахування АП імпортовано в БД';
+$lang['def']['Looks like all data currently synced'] = 'Виглядає так, ніби всі дані наразі синхронізовано';
+$lang['def']['Migrate'] = 'Мігрувати';
 $lang['def'][''] = '';
 
 
