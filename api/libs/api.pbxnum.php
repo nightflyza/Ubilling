@@ -187,7 +187,10 @@ class PBXNum {
                 }
             }
         }
-        $this->log((($getMoney) ? print_r($askReplyArr, true) : $askReply), $detectedLogin);
+
+        if (!$getMoney) {
+            $this->log($askReply, $detectedLogin);
+        }
         return ($askReply);
     }
 
