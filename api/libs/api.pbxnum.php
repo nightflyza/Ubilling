@@ -184,11 +184,14 @@ class PBXNum {
                     $askReplyArr[] = round($userData['Cash'], 2);
                     $askReplyArr[] = round($userData['Fee'], 2);
                     $askReply = base64_encode(serialize($askReplyArr));
+                    $normalReply = $askReply; //omg omg omg, Bober za sho? :(
                 }
             }
         }
 
-        if (!$getMoney) {
+        if ($getMoney) {
+            $this->log($normalReply, $detectedLogin);
+        } else {
             $this->log($askReply, $detectedLogin);
         }
         return ($askReply);
