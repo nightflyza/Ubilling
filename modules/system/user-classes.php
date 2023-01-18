@@ -380,12 +380,12 @@ class rcms_user extends rcms_access {
             $myLogin = $this->user['username'];
             $ghostData = explode(':', $_COOKIE['ghost_user']);
             //cleanup ghostmode data
-            setcookie('ghost_user', '', null);
+            setcookie('ghost_user', '', 0);
             $_COOKIE['ghost_user'] = '';
 
             //login of another admin
             rcms_log_put('Notification', $ghostData[0], 'Ghost logged out as ' . $myLogin);
-            setcookie('ubilling_user', $ghostData[0] . ':' . $ghostData[1], null);
+            setcookie('ubilling_user', $ghostData[0] . ':' . $ghostData[1], 0);
             $_COOKIE['ubilling_user'] = $ghostData[0] . ':' . $ghostData[1];
         }
     }
