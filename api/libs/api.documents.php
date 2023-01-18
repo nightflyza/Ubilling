@@ -233,8 +233,10 @@ class ProfileDocuments {
         $newDocId = $lastDocId + 1;
 
 
-        if ($this->altcfg['OPENPAYZ_REALID']) {
-            $allopcustomers = zb_TemplateGetAllOPCustomers();
+        if ($this->altcfg['OPENPAYZ_SUPPORT']) {
+            if ($this->altcfg['OPENPAYZ_REALID']) {
+                $allopcustomers = zb_TemplateGetAllOPCustomers();
+            }
         }
 
         if (!empty($alluserdata)) {

@@ -479,11 +479,15 @@ class AndroidApp {
                     $additionalNumbers = implode(', ', $allExt);
                     $this->usersData[$this->login]['additionalNumbers'] = $additionalNumbers;
                 }
-                // User payment ID 
-                if ($ubillingConfig->getAlterParam('OPENPAYZ_REALID')) {
-                    $this->usersData[$this->login]['paymantid'] = zb_PaymentIDGet($this->login);
+                // User payment ID
+                if ($ubillingConfig->getAlterParam('OPENPAYZ_SUPPORT')) {
+                    if ($ubillingConfig->getAlterParam('OPENPAYZ_REALID')) {
+                        $this->usersData[$this->login]['paymantid'] = zb_PaymentIDGet($this->login);
+                    } else {
+                        $this->usersData[$this->login]['paymantid'] = ip2int($this->usersData[$this->login]['ip']);
+                    }
                 } else {
-                    $this->usersData[$this->login]['paymantid'] = ip2int($this->usersData[$this->login]['ip']);
+                    $this->usersData[$this->login]['paymantid'] = '';
                 }
                 $this->usersData[$this->login]['notes'] = zb_UserGetNotes($this->login);
                 // gets and preformats last activity time
