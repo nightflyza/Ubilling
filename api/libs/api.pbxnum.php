@@ -201,7 +201,11 @@ class PBXNum {
     }
 
     /**
-     * Returns parsed calls log
+     * Returns parsed incoming calls log. 
+     * 
+     * Log format example:
+     * 2023-01-18 11:42:42 NUMBER: 380931234567 REPLY: 0 LOGIN:
+     * 2023-01-18 11:43:51 NUMBER: 380937654321 REPLY: 1 LOGIN: someuserlogin
      * 
      * @return array
      */
