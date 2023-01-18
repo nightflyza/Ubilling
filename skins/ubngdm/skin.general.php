@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="ru">
+<html lang="<?=$system->config['language']?>">
     <head>
         <meta charset="utf-8"/>
         <title><?rcms_show_element('title')?></title>
