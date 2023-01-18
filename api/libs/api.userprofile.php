@@ -535,10 +535,12 @@ class UserProfile {
      * @return void
      */
     protected function loadPaymentID() {
-        if ($this->alterCfg['OPENPAYZ_REALID']) {
-            $this->paymentid = zb_PaymentIDGet($this->login);
-        } else {
-            $this->paymentid = ip2int($this->userdata['IP']);
+        if ($this->alterCfg['OPENPAYZ_SUPPORT']) {
+            if ($this->alterCfg['OPENPAYZ_REALID']) {
+                $this->paymentid = zb_PaymentIDGet($this->login);
+            } else {
+                $this->paymentid = ip2int($this->userdata['IP']);
+            }
         }
     }
 
