@@ -405,18 +405,20 @@ class SMSZilla {
      */
     protected function getOpenPayzCustomers() {
         $result = array();
-        if ($this->altCfg['OPENPAYZ_REALID']) {
-            $query = "SELECT `realid`,`virtualid` from `op_customers`";
-            $allcustomers = simple_queryall($query);
-            if (!empty($allcustomers)) {
-                foreach ($allcustomers as $io => $eachcustomer) {
-                    $result[$eachcustomer['realid']] = $eachcustomer['virtualid'];
+        if ($this->altCfg['OPENPAYZ_SUPPORT']) {
+            if ($this->altCfg['OPENPAYZ_REALID']) {
+                $query = "SELECT `realid`,`virtualid` from `op_customers`";
+                $allcustomers = simple_queryall($query);
+                if (!empty($allcustomers)) {
+                    foreach ($allcustomers as $io => $eachcustomer) {
+                        $result[$eachcustomer['realid']] = $eachcustomer['virtualid'];
+                    }
                 }
-            }
-        } else {
-            if (!empty($this->allUserData)) {
-                foreach ($this->allUserData as $io => $each) {
-                    $result[$each['login']] = ip2int($each['ip']);
+            } else {
+                if (!empty($this->allUserData)) {
+                    foreach ($this->allUserData as $io => $each) {
+                        $result[$each['login']] = ip2int($each['ip']);
+                    }
                 }
             }
         }

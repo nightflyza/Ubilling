@@ -954,18 +954,20 @@ class UserSideApi {
      */
     protected function getAllUserPaymentIds() {
         $result = array();
-        if ($this->altCfg['OPENPAYZ_REALID']) {
-            $query = "SELECT * from `op_customers`";
-            $all = simple_queryall($query);
-            if (!empty($all)) {
-                foreach ($all as $io => $each) {
-                    $result[$each['realid']] = $each['virtualid'];
+        if ($this->altCfg['OPENPAYZ_SUPPORT']) {
+            if ($this->altCfg['OPENPAYZ_REALID']) {
+                $query = "SELECT * from `op_customers`";
+                $all = simple_queryall($query);
+                if (!empty($all)) {
+                    foreach ($all as $io => $each) {
+                        $result[$each['realid']] = $each['virtualid'];
+                    }
                 }
-            }
-        } else {
-            if (!empty($this->allUserData)) {
-                foreach (@$this->allUserData as $io => $each) {
-                    $result[$each['login']] = ip2int($each['IP']);
+            } else {
+                if (!empty($this->allUserData)) {
+                    foreach (@$this->allUserData as $io => $each) {
+                        $result[$each['login']] = ip2int($each['IP']);
+                    }
                 }
             }
         }

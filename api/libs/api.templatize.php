@@ -70,12 +70,15 @@ function zb_cfGetContent($login, $allcfdata) {
  * @return array
  */
 function zb_TemplateGetAllOPCustomers() {
+    global $ubillingConfig;
     $result = array();
-    $query = "SELECT * from `op_customers`";
-    $all = simple_queryall($query);
-    if (!empty($all)) {
-        foreach ($all as $io => $each) {
-            $result[$each['realid']] = $each['virtualid'];
+    if ($ubillingConfig->getAlterParam('OPENPAYZ_SUPPORT')) {
+        $query = "SELECT * from `op_customers`";
+        $all = simple_queryall($query);
+        if (!empty($all)) {
+            foreach ($all as $io => $each) {
+                $result[$each['realid']] = $each['virtualid'];
+            }
         }
     }
     return ($result);
@@ -113,8 +116,10 @@ function zb_TemplateGetAllUserData() {
     }
 
 
-    if ($altcfg['OPENPAYZ_REALID']) {
-        $allopcustomers = zb_TemplateGetAllOPCustomers();
+    if ($altcfg['OPENPAYZ_SUPPORT']) {
+        if ($altcfg['OPENPAYZ_REALID']) {
+            $allopcustomers = zb_TemplateGetAllOPCustomers();
+        }
     }
 
     if (!empty($alluserdata)) {
@@ -191,7 +196,6 @@ function zb_TemplateGetAllUserData() {
             } else {
                 $userdata[$eachuser['login']]['moneylack'] = @$tariffprices[$eachuser['TariffChange']] - $eachuser['Cash'];
             }
-
         }
     }
 
@@ -209,7 +213,7 @@ function zb_TemplateReplaceAll($template, $alluserdata) {
     $result = '';
     if (!empty($alluserdata)) {
         foreach ($alluserdata as $io => $each) {
-            $result.=$template;
+            $result .= $template;
             //known macro
             $result = str_ireplace('{LOGIN}', $each['login'], $result);
             $result = str_ireplace('{PASSWORD}', $each['password'], $result);
@@ -275,7 +279,7 @@ function zb_TemplateReplaceAll($template, $alluserdata) {
 function zb_TemplateReplace($login, $template, $alluserdata) {
     $result = '';
     if (!empty($alluserdata)) {
-        $result.=$template;
+        $result .= $template;
         //known macro
         $result = str_ireplace('{LOGIN}', $alluserdata[$login]['login'], $result);
         $result = str_ireplace('{PASSWORD}', $alluserdata[$login]['password'], $result);
@@ -351,7 +355,7 @@ function zb_DocsShowAllTemplates($username = '') {
     }
 
     $tablecells = wf_TableCell(__('Document name'));
-    $tablecells.=wf_TableCell(__('Actions'));
+    $tablecells .= wf_TableCell(__('Actions'));
     $tablerows = wf_TableRow($tablecells, 'row1');
 
     if (!empty($allheaders)) {
@@ -360,11 +364,11 @@ function zb_DocsShowAllTemplates($username = '') {
                 $documenttitle = file_get_contents($headerspath . $eachdoc);
                 $printlink = '<a href="?module=pl_documents' . $userlink . '&printtemplate=' . $eachdoc . '" target="_BLANK">' . $documenttitle . '</a>';
                 $actionlinks = wf_JSAlert("?module=pl_documents" . $userlink . "&deletetemplate=" . $eachdoc, web_delete_icon(), 'Removing this may lead to irreparable results');
-                $actionlinks.= wf_JSAlert("?module=pl_documents" . $userlink . "&edittemplate=" . $eachdoc, web_edit_icon(), 'Are you serious');
+                $actionlinks .= wf_JSAlert("?module=pl_documents" . $userlink . "&edittemplate=" . $eachdoc, web_edit_icon(), 'Are you serious');
 
                 $tablecells = wf_TableCell($printlink);
-                $tablecells.=wf_TableCell($actionlinks);
-                $tablerows.= wf_TableRow($tablecells, 'row3');
+                $tablecells .= wf_TableCell($actionlinks);
+                $tablerows .= wf_TableRow($tablecells, 'row3');
             }
         }
     }
@@ -435,8 +439,8 @@ function zb_DocsDeleteTemplate($template) {
  */
 function zb_DocsTemplateAddForm() {
     $inputs = wf_TextInput('newtemplatetitle', __('New template title'), '', true, '50');
-    $inputs.= wf_TextArea('newtemplatebody', '', '', true, '80x20');
-    $inputs.= wf_Submit('Create');
+    $inputs .= wf_TextArea('newtemplatebody', '', '', true, '80x20');
+    $inputs .= wf_Submit('Create');
     $addform = wf_Form('', 'POST', $inputs, 'glamour');
     show_window(__('Create new template'), $addform);
 }
@@ -450,8 +454,8 @@ function zb_DocsTemplateEditForm($template) {
     $templatebody = zb_DocsLoadTemplate($template);
     $templatetitle = zb_DocsLoadTemplateTitle($template);
     $inputs = wf_TextInput('edittemplatetitle', __('Edit template title'), $templatetitle, true, '50');
-    $inputs.= wf_TextArea('edittemplatebody', '', $templatebody, true, '80x20');
-    $inputs.= wf_Submit('Save');
+    $inputs .= wf_TextArea('edittemplatebody', '', $templatebody, true, '80x20');
+    $inputs .= wf_Submit('Save');
     $addform = wf_Form('', 'POST', $inputs, 'glamour');
     show_window(__('Edit document template'), $addform);
 }

@@ -366,18 +366,20 @@ class UbillingVisor {
      * @return void
      */
     protected function loadPaymentIds() {
-        if ($this->altCfg['OPENPAYZ_REALID']) {
-            $query = "SELECT `realid`,`virtualid` from `op_customers`";
-            $allcustomers = simple_queryall($query);
-            if (!empty($allcustomers)) {
-                foreach ($allcustomers as $io => $eachcustomer) {
-                    $this->allPaymentIDs[$eachcustomer['realid']] = $eachcustomer['virtualid'];
+        if ($this->altCfg['OPENPAYZ_SUPPORT']) {
+            if ($this->altCfg['OPENPAYZ_REALID']) {
+                $query = "SELECT `realid`,`virtualid` from `op_customers`";
+                $allcustomers = simple_queryall($query);
+                if (!empty($allcustomers)) {
+                    foreach ($allcustomers as $io => $eachcustomer) {
+                        $this->allPaymentIDs[$eachcustomer['realid']] = $eachcustomer['virtualid'];
+                    }
                 }
-            }
-        } else {
-            if (!empty($this->allUserData)) {
-                foreach ($this->allUserData as $io => $each) {
-                    $this->allPaymentIDs[$each['login']] = ip2int($each['ip']);
+            } else {
+                if (!empty($this->allUserData)) {
+                    foreach ($this->allUserData as $io => $each) {
+                        $this->allPaymentIDs[$each['login']] = ip2int($each['ip']);
+                    }
                 }
             }
         }
@@ -734,10 +736,12 @@ class UbillingVisor {
                     $cells .= wf_TableCell($this->allUserData[$primaryAccount]['Cash']);
                     $rows .= wf_TableRow($cells, 'row3');
 
-                    $cells = wf_TableCell(__('Payment ID'), '30%', 'row2');
-                    $cells .= wf_TableCell($this->allPaymentIDs[$primaryAccount]);
-                    $rows .= wf_TableRow($cells, 'row3');
-                    $result .= $rows;
+                    if ($this->altCfg['OPENPAYZ_SUPPORT']) {
+                        $cells = wf_TableCell(__('Payment ID'), '30%', 'row2');
+                        $cells .= wf_TableCell($this->allPaymentIDs[$primaryAccount]);
+                        $rows .= wf_TableRow($cells, 'row3');
+                        $result .= $rows;
+                    }
 
                     //tariffing notice here
                     $tariffingNotice = '';
