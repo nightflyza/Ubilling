@@ -19,6 +19,7 @@ class SignupService {
     protected $optionSidebarText = '';
     protected $optionGreetingText = '';
     protected $optionHideouts = '';
+    protected $cachingTime=3600;
 
     //caching
     const CACHE_PATH = 'cache/';
