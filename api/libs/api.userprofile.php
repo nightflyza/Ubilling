@@ -2247,7 +2247,9 @@ class UserProfile {
             $profile .= $this->addRow(__('Email'), $this->mail);
         }
 //payment ID data
-        $profile .= $this->addRow(__('Payment ID'), $this->paymentid, true);
+        if ($this->alterCfg['OPENPAYZ_SUPPORT']) {
+            $profile .= $this->addRow(__('Payment ID'), $this->paymentid, true);
+        }
 //LAT data row
         $profile .= $this->getUserLat();
 //Login row
