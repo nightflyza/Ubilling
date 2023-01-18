@@ -194,7 +194,7 @@ class PBXNum {
             }
         }
 
-        //$this->log((($getMoney) ? print_r($askReplyArr, true) : $askReply), $detectedLogin);
+
         $this->log($nonEncodedReply, $detectedLogin);
 
         return ($askReply);
