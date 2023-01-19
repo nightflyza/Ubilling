@@ -13,7 +13,12 @@ if ($altCfg['NASMON_ENABLED']) {
         $nasMonControls .= wf_Link($nasMon::URL_ME . '&refresh=true' . $refreshAppend, wf_img('skins/refresh.gif') . ' ' . __('Force query'), false, 'ubButton');
 
         if (ubRouting::checkGet('refresh')) {
-            $nasMon->saveCheckResults();
+            $nasMonProcess = new StarDust('NASMON');
+            if ($nasMonProcess->notRunning()) {
+                $nasMonProcess->start();
+                $nasMon->saveCheckResults();
+                $nasMonProcess->stop();
+            }
             ubRouting::nav($nasMon::URL_ME . $refreshAppend);
         }
         show_window('', $nasMonControls);
