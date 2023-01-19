@@ -201,8 +201,8 @@ class Envy {
      * Updates some Switch process stats
      * 
      * @param int $swIP Existing Switch IP
-     * @param int $pollingStartTime process start timestame
-     * @param int $pollingEndTime process end timestamp
+     * @param int $processStartTime process start timestame
+     * @param int $processEndTime process end timestamp
      * @param bool $finished process finished or not flag
      * 
      * @return void
@@ -221,7 +221,7 @@ class Envy {
             $this->stardust->setProcess(self::ENVYPROC_PID . $swIP);
             $this->stardust->stop();
         } else {
-            //set lock for polling of some OLT
+            //set lock for process of some DevID
             $this->stardust->setProcess(self::ENVYPROC_PID . $swIP);
             $this->stardust->start();
         }
@@ -928,7 +928,7 @@ class Envy {
      * 
      * @return void/string on error
      */
-    public function storeArchiveData($switchId, $data) {
+    protected function storeArchiveData($switchId, $data) {
         $result = '';
         $switchId = ubRouting::filters($switchId, 'int');
         if (!empty($switchId)) {
@@ -1036,6 +1036,28 @@ class Envy {
     }
 
     /**
+     * Start process for get and store config data
+     * 
+     * @param int $devId
+     * 
+     * @return void
+     */
+    public function procStoreArchiveData($devId) {
+        if (!$this->isProcessLocked($this->allSwitches[$devId]['ip'])) {
+            //prefilling Switch process envy stats
+            $processStartTime = time();
+            $this->processStatsUpdate($this->allSwitches[$devId]['ip'], $processStartTime, 0, false);
+
+            // Main process
+            $this->storeArchiveData($devId, $this->runDeviceScript($devId));
+
+            //finishing Switch process envy stats
+            $processEndTime = time();
+            $this->processStatsUpdate($this->allSwitches[$devId]['ip'], $processStartTime, $processEndTime, true);
+        }
+    }
+
+    /**
      * Stores all available envy-devices configs into archive
      * 
      * @return void
@@ -1043,21 +1065,33 @@ class Envy {
     public function storeArchiveAllDevices() {
         if (!empty($this->allScripts)) {
             if (!empty($this->allDevices)) {
-                foreach ($this->allDevices as $io => $each) {
-                    if ($each['active']) {
-                        if (!$this->isProcessLocked($this->allSwitches[$each['switchid']]['ip'])) {
-                            //prefilling Switch process envy stats
-                            $processStartTime = time();
-                            $this->processStatsUpdate($this->allSwitches[$each['switchid']]['ip'], $processStartTime, 0, false);
+                if (!$this->isProcessLocked('ALL')) {
+                    //prefilling Switch process envy stats
+                    $processStartTime = time();
+                    $this->processStatsUpdate('ALL', $processStartTime, 0, false);
 
-                            // Main process
-                            $this->storeArchiveData($each['switchid'], $this->runDeviceScript($each['switchid']));
-
-                            //finishing Switch process envy stats
-                            $processEndTime = time();
-                            $this->processStatsUpdate($this->allSwitches[$each['switchid']]['ip'], $processStartTime, $processEndTime, true);
+                    foreach ($this->allDevices as $io => $each) {
+                        if ($each['active']) {
+                            if (@!$this->billCfg['MULTI_ENVY_PROC']) {
+                                $this->procStoreArchiveData($each['switchid']);
+                            } else {
+                                //starting herd of apocalypse pony here!
+                                $procTimeout = 0;
+                                if ($this->billCfg['MULTI_ENVY_PROC'] > 1) {
+                                    $procTimeout = ubRouting::filters($this->billCfg['MULTI_ENVY_PROC'], 'int');
+                                }
+                                $pipes = array();
+                                proc_close(proc_open('/bin/ubapi "multienvy&devid=' . $each['switchid'] . '"> /dev/null 2>/dev/null &', array(), $pipes));
+                                if ($procTimeout) {
+                                    sleep($procTimeout);
+                                }
+                            }
                         }
                     }
+
+                    //finishing Switch process envy stats
+                    $processEndTime = time();
+                    $this->processStatsUpdate('ALL', $processStartTime, $processEndTime, true);
                 }
             }
         }
