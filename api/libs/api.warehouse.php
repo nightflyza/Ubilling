@@ -1938,9 +1938,12 @@ class Warehouse {
         if (wf_CheckPost(array('edititemtypeid', 'edititemtypename', 'edititemtypecetegoryid', 'edititemtypeunit'))) {
             $itemtypeId = vf($_POST['edititemtypeid']);
             if (isset($this->allItemTypes[$itemtypeId])) {
+                $nameF = $_POST['edititemtypename'];
+                $nameF = str_replace('"', '``', $nameF);
+                $nameF = str_replace("'", '`', $nameF);
                 $where = " WHERE `id`='" . $itemtypeId . "'";
                 simple_update_field('wh_itemtypes', 'categoryid', $_POST['edititemtypecetegoryid'], $where);
-                simple_update_field('wh_itemtypes', 'name', $_POST['edititemtypename'], $where);
+                simple_update_field('wh_itemtypes', 'name', $nameF, $where);
                 simple_update_field('wh_itemtypes', 'unit', $_POST['edititemtypeunit'], $where);
                 if (isset($_POST['edititemtypereserve'])) {
                     $unit = str_replace(',', '.', $_POST['edititemtypereserve']);
@@ -1967,6 +1970,8 @@ class Warehouse {
         $categoryid = vf($categoryid, 3);
         if (isset($this->allCategories[$categoryid])) {
             $nameF = mysql_real_escape_string($name);
+            $nameF = str_replace('"', '``', $nameF);
+            $nameF = str_replace("'", '`', $nameF);
             $unit = mysql_real_escape_string($unit);
             $reserve = str_replace(',', '.', $reserve);
             $reserve = str_replace('-', '', $reserve);
