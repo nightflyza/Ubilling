@@ -28,6 +28,8 @@ class DOCXTemplate {
     private $data;
     private $package;
     private $error;
+    private $debug;
+    private $datasec = array();
 
     public function __construct($template_filename, $is_data = false, $debug = false) {
         $this->data = array();
@@ -404,9 +406,11 @@ class DOCXTemplate {
     }
 
     function saveAs($filename) {
-        if ( !$this->_parse() ) return false;
+        if (!$this->_parse())
+            return false;
         $fh = fopen($filename, 'wb');
-        if ( !$fh ) return false;
+        if (!$fh)
+            return false;
         if (!$this->_zip($fh)) {
             fclose($fh);
             return false;
@@ -415,12 +419,14 @@ class DOCXTemplate {
         return true;
     }
 
-    function downloadAs( $filename, $exit = true ) {
-        if ( !$this->_parse() ) return false;
+    function downloadAs($filename, $exit = true) {
+        if (!$this->_parse())
+            return false;
         //php://stdin
         $fh = tmpfile();
-        if ( !$fh ) return false;
-        if ( !$this->_zip($fh) ) {
+        if (!$fh)
+            return false;
+        if (!$this->_zip($fh)) {
             fclose($fh);
             return false;
         }
@@ -433,7 +439,8 @@ class DOCXTemplate {
         fseek($fh, 0);
         echo fread($fh, $size);
         fclose($fh);
-        if ( $exit ) exit();
+        if ($exit)
+            exit();
         return true;
     }
 
