@@ -13,6 +13,13 @@ class Envy {
     protected $billCfg = array();
 
     /**
+     * System alter.ini config stored as key=>value
+     *
+     * @var array
+     */
+    protected $altCfg = array();
+
+    /**
      * Contains all available devices models
      *
      * @var array
@@ -115,6 +122,7 @@ class Envy {
     public function __construct() {
         $this->initMessages();
         $this->loadConfigs();
+        $this->loadAlter();
         $this->loadDeviceModels();
         $this->loadSwitches();
         $this->initScrips();
@@ -136,6 +144,16 @@ class Envy {
     protected function loadConfigs() {
         global $ubillingConfig;
         $this->billCfg = $ubillingConfig->getBilling();
+        $this->ubConfig = $ubillingConfig;
+    }
+
+    /**
+     * Loads system alter.ini config into private data property
+     *
+     * @return void
+     */
+    protected function loadAlter() {
+        $this->altCfg = $this->ubConfig->getAlter();
     }
 
     /**
@@ -1072,13 +1090,13 @@ class Envy {
 
                     foreach ($this->allDevices as $io => $each) {
                         if ($each['active']) {
-                            if (@!$this->billCfg['MULTI_ENVY_PROC']) {
+                            if (@!$this->altCfg['MULTI_ENVY_PROC']) {
                                 $this->procStoreArchiveData($each['switchid']);
                             } else {
                                 //starting herd of apocalypse pony here!
                                 $procTimeout = 0;
-                                if ($this->billCfg['MULTI_ENVY_PROC'] > 1) {
-                                    $procTimeout = ubRouting::filters($this->billCfg['MULTI_ENVY_PROC'], 'int');
+                                if ($this->altCfg['MULTI_ENVY_PROC'] > 1) {
+                                    $procTimeout = ubRouting::filters($this->altCfg['MULTI_ENVY_PROC'], 'int');
                                 }
                                 $pipes = array();
                                 proc_close(proc_open('/bin/ubapi "multienvy&devid=' . $each['switchid'] . '"> /dev/null 2>/dev/null &', array(), $pipes));
