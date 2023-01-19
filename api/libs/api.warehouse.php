@@ -3377,7 +3377,11 @@ class Warehouse {
         $countF = str_replace(',', '.', $countF);
         $priceF = mysql_real_escape_string($price);
         $priceF = str_replace(',', '.', $priceF);
-        $priceF = round($priceF, 2);
+        if (is_numeric($priceF)) {
+            $priceF = round($priceF, 2);
+        } else {
+            $priceF = 0;
+        }
         $notes = mysql_real_escape_string($notes);
         $admin = mysql_real_escape_string(whoami());
 
