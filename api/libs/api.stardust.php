@@ -301,7 +301,7 @@ class StarDust {
     public function runBackgroundProcess($command, $timeout = 0) {
         if (!empty($command)) {
             $pipes = array();
-            proc_close(proc_open($command . '"> /dev/null 2>/dev/null &', array(), $pipes));
+            proc_close(proc_open($command . ' > /dev/null 2>/dev/null &', array(), $pipes));
             if ($timeout) {
                 sleep($timeout);
             }

@@ -1085,7 +1085,7 @@ class Envy {
                                 if ($this->altCfg['MULTI_ENVY_PROC'] > 1) {
                                     $procTimeout = ubRouting::filters($this->altCfg['MULTI_ENVY_PROC'], 'int');
                                 }
-                                $this->stardust->runBackgroundProcess('/bin/ubapi "multienvy&devid=' . $each['switchid'], $procTimeout);
+                                $this->stardust->runBackgroundProcess('/bin/ubapi "multienvy&devid=' . $each['switchid'] . '"', $procTimeout);
                             }
                         }
                     }
