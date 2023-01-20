@@ -899,7 +899,12 @@ class ExistentialHorse {
             $totalCalls = $totalRecalls + $totalMissed;
 
             $this->storeTmp['a_recallunsuccess'] = zb_PercentValue($totalCalls, $totalMissed);
-            @$this->storeTmp['a_recalltrytime'] = round(($totalReactTime / ($totalRecalls + $totalUnsucc)));
+            $recallCallsTotals = $totalRecalls + $totalUnsucc;
+            if ($recallCallsTotals != 0) {
+                $this->storeTmp['a_recalltrytime'] = round(($totalReactTime / $recallCallsTotals));
+            } else {
+                $this->storeTmp['a_recalltrytime'] = 0;
+            }
         }
     }
 
