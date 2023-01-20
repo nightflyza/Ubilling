@@ -937,11 +937,7 @@ class PONizer {
                     if ($this->altCfg['HERD_OF_PONIES'] > 1) {
                         $herdTimeout = ubRouting::filters($this->altCfg['HERD_OF_PONIES'], 'int');
                     }
-                    $pipes = array();
-                    proc_close(proc_open('/bin/ubapi "herd&oltid=' . $oltid . '"> /dev/null 2>/dev/null &', array(), $pipes));
-                    if ($herdTimeout) {
-                        sleep($herdTimeout);
-                    }
+                    $this->stardust->runBackgroundProcess('/bin/ubapi "herd&oltid=' . $oltid . '"', $herdTimeout);
                 }
             }
         }
