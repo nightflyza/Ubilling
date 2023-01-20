@@ -105,7 +105,6 @@ class Envy {
     const ROUTE_FILTER = 'devicefilter';
     const ROUTE_CLEANUP = 'cleanuparchive';
     const ENVYPROC_PID = 'ENVYPROC_';
-    const ENVY_STATS = 'exports/ENVYRUN_';
 
     /**
      *   ___ _ ____   ___   _ 
@@ -225,14 +224,7 @@ class Envy {
      * 
      * @return void
      */
-    protected function processStatsUpdate($swIP, $processStartTime = 0, $processEndTime = 0, $finished = false) {
-        $statsPath = self::ENVY_STATS . $swIP;
-        $finishedData = ($finished) ? 1 : 0;
-        $dataToSave['start'] = $processStartTime;
-        $dataToSave['end'] = $processEndTime;
-        $dataToSave['finished'] = $finishedData;
-        $dataToSave = json_encode($dataToSave);
-        file_put_contents($statsPath, $dataToSave);
+    protected function processStatsUpdate($swIP, $finished = false) {
         //collector process locking and releasing of locks here
         if ($finished) {
             //release lock
@@ -1062,16 +1054,12 @@ class Envy {
      */
     public function procStoreArchiveData($devId) {
         if (!$this->isProcessLocked($this->allSwitches[$devId]['ip'])) {
-            //prefilling Switch process envy stats
-            $processStartTime = time();
-            $this->processStatsUpdate($this->allSwitches[$devId]['ip'], $processStartTime, 0, false);
-
-            // Main process
+            //starting process
+            $this->processStatsUpdate($this->allSwitches[$devId]['ip'], false);
+            //polling device
             $this->storeArchiveData($devId, $this->runDeviceScript($devId));
-
-            //finishing Switch process envy stats
-            $processEndTime = time();
-            $this->processStatsUpdate($this->allSwitches[$devId]['ip'], $processStartTime, $processEndTime, true);
+            //finishing process
+            $this->processStatsUpdate($this->allSwitches[$devId]['ip'], true);
         }
     }
 
@@ -1084,32 +1072,26 @@ class Envy {
         if (!empty($this->allScripts)) {
             if (!empty($this->allDevices)) {
                 if (!$this->isProcessLocked('ALL')) {
-                    //prefilling Switch process envy stats
-                    $processStartTime = time();
-                    $this->processStatsUpdate('ALL', $processStartTime, 0, false);
+                    //starting envy process
+                    $this->processStatsUpdate('ALL', false);
 
                     foreach ($this->allDevices as $io => $each) {
                         if ($each['active']) {
                             if (@!$this->altCfg['MULTI_ENVY_PROC']) {
                                 $this->procStoreArchiveData($each['switchid']);
                             } else {
-                                //starting herd of apocalypse pony here!
+                                //starting herd of envy here!
                                 $procTimeout = 0;
                                 if ($this->altCfg['MULTI_ENVY_PROC'] > 1) {
                                     $procTimeout = ubRouting::filters($this->altCfg['MULTI_ENVY_PROC'], 'int');
                                 }
-                                $pipes = array();
-                                proc_close(proc_open('/bin/ubapi "multienvy&devid=' . $each['switchid'] . '"> /dev/null 2>/dev/null &', array(), $pipes));
-                                if ($procTimeout) {
-                                    sleep($procTimeout);
-                                }
+                                $this->stardust->runBackgroundProcess('/bin/ubapi "multienvy&devid=' . $each['switchid'], $procTimeout);
                             }
                         }
                     }
 
-                    //finishing Switch process envy stats
-                    $processEndTime = time();
-                    $this->processStatsUpdate('ALL', $processStartTime, $processEndTime, true);
+                    //finishing envy process
+                    $this->processStatsUpdate('ALL', true);
                 }
             }
         }
