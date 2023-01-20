@@ -290,9 +290,27 @@ class StarDust {
         $this->saveCache();
     }
 
+    /**
+     * Runs execution of some command as background process
+     * 
+     * @param string $command full executable path to run
+     * @param int $timeout optional timeout after executing command
+     * 
+     * @return void
+     */
+    public function runBackgroundProcess($command, $timeout = 0) {
+        if (!empty($command)) {
+            $pipes = array();
+            proc_close(proc_open($command . '"> /dev/null 2>/dev/null &', array(), $pipes));
+            if ($timeout) {
+                sleep($timeout);
+            }
+        }
+    }
+
 //
-//                 ⠀   (\__/)
-//                     (•ㅅ•)      SONO CHI NO SADAME
+//                 ⠀  (\__/)
+//                    (•ㅅ•)      SONO CHI NO SADAME
 //                 ＿ノヽ  ノ＼＿   
 //             `/　`/ ⌒Ｙ⌒ Ｙ  ヽ
 //             ( 　(三ヽ人　 /　  |
