@@ -1,125 +1,12 @@
 <?php
 
 /**
- * Returns all available CF types from database
- * 
- * @return array
- */
-function cf_TypeGetAll() {
-    $query = "SELECT * from `cftypes`";
-    $result = simple_queryall($query);
-    return($result);
-}
-
-/**
- * Gets CF type data by typeID
- * 
- * @param int $typeid Existing CF type database ID
- * 
- * @return array
- */
-function cf_TypeGetData($typeid) {
-    $typeid = vf($typeid, 3);
-    $query = "SELECT * from `cftypes` WHERE `id`='" . $typeid . "'";
-    $result = simple_query($query);
-    return($result);
-}
-
-/**
- * Flushes all of assigned to users CFs from database
- * 
- * @param int $cftypeid Existing CF type database ID
- * 
- * @return void
- */
-function cf_TypeFlush($cftypeid) {
-    $cftypeid = vf($cftypeid);
-    $query = "DELETE from `cfitems` WHERE `typeid`='" . $cftypeid . "'";
-    nr_query($query);
-    log_register("CFTYPE FLUSH [" . $cftypeid . "]");
-}
-
-/**
- * Deletes CF type from database by its ID and flushes assigned
- * 
- * @param int $cftypeid Existing CF type database ID
- * 
- * @return void
- */
-function cf_TypeDelete($cftypeid) {
-    $cftypeid = vf($cftypeid);
-    $query = "DELETE from `cftypes` WHERE `id`='" . $cftypeid . "'";
-    nr_query($query);
-    log_register("CFTYPE DELETE [" . $cftypeid . "]");
-    cf_TypeFlush($cftypeid);
-}
-
-/**
- * Creates new CF type in database
- * 
- * @param string $newtype Type of the CF (VARCHAR, TRIGGER, TEXT)
- * @param string $newname Name of the custom field for display
- * 
- * @return void
- */
-function cf_TypeAdd($newtype, $newname) {
-    $newtype = vf($newtype);
-    $newname = mysql_real_escape_string($newname);
-    if ((!empty($newname)) AND ( !empty($newtype))) {
-        $query = "INSERT INTO `cftypes` (`id` ,`type` ,`name`) VALUES (NULL , '" . $newtype . "', '" . $newname . "');";
-        nr_query($query);
-        log_register("CFTYPE ADD `" . $newtype . "` `" . $newname . "`");
-    }
-}
-
-/**
- * Returns Custom Field creation form 
- * 
- * @return string
- */
-function cf_TypeAddForm() {
-    $types = array(
-        'VARCHAR' => 'VARCHAR',
-        'TRIGGER' => 'TRIGGER',
-        'TEXT' => 'TEXT',
-    );
-
-    $inputs = wf_Selector('newtype', $types, __('Field type'), '', true);
-    $inputs.= wf_TextInput('newname', __('Field name'), '', true, '15');
-    $inputs.= wf_Submit(__('Create'));
-    $form = wf_Form('', 'POST', $inputs, 'glamour');
-    return($form);
-}
-
-/**
- * Returns CF type edit form
- * 
- * @param int $typeid Existing CF type ID
- * 
- * @return void
- */
-function cf_TypeEditForm($typeid) {
-    $typeid = vf($typeid, 3);
-    $typedata = cf_TypeGetData($typeid);
-    $current_type = $typedata['type'];
-    $current_name = $typedata['name'];
-    $availtypes = array('VARCHAR' => 'VARCHAR', 'TRIGGER' => 'TRIGGER', 'TEXT' => 'TEXT');
-
-    $editinputs = wf_HiddenInput('editid', $typeid);
-    $editinputs.=wf_Selector('edittype', $availtypes, 'Field type', $current_type, true);
-    $editinputs.=wf_TextInput('editname', 'Field name', $current_name, true);
-    $editinputs.=wf_Submit('Edit');
-    $editform = wf_Form('', 'POST', $editinputs, 'glamour');
-    show_window(__('Edit custom field type'), $editform);
-    show_window('', wf_BackLink('?module=cftypes'));
-}
-
-/**
  * Return displayable list of available CF types with some controls
  * 
  * @return string
  */
 function cf_TypesShow() {
+    $cf=new CustomFields();
     //construct editor
     $titles = array(
         'ID',
@@ -131,7 +18,7 @@ function cf_TypesShow() {
         'type',
         'name'
     );
-    $alldata = cf_TypeGetAll();
+    $alldata = $cf->getTypesAll();
     $module = 'cftypes';
     //show it
     $result = web_GridEditor($titles, $keys, $alldata, $module, true, true);
@@ -154,26 +41,26 @@ function cf_TypeGetController($login, $type, $typeid) {
     $result = '';
     if ($type == 'VARCHAR') {
         $inputs = wf_HiddenInput('modtype', $typeid);
-        $inputs.= wf_HiddenInput('login', $login);
-        $inputs.= wf_TextInput('content', '', '', false, 20);
-        $inputs.= wf_Submit(__('Save'));
+        $inputs .= wf_HiddenInput('login', $login);
+        $inputs .= wf_TextInput('content', '', '', false, 20);
+        $inputs .= wf_Submit(__('Save'));
         $result = wf_Form("", 'POST', $inputs, '');
     }
 
     if ($type == 'TRIGGER') {
         $triggerOpts = array(1 => __('Yes'), 0 => __('No'));
         $inputs = wf_HiddenInput('modtype', $typeid);
-        $inputs.= wf_HiddenInput('login', $login);
-        $inputs.= wf_Selector('content', $triggerOpts, '', '', false);
-        $inputs.= wf_Submit(__('Save'));
+        $inputs .= wf_HiddenInput('login', $login);
+        $inputs .= wf_Selector('content', $triggerOpts, '', '', false);
+        $inputs .= wf_Submit(__('Save'));
         $result = wf_Form("", 'POST', $inputs, '');
     }
 
     if ($type == 'TEXT') {
         $inputs = wf_HiddenInput('modtype', $typeid);
-        $inputs.= wf_HiddenInput('login', $login);
-        $inputs.= wf_TextArea('content', '', '', true, '25x5');
-        $inputs.= wf_Submit(__('Save'));
+        $inputs .= wf_HiddenInput('login', $login);
+        $inputs .= wf_TextArea('content', '', '', true, '45x5');
+        $inputs .= wf_Submit(__('Save'));
         $result = wf_Form("", 'POST', $inputs, '');
     }
     return ($result);
@@ -193,23 +80,23 @@ function cf_TypeGetSearchControl($type, $typeid) {
     $result = '';
     if ($type == 'VARCHAR') {
         $inputs = wf_HiddenInput('cftypeid', $typeid);
-        $inputs.= wf_TextInput('cfquery', '', '', false, 20);
-        $inputs.= wf_Submit(__('Search'));
+        $inputs .= wf_TextInput('cfquery', '', '', false, 20);
+        $inputs .= wf_Submit(__('Search'));
         $result = wf_Form("", 'POST', $inputs, '');
     }
 
     if ($type == 'TRIGGER') {
         $triggerOpts = array(1 => __('Yes'), 0 => __('No'));
         $inputs = wf_HiddenInput('cftypeid', $typeid);
-        $inputs.= wf_Selector('cfquery', $triggerOpts, '', '', false);
-        $inputs.= wf_Submit(__('Search'));
+        $inputs .= wf_Selector('cfquery', $triggerOpts, '', '', false);
+        $inputs .= wf_Submit(__('Search'));
         $result = wf_Form("", 'POST', $inputs, '');
     }
 
     if ($type == 'TEXT') {
         $inputs = wf_HiddenInput('cftypeid', $typeid);
-        $inputs.= wf_TextInput('cfquery', '', '', false, 20);
-        $inputs.= wf_Submit(__('Search'));
+        $inputs .= wf_TextInput('cfquery', '', '', false, 20);
+        $inputs .= wf_Submit(__('Search'));
         $result = wf_Form("", 'POST', $inputs, '');
     }
     return ($result);
@@ -316,7 +203,7 @@ function cf_FieldDisplay($type, $data) {
  * @return void
  */
 function cf_FieldEditor($login) {
-    global $billing,$ubillingConfig;
+    global $billing, $ubillingConfig;
     $alter_conf = $ubillingConfig->getAlter();
     $result = '';
     //edit routine 
@@ -335,15 +222,15 @@ function cf_FieldEditor($login) {
     if (!empty($alltypes)) {
 
         $cells = wf_TableCell(__('Field name'));
-        $cells.= wf_TableCell(__('Current value'));
-        $cells.= wf_TableCell(__('Actions'));
+        $cells .= wf_TableCell(__('Current value'));
+        $cells .= wf_TableCell(__('Actions'));
         $rows = wf_TableRow($cells, 'row1');
 
         foreach ($alltypes as $io => $eachtype) {
             $cells = wf_TableCell($eachtype['name']);
-            $cells.= wf_TableCell(cf_FieldDisplay($eachtype['type'], cf_FieldGet($login, $eachtype['id'])));
-            $cells.= wf_TableCell(cf_TypeGetController($login, $eachtype['type'], $eachtype['id']));
-            $rows.= wf_TableRow($cells, 'row3');
+            $cells .= wf_TableCell(cf_FieldDisplay($eachtype['type'], cf_FieldGet($login, $eachtype['id'])));
+            $cells .= wf_TableCell(cf_TypeGetController($login, $eachtype['type'], $eachtype['id']));
+            $rows .= wf_TableRow($cells, 'row3');
         }
 
         $result = wf_TableBody($rows, '100%', 0, '');
@@ -368,8 +255,8 @@ function cf_FieldShower($login) {
         foreach ($alltypes as $io => $eachtype) {
 
             $cells = wf_TableCell($eachtype['name'], '30%', 'row2');
-            $cells.= wf_TableCell(cf_FieldDisplay($eachtype['type'], cf_FieldGet($login, $eachtype['id'])), '', 'row3');
-            $rows.= wf_TableRow($cells);
+            $cells .= wf_TableCell(cf_FieldDisplay($eachtype['type'], cf_FieldGet($login, $eachtype['id'])), '', 'row3');
+            $rows .= wf_TableRow($cells);
         }
 
         $result = wf_TableBody($rows, '100%', 0, '');
@@ -391,5 +278,3 @@ function cf_FlushAllUserCF($login) {
     nr_query($query);
     log_register("CF FLUSH (" . $login . ")");
 }
-
-?>
