@@ -3186,3 +3186,7 @@ CREATE TABLE IF NOT EXISTS `fees` (
   KEY `login` (`login`),  
   KEY `date` (`date`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
+
+-- 1.3.5 update
+
+ALTER TABLE `condet` ADD `term` INT NULL AFTER `price`;

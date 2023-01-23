@@ -13,12 +13,32 @@ class ConnectionDetails {
     protected $allDetails = array();
 
     /**
+     * Connection/signup details database abstraction layer
+     *
+     * @var object
+     */
+    protected $condetDb = '';
+
+    const TABLE_CONDER = 'condet';
+    const URL_ME = '?module=condetedit&username=';
+
+    /**
      * Creates new condet instance
      * 
      * @return void
      */
     public function __construct() {
+        $this->initDb();
         $this->loadAllData();
+    }
+
+    /**
+     * Inits database abstraction layer for further usage
+     * 
+     * @return void
+     */
+    protected function initDb() {
+        $this->condetDb = new NyanORM(self::TABLE_CONDER);
     }
 
     /**
@@ -28,13 +48,7 @@ class ConnectionDetails {
      * @return void
      */
     protected function loadAllData() {
-        $query = "SELECT * from `condet`";
-        $raw = simple_queryall($query);
-        if (!empty($raw)) {
-            foreach ($raw as $io => $each) {
-                $this->allDetails[$each['login']] = $each;
-            }
-        }
+        $this->allDetails = $this->condetDb->getAll('login');
     }
 
     /**
@@ -57,18 +71,25 @@ class ConnectionDetails {
      * 
      * @param string $login
      * @param string $seal
-     * @param string $length
+     * @param int $length
      * @param string $price
+     * @param int $term
      * 
      * @return void
      */
-    protected function create($login, $seal, $length, $price) {
-        $login = mysql_real_escape_string($login);
-        $seal = mysql_real_escape_string($seal);
-        $length = vf($length, 3);
-        $price = mysql_real_escape_string($price);
-        $query = "INSERT INTO `condet` (`id`,`login`,`seal`,`length`,`price`) VALUES (NULL,'" . $login . "','" . $seal . "','" . $length . "', '" . $price . "');";
-        nr_query($query);
+    protected function create($login, $seal, $length, $price, $term = 0) {
+        $login = ubRouting::filters($login, 'mres');
+        $seal = ubRouting::filters($seal, 'mres');
+        $length = ubRouting::filters($length, 'int');
+        $price = ubRouting::filters($price, 'mres');
+        $term = ubRouting::filters($term, 'int');
+
+        $this->condetDb->data('login', $login);
+        $this->condetDb->data('seal', $seal);
+        $this->condetDb->data('length', $length);
+        $this->condetDb->data('price', $price);
+        $this->condetDb->data('term', $term);
+        $this->condetDb->create();
     }
 
     /**
@@ -79,9 +100,9 @@ class ConnectionDetails {
      * @return void
      */
     public function delete($login) {
-        $login = mysql_real_escape_string($login);
-        $query = "DELETE from `condet` WHERE `login`='" . $login . "';";
-        nr_query($query);
+        $login = ubRouting::filters($login, 'mres');
+        $this->condetDb->where('login', '=', $login);
+        $this->condetDb->delete();
     }
 
     /**
@@ -89,17 +110,22 @@ class ConnectionDetails {
      * 
      * @param string $login
      * @param string $seal
-     * @param string $length
+     * @param int $length
      * @param string $price
+     * @param int $term
      * 
      * @return void
      */
-    protected function update($login, $seal, $length, $price) {
-        $login = mysql_real_escape_string($login);
-        $length = vf($length, 3);
-        simple_update_field('condet', 'seal', $seal, "WHERE `login`='" . $login . "';");
-        simple_update_field('condet', 'length', $length, "WHERE `login`='" . $login . "';");
-        simple_update_field('condet', 'price', $price, "WHERE `login`='" . $login . "';");
+    protected function update($login, $seal, $length, $price, $term = 0) {
+        $login = ubRouting::filters($login, 'mres');
+        $length = ubRouting::filters($length, 'int');
+
+        $this->condetDb->data('seal', $seal);
+        $this->condetDb->data('length', $length);
+        $this->condetDb->data('price', $price);
+        $this->condetDb->data('term', $term);
+        $this->condetDb->where('login', '=', $login);
+        $this->condetDb->save();
     }
 
     /**
@@ -109,18 +135,20 @@ class ConnectionDetails {
      * @param string $seal
      * @param string $length
      * @param string $price
+     * @param int $term
      * 
      * @return void
      */
-    public function set($login, $seal, $length, $price) {
+    public function set($login, $seal, $length, $price, $term = 0) {
         if (!zb_checkMoney($price)) {
             $price = 0;
         }
         if (isset($this->allDetails[$login])) {
-            $this->update($login, $seal, $length, $price);
+            $this->update($login, $seal, $length, $price, $term);
         } else {
-            $this->create($login, $seal, $length, $price);
+            $this->create($login, $seal, $length, $price, $term);
         }
+
         log_register('CONDET SET (' . $login . ') SEAL `' . $seal . '` LENGTH `' . $length . '` PRICE `' . $price . '`');
     }
 
@@ -132,14 +160,15 @@ class ConnectionDetails {
      * @return string
      */
     public function editForm($login) {
-        $login = mysql_real_escape_string($login);
+        $login = ubRouting::filters($login, 'mres');
         $currentData = $this->getByLogin($login);
 
         $inputs = wf_TextInput('newseal', __('Cable seal'), @$currentData['seal'], true, '40');
         $inputs .= wf_TextInput('newlength', __('Cable length') . ', ' . __('m'), @$currentData['length'], true, 5, 'digits');
         $inputs .= wf_TextInput('newprice', __('Signup price'), @$currentData['price'], true, 5, 'finance');
+        $inputs .= wf_TextInput('newterm', __('Signup term'), @$currentData['term'], true, 5, 'digits');
         $inputs .= wf_HiddenInput('editcondet', 'true');
-        $inputs .= wf_tag('br');
+        $inputs .= wf_delimiter(0);
         $inputs .= wf_Submit(__('Save'));
 
         $result = wf_Form("", 'POST', $inputs, 'glamour');
@@ -229,47 +258,40 @@ class ConnectionDetails {
      * @return void
      */
     public function ajaxGetData() {
-        $query = "SELECT * from `condet`;";
-        $all = simple_queryall($query);
-        $alladdress = zb_AddressGetFulladdresslist();
-        $allrealnames = zb_UserGetAllRealnames();
-        $allStgData_raw = zb_UserGetAllStargazerData();
-        $userData = array();
+        $all = $this->condetDb->getAll();
+        $allUserData = zb_UserGetAllDataCache();
         $rowData = array();
         $jsonData = new wf_JqDtHelper();
 
-        if (!empty($allStgData_raw)) {
-            foreach ($allStgData_raw as $io => $each) {
-                $userData[$each['login']] = $each;
-            }
-        }
 
 
         if (!empty($all)) {
             foreach ($all as $io => $each) {
-                $profileLink = wf_Link('?module=userprofile&username=' . $each['login'], web_profile_icon() . ' ', false);
-                $userAddress = @$alladdress[$each['login']];
-                $userRealname = @$allrealnames[$each['login']];
-                @$cash = $userData[$each['login']]['Cash'];
-                @$credit = $userData[$each['login']]['Credit'];
-                $act = wf_img('skins/icon_active.gif') . __('Yes');
-                //finance check
-                if ($cash < '-' . $credit) {
-                    $act = wf_img('skins/icon_inactive.gif') . __('No');
-                }
+                if (isset($allUserData[$each['login']])) {
+                    $userData = $allUserData[$each['login']];
+                    $profileLink = wf_Link(UserProfile::URL_PROFILE . $each['login'], web_profile_icon() . ' ', false);
+                    $cash = $userData['Cash'];
+                    $credit = $userData['Credit'];
+                    $act = wf_img('skins/icon_active.gif') . __('Yes');
+                    //finance check
+                    if ($cash < '-' . $credit) {
+                        $act = wf_img('skins/icon_inactive.gif') . __('No');
+                    }
 
-                $rowData[] = $profileLink . $userAddress;
-                $rowData[] = $userRealname;
-                $rowData[] = @$userData[$each['login']]['IP'];
-                $rowData[] = @$userData[$each['login']]['Tariff'];
-                $rowData[] = $act;
-                $rowData[] = $cash;
-                $rowData[] = $credit;
-                $rowData[] = $each['seal'];
-                $rowData[] = $each['price'];
-                $rowData[] = $each['length'];
-                $jsonData->addRow($rowData);
-                unset($rowData);
+                    $rowData[] = $profileLink . $userData['fulladress'];
+                    $rowData[] = $userData['realname'];
+                    $rowData[] = $userData['ip'];
+                    $rowData[] = $userData['Tariff'];
+                    $rowData[] = $act;
+                    $rowData[] = $cash;
+                    $rowData[] = $credit;
+                    $rowData[] = $each['seal'];
+                    $rowData[] = $each['price'];
+                    $rowData[] = $each['length'];
+
+                    $jsonData->addRow($rowData);
+                    unset($rowData);
+                }
             }
         }
 
@@ -319,5 +341,3 @@ class ConnectionDetails {
     }
 
 }
-
-?>

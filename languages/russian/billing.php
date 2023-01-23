@@ -3455,3 +3455,4 @@ $lang['def']['fee records'] = 'записей о начислении абонп
 $lang['def']['May be not all of fee records imported to database'] = 'Возможно не все записи о начислении АП импортированы в БД';
 $lang['def']['Looks like all data currently synced'] = 'Похоже, что все даные сейчас синхронизированы';
 $lang['def']['Migrate'] = 'Мигрировать';
+$lang['def']['Signup term'] = 'Срок подключения';

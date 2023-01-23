@@ -1,0 +1,1 @@
+ALTER TABLE `condet` ADD `term` INT NULL AFTER `price`; 
