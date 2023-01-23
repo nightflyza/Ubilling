@@ -3476,6 +3476,8 @@ $lang['def']['fee records'] = 'записів про нарахування аб
 $lang['def']['May be not all of fee records imported to database'] = 'Можливо не всі всі записи про нарахування АП імпортовано в БД';
 $lang['def']['Looks like all data currently synced'] = 'Виглядає так, ніби всі дані наразі синхронізовано';
 $lang['def']['Migrate'] = 'Мігрувати';
+$lang['def']['Signup term'] = 'Термін підключення';
+$lang['def'][''] = '';
 $lang['def'][''] = '';
 
 
