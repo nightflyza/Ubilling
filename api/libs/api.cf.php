@@ -1,31 +1,6 @@
 <?php
 
 /**
- * Return displayable list of available CF types with some controls
- * 
- * @return string
- */
-function cf_TypesShow() {
-    $cf=new CustomFields();
-    //construct editor
-    $titles = array(
-        'ID',
-        'Field type',
-        'Field name'
-    );
-    $keys = array(
-        'id',
-        'type',
-        'name'
-    );
-    $alldata = $cf->getTypesAll();
-    $module = 'cftypes';
-    //show it
-    $result = web_GridEditor($titles, $keys, $alldata, $module, true, true);
-    return($result);
-}
-
-/**
  * Returns editing controller for CF assigned to user
  * 
  * @param string $login Existing Ubilling user login
@@ -178,24 +153,6 @@ function cf_FieldsGetAll() {
 }
 
 /**
- * Returns preformatted view of CF content preprocessed by its type
- * 
- * @param string $type Type of the data (VARCHAR, TRIGGER,TEXT)
- * @param string $data Data of CF
- * 
- * @return string
- */
-function cf_FieldDisplay($type, $data) {
-    if ($type == 'TRIGGER') {
-        $data = web_bool_led($data);
-    }
-    if ($type == 'TEXT') {
-        $data = nl2br($data);
-    }
-    return ($data);
-}
-
-/**
  * Shows CF editor controller for some login
  * 
  * @param string $login Existing user login
@@ -237,32 +194,6 @@ function cf_FieldEditor($login) {
 
         show_window(__('Additional profile fields'), $result);
     }
-}
-
-/**
- * Returns CFs listing for some login
- * 
- * @param string $login Existing user login
- * 
- * @return string
- */
-function cf_FieldShower($login) {
-    $alltypes = cf_TypeGetAll();
-    $login = mysql_real_escape_string($login);
-    $result = '';
-    if (!empty($alltypes)) {
-        $rows = '';
-        foreach ($alltypes as $io => $eachtype) {
-
-            $cells = wf_TableCell($eachtype['name'], '30%', 'row2');
-            $cells .= wf_TableCell(cf_FieldDisplay($eachtype['type'], cf_FieldGet($login, $eachtype['id'])), '', 'row3');
-            $rows .= wf_TableRow($cells);
-        }
-
-        $result = wf_TableBody($rows, '100%', 0, '');
-    }
-
-    return($result);
 }
 
 /**

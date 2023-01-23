@@ -153,6 +153,13 @@ class UserProfile {
     protected $mobilesExt = array();
 
     /**
+     * Contains custom profile fields instance for current user
+     *
+     * @var object
+     */
+    protected $customFields = '';
+
+    /**
      * Path to SMS template for user quick credentials sending
      *
      * @var string
@@ -190,6 +197,7 @@ class UserProfile {
             $this->loadPaymentID();
             $this->loadPlugins();
             $this->loadMobilesExt();
+            $this->loadCustomFields();
         } else {
             throw new Exception(self::EX_EMPTY_LOGIN);
         }
@@ -561,6 +569,15 @@ class UserProfile {
                 }
             }
         }
+    }
+
+    /**
+     * Preloads custom profile fields instance
+     * 
+     * @return void
+     */
+    protected function loadCustomFields() {
+        $this->customFields = new CustomFields($this->login);
     }
 
     /**
@@ -2368,7 +2385,7 @@ class UserProfile {
         $profile .= $this->getUserCpeControls();
 
 //Custom filelds display
-        $profile .= cf_FieldShower($this->login);
+        $profile .= $this->customFields->renderUserFields();
 //Tags add control and exiting tags listing
         if ($this->ubConfig->getAlterParam('USERPROFILE_TAG_SECTION_HIGHLIGHT')) {
             if (cfr('TAGS')) {

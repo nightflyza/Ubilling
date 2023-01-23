@@ -53,8 +53,13 @@ class CustomFields {
      * @var array
      */
     protected $allTypes = array();
-    // ????
-    protected $allItems = array();
+
+    /**
+     * Contains all current instance user custom fields data
+     *
+     * @var array
+     */
+    protected $userFieldsData = array();
 
     /**
      * Some predefined stuff like URLs, routes etc
@@ -82,6 +87,9 @@ class CustomFields {
         $this->setLogin($login);
         $this->initDb();
         $this->loadTypes();
+        if (!empty($this->login)) {
+            $this->loadUserItems();
+        }
     }
 
     /**
@@ -140,6 +148,7 @@ class CustomFields {
             'FINANCE' => __('Finance'),
         );
 
+        //optional types
         if ($this->altCfg['PHOTOSTORAGE_ENABLED']) {
             $this->typesAvailable['PHOTO'] = __('Image');
         }
@@ -184,6 +193,20 @@ class CustomFields {
             $result = $this->allTypes[$typeId];
         }
         return($result);
+    }
+
+    /**
+     * Loads current instance users items data into protected property
+     * 
+     * @return void
+     */
+    protected function loadUserItems() {
+        if (!empty($this->login)) {
+            if (!empty($this->allTypes)) {
+                $this->itemsDb->where('login', '=', $this->login);
+                $this->userFieldsData = $this->itemsDb->getAll('typeid');
+            }
+        }
     }
 
     /**
@@ -340,6 +363,63 @@ class CustomFields {
             $result .= wf_TableBody($rows, '100%', 0, 'sortable');
         } else {
             $result .= $this->messages->getStyledMessage(__('Nothing to show'), 'info');
+        }
+        return($result);
+    }
+
+    /**
+     * Returns preformatted view of CF content preprocessed depends by its type
+     * 
+     * @param string $fieldType Type of the data (VARCHAR, TRIGGER, TEXT etc)
+     * @param string $data Data of CF
+     * 
+     * @return string
+     */
+    protected function renderField($fieldType, $data) {
+        if ($fieldType == 'TRIGGER') {
+            $data = web_bool_led($data);
+        }
+
+        if ($fieldType == 'TEXT') {
+            $data = nl2br($data);
+        }
+        return ($data);
+    }
+
+    /**
+     * Returns user custom field content depends on its type
+     * 
+     * @param int $typeId
+     * 
+     * @return string
+     */
+    protected function getUserFieldContent($typeId) {
+        $result = '';
+        if (isset($this->userFieldsData[$typeId])) {
+            $result .= $this->userFieldsData[$typeId]['content'];
+            ;
+        }
+        return($result);
+    }
+
+    /**
+     * Returns available user custom fields for user profile
+     * 
+     * @result
+     */
+    public function renderUserFields() {
+        $result = '';
+        if (!empty($this->login)) {
+            if (!empty($this->allTypes)) {
+                $rows = '';
+                foreach ($this->allTypes as $io => $eachType) {
+                    $cells = wf_TableCell($eachType['name'], '30%', 'row2');
+                    $cells .= wf_TableCell($this->renderField($eachType['type'], $this->getUserFieldContent($eachType['id'])), '', 'row3');
+                    $rows .= wf_TableRow($cells);
+                }
+
+                $result = wf_TableBody($rows, '100%', 0, '');
+            }
         }
         return($result);
     }
