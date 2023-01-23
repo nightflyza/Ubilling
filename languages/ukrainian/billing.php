@@ -3477,7 +3477,11 @@ $lang['def']['May be not all of fee records imported to database'] = 'Можли
 $lang['def']['Looks like all data currently synced'] = 'Виглядає так, ніби всі дані наразі синхронізовано';
 $lang['def']['Migrate'] = 'Мігрувати';
 $lang['def']['Signup term'] = 'Термін підключення';
-$lang['def'][''] = '';
+$lang['def']['String'] = 'Рядок';
+$lang['def']['Trigger'] = 'Перемикач';
+$lang['def']['Integer'] = 'Цілочисельне';
+$lang['def']['Float'] = 'З плаваючою комою';
+$lang['def']['All related data will be deleted too'] = 'Усі пов`язані дані також буде видалено';
 $lang['def'][''] = '';
 
 

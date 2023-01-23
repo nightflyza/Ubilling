@@ -227,7 +227,8 @@ function zb_UserSearchAllFields($query, $render = true) {
  * @return string
  */
 function web_UserSearchCFForm() {
-    $allcftypes = cf_TypeGetAll();
+    $cf = new CustomFields();
+    $allcftypes = $cf->getTypesAll();
     $cfsearchform = wf_tag('h3') . __('Additional profile fields') . wf_tag('h3', true);
     if (!empty($allcftypes)) {
         foreach ($allcftypes as $io => $eachtype) {
