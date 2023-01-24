@@ -228,11 +228,15 @@ function zb_UserSearchAllFields($query, $render = true) {
  */
 function web_UserSearchCFForm() {
     $cf = new CustomFields();
-    $allcftypes = $cf->getTypesAll();
+    $allCfTypes = $cf->getTypesAll();
     $cfsearchform = wf_tag('h3') . __('Additional profile fields') . wf_tag('h3', true);
-    if (!empty($allcftypes)) {
-        foreach ($allcftypes as $io => $eachtype) {
-            $cfsearchform .= $eachtype['name'] . ' ' . cf_TypeGetSearchControl($eachtype['type'], $eachtype['id']);
+    if (!empty($allCfTypes)) {
+        foreach ($allCfTypes as $io => $eachtype) {
+            $searchControl = $cf->getTypeSearchControl($eachtype['type'], $eachtype['id']);
+            //is this type searchable?
+            if (!empty($searchControl)) {
+                $cfsearchform .= $eachtype['name'] . ' ' . $searchControl;
+            }
         }
     } else {
         $cfsearchform = '';

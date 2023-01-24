@@ -66,8 +66,6 @@ class CustomFields {
      */
     const TABLE_TYPES = 'cftypes';
     const TABLE_ITEMS = 'cfitems';
-    const URL_ME = '?module=cftypes';
-    const URL_EDIT_BACK = '?module=useredit&username=';
     const PROUTE_NEWTYPE = 'newtype';
     const PROUTE_NEWNAME = 'newname';
     const PROUTE_EDID = 'editid';
@@ -78,11 +76,15 @@ class CustomFields {
     const PROUTE_MODTYPE = 'modcftypeid';
     const PROUTE_MODLOGIN = 'modcflogin';
     const PROUTE_MODCONTENT = 'modcfcontent';
+    const PROUTE_SEARCHTYPEID = 'cftypeid';
+    const PROUTE_SEARCHQUERY = 'cfquery';
     const PHOTOSTORAGE_SCOPE = 'CFITEMS';
-    const PHOTOSTORAGE_ITEMID_DELIMITER = '^';
-    const URL_PHOTOUPL = '?module=photostorage&scope=CFITEMS&mode=list&itemid=';
+    const PHOTOSTORAGE_ITEMID_DELIMITER = '|';
     const FILESTORAGE_SCOPE = 'CFITEMS';
-    const FILESTORAGE_ITEMID_DELIMITER = '^';
+    const FILESTORAGE_ITEMID_DELIMITER = '|';
+    const URL_ME = '?module=cftypes';
+    const URL_EDIT_BACK = '?module=useredit&username=';
+    const URL_PHOTOUPL = '?module=photostorage&scope=CFITEMS&mode=list&itemid=';
     const URL_FILEUPL = '?module=filestorage&scope=CFITEMS&mode=list&itemid=';
 
     /**
@@ -158,6 +160,7 @@ class CustomFields {
             'FLOAT' => __('Float'),
             'FINANCE' => __('Finance'),
             'NETWORK' => __('Network'),
+            'URL' => __('URL'),
         );
 
         //optional types
@@ -397,6 +400,11 @@ class CustomFields {
             $data = nl2br($data);
         }
 
+        if ($fieldType == 'URL') {
+            $data = wf_Link($data, $data, false, '', 'target="_BLANK"');
+        }
+
+
         if ($fieldType == 'PHOTO') {
             if (!empty($typeId) AND ! empty($this->login)) {
                 if ($this->altCfg['PHOTOSTORAGE_ENABLED']) {
@@ -595,6 +603,12 @@ class CustomFields {
             $result = wf_Form("", 'POST', $inputs, '');
         }
 
+        if ($type == 'URL') {
+            $inputs .= wf_TextInput(self::PROUTE_MODCONTENT, '', $currentFieldContent, false, 20, 'url');
+            $inputs .= wf_Submit(__('Save'));
+            $result = wf_Form("", 'POST', $inputs, '');
+        }
+
         if ($type == 'PHOTO') {
             if ($this->altCfg['PHOTOSTORAGE_ENABLED']) {
                 $uploadUrl = self::URL_PHOTOUPL . $login . self::PHOTOSTORAGE_ITEMID_DELIMITER . $typeId;
@@ -604,17 +618,81 @@ class CustomFields {
             }
         }
 
-        IF ($type == 'FILE') {
+        if ($type == 'FILE') {
             if ($this->altCfg['FILESTORAGE_ENABLED']) {
                 $fileStorageItemId = $login . self::FILESTORAGE_ITEMID_DELIMITER . $typeId;
                 $uploadUrl = self::URL_FILEUPL . $fileStorageItemId;
-
                 $result = wf_Link($uploadUrl, wf_img('skins/photostorage_upload.png') . ' ' . __('Upload files'), false);
             } else {
                 $result = __('Disabled');
             }
         }
+        return ($result);
+    }
 
+    /**
+     * Returns search controller for CFs assigned to user
+     * 
+     * @param string $type Type of CF to return control
+     * @param int    $typeid Type ID for change
+     * 
+     * @return string
+     */
+    function getTypeSearchControl($type, $typeid) {
+        $type = ubRouting::filters($type, 'vf');
+        $typeid = ubRouting::filters($typeid, 'int');
+
+        $result = '';
+        $inputs = '';
+        $ignoredTypes = array('PHOTO', 'FILE'); //I`m too lazy to do it today
+        $ignoredTypes = array_flip($ignoredTypes);
+
+        if (!isset($ignoredTypes[$type])) {
+            if ($type == 'VARCHAR') {
+                $inputs = wf_HiddenInput(self::PROUTE_SEARCHTYPEID, $typeid);
+                $inputs .= wf_TextInput(self::PROUTE_SEARCHQUERY, '', '', false, 20);
+            }
+
+            if ($type == 'TRIGGER') {
+                $triggerOpts = array(1 => __('Yes'), 0 => __('No'));
+                $inputs = wf_HiddenInput(self::PROUTE_SEARCHTYPEID, $typeid);
+                $inputs .= wf_Selector(self::PROUTE_SEARCHQUERY, $triggerOpts, '', '', false);
+            }
+
+            if ($type == 'TEXT') {
+                $inputs = wf_HiddenInput(self::PROUTE_SEARCHTYPEID, $typeid);
+                $inputs .= wf_TextInput(self::PROUTE_SEARCHQUERY, '', '', false, 20);
+            }
+
+            if ($type == 'INT') {
+                $inputs = wf_HiddenInput(self::PROUTE_SEARCHTYPEID, $typeid);
+                $inputs .= wf_TextInput(self::PROUTE_SEARCHQUERY, '', '', false, 10, 'digits');
+            }
+
+            if ($type == 'FLOAT') {
+                $inputs = wf_HiddenInput(self::PROUTE_SEARCHTYPEID, $typeid);
+                $inputs .= wf_TextInput(self::PROUTE_SEARCHQUERY, '', '', false, 10, 'float');
+            }
+
+            if ($type == 'FINANCE') {
+                $inputs = wf_HiddenInput(self::PROUTE_SEARCHTYPEID, $typeid);
+                $inputs .= wf_TextInput(self::PROUTE_SEARCHQUERY, '', '', false, 10, 'finance');
+            }
+
+            if ($type == 'NETWORK') {
+                $inputs = wf_HiddenInput(self::PROUTE_SEARCHTYPEID, $typeid);
+                $inputs .= wf_TextInput(self::PROUTE_SEARCHQUERY, '', '', false, 10, 'net-cidr');
+            }
+            if ($type == 'URL') {
+                $inputs = wf_HiddenInput(self::PROUTE_SEARCHTYPEID, $typeid);
+                $inputs .= wf_TextInput(self::PROUTE_SEARCHQUERY, '', '', false, 20, 'url');
+            }
+        }
+
+        if (!empty($inputs)) {
+            $inputs .= wf_Submit(__('Search')); //appending search button to each
+            $result = wf_Form("", 'POST', $inputs, '');
+        }
 
         return ($result);
     }
