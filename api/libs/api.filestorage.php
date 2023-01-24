@@ -124,6 +124,7 @@ class FileStorage {
             'gif',
             'png',
             'jpeg',
+            'dia',
             'xls',
             'doc',
             'odt',
@@ -132,7 +133,18 @@ class FileStorage {
             'txt',
             'mp3',
             'gsm',
-            'conf'
+            'conf',
+            'mp4',
+            'mpg',
+            'mpeg',
+            'avi',
+            'ogg',
+            'zip',
+            'rar',
+            'tar',
+            'gz',
+            'bz2',
+            'sql',
         );
         $this->allowedExtensions = array_flip($this->allowedExtensions); //extension string => index
     }
