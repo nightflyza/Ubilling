@@ -55,7 +55,7 @@ class CustomFields {
     protected $allTypes = array();
 
     /**
-     * Contains all current instance user custom fields data
+     * Contains all current instance user custom fields data as typeId=>cfData
      *
      * @var array
      */
@@ -67,6 +67,7 @@ class CustomFields {
     const TABLE_TYPES = 'cftypes';
     const TABLE_ITEMS = 'cfitems';
     const URL_ME = '?module=cftypes';
+    const URL_EDIT_BACK = '?module=useredit&username=';
     const PROUTE_NEWTYPE = 'newtype';
     const PROUTE_NEWNAME = 'newname';
     const PROUTE_EDID = 'editid';
@@ -74,6 +75,15 @@ class CustomFields {
     const PROUTE_EDNAME = 'editname';
     const ROUTE_DELETE = 'deletetypeid';
     const ROUTE_EDIT = 'edittypeid';
+    const PROUTE_MODTYPE = 'modcftypeid';
+    const PROUTE_MODLOGIN = 'modcflogin';
+    const PROUTE_MODCONTENT = 'modcfcontent';
+    const PHOTOSTORAGE_SCOPE = 'CFITEMS';
+    const PHOTOSTORAGE_ITEMID_DELIMITER = '^';
+    const URL_PHOTOUPL = '?module=photostorage&scope=CFITEMS&mode=list&itemid=';
+    const FILESTORAGE_SCOPE = 'CFITEMS';
+    const FILESTORAGE_ITEMID_DELIMITER = '^';
+    const URL_FILEUPL = '?module=filestorage&scope=CFITEMS&mode=list&itemid=';
 
     /**
      * Creates new CF instance
@@ -87,6 +97,7 @@ class CustomFields {
         $this->setLogin($login);
         $this->initDb();
         $this->loadTypes();
+
         if (!empty($this->login)) {
             $this->loadUserItems();
         }
@@ -146,6 +157,7 @@ class CustomFields {
             'INT' => __('Integer'),
             'FLOAT' => __('Float'),
             'FINANCE' => __('Finance'),
+            'NETWORK' => __('Network'),
         );
 
         //optional types
@@ -372,10 +384,11 @@ class CustomFields {
      * 
      * @param string $fieldType Type of the data (VARCHAR, TRIGGER, TEXT etc)
      * @param string $data Data of CF
+     * @param int $typeId CF type ID
      * 
      * @return string
      */
-    protected function renderField($fieldType, $data) {
+    protected function renderField($fieldType, $data, $typeId = 0) {
         if ($fieldType == 'TRIGGER') {
             $data = web_bool_led($data);
         }
@@ -383,6 +396,25 @@ class CustomFields {
         if ($fieldType == 'TEXT') {
             $data = nl2br($data);
         }
+
+        if ($fieldType == 'PHOTO') {
+            if (!empty($typeId) AND ! empty($this->login)) {
+                if ($this->altCfg['PHOTOSTORAGE_ENABLED']) {
+                    $photostorage = new PhotoStorage(self::PHOTOSTORAGE_SCOPE, $this->login . self::PHOTOSTORAGE_ITEMID_DELIMITER . $typeId);
+                    $data = $photostorage->renderImagesRaw();
+                }
+            }
+        }
+
+        if ($fieldType == 'FILE') {
+            if (!empty($typeId) AND ! empty($this->login)) {
+                if ($this->altCfg['FILESTORAGE_ENABLED']) {
+                    $fileStorage = new FileStorage(self::FILESTORAGE_SCOPE, $this->login . self::FILESTORAGE_ITEMID_DELIMITER . $typeId);
+                    $data = $fileStorage->renderFilesPreview(false, '', '', 64);
+                }
+            }
+        }
+
         return ($data);
     }
 
@@ -397,7 +429,6 @@ class CustomFields {
         $result = '';
         if (isset($this->userFieldsData[$typeId])) {
             $result .= $this->userFieldsData[$typeId]['content'];
-            ;
         }
         return($result);
     }
@@ -413,8 +444,8 @@ class CustomFields {
             if (!empty($this->allTypes)) {
                 $rows = '';
                 foreach ($this->allTypes as $io => $eachType) {
-                    $cells = wf_TableCell($eachType['name'], '30%', 'row2');
-                    $cells .= wf_TableCell($this->renderField($eachType['type'], $this->getUserFieldContent($eachType['id'])), '', 'row3');
+                    $cells = wf_TableCell($eachType['name'], '30%', 'row2', 'valign="top"');
+                    $cells .= wf_TableCell($this->renderField($eachType['type'], $this->getUserFieldContent($eachType['id']), $eachType['id']), '', 'row3', 'valign="top"');
                     $rows .= wf_TableRow($cells);
                 }
 
@@ -422,6 +453,170 @@ class CustomFields {
             }
         }
         return($result);
+    }
+
+    /**
+     * Sets content of custom field for current instance user
+     * 
+     * @param string $login
+     * @param int $typeId
+     * @param string $content
+     * @throws Exception
+     * 
+     * @return void
+     */
+    protected function setFieldContent($login, $typeId, $content) {
+        $typeId = ubRouting::filters($typeId, 'int');
+        $contentF = ubRouting::filters($content, 'mres');
+        if (!empty($login)) {
+            if (isset($this->allTypes[$typeId])) {
+                $this->itemsDb->data('typeid', $typeId);
+                $this->itemsDb->data('login', $login);
+                $this->itemsDb->data('content', $contentF);
+                //update or create field content
+                if (isset($this->userFieldsData[$typeId])) {
+                    $currentFieldId = $this->userFieldsData[$typeId]['id'];
+                    $this->itemsDb->where('id', '=', $currentFieldId);
+                    $this->itemsDb->save();
+                } else {
+                    $this->itemsDb->create();
+                }
+
+                $logContent = (strlen($content) < 20) ? $content : substr($content, 0, 20) . '..';
+                log_register('CF SET (' . $login . ') TYPE [' . $typeId . ']' . ' ON `' . $logContent . '`');
+            } else {
+                throw new Exception('EX_TYPEID_NOT_EXISTS');
+            }
+        } else {
+            throw new Exception('EX_LOGIN_EMPTY');
+        }
+    }
+
+    /**
+     * Renders CF editor controller
+     * 
+     * @return void
+     */
+    public function renderUserFieldEditor() {
+        global $billing;
+        $result = '';
+        //editing subroutine 
+        if (ubRouting::checkPost(self::PROUTE_MODTYPE)) {
+            $this->setFieldContent(ubRouting::post(self::PROUTE_MODLOGIN), ubRouting::post(self::PROUTE_MODTYPE), ubRouting::post(self::PROUTE_MODCONTENT));
+            //is user reset required after field change?
+            if ($this->altCfg['RESETONCFCHANGE']) {
+                $billing->resetuser($login);
+                log_register('RESET User (' . $this->login . ')');
+            }
+            ubRouting::nav(self::URL_EDIT_BACK . $this->login);
+        }
+
+        if (!empty($this->allTypes)) {
+            $cells = wf_TableCell(__('Field name'));
+            $cells .= wf_TableCell(__('Current value'));
+            $cells .= wf_TableCell(__('Edit'));
+            $rows = wf_TableRow($cells, 'row1');
+
+            foreach ($this->allTypes as $io => $eachType) {
+                $cells = wf_TableCell($eachType['name'], '', '', 'valign="top"');
+                $cells .= wf_TableCell($this->renderField($eachType['type'], $this->getUserFieldContent($eachType['id']), $eachType['id']), '', '', 'valign="top"');
+                $cells .= wf_TableCell($this->renderTypeController($this->login, $eachType['type'], $eachType['id']), '', '', 'valign="top"');
+                $rows .= wf_TableRow($cells, 'row3');
+            }
+
+            $result .= wf_TableBody($rows, '100%', 0, '');
+        }
+        return($result);
+    }
+
+    /**
+     * Returns editing controller for CF assigned to user
+     * 
+     * @param string $login Existing user login
+     * @param string $type Type of CF to return control
+     * @param int    $typeId Type ID for change
+     * 
+     * @return string
+     */
+    protected function renderTypeController($login, $type, $typeId) {
+        $result = '';
+        $type = ubRouting::filters($type, 'vf');
+        $typeId = ubRouting::filters($typeId, 'int');
+
+        $currentFieldContent = '';
+        if (isset($this->userFieldsData[$typeId])) {
+            $currentFieldContent = $this->userFieldsData[$typeId]['content'];
+        }
+
+        //basic forms inputs
+        $inputs = wf_HiddenInput(self::PROUTE_MODTYPE, $typeId);
+        $inputs .= wf_HiddenInput(self::PROUTE_MODLOGIN, $login);
+
+        if ($type == 'VARCHAR') {
+            $inputs .= wf_TextInput(self::PROUTE_MODCONTENT, '', $currentFieldContent, false, 20);
+            $inputs .= wf_Submit(__('Save'));
+            $result = wf_Form("", 'POST', $inputs, '');
+        }
+
+        if ($type == 'TRIGGER') {
+            $triggerOpts = array(1 => __('Yes'), 0 => __('No'));
+            $inputs .= wf_Selector(self::PROUTE_MODCONTENT, $triggerOpts, '', $currentFieldContent, false);
+            $inputs .= wf_Submit(__('Save'));
+            $result = wf_Form("", 'POST', $inputs, '');
+        }
+
+        if ($type == 'TEXT') {
+            $inputs .= wf_TextArea(self::PROUTE_MODCONTENT, '', $currentFieldContent, true, '45x5');
+            $inputs .= wf_Submit(__('Save'));
+            $result = wf_Form("", 'POST', $inputs, '');
+        }
+
+        if ($type == 'INT') {
+            $inputs .= wf_TextInput(self::PROUTE_MODCONTENT, '', $currentFieldContent, false, 10, 'digits');
+            $inputs .= wf_Submit(__('Save'));
+            $result = wf_Form("", 'POST', $inputs, '');
+        }
+
+        if ($type == 'FLOAT') {
+            $inputs .= wf_TextInput(self::PROUTE_MODCONTENT, '', $currentFieldContent, false, 10, 'float');
+            $inputs .= wf_Submit(__('Save'));
+            $result = wf_Form("", 'POST', $inputs, '');
+        }
+
+        if ($type == 'FINANCE') {
+            $inputs .= wf_TextInput(self::PROUTE_MODCONTENT, '', $currentFieldContent, false, 10, 'float');
+            $inputs .= wf_Submit(__('Save'));
+            $result = wf_Form("", 'POST', $inputs, '');
+        }
+
+        if ($type == 'NETWORK') {
+            $inputs .= wf_TextInput(self::PROUTE_MODCONTENT, '', $currentFieldContent, false, 10, 'net-cidr');
+            $inputs .= wf_Submit(__('Save'));
+            $result = wf_Form("", 'POST', $inputs, '');
+        }
+
+        if ($type == 'PHOTO') {
+            if ($this->altCfg['PHOTOSTORAGE_ENABLED']) {
+                $uploadUrl = self::URL_PHOTOUPL . $login . self::PHOTOSTORAGE_ITEMID_DELIMITER . $typeId;
+                $result = wf_Link($uploadUrl, wf_img('skins/photostorage.png', __('Upload images')) . ' ' . __('Upload images'));
+            } else {
+                $result = __('Disabled');
+            }
+        }
+
+        IF ($type == 'FILE') {
+            if ($this->altCfg['FILESTORAGE_ENABLED']) {
+                $fileStorageItemId = $login . self::FILESTORAGE_ITEMID_DELIMITER . $typeId;
+                $uploadUrl = self::URL_FILEUPL . $fileStorageItemId;
+
+                $result = wf_Link($uploadUrl, wf_img('skins/photostorage_upload.png') . ' ' . __('Upload files'), false);
+            } else {
+                $result = __('Disabled');
+            }
+        }
+
+
+        return ($result);
     }
 
 }

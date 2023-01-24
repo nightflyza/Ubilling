@@ -300,6 +300,12 @@ class FileStorage {
             $result = wf_BackLink(Warehouse::URL_ME . '&' . Warehouse::URL_VIEWERS . '&showinid=' . $incomeId);
         }
 
+        if ($this->scope == 'CFITEMS') {
+            $cleanLogin = explode(CustomFields::FILESTORAGE_ITEMID_DELIMITER, $this->itemId);
+            $cleanLogin = $cleanLogin[0];
+            $result = wf_BackLink(CustomFields::URL_EDIT_BACK . $cleanLogin);
+        }
+
         if (ubRouting::checkGet('callback') and empty($result)) {
             $result = wf_BackLink(base64_decode(ubRouting::get('callback')));
         }

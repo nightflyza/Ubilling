@@ -288,6 +288,11 @@ class PhotoStorage {
         if ($this->scope == 'UKVUSERPROFILE') {
             $result = wf_BackLink('?module=ukv&users=true&showuser=' . $this->itemId);
         }
+        if ($this->scope = 'CFITEMS') {
+            $cleanUserLogin = explode(CustomFields::PHOTOSTORAGE_ITEMID_DELIMITER, $this->itemId);
+            $cleanUserLogin = $cleanUserLogin[0];
+            $result = wf_BackLink(CustomFields::URL_EDIT_BACK . $cleanUserLogin);
+        }
         return ($result);
     }
 

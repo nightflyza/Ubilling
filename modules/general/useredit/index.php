@@ -236,8 +236,13 @@ if (cfr('USEREDIT')) {
 
                 //primary user options
                 show_window(__('Edit user') . ' ' . $address, $form);
-                //custom fields
-                cf_FieldEditor($login);
+                //custom fields editor here
+                $cf = new CustomFields($login);
+                $cfEditForm = $cf->renderUserFieldEditor();
+                if (!empty($cfEditForm)) {
+                    show_window(__('Additional profile fields'), $cfEditForm);
+                }
+
                 //basic profile controls
                 show_window('', web_UserControls($login));
             } else {
