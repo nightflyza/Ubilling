@@ -421,7 +421,7 @@ class CustomFields {
      */
     protected function renderField($fieldType, $data, $typeId = 0) {
         if ($fieldType == 'TRIGGER') {
-            $data = web_bool_led($data);
+            $data = ($data) ? wf_img_sized('skins/icon_active.gif', '', '12') : wf_img_sized('skins/icon_inactive.gif', '', '12');
         }
 
         if ($fieldType == 'TEXT') {
@@ -485,7 +485,7 @@ class CustomFields {
                     $rows .= wf_TableRow($cells);
                 }
 
-                $result = wf_TableBody($rows, '100%', 0, '');
+                $result = wf_TableBody($rows, '100%', 0, '', UserProfile::MAIN_TABLE_STYLE);
             }
         }
         return($result);
@@ -560,7 +560,7 @@ class CustomFields {
                 $rows .= wf_TableRow($cells, 'row3');
             }
 
-            $result .= wf_TableBody($rows, '100%', 0, '');
+            $result .= wf_TableBody($rows, '100%', 0, '', UserProfile::MAIN_TABLE_STYLE);
         }
         return($result);
     }
