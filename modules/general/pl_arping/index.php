@@ -20,7 +20,7 @@ if (cfr('PLARPING')) {
             $currentcount = '';
         }
         $inputs = wf_TextInput('count', __('Count'), $currentcount, false, 5);
-        $inputs.= wf_Submit(__('Save'));
+        $inputs .= wf_Submit(__('Save'));
         $result = wf_Form('', 'POST', $inputs, 'glamour');
         return ($result);
     }
@@ -33,7 +33,8 @@ if (cfr('PLARPING')) {
         $cloneFlag = false;
         $wrongMacFlag = false;
         $messages = new UbillingMessageHelper();
-        $arping_path = $alterconfig['ARPING'];
+        $arping_path = @$alterconfig['ARPING'];
+        if (!empty($arping_path)) {
         $arping_iface = $alterconfig['ARPING_IFACE'];
         $arping_options = $alterconfig['ARPING_EXTRA_OPTIONS'];
         $sudo_path = $config['SUDO'];
@@ -51,25 +52,25 @@ if (cfr('PLARPING')) {
         $addAjax = '';
         if (wf_CheckGet(array('packcount'))) {
             $pingCount = vf($_GET['packcount'], 3);
-            $addParams.=' -c ' . $pingCount;
+            $addParams .= ' -c ' . $pingCount;
         }
         if (wf_CheckPost(array('count'))) {
             $pingCount = vf($_POST['count'], 3);
-            $addAjax.="&packcount=" . $pingCount;
-            $addParams.=' -c ' . $pingCount;
+            $addAjax .= "&packcount=" . $pingCount;
+            $addParams .= ' -c ' . $pingCount;
         }
         if (wf_CheckGet(array('charts'))) {
-            $addAjax.='&charts=true';
+            $addAjax .= '&charts=true';
         }
         $command = $sudo_path . ' ' . $arping_path . ' ' . $arping_iface . ' -c ' . $pingCount . ' ' . $arping_options . ' ' . $addParams . ' ' . $user_ip;
         $raw_result = shell_exec($command);
         $ping_result = wf_AjaxLoader();
         if (!wf_CheckGet(array('charts'))) {
-            $ping_result.=wf_Link('?module=pl_arping&charts=true&username=' . $_GET['username'], wf_img_sized('skins/icon_stats.gif', '', '16') . ' ' . __('Graphs'), false, 'ubButton');
+            $ping_result .= wf_Link('?module=pl_arping&charts=true&username=' . $_GET['username'], wf_img_sized('skins/icon_stats.gif', '', '16') . ' ' . __('Graphs'), false, 'ubButton');
         } else {
-            $ping_result.=wf_Link('?module=pl_arping&username=' . $_GET['username'], wf_img('skins/ping_icon.png') . ' ' . __('Normal'), false, 'ubButton');
+            $ping_result .= wf_Link('?module=pl_arping&username=' . $_GET['username'], wf_img('skins/ping_icon.png') . ' ' . __('Normal'), false, 'ubButton');
         }
-        $ping_result.= wf_AjaxLink('?module=pl_arping&username=' . $login . '&ajax=true' . $addAjax, wf_img('skins/refresh.gif') . ' ' . __('Renew'), 'ajaxarping', true, 'ubButton');
+        $ping_result .= wf_AjaxLink('?module=pl_arping&username=' . $login . '&ajax=true' . $addAjax, wf_img('skins/refresh.gif') . ' ' . __('Renew'), 'ajaxarping', true, 'ubButton');
         $rawResult = shell_exec($command);
         //detecting duplicate MAC
         $rawArray = explodeRows($raw_result);
@@ -107,11 +108,11 @@ if (cfr('PLARPING')) {
         }
 
         if ($cloneFlag) {
-            $ping_result.=$messages->getStyledMessage(__('It looks like this MAC addresses has duplicate on the network'), 'error');
+            $ping_result .= $messages->getStyledMessage(__('It looks like this MAC addresses has duplicate on the network'), 'error');
         }
 
         if ($wrongMacFlag) {
-            $ping_result.=$messages->getStyledMessage(__('It looks like another MAC which is not assigned to this user has replied to requests'), 'error');
+            $ping_result .= $messages->getStyledMessage(__('It looks like another MAC which is not assigned to this user has replied to requests'), 'error');
         }
 
         //some charts
@@ -181,7 +182,7 @@ if (cfr('PLARPING')) {
             $pingParams = __('IP') . ': ' . $user_ip . ' ' . __('Packets count') . ': ' . $pingCount;
             $rawResult = $messages->getStyledMessage($pingParams, 'info');
 
-            $rawResult.= wf_gchartsLineZeroIsBad($params, '', '100%', '300px', $chartsOptions);
+            $rawResult .= wf_gchartsLineZeroIsBad($params, '', '100%', '300px', $chartsOptions);
             $lossPercent = (100 - zb_PercentValue($pingCount, sizeof($succArray)));
 
             if ($lossPercent > 0) {
@@ -192,22 +193,25 @@ if (cfr('PLARPING')) {
                 $summaryStyle = 'info';
             }
             //loss stats
-            $rawResult.=$messages->getStyledMessage(__('Packets lost') . ': ' . $lossPercent . '%', $noticeStyle);
+            $rawResult .= $messages->getStyledMessage(__('Packets lost') . ': ' . $lossPercent . '%', $noticeStyle);
             $succCount = sizeof($succArray);
             $pingSummary = __('Packets received') . ': ' . $succCount . ' ' . __('Packets lost') . ': ' . ($pingCount - $succCount) . ' ' . $rttTmp;
-            $rawResult.= $messages->getStyledMessage($pingSummary, $summaryStyle);
+            $rawResult .= $messages->getStyledMessage($pingSummary, $summaryStyle);
         }
 
         if (wf_CheckGet(array('ajax'))) {
             die($rawResult);
         }
-        $ping_result.=wf_tag('pre', false, '', 'id="ajaxarping"') . $rawResult . wf_tag('pre', true);
+        $ping_result .= wf_tag('pre', false, '', 'id="ajaxarping"') . $rawResult . wf_tag('pre', true);
         show_window(__('Settings'), wf_PlPingerOptionsForm());
         show_window(__('User ARP pinger'), $ping_result);
+        } else {
+            show_error(__('ARPING').' '.__('Disabled'));
+        }
 
         show_window('', web_UserControls($login));
     }
 } else {
     show_error(__('You cant control this module'));
 }
-?>
+
