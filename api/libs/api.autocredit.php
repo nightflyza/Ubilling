@@ -185,7 +185,8 @@ class AutoCredit {
      */
     protected function loadCfs() {
         if (!empty($this->cfId)) {
-            $cfsRaw = cf_FieldsGetAll();
+            $cf = new CustomFields();
+            $cfsRaw = $cf->getAllFieldsData();
             if (!empty($cfsRaw)) {
                 foreach ($cfsRaw as $io => $each) {
                     if ($each['typeid'] == $this->cfId) {

@@ -44,7 +44,8 @@ if (cfr('ANNIHILATION')) {
         }
         zb_VserviceCashClear($login);
         log_register("DELETE VCASH (" . $login . ")");
-        cf_FlushAllUserCF($login);
+        $cf = new CustomFields($login);
+        $cf->flushAllUserFieldsData();
         zb_FlushAllUserTags($login);
         if (@$alter_conf['VLANGEN_SUPPORT']) {
             vlan_delete_host($login);

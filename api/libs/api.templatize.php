@@ -103,7 +103,8 @@ function zb_TemplateGetAllUserData() {
     $alladdress = zb_AddressGetFulladdresslist();
     $allemails = zb_UserGetAllEmails();
     $allnasdata = zb_NasGetAllData();
-    $allcfdata = cf_FieldsGetAll();
+    $cf = new CustomFields();
+    $allcfdata = $cf->getAllFieldsData();
     $allpdata = zb_UserPassportDataGetAll();
     $phoneDataRaw = zb_UserGetAllPhoneData();
     $allMobileData = array();
@@ -255,7 +256,8 @@ function zb_TemplateReplaceAll($template, $alluserdata) {
             //custom fields extract
             if (ispos($result, '{CFIELD:')) {
                 $split = explode('{CFIELD:', $result);
-                $cfid = vf($split[1], 3);
+                $cleanCf = explode('}', $split[1]);
+                $cfid = vf($cleanCf[0], 3);
                 $result = str_ireplace('{CFIELD:' . $cfid . '}', @$each['cf'][$cfid], $result);
             }
             //print macro
@@ -325,7 +327,8 @@ function zb_TemplateReplace($login, $template, $alluserdata) {
         //custom fields extract
         if (ispos($result, '{CFIELD:')) {
             $split = explode('{CFIELD:', $result);
-            $cfid = vf($split[1], 3);
+            $cleanCf = explode('}', $split[1]);
+            $cfid = vf($cleanCf[0], 3);
             $result = str_ireplace('{CFIELD:' . $cfid . '}', @$alluserdata[$login]['cf'][$cfid], $result);
         }
         //print macro

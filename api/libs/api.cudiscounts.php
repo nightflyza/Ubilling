@@ -82,7 +82,8 @@ class CumulativeDiscounts {
      */
     protected function loadCustomDiscounts() {
         if (!empty($this->customDiscountCfId)) {
-            $raw = cf_FieldsGetAll();
+            $cf = new CustomFields();
+            $raw = $cf->getAllFieldsData();
             if (!empty($raw)) {
                 foreach ($raw as $io => $each) {
                     if ($each['typeid'] == $this->customDiscountCfId) {
