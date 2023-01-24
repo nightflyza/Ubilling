@@ -145,9 +145,12 @@ class FileStorage {
             'rar',
             'tar',
             'gz',
+            'tgz',
             'bz2',
+            '7z',
             'sql',
             'dbf',
+            'csv',
         );
         $this->allowedExtensions = array_flip($this->allowedExtensions); //extension string => index
     }
