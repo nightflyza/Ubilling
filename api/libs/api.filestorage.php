@@ -126,8 +126,10 @@ class FileStorage {
             'jpeg',
             'dia',
             'xls',
+            'xlsx',
             'doc',
             'odt',
+            'ods',
             'docx',
             'pdf',
             'txt',
@@ -145,6 +147,7 @@ class FileStorage {
             'gz',
             'bz2',
             'sql',
+            'dbf',
         );
         $this->allowedExtensions = array_flip($this->allowedExtensions); //extension string => index
     }
