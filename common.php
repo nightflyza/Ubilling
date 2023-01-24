@@ -25,7 +25,7 @@ unset($global);
 ////////////////////////////////////////////////////////////////////////////////
 define('RCMS_VERSION_A', '1');
 define('RCMS_VERSION_B', '2');
-define('RCMS_VERSION_C', '19');
+define('RCMS_VERSION_C', '20');
 if (!defined('RCMS_ROOT_PATH')) {
     die('Even though I walk through the darkest valley, I will fear no evil, for you are with me; your rod and your staff, they comfort me.'); //23:4
 }
@@ -35,7 +35,7 @@ if (is_file(RCMS_ROOT_PATH . 'CURRENT')) {
     define('RCMS_VERSION_SUFFIX', '');
 }
 
-define('RCMS_COPYRIGHT', '&copy; 2022');
+define('RCMS_COPYRIGHT', '&copy; ' . date("Y"));
 define('RCMS_POWERED', 'RCMS Framework');
 
 // Main paths
@@ -74,7 +74,6 @@ define('SAFEMODE_HACK_FTP', 'ftp://username:password@localhost/path/to/reloadcms
 // Loading modules                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 include_once(SYSTEM_MODULES_PATH . 'load.php');
-
 
 function rcms_showAdminMessage($mesg) {
     global $lang;
