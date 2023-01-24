@@ -3190,3 +3190,5 @@ CREATE TABLE IF NOT EXISTS `fees` (
 -- 1.3.5 update
 
 ALTER TABLE `condet` ADD `term` INT NULL AFTER `price`;
+
+ALTER TABLE `cfitems` ADD INDEX(`login`);
