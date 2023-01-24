@@ -226,7 +226,8 @@ class ProfileDocuments {
         $alladdress = zb_AddressGetFulladdresslist();
         $allemails = zb_UserGetAllEmails();
         $allnasdata = zb_NasGetAllData();
-        $allcfdata = cf_FieldsGetAll();
+        $cf = new CustomFields();
+        $allcfdata = $cf->getAllFieldsData();
         $allpdata = zb_UserPassportDataGetAll();
         $curdate = curdate();
         $lastDocId = $this->getDocumentLastId();

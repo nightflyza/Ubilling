@@ -196,6 +196,19 @@ class CustomFields {
     }
 
     /**
+     * Returns all available fields data for all users
+     * 
+     * @return array
+     */
+    public function getAllFieldsData() {
+        $result = array();
+        if (!empty($this->allTypes)) {
+            $result = $this->itemsDb->getAll();
+        }
+        return($result);
+    }
+
+    /**
      * Returns existing CF type data by its typeId
      * 
      * @param int $typeId Existing CF type database ID
@@ -251,6 +264,19 @@ class CustomFields {
         $this->typesDb->delete();
         log_register('CFTYPE DELETE [' . $typeId . ']');
         $this->flushType($typeId);
+    }
+
+    /**
+     * Deletes all of CF items from database associated with some user
+     * 
+     * @return void
+     */
+    public function flushAllUserFieldsData() {
+        if (!empty($this->login)) {
+            $this->itemsDb->where('login', '=', $this->login);
+            $this->itemsDb->delete();
+            log_register('CF FLUSH (' . $this->login . ')');
+        }
     }
 
     /**
@@ -344,6 +370,8 @@ class CustomFields {
         $result = '';
         if (isset($this->typesAvailable[$type])) {
             $result .= $this->typesAvailable[$type];
+        } else {
+            $result .= __('Disabled');
         }
         return($result);
     }
