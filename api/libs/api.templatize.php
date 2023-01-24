@@ -253,7 +253,7 @@ function zb_TemplateReplaceAll($template, $alluserdata) {
             $result = str_ireplace('{PSTREET}', $each['pstreet'], $result);
             $result = str_ireplace('{PBUILD}', $each['pbuild'], $result);
             $result = str_ireplace('{PAPT}', $each['papt'], $result);
-            //custom fields extract
+            //custom fields extraction
             if (ispos($result, '{CFIELD:')) {
                 $split = explode('{CFIELD:', $result);
                 $cleanCf = explode('}', $split[1]);

@@ -227,7 +227,9 @@ class ProfileDocuments {
         $allemails = zb_UserGetAllEmails();
         $allnasdata = zb_NasGetAllData();
         $cf = new CustomFields();
-        $allcfdata = $cf->getAllFieldsData();
+        $allRawCfData = $cf->getAllFieldsData();
+        $allCfData = array();
+
         $allpdata = zb_UserPassportDataGetAll();
         $curdate = curdate();
         $lastDocId = $this->getDocumentLastId();
@@ -237,6 +239,13 @@ class ProfileDocuments {
         if ($this->altcfg['OPENPAYZ_SUPPORT']) {
             if ($this->altcfg['OPENPAYZ_REALID']) {
                 $allopcustomers = zb_TemplateGetAllOPCustomers();
+            }
+        }
+
+        //CF data preprocessing
+        if (!empty($allRawCfData)) {
+            foreach ($allRawCfData as $io => $each) {
+                $allCfData[$each['login']][$each['typeid']] = $each['content'];
             }
         }
 
@@ -307,6 +316,15 @@ class ProfileDocuments {
                 //other document data
                 @$userdata[$eachuser['login']]['CURDATE'] = $curdate;
                 @$userdata[$eachuser['login']]['DOCID'] = $newDocId;
+
+                //custom profile fields
+                if (isset($allCfData[$eachuser['login']])) {
+                    if (!empty($allCfData[$eachuser['login']])) {
+                        foreach ($allCfData[$eachuser['login']] as $eachFieldTypeId => $eachFieldContent) {
+                            @$userdata[$eachuser['login']]['CFIELD:' . $eachFieldTypeId] = $eachFieldContent;
+                        }
+                    }
+                }
             }
         }
 
