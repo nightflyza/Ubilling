@@ -1,43 +1,6 @@
 <?php
 
 /**
- * Returns search controller for CFs assigned to user
- * 
- * @param string $type Type of CF to return control
- * @param int    $typeid Type ID for change
- * 
- * @return string
- */
-function cf_TypeGetSearchControl($type, $typeid) {
-    $type = vf($type);
-    $typeid = vf($typeid);
-    $result = '';
-
-    if ($type == 'VARCHAR') {
-        $inputs = wf_HiddenInput('cftypeid', $typeid);
-        $inputs .= wf_TextInput('cfquery', '', '', false, 20);
-        $inputs .= wf_Submit(__('Search'));
-        $result = wf_Form("", 'POST', $inputs, '');
-    }
-
-    if ($type == 'TRIGGER') {
-        $triggerOpts = array(1 => __('Yes'), 0 => __('No'));
-        $inputs = wf_HiddenInput('cftypeid', $typeid);
-        $inputs .= wf_Selector('cfquery', $triggerOpts, '', '', false);
-        $inputs .= wf_Submit(__('Search'));
-        $result = wf_Form("", 'POST', $inputs, '');
-    }
-
-    if ($type == 'TEXT') {
-        $inputs = wf_HiddenInput('cftypeid', $typeid);
-        $inputs .= wf_TextInput('cfquery', '', '', false, 20);
-        $inputs .= wf_Submit(__('Search'));
-        $result = wf_Form("", 'POST', $inputs, '');
-    }
-    return ($result);
-}
-
-/**
  * Sets some CF content to user with override of old value
  * 
  * @param int     $typeid  Existing CF type ID
