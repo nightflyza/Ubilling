@@ -12,7 +12,7 @@ if (ubRouting::get('action') == 'sc') {
         $billing->setcredit($userLogin, $newCredit);
         $billing->setcreditexpire($userLogin, $creditExpire);
         //charging some money
-        zb_CashAdd($userLogin, '-' . $creditFee, 'add', $creditCashType, 'SCFEE');
+        zb_CashAdd($userLogin, '-0' . $creditFee, 'add', $creditCashType, 'SCFEE');
         die('SC:OK');
     } else {
         die('ERROR:PARAMS_MISSED');
