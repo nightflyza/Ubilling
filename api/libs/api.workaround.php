@@ -2011,7 +2011,7 @@ function web_PaymentsShowGraph($year) {
             } else {
                 $monthArpu = 0;
             }
-            
+
             if (is_nan($monthArpu)) {
                 $monthArpu = 0;
             }
@@ -2416,23 +2416,32 @@ function web_NasEditForm($nasId) {
 /**
  * Dumps database to file and returns filename
  * 
- * @param bool   $silent
+ * @param bool $silent
+ * 
  * @return string
  */
-function zb_backup_database($silent = false) {
+function zb_BackupDatabase($silent = false) {
     global $ubillingConfig;
-    $alterConf = $ubillingConfig->getAlter();
-    $mysqlConf = rcms_parse_ini_file(CONFIG_PATH . 'mysql.ini');
+    $backname = '';
+    $backupProcess = new StarDust('BACKUPDB');
+    if ($backupProcess->notRunning()) {
+        $backupProcess->start();
+        $alterConf = $ubillingConfig->getAlter();
+        $mysqlConf = rcms_parse_ini_file(CONFIG_PATH . 'mysql.ini');
 
-    $backname = DATA_PATH . 'backups/sql/ubilling-' . date("Y-m-d_H_i_s", time()) . '.sql';
-    $command = $alterConf['MYSQLDUMP_PATH'] . ' --host ' . $mysqlConf['server'] . ' -u ' . $mysqlConf['username'] . ' -p' . $mysqlConf['password'] . ' ' . $mysqlConf['db'] . ' > ' . $backname;
-    shell_exec($command);
+        $backname = DATA_PATH . 'backups/sql/ubilling-' . date("Y-m-d_H_i_s", time()) . '.sql';
+        $command = $alterConf['MYSQLDUMP_PATH'] . ' --host ' . $mysqlConf['server'] . ' -u ' . $mysqlConf['username'] . ' -p' . $mysqlConf['password'] . ' ' . $mysqlConf['db'] . ' > ' . $backname;
+        shell_exec($command);
 
-    if (!$silent) {
-        show_success(__('Backup saved') . ': ' . $backname);
+        if (!$silent) {
+            show_success(__('Backup saved') . ': ' . $backname);
+        }
+
+        log_register('BACKUP CREATE `' . $backname . '`');
+        $backupProcess->stop();
+    } else {
+        log_register('BACKUP ALREADY RUNNING SKIPPED');
     }
-
-    log_register("BACKUP CREATE `" . $backname . "`");
     return ($backname);
 }
 
@@ -5821,7 +5830,7 @@ function zb_InitGhostMode($adminLogin) {
  * 
  * @return void
  */
-function zb_backups_rotate($maxAge) {
+function zb_BackupsRotate($maxAge) {
     $maxAge = vf($maxAge, 3);
     if ($maxAge) {
         if (is_numeric($maxAge)) {
