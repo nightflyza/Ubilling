@@ -2168,10 +2168,12 @@ function web_PaymentsShowGraphPerBranch($year) {
  * @param string $prefix
  * @param string $extaction
  * @param string $extbutton
+ * @param bool $emptyWarning
+ * 
  * @return string
  */
-function web_GridEditor($titles, $keys, $alldata, $module, $delete = true, $edit = false, $prefix = '', $extaction = '', $extbutton = '') {
-
+function web_GridEditor($titles, $keys, $alldata, $module, $delete = true, $edit = false, $prefix = '', $extaction = '', $extbutton = '', $emptyWarning = false) {
+    $result = '';
 //headers
     $cells = '';
     foreach ($titles as $eachtitle) {
@@ -2212,9 +2214,16 @@ function web_GridEditor($titles, $keys, $alldata, $module, $delete = true, $edit
             $rows .= wf_TableRow($cells, 'row5');
         }
     }
+    $result .= wf_TableBody($rows, '100%', 0, 'sortable');
 
+    //override result with empty notice if required
+    if ($emptyWarning) {
+        if (empty($alldata)) {
+            $messages = new UbillingMessageHelper();
+            $result = $messages->getStyledMessage(__('Nothing to show'), 'warning');
+        }
+    }
 
-    $result = wf_TableBody($rows, '100%', 0, 'sortable');
     return($result);
 }
 

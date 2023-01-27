@@ -136,10 +136,13 @@ function zb_ContrAhentChange($ahentid, $bankacc, $bankname, $bankcode, $edrpo, $
  * @return void
  */
 function zb_ContrAhentDelete($id) {
-    $id = vf($id, 3);
-    $query = "DELETE from `contrahens` where `id`='" . $id . "'";
-    nr_query($query);
-    log_register("AGENT DELETE [" . $id . "]");
+    $id = ubRouting::filters($id, 'int');
+
+    $agentsDb = new NyanORM('contrahens');
+    $agentsDb->where('id', '=', $id);
+    $agentsDb->delete();
+
+    log_register('AGENT DELETE [' . $id . ']');
 }
 
 /**
@@ -190,6 +193,7 @@ function zb_ContrAhentShow() {
         'Phone',
         'Contrahent name',
     );
+
     $keys = array(
         'id',
         'bankacc',
@@ -206,9 +210,9 @@ function zb_ContrAhentShow() {
 
     if ($ubillingConfig->getAlterParam('AGENTS_EXTINFO_ON')) {
         $extactbutton = wf_img('skins/icons/articlepost.png', __('Extended info'));
-        $result = web_GridEditor($titles, $keys, $allcontr, 'contrahens', true, true, '', 'extinfo', $extactbutton);
+        $result = web_GridEditor($titles, $keys, $allcontr, 'contrahens', true, true, '', 'extinfo', $extactbutton, true);
     } else {
-        $result = web_GridEditor($titles, $keys, $allcontr, 'contrahens', true, true);
+        $result = web_GridEditor($titles, $keys, $allcontr, 'contrahens', true, true, '', '', '', true);
     }
 
     return($result);
