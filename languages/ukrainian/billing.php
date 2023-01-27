@@ -3482,6 +3482,13 @@ $lang['def']['Trigger'] = 'Перемикач';
 $lang['def']['Integer'] = 'Цілочисельне';
 $lang['def']['Float'] = 'З плаваючою комою';
 $lang['def']['All related data will be deleted too'] = 'Усі пов`язані дані також буде видалено';
+$lang['def']['Short name'] = 'Коротка назва';
+$lang['def']['Signatory'] = 'Підписант';
+$lang['def']['Basis'] = 'Підстава';
+$lang['def']['Site URL'] = 'URL сайту';
+$lang['def']['Create new contrahent'] = 'Створити нового господарюючого суб`єкта';
 $lang['def'][''] = '';
+
+
 
 
