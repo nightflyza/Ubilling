@@ -1119,7 +1119,8 @@ class UserSideApi {
         if (!empty($allContracts)) {
             $allContracts = array_flip($allContracts);
         }
-        $allContractDates = zb_UserContractDatesGetAll();
+        $contractDates = new ContractDates();
+        $allContractDates = $contractDates->getAllDatesBasic();
 
         //just one user
         if (!empty($customerId)) {

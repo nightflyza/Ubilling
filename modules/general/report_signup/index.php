@@ -153,7 +153,8 @@ if (cfr('REPORTSIGNUP')) {
             return (zb_SignupsGetAilveStats($year));
         }, 86400); //cached for 1 day
         $allUserData = zb_UserGetAllDataCache();
-        $allContractDates = zb_UserContractDatesGetAll();
+        $contractDates = new ContractDates();
+        $allContractDates = $contractDates->getAllDatesBasic();
         $deadCount = 0;
         $frozenCount = 0;
         $result = '';
