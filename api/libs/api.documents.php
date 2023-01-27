@@ -177,30 +177,50 @@ class ProfileDocuments {
     }
 
     /**
+     * Transforms and localizes date
+     * 
+     * @param string $date
+     * 
+     * @return string
+     */
+    protected function transformDateLit($date) {
+        $result = '';
+        if (!empty($date)) {
+            $dateF = date("d F Y", strtotime($date));
+            $result = rcms_date_localise($dateF);
+        } else {
+            $result = __('None');
+        }
+        return($result);
+    }
+
+    /**
      * Returns contract dates data
      * 
      * @return array
      */
     protected function getContractDatesAll() {
+        $result = array();
         $query = "SELECT `login`,`contract` from `contracts`";
         $allcontracts = simple_queryall($query);
-        $queryDates = "SELECT `contract`,`date` from `contractdates`";
-        $alldates = simple_queryall($queryDates);
-        $result = array();
-        $dates = array();
-        if (!empty($alldates)) {
-            foreach ($alldates as $ia => $eachdate) {
-                $dates[$eachdate['contract']] = $eachdate['date'];
-            }
-        }
+
+        $contractDates = new ContractDates();
+        $dates = $contractDates->getAllDatesFull();
+
 
         if (!empty($allcontracts)) {
             foreach ($allcontracts as $io => $eachcontract) {
                 $result[$eachcontract['login']]['contractnum'] = $eachcontract['contract'];
                 if (isset($dates[$eachcontract['contract']])) {
-                    $result[$eachcontract['login']]['contractdate'] = $dates[$eachcontract['contract']];
+                    $result[$eachcontract['login']]['contractdate'] = $dates[$eachcontract['contract']]['date'];
+                    $result[$eachcontract['login']]['contractdatelit'] = $this->transformDateLit($dates[$eachcontract['contract']]['date']);
+                    $result[$eachcontract['login']]['contractdatefromlit'] = $this->transformDateLit($dates[$eachcontract['contract']]['from']);
+                    $result[$eachcontract['login']]['contractdatetilllit'] = $this->transformDateLit($dates[$eachcontract['contract']]['till']);
                 } else {
                     $result[$eachcontract['login']]['contractdate'] = '1970-01-01';
+                    $result[$eachcontract['login']]['contractdatelit'] = __('None');
+                    $result[$eachcontract['login']]['contractdatefromlit'] = __('None');
+                    $result[$eachcontract['login']]['contractdatetilllit'] = __('None');
                 }
             }
         }
@@ -263,6 +283,9 @@ class ProfileDocuments {
                 $userdata[$eachuser['login']]['AO'] = $eachuser['AlwaysOnline'];
                 @$userdata[$eachuser['login']]['CONTRACT'] = $allcontracts[$eachuser['login']];
                 @$userdata[$eachuser['login']]['CONTRACTDATE'] = $contractDates[$eachuser['login']]['contractdate'];
+                @$userdata[$eachuser['login']]['CONTRACTDATELIT'] = $contractDates[$eachuser['login']]['contractdatelit'];
+                @$userdata[$eachuser['login']]['CONTRACTDATEFROMLIT'] = $contractDates[$eachuser['login']]['contractdatefromlit'];
+                @$userdata[$eachuser['login']]['CONTRACTDATETILLLIT'] = $contractDates[$eachuser['login']]['contractdatetilllit'];
                 @$userdata[$eachuser['login']]['REALNAME'] = $allrealnames[$eachuser['login']];
                 @$userdata[$eachuser['login']]['ADDRESS'] = $alladdress[$eachuser['login']];
                 @$userdata[$eachuser['login']]['EMAIL'] = $allemails[$eachuser['login']];
@@ -973,5 +996,3 @@ class ProfileDocuments {
     }
 
 }
-
-?>
