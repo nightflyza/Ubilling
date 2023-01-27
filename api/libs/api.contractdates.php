@@ -180,7 +180,7 @@ class ContractDates {
 
         $rows = wf_HiddenInput(self::PROUTE_RUNEDIT, $contract);
         $cells = wf_TableCell($curDateLabel, '30%', 'row2');
-        $cells .= wf_TableCell(wf_DatePickerPreset(self::PROUTE_DATE, $curDate) . ' ' . __('Date'), '', 'row3');
+        $cells .= wf_TableCell(wf_DatePickerPreset(self::PROUTE_DATE, $curDate) . ' ' . __('User contract date'), '', 'row3');
         $rows .= wf_tablerow($cells);
 
 
