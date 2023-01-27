@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * Users to switch port binding report
+ */
 class SwitchPortAssign {
 
     /**
@@ -29,7 +32,6 @@ class SwitchPortAssign {
      * @var array
      */
     protected $allrealnames = array();
-
     protected $allusers = array();
     protected $diff = array();
 
@@ -137,7 +139,7 @@ class SwitchPortAssign {
         $this->loadAllRealnames();
         $this->loadAddressData();
     }
-    
+
     /**
      * Loads address data required for user telepathy into protected property
      * 
@@ -198,7 +200,7 @@ class SwitchPortAssign {
         }
         $columns = array('ID', 'IP', 'Port', 'Location', 'Switch', 'User', 'Full address');
         $opts = '"order": [[ 0, "desc" ]], "dom": \'<"F"lfB>rti<"F"ps>\', buttons: [\'csv\', \'excel\', \'pdf\']';
-        $result.= wf_JqDtLoader($columns, self::URL_ME_SWA . '&ajaxswitchassign=true' . $dopUrl, false, 'Switch port assign', 100, $opts);
+        $result .= wf_JqDtLoader($columns, self::URL_ME_SWA . '&ajaxswitchassign=true' . $dopUrl, false, 'Switch port assign', 100, $opts);
         return ($result);
     }
 
@@ -229,4 +231,5 @@ class SwitchPortAssign {
     }
 
 }
+
 ?>
