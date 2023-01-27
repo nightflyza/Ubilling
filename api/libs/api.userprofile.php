@@ -1006,7 +1006,8 @@ class UserProfile {
         if (isset($this->alterCfg['CONTRACTDATE_IN_PROFILE'])) {
             if ($this->alterCfg['CONTRACTDATE_IN_PROFILE']) {
                 if (!empty($this->contract)) {
-                    $allContractDates = zb_UserContractDatesGetAll($this->contract);
+                    $contractDates = new ContractDates();
+                    $allContractDates = $contractDates->getAllDatesBasic($this->contract);
                     $contractDate = (isset($allContractDates[$this->contract])) ? $allContractDates[$this->contract] : __('No');
                     $result .= $this->addRow(__('Contract date'), $contractDate);
                 } else {

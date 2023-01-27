@@ -459,7 +459,8 @@ class AndroidApp {
                 if ($ubillingConfig->getAlterParam('CONTRACTDATE_IN_PROFILE')) {
                     $contract = $this->usersData[$this->login]['contract'];
                     if (!empty($contract)) {
-                        $allContractDates = zb_UserContractDatesGetAll($contract);
+                        $contractDates = new ContractDates();
+                        $allContractDates = $contractDates->getAllDatesBasic($contract);
                         $contractDate = (isset($allContractDates[$contract])) ? $allContractDates[$contract] : '';
                         $this->usersData[$this->login]['contractdate'] = $contractDate;
                     }
