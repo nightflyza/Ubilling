@@ -287,7 +287,8 @@ class DarkVoid {
         if ($this->altCfg['TB_SWITCHMON']) {
             $dead_raw = zb_StorageGet('SWDEAD');
             $last_pingtime = zb_StorageGet('SWPINGTIME');
-            if (!is_int($last_pingtime)) {
+
+            if (!is_numeric($last_pingtime)) {
                 $last_pingtime = 0;
             }
             $deathTime = zb_SwitchesGetAllDeathTime();
