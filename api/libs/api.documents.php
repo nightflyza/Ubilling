@@ -143,6 +143,12 @@ class ProfileDocuments {
             @$this->userAgentData['AGENTJURADDR'] = $rawData['juraddr'];
             @$this->userAgentData['AGENTPHISADDR'] = $rawData['phisaddr'];
             @$this->userAgentData['AGENTPHONE'] = $rawData['phone'];
+            @$this->userAgentData['AGENTNAMEABBR'] = $rawData['agnameabbr'];
+            @$this->userAgentData['AGENTSIGNATORY'] = $rawData['agsignatory'];
+            @$this->userAgentData['AGENTSIGNATORY2'] = $rawData['agsignatory2'];
+            @$this->userAgentData['AGENTBASIS'] = $rawData['agbasis'];
+            @$this->userAgentData['AGENTMAIL'] = $rawData['agmail'];
+            @$this->userAgentData['AGENTSITE'] = $rawData['siteurl'];
         }
     }
 
@@ -249,6 +255,7 @@ class ProfileDocuments {
         $cf = new CustomFields();
         $allRawCfData = $cf->getAllFieldsData();
         $allCfData = array();
+        $allCondets = array();
 
         $allpdata = zb_UserPassportDataGetAll();
         $curdate = curdate();
@@ -260,6 +267,11 @@ class ProfileDocuments {
             if ($this->altcfg['OPENPAYZ_REALID']) {
                 $allopcustomers = zb_TemplateGetAllOPCustomers();
             }
+        }
+
+        if ($this->altcfg['CONDET_ENABLED']) {
+            $conDet = new ConnectionDetails();
+            $allCondets = $conDet->getAllData();
         }
 
         //CF data preprocessing
@@ -335,6 +347,10 @@ class ProfileDocuments {
                 @$userdata[$eachuser['login']]['PBUILD'] = $allpdata[$eachuser['login']]['pbuild'];
                 @$userdata[$eachuser['login']]['PAPT'] = $allpdata[$eachuser['login']]['papt'];
                 @$userdata[$eachuser['login']]['PINN'] = $allpdata[$eachuser['login']]['pinn'];
+
+                //signup details
+                @$userdata[$eachuser['login']]['CONDETPRICE'] = $allCondets[$eachuser['login']]['price'];
+                @$userdata[$eachuser['login']]['CONDETPERIOD'] = $allCondets[$eachuser['login']]['term'];
 
                 //other document data
                 @$userdata[$eachuser['login']]['CURDATE'] = $curdate;
@@ -626,6 +642,11 @@ class ProfileDocuments {
                     $inputs .= wf_TextInput('corpndstaxnum', __('NDS number'), @$corpData['ndstaxnum'], true, '30');
                     $inputs .= wf_TextInput('corpinncode', __('INN code'), @$corpData['inncode'], true, '30');
                     $inputs .= wf_TextInput('corptaxtype', __('Tax type'), @$corpData['taxtype'], true, '30');
+                    $inputs .= wf_TextInput('corpnameabbr', __('Short name'), @$corpData['corpnameabbr'], true, '30');
+                    $inputs .= wf_TextInput('corpsignatory', __('Signatory'), @$corpData['corpsignatory'], true, '30');
+                    $inputs .= wf_TextInput('corpsignatory2', __('Signatory') . ' 2', @$corpData['corpsignatory2'], true, '30');
+                    $inputs .= wf_TextInput('corpbasis', __('Basis'), @$corpData['corpbasis'], true, '30');
+                    $inputs .= wf_TextInput('corpemail', __('Email'), @$corpData['corpemail'], true, '30');
                     $inputs .= wf_TextInput('corpnotes', __('Notes'), @$corpData['notes'], true, '30');
                 } else {
                     $inputs .= __('Private user');
@@ -681,6 +702,11 @@ class ProfileDocuments {
                 @$this->customFields['CORPINNCODE'] = $_POST['corpinncode'];
                 @$this->customFields['CORPTAXTYPE'] = $_POST['corptaxtype'];
                 @$this->customFields['CORPNOTES'] = $_POST['corpnotes'];
+                @$this->customFields['CORPNAMEABBR'] = $_POST['corpnameabbr'];
+                @$this->customFields['CORPSIGNATORY'] = $_POST['corpsignatory'];
+                @$this->customFields['CORPSIGNATORY2'] = $_POST['corpsignatory2'];
+                @$this->customFields['CORPBASIS'] = $_POST['corpbasis'];
+                @$this->customFields['CORPEMAILDOCS'] = $_POST['corpemail'];
             }
 
             if ($this->altcfg['NETWORKS_EXT']) {

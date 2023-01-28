@@ -212,7 +212,7 @@ class ConnectionDetails {
      */
 
     /**
-     * Returns array of all existing cable seals
+     * Returns array of all existing cable seals as login=>seal
      * 
      * @return array
      */
@@ -226,6 +226,15 @@ class ConnectionDetails {
             }
         }
         return ($result);
+    }
+
+    /**
+     * Returns array of all existing details data as login=>condetData[seal,length,price,term]
+     * 
+     * @return array
+     */
+    public function getAllData() {
+        return ($this->allDetails);
     }
 
     /**
