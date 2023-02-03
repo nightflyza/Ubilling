@@ -25,7 +25,7 @@ unset($global);
 ////////////////////////////////////////////////////////////////////////////////
 define('RCMS_VERSION_A', '1');
 define('RCMS_VERSION_B', '2');
-define('RCMS_VERSION_C', '20');
+define('RCMS_VERSION_C', '21');
 if (!defined('RCMS_ROOT_PATH')) {
     die('Even though I walk through the darkest valley, I will fear no evil, for you are with me; your rod and your staff, they comfort me.'); //23:4
 }
@@ -67,18 +67,13 @@ define('IPACLALLOWNETS_PATH', DATA_PATH . 'documents/ipacl/nets/');
 define('FOREVER_COOKIE', time() + 3600 * 24 * 365 * 5);
 
 define('IGNORE_LOCK_FILES', false);
-define('SAFEMODE_HACK', false);
-define('SAFEMODE_HACK_FTP', 'ftp://username:password@localhost/path/to/reloadcms');
+
 
 ////////////////////////////////////////////////////////////////////////////////
 // Loading modules                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 include_once(SYSTEM_MODULES_PATH . 'load.php');
 
-function rcms_showAdminMessage($mesg) {
-    global $lang;
-    echo '<table border="0" cellspacing="2" cellpadding="2" class="input-form-table" width="100%"><tr class="input-form-tr"><td valign="middle" align="left" class="row1">' . $mesg . '</td></tr></table>';
-}
 
 if (empty($_SERVER['REQUEST_URI']))
     $_SERVER['REQUEST_URI'] = $_SERVER['SCRIPT_NAME'];

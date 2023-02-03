@@ -72,41 +72,11 @@ function rcms_copy_file($oldfile, $newfile) {
  * @return boolean
  */
 function rcms_mkdir($dir) {
-    if (defined('SAFEMODE_HACK') && SAFEMODE_HACK) {
-        $url = parse_url(SAFEMODE_HACK_FTP);
-        if ($url['scheme'] != 'ftp')
-            return false;
-        return rcms_ftp_mkdir($dir, $url['host'], $url['user'], $url['pass'], '.' . $url['path']);
-    }
     if (!is_dir($dir)) {
         if (!is_dir(dirname($dir)))
             rcms_mkdir(dirname($dir));
     }
     return @mkdir($dir, 0777);
-}
-
-/**
- * This function perform creating of directory by FTP
- * 
- * @param string $dir
- * @param string $server
- * @param string $username
- * @param string $password
- * @param string $path
- * 
- * @return boolean
- */
-function rcms_ftp_mkdir($dir, $server, $username, $password, $path) {
-    if (!is_dir(dirname($dir)))
-        rcms_ftp_mkdir(dirname($dir));
-    $ftp = ftp_connect($server);
-    ftp_login($ftp, $username, $password);
-    if (RCMS_ROOT_PATH == '../')
-        $path .= 'admin/';
-    ftp_mkdir($ftp, $path . $dir);
-    ftp_site($ftp, 'CHMOD 0777 ' . $path . $dir);
-    ftp_close($ftp);
-    return true;
 }
 
 /**
@@ -340,7 +310,7 @@ function rcms_get_current_id($directory, $ending) {
     $files = rcms_scandir($directory, '*' . $ending);
     $endfile = @end($files);
     $current = substr($endfile, 0, strlen($endfile) - strlen($ending));
-    $current +=1;
+    $current += 1;
     return $current . $ending;
 }
 
@@ -388,22 +358,22 @@ function get_rights_string($file, $if = false) {
     $info .= (($perms & 0x0100) ? 'r' : '-');
     $info .= (($perms & 0x0080) ? 'w' : '-');
     $info .= (($perms & 0x0040) ?
-                    (($perms & 0x0800) ? 's' : 'x' ) :
-                    (($perms & 0x0800) ? 'S' : '-'));
+            (($perms & 0x0800) ? 's' : 'x' ) :
+            (($perms & 0x0800) ? 'S' : '-'));
 
     // Group
     $info .= (($perms & 0x0020) ? 'r' : '-');
     $info .= (($perms & 0x0010) ? 'w' : '-');
     $info .= (($perms & 0x0008) ?
-                    (($perms & 0x0400) ? 's' : 'x' ) :
-                    (($perms & 0x0400) ? 'S' : '-'));
+            (($perms & 0x0400) ? 's' : 'x' ) :
+            (($perms & 0x0400) ? 'S' : '-'));
 
     // World
     $info .= (($perms & 0x0004) ? 'r' : '-');
     $info .= (($perms & 0x0002) ? 'w' : '-');
     $info .= (($perms & 0x0001) ?
-                    (($perms & 0x0200) ? 't' : 'x' ) :
-                    (($perms & 0x0200) ? 'T' : '-'));
+            (($perms & 0x0200) ? 't' : 'x' ) :
+            (($perms & 0x0200) ? 'T' : '-'));
 
     return $info;
 }
