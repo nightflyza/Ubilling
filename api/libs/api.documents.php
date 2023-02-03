@@ -256,6 +256,7 @@ class ProfileDocuments {
         $allRawCfData = $cf->getAllFieldsData();
         $allCfData = array();
         $allCondets = array();
+        $morph = new UBMorph();
 
         $allpdata = zb_UserPassportDataGetAll();
         $curdate = curdate();
@@ -351,10 +352,16 @@ class ProfileDocuments {
                 //signup details
                 @$userdata[$eachuser['login']]['CONDETPRICE'] = $allCondets[$eachuser['login']]['price'];
                 @$userdata[$eachuser['login']]['CONDETPERIOD'] = $allCondets[$eachuser['login']]['term'];
+                @$userdata[$eachuser['login']]['CONDETPRICELIT'] = $morph->sum2str($allCondets[$eachuser['login']]['price']);
+                @$userdata[$eachuser['login']]['TARIFFPRICELIT'] = $morph->sum2str($tariffprices[$eachuser['Tariff']]);
 
                 //other document data
-                @$userdata[$eachuser['login']]['CURDATE'] = $curdate;
                 @$userdata[$eachuser['login']]['DOCID'] = $newDocId;
+                @$userdata[$eachuser['login']]['FIRSTDAYMONTH'] = $this->transformDateLit(curdate());
+                @$userdata[$eachuser['login']]['LASTDAYMONTH'] = $this->transformDateLit(date("Y-m-t"));
+                @$userdata[$eachuser['login']]['LASTDAYNEXTMONTH'] = $this->transformDateLit(date("Y-m-t", strtotime('first day of +1 month')));
+
+
 
                 //custom profile fields
                 if (isset($allCfData[$eachuser['login']])) {
