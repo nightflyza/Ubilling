@@ -469,12 +469,21 @@ class DoomsDayTariffs {
                             $currentDayNum = date("j");
 
                             $targetDate = '';
+                            global $ubillingConfig;
+                            $alter = $ubillingConfig->getAlter();
+
 
                             if ($tariffPeriod == 'month') {
                                 if ($currentTariffOptions['startnow']) {
                                     $tariffDuration = $tariffDuration - 1;
                                 }
                                 $targetDate = date('Y-m-t', strtotime("+" . $tariffDuration . " months", strtotime($currentDate)));
+                                    if (!empty($alter['DDT_ENDPREVDAYS'])) {
+								        $targetDate = strtotime($targetDate);
+                                        $targetDate = strtotime("-" . $alter['DDT_ENDPREVDAYS'] . " days", $targetDate);
+                                        $targetDate = date('Y-m-d', $targetDate);
+								    }
+
                             }
 
                             if ($tariffPeriod == 'day') {
