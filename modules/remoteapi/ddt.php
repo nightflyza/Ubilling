@@ -3,7 +3,7 @@
 /**
  * DDT processing
  */
-if ($_GET['action'] == 'ddt') {
+if (ubRouting::get('action') == 'ddt') {
     if ($alterconf['DDT_ENABLED']) {
         if ($alterconf['DEALWITHIT_ENABLED']) {
             $ddtApiRun = new DoomsDayTariffs();
