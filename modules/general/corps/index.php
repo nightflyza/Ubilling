@@ -135,6 +135,9 @@ if (cfr('CORPS')) {
                         if (!ubRouting::checkGet('add')) {
                             if (isset($beggar['METH']['RENDER']) and method_exists($corps, $beggar['METH']['RENDER'])) {
                                 $beggar_m = $beggar['METH']['RENDER'];
+                                if (ubRouting::checkGet($corps::URL_AJDT)) {
+                                    $corps->corpsListAjax();
+                                }
                                 show_window(__('Available corps'), $corps->$beggar_m());
                             }
                         }

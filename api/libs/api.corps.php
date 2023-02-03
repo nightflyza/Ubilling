@@ -109,6 +109,7 @@ class Corps {
     const URL_CORPS_DEL = '?module=corps&show=corps&deleteid=';
     const URL_USER = 'user';
     const URL_USER_MANAGE = '?module=corps&show=user&username=';
+    const URL_AJDT = 'ajax';
     //some datasources here
     const TABLE_DATA = 'corp_data';
     const TABLE_TAXTYPES = 'corp_taxtypes';
@@ -334,48 +335,54 @@ class Corps {
     }
 
     /**
-     * list available corps with some controls
+     * list available corps list container
      * 
      * @return string
      */
     public function corpsList() {
+        $result = '';
+        $columns = array('ID', 'Corp name', 'Address', 'Document type', 'Document date', 'Tax payer status', 'Actions');
+        $ajUrl = self::URL_CORPS_LIST . '&' . self::URL_AJDT . '=true';
+        $result .= wf_JqDtLoader($columns, $ajUrl, false, __('Corporate users'), 50, '"order": [[ 0, "desc" ]]');
+        return($result);
+    }
 
-        $cells = wf_TableCell(__('ID'));
-        $cells .= wf_TableCell(__('Corp name'));
-        $cells .= wf_TableCell(__('Address'));
-        $cells .= wf_TableCell(__('Document type'));
-        $cells .= wf_TableCell(__('Document date'));
-        $cells .= wf_TableCell(__('Tax payer status'));
-        $cells .= wf_TableCell(__('Actions'));
-        $rows = wf_TableRow($cells, 'row1');
+    /**
+     * list available corps JSON data with some controls
+     * 
+     * @return void
+     */
+    public function corpsListAjax() {
+        $json = new wf_JqDtHelper();
+
         if (!empty($this->corps)) {
             foreach ($this->corps as $io => $each) {
-                $cells = wf_TableCell($each['id']);
-                $cells .= wf_TableCell($each['corpname']);
-                $cells .= wf_TableCell($each['address']);
                 if (isset($this->doctypes[$each['doctype']])) {
                     $doctype = __($this->doctypes[$each['doctype']]);
                 } else {
                     $doctype = $each['doctype'];
                 }
-                $cells .= wf_TableCell($doctype);
-                $cells .= wf_TableCell($each['docdate']);
                 if (isset($this->taxtypes[$each['taxtype']])) {
                     $taxtype = $this->taxtypes[$each['taxtype']];
                 } else {
                     $taxtype = $each['taxtype'];
                 }
-                $cells .= wf_TableCell($taxtype);
                 $actlinks = wf_JSAlert(self::URL_CORPS_DEL . $each['id'], web_delete_icon(), $this->alertDelete()) . ' ';
                 $actlinks .= wf_JSAlert(self::URL_CORPS_EDIT . $each['id'], web_edit_icon(), __('Are you serious')) . ' ';
                 $actlinks .= wf_modal(wf_img('skins/icon_search_small.gif', __('Preview')), $each['corpname'], $this->corpPreview($each['id']), '', '800', '600');
-                $cells .= wf_TableCell($actlinks);
-                $rows .= wf_TableRow($cells, 'row3');
+
+                $data[] = $each['id'];
+                $data[] = $each['corpname'];
+                $data[] = $each['address'];
+                $data[] = $doctype;
+                $data[] = $each['docdate'];
+                $data[] = $taxtype;
+                $data[] = $actlinks;
+                $json->addRow($data);
+                unset($data);
             }
         }
-
-        $result = wf_TableBody($rows, '100%', 0, 'sortable');
-        return ($result);
+        $json->getJson();
     }
 
     /**
