@@ -144,6 +144,15 @@ class Corps {
         if (@$this->altCfg['RFCORPS']) {
             $this->rfCorpsFlag = true;
         }
+
+        if (@$this->altCfg['CORPS_ADDT']) {
+            $rawTypes = explode(',', $this->altCfg['CORPS_ADDT']);
+            if (!empty($rawTypes)) {
+                foreach ($rawTypes as $io => $eachDt) {
+                    $this->doctypes[] = $eachDt;
+                }
+            }
+        }
     }
 
     /**
