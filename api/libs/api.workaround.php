@@ -5681,9 +5681,14 @@ function zb_CacheKeyDestroy($key) {
  * @return void
  */
 function zb_InstallPhpsysinfo() {
-    $upd = new UbillingUpdateStuff();
-    $upd->downloadRemoteFile('http://ubilling.net.ua/packages/phpsysinfo.tar.gz', 'exports/', 'phpsysinfo.tar.gz');
-    $upd->extractTgz('exports/phpsysinfo.tar.gz', 'phpsysinfo/');
+    global $ubillingConfig;
+    $billCfg = $ubillingConfig->getBilling();
+    $phpSysInfoDir = $billCfg['PHPSYSINFO'];
+    if (!empty($phpSysInfoDir)) {
+        $upd = new UbillingUpdateStuff();
+        $upd->downloadRemoteFile('http://ubilling.net.ua/packages/phpsysinfo.tar.gz', 'exports/', 'phpsysinfo.tar.gz');
+        $upd->extractTgz('exports/phpsysinfo.tar.gz', MODULES_DOWNLOADABLE . $phpSysInfoDir);
+    }
 }
 
 /**
