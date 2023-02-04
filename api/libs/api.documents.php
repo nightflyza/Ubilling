@@ -357,6 +357,8 @@ class ProfileDocuments {
 
                 //other document data
                 @$userdata[$eachuser['login']]['DOCID'] = $newDocId;
+                @$userdata[$eachuser['login']]['CURDATE'] = $curdate;
+                @$userdata[$eachuser['login']]['CURDATELIT'] = $this->transformDateLit($curdate);
                 @$userdata[$eachuser['login']]['FIRSTDAYMONTH'] = $this->transformDateLit(date("Y-m-01"));
                 @$userdata[$eachuser['login']]['FIRSTDAYNEXTMONTH'] = $this->transformDateLit(date("Y-m-01", strtotime('first day of +1 month')));
                 @$userdata[$eachuser['login']]['LASTDAYMONTH'] = $this->transformDateLit(date("Y-m-t"));
