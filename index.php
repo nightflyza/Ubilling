@@ -1,6 +1,19 @@
 <?php
 
-//is Xhprof Hierarchical Profiler enabled?
+////////////////////////////////////////////////////////////////////////////////
+//   Copyright (C) Ubilling Development Team                                  //
+//   https://ubilling.net.ua                                                  //
+//                                                                            //
+//   This program is distributed in the hope that it will be useful,          //
+//   but WITHOUT ANY WARRANTY, without even the implied warranty of           //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.                     //
+//                                                                            //
+//   This product released under GNU General Public License v2                //
+////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * is Xhprof Hierarchical Profiler enabled?
+ */
 $minimalBillingConfig = @parse_ini_file('config/billing.ini');
 if (@$minimalBillingConfig['XHPROF']) {
     define('XHPROF', 1);
@@ -163,3 +176,16 @@ if (XHPROF) {
 // Start output
 require_once(CUR_SKIN_PATH . 'skin.general.php');
 
+// 
+// Everything is better with unicorns
+// 
+// _______\)%%%%%%%%._              
+//`''''-'-;   % % % % %'-._         
+//        :b) \            '-.      
+//        : :__)'    .'    .'       
+//        :.::/  '.'   .'           
+//        o_i/   :    ;             
+//               :   .'             
+//                ''`
+// Glory to Ukraine!
+//

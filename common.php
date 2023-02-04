@@ -2,7 +2,7 @@
 
 ////////////////////////////////////////////////////////////////////////////////
 //   Copyright (C) ReloadCMS Development Team                                 //
-//   http://reloadcms.com                                                  //
+//   http://reloadcms.com                                                     //
 //                                                                            //
 //   This program is distributed in the hope that it will be useful,          //
 //   but WITHOUT ANY WARRANTY, without even the implied warranty of           //
