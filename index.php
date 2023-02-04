@@ -1,7 +1,13 @@
 <?php
 
-// Set following option to 1 for enable debug mode
-define('XHPROF', 0);
+//is Xhprof Hierarchical Profiler enabled?
+$minimalBillingConfig = @parse_ini_file('config/billing.ini');
+if (@$minimalBillingConfig['XHPROF']) {
+    define('XHPROF', 1);
+} else {
+    define('XHPROF', 0);
+}
+
 if (XHPROF) {
     //xhprof installed?
     if (file_exists('modules/foreign/xhprof/xhprof_lib/utils/xhprof_lib.php')) {
@@ -145,12 +151,12 @@ if (XHPROF) {
         $xhprof_runs = new XHProfRuns_Default();
         $xhprof_run_id = $xhprof_runs->save_run($xhprof_data, "xhprof_ubilling");
         $xhprof_content = '<iframe src="modules/foreign/xhprof/xhprof_html/index.php?run=' . $xhprof_run_id . '&source=xhprof_ubilling" width="100%" height="750"></iframe>';
-        $xhprof_link = wf_modal(wf_img_sized('skins/xhprof.png', __('XHPROF'), 20), 'XHPROF DEBUG DATA', $xhprof_content, '', '1024', '768');
+        $xhprof_link = wf_modal(wf_img_sized('skins/xhprof.png', __('XHPROF'), 20), 'XHProf current page results', $xhprof_content, '', '1024', '768');
     } else {
         $xhprof_install_url = '?module=report_sysload&xhprofmoduleinstall=true';
-        $xhprof_install_form = wf_AjaxLink($xhprof_install_url, wf_img('skins/icon_download.png') . ' ' . __('Download') . ' ' . __('Xhprof'), 'xhprofinstall', true, 'ubButton');
+        $xhprof_install_form = wf_AjaxLink($xhprof_install_url, wf_img('skins/icon_download.png') . ' ' . __('Download') . ' ' . __('XHProf'), 'xhprofinstall', true, 'ubButton');
         $xhprof_install_form .= wf_AjaxContainer('xhprofinstall');
-        $xhprof_link = wf_modal(wf_img_sized('skins/xhprof.png', __('XHPROF'), 20), __('Download') . ' Xhprof', $xhprof_install_form, '', '320', '200');
+        $xhprof_link = wf_modal(wf_img_sized('skins/xhprof.png', __('XHPROF'), 20), __('Download') . ' XHProf', $xhprof_install_form, '', '320', '200');
     }
 }
 
