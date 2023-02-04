@@ -6743,3 +6743,52 @@ function ub_SanitizeData($data, $mres = true) {
     $result = str_replace("'", '`', $result);
     return($result);
 }
+
+/**
+ * Returns data that contained between two string tags
+ * 
+ * @param string $openTag - open tag string. Examples: "(", "[", "{", "[sometag]" 
+ * @param string $closeTag - close tag string. Examples: ")", "]", "}", "[/sometag]" 
+ * @param string $stringToParse - just string that contains some data to parse
+ * @param bool   $mutipleResults - extract just first result as string or all matches as array like match=>match
+ * 
+ * @return string/array
+ */
+function zb_ParseTagData($openTag, $closeTag, $stringToParse = '', $mutipleResults = false) {
+    $result = '';
+    if (!empty($openTag) AND ! empty($closeTag) AND ! empty($stringToParse)) {
+        $replacements = array(
+            '(' => '\(',
+            ')' => '\)',
+            '[' => '\[',
+            ']' => '\]',
+        );
+
+        foreach ($replacements as $eachReplaceTag => $eachReplace) {
+            $openTag = str_replace($eachReplaceTag, $eachReplace, $openTag);
+            $closeTag = str_replace($eachReplaceTag, $eachReplace, $closeTag);
+        }
+
+        $pattern = '!' . $openTag . '(.*?)' . $closeTag . '!si';
+
+        if ($mutipleResults) {
+            $result = array();
+            if (preg_match_all($pattern, $stringToParse, $matches)) {
+                if (isset($matches[1])) {
+                    if (!empty($matches[1])) {
+                        foreach ($matches[1] as $io => $each) {
+                            $result[$each] = $each;
+                        }
+                    }
+                }
+            }
+        } else {
+            if (preg_match($pattern, $stringToParse, $matches)) {
+                if (isset($matches[1])) {
+                    $result = $matches[1];
+                }
+            }
+        }
+    }
+    return($result);
+}
