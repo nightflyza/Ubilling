@@ -1,1 +1,2 @@
 allow from all
+Options -Indexes
