@@ -5678,6 +5678,8 @@ function zb_CacheKeyDestroy($key) {
 /**
  * Downloads and unpacks phpsysinfo distro
  * 
+ * @global object $ubillingConfig
+ * 
  * @return void
  */
 function zb_InstallPhpsysinfo() {
@@ -5685,9 +5687,24 @@ function zb_InstallPhpsysinfo() {
     $billCfg = $ubillingConfig->getBilling();
     $phpSysInfoDir = $billCfg['PHPSYSINFO'];
     if (!empty($phpSysInfoDir)) {
+        if (cfr('ROOT')) {
+            $upd = new UbillingUpdateStuff();
+            $upd->downloadRemoteFile('http://ubilling.net.ua/packages/phpsysinfo.tar.gz', 'exports/', 'phpsysinfo.tar.gz');
+            $upd->extractTgz('exports/phpsysinfo.tar.gz', MODULES_DOWNLOADABLE . $phpSysInfoDir);
+        }
+    }
+}
+
+/**
+ * Downloads and unpacks xhprof distro
+ * 
+ * @return void
+ */
+function zb_InstallXhprof() {
+    if (cfr('ROOT')) {
         $upd = new UbillingUpdateStuff();
-        $upd->downloadRemoteFile('http://ubilling.net.ua/packages/phpsysinfo.tar.gz', 'exports/', 'phpsysinfo.tar.gz');
-        $upd->extractTgz('exports/phpsysinfo.tar.gz', MODULES_DOWNLOADABLE . $phpSysInfoDir);
+        $upd->downloadRemoteFile('http://ubilling.net.ua/packages/xhprof.tar.gz', 'exports/', 'xhprof.tar.gz');
+        $upd->extractTgz('exports/xhprof.tar.gz', MODULES_DOWNLOADABLE . 'xhprof/');
     }
 }
 

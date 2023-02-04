@@ -96,13 +96,27 @@ if (cfr('SYSLOAD')) {
         } else {
             //installing phpsysinfo
             if (wf_CheckGet(array('phpsysinfoinstall'))) {
-                zb_InstallPhpsysinfo();
-                die(wf_tag('span', false, 'alert_success') . __('Done') . wf_tag('span', true));
+                if (cfr('ROOT')) {
+                    zb_InstallPhpsysinfo();
+                    die(wf_tag('span', false, 'alert_success') . __('Done') . wf_tag('span', true));
+                } else {
+                    die(wf_tag('span', false, 'alert_error') . __('Access denied') . wf_tag('span', true));
+                }
             }
             $monitCode = wf_AjaxLink('?module=report_sysload&phpsysinfoinstall=true', wf_img('skins/icon_download.png') . ' ' . __('Download') . ' ' . __('phpSysInfo'), 'phpsysinfoinstall', true, 'ubButton');
             $monitCode .= wf_AjaxContainer('phpsysinfoinstall');
 
             $sysInfoData .= wf_modalAuto(wf_img('skins/snmp.png') . ' ' . __('phpSysInfo'), __('System health with phpSysInfo'), $monitCode, 'ubButton');
+        }
+    }
+
+    //xhprof installation
+    if (ubRouting::checkGet('xhprofmoduleinstall')) {
+        if (cfr('ROOT')) {
+            zb_InstallXhprof();
+            die(wf_tag('span', false, 'alert_success') . __('Done') . wf_tag('span', true));
+        } else {
+            die(wf_tag('span', false, 'alert_error') . __('Access denied') . wf_tag('span', true));
         }
     }
 
