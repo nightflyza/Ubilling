@@ -57,7 +57,7 @@ if (cfr('SYSLOAD')) {
 
     $globconf = $ubillingConfig->getBilling();
     $alterconf = $ubillingConfig->getAlter();
-    $monit_url = $globconf['PHPSYSINFO'];
+    $monit_url = MODULES_DOWNLOADABLE . $globconf['PHPSYSINFO'];
     $cache_info = $alterconf['UBCACHE_STORAGE'];
 
     //custom scripts output handling. We must run this before all others.

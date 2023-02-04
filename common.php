@@ -44,6 +44,7 @@ define('ENGINE_PATH', RCMS_ROOT_PATH . 'modules/engine/');
 define('MODULES_PATH', RCMS_ROOT_PATH . 'modules/general/');
 define('REMOTEAPI_PATH', RCMS_ROOT_PATH . 'modules/remoteapi/');
 define('MODULES_TPL_PATH', RCMS_ROOT_PATH . 'modules/templates/');
+define('MODULES_DOWNLOADABLE', RCMS_ROOT_PATH . 'modules/downloadable/');
 define('CONFIG_PATH', RCMS_ROOT_PATH . 'config/');
 define('LANG_PATH', RCMS_ROOT_PATH . 'languages/');
 define('ADMIN_PATH', RCMS_ROOT_PATH . 'admin/');
