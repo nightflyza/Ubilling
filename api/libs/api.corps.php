@@ -174,6 +174,7 @@ class Corps {
      * @return void
      */
     protected function loadCorps() {
+        $this->corpsDb->orderBy('id', 'DESC');
         $this->corps = $this->corpsDb->getAll('id');
     }
 
@@ -1091,7 +1092,11 @@ class Corps {
             }
 
             $inputs = wf_HiddenInput('bindsomelogin', $login);
-            $inputs .= wf_Selector('bindlogintocorpid', $corpsarr, __('Corporate user'), '', false);
+            if ($this->altCfg['CORPSEL_SEARCHBL']) {
+                $inputs .= wf_SelectorSearchable('bindlogintocorpid', $corpsarr, __('Corporate user'), '', false);
+            } else {
+                $inputs .= wf_Selector('bindlogintocorpid', $corpsarr, __('Corporate user'), '', false);
+            }
             $inputs .= wf_Submit(__('Create user ling with existing corporate user'));
             $result = wf_Form("", 'POST', $inputs, 'glamour');
         }
