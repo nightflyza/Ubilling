@@ -90,6 +90,20 @@ class FundsFlow {
     protected $dateFilter = '';
 
     /**
+     * Contains cemetery instance for further usage
+     *
+     * @var object
+     */
+    protected $cemetery = '';
+
+    /**
+     * Contains buried users
+     *
+     * @var array
+     */
+    protected $allBuriedUsers = array();
+
+    /**
      * Rendering coloring settings
      */
     protected $colorPayment = '005304';
@@ -129,6 +143,10 @@ class FundsFlow {
         $this->initFinanceDb();
         if ($this->feesHarvesterFlag) {
             $this->initFeesDb();
+        }
+
+        if ($this->alterConf['CEMETERY_ENABLED']) {
+            $this->loadCemetery();
         }
     }
 
@@ -183,6 +201,16 @@ class FundsFlow {
      */
     protected function loadAllUserData() {
         $this->allUserData = zb_UserGetAllStargazerDataAssoc();
+    }
+
+    /**
+     * Inits cemetery and preloads all buried users
+     * 
+     * @return void
+     */
+    protected function loadCemetery() {
+        $this->cemetery = new Cemetery();
+        $this->allBuriedUsers = $this->cemetery->getAllTagged();
     }
 
     /**
@@ -1000,11 +1028,7 @@ class FundsFlow {
         $rawData['used'] = 0;
 
         //cemetery dead-hide processing
-        $ignoreArr = array();
-        if ($this->alterConf['CEMETERY_ENABLED']) {
-            $cemetery = new Cemetery();
-            $ignoreArr = $cemetery->getAllTagged();
-        }
+        $ignoreArr = $this->allBuriedUsers;
 
         //loading some user tags
         if (empty($this->userTags)) {
