@@ -1027,9 +1027,6 @@ class FundsFlow {
         $rawData['balance'] = 0;
         $rawData['used'] = 0;
 
-        //cemetery dead-hide processing
-        $ignoreArr = $this->allBuriedUsers;
-
         //loading some user tags
         if (empty($this->userTags)) {
             $this->loadUserTags();
@@ -1052,7 +1049,7 @@ class FundsFlow {
 
 
             $rawData['login'] = $eachop['login'];
-            if (!isset($ignoreArr[$rawData['login']])) {
+            if (!isset($this->allBuriedUsers[$rawData['login']])) {
                 @$rawData['contract'] = array_search($eachop['login'], $allUserContracts);
                 @$rawData['corpid'] = $corpUsers[$eachop['login']];
                 @$rawData['corpname'] = $corpsData[$rawData['corpid']]['corpname'];
