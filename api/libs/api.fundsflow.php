@@ -69,6 +69,27 @@ class FundsFlow {
     protected $feesDb = '';
 
     /**
+     * Payments database abstraction layer
+     *
+     * @var object
+     */
+    protected $paymentsDb = '';
+
+    /**
+     * Balance corrections database abstraction layer
+     *
+     * @var object
+     */
+    protected $corrDb = '';
+
+    /**
+     * Contains date filter for massive queries
+     *
+     * @var string
+     */
+    protected $dateFilter = '';
+
+    /**
      * Rendering coloring settings
      */
     protected $colorPayment = '005304';
@@ -94,6 +115,8 @@ class FundsFlow {
      */
     const MASK_FEE = 'fee charge';
     const TABLE_FEES = 'fees';
+    const TABLE_PAYS = 'payments';
+    const TABLE_CORR = 'paymentscorr';
 
     /**
      * Creates new FundsFlow instance
@@ -103,6 +126,7 @@ class FundsFlow {
     public function __construct() {
         $this->loadConfigs();
         $this->initTmp();
+        $this->initFinanceDb();
         if ($this->feesHarvesterFlag) {
             $this->initFeesDb();
         }
@@ -138,6 +162,16 @@ class FundsFlow {
      * 
      * @return void
      */
+    protected function initFinanceDb() {
+        $this->paymentsDb = new NyanORM(self::TABLE_PAYS);
+        $this->corrDb = new NyanORM(self::TABLE_CORR);
+    }
+
+    /**
+     * Inits fees database abstraction layer
+     * 
+     * @return void
+     */
     protected function initFeesDb() {
         $this->feesDb = new NyanORM(self::TABLE_FEES);
     }
@@ -148,13 +182,7 @@ class FundsFlow {
      * @return void
      */
     protected function loadAllUserData() {
-        $query = "SELECT * from `users`";
-        $all = simple_queryall($query);
-        if (!empty($all)) {
-            foreach ($all as $io => $each) {
-                $this->allUserData[$each['login']] = $each;
-            }
-        }
+        $this->allUserData = zb_UserGetAllStargazerDataAssoc();
     }
 
     /**
@@ -163,13 +191,7 @@ class FundsFlow {
      * @return void
      */
     protected function loadAllTariffsData() {
-        $query = "SELECT * from `tariffs`";
-        $all = simple_queryall($query);
-        if (!empty($all)) {
-            foreach ($all as $io => $each) {
-                $this->allTariffsData[$each['name']] = $each;
-            }
-        }
+        $this->allTariffsData = zb_TariffGetAllData();
     }
 
     /**
@@ -182,6 +204,17 @@ class FundsFlow {
     }
 
     /**
+     * Datetime mask for filtering payments/fees on massive queries
+     * 
+     * @param string $dateMask
+     * 
+     * @return void
+     */
+    public function setDateFilter($dateMask) {
+        $this->dateFilter = ubRouting::filters($dateMask, 'mres');
+    }
+
+    /**
      * Returns array of fees by some login with parsing it from stargazer log
      * 
      * @param string $login existing user login
@@ -189,7 +222,7 @@ class FundsFlow {
      * @return array
      */
     public function getLogFees($login) {
-        $login = mysql_real_escape_string($login);
+        $login = ubRouting::filters($login, 'mres');
 
         $sudo = $this->billingConf['SUDO'];
         $cat = $this->billingConf['CAT'];
@@ -262,7 +295,6 @@ class FundsFlow {
                 $result[$counter]['login'] = $each['login'];
                 $result[$counter]['date'] = $each['date'];
                 $result[$counter]['admin'] = $each['admin'];
-                ;
                 $result[$counter]['summ'] = $each['summ'];
                 $result[$counter]['from'] = $each['from'];
                 $result[$counter]['to'] = $each['to'];
@@ -287,6 +319,168 @@ class FundsFlow {
             $result = $this->getDbFees($login);
         } else {
             $result = $this->getLogFees($login);
+        }
+        return($result);
+    }
+
+    /**
+     * Returns all payments/fees/corrections with optional date filter as login=>counter=>flows
+     * 
+     * @return array
+     */
+    public function getAllCashFlows() {
+        $result = array();
+
+        $payments = array();
+        $paymentscorr = array();
+        /**
+         * Fees
+         */
+        if ($this->feesHarvesterFlag) {
+            if ($this->dateFilter) {
+                $this->feesDb->where('date', 'LIKE', $this->dateFilter . '%');
+            }
+            $allFees = $this->feesDb->getAll();
+            if (!empty($allFees)) {
+                foreach ($allFees as $io => $each) {
+                    $counter = strtotime($each['date']);
+                    // trying to avoid duplicate keys
+                    while ($this->avoidDTKeysDuplicates and isset($result[$each['login']][$counter])) {
+                        $counter++;
+                    }
+
+                    $result[$each['login']][$counter]['login'] = $each['login'];
+                    $result[$each['login']][$counter]['date'] = $each['date'];
+                    $result[$each['login']][$counter]['admin'] = $each['admin'];
+                    $result[$each['login']][$counter]['summ'] = $each['summ'];
+                    $result[$each['login']][$counter]['from'] = $each['from'];
+                    $result[$each['login']][$counter]['to'] = $each['to'];
+                    $result[$each['login']][$counter]['operation'] = 'Fee';
+                    $result[$each['login']][$counter]['note'] = $each['note'];
+                    $result[$each['login']][$counter]['cashtype'] = $each['cashtype'];
+                }
+            }
+        } else {
+            //log fees
+            $sudo = $this->billingConf['SUDO'];
+            $cat = $this->billingConf['CAT'];
+            $grep = $this->billingConf['GREP'];
+            $stglog = $this->alterConf['STG_LOG_PATH'];
+
+            $command = $sudo . ' ' . $cat . ' ' . $stglog . ' | ' . $grep . ' "' . self::MASK_FEE . '"';
+            if ($this->dateFilter) {
+                $command .= ' | ' . $grep . ' ' . $this->dateFilter;
+            }
+            $feeadmin = 'stargazer';
+            $feenote = '';
+            $feecashtype = 0;
+            $rawdata = shell_exec($command);
+
+            if (!empty($rawdata)) {
+                $cleardata = exploderows($rawdata);
+                foreach ($cleardata as $eachline) {
+                    $eachfee = explode(' ', $eachline);
+                    if (!empty($eachline)) {
+                        if (isset($eachfee[self::OFFSET_TIME])) {
+                            $counter = strtotime($eachfee[self::OFFSET_DATE] . ' ' . $eachfee[self::OFFSET_TIME]);
+                            $loginExtracted = zb_ParseTagData("User '", "': 'cash'", $eachline, false);
+                            // trying to avoid duplicate keys
+                            while ($this->avoidDTKeysDuplicates and isset($result[$loginExtracted][$counter])) {
+                                $counter++;
+                            }
+
+                            $feefrom = str_replace("'.", '', $eachfee[self::OFFSET_FROM]);
+                            $feeto = str_replace("'.", '', $eachfee[self::OFFSET_TO]);
+                            $feefrom = str_replace("'", '', $feefrom);
+                            $feeto = str_replace("'", '', $feeto);
+
+                            $result[$loginExtracted][$counter]['login'] = $loginExtracted;
+                            $result[$loginExtracted][$counter]['date'] = $eachfee[self::OFFSET_DATE] . ' ' . $eachfee[self::OFFSET_TIME];
+                            $result[$loginExtracted][$counter]['admin'] = $feeadmin;
+                            $result[$loginExtracted][$counter]['summ'] = $feeto - $feefrom;
+                            $result[$loginExtracted][$counter]['from'] = $feefrom;
+                            $result[$loginExtracted][$counter]['to'] = $feeto;
+                            $result[$loginExtracted][$counter]['operation'] = 'Fee';
+                            $result[$loginExtracted][$counter]['note'] = $feenote;
+                            $result[$loginExtracted][$counter]['cashtype'] = $feecashtype;
+                        }
+                    }
+                }
+            }
+        }
+
+        /**
+         * Payments
+         */
+        if ($this->dateFilter) {
+            $this->paymentsDb->where('date', 'LIKE', $this->dateFilter . '%');
+        }
+        $allPayments = $this->paymentsDb->getAll();
+
+        if (!empty($allPayments)) {
+            foreach ($allPayments as $io => $each) {
+                $counter = strtotime($each['date']);
+                // trying to avoid duplicate keys
+                while ($this->avoidDTKeysDuplicates and isset($result[$each['login']][$counter])) {
+                    $counter++;
+                }
+
+                if (ispos($each['note'], 'MOCK:')) {
+                    $cashto = $each['balance'];
+                }
+
+                if (ispos($each['note'], 'BALANCESET:')) {
+                    $cashto = $each['summ'];
+                }
+
+                if ((!ispos($each['note'], 'MOCK:')) AND ( !ispos($each['note'], 'BALANCESET:'))) {
+                    if (is_numeric($each['summ']) AND is_numeric($each['balance'])) {
+                        $cashto = $each['summ'] + $each['balance'];
+                    } else {
+                        $cashto = __('Corrupted');
+                    }
+                }
+
+                $result[$each['login']][$counter]['login'] = $each['login'];
+                $result[$each['login']][$counter]['date'] = $each['date'];
+                $result[$each['login']][$counter]['admin'] = $each['admin'];
+                $result[$each['login']][$counter]['summ'] = $each['summ'];
+                $result[$each['login']][$counter]['from'] = $each['balance'];
+                $result[$each['login']][$counter]['to'] = $cashto;
+                $result[$each['login']][$counter]['operation'] = 'Payment';
+                $result[$each['login']][$counter]['note'] = $each['note'];
+                $result[$each['login']][$counter]['cashtype'] = $each['cashtypeid'];
+            }
+        }
+
+        /**
+         * Balance corrections
+         */
+        if ($this->dateFilter) {
+            $this->corrDb->where('date', 'LIKE', $this->dateFilter . '%');
+        }
+
+        $allCorrs = $this->corrDb->getAll();
+        if (!empty($allCorrs)) {
+            foreach ($allCorrs as $io => $each) {
+                $counter = strtotime($each['date']);
+
+                // trying to avoid duplicate keys
+                while ($this->avoidDTKeysDuplicates and isset($result[$each['login']][$counter])) {
+                    $counter++;
+                }
+
+                $cashto = $each['summ'] + $each['balance'];
+                $result[$each['login']][$counter]['login'] = $each['login'];
+                $result[$each['login']][$counter]['date'] = $each['date'];
+                $result[$each['login']][$counter]['admin'] = $each['admin'];
+                $result[$each['login']][$counter]['summ'] = $each['summ'];
+                $result[$each['login']][$counter]['from'] = $each['balance'];
+                $result[$each['login']][$counter]['to'] = $cashto;
+                $result[$each['login']][$counter]['operation'] = 'Correcting';
+                $result[$each['login']][$counter]['note'] = $each['note'];
+                $result[$each['login']][$counter]['cashtype'] = $each['cashtypeid'];
+            }
         }
         return($result);
     }
@@ -383,12 +577,11 @@ class FundsFlow {
      * @return array
      */
     public function getPayments($login) {
-        $login = mysql_real_escape_string($login);
-        $query = "SELECT * from `payments` WHERE `login`='" . $login . "'";
-        $allpayments = simple_queryall($query);
+        $login = ubRouting::filters($login, 'mres');
+        $this->paymentsDb->where('login', '=', $login);
+        $allpayments = $this->paymentsDb->getAll();
 
         $result = array();
-
         if (!empty($allpayments)) {
             foreach ($allpayments as $io => $eachpayment) {
                 $counter = strtotime($eachpayment['date']);
@@ -436,9 +629,9 @@ class FundsFlow {
      * @return array
      */
     public function getPaymentsCorr($login) {
-        $login = mysql_real_escape_string($login);
-        $query = "SELECT * from `paymentscorr` WHERE `login`='" . $login . "'";
-        $allpayments = simple_queryall($query);
+        $login = ubRouting::filters($login, 'mres');
+        $this->corrDb->where('login', '=', $login);
+        $allpayments = $this->corrDb->getAll();
 
         $result = array();
 
@@ -473,16 +666,7 @@ class FundsFlow {
      * @return array
      */
     function getCashTypeNames() {
-        $query = "SELECT * from `cashtype`";
-        $alltypes = simple_queryall($query);
-        $result = array();
-
-        if (!empty($alltypes)) {
-            foreach ($alltypes as $io => $each) {
-                $result[$each['id']] = __($each['cashtype']);
-            }
-        }
-
+        $result = zb_CashGetTypesNamed();
         return ($result);
     }
 
@@ -823,7 +1007,9 @@ class FundsFlow {
         }
 
         //loading some user tags
-        $this->loadUserTags();
+        if (empty($this->userTags)) {
+            $this->loadUserTags();
+        }
 
         if (!empty($fundsFlows)) {
             foreach ($fundsFlows as $io => $eachop) {
@@ -965,9 +1151,9 @@ class FundsFlow {
          * And again and again and again and again
          * Remember our name / Furyo 'til I Die
          */
-        $inputs = wf_YearSelector('yearsel', __('Year'), false) . ' ';
-        $inputs .= wf_MonthSelector('monthsel', __('Month'), '', false) . ' ';
-        $inputs .= wf_Selector('agentsel', $tmpArr, __('Contrahent name'), '', false);
+        $inputs = wf_YearSelectorPreset('yearsel', __('Year'), false, ubRouting::post('yearsel')) . ' ';
+        $inputs .= wf_MonthSelector('monthsel', __('Month'), ubRouting::post('monthsel'), false) . ' ';
+        $inputs .= wf_Selector('agentsel', $tmpArr, __('Contrahent name'), ubRouting::post('agentsel'), false);
         $inputs .= wf_Submit(__('Show'));
         $result = wf_Form('', 'POST', $inputs, 'glamour');
         return ($result);
@@ -1313,5 +1499,3 @@ class FundsFlow {
     }
 
 }
-
-?>
