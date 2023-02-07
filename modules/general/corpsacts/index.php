@@ -52,18 +52,11 @@ if (cfr('CORPS')) {
                 $allCashFlows = $funds->getAllCashFlows();
                 foreach ($corpUsers as $eachlogin => $eachcorpid) {
                     $count++;
-                    //$fees = $funds->getFees($eachlogin);
-                    //$payments = $funds->getPayments($eachlogin);
-                    // $paymentscorr = $funds->getPaymentsCorr($eachlogin);
-
                     if (isset($allCashFlows[$eachlogin])) {
                         $dateFunds = $allCashFlows[$eachlogin];
                     } else {
                         $dateFunds = array();
                     }
-                    
-                    //$fundsflow = $fees + $payments + $paymentscorr;
-                    //$dateFunds = $funds->filterByDate($fundsflow, $date);
 
                     if (!$agentFilter) {
                         $rows .= $funds->renderCorpsFlows($count, $dateFunds, $corpsData, $corpUsers, $allUserContracts, $allUsersCash, $allUserTariffs, $allTariffPrices);
