@@ -23,7 +23,6 @@ if (cfr('PLFUNDS')) {
 
 
         show_window(__('Funds flow'), $funds->renderArray($fundsflow));
-
         show_window('', web_UserControls($login));
     } else {
         show_error(__('Strange exeption') . ': EX_NO_USERNAME');
@@ -31,4 +30,3 @@ if (cfr('PLFUNDS')) {
 } else {
     show_error(__('You cant control this module'));
 }
-?>
