@@ -98,7 +98,8 @@ if (cfr('SYSLOAD')) {
             if (wf_CheckGet(array('phpsysinfoinstall'))) {
                 if (cfr('ROOT')) {
                     zb_InstallPhpsysinfo();
-                    die(wf_tag('span', false, 'alert_success') . __('Done') . wf_tag('span', true));
+                    $installNotification = wf_tag('span', false, 'alert_success') . __('Done') . '! ' . __('Refresh page') . '.' . wf_tag('span', true);
+                    die($installNotification);
                 } else {
                     die(wf_tag('span', false, 'alert_error') . __('Access denied') . wf_tag('span', true));
                 }
@@ -114,7 +115,8 @@ if (cfr('SYSLOAD')) {
     if (ubRouting::checkGet('xhprofmoduleinstall')) {
         if (cfr('ROOT')) {
             zb_InstallXhprof();
-            die(wf_tag('span', false, 'alert_success') . __('Done') . wf_tag('span', true));
+            $installNotification = wf_tag('span', false, 'alert_success') . __('Done') . '! ' . __('Refresh page') . '.' . wf_tag('span', true);
+            die($installNotification);
         } else {
             die(wf_tag('span', false, 'alert_error') . __('Access denied') . wf_tag('span', true));
         }

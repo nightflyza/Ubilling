@@ -3466,3 +3466,4 @@ $lang['def']['Signatory'] = 'Подписант';
 $lang['def']['Basis'] = 'Основание';
 $lang['def']['Site URL'] = 'URL сайта';
 $lang['def']['Create new contrahent'] = 'Создать нового предпринимателя';
+$lang['def']['Refresh page'] = 'Обновите страницу';
