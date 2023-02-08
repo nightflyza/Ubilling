@@ -34,6 +34,11 @@ DESCRONUINDEX=".1.3.6.1.4.1.13464.1.11.4.1.1.25.0"
 ;DESCRCOMMIT=".1.3.6.1.4.1.37950.1.1.5.12.1.16.4.0"
 ;DESCRIPTIONGET=".1.3.6.1.4.1.37950.1.1.5.12.1.25.1.9"
 ;DESCRVALUE="STRING:"
+;Case of the serial number characters:
+;   0 - no case convert
+;   1 - lowercase
+;   2 - uppercase
+SERIAL_CASE_MODE="0"
 
 ;.1.3.6.1.4.1.13464.1.2.4.1.2.1.1.1 - MAC VLAN
 ;.1.3.6.1.4.1.13464.1.2.4.1.2.1.1.2 - VLAN
