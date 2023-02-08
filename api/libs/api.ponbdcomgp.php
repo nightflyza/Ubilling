@@ -16,6 +16,8 @@ class PONBdcomGP extends PONBdcom {
         $oltIp = $this->oltParameters['IP'];
         $oltCommunity = $this->oltParameters['COMMUNITY'];
         $oltNoFDBQ = $this->oltParameters['NOFDB'];
+        $this->onuSerialCaseMode = (isset($this->snmpTemplates[$oltModelId]['misc']['SERIAL_CASE_MODE'])
+                                    ? $this->snmpTemplates[$oltModelId]['misc']['SERIAL_CASE_MODE'] : 1);
 
         $sigIndexOID = $this->snmpTemplates[$oltModelId]['signal']['SIGINDEX'];
         $sigIndex = $this->snmp->walk($oltIp . ':' . self::SNMPPORT, $oltCommunity, $sigIndexOID, self::SNMPCACHE);
@@ -79,7 +81,7 @@ class PONBdcomGP extends PONBdcom {
         $macIndex = str_replace('"', '', $macIndex);
         $macIndex = explodeRows($macIndex);
 
-        $this->signalParse($oltid, $sigIndex, $macIndex, $this->snmpTemplates[$oltModelId]['signal']);
+        $this->signalParse($oltid, $sigIndex, $macIndex, $this->snmpTemplates[$oltModelId]['signal'], $serialCaseMode);
 //This is here because BDCOM is BDCOM and another snmp queries cant be processed after MACINDEX query in some cases.
         if (isset($this->snmpTemplates[$oltModelId]['misc'])) {
             if (isset($this->snmpTemplates[$oltModelId]['misc']['DISTINDEX'])) {

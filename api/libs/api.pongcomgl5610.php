@@ -18,6 +18,8 @@ class PONGCOMGL5610 extends PONProto {
         $oltNoFDBQ = $this->oltParameters['NOFDB'];
         $oltIPPORT = $oltIp . ':' . self::SNMPPORT;
         $chassisIndexToRemove = '0.';    // this needed because with chassis index included - OIDs are not processable
+        $this->onuSerialCaseMode = (isset($this->snmpTemplates[$oltModelId]['onu']['SERIAL_CASE_MODE'])
+                                    ? $this->snmpTemplates[$oltModelId]['onu']['SERIAL_CASE_MODE'] : 0);
 
         $sigIndex = $this->walkCleared($oltIPPORT, $oltCommunity,
                                        $this->snmpTemplates[$oltModelId]['signal']['SIGINDEX'],
@@ -140,6 +142,12 @@ class PONGCOMGL5610 extends PONProto {
                 $tmpONUPortLLID = trim($line[0]);
 //                $tmpONUMAC = strtolower(AddMacSeparator(RemoveMacAddressSeparator(trim($line[1]), array(':', '-', '.', ' '))));     //mac address
                 $tmpONUMAC = trim($line[1]);
+
+                if ($this->onuSerialCaseMode == 1) {
+                    $tmpONUMAC = strtolower($tmpONUMAC);
+                } elseif ($this->onuSerialCaseMode == 2) {
+                    $tmpONUMAC = strtoupper($tmpONUMAC);
+                }
 
 
 //mac is present

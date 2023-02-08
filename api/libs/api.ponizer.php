@@ -328,6 +328,16 @@ class PONizer {
     protected $onuUniStatusEnabled = false;
 
     /**
+     * Placeholder for PON_ONU_SERIAL_CASE_MODE alter.ini option
+     *  0 - no case convert
+     *  1 - lowercase
+     *  2 - uppercase
+     *
+     * @var bool
+     */
+    protected $onuSerialCaseMode = 0;
+
+    /**
      * Contains all busy ONU MAC/serials as lowercase onuIdent=>onuId
      *
      * @var array
@@ -494,6 +504,7 @@ class PONizer {
         $this->ipColumnVisible = ($this->ubConfig->getAlterParam('PONIZER_NO_IP_COLUMN')) ? false : true;
         $this->llidColVisibleUnknownONU = $this->ubConfig->getAlterParam('PON_UKNKOWN_ONU_LLID_SHOW', false);
         $this->onuUniStatusEnabled = $this->ubConfig->getAlterParam('PON_ONU_UNI_STATUS_ENABLED', false);
+        $this->onuSerialCaseMode = $this->ubConfig->getAlterParam('PON_ONU_SERIAL_CASE_MODE', 0);
 
         if ($this->ponIfDescribe) {
             $this->ponInterfaces = new PONIfDesc();
@@ -1501,6 +1512,13 @@ class PONizer {
         $oltid = ubRouting::filters($oltid, 'int');
         $ip = ubRouting::filters($ip, 'mres');
         $serial = ubRouting::filters($serial, 'mres');
+
+        if ($this->onuSerialCaseMode == 1) {
+            $serial = strtolower($serial);
+        } elseif ($this->onuSerialCaseMode == 2) {
+            $serial = strtoupper($serial);
+        }
+
         $login = trim($login);
         $login = ubRouting::filters($login, 'mres');
 
