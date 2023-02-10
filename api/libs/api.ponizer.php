@@ -752,7 +752,7 @@ class PONizer {
      */
     protected function getOnuArrayByOltID($OltId = '') {
         $result = array();
-        if (!empty($this->allOnu) and ! empty($OltId)) {
+        if (!empty($this->allOnu) and !empty($OltId)) {
             foreach ($this->allOnu as $io => $each) {
                 if ($each['oltid'] == $OltId) {
                     $result[$io] = $each;
@@ -969,7 +969,7 @@ class PONizer {
         if (!empty($pollingStats)) {
             $result = $pollingStats['finished'] ? false : true;
         }
-        return($result);
+        return ($result);
     }
 
     /**
@@ -986,7 +986,7 @@ class PONizer {
             $resultRaw = file_get_contents($statsPath);
             $result = json_decode($resultRaw, true);
         }
-        return($result);
+        return ($result);
     }
 
     /**
@@ -1021,14 +1021,13 @@ class PONizer {
     }
 
     /**
-     * Performs logging of OLT polling 
-     * 
-     * @param int $oltId
-     * @param string $logData
-
-     * 
-     * @return void
-     */
+    * Performs logging of OLT polling 
+    * 
+    * @param int $oltId
+    * @param string $logData
+    * 
+    * @return void
+    */
     public function logPoll($oltId, $logData) {
         $curdate = curdatetime();
         $logData = $curdate . ' | OLT[' . $oltId . '] | ' . $logData . PHP_EOL;
@@ -1050,7 +1049,7 @@ class PONizer {
         $oltId = ubRouting::filters($oltId, 'int');
         $this->stardust->setProcess(self::POLL_PID . $oltId);
         $result = $this->stardust->isRunning();
-        return($result);
+        return ($result);
     }
 
     /**
@@ -1063,7 +1062,7 @@ class PONizer {
         $result .= wf_BackLink(self::URL_ME . '&oltstats=true') . ' ';
         $result .= wf_Link(self::URL_ME . '&polllogs=true', wf_img('skins/log_icon_small.png') . ' ' . __('Log'), false, 'ubButton') . '';
         $result .= wf_Link(self::URL_ME . '&polllogs=true&zenlog=true', wf_img('skins/zen.png') . ' ' . __('Zen'), false, 'ubButton') . '';
-        return($result);
+        return ($result);
     }
 
     /**
@@ -1106,7 +1105,7 @@ class PONizer {
         } else {
             $result .= $this->messages->getStyledMessage(__('Nothing to show') . ': ' . __('OLT polling log') . ' ' . __('does not exist'), 'warning');
         }
-        return($result);
+        return ($result);
     }
 
     /**
@@ -1143,7 +1142,7 @@ class PONizer {
         } else {
             $this->messages->getStyledMessage(__('Nothing to show'), 'warning');
         }
-        return($result);
+        return ($result);
     }
 
     /**
@@ -1198,7 +1197,7 @@ class PONizer {
         }
 
         //cache requires update
-        if ($this->onuCacheTimeout AND ! $fromCache) {
+        if ($this->onuCacheTimeout and !$fromCache) {
             if ($oltId) {
                 $this->cache->set(self::KEY_ONUOLT . $oltId, $all, $this->onuCacheTimeout);
             } else {
@@ -1227,7 +1226,7 @@ class PONizer {
         if (!empty($this->allOnu)) {
             foreach ($this->allOnu as $io => $each) {
                 if (isset($result[$each['oltid']])) {
-                    $result[$each['oltid']] ++;
+                    $result[$each['oltid']]++;
                 } else {
                     $result[$each['oltid']] = 1;
                 }
@@ -1460,7 +1459,7 @@ class PONizer {
             $allCacheKeys = $this->cache->getAllcache();
             if (!empty($allCacheKeys)) {
                 foreach ($allCacheKeys as $io => $eachKey) {
-                    if (ispos($eachKey, self::KEY_ONULISTAJ) OR ispos($eachKey, self::KEY_ONUOLT)) {
+                    if (ispos($eachKey, self::KEY_ONULISTAJ) or ispos($eachKey, self::KEY_ONUOLT)) {
                         $cleanKey = str_replace(UbillingCache::CACHE_PREFIX, '', $eachKey);
                         $this->cache->delete($cleanKey);
                     }
@@ -1525,13 +1524,13 @@ class PONizer {
         $newId = 0;
         $modelid = @$this->allOltSnmp[$oltid]['modelid'];
         //empty MAC workaround for GPON devices
-        if (empty($macF) AND ! empty($serial)) {
+        if (empty($macF) and !empty($serial)) {
             $macF = zb_MacGetRandom();
             log_register('PON CREATE ONU MAC EMPTY TRY REPLACED WITH `' . $macF . '`');
         }
 
         if (!empty($macF)) {
-            if ($this->checkOnuUnique($macF) AND $this->checkOnuUnique($serial)) {
+            if ($this->checkOnuUnique($macF) and $this->checkOnuUnique($serial)) {
                 if (check_mac_format($macF)) {
                     $this->onuDb->data('onumodelid', $onumodelid);
                     $this->onuDb->data('oltid', $oltid);
@@ -1758,7 +1757,7 @@ class PONizer {
             }
         }
 
-        if ($this->onuUknownUserByMACSearchTelepathy and ( empty($UserLogin) or empty($UserIP))) {
+        if ($this->onuUknownUserByMACSearchTelepathy and (empty($UserLogin) or empty($UserIP))) {
             $telepathyArray = $this->getUserByONUMAC($onuMac, $this->onuUknownUserByMACSearchIncrement);
 
             if (!empty($telepathyArray)) {
@@ -1780,15 +1779,15 @@ class PONizer {
                 $inputs .= wf_tag('span', false, '', 'id="onuassignment2" style="font-weight: 600; color: #000"');
                 $inputs .= wf_tag('span', true);
 
-                if (($this->onuUknownUserByMACSearchShow and ( empty($UserLogin) or empty($UserIP))) or $this->onuUknownUserByMACSearchShowAlways) {
+                if (($this->onuUknownUserByMACSearchShow and (empty($UserLogin) or empty($UserIP))) or $this->onuUknownUserByMACSearchShowAlways) {
                     $inputs .= wf_delimiter(0) . wf_tag('div', false, '', 'style="padding: 2px 8px;"');
                     $inputs .= __('Try to find user by MAC') . ':';
                     $inputs .= wf_tag('div', false, '', 'style="margin-top: 5px;"');
                     $inputs .= wf_nbsp(2) . wf_tag('span', false, '', 'style="width: 444px;display: inline-block;float: left;"') .
-                            __('increase/decrease searched MAC address on (use negative value to decrease MAC)') . wf_tag('span', true) .
-                            wf_tag('span', false, '', 'style="display: inline-block;padding: 5px 0;"') .
-                            wf_TextInput('macincrementwith', '', $this->onuUknownUserByMACSearchIncrement, true, '4', '', '__MACIncrementWith') .
-                            wf_tag('span', true);
+                        __('increase/decrease searched MAC address on (use negative value to decrease MAC)') . wf_tag('span', true) .
+                        wf_tag('span', false, '', 'style="display: inline-block;padding: 5px 0;"') .
+                        wf_TextInput('macincrementwith', '', $this->onuUknownUserByMACSearchIncrement, true, '4', '', '__MACIncrementWith') .
+                        wf_tag('span', true);
                     $inputs .= wf_tag('div', true);
                     $inputs .= wf_Link('#', __('Search'), true, 'ubButton __UserByMACSearchBtn', 'style="width: 100%; text-align: center; padding: 6px 0; margin-top: 5px;"');
                     $inputs .= wf_tag('div', true);
@@ -1897,7 +1896,7 @@ class PONizer {
             }
         }
 
-//user data
+        //user data
         $cells = wf_TableCell(__('Real Name'), '30%', 'row2');
         $cells .= wf_TableCell($userRealname);
         $rows = wf_TableRow($cells, 'row3');
@@ -2015,7 +2014,7 @@ class PONizer {
 
             if (isset($this->signalCache[$onuData['mac']])) {
                 $signal = $this->signalCache[$onuData['mac']];
-                if (($signal > 0) or ( $signal < -27)) {
+                if (($signal > 0) or ($signal < -27)) {
                     $sigColor = self::COLOR_BAD;
                     $sigLabel = 'Bad signal';
                 } elseif ($signal > -27 and $signal < -25) {
@@ -2035,7 +2034,7 @@ class PONizer {
                 }
             } elseif (isset($this->signalCache[$onuData['serial']])) {
                 $signal = $this->signalCache[$onuData['serial']];
-                if (($signal > 0) or ( $signal < -27)) {
+                if (($signal > 0) or ($signal < -27)) {
                     $sigColor = self::COLOR_BAD;
                     $sigLabel = 'Bad signal';
                 } elseif ($signal > -27 and $signal < -25) {
@@ -2078,7 +2077,7 @@ class PONizer {
                 }
             }
         }
-        return($result);
+        return ($result);
     }
 
     /**
@@ -2178,7 +2177,7 @@ class PONizer {
             $result .= $onuMiscStats;
             $result .= wf_tag('div', true);
         }
-        return($result);
+        return ($result);
     }
 
     /**
@@ -2197,7 +2196,7 @@ class PONizer {
         $onuUniOperStats = '';
         $offlineFlag = ($signalStatsData['isoffline']) ? true : false;
 
-        if (isset($this->allOnu[$onuId]) and ! $offlineFlag) {
+        if (isset($this->allOnu[$onuId]) and !$offlineFlag) {
             $this->loadUniOperStatsCache();
 
             if (!empty($this->allOnu[$onuId]['mac'])) {
@@ -2218,11 +2217,11 @@ class PONizer {
                 foreach ($uniStatsData as $eachPort => $eachStatus) {
                     if ($eachStatus) {
                         $interfaceIcon = wf_img_sized('skins/icon_ether.gif', __('Interface')) . wf_nbsp()
-                                . wf_img_sized('skins/rise_icon.png', __('Up'), '8', '10');
+                            . wf_img_sized('skins/rise_icon.png', __('Up'), '8', '10');
                     } else {
 
                         $interfaceIcon = wf_img_sized('skins/icon_ether_down.png', __('Interface')) . wf_nbsp()
-                                . wf_img_sized('skins/drain_icon.png', __('Down'), '8', '10');
+                            . wf_img_sized('skins/drain_icon.png', __('Down'), '8', '10');
                     }
 
                     $onuUniOperStats .= $eachPort . ': ' . $interfaceIcon . wf_nbsp(4);
@@ -2235,7 +2234,7 @@ class PONizer {
             }
         }
 
-        return($result);
+        return ($result);
     }
 
     /**
@@ -2427,7 +2426,7 @@ class PONizer {
             $result = wf_tag('div', false, 'alert_error') . __('Strange exeption') . ': ONUID_NOT_EXISTS' . wf_tag('div', true);
         }
 
-//additional comments handling
+        //additional comments handling
         if ($this->altCfg['ADCOMMENTS_ENABLED']) {
             $adcomments = new ADcomments('PONONU');
             $result .= wf_delimiter();
@@ -2449,7 +2448,7 @@ class PONizer {
         $onuId = vf($onuId, 3);
         $result = '';
         if (isset($this->allOnu[$onuId])) {
-//not empty MAC
+            //not empty MAC
             if ($this->allOnu[$onuId]['mac']) {
                 if (file_exists(self::ONUSIG_PATH . md5($this->allOnu[$onuId]['mac']))) {
                     $historyKey = self::ONUSIG_PATH . md5($this->allOnu[$onuId]['mac']);
@@ -2467,7 +2466,7 @@ class PONizer {
                     $getMonthDataCmd = $billCfg['CAT'] . ' ' . $historyKey . ' | ' . $billCfg['GREP'] . ' ' . $curmonth;
                     $rawData = shell_exec($getMonthDataCmd);
                     $result .= wf_delimiter();
-//current day signal levels
+                    //current day signal levels
                     $todaySignal = '';
 
                     if (!empty($rawData)) {
@@ -2487,7 +2486,7 @@ class PONizer {
                     $result .= wf_Graph($todaySignal, '800', '300', false, $GraphTitle, $GraphXLabel, $GraphYLabel, $ShowRangeSelector);
                     $result .= wf_delimiter(2);
 
-//current month signal levels
+                    //current month signal levels
                     $monthSignal = '';
                     $curmonth = curmonth();
                     if (!empty($rawData)) {
@@ -2507,7 +2506,7 @@ class PONizer {
                     $result .= wf_GraphCSV($historyKeyMonth, '800', '300', false, $GraphTitle, $GraphXLabel, $GraphYLabel, $ShowRangeSelector);
                     $result .= wf_delimiter(2);
 
-//all time signal history
+                    //all time signal history
                     $GraphTitle = ($ShowTitle) ? __('All time graph') : '';
                     $result .= wf_GraphCSV($historyKey, '800', '300', false, $GraphTitle, $GraphXLabel, $GraphYLabel, $ShowRangeSelector);
                     $result .= wf_delimiter();
@@ -2554,12 +2553,16 @@ class PONizer {
             }
             if ($this->altCfg['ONUREG_ZTE']) {
                 $zteControls = '';
-                if (cfr('ONUREGZTE')) {
-                    $zteControls .= wf_link('?module=ztevlanbinds', wf_img_sized('skins/register.png', '', '16', '16') . ' ' . __('Edit OLT Cards'), false, 'ubButton');
+                if (cfr('OnuRegister::VLAN_MODULE_RIGHTS')) {
+                    $zteControls .= wf_link(OnuRegister::VLAN_MODULE_URL, wf_img_sized('skins/register.png', '', '16', '16') . ' ' . __('Edit OLT Cards'), false, 'ubButton') . wf_delimiter(); 
                 }
-                if (cfr('ZTEVLANBINDS')) {
-                    $zteControls .= wf_link('?module=zteunreg', wf_img_sized('skins/check.png', '', '16', '16') . ' ' . __('Check for unauthenticated ONU/ONT'), false, 'ubButton');
+                if (cfr('OnuRegister::REG_MODULE_RIGHTS')) {
+                    $zteControls .= wf_link(OnuRegister::UNREG_URL, wf_img_sized('skins/check.png', '', '16', '16') . ' ' . __('Check for unauthenticated ONU/ONT') . ' ' . __('All') . ' OLT', false, 'ubButton') . wf_delimiter();
                 }
+                if (cfr('OnuRegister::REG_MODULE_RIGHTS')) {
+                    $zteControls .= wf_link(OnuRegister::UNREG_OLTLIST_URL, wf_img_sized('skins/pon_icon.gif', '', '16', '16') . ' ' . __('Check for unauthenticated ONU/ONT') . ' ' . __('Choose') . ' OLT', false, 'ubButton');
+                }
+
                 $result .= wf_modalAuto(web_icon_extended() . ' ' . __('ZTE'), __('ZTE'), $zteControls, 'ubButton');
             }
         } else {
@@ -2645,7 +2648,7 @@ class PONizer {
                     }
                     ';
 
-// making an event binding for "DelUserAssignment" button("red cross" near user's login) on "ONU create&assign form"
+        // making an event binding for "DelUserAssignment" button("red cross" near user's login) on "ONU create&assign form"
 // to be able to create "ONU create&assign form" dynamically and not to put it's content to every "Create ONU" button in JqDt tables
 // creating of "ONU create&assign form" dynamically reduces the amount of text and page weight dramatically
         $result .= '$(document).on("click", ".__UsrDelAssignButton", function(evt) {
@@ -2657,7 +2660,7 @@ class PONizer {
                     
                     ';
 
-// making an event binding for "ONU create&assign form" 'Submit' action to be able to create "ONU create&assign form" dynamically
+        // making an event binding for "ONU create&assign form" 'Submit' action to be able to create "ONU create&assign form" dynamically
         $result .= '$(document).on("submit", ".__ONUAssignAndCreateForm", function(evt) {
                             if ($(document.activeElement).attr("class") == \'__MACIncrementWith\') {
                                 evt.preventDefault();
@@ -2771,7 +2774,7 @@ class PONizer {
             $QuickOLTLinkID = 'QuickOLTLinkID_' . $oltId;
             $QuickOLTDDLName = 'QuickOLTDDL_' . wf_InputId();
             $QuickOLTLink = wf_tag('span', false, '', 'id="' . $QuickOLTLinkID . '"') .
-                    wf_img('skins/menuicons/switches.png') . wf_tag('span', true);
+                wf_img('skins/menuicons/switches.png') . wf_tag('span', true);
             $oltRenderMode = $this->getOltOnuRenderMode($oltId);
 
             $columns = array('ID');
@@ -2820,15 +2823,15 @@ class PONizer {
                     $tabClickScript .= wf_tag('script', true);
                 } else {
                     $QuickOLTLinkInput = wf_tag('div', false, '', 'style="width: 100%;text-align: right;margin-top: 15px;margin-bottom: 20px"') .
-                            wf_tag('font', false, '', 'style="font-weight: 600"') . __('Go to OLT') . wf_tag('font', true) .
-                            wf_nbsp(2) . wf_Selector($QuickOLTDDLName, $QickOLTsArray, '', '', true) .
-                            wf_tag('script', false, '', 'type="text/javascript"') .
-                            '$(\'[name="' . $QuickOLTDDLName . '"]\').change(function(evt) {
+                        wf_tag('font', false, '', 'style="font-weight: 600"') . __('Go to OLT') . wf_tag('font', true) .
+                        wf_nbsp(2) . wf_Selector($QuickOLTDDLName, $QickOLTsArray, '', '', true) .
+                        wf_tag('script', false, '', 'type="text/javascript"') .
+                        '$(\'[name="' . $QuickOLTDDLName . '"]\').change(function(evt) {
                                                         var LinkIDObjFromVal = $(\'#QuickOLTLinkID_\'+$(this).val());
                                                         $(\'body,html\').scrollTop( $(LinkIDObjFromVal).offset().top - 25 );
                                                      });' .
-                            wf_tag('script', true) .
-                            wf_tag('div', true);
+                        wf_tag('script', true) .
+                        wf_tag('div', true);
                 }
             } else {
                 $QuickOLTLinkInput = '';
@@ -2882,26 +2885,26 @@ class PONizer {
             $tabsDivOpts = 'style="border: none;padding: 0;"';
             $tabsLstOpts = 'style="border: none;background: #fff;"';
 
-            if ($this->EnableQuickOLTLinks and ! empty($this->allOltDevices)) {
+            if ($this->EnableQuickOLTLinks and !empty($this->allOltDevices)) {
                 $QuickOLTDDLName = 'QuickOLTDDL_100500';
                 $QickOLTsArray = $this->allOltDevices;
 
                 $QuickOLTLinkInput = wf_tag('div', false, '', 'style="margin-top: 15px;text-align: right;"') .
-                        wf_tag('font', false, '', 'style="font-weight: 600"') . __('Go to OLT') . wf_tag('font', true) .
-                        wf_nbsp(2) . wf_Selector($QuickOLTDDLName, $QickOLTsArray, '', '', true) .
-                        wf_tag('script', false, '', 'type="text/javascript"') .
-                        '$(\'[name="' . $QuickOLTDDLName . '"]\').change(function(evt) {
+                    wf_tag('font', false, '', 'style="font-weight: 600"') . __('Go to OLT') . wf_tag('font', true) .
+                    wf_nbsp(2) . wf_Selector($QuickOLTDDLName, $QickOLTsArray, '', '', true) .
+                    wf_tag('script', false, '', 'type="text/javascript"') .
+                    '$(\'[name="' . $QuickOLTDDLName . '"]\').change(function(evt) {
                                                     $(\'a[href="#QuickOLTLinkID_\'+$(this).val()+\'"]\').click();
                                                  });' .
-                        wf_tag('script', true) .
-                        wf_tag('div', true);
+                    wf_tag('script', true) .
+                    wf_tag('div', true);
             } else {
                 $QuickOLTLinkInput = '';
             }
 
             show_window('', $QuickOLTLinkInput . wf_delimiter(0) . wf_TabsCarouselInitLinking() .
-                    wf_TabsGen('ui-tabs', $tabsList, $tabsData, $tabsDivOpts, $tabsLstOpts, true) .
-                    $QuickOLTLinkInput);
+                wf_TabsGen('ui-tabs', $tabsList, $tabsData, $tabsDivOpts, $tabsLstOpts, true) .
+                $QuickOLTLinkInput);
         } else {
             return ($result);
         }
@@ -2954,7 +2957,7 @@ class PONizer {
                 $oltPorts = @$this->allOltModels[$oltModelId]['ports'];
                 $snmpTemplatesMaxPort = @$this->snmpTemplates[$oltModelId]['define']['PON_ONU_PORT_MAX'];
                 $onuMaxCount = (!empty($snmpTemplatesMaxPort)) ? $snmpTemplatesMaxPort : $onuMaxCountConf;
-                if ((!empty($oltModelId)) and ( !empty($oltPorts)) and ( !empty($onuMaxCount))) {
+                if ((!empty($oltModelId)) and (!empty($oltPorts)) and (!empty($onuMaxCount))) {
                     $oltData->setOltId($oltId); //switching attractor scope
                     $maxOnuPerOlt = $oltPorts * $onuMaxCount;
                     $oltOnuFilled[$oltId] = zb_PercentValue($maxOnuPerOlt, $onuCount);
@@ -2970,23 +2973,23 @@ class PONizer {
                             $cleanInterface = strstr($eachInterface, ':', true);
 
                             if (isset($oltInterfacesFilled[$oltId][$cleanInterface])) {
-                                $oltInterfacesFilled[$oltId][$cleanInterface] ++;
+                                $oltInterfacesFilled[$oltId][$cleanInterface]++;
                             } else {
                                 $oltInterfacesFilled[$oltId][$cleanInterface] = 1;
                             }
 
                             if (isset($signals[$eachMac])) {
                                 $macSignal = $signals[$eachMac];
-                                if ((($macSignal > -27) and ( $macSignal < -25))) {
+                                if ((($macSignal > -27) and ($macSignal < -25))) {
                                     if (isset($avgSignals[$oltId][$cleanInterface])) {
-                                        $avgSignals[$oltId][$cleanInterface] ++;
+                                        $avgSignals[$oltId][$cleanInterface]++;
                                     } else {
                                         $avgSignals[$oltId][$cleanInterface] = 1;
                                     }
                                 }
-                                if ((($macSignal > 0) or ( $macSignal < -27))) {
+                                if ((($macSignal > 0) or ($macSignal < -27))) {
                                     if (isset($badSignals[$oltId][$cleanInterface])) {
-                                        $badSignals[$oltId][$cleanInterface] ++;
+                                        $badSignals[$oltId][$cleanInterface]++;
                                     } else {
                                         $badSignals[$oltId][$cleanInterface] = 1;
                                     }
@@ -2995,7 +2998,7 @@ class PONizer {
 
                             //storing PON ifaces descriptions, if not stored yet
                             if (!isset($oltInterfaceDescrs[$oltId][$cleanInterface])
-                                    and ! empty($ifaceDescrs) and ! empty($ifaceDescrs[$cleanInterface])) {
+                                and !empty($ifaceDescrs) and !empty($ifaceDescrs[$cleanInterface])) {
                                 $oltInterfaceDescrs[$oltId][$cleanInterface] = ' | ' . $ifaceDescrs[$cleanInterface];
                             }
                         }
@@ -3004,7 +3007,7 @@ class PONizer {
             }
         }
 
-        if ((!empty($oltInterfacesFilled)) and ( !empty($oltOnuFilled))) {
+        if ((!empty($oltInterfacesFilled)) and (!empty($oltOnuFilled))) {
             foreach ($oltOnuFilled as $oltId => $oltFilledPercent) {
                 $oltData->setOltId($oltId);
                 $oltControls = '';
@@ -3029,7 +3032,7 @@ class PONizer {
                     foreach ($oltInterfacesFilled[$oltId] as $eachInterface => $eachInterfaceCount) {
                         $eachInterfacePercent = zb_PercentValue($oltOnuPonPortMax[$oltId], $eachInterfaceCount);
 
-                        $oltIfaceDescr = ($this->showPONIfaceDescrStatsTab and ! empty($oltInterfaceDescrs[$oltId][$eachInterface])) ? $oltInterfaceDescrs[$oltId][$eachInterface] : '';
+                        $oltIfaceDescr = ($this->showPONIfaceDescrStatsTab and !empty($oltInterfaceDescrs[$oltId][$eachInterface])) ? $oltInterfaceDescrs[$oltId][$eachInterface] : '';
 
                         $avgSignalCount = @$avgSignals[$oltId][$eachInterface];
                         $badSignalCount = @$badSignals[$oltId][$eachInterface];
@@ -3156,7 +3159,7 @@ class PONizer {
                         $pollStats = $this->pollingStatsRead($oltId);
                         if (!empty($pollStats)) {
                             $devPollTime = 0;
-                            if (!empty($pollStats['start']) AND ! empty($pollStats['end'])) {
+                            if (!empty($pollStats['start']) and !empty($pollStats['end'])) {
                                 $devPollTime = $pollStats['end'] - $pollStats['start'];
                                 if ($herdEnabledFlag) {
                                     if ($devPollTime > $totalTime) {
@@ -3183,7 +3186,7 @@ class PONizer {
                             } else {
                                 $pollingStartLabel = '-';
                             }
-                            if (($pollingFinished) AND ( !empty($pollStats['start'])) AND ( !empty($pollStats['end']))) {
+                            if (($pollingFinished) and (!empty($pollStats['start'])) and (!empty($pollStats['end']))) {
                                 $pollingTimeLabel = zb_formatTime($pollStats['time']);
                                 $pollingEndLabel = date("Y-m-d H:i:s", $pollStats['end']);
                                 $visualLabel = web_bar($pollStats['time'], $totalTime);
@@ -3376,7 +3379,7 @@ class PONizer {
                     continue;
                 }
 
-//not registered?
+                //not registered?
                 if ($this->checkOnuUnique($onuMac)) {
                     $UnknownONUList[$onuMac] = $onuMac;
                 }
@@ -3404,7 +3407,7 @@ class PONizer {
             }
 
             foreach ($this->onuIndexCache as $onuMac => $oltId) {
-//not registered?
+                //not registered?
                 if ($this->checkOnuUnique($onuMac)) {
                     $login = in_array($onuMac, array_map('strtolower', $allUsermacs)) ? array_search($onuMac, array_map('strtolower', $allUsermacs)) : '';
                     $userLink = $login ? wf_Link('?module=userprofile&username=' . $login, web_profile_icon() . ' ' . @$allUserData[$login]['login'] . '', false) : '';
@@ -3456,7 +3459,7 @@ class PONizer {
 
                     if (!isset($this->hideOnuMac[$onuMac])) {
                         //brand new BDCOM issue temorary workaround. Broken serials too.
-                        if (!ispos($onuMac, 'no:such') AND ! ispos($onuMac, PHP_EOL)) {
+                        if (!ispos($onuMac, 'no:such') and !ispos($onuMac, PHP_EOL)) {
                             $data[] = $oltData;
                             $data[] = $userLink;
                             $data[] = @$allUserData[$login]['fulladress'];
@@ -3503,7 +3506,7 @@ class PONizer {
                 }
             }
         }
-        return($result);
+        return ($result);
     }
 
     /**
@@ -3593,7 +3596,7 @@ class PONizer {
 
                             @$userRealName = $allRealnames[$userLogin];
 
-//tariff data
+                            //tariff data
                             if (isset($allTariffs[$userLogin])) {
                                 $userTariff = $allTariffs[$userLogin];
                             }
@@ -3601,7 +3604,7 @@ class PONizer {
                             $userLink = '';
                             $userRealName = '';
                         }
-//checking adcomments availability
+                        //checking adcomments availability
                         if ($adc) {
                             $indicatorIcon = $adcomments->getCommentsIndicator($each['id']);
                         } else {
@@ -3611,10 +3614,10 @@ class PONizer {
                         $actLinks = wf_Link('?module=ponizer&editonu=' . $each['id'], web_edit_icon(), false);
                         $actLinks .= ' ' . $indicatorIcon;
 
-//coloring signal
+                        //coloring signal
                         if (isset($this->signalCache[$each['mac']])) {
                             $signal = $this->signalCache[$each['mac']];
-                            if (($signal > 0) or ( $signal < -27)) {
+                            if (($signal > 0) or ($signal < -27)) {
                                 $sigColor = self::COLOR_BAD;
                             } elseif ($signal > -27 and $signal < -25) {
                                 $sigColor = self::COLOR_AVG;
@@ -3629,7 +3632,7 @@ class PONizer {
                             }
                         } elseif (isset($this->signalCache[$each['serial']])) {
                             $signal = $this->signalCache[$each['serial']];
-                            if (($signal > 0) or ( $signal < -27)) {
+                            if (($signal > 0) or ($signal < -27)) {
                                 $sigColor = self::COLOR_BAD;
                             } elseif ($signal > -27 and $signal < -25) {
                                 $sigColor = self::COLOR_AVG;
@@ -3662,7 +3665,7 @@ class PONizer {
                             }
 
                             $cleanInterface = strstr($ponInterface, ':', true);
-                            $oltIfaceDescr = ($this->showPONIfaceDescrMainTab and $intDescrCacheAvail and ! empty($curOLTIfaceDescrs[$cleanInterface])) ? $curOLTIfaceDescrs[$cleanInterface] . ' | ' : '';
+                            $oltIfaceDescr = ($this->showPONIfaceDescrMainTab and $intDescrCacheAvail and !empty($curOLTIfaceDescrs[$cleanInterface])) ? $curOLTIfaceDescrs[$cleanInterface] . ' | ' : '';
                             $data[] = $oltIfaceDescr . $ponInterface;
                         }
 
@@ -3716,7 +3719,7 @@ class PONizer {
             $ajData = $json->extractJson();
 
             //update cache if required
-            if ($this->onuCacheTimeout and ! $fromCache) {
+            if ($this->onuCacheTimeout and !$fromCache) {
                 $this->cache->set(self::KEY_ONULISTAJ . $OltId, $ajData, $this->onuCacheTimeout);
             }
         }
@@ -3820,7 +3823,7 @@ class PONizer {
     protected function checkOnuUserAssign($onuId, $userLogin) {
         $result = true;
         if (@$this->altCfg['PON_USERLINK_CHECK']) {
-//ONU is registered
+            //ONU is registered
             if ($onuId != 0) {
                 @$associatedUserLogin = $this->allOnu[$onuId]['login'];
             } else {
@@ -3978,7 +3981,7 @@ class PONizer {
         } else {
             $result .= $this->messages->getStyledMessage(__('Everything is Ok'), 'success');
         }
-        return($result);
+        return ($result);
     }
 
     /**
@@ -4087,7 +4090,7 @@ class PONizer {
         $allOnuRecs = $onuDb->getAll();
 
 
-        if (!empty($allOnuRecs) and ! empty($signalCache)) {
+        if (!empty($allOnuRecs) and !empty($signalCache)) {
             //Preprocess MACs if enabled. 
             //Not using reviewDataSet here, because static method call possible
             if ($validateONUMACEnabled) {
@@ -4134,7 +4137,7 @@ class PONizer {
         $allOnuRecs = $onuDb->getAll();
 
 
-        if (!empty($allOnuRecs) and ! empty($deregsCache)) {
+        if (!empty($allOnuRecs) and !empty($deregsCache)) {
             //Preprocess MACs if enabled. 
             if ($validateONUMACEnabled) {
                 foreach ($deregsCache as $mac => $dereg) {
@@ -4160,7 +4163,7 @@ class PONizer {
                 }
             }
         }
-        return($result);
+        return ($result);
     }
 
     /**
@@ -4194,12 +4197,12 @@ class PONizer {
      * @return string
      */
     protected function validatedMac($mac) {
-        if ($this->validateONUMACEnabled and ! $this->validateONUMAC($mac)) {
+        if ($this->validateONUMACEnabled and !$this->validateONUMAC($mac)) {
             if ($this->replaceInvalidONUMACWithRandom) {
                 $mac = $this->getRandomMac();
             }
         }
-        return($mac);
+        return ($mac);
     }
 
     /**
@@ -4218,9 +4221,9 @@ class PONizer {
                 }
             }
         } else {
-            return($dataSet);
+            return ($dataSet);
         }
-        return($result);
+        return ($result);
     }
 
     /**
@@ -4405,9 +4408,9 @@ class PONizer {
             $cacheMACDevID = array();
 
             if (isset($this->snmpTemplates[$oltModelId])
-                    and isset($this->snmpTemplates[$oltModelId]['signal'])
-                    and isset($this->snmpTemplates[$oltModelId]['misc'])
-                    and file_exists(self::MACDEVIDCACHE_PATH . $oltID . '_' . self::MACDEVIDCACHE_EXT)) {
+                and isset($this->snmpTemplates[$oltModelId]['signal'])
+                and isset($this->snmpTemplates[$oltModelId]['misc'])
+                and file_exists(self::MACDEVIDCACHE_PATH . $oltID . '_' . self::MACDEVIDCACHE_EXT)) {
 
                 $cacheMACDevID = file_get_contents(self::MACDEVIDCACHE_PATH . $oltID . '_' . self::MACDEVIDCACHE_EXT);
                 $cacheMACDevID = unserialize($cacheMACDevID);
@@ -4423,8 +4426,8 @@ class PONizer {
                         $sigIndexVal = $snmpSignalOIDs['SIGVALUE'];
                     } else {
                         if ($getTxSgnal
-                                and isset($snmpMiscOIDs['ONUTXSIGNAL'])
-                                and isset($snmpMiscOIDs['ONUTXSIGNALVAL'])) {
+                            and isset($snmpMiscOIDs['ONUTXSIGNAL'])
+                            and isset($snmpMiscOIDs['ONUTXSIGNALVAL'])) {
 
                             $sigIndexOID = $snmpMiscOIDs['ONUTXSIGNAL'] . '.' . $onuDevID;
                             $sigIndexVal = $snmpMiscOIDs['ONUTXSIGNALVAL'];
@@ -4445,7 +4448,7 @@ class PONizer {
                             if (isset($line[1])) {
                                 $signal = trim($line[1]); // signal level
 
-                                if (empty($signal) or ! is_numeric($signal) or $signal == $snmpSignalOIDs['DOWNVALUE']) {
+                                if (empty($signal) or !is_numeric($signal) or $signal == $snmpSignalOIDs['DOWNVALUE']) {
                                     $signal = 'Offline';
                                 } else {
                                     if ($snmpSignalOIDs['OFFSETMODE'] == 'div') {
@@ -4463,7 +4466,7 @@ class PONizer {
                             if (isset($line[1])) {
                                 $signal = trim($line[1]); // signal level
 
-                                if (empty($signal) or ! is_numeric($signal) or $signal == $snmpSignalOIDs['DOWNVALUE']) {
+                                if (empty($signal) or !is_numeric($signal) or $signal == $snmpSignalOIDs['DOWNVALUE']) {
                                     $signal = 'Offline';
                                 } else {
                                     if ($snmpSignalOIDs['OFFSETMODE'] == 'logm') {
@@ -4505,9 +4508,9 @@ class PONizer {
             $cacheMACDevID = array();
 
             if (isset($this->snmpTemplates[$oltModelId])
-                    and isset($this->snmpTemplates[$oltModelId]['signal'])
-                    and isset($this->snmpTemplates[$oltModelId]['misc'])
-                    and file_exists(self::MACDEVIDCACHE_PATH . $oltID . '_' . self::MACDEVIDCACHE_EXT)) {
+                and isset($this->snmpTemplates[$oltModelId]['signal'])
+                and isset($this->snmpTemplates[$oltModelId]['misc'])
+                and file_exists(self::MACDEVIDCACHE_PATH . $oltID . '_' . self::MACDEVIDCACHE_EXT)) {
 
                 if ($this->snmpTemplates[$oltModelId]['signal']['SIGNALMODE'] == 'STELSFD') {
                     return ($result);
@@ -4569,9 +4572,9 @@ class PONizer {
                         $lastAliveTime = empty($lastAliveTime[1]) ? '' : $lastAliveTime[1];
                     }
 
-                    if (!empty($lastRegTime) or ! empty($lastDeregTime) or ! empty($lastAliveTime)) {
+                    if (!empty($lastRegTime) or !empty($lastDeregTime) or !empty($lastAliveTime)) {
                         if ($snmpSignalOIDs['SIGNALMODE'] == 'BDCOM' or ispos($snmpDevice, 'FD12XXS')) {
-                            $lastAliveTime = (empty($lastAliveTime) or ! is_numeric($lastAliveTime)) ? 0 : $lastAliveTime;
+                            $lastAliveTime = (empty($lastAliveTime) or !is_numeric($lastAliveTime)) ? 0 : $lastAliveTime;
                             $lastAliveTime = zb_formatTime($lastAliveTime);
 
                             $lastRegTime = $this->convertBDCOMTime($lastRegTime);
@@ -4717,7 +4720,7 @@ class PONizer {
                 }
             }
         }
-        return($result);
+        return ($result);
     }
 
     /**
@@ -4745,7 +4748,7 @@ class PONizer {
         } else {
             $result .= $this->messages->getStyledMessage(__('Nothing to show'), 'success');
         }
-        return($result);
+        return ($result);
     }
 
     /**
@@ -4786,7 +4789,7 @@ class PONizer {
             $result .= $this->messages->getStyledMessage(__('Nothing to show'), 'success');
         }
 
-        return($result);
+        return ($result);
     }
 
     /**
@@ -4805,7 +4808,7 @@ class PONizer {
         if (ubRouting::checkPost('massonuregconfirmation')) {
             if (ubRouting::checkPost('massonuregonumodelid')) {
                 $newOnusModelId = ubRouting::post('massonuregonumodelid', 'int');
-                if (!empty($newOnusModelId) AND isset($this->allModelsData)) {
+                if (!empty($newOnusModelId) and isset($this->allModelsData)) {
                     $allUnknownOnus = $this->getOnuUnknownAll();
                     if (!empty($allUnknownOnus)) {
                         $onuLabel = __('Oh you are a lazy ass') . '... ' . sizeof($allUnknownOnus) . ' ' . __('Unknown ONU') . '!';
@@ -4867,7 +4870,7 @@ class PONizer {
             $result .= $this->messages->getStyledMessage(__('Error') . ': ' . $errorCount, 'error');
         }
         $result .= $onuList;
-        return($result);
+        return ($result);
     }
 
 }
