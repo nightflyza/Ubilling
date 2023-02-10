@@ -15,7 +15,7 @@ class OnuRegister {
     const UNREG_OLTLIST_URL = '?module=zteunreg&oltlist=true';
     const UNREG_ACT_URL = '?module=zteunreg&register=true&oltip=';
     const UNREG_MASS_FIX_URL = '?module=zteunreg&massfix=true';
-    const UNREG_MASS_FIX_ACT_URL = '?module=zteunreg&massfix=true&oltip=';
+    const UNREG_MASS_FIX_ACT_URL = '?module=zteunreg&massfix=true&oltid=';
     const CARDS_TABLE = 'zte_cards';
     const BIND_TABLE = 'zte_vlan_bind';
     const PORT_ID_START = 268501248;
@@ -65,6 +65,7 @@ class OnuRegister {
     const ERROR_TOO_MANY_REGISTERED_ONU = 'Registered ONU count is';
     const ERROR_NEED_LICENSE_REISSUE_02 = 'Ask for new license. ETTO cards not supported for 64+ ONT installation in this license version.';
     const HUAWEI_NATIVE_VLAN_OPTION = 'ONUREG_HUAWEI_NATIVE_VLAN';
+    const ERROR_ONU_EXISTS = 'ONU ALREADY EXISTS';
 
     /**
      * Contains all data from billing.ini
@@ -86,6 +87,13 @@ class OnuRegister {
      * @var array
      */
     protected $allHuaweiOlt = array();
+
+    /**
+     * Merge olt arrays into one
+     * 
+     * @var array
+     */
+    protected $allOlt = array();
 
     /**
      * Contains all switches login and passwords.
@@ -399,6 +407,13 @@ class OnuRegister {
     public $addMac = '';
 
     /**
+     * Placeholder for onu serial number
+     * 
+     * @var string
+     */
+    protected $serial = '';
+
+    /**
      * Add ONU to Ponizer?
      * 
      * @var bool
@@ -476,8 +491,7 @@ class OnuRegister {
     public function __construct() {
         $this->initGreed();
         $this->initMessages();
-        $this->loadAllZteOlt();
-        $this->loadAllHuaweiOlt();
+        $this->loadAllOlt();
         $this->loadAllSwLogin();
         $this->loadZteCards();
         $this->loadOnuModels();
@@ -685,6 +699,17 @@ class OnuRegister {
     }
 
     /**
+     * Init all array per vendor and merge into single
+     * 
+     * @return void
+     */
+    protected function loadAllOlt() {
+        $this->loadAllZteOlt();
+        $this->loadAllHuaweiOlt();
+        $this->allOlt = array_merge($this->allZteOlt, $this->allHuaweiOlt);
+    }
+
+    /**
      * Load all data from `switch_login` table.
      * 
      * @return void
@@ -886,15 +911,8 @@ class OnuRegister {
      * @return int $id
      */
     protected function getOltId($ip) {
-        if (!empty($this->allZteOlt)) {
-            foreach ($this->allZteOlt as $id => $eachOlt) {
-                if ($eachOlt['ip'] == $ip) {
-                    return ($id);
-                }
-            }
-        }
-        if (!empty($this->allHuaweiOlt)) {
-            foreach ($this->allHuaweiOlt as $id => $eachOlt) {
+        if (!empty($this->allOlt)) {
+            foreach ($this->allOlt as $id => $eachOlt) {
                 if ($eachOlt['ip'] == $ip) {
                     return ($id);
                 }
@@ -1032,7 +1050,7 @@ class OnuRegister {
     protected function getAllZteUnauth() {
         if (!empty($this->allZteOlt)) {
             foreach ($this->allZteOlt as $this->currentOltSwId => $eachOlt) {
-                if (wf_CheckGet(array('oltlist','oltid'))) {
+                if (wf_CheckGet(array('oltlist', 'oltid'))) {
                     $oltid = ubRouting::get('oltid', 'int');
                     if ($this->currentOltSwId != $oltid) {
                         continue;
@@ -1066,7 +1084,7 @@ class OnuRegister {
     protected function getAllHuaweiUnauth() {
         if (!empty($this->allHuaweiOlt)) {
             foreach ($this->allHuaweiOlt as $this->currentOltSwId => $eachOlt) {
-                if (wf_CheckGet(array('oltlist','oltid'))) {
+                if (wf_CheckGet(array('oltlist', 'oltid'))) {
                     $oltid = ubRouting::get('oltid', 'int');
                     if ($this->currentOltSwId != $oltid) {
                         continue;
@@ -1375,99 +1393,176 @@ class OnuRegister {
      * @return void
      */
     public function RegisterOnu() {
-        if (isset($this->allHuaweiOlt[$this->currentOltSwId])) {
-            $this->currentSnmpCommunity = $this->allHuaweiOlt[$this->currentOltSwId]['snmp'];
-            $snmpTemplateName = $this->allHuaweiOlt[$this->currentOltSwId]['snmptemplate'];
-        }
-        if (isset($this->allZteOlt[$this->currentOltSwId])) {
-            $this->currentSnmpCommunity = $this->allZteOlt[$this->currentOltSwId]['snmp'];
-            $snmpTemplateName = $this->allZteOlt[$this->currentOltSwId]['snmptemplate'];
-        }
+        if (isset($this->allOlt[$this->currentOltSwId])) {
+            $this->currentSnmpCommunity = $this->allOlt[$this->currentOltSwId]['snmp'];
+            $snmpTemplateName = $this->allOlt[$this->currentOltSwId]['snmptemplate'];
 
-        $this->loadCalculatedData();
+            $this->loadCalculatedData();
 
-        //set serial number empty as default value because epon    
-        $serial = '';
+            //set serial number empty as default value because epon    
+            $this->serial = '';
 
-        if (!empty($this->allSwLogin) and isset($this->allSwLogin[$this->currentOltSwId])) {
-            if (file_exists(CONFIG_PATH . '/snmptemplates/' . $snmpTemplateName)) {
-                $this->currentSnmpTemplate = rcms_parse_ini_file(CONFIG_PATH . '/snmptemplates/' . $snmpTemplateName, true);
-                if (isset($this->currentSnmpTemplate[self::SNMP_TEMPLATE_SECTION]['VERSION'])) {
-                    $this->currentPonVersion = $this->currentSnmpTemplate[self::SNMP_TEMPLATE_SECTION]['VERSION'];
-                }
-                if ($this->currentPonType == 'EPON') {
-                    $this->addMac = $this->onuIdentifier;
-                    $this->onuIdentifier = $this->transformMac();
-                    $this->checkRegisterdEponOnu();
-                }
-                if ($this->currentPonType == 'GPON') {
-                    $this->onuIdentifier = strtoupper($this->onuIdentifier);
-                    $serial = $this->onuIdentifier;
-                    $this->checkRegisteredGponOnu();
-                }
-
-                //Exit if onu number is 65+ for epon and 128+ for gpon.
-                if ($this->currentPonType == 'EPON') {
-                    $intParts = explode("/", $this->currentOltInterface);
-                    $slot = $intParts[1];
-                    foreach ($this->allCards[$this->currentOltSwId] as $each => $io) {
-                        if ($io['slot_number'] == $slot) {
-                            if ($io['card_name'] == "ETTO" or $io['card_name'] == "ETTOK") {
-                                if ($this->avidity['VERSION'] != '0.0.1') {
-                                    if (count($this->existId) >= 128) {
-                                        $this->error = self::ERROR_TOO_MANY_REGISTERED_ONU;
-                                        return ('');
-                                    }
-                                } else {
-                                    if (count($this->existId) >= 64) {
-                                        $this->error = self::ERROR_NEED_LICENSE_REISSUE_02;
-                                        exit();
-                                    }
-                                }
-                            } else {
-                                if (count($this->existId) >= 64) {
-                                    $this->error = self::ERROR_TOO_MANY_REGISTERED_ONU;
-                                    exit();
-                                }
-                            }
-                        }
+            if (!empty($this->allSwLogin) and isset($this->allSwLogin[$this->currentOltSwId])) {
+                if (file_exists(CONFIG_PATH . '/snmptemplates/' . $snmpTemplateName)) {
+                    $this->currentSnmpTemplate = rcms_parse_ini_file(CONFIG_PATH . '/snmptemplates/' . $snmpTemplateName, true);
+                    if (isset($this->currentSnmpTemplate[self::SNMP_TEMPLATE_SECTION]['VERSION'])) {
+                        $this->currentPonVersion = $this->currentSnmpTemplate[self::SNMP_TEMPLATE_SECTION]['VERSION'];
                     }
-                }
+                    if ($this->currentPonType == 'EPON') {
+                        $this->addMac = $this->onuIdentifier;
+                        $this->onuIdentifier = $this->transformMac();
+                        $this->checkRegisterdEponOnu();
+                    }
+                    if ($this->currentPonType == 'GPON') {
+                        $this->onuIdentifier = strtoupper($this->onuIdentifier);
+                        $this->serial = $this->onuIdentifier;
+                        $this->checkRegisteredGponOnu();
+                    }
 
-                if ($this->currentPonType == 'GPON') {
-                    if (count($this->existId) >= 128) {
-                        $this->error = self::ERROR_TOO_MANY_REGISTERED_ONU;
+                    //Exit if onu number is 65+ for epon and 128+ for gpon.
+                    if (!$this->onuCountControl()) {
                         exit();
                     }
+
+                    //Executing register and save config scripts
+                    $this->sendRegisterCommand();
+                    $log_str = 'ONUREG REGISTER ONU. ONU ID: ' . $this->onuIdentifier;
+                    $log_str .= ' OLT IP: ' . $this->currentOltIp;
+                    $log_str .= ' OLT INTERFACE: ' . $this->currentOltInterface;
+                    $log_str .= ' ONU NUMBER: ' . $this->lastOnuId;
+                    log_register($log_str);
+                    $this->qinqControl();
+                    $this->ponizerControl();
                 }
+            }
+        }
+
+    }
 
 
-                if ($this->useUniversalQINQ != 'none') {
-                    if ($this->login) {
-                        $this->result .= shell_exec($this->getRegisterOnuCommand());
-                        $this->result .= shell_exec($this->getSaveConfigCommand());
-                        $this->result = nl2br($this->result);
-                        if ($this->useUniversalQINQ == self::GET_UNIVERSALQINQ_CVLAN_POOL or $this->useUniversalQINQ == self::GET_UNIVERSALQINQ_PAIR_POOL) {
-                            $universalQuery = "INSERT INTO `qinq_bindings` (`id`,`login`,`svlan_id`,`cvlan`) VALUES (NULL,'" . $this->login . "'," . $this->svlanId . ',' . $this->cvlan . ')';
-                            nr_query($universalQuery);
+    /**
+     * Check options before running scripts
+     * 
+     * @return void
+     */
+    protected function sendRegisterCommand() {
+        if ($this->useUniversalQINQ != 'none' and $this->login) {
+            $this->scriptExec();
+        }
+        if ($this->useUniversalQINQ == 'none') {
+            $this->scriptExec();
+        }
+    }
+
+    /**
+     * Execute script
+     */
+    protected function scriptExec() {
+        $this->result .= shell_exec($this->getRegisterOnuCommand());
+        $this->result .= shell_exec($this->getSaveConfigCommand());
+        $this->result = nl2br($this->result);
+    }
+
+    /**
+     * Check if all options are set to get qinq binding
+     * 
+     * @return void
+     */
+    protected function qinqControl() {
+        if ($this->useUniversalQINQ != 'none') {
+            if ($this->login) {
+                if ($this->useUniversalQINQ == self::GET_UNIVERSALQINQ_CVLAN_POOL or $this->useUniversalQINQ == self::GET_UNIVERSALQINQ_PAIR_POOL) {
+                    $this->createQinqBinding();
+                }
+            }
+        }
+    }
+
+    /**
+     * Write qinq binding to database
+     * 
+     * @return void
+     */
+    protected function createQinqBinding() {
+        $universalQuery = "INSERT INTO `qinq_bindings` (`id`,`login`,`svlan_id`,`cvlan`) VALUES (NULL,'" . $this->login . "'," . $this->svlanId . ',' . $this->cvlan . ')';
+        nr_query($universalQuery);
+
+    }
+
+    /**
+     * Count based on pon type onu count limits
+     * 
+     * @return bool
+     */
+    protected function onuCountControl() {
+        if ($this->currentPonType == 'EPON') {
+            $intParts = explode("/", $this->currentOltInterface);
+            $slot = $intParts[1];
+            foreach ($this->allCards[$this->currentOltSwId] as $each => $io) {
+                if ($io['slot_number'] == $slot) {
+                    if ($io['card_name'] == "ETTO" or $io['card_name'] == "ETTOK") {
+                        if ($this->avidity['VERSION'] != '0.0.1') {
+                            if (count($this->existId) >= 128) {
+                                $this->error = self::ERROR_TOO_MANY_REGISTERED_ONU;
+                                return (false);
+                            }
+                        } else {
+                            if (count($this->existId) >= 64) {
+                                $this->error = self::ERROR_NEED_LICENSE_REISSUE_02;
+                                return (false);
+                            }
+                        }
+                    } else {
+                        if (count($this->existId) >= 64) {
+                            $this->error = self::ERROR_TOO_MANY_REGISTERED_ONU;
+                            return (false);
                         }
                     }
-                } else {
-                    $this->result .= shell_exec($this->getRegisterOnuCommand());
-                    $this->result .= shell_exec($this->getSaveConfigCommand());
-                    $this->result = nl2br($this->result);
                 }
+            }
+        }
 
-                log_register('ONUREG REGISTER ONU. ONU ID: ' . $this->onuIdentifier . ' OLT IP: ' . $this->currentOltIp . 'OLT INTERFACE: ' . $this->currentOltInterface . ' ONU NUMBER: ' . $this->lastOnuId);
+        if ($this->currentPonType == 'GPON') {
+            if (count($this->existId) >= 128) {
+                $this->error = self::ERROR_TOO_MANY_REGISTERED_ONU;
+                return (false);
+            }
+        }
+        return (true);
+    }
 
-                if ($this->ponizerAdd) {
-                    if (!empty($this->addMac)) {
-                        $pon = new PONizer();
-                        $pon->onuCreate($this->onuModel, $this->currentOltSwId, '', $this->addMac, $serial, $this->login);
-                    } else {
-                        log_register('ONUREG PONIZER WRONG DATA. Login: ' . $this->login . '. MAC: ' . $this->addMac);
+    /**
+     * Add onu to PONizer if options was set.
+     * Check if ONU has unique paramteres.
+     * 
+     * @return void
+     */
+    protected function ponizerControl() {
+        switch ($this->currentPonType) {
+            case 'GPON':
+                if ($this->checkSerialOnuExists($this->serial)) {
+                    if ($this->ponizerAdd) {
+                        $this->error = self::ERROR_ONU_EXISTS . ' SN: ' . $this->serial;
                     }
+                    $this->ponizerAdd = false;
                 }
+                break;
+            case 'EPON':
+                if ($this->checkMacOnuExists($this->addMac)) {
+                    if ($this->ponizerAdd) {
+                        $this->error = self::ERROR_ONU_EXISTS . ' MAC: ' . $this->addMac;
+                    }
+                    $this->ponizerAdd = false;
+                }
+                break;
+        }
+
+        if ($this->ponizerAdd) {
+            if (!empty($this->addMac)) {
+                $pon = new PONizer();
+                $pon->onuCreate($this->onuModel, $this->currentOltSwId, '', $this->addMac, $this->serial, $this->login);
+            } else {
+                log_register('ONUREG PONIZER WRONG DATA. Login: ' . $this->login . '. MAC: ' . $this->addMac);
             }
         }
     }
@@ -1763,8 +1858,8 @@ class OnuRegister {
         $tablecells .= wf_TableCell(__('Actions'));
         $tablerows = wf_TableRow($tablecells, 'row1');
 
-        if (!empty($this->allZteOlt)) {
-            foreach ($this->allZteOlt as $eachNumber => $eachOlt) {
+        if (!empty($this->allOlt)) {
+            foreach ($this->allOlt as $eachNumber => $eachOlt) {
                 $tablecells = wf_TableCell($eachOlt['id']);
                 $tablecells .= wf_TableCell($eachOlt['ip']);
                 $tablecells .= wf_TableCell($eachOlt['desc'] . ' | ' . $eachOlt['location']);
@@ -1773,24 +1868,10 @@ class OnuRegister {
                     $actionLinks .= wf_Link(self::MODULE_URL_EDIT_BIND . $eachOlt['id'], wf_img('skins/bind.png', __('Edit VLAN bindings')), false);
                 } else {
                     $actionLinks = wf_Link(self::UNREG_OLTLIST_URL . '&oltid=' . $eachOlt['id'], wf_img('skins/check.png', __('Check for unauthenticated ONU/ONT')), false);
+                    $actionLinks .= wf_Link(self::UNREG_MASS_FIX_ACT_URL . $eachOlt['id'], wf_img('skins/brain.png', 'OLT ' . __('fix')), false);
                 }
                 $tablecells .= wf_TableCell($actionLinks);
-                $tablerows .= wf_TableRow($tablecells, 'row3');
-            }
-        }
-        if (!empty($this->allHuaweiOlt)) {
-            foreach ($this->allHuaweiOlt as $eachNumber => $eachOlt) {
-                $tablecells = wf_TableCell($eachOlt['id']);
-                $tablecells .= wf_TableCell($eachOlt['ip']);
-                $tablecells .= wf_TableCell($eachOlt['desc'] . ' | ' . $eachOlt['location']);
-                if ($vlanbind) {
-                    $actionLinks = wf_Link(self::MODULE_URL_EDIT_CARD . $eachOlt['id'], wf_img('skins/chasis.png', __('Edit cards')), false);
-                    $actionLinks .= wf_Link(self::MODULE_URL_EDIT_BIND . $eachOlt['id'], wf_img('skins/bind.png', __('Edit VLAN bindings')), false);
-                } else {
-                    $actionLinks = wf_Link(self::UNREG_OLTLIST_URL . '&oltid=' . $eachOlt['id'], wf_img('skins/check.png', __('Check for unauthenticated ONU/ONT')), false);
-                }
-                $tablecells .= wf_TableCell($actionLinks);
-                $tablerows .= wf_TableRow($tablecells, 'row3');
+                $tablerows .= wf_TableRow($tablecells, 'row5');
             }
         }
         $result = wf_TableBody($tablerows, '100%', '0', 'sortable');
@@ -1812,18 +1893,9 @@ class OnuRegister {
         $tablecells .= wf_TableCell(__('Description'));
         $tablerows = wf_TableRow($tablecells, 'row1');
 
-        if (!empty($this->allZteOlt)) {
-            if (isset($this->allZteOlt[$oltid])) {
-                $eachOlt = $this->allZteOlt[$oltid];
-                $tablecells = wf_TableCell($eachOlt['id']);
-                $tablecells .= wf_TableCell($eachOlt['ip']);
-                $tablecells .= wf_TableCell($eachOlt['desc'] . ' | ' . $eachOlt['location']);
-                $tablerows .= wf_TableRow($tablecells, 'row3');
-            }
-        }
-        if (!empty($this->allHuaweiOlt)) {
-            if (isset($this->allHuaweiOlt[$oltid])) {
-                $eachOlt = $this->allHuaweiOlt[$oltid];
+        if (!empty($this->allOlt)) {
+            if (isset($this->allOlt[$oltid])) {
+                $eachOlt = $this->allOlt[$oltid];
                 $tablecells = wf_TableCell($eachOlt['id']);
                 $tablecells .= wf_TableCell($eachOlt['ip']);
                 $tablecells .= wf_TableCell($eachOlt['desc'] . ' | ' . $eachOlt['location']);
@@ -1982,38 +2054,35 @@ class OnuRegister {
         $tablecells .= wf_TableCell(__('Card type'));
         $tablerows = wf_TableRow($tablecells, 'row1');
 
-        if (!empty($this->allZteOlt)) {
-            if (isset($this->allZteOlt[$swid])) {
-                $oltData = $this->allZteOlt[$swid];
-            }
-            if (isset($this->allHuaweiOlt[$swid])) {
-                $oltData = $this->allHuaweiOlt[$swid];
-            }
-            if (file_exists(CONFIG_PATH . '/snmptemplates/' . $oltData['snmptemplate'])) {
-                $snmpTemplate = rcms_parse_ini_file(CONFIG_PATH . '/snmptemplates/' . $oltData['snmptemplate'], true);
-                if (isset($snmpTemplate[self::SNMP_TEMPLATE_SECTION]['ALLCARDS'])) {
-                    $allCards = @snmp2_real_walk($oltData['ip'], $oltData['snmp'], $snmpTemplate[self::SNMP_TEMPLATE_SECTION]['ALLCARDS']);
-                }
-                if (!empty($allCards)) {
-                    foreach ($allCards as $eachOid => $eachCard) {
-                        $cardType = 'other';
-                        $eachOid = trim(str_replace($snmpTemplate[self::SNMP_TEMPLATE_SECTION]['ALLCARDS'] . '.', '', $eachOid));
-                        $eachOid = explode('.', $eachOid);
-                        $eachCard = trim(str_replace(array('STRING:', '"'), '', $eachCard));
-                        if (isset($snmpTemplate[self::SNMP_TEMPLATE_SECTION]['VERSION']) and $snmpTemplate[self::SNMP_TEMPLATE_SECTION]['VERSION'] == "C6XX") {
-                            $tablecells = wf_TableCell($eachOid[0]);
-                        } else {
-                            $tablecells = wf_TableCell($eachOid[2]);
+        if (!empty($this->allOlt)) {
+            if (isset($this->allOlt[$swid])) {
+                $oltData = $this->allOlt[$swid];
+                if (file_exists(CONFIG_PATH . '/snmptemplates/' . $oltData['snmptemplate'])) {
+                    $snmpTemplate = rcms_parse_ini_file(CONFIG_PATH . '/snmptemplates/' . $oltData['snmptemplate'], true);
+                    if (isset($snmpTemplate[self::SNMP_TEMPLATE_SECTION]['ALLCARDS'])) {
+                        $allCards = @snmp2_real_walk($oltData['ip'], $oltData['snmp'], $snmpTemplate[self::SNMP_TEMPLATE_SECTION]['ALLCARDS']);
+                    }
+                    if (!empty($allCards)) {
+                        foreach ($allCards as $eachOid => $eachCard) {
+                            $cardType = 'other';
+                            $eachOid = trim(str_replace($snmpTemplate[self::SNMP_TEMPLATE_SECTION]['ALLCARDS'] . '.', '', $eachOid));
+                            $eachOid = explode('.', $eachOid);
+                            $eachCard = trim(str_replace(array('STRING:', '"'), '', $eachCard));
+                            if (isset($snmpTemplate[self::SNMP_TEMPLATE_SECTION]['VERSION']) and $snmpTemplate[self::SNMP_TEMPLATE_SECTION]['VERSION'] == "C6XX") {
+                                $tablecells = wf_TableCell($eachOid[0]);
+                            } else {
+                                $tablecells = wf_TableCell($eachOid[2]);
+                            }
+                            if (isset($this->eponCards[$eachCard])) {
+                                $cardType = 'EPON';
+                            }
+                            if (isset($this->gponCards[$eachCard])) {
+                                $cardType = 'GPON';
+                            }
+                            $tablecells .= wf_TableCell($eachCard);
+                            $tablecells .= wf_TableCell($cardType);
+                            $tablerows .= wf_TableRow($tablecells, 'row1');
                         }
-                        if (isset($this->eponCards[$eachCard])) {
-                            $cardType = 'EPON';
-                        }
-                        if (isset($this->gponCards[$eachCard])) {
-                            $cardType = 'GPON';
-                        }
-                        $tablecells .= wf_TableCell($eachCard);
-                        $tablecells .= wf_TableCell($cardType);
-                        $tablerows .= wf_TableRow($tablecells, 'row1');
                     }
                 }
             }
@@ -2096,11 +2165,8 @@ $(".changeType").change(function () {
         $tablerows = wf_TableRow($tablecells, 'row1');
 
         if (!empty($this->allBinds)) {
-            if (!empty($this->allZteOlt)) {
-                $tablerows .= $this->getListZteBind($this->allZteOlt, $swid);
-            }
-            if (!empty($this->allHuaweiOlt)) {
-                $tablerows .= $this->getListZteBind($this->allHuaweiOlt, $swid);
+            if (!empty($this->allOlt)) {
+                $tablerows .= $this->getListZteBind($this->allOlt, $swid);
             }
         }
 
@@ -2145,7 +2211,7 @@ $(".changeType").change(function () {
      */
     public function listAllUncfg() {
         $this->getAllUnauth();
-        if(wf_CheckGet(array('oltlist', 'oltid'))) {
+        if (wf_CheckGet(array('oltlist', 'oltid'))) {
             $oltlist = '&oltlist=true&oltid=' . ubRouting::get('oltid', 'int');
         } else {
             $oltlist = '';

@@ -1021,13 +1021,13 @@ class PONizer {
     }
 
     /**
-    * Performs logging of OLT polling 
-    * 
-    * @param int $oltId
-    * @param string $logData
-    * 
-    * @return void
-    */
+     * Performs logging of OLT polling 
+     * 
+     * @param int $oltId
+     * @param string $logData
+     * 
+     * @return void
+     */
     public function logPoll($oltId, $logData) {
         $curdate = curdatetime();
         $logData = $curdate . ' | OLT[' . $oltId . '] | ' . $logData . PHP_EOL;
@@ -2553,14 +2553,13 @@ class PONizer {
             }
             if ($this->altCfg['ONUREG_ZTE']) {
                 $zteControls = '';
+                if (cfr('OnuRegister::REG_MODULE_RIGHTS')) {
+                    $zteControls .= wf_link(OnuRegister::UNREG_URL, wf_img_sized('skins/check.png', '', '16', '16') . ' ' . __('Check for unauthenticated ONU/ONT') . ' (' . __('All') . ' OLT)', false, 'ubButton') . wf_delimiter();
+                    $zteControls .= wf_link(OnuRegister::UNREG_OLTLIST_URL, wf_img_sized('skins/pon_icon.gif', '', '16', '16') . ' ' . __('Check for unauthenticated ONU/ONT') . ' OLT', false, 'ubButton') . wf_delimiter();
+                    $zteControls .= wf_link(OnuRegister::UNREG_MASS_FIX_URL, wf_img_sized('skins/brain.png', '', '16', '16') . ' ' . __('Mass fix'), false, 'ubButton')  . wf_delimiter();
+                }
                 if (cfr('OnuRegister::VLAN_MODULE_RIGHTS')) {
-                    $zteControls .= wf_link(OnuRegister::VLAN_MODULE_URL, wf_img_sized('skins/register.png', '', '16', '16') . ' ' . __('Edit OLT Cards'), false, 'ubButton') . wf_delimiter(); 
-                }
-                if (cfr('OnuRegister::REG_MODULE_RIGHTS')) {
-                    $zteControls .= wf_link(OnuRegister::UNREG_URL, wf_img_sized('skins/check.png', '', '16', '16') . ' ' . __('Check for unauthenticated ONU/ONT') . ' ' . __('All') . ' OLT', false, 'ubButton') . wf_delimiter();
-                }
-                if (cfr('OnuRegister::REG_MODULE_RIGHTS')) {
-                    $zteControls .= wf_link(OnuRegister::UNREG_OLTLIST_URL, wf_img_sized('skins/pon_icon.gif', '', '16', '16') . ' ' . __('Check for unauthenticated ONU/ONT') . ' ' . __('Choose') . ' OLT', false, 'ubButton');
+                    $zteControls .= wf_link(OnuRegister::VLAN_MODULE_URL, wf_img_sized('skins/register.png', '', '16', '16') . ' ' . __('Edit OLT Cards'), false, 'ubButton') . wf_delimiter();
                 }
 
                 $result .= wf_modalAuto(web_icon_extended() . ' ' . __('ZTE'), __('ZTE'), $zteControls, 'ubButton');
