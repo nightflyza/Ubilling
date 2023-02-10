@@ -73,7 +73,7 @@ if (@$altcfg[OnuRegister::MODULE_CONFIG]) {
                     show_window(__('Check for unauthenticated ONU/ONT'), $register->$avidity_z());
                 }
             }
-            show_window(OnuRegister::EMPTY_FIELD, wf_link(OnuRegister::UNREG_MASS_FIX_URL, __('Mass fix'), false, 'ubButton') . ' ' . wf_BackLink(PONizer::URL_ONULIST));
+            show_window(OnuRegister::EMPTY_FIELD, wf_BackLink(PONizer::URL_ONULIST));
             if (wf_CheckPost(array(OnuRegister::TYPE_FIELD, OnuRegister::INTERFACE_FIELD, OnuRegister::OLTIP_FIELD, OnuRegister::MODELID_FIELD, OnuRegister::OLTID_FIELD))) {
                 if ($_POST[OnuRegister::MODELID_FIELD] != OnuRegister::MODELID_PLACEHOLDER) {
                     if (wf_CheckPost(array(OnuRegister::VLAN_FIELD)) or $_POST[OnuRegister::GET_UNIVERSALQINQ] != 'none') {
