@@ -4,7 +4,7 @@ global $ubillingConfig;
 $altcfg = $ubillingConfig->getAlter();
 
 if (@$altcfg[OnuRegister::MODULE_CONFIG]) {
-    if (cfr(OnuRegister::MODULE_RIGHTS)) {
+    if (cfr(OnuRegister::REG_MODULE_RIGHTS)) {
         $register = new OnuRegister();
         $avidity = $register->getAvidity();
         $onuIdentifier = OnuRegister::EMPTY_FIELD;
@@ -19,29 +19,64 @@ if (@$altcfg[OnuRegister::MODULE_CONFIG]) {
         if (!empty($avidity)) {
             $avidity_z = $avidity['M']['LUCIO'];
             $avidity_w = $avidity['M']['REAPER'];
-            show_window(__('Check for unauthenticated ONU/ONT'), $register->$avidity_z());
+            $avidity_b = $avidity['M']['LAI'];
+            if (wf_CheckGet(array('oltlist'))) {
+                if (wf_CheckGet(array('oltid'))) {
+                    if (wf_CheckGet(array(OnuRegister::OLTIP_FIELD, OnuRegister::INTERFACE_FIELD, OnuRegister::TYPE_FIELD))) {
+                        if ($altcfg['ONUREG_ALWAYS_SHOW_UNREGISTERED']) {
+                            show_info(__('OLT device') . ' : ' . $_GET[OnuRegister::OLTIP_FIELD]);
+                            show_window(__('Check for unauthenticated ONU/ONT'), $register->$avidity_z());
+                            show_warning(__('OLT device') . ' : ' . $_GET[OnuRegister::OLTIP_FIELD]);
+                        }
 
-            show_window(OnuRegister::EMPTY_FIELD, wf_BackLink(PONizer::URL_ONULIST));
+                        if (wf_CheckGet(array(OnuRegister::MACONU_FIELD))) {
+                            $onuIdentifier = $_GET[OnuRegister::MACONU_FIELD];
+                        }
+                        if (wf_CheckGet(array(OnuRegister::SERIAL_FIELD))) {
+                            $onuIdentifier = $_GET[OnuRegister::SERIAL_FIELD];
+                        }
+                        if (!empty($onuIdentifier)) {
+                            $register->currentOltIp = $_GET[OnuRegister::OLTIP_FIELD];
+                            $register->currentOltInterface = $_GET[OnuRegister::INTERFACE_FIELD];
+                            $register->currentPonType = $_GET[OnuRegister::TYPE_FIELD];
+                            $register->onuIdentifier = $onuIdentifier;
+                            $register->currentOltSwId = $_GET[OnuRegister::OLTID_FIELD];
+                            show_window(__('Register'), $register->registerOnuForm());
+                        }
+                    } else {
+                        show_window(__('Check for unauthenticated ONU/ONT'), $register->$avidity_z());
+                    }
+                } else {
+                    show_window(__('All ZTE OLTs'), $register->$avidity_b(false));
+                }
+            } else {
+                if (wf_CheckGet(array(OnuRegister::OLTIP_FIELD, OnuRegister::INTERFACE_FIELD, OnuRegister::TYPE_FIELD))) {
+                    if ($altcfg['ONUREG_ALWAYS_SHOW_UNREGISTERED']) {
+                        show_window(__('Check for unauthenticated ONU/ONT'), $register->$avidity_z());
+                    }
 
-            if (wf_CheckGet(array(OnuRegister::OLTIP_FIELD, OnuRegister::INTERFACE_FIELD, OnuRegister::TYPE_FIELD))) {
-                if (wf_CheckGet(array(OnuRegister::MACONU_FIELD))) {
-                    $onuIdentifier = $_GET[OnuRegister::MACONU_FIELD];
-                }
-                if (wf_CheckGet(array(OnuRegister::SERIAL_FIELD))) {
-                    $onuIdentifier = $_GET[OnuRegister::SERIAL_FIELD];
-                }
-                if (!empty($onuIdentifier)) {
-                    $register->currentOltIp = $_GET[OnuRegister::OLTIP_FIELD];
-                    $register->currentOltInterface = $_GET[OnuRegister::INTERFACE_FIELD];
-                    $register->currentPonType = $_GET[OnuRegister::TYPE_FIELD];
-                    $register->onuIdentifier = $onuIdentifier;
-                    $register->currentOltSwId = $_GET[OnuRegister::OLTID_FIELD];
-                    show_window(__('Register'), $register->registerOnuForm());
+                    if (wf_CheckGet(array(OnuRegister::MACONU_FIELD))) {
+                        $onuIdentifier = $_GET[OnuRegister::MACONU_FIELD];
+                    }
+                    if (wf_CheckGet(array(OnuRegister::SERIAL_FIELD))) {
+                        $onuIdentifier = $_GET[OnuRegister::SERIAL_FIELD];
+                    }
+                    if (!empty($onuIdentifier)) {
+                        $register->currentOltIp = $_GET[OnuRegister::OLTIP_FIELD];
+                        $register->currentOltInterface = $_GET[OnuRegister::INTERFACE_FIELD];
+                        $register->currentPonType = $_GET[OnuRegister::TYPE_FIELD];
+                        $register->onuIdentifier = $onuIdentifier;
+                        $register->currentOltSwId = $_GET[OnuRegister::OLTID_FIELD];
+                        show_window(__('Register'), $register->registerOnuForm());
+                    }
+                } else {
+                    show_window(__('Check for unauthenticated ONU/ONT'), $register->$avidity_z());
                 }
             }
+            show_window(OnuRegister::EMPTY_FIELD, wf_link(OnuRegister::UNREG_MASS_FIX_URL, __('Mass fix'), false, 'ubButton') . ' ' . wf_BackLink(PONizer::URL_ONULIST));
             if (wf_CheckPost(array(OnuRegister::TYPE_FIELD, OnuRegister::INTERFACE_FIELD, OnuRegister::OLTIP_FIELD, OnuRegister::MODELID_FIELD, OnuRegister::OLTID_FIELD))) {
                 if ($_POST[OnuRegister::MODELID_FIELD] != OnuRegister::MODELID_PLACEHOLDER) {
-                    if (wf_CheckPost(array(OnuRegister::VLAN_FIELD)) OR $_POST[OnuRegister::GET_UNIVERSALQINQ] != 'none') {
+                    if (wf_CheckPost(array(OnuRegister::VLAN_FIELD)) or $_POST[OnuRegister::GET_UNIVERSALQINQ] != 'none') {
 
                         $register->addMac = OnuRegister::EMPTY_FIELD;
                         $save = false;
@@ -81,7 +116,7 @@ if (@$altcfg[OnuRegister::MODULE_CONFIG]) {
                         $register->router = $router;
                         $register->vlan = $_POST[OnuRegister::VLAN_FIELD];
                         $register->onuModel = $_POST[OnuRegister::MODELID_FIELD];
-                        if ($_POST[OnuRegister::ONUDESCRIPTION_FIELD] and ! empty($_POST[OnuRegister::ONUDESCRIPTION_FIELD]) and $_POST[OnuRegister::ONUDESCRIPTION_FIELD] != '__empty') {
+                        if ($_POST[OnuRegister::ONUDESCRIPTION_FIELD] and !empty($_POST[OnuRegister::ONUDESCRIPTION_FIELD]) and $_POST[OnuRegister::ONUDESCRIPTION_FIELD] != '__empty') {
                             $register->onuDescription = $_POST[OnuRegister::ONUDESCRIPTION_FIELD];
                         }
                         if ($register->login) {
