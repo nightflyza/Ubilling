@@ -3,7 +3,7 @@
 $altcfg = $ubillingConfig->getAlter();
 
 if (@$altcfg[OnuRegister::MODULE_CONFIG]) {
-    if (cfr(OnuRegister::MODULE_RIGHTS)) {
+    if (cfr(OnuRegister::VLAN_MODULE_RIGHTS)) {
         $register = new OnuRegister();
         $avidity = $register->getAvidity();
 
@@ -21,7 +21,7 @@ if (@$altcfg[OnuRegister::MODULE_CONFIG]) {
 
             if (isset($_GET[$avidity['P']['EAC']])) {
                 show_window(__('OLT'), $register->listZteDevice($_GET[$avidity['P']['EAC']]));
-                show_window('', wf_BackLink(OnuRegister::MODULE_URL));
+                show_window('', wf_BackLink(OnuRegister::VLAN_MODULE_URL));
                 show_window(__('Create new card'), $register->$avidity_d($_GET[$avidity['P']['EAC']]));
                 show_window(__('List all cards'), $register->$avidity_e($_GET[$avidity['P']['EAC']]));
                 show_window(__('Show all installed cards'), $register->$avidity_f($_GET[$avidity['P']['EAC']]));
@@ -44,7 +44,7 @@ if (@$altcfg[OnuRegister::MODULE_CONFIG]) {
                     show_window('', $register->$avidity_i($_GET[$avidity['P']['EAI']], $_GET['slot_number'], $_GET['port_number'], $_GET['vlan']));
                 }
                 show_window(__('OLT'), $register->listZteDevice($_GET[$avidity['P']['EAI']]));
-                show_window('', wf_BackLink(OnuRegister::MODULE_URL));
+                show_window('', wf_BackLink(OnuRegister::VLAN_MODULE_URL));
                 show_window('', $register->listZteBind($_GET[$avidity['P']['EAI']]));
                 $avidity_h = $avidity['M']['LITRE'];
                 show_window('', $register->$avidity_h($_GET[$avidity['P']['EAI']]));
