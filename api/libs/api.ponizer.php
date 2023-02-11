@@ -1507,7 +1507,7 @@ class PONizer {
     public function onuCreate($onumodelid, $oltid, $ip, $mac, $serial, $login) {
         $macF = strtolower($mac);
         $macF = trim($macF);
-        $macF = ubRouting::filters($mac, 'mres');
+        $macF = ubRouting::filters($macF, 'mres');
         $onumodelid = ubRouting::filters($onumodelid, 'int');
         $oltid = ubRouting::filters($oltid, 'int');
         $ip = ubRouting::filters($ip, 'mres');
