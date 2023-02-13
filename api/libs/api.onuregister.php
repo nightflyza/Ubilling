@@ -14,6 +14,7 @@ class OnuRegister {
     const UNREG_URL = '?module=zteunreg';
     const UNREG_OLTLIST_URL = '?module=zteunreg&oltlist=true';
     const UNREG_ACT_URL = '?module=zteunreg&register=true&oltip=';
+    const UNREG_MASS_FIX_PREVIEW_URL = '?module=zteunreg&massfix=true&preview=true';
     const UNREG_MASS_FIX_URL = '?module=zteunreg&massfix=true';
     const UNREG_MASS_FIX_ACT_URL = '?module=zteunreg&massfix=true&oltid=';
     const CARDS_TABLE = 'zte_cards';
@@ -765,7 +766,7 @@ class OnuRegister {
             foreach ($allCards as $eachCard) {
                 $this->allCards[$eachCard['swid']][$eachCard['id']] = $eachCard;
             }
-        }        
+        }
     }
 
     /**
@@ -1019,7 +1020,7 @@ class OnuRegister {
     protected function getAllUnauth() {
         $this->allUnreg = array();
         $this->allUnreg['GPON'] = array();
-        $this->allUnreg['EPON'] = array();        
+        $this->allUnreg['EPON'] = array();
 
         if (!empty($this->allOlt)) {
             foreach ($this->allOlt as $this->currentOltSwId => $io) {
@@ -1029,10 +1030,10 @@ class OnuRegister {
                     if ($this->currentOltSwId != $oltid) {
                         continue;
                     }
-                }                                                         
+                }
                 $this->oltParseUnauth();
             }
-        }        
+        }
     }
 
     /**
@@ -1048,17 +1049,17 @@ class OnuRegister {
     }
 
     protected function oltParseUnauth() {
-        if (file_exists(CONFIG_PATH . '/snmptemplates/' . $this->allOlt[$this->currentOltSwId]['snmptemplate'])) {            
+        if (file_exists(CONFIG_PATH . '/snmptemplates/' . $this->allOlt[$this->currentOltSwId]['snmptemplate'])) {
             $this->currentSnmpTemplate = rcms_parse_ini_file(CONFIG_PATH . '/snmptemplates/' . $this->allOlt[$this->currentOltSwId]['snmptemplate'], true);
             $this->currentPonType = $this->currentSnmpTemplate[self::SNMP_TEMPLATE_SECTION]['TYPE'];
             $this->currentOltIp = $this->allOlt[$this->currentOltSwId]['ip'];
             $this->currentSnmpCommunity = $this->allOlt[$this->currentOltSwId]['snmp'];
             $this->vendorSet();
-            $this->loadCalculatedData();                   
-            $pollMethod = 'getAllUnauth_' . $this->currentPonType . '_' . $this->vendor;            
+            $this->loadCalculatedData();
+            $pollMethod = 'getAllUnauth_' . $this->currentPonType . '_' . $this->vendor;
 
-            if (isset($this->allCards[$this->currentOltSwId]) and !empty($this->allCards[$this->currentOltSwId])) {                                
-                $this->$pollMethod();                
+            if (isset($this->allCards[$this->currentOltSwId]) and !empty($this->allCards[$this->currentOltSwId])) {
+                $this->$pollMethod();
             }
         }
     }
@@ -1113,7 +1114,7 @@ class OnuRegister {
                     }
                 }
             }
-        }        
+        }
     }
 
     /**
@@ -2163,8 +2164,8 @@ $(".changeType").change(function () {
      */
     public function listAllUncfg() {
         $this->getAllUnauth();
-        if (wf_CheckGet(array('oltlist', 'oltid'))) {            
-            $oltlist = '&oltlist=true&oltid=' . ubRouting::get('oltid', 'int');        
+        if (wf_CheckGet(array('oltlist', 'oltid'))) {
+            $oltlist = '&oltlist=true&oltid=' . ubRouting::get('oltid', 'int');
         } else {
             $oltlist = '';
         }
@@ -2244,10 +2245,16 @@ $(".changeType").change(function () {
      * 
      * @return string
      */
-    protected function getCardName() {
-        $intParts = explode("/", $_GET['interface']);
+    protected function getCardName($interface = '', $swid = '') {
+        if (!$interface and !$swid) {
+            if (wf_CheckGet(array('interface', 'swid'))) {
+                $swid = ubRouting::get('swid', 'mres');
+                $interface = ubRouting::get('interface', 'mres');
+            }
+
+        }
+        $intParts = explode("/", $interface);
         $slot = mysql_real_escape_string($intParts[1]);
-        $swid = vf($_GET['swid'], 3);
 
         $query = "SELECT * FROM `zte_cards` WHERE `swid`=" . $swid . ' AND slot_number=' . $slot;
         $cardData = simple_query($query);
@@ -2276,7 +2283,7 @@ $(".changeType").change(function () {
             $intParts = explode("/", $interface);
             $slot = mysql_real_escape_string($intParts[1]);
             $port = mysql_real_escape_string($intParts[2]);
-            $cardName = $this->getCardName();
+            $cardName = $this->getCardName($interface, $swid);
             $query = "SELECT * FROM `zte_qinq` WHERE `swid`=" . $swid . ' AND `slot_number`=' . $slot . ' AND `port`=' . $port;
             $qinqBind = simple_query($query);
         }
@@ -2441,32 +2448,44 @@ $(".changeType").change(function () {
         return ($row);
     }
 
-    protected function listFixable() {
-
+    public function listFixable() {
+        $list = $this->getFixable();
+        debarr($list);
     }
 
-    public function getFixable() {
+    protected function getFixable() {
         $trueArray = array();
         $this->getAllUnauth();
-        if (!empty($this->allUnreg)) {
+        if (!empty($this->allUnreg)) {            
             foreach ($this->allUnreg as $eachType => $io) {
                 foreach ($io as $eachOnu) {
+                    $this->currentOltInterface = $eachOnu['slot'];
+                    $this->currentOltSwId = $eachOnu['swid'];
+                    $eachOnu['ponizer'] = 0;
+                    $eachOnu['qinq'] = 0;                    
                     $vlans = $this->getQinqPairPool($eachOnu['slot'], $eachOnu['swid']);
-                    $eachOnu['svlan'] = $vlans['svlan'];
-                    $eachOnu['cvlan'] = $vlans['cvlan'];
+                    if (!empty($vlans)) {
+                        $eachOnu['svlan'] = $vlans['svlan'];
+                        $eachOnu['cvlan'] = $vlans['cvlan'];
+                        $eachOnu['qinq'] = 1;
+                    } else {
+                        $vlans = $this->getBindVlan();
+                        $eachOnu['svlan'] = 0;
+                        $eachOnu['cvlan'] = $vlans;
+                    }                    
                     switch ($eachType) {
                         case 'GPON':
                             if ($this->checkSerialOnuExists(strtolower($eachOnu['identifier']))) {
-                                $eachOnu['ponizer'] = true;
+                                $eachOnu['ponizer'] = 1;
                             }
                             break;
                         case 'EPON':
                             if ($this->checkMacOnuExists(strtolower($eachOnu['identifier']))) {
-                                $eachOnu['ponizer'] = true;
+                                $eachOnu['ponizer'] = 1;
                             }
                             break;
-                    }
-                    array_push($trueArray[$eachOnu['oltip']][$eachType], $eachOnu);
+                    }                    
+                    $trueArray[$eachOnu['oltip']][$eachType][] = $eachOnu;
                 }
             }
         }
