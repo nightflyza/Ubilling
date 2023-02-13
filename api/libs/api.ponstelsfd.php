@@ -16,6 +16,8 @@ class PONStelsFD extends PONStels {
         $oltIp = $this->oltParameters['IP'];
         $oltCommunity = $this->oltParameters['COMMUNITY'];
         $oltNoFDBQ = $this->oltParameters['NOFDB'];
+        $ponPrefixAdd = (empty($this->snmpTemplates[$oltModelId]['misc']['INTERFACEADDPONPREFIX'])
+                         ? '' : $this->snmpTemplates[$oltModelId]['misc']['INTERFACEADDPONPREFIX']);
 
         $sigIndexOID = $this->snmpTemplates[$oltModelId]['signal']['SIGINDEX'];
         $sigIndex = $this->snmp->walk($oltIp . ':' . self::SNMPPORT, $oltCommunity, $sigIndexOID, self::SNMPCACHE);
@@ -29,7 +31,7 @@ class PONStelsFD extends PONStels {
         $macIndex = str_replace($this->snmpTemplates[$oltModelId]['signal']['MACVALUE'], '', $macIndex);
         $macIndex = explodeRows($macIndex);
 
-        $this->signalParseStels($oltid, $sigIndex, $macIndex, $this->snmpTemplates[$oltModelId]['signal']);
+        $this->signalParseStels($oltid, $sigIndex, $macIndex, $this->snmpTemplates[$oltModelId]['signal'], $ponPrefixAdd);
 //ONU distance polling for stels devices
         if (isset($this->snmpTemplates[$oltModelId]['misc'])) {
             if (isset($this->snmpTemplates[$oltModelId]['misc']['DISTINDEX'])) {
@@ -103,11 +105,12 @@ class PONStelsFD extends PONStels {
      *
      * @return void
      */
-    public function signalParseStels($oltid, $sigIndex, $macIndex, $snmpTemplate) {
+    public function signalParseStels($oltid, $sigIndex, $macIndex, $snmpTemplate, $ponPrefixAdd = '') {
         $oltid = vf($oltid, 3);
         $sigTmp = array();
         $macTmp = array();
         $macDevIdx = array();
+        $ifacesIdx = array();
         $result = array();
         $curDate = curdatetime();
         $plasticIndexSig = 0;
@@ -152,6 +155,7 @@ class PONStelsFD extends PONStels {
                     $macRaw = strtolower($macRaw);
                     $macTmp[$macOnuPort[0] . ':' . $plasticIndexMac] = $macRaw;
                     $macDevIdx[$macRaw] = $macOnuPort[0] . ':' . $plasticIndexMac;
+                    $ifacesIdx[$macRaw] = $ponPrefixAdd . $macOnuPort[0] . ':' . $plasticIndexMac;
 //                    $macDevIdx[$macRaw] = $macOnuPort[0] . '.' . (($plasticIndexMac - 1) / 256);
                 }
             }
@@ -181,7 +185,7 @@ class PONStelsFD extends PONStels {
                 $this->olt->writeOnuCache($macTmp);
 
                 //saving ONUs interfaces
-                $this->olt->writeInterfaces($macDevIdx);
+                $this->olt->writeInterfaces($ifacesIdx);
 
                 //saving ONUs MAC index
                 $this->olt->writeMacIndex($macDevIdx);
