@@ -22,6 +22,9 @@ if (@$altcfg[OnuRegister::MODULE_CONFIG]) {
             $avidity_b = $avidity['M']['LAI'];
             if (wf_CheckGet(array('oltlist'))) {
                 if (wf_CheckGet(array('oltid'))) {
+                    if(wf_CheckGet(array('massfix','preview'))) {
+                        $register->listFixable();
+                    }
                     if (wf_CheckGet(array(OnuRegister::OLTIP_FIELD, OnuRegister::INTERFACE_FIELD, OnuRegister::TYPE_FIELD))) {
                         if ($altcfg['ONUREG_ALWAYS_SHOW_UNREGISTERED']) {
                             show_info(__('OLT device') . ' : ' . $_GET[OnuRegister::OLTIP_FIELD]);
@@ -49,6 +52,8 @@ if (@$altcfg[OnuRegister::MODULE_CONFIG]) {
                 } else {
                     show_window(__('All ZTE OLTs'), $register->$avidity_b(false));
                 }
+            } elseif (wf_CheckGet(array('massfix','preview'))) {
+                $register->listFixable();
             } else {
                 if (wf_CheckGet(array(OnuRegister::OLTIP_FIELD, OnuRegister::INTERFACE_FIELD, OnuRegister::TYPE_FIELD))) {
                     if ($altcfg['ONUREG_ALWAYS_SHOW_UNREGISTERED']) {
