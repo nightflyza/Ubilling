@@ -272,7 +272,7 @@ function pbx_ReplySearch($customerid, $UsrBalanceDecimals = -1) {
         } else {
             $companyData = '';
         }
-        $userBalance = ($UsrBalanceDecimals < 0) ? $userdata['Cash'] : ($UsrBalanceDecimals == 0) ? intval($userdata['Cash'], 10) : round($userdata['Cash'], $UsrBalanceDecimals, PHP_ROUND_HALF_EVEN);
+        $userBalance = ($UsrBalanceDecimals < 0) ? $userdata['Cash'] : (($UsrBalanceDecimals == 0) ? intval($userdata['Cash'], 10) : round($userdata['Cash'], $UsrBalanceDecimals, PHP_ROUND_HALF_EVEN));
 
         //normal reply
         $templateOk = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
