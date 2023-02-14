@@ -755,7 +755,7 @@ class CustomFields {
 
         $result = '';
         $inputs = '';
-        $ignoredTypes = array('PHOTO', 'FILE', 'COLOR'); //I`m too lazy to do it today
+        $ignoredTypes = array('PHOTO', 'FILE', 'COLOR', 'LIST'); //I`m too lazy to do it today
         $ignoredTypes = array_flip($ignoredTypes);
 
         if (!isset($ignoredTypes[$type])) {
