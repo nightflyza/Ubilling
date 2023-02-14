@@ -161,6 +161,10 @@ class CustomFields {
             'FINANCE' => __('Finance'),
             'NETWORK' => __('Network'),
             'URL' => __('URL'),
+            'DATE' => __('Date'),
+            'TIME' => __('Time'),
+            'COLOR' => __('Color'),
+            'LIST' => __('List')
         );
 
         //optional types
@@ -432,6 +436,11 @@ class CustomFields {
             $data = wf_Link($data, $data, false, '', 'target="_BLANK"');
         }
 
+        if ($fieldType == 'COLOR') {
+            if (!empty($data)) {
+                $data = wf_tag('color', false, '', 'style="color:' . $data . '"') . $data . wf_tag('font', true);
+            }
+        }
 
         if ($fieldType == 'PHOTO') {
             if (!empty($typeId) AND ! empty($this->login)) {
@@ -480,7 +489,7 @@ class CustomFields {
             if (!empty($this->allTypes)) {
                 $rows = '';
                 foreach ($this->allTypes as $io => $eachType) {
-                    $cells = wf_TableCell($eachType['name'], '30%', 'row2', 'valign="top"');
+                    $cells = wf_TableCell($this->renderTypeName($eachType['id']), '30%', 'row2', 'valign="top"');
                     $cells .= wf_TableCell($this->renderField($eachType['type'], $this->getUserFieldContent($eachType['id']), $eachType['id']), '', 'row3', 'valign="top"');
                     $rows .= wf_TableRow($cells);
                 }
@@ -529,6 +538,34 @@ class CustomFields {
     }
 
     /**
+     * Returns existing type name, may be cleaned from technical data
+     * 
+     * @param int $typeId
+     * 
+     * @return string
+     */
+    protected function renderTypeName($typeId) {
+        $result = '';
+        if (isset($this->allTypes[$typeId])) {
+            $typeData = $this->allTypes[$typeId];
+            $typeName = $typeData['name'];
+
+            //some optional postprocessing
+            if ($typeData['type'] == 'LIST') {
+                if (ispos($typeName, '[') AND ispos($typeName, ']')) {
+                    $rawList = zb_ParseTagData('[', ']', $typeName);
+                    $typeName = str_replace('[' . $rawList . ']', '', $typeName);
+                }
+            }
+
+            $result = $typeName;
+        } else {
+            $result .= '[' . $typeId . '] ' . __('Not exists');
+        }
+        return($result);
+    }
+
+    /**
      * Renders CF editor controller
      * 
      * @return void
@@ -554,7 +591,7 @@ class CustomFields {
             $rows = wf_TableRow($cells, 'row1');
 
             foreach ($this->allTypes as $io => $eachType) {
-                $cells = wf_TableCell($eachType['name'], '', '', 'valign="top"');
+                $cells = wf_TableCell($this->renderTypeName($eachType['id']), '', '', 'valign="top"');
                 $cells .= wf_TableCell($this->renderField($eachType['type'], $this->getUserFieldContent($eachType['id']), $eachType['id']), '', '', 'valign="top"');
                 $cells .= wf_TableCell($this->renderTypeController($this->login, $eachType['type'], $eachType['id']), '', '', 'valign="top"');
                 $rows .= wf_TableRow($cells, 'row3');
@@ -637,6 +674,52 @@ class CustomFields {
             $result = wf_Form("", 'POST', $inputs, '');
         }
 
+        if ($type == 'DATE') {
+            $inputs .= wf_DatePickerPreset(self::PROUTE_MODCONTENT, $currentFieldContent, true) . ' ';
+            $inputs .= wf_Submit(__('Save'));
+            $result = wf_Form("", 'POST', $inputs, '');
+        }
+
+        if ($type == 'TIME') {
+            $inputs .= wf_TimePickerPreset(self::PROUTE_MODCONTENT, $currentFieldContent, '', false) . ' ';
+            $inputs .= wf_Submit(__('Save'));
+            $result = wf_Form("", 'POST', $inputs, '');
+        }
+
+        if ($type == 'COLOR') {
+            $inputs .= wf_ColPicker(self::PROUTE_MODCONTENT, '', $currentFieldContent, false, 10);
+            $inputs .= wf_Submit(__('Save'));
+            $result = wf_Form("", 'POST', $inputs, '');
+        }
+
+        if ($type == 'LIST') {
+            if (isset($this->allTypes[$typeId])) {
+                $typeName = $this->allTypes[$typeId]['name'];
+                if (ispos($typeName, '[') AND ispos($typeName, ']')) {
+                    $rawList = zb_ParseTagData('[', ']', $typeName);
+                    if (!empty($rawList)) {
+                        $selectorOpts = array();
+                        $rawList = explode(',', $rawList);
+                        if (!empty($rawList)) {
+                            $selectorOpts[''] = '-';
+                            foreach ($rawList as $io => $each) {
+                                $cleanOpt = trim($each);
+                                $selectorOpts[$cleanOpt] = $cleanOpt;
+                            }
+                        }
+
+                        $inputs .= wf_Selector(self::PROUTE_MODCONTENT, $selectorOpts, '', $currentFieldContent, false);
+                        $inputs .= wf_Submit(__('Save'));
+                        $result = wf_Form("", 'POST', $inputs, '');
+                    } else {
+                        $result .= __('Wrong element format') . ': ' . __('is empty');
+                    }
+                } else {
+                    $result .= __('Wrong element format') . ': ' . __('No tags');
+                }
+            }
+        }
+
         if ($type == 'PHOTO') {
             if ($this->altCfg['PHOTOSTORAGE_ENABLED']) {
                 $uploadUrl = self::URL_PHOTOUPL . $login . self::PHOTOSTORAGE_ITEMID_DELIMITER . $typeId;
@@ -672,7 +755,7 @@ class CustomFields {
 
         $result = '';
         $inputs = '';
-        $ignoredTypes = array('PHOTO', 'FILE'); //I`m too lazy to do it today
+        $ignoredTypes = array('PHOTO', 'FILE', 'COLOR'); //I`m too lazy to do it today
         $ignoredTypes = array_flip($ignoredTypes);
 
         if (!isset($ignoredTypes[$type])) {
@@ -711,9 +794,20 @@ class CustomFields {
                 $inputs = wf_HiddenInput(self::PROUTE_SEARCHTYPEID, $typeid);
                 $inputs .= wf_TextInput(self::PROUTE_SEARCHQUERY, '', '', false, 10, 'net-cidr');
             }
+
             if ($type == 'URL') {
                 $inputs = wf_HiddenInput(self::PROUTE_SEARCHTYPEID, $typeid);
                 $inputs .= wf_TextInput(self::PROUTE_SEARCHQUERY, '', '', false, 20, 'url');
+            }
+
+            if ($type == 'DATE') {
+                $inputs = wf_HiddenInput(self::PROUTE_SEARCHTYPEID, $typeid) . ' ';
+                $inputs .= wf_DatePicker(self::PROUTE_SEARCHQUERY, true);
+            }
+
+            if ($type == 'TIME') {
+                $inputs = wf_HiddenInput(self::PROUTE_SEARCHTYPEID, $typeid);
+                $inputs .= wf_TimePickerPreset(self::PROUTE_SEARCHQUERY, '', '', false) . ' ';
             }
         }
 
