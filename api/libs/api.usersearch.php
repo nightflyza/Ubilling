@@ -235,7 +235,7 @@ function web_UserSearchCFForm() {
             $searchControl = $cf->getTypeSearchControl($eachtype['type'], $eachtype['id']);
             //is this type searchable?
             if (!empty($searchControl)) {
-                $cfsearchform .= $eachtype['name'] . ' ' . $searchControl;
+                $cfsearchform .= $cf->renderTypeName($eachtype['id']) . ' ' . $searchControl;
             }
         }
     } else {

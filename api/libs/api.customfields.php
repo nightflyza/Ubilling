@@ -87,6 +87,19 @@ class CustomFields {
     const URL_PHOTOUPL = '?module=photostorage&scope=CFITEMS&mode=list&itemid=';
     const URL_FILEUPL = '?module=filestorage&scope=CFITEMS&mode=list&itemid=';
 
+//          _
+//        {` `'-.
+//       {       \   (\._
+//        {       | /   o'.
+//         `}    /.`'.___.'
+//         {    .' ,  \_/`\
+//         }  /`_   '-. '=/
+//        {  .'     `\;`'`
+//         { ;       /_
+//          '-'...-;`__\ 
+//              
+//                ^^^^ A CE BILOCHKA
+
     /**
      * Creates new CF instance
      * 
@@ -544,7 +557,7 @@ class CustomFields {
      * 
      * @return string
      */
-    protected function renderTypeName($typeId) {
+    public function renderTypeName($typeId) {
         $result = '';
         if (isset($this->allTypes[$typeId])) {
             $typeData = $this->allTypes[$typeId];
@@ -755,7 +768,7 @@ class CustomFields {
 
         $result = '';
         $inputs = '';
-        $ignoredTypes = array('PHOTO', 'FILE', 'COLOR', 'LIST'); //I`m too lazy to do it today
+        $ignoredTypes = array('PHOTO', 'FILE', 'COLOR'); //I`m too lazy to do it today
         $ignoredTypes = array_flip($ignoredTypes);
 
         if (!isset($ignoredTypes[$type])) {
@@ -808,6 +821,28 @@ class CustomFields {
             if ($type == 'TIME') {
                 $inputs = wf_HiddenInput(self::PROUTE_SEARCHTYPEID, $typeid);
                 $inputs .= wf_TimePickerPreset(self::PROUTE_SEARCHQUERY, '', '', false) . ' ';
+            }
+
+            if ($type == 'LIST') {
+                $inputs = wf_HiddenInput(self::PROUTE_SEARCHTYPEID, $typeid);
+                if (isset($this->allTypes[$typeid])) {
+                    $typeName = $this->allTypes[$typeid]['name'];
+                    if (ispos($typeName, '[') AND ispos($typeName, ']')) {
+                        $rawList = zb_ParseTagData('[', ']', $typeName);
+                        if (!empty($rawList)) {
+                            $selectorOpts = array();
+                            $rawList = explode(',', $rawList);
+                            if (!empty($rawList)) {
+                                $selectorOpts[''] = '-';
+                                foreach ($rawList as $io => $each) {
+                                    $cleanOpt = trim($each);
+                                    $selectorOpts[$cleanOpt] = $cleanOpt;
+                                }
+                                $inputs .= wf_Selector(self::PROUTE_SEARCHQUERY, $selectorOpts, '', '', false);
+                            }
+                        }
+                    }
+                }
             }
         }
 
