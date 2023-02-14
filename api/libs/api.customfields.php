@@ -541,7 +541,7 @@ class CustomFields {
             $this->setFieldContent(ubRouting::post(self::PROUTE_MODLOGIN), ubRouting::post(self::PROUTE_MODTYPE), ubRouting::post(self::PROUTE_MODCONTENT));
             //is user reset required after field change?
             if ($this->altCfg['RESETONCFCHANGE']) {
-                $billing->resetuser($login);
+                $billing->resetuser($this->login);
                 log_register('RESET User (' . $this->login . ')');
             }
             ubRouting::nav(self::URL_EDIT_BACK . $this->login);
