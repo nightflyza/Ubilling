@@ -304,7 +304,7 @@ function fcs_ReplyCheck($customerID, $useAgentCodes = false, $strictID = '') {
             $allAddress = fcs_AddressGetFulladdresslist();
             $allMobiles = fcs_UserGetAllMobiles();
             $userData = fcs_UserGetStargazerData($userLogin);
-            $userBalance = ($UsrBalanceDecimals < 0) ? $userData['Cash'] : ($UsrBalanceDecimals == 0) ? intval($userData['Cash'], 10) : round($userData['Cash'], $UsrBalanceDecimals, PHP_ROUND_HALF_EVEN);
+            $userBalance = ($UsrBalanceDecimals < 0) ? $userData['Cash'] : (($UsrBalanceDecimals == 0) ? intval($userData['Cash'], 10) : round($userData['Cash'], $UsrBalanceDecimals, PHP_ROUND_HALF_EVEN));
             $realName = (empty($allRealnames[$userLogin]) ? '' : $allRealnames[$userLogin]);
             $cellPhone = (empty($allMobiles[$userLogin]) ? '' : $allMobiles[$userLogin]);
             $address = (empty($allAddress[$userLogin]) ? '' : $allAddress[$userLogin]);
