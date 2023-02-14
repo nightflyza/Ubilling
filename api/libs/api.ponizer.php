@@ -69,6 +69,13 @@ class PONizer {
     protected $allOltNames = array();
 
     /**
+     * Contains all OLT devices id=>modelId mappings
+     *
+     * @var array
+     */
+    protected $allOltModelIds = array();
+
+    /**
      * OLT devices snmp data as id=>snmp data array
      *
      * @var array
@@ -600,6 +607,7 @@ class PONizer {
                 if (!empty($each['snmp'])) {
                     $this->allOltDevices[$each['id']] = $each['ip'] . ' - ' . $each['location'];
                     $this->allOltNames[$each['id']] = $each['location'];
+                    $this->allOltModelIds[$each['id']] = $each['modelid'];
 
                     $this->allOltSnmp[$each['id']]['community'] = $each['snmp'];
                     $this->allOltSnmp[$each['id']]['modelid'] = $each['modelid'];
@@ -3145,6 +3153,7 @@ class PONizer {
 
                     $cells = wf_TableCell(__('ID'));
                     $cells .= wf_TableCell(__('OLT'));
+                    $cells .= wf_TableCell(__('Model'));
                     $cells .= wf_TableCell('⏳ ' . __('from'));
                     $cells .= wf_TableCell('⌛ ' . __('to'));
                     $cells .= wf_TableCell('⏱️ ' . __('time'));
@@ -3194,9 +3203,17 @@ class PONizer {
                                 $visualLabel = '∞';
                             }
 
+                            $oltModelLabel = '';
+                            $oltModelId = (isset($this->allOltModelIds[$oltId])) ? $this->allOltModelIds[$oltId] : 0;
+                            if ($oltModelId) {
+                                if (isset($this->allOltModels[$oltModelId])) {
+                                    $oltModelLabel = $this->allOltModels[$oltModelId]['modelname'];
+                                }
+                            }
 
                             $cells = wf_TableCell($oltId);
                             $cells .= wf_TableCell($this->allOltDevices[$oltId]);
+                            $cells .= wf_TableCell($oltModelLabel);
                             $cells .= wf_TableCell($pollingStartLabel);
                             $cells .= wf_TableCell($pollingEndLabel);
                             $cells .= wf_TableCell($pollingTimeLabel, '', '', 'sorttable_customkey="' . $pollStats['time'] . '"');
