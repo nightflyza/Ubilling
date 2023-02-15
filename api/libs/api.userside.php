@@ -1172,7 +1172,7 @@ class UserSideApi {
 
                     if (isset($allUserTags[$userLogin])) {
                         foreach ($allUserTags[$userLogin] as $tagIo => $eachTagid) {
-                            $result[$userLogin]['group'][$tagIo] = $eachTagid;
+                            $result[$userLogin]['group'][$eachTagid] = $eachTagid;
                         }
                     }
 
