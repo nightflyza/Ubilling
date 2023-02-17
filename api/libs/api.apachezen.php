@@ -113,7 +113,7 @@ class ApacheZen {
     const URL_CODE = 'https://github.com/nightflyza/Ubilling/';
     const ROUTE_ERRORS = 'errorlog';
     const ROUTE_PHPERR = 'phperrors';
-    const ERROR_FILTER = 'line';
+    const ERROR_FILTER = 'on line';
 
     /**
      * Preloads required configs for further usage
@@ -235,7 +235,7 @@ class ApacheZen {
         $readSource = ($this->errorLogFlag) ? $this->errorLogPath : $this->logPath;
         if ($this->dataSourceExists(true)) {
             $this->currentSource = $readSource;
-            $filters = ' ' . $this->grep . ' ' . self::ERROR_FILTER;
+            $filters = ' ' . $this->grep . ' "' . self::ERROR_FILTER . '"';
             $command = $this->tail . ' -n ' . ($this->linesRead * 10) . ' ' . $readSource . ' | ' . $filters . ' | ' . $this->tail . ' -n ' . $this->linesRender;
             $resultRaw = shell_exec($command);
             $stripPaths = array(
