@@ -128,6 +128,26 @@ function sp_parse_eping_temp_gauge($data) {
 }
 
 /**
+ * Returns battery voltage value from equicom ping3 as text
+ *
+ * @param string $data
+ *
+ * @return string
+ */
+function sp_parse_eping_bat($data) {
+    $result = '';
+    if (!empty($data)) {
+        $rawValue = zb_SanitizeSNMPValue($data);
+        if (!empty($rawValue)) {
+            $result = ($rawValue / 10) . ' V' . wf_tag('br');
+        }
+    } else {
+        $result = __('Empty reply received');
+    }
+    return($result);
+}
+
+/**
  * Raw SNMP data parser with trimming
  *
  * @return string
