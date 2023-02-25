@@ -3,7 +3,7 @@
 /**
  * OLT Stels FD12XX hardware abstraction layer
  */
-class PONStels extends PONProto {
+class PONStels12 extends PONProto {
 
     /**
      * Stels FD12XX devices polling

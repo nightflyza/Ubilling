@@ -846,13 +846,13 @@ class PONizer {
                                     /**
                                      * Stels FD12XX devices polling
                                      */
-                                    $collectorName = 'PONStels';
+                                    $collectorName = 'PONStels12';
                                     break;
                                 case 'STELSFD':
                                     /**
                                      * Stels FD11XX devices polling
                                      */
-                                    $collectorName = 'PONStelsFD';
+                                    $collectorName = 'PONStels11';
                                     break;
                                 case 'VSOL':
                                     /**
