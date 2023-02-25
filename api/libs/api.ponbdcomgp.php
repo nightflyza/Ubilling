@@ -81,7 +81,7 @@ class PONBdcomGP extends PONBdcom {
         $macIndex = str_replace('"', '', $macIndex);
         $macIndex = explodeRows($macIndex);
 
-        $this->signalParse($oltid, $sigIndex, $macIndex, $this->snmpTemplates[$oltModelId]['signal'], $serialCaseMode);
+        $this->signalParse($oltid, $sigIndex, $macIndex, $this->snmpTemplates[$oltModelId]['signal']);
 //This is here because BDCOM is BDCOM and another snmp queries cant be processed after MACINDEX query in some cases.
         if (isset($this->snmpTemplates[$oltModelId]['misc'])) {
             if (isset($this->snmpTemplates[$oltModelId]['misc']['DISTINDEX'])) {
