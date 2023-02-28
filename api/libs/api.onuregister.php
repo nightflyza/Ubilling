@@ -493,6 +493,9 @@ class OnuRegister {
     protected $nativeVlan = 0;
     protected $labels = array();
 
+    protected $currentRunMac = '';
+    protected $currentRunSerial = '';
+
     /**
      * Base class construction.
      * 
@@ -1172,51 +1175,72 @@ class OnuRegister {
         $check = trim($tmpSn[0]);
         $tmpStr = '';
         if ($check == 'STRING:') {
-            $tmp = '';
-            $tmpSn = bin2hex($tmpSn[1]);
-            if (strlen($tmpSn) == 20) {
-                $tmp[0] = $tmpSn[2] . $tmpSn[3];
-                $tmp[1] = $tmpSn[4] . $tmpSn[5];
-                $tmp[2] = $tmpSn[6] . $tmpSn[7];
-                $tmp[3] = $tmpSn[8] . $tmpSn[9];
-                for ($i = 10; $i <= 17; $i++) {
-                    $tmpStr .= $tmpSn[$i];
-                }
-                $tmp[4] = $tmpStr;
-            } elseif (strlen($tmpSn) == 22) {
-                $tmp[0] = $tmpSn[2] . $tmpSn[3];
-                $tmp[1] = $tmpSn[4] . $tmpSn[5];
-                $tmp[2] = $tmpSn[6] . $tmpSn[7];
-                $tmp[3] = $tmpSn[8] . $tmpSn[9];
-                for ($i = 10; $i <= 11; $i++) {
-                    $tmpStr .= $tmpSn[$i];
-                }
-                for ($i = 14; $i <= 19; $i++) {
-                    $tmpStr .= $tmpSn[$i];
-                }
-                $tmp[4] = $tmpStr;
-            } else {
-                print_r($tmpSn);
-                $tmp[0] = $tmpSn[0] . $tmpSn[1];
-                $tmp[1] = $tmpSn[2] . $tmpSn[3];
-                $tmp[2] = $tmpSn[4] . $tmpSn[5];
-                $tmp[3] = $tmpSn[6] . $tmpSn[7];
-                for ($i = 8; $i <= 15; $i++) {
-                    $tmpStr .= $tmpSn[$i];
-                }
-                $tmp[4] = $tmpStr;
-            }
-            $sn = $tmp;
+            $sn = $this->serialNumberBinaryParse($tmpSn[1]);
         } else {
             $tmp[0] = $tmpSn[1];
             $tmp[1] = $tmpSn[2];
             $tmp[2] = $tmpSn[3];
             $tmp[3] = $tmpSn[4];
             @$tmp[4] = $tmpSn[5] . $tmpSn[6] . $tmpSn[7] . $tmpSn[8];
-            $sn = $tmp;
+            $sn = $this->hexToString($tmp[0]) . $this->hexToString($tmp[1]) . $this->hexToString($tmp[2]) . $this->hexToString($tmp[3]) . $tmp[4];
         }
-        $sn = $this->hexToString($tmp[0]) . $this->hexToString($tmp[1]) . $this->hexToString($tmp[2]) . $this->hexToString($tmp[3]) . $tmp[4];
         return ($sn);
+    }
+
+    /**
+     * Parsing serial number in binary format and coverting it to needed format.
+     * 
+     * @param array $rawSn
+     * 
+     * @return string
+     */
+    protected function serialNumberBinaryParse($rawSn) {
+        $parts = array();
+        $hexSn = bin2hex($rawSn);
+        if (strlen($hexSn) == 20) {
+            $parts[0] = $this->serialNumberPartsTranslate($hexSn[2] . $hexSn[3]);
+            $parts[1] = $this->serialNumberPartsTranslate($hexSn[4] . $hexSn[5]);
+            $parts[2] = $this->serialNumberPartsTranslate($hexSn[6] . $hexSn[7]);
+            $parts[3] = $this->serialNumberPartsTranslate($hexSn[8] . $hexSn[9]);
+            $parts[4] = '';
+            for ($i = 10; $i <= 17; $i++) {
+                $parts[4] .= $hexSn[$i];
+            }
+        } elseif (strlen($hexSn) == 22) {
+            $parts[0] = $this->serialNumberPartsTranslate($hexSn[2] . $hexSn[3]);
+            $parts[1] = $this->serialNumberPartsTranslate($hexSn[4] . $hexSn[5]);
+            $parts[2] = $this->serialNumberPartsTranslate($hexSn[6] . $hexSn[7]);
+            $parts[3] = $this->serialNumberPartsTranslate($hexSn[8] . $hexSn[9]);
+            $parts[4] = '';
+            for ($i = 14; $i <= 19; $i++) {
+                $parts[4] .= $hexSn[$i];
+            }
+        } else {
+            $parts[0] = $this->serialNumberPartsTranslate($hexSn[0] . $hexSn[1]);
+            $parts[1] = $this->serialNumberPartsTranslate($hexSn[2] . $hexSn[3]);
+            $parts[2] = $this->serialNumberPartsTranslate($hexSn[4] . $hexSn[5]);
+            $parts[3] = $this->serialNumberPartsTranslate($hexSn[6] . $hexSn[7]);
+            $parts[4] = '';
+            for ($i = 8; $i <= 15; $i++) {
+                $parts[4] .= $hexSn[$i];
+            }
+        }
+        $result = strtolower(implode("", $parts));
+        return ($result);
+    }
+
+    /**
+     * Check mode to convert serial number string vs raw.
+     * 
+     * @param string $part
+     * 
+     * @return string
+     */
+    protected function serialNumberPartsTranslate($part) {
+        if ($this->currentSnmpTemplate['signal']['SNMODE'] == 'STRING') {
+            return ($this->hexToString($part));
+        }
+        return ($part);
     }
 
     /**
@@ -1440,6 +1464,16 @@ class OnuRegister {
         $universalQuery = "INSERT INTO `qinq_bindings` (`id`,`login`,`svlan_id`,`cvlan`) VALUES (NULL,'" . $this->login . "'," . $this->svlanId . ',' . $this->cvlan . ')';
         nr_query($universalQuery);
 
+    }
+
+    /**
+     * Delete qinq binding by login
+     * 
+     * @return void
+     */
+    protected function deleteQinqBinding() {
+        $universalQuery = "DELETE FROM `qinq_bindings` WHERE `login`='" . $this->login . '"';
+        nr_query($universalQuery);
     }
 
     /**
@@ -2456,13 +2490,13 @@ $(".changeType").change(function () {
     protected function getFixable() {
         $trueArray = array();
         $this->getAllUnauth();
-        if (!empty($this->allUnreg)) {            
+        if (!empty($this->allUnreg)) {
             foreach ($this->allUnreg as $eachType => $io) {
                 foreach ($io as $eachOnu) {
                     $this->currentOltInterface = $eachOnu['slot'];
                     $this->currentOltSwId = $eachOnu['swid'];
                     $eachOnu['ponizer'] = 0;
-                    $eachOnu['qinq'] = 0;                    
+                    $eachOnu['qinq'] = 0;
                     $vlans = $this->getQinqPairPool($eachOnu['slot'], $eachOnu['swid']);
                     if (!empty($vlans)) {
                         $eachOnu['svlan'] = $vlans['svlan'];
@@ -2472,7 +2506,7 @@ $(".changeType").change(function () {
                         $vlans = $this->getBindVlan();
                         $eachOnu['svlan'] = 0;
                         $eachOnu['cvlan'] = $vlans;
-                    }                    
+                    }
                     switch ($eachType) {
                         case 'GPON':
                             if ($this->checkSerialOnuExists(strtolower($eachOnu['identifier']))) {
@@ -2484,7 +2518,7 @@ $(".changeType").change(function () {
                                 $eachOnu['ponizer'] = 1;
                             }
                             break;
-                    }                    
+                    }
                     $trueArray[$eachOnu['oltip']][$eachType][] = $eachOnu;
                 }
             }
@@ -2499,15 +2533,36 @@ $(".changeType").change(function () {
     }
 
     public function onuMassRegister() {
+        $tablecells = wf_TableCell(__(''));
+
         $fixable = file_get_contents(self::FIXABLE_FILE);
         $data = unserialize($fixable);
         foreach ($data as $oltip => $io) {
             foreach ($io as $type => $eachOnu) {
-                debarr($eachOnu);
+                if ($eachOnu['qinq'] == 1) {
+                    $this->useUniversalQINQ = self::GET_UNIVERSALQINQ_PAIR_POOL;
+                }
+                $this->currentPonType = $type;
+                $this->currentOltInterface = $$eachOnu['slot'];
+                $this->currentOltSwId = $eachOnu['swid'];
+                $this->currentOltIp = $eachOnu['oltip'];
+                $this->checkRegisteredOnu();
+                $this->checkQinq();
+                switch ($this->currentPonType) {
+                    case 'GPON':
+                        $this->currentRunSerial = $eachOnu['identifier'];
+                        break;
+                    case 'EPON':
+                        $this->currentRunMac = $eachOnu['identifier'];
+                        break;
+                }
+                shell_exec($this->getRegisterOnuCommand());
+                if (!$this->onuUnique()) {
+                    $this->fixPonizer();
+                }
+
             }
-        }
-        if (!$this->onuUnique()) {
-            $this->fixPonizer();
+            shell_exec($this->getSaveConfigCommand());
         }
     }
 
