@@ -1856,7 +1856,7 @@ class OnuRegister {
                     $actionLinks .= wf_Link(self::MODULE_URL_EDIT_BIND . $eachOlt['id'], wf_img('skins/bind.png', __('Edit VLAN bindings')), false);
                 } else {
                     $actionLinks = wf_Link(self::UNREG_OLTLIST_URL . '&oltid=' . $eachOlt['id'], wf_img('skins/check.png', __('Check for unauthenticated ONU/ONT')), false);
-                    $actionLinks .= wf_Link(self::UNREG_MASS_FIX_ACT_URL . $eachOlt['id'], wf_img('skins/brain.png', 'OLT ' . __('fix')), false);
+                    $actionLinks .= wf_Link(self::UNREG_MASS_FIX_RUN_OLT_URL . $eachOlt['id'], wf_img('skins/brain.png', 'OLT ' . __('fix')), false);
                 }
                 $tablecells .= wf_TableCell($actionLinks);
                 $tablerows .= wf_TableRow($tablecells, 'row5');
@@ -2485,7 +2485,7 @@ $(".changeType").change(function () {
 
     public function listFixable() {
         $list = $this->getFixable();
-        debarr($list);
+        //debarr($list);
     }
 
     protected function getFixable() {
