@@ -15,8 +15,9 @@ class OnuRegister {
     const UNREG_OLTLIST_URL = '?module=zteunreg&oltlist=true';
     const UNREG_ACT_URL = '?module=zteunreg&register=true&oltip=';
     const UNREG_MASS_FIX_PREVIEW_URL = '?module=zteunreg&massfix=true&preview=true';
-    const UNREG_MASS_FIX_URL = '?module=zteunreg&massfix=true';
-    const UNREG_MASS_FIX_ACT_URL = '?module=zteunreg&massfix=true&oltid=';
+    const UNREG_MASS_FIX_RUN_URL = '?module=zteunreg&massfix=true&run=true';
+    const UNREG_MASS_FIX_PREVIEW_OLT_URL = '?module=zteunreg&massfix=true&oltid=';
+    const UNREG_MASS_FIX_RUN_OLT_URL = '?module=zteunreg&massfix=true&run=true&oltid=';
     const CARDS_TABLE = 'zte_cards';
     const BIND_TABLE = 'zte_vlan_bind';
     const PORT_ID_START = 268501248;
@@ -2533,38 +2534,41 @@ $(".changeType").change(function () {
     }
 
     public function onuMassRegister() {
-        $tablecells = wf_TableCell(__(''));
-
+        $this->result = '';        
         $fixable = file_get_contents(self::FIXABLE_FILE);
         $data = unserialize($fixable);
         foreach ($data as $oltip => $io) {
             foreach ($io as $type => $eachOnu) {
-                if ($eachOnu['qinq'] == 1) {
+                if ($eachOnu['ponizer'] == 1) {
                     $this->useUniversalQINQ = self::GET_UNIVERSALQINQ_PAIR_POOL;
-                }
-                $this->currentPonType = $type;
-                $this->currentOltInterface = $$eachOnu['slot'];
-                $this->currentOltSwId = $eachOnu['swid'];
-                $this->currentOltIp = $eachOnu['oltip'];
-                $this->checkRegisteredOnu();
-                $this->checkQinq();
-                switch ($this->currentPonType) {
-                    case 'GPON':
-                        $this->currentRunSerial = $eachOnu['identifier'];
-                        break;
-                    case 'EPON':
-                        $this->currentRunMac = $eachOnu['identifier'];
-                        break;
-                }
-                shell_exec($this->getRegisterOnuCommand());
-                if (!$this->onuUnique()) {
+                    $this->currentPonType = $type;
+                    $this->currentOltInterface = $$eachOnu['slot'];
+                    $this->currentOltSwId = $eachOnu['swid'];
+                    $this->currentOltIp = $eachOnu['oltip'];
+                    switch ($this->currentPonType) {
+                        case 'GPON':
+                            $this->currentRunSerial = $eachOnu['identifier'];
+                            $this->login = $this->allOnuSerial[$eachOnu['identifier']]['login'];
+                            break;
+                        case 'EPON':
+                            $this->currentRunMac = $eachOnu['identifier'];
+                            $this->login = $this->allOnuMac[$eachOnu['identifier']]['login'];
+                            break;
+                    }
+                    $this->deleteQinqBinding();
+                    $this->checkRegisteredOnu();
+                    $this->checkQinq();
+                    $this->qinqControl();
+                    $this->result .= shell_exec($this->getRegisterOnuCommand());
                     $this->fixPonizer();
                 }
-
             }
-            shell_exec($this->getSaveConfigCommand());
+            $this->result .= shell_exec($this->getSaveConfigCommand());
         }
+        $this->result = nl2br($this->result);
     }
+
+
 
     protected function onuUnique() {
         switch ($this->currentPonType) {
@@ -2598,7 +2602,8 @@ $(".changeType").change(function () {
     }
 
     protected function fixPonizer() {
-
+        $query = "UPDATE `pononu` SET `oltid`=" . $this->currentOltSwId . " WHERE login='" . $this->login . "'";
+        nr_query($query);
     }
 
     protected function fixQinq() {
