@@ -3488,6 +3488,7 @@ $lang['def']['Basis'] = 'Підстава';
 $lang['def']['Site URL'] = 'URL сайту';
 $lang['def']['Create new contrahent'] = 'Створити нового господарюючого суб`єкта';
 $lang['def']['Refresh page'] = 'Оновіть сторінку';
+$lang['def']['Outgoing calls'] = 'Вихідних дзвінків';
 $lang['def'][''] = '';
 
 
