@@ -3467,3 +3467,4 @@ $lang['def']['Basis'] = 'Основание';
 $lang['def']['Site URL'] = 'URL сайта';
 $lang['def']['Create new contrahent'] = 'Создать нового предпринимателя';
 $lang['def']['Refresh page'] = 'Обновите страницу';
+$lang['def']['Outgoing calls'] = 'Исходящих звонков';

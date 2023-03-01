@@ -426,10 +426,11 @@ class TelePony {
                         $callDirection = '';
                         //setting call direction icon
                         if ($callData['direction'] == 'in' OR $callData['app'] == 'Queue') {
-                            $callDirection = wf_img('skins/calls/incoming.png') . ' ';
+                            $callDirection = wf_img('skins/calls/incoming.png');
                         } else {
-                            $callDirection = wf_img('skins/calls/outgoing.png') . ' ';
+                            $callDirection = wf_img('skins/calls/outgoing.png');
                         }
+
 
                         $data[] = $flowCounter;
                         $data[] = $callDirection . $callData['callstart'];
@@ -595,6 +596,10 @@ class TelePony {
             'a_totalanswered' => 0,
             'a_totalcallsduration' => 0,
             'a_averagecallduration' => 0,
+            'a_outtotalcalls' => 0,
+            'a_outtotalanswered' => 0,
+            'a_outtotalcallsduration' => 0,
+            'a_outaveragecallduration' => 0,
         );
         //working time setup
         $rawWorkTime = $this->altCfg['WORKING_HOURS'];
@@ -609,8 +614,9 @@ class TelePony {
 
                 foreach ($normalCalls as $eachFlow => $flowData) {
                     $callData = $this->parseCDRFlow($flowData);
+
                     //Only incoming calls
-                    if ($callData['direction'] = 'in' OR $callData['app'] == 'Queue') {
+                    if ($callData['direction'] == 'in' OR $callData['app'] == 'Queue') {
                         $callStartTime = $callData['callstart'];
                         //Only work time
                         if (zb_isTimeBetween($workStartTime, $workEndTime, $callStartTime)) {
@@ -620,11 +626,26 @@ class TelePony {
                                 $result['a_totalanswered'] ++;
                             }
                         }
+                    } else {
+                        if ($callData['direction'] == 'out') {
+                            $callStartTime = $callData['callstart'];
+                            //Only work time
+                            if (zb_isTimeBetween($workStartTime, $workEndTime, $callStartTime)) {
+                                $result['a_outtotalcalls'] ++;
+                                $result['a_outtotalcallsduration'] += $callData['realtime'];
+                                if ($callData['status'] == 'ANSWERED') {
+                                    $result['a_outtotalanswered'] ++;
+                                }
+                            }
+                        }
                     }
                 }
                 //prevent division by zero on no answered incoming calls
                 if ($result['a_totalanswered'] != 0) {
                     $result['a_averagecallduration'] = $result['a_totalcallsduration'] / $result['a_totalanswered'];
+                }
+                if ($result['a_outtotalanswered'] != 0) {
+                    $result['a_outaveragecallduration'] = $result['a_outtotalcallsduration'] / $result['a_outtotalanswered'];
                 }
             }
         }
