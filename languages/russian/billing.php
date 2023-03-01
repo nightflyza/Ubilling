@@ -3468,3 +3468,6 @@ $lang['def']['Site URL'] = 'URL сайта';
 $lang['def']['Create new contrahent'] = 'Создать нового предпринимателя';
 $lang['def']['Refresh page'] = 'Обновите страницу';
 $lang['def']['Outgoing calls'] = 'Исходящих звонков';
+$lang['def']['incoming call'] = 'входящий вызов';
+$lang['def']['outgoing call'] = 'исходящий вызов';
+$lang['def']['Direction'] = 'Направление';

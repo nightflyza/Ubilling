@@ -379,7 +379,7 @@ class TelePony {
             $dateFrom = curdate();
             $dateTo = curdate();
         }
-        $columns = array('#', __('Time'), __('From'), __('To'), __('Picked up'), __('Type'), __('Status'), __('Talk time'));
+        $columns = array('#', __('Direction'), __('Time'), __('From'), __('To'), __('Picked up'), __('Type'), __('Status'), __('Talk time'));
         $opts = '"order": [[ 0, "desc" ]]';
         $ajDataUrl = self::URL_ME . '&' . self::ROUTE_CALLSHIST . '=true' . '&' . self::ROUTE_AJCALLSHIST . '=true';
         $ajDataUrl .= '&' . self::ROUTE_DFROM . '=' . $dateFrom . '&' . self::ROUTE_DTO . '=' . $dateTo;
@@ -426,14 +426,15 @@ class TelePony {
                         $callDirection = '';
                         //setting call direction icon
                         if ($callData['direction'] == 'in' OR $callData['app'] == 'Queue') {
-                            $callDirection = wf_img('skins/calls/incoming.png');
+                            $callDirection = wf_img('skins/calls/incoming.png').' '.__('incoming call');
                         } else {
-                            $callDirection = wf_img('skins/calls/outgoing.png');
+                            $callDirection = wf_img('skins/calls/outgoing.png').' '.__('outgoing call');
                         }
 
 
                         $data[] = $flowCounter;
-                        $data[] = $callDirection . $callData['callstart'];
+                        $data[] = $callDirection;
+                        $data[] = $callData['callstart'];
                         $data[] = $this->renderNumber($callData['from']);
                         $data[] = $this->renderNumber($callData['to']);
                         $data[] = $this->renderNumber($callData['takephone']);
