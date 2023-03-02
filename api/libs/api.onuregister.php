@@ -541,6 +541,8 @@ class OnuRegister {
         $all = simple_queryall($query);
         if (!empty($all)) {
             foreach ($all as $io => $each) {
+                $each['serial'] = strtolower($each['serial']);
+                $each['mac'] = strtolower($each['mac']);
                 $this->allOnu[$each['id']] = $each;
                 $this->allOnuSerial[$each['serial']] = $each;
                 $this->allOnuMac[$each['mac']] = $each;
