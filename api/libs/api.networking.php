@@ -662,8 +662,7 @@ function dhcp_get_all_data_assoc() {
 function handle_dhcp_rebuild_static($netid, $confname, $ddns = false, $loginIps = array(), $allNetHosts = array()) {
     $query = "SELECT * from `nethosts` WHERE `netid`='" . $netid . "'";
 
-
-// check haz it .conf name or not?
+    // check haz it .conf name or not?
     if (!empty($confname)) {
         $allhosts = array();
         if (!empty($allNetHosts)) {
@@ -674,7 +673,7 @@ function handle_dhcp_rebuild_static($netid, $confname, $ddns = false, $loginIps 
             }
         }
         $confpath = 'multinet/' . $confname;
-        //$allhosts = simple_queryall($query);
+
         $result = '';
         if (!empty($allhosts)) {
             foreach ($allhosts as $io => $eachhost) {
@@ -724,7 +723,7 @@ function handle_dhcp_rebuild_option82($netid, $confname) {
         $result = '';
         if (!empty($allhosts)) {
             $customTemplate = file_get_contents(CONFIG_PATH . "dhcp/option82.template");
-           if (empty($customTemplate)) {
+            if (empty($customTemplate)) {
                 $customTemplate = '
 class "{HOSTNAME}" {
 match if binary-to-ascii (16, 8, "", option agent.remote-id) = "{REMOTEID}" and binary-to-ascii (10, 8, "", option agent.circuit-id) = "{CIRCUITID}";
@@ -740,7 +739,7 @@ allow members of "{HOSTNAME}";
                 $parseTemplate = $customTemplate;
                 $dhcphostname = 'm' . str_replace('.', 'x', $eachhost['ip']);
                 $options = explode('|', $eachhost['option']);
-                
+
                 if (isset($options[1])) {
                     $parseTemplate = str_ireplace('{HOSTNAME}', $dhcphostname, $parseTemplate);
                     $parseTemplate = str_ireplace('{REMOTEID}', $options[0], $parseTemplate);
@@ -750,7 +749,6 @@ allow members of "{HOSTNAME}";
                     $parseTemplate = str_ireplace('{SWITCHMAC}', $eachhost['swid'], $parseTemplate);
                     $parseTemplate = str_ireplace('{SWITCHPORT}', $eachhost['port'], $parseTemplate);
                     $result .= $parseTemplate;
-
                 } else {
                     if (preg_match('/{SWITCHIP}|{SWITCHMAC}|{PORT}/', $customTemplate)) {
                         $parseTemplate = str_ireplace('{HOSTNAME}', $dhcphostname, $parseTemplate);
@@ -1027,13 +1025,15 @@ function multinet_rebuild_globalconf() {
 
     $global_template = file_get_contents("config/dhcp/global.template");
     $subnets_template = file_get_contents("config/dhcp/subnets.template");
-    $alldhcpsubnets = dhcp_get_all_data_assoc();
     $allNetsData = multinet_get_all_networks_assoc();
+    $alldhcpsubnets = dhcp_get_all_data_assoc();
+
     $allMembers_q = "SELECT `ip` from `nethosts` WHERE `option` != 'NULL'";
     $allMembers = simple_queryall($allMembers_q);
     $membersMacroContent = '';
     $vlanMembersMacroContent = '';
     $onuMembersMacroContent = '';
+    $subnets = '';
 
     if (!empty($allMembers)) {
         foreach ($allMembers as $ix => $eachMember) {
@@ -1063,27 +1063,30 @@ function multinet_rebuild_globalconf() {
         }
     }
 
-    $subnets = '';
+
     if (!empty($alldhcpsubnets)) {
         foreach ($alldhcpsubnets as $io => $eachnet) {
-            $netdata = $allNetsData[$eachnet['netid']];
-            $templatedata['{STARTIP}'] = $netdata['startip'];
-            $templatedata['{ENDIP}'] = $netdata['endip'];
-            $templatedata['{CIDR}'] = explode('/', $netdata['desc']);
-            $templatedata['{NETWORK}'] = $templatedata['{CIDR}'][0];
-            $templatedata['{CIDR}'] = $templatedata['{CIDR}'][1];
-            $templatedata['{ROUTERS}'] = int2ip(ip2int($templatedata['{STARTIP}']) + 1);
-            $templatedata['{MASK}'] = multinet_cidr2mask($templatedata['{CIDR}']);
-            $dhcpdata = $alldhcpsubnets[$eachnet['netid']];
-            if (isset($dhcpdata['confname'])) {
-                $templatedata['{HOSTS}'] = $dhcpdata['confname'];
-// check if override?
-                if (!empty($dhcpdata['dhcpconfig'])) {
-                    $currentsubtpl = $dhcpdata['dhcpconfig'];
-                } else {
-                    $currentsubtpl = $subnets_template;
+            //network really exists?
+            if (isset($allNetsData[$eachnet['netid']])) {
+                $netdata = $allNetsData[$eachnet['netid']];
+                $templatedata['{STARTIP}'] = $netdata['startip'];
+                $templatedata['{ENDIP}'] = $netdata['endip'];
+                $templatedata['{CIDR}'] = explode('/', $netdata['desc']);
+                $templatedata['{NETWORK}'] = $templatedata['{CIDR}'][0];
+                $templatedata['{CIDR}'] = $templatedata['{CIDR}'][1];
+                $templatedata['{ROUTERS}'] = int2ip(ip2int($templatedata['{STARTIP}']) + 1);
+                $templatedata['{MASK}'] = multinet_cidr2mask($templatedata['{CIDR}']);
+                $dhcpdata = $alldhcpsubnets[$eachnet['netid']];
+                if (isset($dhcpdata['confname'])) {
+                    $templatedata['{HOSTS}'] = $dhcpdata['confname'];
+                    // check for override?
+                    if (!empty($dhcpdata['dhcpconfig'])) {
+                        $currentsubtpl = $dhcpdata['dhcpconfig'];
+                    } else {
+                        $currentsubtpl = $subnets_template;
+                    }
+                    $subnets .= multinet_ParseTemplate($currentsubtpl, $templatedata) . "\n";
                 }
-                $subnets .= multinet_ParseTemplate($currentsubtpl, $templatedata) . "\n";
             }
         }
     }

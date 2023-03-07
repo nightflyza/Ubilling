@@ -105,7 +105,7 @@ class UbillingDHCP {
                 if (isset($this->allMultinetNets[$eachnet['netid']])) {
                     $cidr = $this->allMultinetNets[$eachnet['netid']]['desc'];
                 } else {
-                    $cidr = __('Deleted');
+                    $cidr = __('Network does not exist anymore');
                 }
                 $cells = wf_TableCell($eachnet['id']);
                 $cells .= wf_TableCell($cidr);
@@ -181,7 +181,13 @@ class UbillingDHCP {
                 $actLinks .= wf_modal(web_icon_search(__('Preview') . ' ' . $subconfname), $subconfname, $subconfdata, '', 800, 600);
 
                 $cells = wf_TableCell($eachnet['id']);
-                $cells .= wf_TableCell(@$this->allMultinetNets[$eachnet['netid']]['desc']);
+                $netLabel = '';
+                if (isset($this->allMultinetNets[$eachnet['netid']])) {
+                    $netLabel = $this->allMultinetNets[$eachnet['netid']]['desc'];
+                } else {
+                    $netLabel = __('Network does not exist anymore');
+                }
+                $cells .= wf_TableCell($netLabel);
                 $cells .= wf_TableCell($subconfname);
                 $cells .= wf_TableCell($actLinks);
                 $rows .= wf_TableRow($cells, 'row5');
