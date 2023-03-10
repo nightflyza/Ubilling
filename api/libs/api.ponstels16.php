@@ -68,6 +68,8 @@ class PONstels16 extends PONProto {
                                        '',
                                        '', self::SNMPCACHE);
 
+        $macIndexProcessed = $this->macParseStels16($macIndex);
+
         $this->signalParse($oltid, $sigIndex, $macIndex, $this->snmpTemplates[$oltModelId]['signal']);
 
         if (isset($this->snmpTemplates[$oltModelId]['misc'])) {
@@ -83,7 +85,7 @@ class PONstels16 extends PONProto {
 
             if (isset($this->snmpTemplates[$oltModelId]['misc']['DEREGREASON'])) {
                 if (!empty($this->snmpTemplates[$oltModelId]['misc']['DEREGREASON'])) {
-                    $this->lastDeregParsestels16($oltid, $lastDeregIndex, $macIndex);
+                    $this->lastDeregParsestels16($oltid, $lastDeregIndex, $macIndexProcessed);
                 }
             }
         }
@@ -93,8 +95,58 @@ class PONstels16 extends PONProto {
                                               $this->snmpTemplates[$oltModelId]['misc']['FDBMACINDEX'],
                                               '',
                                               '', self::SNMPCACHE);
-            $this->fdbParsestels16($fdbMACIndex);
+            $this->fdbParsestels16($fdbMACIndex, $macIndexProcessed);
         }
+
+        $uniOperStatusIndex = array();
+        if (isset($this->snmpTemplates[$oltModelId]['misc']['UNIOPERSTATUS'])) {
+            $uniOperStatusIndex = $this->walkCleared($oltIPPORT, $oltCommunity,
+                                                     $this->snmpTemplates[$oltModelId]['misc']['UNIOPERSTATUS'],
+                                                     '',
+                                                     array($this->snmpTemplates[$oltModelId]['misc']['UNIOPERSTATUSVALUE'], '"'),
+                                                     self::SNMPCACHE);
+
+            $this->uniParseStels16($uniOperStatusIndex, $macIndexProcessed);
+        }
+    }
+
+    /**
+     * Processes OLT MAC adresses and returns them in array: LLID=>MAC
+     *
+     * @param $macIndex
+     *
+     * @return array
+     */
+    protected function macParseStels16($macIndex) {
+        $ONUsMACs = array();
+
+        if (!empty($macIndex)) {
+//mac index preprocessing
+            foreach ($macIndex as $io => $eachmac) {
+                $line = explode('=', $eachmac);
+
+                if (empty($line[0]) || empty($line[1])) {
+                    continue;
+                }
+
+                $tmpONUDevIdx = trim($line[0]);
+                $tmpONUMAC = trim($line[1]);
+                $tmpONUMAC = str_replace(' ', ':', $tmpONUMAC);
+
+                if ($this->onuSerialCaseMode == 1) {
+                    $tmpONUMAC = strtolower($tmpONUMAC);
+                } elseif ($this->onuSerialCaseMode == 2) {
+                    $tmpONUMAC = strtoupper($tmpONUMAC);
+                }
+
+//mac is present
+                if (!empty($tmpONUDevIdx) and ! empty($tmpONUMAC)) {
+                    $ONUsMACs[$tmpONUDevIdx] = $tmpONUMAC;
+                }
+            }
+        }
+
+        return ($ONUsMACs);
     }
 
     /**
@@ -190,7 +242,7 @@ class PONstels16 extends PONProto {
             }
 
 //mac index preprocessing
-            foreach ($macIndex as $io => $eachmac) {
+/*            foreach ($macIndex as $io => $eachmac) {
                 $line = explode('=', $eachmac);
 //mac is present
                 if (isset($line[1])) {
@@ -200,11 +252,11 @@ class PONstels16 extends PONProto {
                     $macRaw = strtolower($macRaw);
                     $macTmp[$devIndex] = $macRaw;
                 }
-            }
+            }*/
 
 //storing results
-            if (!empty($macTmp)) {
-                foreach ($macTmp as $devId => $eachMac) {
+            if (!empty($macIndex)) {
+                foreach ($macIndex as $devId => $eachMac) {
                     $currentInterface = '';
 
                     if (!empty($deregTmp)) {
@@ -360,29 +412,25 @@ class PONstels16 extends PONProto {
      *
      * @return void
      */
-    protected function fdbParsestels16($fdbMACIndex) {
-        $onuMACIndex = $this->olt->readMacIndex();
+    protected function fdbParsestels16($fdbMACIndex, $macIndexProcessed) {
+        $onuMACIndex = $macIndexProcessed;
         $i = 0;
         $fdbCahce = array();
 
         if (!empty($onuMACIndex) and !empty($fdbMACIndex)) {
 // processing $fdbMACIndex array to get a FDB record at once
-            foreach ($fdbMACIndex as $eachIdx => $eachONUMAC) {
+            foreach ($fdbMACIndex as $eachIdx => $eachFDBLine) {
                 $i++;
-                $line = explode('=', $eachONUMAC);
-// MAC is present
-                if (isset($line[1])) {
-                    $onuMAC = trim($line[1]);
+                $line           = explode('=', $eachFDBLine);
+                $onuPlasticIdx  = trim($line[1]);               // ONU Plastic index
 
-                    if (ispos($onuMAC, 'STRING:')) continue;
+// Plastic index is present
+                if (isset($onuMACIndex[$onuPlasticIdx])) {
+                    $fdbMACVLAN     = trim($line[0]);       // getting DEC MAC + VLAN portion
+                    $fdbVLAN        = substr($fdbMACVLAN, strripos($fdbMACVLAN, '.') + 1);     // fdb VLAN
+                    $fdbMAC         = convertMACDec2Hex(substr($fdbMACVLAN, 0, strripos($fdbMACVLAN, '.')));       // fdb MAC;
 
-                    $onuMAC = strtolower(str_replace(' ', ':', $onuMAC));       // ONU MAC
-
-                    $tmpIndex = trim($line[0]);               // pon port number + device index
-                    $fdbVLAN = substr($tmpIndex, strripos($tmpIndex, '.') + 1);     // fdb VLAN
-                    $fdbMAC = convertMACDec2Hex(substr($tmpIndex, 0, strripos($tmpIndex, '.')));       // fdb MAC;
-
-                    $fdbCahce[$onuMAC][$i] = array('mac' => $fdbMAC, 'vlan' => $fdbVLAN);
+                    $fdbCahce[$onuMACIndex[$onuPlasticIdx]][$i] = array('mac' => $fdbMAC, 'vlan' => $fdbVLAN);
                 }
             }
         }
@@ -391,4 +439,55 @@ class PONstels16 extends PONProto {
         $this->olt->writeFdb($fdbCahce);
     }
 
+
+    /**
+     * Performs UNI port oper status preprocessing for index array and stores it into cache
+     *
+     * @param $uniOperStatusIndex
+     * @param $macIndexProcessed
+     *
+     * @return void
+     */
+    protected function uniParseStels16($uniOperStatusIndex, $macIndexProcessed) {
+        $uniStats = array();
+        $result = array();
+
+        if (!empty($macIndexProcessed) and !empty($uniOperStatusIndex)) {
+//UniOperStats index preprocessing
+            foreach ($uniOperStatusIndex as $io => $eachRow) {
+                $line = explode('=', $eachRow);
+file_put_contents('exports/pondata/unioperstats/unistats', print_r($line, true));
+                if (empty($line[0]) || empty($line[1])) {
+                    continue;
+                }
+
+                // dev index + .0. + ether port index
+                $tmpDevIdxEtherIdx = trim($line[0]);
+                $tmpDevIdxEtherIdxLen = strlen($tmpDevIdxEtherIdx);
+
+                // ehter port index
+                $tmpEtherIdx = strrchr($tmpDevIdxEtherIdx, '.');
+                $tmpEtherIdxLen = strlen($tmpEtherIdx);
+                $tmpEtherIdx = 'eth' . trim($tmpEtherIdx, '.');
+file_put_contents('exports/pondata/unioperstats/unistats', $tmpEtherIdx . "\n", 8);
+                //dev index = $tmpDevIdxEtherIdx - '.0.' - $tmpEtherIdx
+                $tmpONUDevIdx = substr($tmpDevIdxEtherIdx, 0, $tmpDevIdxEtherIdxLen - $tmpEtherIdxLen - 2);
+                $tmpUniStatus = trim(trim($line[1]), '"');
+file_put_contents('exports/pondata/unioperstats/unistats', $tmpONUDevIdx . "\n", 8);
+file_put_contents('exports/pondata/unioperstats/unistats', $tmpUniStatus . "\n", 8);
+                $uniStats[$tmpONUDevIdx] = array($tmpEtherIdx => $tmpUniStatus);
+            }
+file_put_contents('exports/pondata/unioperstats/unistats', print_r($uniStats, true), 8);
+file_put_contents('exports/pondata/unioperstats/unistats', print_r($macIndexProcessed, true), 8);
+//storing results
+            foreach ($macIndexProcessed as $devId => $eachMac) {
+                if (isset($uniStats[$devId])) {
+                    $result[$eachMac] = $uniStats[$devId];
+                }
+            }
+
+            //saving UniOperStats
+            $this->olt->writeUniOperStats($result);
+        }
+    }
 }
