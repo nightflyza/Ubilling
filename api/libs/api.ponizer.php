@@ -846,13 +846,13 @@ class PONizer {
                                     /**
                                      * Stels FD12XX devices polling
                                      */
-                                    $collectorName = 'PONStels';
+                                    $collectorName = 'PONStels12';
                                     break;
                                 case 'STELSFD':
                                     /**
                                      * Stels FD11XX devices polling
                                      */
-                                    $collectorName = 'PONStelsFD';
+                                    $collectorName = 'PONStels11';
                                     break;
                                 case 'VSOL':
                                     /**
@@ -4589,7 +4589,7 @@ class PONizer {
                     }
 
                     if (!empty($lastRegTime) or !empty($lastDeregTime) or !empty($lastAliveTime)) {
-                        if ($snmpSignalOIDs['SIGNALMODE'] == 'BDCOM' or ispos($snmpDevice, 'FD12XXS')) {
+                        if ($snmpSignalOIDs['SIGNALMODE'] == 'BDCOM' or ispos($snmpDevice, 'FD12XXS') or ispos($snmpDevice, 'FD16XXS')) {
                             $lastAliveTime = (empty($lastAliveTime) or !is_numeric($lastAliveTime)) ? 0 : $lastAliveTime;
                             $lastAliveTime = zb_formatTime($lastAliveTime);
 

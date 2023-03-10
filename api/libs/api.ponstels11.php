@@ -3,7 +3,7 @@
 /**
  * OLT Stels FD11XX  hardware abstraction layer
  */
-class PONStelsFD extends PONStels {
+class PONStels11 extends PONStels12 {
 
     /**
      * Receives, preprocess and stores all required data from Stels FD11XX or V-Solution 1600D

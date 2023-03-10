@@ -2648,7 +2648,8 @@ function convertMACDec2Hex($decMAC, $inSeparator = '.', $outSeparator = ':', $re
  *
  * @return array|string
  */
-function trimSNMPOutput($snmpData, $oid, $removeValue = '', $rowsExplode = false, $returnAsStr = false, $oidValue = array('Counter32:',
+function trimSNMPOutput($snmpData, $oid, $removeValue = '', $rowsExplode = false, $returnAsStr = false, $oidValue = array(
+    'Counter32:',
     'Counter64:',
     'Gauge32:',
     'Gauge64:',
