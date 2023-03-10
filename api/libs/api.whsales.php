@@ -500,7 +500,11 @@ class WHSales {
         if (!empty($allOutcomes)) {
             foreach ($allOutcomes as $io => $each) {
                 if (isset($reportItemIds[$each['itemtypeid']])) {
-                    if ($each['desttype'] != 'storage' AND ispos($each['date'], $yearMask)) {
+                    //ignore storage movements, mistakes or cancellations
+                    if ($each['desttype'] != 'storage' AND
+                            $each['desttype'] != 'mistake' AND
+                            $each['desttype'] != 'cancellation'AND
+                            ispos($each['date'], $yearMask)) {
                         $result[$io] = $each;
                     }
                 }
