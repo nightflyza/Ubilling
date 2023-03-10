@@ -1877,9 +1877,11 @@ class Warehouse {
             $reportControls .= wf_Link(self::URL_ME . '&' . self::URL_REPORTS . '&storagesremains=true', wf_img_sized('skins/icon_print.png') . ' ' . __('The remains in the warehouse storage'), false, 'ubButton');
             $reportControls .= wf_Link(self::URL_ME . '&' . self::URL_REPORTS . '&itemtypeoutcomes=true', wf_img_sized('skins/sales.png') . ' ' . __('Sales'), false, 'ubButton');
             $reportControls .= wf_Link(self::URL_ME . '&' . self::URL_REPORTS . '&purchases=true', wf_img_sized('skins/shopping_cart_small.png') . ' ' . __('Purchases'), false, 'ubButton');
+            $reportControls .= wf_Link(WHSales::URL_ME , wf_img_sized('skins/salesreportsmall.png') . ' ' . __('Sales report'), false, 'ubButton');
             if (@$this->altCfg['WAREHOUSE_RETURNS_ENABLED']) {
                 $reportControls .= wf_Link(self::URL_ME . '&' . self::URL_REPORTS . '&returns=true', wf_img_sized('skins/return.png') . ' ' . __('Returns'), false, 'ubButton');
             }
+            
             $result .= wf_modalAuto(wf_img('skins/ukv/report.png') . ' ' . __('Reports'), __('Reports'), $reportControls, 'ubButton');
         }
 
