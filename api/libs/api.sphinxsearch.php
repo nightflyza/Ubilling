@@ -139,15 +139,12 @@ Class SphinxDB {
             $this->queryOptions .= ' LIMIT ' . self::SEARCHLIMIT;
         }
 
-
         if (!empty($searchString)) {
-
             if ($this->dbDriver == 'none') {
                 return $search;
             }
 
             $query = "SELECT * FROM " . $this->searchIndexes . " WHERE MATCH ('" . $searchString . "') " . $this->queryOptions;
-
 
             if ($this->dbDriver == 'mysqli') {
                 if ($result = $this->db->query($query, MYSQLI_USE_RESULT)) {
@@ -198,8 +195,8 @@ class SphinxSearch {
      * @return string
      */
     protected function escapeString($string) {
-        $from = array('/');
-        $to = array('\\\/');
+        $from = array('\\', '(', ')', '|', '-', '!', '@', '~', '"', '&', '/', '^', '$', '=', '<');
+        $to = array('\\\\', '\\\(', '\\\)', '\\\|', '\\\-', '\\\!', '\\\@', '\\\~', '\\\"', '\\\&', '\\\/', '\\\^', '\\\$', '\\\=', '\\\<');
         return str_replace($from, $to, $string);
     }
 
