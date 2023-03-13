@@ -167,6 +167,11 @@ class OnuRegister {
     protected $allOnuMac = array();
 
     /**
+     * Containts all onu users (login)
+     */
+    protected $allOnuLogin = array();
+
+    /**
      * Alternative array for ONU snmp counter.
      * 
      * @var array
@@ -432,6 +437,11 @@ class OnuRegister {
     public $ponizerAdd = false;
 
     /**
+     * Replace onu if user already has onu 
+     */
+    protected $ponizerReplace = false;
+
+    /**
      * Should we use universal qinq and which type if yes?
      * 
      * @var string
@@ -544,6 +554,7 @@ class OnuRegister {
                 $each['serial'] = strtolower($each['serial']);
                 $each['mac'] = strtolower($each['mac']);
                 $this->allOnu[$each['id']] = $each;
+                $this->allOnuLogin[$each['login']] = $each;
                 $this->allOnuSerial[$each['serial']] = $each;
                 $this->allOnuMac[$each['mac']] = $each;
             }
@@ -1521,6 +1532,14 @@ class OnuRegister {
         return (true);
     }
 
+    protected function ponizerLoginCheck() {
+        if ($this->altCfg['ONUREG_PONIZER_ONU_REPLACE']) {
+            if (isset($this->allOnuLogin[$this->login])) {
+                $this->ponizerReplace = true;
+            }
+        }
+    }
+
     /**
      * Add onu to PONizer if options was set.
      * Check if ONU has unique paramteres.
@@ -1545,6 +1564,18 @@ class OnuRegister {
                     $this->ponizerAdd = false;
                 }
                 break;
+        }
+
+        $this->ponizerLoginCheck();
+        if ($this->ponizerReplace) {            
+            $this->ponizerAdd = false;
+
+            if (!empty($this->addMac)) {
+                $pon = new PONizer();
+                $pon->onuSave($this->allOnuLogin[$this->login]['id'], $this->onuModel, $this->currentOltSwId, '', $this->addMac, $this->serial, $this->login);
+            } else {
+                log_register('ONUREG PONIZER WRONG DATA. Login: ' . $this->login . '. MAC: ' . $this->addMac);
+            }
         }
 
         if ($this->ponizerAdd) {
@@ -2416,7 +2447,7 @@ $(".changeType").change(function () {
         $cell .= wf_delimiter();
         $cell .= wf_Submit(__('Register'));
         $Row = wf_TableRow($cell, 'row1');
-        $form = wf_Form('', 'POST', $Row, 'glamour');
+        $form = wf_Form('', 'POST', $Row, 'glamour', '', 'register_submit');
 
         return ($form);
     }
@@ -2536,7 +2567,7 @@ $(".changeType").change(function () {
     }
 
     public function onuMassRegister() {
-        $this->result = '';        
+        $this->result = '';
         $fixable = file_get_contents(self::FIXABLE_FILE);
         $data = unserialize($fixable);
         foreach ($data as $oltip => $io) {
