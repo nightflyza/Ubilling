@@ -2518,6 +2518,61 @@ $(".changeType").change(function () {
 
     public function listFixable() {
         $list = $this->getFixable();
+        if (wf_CheckGet(array('oltlist', 'oltid'))) {
+            $oltlist = '&oltlist=true&oltid=' . ubRouting::get('oltid', 'int');
+        } else {
+            $oltlist = '';
+        }
+        $tablecells = wf_TableCell(__('OLT IP'));
+        $tablecells .= wf_TableCell(__('Type'));
+        $tablecells .= wf_TableCell(__('Interface'));
+        $tablecells .= wf_TableCell('MAC/SN');
+        $tablecells .= wf_TableCell(__('PONizer'));
+        $tablecells .= wf_TableCell(__('VLAN'));
+        $tablerows = wf_TableRow($tablecells, 'row1');
+
+        if (!empty($list)) {
+            foreach ($list as $eachType => $io) {
+                foreach ($io as $eachOnu) {
+                    $ip = $eachOnu['oltip'];
+                    $interface = $eachOnu['slot'];
+                    $macOnu = strtolower($eachOnu['identifier']);
+                    $oltId = $eachOnu['swid'];
+                    $vlans = $eachOnu['svlan'] . '/' . $eachOnu['cvlan'];
+                    $tablecells = wf_TableCell($ip);
+                    $tablecells .= wf_TableCell($eachType);
+                    $tablecells .= wf_TableCell($interface);
+                    $tablecells .= wf_TableCell($macOnu);
+                    $existFlag = false;
+                    switch ($eachType) {
+                        case 'GPON':
+                            $identifier = '&' . self::SERIAL_FIELD . '=';
+                            if ($this->checkSerialOnuExists($macOnu)) {
+                                $existFlag = true;
+                            }
+                            break;
+                        case 'EPON':
+                            $identifier = '&' . self::MACONU_FIELD . '=';
+                            if ($this->checkMacOnuExists($macOnu)) {
+                                $existFlag = true;
+                            }
+                            break;
+                    }
+                    if ($existFlag) {
+                        $existParams = wf_img('skins/icon_ok.gif', __('Good'));
+                    } else {
+                        $existParams = wf_img('skins/icon_minus.png', __('Bad'));
+                    }
+                    $tablecells .= wf_TableCell($existParams);                    
+                    $tablecells .= wf_TableCell($vlans);
+                    $tablerows .= wf_TableRow($tablecells, 'row3');
+                }
+            }
+        }
+        $result = wf_TableBody($tablerows, '100%', '0', 'sortable');
+        $result .= wf_delimiter();
+        $result .= wf_Link(self::UNREG_MASS_FIX_RUN_URL . $oltlist, __('Register'), true, 'ubButton', 'id="Form_register_submit');
+
         //debarr($list);
     }
 
