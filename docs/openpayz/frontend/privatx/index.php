@@ -1,33 +1,29 @@
 <?php
 
 /*
- * Фронтенд для получения уведомлений о платежах от Приватбанка
- * Протокол: https://docs.google.com/document/d/1JrH84x2p4FOjm89q3xArvnEfsFXRnbIoa6qJFNq2VYw/edit#
+ * Фронтенд для отримання повідомлень про платежі від Приватбанку
  * 
- * Возможно получение запросов как в виде отдельной POST переменной, так и в виде HTTP_RAW_POST_DATA
- * Идентификация абонента по лицевому счету в виде paymentID материализующемуся из вьюшки вида:
- * CREATE VIEW op_customers (realid,virtualid) AS SELECT users.login, CRC32(users.login) FROM `users`;
+ * Можливе отримання запитів як у вигляді окремої змінної POST, так і у вигляді HTTP_RAW_POST_DATA
  */
 
 
-/////////// Секция настроек
-// Имя POST переменной в которой должны приходить запросы, либо raw в случае получения 
-// запросов в виде HTTP_RAW_POST_DATA.
+/////////// Секція налаштувань
+// Ім`я POST змінної в якій повинні надходити запити, або raw у разі отримання запитів в вигляді HTTP_RAW_POST_DATA.
 define('PBX_REQUEST_MODE', 'raw');
-//Режим отладки - заставляет данные подгружаться из файла debug.xml 
-//(Да-да, ложите туда запрос и смотрите в браузере как на него отвечает фронтенд)
+//Режим відлагодження - змушує дані підвантажуватись з файлу debug.xml
+//(Так-так, кладете туди запит і дивитесь у браузері як на нього відповідає фронтенд)
 define('PBX_DEBUG_MODE', 0);
 
-//Текст уведомлений и екзепшнов
-define('ISP_CODE', '1'); // Id в ПС
-define('ISP_SERVICE_NAME', 'Интернет'); // Наименование услуги
-define('ISP_SERVICE_CODE', '1'); //Код услуги
-define('USER_BALANCE_DECIMALS', -1);    // Сколько знаков после запятой возвращать в балансе абонента 0 - возвращать только целую часть
+//Тексти сповіщень та виключень
+define('ISP_CODE', '1'); // Id в платіжній системі
+define('ISP_SERVICE_NAME', 'Інтернет'); // Найменування послуги
+define('ISP_SERVICE_CODE', '1'); // Код послуги
+define('USER_BALANCE_DECIMALS', -1);    // Скільки знаків після коми повертати в балансі абонента 0 - повертати лише цілу частину
 //Исключения
-define('PBX_EX_NOT_FOUND', 'Абонент не найден');
-define('PBX_EX_DUPLICATE', 'Дублирование платежа');
+define('PBX_EX_NOT_FOUND', 'Абонента не знайдено');
+define('PBX_EX_DUPLICATE', 'Дублювання оплати');
 
-// подключаем API OpenPayz
+// підключаємо API OpenPayz
 include ("../../libs/api.openpayz.php");
 
 error_reporting(E_ALL);
@@ -171,7 +167,7 @@ function pbx_GenerateHash($size = 12) {
     $characters = '0123456789';
     $string = "";
     for ($p = 0; $p < $size; $p++) {
-        $string.= $characters[mt_rand(0, (strlen($characters) - 1))];
+        $string .= $characters[mt_rand(0, (strlen($characters) - 1))];
     }
 
     return ($string);
@@ -493,4 +489,3 @@ if (!empty($xmlRequest)) {
         die('XML_PARSER_FAIL');
     }
 }
-?>
