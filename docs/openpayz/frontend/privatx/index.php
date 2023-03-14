@@ -1,34 +1,40 @@
 <?php
 
-/*
+/**
  * Фронтенд для отримання повідомлень про платежі від Приватбанку
  * 
  * Можливе отримання запитів як у вигляді окремої змінної POST, так і у вигляді HTTP_RAW_POST_DATA
  */
 
+/**
+ * Секція налаштувань
+ */
 
-/////////// Секція налаштувань
 // Ім`я POST змінної в якій повинні надходити запити, або raw у разі отримання запитів в вигляді HTTP_RAW_POST_DATA.
 define('PBX_REQUEST_MODE', 'raw');
-//Режим відлагодження - змушує дані підвантажуватись з файлу debug.xml
-//(Так-так, кладете туди запит і дивитесь у браузері як на нього відповідає фронтенд)
-define('PBX_DEBUG_MODE', 0);
+// Режим відлагодження - змушує дані підвантажуватись з файлу debug.xml
+// (Так-так, кладете туди запит і дивитесь у браузері як на нього відповідає фронтенд)
+define('PBX_DEBUG_MODE', false);
 
-//Тексти сповіщень та виключень
+// Тексти сповіщень та виключень
 define('ISP_CODE', '1'); // Id в платіжній системі
 define('ISP_SERVICE_NAME', 'Інтернет'); // Найменування послуги
 define('ISP_SERVICE_CODE', '1'); // Код послуги
 define('USER_BALANCE_DECIMALS', -1);    // Скільки знаків після коми повертати в балансі абонента 0 - повертати лише цілу частину
-//Исключения
+define('FULL_DEBTINFO', false); // Чи повертати секцію з DebtInfo включаючи amountToPay та debt?
+// Виключення
 define('PBX_EX_NOT_FOUND', 'Абонента не знайдено');
 define('PBX_EX_DUPLICATE', 'Дублювання оплати');
 
-// підключаємо API OpenPayz
-include ("../../libs/api.openpayz.php");
+/**
+ * Кінець секції налаштувань
+ */
 
 error_reporting(E_ALL);
+// Підключаємо API OpenPayz
+include ("../../libs/api.openpayz.php");
 
-// Send main headers
+// Трішечки заголовків
 header('Last-Modified: ' . gmdate('r'));
 header('Content-Type: text/html; charset=utf-8');
 header("Cache-Control: no-store, no-cache, must-revalidate"); // HTTP/1.1
@@ -268,6 +274,28 @@ function pbx_ReplySearch($customerid, $UsrBalanceDecimals = -1) {
         $userdata = pbx_UserGetStargazerData($customerLogin);
         $userBalance = ($UsrBalanceDecimals < 0) ? $userdata['Cash'] : (($UsrBalanceDecimals == 0) ? intval($userdata['Cash'], 10) : round($userdata['Cash'], $UsrBalanceDecimals, PHP_ROUND_HALF_EVEN));
 
+        if (FULL_DEBTINFO) {
+            $recommendedPay = '0.0';
+            $debt = '0.0';
+
+            if ($userdata['Cash'] < 0) {
+                $recommendedPay = abs($userdata['Cash']);
+                $debt = $userdata['Cash'];
+            } else {
+                $allTariffs = pbx_TariffGetPricesAll();
+                $recommendedPay = $allTariffs[$userdata['Tariff']];
+                $debt = '-' . $userdata['Cash'];
+            }
+            $debtInfoSection = '<DebtInfo amounttopay="' . $recommendedPay . '" debt="' . $debt . '">  
+                                   <Balance>' . $userBalance . '</Balance>
+                        </DebtInfo>';
+        } else {
+            $debtInfoSection = '<DebtInfo>
+                                  <Balance>' . $userBalance . '</Balance>
+                        </DebtInfo>';
+        }
+
+
         //normal reply
         $templateOk = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
                     <Transfer xmlns="http://debt.privatbank.ua/Transfer" interface="Debt" action="Search">
@@ -282,9 +310,7 @@ function pbx_ReplySearch($customerid, $UsrBalanceDecimals = -1) {
                         <CompanyInfo>
                          <CompanyCode>' . ISP_CODE . '</CompanyCode>
                         </CompanyInfo>
-                        <DebtInfo>
-                         <Balance>' . $userBalance . '</Balance>
-                        </DebtInfo>
+                       ' . $debtInfoSection . '
                        <ServiceName>' . ISP_SERVICE_NAME . '</ServiceName>
                        <PayerInfo billIdentifier="' . $customerid . '" ls="' . $customerid . '">
                          <Fio>' . @$allrealnames[$customerLogin] . '</Fio>
