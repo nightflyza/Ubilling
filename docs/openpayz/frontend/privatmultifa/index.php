@@ -40,7 +40,7 @@ $customerIdFields = array(
 /**
  * Кінець секції налаштувань
  */
-// подключаем API OpenPayz
+
 include ("../../libs/api.openpayz.php");
 
 error_reporting(E_ALL);
