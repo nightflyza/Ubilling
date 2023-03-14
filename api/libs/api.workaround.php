@@ -6814,3 +6814,31 @@ function zb_ParseTagData($openTag, $closeTag, $stringToParse = '', $mutipleResul
     }
     return($result);
 }
+
+/**
+ * Predicts the next value using simple exponential smoothing with a trend using Holt-Winters method.
+ * 
+ * @param array $data
+ * 
+ * @return float
+ */
+function forecastHoltWinters($data) {
+    $alpha = 0.2;
+    $beta = 0.1;
+    $forecast_length = 1;
+    $data_length = count($data);
+    $level = $data[0];
+    $trend = ($data[1] - $data[0]) / 2;
+    for ($i = 2; $i < $data_length; $i++) {
+        $last_level = $level;
+        $last_trend = $trend;
+        $level = $alpha * $data[$i] + (1 - $alpha) * ($last_level + $last_trend);
+        $trend = $beta * ($level - $last_level) + (1 - $beta) * $last_trend;
+    }
+    $last_level = $level;
+    $last_trend = $trend;
+    for ($i = 0; $i < $forecast_length; $i++) {
+        $forecast = $last_level + $last_trend * ($i + 1);
+    }
+    return ($forecast);
+}
