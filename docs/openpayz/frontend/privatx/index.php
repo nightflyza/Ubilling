@@ -285,7 +285,7 @@ function pbx_ReplySearch($customerid, $UsrBalanceDecimals = -1) {
                 $recommendedPay = $allTariffs[$userdata['Tariff']];
                 $debt = '-' . $userdata['Cash'];
             }
-            $debtInfoSection = '<DebtInfo amounttopay="' . $recommendedPay . '" debt="' . $debt . '">  
+            $debtInfoSection = '<DebtInfo amountToPay="' . $recommendedPay . '" debt="' . $debt . '">  
                                    <Balance>' . $userBalance . '</Balance>
                         </DebtInfo>';
         } else {
