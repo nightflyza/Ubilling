@@ -6822,7 +6822,7 @@ function zb_ParseTagData($openTag, $closeTag, $stringToParse = '', $mutipleResul
  * 
  * @return float
  */
-function forecastHoltWinters($data) {
+function zb_forecastHoltWinters($data) {
     $alpha = 0.2;
     $beta = 0.1;
     $forecast_length = 1;
