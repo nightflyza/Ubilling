@@ -66,8 +66,8 @@ function zb_PasswordGenerate($len = 8) {
  * @return string
  */
 function zb_PasswordGenerateTH($len = 8) {
-    $leftHand = array('q', 'w', 'e', 'r', 't', 'a', 's', 'd', 'f', 'g', 'z', 'x', 'c', 'v', 'b');
-    $rightHand = array('y', 'u', 'p', 'h', 'j', 'k', 'n', 'm', '2', '3', '4', '5', '6', '7', '8', '9', '0');
+    $leftHand = array('q', 'w', 'e', 'r', 't', 'a', 's', 'd', 'f', 'g', 'z', 'x', 'c', 'v', 'b', '2', '3', '4', '5', '6');
+    $rightHand = array('y', 'u', 'p', 'h', 'j', 'k', 'n', 'm', '7', '8', '9');
     $password = '';
     $left = true;
 
@@ -336,6 +336,9 @@ function zb_RegPasswordProposal() {
                 break;
             case 2:
                 $password_proposal = zb_PasswordGenerate($passwordsLenght);
+                break;
+            case 3:
+                $password_proposal = zb_PasswordGenerateTH($passwordsLenght);
                 break;
             default :
                 $password_proposal = zb_rand_string(8);

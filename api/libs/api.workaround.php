@@ -189,7 +189,7 @@ function web_EditorStringDataFormPassword($fieldnames, $fieldkey, $useraddress, 
     $alterconf = $ubillingConfig->getAlter();
     $passwordsType = (isset($alterconf['PASSWORD_TYPE'])) ? $alterconf['PASSWORD_TYPE'] : 1;
     $passwordsLenght = (isset($alterconf['PASSWORD_GENERATION_LENGHT'])) ? $alterconf['PASSWORD_GENERATION_LENGHT'] : 8;
-
+    
     $password_proposal = '';
     switch ($passwordsType) {
         case 0:
