@@ -201,6 +201,9 @@ function web_EditorStringDataFormPassword($fieldnames, $fieldkey, $useraddress, 
         case 2:
             $password_proposal = zb_PasswordGenerate($passwordsLenght);
             break;
+        case 3:
+            $password_proposal = zb_PasswordGenerateTH($passwordsLenght);
+            break;
         default :
             $password_proposal = zb_rand_string(8);
             break;
