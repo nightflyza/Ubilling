@@ -188,10 +188,11 @@ function stg_get_tagtype_data($tagtypeid) {
  * 
  * @param string $login existing user login
  * @param bool $concat concatenate same tags as power?
+ * @param bool $noTagsAlert render notification on empty user tags list
  * 
  * @return string
  */
-function stg_show_user_tags($login, $concat = false) {
+function stg_show_user_tags($login, $concat = false, $noTagsAlert = false) {
     global $ubillingConfig;
     $newLineFlag = $ubillingConfig->getAlterParam('TAG_NEWLINE_PZDTS');
     $query = "SELECT * from `tags` INNER JOIN (SELECT * from `tagtypes`) AS tt ON (`tags`.`tagid`=`tt`.`id`) LEFT JOIN (SELECT `mobile`,`tagid` AS emtag FROM `employee` WHERE `tagid` != '') as tem ON (`tags`.`tagid`=`tem`.`emtag`) WHERE `login`='" . $login . "';";
@@ -241,7 +242,14 @@ function stg_show_user_tags($login, $concat = false) {
                 }
             }
         }
+    } else {
+        //Optional empty tags list notification
+        if ($noTagsAlert) {
+            $messages = new UbillingMessageHelper();
+            $result .= $messages->getStyledMessage(__('This user has no tags assigned'), 'info');
+        }
     }
+
     return ($result);
 }
 
@@ -257,21 +265,25 @@ function stg_tagadd_selector() {
     $query = "SELECT * from `tagtypes` ORDER by `id` ASC";
     $alltypes = simple_queryall($query);
     $tagArr = array();
+    $result = '';
     if (!empty($alltypes)) {
         foreach ($alltypes as $io => $eachtype) {
             $tagArr[$eachtype['id']] = $eachtype['tagname'];
         }
-    }
 
-    if ($searchableFlag) {
-        $inputs = wf_SelectorSearchable('tagselector', $tagArr, '', '', false);
+
+        if ($searchableFlag) {
+            $inputs = wf_SelectorSearchable('tagselector', $tagArr, '', '', false);
+        } else {
+            $inputs = wf_Selector('tagselector', $tagArr, '', '', false);
+        }
+
+        $inputs .= wf_Submit(__('Save'));
+        $result .= wf_Form('', 'POST', $inputs, '');
     } else {
-        $inputs = wf_Selector('tagselector', $tagArr, '', '', false);
+        $messages = new UbillingMessageHelper();
+        $result .= $messages->getStyledMessage(__('There are currently no existing tag types'), 'warning');
     }
-
-    $inputs .= wf_Submit(__('Save'));
-    $result = wf_Form('', 'POST', $inputs, '');
-
     show_window(__('Add tag'), $result);
 }
 
@@ -310,8 +322,8 @@ function stg_tagdel_selector($login) {
         foreach ($usertags as $io => $eachtag) {
             $result .= stg_get_tag_body_deleter($eachtag['tagid'], $login, $eachtag['id']);
         }
+        show_window(__('Delete tag'), $result);
     }
-    show_window(__('Delete tag'), $result);
 }
 
 /**

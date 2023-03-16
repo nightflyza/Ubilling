@@ -3471,3 +3471,5 @@ $lang['def']['Outgoing calls'] = 'Исходящих звонков';
 $lang['def']['incoming call'] = 'входящий вызов';
 $lang['def']['outgoing call'] = 'исходящий вызов';
 $lang['def']['Direction'] = 'Направление';
+$lang['def']['This user has no tags assigned'] = 'Этому пользователю не присвоено никаких тегов';
+$lang['def']['There are currently no existing tag types'] = 'Нет существующих типов тегов';

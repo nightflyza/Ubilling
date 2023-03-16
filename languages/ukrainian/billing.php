@@ -3492,6 +3492,8 @@ $lang['def']['Outgoing calls'] = 'Вихідних дзвінків';
 $lang['def']['incoming call'] = 'вхідний виклик';
 $lang['def']['outgoing call'] = 'вихідний виклик';
 $lang['def']['Direction'] = 'Напрямок';
+$lang['def']['This user has no tags assigned'] = 'Цьому користувачу не присвоєно жодних тегів';
+$lang['def']['There are currently no existing tag types'] = 'Наразі немає жодних існуючих типів тегів';
 $lang['def'][''] = '';
 
 
