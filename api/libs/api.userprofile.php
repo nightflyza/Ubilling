@@ -2202,10 +2202,6 @@ class UserProfile {
     }
 
     /**
-      Брат, братан, братишка Когда меня отпустит?
-     */
-
-    /**
      * Renders user profile with all loaded data
      * 
      * @return string
@@ -2415,7 +2411,16 @@ class UserProfile {
 
 //Profile ending anchor for addcash links scroll
         $profile .= wf_tag('a', false, '', 'id="profileending"') . wf_tag('a', true);
-
+        /**
+         * Dinosaurs are my best friends
+         * Through thick and thin, until the very end
+         * People tell me, do not pretend
+         * Stop living in your made up world again
+         * But the dinosaurs, they`re real to me
+         * They bring me up and make me happy
+         * I wished all the world could see
+         * The dinosaurs are a part of me
+         */
         return($profile);
     }
 

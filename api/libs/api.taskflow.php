@@ -108,6 +108,12 @@ class TaskFlow {
     const VAL_NO = 'no';
     const VAL_ANY = 'any';
 
+    /**
+     * Rise up and reach for the sky
+     * Journey to rainbow nights
+     * You`ll never take me away
+     * In rainbow nights I will stay
+     */
     public function __construct() {
         $this->loadAlter();
         $this->setOptions();
