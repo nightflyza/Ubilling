@@ -2328,12 +2328,12 @@ class UserProfile {
 
             if (!empty($FrozenAll)) {
                 foreach ($FrozenAll as $usr => $usrlogin) {
-                    $profile .= $this->addRow("&nbsp&nbsp&nbsp&nbsp" . __('Freeze days total amount'), $usrlogin['freeze_days_amount'], false, '50%');
-                    $profile .= $this->addRow("&nbsp&nbsp&nbsp&nbsp" . __('Freeze days used'), $usrlogin['freeze_days_used'], false, '50%');
-                    $profile .= $this->addRow("&nbsp&nbsp&nbsp&nbsp" . __('Freeze days available'), $usrlogin['freeze_days_amount'] - $usrlogin['freeze_days_used'], false, '50%');
-                    $profile .= $this->addRow("&nbsp&nbsp&nbsp&nbsp" . __('Workdays amount to restore freeze days'), $usrlogin['work_days_restore'], false, '50%');
-                    $profile .= $this->addRow("&nbsp&nbsp&nbsp&nbsp" . __('Days worked after freeze days used up'), $usrlogin['days_worked'], false, '50%');
-                    $profile .= $this->addRow("&nbsp&nbsp&nbsp&nbsp" . __('Workdays left to restore'), $usrlogin['work_days_restore'] - $usrlogin['days_worked'], false, '50%');
+                    $profile .= $this->addRow(wf_nbsp(4) . __('Freeze days total amount'), $usrlogin['freeze_days_amount'], false, '50%');
+                    $profile .= $this->addRow(wf_nbsp(4) . __('Freeze days used'), $usrlogin['freeze_days_used'], false, '50%');
+                    $profile .= $this->addRow(wf_nbsp(4) . __('Freeze days available'), $usrlogin['freeze_days_amount'] - $usrlogin['freeze_days_used'], false, '50%');
+                    $profile .= $this->addRow(wf_nbsp(4) . __('Workdays amount to restore freeze days'), $usrlogin['work_days_restore'], false, '50%');
+                    $profile .= $this->addRow(wf_nbsp(4) . __('Days worked after freeze days used up'), $usrlogin['days_worked'], false, '50%');
+                    $profile .= $this->addRow(wf_nbsp(4) . __('Workdays left to restore'), $usrlogin['work_days_restore'] - $usrlogin['days_worked'], false, '50%');
                 }
             }
         }
