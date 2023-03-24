@@ -1,7 +1,7 @@
 <?php
 
 //existential horse
-if ($_GET['action'] == 'exhorse') {
+if (ubRouting::get('action') == 'exhorse') {
     if ($alterconf['EXHORSE_ENABLED']) {
         $existentialHorseProcess = new StarDust('EXHORSE');
         if ($existentialHorseProcess->notRunning()) {
