@@ -541,7 +541,7 @@ class PaynetUZ {
         $transactState = $this->checkTransactionExists($this->paynetTransactID);
 
         if (empty($transactState)) {
-            $transactTimestamp  = $this->receivedJSON['params']['transactionTime'];
+            $transactTimestamp  = (empty($this->receivedJSON['params']['transactionTime']) ? curdatetime() : $this->receivedJSON['params']['transactionTime']);
             $opTransactID       = self::HASH_PREFIX . $this->paynetTransactID;
 
             if ($this->paynetCashBoxID == $this->defaultCashBoxID) {
