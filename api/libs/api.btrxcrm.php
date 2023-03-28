@@ -279,7 +279,7 @@ class BtrxCRM {
             $userLogin = $userData['login'];
             $userUniqId = $this->getUserUniqId($userLogin);
             $fullAddress = $userData['fulladress'];
-            $cuttedAddress = mb_substr($fullAddress, 0, 7); // why 7???
+            $cuttedAddress = mb_substr($fullAddress, 0, 7,'UTF-8'); // why 7???
             $userPaymentId = (isset($this->allPaymentIds[$userLogin])) ? $this->allPaymentIds[$userLogin] : '';
             $userTariff = $userData['Tariff'];
             $userPhone = $userData['mobile'];
@@ -300,6 +300,7 @@ class BtrxCRM {
                 'contact_id' => $userUniqId,
                 'phone' => $userPhone,
                 'fio' => $userRealName,
+                'fulladdress' => $fullAddress,
                 'first_7' => $cuttedAddress,
                 'deal_id' => $userContract,
                 'pay_id' => $userPaymentId,
