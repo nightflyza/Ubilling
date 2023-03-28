@@ -116,6 +116,12 @@ class BtrxCRM {
     const CACHE_KEY = 'BTRX_DATA';
     const PID_NAME = 'BITRX24_UPD';
 
+    /**
+     * Point me to the sky above
+     * I can't get there on my own
+     * Walk me to the graveyard
+     * Dig up her bones
+     */
     public function __construct() {
         $this->loadConfig();
         $this->initCache();
@@ -279,7 +285,7 @@ class BtrxCRM {
             $userLogin = $userData['login'];
             $userUniqId = $this->getUserUniqId($userLogin);
             $fullAddress = $userData['fulladress'];
-            $cuttedAddress = mb_substr($fullAddress, 0, 7,'UTF-8'); // why 7???
+            $cuttedAddress = mb_substr($fullAddress, 0, 7, 'UTF-8'); // why 7???
             $userPaymentId = (isset($this->allPaymentIds[$userLogin])) ? $this->allPaymentIds[$userLogin] : '';
             $userTariff = $userData['Tariff'];
             $userPhone = $userData['mobile'];
@@ -295,7 +301,7 @@ class BtrxCRM {
             $speedDown = (isset($this->allTariffsSpeeds[$userTariff]['speeddown'])) ? $this->allTariffsSpeeds[$userTariff]['speeddown'] : 0;
             $speedUp = (isset($this->allTariffsSpeeds[$userTariff]['speedup'])) ? $this->allTariffsSpeeds[$userTariff]['speedup'] : 0;
             $tariffFee = isset($this->allTariffsPricess[$userTariff]) ? $this->allTariffsPricess[$userTariff] : 0;
-
+            // I have seen the demon's face
             $result = array(
                 'contact_id' => $userUniqId,
                 'phone' => $userPhone,
