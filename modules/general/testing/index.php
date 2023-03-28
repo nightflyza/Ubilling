@@ -4,6 +4,5 @@
 error_reporting(E_ALL);
 
 if (cfr('ROOT')) {
-    $crm=new BtrxCRM();
-    $crm->runExport();
+    
 }
