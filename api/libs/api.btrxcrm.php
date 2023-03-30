@@ -69,6 +69,20 @@ class BtrxCRM {
     protected $allTariffsSpeeds = array();
 
     /**
+     * Contains extended mobiles instance
+     *
+     * @var object
+     */
+    protected $extMobiles = '';
+
+    /**
+     * Contains all user extmobiles info as login=>mobilesExtData
+     *
+     * @var array
+     */
+    protected $allExtMobiles = array();
+
+    /**
      * Contains current instance URL to push some data
      *
      * @var string
@@ -111,6 +125,62 @@ class BtrxCRM {
     protected $cachedUsers = array();
 
     /**
+     * Deal With It database abstraction layer
+     *
+     * @var object
+     */
+    protected $dealWithItDb = '';
+
+    /**
+     * Payments database abstraction layer
+     *
+     * @var object
+     */
+    protected $paymentsDb = '';
+
+    /**
+     * Contains records about first user payments dates as login=>date
+     *
+     * @var array
+     */
+    protected $firstUserPayments = array();
+
+    /**
+     * Contains records about latest user payments dates login=>date
+     *
+     * @var array
+     */
+    protected $latestUserPayments = array();
+
+    /**
+     * Contains all user payments summ as login=>summ
+     *
+     * @var array
+     */
+    protected $userPaymentsSumm = array();
+
+    /**
+     * Contains all users deal with it data about tariff changes as login=>date/tariff as param
+     * 
+     * @var array
+     */
+    protected $allDealWithItChanges = array();
+
+    /**
+     * Contains all user assigned agents data as login=>agentName
+     *
+     * @var array
+     */
+    protected $allUserAgents = array();
+
+    /**
+     * Contains all user assigned ONU signals as login=>signal
+     *
+     * @var array
+     */
+    protected $allUserOnuSignals = array();
+
+    /**
      * Some predefined stuff here
      */
     const CACHE_KEY = 'BTRX_DATA';
@@ -127,10 +197,18 @@ class BtrxCRM {
         $this->initCache();
         $this->initApiCrm();
         $this->initOpenPayz();
+        $this->initDealWithItDb();
+        $this->initPaymentsDb();
+        $this->initExtMobiles();
         $this->loadUserData();
+        $this->loadPaymentsData();
+        $this->loadExtMobiles();
         $this->loadTariffsData();
+        $this->loadDealWithitData();
         $this->loadUserTags();
         $this->loadPayIds();
+        $this->loadAgentsData();
+        $this->loadPonizerData();
         $this->loadCachedData();
     }
 
@@ -178,6 +256,83 @@ class BtrxCRM {
     }
 
     /**
+     * Inits scheduler database abstraction layer
+     * 
+     * @return void
+     */
+    protected function initDealWithItDb() {
+        $this->dealWithItDb = new NyanORM('dealwithit');
+    }
+
+    /**
+     * Loads deal with it tariff changes
+     * 
+     * @return void
+     */
+    protected function loadDealWithitData() {
+        $this->dealWithItDb->where('action', '=', 'tariffchange');
+        $this->dealWithItDb->orderBy('date', 'DESC');
+        $this->allDealWithItChanges = $this->dealWithItDb->getAll('login');
+    }
+
+    /**
+     * Inits extended mobiles instance
+     * 
+     * @return void
+     */
+    protected function initExtMobiles() {
+        $this->extMobiles = new MobilesExt();
+    }
+
+    /**
+     * Loads all users extmobiles data
+     * 
+     * @return void
+     */
+    protected function loadExtMobiles() {
+        $this->allExtMobiles = $this->extMobiles->getAllUsersMobileNumbers();
+    }
+
+    /**
+     * Inits payments database abstraction layer
+     * 
+     * @return void
+     */
+    protected function initPaymentsDb() {
+        $this->paymentsDb = new NyanORM('payments');
+    }
+
+    /**
+     * Preloads first/last user payments data
+     * 
+     * @return void
+     */
+    protected function loadPaymentsData() {
+        //user payments summ total
+        $this->paymentsDb->where('summ', '>', 0);
+        $this->paymentsDb->selectable(array('id', 'login', 'date', 'summ'));
+        $this->paymentsDb->orderBy('id', 'ASC');
+        $rawPayments = $this->paymentsDb->getAll();
+
+        if (!empty($rawPayments)) {
+            foreach ($rawPayments as $io => $each) {
+                if (is_numeric($each['summ'])) {
+                    if (isset($this->userPaymentsSumm[$each['login']])) {
+                        $this->userPaymentsSumm[$each['login']] += $each['summ'];
+                        //latest user payment date here
+                        $this->latestUserPayments[$each['login']] = $each['date'];
+                    } else {
+                        //first occurency
+                        $this->userPaymentsSumm[$each['login']] = $each['summ'];
+                        //looks like first payment
+                        $this->firstUserPayments[$each['login']] = $each['date'];
+                    }
+                }
+            }
+        }
+    }
+
+    /**
      * Loads all available users PaymentIds
      * 
      * @return void
@@ -198,6 +353,37 @@ class BtrxCRM {
         } else {
             throw new Exception('EX_NO_EXPORT_URL');
         }
+    }
+
+    /**
+     * Loads all users agent assigns data
+     * 
+     * @return void
+     */
+    protected function loadAgentsData() {
+        if (!empty($this->allUserData)) {
+            $allAssigns = zb_AgentAssignGetAllData();
+            $allStrictAssigns = zb_AgentAssignStrictGetAllData();
+            $allAgentsData = zb_ExportAgentsLoadAll();
+            foreach ($this->allUserData as $io => $each) {
+                $assignedAgentId = zb_AgentAssignCheckLoginFast($each['login'], $allAssigns, $each['fulladress'], $allStrictAssigns);
+                if ($assignedAgentId) {
+                    if (isset($allAgentsData[$assignedAgentId])) {
+                        $this->allUserAgents[$each['login']] = $allAgentsData[$assignedAgentId]['contrname'];
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Loads all PONizer related data
+     * 
+     * @return void
+     */
+    protected function loadPonizerData() {
+        $ponizer = new PONizer();
+        $this->allUserOnuSignals = $ponizer->getAllONUSignals();
     }
 
     /**
@@ -283,41 +469,96 @@ class BtrxCRM {
         $result = array();
         if (!empty($userData)) {
             $userLogin = $userData['login'];
-            $userUniqId = $this->getUserUniqId($userLogin);
+            $userPassword = $userData['Password'];
             $fullAddress = $userData['fulladress'];
-            $cuttedAddress = mb_substr($fullAddress, 0, 7, 'UTF-8'); // why 7???
+            $userIp = $userData['ip'];
+            $userMac = $userData['mac'];
             $userPaymentId = (isset($this->allPaymentIds[$userLogin])) ? $this->allPaymentIds[$userLogin] : '';
-            $userTariff = $userData['Tariff'];
-            $userPhone = $userData['mobile'];
             $userRealName = $userData['realname'];
-            $userContract = $userData['contract'];
             $userBalance = $userData['Cash'];
+            $userCredit = $userData['Credit'];
+            $creditExpire = $this->allStgRawData[$userLogin]['CreditExpire'];
+            $userFrozen = $userData['Passive'];
             $userTags = $this->getUserTagsList($userLogin);
             $latTimestamp = 0;
             if ($this->exportLatFlag) {
                 $latTimestamp = $this->allStgRawData[$userLogin]['LastActivityTime'];
             }
 
+            $userAgent = (isset($this->allUserAgents[$userLogin])) ? $this->allUserAgents[$userLogin] : '';
+            $onuSignal = (isset($this->allUserOnuSignals[$userLogin])) ? $this->allUserOnuSignals[$userLogin] : 0;
+
+            //tariffs related data
+            $userTariff = $userData['Tariff'];
             $speedDown = (isset($this->allTariffsSpeeds[$userTariff]['speeddown'])) ? $this->allTariffsSpeeds[$userTariff]['speeddown'] : 0;
             $speedUp = (isset($this->allTariffsSpeeds[$userTariff]['speedup'])) ? $this->allTariffsSpeeds[$userTariff]['speedup'] : 0;
             $tariffFee = isset($this->allTariffsPricess[$userTariff]) ? $this->allTariffsPricess[$userTariff] : 0;
-            // I have seen the demon's face
+            $tariffChange = (isset($this->allDealWithItChanges[$userLogin])) ? $this->allDealWithItChanges[$userLogin]['param'] : '';
+            $tariffChangeDate = (isset($this->allDealWithItChanges[$userLogin])) ? $this->allDealWithItChanges[$userLogin]['date'] : 0;
+            if ($tariffChangeDate) {
+                $tariffChangeDate = strtotime($tariffChangeDate . ' 02:10:00');
+            }
+
+            //payments related data
+            $firstPaymentDate = (isset($this->firstUserPayments[$userLogin])) ? strtotime($this->firstUserPayments[$userLogin]) : 0;
+            $latestPaymentDate = (isset($this->latestUserPayments[$userLogin])) ? strtotime($this->latestUserPayments[$userLogin]) : 0;
+            $userPaymentsSumm = (isset($this->userPaymentsSumm[$userLogin])) ? $this->userPaymentsSumm[$userLogin] : 0;
+
+            //phone related data
+            $userPhone = $userData['mobile'];
+            $mobileExt = '';
+            if (isset($this->allExtMobiles[$userLogin])) {
+                $mobileExt = $this->allExtMobiles[$userLogin][0];
+            }
+
+//
+//
+//                                _(\_/) 
+//                              ,((((^`\
+//                             ((((  (6 \ 
+//                           ,((((( ,    \
+//       ,,,_              ,(((((  /"._  ,`,
+//      ((((\\ ,...       ,((((   /    `-.-'
+//      )))  ;'    `"'"'""((((   (      
+//     (((  /            (((      \
+//      )) |                      |
+//     ((  |        .       '     |
+//     ))  \     _ '      `t   ,.')
+//     (   |   y;- -,-""'"-.\   \/  
+//     )   / ./  ) /         `\  \
+//        |./   ( (           / /'
+//        ||     \\          //'|
+//        ||      \\       _//'|| CIRCUS WITH THE HORSES
+//        ||       ))     |_/  ||
+//        \_\     |_/          ||
+//        `'"                  \_\
+
+
             $result = array(
-                'contact_id' => $userUniqId,
                 'phone' => $userPhone,
                 'fio' => $userRealName,
-                'fulladdress' => $fullAddress,
-                'first_7' => $cuttedAddress,
-                'deal_id' => $userContract,
                 'pay_id' => $userPaymentId,
                 'login' => $userLogin,
+                'password' => $userPassword,
                 'tariff' => $userTariff,
                 'balance' => $userBalance,
-                'last_act' => $latTimestamp,
                 'tegs' => $userTags,
                 'speed_up' => $speedUp,
                 'speed_down' => $speedDown,
                 'abonplata' => $tariffFee,
+                'cash_first_pay' => $firstPaymentDate,
+                'mobile2' => $mobileExt,
+                'cash_last_pay' => $latestPaymentDate,
+                'full_adress' => $fullAddress,
+                'cash_all_pays' => $userPaymentsSumm,
+                'deal_with_it1' => $tariffChangeDate,
+                'deal_with_it2' => $tariffChange,
+                'owner' => $userAgent,
+                'credit' => $userCredit,
+                'credit_day' => $creditExpire,
+                'ip' => $userIp,
+                'mac' => $userMac,
+                'onu_signal' => $onuSignal
             );
         }
         return($result);
