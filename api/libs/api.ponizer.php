@@ -1621,6 +1621,19 @@ class PONizer {
         if ($currentSerial != $serial) {
             if ($this->checkOnuUnique($serial)) {
                 $this->onuDb->data('serial', $serial);
+                if (!empty($serial)) {
+                    if (empty($currentSerial)) {
+                        log_register('PON EDIT ONU [' . $onuId . '] SET SERIAL `' . $serial . '`');
+                    } else {
+                        log_register('PON EDIT ONU [' . $onuId . '] SET SERIAL `' . $serial . '` INSTEAD `' . $currentSerial . '`');
+                    }
+                } else {
+                    if (empty($currentSerial)) {
+                        log_register('PON EDIT ONU [' . $onuId . '] SET SERIAL EMPTY');
+                    } else {
+                        log_register('PON EDIT ONU [' . $onuId . '] SET SERIAL EMPTY INSTEAD `' . $currentSerial . '`');
+                    }
+                }
             } else {
                 log_register('PON SERIALDUPLICATE TRY `' . $serial . '`');
             }
@@ -1919,7 +1932,7 @@ class PONizer {
             $inputs .= wf_Submit(__('Save'));
             $result .= wf_Form('', 'POST', $inputs, 'glamour');
         } else {
-            $result.=$this->messages->getStyledMessage(__('No ONUs not assigned to users were found'), 'success');
+            $result .= $this->messages->getStyledMessage(__('No ONUs not assigned to users were found'), 'success');
         }
         $result .= wf_CleanDiv();
         $result .= wf_delimiter();
