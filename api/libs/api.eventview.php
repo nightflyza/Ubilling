@@ -86,6 +86,7 @@ class EventView {
     const ROUTE_STATS = 'eventstats';
     const ROUTE_ZEN = 'zenmode';
     const ROUTE_DROPCACHE = 'forcecache';
+    const ROUTE_ZENPROFILES = 'zenprofiles';
     const PROUTE_FILTERADMIN = 'eventadmin';
     const PROUTE_FILTEREVENTTEXT = 'eventsearch';
     const PROUTE_FILTERDATE = 'eventdate';
@@ -213,7 +214,7 @@ class EventView {
      * @return void
      */
     protected function setProfileLinks() {
-        if (ubRouting::checkPost(self::PROUTE_PROFILELINKS)) {
+        if (ubRouting::checkPost(self::PROUTE_PROFILELINKS) or ubRouting::checkGet(self::ROUTE_ZENPROFILES)) {
             $this->profileLinksFlag = true;
         }
     }
@@ -332,12 +333,12 @@ class EventView {
         $result = '';
         $zenMode = ubRouting::checkGet(self::ROUTE_ZEN) ? true : false;
 
-        if (!$zenMode) {
+        if ($zenMode) {
+            $this->eventLimit = 50;
+        } else {
             $result .= $this->renderEventLimits();
             $result .= wf_delimiter(0);
             $result .= $this->renderSearchForm();
-        } else {
-            $this->eventLimit = 50;
         }
 
         $allEvents = $this->getAllEventsFiltered();
@@ -358,7 +359,7 @@ class EventView {
                     if (preg_match('!\((.*?)\)!si', $event, $tmpLoginMatches)) {
                         @$loginExtracted = $tmpLoginMatches[1];
                         if (!empty($loginExtracted)) {
-                            if (!ispos($event, '((') AND !ispos($event, 'SWITCH')) { // ignore UKV user id-s and switch locations
+                            if (!ispos($event, '((') AND ! ispos($event, 'SWITCH')) { // ignore UKV user id-s and switch locations
                                 $userProfileLink = wf_Link('?module=userprofile&username=' . $loginExtracted, web_profile_icon() . ' ' . $loginExtracted);
                                 $event = str_replace($loginExtracted, $userProfileLink, $event);
                             }
