@@ -1909,7 +1909,6 @@ class UbillingVisor {
                             }
                         } else {
                             //or just push that camera to DVR
-
                             $newCamStorageId = (ubRouting::checkPost('newwolfrecordercamerastorage')) ? ubRouting::post('newwolfrecordercamerastorage', 'int') : 0; //explict storage?
                             $newCamAct = 1; //enabled by default
                             $newCamDesc = zb_UserGetFullAddress($cameraData['login']); //address as default decription
