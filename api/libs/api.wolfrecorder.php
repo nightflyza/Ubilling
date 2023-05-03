@@ -86,6 +86,27 @@ class WolfRecorder {
             @$replyDecode = json_decode($rawReply, true);
             if (is_array($replyDecode)) {
                 $result = $replyDecode;
+            } else {
+                $result = array('error' => 666, 'message' => __('Something went wrong') . ': ' . __('API') . ' ' . __('Failed'));
+            }
+        }
+        return($result);
+    }
+
+    /**
+     * Fast check for some request is returning error or not?
+     * 
+     * @param array $requestReply
+     * 
+     * @return bool
+     */
+    public function noError($requestReply) {
+        $result = true;
+        if (is_array($requestReply)) {
+            if (isset($requestReply['error'])) {
+                if ($requestReply['error']) {
+                    $result = false;
+                }
             }
         }
         return($result);
@@ -216,12 +237,219 @@ class WolfRecorder {
     }
 
     /**
+     * Checks is camera registered or not by its IP
+     * 
+     * @param string $ip
+     * 
+     * @return array
+     */
+    public function camerasIsRegistered($ip) {
+        $requestData = array(
+            'ip' => $ip
+        );
+        return($this->executeRequest('cameras', 'isregistered', $requestData));
+    }
+
+    /**
      * Returns system health data as storages/database/network/channels_total/cahnnels_online/uptime/loadavg
      * 
      * @return array
      */
     public function systemGetHealth() {
         return($this->executeRequest('system', 'gethealth'));
+    }
+
+    /**
+     * Returns all available users data
+     * 
+     * @return array
+     */
+    public function usersGetAll() {
+        return($this->executeRequest('users', 'getall'));
+    }
+
+    /**
+     * Creates new limited user
+     * 
+     * @param string $login
+     * @param string $password
+     * 
+     * @return array
+     */
+    public function usersCreate($login, $password) {
+        $requestData = array(
+            'login' => $login,
+            'password' => $password
+        );
+        return($this->executeRequest('users', 'create', $requestData));
+    }
+
+    /**
+     * Changes some existing user password to new one
+     * 
+     * @param string $login
+     * @param string $password
+     * 
+     * @return array
+     */
+    public function usersChangePassword($login, $password) {
+        $requestData = array(
+            'login' => $login,
+            'password' => $password
+        );
+        return($this->executeRequest('users', 'changepassword', $requestData));
+    }
+
+    /**
+     * Checks is user registered or not
+     * 
+     * @param string $login
+     * 
+     * @return array
+     */
+    public function usersIsRegistered($login) {
+        $requestData = array(
+            'login' => $login
+        );
+        return($this->executeRequest('users', 'isregistered', $requestData));
+    }
+
+    /**
+     * Deletes an existing user
+     * 
+     * @param string $login
+     * 
+     * @return array
+     */
+    public function usersDelete($login) {
+        $requestData = array(
+            'login' => $login
+        );
+        return($this->executeRequest('users', 'delete', $requestData));
+    }
+
+    /**
+     * Checks can be user authorized or not
+     * 
+     * @param string $login
+     * @param string $password
+     * 
+     * @return array
+     */
+    public function usersCheckAuth($login, $password) {
+        $requestData = array(
+            'login' => $login,
+            'password' => $password
+        );
+        return($this->executeRequest('users', 'checkauth', $requestData));
+    }
+
+    /**
+     * Returns all ACLs raw data
+     * 
+     * @return array
+     */
+    public function aclsGetAll() {
+        return($this->executeRequest('acls', 'getall'));
+    }
+
+    /**
+     * Returns array of all available user to cameras ACLs
+     * 
+     * @return array
+     */
+    public function aclsGetAllCameras() {
+        return($this->executeRequest('acls', 'getallcameras'));
+    }
+
+    /**
+     * Returns array of all available user to channels ACLs
+     * 
+     * @return array
+     */
+    public function aclsGetAllChannels() {
+        return($this->executeRequest('acls', 'getallchannels'));
+    }
+
+    /**
+     * Returns array of channels assigned to some user as channelId=>cameraId
+     * 
+     * @param string $login
+     * 
+     * @return array
+     */
+    public function aclsGetChannels($login) {
+        $requestData = array(
+            'login' => $login
+        );
+        return($this->executeRequest('acls', 'getchannels', $requestData));
+    }
+
+    /**
+     * Returns array of channels assigned to some user as channelId=>cameraId
+     * 
+     * @param string $login
+     * 
+     * @return array
+     */
+    public function aclsGetCameras($login) {
+        $requestData = array(
+            'login' => $login
+        );
+        return($this->executeRequest('acls', 'getcameras', $requestData));
+    }
+
+    /**
+     * Creates ACL for some user by cameraId
+     * 
+     * @param string $login
+     * @param int $cameraId
+     * 
+     * @return array
+     */
+    public function aclsAssignCamera($login, $cameraId) {
+        $requestData = array(
+            'login' => $login,
+            'cameraid' => $cameraId
+        );
+        return($this->executeRequest('acls', 'assigncamera', $requestData));
+    }
+
+    /**
+     * Creates ACL for some user by channelId
+     * 
+     * @param string $login
+     * @param int $channelId
+     * 
+     * @return array
+     */
+    public function aclsAssignChannel($login, $channelId) {
+        $requestData = array(
+            'login' => $login,
+            'channelid' => $channelId
+        );
+        return($this->executeRequest('acls', 'assignchannel', $requestData));
+    }
+
+    /**
+     * Returns all available channels as channelId=>cameraId
+     * 
+     * @return array
+     */
+    public function channelsGetAll() {
+        return($this->executeRequest('channels', 'getall'));
+    }
+
+    /**
+     * Returns some channel screenshot URL
+     * 
+     * @return array
+     */
+    public function channelsGetScreenshot($channelId) {
+        $requestData = array(
+            'channelid' => $channelId
+        );
+        return($this->executeRequest('channels', 'getscreenshot', $requestData));
     }
 
 }
