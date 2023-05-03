@@ -76,6 +76,13 @@ class UbillingVisor {
     protected $trassirEnabled = false;
 
     /**
+     * WolfRecorder integration flag
+     *
+     * @var bool
+     */
+    protected $wolfRecorderEnabled = false;
+
+    /**
      * System messages helper object placeholder
      *
      * @var object
@@ -245,6 +252,10 @@ class UbillingVisor {
             $this->chargeMode = $this->altCfg['VISOR_CHARGE_MODE'];
         }
 
+        if ($this->altCfg['WOLFRECORDER_ENABLED']) {
+            $this->wolfRecorderEnabled = true;
+        }
+
         if (@$this->altCfg['TRASSIRMGR_ENABLED']) {
             $this->trassirEnabled = true;
         }
@@ -272,6 +283,10 @@ class UbillingVisor {
         $this->dvrTypes = array(
             'generic' => __('No')
         );
+
+        if ($this->wolfRecorderEnabled) {
+            $this->dvrTypes += array('wolfrecorder' => __('WolfRecorder'));
+        }
 
         if ($this->trassirEnabled) {
             $this->dvrTypes += array('trassir' => __('Trassir Server'));
@@ -444,7 +459,7 @@ class UbillingVisor {
         $result .= wf_Link(self::URL_ME . self::URL_CAMS, wf_img('skins/photostorage.png') . ' ' . __('Cams'), false, 'ubButton') . ' ';
         if (cfr('VISOREDIT')) {
             $result .= wf_Link(self::URL_ME . self::URL_DVRS, wf_img('skins/icon_restoredb.png') . ' ' . __('DVRs'), false, 'ubButton') . ' ';
-            if ($this->trassirEnabled) {
+            if ($this->trassirEnabled OR $this->wolfRecorderEnabled) {
                 $result .= wf_Link(self::URL_ME . self::URL_CHANS, wf_img('skins/play.png') . ' ' . __('Channels'), false, 'ubButton') . ' ';
                 $result .= wf_Link(self::URL_ME . self::URL_HEALTH, wf_img('skins/log_icon_small.png') . ' ' . __('DVR health'), false, 'ubButton') . ' ';
             }
@@ -1672,6 +1687,9 @@ class UbillingVisor {
                 if (cfr('VISOREDIT')) {
                     $result .= wf_modalAuto(web_edit_icon() . ' ' . __('Edit'), __('Edit'), $cameraEditForm, 'ubButton');
                     $result .= wf_modalAuto(web_delete_icon() . ' ' . __('Delete'), __('Delete'), $this->renderCameraDeletionForm($cameraId), 'ubButton');
+                    if ($this->wolfRecorderEnabled) {
+                        $result .= $this->renderWolfRecorderCameraControls($cameraId);
+                    }
                     if ($this->trassirEnabled) {
                         $result .= $this->renderTrassirCameraControls($cameraId);
                     }
@@ -1835,6 +1853,84 @@ class UbillingVisor {
     }
 
     /**
+     * Renders camera DVR registering form if its not registered yet
+     * 
+     * @param int $cameraId
+     * 
+     * @return string
+     */
+    protected function renderWolfRecorderCameraCreateForm($cameraId) {
+        $result = '';
+        $cameraId = ubRouting::filters($cameraId, 'int');
+        if (isset($this->allCams[$cameraId])) {
+            $cameraData = $this->allCams[$cameraId];
+            $cameraDvrId = $cameraData['dvrid'];
+            $dvrData = $this->allDvrs[$cameraDvrId];
+            $cameraUserData = $this->allUserData[$cameraData['login']];
+            $cameraIp = $cameraUserData['ip'];
+            $apiUrl = 'http://' . $dvrData['ip'] . ':' . $dvrData['port'] . '/wr';
+            $wolfRecorder = new WolfRecorder($apiUrl, $dvrData['apikey']);
+            $isCameraRegistered = $wolfRecorder->camerasIsRegistered($cameraIp);
+
+            //dummy connection check
+            if ($wolfRecorder->noError($isCameraRegistered)) {
+                $result .= $this->messages->getStyledMessage(__('DVR') . ' ' . $dvrData['name'] . ': ' . __('Connected'), 'success');
+                if ($isCameraRegistered['registered']) {
+                    $successLabel = __('Camera') . ': ' . __('Registered') . ' ' . __('On') . ' ' . __('DVR') . ' ' . $dvrData['name'];
+                    $result .= $this->messages->getStyledMessage($successLabel, 'success');
+                } else {
+                    //here registering form.. MB...
+                    $result .= $this->messages->getStyledMessage(__('Camera is not registered at') . ' ' . $dvrData['name'], 'warning');
+                    $modelsTmp = $wolfRecorder->modelsGetAll();
+
+                    if (!empty($modelsTmp)) {
+                        $supportedCameraModels = array();
+                        //models received from DVR
+                        foreach ($modelsTmp as $io => $each) {
+                            $supportedCameraModels[$each['id']] = $each['modelname'];
+                        }
+
+                        //camera registering form processing
+                        if (!ubRouting::checkPost(array('newwolfrecordercamera', 'newwolfrecordercameramodel'))) {
+                            $storagesTmp = $wolfRecorder->storagesGetAll();
+                            if (!empty($storagesTmp)) {
+                                $availableStorages = array(0 => __('Auto'));
+                                foreach ($storagesTmp as $io => $each) {
+                                    $availableStorages[$each['id']] = __($each['name']);
+                                }
+                                $inputs = wf_HiddenInput('newwolfrecordercamera', 'true');
+                                $inputs .= wf_Selector('newwolfrecordercameramodel', $supportedCameraModels, __('Model'), '', false) . ' ';
+                                $inputs .= wf_Selector('newwolfrecordercamerastorage', $availableStorages, __('Storage'), '', false) . ' ';
+                                $inputs .= wf_Submit(__('Create camera') . ' ' . __('on') . ' ' . __('DVR') . ' ' . $dvrData['name']);
+                                $result .= wf_delimiter();
+                                $result .= wf_Form('', 'POST', $inputs, 'glamour');
+                            } else {
+                                $result .= $this->messages->getStyledMessage(__('Storages is not available'), 'error');
+                            }
+                        } else {
+                            //or just push that camera to DVR
+
+                            $newCamStorageId = (ubRouting::checkPost('newwolfrecordercamerastorage')) ? ubRouting::post('newwolfrecordercamerastorage', 'int') : 0; //explict storage?
+                            $newCamAct = 1; //enabled by default
+                            $newCamDesc = zb_UserGetFullAddress($cameraData['login']); //address as default decription
+                            $wolfRecorder->camerasCreate(ubRouting::post('newwolfrecordercameramodel'), $cameraIp, $cameraData['camlogin'], $cameraData['campassword'], $newCamAct, $newCamStorageId, $newCamDesc);
+                            log_register('VISOR CAMERA [' . $cameraId . '] CONNECTED DVR [' . $cameraDvrId . '] AS `' . $cameraIp . '`');
+                            ubRouting::nav(self::URL_ME . '&' . self::URL_CAMVIEW . $cameraId); //preventing form data duplication
+                        }
+                    } else {
+                        $result .= $this->messages->getStyledMessage(__('Models') . ' ' . __('is empty'), 'error');
+                    }
+                }
+            } else {
+                $result .= $this->messages->getStyledMessage(__('DVR connection error') . ' [' . $dvrData['id'] . ']', 'error');
+            }
+        } else {
+            $result .= $this->messages->getStyledMessage(__('Something went wrong') . ': ' . __('Camera') . ' ' . __('Not exists') . ' [' . $cameraId . ']', 'error');
+        }
+        return($result);
+    }
+
+    /**
      * Renders IP device controls if camera is served by trassir based DVR
      * 
      * @param int $cameraId
@@ -1861,6 +1957,60 @@ class UbillingVisor {
                                         if (!empty($dvrData['login']) AND ! empty($dvrData['password']) AND ! empty($dvrData['port']) AND ! empty($dvrData['apikey'])) {
                                             //Camera looks like it may be registgered on DVR
                                             $result .= $this->renderTrassirCameraCreateForm($cameraId);
+                                        } else {
+                                            $result .= $this->messages->getStyledMessage(__('Something went wrong') . ': ' . __('DVR') . ' ' . __('Configuration') . ' ' . __('is empty'), 'error');
+                                        }
+                                    } else {
+                                        $result .= $this->messages->getStyledMessage(__('Camera') . ' ' . __('User') . ' ' . __('Not exists') . ' (' . $cameraData['login'] . ')', 'error');
+                                    }
+                                } else {
+                                    $result .= $this->messages->getStyledMessage(__('Camera') . ' ' . __('Port') . ' ' . __('is empty'), 'error');
+                                }
+                            } else {
+                                $result .= $this->messages->getStyledMessage(__('Camera password') . ' ' . __('is empty'), 'error');
+                            }
+                        } else {
+                            $result .= $this->messages->getStyledMessage(__('Camera login') . ' ' . __('is empty'), 'error');
+                        }
+                    }
+                } else {
+                    $result .= $this->messages->getStyledMessage(__('Something went wrong') . ': ' . __('DVR') . ' ' . __('Not exists') . ' [' . $cameraDvrId . ']', 'error');
+                }
+            }
+        } else {
+            $result .= $this->messages->getStyledMessage(__('Something went wrong') . ': ' . __('Camera') . ' ' . __('Not exists') . ' [' . $cameraId . ']', 'error');
+        }
+
+        return($result);
+    }
+
+    /**
+     * Renders IP device controls if camera is served by WolfRecorder NVR
+     * 
+     * @param int $cameraId
+     * 
+     * @return string
+     */
+    protected function renderWolfRecorderCameraControls($cameraId) {
+        $result = '';
+        $cameraId = ubRouting::filters($cameraId, 'int');
+        if (isset($this->allCams[$cameraId])) {
+            $cameraData = $this->allCams[$cameraId];
+            $cameraDvrId = $cameraData['dvrid'];
+            //DVR assigned
+            if ($cameraDvrId) {
+                if (isset($this->allDvrs[$cameraDvrId])) {
+                    $dvrData = $this->allDvrs[$cameraDvrId];
+                    //Here we go! That DVR can be managable
+                    if ($dvrData['type'] == 'wolfrecorder') {
+                        if (!empty($cameraData['camlogin'])) {
+                            if (!empty($cameraData['campassword'])) {
+                                if (!empty($cameraData['port'])) {
+                                    if (isset($this->allUserData[$cameraData['login']])) {
+                                        //DVD configuration is acceptable?
+                                        if (!empty($dvrData['login']) AND ! empty($dvrData['password']) AND ! empty($dvrData['port']) AND ! empty($dvrData['apikey'])) {
+                                            //Camera looks like it may be registgered on DVR
+                                            $result .= $this->renderWolfRecorderCameraCreateForm($cameraId);
                                         } else {
                                             $result .= $this->messages->getStyledMessage(__('Something went wrong') . ': ' . __('DVR') . ' ' . __('Configuration') . ' ' . __('is empty'), 'error');
                                         }
@@ -2230,7 +2380,26 @@ class UbillingVisor {
                         $cells .= wf_TableCell($health['cpu_load'] . '%');
                         $cells .= wf_TableCell($health['disks_stat_main_days'] . ' / ' . $health['disks_stat_subs_days']);
 
-                        $rows .= wf_TableRowStyled($cells, 'row5');
+                        $rows .= wf_TableRow($cells, 'row5');
+                    }
+                }
+
+                if ($each['type'] == 'wolfrecorder') {
+                    if (!empty($each['ip']) AND ! empty($each['apikey']) AND ! empty($each['port'])) {
+                        $apiUrl = 'http://' . $each['ip'] . ':' . $each['port'] . '/wr';
+                        $dvrGate = new WolfRecorder($apiUrl, $each['apikey']);
+                        $health = $dvrGate->systemGetHealth();
+                        $cells = wf_TableCell($each['id']);
+                        $cells .= wf_TableCell($each['ip']);
+                        $cells .= wf_TableCell($each['name']);
+                        $cells .= wf_TableCell(web_bool_led($health['storages']));
+                        $cells .= wf_TableCell(web_bool_led($health['database']));
+                        $cells .= wf_TableCell(web_bool_led($health['network']));
+                        $cells .= wf_TableCell($health['channels_total'] . ' / ' . $health['channels_online']);
+                        $cells .= wf_TableCell($health['uptime']);
+                        $cells .= wf_TableCell($health['loadavg'] . ' LA');
+                        $cells .= wf_TableCell('-');
+                        $rows .= wf_TableRow($cells, 'row5');
                     }
                 }
             }

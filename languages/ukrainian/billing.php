@@ -3495,6 +3495,8 @@ $lang['def']['Direction'] = 'Напрямок';
 $lang['def']['This user has no tags assigned'] = 'Цьому користувачу не присвоєно жодних тегів';
 $lang['def']['There are currently no existing tag types'] = 'Наразі немає жодних існуючих типів тегів';
 $lang['def']['No ONUs not assigned to users were found'] = 'Не виявлено жодної ONU не присвоєної користувачам';
+$lang['def']['Auto'] = 'Автоматично';
+$lang['def']['Default'] = 'За замовчуванням';
 $lang['def'][''] = '';
 
 

@@ -3474,3 +3474,5 @@ $lang['def']['Direction'] = 'Направление';
 $lang['def']['This user has no tags assigned'] = 'Этому пользователю не присвоено никаких тегов';
 $lang['def']['There are currently no existing tag types'] = 'Нет существующих типов тегов';
 $lang['def']['No ONUs not assigned to users were found'] = 'Не обнаружено ни одной ОНУ не присвоенной пользователям';
+$lang['def']['Auto'] = 'Автоматически';
+$lang['def']['Default'] = 'По умолчанию';
