@@ -58,3 +58,5 @@ $lang['def']['Main account is frozen'] = 'Основной аккаунт зам
 $lang['def']['What are your forgot there'] = 'Что ты здесь забыл';
 $lang['def']['Storages is not available'] = 'Нету доступных хранилищ';
 $lang['def']['Storage'] = 'Хранилище';
+$lang['def']['Recording now is running'] = 'Запись происходит';
+$lang['def']['Recording is not running'] = 'Запись остановлена';

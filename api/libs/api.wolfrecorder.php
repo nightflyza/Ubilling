@@ -452,4 +452,27 @@ class WolfRecorder {
         return($this->executeRequest('channels', 'getscreenshot', $requestData));
     }
 
+    /**
+     * Returns list of running recorders as cameraId=>PID
+     * 
+     * @return array
+     */
+    public function recordersGetAll() {
+        return($this->executeRequest('recorders', 'getall'));
+    }
+
+    /**
+     * Returns some camera recording process state
+     * 
+     * @param int $cameraId
+     * 
+     * @return array
+     */
+    public function recordersIsRunning($cameraId) {
+        $requestData = array(
+            'cameraid' => $cameraId
+        );
+        return($this->executeRequest('recorders', 'isrunning', $requestData));
+    }
+
 }

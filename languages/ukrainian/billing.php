@@ -3497,6 +3497,7 @@ $lang['def']['There are currently no existing tag types'] = 'Наразі нем
 $lang['def']['No ONUs not assigned to users were found'] = 'Не виявлено жодної ONU не присвоєної користувачам';
 $lang['def']['Auto'] = 'Автоматично';
 $lang['def']['Default'] = 'За замовчуванням';
+$lang['def']['as'] = 'як';
 $lang['def'][''] = '';
 
 

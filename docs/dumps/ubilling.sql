@@ -3205,3 +3205,7 @@ ALTER TABLE `exhorse` ADD `a_outtotalcalls` INT NULL DEFAULT NULL;
 ALTER TABLE `exhorse` ADD `a_outtotalanswered` INT NULL DEFAULT NULL;
 ALTER TABLE `exhorse` ADD `a_outtotalcallsduration` INT NULL DEFAULT NULL;
 ALTER TABLE `exhorse` ADD `a_outaveragecallduration` INT NULL DEFAULT NULL;
+
+-- 1.3.8 update
+
+ALTER TABLE `visor_dvrs` ADD `apiurl` VARCHAR(255) NULL DEFAULT NULL AFTER `password`; 

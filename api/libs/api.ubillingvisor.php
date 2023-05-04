@@ -188,6 +188,41 @@ class UbillingVisor {
     protected $protectedUserIds = array();
 
     /**
+     * Users database abstraction layer
+     *
+     * @var object
+     */
+    protected $usersDb = '';
+
+    /**
+     * Cameras database abstraction layer
+     *
+     * @var object
+     */
+    protected $camsDb = '';
+
+    /**
+     * DVRs database abstraction layer
+     *
+     * @var object
+     */
+    protected $dvrsDb = '';
+
+    /**
+     * Channels database abstraction layer
+     *
+     * @var object
+     */
+    protected $chansDb = '';
+
+    /**
+     * Secrets database abstraction layer
+     *
+     * @var object
+     */
+    protected $secretsDb = '';
+
+    /**
      * Basic module URLs
      */
     const URL_ME = '?module=visor';
@@ -225,8 +260,7 @@ class UbillingVisor {
         $this->loadConfigs();
         $this->loadDvrTypes();
         $this->initMessages();
-        $this->initChans();
-        $this->initSecrets();
+        $this->initDbLayers();
         $this->loadUserData();
         $this->loadUsers();
         $this->loadTariffPricing();
@@ -236,6 +270,19 @@ class UbillingVisor {
         $this->loadRecordModes();
         $this->loadChans();
         $this->loadSecrets();
+    }
+
+    /**
+     * Inits all required database abstraction layers
+     * 
+     * @return void
+     */
+    protected function initDbLayers() {
+        $this->usersDb = new NyanORM(self::TABLE_USERS);
+        $this->camsDb = new NyanORM(self::TABLE_CAMS);
+        $this->dvrsDb = new NyanORM(self::TABLE_DVRS);
+        $this->chansDb = new NyanORM(self::TABLE_CHANS);
+        $this->secretsDb = new NyanORM(self::TABLE_SECRETS);
     }
 
     /**
@@ -334,30 +381,12 @@ class UbillingVisor {
     }
 
     /**
-     * Inits channels bindings database model
-     * 
-     * @return void
-     */
-    protected function initChans() {
-        $this->chans = new NyanORM(self::TABLE_CHANS);
-    }
-
-    /**
-     * Inits secrets database model
-     * 
-     * @return void
-     */
-    protected function initSecrets() {
-        $this->secrets = new NyanORM(self::TABLE_SECRETS);
-    }
-
-    /**
      * Loads available channels bindings from database
      * 
      * @return void
      */
     protected function loadChans() {
-        $chansTmp = $this->chans->getAll();
+        $chansTmp = $this->chansDb->getAll();
         if (!empty($chansTmp)) {
             foreach ($chansTmp as $io => $each) {
                 $this->allChannels[$each['visorid']][] = $each;
@@ -372,7 +401,7 @@ class UbillingVisor {
      * @return void
      */
     protected function loadSecrets() {
-        $this->allSecrets = $this->secrets->getAll('visorid');
+        $this->allSecrets = $this->secretsDb->getAll('visorid');
     }
 
     /**
@@ -383,13 +412,8 @@ class UbillingVisor {
     protected function loadPaymentIds() {
         if ($this->altCfg['OPENPAYZ_SUPPORT']) {
             if ($this->altCfg['OPENPAYZ_REALID']) {
-                $query = "SELECT `realid`,`virtualid` from `op_customers`";
-                $allcustomers = simple_queryall($query);
-                if (!empty($allcustomers)) {
-                    foreach ($allcustomers as $io => $eachcustomer) {
-                        $this->allPaymentIDs[$eachcustomer['realid']] = $eachcustomer['virtualid'];
-                    }
-                }
+                $openPayz = new OpenPayz();
+                $this->allPaymentIDs = $openPayz->getCustomersPaymentIds();
             } else {
                 if (!empty($this->allUserData)) {
                     foreach ($this->allUserData as $io => $each) {
@@ -406,13 +430,8 @@ class UbillingVisor {
      * @return void
      */
     protected function loadUsers() {
-        $query = "SELECT * from `visor_users` ORDER BY `id` DESC";
-        $all = simple_queryall($query);
-        if (!empty($all)) {
-            foreach ($all as $io => $each) {
-                $this->allUsers[$each['id']] = $each;
-            }
-        }
+        $this->usersDb->orderBy('id', 'DESC');
+        $this->allUsers = $this->usersDb->getAll('id');
     }
 
     /**
@@ -421,13 +440,8 @@ class UbillingVisor {
      * @return void
      */
     protected function loadCams() {
-        $query = "SELECT * from `visor_cams` ORDER BY `id` DESC";
-        $all = simple_queryall($query);
-        if (!empty($all)) {
-            foreach ($all as $io => $each) {
-                $this->allCams[$each['id']] = $each;
-            }
-        }
+        $this->camsDb->orderBy('id', 'DESC');
+        $this->allCams = $this->camsDb->getAll('id');
     }
 
     /**
@@ -436,13 +450,8 @@ class UbillingVisor {
      * @return void
      */
     protected function loadDvrs() {
-        $query = "SELECT * from `visor_dvrs`";
-        $all = simple_queryall($query);
-        if (!empty($all)) {
-            foreach ($all as $io => $each) {
-                $this->allDvrs[$each['id']] = $each;
-            }
-        }
+        $this->dvrsDb->orderBy('id', 'DESC');
+        $this->allDvrs = $this->dvrsDb->getAll('id');
     }
 
     /**
@@ -565,16 +574,20 @@ class UbillingVisor {
      */
     public function createUser() {
         $result = '';
-        if (wf_CheckPost(array('newusercreate', 'newusername'))) {
-            $newRealName = $_POST['newusername'];
-            $newRealNameF = mysql_real_escape_string($newRealName);
-            $newPhone = mysql_real_escape_string($_POST['newuserphone']);
-            $newChargeCams = (wf_CheckPost(array('newuserchargecams'))) ? 1 : 0;
+        if (ubRouting::checkPost(array('newusercreate', 'newusername'))) {
+            $newRealName = ubRouting::post('newusername');
+            $newRealNameF = ubRouting::filters($newRealName, 'mres');
+            $newPhone = ubRouting::post('newuserphone', 'mres');
+            $newChargeCams = (ubRouting::checkPost('newuserchargecams')) ? 1 : 0;
             $date = curdatetime();
-            $query = "INSERT INTO `" . self::TABLE_USERS . "` (`id`,`regdate`,`realname`,`phone`,`chargecams`,`primarylogin`) VALUES "
-                    . "(NULL,'" . $date . "','" . $newRealNameF . "','" . $newPhone . "','" . $newChargeCams . "','');";
-            nr_query($query);
-            $newId = simple_get_lastid(self::TABLE_USERS);
+
+            $this->usersDb->data('regdate', $date);
+            $this->usersDb->data('realname', $newRealNameF);
+            $this->usersDb->data('phone', $newPhone);
+            $this->usersDb->data('chargecams', $newChargeCams);
+            $this->usersDb->create();
+
+            $newId = $this->usersDb->getLastId();
             log_register('VISOR USER CREATE [' . $newId . '] NAME `' . $newRealName . '`');
             $result = $newId;
         }
@@ -810,10 +823,10 @@ class UbillingVisor {
                 $loginProposal = 'view' . $userId;
                 $passwordProposal = zb_rand_digits(8);
 
-                $this->secrets->data('visorid', $userId);
-                $this->secrets->data('login', $loginProposal);
-                $this->secrets->data('password', $passwordProposal);
-                $this->secrets->create();
+                $this->secretsDb->data('visorid', $userId);
+                $this->secretsDb->data('login', $loginProposal);
+                $this->secretsDb->data('password', $passwordProposal);
+                $this->secretsDb->create();
 
                 log_register('VISOR USER [' . $userId . '] CREATE SECRET');
             } else {
@@ -1386,17 +1399,17 @@ class UbillingVisor {
      * @return void
      */
     public function createCamera() {
-        if (wf_CheckPost(array('newcameravisorid', 'newcameralogin'))) {
-            $newVisorId = vf($_POST['newcameravisorid'], 3);
-            $newCameraLogin = $_POST['newcameralogin'];
-            $newCameraLoginF = mysql_real_escape_string($newCameraLogin);
+        if (ubRouting::checkPost(array('newcameravisorid', 'newcameralogin'))) {
+            $newVisorId = ubRouting::post('newcameravisorid', 'int');
+            $newCameraLogin = ubRouting::post('newcameralogin');
+            $newCameraLoginF = ubRouting::filters($newCameraLogin, 'mres');
             if (isset($this->allUsers[$newVisorId])) {
                 if (!empty($newCameraLoginF)) {
-                    $query = "INSERT INTO `" . self::TABLE_CAMS . "` (`id`,`visorid`,`login`,`primary`,`camlogin`,`campassword`,`port`,`dvrid`,`dvrlogin`,`dvrpassword`)"
-                            . " VALUES "
-                            . " (NULL,'" . $newVisorId . "','" . $newCameraLoginF . "','0','','','','','','');";
-                    nr_query($query);
-                    $newId = simple_get_lastid(self::TABLE_CAMS);
+                    $this->camsDb->data('visorid', $newVisorId);
+                    $this->camsDb->data('login', $newCameraLoginF);
+                    $this->camsDb->data('primary', 0);
+                    $this->camsDb->create();
+                    $newId = $this->camsDb->getLastId();
                     log_register('VISOR CAMERA CREATE [' . $newId . '] ASSIGN [' . $newVisorId . '] LOGIN (' . $newCameraLogin . ')');
                 } else {
                     log_register('VISOR CAMERA CREATE FAIL EMPTY_LOGIN');
@@ -1420,10 +1433,10 @@ class UbillingVisor {
         $visorId = ubRouting::filters($visorId, 'int');
         $dvrId = ubRouting::filters($dvrId, 'int');
         $channelGuid = ubRouting::filters($channelGuid, 'mres');
-        $this->chans->data('visorid', $visorId);
-        $this->chans->data('dvrid', $dvrId);
-        $this->chans->data('chan', $channelGuid);
-        $this->chans->create();
+        $this->chansDb->data('visorid', $visorId);
+        $this->chansDb->data('dvrid', $dvrId);
+        $this->chansDb->data('chan', $channelGuid);
+        $this->chansDb->create();
         log_register('VISOR USER [' . $visorId . '] ASSIGN CHAN `' . $channelGuid . '` ON DVR [' . $dvrId . ']');
     }
 
@@ -1440,10 +1453,10 @@ class UbillingVisor {
         $visorId = ubRouting::filters($visorId, 'int');
         $dvrId = ubRouting::filters($dvrId, 'int');
         $channelGuid = ubRouting::filters($channelGuid, 'mres');
-        $this->chans->where('visorid', '=', $visorId);
-        $this->chans->where('dvrid', '=', $dvrId);
-        $this->chans->where('chan', '=', $channelGuid);
-        $this->chans->delete();
+        $this->chansDb->where('visorid', '=', $visorId);
+        $this->chansDb->where('dvrid', '=', $dvrId);
+        $this->chansDb->where('chan', '=', $channelGuid);
+        $this->chansDb->delete();
         log_register('VISOR USER [' . $visorId . '] UNASSIGN CHAN `' . $channelGuid . '` ON DVR [' . $dvrId . ']');
     }
 
@@ -1512,7 +1525,7 @@ class UbillingVisor {
      * @return string
      */
     protected function renderCameraDeletionForm($cameraId) {
-        $cameraId = vf($cameraId, 3);
+        $cameraId = ubRouting::filters($cameraId, 'int');
         $result = '';
         if (isset($this->allCams[$cameraId])) {
             $inputs = __('To ensure that we have seen the seriousness of your intentions to enter the word сonfirm the field below.');
@@ -1537,12 +1550,12 @@ class UbillingVisor {
      * @return void/string on error
      */
     public function deleteCamera($cameraId) {
-        $cameraId = vf($cameraId, 3);
+        $cameraId = ubRouting::filters($cameraId, 'int');
         $result = '';
         if (isset($this->allCams[$cameraId])) {
             $cameraData = $this->allCams[$cameraId];
-            $query = "DELETE  from `" . self::TABLE_CAMS . "` WHERE `id`='" . $cameraId . "';";
-            nr_query($query);
+            $this->camsDb->where('id', '=', $cameraId);
+            $this->camsDb->delete();
             log_register('VISOR CAMERA DELETE [' . $cameraId . '] ASSIGNED [' . $cameraData['visorid'] . '] LOGIN (' . $cameraData['login'] . ')');
         } else {
             $result .= __('Something went wrong') . ': ' . __('No such camera exists') . ' [' . $cameraId . ']';
@@ -1558,7 +1571,7 @@ class UbillingVisor {
      * @return string 
      */
     public function renderCameraForm($cameraId) {
-        $cameraId = vf($cameraId, 3);
+        $cameraId = ubRouting::filters($cameraId, 'int');
         $result = '';
         if (isset($this->allCams[$cameraId])) {
             $cameraData = $this->allCams[$cameraId];
@@ -1868,7 +1881,7 @@ class UbillingVisor {
             $dvrData = $this->allDvrs[$cameraDvrId];
             $cameraUserData = $this->allUserData[$cameraData['login']];
             $cameraIp = $cameraUserData['ip'];
-            $apiUrl = 'http://' . $dvrData['ip'] . ':' . $dvrData['port'] . '/wr';
+            $apiUrl = $this->getWolfRecorderApiUrl($dvrData['id']);
             $wolfRecorder = new WolfRecorder($apiUrl, $dvrData['apikey']);
             $isCameraRegistered = $wolfRecorder->camerasIsRegistered($cameraIp);
 
@@ -1876,8 +1889,26 @@ class UbillingVisor {
             if ($wolfRecorder->noError($isCameraRegistered)) {
                 $result .= $this->messages->getStyledMessage(__('DVR') . ' ' . $dvrData['name'] . ': ' . __('Connected'), 'success');
                 if ($isCameraRegistered['registered']) {
-                    $successLabel = __('Camera') . ': ' . __('Registered') . ' ' . __('On') . ' ' . __('DVR') . ' ' . $dvrData['name'];
+                    $wrCameraId = '';
+                    if (isset($isCameraRegistered['id'])) {
+                        $wrCameraId = $isCameraRegistered['id'];
+                    }
+                    //nothing to do here
+                    $successLabel = __('Camera') . ': ' . __('Registered') . ' ' . __('On') . ' ' . __('DVR') . ' ' . $dvrData['name'] . ' ' . __('as') . ' [' . $wrCameraId . ']';
                     $result .= $this->messages->getStyledMessage($successLabel, 'success');
+                    //excepting recorder process check
+                    if ($wrCameraId) {
+                        $wrCameraId = $isCameraRegistered['id'];
+                        $recorderIsRunning = $wolfRecorder->recordersIsRunning($wrCameraId);
+                        if ($wolfRecorder->noError($recorderIsRunning)) {
+                            $recState = ($recorderIsRunning['running']) ? true : false;
+                            if ($recState) {
+                                $result .= $this->messages->getStyledMessage(__('Recording now is running'), 'success');
+                            } else {
+                                $result .= $this->messages->getStyledMessage(__('Recording is not running'), 'warning');
+                            }
+                        }
+                    }
                 } else {
                     //here registering form.. MB...
                     $result .= $this->messages->getStyledMessage(__('Camera is not registered at') . ' ' . $dvrData['name'], 'warning');
@@ -2115,6 +2146,7 @@ class UbillingVisor {
         $inputs .= wf_TextInput('newdvrport', __('Port'), '', true, 5, 'digits');
         $inputs .= wf_TextInput('newdvrlogin', __('Login'), '', true, 20);
         $inputs .= wf_TextInput('newdvrpassword', __('Password'), '', true, 20);
+        $inputs .= wf_TextInput('newdvrapiurl', __('API URL'), '', true, 20, 'url');
         $inputs .= wf_TextInput('newdvrapikey', __('API key'), '', true, 20);
         $inputs .= wf_TextInput('newdvrcamlimit', __('Cameras limit'), '0', true, 3, 'digits');
         $inputs .= wf_TextInput('newdvrcustomurl', __('Custom preview URL'), '', true, 20);
@@ -2138,23 +2170,24 @@ class UbillingVisor {
             $password = ubRouting::post('newdvrpassword', 'mres');
             $name = ubRouting::post('newdvrname', 'mres');
             $type = ubRouting::post('newdvrtype', 'mres');
+            $apiurl = ubRouting::post('newdvrapiurl', 'mres');
             $apikey = ubRouting::post('newdvrapikey', 'mres');
             $camlimit = ubRouting::post('newdvrcamlimit', 'int');
             $customurl = ubRouting::post('newdvrcustomurl', 'mres');
 
-            $dvrs = new NyanORM(self::TABLE_DVRS);
-            $dvrs->data('ip', $ip_f);
-            $dvrs->data('port', $port);
-            $dvrs->data('login', $login);
-            $dvrs->data('password', $password);
-            $dvrs->data('apikey', $apikey);
-            $dvrs->data('name', $name);
-            $dvrs->data('type', $type);
-            $dvrs->data('camlimit', $camlimit);
-            $dvrs->data('customurl', $customurl);
-            $dvrs->create();
+            $this->dvrsDb->data('ip', $ip_f);
+            $this->dvrsDb->data('port', $port);
+            $this->dvrsDb->data('login', $login);
+            $this->dvrsDb->data('password', $password);
+            $this->dvrsDb->data('apiurl', $apiurl);
+            $this->dvrsDb->data('apikey', $apikey);
+            $this->dvrsDb->data('name', $name);
+            $this->dvrsDb->data('type', $type);
+            $this->dvrsDb->data('camlimit', $camlimit);
+            $this->dvrsDb->data('customurl', $customurl);
+            $this->dvrsDb->create();
 
-            $newId = $dvrs->getLastId();
+            $newId = $this->dvrsDb->getLastId();
 
             log_register('VISOR DVR CREATE [' . $newId . '] IP `' . $ip . '`');
         }
@@ -2181,6 +2214,7 @@ class UbillingVisor {
             $inputs .= wf_TextInput('editdvrport', __('Port'), $dvrData['port'], true, 5, 'digits');
             $inputs .= wf_TextInput('editdvrlogin', __('Login'), $dvrData['login'], true, 12);
             $inputs .= wf_TextInput('editdvrpassword', __('Password'), $dvrData['password'], true, 12);
+            $inputs .= wf_TextInput('editdvrapiurl', __('API URL'), $dvrData['apiurl'], true, 20, 'url');
             $inputs .= wf_TextInput('editdvrapikey', __('API key'), $dvrData['apikey'], true, 20);
             $inputs .= wf_TextInput('editdvrcamlimit', __('Cameras limit'), $dvrData['camlimit'], true, 20);
             $inputs .= wf_TextInput('editdvrcustomurl', __('Custom preview URL'), $dvrData['customurl'], true, 20);
@@ -2203,6 +2237,7 @@ class UbillingVisor {
             $dvrId = ubRouting::post('editdvrid', 'int');
 
             if (isset($this->allDvrs[$dvrId])) {
+                $saveRequired = false;
                 $dvrData = $this->allDvrs[$dvrId];
                 $where = " WHERE `id`='" . $dvrId . "'";
                 $newIp = ubRouting::post('editdvrip', 'mres');
@@ -2211,53 +2246,73 @@ class UbillingVisor {
                 $newPassword = ubRouting::post('editdvrpassword', 'mres');
                 $newName = ubRouting::post('editdvrname', 'mres');
                 $newType = ubRouting::post('editdvrtype', 'mres');
+                $newApiurl = ubRouting::post('editdvrapiurl', 'mres');
                 $newApikey = ubRouting::post('editdvrapikey', 'mres');
                 $newCamlimit = ubRouting::post('editdvrcamlimit', 'int');
                 $newCustomUrl = ubRouting::post('editdvrcustomurl', 'mres');
 
                 if ($dvrData['ip'] != $newIp) {
-                    simple_update_field(self::TABLE_DVRS, 'ip', $newIp, $where);
+                    $saveRequired = true;
+                    $this->dvrsDb->data('ip', $newIp);
                     log_register('VISOR DVR [' . $dvrId . '] CHANGE IP `' . $newIp . '`');
                 }
 
                 if ($dvrData['port'] != $newPort) {
-                    simple_update_field(self::TABLE_DVRS, 'port', $newPort, $where);
+                    $saveRequired = true;
+                    $this->dvrsDb->data('port', $newPort);
                     log_register('VISOR DVR [' . $dvrId . '] CHANGE PORT `' . $newPort . '`');
                 }
 
                 if ($dvrData['login'] != $newLogin) {
-                    simple_update_field(self::TABLE_DVRS, 'login', $newLogin, $where);
+                    $saveRequired = true;
+                    $this->dvrsDb->data('login', $newLogin);
                     log_register('VISOR DVR [' . $dvrId . '] CHANGE LOGIN `' . $newLogin . '`');
                 }
 
                 if ($dvrData['password'] != $newPassword) {
-                    simple_update_field(self::TABLE_DVRS, 'password', $newPassword, $where);
+                    $saveRequired = true;
+                    $this->dvrsDb->data('password', $newPassword);
                     log_register('VISOR DVR [' . $dvrId . '] CHANGE PASSWORD `' . $newPassword . '`');
                 }
 
                 if ($dvrData['name'] != $newName) {
-                    simple_update_field(self::TABLE_DVRS, 'name', $newName, $where);
+                    $saveRequired = true;
+                    $this->dvrsDb->data('name', $newName);
                     log_register('VISOR DVR [' . $dvrId . '] CHANGE NAME `' . $newName . '`');
                 }
 
                 if ($dvrData['type'] != $newType) {
-                    simple_update_field(self::TABLE_DVRS, 'type', $newType, $where);
+                    $saveRequired = true;
+                    $this->dvrsDb->data('type', $newType);
                     log_register('VISOR DVR [' . $dvrId . '] CHANGE TYPE `' . $newType . '`');
+                }
+                if ($dvrData['apiurl'] != $newApiurl) {
+                    $saveRequired = true;
+                    $this->dvrsDb->data('apiurl', $newApiurl);
+                    log_register('VISOR DVR [' . $dvrId . '] CHANGE APIURL `' . $newApiurl . '`');
                 }
 
                 if ($dvrData['apikey'] != $newApikey) {
-                    simple_update_field(self::TABLE_DVRS, 'apikey', $newApikey, $where);
+                    $saveRequired = true;
+                    $this->dvrsDb->data('apikey', $newApikey);
                     log_register('VISOR DVR [' . $dvrId . '] CHANGE APIKEY `' . $newApikey . '`');
                 }
 
                 if ($dvrData['camlimit'] != $newCamlimit) {
-                    simple_update_field(self::TABLE_DVRS, 'camlimit', $newCamlimit, $where);
+                    $saveRequired = true;
+                    $this->dvrsDb->data('camlimit', $newCamlimit);
                     log_register('VISOR DVR [' . $dvrId . '] CHANGE CAMLIMIT `' . $newCamlimit . '`');
                 }
 
                 if ($dvrData['customurl'] != $newCustomUrl) {
-                    simple_update_field(self::TABLE_DVRS, 'customurl', $newCustomUrl, $where);
+                    $saveRequired = true;
+                    $this->dvrsDb->data('customurl', $newCustomUrl);
                     log_register('VISOR DVR [' . $dvrId . '] CHANGE CUSTOMURL `' . $newCustomUrl . '`');
+                }
+
+                if ($saveRequired) {
+                    $this->dvrsDb->where('id', '=', $dvrId);
+                    $this->dvrsDb->save();
                 }
             }
         }
@@ -2343,6 +2398,32 @@ class UbillingVisor {
     }
 
     /**
+     * Returns usable WolfRecorder API URL depends on existing DVR settings
+     * 
+     * @param int $dvrId
+     * 
+     * @return string
+     */
+    protected function getWolfRecorderApiUrl($dvrId) {
+        $result = '';
+        if (isset($this->allDvrs[$dvrId])) {
+            $dvrData = $this->allDvrs[$dvrId];
+            //just use explict URL?
+            if (!empty($dvrData['apiurl'])) {
+                $result = $dvrData['apiurl'];
+            } else {
+                //try to guess
+                $proto = 'http://';
+                $port = ($dvrData['port']) ? ':' . $dvrData['port'] . '/' : '/';
+                $host = $dvrData['ip'];
+                $defaultUrl = 'wr/';
+                $result = $proto . $host . $port . $defaultUrl;
+            }
+        }
+        return($result);
+    }
+
+    /**
      * Renders available DVRs health report
      * 
      * @return string
@@ -2384,8 +2465,8 @@ class UbillingVisor {
                 }
 
                 if ($each['type'] == 'wolfrecorder') {
-                    if (!empty($each['ip']) AND ! empty($each['apikey']) AND ! empty($each['port'])) {
-                        $apiUrl = 'http://' . $each['ip'] . ':' . $each['port'] . '/wr';
+                    if (!empty($each['ip']) AND ! empty($each['apikey'])) {
+                        $apiUrl = $this->getWolfRecorderApiUrl($each['id']);
                         $dvrGate = new WolfRecorder($apiUrl, $each['apikey']);
                         $health = $dvrGate->systemGetHealth();
                         $cells = wf_TableCell($each['id']);
@@ -2457,7 +2538,7 @@ class UbillingVisor {
      * @return bool
      */
     protected function isDVRProtected($dvrId) {
-        $dvrId = vf($dvrId, 3);
+        $dvrId = ubRouting::filters($dvrId, 'int');
         $result = false;
         if (!empty($this->allCams)) {
             foreach ($this->allCams as $io => $each) {
@@ -2477,13 +2558,13 @@ class UbillingVisor {
      * @return void/string on error
      */
     public function deleteDVR($dvrId) {
-        $dvrId = vf($dvrId, 3);
+        $dvrId = ubRouting::filters($dvrId, 'int');
         $result = '';
         if (isset($this->allDvrs[$dvrId])) {
             if (!$this->isDVRProtected($dvrId)) {
                 $dvrData = $this->allDvrs[$dvrId];
-                $query = "DELETE from `" . self::TABLE_DVRS . "` WHERE `id`='" . $dvrId . "';";
-                nr_query($query);
+                $this->dvrsDb->where('id', '=', $dvrId);
+                $this->dvrsDb->delete();
                 log_register('VISOR DVR DELETE [' . $dvrId . '] IP `' . $dvrData['ip'] . '`');
             } else {
                 $result .= __('Something went wrong') . ': ' . __('This DVR is used for some cameras');
@@ -2778,9 +2859,9 @@ class UbillingVisor {
                         if ($dvrData['type'] == 'trassir') {
                             $secretData = $this->allSecrets[$visorId];
                             $dvrGate = new TrassirServer($dvrData['ip'], $dvrData['login'], $dvrData['password'], $dvrData['apikey'], $dvrData['port'], $this->trassirDebug);
-                            $this->chans->where('visorid', '=', $visorId);
-                            $this->chans->where('dvrid', '=', $dvrId);
-                            $userChans = $this->chans->getAll();
+                            $this->chansDb->where('visorid', '=', $visorId);
+                            $this->chansDb->where('dvrid', '=', $dvrId);
+                            $userChans = $this->chansDb->getAll();
                             $userRegistered = $dvrGate->getUserGuid($secretData['login']);
 
                             if (!$userRegistered) {
