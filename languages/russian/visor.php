@@ -60,3 +60,4 @@ $lang['def']['Storages is not available'] = 'Нету доступных хра�
 $lang['def']['Storage'] = 'Хранилище';
 $lang['def']['Recording now is running'] = 'Запись происходит';
 $lang['def']['Recording is not running'] = 'Запись остановлена';
+$lang['def']['Recording'] = 'Запись';

@@ -2,6 +2,8 @@
 
 /**
  * WolfRecorder NVR REST APIv1 implementation
+ * 
+ * https://wolfrecorder.com/wiki/doku.php?id=api
  */
 class WolfRecorder {
 
@@ -106,6 +108,26 @@ class WolfRecorder {
             if (isset($requestReply['error'])) {
                 if ($requestReply['error']) {
                     $result = false;
+                }
+            }
+        }
+        return($result);
+    }
+
+    /**
+     * Fast check is API connection ok or not
+     * 
+     * @return array
+     */
+    public function connectionOk() {
+        $result = false;
+        $connectionReply = $this->systemCheckConnection();
+        if (!empty($connectionReply)) {
+            if ($this->noError($connectionReply)) {
+                if (isset($connectionReply['connection'])) {
+                    if ($connectionReply['connection']) {
+                        $result = true;
+                    }
                 }
             }
         }
@@ -257,6 +279,15 @@ class WolfRecorder {
      */
     public function systemGetHealth() {
         return($this->executeRequest('system', 'gethealth'));
+    }
+
+    /**
+     * Returns system non empty array to connection check error/connection/message
+     * 
+     * @return array
+     */
+    public function systemCheckConnection() {
+        return($this->executeRequest('system', 'checkconnection'));
     }
 
     /**
@@ -432,6 +463,38 @@ class WolfRecorder {
     }
 
     /**
+     * Deletes ACL for some user by cameraId
+     * 
+     * @param string $login
+     * @param int $cameraId
+     * 
+     * @return array
+     */
+    public function aclsDeassignCamera($login, $cameraId) {
+        $requestData = array(
+            'login' => $login,
+            'cameraid' => $cameraId
+        );
+        return($this->executeRequest('acls', 'deassigncamera', $requestData));
+    }
+
+    /**
+     * Deletes ACL for some user by channelId
+     * 
+     * @param string $login
+     * @param int $channelId
+     * 
+     * @return array
+     */
+    public function aclsDeassignChannel($login, $channelId) {
+        $requestData = array(
+            'login' => $login,
+            'channelid' => $channelId
+        );
+        return($this->executeRequest('acls', 'deassignchannel', $requestData));
+    }
+
+    /**
      * Returns all available channels as channelId=>cameraId
      * 
      * @return array
@@ -441,7 +504,7 @@ class WolfRecorder {
     }
 
     /**
-     * Returns some channel screenshot URL
+     * Returns some channel screenshot URL as error/screenshot
      * 
      * @return array
      */
@@ -450,6 +513,15 @@ class WolfRecorder {
             'channelid' => $channelId
         );
         return($this->executeRequest('channels', 'getscreenshot', $requestData));
+    }
+
+    /**
+     * Returns all channels screenshots URLs as channelId=>screenshotUrl
+     * 
+     * @return array
+     */
+    public function channelsGetScreenshotsAll() {
+        return($this->executeRequest('channels', 'getscreenshotsall'));
     }
 
     /**
