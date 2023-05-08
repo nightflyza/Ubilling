@@ -1165,12 +1165,22 @@ class UbillingVisor {
             $currentPrimary = $this->allUsers[$userId]['primarylogin'];
             if ($currentPrimary != $login) {
                 if ($this->isPrimaryAccountFree($login)) {
-                    simple_update_field(self::TABLE_USERS, 'primarylogin', $login, "WHERE `id`='" . $userId . "'"); //setting primary account in profile
-                    simple_update_field(self::TABLE_CAMS, 'primary', 0, "WHERE `visorid`='" . $userId . "'"); // dropping all camera primary flags
-                    log_register('VISOR USER [' . $userId . '] CHANGE PRIMARY `' . $login . '`');
+                    //setting primary account in profile
+                    $this->usersDb->where('id', '=', $userId);
+                    $this->usersDb->data('primarylogin', $login);
+                    $this->usersDb->save();
+
+                    // dropping all camera primary flags
+                    $this->camsDb->where('visorid', '=', $userId);
+                    $this->camsDb->data('primary', '0');
+                    $this->camsDb->save();
+                    log_register('VISOR USER [' . $userId . '] CHANGE PRIMARY (' . $login . ')');
                     $cameraId = $this->getCameraIdByLogin($login);
                     if (!empty($cameraId)) {
-                        simple_update_field(self::TABLE_CAMS, 'primary', '1', "WHERE `id`='" . $cameraId . "'"); //setting camera account as primary
+                        //setting camera account as primary
+                        $this->camsDb->where('id', '=', $cameraId);
+                        $this->camsDb->data('primary', '1');
+                        $this->camsDb->save();
                     }
                 } else {
                     log_register('VISOR USER [' . $userId . '] FAIL PRIMARY BUSY');
@@ -1487,31 +1497,40 @@ class UbillingVisor {
     /**
      * Catches and saves user editing request if required
      * 
-     * 
      * @return void
      */
     public function saveUser() {
-        if (wf_CheckPost(array('edituserid', 'editusername'))) {
-            $editUserId = vf($_POST['edituserid'], 3);
+        if (ubRouting::checkPost(array('edituserid', 'editusername'))) {
+            $editUserId = ubRouting::post('edituserid', 'int');
             if (isset($this->allUsers[$editUserId])) {
                 $currentUserData = $this->allUsers[$editUserId];
                 $where = " WHERE `id`='" . $editUserId . "'";
-                $newUserName = $_POST['editusername'];
-                $newUserPhone = $_POST['edituserphone'];
-                $newCharge = (wf_CheckPost(array('edituserchargecams'))) ? 1 : 0;
+                $newUserName = ubRouting::post('editusername', 'mres');
+                $newUserPhone = ubRouting::post('edituserphone', 'mres');
+                $newCharge = (ubRouting::checkPost('edituserchargecams')) ? 1 : 0;
+                $changedFlag = false;
                 if ($currentUserData['realname'] != $newUserName) {
-                    simple_update_field(self::TABLE_USERS, 'realname', $newUserName, $where);
+                    $changedFlag = true;
+                    $this->usersDb->data('realname', $newUserName);
                     log_register('VISOR USER [' . $editUserId . '] CHANGE NAME `' . $newUserName . '`');
                 }
 
                 if ($currentUserData['phone'] != $newUserPhone) {
-                    simple_update_field(self::TABLE_USERS, 'phone', $newUserPhone, $where);
+                    $changedFlag = true;
+                    $this->usersDb->data('phone', $newUserPhone);
                     log_register('VISOR USER [' . $editUserId . '] CHANGE PHONE `' . $newUserPhone . '`');
                 }
 
                 if ($currentUserData['chargecams'] != $newCharge) {
-                    simple_update_field(self::TABLE_USERS, 'chargecams', $newCharge, $where);
+                    $changedFlag = true;
+                    $this->usersDb->data('chargecams', $newCharge);
                     log_register('VISOR USER [' . $editUserId . '] CHANGE CHARGE `' . $newUserPhone . '`');
+                }
+
+                //commiting changes to DB
+                if ($changedFlag) {
+                    $this->usersDb->where('id', '=', $editUserId);
+                    $this->usersDb->save();
                 }
             }
         }
@@ -2075,41 +2094,47 @@ class UbillingVisor {
      */
     public function saveCamera() {
         if (wf_CheckPost(array('editcameraid'))) {
-            $cameraId = vf($_POST['editcameraid'], 3);
+            $cameraId = ubRouting::post('editcameraid', 'int');
             if (isset($this->allCams[$cameraId])) {
+                $changedFlag = false;
                 $cameraData = $this->allCams[$cameraId];
                 $where = " WHERE `id`='" . $cameraId . "'";
 
-                $newVisorId = vf($_POST['editvisorid'], 3);
-                $newCamLogin = $_POST['editcamlogin'];
-                $newCamPassword = $_POST['editcampassword'];
-                $newPort = vf($_POST['editport'], 3);
-                $newDvrId = vf($_POST['editdvrid'], 3);
-                $newDvrLogin = $_POST['editdvrlogin'];
-                $newDvrPassword = $_POST['editdvrpassword'];
+                $newVisorId = ubRouting::post('editvisorid', 'int');
+                $newCamLogin = ubRouting::post('editcamlogin', 'mres');
+                $newCamPassword = ubRouting::post('editcampassword', 'mres');
+                $newPort = ubRouting::post('editport', 'int');
+                $newDvrId = ubRouting::post('editdvrid', 'int');
+                $newDvrLogin = ubRouting::post('editdvrlogin', 'mres');
+                $newDvrPassword = ubRouting::post('editdvrpassword', 'mres');
 
                 if ($newVisorId != $cameraData['visorid']) {
-                    simple_update_field(self::TABLE_CAMS, 'visorid', $newVisorId, $where);
+                    $changedFlag = true;
+                    $this->camsDb->data('visorid', $newVisorId);
                     log_register('VISOR CAMERA [' . $cameraId . '] CHANGE ASSIGN [' . $newVisorId . ']');
                 }
 
                 if ($newCamLogin != $cameraData['camlogin']) {
-                    simple_update_field(self::TABLE_CAMS, 'camlogin', $newCamLogin, $where);
+                    $changedFlag = true;
+                    $this->camsDb->data('camlogin', $newCamLogin);
                     log_register('VISOR CAMERA [' . $cameraId . '] CHANGE LOGIN `' . $newCamLogin . '`');
                 }
 
                 if ($newCamPassword != $cameraData['campassword']) {
-                    simple_update_field(self::TABLE_CAMS, 'campassword', $newCamPassword, $where);
+                    $changedFlag = true;
+                    $this->camsDb->data('campassword', $newCamPassword);
                     log_register('VISOR CAMERA [' . $cameraId . '] CHANGE PASSWORD `' . $newCamPassword . '`');
                 }
 
                 if ($newPort != $cameraData['port']) {
-                    simple_update_field(self::TABLE_CAMS, 'port', $newPort, $where);
+                    $changedFlag = true;
+                    $this->camsDb->data('port', $newPort);
                     log_register('VISOR CAMERA [' . $cameraId . '] CHANGE PORT `' . $newPort . '`');
                 }
 
                 if ($newDvrId != $cameraData['dvrid']) {
-                    simple_update_field(self::TABLE_CAMS, 'dvrid', $newDvrId, $where);
+                    $changedFlag = true;
+                    $this->camsDb->data('dvrid', $newDvrId);
                     if (!empty($newDvrId)) {
                         log_register('VISOR CAMERA [' . $cameraId . '] CHANGE DVR [' . $newDvrId . ']');
                     } else {
@@ -2118,13 +2143,21 @@ class UbillingVisor {
                 }
 
                 if ($newDvrLogin != $cameraData['dvrlogin']) {
-                    simple_update_field(self::TABLE_CAMS, 'dvrlogin', $newDvrLogin, $where);
+                    $changedFlag = true;
+                    $this->camsDb->data('dvrlogin', $newDvrLogin);
                     log_register('VISOR CAMERA [' . $cameraId . '] CHANGE DVRLOGIN `' . $newDvrLogin . '`');
                 }
 
                 if ($newDvrLogin != $cameraData['dvrpassword']) {
-                    simple_update_field(self::TABLE_CAMS, 'dvrpassword', $newDvrPassword, $where);
+                    $changedFlag = true;
+                    $this->camsDb->data('dvrpassword', $newDvrPassword);
                     log_register('VISOR CAMERA [' . $cameraId . '] CHANGE DVRPASSWORD `' . $newDvrPassword . '`');
+                }
+
+                //commiting changes to DB
+                if ($changedFlag) {
+                    $this->camsDb->where('id', '=', $cameraId);
+                    $this->camsDb->save();
                 }
             }
         }
