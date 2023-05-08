@@ -3131,7 +3131,7 @@ class UbillingVisor {
             foreach ($this->allChannels[$visorId] as $io => $each) {
                 if (isset($this->allDvrs[$each['dvrid']])) {
                     $dvrData = $this->allDvrs[$each['dvrid']];
-                    if ($dvrData['type'] = 'trassir') {
+                    if ($dvrData['type'] == 'trassir') {
                         $trassir = new TrassirServer($dvrData['ip'], $dvrData['login'], $dvrData['password'], $dvrData['apikey'], $dvrData['port'], $this->trassirDebug);
                         if (!$maxQual) {
                             $url = $trassir->getLiveVideoStream($each['chan'], 'main', $this->chanPreviewContainer, $this->chanPreviewQuality, $this->chanPreviewFramerate, $dvrData['customurl']);
@@ -3139,6 +3139,19 @@ class UbillingVisor {
                             $url = $trassir->getLiveVideoStream($each['chan'], 'main', $this->chanPreviewContainer, $this->chanBigPreviewQuality, $this->chanBigPreviewFramerate, $dvrData['customurl']);
                         }
                         $urlTmp[$each['chan']] = $url;
+                    }
+
+                    if ($dvrData['type'] == 'wolfrecorder') {
+                        $apiUrl = $this->getWolfRecorderApiUrl($dvrData['id']);
+                        $webUrl = ($dvrData['customurl']) ? $dvrData['customurl'] : $apiUrl;
+                        $wolfRecorder = new WolfRecorder($apiUrl, $dvrData['apikey']);
+                        $screenshotRaw = $wolfRecorder->channelsGetScreenshot($each['chan']);
+                        if (isset($screenshotRaw['screenshot'])) {
+                            if (!empty($screenshotRaw['screenshot'])) {
+                                $url = $webUrl . $screenshotRaw['screenshot'];
+                                $urlTmp[$each['chan']] = $url;
+                            }
+                        }
                     }
                 }
             }
@@ -3171,7 +3184,21 @@ class UbillingVisor {
                                 $result[$each['dvrid']]['port'] = $dvrData['port'];
                                 $result[$each['dvrid']]['login'] = $secretsData['login'];
                                 $result[$each['dvrid']]['password'] = $secretsData['password'];
-                                $result[$each['dvrid']]['weburl'] = 'https://' . $dvrData['ip'] . ':' . $dvrData['port'] . '/webgui/';
+                                if ($dvrData['type'] == 'trassir') {
+                                    $result[$each['dvrid']]['weburl'] = 'https://' . $dvrData['ip'] . ':' . $dvrData['port'] . '/webgui/';
+                                }
+
+                                if ($dvrData['type'] == 'wolfrecorder') {
+                                    $prefill = '';
+                                    if (!empty($secretsData['login']) AND ! empty($secretsData['password'])) {
+                                        $prefill = '?authprefill=' . $secretsData['login'] . '|' . $secretsData['password'];
+                                    }
+                                    if (empty($dvrData['apiurl'])) {
+                                        $result[$each['dvrid']]['weburl'] = 'http://' . $dvrData['ip'] . '/wr/' . $prefill;
+                                    } else {
+                                        $result[$each['dvrid']]['weburl'] = $dvrData['apiurl'] . $prefill;
+                                    }
+                                }
                             }
                         }
                     }
