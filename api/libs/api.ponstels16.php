@@ -421,6 +421,9 @@ class PONstels16 extends PONProto {
 // processing $fdbMACIndex array to get a FDB record at once
             foreach ($fdbMACIndex as $eachIdx => $eachFDBLine) {
                 $i++;
+
+                if (empty($eachFDBLine) or !ispos($eachFDBLine, '=')) { continue; }
+
                 $line           = explode('=', $eachFDBLine);
                 $onuPlasticIdx  = trim($line[1]);               // ONU Plastic index
 
