@@ -940,7 +940,7 @@ class UbillingVisor {
             $userId = ubRouting::filters($userId, 'int');
             $unassignedCount = 0;
             $chanControlLinks = '';
-            if ($this->trassirEnabled) {
+            if ($this->trassirEnabled OR $this->wolfRecorderEnabled) {
                 if (!empty($this->allDvrs)) {
                     foreach ($this->allDvrs as $io => $eachDvr) {
                         if ($eachDvr['type'] == 'trassir') {
@@ -952,6 +952,22 @@ class UbillingVisor {
                                     if (!isset($this->channelUsers[$eachChanGuid])) {
                                         $chanEditLink = self::URL_ME . self::URL_CHANEDIT . $eachChanGuid . '&dvrid=' . $eachDvr['id'] . '&useridpreset=' . $userId;
                                         $chanControlLinks .= wf_Link($chanEditLink, web_edit_icon() . ' ' . $eachChanGuid . ' (' . $eachChanName . ')', false, 'ubButton') . ' ';
+                                        $unassignedCount++;
+                                    }
+                                }
+                            }
+                        }
+
+                        if ($eachDvr['type'] == 'wolfrecorder') {
+                            $apiUrl = $this->getWolfRecorderApiUrl($eachDvr['id']);
+                            $dvrGate = new WolfRecorder($apiUrl, $eachDvr['apikey']);
+                            $dvrChannels = $dvrGate->channelsGetAll();
+                            if (!empty($dvrChannels)) {
+                                foreach ($dvrChannels as $eachChanId => $eachChanCameraId) {
+                                    //not assigned to anyone
+                                    if (!isset($this->channelUsers[$eachChanId])) {
+                                        $chanEditLink = self::URL_ME . self::URL_CHANEDIT . $eachChanId . '&dvrid=' . $eachDvr['id'] . '&useridpreset=' . $userId;
+                                        $chanControlLinks .= wf_Link($chanEditLink, web_edit_icon() . ' ' . $eachChanId, false, 'ubButton') . ' ';
                                         $unassignedCount++;
                                     }
                                 }
@@ -1000,8 +1016,9 @@ class UbillingVisor {
     protected function renderUserAssignedChannels($userId) {
         $result = '';
         $userId = ubRouting::filters($userId, 'int');
-        if ($this->trassirEnabled) {
+        if ($this->trassirEnabled OR $this->wolfRecorderEnabled) {
             if (ubRouting::checkGet('chanspreview')) {
+
                 if (!$this->isChansProtected($userId)) {
                     $result .= wf_tag('h2', false) . __('Channels') . wf_tag('h2', true);
                     $result .= wf_tag('div', false);
@@ -1025,6 +1042,38 @@ class UbillingVisor {
                                     $result .= $eachChan['chan'];
                                     $result .= wf_tag('br');
                                     $result .= $this->renderChannelPlayer($streamUrl, '90%', true);
+
+                                    $result .= wf_tag('div', false, 'todaysig');
+                                    $result .= $channelEditControl;
+                                    $result .= wf_tag('div', true);
+
+                                    $result .= wf_CleanDiv();
+                                    $result .= wf_tag('div', true);
+                                }
+
+                                if ($chanDvrData['type'] == 'wolfrecorder') {
+                                    $apiUrl = $this->getWolfRecorderApiUrl($chanDvrData['id']);
+                                    $webUrl = ($chanDvrData['customurl']) ? $chanDvrData['customurl'] : $apiUrl;
+                                    $dvrGate = new WolfRecorder($apiUrl, $chanDvrData['apikey']);
+                                    $channelScreenShotReply = $dvrGate->channelsGetScreenshot($eachChan['chan']);
+                                    $channelScreenshot = 'skins/noimage.jpg';
+                                    if (isset($channelScreenShotReply['screenshot'])) {
+                                        if ($channelScreenShotReply['screenshot']) {
+                                            $channelScreenshot = $webUrl . $channelScreenShotReply['screenshot'];
+                                        }
+                                    }
+
+
+                                    $result .= wf_tag('div', false, 'whiteboard', 'style="width:' . $this->chanPreviewSize . ';"');
+                                    $chanEditLabel = web_edit_icon() . ' ' . __('Edit') . ' ' . __('channel');
+                                    if (cfr('VISOREDIT')) {
+                                        $channelEditControl = wf_Link(self::URL_ME . self::URL_CHANEDIT . $eachChan['chan'] . '&dvrid=' . $eachChan['dvrid'], $chanEditLabel);
+                                    } else {
+                                        $channelEditControl = '';
+                                    }
+                                    $result .= $eachChan['chan'];
+                                    $result .= wf_tag('br');
+                                    $result .= wf_img_sized($channelScreenshot, '', '90%');
 
                                     $result .= wf_tag('div', false, 'todaysig');
                                     $result .= $channelEditControl;
