@@ -195,6 +195,10 @@ if (@$us_config['VISOR_ENABLED']) {
                 $this->chanPreviewContainer = 'hls';
             }
 
+            if (strpos($streamUrl, 'pseudostream') !== false) {
+                $this->chanPreviewContainer = 'hls';
+            }
+
             if ($this->chanPreviewContainer == 'mjpeg') {
                 $result .= la_img_sized($streamUrl, '', $width);
             }

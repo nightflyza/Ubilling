@@ -3145,11 +3145,19 @@ class UbillingVisor {
                         $apiUrl = $this->getWolfRecorderApiUrl($dvrData['id']);
                         $webUrl = ($dvrData['customurl']) ? $dvrData['customurl'] : $apiUrl;
                         $wolfRecorder = new WolfRecorder($apiUrl, $dvrData['apikey']);
-                        $screenshotRaw = $wolfRecorder->channelsGetScreenshot($each['chan']);
-                        if (isset($screenshotRaw['screenshot'])) {
-                            if (!empty($screenshotRaw['screenshot'])) {
-                                $url = $webUrl . $screenshotRaw['screenshot'];
+                        if ($maxQual) {
+                            $liveStreamRaw = $wolfRecorder->channelsGetLiveStream($each['chan']);
+                            if (isset($liveStreamRaw['livestream'])) {
+                                $url = $webUrl . $liveStreamRaw['livestream'] . '&file=stream.m3u8';
                                 $urlTmp[$each['chan']] = $url;
+                            }
+                        } else {
+                            $screenshotRaw = $wolfRecorder->channelsGetScreenshot($each['chan']);
+                            if (isset($screenshotRaw['screenshot'])) {
+                                if (!empty($screenshotRaw['screenshot'])) {
+                                    $url = $webUrl . $screenshotRaw['screenshot'];
+                                    $urlTmp[$each['chan']] = $url;
+                                }
                             }
                         }
                     }

@@ -525,6 +525,18 @@ class WolfRecorder {
     }
 
     /**
+     * Returns some channel live preview pseudostream URL as error/livestream
+     * 
+     * @return array
+     */
+    public function channelsGetLiveStream($channelId) {
+        $requestData = array(
+            'channelid' => $channelId
+        );
+        return($this->executeRequest('channels', 'getlivestream', $requestData));
+    }
+
+    /**
      * Returns list of running recorders as cameraId=>PID
      * 
      * @return array
