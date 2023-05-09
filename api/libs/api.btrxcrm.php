@@ -558,7 +558,8 @@ class BtrxCRM {
                 'credit_day' => $creditExpire,
                 'ip' => $userIp,
                 'mac' => $userMac,
-                'onu_signal' => $onuSignal
+                'onu_signal' => $onuSignal,
+                'lat' => $latTimestamp
             );
         }
         return($result);
