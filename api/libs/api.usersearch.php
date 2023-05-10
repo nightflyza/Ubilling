@@ -27,6 +27,7 @@ function web_UserSearchFieldsForm() {
     }
     if ($altCfg['PON_ENABLED']) {
         $fieldinputs .= wf_RadioInput('searchtype', 'ONU MAC', 'onumac', true);
+        $fieldinputs .= wf_RadioInput('searchtype', 'ONU Serial', 'onuserial', true);
     }
     if ($altCfg['SWITCHES_EXTENDED']) {
         $fieldinputs .= wf_RadioInput('searchtype', 'Switch ID', 'swid', true);
@@ -129,6 +130,9 @@ function zb_UserSearchFields($query, $searchtype) {
         $mask = (isset($strictsearch[$searchtype]) ? '' : '%');
         $query = "SELECT `login` from `pononu` WHERE `mac` LIKE '" . $mask . $query . $mask . "'";
     }
+    if ($altercfg['PON_ENABLED'] AND $searchtype == 'onuserial') {
+        $mask = (isset($strictsearch[$searchtype]) ? '' : '%');
+        $query = "SELECT `login` from `pononu` WHERE `serial` LIKE '" . $mask . $query . $mask . "'";
     //mac-address search
     if ($searchtype == 'mac') {
         $allfoundlogins = array();
