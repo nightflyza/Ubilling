@@ -161,6 +161,8 @@ class PONGCOMEL5610 extends PONProto {
 //signal index preprocessing
         if ((!empty($sigIndex)) and ( !empty($macIndexProcessed))) {
             foreach ($sigIndex as $io => $eachsig) {
+                if (empty($eachsig) or !ispos($eachsig, '=')) { continue; }
+
                 $line = explode('=', $eachsig);
 
 //signal is present
