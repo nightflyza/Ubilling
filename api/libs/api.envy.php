@@ -13,6 +13,13 @@ class Envy {
     protected $billCfg = array();
 
     /**
+     * System alter.ini config stored as key=>value
+     *
+     * @var array
+     */
+    protected $altCfg = array();
+
+    /**
      * Contains all available devices models
      *
      * @var array
@@ -76,6 +83,13 @@ class Envy {
     protected $messages = '';
 
     /**
+     * Contains process manager instance
+     *
+     * @var object
+     */
+    protected $stardust = '';
+
+    /**
      * Some other required consts for routing etc
      */
     const URL_ME = '?module=envy';
@@ -90,6 +104,7 @@ class Envy {
     const ROUTE_ARCHIVE_AJ = 'ajarchive';
     const ROUTE_FILTER = 'devicefilter';
     const ROUTE_CLEANUP = 'cleanuparchive';
+    const ENVYPROC_PID = 'ENVYPROC_';
 
     /**
      *   ___ _ ____   ___   _ 
@@ -106,9 +121,11 @@ class Envy {
     public function __construct() {
         $this->initMessages();
         $this->loadConfigs();
+        $this->loadAlter();
         $this->loadDeviceModels();
         $this->loadSwitches();
         $this->initScrips();
+        $this->initStarDust();
         $this->loadScripts();
         $this->initDevices();
         $this->loadDevices();
@@ -126,6 +143,16 @@ class Envy {
     protected function loadConfigs() {
         global $ubillingConfig;
         $this->billCfg = $ubillingConfig->getBilling();
+        $this->ubConfig = $ubillingConfig;
+    }
+
+    /**
+     * Loads system alter.ini config into private data property
+     *
+     * @return void
+     */
+    protected function loadAlter() {
+        $this->altCfg = $this->ubConfig->getAlter();
     }
 
     /**
@@ -162,6 +189,52 @@ class Envy {
      */
     protected function initArchive() {
         $this->archive = new NyanORM('envydata');
+    }
+
+    /**
+     * Inits process manager
+     * 
+     * @return void
+     */
+    protected function initStarDust() {
+        $this->stardust = new StarDust();
+    }
+
+    /**
+     * Performs check of Switch envy process lock via DB. 
+     * Using this only for checks of possibility real collector runs.
+     * 
+     * @param int $swId
+     * 
+     * @return bool 
+     */
+    protected function isProcessLocked($swIP) {
+        $this->stardust->setProcess(self::ENVYPROC_PID . $swIP);
+        $result = $this->stardust->isRunning();
+        return($result);
+    }
+
+    /**
+     * Updates some Switch process stats
+     * 
+     * @param int $swIP Existing Switch IP
+     * @param int $processStartTime process start timestame
+     * @param int $processEndTime process end timestamp
+     * @param bool $finished process finished or not flag
+     * 
+     * @return void
+     */
+    protected function processStatsUpdate($swIP, $finished = false) {
+        //collector process locking and releasing of locks here
+        if ($finished) {
+            //release lock
+            $this->stardust->setProcess(self::ENVYPROC_PID . $swIP);
+            $this->stardust->stop();
+        } else {
+            //set lock for process of some DevID
+            $this->stardust->setProcess(self::ENVYPROC_PID . $swIP);
+            $this->stardust->start();
+        }
     }
 
     /**
@@ -865,7 +938,7 @@ class Envy {
      * 
      * @return void/string on error
      */
-    public function storeArchiveData($switchId, $data) {
+    protected function storeArchiveData($switchId, $data) {
         $result = '';
         $switchId = ubRouting::filters($switchId, 'int');
         if (!empty($switchId)) {
@@ -973,6 +1046,24 @@ class Envy {
     }
 
     /**
+     * Start process for get and store config data
+     * 
+     * @param int $devId
+     * 
+     * @return void
+     */
+    public function procStoreArchiveData($devId) {
+        if (!$this->isProcessLocked($this->allSwitches[$devId]['ip'])) {
+            //starting process
+            $this->processStatsUpdate($this->allSwitches[$devId]['ip'], false);
+            //polling device
+            $this->storeArchiveData($devId, $this->runDeviceScript($devId));
+            //finishing process
+            $this->processStatsUpdate($this->allSwitches[$devId]['ip'], true);
+        }
+    }
+
+    /**
      * Stores all available envy-devices configs into archive
      * 
      * @return void
@@ -980,10 +1071,27 @@ class Envy {
     public function storeArchiveAllDevices() {
         if (!empty($this->allScripts)) {
             if (!empty($this->allDevices)) {
-                foreach ($this->allDevices as $io => $each) {
-                    if ($each['active']) {
-                        $this->storeArchiveData($each['switchid'], $this->runDeviceScript($each['switchid']));
+                if (!$this->isProcessLocked('ALL')) {
+                    //starting envy process
+                    $this->processStatsUpdate('ALL', false);
+
+                    foreach ($this->allDevices as $io => $each) {
+                        if ($each['active']) {
+                            if (@!$this->altCfg['MULTI_ENVY_PROC']) {
+                                $this->procStoreArchiveData($each['switchid']);
+                            } else {
+                                //starting herd of envy here!
+                                $procTimeout = 0;
+                                if ($this->altCfg['MULTI_ENVY_PROC'] > 1) {
+                                    $procTimeout = ubRouting::filters($this->altCfg['MULTI_ENVY_PROC'], 'int');
+                                }
+                                $this->stardust->runBackgroundProcess('/bin/ubapi "multienvy&devid=' . $each['switchid'] . '"', $procTimeout);
+                            }
+                        }
                     }
+
+                    //finishing envy process
+                    $this->processStatsUpdate('ALL', true);
                 }
             }
         }

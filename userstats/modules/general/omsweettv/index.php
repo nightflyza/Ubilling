@@ -45,6 +45,16 @@ if (@$us_config['SWEETTV_ENABLED']) {
             }
         }
 
+        //device deletion by its ID
+        if (la_CheckGet(array('deletedeviceid'))) {
+            $delDeviceResult = $trinitytvFront->pushDeviceIdDeleteRequest($_GET['deletedeviceid']);
+            if (!$delDeviceResult) {
+                rcms_redirect($modUrl);
+            } else {
+                show_window(__('Sorry'), __($delDeviceResult));
+            }
+        }
+
         // manual add device
         if (la_CheckPost(array('device'))) {
             if ($trinitytvFront->canAddMoreDevices()) {

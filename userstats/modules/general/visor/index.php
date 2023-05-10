@@ -148,18 +148,20 @@ if (@$us_config['VISOR_ENABLED']) {
          */
         protected function getAllPaymentIds() {
             $result = array();
-            if ($this->userstatsCfg['OPENPAYZ_REALID']) {
-                $query = "SELECT * from `op_customers`";
-                $all = simple_queryall($query);
-                if (!empty($all)) {
-                    foreach ($all as $io => $each) {
-                        $result[$each['realid']] = $each['virtualid'];
+            if ($this->userstatsCfg['OPENPAYZ_ENABLED']) {
+                if ($this->userstatsCfg['OPENPAYZ_REALID']) {
+                    $query = "SELECT * from `op_customers`";
+                    $all = simple_queryall($query);
+                    if (!empty($all)) {
+                        foreach ($all as $io => $each) {
+                            $result[$each['realid']] = $each['virtualid'];
+                        }
                     }
-                }
-            } else {
-                if (!empty($this->allUsers)) {
-                    foreach ($this->allUsers as $eachLogin => $eachUserData) {
-                        $result[$eachLogin] = ip2int($eachUserData['IP']);
+                } else {
+                    if (!empty($this->allUsers)) {
+                        foreach ($this->allUsers as $eachLogin => $eachUserData) {
+                            $result[$eachLogin] = ip2int($eachUserData['IP']);
+                        }
                     }
                 }
             }
@@ -190,6 +192,10 @@ if (@$us_config['VISOR_ENABLED']) {
             // detect type based on URL
             $this->chanPreviewContainer = 'mjpeg';
             if (strpos($streamUrl, '/hls/') !== false) {
+                $this->chanPreviewContainer = 'hls';
+            }
+
+            if (strpos($streamUrl, 'pseudostream') !== false) {
                 $this->chanPreviewContainer = 'hls';
             }
 
@@ -314,7 +320,9 @@ if (@$us_config['VISOR_ENABLED']) {
                             $result .= __('Money for cameras will be charged from your primary account') . ' ' . la_Link('index.php', $primaryAddress) . ' ';
                             $result .= __('if no funds for further cameras functioning') . '. ';
                             $result .= __('Your primary account balance now is') . ' ' . $this->allUsers[$this->myLogin]['Cash'] . ' ';
-                            $result .= $currency . '. ' . __('You can recharge it with following Payment ID') . ': ' . $allPayIds[$this->myLogin];
+                            if ($this->userstatsCfg['OPENPAYZ_ENABLED']) {
+                                $result .= $currency . '. ' . __('You can recharge it with following Payment ID') . ': ' . $allPayIds[$this->myLogin];
+                            }
                             $result .= la_delimiter();
                         }
                         $result .= la_tag('h3') . __('Your cameras') . la_tag('h3', true);

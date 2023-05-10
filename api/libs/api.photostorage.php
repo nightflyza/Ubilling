@@ -117,7 +117,7 @@ class PhotoStorage {
      * @return void
      */
     protected function setScope($scope) {
-        $this->scope = mysql_real_escape_string($scope);
+        $this->scope = ubRouting::filters($scope, 'mres');
     }
 
     /**
@@ -128,7 +128,7 @@ class PhotoStorage {
      * @return void
      */
     protected function setItemid($itemid) {
-        $this->itemId = mysql_real_escape_string($itemid);
+        $this->itemId = ubRouting::filters($itemid, 'mres');
     }
 
     /**
@@ -285,8 +285,14 @@ class PhotoStorage {
         if ($this->scope == 'TASKMAN') {
             $result = wf_BackLink('?module=taskman&edittask=' . $this->itemId);
         }
+        
         if ($this->scope == 'UKVUSERPROFILE') {
             $result = wf_BackLink('?module=ukv&users=true&showuser=' . $this->itemId);
+        }
+        if ($this->scope == 'CFITEMS') {
+            $cleanUserLogin = explode(CustomFields::PHOTOSTORAGE_ITEMID_DELIMITER, $this->itemId);
+            $cleanUserLogin = $cleanUserLogin[0];
+            $result = wf_BackLink(CustomFields::URL_EDIT_BACK . $cleanUserLogin);
         }
         return ($result);
     }

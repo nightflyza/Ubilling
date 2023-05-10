@@ -364,7 +364,18 @@ class TrinityTvFrontend {
     public function pushDeviceDeleteRequest($mac) {
         $action = $this->apiUrl . '?module=remoteapi&key=' . $this->apiKey . '&action=trinitytvcontrol&param=deldevice&userlogin=' . $this->userLogin . '&mac=' . $mac;
         @$result = file_get_contents($action);
+        return ($result);
+    }
 
+    /**
+     * Runs device deletion by routine
+     *
+     * @param $mac
+     * @return bool|string
+     */
+    public function pushDeviceIdDeleteRequest($deviceId) {
+        $action = $this->apiUrl . '?module=remoteapi&key=' . $this->apiKey . '&action=trinitytvcontrol&param=deldeviceid&userlogin=' . $this->userLogin . '&devid=' . $deviceId;
+        @$result = file_get_contents($action);
         return ($result);
     }
 
@@ -512,6 +523,9 @@ class TrinityTvFrontend {
                 $noMoreDevs = true;
             }
 
+            $deletionAlertText = __('Delete') . '? ' . __('Are you sure') . '?';
+            $deletionCancelUrl = $this->urlMe;
+
             $cells = la_TableCell(__('MAC') . ' ' . __('Address'));
             $cells .= la_TableCell(__('Date'));
             $cells .= la_TableCell(__('Actions'));
@@ -519,11 +533,20 @@ class TrinityTvFrontend {
 
             if (!empty($devices)) {
                 foreach ($devices as $device) {
-
-                    $cells = la_TableCell($device['mac']);
+                    $deviceLabel = (!empty($device['mac'])) ? $device['mac'] : '-';
+                    $cells = la_TableCell($deviceLabel);
                     $cells .= la_TableCell($device['created_at']);
+                    if (!empty($device['mac'])) {
+                        $deviceControls = la_JSAlert($this->urlMe . '&deletedevice=' . $device['mac'], __('Delete'), __('Are you sure') . '?');
 
-                    $deviceControls = la_JSAlert($this->urlMe . '&deletedevice=' . $device['mac'], __('Delete'), __('Are you sure') . '?');
+                        $deletionUrl = $this->urlMe . '&deletedevice=' . $device['mac'];
+                        $deviceControls = la_ConfirmDialog($deletionUrl, __('Delete'), $deletionAlertText, '', $deletionCancelUrl);
+                    } else {
+                        //device by ID deletion workaround
+                        $deviceControls = la_JSAlert($this->urlMe . '&deletedeviceid=' . $device['id'], __('Delete'), __('Are you sure') . '?');
+                        $deletionUrl = $this->urlMe . '&deletedeviceid=' . $device['id'];
+                        $deviceControls = la_ConfirmDialog($deletionUrl, __('Delete'), $deletionAlertText, '', $deletionCancelUrl);
+                    }
                     $cells .= la_TableCell($deviceControls);
 
                     $rows .= la_TableRow($cells, 'row3');

@@ -143,6 +143,12 @@ class ProfileDocuments {
             @$this->userAgentData['AGENTJURADDR'] = $rawData['juraddr'];
             @$this->userAgentData['AGENTPHISADDR'] = $rawData['phisaddr'];
             @$this->userAgentData['AGENTPHONE'] = $rawData['phone'];
+            @$this->userAgentData['AGENTNAMEABBR'] = $rawData['agnameabbr'];
+            @$this->userAgentData['AGENTSIGNATORY'] = $rawData['agsignatory'];
+            @$this->userAgentData['AGENTSIGNATORY2'] = $rawData['agsignatory2'];
+            @$this->userAgentData['AGENTBASIS'] = $rawData['agbasis'];
+            @$this->userAgentData['AGENTMAIL'] = $rawData['agmail'];
+            @$this->userAgentData['AGENTSITE'] = $rawData['siteurl'];
         }
     }
 
@@ -177,30 +183,50 @@ class ProfileDocuments {
     }
 
     /**
+     * Transforms and localizes date
+     * 
+     * @param string $date
+     * 
+     * @return string
+     */
+    protected function transformDateLit($date) {
+        $result = '';
+        if (!empty($date)) {
+            $dateF = date("d F Y", strtotime($date));
+            $result = rcms_date_localise($dateF);
+        } else {
+            $result = __('None');
+        }
+        return($result);
+    }
+
+    /**
      * Returns contract dates data
      * 
      * @return array
      */
     protected function getContractDatesAll() {
+        $result = array();
         $query = "SELECT `login`,`contract` from `contracts`";
         $allcontracts = simple_queryall($query);
-        $queryDates = "SELECT `contract`,`date` from `contractdates`";
-        $alldates = simple_queryall($queryDates);
-        $result = array();
-        $dates = array();
-        if (!empty($alldates)) {
-            foreach ($alldates as $ia => $eachdate) {
-                $dates[$eachdate['contract']] = $eachdate['date'];
-            }
-        }
+
+        $contractDates = new ContractDates();
+        $dates = $contractDates->getAllDatesFull();
+
 
         if (!empty($allcontracts)) {
             foreach ($allcontracts as $io => $eachcontract) {
                 $result[$eachcontract['login']]['contractnum'] = $eachcontract['contract'];
                 if (isset($dates[$eachcontract['contract']])) {
-                    $result[$eachcontract['login']]['contractdate'] = $dates[$eachcontract['contract']];
+                    $result[$eachcontract['login']]['contractdate'] = $dates[$eachcontract['contract']]['date'];
+                    $result[$eachcontract['login']]['contractdatelit'] = $this->transformDateLit($dates[$eachcontract['contract']]['date']);
+                    $result[$eachcontract['login']]['contractdatefromlit'] = $this->transformDateLit($dates[$eachcontract['contract']]['from']);
+                    $result[$eachcontract['login']]['contractdatetilllit'] = $this->transformDateLit($dates[$eachcontract['contract']]['till']);
                 } else {
                     $result[$eachcontract['login']]['contractdate'] = '1970-01-01';
+                    $result[$eachcontract['login']]['contractdatelit'] = __('None');
+                    $result[$eachcontract['login']]['contractdatefromlit'] = __('None');
+                    $result[$eachcontract['login']]['contractdatetilllit'] = __('None');
                 }
             }
         }
@@ -226,15 +252,34 @@ class ProfileDocuments {
         $alladdress = zb_AddressGetFulladdresslist();
         $allemails = zb_UserGetAllEmails();
         $allnasdata = zb_NasGetAllData();
-        $allcfdata = cf_FieldsGetAll();
+        $cf = new CustomFields();
+        $allRawCfData = $cf->getAllFieldsData();
+        $allCfData = array();
+        $allCondets = array();
+        $morph = new UBMorph();
+
         $allpdata = zb_UserPassportDataGetAll();
         $curdate = curdate();
         $lastDocId = $this->getDocumentLastId();
         $newDocId = $lastDocId + 1;
 
 
-        if ($this->altcfg['OPENPAYZ_REALID']) {
-            $allopcustomers = zb_TemplateGetAllOPCustomers();
+        if ($this->altcfg['OPENPAYZ_SUPPORT']) {
+            if ($this->altcfg['OPENPAYZ_REALID']) {
+                $allopcustomers = zb_TemplateGetAllOPCustomers();
+            }
+        }
+
+        if ($this->altcfg['CONDET_ENABLED']) {
+            $conDet = new ConnectionDetails();
+            $allCondets = $conDet->getAllData();
+        }
+
+        //CF data preprocessing
+        if (!empty($allRawCfData)) {
+            foreach ($allRawCfData as $io => $each) {
+                $allCfData[$each['login']][$each['typeid']] = $each['content'];
+            }
         }
 
         if (!empty($alluserdata)) {
@@ -251,6 +296,9 @@ class ProfileDocuments {
                 $userdata[$eachuser['login']]['AO'] = $eachuser['AlwaysOnline'];
                 @$userdata[$eachuser['login']]['CONTRACT'] = $allcontracts[$eachuser['login']];
                 @$userdata[$eachuser['login']]['CONTRACTDATE'] = $contractDates[$eachuser['login']]['contractdate'];
+                @$userdata[$eachuser['login']]['CONTRACTDATELIT'] = $contractDates[$eachuser['login']]['contractdatelit'];
+                @$userdata[$eachuser['login']]['CONTRACTDATEFROMLIT'] = $contractDates[$eachuser['login']]['contractdatefromlit'];
+                @$userdata[$eachuser['login']]['CONTRACTDATETILLLIT'] = $contractDates[$eachuser['login']]['contractdatetilllit'];
                 @$userdata[$eachuser['login']]['REALNAME'] = $allrealnames[$eachuser['login']];
                 @$userdata[$eachuser['login']]['ADDRESS'] = $alladdress[$eachuser['login']];
                 @$userdata[$eachuser['login']]['EMAIL'] = $allemails[$eachuser['login']];
@@ -301,9 +349,31 @@ class ProfileDocuments {
                 @$userdata[$eachuser['login']]['PAPT'] = $allpdata[$eachuser['login']]['papt'];
                 @$userdata[$eachuser['login']]['PINN'] = $allpdata[$eachuser['login']]['pinn'];
 
+                //signup details
+                @$userdata[$eachuser['login']]['CONDETPRICE'] = $allCondets[$eachuser['login']]['price'];
+                @$userdata[$eachuser['login']]['CONDETPERIOD'] = $allCondets[$eachuser['login']]['term'];
+                @$userdata[$eachuser['login']]['CONDETPRICELIT'] = $morph->sum2str($allCondets[$eachuser['login']]['price']);
+                @$userdata[$eachuser['login']]['TARIFFPRICELIT'] = $morph->sum2str($tariffprices[$eachuser['Tariff']]);
+
                 //other document data
-                @$userdata[$eachuser['login']]['CURDATE'] = $curdate;
                 @$userdata[$eachuser['login']]['DOCID'] = $newDocId;
+                @$userdata[$eachuser['login']]['CURDATE'] = $curdate;
+                @$userdata[$eachuser['login']]['CURDATELIT'] = $this->transformDateLit($curdate);
+                @$userdata[$eachuser['login']]['FIRSTDAYMONTH'] = $this->transformDateLit(date("Y-m-01"));
+                @$userdata[$eachuser['login']]['FIRSTDAYNEXTMONTH'] = $this->transformDateLit(date("Y-m-01", strtotime('first day of +1 month')));
+                @$userdata[$eachuser['login']]['LASTDAYMONTH'] = $this->transformDateLit(date("Y-m-t"));
+                @$userdata[$eachuser['login']]['LASTDAYNEXTMONTH'] = $this->transformDateLit(date("Y-m-t", strtotime('first day of +1 month')));
+
+
+
+                //custom profile fields
+                if (isset($allCfData[$eachuser['login']])) {
+                    if (!empty($allCfData[$eachuser['login']])) {
+                        foreach ($allCfData[$eachuser['login']] as $eachFieldTypeId => $eachFieldContent) {
+                            @$userdata[$eachuser['login']]['CFIELD:' . $eachFieldTypeId] = $eachFieldContent;
+                        }
+                    }
+                }
             }
         }
 
@@ -582,6 +652,11 @@ class ProfileDocuments {
                     $inputs .= wf_TextInput('corpndstaxnum', __('NDS number'), @$corpData['ndstaxnum'], true, '30');
                     $inputs .= wf_TextInput('corpinncode', __('INN code'), @$corpData['inncode'], true, '30');
                     $inputs .= wf_TextInput('corptaxtype', __('Tax type'), @$corpData['taxtype'], true, '30');
+                    $inputs .= wf_TextInput('corpnameabbr', __('Short name'), @$corpData['corpnameabbr'], true, '30');
+                    $inputs .= wf_TextInput('corpsignatory', __('Signatory'), @$corpData['corpsignatory'], true, '30');
+                    $inputs .= wf_TextInput('corpsignatory2', __('Signatory') . ' 2', @$corpData['corpsignatory2'], true, '30');
+                    $inputs .= wf_TextInput('corpbasis', __('Basis'), @$corpData['corpbasis'], true, '30');
+                    $inputs .= wf_TextInput('corpemail', __('Email'), @$corpData['corpemail'], true, '30');
                     $inputs .= wf_TextInput('corpnotes', __('Notes'), @$corpData['notes'], true, '30');
                 } else {
                     $inputs .= __('Private user');
@@ -637,6 +712,11 @@ class ProfileDocuments {
                 @$this->customFields['CORPINNCODE'] = $_POST['corpinncode'];
                 @$this->customFields['CORPTAXTYPE'] = $_POST['corptaxtype'];
                 @$this->customFields['CORPNOTES'] = $_POST['corpnotes'];
+                @$this->customFields['CORPNAMEABBR'] = $_POST['corpnameabbr'];
+                @$this->customFields['CORPSIGNATORY'] = $_POST['corpsignatory'];
+                @$this->customFields['CORPSIGNATORY2'] = $_POST['corpsignatory2'];
+                @$this->customFields['CORPBASIS'] = $_POST['corpbasis'];
+                @$this->customFields['CORPEMAILDOCS'] = $_POST['corpemail'];
             }
 
             if ($this->altcfg['NETWORKS_EXT']) {
@@ -952,5 +1032,3 @@ class ProfileDocuments {
     }
 
 }
-
-?>

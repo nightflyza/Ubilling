@@ -400,6 +400,16 @@ if (cfr('WAREHOUSE')) {
                     }
                 }
 
+                if (ubRouting::checkGet('contractorincomes')) {
+                    if (cfr('WAREHOUSEREPORTS')) {
+                        show_window(__('Income') . ' ' . __('from') . ' ' . __('Contractor'), $warehouse->renderContractorIncomesReport());
+                        $avidity_m = $avidity['M']['FALL'];
+                        $warehouse->$avidity_m($warehouse::URL_ME . '&' . $warehouse::URL_REPORTS . '&' . 'totalremains=true');
+                    } else {
+                        show_error(__('Access denied'));
+                    }
+                }
+
                 if (ubRouting::checkGet('returns')) {
                     if (cfr('WAREHOUSEREPORTS')) {
                         if (ubRouting::checkGet('ajreturnslist')) {

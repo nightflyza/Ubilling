@@ -49,11 +49,7 @@ if (ubRouting::get('action') == 'swpoll') {
                     file_put_contents($swpollLogPath, $swpollLogData, FILE_APPEND);
                 } else {
                     //For the horde!
-                    $pipes = array();
-                    proc_close(proc_open('/bin/ubapi "horde&devid=' . $eachDevice['id'] . '"> /dev/null 2>/dev/null &', array(), $pipes));
-                    if ($hordeTimeout) {
-                        sleep($hordeTimeout);
-                    }
+                    $switchPollingProcess->runBackgroundProcess('/bin/ubapi "horde&devid=' . $eachDevice['id'] . '"', $hordeTimeout);
                 }
             }
 

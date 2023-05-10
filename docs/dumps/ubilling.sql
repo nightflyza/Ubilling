@@ -3160,3 +3160,52 @@ CREATE TABLE IF NOT EXISTS `wh_salesitems` (
   PRIMARY KEY (`id`),
   KEY `reportid` (`reportid`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
+
+-- 1.3.4 update
+
+CREATE TABLE IF NOT EXISTS `discounts` (
+  `id` INT(11) NOT NULL AUTO_INCREMENT,
+  `login` VARCHAR(64) NOT NULL,
+  `percent` DOUBLE DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `login` (`login`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
+
+CREATE TABLE IF NOT EXISTS `fees` (
+  `id` INT(11) NOT NULL AUTO_INCREMENT,
+  `hash` VARCHAR(42) NOT NULL,
+  `login` VARCHAR(64) NOT NULL,
+  `date` datetime NOT NULL,
+  `admin` VARCHAR(64) DEFAULT NULL,
+  `from` DOUBLE DEFAULT NULL,
+  `to` DOUBLE DEFAULT NULL,
+  `summ` DOUBLE DEFAULT NULL,
+  `note` VARCHAR(200) DEFAULT NULL,
+  `cashtype` INT(11) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `login` (`login`),  
+  KEY `date` (`date`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
+
+-- 1.3.5 update
+
+ALTER TABLE `condet` ADD `term` INT NULL AFTER `price`;
+
+ALTER TABLE `cfitems` ADD INDEX(`login`);
+
+ALTER TABLE `contractdates` ADD `from` DATE NULL AFTER `date`, ADD `till` DATE NULL AFTER `from`; 
+
+ALTER TABLE `contrahens` ADD `agnameabbr` VARCHAR(255) NULL AFTER `contrname`, ADD `agsignatory` VARCHAR(255) NULL AFTER `agnameabbr`, ADD `agsignatory2` VARCHAR(255) NULL AFTER `agsignatory`, ADD `agbasis` VARCHAR(255) NULL AFTER `agsignatory2`, ADD `agmail` VARCHAR(100) NULL AFTER `agbasis`, ADD `siteurl` VARCHAR(255) NULL AFTER `agmail`; 
+
+ALTER TABLE `corp_data` ADD `corpnameabbr` VARCHAR(255) NULL AFTER `notes`, ADD `corpsignatory` VARCHAR(255) NULL AFTER `corpnameabbr`, ADD `corpsignatory2` VARCHAR(255) NULL AFTER `corpsignatory`, ADD `corpbasis` VARCHAR(255) NULL AFTER `corpsignatory2`, ADD `corpemail` VARCHAR(100) NULL AFTER `corpbasis`;
+
+-- 1.3.7 update
+
+ALTER TABLE `exhorse` ADD `a_outtotalcalls` INT NULL DEFAULT NULL;
+ALTER TABLE `exhorse` ADD `a_outtotalanswered` INT NULL DEFAULT NULL;
+ALTER TABLE `exhorse` ADD `a_outtotalcallsduration` INT NULL DEFAULT NULL;
+ALTER TABLE `exhorse` ADD `a_outaveragecallduration` INT NULL DEFAULT NULL;
+
+-- 1.3.8 update
+
+ALTER TABLE `visor_dvrs` ADD `apiurl` VARCHAR(255) NULL DEFAULT NULL AFTER `password`; 

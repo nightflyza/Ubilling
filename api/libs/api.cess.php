@@ -13,30 +13,60 @@
  * @param string $phisaddr
  * @param string $phone
  * @param string $contrname
+ * @param string $agnameabbr
+ * @param string $agsignatory
+ * @param string $agsignatory2
+ * @param string $agbasis
+ * @param string $agmail
+ * @param string $siteurl
  * 
  * @return void
  */
-function zb_ContrAhentAdd($bankacc, $bankname, $bankcode, $edrpo, $ipn, $licensenum, $juraddr, $phisaddr, $phone, $contrname) {
-    $bankacc = mysql_real_escape_string($bankacc);
-    $bankname = mysql_real_escape_string($bankname);
-    $bankcode = mysql_real_escape_string($bankcode);
-    $edrpo = mysql_real_escape_string($edrpo);
-    $ipn = mysql_real_escape_string($ipn);
-    $licensenum = mysql_real_escape_string($licensenum);
-    $juraddr = mysql_real_escape_string($juraddr);
-    $phisaddr = mysql_real_escape_string($phisaddr);
-    $phone = mysql_real_escape_string($phone);
-    $contrname = mysql_real_escape_string($contrname);
-    $query = "INSERT INTO `contrahens` (`id` ,`bankacc` ,`bankname` , `bankcode` , `edrpo` , `ipn` , `licensenum` , `juraddr` , `phisaddr` , `phone` ,`contrname`)
-        VALUES (NULL , '" . $bankacc . "', '" . $bankname . "', '" . $bankcode . "', '" . $edrpo . "', '" . $ipn . "', '" . $licensenum . "','" . $juraddr . "', '" . $phisaddr . "','" . $phone . "','" . $contrname . "');";
-    nr_query($query);
-    log_register("AGENT CREATE `" . $contrname . "`");
+function zb_ContrAhentAdd($bankacc, $bankname, $bankcode, $edrpo, $ipn, $licensenum, $juraddr, $phisaddr, $phone, $contrname, $agnameabbr, $agsignatory, $agsignatory2, $agbasis, $agmail, $siteurl) {
+    $bankacc = ubRouting::filters($bankacc, 'mres');
+    $bankname = ubRouting::filters($bankname, 'mres');
+    $bankcode = ubRouting::filters($bankcode, 'mres');
+    $edrpo = ubRouting::filters($edrpo, 'mres');
+    $ipn = ubRouting::filters($ipn, 'mres');
+    $licensenum = ubRouting::filters($licensenum, 'mres');
+    $juraddr = ubRouting::filters($juraddr, 'mres');
+    $phisaddr = ubRouting::filters($phisaddr, 'mres');
+    $phone = ubRouting::filters($phone, 'mres');
+    $contrnameF = ubRouting::filters($contrname, 'mres');
+    $agnameabbr = ubRouting::filters($agnameabbr, 'mres');
+    $agsignatory = ubRouting::filters($agsignatory, 'mres');
+    $agsignatory2 = ubRouting::filters($agsignatory2, 'mres');
+    $agbasis = ubRouting::filters($agbasis, 'mres');
+    $agmail = ubRouting::filters($agmail, 'mres');
+    $siteurl = ubRouting::filters($siteurl, 'mres');
+
+    $agentsDb = new NyanORM('contrahens');
+    $agentsDb->data('bankacc', $bankacc);
+    $agentsDb->data('bankname', $bankname);
+    $agentsDb->data('bankcode', $bankcode);
+    $agentsDb->data('edrpo', $edrpo);
+    $agentsDb->data('ipn', $ipn);
+    $agentsDb->data('licensenum', $licensenum);
+    $agentsDb->data('juraddr', $juraddr);
+    $agentsDb->data('phisaddr', $phisaddr);
+    $agentsDb->data('phone', $phone);
+    $agentsDb->data('contrname', $contrnameF);
+    $agentsDb->data('agnameabbr', $agnameabbr);
+    $agentsDb->data('agsignatory', $agsignatory);
+    $agentsDb->data('agsignatory2', $agsignatory2);
+    $agentsDb->data('agbasis', $agbasis);
+    $agentsDb->data('agmail', $agmail);
+    $agentsDb->data('siteurl', $siteurl);
+    $agentsDb->create();
+
+    $newId = $agentsDb->getLastId();
+
+    log_register('AGENT CREATE `' . $contrname . '` AS [' . $newId . ']');
 }
 
 /**
  * Changes existing contrahent record in database
  * 
- * @param int $ahentid
  * @param string $bankacc
  * @param string $bankname
  * @param string $bankcode
@@ -47,35 +77,55 @@ function zb_ContrAhentAdd($bankacc, $bankname, $bankcode, $edrpo, $ipn, $license
  * @param string $phisaddr
  * @param string $phone
  * @param string $contrname
+ * @param string $agnameabbr
+ * @param string $agsignatory
+ * @param string $agsignatory2
+ * @param string $agbasis
+ * @param string $agmail
+ * @param string $siteurl
  * 
  * @return void
  */
-function zb_ContrAhentChange($ahentid, $bankacc, $bankname, $bankcode, $edrpo, $ipn, $licensenum, $juraddr, $phisaddr, $phone, $contrname) {
-    $ahentid = vf($ahentid, 3);
-    $bankacc = mysql_real_escape_string($bankacc);
-    $bankname = mysql_real_escape_string($bankname);
-    $bankcode = mysql_real_escape_string($bankcode);
-    $edrpo = mysql_real_escape_string($edrpo);
-    $ipn = mysql_real_escape_string($ipn);
-    $licensenum = mysql_real_escape_string($licensenum);
-    $juraddr = mysql_real_escape_string($juraddr);
-    $phisaddr = mysql_real_escape_string($phisaddr);
-    $phone = mysql_real_escape_string($phone);
-    $contrname = mysql_real_escape_string($contrname);
-    $query = "UPDATE `contrahens` SET 
-        `bankacc` = '" . $bankacc . "',
-        `bankname` = '" . $bankname . "',
-        `bankcode` = '" . $bankcode . "',
-        `edrpo` = '" . $edrpo . "',
-        `ipn` = '" . $ipn . "',
-        `licensenum` = '" . $licensenum . "',
-        `juraddr` = '" . $juraddr . "',
-        `phisaddr` = '" . $phisaddr . "',
-        `phone` = '" . $phone . "',
-        `contrname` = '" . $contrname . "'
-          WHERE `contrahens`.`id` =" . $ahentid . " LIMIT 1;";
-    nr_query($query);
-    log_register("AGENT CHANGE `" . $contrname . "`");
+function zb_ContrAhentChange($ahentid, $bankacc, $bankname, $bankcode, $edrpo, $ipn, $licensenum, $juraddr, $phisaddr, $phone, $contrname, $agnameabbr, $agsignatory, $agsignatory2, $agbasis, $agmail, $siteurl) {
+    $ahentid = ubRouting::filters($ahentid, 'int');
+    $bankacc = ubRouting::filters($bankacc, 'mres');
+    $bankname = ubRouting::filters($bankname, 'mres');
+    $bankcode = ubRouting::filters($bankcode, 'mres');
+    $edrpo = ubRouting::filters($edrpo, 'mres');
+    $ipn = ubRouting::filters($ipn, 'mres');
+    $licensenum = ubRouting::filters($licensenum, 'mres');
+    $juraddr = ubRouting::filters($juraddr, 'mres');
+    $phisaddr = ubRouting::filters($phisaddr, 'mres');
+    $phone = ubRouting::filters($phone, 'mres');
+    $contrnameF = ubRouting::filters($contrname, 'mres');
+    $agnameabbr = ubRouting::filters($agnameabbr, 'mres');
+    $agsignatory = ubRouting::filters($agsignatory, 'mres');
+    $agsignatory2 = ubRouting::filters($agsignatory2, 'mres');
+    $agbasis = ubRouting::filters($agbasis, 'mres');
+    $agmail = ubRouting::filters($agmail, 'mres');
+    $siteurl = ubRouting::filters($siteurl, 'mres');
+
+    $agentsDb = new NyanORM('contrahens');
+    $agentsDb->data('bankacc', $bankacc);
+    $agentsDb->data('bankname', $bankname);
+    $agentsDb->data('bankcode', $bankcode);
+    $agentsDb->data('edrpo', $edrpo);
+    $agentsDb->data('ipn', $ipn);
+    $agentsDb->data('licensenum', $licensenum);
+    $agentsDb->data('juraddr', $juraddr);
+    $agentsDb->data('phisaddr', $phisaddr);
+    $agentsDb->data('phone', $phone);
+    $agentsDb->data('contrname', $contrnameF);
+    $agentsDb->data('agnameabbr', $agnameabbr);
+    $agentsDb->data('agsignatory', $agsignatory);
+    $agentsDb->data('agsignatory2', $agsignatory2);
+    $agentsDb->data('agbasis', $agbasis);
+    $agentsDb->data('agmail', $agmail);
+    $agentsDb->data('siteurl', $siteurl);
+    $agentsDb->where('id', '=', $ahentid);
+    $agentsDb->save();
+
+    log_register('AGENT CHANGE `' . $contrname . '` AS [' . $ahentid . ']');
 }
 
 /**
@@ -86,10 +136,13 @@ function zb_ContrAhentChange($ahentid, $bankacc, $bankname, $bankcode, $edrpo, $
  * @return void
  */
 function zb_ContrAhentDelete($id) {
-    $id = vf($id, 3);
-    $query = "DELETE from `contrahens` where `id`='" . $id . "'";
-    nr_query($query);
-    log_register("AGENT DELETE [" . $id . "]");
+    $id = ubRouting::filters($id, 'int');
+
+    $agentsDb = new NyanORM('contrahens');
+    $agentsDb->where('id', '=', $id);
+    $agentsDb->delete();
+
+    log_register('AGENT DELETE [' . $id . ']');
 }
 
 /**
@@ -140,6 +193,7 @@ function zb_ContrAhentShow() {
         'Phone',
         'Contrahent name',
     );
+
     $keys = array(
         'id',
         'bankacc',
@@ -156,9 +210,9 @@ function zb_ContrAhentShow() {
 
     if ($ubillingConfig->getAlterParam('AGENTS_EXTINFO_ON')) {
         $extactbutton = wf_img('skins/icons/articlepost.png', __('Extended info'));
-        $result = web_GridEditor($titles, $keys, $allcontr, 'contrahens', true, true, '', 'extinfo', $extactbutton);
+        $result = web_GridEditor($titles, $keys, $allcontr, 'contrahens', true, true, '', 'extinfo', $extactbutton, true);
     } else {
-        $result = web_GridEditor($titles, $keys, $allcontr, 'contrahens', true, true);
+        $result = web_GridEditor($titles, $keys, $allcontr, 'contrahens', true, true, '', '', '', true);
     }
 
     return($result);
@@ -173,16 +227,22 @@ function zb_ContrAhentAddForm() {
     $sup = wf_tag('sup') . '*' . wf_tag('sup', true);
 
     $inputs = '';
-    $inputs .= wf_TextInput('newcontrname', __('Contrahent name') . $sup, '', true);
-    $inputs .= wf_TextInput('newbankacc', __('Bank account'), '', true);
-    $inputs .= wf_TextInput('newbankname', __('Bank name'), '', true);
-    $inputs .= wf_TextInput('newbankcode', __('Bank code'), '', true);
-    $inputs .= wf_TextInput('newedrpo', __('EDRPOU'), '', true);
-    $inputs .= wf_TextInput('newipn', __('IPN'), '', true);
-    $inputs .= wf_TextInput('newlicensenum', __('License number'), '', true);
-    $inputs .= wf_TextInput('newjuraddr', __('Juridical address'), '', true);
-    $inputs .= wf_TextInput('newphisaddr', __('Phisical address'), '', true);
-    $inputs .= wf_TextInput('newphone', __('Phone'), '', true);
+    $inputs .= wf_TextInput('newcontrname', __('Contrahent name') . $sup, '', true, 20);
+    $inputs .= wf_TextInput('newbankacc', __('Bank account'), '', true, 20);
+    $inputs .= wf_TextInput('newbankname', __('Bank name'), '', true, 20);
+    $inputs .= wf_TextInput('newbankcode', __('Bank code'), '', true, 20);
+    $inputs .= wf_TextInput('newedrpo', __('EDRPOU'), '', true, 20);
+    $inputs .= wf_TextInput('newipn', __('IPN'), '', true, 20);
+    $inputs .= wf_TextInput('newlicensenum', __('License number'), '', true, 20);
+    $inputs .= wf_TextInput('newjuraddr', __('Juridical address'), '', true, 20);
+    $inputs .= wf_TextInput('newphisaddr', __('Phisical address'), '', true, 20);
+    $inputs .= wf_TextInput('newphone', __('Phone'), '', true, 20);
+    $inputs .= wf_TextInput('newagnameabbr', __('Short name'), '', true, 20);
+    $inputs .= wf_TextInput('newagsignatory', __('Signatory'), '', true, 20);
+    $inputs .= wf_TextInput('newagsignatory2', __('Signatory') . ' 2', '', true, 20);
+    $inputs .= wf_TextInput('newagbasis', __('Basis'), '', true, 20);
+    $inputs .= wf_TextInput('newagmail', __('Mail'), '', true, 20, 'email');
+    $inputs .= wf_TextInput('newsiteurl', __('Site URL'), '', true, 20, 'url');
     $inputs .= wf_Submit(__('Create'));
 
     $result = wf_Form("", 'POST', $inputs, 'glamour');
@@ -213,6 +273,12 @@ function zb_ContrAhentEditForm($ahentid) {
     $inputs .= wf_TextInput('changejuraddr', __('Juridical address'), $cdata['juraddr'], true);
     $inputs .= wf_TextInput('changephisaddr', __('Phisical address'), $cdata['phisaddr'], true);
     $inputs .= wf_TextInput('changephone', __('Phone'), $cdata['phone'], true);
+    $inputs .= wf_TextInput('changeagnameabbr', __('Short name'), $cdata['agnameabbr'], true, 20);
+    $inputs .= wf_TextInput('changeagsignatory', __('Signatory'), $cdata['agsignatory'], true, 20);
+    $inputs .= wf_TextInput('changeagsignatory2', __('Signatory') . ' 2', $cdata['agsignatory2'], true, 20);
+    $inputs .= wf_TextInput('changeagbasis', __('Basis'), $cdata['agbasis'], true, 20);
+    $inputs .= wf_TextInput('changeagmail', __('Mail'), $cdata['agmail'], true, 20, 'email');
+    $inputs .= wf_TextInput('changesiteurl', __('Site URL'), $cdata['siteurl'], true, 20, 'url');
 
     $inputs .= wf_Submit(__('Save'));
     $result = wf_Form("", 'POST', $inputs, 'glamour');

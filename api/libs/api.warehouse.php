@@ -1877,9 +1877,12 @@ class Warehouse {
             $reportControls .= wf_Link(self::URL_ME . '&' . self::URL_REPORTS . '&storagesremains=true', wf_img_sized('skins/icon_print.png') . ' ' . __('The remains in the warehouse storage'), false, 'ubButton');
             $reportControls .= wf_Link(self::URL_ME . '&' . self::URL_REPORTS . '&itemtypeoutcomes=true', wf_img_sized('skins/sales.png') . ' ' . __('Sales'), false, 'ubButton');
             $reportControls .= wf_Link(self::URL_ME . '&' . self::URL_REPORTS . '&purchases=true', wf_img_sized('skins/shopping_cart_small.png') . ' ' . __('Purchases'), false, 'ubButton');
+            $reportControls .= wf_Link(self::URL_ME . '&' . self::URL_REPORTS . '&contractorincomes=true', wf_img_sized('skins/whcontractor_icon.png') . ' ' . __('Contractor'), false, 'ubButton');
+            $reportControls .= wf_Link(WHSales::URL_ME, wf_img_sized('skins/salesreportsmall.png') . ' ' . __('Sales report'), false, 'ubButton');
             if (@$this->altCfg['WAREHOUSE_RETURNS_ENABLED']) {
                 $reportControls .= wf_Link(self::URL_ME . '&' . self::URL_REPORTS . '&returns=true', wf_img_sized('skins/return.png') . ' ' . __('Returns'), false, 'ubButton');
             }
+
             $result .= wf_modalAuto(wf_img('skins/ukv/report.png') . ' ' . __('Reports'), __('Reports'), $reportControls, 'ubButton');
         }
 
@@ -1938,9 +1941,12 @@ class Warehouse {
         if (wf_CheckPost(array('edititemtypeid', 'edititemtypename', 'edititemtypecetegoryid', 'edititemtypeunit'))) {
             $itemtypeId = vf($_POST['edititemtypeid']);
             if (isset($this->allItemTypes[$itemtypeId])) {
+                $nameF = $_POST['edititemtypename'];
+                $nameF = str_replace('"', '``', $nameF);
+                $nameF = str_replace("'", '`', $nameF);
                 $where = " WHERE `id`='" . $itemtypeId . "'";
                 simple_update_field('wh_itemtypes', 'categoryid', $_POST['edititemtypecetegoryid'], $where);
-                simple_update_field('wh_itemtypes', 'name', $_POST['edititemtypename'], $where);
+                simple_update_field('wh_itemtypes', 'name', $nameF, $where);
                 simple_update_field('wh_itemtypes', 'unit', $_POST['edititemtypeunit'], $where);
                 if (isset($_POST['edititemtypereserve'])) {
                     $unit = str_replace(',', '.', $_POST['edititemtypereserve']);
@@ -1967,6 +1973,8 @@ class Warehouse {
         $categoryid = vf($categoryid, 3);
         if (isset($this->allCategories[$categoryid])) {
             $nameF = mysql_real_escape_string($name);
+            $nameF = str_replace('"', '``', $nameF);
+            $nameF = str_replace("'", '`', $nameF);
             $unit = mysql_real_escape_string($unit);
             $reserve = str_replace(',', '.', $reserve);
             $reserve = str_replace('-', '', $reserve);
@@ -3377,7 +3385,11 @@ class Warehouse {
         $countF = str_replace(',', '.', $countF);
         $priceF = mysql_real_escape_string($price);
         $priceF = str_replace(',', '.', $priceF);
-        $priceF = round($priceF, 2);
+        if (is_numeric($priceF)) {
+            $priceF = round($priceF, 2);
+        } else {
+            $priceF = 0;
+        }
         $notes = mysql_real_escape_string($notes);
         $admin = mysql_real_escape_string(whoami());
 
@@ -4784,7 +4796,7 @@ class Warehouse {
         $totalSumm = 0;
         $showYear = (ubRouting::checkPost('purchasesyear')) ? ubRouting::post('purchasesyear', 'int') . '-' : curyear() . '-';
 
-        $inputs = wf_YearSelectorPreset('purchasesyear', __('Year'), false, $showYear, false) . ' ';
+        $inputs = wf_YearSelectorPreset('purchasesyear', __('Year'), false, ubRouting::post('purchasesyear'), false) . ' ';
         $inputs .= wf_Submit(__('Show'));
         $result .= wf_Form('', 'POST', $inputs, 'glamour');
 
@@ -4851,6 +4863,87 @@ class Warehouse {
             }
         } else {
             $result .= $this->messages->getStyledMessage(__('Nothing to show'), 'warning');
+        }
+        return($result);
+    }
+
+    /**
+     * Renders incomes by contractor report
+     * 
+     * @return string
+     */
+    public function renderContractorIncomesReport() {
+        $result = '';
+        $tmpResult = array();
+        $totalSumm = 0;
+        if (ubRouting::checkPost('conincomesyear')) {
+            $rawYear = ubRouting::post('conincomesyear', 'int');
+            if ($rawYear != '1488') {
+                $showYear = $rawYear . '-';
+            } else {
+                $showYear = '-';
+            }
+        } else {
+            $showYear = curyear() . '-';
+        }
+        $showContractor = (ubRouting::checkPost('conincomesid')) ? ubRouting::post('conincomesid', 'int') : '';
+
+        $inputs = wf_YearSelectorPreset('conincomesyear', __('Year'), false, ubRouting::post('conincomesyear'), true) . ' ';
+        $inputs .= wf_Selector('conincomesid', $this->allContractors, __('Contractor'), $showContractor, false);
+        $inputs .= wf_Submit(__('Show'));
+        $result .= wf_Form('', 'POST', $inputs, 'glamour');
+
+        if ($showContractor) {
+            if (!empty($this->allIncoming)) {
+                foreach ($this->allIncoming as $io => $each) {
+                    if ($each['contractorid'] != 0 AND $each['contractorid'] == $showContractor) {
+                        if (ispos($each['date'], $showYear)) {
+                            $opPrice = $each['price'] * $each['count'];
+                            $tmpResult[$each['id']] = $each;
+                            $totalSumm += $opPrice;
+                        }
+                    }
+                }
+
+                if (!empty($tmpResult)) {
+                    rsort($tmpResult); //from newest
+                    $cells = wf_TableCell(__('ID'));
+                    $cells .= wf_TableCell(__('Date'));
+                    $cells .= wf_TableCell(__('Category'));
+                    $cells .= wf_TableCell(__('Warehouse item types'));
+                    $cells .= wf_TableCell(__('Count'));
+                    $cells .= wf_TableCell(__('Price per unit'));
+                    $cells .= wf_TableCell(__('Sum'));
+                    $cells .= wf_TableCell(__('Warehouse storage'));
+                    $cells .= wf_TableCell(__('Admin'));
+                    $cells .= wf_TableCell(__('Notes'));
+                    $cells .= wf_TableCell(__('Actions'));
+                    $rows = wf_TableRow($cells, 'row1');
+
+                    foreach ($tmpResult as $io => $each) {
+                        $actLink = wf_Link(self::URL_ME . '&' . self::URL_VIEWERS . '&showinid=' . $each['id'], wf_img_sized('skins/whincoming_icon.png', '', '10', '10') . ' ' . __('Show'));
+                        $cells = wf_TableCell($each['id']);
+                        $cells .= wf_TableCell($each['date']);
+                        $cells .= wf_TableCell(@$this->allCategories[$this->allItemTypes[$each['itemtypeid']]['categoryid']]);
+                        $cells .= wf_TableCell(wf_link(self::URL_ME . '&' . self::URL_VIEWERS . '&itemhistory=' . $each['itemtypeid'], $this->allItemTypeNames[$each['itemtypeid']]));
+                        $cells .= wf_TableCell($each['count'] . ' ' . @$this->unitTypes[$this->allItemTypes[$each['itemtypeid']]['unit']]);
+                        $cells .= wf_TableCell($each['price']);
+                        $cells .= wf_TableCell(round($each['price'] * $each['count'], 2));
+                        $cells .= wf_TableCell(@$this->allStorages[$each['storageid']]);
+                        $cells .= wf_TableCell($each['admin']);
+                        $cells .= wf_TableCell($each['notes']);
+                        $cells .= wf_TableCell($actLink);
+                        $rows .= wf_TableRow($cells, 'row5');
+                    }
+
+                    $result .= wf_TableBody($rows, '100%', 0, 'sortable');
+                    $result .= wf_tag('b') . __('Total') . ': ' . zb_CashBigValueFormat($totalSumm) . wf_tag('b', true);
+                } else {
+                    $result .= $this->messages->getStyledMessage(__('Nothing found'), 'info');
+                }
+            } else {
+                $result .= $this->messages->getStyledMessage(__('Nothing to show'), 'warning');
+            }
         }
         return($result);
     }

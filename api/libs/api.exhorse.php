@@ -372,6 +372,10 @@ class ExistentialHorse {
         $this->storeTmp['t_tasks'] = 0;
         $this->storeTmp['t_capabtotal'] = 0;
         $this->storeTmp['t_capabundone'] = 0;
+        $this->storeTmp['a_outtotalcalls'] = 0;
+        $this->storeTmp['a_outtotalanswered'] = 0;
+        $this->storeTmp['a_outtotalcallsduration'] = 0;
+        $this->storeTmp['a_outaveragecallduration'] = 0;
     }
 
     /**
@@ -863,10 +867,16 @@ class ExistentialHorse {
             $telepony = new TelePony();
             if ($this->altCfg['TELEPONY_CDR']) {
                 $teleponyData = $telepony->getHorseMonthData();
+                //incoming calls
                 $this->storeTmp['a_totalanswered'] = $teleponyData['a_totalanswered'];
                 $this->storeTmp['a_totalcalls'] = $teleponyData['a_totalcalls'];
                 $this->storeTmp['a_totalcallsduration'] = $teleponyData['a_totalcallsduration'];
                 $this->storeTmp['a_averagecallduration'] = $teleponyData['a_averagecallduration'];
+                //outgoing calls
+                $this->storeTmp['a_outtotalanswered'] = $teleponyData['a_outtotalanswered'];
+                $this->storeTmp['a_outtotalcalls'] = $teleponyData['a_outtotalcalls'];
+                $this->storeTmp['a_outtotalcallsduration'] = $teleponyData['a_outtotalcallsduration'];
+                $this->storeTmp['a_outaveragecallduration'] = $teleponyData['a_outaveragecallduration'];
             }
         }
     }
@@ -899,7 +909,12 @@ class ExistentialHorse {
             $totalCalls = $totalRecalls + $totalMissed;
 
             $this->storeTmp['a_recallunsuccess'] = zb_PercentValue($totalCalls, $totalMissed);
-            @$this->storeTmp['a_recalltrytime'] = round(($totalReactTime / ($totalRecalls + $totalUnsucc)));
+            $recallCallsTotals = $totalRecalls + $totalUnsucc;
+            if ($recallCallsTotals != 0) {
+                $this->storeTmp['a_recalltrytime'] = round(($totalReactTime / $recallCallsTotals));
+            } else {
+                $this->storeTmp['a_recalltrytime'] = 0;
+            }
         }
     }
 
@@ -1391,7 +1406,9 @@ class ExistentialHorse {
 
             //PBX integration
             if ($this->pbxFlag) {
+                //incoming calls
                 $result .= wf_tag('h2') . __('Telephony') . wf_tag('h2', true);
+                $result.= wf_img('skins/calls/incoming.png') . ' ' . __('Incoming calls');
                 $cells = wf_TableCell(__('Month'));
                 $cells .= wf_TableCell(__('Incoming calls'));
                 $cells .= wf_TableCell(__('Total answered'));
@@ -1426,6 +1443,35 @@ class ExistentialHorse {
                 if ($chartsFlag) {
                     $result .= wf_gchartsLine($telephonyChartData, __('Telephony'), '100%', '300px', $chartsOptions);
                 }
+
+                //outcoming calls
+                $result.=  wf_img('skins/calls/outgoing.png') . ' ' . __('Outgoing calls').wf_delimiter(0);
+                $cells = wf_TableCell(__('Month'));
+                $cells .= wf_TableCell(__('Outgoing calls'));
+                $cells .= wf_TableCell(__('Total answered'));
+                $cells .= wf_TableCell(__('No answer'));
+                $cells .= wf_TableCell(__('Total duration'));
+                $cells .= wf_TableCell(__('Average duration'));
+                $cells .= wf_TableCell(__('Answers percent'));
+
+                $rows = wf_TableRow($cells, 'row1');
+                foreach ($yearData as $yearNum => $monthArr) {
+                    foreach ($monthArr as $monthNum => $each) {
+                        $yearDisplay = ($allTimeFlag) ? $yearNum . ' ' : '';
+                        $cells = wf_TableCell($yearDisplay . $months[$monthNum]);
+                        $cells .= wf_TableCell($each['a_outtotalcalls']);
+                        $cells .= wf_TableCell($each['a_outtotalanswered']);
+                        $cells .= wf_TableCell($each['a_outtotalcalls'] - $each['a_outtotalanswered']);
+                        $cells .= wf_TableCell(zb_formatTime($each['a_outtotalcallsduration']));
+                        $cells .= wf_TableCell(zb_formatTime($each['a_outaveragecallduration']));
+                        $cells .= wf_TableCell(zb_PercentValue($each['a_outtotalcalls'], $each['a_outtotalanswered']) . '%');
+
+                        $rows .= wf_TableRow($cells, 'row3');
+                        //chart data
+                        $yearDisplay = ($monthNum == '01') ? $yearDisplay : '';
+                    }
+                }
+                $result .= wf_TableBody($rows, '100%', 0, '');
             }
 
             //Users relationship

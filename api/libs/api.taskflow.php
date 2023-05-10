@@ -103,10 +103,17 @@ class TaskFlow {
     const PROUTE_STARTSEARCH = 'searchtaskbegin';
     const PROUTE_DATESTART = 'datestart';
     const PROUTE_DATEEND = 'dateend';
+    const PROUTE_ALLTIME = 'fulltimerange';
     const VAL_YES = 'yes';
     const VAL_NO = 'no';
     const VAL_ANY = 'any';
 
+    /**
+     * Rise up and reach for the sky
+     * Journey to rainbow nights
+     * You`ll never take me away
+     * In rainbow nights I will stay
+     */
     public function __construct() {
         $this->loadAlter();
         $this->setOptions();
@@ -283,6 +290,9 @@ class TaskFlow {
             $inputs .= wf_SelectorAC(self::PROUTE_EMPLOYEE, $employeeParams, __('Worker'), $empFlag, false) . ' ';
         }
 
+        $timeFlag = ubRouting::checkPost(self::PROUTE_ALLTIME);
+        $inputs .= wf_CheckInput(self::PROUTE_ALLTIME, __('All time'), false, $timeFlag) . ' ';
+
         $inputs .= wf_Submit(__('Search'));
 
         $result .= wf_Form('', 'POST', $inputs, 'glamour');
@@ -304,15 +314,17 @@ class TaskFlow {
             $this->loadWarehouseOutcomes();
             $this->initADcomments();
 
-
-            $allUndoneTasks = ts_GetUndoneTasksArray();
-            $filteredTasks = array(); // mem overusage? heh.. who cares?! :P
             //search filters setup
             $filterState = ubRouting::post(self::PROUTE_STATE);
             $filterPhoto = ubRouting::post(self::PROUTE_PHOTO);
             $filterWarehouse = ubRouting::post(self::PROUTE_WAREHOUSE);
             $filterAdcomments = ubRouting::post(self::PROUTE_ADCOMMENTS);
             $filterEmployee = ubRouting::post(self::PROUTE_EMPLOYEE);
+            $allTimeRange = (ubRouting::checkPost(self::PROUTE_ALLTIME)) ? true : false;
+
+
+            $allUndoneTasks = ts_GetUndoneTasksArray($allTimeRange);
+            $filteredTasks = array(); // mem overusage? heh.. who cares?! :P
 
             if (!empty($allUndoneTasks)) {
                 foreach ($allUndoneTasks as $taskId => $taskData) {

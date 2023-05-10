@@ -137,6 +137,12 @@ class ZenFlow {
                 die();
             }
         }
+        /**
+         * If you heard the loud big bang
+         * You can see it with your eyes
+         * The eternal night breaks when
+         * The mushroom grows into the sky
+         */
         return($result);
     }
 

@@ -15,5 +15,7 @@
 10 */1 * * *    /bin/ubapi "fdbarchive"
 */10 * * * *    /bin/ubapi "oltpoll"
 */20 * * * *    /bin/ubapi "cachedog"
-*/2 * * * *    /bin/ubapi "multigen"
+*/2 * * * *     /bin/ubapi "multigen"
+10 0 * * *      /bin/ubapi "feesharvester"
+
 

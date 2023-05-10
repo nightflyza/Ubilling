@@ -9,7 +9,7 @@ if (cfr('BACKUP')) {
             if (isset($_POST['imready'])) {
                 if (!empty($alterConf['MYSQLDUMP_PATH'])) {
                     //run system mysqldump command
-                    zb_backup_database();
+                    zb_BackupDatabase();
                 } else {
                     show_error(__('You missed an important option') . ': MYSQLDUMP_PATH');
                 }

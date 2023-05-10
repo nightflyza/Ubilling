@@ -59,6 +59,32 @@ function zb_PasswordGenerate($len = 8) {
 }
 
 /**
+ * Returns two-hands typing optimized password proposal
+ * 
+ * @param int $len
+ * 
+ * @return string
+ */
+function zb_PasswordGenerateTH($len = 8) {
+    $leftHand = array('q', 'w', 'e', 'r', 't', 'a', 's', 'd', 'f', 'g', 'z', 'x', 'c', 'v', 'b', '2', '3', '4', '5', '6');
+    $rightHand = array('y', 'u', 'p', 'h', 'j', 'k', 'n', 'm', '7', '8', '9');
+    $password = '';
+    $left = true;
+
+    for ($i = 0; $i < $len; $i++) {
+        if ($left) {
+            $password .= $leftHand[array_rand($leftHand)];
+            $left = false;
+        } else {
+            $password .= $rightHand[array_rand($rightHand)];
+            $left = true;
+        }
+    }
+
+    return $password;
+}
+
+/**
  * Returns array of apartments located in some build
  * 
  * @param int $buildid
@@ -310,6 +336,9 @@ function zb_RegPasswordProposal() {
                 break;
             case 2:
                 $password_proposal = zb_PasswordGenerate($passwordsLenght);
+                break;
+            case 3:
+                $password_proposal = zb_PasswordGenerateTH($passwordsLenght);
                 break;
             default :
                 $password_proposal = zb_rand_string(8);

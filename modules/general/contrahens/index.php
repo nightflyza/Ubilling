@@ -22,8 +22,14 @@ if (cfr('AGENTS')) {
         $phisaddr = ubRouting::post('newphisaddr');
         $phone = ubRouting::post('newphone');
         $contrname = ubRouting::post('newcontrname');
+        $agnameabbr = ubRouting::post('newagnameabbr');
+        $agsignatory = ubRouting::post('newagsignatory');
+        $agsignatory2 = ubRouting::post('newagsignatory2');
+        $agbasis = ubRouting::post('newagbasis');
+        $agmail = ubRouting::post('newagmail');
+        $siteurl = ubRouting::post('newsiteurl');
 
-        zb_ContrAhentAdd($bankacc, $bankname, $bankcode, $edrpo, $ipn, $licensenum, $juraddr, $phisaddr, $phone, $contrname);
+        zb_ContrAhentAdd($bankacc, $bankname, $bankcode, $edrpo, $ipn, $licensenum, $juraddr, $phisaddr, $phone, $contrname, $agnameabbr, $agsignatory, $agsignatory2, $agbasis, $agmail, $siteurl);
         ubRouting::nav("?module=contrahens");
     }
 
@@ -42,7 +48,13 @@ if (cfr('AGENTS')) {
             $phisaddr = ubRouting::post('changephisaddr');
             $phone = ubRouting::post('changephone');
             $contrname = ubRouting::post('changecontrname');
-            zb_ContrAhentChange($ahentid, $bankacc, $bankname, $bankcode, $edrpo, $ipn, $licensenum, $juraddr, $phisaddr, $phone, $contrname);
+            $agnameabbr = ubRouting::post('changeagnameabbr');
+            $agsignatory = ubRouting::post('changeagsignatory');
+            $agsignatory2 = ubRouting::post('changeagsignatory2');
+            $agbasis = ubRouting::post('changeagbasis');
+            $agmail = ubRouting::post('changeagmail');
+            $siteurl = ubRouting::post('changesiteurl');
+            zb_ContrAhentChange($ahentid, $bankacc, $bankname, $bankcode, $edrpo, $ipn, $licensenum, $juraddr, $phisaddr, $phone, $contrname, $agnameabbr, $agsignatory, $agsignatory2, $agbasis, $agmail, $siteurl);
             ubRouting::nav("?module=contrahens");
         }
         // show edit form  
@@ -72,7 +84,7 @@ if (cfr('AGENTS')) {
     if (!ubRouting::checkGet(array('edit'), false) and ( !ubRouting::checkGet('agentstats')) and ! ubRouting::checkGet('extinfo')) {
         $statsControl = wf_Link('?module=contrahens&agentstats=true', web_icon_charts());
         show_window(__('Available contrahens') . ' ' . $statsControl, zb_ContrAhentShow());
-        show_window(__('Add new'), zb_ContrAhentAddForm());
+        show_window('', wf_modalAuto(web_icon_create() . ' ' . __('Create new contrahent'), __('Create new contrahent'), zb_ContrAhentAddForm(), 'ubButton'));
     }
 
     //check agents region assign

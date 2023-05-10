@@ -954,18 +954,20 @@ class UserSideApi {
      */
     protected function getAllUserPaymentIds() {
         $result = array();
-        if ($this->altCfg['OPENPAYZ_REALID']) {
-            $query = "SELECT * from `op_customers`";
-            $all = simple_queryall($query);
-            if (!empty($all)) {
-                foreach ($all as $io => $each) {
-                    $result[$each['realid']] = $each['virtualid'];
+        if ($this->altCfg['OPENPAYZ_SUPPORT']) {
+            if ($this->altCfg['OPENPAYZ_REALID']) {
+                $query = "SELECT * from `op_customers`";
+                $all = simple_queryall($query);
+                if (!empty($all)) {
+                    foreach ($all as $io => $each) {
+                        $result[$each['realid']] = $each['virtualid'];
+                    }
                 }
-            }
-        } else {
-            if (!empty($this->allUserData)) {
-                foreach (@$this->allUserData as $io => $each) {
-                    $result[$each['login']] = ip2int($each['IP']);
+            } else {
+                if (!empty($this->allUserData)) {
+                    foreach (@$this->allUserData as $io => $each) {
+                        $result[$each['login']] = ip2int($each['IP']);
+                    }
                 }
             }
         }
@@ -1117,7 +1119,8 @@ class UserSideApi {
         if (!empty($allContracts)) {
             $allContracts = array_flip($allContracts);
         }
-        $allContractDates = zb_UserContractDatesGetAll();
+        $contractDates = new ContractDates();
+        $allContractDates = $contractDates->getAllDatesBasic();
 
         //just one user
         if (!empty($customerId)) {
@@ -1169,7 +1172,7 @@ class UserSideApi {
 
                     if (isset($allUserTags[$userLogin])) {
                         foreach ($allUserTags[$userLogin] as $tagIo => $eachTagid) {
-                            $result[$userLogin]['group'][$tagIo] = $eachTagid;
+                            $result[$userLogin]['group'][$eachTagid] = $eachTagid;
                         }
                     }
 

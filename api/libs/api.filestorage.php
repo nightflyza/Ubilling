@@ -124,15 +124,33 @@ class FileStorage {
             'gif',
             'png',
             'jpeg',
+            'dia',
             'xls',
+            'xlsx',
             'doc',
             'odt',
+            'ods',
             'docx',
             'pdf',
             'txt',
             'mp3',
             'gsm',
-            'conf'
+            'conf',
+            'mp4',
+            'mpg',
+            'mpeg',
+            'avi',
+            'ogg',
+            'zip',
+            'rar',
+            'tar',
+            'gz',
+            'tgz',
+            'bz2',
+            '7z',
+            'sql',
+            'dbf',
+            'csv',
         );
         $this->allowedExtensions = array_flip($this->allowedExtensions); //extension string => index
     }
@@ -298,6 +316,12 @@ class FileStorage {
         if ($this->scope == 'WAREHOUSEINCOME') {
             $incomeId = ubRouting::filters($this->itemId, 'int');
             $result = wf_BackLink(Warehouse::URL_ME . '&' . Warehouse::URL_VIEWERS . '&showinid=' . $incomeId);
+        }
+
+        if ($this->scope == 'CFITEMS') {
+            $cleanLogin = explode(CustomFields::FILESTORAGE_ITEMID_DELIMITER, $this->itemId);
+            $cleanLogin = $cleanLogin[0];
+            $result = wf_BackLink(CustomFields::URL_EDIT_BACK . $cleanLogin);
         }
 
         if (ubRouting::checkGet('callback') and empty($result)) {

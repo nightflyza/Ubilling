@@ -28,7 +28,7 @@ require_once('api/libs/api.payments.php');
 require_once('api/libs/api.usertags.php');
 require_once('api/libs/api.cess.php');
 require_once('api/libs/api.cardpay.php');
-require_once('api/libs/api.cf.php');
+require_once('api/libs/api.customfields.php');
 require_once('api/libs/api.switches.php');
 require_once('api/libs/api.gravatar.php');
 require_once('api/libs/api.ticketing.php');

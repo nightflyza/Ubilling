@@ -6,6 +6,11 @@
 class DoomsDayTariffs {
 
     /**
+     * Contains system alter config as key=>value
+     */
+    protected $altCfg = array();
+
+    /**
      * Contains available DDT options aka tariffs as id=>data
      *
      * @var array
@@ -69,6 +74,13 @@ class DoomsDayTariffs {
     protected $allTasks = array();
 
     /**
+     * Mapped from DDT_ENDPREVDAYS option
+     * 
+     * @var int
+     */
+    protected $prevDaysOffset = 0;
+
+    /**
      * Default control module URL
      */
     const URL_ME = '?module=ddt';
@@ -94,21 +106,16 @@ class DoomsDayTariffs {
      * @param bool $fast
      */
     public function __construct($fast = false) {
-        if ($fast) {
-            //loading only options
-            $this->initMessages();
-            $this->loadOptionsDDT();
-            $this->setOptions();
-            $this->initDealWithIt();
-        } else {
+        $this->initMessages();
+        $this->loadConfigs();
+        $this->loadOptionsDDT();
+        $this->setOptions();
+        $this->initDealWithIt();
+        if (!$fast) {
             //full data set load
-            $this->initMessages();
             $this->loadTariffs();
-            $this->loadOptionsDDT();
             $this->loadUsersDDT();
-            $this->setOptions();
             $this->loadUserData();
-            $this->initDealWithIt();
         }
     }
 
@@ -119,6 +126,23 @@ class DoomsDayTariffs {
      */
     protected function initMessages() {
         $this->messages = new UbillingMessageHelper();
+    }
+
+    /**
+     * Preloads some required configs for further usage
+     * 
+     * @global object $ubillingConfig
+     * 
+     * @return void
+     */
+    protected function loadConfigs() {
+        global $ubillingConfig;
+        $this->altCfg = $ubillingConfig->getAlter();
+        if (isset($this->altCfg['DDT_ENDPREVDAYS'])) {
+            if (!empty($this->altCfg['DDT_ENDPREVDAYS']) AND is_numeric($this->altCfg['DDT_ENDPREVDAYS'])) {
+                $this->prevDaysOffset = $this->altCfg['DDT_ENDPREVDAYS'];
+            }
+        }
     }
 
     /**
@@ -470,11 +494,16 @@ class DoomsDayTariffs {
 
                             $targetDate = '';
 
+
                             if ($tariffPeriod == 'month') {
                                 if ($currentTariffOptions['startnow']) {
                                     $tariffDuration = $tariffDuration - 1;
                                 }
                                 $targetDate = date('Y-m-t', strtotime("+" . $tariffDuration . " months", strtotime($currentDate)));
+                                //optional "before end of month" date offset
+                                if ($this->prevDaysOffset) {
+                                    $targetDate = date('Y-m-d', strtotime("-" . $this->prevDaysOffset . " days", strtotime($targetDate)));
+                                }
                             }
 
                             if ($tariffPeriod == 'day') {
@@ -612,5 +641,3 @@ class DoomsDayTariffs {
     }
 
 }
-
-?>

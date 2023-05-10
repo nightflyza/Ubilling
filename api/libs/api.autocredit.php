@@ -48,7 +48,7 @@ class AutoCredit {
     protected $allVservices = array();
 
     /**
-     * Contains all vservices tags assigned for users as login=>tagIds
+     * Contains all vservices tags assigned for users as login=>tagIds=>tagCount
      *
      * @var array
      */
@@ -135,7 +135,11 @@ class AutoCredit {
             foreach ($allTagsRaw as $io => $each) {
                 if (isset($this->allVservices[$each['tagid']])) {
                     //only vservices tags
-                    $this->allUserTags[$each['login']][$each['tagid']] = $each['id'];
+                    if (isset($this->allUserTags[$each['login']][$each['tagid']])) {
+                        $this->allUserTags[$each['login']][$each['tagid']] += 1;
+                    } else {
+                        $this->allUserTags[$each['login']][$each['tagid']] = 1;
+                    }
                 }
             }
         }
@@ -151,8 +155,8 @@ class AutoCredit {
             foreach ($this->allUserTags as $eachLogin => $eachUserTags) {
                 $servicesPrice = 0;
                 if (!empty($eachUserTags)) {
-                    foreach ($eachUserTags as $tagId => $tagIndex) {
-                        $servicesPrice += $this->allVservices[$tagId];
+                    foreach ($eachUserTags as $tagId => $tagsCount) {
+                        $servicesPrice += ($this->allVservices[$tagId] * $tagsCount);
                     }
                     $this->allUserServices[$eachLogin] = $servicesPrice;
                 }
@@ -185,7 +189,8 @@ class AutoCredit {
      */
     protected function loadCfs() {
         if (!empty($this->cfId)) {
-            $cfsRaw = cf_FieldsGetAll();
+            $cf = new CustomFields();
+            $cfsRaw = $cf->getAllFieldsData();
             if (!empty($cfsRaw)) {
                 foreach ($cfsRaw as $io => $each) {
                     if ($each['typeid'] == $this->cfId) {

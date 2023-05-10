@@ -872,11 +872,15 @@ function zbs_UserShowXmlAgentData($login) {
                 $payDesc = array();
             }
 
-            if ($us_config['OPENPAYZ_REALID']) {
-                $opayzPaymentid = zbs_PaymentIDGet($login);
+            if ($us_config['OPENPAYZ_ENABLED']) {
+                if ($us_config['OPENPAYZ_REALID']) {
+                    $opayzPaymentid = zbs_PaymentIDGet($login);
+                } else {
+                    $userdata = zbs_UserGetStargazerData($login);
+                    $opayzPaymentid = ip2int($userdata['IP']);
+                }
             } else {
-                $userdata = zbs_UserGetStargazerData($login);
-                $opayzPaymentid = ip2int($userdata['IP']);
+                $opayzPaymentid = 0;
             }
 
             if (!empty($paySys)) {
@@ -921,10 +925,14 @@ function zbs_UserShowXmlAgentData($login) {
     $down = $userdata['Down'];
 
     //payment id handling
-    if ($us_config['OPENPAYZ_REALID']) {
-        $paymentid = zbs_PaymentIDGet($login);
+    if ($us_config['OPENPAYZ_ENABLED']) {
+        if ($us_config['OPENPAYZ_REALID']) {
+            $paymentid = zbs_PaymentIDGet($login);
+        } else {
+            $paymentid = ip2int($userdata['IP']);
+        }
     } else {
-        $paymentid = ip2int($userdata['IP']);
+        $paymentid = 0;
     }
 
     if ($userdata['CreditExpire'] != 0) {
@@ -1047,7 +1055,7 @@ function zbs_PaymentIDGet($login) {
  * 
  * @return string
  */
-function zbs_TariffGetSpeed($tariff, $raw = false , $offset = 1024) {
+function zbs_TariffGetSpeed($tariff, $raw = false, $offset = 1024) {
     $query = "SELECT * from `speeds` where `Tariff`='" . $tariff . "'";
     $speedData = simple_query($query);
     $result = '';
@@ -1546,17 +1554,21 @@ function zbs_UserShowProfile($login) {
     }
 
     //payment id handling
-    if ($us_config['OPENPAYZ_REALID']) {
-        $paymentid = zbs_PaymentIDGet($login);
+    if ($us_config['OPENPAYZ_ENABLED']) {
+        if ($us_config['OPENPAYZ_REALID']) {
+            $paymentid = zbs_PaymentIDGet($login);
+        } else {
+            $paymentid = ip2int($userdata['IP']);
+        }
     } else {
-        $paymentid = ip2int($userdata['IP']);
+        $paymentid = 0;
     }
 
     //payment id qr dialog
     $paymentidqr = '';
     if (isset($us_config['PAYMENTID_QR'])) {
         if ($us_config['PAYMENTID_QR']) {
-            $paymentidqr = la_modal(la_img($iconsPath . 'qrcode.png', 'QR-code'), __('Payment ID'), la_tag('center') . la_img('qrgen.php?data=' . $paymentid) . la_tag('center', true), '', '300', '250');
+            $paymentidqr = la_modal(la_img($iconsPath . 'qrcode.png', 'QR-code'), __('Payment ID'), la_tag('center') . la_img('modules/jsc/qrgen.php?data=' . $paymentid) . la_tag('center', true), '', '300', '250');
         }
     }
 
@@ -1660,9 +1672,11 @@ function zbs_UserShowProfile($login) {
     $payIdAbbr .= __('Payment ID');
     $payIdAbbr .= la_tag('abbr', true);
 
-    $profile .= la_TableCell($payIdAbbr, '', 'row1');
-    $profile .= la_TableCell($paymentid . ' ' . $paymentidqr);
-    $profile .= la_tag('tr', true);
+    if ($us_config['OPENPAYZ_ENABLED']) {
+        $profile .= la_TableCell($payIdAbbr, '', 'row1');
+        $profile .= la_TableCell($paymentid . ' ' . $paymentidqr);
+        $profile .= la_tag('tr', true);
+    }
 
     $profile .= la_tag('tr');
     $profile .= la_TableCell(__('Contract'), '', 'row1');

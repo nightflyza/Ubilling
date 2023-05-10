@@ -216,7 +216,10 @@ class rcms_user extends rcms_access {
         $this->initialiseAccess($this->user['admin'], (int) @$userdata['accesslevel']);
 
         // Ability for guests to enter nick
-        $_POST['gst_nick'] = substr(trim(@$_POST['gst_nick']), 0, 32);
+        $gst_nickTmp = @$_POST['gst_nick'];
+        if (!empty($gst_nickTmp)) {
+            $_POST['gst_nick'] = substr(trim($gst_nickTmp), 0, 32);
+        }
         if (!empty($_POST['gst_nick']) && !$this->logged_in) {
             $this->user['nickname'] = $_POST['gst_nick'];
             setcookie('reloadcms_nick', $this->user['nickname']);
@@ -244,12 +247,12 @@ class rcms_user extends rcms_access {
         if (!$skipcheck) {
             // If this cookie is invalid - we exiting destroying cookie and exiting with error
             if (sizeof($cookie_data) != 2) {
-                setcookie($this->cookie_user, null, time() - 3600);
+                setcookie($this->cookie_user, '', time() - 3600);
                 return false;
             }
             // Now we must validate user's data
             if (!$this->checkUserData($cookie_data[0], $cookie_data[1], 'user_init', true, $this->user)) {
-                setcookie($this->cookie_user, null, time() - 3600);
+                setcookie($this->cookie_user, '', time() - 3600);
                 $this->logged_in = false;
                 return false;
             }
@@ -257,7 +260,7 @@ class rcms_user extends rcms_access {
 
         $userdata = $this->getUserData($cookie_data[0]);
         if ($userdata == false) {
-            setcookie($this->cookie_user, null, time() - 3600);
+            setcookie($this->cookie_user, '', time() - 3600);
             $this->logged_in = false;
             return false;
         }
@@ -334,7 +337,7 @@ class rcms_user extends rcms_access {
         if (!$this->logged_in && $this->checkUserData($username, $password, 'user_login', false, $userdata)) {
             rcms_log_put('Notification', $this->user['username'], 'Logged in as ' . $username);
             // OK... Let's allow user to log in :)
-            setcookie($this->cookie_user, $username . ':' . $userdata['password'], ($remember) ? time() + 3600 * 24 * 365 : null);
+            setcookie($this->cookie_user, $username . ':' . $userdata['password'], ($remember) ? time() + 3600 * 24 * 365 : 0);
             $_COOKIE[$this->cookie_user] = $username . ':' . $userdata['password'];
             $this->initializeUser(true);
             return true;
@@ -377,12 +380,12 @@ class rcms_user extends rcms_access {
             $myLogin = $this->user['username'];
             $ghostData = explode(':', $_COOKIE['ghost_user']);
             //cleanup ghostmode data
-            setcookie('ghost_user', '', null);
+            setcookie('ghost_user', '', 0);
             $_COOKIE['ghost_user'] = '';
 
             //login of another admin
             rcms_log_put('Notification', $ghostData[0], 'Ghost logged out as ' . $myLogin);
-            setcookie('ubilling_user', $ghostData[0] . ':' . $ghostData[1], null);
+            setcookie('ubilling_user', $ghostData[0] . ':' . $ghostData[1], 0);
             $_COOKIE['ubilling_user'] = $ghostData[0] . ':' . $ghostData[1];
         }
     }

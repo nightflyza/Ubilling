@@ -32,39 +32,32 @@ if (cfr('CONTRACT')) {
         $fieldkey = 'newcontract';
         $form = web_EditorStringDataFormContract($fieldnames, $fieldkey, $useraddress, $current_contract);
         show_window(__('Edit contract'), $form);
-        
+
 //filestorage support here
         if (@$alter_conf['FILESTORAGE_ENABLED']) {
             $fileStorage = new FileStorage('USERCONTRACT', $login);
             show_window(__('Uploaded files'), $fileStorage->renderFilesPreview(true, ' ' . __('Upload files')));
         }
-        
-//contract date editing
-        $allcontractdates = zb_UserContractDatesGetAll($current_contract);
-        if (isset($allcontractdates[$current_contract])) {
-            $currentContractDate = $allcontractdates[$current_contract];
-        } else {
-            $currentContractDate = '';
-        }
 
+//contract date editing
+        $contractDates = new ContractDates();
         //someone creates new contractdate or changes old
-        if (wf_CheckPost(array('newcontractdate'))) {
+        if (ubRouting::checkPost($contractDates::PROUTE_DATE)) {
             if (!empty($current_contract)) {
-                if (empty($currentContractDate)) {
-                    zb_UserContractDateCreate($current_contract, $_POST['newcontractdate']);
-                } else {
-                    zb_UserContractDateSet($current_contract, $_POST['newcontractdate']);
-                }
+                $edContract = ubRouting::post($contractDates::PROUTE_RUNEDIT);
+                $edContractDate = ubRouting::post($contractDates::PROUTE_DATE);
+                $edContractFrom = ubRouting::post($contractDates::PROUTE_FROM);
+                $edContractTill = ubRouting::post($contractDates::PROUTE_TILL);
+                $contractDates->set($edContract, $edContractDate, $edContractFrom, $edContractTill);
                 //back to fresh form
-                rcms_redirect("?module=contractedit&username=" . $login);
+                ubRouting::nav('?module=contractedit&username=' . $login);
             } else {
                 show_error(__('With this the user has not yet signed a contract'));
             }
         }
 
-
         //editing form
-        show_window(__('User contract date'), web_UserContractDateChangeForm($current_contract, $currentContractDate));
+        show_window(__('User contract date'), $contractDates->renderChangeForm($current_contract));
 
 //agent strict assigning form
         if ($alter_conf['AGENTS_ASSIGN']) {
@@ -88,4 +81,4 @@ if (cfr('CONTRACT')) {
 } else {
     show_error(__('You cant control this module'));
 }
-?>
+

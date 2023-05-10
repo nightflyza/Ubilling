@@ -116,6 +116,7 @@ class OpenPayz {
      * @var array
      */
     protected $allUsersTags = array();
+
     /**
      * Transactions list ajax callback URL
      */
@@ -161,14 +162,15 @@ class OpenPayz {
      * Getting an alter.ini options
      */
     protected function loadOptions() {
-        $this->smsNotysPullInterval     = ubRouting::filters($this->ubConfig->getAlterParam('OP_SMS_NOTIFY_PAYMENTS_PULL_INTERVAL', 5), 'int');
-        $this->smsUseExtMobiles         = ubRouting::filters($this->ubConfig->getAlterParam('OP_SMS_NOTIFY_USE_EXTMOBILES'), 'fi', FILTER_VALIDATE_BOOLEAN);
-        $this->smsForceTranslit         = ubRouting::filters($this->ubConfig->getAlterParam('OP_SMS_NOTIFY_FORCED_TRANSLIT'), 'fi', FILTER_VALIDATE_BOOLEAN);
-        $this->smsDebugON               = ubRouting::filters($this->ubConfig->getAlterParam('OP_SMS_NOTIFY_DEBUG_ON'), 'fi', FILTER_VALIDATE_BOOLEAN);
-        $this->smsNotysText             = $this->ubConfig->getAlterParam('OP_SMS_NOTIFY_TEXT', '');
-        $this->smsRespectReminderTagID  = ubRouting::filters($this->ubConfig->getAlterParam('OP_SMS_NOTIFY_RESPECT_REMINDER_TAGID'), 'fi', FILTER_VALIDATE_BOOLEAN);
-        $this->smsReminderTagID         = ubRouting::filters($this->ubConfig->getAlterParam('REMINDER_TAGID', 0), 'int');
+        $this->smsNotysPullInterval = ubRouting::filters($this->ubConfig->getAlterParam('OP_SMS_NOTIFY_PAYMENTS_PULL_INTERVAL', 5), 'int');
+        $this->smsUseExtMobiles = ubRouting::filters($this->ubConfig->getAlterParam('OP_SMS_NOTIFY_USE_EXTMOBILES'), 'fi', FILTER_VALIDATE_BOOLEAN);
+        $this->smsForceTranslit = ubRouting::filters($this->ubConfig->getAlterParam('OP_SMS_NOTIFY_FORCED_TRANSLIT'), 'fi', FILTER_VALIDATE_BOOLEAN);
+        $this->smsDebugON = ubRouting::filters($this->ubConfig->getAlterParam('OP_SMS_NOTIFY_DEBUG_ON'), 'fi', FILTER_VALIDATE_BOOLEAN);
+        $this->smsNotysText = $this->ubConfig->getAlterParam('OP_SMS_NOTIFY_TEXT', '');
+        $this->smsRespectReminderTagID = ubRouting::filters($this->ubConfig->getAlterParam('OP_SMS_NOTIFY_RESPECT_REMINDER_TAGID'), 'fi', FILTER_VALIDATE_BOOLEAN);
+        $this->smsReminderTagID = ubRouting::filters($this->ubConfig->getAlterParam('REMINDER_TAGID', 0), 'int');
     }
+
     /**
      * Loads users address list into protected property
      * 
@@ -226,7 +228,7 @@ class OpenPayz {
     }
 
     /**
-     * Public getter of preloaded users mappings
+     * Public getter of preloaded users mappings as paymentId=>userLogin
      * 
      * @return array
      */
@@ -235,6 +237,22 @@ class OpenPayz {
             $this->loadCustomers();
         }
         return ($this->allCustomers);
+    }
+
+    /**
+     * Public getter of preloaded users mappings as userLogin=>paymentId
+     * 
+     * @return array
+     */
+    public function getCustomersPaymentIds() {
+        $result = array();
+        if (empty($this->allCustomers)) {
+            $this->loadCustomers();
+        }
+        if (!empty($this->allCustomers)) {
+            $result = array_flip($this->allCustomers);
+        }
+        return ($result);
     }
 
     /**
@@ -389,7 +407,7 @@ class OpenPayz {
             $result = $onlineLeftCount;
         }
         return ($result);
-        }
+    }
 
     /**
      * Returns user online to date
@@ -525,7 +543,7 @@ class OpenPayz {
 
         $chartOpts = "chartArea: {  width: '90%', height: '90%' }, legend : {position: 'right'}, ";
         $fixedColors = @$this->altCfg['OPENPAYZ_PALETTE'];
-        
+
 
         if (!empty($gcDayData)) {
             $gcDayPie = wf_gcharts3DPie($gcDayData, __('Today'), '300px', '300px', $chartOpts, $fixedColors);
@@ -717,10 +735,10 @@ class OpenPayz {
      * @return void
      */
     public function pullNotysPayments() {
-        $paymentsFound      = array();
-        $paymentsFoundCnt   = 0;
-        $tabPayments        = new NyanORM('payments');
-        $tabNotifications   = new NyanORM('op_sms_notifications');
+        $paymentsFound = array();
+        $paymentsFoundCnt = 0;
+        $tabPayments = new NyanORM('payments');
+        $tabNotifications = new NyanORM('op_sms_notifications');
 
         if ($this->smsDebugON) {
             $tabPayments->setDebug(true, true);
@@ -773,11 +791,11 @@ class OpenPayz {
                     $tmpLogin = $eachRec['login'];
 
                     // check logins for REMINDER_TAGID presence if $this->smsRespectReminderTagID is true
-                    if ($this->smsRespectReminderTagID and !empty($this->allUsersTags)) {
+                    if ($this->smsRespectReminderTagID and ! empty($this->allUsersTags)) {
                         // skip this payment if login doesn't have REMINDER_TAGID assigned
                         if (empty($this->allUsersTags[$tmpLogin][$this->smsReminderTagID])) {
                             if ($this->smsDebugON) {
-                                log_register('OPAYZ SMS NOTIFY: skipping payment with ID: '. $eachID . ' for login: (' . $tmpLogin . ') as it doesn\'t have REMINDER_TAGID [' . $this->smsReminderTagID . '] assigned');
+                                log_register('OPAYZ SMS NOTIFY: skipping payment with ID: ' . $eachID . ' for login: (' . $tmpLogin . ') as it doesn\'t have REMINDER_TAGID [' . $this->smsReminderTagID . '] assigned');
                             }
 
                             continue;
@@ -785,11 +803,11 @@ class OpenPayz {
                     }
 
                     $tmpRec = array('payment_id' => $eachID,
-                                    'date'       => $eachRec['date'],
-                                    'login'      => $tmpLogin,
-                                    'balance'    => $eachRec['balance'] + $eachRec['summ'],
-                                    'summ'       => $eachRec['summ']
-                                   );
+                        'date' => $eachRec['date'],
+                        'login' => $tmpLogin,
+                        'balance' => $eachRec['balance'] + $eachRec['summ'],
+                        'summ' => $eachRec['summ']
+                    );
 
                     $tabNotifications->dataArr($tmpRec);
                     $tabNotifications->create();
@@ -822,8 +840,8 @@ class OpenPayz {
         $notysToPush = $tabNotifications->getAll('id');
 
         if (!empty($notysToPush)) {
-            $ubSMS      = new UbillingSMS();
-            $allPhones  = zb_GetAllAllPhonesCache();
+            $ubSMS = new UbillingSMS();
+            $allPhones = zb_GetAllAllPhonesCache();
             $this->initFundsFlow();
 
             // init SMS directions cache
@@ -889,6 +907,7 @@ class OpenPayz {
             log_register('OPAYZ SMS NOTIFY: sent ' . $sentCount . ' messages');
         }
     }
+
 }
 
 ?>

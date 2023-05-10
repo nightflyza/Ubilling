@@ -301,26 +301,28 @@ class GlobalSearch {
             }
 
             if (isset($this->fields['paymentid'])) {
-                if ($this->alterConf['OPENPAYZ_REALID']) {
-                    $allPayIds_q = "SELECT * from `op_customers`";
-                    $allPayIds = simple_queryall($allPayIds_q);
-                    $tmpArrPayids = array();
-                    if (!empty($allPayIds)) {
-                        foreach ($allPayIds as $io => $each) {
-                            $tmpArrPayids[$each['realid']] = $each['virtualid'];
+                if ($this->alterConf['OPENPAYZ_SUPPORT']) {
+                    if ($this->alterConf['OPENPAYZ_REALID']) {
+                        $allPayIds_q = "SELECT * from `op_customers`";
+                        $allPayIds = simple_queryall($allPayIds_q);
+                        $tmpArrPayids = array();
+                        if (!empty($allPayIds)) {
+                            foreach ($allPayIds as $io => $each) {
+                                $tmpArrPayids[$each['realid']] = $each['virtualid'];
+                            }
                         }
-                    }
-                    $this->rawData = $this->rawData + $this->transformArray($tmpArrPayids, __('Payment ID'), 'payid');
-                } else {
-                    $allPayIds_q = "SELECT `login`,`IP` from `users`";
-                    $allPayIds = simple_queryall($allPayIds_q);
-                    $tmpArrPayids = array();
-                    if (!empty($allPayIds)) {
-                        foreach ($allPayIds as $io => $each) {
-                            $tmpArrPayids[$each['login']] = ip2int($each['IP']);
+                        $this->rawData = $this->rawData + $this->transformArray($tmpArrPayids, __('Payment ID'), 'payid');
+                    } else {
+                        $allPayIds_q = "SELECT `login`,`IP` from `users`";
+                        $allPayIds = simple_queryall($allPayIds_q);
+                        $tmpArrPayids = array();
+                        if (!empty($allPayIds)) {
+                            foreach ($allPayIds as $io => $each) {
+                                $tmpArrPayids[$each['login']] = ip2int($each['IP']);
+                            }
                         }
+                        $this->rawData = $this->rawData + $this->transformArray($tmpArrPayids, __('Payment ID'), 'payid');
                     }
-                    $this->rawData = $this->rawData + $this->transformArray($tmpArrPayids, __('Payment ID'), 'payid');
                 }
             }
 

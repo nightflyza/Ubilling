@@ -153,6 +153,13 @@ class UserProfile {
     protected $mobilesExt = array();
 
     /**
+     * Contains custom profile fields instance for current user
+     *
+     * @var object
+     */
+    protected $customFields = '';
+
+    /**
      * Path to SMS template for user quick credentials sending
      *
      * @var string
@@ -190,6 +197,7 @@ class UserProfile {
             $this->loadPaymentID();
             $this->loadPlugins();
             $this->loadMobilesExt();
+            $this->loadCustomFields();
         } else {
             throw new Exception(self::EX_EMPTY_LOGIN);
         }
@@ -535,10 +543,12 @@ class UserProfile {
      * @return void
      */
     protected function loadPaymentID() {
-        if ($this->alterCfg['OPENPAYZ_REALID']) {
-            $this->paymentid = zb_PaymentIDGet($this->login);
-        } else {
-            $this->paymentid = ip2int($this->userdata['IP']);
+        if ($this->alterCfg['OPENPAYZ_SUPPORT']) {
+            if ($this->alterCfg['OPENPAYZ_REALID']) {
+                $this->paymentid = zb_PaymentIDGet($this->login);
+            } else {
+                $this->paymentid = ip2int($this->userdata['IP']);
+            }
         }
     }
 
@@ -559,6 +569,15 @@ class UserProfile {
                 }
             }
         }
+    }
+
+    /**
+     * Preloads custom profile fields instance
+     * 
+     * @return void
+     */
+    protected function loadCustomFields() {
+        $this->customFields = new CustomFields($this->login);
     }
 
     /**
@@ -987,7 +1006,8 @@ class UserProfile {
         if (isset($this->alterCfg['CONTRACTDATE_IN_PROFILE'])) {
             if ($this->alterCfg['CONTRACTDATE_IN_PROFILE']) {
                 if (!empty($this->contract)) {
-                    $allContractDates = zb_UserContractDatesGetAll($this->contract);
+                    $contractDates = new ContractDates();
+                    $allContractDates = $contractDates->getAllDatesBasic($this->contract);
                     $contractDate = (isset($allContractDates[$this->contract])) ? $allContractDates[$this->contract] : __('No');
                     $result .= $this->addRow(__('Contract date'), $contractDate);
                 } else {
@@ -1474,6 +1494,28 @@ class UserProfile {
             $result = $this->addRow(__('Signup paid'), zb_UserGetSignupPricePaid($this->login) . '/' . zb_UserGetSignupPrice($this->login));
         }
         return ($result);
+    }
+
+    /**
+     * Returns discount controller
+     * 
+     * @return string
+     */
+    protected function getDiscountController() {
+        $result = '';
+        if (isset($this->alterCfg['DISCOUNTS_ENABLED'])) {
+            if ($this->alterCfg['DISCOUNTS_ENABLED']) {
+                $discounts = new Discounts();
+                $userDiscountPercent = $discounts->getUserDiscount($this->login);
+                if ($userDiscountPercent) {
+                    $renderDiscountPerncent = $userDiscountPercent . '%';
+                } else {
+                    $renderDiscountPerncent = __('No');
+                }
+                $result = $this->addRow(__('Discount'), $renderDiscountPerncent, true);
+            }
+        }
+        return($result);
     }
 
     /**
@@ -2160,10 +2202,6 @@ class UserProfile {
     }
 
     /**
-      Брат, братан, братишка Когда меня отпустит?
-     */
-
-    /**
      * Renders user profile with all loaded data
      * 
      * @return string
@@ -2225,12 +2263,14 @@ class UserProfile {
             $profile .= $this->addRow(__('Email'), $this->mail);
         }
 //payment ID data
-        $profile .= $this->addRow(__('Payment ID'), $this->paymentid, true);
+        if ($this->alterCfg['OPENPAYZ_SUPPORT']) {
+            $profile .= $this->addRow(__('Payment ID'), $this->paymentid, true);
+        }
 //LAT data row
         $profile .= $this->getUserLat();
-//login row
+//Login row
         $profile .= $this->addRow(__('Login'), $this->userdata['login'], true);
-//password row
+//Password row
         $profile .= $this->getUserPassword();
 //User IP data and extended networks controls if available
         $profile .= $this->addRow(__('IP') . ' ' . $this->getNasInfoControls($this->userdata['IP']), $this->userdata['IP'] . $this->getExtNetsControls() . $this->getNasInfoContrainer(), true);
@@ -2246,10 +2286,12 @@ class UserProfile {
         $profile .= $this->getVisorBacklinks();
 //Speed override row
         $profile .= $this->addRow(__('Speed override'), $this->speedoverride);
-// signup pricing row
+//Signup pricing row
         $profile .= $this->getSignupPricing();
 //User current cash row
         $profile .= $this->addRow(__('Balance') . $this->getEasyChargeController(), $this->getUserCash(), true);
+//User discount row
+        $profile .= $this->getDiscountController();
 //User credit row & easycredit control if needed
         $profile .= $this->addRow(__('Credit') . ' ' . $this->getEasyCreditController(), $this->userdata['Credit'], true);
 //credit expire row
@@ -2286,12 +2328,12 @@ class UserProfile {
 
             if (!empty($FrozenAll)) {
                 foreach ($FrozenAll as $usr => $usrlogin) {
-                    $profile .= $this->addRow("&nbsp&nbsp&nbsp&nbsp" . __('Freeze days total amount'), $usrlogin['freeze_days_amount'], false, '50%');
-                    $profile .= $this->addRow("&nbsp&nbsp&nbsp&nbsp" . __('Freeze days used'), $usrlogin['freeze_days_used'], false, '50%');
-                    $profile .= $this->addRow("&nbsp&nbsp&nbsp&nbsp" . __('Freeze days available'), $usrlogin['freeze_days_amount'] - $usrlogin['freeze_days_used'], false, '50%');
-                    $profile .= $this->addRow("&nbsp&nbsp&nbsp&nbsp" . __('Workdays amount to restore freeze days'), $usrlogin['work_days_restore'], false, '50%');
-                    $profile .= $this->addRow("&nbsp&nbsp&nbsp&nbsp" . __('Days worked after freeze days used up'), $usrlogin['days_worked'], false, '50%');
-                    $profile .= $this->addRow("&nbsp&nbsp&nbsp&nbsp" . __('Workdays left to restore'), $usrlogin['work_days_restore'] - $usrlogin['days_worked'], false, '50%');
+                    $profile .= $this->addRow(wf_nbsp(4) . __('Freeze days total amount'), $usrlogin['freeze_days_amount'], false, '50%');
+                    $profile .= $this->addRow(wf_nbsp(4) . __('Freeze days used'), $usrlogin['freeze_days_used'], false, '50%');
+                    $profile .= $this->addRow(wf_nbsp(4) . __('Freeze days available'), $usrlogin['freeze_days_amount'] - $usrlogin['freeze_days_used'], false, '50%');
+                    $profile .= $this->addRow(wf_nbsp(4) . __('Workdays amount to restore freeze days'), $usrlogin['work_days_restore'], false, '50%');
+                    $profile .= $this->addRow(wf_nbsp(4) . __('Days worked after freeze days used up'), $usrlogin['days_worked'], false, '50%');
+                    $profile .= $this->addRow(wf_nbsp(4) . __('Workdays left to restore'), $usrlogin['work_days_restore'] - $usrlogin['days_worked'], false, '50%');
                 }
             }
         }
@@ -2340,7 +2382,7 @@ class UserProfile {
         $profile .= $this->getUserCpeControls();
 
 //Custom filelds display
-        $profile .= cf_FieldShower($this->login);
+        $profile .= $this->customFields->renderUserFields();
 //Tags add control and exiting tags listing
         if ($this->ubConfig->getAlterParam('USERPROFILE_TAG_SECTION_HIGHLIGHT')) {
             if (cfr('TAGS')) {
@@ -2369,7 +2411,16 @@ class UserProfile {
 
 //Profile ending anchor for addcash links scroll
         $profile .= wf_tag('a', false, '', 'id="profileending"') . wf_tag('a', true);
-
+        /**
+         * Dinosaurs are my best friends
+         * Through thick and thin, until the very end
+         * People tell me, do not pretend
+         * Stop living in your made up world again
+         * But the dinosaurs, they`re real to me
+         * They bring me up and make me happy
+         * I wished all the world could see
+         * The dinosaurs are a part of me
+         */
         return($profile);
     }
 

@@ -146,7 +146,7 @@ class PBXNum {
      * 0 - user not found
      * 1 - user found and have positive balance
      * 2 - user found and have negative balance
-     * 3 - user found and accoun is frozen or something like that
+     * 3 - user found and account is frozen or something like that
      * 
      * @return mixed
      */
@@ -154,10 +154,11 @@ class PBXNum {
         $detectedLogin = $this->telepathy->getByPhone($this->number, true, true);
         $askReply = '0';
         $askReplyArr = array();
+        $nonEncodedReply = '0';
 
         if (!empty($detectedLogin)) {
-
             $userData = $this->cache->get(self::CACHE_KEY, self::CACHE_TIME);
+
             if (empty($userData) or $ignoreCache) {
                 $userData = array();
                 $userDataRaw = simple_queryall("SELECT `login`,`Cash`,`Credit`,`Passive`,`Down`,`AlwaysOnline`,`Fee` from `users` LEFT JOIN (SELECT `name`,`Fee` FROM `tariffs`) as T on (`users`.`Tariff`=`T`.`name`)");
@@ -168,16 +169,21 @@ class PBXNum {
                 }
                 $this->cache->set(self::CACHE_KEY, $userData, self::CACHE_TIME);
             }
+
             if (isset($userData[$detectedLogin])) {
                 $userData = $userData[$detectedLogin];
+
                 if ($userData['Cash'] >= '-' . $userData['Credit']) {
                     $askReply = '1';
                 } else {
                     $askReply = '2';
                 }
+
                 if (($userData['Passive'] == 1) OR ( $userData['Down'] == 1) OR ( $userData['AlwaysOnline'] == 0)) {
                     $askReply = '3';
                 }
+
+                $nonEncodedReply = $askReply;
 
                 if ($getMoney) {
                     $askReplyArr[] = $askReply;
@@ -187,12 +193,19 @@ class PBXNum {
                 }
             }
         }
-        $this->log((($getMoney) ? print_r($askReplyArr, true) : $askReply), $detectedLogin);
+
+
+        $this->log($nonEncodedReply, $detectedLogin);
+
         return ($askReply);
     }
 
     /**
-     * Returns parsed calls log
+     * Returns parsed incoming calls log. 
+     * 
+     * Log format example:
+     * 2023-01-18 11:42:42 NUMBER: 380931234567 REPLY: 0 LOGIN:
+     * 2023-01-18 11:43:51 NUMBER: 380937654321 REPLY: 1 LOGIN: someuserlogin
      * 
      * @return array
      */

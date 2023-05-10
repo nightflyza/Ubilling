@@ -27,6 +27,13 @@ class StarDust {
     protected $allProcessStates = array();
 
     /**
+     * Store each process state in separate STARDUST_PID cache keys
+     *
+     * @var bool
+     */
+    protected $separateKeys = false;
+
+    /**
      * Some predefined stuff
      */
     const LOCK_NAME = 'stardustLockfree';
@@ -35,8 +42,9 @@ class StarDust {
     const CACHE_KEY = 'STARDUST';
     const REALTIME_PRECISSION = 5;
 
-    public function __construct($processName = '') {
+    public function __construct($processName = '', $separateKeys = false) {
         $this->setProcess($processName);
+        $this->setZaWarudo($separateKeys);
         $this->initCache();
         $this->loadCache();
     }
@@ -79,15 +87,51 @@ class StarDust {
     }
 
     /**
+     * Sets instance process name/identifier
+     * 
+     * @param string $processName
+     * 
+     * @return void
+     */
+    public function setProcess($processName = '') {
+        $this->processName = $processName;
+    }
+
+    /**
+     * Sets instance process separate keys usage flag
+     * 
+     * @param string $processName
+     * 
+     * @return void
+     */
+    public function setZaWarudo($state = false) {
+        $this->separateKeys = $state;
+    }
+
+    /**
      * Returns process data from cache
      * 
      * @return array
      */
     protected function getCachedData() {
         $result = array();
-        $cachedData = $this->cache->get(self::CACHE_KEY, self::CACHE_TIMEOUT);
-        if (!empty($cachedData)) {
-            $result = $cachedData;
+        if ($this->separateKeys) {
+            $allCacheKeys = $this->cache->getAllcache();
+            if (!empty($allCacheKeys)) {
+                $processKeyMask = UbillingCache::CACHE_PREFIX . self::CACHE_KEY . '_';
+                foreach ($allCacheKeys as $io => $eachKey) {
+                    if (strpos($eachKey, $processKeyMask) !== false) {
+                        $processNameClean = str_replace($processKeyMask, '', $eachKey);
+                        $processCacheKey = self::CACHE_KEY . '_' . $processNameClean;
+                        $result[$processNameClean] = $this->cache->get($processCacheKey, self::CACHE_TIMEOUT);
+                    }
+                }
+            }
+        } else {
+            $cachedData = $this->cache->get(self::CACHE_KEY, self::CACHE_TIMEOUT);
+            if (!empty($cachedData)) {
+                $result = $cachedData;
+            }
         }
         return($result);
     }
@@ -98,18 +142,11 @@ class StarDust {
      * @return void
      */
     protected function saveCache() {
-        $this->cache->set(self::CACHE_KEY, $this->allProcessStates, self::CACHE_TIMEOUT);
-    }
-
-    /**
-     * Sets instance process name/identifier
-     * 
-     * @param string $processName
-     * 
-     * @return void
-     */
-    public function setProcess($processName = '') {
-        $this->processName = $processName;
+        if ($this->separateKeys) {
+            $this->cache->set(self::CACHE_KEY . '_' . $this->processName, $this->allProcessStates[$this->processName], self::CACHE_TIMEOUT);
+        } else {
+            $this->cache->set(self::CACHE_KEY, $this->allProcessStates, self::CACHE_TIMEOUT);
+        }
     }
 
     /**
@@ -290,9 +327,27 @@ class StarDust {
         $this->saveCache();
     }
 
+    /**
+     * Runs execution of some command as background process
+     * 
+     * @param string $command full executable path to run
+     * @param int $timeout optional timeout after executing command
+     * 
+     * @return void
+     */
+    public function runBackgroundProcess($command, $timeout = 0) {
+        if (!empty($command)) {
+            $pipes = array();
+            proc_close(proc_open($command . ' > /dev/null 2>/dev/null &', array(), $pipes));
+            if ($timeout) {
+                sleep($timeout);
+            }
+        }
+    }
+
 //
-//                 ⠀   (\__/)
-//                     (•ㅅ•)      SONO CHI NO SADAME
+//                 ⠀  (\__/)
+//                    (•ㅅ•)      SONO CHI NO SADAME
 //                 ＿ノヽ  ノ＼＿   
 //             `/　`/ ⌒Ｙ⌒ Ｙ  ヽ
 //             ( 　(三ヽ人　 /　  |

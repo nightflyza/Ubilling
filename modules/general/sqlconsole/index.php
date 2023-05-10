@@ -165,6 +165,7 @@ if ($system->checkForRight('SQLCONSOLE')) {
             ob_start();
 
             if (!extension_loaded('mysql')) {
+                mysqli_report(0); //TODO: make here normal fix for PHP 8.2
                 $queried = mysqli_query($loginDB, $newquery);
             } else {
                 $queried = mysql_query($newquery);
@@ -174,6 +175,7 @@ if ($system->checkForRight('SQLCONSOLE')) {
                 return(show_error(wf_tag('b') . __('Wrong query') . ': ' . wf_tag('b', true) . $newquery));
             } else {
                 if (!extension_loaded('mysql')) {
+                    mysqli_report(0); //TODO: make here normal fix for PHP 8.2
                     while (@$row = mysqli_fetch_assoc($queried)) {
                         $query_result[] = $row;
                     }

@@ -7,7 +7,7 @@
  */
 function web_UserSearchFieldsForm() {
     global $ubillingConfig;
-    $altCf = $ubillingConfig->getAlter();
+    $altCfg = $ubillingConfig->getAlter();
     $fieldinputs = wf_TextInput('searchquery', 'Search by', '', true, '40');
     $fieldinputs .= wf_RadioInput('searchtype', 'All fields', 'full', true, true);
     $fieldinputs .= wf_RadioInput('searchtype', 'Real Name', 'realname', true);
@@ -17,13 +17,18 @@ function web_UserSearchFieldsForm() {
     $fieldinputs .= wf_RadioInput('searchtype', 'Email', 'email', true);
     $fieldinputs .= wf_RadioInput('searchtype', 'Notes', 'note', true);
     $fieldinputs .= wf_RadioInput('searchtype', 'Contract', 'contract', true);
-    $fieldinputs .= wf_RadioInput('searchtype', 'Payment ID', 'payid', true);
+    if ($altCfg['OPENPAYZ_SUPPORT']) {
+        $fieldinputs .= wf_RadioInput('searchtype', 'Payment ID', 'payid', true);
+    }
     $fieldinputs .= wf_RadioInput('searchtype', 'IP', 'ip', true);
     $fieldinputs .= wf_RadioInput('searchtype', 'MAC', 'mac', true);
-    if ($altCf['PON_ENABLED']) {
+    if ($altCfg['SWITCHPORT_IN_PROFILE']) {
+        $fieldinputs .= wf_RadioInput('searchtype', 'Switch binding (SwIP/SwID/SwLocation)', 'switchassign', true);
+    }
+    if ($altCfg['PON_ENABLED']) {
         $fieldinputs .= wf_RadioInput('searchtype', 'ONU MAC', 'onumac', true);
     }
-    if ($altCf['SWITCHES_EXTENDED']) {
+    if ($altCfg['SWITCHES_EXTENDED']) {
         $fieldinputs .= wf_RadioInput('searchtype', 'Switch ID', 'swid', true);
     }
     $fieldinputs .= wf_tag('br');
@@ -98,6 +103,28 @@ function zb_UserSearchFields($query, $searchtype) {
         $mask = (isset($strictsearch[$searchtype]) ? '' : '%');
         $query = "SELECT `login` from `users` WHERE `ip` IN (SELECT `ip` FROM `nethosts` WHERE `option` LIKE '" . $mask . $query . $mask . "')";
     }
+    if ($altercfg['SWITCHPORT_IN_PROFILE']) {
+        if ($searchtype == 'switchassign') {
+            $mask = (isset($strictsearch[$searchtype]) ? '' : '%');
+            $whereType = 'location';
+            // Change type for search on switch
+            $extractedIpAddr = zb_ExtractIpAddress($query);
+            if ($extractedIpAddr) {
+                $query = $extractedIpAddr;
+                $whereType = 'ip';
+            }
+            $macExtracted = zb_ExtractMacAddress($query);
+            if (!empty($macExtracted)) {
+                $query = $macExtracted;
+                $whereType = 'swid';
+            }
+            $query = "
+            SELECT `login` from `users`
+            INNER JOIN `switchportassign` USING (`login`)
+            INNER JOIN `switches` ON (`switchportassign`.`switchid`=`switches`.`id`)
+            WHERE `switches`.`" . $whereType . "` LIKE '" . $mask . $query . $mask . "'";
+        }
+    }
     if ($altercfg['PON_ENABLED'] AND $searchtype == 'onumac') {
         $mask = (isset($strictsearch[$searchtype]) ? '' : '%');
         $query = "SELECT `login` from `pononu` WHERE `mac` LIKE '" . $mask . $query . $mask . "'";
@@ -124,10 +151,12 @@ function zb_UserSearchFields($query, $searchtype) {
         $query = "SELECT `login` from `address` WHERE `aptid` = '" . $query . "'";
     }
     if ($searchtype == 'payid') {
-        if ($altercfg['OPENPAYZ_REALID']) {
-            $query = "SELECT `realid` AS `login` from `op_customers` WHERE `virtualid`='" . $query . "'";
-        } else {
-            $query = "SELECT `login` from `users` WHERE `IP` = '" . int2ip($query) . "'";
+        if ($altercfg['OPENPAYZ_SUPPORT']) {
+            if ($altercfg['OPENPAYZ_REALID']) {
+                $query = "SELECT `realid` AS `login` from `op_customers` WHERE `virtualid`='" . $query . "'";
+            } else {
+                $query = "SELECT `login` from `users` WHERE `IP` = '" . int2ip($query) . "'";
+            }
         }
     }
 
@@ -167,7 +196,7 @@ function zb_UserSearchAllFields($query, $render = true) {
             if (!empty($allUserNotes)) {
                 foreach ($allUserNotes as $noteLogin => $noteText) {
                     if (isset($searh_data_array[$noteLogin])) {
-                        $searh_data_array[$noteLogin]['note']=$noteText;
+                        $searh_data_array[$noteLogin]['note'] = $noteText;
                     }
                 }
             }
@@ -198,11 +227,16 @@ function zb_UserSearchAllFields($query, $render = true) {
  * @return string
  */
 function web_UserSearchCFForm() {
-    $allcftypes = cf_TypeGetAll();
+    $cf = new CustomFields();
+    $allCfTypes = $cf->getTypesAll();
     $cfsearchform = wf_tag('h3') . __('Additional profile fields') . wf_tag('h3', true);
-    if (!empty($allcftypes)) {
-        foreach ($allcftypes as $io => $eachtype) {
-            $cfsearchform .= $eachtype['name'] . ' ' . cf_TypeGetSearchControl($eachtype['type'], $eachtype['id']);
+    if (!empty($allCfTypes)) {
+        foreach ($allCfTypes as $io => $eachtype) {
+            $searchControl = $cf->getTypeSearchControl($eachtype['type'], $eachtype['id']);
+            //is this type searchable?
+            if (!empty($searchControl)) {
+                $cfsearchform .= $cf->renderTypeName($eachtype['id']) . ' ' . $searchControl;
+            }
         }
     } else {
         $cfsearchform = '';
@@ -501,5 +535,3 @@ function zb_UserSearchTypeLocalize($searchtype, $query = '') {
 
     return ($result);
 }
-
-?>

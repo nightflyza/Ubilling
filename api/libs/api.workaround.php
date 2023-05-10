@@ -189,7 +189,7 @@ function web_EditorStringDataFormPassword($fieldnames, $fieldkey, $useraddress, 
     $alterconf = $ubillingConfig->getAlter();
     $passwordsType = (isset($alterconf['PASSWORD_TYPE'])) ? $alterconf['PASSWORD_TYPE'] : 1;
     $passwordsLenght = (isset($alterconf['PASSWORD_GENERATION_LENGHT'])) ? $alterconf['PASSWORD_GENERATION_LENGHT'] : 8;
-
+    
     $password_proposal = '';
     switch ($passwordsType) {
         case 0:
@@ -200,6 +200,9 @@ function web_EditorStringDataFormPassword($fieldnames, $fieldkey, $useraddress, 
             break;
         case 2:
             $password_proposal = zb_PasswordGenerate($passwordsLenght);
+            break;
+        case 3:
+            $password_proposal = zb_PasswordGenerateTH($passwordsLenght);
             break;
         default :
             $password_proposal = zb_rand_string(8);
@@ -2006,7 +2009,12 @@ function web_PaymentsShowGraph($year) {
         foreach ($months as $eachmonth => $monthname) {
             $month_summ = (isset($yearStats[$eachmonth])) ? $yearStats[$eachmonth]['summ'] : 0;
             $paycount = (isset($yearStats[$eachmonth])) ? $yearStats[$eachmonth]['count'] : 0;
-            $monthArpu = @round($month_summ / $paycount, 2);
+            if ($paycount != 0) {
+                $monthArpu = @round($month_summ / $paycount, 2);
+            } else {
+                $monthArpu = 0;
+            }
+
             if (is_nan($monthArpu)) {
                 $monthArpu = 0;
             }
@@ -2163,10 +2171,12 @@ function web_PaymentsShowGraphPerBranch($year) {
  * @param string $prefix
  * @param string $extaction
  * @param string $extbutton
+ * @param bool $emptyWarning
+ * 
  * @return string
  */
-function web_GridEditor($titles, $keys, $alldata, $module, $delete = true, $edit = false, $prefix = '', $extaction = '', $extbutton = '') {
-
+function web_GridEditor($titles, $keys, $alldata, $module, $delete = true, $edit = false, $prefix = '', $extaction = '', $extbutton = '', $emptyWarning = false) {
+    $result = '';
 //headers
     $cells = '';
     foreach ($titles as $eachtitle) {
@@ -2207,9 +2217,16 @@ function web_GridEditor($titles, $keys, $alldata, $module, $delete = true, $edit
             $rows .= wf_TableRow($cells, 'row5');
         }
     }
+    $result .= wf_TableBody($rows, '100%', 0, 'sortable');
 
+    //override result with empty notice if required
+    if ($emptyWarning) {
+        if (empty($alldata)) {
+            $messages = new UbillingMessageHelper();
+            $result = $messages->getStyledMessage(__('Nothing to show'), 'warning');
+        }
+    }
 
-    $result = wf_TableBody($rows, '100%', 0, 'sortable');
     return($result);
 }
 
@@ -2411,23 +2428,32 @@ function web_NasEditForm($nasId) {
 /**
  * Dumps database to file and returns filename
  * 
- * @param bool   $silent
+ * @param bool $silent
+ * 
  * @return string
  */
-function zb_backup_database($silent = false) {
+function zb_BackupDatabase($silent = false) {
     global $ubillingConfig;
-    $alterConf = $ubillingConfig->getAlter();
-    $mysqlConf = rcms_parse_ini_file(CONFIG_PATH . 'mysql.ini');
+    $backname = '';
+    $backupProcess = new StarDust('BACKUPDB');
+    if ($backupProcess->notRunning()) {
+        $backupProcess->start();
+        $alterConf = $ubillingConfig->getAlter();
+        $mysqlConf = rcms_parse_ini_file(CONFIG_PATH . 'mysql.ini');
 
-    $backname = DATA_PATH . 'backups/sql/ubilling-' . date("Y-m-d_H_i_s", time()) . '.sql';
-    $command = $alterConf['MYSQLDUMP_PATH'] . ' --host ' . $mysqlConf['server'] . ' -u ' . $mysqlConf['username'] . ' -p' . $mysqlConf['password'] . ' ' . $mysqlConf['db'] . ' > ' . $backname;
-    shell_exec($command);
+        $backname = DATA_PATH . 'backups/sql/ubilling-' . date("Y-m-d_H_i_s", time()) . '.sql';
+        $command = $alterConf['MYSQLDUMP_PATH'] . ' --host ' . $mysqlConf['server'] . ' -u ' . $mysqlConf['username'] . ' -p' . $mysqlConf['password'] . ' ' . $mysqlConf['db'] . ' > ' . $backname;
+        shell_exec($command);
 
-    if (!$silent) {
-        show_success(__('Backup saved') . ': ' . $backname);
+        if (!$silent) {
+            show_success(__('Backup saved') . ': ' . $backname);
+        }
+
+        log_register('BACKUP CREATE `' . $backname . '`');
+        $backupProcess->stop();
+    } else {
+        log_register('BACKUP ALREADY RUNNING SKIPPED');
     }
-
-    log_register("BACKUP CREATE `" . $backname . "`");
     return ($backname);
 }
 
@@ -3823,108 +3849,6 @@ function zb_MacVendorLookup($mac) {
         $result = zb_MacVendorSearchmac($mac);
     }
     return ($result);
-}
-
-///////////////////////
-// discounts support //
-///////////////////////
-
-/**
- * Returns array of all users with their discounts
- * 
- * @return array
- */
-function zb_DiscountsGetAllUsers() {
-    $alterconf = rcms_parse_ini_file(CONFIG_PATH . "alter.ini");
-    $cfid = $alterconf['DISCOUNT_PERCENT_CFID'];
-    $cfid = vf($cfid, 3);
-    $result = array();
-    if (!empty($cfid)) {
-        $query = "SELECT * from `cfitems` WHERE `typeid`='" . $cfid . "'";
-        $alldiscountusers = simple_queryall($query);
-        if (!empty($alldiscountusers)) {
-            foreach ($alldiscountusers as $io => $each) {
-                $result[$each['login']] = vf($each['content']);
-            }
-        }
-    }
-    return ($result);
-}
-
-/**
- * Returns array of all month payments made during some month
- * 
- * @param string $month
- * @return array
- */
-function zb_DiscountsGetMonthPayments($month) {
-    $query = "SELECT * from `payments` WHERE `date` LIKE '" . $month . "%' AND `summ`>0";
-    $allpayments = simple_queryall($query);
-    $result = array();
-    if (!empty($allpayments)) {
-        foreach ($allpayments as $io => $each) {
-//if not only one payment
-            if (isset($result[$each['login']])) {
-                $result[$each['login']] = $result[$each['login']] + $each['summ'];
-            } else {
-                $result[$each['login']] = $each['summ'];
-            }
-        }
-    }
-    return ($result);
-}
-
-/**
- * Do the processing of discounts by the payments
- * 
- * @param bool $debug
- */
-function zb_DiscountProcessPayments($debug = false) {
-    $alterconf = rcms_parse_ini_file(CONFIG_PATH . "alter.ini");
-    $cashtype = $alterconf['DISCOUNT_CASHTYPEID'];
-    $operation = $alterconf['DISCOUNT_OPERATION'];
-
-
-    if (isset($alterconf['DISCOUNT_PREVMONTH'])) {
-        if ($alterconf['DISCOUNT_PREVMONTH']) {
-            $targetMonth = prevmonth();
-        } else {
-            $targetMonth = curmonth();
-        }
-    } else {
-        $targetMonth = curmonth();
-    }
-
-
-    $alldiscountusers = zb_DiscountsGetAllUsers();
-    $monthpayments = zb_DiscountsGetMonthPayments($targetMonth);
-
-    if ((!empty($alldiscountusers) AND ( !empty($monthpayments)))) {
-        foreach ($monthpayments as $login => $eachpayment) {
-//have this user discount?
-            if (isset($alldiscountusers[$login])) {
-//yes it have
-                $discount_percent = $alldiscountusers[$login];
-                $payment_summ = $eachpayment;
-                $discount_payment = ($payment_summ / 100) * $discount_percent;
-
-
-
-                if ($operation == 'CORR') {
-                    zb_CashAdd($login, $discount_payment, 'correct', $cashtype, 'DISCOUNT:' . $discount_percent);
-                }
-
-                if ($operation == 'ADD') {
-                    zb_CashAdd($login, $discount_payment, 'add', $cashtype, 'DISCOUNT:' . $discount_percent);
-                }
-
-                if ($debug) {
-                    print('USER:' . $login . ' SUMM:' . $payment_summ . ' DISCOUNT:' . $discount_percent . ' PAYMENT:' . $discount_payment . "\n");
-                    log_register("DISCOUNT " . $operation . " (" . $login . ") ON " . $discount_payment);
-                }
-            }
-        }
-    }
 }
 
 /**
@@ -5757,12 +5681,34 @@ function zb_CacheKeyDestroy($key) {
 /**
  * Downloads and unpacks phpsysinfo distro
  * 
+ * @global object $ubillingConfig
+ * 
  * @return void
  */
 function zb_InstallPhpsysinfo() {
-    $upd = new UbillingUpdateStuff();
-    $upd->downloadRemoteFile('http://ubilling.net.ua/packages/phpsysinfo.tar.gz', 'exports/', 'phpsysinfo.tar.gz');
-    $upd->extractTgz('exports/phpsysinfo.tar.gz', 'phpsysinfo/');
+    global $ubillingConfig;
+    $billCfg = $ubillingConfig->getBilling();
+    $phpSysInfoDir = $billCfg['PHPSYSINFO'];
+    if (!empty($phpSysInfoDir)) {
+        if (cfr('ROOT')) {
+            $upd = new UbillingUpdateStuff();
+            $upd->downloadRemoteFile('http://ubilling.net.ua/packages/phpsysinfo.tar.gz', 'exports/', 'phpsysinfo.tar.gz');
+            $upd->extractTgz('exports/phpsysinfo.tar.gz', MODULES_DOWNLOADABLE . $phpSysInfoDir);
+        }
+    }
+}
+
+/**
+ * Downloads and unpacks xhprof distro
+ * 
+ * @return void
+ */
+function zb_InstallXhprof() {
+    if (cfr('ROOT')) {
+        $upd = new UbillingUpdateStuff();
+        $upd->downloadRemoteFile('http://ubilling.net.ua/packages/xhprof.tar.gz', 'exports/', 'xhprof.tar.gz');
+        $upd->extractTgz('exports/xhprof.tar.gz', MODULES_DOWNLOADABLE . 'xhprof/');
+    }
 }
 
 /**
@@ -5918,7 +5864,7 @@ function zb_InitGhostMode($adminLogin) {
  * 
  * @return void
  */
-function zb_backups_rotate($maxAge) {
+function zb_BackupsRotate($maxAge) {
     $maxAge = vf($maxAge, 3);
     if ($maxAge) {
         if (is_numeric($maxAge)) {
@@ -6101,7 +6047,7 @@ function web_TariffCreateForm() {
     $inputs .= wf_TextInput('options[Fee]', __('Fee'), '0', true, 4, 'finance');
     $inputs .= wf_delimiter(0);
     $inputs .= $periodControls;
-    $inputs .= wf_TextInput('options[Free]', __('Prepaid traffic').' ('.__('Mb').')', '0', true, 3, 'digits');
+    $inputs .= wf_TextInput('options[Free]', __('Prepaid traffic') . ' (' . __('Mb') . ')', '0', true, 3, 'digits');
     $inputs .= wf_delimiter(0);
     $inputs .= wf_Selector('options[TraffType]', $traffCountOptions, __('Counting traffic'), '', true);
     $inputs .= wf_delimiter(0);
@@ -6197,7 +6143,7 @@ function web_TariffEditForm($tariffname) {
         $inputs .= wf_TextInput('options[Fee]', __('Fee'), $tariffdata['Fee'], true, 4, 'finance');
         $inputs .= wf_delimiter(0);
         $inputs .= $periodControls;
-        $inputs .= wf_TextInput('options[Free]', __('Prepaid traffic').' ('.__('Mb').')', $tariffdata['Free'], true, 3, 'digits');
+        $inputs .= wf_TextInput('options[Free]', __('Prepaid traffic') . ' (' . __('Mb') . ')', $tariffdata['Free'], true, 3, 'digits');
         $inputs .= wf_delimiter(0);
         $inputs .= wf_Selector('options[TraffType]', $traffCountOptions, __('Counting traffic'), $tariffdata['TraffType'], true);
         $inputs .= wf_delimiter(0);
@@ -6821,4 +6767,81 @@ function ub_SanitizeData($data, $mres = true) {
     $result = str_replace('"', '``', $result);
     $result = str_replace("'", '`', $result);
     return($result);
+}
+
+/**
+ * Returns data that contained between two string tags
+ * 
+ * @param string $openTag - open tag string. Examples: "(", "[", "{", "[sometag]" 
+ * @param string $closeTag - close tag string. Examples: ")", "]", "}", "[/sometag]" 
+ * @param string $stringToParse - just string that contains some data to parse
+ * @param bool   $mutipleResults - extract just first result as string or all matches as array like match=>match
+ * 
+ * @return string/array
+ */
+function zb_ParseTagData($openTag, $closeTag, $stringToParse = '', $mutipleResults = false) {
+    $result = '';
+    if (!empty($openTag) AND ! empty($closeTag) AND ! empty($stringToParse)) {
+        $replacements = array(
+            '(' => '\(',
+            ')' => '\)',
+            '[' => '\[',
+            ']' => '\]',
+        );
+
+        foreach ($replacements as $eachReplaceTag => $eachReplace) {
+            $openTag = str_replace($eachReplaceTag, $eachReplace, $openTag);
+            $closeTag = str_replace($eachReplaceTag, $eachReplace, $closeTag);
+        }
+
+        $pattern = '!' . $openTag . '(.*?)' . $closeTag . '!si';
+
+        if ($mutipleResults) {
+            $result = array();
+            if (preg_match_all($pattern, $stringToParse, $matches)) {
+                if (isset($matches[1])) {
+                    if (!empty($matches[1])) {
+                        foreach ($matches[1] as $io => $each) {
+                            $result[$each] = $each;
+                        }
+                    }
+                }
+            }
+        } else {
+            if (preg_match($pattern, $stringToParse, $matches)) {
+                if (isset($matches[1])) {
+                    $result = $matches[1];
+                }
+            }
+        }
+    }
+    return($result);
+}
+
+/**
+ * Predicts the next value using simple exponential smoothing with a trend using Holt-Winters method.
+ * 
+ * @param array $data
+ * 
+ * @return float
+ */
+function zb_forecastHoltWinters($data) {
+    $alpha = 0.2;
+    $beta = 0.1;
+    $forecast_length = 1;
+    $data_length = count($data);
+    $level = $data[0];
+    $trend = ($data[1] - $data[0]) / 2;
+    for ($i = 2; $i < $data_length; $i++) {
+        $last_level = $level;
+        $last_trend = $trend;
+        $level = $alpha * $data[$i] + (1 - $alpha) * ($last_level + $last_trend);
+        $trend = $beta * ($level - $last_level) + (1 - $beta) * $last_trend;
+    }
+    $last_level = $level;
+    $last_trend = $trend;
+    for ($i = 0; $i < $forecast_length; $i++) {
+        $forecast = $last_level + $last_trend * ($i + 1);
+    }
+    return ($forecast);
 }

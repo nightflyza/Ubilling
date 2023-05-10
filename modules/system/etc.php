@@ -170,14 +170,13 @@ function rcms_format_time($format, $gmepoch, $tz = '') {
  */
 function rcms_date_localise($string) {
     global $lang, $system;
-
+    $result = $string;
     if ($system->language != 'english') {
-        @reset($lang['datetime']);
-        while (list($match, $replace) = @each($lang['datetime'])) {
-            $translate[$match] = $replace;
+        foreach ($lang['datetime'] as $orig => $replace) {
+            $result = str_replace($orig, $replace, $result);
         }
     }
-    return (!empty($translate) ) ? strtr($string, $translate) : $string;
+    return($result);
 }
 
 function rcms_parse_text_by_mode($str, $mode) {

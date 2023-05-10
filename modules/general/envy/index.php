@@ -60,7 +60,7 @@ if (cfr('ENVY')) {
 
         //device config storing to archive
         if (ubRouting::checkGet('storedevice')) {
-            $storeResult = $envy->storeArchiveData(ubRouting::get('storedevice'), $envy->runDeviceScript(ubRouting::get('storedevice')));
+            $storeResult = $envy->procStoreArchiveData(ubRouting::get('storedevice'));
             if (empty($storeResult)) {
                 if (ubRouting::checkGet('resave')) {
                     $returnUrl = $envy::URL_ME;
