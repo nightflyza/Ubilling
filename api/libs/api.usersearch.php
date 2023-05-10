@@ -133,6 +133,7 @@ function zb_UserSearchFields($query, $searchtype) {
     if ($altercfg['PON_ENABLED'] AND $searchtype == 'onuserial') {
         $mask = (isset($strictsearch[$searchtype]) ? '' : '%');
         $query = "SELECT `login` from `pononu` WHERE `serial` LIKE '" . $mask . $query . $mask . "'";
+    }
     //mac-address search
     if ($searchtype == 'mac') {
         $allfoundlogins = array();
