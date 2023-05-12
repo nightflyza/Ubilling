@@ -280,6 +280,19 @@ class UniversalQINQ {
     }
 
     /**
+     * Check if svlan_id greated than zero
+     * 
+     * @return bool
+     */
+    protected function validateSvlan() {
+        if ($this->routing->get('svlan_id', 'int') >= 1) {
+            return(true);
+        } else {
+            return(false);
+        }
+    }
+
+    /**
      * Check if qinq pair is not occupied by switch.
      * 
      * @return bool
@@ -384,6 +397,9 @@ class UniversalQINQ {
     protected function validator() {
         if (!$this->validateCvlan()) {
             $this->error[] = __('Wrong value') . ' CVLAN ' . $this->routing->get('cvlan_num', 'int');
+        }
+        if (!$this->validateSvlan()) {
+            $this->error[] = __('Wrong value') . ' SVLAN ID ' . $this->routing->get('svlan_id', 'int');
         }
         if (!$this->isUniversalCvlanUnique()) {
             $this->error[] = "CVLAN " . $this->routing->get('cvlan_num', 'int')
