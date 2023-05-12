@@ -592,6 +592,9 @@ class UniversalQINQ {
             $allRealnames = zb_UserGetAllRealnames();
             $allAddress = zb_AddressGetFulladdresslistCached();
             foreach ($this->allData as $io => $each) {
+                if(!isset($this->allSvlan[$each['svlan_id']])) {
+                    continue;
+                }
                 $eachId = base64_encode(serialize(array(
                     'id' => $each['id'],
                     'svlan_id' => $each['svlan_id'],
