@@ -1260,9 +1260,8 @@ class ExistentialHorse {
                             $citySignupsChartData[$csCount][] += $emCount;
                         }
                     }
+                    $result .= wf_gchartsLine($citySignupsChartData, __('Cities'), '100%', '300px', $chartsOptions);
                 }
-
-                $result .= wf_gchartsLine($citySignupsChartData, __('Cities'), '100%', '300px', $chartsOptions);
             }
 
 
@@ -1408,7 +1407,7 @@ class ExistentialHorse {
             if ($this->pbxFlag) {
                 //incoming calls
                 $result .= wf_tag('h2') . __('Telephony') . wf_tag('h2', true);
-                $result.= wf_img('skins/calls/incoming.png') . ' ' . __('Incoming calls');
+                $result .= wf_img('skins/calls/incoming.png') . ' ' . __('Incoming calls');
                 $cells = wf_TableCell(__('Month'));
                 $cells .= wf_TableCell(__('Incoming calls'));
                 $cells .= wf_TableCell(__('Total answered'));
@@ -1445,7 +1444,7 @@ class ExistentialHorse {
                 }
 
                 //outcoming calls
-                $result.=  wf_img('skins/calls/outgoing.png') . ' ' . __('Outgoing calls').wf_delimiter(0);
+                $result .= wf_img('skins/calls/outgoing.png') . ' ' . __('Outgoing calls') . wf_delimiter(0);
                 $cells = wf_TableCell(__('Month'));
                 $cells .= wf_TableCell(__('Outgoing calls'));
                 $cells .= wf_TableCell(__('Total answered'));
