@@ -7,9 +7,10 @@ set PON_INT [lindex $argv 4]
 set PORT [lindex $argv 5]
 set ONU_NUM [lindex $argv 6]
 set VLAN [lindex $argv 7]
-set SN [lindex $argv 8]
-set NATIVE_VLAN [lindex $argv 9]
-set SERVICE_PORT [lindex $argv 10]
+set SVLAN [lindex $argv 8]
+set SN [lindex $argv 9]
+set NATIVE_VLAN [lindex $argv 10]
+set SERVICE_PORT [lindex $argv 11]
 
 if {[string match "TELNET" $METHOD]} {
     spawn telnet $IP
