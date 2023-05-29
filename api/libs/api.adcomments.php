@@ -213,7 +213,7 @@ class ADcomments {
     protected function createComment($text) {
         $curdate = curdatetime();
         $text = strip_tags($text);
-        $text = ubRouting::filters($text);
+        $text = ubRouting::filters($text, 'mres');
 
         $this->commentsDb->data('scope', $this->scope);
         $this->commentsDb->data('item', $this->item);
@@ -254,6 +254,7 @@ class ADcomments {
     protected function modifyComment($id, $text) {
         $id = ubRouting::filters($id, 'int');
         $text = strip_tags($text);
+        $text = ubRouting::filters($text, 'mres');
 
         $this->commentsDb->data('text', $text);
         $this->commentsDb->where('id', '=', $id);
@@ -416,7 +417,7 @@ class ADcomments {
         $cachedData = $this->cache->get(self::CACHE_KEY . $this->scope, $this->cacheTime);
         if (empty($cachedData)) {
             //cache must be updated
-            $this->commentsDb->selectable(array('id','scope','item','text'));
+            $this->commentsDb->selectable(array('id', 'scope', 'item', 'text'));
             $this->commentsDb->where('scope', '=', $this->scope);
             $cachedData = $this->commentsDb->getAll();
             if (empty($cachedData)) {
@@ -552,7 +553,7 @@ class ADcomments {
                     $itemsComments[$each['item']][] = $each;
                 }
             }
-   
+
             return ($itemsComments);
         } else {
             throw new Exception(self::EX_EMPTY_SCOPE);
