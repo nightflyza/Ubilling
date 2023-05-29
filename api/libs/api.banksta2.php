@@ -26,6 +26,41 @@ class Banksta2 {
     protected $messages = null;
 
     /**
+     * UbillingCache instance placeholder
+     *
+     * @var null
+     */
+    protected $ubCache = null;
+
+    /**
+     * Placeholder for BANKSTA2_CACHE_LIFETIME from alter.ini
+     *
+     * @var int
+     */
+    protected $cacheLifeTime = 900;
+
+    /**
+     * $userDataCahched array from UbillingCache
+     *
+     * @var array
+     */
+    protected $userDataCahched = array();
+
+    /**
+     * $processedBankstaCahched array from UbillingCache
+     *
+     * @var array
+     */
+    protected $processedBankstaCahched = array();
+
+    /**
+     * $mappingPresetsCahched array from UbillingCache
+     *
+     * @var array
+     */
+    protected $mappingPresetsCahched = array();
+
+    /**
      * List of allowed extensions
      *
      * @var array
@@ -67,6 +102,13 @@ class Banksta2 {
      * @var array
      */
     protected $bankstaRecordsAll = array();
+
+    /**
+     * Already preprocessed banksta records IDs from BANKSTA2_TABLE
+     *
+     * @var array
+     */
+    protected $bankstaRecordsAllIDs = array();
 
     /**
      * Contains available Inet users data as login => userdata
@@ -199,7 +241,10 @@ class Banksta2 {
      * Default storage table name
      */
     const BANKSTA2_TABLE = 'banksta2';
-    const BANKSTA2_PRESETS_TABLE = 'banksta2_presets';
+    const BANKSTA2_PRESETS_TABLE  = 'banksta2_presets';
+    const BANKSTA2_USER_CACHE_KEY = "BANKSTA2_USERS_DATA";
+    const BANKSTA2_PROCBS_CACHE_KEY = "BANKSTA2_PROCBS_DATA";
+    const BANKSTA2_MAPPRESETS_CACHE_KEY = "BANKSTA2_MAPPRESETS_DATA";
 
     /**
      * Routing URLs
@@ -223,15 +268,13 @@ class Banksta2 {
 
     public function __construct() {
         global $ubillingConfig, $billing;
-        $this->ubConfig=$ubillingConfig;
-        $this->billing=$billing;
+        $this->ubConfig = $ubillingConfig;
+        $this->billing = $billing;
+        $this->ubCache = new UbillingCache();
         $this->initMessages();
         $this->loadOptions();
-        $this->loadUserDataInet();
-        $this->loadUserDataUKV();
-        $this->loadUKVTariffs();
-        $this->loadProcessedBankstaRecs();
-        $this->loadMappingPresets();
+        $this->loadProcessedBankstaRecsIDs();
+
         $this->bankstaServiceType = array('Internet' => __('Internet'),
                                           'UKV' => __('UKV'),
                                           'Telepathy' => __('Telepathy')
@@ -269,107 +312,262 @@ class Banksta2 {
         $this->opayzIDAsContract = $this->ubConfig->getAlterParam('BANKSTA2_OPAYZID_AS_CONTRACT');
         $this->inetSrvAllotedIDs = explode(',', trim($this->ubConfig->getAlterParam('BANKSTA2_INETSRV_ALLOTED_IDS'), "\t\n\r\0\x0B,"));
         $this->ctvSrvAllotedIDs = explode(',', trim($this->ubConfig->getAlterParam('BANKSTA2_CTVSRV_ALLOTED_IDS'), "\t\n\r\0\x0B,"));
+        $this->cacheLifeTime = ($this->ubConfig->getAlterParam('BANKSTA2_CACHE_LIFETIME')) ? $this->ubConfig->getAlterParam('BANKSTA2_CACHE_LIFETIME') : 900;
     }
 
+    /**
+     * Returns essential user data suitable for caching
+     *
+     * @return array
+     */
+    public function getUsersDataForCache() {
+        $cacheArray     = array();
+        $userDataInet   = $this->loadUserDataInet();
+        $userDataUKV    = $this->loadUserDataUKV();
+        $ukvTariffs     = $this->loadUKVTariffs();
+
+        $cacheArray['usersinet']            = (empty($userDataInet['usersdata']) ? array() : $userDataInet['usersdata']);
+        $cacheArray['usersinetcontracts']   = (empty($userDataInet['userscontracts']) ? array() : $userDataInet['userscontracts']);
+        $cacheArray['usersukv']             = (empty($userDataUKV['usersdata']) ? array() : $userDataUKV['usersdata']);
+        $cacheArray['usersukvcontracts']    = (empty($userDataUKV['userscontracts']) ? array() : $userDataUKV['userscontracts']);
+        $cacheArray['tariffsukv']           = (empty($ukvTariffs) ? array() : $ukvTariffs);
+
+        return ($cacheArray);
+    }
+
+    /**
+     * Returns user data from cache
+     *
+     * @return array
+     */
+    public function getUsersDataCached($force = false) {
+        $userDataCached = array();
+
+        if ($force) {
+            $this->ubCache->set(self::BANKSTA2_USER_CACHE_KEY, $this->getUsersDataForCache(), $this->cacheLifeTime);
+            $userDataCached = $this->ubCache->get(self::BANKSTA2_USER_CACHE_KEY, $this->cacheLifeTime);
+        } else {
+            $thisInstance = $this;
+            $userDataCached = $this->ubCache->getCallback(self::BANKSTA2_USER_CACHE_KEY, function () use ($thisInstance) {
+                                    return ($thisInstance->getUsersDataForCache());
+                                }, $this->cacheLifeTime);
+        }
+
+        $this->allUsersDataInet = $userDataCached['usersinet'];
+        $this->allContractsInet = $userDataCached['usersinetcontracts'];
+        $this->allUsersDataUKV  = $userDataCached['usersukv'];
+        $this->allContractsUKV  = $userDataCached['usersukvcontracts'];
+
+        return ($userDataCached);
+    }
+
+    /**
+     * Returns processed bank statements data from cache
+     *
+     * @return array
+     */
+    public function getProcessedBSRecsCached($force = false) {
+        $processedBSRecsCached = array();
+
+        if ($force) {
+            $this->ubCache->set(self::BANKSTA2_PROCBS_CACHE_KEY, $this->loadProcessedBankstaRecs(), $this->cacheLifeTime);
+            $processedBSRecsCached = $this->ubCache->get(self::BANKSTA2_PROCBS_CACHE_KEY, $this->cacheLifeTime);
+        } else {
+            $thisInstance = $this;
+            $processedBSRecsCached = $this->ubCache->getCallback(self::BANKSTA2_PROCBS_CACHE_KEY, function () use ($thisInstance) {
+                                            return ($thisInstance->loadProcessedBankstaRecs());
+                                        }, $this->cacheLifeTime);
+        }
+
+        $this->bankstaRecordsAll = $processedBSRecsCached;
+        return ($processedBSRecsCached);
+    }
+
+    /**
+     * Returns processed bank statements data from cache
+     *
+     * @return array
+     */
+    public function getMappingPresetsCached($force = false) {
+        $mappingPresetsCached = array();
+
+        if ($force) {
+            $this->ubCache->set(self::BANKSTA2_MAPPRESETS_CACHE_KEY, $this->loadMappingPresets(), $this->cacheLifeTime);
+            $mappingPresetsCached = $this->ubCache->get(self::BANKSTA2_MAPPRESETS_CACHE_KEY, $this->cacheLifeTime);
+        } else {
+            $thisInstance = $this;
+            $mappingPresetsCached = $this->ubCache->getCallback(self::BANKSTA2_MAPPRESETS_CACHE_KEY, function () use ($thisInstance) {
+                                            return ($thisInstance->loadMappingPresets());
+                                        }, $this->cacheLifeTime);
+        }
+
+        $this->fieldsMappingPresets = $mappingPresetsCached;
+        return ($mappingPresetsCached);
+    }
 
     /**
      * Loads all available Internet users data from database
      *
-     * @return void
+     * @return array
      */
     protected function loadUserDataInet() {
-        $allOpenPayzUsers = array();
-        $this->allUsersDataInet = zb_UserGetAllData();
+        $result             = array();
+        $allOpenPayzUsers   = array();
+        $allUsersDataInet   = array();
+        $allContractsInet   = array();
+        $allUsersData       = zb_UserGetAllData();
 
-        // getting openpayz customers, if any
-        if ($this->opayzIDAsContract) {
-            $tQuery = "SELECT * FROM `op_customers`";
-            $tQueryResult = simple_queryall($tQuery);
+        if (!empty($allUsersData)) {
+            foreach ($allUsersData as $eachLogin => $eachUserData) {
+                $allUsersDataInet[$eachUserData['login']] = array('login'       => $eachUserData['login'],
+                                                                  'contract'    => $eachUserData['contract'],
+                                                                  'fulladress'  => $eachUserData['fulladress'],
+                                                                  'realname'    => $eachUserData['realname'],
+                                                                  'Tariff'      => $eachUserData['Tariff']
+                                                                 );
+            }
 
-            if (!empty($tQueryResult)) {
-                foreach ($tQueryResult as $eachRec => $eachOpayzUser) {
-                    if (!empty($eachOpayzUser['virtualid'])) {
-                        $allOpenPayzUsers[$eachOpayzUser['realid']] = $eachOpayzUser['virtualid'];
+            if (!empty($allUsersDataInet)) {
+                // getting openpayz customers, if any
+                if ($this->opayzIDAsContract) {
+                    $tQuery       = "SELECT * FROM `op_customers`";
+                    $tQueryResult = simple_queryall($tQuery);
+
+                    if (!empty($tQueryResult)) {
+                        foreach ($tQueryResult as $eachRec => $eachOpayzUser) {
+                            if (!empty($eachOpayzUser['virtualid'])) {
+                                $allOpenPayzUsers[$eachOpayzUser['realid']] = $eachOpayzUser['virtualid'];
+                            }
+                        }
+                    }
+                }
+
+                foreach ($allUsersDataInet as $io => $eachUser) {
+                    $login = $eachUser['login'];
+
+                    if (!empty($eachUser['contract'])) {
+                        $allContractsInet[$eachUser['contract']] = $login;
+                    } elseif ($this->opayzIDAsContract and !empty($allOpenPayzUsers[$login])) {
+                        $allContractsInet[$allOpenPayzUsers[$login]] = $login;
                     }
                 }
             }
         }
 
-        if (!empty($this->allUsersDataInet)) {
-            foreach ($this->allUsersDataInet as $io => $each) {
-                $login = $each['login'];
+        $result['usersdata']        = $allUsersDataInet;
+        $result['userscontracts']   = $allContractsInet;
 
-                if (!empty($each['contract'])) {
-                    $this->allContractsInet[$each['contract']] = $login;
-                } elseif ($this->opayzIDAsContract and !empty($allOpenPayzUsers[$login])){
-                    $this->allContractsInet[$allOpenPayzUsers[$login]] = $login;
-                }
-            }
-        }
+        return ($result);
     }
 
     /**
      * Loads all available UKV users data from database
      *
-     * @return void
+     * @return array
      */
     protected function loadUserDataUKV() {
         $tQuery = "SELECT * from `ukv_users`";
         $allUsers = simple_queryall($tQuery);
+        $allUsersDataUKV = array();
+        $allContractsUKV = array();
+        $result = array();
 
         if (!empty($allUsers)) {
-            foreach ($allUsers as $io => $each) {
-                $this->allUsersDataUKV[$each['id']] = $each;
-                $this->allContractsUKV[$each['contract']] = $each['id'];
+            foreach ($allUsers as $io => $eachUser) {
+                $allUsersDataUKV[$eachUser['id']] = array('id'       => $eachUser['id'],
+                                                          'contract' => $eachUser['contract'],
+                                                          'realname' => $eachUser['realname'],
+                                                          'tariffid' => $eachUser['tariffid'],
+                                                          'street'   => $eachUser['street'],
+                                                          'build'    => $eachUser['build'],
+                                                          'apt'      => $eachUser['apt']
+                                                        );
+
+                $allContractsUKV[$eachUser['contract']] = $eachUser['id'];
             }
         }
+
+        $result['usersdata']        = $allUsersDataUKV;
+        $result['userscontracts']   = $allContractsUKV;
+
+        return ($result);
     }
 
     /**
      * Loads UKV tariffs into private tariffs prop
      *
-     * @return void
+     * @return array
      */
     protected function loadUKVTariffs() {
         $tQuery = "SELECT * from `ukv_tariffs` ORDER by `tariffname` ASC;";
         $allTariffs = simple_queryall($tQuery);
+        $ukvTariffs = array();
+
         if (!empty($allTariffs)) {
             foreach ($allTariffs as $io => $each) {
-                $this->ukvTariffs[$each['id']] = $each;
+                $ukvTariffs[$each['id']] = $each;
             }
         }
+
+        return ($ukvTariffs);
     }
 
     /**
-     * Loads all of banksta rows to further checks to private property
+     * Loads all of banksta rows to private property for further use
      *
-     * @return void
+     * @return array
      */
-    protected function loadProcessedBankstaRecs() {
+    public function loadProcessedBankstaRecs() {
         $tQuery = "SELECT * FROM `" . self::BANKSTA2_TABLE . "`";
         $tQueryResult = simple_queryall($tQuery);
+        $bankstaRecordsAll = array();
 
         if (!empty($tQueryResult)) {
             foreach ($tQueryResult as $io => $eachRec) {
-                $this->bankstaRecordsAll[$eachRec['id']] = $eachRec;
+                $bankstaRecordsAll[$eachRec['id']] = $eachRec;
             }
         }
+
+        return ($bankstaRecordsAll);
+    }
+
+    /**
+     * Loads all of banksta rows IDs to private property for further use
+     *
+     * @return array
+     */
+    public function loadProcessedBankstaRecsIDs() {
+        $tQuery = "SELECT `id` FROM `" . self::BANKSTA2_TABLE . "`";
+        $tQueryResult = simple_queryall($tQuery);
+        $bankstaRecordsAllIDs = array();
+
+        if (!empty($tQueryResult)) {
+            foreach ($tQueryResult as $io => $eachRec) {
+                $bankstaRecordsAllIDs[$eachRec['id']] = $eachRec['id'];
+            }
+        }
+
+        $this->bankstaRecordsAllIDs = $bankstaRecordsAllIDs;
+        return ($bankstaRecordsAllIDs);
     }
 
     /**
      * Load fields mapping presets (FMPs)
      *
-     * @return void
+     * @return array
      */
     public function loadMappingPresets() {
         $tQuery = "SELECT * FROM `" . self::BANKSTA2_PRESETS_TABLE . "`";
         $tQueryResult = simple_queryall($tQuery);
+        $fieldsMappingPresets = array();
 
         if (!empty($tQueryResult)) {
             foreach ($tQueryResult as $eachRec) {
-                $this->fieldsMappingPresets[$eachRec['id']] = $eachRec;
+                $fieldsMappingPresets[$eachRec['id']] = $eachRec;
             }
         }
+
+        return ($fieldsMappingPresets);
     }
 
     /**
@@ -378,6 +576,7 @@ class Banksta2 {
      * @return array
      */
     public function getMappingPresets() {
+        $this->getMappingPresetsCached();
         return ($this->fieldsMappingPresets);
     }
 
@@ -417,6 +616,7 @@ class Banksta2 {
      */
     public function getFMPDataJSON($fmpID, $arrayToRemap = array()) {
         $result = array();
+        $this->getMappingPresetsCached();
 
         if (isset($this->fieldsMappingPresets[$fmpID]) and !empty($this->fieldsMappingPresets[$fmpID])) {
             $fmpData = $this->fieldsMappingPresets[$fmpID];
@@ -449,6 +649,7 @@ class Banksta2 {
      * @return string
      */
     public function getMappingPresetsSelector($selectorID = '', $selectorClass = '', $inContainer = false, $title = '', $insBR = false, $insRefreshButton = false) {
+        $this->getMappingPresetsCached();
         $labelTitle = (empty($title)) ? __('Choose fields mapping preset') : $title;
         $ctrlID = (empty($selectorID)) ? 'BankstaPresetsSelector' : $selectorID;
         $ctrlClass = (empty($selectorClass)) ? '__BankstaPresetsSelector' : $selectorClass;
@@ -487,6 +688,7 @@ class Banksta2 {
      * @return array|mixed
      */
     public function getBankstaRecDetails($recID) {
+        $this->getProcessedBSRecsCached();
         $result = array();
 
         if (isset($this->bankstaRecordsAll[$recID])) {
@@ -504,7 +706,7 @@ class Banksta2 {
      * @return void
      */
     public function setBankstaRecProcessed($bankstaRecID) {
-        if (isset($this->bankstaRecordsAll[$bankstaRecID])) {
+        if (isset($this->bankstaRecordsAllIDs[$bankstaRecID])) {
             simple_update_field(self::BANKSTA2_TABLE, 'processed', 1, "WHERE `id`='" . $bankstaRecID . "';");
             //log_register('BANKSTA2 [' . $bankstaRecID . '] SET AS PROCESSED');
         } else {
@@ -520,7 +722,7 @@ class Banksta2 {
      * @return void
      */
     public function setBankstaRecCanceled($bankstaRecID) {
-        if (isset($this->bankstaRecordsAll[$bankstaRecID])) {
+        if (isset($this->bankstaRecordsAllIDs[$bankstaRecID])) {
             simple_update_field(self::BANKSTA2_TABLE, 'processed', 1, "WHERE `id`='" . $bankstaRecID . "';");
             simple_update_field(self::BANKSTA2_TABLE, 'canceled', 1, "WHERE `id`='" . $bankstaRecID . "';");
             log_register('BANKSTA2 [' . $bankstaRecID . '] SET AS CANCELED');
@@ -537,7 +739,7 @@ class Banksta2 {
      * @return void
      */
     public function setBankstaRecUnCanceled($bankstaRecID) {
-        if (isset($this->bankstaRecordsAll[$bankstaRecID])) {
+        if (isset($this->bankstaRecordsAllIDs[$bankstaRecID])) {
             simple_update_field(self::BANKSTA2_TABLE, 'processed', 0, "WHERE `id`='" . $bankstaRecID . "';");
             simple_update_field(self::BANKSTA2_TABLE, 'canceled', 0, "WHERE `id`='" . $bankstaRecID . "';");
             log_register('BANKSTA2 [' . $bankstaRecID . '] SET AS UNCANCELED');
@@ -555,6 +757,7 @@ class Banksta2 {
      * @return void
      */
     public function setBankstaRecContract($bankstaRecID, $contract) {
+        $this->getProcessedBSRecsCached();
         $contract = mysql_real_escape_string($contract);
         $contract = trim($contract);
 
@@ -576,6 +779,7 @@ class Banksta2 {
      * @return void
      */
     public function setBankstaRecSrvType($bankstaRecID, $srvType) {
+        $this->getProcessedBSRecsCached();
         $srvType = mysql_real_escape_string($srvType);
         $srvType = trim($srvType);
 
@@ -759,6 +963,8 @@ class Banksta2 {
 
         nr_query($tQuery);
         log_register('CREATE banksta2 fields mapping preset [' . $fmpName . ']');
+
+        $this->getMappingPresetsCached(true);
     }
 
     /**
@@ -857,6 +1063,7 @@ class Banksta2 {
 
         nr_query($tQuery);
         log_register('CHANGE banksta2 fields mapping preset [' . $fmpName . ']');
+        $this->getMappingPresetsCached(true);
     }
 
     /**
@@ -871,6 +1078,7 @@ class Banksta2 {
         $tQuery = "DELETE FROM `" . self::BANKSTA2_PRESETS_TABLE . "` WHERE `id` = '" . $fmpId . "'";
         nr_query($tQuery);
         log_register('DELETE banksta2 fields mapping preset [' . $fmpId . '] ` ' . $fmpName);
+        $this->getMappingPresetsCached(true);
     }
 
     /**
@@ -1381,8 +1589,9 @@ class Banksta2 {
         }
 
         if (!empty($paymentsToPush)) {
-
-            $ukv = new UkvSystem();
+            $this->getUsersDataCached();
+            $needProcessUKV = $this->checkNeedProcessUKV($paymentsToPush);
+            $ukv = $needProcessUKV ? new UkvSystem() : null;
             $allParentUsers = ($checkForCorpUsers and !$refiscalize) ? cu_GetAllParentUsers() : array();
 
             foreach ($paymentsToPush as $eachRecID => $eachRec) {
@@ -1567,6 +1776,28 @@ class Banksta2 {
         $tQueryResult = simple_queryall($tQuery);
 
 
+    }
+
+    /**
+     * Checks $paymentsToPush array for UKV records presence
+     *
+     * @param $paymentsToPush
+     *
+     * @return bool
+     */
+    public function checkNeedProcessUKV($paymentsToPush) {
+        $result = false;
+
+        if (!empty($paymentsToPush)) {
+            foreach ($paymentsToPush as $eachRecID => $eachRec) {
+                if (strtolower($eachRec['service']) == 'ukv') {
+                    $result = true;
+                    break;
+                }
+            }
+        }
+
+        return ($result);
     }
 
     /**
@@ -2055,6 +2286,8 @@ class Banksta2 {
             $rows = wf_TableRow($cells, 'row1');
 
             if (!empty($tQueryResult)) {
+                $this->getUsersDataCached();
+
                 foreach ($tQueryResult as $io => $eachRec) {
                     $recProcessed = ($eachRec['processed']) ? true : false;
                     $recCanceled = ($eachRec['canceled']) ? true : false;
@@ -2700,6 +2933,7 @@ class Banksta2 {
      * @return string
      */
     public function renderFMPEditForm($fmpID, $modalWindowId, $clone = false) {
+        $this->getMappingPresetsCached();
         $formId             = 'Form_' . wf_InputId();
         $closeFormChkId     = 'CloseFrmChkID_' . wf_InputId();
 

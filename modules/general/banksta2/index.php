@@ -45,6 +45,8 @@ if (cfr('BANKSTA2')) {
                 if (wf_CheckPost(array('newbankstarvtype'))) {
                     $Banksta->setBankstaRecSrvType($_POST['bankstaeditrowid'], $_POST['newbankstarvtype']);
                 }
+
+                $Banksta->getProcessedBSRecsCached(true);
             }
 
             if (wf_CheckPost(array('bankstaneedpaymentspush'))) {
