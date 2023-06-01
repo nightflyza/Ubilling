@@ -3498,6 +3498,8 @@ $lang['def']['No ONUs not assigned to users were found'] = 'Не виявлен�
 $lang['def']['Auto'] = 'Автоматично';
 $lang['def']['Default'] = 'За замовчуванням';
 $lang['def']['as'] = 'як';
+$lang['def']['Any user tags not exists'] = 'Не існує жодних користувацьких тегів';
+$lang['def'][''] = '';
 $lang['def'][''] = '';
 
 

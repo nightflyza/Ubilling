@@ -26,6 +26,7 @@ require_once('api/libs/api.workaround.php');
 require_once('api/libs/api.usms.php');
 require_once('api/libs/api.payments.php');
 require_once('api/libs/api.usertags.php');
+require_once('api/libs/api.vservices.php');
 require_once('api/libs/api.cess.php');
 require_once('api/libs/api.cardpay.php');
 require_once('api/libs/api.customfields.php');

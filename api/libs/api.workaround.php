@@ -189,7 +189,7 @@ function web_EditorStringDataFormPassword($fieldnames, $fieldkey, $useraddress, 
     $alterconf = $ubillingConfig->getAlter();
     $passwordsType = (isset($alterconf['PASSWORD_TYPE'])) ? $alterconf['PASSWORD_TYPE'] : 1;
     $passwordsLenght = (isset($alterconf['PASSWORD_GENERATION_LENGHT'])) ? $alterconf['PASSWORD_GENERATION_LENGHT'] : 8;
-    
+
     $password_proposal = '';
     switch ($passwordsType) {
         case 0:
@@ -2294,68 +2294,6 @@ function web_NasList() {
         $result .= $messages->getStyledMessage(__('Nothing to show'), 'warning');
     }
 
-    return($result);
-}
-
-/**
- * Returns virtual services editor grid
- * 
- * @param array $titles
- * @param array $keys
- * @param array $alldata
- * @param string $module
- * @param bool $delete
- * @param bool $edit
- * @return string
- */
-function web_GridEditorVservices($titles, $keys, $alldata, $module, $delete = true, $edit = false) {
-    $alltagnames = stg_get_alltagnames();
-    $cells = '';
-    foreach ($titles as $eachtitle) {
-
-        $cells .= wf_TableCell(__($eachtitle));
-    }
-
-    $cells .= wf_TableCell(__('Actions'));
-    $rows = wf_TableRow($cells, 'row1');
-
-    if (!empty($alldata)) {
-        foreach ($alldata as $io => $eachdata) {
-            $cells = '';
-
-            foreach ($keys as $eachkey) {
-                if (array_key_exists($eachkey, $eachdata)) {
-                    if ($eachkey == 'tagid') {
-                        @$tagname = $alltagnames[$eachdata['tagid']];
-                        $cells .= wf_TableCell($tagname);
-                    } else {
-                        if ($eachkey == 'fee_charge_always') {
-                            $cells .= wf_TableCell(web_bool_led($eachdata[$eachkey]));
-                        } else {
-                            $cells .= wf_TableCell($eachdata[$eachkey]);
-                        }
-                    }
-                }
-            }
-            if ($delete) {
-                $deletecontrol = wf_JSAlert('?module=' . $module . '&delete=' . $eachdata['id'], web_delete_icon(), 'Removing this may lead to irreparable results');
-            } else {
-                $deletecontrol = '';
-            }
-
-            if ($edit) {
-                $editcontrol = wf_JSAlert('?module=' . $module . '&edit=' . $eachdata['id'], web_edit_icon(), __('Are you serious'));
-            } else {
-                $editcontrol = '';
-            }
-
-            $cells .= wf_TableCell($deletecontrol . ' ' . $editcontrol);
-            $rows .= wf_TableRow($cells, 'row5');
-        }
-    }
-
-
-    $result = wf_TableBody($rows, '100%', 0, 'sortable');
     return($result);
 }
 
