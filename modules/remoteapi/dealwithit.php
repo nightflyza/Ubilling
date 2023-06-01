@@ -1,7 +1,7 @@
 <?php
 
 //deal with it delayed tasks processing
-if ($_GET['action'] == 'dealwithit') {
+if (ubRouting::get('action') == 'dealwithit') {
     if ($alterconf['DEALWITHIT_ENABLED']) {
         $dealWithIt = new DealWithIt();
         $dealWithIt->tasksProcessing();
