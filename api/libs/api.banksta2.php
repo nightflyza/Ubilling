@@ -1462,6 +1462,9 @@ class Banksta2 {
             $statementData[$tArrayIndex]['paymtype_id'] = $payment_type_id;
 
             if (!$skipLastChecksForm) {
+                $cancelTitle = ($cancelRow) ? 'Yes' : 'No';
+                $cancelTitle = ($this->translateLstChkFieldNames) ? __($cancelTitle) : $cancelTitle;
+
                 $cells.= wf_TableCell($contract);
                 $cells.= wf_TableCell($summ);
                 $cells.= wf_TableCell($address);
@@ -1470,9 +1473,9 @@ class Banksta2 {
                 $cells.= wf_TableCell($pdate);
                 $cells.= wf_TableCell($ptime);
                 $cells.= wf_TableCell($service_type);
-                $cells.= wf_TableCell($cancelRow);
+                $cells.= wf_TableCell($cancelTitle);
 
-                $rows.= wf_TableRow($cells, 'row3');
+                $rows.= wf_TableRow($cells, (($cancelRow) ? 'row6' : 'row3'));
             }
         }
 
