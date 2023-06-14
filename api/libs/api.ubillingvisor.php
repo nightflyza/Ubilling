@@ -223,6 +223,13 @@ class UbillingVisor {
     protected $secretsDb = '';
 
     /**
+     * Use or not cached users data?
+     *
+     * @var bool
+     */
+    protected $cachedUsersFlag = false;
+
+    /**
      * Basic module URLs
      */
     const URL_ME = '?module=visor';
@@ -319,6 +326,10 @@ class UbillingVisor {
             $rawProtUsers = explode(',', $this->altCfg['VISOR_PROTUSERIDS']);
             $this->protectedUserIds = array_flip($rawProtUsers);
         }
+
+        if (@$this->altCfg['VISOR_CACHED_USERS']) {
+            $this->cachedUsersFlag = true;
+        }
     }
 
     /**
@@ -368,7 +379,11 @@ class UbillingVisor {
      * @return void
      */
     protected function loadUserData() {
-        $this->allUserData = zb_UserGetAllDataCache();
+        if ($this->cachedUsersFlag) {
+            $this->allUserData = zb_UserGetAllDataCache();
+        } else {
+            $this->allUserData = zb_UserGetAllData();
+        }
     }
 
     /**
