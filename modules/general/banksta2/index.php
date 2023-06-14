@@ -88,39 +88,40 @@ if (cfr('BANKSTA2')) {
                     if (wf_CheckGet(array('fmpquickadd'))) {
                         $Banksta->addFieldsMappingPreset($newFMPName, $_POST['bsrealname_col'], $_POST['bsaddress_col'], $_POST['bspaysum_col'],
                                                          $_POST['bspaypurpose_col'], $_POST['bspaydate_col'], $_POST['bspaytime_col'], $_POST['bscontract_col'],
-                                                        (wf_CheckPost(array('bstryguesscontract'))) ? 1 : 0,
+                                                         (wf_CheckPost(array('bstryguesscontract'))) ? 1 : 0,
                                                          mysql_real_escape_string($_POST['bscontractdelimstart']), mysql_real_escape_string($_POST['bscontractdelimend']),
                                                          $_POST['bscontractminlen'], $_POST['bscontractmaxlen'], $_POST['bssrvtype'],
                                                          mysql_real_escape_string($_POST['bsinetdelimstart']), mysql_real_escape_string($_POST['bsinetdelimend']),
                                                          mysql_real_escape_string($_POST['bsinetkeywords']), mysql_real_escape_string($_POST['bsukvdelimstart']),
                                                          mysql_real_escape_string($_POST['bsukvdelimend']), mysql_real_escape_string($_POST['bsukvkeywords']),
-                                                        (wf_CheckPost(array('bsskiprow'))) ? 1 : 0,
+                                                         (wf_CheckPost(array('bsskiprow'))) ? 1 : 0,
                                                          mysql_real_escape_string($_POST['bsskiprow_col']), mysql_real_escape_string($_POST['bsskiprowkeywords']),
-                                                        (wf_CheckPost(array('bsreplacestrs'))) ? 1 : 0,
-                                                         mysql_real_escape_string($_POST['bscolsreplacestrs']),  mysql_real_escape_string($_POST['bsstrstoreplace']),
-                                                         mysql_real_escape_string($_POST['bsstrstoreplacewith']),  mysql_real_escape_string($_POST['bsreplacementscnt']),
-                                                        (wf_CheckPost(array('bsremovestrs'))) ? 1 : 0,
-                                                         mysql_real_escape_string($_POST['bscolremovestrs']),  mysql_real_escape_string($_POST['bsstrstoremove']),
+                                                         (wf_CheckPost(array('bsreplacestrs'))) ? 1 : 0,
+                                                         mysql_real_escape_string($_POST['bscolsreplacestrs']), mysql_real_escape_string($_POST['bsstrstoreplace']),
+                                                         mysql_real_escape_string($_POST['bsstrstoreplacewith']), mysql_real_escape_string($_POST['bsreplacementscnt']),
+                                                         (wf_CheckPost(array('bsremovestrs'))) ? 1 : 0,
+                                                         mysql_real_escape_string($_POST['bscolremovestrs']), mysql_real_escape_string($_POST['bsstrstoremove']),
                                                          $_POST['bspaymtypeid'], $_POST['bssrvidents_col'], (wf_CheckPost(array('bssrvidentspreff'))) ? 1 : 0
-                                                        );
-                    } else {
+                        );
+                    }
+                    else {
                         $Banksta->addFieldsMappingPreset($newFMPName, $_POST['fmpcolrealname'], $_POST['fmpcoladdr'], $_POST['fmpcolpaysum'],
                                                          $_POST['fmpcolpaypurpose'], $_POST['fmpcolpaydate'], $_POST['fmpcolpaytime'], $_POST['fmpcolcontract'],
-                                                        (wf_CheckPost(array('fmptryguesscontract'))) ? 1 : 0,
+                                                         (wf_CheckPost(array('fmptryguesscontract'))) ? 1 : 0,
                                                          mysql_real_escape_string($_POST['fmpcontractdelimstart']), mysql_real_escape_string($_POST['fmpcontractdelimend']),
                                                          $_POST['fmpcontractminlen'], $_POST['fmpcontractmaxlen'], $_POST['fmpsrvtype'],
                                                          mysql_real_escape_string($_POST['fmpinetdelimstart']), mysql_real_escape_string($_POST['fmpinetdelimend']),
                                                          mysql_real_escape_string($_POST['fmpinetkeywords']), mysql_real_escape_string($_POST['fmpukvdelimstart']),
                                                          mysql_real_escape_string($_POST['fmpukvdelimend']), mysql_real_escape_string($_POST['fmpukvkeywords']),
-                                                        (wf_CheckPost(array('fmpskiprow'))) ? 1 : 0,
+                                                         (wf_CheckPost(array('fmpskiprow'))) ? 1 : 0,
                                                          mysql_real_escape_string($_POST['fmpcolskiprow']), mysql_real_escape_string($_POST['fmpskiprowkeywords']),
-                                                        (wf_CheckPost(array('fmpreplacestrs'))) ? 1 : 0,
-                                                         mysql_real_escape_string($_POST['fmpcolsreplacestrs']),  mysql_real_escape_string($_POST['fmpstrstoreplace']),
-                                                         mysql_real_escape_string($_POST['fmpstrstoreplacewith']),  mysql_real_escape_string($_POST['fmpstrsreplacecount']),
-                                                        (wf_CheckPost(array('fmpremovestrs'))) ? 1 : 0,
-                                                         mysql_real_escape_string($_POST['fmpcolsremovestrs']),  mysql_real_escape_string($_POST['fmpstrstoremove']),
+                                                         (wf_CheckPost(array('fmpreplacestrs'))) ? 1 : 0,
+                                                         mysql_real_escape_string($_POST['fmpcolsreplacestrs']), mysql_real_escape_string($_POST['fmpstrstoreplace']),
+                                                         mysql_real_escape_string($_POST['fmpstrstoreplacewith']), mysql_real_escape_string($_POST['fmpstrsreplacecount']),
+                                                         (wf_CheckPost(array('fmpremovestrs'))) ? 1 : 0,
+                                                         mysql_real_escape_string($_POST['fmpcolsremovestrs']), mysql_real_escape_string($_POST['fmpstrstoremove']),
                                                          $_POST['fmppaymtypeid'], $_POST['fmpcolsrvidents'], (wf_CheckPost(array('fmpsrvidentspreff'))) ? 1 : 0
-                                                        );
+                        );
                     }
                     die();
                 } else {
