@@ -40,27 +40,6 @@ class Banksta2 {
     protected $cacheLifeTime = 900;
 
     /**
-     * $userDataCahched array from UbillingCache
-     *
-     * @var array
-     */
-    protected $userDataCahched = array();
-
-    /**
-     * $processedBankstaCahched array from UbillingCache
-     *
-     * @var array
-     */
-    protected $processedBankstaCahched = array();
-
-    /**
-     * $mappingPresetsCahched array from UbillingCache
-     *
-     * @var array
-     */
-    protected $mappingPresetsCahched = array();
-
-    /**
      * List of allowed extensions
      *
      * @var array
