@@ -327,7 +327,7 @@ class UbillingVisor {
             $this->protectedUserIds = array_flip($rawProtUsers);
         }
 
-        if (@$this->altCfg['VISOR_CACHED_USERS']) {
+        if (@$this->altCfg['VISOR_CACHED_USERDATA']) {
             $this->cachedUsersFlag = true;
         }
     }
