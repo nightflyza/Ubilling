@@ -6,7 +6,7 @@ if ($altCfg['MAPON_ENABLED']) {
         $mapsConfig = $ubillingConfig->getYmaps();
         $mapon = new MapOn();
         try {
-            $lastRouteFlag = wf_CheckGet(array('alldayroutes')) ? false : true;
+            $lastRouteFlag = ubRouting::checkGet('alldayroutes') ? false : true;
             $units = $mapon->getUnits();
             $unitDrivers = array();
 
@@ -52,13 +52,13 @@ if ($altCfg['MAPON_ENABLED']) {
                     $voltage = $each['supply_voltage'];
                     $carParams = __('Speed') . ': ' . $speed . ' ' . __('km/h') . wf_tag('br');
                     $carParams .= __('Voltage') . ': ' . $voltage . ' ' . __('Volt');
-
+                    $carParams .= wf_delimiter(1) . $each['lat'] . ',' . $each['lng'];
                     $carLabel = $mileage . wf_tag('br') . $carParams;
                     $placemarks .= generic_mapAddMark($each['lat'] . ',' . $each['lng'], $state, $carName, $carLabel, $icon, '', true);
                 }
 
                 $todayRoutes = $mapon->getTodayRoutes();
-
+                
                 $todayStarts = array();
 
 
