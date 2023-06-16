@@ -46,7 +46,7 @@ if ($altCfg['MAPON_ENABLED']) {
                     }
 
                     $carName = $each['driver'] . ' - ' . $each['number'];
-                    $state = $each['label'] . ' ' . __($each['state']);
+                    $state = $each['label'] . ' - ' . __($each['state']);
                     $mileage = __('Total mileage') . ': ' . ($each['mileage'] / 1000) . ' ' . __('kilometer');
                     $speed = ($each['speed']) ? $each['speed'] : 0;
                     $voltage = $each['supply_voltage'];
@@ -58,7 +58,7 @@ if ($altCfg['MAPON_ENABLED']) {
                 }
 
                 $todayRoutes = $mapon->getTodayRoutes();
-                
+
                 $todayStarts = array();
 
 
@@ -135,7 +135,8 @@ if ($altCfg['MAPON_ENABLED']) {
 
                 //render map
                 $container = generic_MapContainer('100%', '650px');
-                $container .= generic_MapInit($mapsConfig['CENTER'], $mapsConfig['ZOOM'], $mapsConfig['TYPE'], $placemarks, '', $mapsConfig['LANG']);
+                $editor = generic_MapEditor('maponpointlocation', __('Place coordinates'), '');
+                $container .= generic_MapInit($mapsConfig['CENTER'], $mapsConfig['ZOOM'], $mapsConfig['TYPE'], $placemarks, $editor, $mapsConfig['LANG']);
                 show_window(__('Cars'), $container);
 
                 //render controls
