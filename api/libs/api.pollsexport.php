@@ -106,12 +106,16 @@ class PollsExport extends PollsReport {
             foreach ($this->allPollsVotesRaw as $eachVoteId => $eachVoteData) {
                 $pollId = $eachVoteData['poll_id'];
                 if (isset($this->pollsAvaible[$pollId])) {
+                    //users polls?
                     if ($this->pollsAvaible[$pollId]['voting'] == 'Users') {
-                        $this->allPollsVotesProcessed[$pollId][$eachVoteData['login']] = array(
-                            'login' => $eachVoteData['login'],
-                            'date' => $eachVoteData['date'],
-                            'option_id' => $eachVoteData['option_id']
-                        );
+                        //is poll enabled?
+                        if ($this->pollsAvaible[$pollId]['enabled'] == 1) {
+                            $this->allPollsVotesProcessed[$pollId][$eachVoteData['login']] = array(
+                                'login' => $eachVoteData['login'],
+                                'date' => $eachVoteData['date'],
+                                'option_id' => $eachVoteData['option_id']
+                            );
+                        }
                     }
                 }
             }
@@ -125,27 +129,44 @@ class PollsExport extends PollsReport {
      */
     public function getAllPollsVotes() {
         $result = array();
+        $curTimestamp = time();
+        $curDate = curdate();
         if (!empty($this->pollsAvaible)) {
             foreach ($this->pollsAvaible as $eachPollId => $eachPollData) {
-                $result[$eachPollId]['id'] = $eachPollId;
-                $result[$eachPollId]['title'] = $eachPollData['title'];
-                $result[$eachPollId]['enabled'] = $eachPollData['enabled'];
-                $votesTmp = array();
-                if (isset($this->allPollsVotesProcessed[$eachPollId])) {
-                    $eachPollVotes = $this->allPollsVotesProcessed[$eachPollId];
-                    if (!empty($eachPollVotes)) {
-                        foreach ($eachPollVotes as $eachVotedLogin => $eachVoteData) {
-                            $votesTmp[] = array(
-                                'login' => $eachVoteData['login'],
-                                'vote' => @$this->pollsOptions[$eachPollId][$eachVoteData['option_id']],
-                                'option_id' => $eachVoteData['option_id'],
-                                'address' => @$this->alladdress[$eachVotedLogin],
-                                'date' => $eachVoteData['date']
-                            );
+                //is poll enabled?
+                if ($eachPollData['enabled'] == 1) {
+                    //users polls?
+                    if ($eachPollData['voting'] == 'Users') {
+                        //poll is running now?
+                        $pollStartTimestamp = strtotime($eachPollData['start_date']);
+                        $pollEndTimestamp = strtotime($eachPollData['end_date']);
+                        //and it runs now?
+                        if (($curTimestamp >= $pollStartTimestamp) AND ( $curTimestamp <= $pollEndTimestamp)) {
+                            $result[$eachPollId]['id'] = $eachPollId;
+                            $result[$eachPollId]['title'] = $eachPollData['title'];
+                            $result[$eachPollId]['enabled'] = $eachPollData['enabled'];
+                            $votesTmp = array();
+                            if (isset($this->allPollsVotesProcessed[$eachPollId])) {
+                                $eachPollVotes = $this->allPollsVotesProcessed[$eachPollId];
+                                if (!empty($eachPollVotes)) {
+                                    foreach ($eachPollVotes as $eachVotedLogin => $eachVoteData) {
+                                        //only current date votes filter
+                                        if (ispos($eachVoteData['date'], $curDate)) {
+                                            $votesTmp[] = array(
+                                                'login' => $eachVoteData['login'],
+                                                'vote' => @$this->pollsOptions[$eachPollId][$eachVoteData['option_id']],
+                                                'option_id' => $eachVoteData['option_id'],
+                                                'address' => @$this->alladdress[$eachVotedLogin],
+                                                'date' => $eachVoteData['date']
+                                            );
+                                        }
+                                    }
+                                }
+                            }
+                            $result[$eachPollId]['votes'] = $votesTmp;
                         }
                     }
                 }
-                $result[$eachPollId]['votes'] = $votesTmp;
             }
 //                                          .-""-.
 //                                         (___/\ \
@@ -156,6 +177,7 @@ class PollsExport extends PollsReport {
 //                   '--\ `-.__..-'    /.    (_), |  )
 //                       `._        ___\_____.'_| |__/
 //                          `~----"`   `-.........'
+//                                  ^^^^ а це типу русалонька!            
         }
         return($result);
     }
@@ -193,7 +215,19 @@ class PollsExport extends PollsReport {
      */
     public function runExport() {
         $pollsVotesData = $this->getAllPollsVotes();
-        $this->pushCrmData($pollsVotesData);
+        if (!empty($pollsVotesData)) {
+            //empty voting cleanup
+            foreach ($pollsVotesData as $pollId => $pollData) {
+                if (empty($pollData['votes'])) {
+                    unset($pollsVotesData[$pollId]);
+                }
+            }
+
+            //pushing data to CRM
+            if (!empty($pollsVotesData)) {
+                $this->pushCrmData($pollsVotesData);
+            }
+        }
     }
 
 }
