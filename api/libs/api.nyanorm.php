@@ -716,14 +716,16 @@ class NyanORM {
     }
 
     /**
-     * Returns last ID key in table
+     * Returns last ID key in table or 0 if table is empty or not exists
      * 
      * @return int
      */
     public function getLastId() {
         $query = "SELECT " . $this->escapeField($this->defaultPk) . " from `" . $this->tableName . "` ORDER BY " . $this->escapeField($this->defaultPk) . " DESC LIMIT 1";
         $result = simple_query($query);
-        return ($result[$this->defaultPk]);
+        $result = (!empty($result[$this->defaultPk]) ? $result[$this->defaultPk] : 0);
+
+        return ($result);
     }
 
     /**

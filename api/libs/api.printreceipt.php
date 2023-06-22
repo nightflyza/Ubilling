@@ -480,7 +480,13 @@ class PrintReceipt {
             $rcptPayTillDate = $tmpDate->format($formatDates);
         }
 
-        $tabInvoices = new nya_invoices();
+        if ($rcptSaveToDB) {
+            $tabInvoices = new nya_invoices();
+            $lastID = $tabInvoices->getLastId();
+        } else {
+            $lastID = 0;
+        }
+
         $curArrIdx = 0;
         log_register('PRINT RECEIPTS: number of users to proceed [' . count($usersDataToPrint) . ']');
         //
@@ -491,18 +497,17 @@ class PrintReceipt {
                 continue;
             }
 
-            $lastID = $tabInvoices->getLastId();
             $curArrIdx++;
             $curUsrContractDate = date($formatDates, strtotime($eachUser['contractdate']));
 
             if (!$rcptSaveToDB or empty($lastID) or $invNumCurDateTime) {
-                if (empty($lastID) or ! $rcptSaveToDB) {
+                if (empty($lastID) or !$rcptSaveToDB) {
                     $receiptNextNum = date($formatDatesNoDelim . $formatTimeNoDelim) . '-' . $curArrIdx;
                 } else {
                     $receiptNextNum = date($formatDatesNoDelim . $formatTimeNoDelim);
                 }
             } else {
-                $receiptNextNum = $lastID;
+                $receiptNextNum = ++$lastID;
             }
 
             if ($eachUser['debtasbalance']) {
@@ -566,7 +571,37 @@ class PrintReceipt {
             // replacing macro values for qr-code info in template
             $tmpQRCode = $qrCodeExtInfo;
             $tmpQRCode = $this->replaceMainTemplateMacro(
-                    $tmpQRCode, date($formatDates), date($formatTime), date($formatDatesNoDelim), date($formatTimeNoDelim), $receiptNextNum, $rcptMonthsCnt, $rcptPayForPeriod, date($formatMonthYear, strtotime("+1 month")), $rcptPayTillDate, $rcptServiceName, $eachUser['contract'], $curUsrContractDate, $eachUser['realname'], $eachUser['city'], $eachUser['street'], $eachUser['build'], (!empty($eachUser['apt'])) ? '/' . $eachUser['apt'] : '', $eachUser['postal_code'], $eachUser['town_district'], $eachUser['address_exten'], $eachUser['phone'], $eachUser['mobile'], @$eachUser['inn'], $eachUser['tariffname'], $eachUser['tariffprice'], $eachUser['tariffprice'] * 100, number_format((float) $eachUser['tariffprice'], 2, '.', ''), $receiptPaySum, $receiptPaySum * 100, number_format((float) ($receiptPaySum), 2, '.', '')
+                            $tmpQRCode,
+                            date($formatDates),
+                            date($formatTime),
+                            date($formatDatesNoDelim),
+                            date($formatTimeNoDelim),
+                            $receiptNextNum,
+                            $rcptMonthsCnt,
+                            $rcptPayForPeriod,
+                            date($formatMonthYear, strtotime("+1 month")),
+                            $rcptPayTillDate,
+                            $rcptServiceName,
+                            $eachUser['contract'],
+                            $curUsrContractDate,
+                            $eachUser['realname'],
+                            $eachUser['city'],
+                            $eachUser['street'],
+                            $eachUser['build'],
+                            (!empty($eachUser['apt'])) ? '/' . $eachUser['apt'] : '',
+                            $eachUser['postal_code'],
+                            $eachUser['town_district'],
+                            $eachUser['address_exten'],
+                            $eachUser['phone'],
+                            $eachUser['mobile'],
+                            @$eachUser['inn'],
+                            $eachUser['tariffname'],
+                            $eachUser['tariffprice'],
+                            $eachUser['tariffprice'] * 100,
+                            number_format((float) $eachUser['tariffprice'], 2, '.', ''),
+                            $receiptPaySum,
+                            $receiptPaySum * 100,
+                            number_format((float) ($receiptPaySum), 2, '.', '')
             );
 
             // replacing macro values in template
@@ -587,7 +622,35 @@ class PrintReceipt {
 
 
             $rowtemplate = $this->replaceMainTemplateMacro(
-                    $rowtemplate, date($formatDates), date($formatTime), date($formatDatesNoDelim), date($formatTimeNoDelim), $receiptNextNum, $rcptMonthsCnt, $rcptPayForPeriod, date($formatMonthYear, strtotime("+1 month")), $rcptPayTillDate, $rcptServiceName, $eachUser['contract'], $curUsrContractDate, $eachUser['realname'], $eachUser['city'], $eachUser['street'], $eachUser['build'], (!empty($eachUser['apt'])) ? '/' . $eachUser['apt'] : '', $eachUser['apt'], $eachUser['postal_code'], $eachUser['town_district'], $eachUser['address_exten'], $eachUser['phone'], $eachUser['mobile'], @$eachUser['inn'], zb_OschadCSgen(@$eachUser['inn']), $eachUser['tariffname'], $eachUser['tariffprice'], $eachUser['tariffprice'] * 100, number_format((float) $eachUser['tariffprice'], 2, '.', ''), $receiptPaySum, $receiptPaySum * 100, number_format((float) ($receiptPaySum), 2, '.', '')
+                            $rowtemplate,
+                            date($formatDates),
+                            date($formatTime),
+                            date($formatDatesNoDelim),
+                            date($formatTimeNoDelim),
+                            $receiptNextNum,
+                            $rcptMonthsCnt,
+                            $rcptPayForPeriod,
+                            date($formatMonthYear, strtotime("+1 month")),
+                            $rcptPayTillDate, $rcptServiceName, $eachUser['contract'],
+                            $curUsrContractDate,
+                            $eachUser['realname'],
+                            $eachUser['city'],
+                            $eachUser['street'],
+                            $eachUser['build'],
+                            (!empty($eachUser['apt'])) ? '/' . $eachUser['apt'] : '',
+                            $eachUser['apt'], $eachUser['postal_code'],
+                            $eachUser['town_district'],
+                            $eachUser['address_exten'],
+                            $eachUser['phone'],
+                            $eachUser['mobile'],
+                            @$eachUser['inn'],
+                            zb_OschadCSgen(@$eachUser['inn']),
+                            $eachUser['tariffname'],
+                            $eachUser['tariffprice'],
+                            $eachUser['tariffprice'] * 100,
+                            number_format((float) $eachUser['tariffprice'], 2, '.', ''),
+                            $receiptPaySum, $receiptPaySum * 100,
+                            number_format((float) ($receiptPaySum), 2, '.', '')
             );
 
             $printableTemplate .= $rowtemplate;
