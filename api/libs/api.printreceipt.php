@@ -482,11 +482,15 @@ class PrintReceipt {
 
         if ($rcptSaveToDB) {
             $tabInvoices = new nya_invoices();
-            $lastID = $tabInvoices->getLastId();
+            $tabInvoices->selectable('id');
+            $tabInvoices->limit(1);
+            $tabInvoices->orderBy('id', 'DESC');
+            $lastIDRec = $tabInvoices->getAll();
         } else {
-            $lastID = 0;
+            $lastIDRec = array();
         }
 
+        $lastID = (empty($lastIDRec) ? 0 : $lastIDRec[0]['id']);
         $curArrIdx = 0;
         log_register('PRINT RECEIPTS: number of users to proceed [' . count($usersDataToPrint) . ']');
         //
@@ -500,11 +504,11 @@ class PrintReceipt {
             $curArrIdx++;
             $curUsrContractDate = date($formatDates, strtotime($eachUser['contractdate']));
 
-            if (!$rcptSaveToDB or empty($lastID) or $invNumCurDateTime) {
-                if (empty($lastID) or !$rcptSaveToDB) {
-                    $receiptNextNum = date($formatDatesNoDelim . $formatTimeNoDelim) . '-' . $curArrIdx;
-                } else {
+            if (!$rcptSaveToDB or $invNumCurDateTime) {
+                if ($invNumCurDateTime) {
                     $receiptNextNum = date($formatDatesNoDelim . $formatTimeNoDelim);
+                } else {
+                    $receiptNextNum = date($formatDatesNoDelim . $formatTimeNoDelim) . '-' . $curArrIdx;
                 }
             } else {
                 $receiptNextNum = ++$lastID;
