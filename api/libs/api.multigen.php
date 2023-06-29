@@ -1411,6 +1411,7 @@ class MultiGen {
                     $newOperator_f = ubRouting::filters($newOperator, 'mres');
                     $newContent = ubRouting::post('newcontent');
                     $newContent_f = ubRouting::filters($newContent, 'mres');
+                    $newContent_f = trim($newContent_f);
 
 
                     $query = "INSERT INTO `" . self::NAS_ATTRIBUTES . "` (`id`,`nasid`,`scenario`,`modifier`,`attribute`,`operator`,`content`) VALUES "
@@ -1442,12 +1443,14 @@ class MultiGen {
                     if (isset($this->nasAttributes[$attributeId])) {
                         $chAttribute = ubRouting::post('chattribute');
                         $chAttribute = trim($chAttribute);
+                        $chContent = ubRouting::post('chcontent');
+                        $chContent = trim($chContent);
                         $where = "WHERE `id`='" . $attributeId . "';";
                         simple_update_field(self::NAS_ATTRIBUTES, 'scenario', ubRouting::post('chscenario'), $where);
                         simple_update_field(self::NAS_ATTRIBUTES, 'modifier', ubRouting::post('chmodifier'), $where);
                         simple_update_field(self::NAS_ATTRIBUTES, 'attribute', $chAttribute, $where);
                         simple_update_field(self::NAS_ATTRIBUTES, 'operator', ubRouting::post('choperator'), $where);
-                        simple_update_field(self::NAS_ATTRIBUTES, 'content', ubRouting::post('chcontent'), $where);
+                        simple_update_field(self::NAS_ATTRIBUTES, 'content', $chContent, $where);
                         log_register('MULTIGEN NAS [' . $nasId . '] CHANGE ATTRIBUTE [' . $attributeId . ']');
                     } else {
                         $result .= __('Something went wrong') . ': EX_ATTRIBUTE_NOT_EXIST';
