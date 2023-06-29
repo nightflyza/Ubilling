@@ -562,7 +562,15 @@ class WhyDoYouCall {
                         }
 
                         if (isset($callData['trytime'])) {
-                            $totalTryTime = $totalTryTime + $callData['trytime'];
+                            //realistic?
+                            if ($callData['trytime'] > 0) {
+                                $trytime = $callData['trytime'];
+                            } else {
+                                //negative?
+                                $trytime = 0;
+                                //seems this case is better than abs() value to prevent trytime exhaustion
+                            }
+                            $totalTryTime = $totalTryTime + $trytime;
                         }
                     }
                 }
