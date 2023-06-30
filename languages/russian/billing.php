@@ -3479,3 +3479,5 @@ $lang['def']['Default'] = 'По умолчанию';
 $lang['def']['as'] = 'как';
 $lang['def']['Any user tags not exists'] = 'Не существует никаких тегов';
 $lang['def']['nodata'] = 'нет данных';
+$lang['def']['right to create database backups'] = 'Право создавать резервные копии БД';
+$lang['def']['right to download backups'] = 'Право загружать резервные копии';

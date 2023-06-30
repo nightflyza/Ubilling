@@ -3500,7 +3500,8 @@ $lang['def']['Default'] = 'За замовчуванням';
 $lang['def']['as'] = 'як';
 $lang['def']['Any user tags not exists'] = 'Не існує жодних користувацьких тегів';
 $lang['def']['nodata'] = 'немає даних';
-$lang['def'][''] = '';
+$lang['def']['right to create database backups'] = 'Право на створення резервних копій БД';
+$lang['def']['right to download backups'] = 'Право завантажувати резервні копії';
 $lang['def'][''] = '';
 
 
