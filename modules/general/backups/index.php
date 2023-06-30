@@ -69,10 +69,10 @@ if (cfr('BACKUP')) {
                 if (ubRouting::checkGet('restoredump')) {
                     $mysqlConf = rcms_parse_ini_file(CONFIG_PATH . 'mysql.ini');
                     $billingConf = $ubillingConfig->getBilling();
-                    $restoreFilename = base64_decode($_GET['restoredump']);
+                    $restoreFilename = base64_decode(ubRouting::get('restoredump'));
                     if (file_exists($restoreFilename)) {
                         if (($billingConf['NOSTGCHECKPID']) AND ( !file_exists($billingConf['STGPID']))) {
-                            if (!isset($_POST['lastchanceok'])) {
+                            if (!ubRouting::checkPost('lastchanceok')) {
                                 $lastChanceInputs = __('Restoring a database from a dump, completely and permanently destroy your current database. Think again if you really want it.');
                                 $lastChanceInputs .= wf_tag('br');
                                 $lastChanceInputs .= __('Filename') . ': ' . $restoreFilename;
