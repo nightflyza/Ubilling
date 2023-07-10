@@ -3481,3 +3481,6 @@ $lang['def']['Any user tags not exists'] = 'Не существует никак
 $lang['def']['nodata'] = 'нет данных';
 $lang['def']['right to create database backups'] = 'Право создавать резервные копии БД';
 $lang['def']['right to download backups'] = 'Право загружать резервные копии';
+$lang['def']['Deferred sale'] = 'Продажа в рассрочку';
+$lang['def']['for so many months'] = 'на протяжении стольких месяцев';
+$lang['def']['right to deferred sale'] = 'Право оформлять продажи в рассрочку';

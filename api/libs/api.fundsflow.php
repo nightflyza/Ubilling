@@ -892,6 +892,12 @@ class FundsFlow {
                     $operation = __('Fee');
                     $cashtype = __('Fee');
                 }
+                //deferred sale
+                if (ispos($each['note'], 'DEFSALE')) {
+                    $fc = wf_tag('font', false, '', 'color="#' . $this->colorAdditionalFee . '"');
+                    $operation = __('Charged');
+                    $cashtype = __('Fee');
+                }
 
                 //notes translation
                 if ($this->alterConf['TRANSLATE_PAYMENTS_NOTES']) {

@@ -2128,6 +2128,23 @@ class UserProfile {
     }
 
     /**
+     * Renders deferred sales controller and form
+     * 
+     * @return string
+     */
+    protected function getDeferredSaleController() {
+        $result = '';
+        if ($this->alterCfg['DEFERRED_SALE_ENABLED']) {
+            if (cfr('DEFSALE')) {
+                $deferredSale = new DeferredSale($this->login);
+                $result .= ' ' . $deferredSale->renderForm();
+                $result .= $deferredSale->catchRequest();
+            }
+        }
+        return($result);
+    }
+
+    /**
      * Returns receipt controls (BOBER GDE COMMENT????)
      * 
      * @return string
@@ -2289,7 +2306,7 @@ class UserProfile {
 //Signup pricing row
         $profile .= $this->getSignupPricing();
 //User current cash row
-        $profile .= $this->addRow(__('Balance') . $this->getEasyChargeController(), $this->getUserCash(), true);
+        $profile .= $this->addRow(__('Balance') . $this->getEasyChargeController() . $this->getDeferredSaleController(), $this->getUserCash(), true);
 //User discount row
         $profile .= $this->getDiscountController();
 //User credit row & easycredit control if needed

@@ -1054,6 +1054,11 @@ function zb_TranslatePaymentNote($paynote, $allservicenames) {
         $paynote = __('External fee');
     }
 
+    if (ispos($paynote, 'DEFSALE')) {
+        $defsaleNote = explode(':', $paynote);
+        $paynote = __('Deferred sale') . ': ' . $defsaleNote[1];
+    }
+
     return ($paynote);
 }
 
