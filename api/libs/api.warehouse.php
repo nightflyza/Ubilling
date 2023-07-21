@@ -1191,7 +1191,6 @@ class Warehouse {
                     $employeeLinkAct = wf_Link($employeeLinkUrl, @$this->allEmployee[$each['employeeid']]);
                     $data[] = $employeeLinkAct;
 
-
                     $actLinks = wf_JSAlert(self::URL_ME . '&' . self::URL_RESERVE . '&deletereserve=' . $each['id'], web_delete_icon(), $this->messages->getEditAlert()) . ' ';
                     $actLinks .= wf_modalAuto(web_edit_icon(), __('Edit') . ' ' . __('Reservation'), $this->reserveEditForm($each['id'], $hideEmployee), '') . ' ';
                     if ($each['count'] > 0) {
@@ -1201,7 +1200,6 @@ class Warehouse {
                         }
                     }
                     $data[] = $actLinks;
-
 
                     $json->addRow($data);
                     unset($data);
@@ -1315,7 +1313,6 @@ class Warehouse {
                         $itemTypeRecPrice = $this->getIncomeMiddlePrice($itemTypeId);
                         $midPriceLabel = ($this->recPriceFlag) ? __('recommended') : __('middle price');
                         $midPriceNotice = wf_tag('abbr', false, '', 'title="' . $midPriceLabel . ': ' . $itemTypeRecPrice . '"') . '?' . wf_tag('abbr', true);
-
 
                         $cells = wf_TableCell($this->reserveGetCreationDate($eachInvId));
                         $cells .= wf_TableCell($itemTypeStorageId);
@@ -1525,7 +1522,6 @@ class Warehouse {
                 $data[] = $each['count'] . ' ' . @$this->unitTypes[$this->allItemTypes[$each['itemtypeid']]['unit']];
                 $data[] = @$this->allEmployee[$each['employeeid']];
                 $data[] = $administratorName;
-
 
                 $json->addRow($data);
                 unset($data);
@@ -2469,7 +2465,7 @@ class Warehouse {
      * @return string
      */
     public function incomingCreateForm() {
-        if ((!empty($this->allItemTypes)) AND ( !empty($this->allCategories)) AND ( !empty($this->allContractors)) AND ( !empty($this->allStorages))) {
+        if ((!empty($this->allItemTypes)) AND (!empty($this->allCategories)) AND (!empty($this->allContractors)) AND (!empty($this->allStorages))) {
             //ajax selector URL-s preprocessing
             $tmpCat = array();
             $firstCateKey = key($this->allCategories);
@@ -3349,7 +3345,6 @@ class Warehouse {
                 $this->returnsDb->data('note', $notes);
                 $this->returnsDb->create();
 
-
                 //cast some incoming operation on this return
                 $this->incomingCreate($curDate, $itemtypeId, $contractorId, $storageId, $count, $price, $barcode, $notes);
                 log_register('WAREHOUSE RETURN CREATE [' . $outId . '] ITEM [' . $itemtypeId . '] COUNT `' . $count . '` PRICE `' . $price . '`');
@@ -3596,7 +3591,7 @@ class Warehouse {
      */
     protected function reserveAlert() {
         $result = '';
-        if ((!empty($this->allItemTypes)) AND ( !empty($this->allStorages)) AND ( !empty($this->allIncoming))) {
+        if ((!empty($this->allItemTypes)) AND (!empty($this->allStorages)) AND (!empty($this->allIncoming))) {
             $allRemains = $this->remainsAll();
 
             foreach ($this->allItemTypes as $itemtypeId => $itemData) {
@@ -4306,11 +4301,14 @@ class Warehouse {
             $allSignupTasks = $this->getAllSignupTasks();
         }
 
-        $curyear = (wf_CheckPost(array('yearsel'))) ? vf($_POST['yearsel'], 3) : date("Y");
-        $curmonth = (wf_CheckPost(array('monthsel'))) ? vf($_POST['monthsel'], 3) : date("m");
+        $curyear = (ubRouting::checkPost('yearsel')) ? ubRouting::post('yearsel', 'int') : date("Y");
+        $curmonth = (ubRouting::checkPost('monthsel')) ? ubRouting::post('monthsel', 'int') : date("m");
+        $hideNoMoveFlag = (ubRouting::checkPost('ignorenotmoving')) ? true : false;
 
+        //report form inputs
         $inputs = wf_YearSelector('yearsel', __('Year')) . ' ';
         $inputs .= wf_MonthSelector('monthsel', __('Month'), $curmonth) . ' ';
+        $inputs .= wf_CheckInput('ignorenotmoving', __('Hide without movement'), false, $hideNoMoveFlag);
         $inputs .= wf_CheckInput('printmode', __('Print'), false, false);
         $inputs .= wf_Submit(__('Show'));
         $searchForm = wf_Form('', 'POST', $inputs, 'glamour');
@@ -4474,6 +4472,10 @@ class Warehouse {
             $fourthColumnTotal = 0;
 
             foreach ($lowerRemains as $io => $each) {
+                $appendResultsFlag = true;
+                if ($hideNoMoveFlag) {
+                    $appendResultsFlag = false;
+                }
                 $itemtypeId = $io;
                 $firstColumnCount = (isset($lowerRemains[$itemtypeId])) ? $lowerRemains[$itemtypeId]['count'] : 0;
                 $firstColumnPrice = (isset($lowerRemains[$itemtypeId])) ? $lowerRemains[$itemtypeId]['price'] : 0;
@@ -4493,21 +4495,32 @@ class Warehouse {
                 $fourthColumnCount = $lowerRemains[$itemtypeId]['count'] + $secondColumnCount - $thirdColumnCount;
                 $fourthColumnPrice = $lowerRemains[$itemtypeId]['price'] + $secondColumnPrice - $thirdColumnPrice;
 
-                $result .= $this->reportDateRemainsAddRow($itemtypeId, array(
-                    $firstColumnCount,
-                    round($firstColumnPrice, 2),
-                    $secondColumnCount,
-                    round($secondColumnPrice, 2),
-                    $thirdColumnCount . ' (' . $thirdColumnCountSig . '/' . ($thirdColumnCount - $thirdColumnCountSig) . ')',
-                    round($thirdColumnPrice, 2) . ' (' . $thirdColumnPriceSig . '/' . ($thirdColumnPrice - $thirdColumnPriceSig) . ')',
-                    $fourthColumnCount,
-                    round($fourthColumnPrice, 2)));
+                //some movements is there?
+                if ($hideNoMoveFlag) {
+                    if ($secondColumnCount OR $thirdColumnCount) {
+                        $appendResultsFlag = true;
+                    }
+                }
 
-                $firstColumnTotal += $firstColumnPrice;
-                $secondColumnTotal += $secondColumnPrice;
-                $thirdColumnTotal += $thirdColumnPrice;
-                $fourthColumnTotal += $fourthColumnPrice;
+                //appending row to results
+                if ($appendResultsFlag) {
+                    $result .= $this->reportDateRemainsAddRow($itemtypeId, array(
+                        $firstColumnCount,
+                        round($firstColumnPrice, 2),
+                        $secondColumnCount,
+                        round($secondColumnPrice, 2),
+                        $thirdColumnCount . ' (' . $thirdColumnCountSig . '/' . ($thirdColumnCount - $thirdColumnCountSig) . ')',
+                        round($thirdColumnPrice, 2) . ' (' . $thirdColumnPriceSig . '/' . ($thirdColumnPrice - $thirdColumnPriceSig) . ')',
+                        $fourthColumnCount,
+                        round($fourthColumnPrice, 2)));
+
+                    $firstColumnTotal += $firstColumnPrice;
+                    $secondColumnTotal += $secondColumnPrice;
+                    $thirdColumnTotal += $thirdColumnPrice;
+                    $fourthColumnTotal += $fourthColumnPrice;
+                }
             }
+
             //table summary append
             $result .= $this->reportDateRemainsAddRow('', array('', $firstColumnTotal, '', $secondColumnTotal, '', $thirdColumnTotal, '', $fourthColumnTotal));
         }
@@ -4690,7 +4703,6 @@ class Warehouse {
                 $itemTypeName = $this->allItemTypeNames[$itemtypeId];
                 $itemTypeCategory = $this->allCategories[$this->allItemTypes[$itemtypeId]['categoryid']];
 
-
                 if (!empty($this->allOutcoming)) {
                     foreach ($this->allOutcoming as $io => $each) {
 
@@ -4730,7 +4742,6 @@ class Warehouse {
                                         $opTypeName = '';
                                         $opLink = '';
                                         $itemUnitType = @$this->unitTypes[$this->allItemTypes[$eachOp['itemtypeid']]['unit']];
-
 
                                         //outcoming ops
                                         if ($opType == 'out') {
@@ -4809,7 +4820,7 @@ class Warehouse {
                         $opPrice = $each['price'] * $each['count'];
 
                         if (isset($tmpResult[$opMonth])) {
-                            $tmpResult[$opMonth]['count'] ++;
+                            $tmpResult[$opMonth]['count']++;
                             $tmpResult[$opMonth]['price'] += $opPrice;
                         } else {
                             $tmpResult[$opMonth]['count'] = 1;
@@ -5038,5 +5049,4 @@ class Warehouse {
     public function getAllOutcomes() {
         return($this->allOutcoming);
     }
-
 }

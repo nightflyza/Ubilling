@@ -3505,6 +3505,7 @@ $lang['def']['right to download backups'] = 'Право завантажуват
 $lang['def']['Deferred sale'] = 'Продаж з розтермінуванням';
 $lang['def']['for so many months'] = 'протягом стількох місяців';
 $lang['def']['right to deferred sale'] = 'Право офорлювати розтерміновані продажі';
+$lang['def']['Hide without movement'] = 'Приховати нерухомі';
 $lang['def'][''] = '';
 
 
