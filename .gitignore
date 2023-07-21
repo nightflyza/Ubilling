@@ -31,3 +31,4 @@ exports/pondata/uptime/*
 exports/pondata/races/*
 exports/pondata/unioperstats/*
 .idea
+DEMO_MODE
