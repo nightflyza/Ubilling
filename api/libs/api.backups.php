@@ -26,7 +26,7 @@ function web_AvailableDBBackupsList() {
     $messages = new UbillingMessageHelper();
     $result = $messages->getStyledMessage(__('No existing DB backups here'), 'warning');
     if (!empty($availbacks)) {
-        $cells = wf_TableCell(__('Date'));
+        $cells = wf_TableCell(__('Creation date'));
         $cells .= wf_TableCell(__('Size'));
         $cells .= wf_TableCell(__('Filename'));
         $cells .= wf_TableCell(__('Actions'));
