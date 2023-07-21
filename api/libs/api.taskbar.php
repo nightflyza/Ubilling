@@ -433,6 +433,34 @@ class UbillingTaskbar {
     }
 
     /**
+     * Checks for default password usage, etc.
+     * 
+     * @return void
+     */
+    protected function checkSecurity() {
+        if (isset($_COOKIE['ubilling_user'])) {
+            if ($_COOKIE['ubilling_user'] == 'admin:fe01ce2a7fbac8fafaed7c982a04e229') {
+                if (!file_exists('DEMO_MODE') AND !file_exists('exports/FIRST_INSTALL')) {
+                    $notice = __('You are using the default login and password') . '. ' . __('Dont do this') . '.';
+                    $label = wf_tag('div', false, '', 'style="min-width:550px;"') . $this->messages->getStyledMessage($notice, 'error') . wf_tag('div', true);
+                    $label .= wf_tag('br');
+                    $imagesPath = 'skins/changepass/';
+                    $allImgs = rcms_scandir($imagesPath);
+                    if (!empty($allImgs)) {
+                        $imageRnd = array_rand($allImgs);
+                        $randomImage = $allImgs[$imageRnd];
+                        $label .= wf_tag('center') . wf_img_sized($imagesPath . $randomImage, '', '', '300') . wf_tag('center' . true);
+                        $label .= wf_delimiter(1);
+                    }
+
+                    $label .= wf_Link('?module=adminreg&editadministrator=admin', __('Change admin user password'), true, 'confirmagree');
+                    $this->currentAlerts .= wf_modalOpenedAuto(__('Oh no') . '!' . ' ' . __('Danger') . '!', $label);
+                }
+            }
+        }
+    }
+
+    /**
      * Renders administrators announcements if some unread is present/sets read some of them
      * 
      * @return string
@@ -493,6 +521,7 @@ class UbillingTaskbar {
      */
     public function renderTaskbar() {
         $result = '';
+        $this->checkSecurity();
         $this->catchIconsizeChange();
         $this->taskbarContent = $this->loadAllCategories();
         if (!empty($this->currentAlerts)) {
@@ -507,7 +536,6 @@ class UbillingTaskbar {
         $this->loadUbim();
         return ($result);
     }
-
 }
 
 /**
@@ -546,7 +574,4 @@ class TaskbarWidget {
         $result = 'EMPTY_WIDGET';
         return ($result);
     }
-
 }
-
-?>
