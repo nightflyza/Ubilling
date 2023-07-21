@@ -498,7 +498,7 @@ class UbillingTaskbar {
                     if (!empty($urlsList)) {
                         $welcomeLabel .= wf_tag('ul');
                         foreach ($urlsList as $eachUrl => $eachLabel) {
-                            $welcomeLabel .= wf_tag('li') . wf_Link($eachUrl, $eachLabel) . wf_tag('li', true);
+                            $welcomeLabel .= wf_tag('li') . wf_Link($eachUrl, $eachLabel, false, '', 'target="_BLANK"') . wf_tag('li', true);
                         }
                         $welcomeLabel .= wf_tag('ul', true);
                     }
