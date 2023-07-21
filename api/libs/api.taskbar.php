@@ -77,6 +77,12 @@ class UbillingTaskbar {
     const URL_ME = '?module=taskbar';
 
     /**
+     * Some other predefined stuff
+     */
+    const ROUTE_WS = 'welcomescreen';
+    const ROUTE_DISABLE_WS = 'disablewelcomescreen';
+
+    /**
      * Creates new taskbar instance
      */
     public function __construct() {
@@ -438,24 +444,77 @@ class UbillingTaskbar {
      * @return void
      */
     protected function checkSecurity() {
-        if (isset($_COOKIE['ubilling_user'])) {
-            if ($_COOKIE['ubilling_user'] == 'admin:fe01ce2a7fbac8fafaed7c982a04e229') {
-                if (!file_exists('DEMO_MODE') AND !file_exists('exports/FIRST_INSTALL')) {
-                    $notice = __('You are using the default login and password') . '. ' . __('Dont do this') . '.';
-                    $label = wf_tag('div', false, '', 'style="min-width:550px;"') . $this->messages->getStyledMessage($notice, 'error') . wf_tag('div', true);
-                    $label .= wf_tag('br');
-                    $imagesPath = 'skins/changepass/';
-                    $allImgs = rcms_scandir($imagesPath);
-                    if (!empty($allImgs)) {
-                        $imageRnd = array_rand($allImgs);
-                        $randomImage = $allImgs[$imageRnd];
-                        $label .= wf_tag('center') . wf_img_sized($imagesPath . $randomImage, '', '', '300') . wf_tag('center' . true);
-                        $label .= wf_delimiter(1);
+        if (@!$this->altCfg['TB_DISABLE_SECURITY_CHECK']) {
+            if (isset($_COOKIE['ubilling_user'])) {
+                if ($_COOKIE['ubilling_user'] == 'admin:fe01ce2a7fbac8fafaed7c982a04e229') {
+                    if (!file_exists('DEMO_MODE') AND !file_exists('exports/FIRST_INSTALL')) {
+                        $notice = __('You are using the default login and password') . '. ' . __('Dont do this') . '.';
+                        $label = '<!--ugly hack to prevent elements autofocusing --> <input type="text" name="dontfocusonlinks" style="width: 0; height: 0; top: -100px; position: absolute;"/>';
+                        $label .= wf_tag('div', false, '', 'style="min-width:550px;"') . $this->messages->getStyledMessage($notice, 'error') . wf_tag('div', true);
+                        $label .= wf_tag('br');
+                        $imagesPath = 'skins/changepass/';
+                        $allImgs = rcms_scandir($imagesPath);
+                        if (!empty($allImgs)) {
+                            $imageRnd = array_rand($allImgs);
+                            $randomImage = $allImgs[$imageRnd];
+                            $label .= wf_tag('center') . wf_img_sized($imagesPath . $randomImage, '', '', '300') . wf_tag('center' . true);
+                            $label .= wf_delimiter(1);
+                        }
+
+                        $label .= wf_Link('?module=adminreg&editadministrator=admin', __('Change admin user password'), true, 'confirmagree');
+                        $this->currentAlerts .= wf_modalOpenedAuto(__('Oh no') . '!' . ' ' . __('Danger') . '!', $label);
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Renders some welcome screen for newly installed Ubilling
+     * 
+     * @return void
+     */
+    protected function renderWelcome() {
+        if (@!$this->altCfg['TB_DISABLE_WELCOME_SCREEN']) {
+            $newInstallFlag = 'exports/FIRST_INSTALL';
+            if (!ubRouting::checkGet(self::ROUTE_DISABLE_WS)) {
+                if (file_exists($newInstallFlag) OR ubRouting::checkGet(self::ROUTE_WS)) {
+                    $urlsList = array(
+                        'https://wiki.ubilling.net.ua/' => __('Read documentation'),
+                        '?module=adminreg&editadministrator=admin' => __('Change admin user password'),
+                        'https://t.me/ubilling' => __('Join our community chat'),
+                        'https://ubilling.net.ua/?module=fnpages&pid=armukrainenow' => __('Donate to Armed Forces of Ukraine'),
+                    );
+
+                    //render content
+                    $welcomeLabel = '<!--ugly hack to prevent elements autofocusing --> <input type="text" name="dontfocusonlinks" style="width: 0; height: 0; top: -100px; position: absolute;"/>';
+                    $welcomeLabel .= wf_tag('h2') . __('Welcome to your new billing system') . '!' . wf_tag('h2', true);
+                    $welcomeLabel .= __('On behalf of the development team and everyone involved in the project, we would like to thank you for choosing Ubilling.');
+                    $welcomeLabel .= wf_tag('br');
+                    $welcomeLabel .= __('We hope you enjoy using it as much as we enjoyed working on it.');
+                    $welcomeLabel .= wf_delimiter(1);
+                    $welcomeLabel .= __('Here`s what you should do first') . ':';
+
+                    if (!empty($urlsList)) {
+                        $welcomeLabel .= wf_tag('ul');
+                        foreach ($urlsList as $eachUrl => $eachLabel) {
+                            $welcomeLabel .= wf_tag('li') . wf_Link($eachUrl, $eachLabel) . wf_tag('li', true);
+                        }
+                        $welcomeLabel .= wf_tag('ul', true);
                     }
 
-                    $label .= wf_Link('?module=adminreg&editadministrator=admin', __('Change admin user password'), true, 'confirmagree');
-                    $this->currentAlerts .= wf_modalOpenedAuto(__('Oh no') . '!' . ' ' . __('Danger') . '!', $label);
+                    if (file_exists($newInstallFlag)) {
+                        $welcomeLabel .= wf_Link(self::URL_ME . '&' . self::ROUTE_DISABLE_WS . '=true', wf_img('skins/hide16.png') . ' ' . __('Dont show me this anymore'), true, 'ubButton');
+                    }
+
+                    $this->currentAlerts .= wf_modalOpenedAuto(__('Welcome to Ubilling') . '!', $welcomeLabel);
                 }
+            } else {
+                @unlink($newInstallFlag);
+                if (file_exists($newInstallFlag)) {
+                    log_register('WELCOME DISABLE FAIL');
+                }
+                ubRouting::nav(self::URL_ME);
             }
         }
     }
@@ -522,6 +581,7 @@ class UbillingTaskbar {
     public function renderTaskbar() {
         $result = '';
         $this->checkSecurity();
+        $this->renderWelcome();
         $this->catchIconsizeChange();
         $this->taskbarContent = $this->loadAllCategories();
         if (!empty($this->currentAlerts)) {
