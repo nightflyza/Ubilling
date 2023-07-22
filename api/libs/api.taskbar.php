@@ -449,7 +449,8 @@ class UbillingTaskbar {
                 if ($_COOKIE['ubilling_user'] == 'admin:fe01ce2a7fbac8fafaed7c982a04e229') {
                     if (!file_exists('DEMO_MODE') AND !file_exists('exports/FIRST_INSTALL')) {
                         $notice = __('You are using the default login and password') . '. ' . __('Dont do this') . '.';
-                        $label = '<!--ugly hack to prevent elements autofocusing --> <input type="text" name="dontfocusonlinks" style="width: 0; height: 0; top: -100px; position: absolute;"/>';
+                        // ugly hack to prevent elements autofocusing
+                        $label = wf_TextInput('dontfocusonlinks', '', '', false, '', '', '', '', 'style="width: 0; height: 0; top: -100px; position: absolute;"');
                         $label .= wf_tag('div', false, '', 'style="min-width:550px;"') . $this->messages->getStyledMessage($notice, 'error') . wf_tag('div', true);
                         $label .= wf_tag('br');
                         $imagesPath = 'skins/changepass/';
