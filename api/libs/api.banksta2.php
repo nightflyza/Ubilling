@@ -188,6 +188,7 @@ class Banksta2 {
                                                 'col_paytime'           => 'bspaytime_col',
                                                 'col_contract'          => 'bscontract_col',
                                                 'col_srvidents'         => 'bssrvidents_col',
+                                                'sum_in_coins'          => 'bspaymincoins',
                                                 'guess_contract'        => 'bstryguesscontract',
                                                 'srvidents_preffered'   => 'bssrvidentspreff',
                                                 'contract_delim_start'  => 'bscontractdelimstart',
@@ -198,20 +199,25 @@ class Banksta2 {
                                                 'inet_srv_start_delim'  => 'bsinetdelimstart',
                                                 'inet_srv_end_delim'    => 'bsinetdelimend',
                                                 'inet_srv_keywords'     => 'bsinetkeywords',
+                                                'noesc_inet_srv_keywords' => 'bsinetkeywordsnoesc',
                                                 'ukv_srv_start_delim'   => 'bsukvdelimstart',
                                                 'ukv_srv_end_delim'     => 'bsukvdelimend',
                                                 'ukv_srv_keywords'      => 'bsukvkeywords',
+                                                'noesc_ukv_srv_keywords' => 'bsukvkeywordsnoesc',
                                                 'skip_row'              => 'bsskiprow',
                                                 'col_skiprow'           => 'bsskiprow_col',
                                                 'skip_row_keywords'     => 'bsskiprowkeywords',
+                                                'noesc_skip_row_keywords' => 'bsskiprowkeywordsnoesc',
                                                 'replace_strs'          => 'bsreplacestrs',
                                                 'col_replace_strs'      => 'bscolsreplacestrs',
                                                 'strs_to_replace'       => 'bsstrstoreplace',
                                                 'strs_to_replace_with'  => 'bsstrstoreplacewith',
                                                 'replacements_cnt'      => 'bsreplacementscnt',
+                                                'noesc_replace_keywords' => 'bsreplacekeywordsnoesc',
                                                 'remove_strs'           => 'bsremovestrs',
                                                 'col_remove_strs'       => 'bscolremovestrs',
                                                 'strs_to_remove'        => 'bsstrstoremove',
+                                                'noesc_remove_keywords' => 'bsremovekeywordsnoesc',
                                                 'payment_type_id'       => 'bspaymtypeid'
                                              );
 
@@ -961,7 +967,7 @@ class Banksta2 {
 
     /**
      * Edits existing fields mapping preset
-     * 
+     *
      * @param $fmpID
      * @param $fmpName
      * @param $fmpColRealName
@@ -1360,8 +1366,8 @@ class Banksta2 {
             $address  = ($importOpts['col_address'] !== 'NONE' and isset($eachRow[$importOpts['col_address']])) ? $eachRow[$importOpts['col_address']] : '';
             $notes    = ($importOpts['col_paypurpose'] !== 'NONE' and isset($eachRow[$importOpts['col_paypurpose']])) ? $eachRow[$importOpts['col_paypurpose']] : '';
             $ptime    = ($importOpts['col_paytime'] !== 'NONE' and isset($eachRow[$importOpts['col_paytime']])) ? $eachRow[$importOpts['col_paytime']] : '';
-            $summ     = (isset($eachRow[$importOpts['col_paysum']])) ? preg_replace('/[^-(0-9)\.,]/', '', $eachRow[$importOpts['col_paysum']]) : '';
-            $summ     = (isset($summ) and $importOpts['sum_in_coins'] ? $summ / 100 : $summ);
+            $summ     = (isset($eachRow[$importOpts['col_paysum']])) ? preg_replace('/[^-0-9\.,]/', '', $eachRow[$importOpts['col_paysum']]) : '';
+            $summ     = ((!empty($summ) and $importOpts['sum_in_coins']) ? ($summ / 100) : $summ);
             $pdate    = (isset($eachRow[$importOpts['col_paydate']])) ? $eachRow[$importOpts['col_paydate']] : '';
             $contract = ($importOpts['col_contract'] !== 'NONE' and isset($eachRow[$importOpts['col_contract']])) ? $eachRow[$importOpts['col_contract']] : '';
             $service_type       = $serviceType;
