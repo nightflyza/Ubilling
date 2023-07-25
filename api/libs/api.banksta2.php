@@ -1354,10 +1354,9 @@ class Banksta2 {
 
             // removing characters/strings from specified fields
             if ($strsRemove and !empty($strsRemoveCols) and !empty($keywordsStrRemoveChars)) {
-                foreach ($strsReplaceCols as $strsReplaceCol) {
-                    if (isset($eachRow[$strsReplaceCol])) {
-                        //$eachRow[$strsReplaceCol] = str_replace($strsReplaceChars, '', $eachRow[$strsReplaceCol]);
-                        $eachRow[$strsReplaceCol] = preg_replace('/(' . $keywordsStrRemoveChars . ')/msiu', '', $eachRow[$strsReplaceCol]);
+                foreach ($strsRemoveCols as $strsRemoveCol) {
+                    if (isset($eachRow[$strsRemoveCol])) {
+                        $eachRow[$strsRemoveCol] = preg_replace('/(' . $keywordsStrRemoveChars . ')/msiu', '', $eachRow[$strsRemoveCol]);
                     }
                 }
             }
@@ -1798,6 +1797,7 @@ class Banksta2 {
      */
     protected function checkBankstaRowIsUnprocessed($bankstaid) {
         $result = false;
+        $this->getProcessedBSRecsCached();
 
         if (isset($this->bankstaRecordsAll[$bankstaid])) {
             if ($this->bankstaRecordsAll[$bankstaid]['processed'] == 0) {
