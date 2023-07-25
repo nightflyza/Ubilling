@@ -47,6 +47,7 @@ if (cfr('BANKSTA2')) {
                 }
 
                 $Banksta->getProcessedBSRecsCached(true);
+                $Banksta->getUsersDataCached(true);
             }
 
             if (ubRouting::checkPost('bankstaneedpaymentspush')) {
