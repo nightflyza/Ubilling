@@ -279,9 +279,9 @@ if (cfr('BANKSTA2')) {
             $delimiter       = ubRouting::post('delimiter');
             $encoding        = ubRouting::post('encoding');
             $useDBFColNames  = (ubRouting::checkPost('usedbfcolnames')) ? ubRouting::post('usedbfcolnames') : false;
-            $skipRowsCount = (ubRouting::checkPost('skiprowscount')) ? ubRouting::post('skiprowscount') : 0;
-            $errormes = '';
+            $skipRowsCount   = (ubRouting::checkPost('skiprowscount')) ? ubRouting::post('skiprowscount') : 0;
 
+            $errormes = '';
             $errormes = $Banksta->preprocessImportFile($importFileData['savedname'], $delimiter, $encoding, $useDBFColNames, $skipRowsCount);
 
             if (empty($errormes)) {
