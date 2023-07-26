@@ -1,27 +1,27 @@
 <?php
 if (cfr('BANKSTA2')) {
     if ($ubillingConfig->getAlterParam('BANKSTA2_ENABLED')) {
-        $Banksta = new Banksta2;
-
-        show_window(__('Banksta processing'), $Banksta->web_MainButtonsControls());
+        show_window(__('Banksta processing'), Banksta2::web_MainButtonsControls());
 
         if (ubRouting::checkGet('bankstalist')) {
-            show_window(__('Previously loaded bank statements'), $Banksta->renderBStatementsJQDT());
+            show_window(__('Previously loaded bank statements'), Banksta2::renderBStatementsJQDT());
         }
 
         zb_BillingStats(true);
 
         if (ubRouting::checkGet('fmpajax')) {
-            $Banksta->renderFMPListJSON();
+            Banksta2::renderFMPListJSON();
         }
 
         if (ubRouting::checkGet('bslistajax')) {
-            $Banksta->renderBStatementsListJSON();
+            Banksta2::renderBStatementsListJSON();
         }
 
         if (ubRouting::checkGet('presets')) {
-            $Banksta->web_FMPForm();
+            Banksta2::web_FMPForm();
         }
+
+        $Banksta = new Banksta2;
 
         if (ubRouting::checkGet('refreshfmpselector')) {
             die($Banksta->getMappingPresetsSelector(ubRouting::get('fmpselectorid'), ubRouting::get('fmpselectorclass')));
