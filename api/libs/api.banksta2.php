@@ -510,7 +510,15 @@ class Banksta2 {
 
         if (!empty($tQueryResult)) {
             foreach ($tQueryResult as $io => $eachRec) {
-                $bankstaRecordsAll[$eachRec['id']] = $eachRec;
+                $data4cache = array();
+                $data4cache['id'] = $eachRec['id'];
+                $data4cache['hash'] = $eachRec['hash'];
+                $data4cache['processed'] = $eachRec['processed'];
+                $data4cache['canceled'] = $eachRec['canceled'];
+                $data4cache['service_type'] = $eachRec['service_type'];
+
+                $bankstaRecordsAll[$eachRec['id']] = $data4cache;
+
             }
         }
 
@@ -678,7 +686,9 @@ class Banksta2 {
         $result = array();
 
         if (isset($this->bankstaRecordsAll[$recID])) {
-            $result = $this->bankstaRecordsAll[$recID];
+            //$result = $this->bankstaRecordsAll[$recID];
+            $query = "SELECT * FROM `" . self::BANKSTA2_TABLE . "` WHERE `id` = '" . $recID . "'";
+            $result = simple_query($query);
         }
 
         return ($result);
@@ -843,6 +853,7 @@ class Banksta2 {
     protected function checkHashExists($hash) {
         $query = "SELECT `id` FROM `" . self::BANKSTA2_TABLE . "` WHERE `hash`='" . $hash . "'";
         $data = simple_query($query);
+
         if (empty($data)) {
             return (false);
         } else {
@@ -1109,6 +1120,7 @@ class Banksta2 {
         $tQuery = "DELETE FROM `" . self::BANKSTA2_TABLE . "` WHERE `hash` = '" . $statementHash . "'";
         nr_query($tQuery);
         log_register('DELETE banksta2 statement [' . $statementHash . '] ` ' . $fileName);
+        $this->getProcessedBSRecsCached(true);
     }
 
     /**
@@ -1846,7 +1858,7 @@ class Banksta2 {
      *
      * @return string
      */
-    public function web_MainButtonsControls() {
+    public static function web_MainButtonsControls() {
         $controls = wf_Link(self::URL_BANKSTA2_BANKSTALIST, wf_img('skins/menuicons/receipt_small_compl.png') . wf_nbsp() . __('Uploaded bank statements'), false, 'ubButton') . wf_nbsp(2);
         $controls.= wf_Link(self::URL_BANKSTA2_UPLOADFORM, wf_img('skins/menuicons/receipt_small.png') . wf_nbsp() . __('Upload bank statement'), false, 'ubButton') . wf_nbsp(2);
         $controls.= wf_Link(self::URL_BANKSTA2_PRESETS, wf_img('skins/icon_note.gif') . wf_nbsp() . __('Fields mapping presets'), false, 'ubButton');
@@ -2287,7 +2299,7 @@ class Banksta2 {
      *
      * @return void
      */
-    public function web_FMPForm() {
+    public static function web_FMPForm() {
         $lnkId = wf_InputId();
         $addServiceJS = wf_tag('script', false, '', 'type="text/javascript"');
         $addServiceJS.= wf_JSAjaxModalOpener(self::URL_ME, array('fmpcreate' => 'true'), $lnkId, false, 'POST');
@@ -2295,7 +2307,7 @@ class Banksta2 {
 
         show_window(__('Fields mapping presets'), wf_Link('#', web_add_icon() . ' ' .
                     __('Add fields mapping preset'), false, 'ubButton', 'id="' . $lnkId . '"') .
-                    wf_delimiter() . $addServiceJS . $this->renderFMPJQDT()
+                    wf_delimiter() . $addServiceJS . self::renderFMPJQDT()
                    );
     }
 
@@ -2668,7 +2680,7 @@ class Banksta2 {
     /**
      * Renders uploaded statements ajax list JSON for JQDT
      */
-    function renderBStatementsListJSON() {
+    public static function renderBStatementsListJSON() {
         $tQuery = "SELECT `filename`, `hash`, `date`, `admin`, 
                           COUNT(`id`) AS `rowcount`, COUNT(if(`processed` > 0 and `canceled` <= 0, 1, null)) AS processed_cnt, COUNT(if(`canceled` > 0, 1, null)) AS canceled_cnt
                        FROM `" . self::BANKSTA2_TABLE . "` GROUP BY `hash` ORDER BY `date` DESC;";
@@ -2708,7 +2720,7 @@ class Banksta2 {
      *
      * @return string
      */
-    public function renderBStatementsJQDT() {
+    public static function renderBStatementsJQDT() {
         $ajaxUrlStr = '' . self::URL_ME . '&bslistajax=true';
         $jqdtId = 'jqdt_' . md5($ajaxUrlStr);
         $columns = array(__('Date'), __('Filename'), __('Total rows'), __('Processed rows'), __('Canceled rows'), __('Admin'), __('Actions'));
@@ -2746,7 +2758,7 @@ class Banksta2 {
     /**
      * Renders fields mapping presets ajax list JSON for JQDT
      */
-    public function renderFMPListJSON() {
+    public static function renderFMPListJSON() {
         $tQuery = "SELECT `id`, `presetname`, `payment_type_id`, `col_realname`, `col_address`, `col_paysum`, `col_paypurpose`, 
                           `col_paydate`, `col_paytime`, `col_contract`, `guess_contract`, `skip_row`, 
                           `replace_strs`, `remove_strs`, `service_type`  
@@ -2803,7 +2815,7 @@ class Banksta2 {
      *
      * @return string
      */
-    protected function renderFMPJQDT() {
+    protected static function renderFMPJQDT() {
         $ajaxUrlStr = '' . self::URL_ME . '&fmpajax=true';
         $jqdtId = 'jqdt_' . md5($ajaxUrlStr);
         $errorModalWindowId = wf_InputId();
