@@ -342,6 +342,7 @@ class Banksta2 {
         $this->allContractsInet = $userDataCached['usersinetcontracts'];
         $this->allUsersDataUKV  = $userDataCached['usersukv'];
         $this->allContractsUKV  = $userDataCached['usersukvcontracts'];
+        $this->ukvTariffs       = $userDataCached['tariffsukv'];
 
         return ($userDataCached);
     }
