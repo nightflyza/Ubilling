@@ -952,12 +952,12 @@ class Banksta2 {
                   $fmpColPayPurpose . "', '" . $fmpColPayDate . "', '" . $fmpColPayTime . "', '" . $fmpColContract . "', '" . $fmpColSrvIdents . "', " .
                   $fmpGuessContract . ", " . $fmpSrvIdentsPreffered . ", '" . $fmpContractDelimStart . "', '" . $fmpContractDelimEnd . "', " .
                   $fmpContractMinLen . ", " . $fmpContractMaxLen . ", '" . $fmpSrvType . "', '" .
-                  $fmpInetStartDelim . "', '" . $fmpInetEndDelim . "', '" . $fmpInetKeywords . "', '" . $fmpNoEscInetKeywords  . "', '" .
-                  $fmpUKVDelimStart . "', '" . $fmpUKVDelimEnd . "', '" . $fmpUKVKeywords . "', '" . $fmpNoEscUKVKeywords . "', '" .
-                  $fmpSkipRow  . "', '" . $fmpColSkipRow  . "', '" . $fmpSkipRowKeywords . "', '" . $fmpNoEscSkipRowKeywords . "', '" .
+                  $fmpInetStartDelim . "', '" . $fmpInetEndDelim . "', '" . $fmpInetKeywords . "', " . $fmpNoEscInetKeywords  . ", '" .
+                  $fmpUKVDelimStart . "', '" . $fmpUKVDelimEnd . "', '" . $fmpUKVKeywords . "', " . $fmpNoEscUKVKeywords . ", '" .
+                  $fmpSkipRow  . "', '" . $fmpColSkipRow  . "', '" . $fmpSkipRowKeywords . "', " . $fmpNoEscSkipRowKeywords . ", '" .
                   $fmpReplaceStrs . "', '" . $fmpColReplaceStrs . "', '" . $fmpStrsToReplace . "', '" .
                   $fmpStrsToReplaceWith . "', '" . $fmpReplacementsCount . "', '" . $fmpNoEscReplaceKeywords . "', '" .
-                  $fmpRemoveStrs . "', '" . $fmpColRemoveStrs . "', '" . $fmpStrsToRemove . "', " . $fmpNoEscRemoveKeywords . "', '" . $fmpPaymentTypeID . ")";
+                  $fmpRemoveStrs . "', '" . $fmpColRemoveStrs . "', '" . $fmpStrsToRemove . "', " . $fmpNoEscRemoveKeywords . ", " . $fmpPaymentTypeID . ")";
 
         nr_query($tQuery);
         log_register('CREATE banksta2 fields mapping preset [' . $fmpName . ']');
