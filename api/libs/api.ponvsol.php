@@ -16,6 +16,8 @@ class PONVsol extends PONProto {
         $oltIp = $this->oltParameters['IP'];
         $oltCommunity = $this->oltParameters['COMMUNITY'];
         $oltNoFDBQ = $this->oltParameters['NOFDB'];
+        $oltIPPORT = $oltIp . ':' . self::SNMPPORT;
+        $deviceType = $this->snmpTemplates[$oltModelId]['define']['DEVICE'];
 
         $sigIndexOID = $this->snmpTemplates[$oltModelId]['signal']['SIGINDEX'];
         $sigIndex = $this->snmp->walk($oltIp . ':' . self::SNMPPORT, $oltCommunity, $sigIndexOID, self::SNMPCACHE);
@@ -68,19 +70,40 @@ class PONVsol extends PONProto {
             $this->lastDeregParseVSOL($oltid, $lastDeregIndex, $VSOLMACsProcessed);
 
             if (!$oltNoFDBQ) {
-                $fdbIndexOID = $this->snmpTemplates[$oltModelId]['misc']['FDBINDEX'];
+                $fdbIndex = $this->walkCleared($oltIPPORT, $oltCommunity,
+                                               $this->snmpTemplates[$oltModelId]['misc']['FDBINDEX'],
+                                               '',
+                                               $this->snmpTemplates[$oltModelId]['misc']['FDBVALUE'],
+                                               self::SNMPCACHE);
+
+/*                $fdbIndexOID = $this->snmpTemplates[$oltModelId]['misc']['FDBINDEX'];
                 $fdbIndex = $this->snmp->walk($oltIp . ':' . self::SNMPPORT, $oltCommunity, $fdbIndexOID, self::SNMPCACHE);
                 $fdbIndex = str_replace($fdbIndexOID . '.', '', $fdbIndex);
                 $fdbIndex = str_replace($this->snmpTemplates[$oltModelId]['misc']['FDBVALUE'], '', $fdbIndex);
-                $fdbIndex = explodeRows($fdbIndex);
+                $fdbIndex = explodeRows($fdbIndex);*/
 
-                $fdbMACVLANOID = $this->snmpTemplates[$oltModelId]['misc']['FDBVLANINDEX'];
+                $fdbVLANIndex = $this->walkCleared($oltIPPORT, $oltCommunity,
+                                                   $this->snmpTemplates[$oltModelId]['misc']['FDBVLANINDEX'],
+                                                   '',
+                                                   $this->snmpTemplates[$oltModelId]['misc']['FDBVLANVALUE'],
+                                                   self::SNMPCACHE);
+
+/*                $fdbMACVLANOID = $this->snmpTemplates[$oltModelId]['misc']['FDBVLANINDEX'];
                 $fdbVLANIndex = $this->snmp->walk($oltIp . ':' . self::SNMPPORT, $oltCommunity, $fdbMACVLANOID, self::SNMPCACHE);
                 $fdbVLANIndex = str_replace($fdbMACVLANOID . '.', '', $fdbVLANIndex);
                 $fdbVLANIndex = str_replace($this->snmpTemplates[$oltModelId]['misc']['FDBVLANVALUE'], '', $fdbVLANIndex);
-                $fdbVLANIndex = explodeRows($fdbVLANIndex);
+                $fdbVLANIndex = explodeRows($fdbVLANIndex);*/
 
-                $this->fdbParseVSOL($oltid, $VSOLMACsProcessed, $fdbIndex, $fdbVLANIndex);
+                if ($deviceType == 'V-Solution OLT V1600D_L') {
+                    $fdbMACIndex = $this->walkCleared($oltIPPORT, $oltCommunity,
+                                                      $this->snmpTemplates[$oltModelId]['misc']['FDBMACINDEX'],
+                                                      '',
+                                                      array($this->snmpTemplates[$oltModelId]['misc']['FDBMACVALUE'], '"'),
+                                                      self::SNMPCACHE);
+                    $this->fdbParseVSOL_L($VSOLMACsProcessed, $fdbIndex, $fdbMACIndex, $fdbVLANIndex);
+                } else {
+                    $this->fdbParseVSOL($oltid, $VSOLMACsProcessed, $fdbIndex, $fdbVLANIndex);
+                }
             }
         }
 
@@ -421,6 +444,90 @@ class PONVsol extends PONProto {
 
         //saving OLT FDB
         $this->olt->writeFdb($fdbCahce);
+    }
+
+    /**
+     * Parses & stores to cache ONUs FDB cache (MACs behind ONU) for "L" series VSOL OLTs
+     *
+     * @param $onuMACIndex
+     * @param $fdbIndex
+     * @param $fdbMACIndex
+     * @param $fdbVLANIndex
+     *
+     * @return void
+     */
+    protected function fdbParseVSOL_L($onuMACIndex, $fdbIndex, $fdbMACIndex, $fdbVLANIndex) {
+        $fdbIdxPosLLID = array();
+        $fdbIdxMAC = array();
+        $fdbIdxVLAN = array();
+        $fdbCahce = array();
+
+        if (!empty($fdbIndex)) {
+// processing FDBIndex array to get FDB MAC => pon port number + ONU LLID mapping
+            foreach ($fdbIndex as $each => $eachIdx) {
+                $line = explode('=', $eachIdx);
+// ONU LLID is present
+                if (isset($line[1])) {
+                    $portLLID = trim(str_replace(array('"', 'EPON0/'), '', $line[1]));        // pon port number + ONU LLID
+                    $portLLID = str_replace(':', '.', $portLLID);
+                    $fdbIdxPos = trim($line[0]);                // FDB index position (integer) to look for in $fdbMACIndex & $fdbVLANIndex
+                    $fdbIdxPosLLID[$fdbIdxPos] = $portLLID;     // FDB index position => pon port number + ONU LLID
+                }
+            }
+        }
+
+        if (!empty($fdbMACIndex)) {
+// processing $fdbVLANIndex array to get FDB MAC => FDB VLAN mapping
+            foreach ($fdbMACIndex as $each => $eachIdx) {
+                $line = explode('=', $eachIdx);
+// FDB VLAN is present
+                if (isset($line[1])) {
+                    $fdbMAC = strtolower(str_replace(' ', ':', trim($line[1])));        // FDB MAC
+                    $fdbIdxPos = trim($line[0]);                                           // FDB index position (integer)
+                    $fdbIdxMAC[$fdbIdxPos] = $fdbMAC;                                      // FDB MAC => FDB VLAN
+                }
+            }
+        }
+
+        if (!empty($fdbVLANIndex)) {
+// processing $fdbVLANIndex array to get FDB MAC => FDB VLAN mapping
+            foreach ($fdbVLANIndex as $each => $eachIdx) {
+                $line = explode('=', $eachIdx);
+// FDB VLAN is present
+                if (isset($line[1])) {
+                    $fdbVLAN = trim($line[1]);                      // FDB VLAN ID (integer)
+                    $fdbIdxPos = trim($line[0]);                    // FDB index position (integer)
+                    $fdbIdxVLAN[$fdbIdxPos] = $fdbVLAN;             // FDB MAC => FDB VLAN
+                }
+            }
+        }
+
+        if (!empty($onuMACIndex) and !empty($fdbIdxPosLLID)) {
+            foreach ($onuMACIndex as $eachLLID => $eachONUMAC) {
+                $onuFDBIdxs = array_keys($fdbIdxPosLLID, $eachLLID);
+
+                if (!empty($onuFDBIdxs)) {
+                    $tmpFDBArr = array();
+
+                    foreach ($onuFDBIdxs as $io => $eachFDBIdx) {
+                        if (empty($eachFDBIdx)) {
+                            continue;
+                        } else {
+                            $tmpFDBVLAN = (empty($fdbIdxVLAN[$eachFDBIdx]) ? '' : $fdbIdxVLAN[$eachFDBIdx]);
+                            $tmpFDBMAC = (empty($fdbIdxMAC[$eachFDBIdx]) ? '' : $fdbIdxMAC[$eachFDBIdx]);
+                            $tmpONUID = $io;
+                            $tmpFDBArr[$tmpONUID] = array('mac' => $tmpFDBMAC, 'vlan' => $tmpFDBVLAN);
+                        }
+                    }
+
+                    $fdbCahce[$eachONUMAC] = $tmpFDBArr;
+                }
+            }
+        }
+
+        //saving OLT FDB
+        $this->olt->writeFdb($fdbCahce);
+
     }
 
     /**
