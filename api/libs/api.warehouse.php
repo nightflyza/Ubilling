@@ -2898,7 +2898,7 @@ class Warehouse {
                 $result = ' : ' . $this->allContractors[$destparam];
                 break;
             case 'employee':
-                $result = ' : ' . wf_Link('?module=employee', $this->allEmployee[$destparam]);
+                $result = ' : ' . wf_Link('?module=employee', @$this->allEmployee[$destparam]);
                 break;
             case 'storage':
                 $result = ' : ' . $this->allStorages[$destparam];
