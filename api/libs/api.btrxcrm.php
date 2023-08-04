@@ -50,7 +50,7 @@ class BtrxCRM {
     /**
      * Contains all users tags as login=>tagsArr
      *
-     * @var string
+     * @var array
      */
     protected $allUserTags = array();
 

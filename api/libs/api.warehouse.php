@@ -85,7 +85,7 @@ class Warehouse {
     /**
      * All available outcoming operations as id=>outcomeData
      *
-     * @var type 
+     * @var array
      */
     protected $allOutcoming = array();
 
