@@ -95,6 +95,13 @@ class MultiGen {
      * @var array
      */
     protected $allNetworks = array();
+    
+    /**
+     * Contains all users with ext networks assign
+     * 
+     * @var array
+     */
+    protected $netExtUsers = array();
 
     /**
      * Contains available NAS servers as id=>data
@@ -557,6 +564,7 @@ class MultiGen {
         $this->loadAllQinQ();
         $this->loadScenarios();
         $this->loadUserStates();
+        $this->loadNetExtUsers();
     }
 
     /**
@@ -843,6 +851,21 @@ class MultiGen {
         if (!empty($networksRaw)) {
             foreach ($networksRaw as $io => $each) {
                 $this->allNetworks[$each['id']] = $each;
+            }
+        }
+    }
+    
+        /**
+     * Loads user speed overrides if they assigned for user
+     * 
+     * @return void
+     */
+    protected function loadNetExtUsers() {
+        $netExtUsers_q = "SELECT * from `netextpools` WHERE `login` NOT <> '';";
+        $rawNetExtUsers = simple_queryall($netExtUsers_q);
+        if (!empty($rawNetExtUsers)) {
+            foreach ($rawNetExtUsers as $io => $each) {
+                $this->netExtUsers[$each['login']] = $each['pool'] . "/" . $each['netmask'];
             }
         }
     }
@@ -1968,6 +1991,14 @@ class MultiGen {
                     $switchData = @$this->allSwitches[$userSwitchId];
                     $switchMac = @$switchData['swid'];
                     $template = str_replace('{USERSWITCHMAC}', $switchMac, $template);
+                }
+                
+                if (strpos($template, '{NETEXT}') !== fasle) {
+                    if(isset($this->netExtUsers[$userLogin])) {
+                        $netExtData = $this->netExtUsers[$userLogin];
+                        $template = str_repalce('{NETEXT}', $netExtData, $template);
+                    }
+                    
                 }
             }
 
