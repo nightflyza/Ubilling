@@ -506,12 +506,17 @@ class MultiGen {
     const OPTION_ISHIMURA = 'ISHIMURA_ENABLED';
 
     /**
-     * Default 
+     * Usernames cache expiring timeout option name
      */
     const OPTION_USERNAMESTIMEOUT = 'MULTIGEN_UNTIMEOUT';
 
     /**
-     * log path
+     * Extended networks option name
+     */
+    const OPTION_EXTNETS = 'NETWORKS_EXT';
+
+    /**
+     * Default log path
      */
     const LOG_PATH = 'exports/multigen.log';
 
@@ -856,16 +861,20 @@ class MultiGen {
     }
 
     /**
-     * Loads user speed overrides if they assigned for user
+     * Loads users extended networks data
      * 
      * @return void
      */
     protected function loadNetExtUsers() {
-        $netExtUsers_q = "SELECT * from `netextpools` WHERE `login` <> '';";
-        $rawNetExtUsers = simple_queryall($netExtUsers_q);
-        if (!empty($rawNetExtUsers)) {
-            foreach ($rawNetExtUsers as $io => $each) {
-                $this->netExtUsers[$each['login']] = $each['pool'] . "/" . $each['netmask'];
+        if (isset($this->altCfg[self::OPTION_EXTNETS])) {
+            if ($this->altCfg[self::OPTION_EXTNETS]) {
+                $netExtUsers_q = "SELECT * from `netextpools` WHERE `login` <> '';";
+                $rawNetExtUsers = simple_queryall($netExtUsers_q);
+                if (!empty($rawNetExtUsers)) {
+                    foreach ($rawNetExtUsers as $io => $each) {
+                        $this->netExtUsers[$each['login']] = $each['pool'] . "/" . $each['netmask'];
+                    }
+                }
             }
         }
     }
