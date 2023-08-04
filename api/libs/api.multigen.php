@@ -1996,7 +1996,7 @@ class MultiGen {
                 if (strpos($template, '{NETEXT}') !== false) {
                     if(isset($this->netExtUsers[$userLogin])) {
                         $netExtData = $this->netExtUsers[$userLogin];
-                        $template = str_repalce('{NETEXT}', $netExtData, $template);
+                        $template = str_replace('{NETEXT}', $netExtData, $template);
                     }
                     
                 }
