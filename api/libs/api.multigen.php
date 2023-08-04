@@ -861,7 +861,7 @@ class MultiGen {
      * @return void
      */
     protected function loadNetExtUsers() {
-        $netExtUsers_q = "SELECT * from `netextpools` WHERE `login` NOT <> '';";
+        $netExtUsers_q = "SELECT * from `netextpools` WHERE `login` <> '';";
         $rawNetExtUsers = simple_queryall($netExtUsers_q);
         if (!empty($rawNetExtUsers)) {
             foreach ($rawNetExtUsers as $io => $each) {
