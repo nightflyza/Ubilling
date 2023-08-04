@@ -95,7 +95,7 @@ class MultiGen {
      * @var array
      */
     protected $allNetworks = array();
-    
+
     /**
      * Contains all users with ext networks assign
      * 
@@ -854,8 +854,8 @@ class MultiGen {
             }
         }
     }
-    
-        /**
+
+    /**
      * Loads user speed overrides if they assigned for user
      * 
      * @return void
@@ -1436,7 +1436,6 @@ class MultiGen {
                     $newContent_f = ubRouting::filters($newContent, 'mres');
                     $newContent_f = trim($newContent_f);
 
-
                     $query = "INSERT INTO `" . self::NAS_ATTRIBUTES . "` (`id`,`nasid`,`scenario`,`modifier`,`attribute`,`operator`,`content`) VALUES "
                             . "(NULL,'" . $nasId . "','" . $newScenario_f . "','" . $newModifier_f . "','" . $newAttribute_f . "','" . $newOperator_f . "','" . $newContent_f . "');";
                     nr_query($query);
@@ -1669,10 +1668,10 @@ class MultiGen {
      * @return void
      */
     protected function writeScenarioStats($nasId, $scenario, $attributeState) {
-        if ((!isset($this->scenarioStats[$nasId])) OR ( !isset($this->scenarioStats[$nasId][$scenario])) OR ( !isset($this->scenarioStats[$nasId][$scenario][$attributeState]))) {
+        if ((!isset($this->scenarioStats[$nasId])) OR (!isset($this->scenarioStats[$nasId][$scenario])) OR (!isset($this->scenarioStats[$nasId][$scenario][$attributeState]))) {
             $this->scenarioStats[$nasId][$scenario][$attributeState] = 1;
         } else {
-            $this->scenarioStats[$nasId][$scenario][$attributeState] ++;
+            $this->scenarioStats[$nasId][$scenario][$attributeState]++;
         }
     }
 
@@ -1992,13 +1991,12 @@ class MultiGen {
                     $switchMac = @$switchData['swid'];
                     $template = str_replace('{USERSWITCHMAC}', $switchMac, $template);
                 }
-                
+
                 if (strpos($template, '{NETEXT}') !== false) {
-                    if(isset($this->netExtUsers[$userLogin])) {
+                    if (isset($this->netExtUsers[$userLogin])) {
                         $netExtData = $this->netExtUsers[$userLogin];
                         $template = str_replace('{NETEXT}', $netExtData, $template);
                     }
-                    
                 }
             }
 
@@ -2253,7 +2251,7 @@ class MultiGen {
      * @return void
      */
     protected function replaceSingleUser($newUserName, $oldUserName) {
-        if (!empty($newUserName) and ! empty($oldUserName)) {
+        if (!empty($newUserName) and !empty($oldUserName)) {
             foreach ($this->scenarios as $eachScenario) {
                 $query = 'UPDATE `' . self::SCENARIO_PREFIX . $eachScenario . '` SET `username`="' . $newUserName . '" WHERE `username`="' . $oldUserName . '"';
                 nr_query($query);
@@ -2271,7 +2269,7 @@ class MultiGen {
      * @return void
      */
     protected function changeFramedIp($newIp, $oldIp, $userName) {
-        if (!empty($newIp) and ! empty($oldIp)) {
+        if (!empty($newIp) and !empty($oldIp)) {
             $query = 'UPDATE `' . self::SCENARIO_PREFIX . 'reply' . '` SET `Value`="' . $newIp . '" WHERE `attribute`="Framed-IP-Address" AND `value`="' . $oldIp . '" AND `username`="' . $userName . '"';
             nr_query($query);
         }
@@ -2474,7 +2472,7 @@ class MultiGen {
                                                 }
 
                                                 //emulating reset action if something changed in user attributes
-                                                if ((!empty($nasServices['coadisconnect'])) AND ( !empty($nasServices['coaconnect']))) {
+                                                if ((!empty($nasServices['coadisconnect'])) AND (!empty($nasServices['coaconnect']))) {
                                                     if (($this->userStates[$userLogin]['changed'] == -2) AND ( $this->userStates[$userLogin]['current'] == 1) AND ( $this->userStates[$userLogin]['previous'] == 1)) {
                                                         $newCoADisconnectContent = $this->getAttributeValue($userLogin, $userName, $eachNasId, $nasServices['coadisconnect']) . "\n";
                                                         $this->saveCoaQueue($newCoADisconnectContent);
@@ -2780,7 +2778,7 @@ class MultiGen {
              * Watch out the fire
              * Of the Saiya
              */
-            if ((!empty($this->nasOptions)) AND ( !empty($this->allNas))) {
+            if ((!empty($this->nasOptions)) AND (!empty($this->allNas))) {
                 foreach ($this->nasOptions as $io => $each) {
                     if (($io != $nasId) AND ( isset($this->allNas[$io]))) {
                         $nasBasicData = $this->allNas[$io];
@@ -3650,7 +3648,6 @@ class MultiGen {
                         $newDownTraffic = $stgDownTraffic + $diffDownTraffic;
                         $newUpTraffic = $stgUpTraffic + $diffUpTraffic;
 
-
                         if (($diffDownTraffic != 0) OR ( $diffUpTraffic != 0)) {
                             $this->saveTrafficData($changedLogin, $newDownTraffic, $newUpTraffic);
                             $newPreviousDown = $previousDownTraffic + $diffDownTraffic;
@@ -3743,5 +3740,4 @@ class MultiGen {
     public function runPidEnd() {
         $this->stardust->stop();
     }
-
 }
