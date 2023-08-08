@@ -3660,9 +3660,10 @@ class Warehouse {
      */
     public function summaryReport() {
         $result = '';
-        if ($_SERVER['QUERY_STRING'] == 'module=warehouse') {
+        if ($_SERVER['QUERY_STRING'] == 'module=warehouse&warehousestats=true') {
+
             $curMonth = curmonth();
-            $result .= $this->reserveShoppingAlert();
+            $result .= $this->reserveAlert();
 
             if (empty($this->allCategories)) {
                 $result .= $this->messages->getStyledMessage(__('No existing categories'), 'warning');
@@ -3713,7 +3714,19 @@ class Warehouse {
 
 
             if (!empty($result)) {
-                show_window(__('Stats'), $result);
+                $winControl = wf_Link(self::URL_ME, wf_img('skins/shopping_cart_small.png',__('Necessary purchases')));
+                show_window(__('Stats') . ' ' . $winControl, $result);
+                zb_BillingStats(true);
+            }
+        } else {
+            if ($_SERVER['QUERY_STRING'] == 'module=warehouse') {
+                //shopping grid
+                $result .= $this->reserveShoppingAlert();
+                if (empty($result)) {
+                    $result .= $this->messages->getStyledMessage(__('It looks like your warehouse is fine'), 'success');
+                }
+                $winControl = wf_Link(self::URL_ME . '&warehousestats=true', web_icon_charts());
+                show_window(__('Necessary purchases') . ' ' . $winControl, $result);
                 zb_BillingStats(true);
             }
         }

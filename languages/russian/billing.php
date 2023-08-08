@@ -3490,3 +3490,6 @@ $lang['def']['Change admin user password'] = 'Изменить пароль ад
 $lang['def']['You are using the default login and password'] = 'Вы используете логин и пароль по-умолчанию';
 $lang['def']['Dont do this'] = 'Не делайте так';
 $lang['def']['Danger'] = 'Опасность';
+$lang['def']['Necessary purchases'] = 'Необходимые закупки';
+$lang['def']['It looks like your warehouse is fine'] = 'Похоже, что ваш склад впорядке';
+
