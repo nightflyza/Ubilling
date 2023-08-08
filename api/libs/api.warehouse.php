@@ -3610,6 +3610,50 @@ class Warehouse {
     }
 
     /**
+     * Returns low reserve alert
+     * 
+     * @return string
+     */
+    protected function reserveShoppingAlert() {
+        $result = '';
+        $photoStorageEnabled = ($this->altCfg['PHOTOSTORAGE_ENABLED']) ? true : false;
+        if ($photoStorageEnabled) {
+            $photoStorage = new PhotoStorage(self::PHOTOSTORAGE_SCOPE, 'nope');
+        }
+        if ((!empty($this->allItemTypes)) AND (!empty($this->allStorages)) AND (!empty($this->allIncoming))) {
+            $allRemains = $this->remainsAll();
+
+            foreach ($this->allItemTypes as $itemtypeId => $itemData) {
+                $itemReserve = $itemData['reserve'];
+                $itemName = $this->allItemTypeNames[$itemtypeId];
+                $itemUnit = $this->unitTypes[$itemData['unit']];
+                if ($itemReserve > 0) {
+                    if ((!isset($allRemains[$itemtypeId])) OR ( $allRemains[$itemtypeId] < $itemReserve)) {
+                        $itemImage = 'skins/shopping.png';
+                        if ($photoStorageEnabled) {
+                            $itemImagesList = $photoStorage->getImagesList($itemtypeId);
+                            if (!empty($itemImagesList)) {
+                                $itemImage = $itemImagesList[0]; //just 1st image for item
+                            }
+                        }
+
+                        $itemLabel = __('In warehouses remains less than') . ' ' . $itemReserve . ' ' . $itemUnit . ' ' . $itemName;
+                        $itemImagePreview = wf_img_sized($itemImage, $itemLabel, '200', '200');
+                        $result .= wf_tag('div', false, 'dashtask', 'style="height:230px; width:230px;"');
+                        $result .= $itemImagePreview;
+                        $result .= wf_delimiter(0);
+                        $result .= $itemName . ' < ' . ' ' . $itemReserve . ' ' . $itemUnit;
+                        $result .= wf_tag('div', true);
+                    }
+                }
+            }
+            $result .= wf_CleanDiv();
+        }
+
+        return ($result);
+    }
+
+    /**
      * Shows warehouse summary report
      * 
      * @return void
@@ -3618,7 +3662,7 @@ class Warehouse {
         $result = '';
         if ($_SERVER['QUERY_STRING'] == 'module=warehouse') {
             $curMonth = curmonth();
-            $result .= $this->reserveAlert();
+            $result .= $this->reserveShoppingAlert();
 
             if (empty($this->allCategories)) {
                 $result .= $this->messages->getStyledMessage(__('No existing categories'), 'warning');
