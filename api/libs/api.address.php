@@ -429,6 +429,22 @@ function zb_AddressChangeBuildNum($buildid, $buildnum) {
 }
 
 /**
+ * Changes some exising build geo location
+ * 
+ * @param int $buildId
+ * @param string $geo
+ * 
+ * @return void
+ */
+function zb_AddressChangeBuildGeo($buildId, $geo) {
+    $buildId = ubRouting::filters($buildId, 'int');
+    $buildGeo = ubRouting::filters($geo, 'mres');
+    $buildGeo = preg_replace('/[^0-9\.,]/i', '', $buildGeo);
+    simple_update_field('build', 'geo', $buildGeo, "WHERE `id`='" . $buildId . "'");
+    log_register('BUILD CHANGE [' . $buildId . ']' . ' GEO `' . $buildGeo . '`');
+}
+
+/**
  * Returns build data by its ID
  * 
  * @param int $buildid
@@ -1289,7 +1305,6 @@ function web_BuildLister($streetid, $AutoEditBuildID = 0) {
     $columns[] = (__('Geo location'));
     $columns[] = (__('Actions'));
 
-
     global $ubillingConfig;
     $altcfg = $ubillingConfig->getAlter();
     //build passport data processing
@@ -1866,7 +1881,7 @@ function zb_AddAddressExtenSave($login, $makeEdit, $postalcode = '', $towndistr 
         $tabAddrExten->save(true, true);
 
         log_register('Extended address record changed for user (' . $login . ')');
-    } elseif (!empty($postalcode) or ! empty($towndistr) or ! empty($addr_exten)) {
+    } elseif (!empty($postalcode) or !empty($towndistr) or !empty($addr_exten)) {
         $tabAddrExten->data('login', $login);
         $tabAddrExten->data('postal_code', $postalcode);
         $tabAddrExten->data('town_district', $towndistr);

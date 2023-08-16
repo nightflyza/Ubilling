@@ -428,7 +428,7 @@ class UserProfile {
             foreach ($plugins as $modulename => $eachplugin) {
                 $renderable = true;
                 //checks for required pluging rights
-                if (isset($eachplugin['need_right']) AND ! empty($eachplugin['need_right'])) {
+                if (isset($eachplugin['need_right']) AND !empty($eachplugin['need_right'])) {
                     if (cfr($eachplugin['need_right'])) {
                         $renderable = true;
                     } else {
@@ -484,7 +484,7 @@ class UserProfile {
                 foreach ($rawPlugins as $modulename => $eachplugin) {
                     $renderable = true;
                     //checks for required pluging rights
-                    if (isset($eachplugin['need_right']) AND ! empty($eachplugin['need_right'])) {
+                    if (isset($eachplugin['need_right']) AND !empty($eachplugin['need_right'])) {
                         if (cfr($eachplugin['need_right'])) {
                             $renderable = true;
                         } else {
@@ -781,6 +781,38 @@ class UserProfile {
     }
 
     /**
+     * Returns extended build locator modal window
+     * 
+     * @param int $userBuildId
+     * @param string $currentGeo
+     * 
+     * @return string
+     */
+    protected function getBuildLocatorExt($userBuildId, $currentGeo) {
+        $result = '';
+        $locContent = '';
+        if (cfr('BUILDS')) {
+            if (ubRouting::checkPost(array('blextbuildid', 'blextbuildgeo'))) {
+                zb_AddressChangeBuildGeo(ubRouting::post('blextbuildid'), ubRouting::post('blextbuildgeo'));
+                ubRouting::nav(self::URL_PROFILE . $this->login);
+            }
+            $locInputs = wf_HiddenInput('blextbuildid', $userBuildId);
+            $locInputs .= wf_TextInput('blextbuildgeo', __('Geo location'), $currentGeo, false, 15, 'geo', '', 'blextbuildgeo');
+            //GPS geolocation accessible?
+            if (zb_isHttpsRequest()) {
+                $locInputs .= wf_delimiter();
+                $locInputs .= web_GPSLocationFillInputControl('blextbuildgeo') . ' ';
+            }
+            $locInputs .= wf_Submit(__('Save'));
+            $locContent .= wf_Form('', 'POST', $locInputs, 'glamour');
+            $locContent .= wf_delimiter();
+        }
+        $locContent .= wf_Link('?module=usersmap&locfinder=true&placebld=' . $userBuildId, wf_img_sized('skins/ymaps/target.png', __('Place on map'), '10') . ' ' . __('Place on map'), false, 'ubButton');
+        $result .= wf_modalAuto(wf_img_sized('skins/ymaps/target.png', __('Place on map') . ': ' . $this->useraddress, '10'), __('Place on map') . ': ' . $this->useraddress, $locContent);
+        return($result);
+    }
+
+    /**
      * gets build location control and neighbors cache lister
      * 
      * @return string
@@ -795,7 +827,15 @@ class UserProfile {
                     $locatorIcon = wf_img_sized('skins/icon_search_small.gif', __('Find on map'), 10);
                     $buildLocator = ' ' . wf_Link("?module=usersmap&findbuild=" . $thisUserBuildGeo, $locatorIcon, false);
                 } else {
-                    $buildLocator .= ' ' . wf_Link('?module=usersmap&locfinder=true&placebld=' . $this->aptdata['buildid'], wf_img_sized('skins/ymaps/target.png', __('Place on map'), '10'), false, '');
+                    $userBuildId = $this->aptdata['buildid'];
+                    //extended build locator
+                    if (@$this->alterCfg['BUILDLOCATOR_EXTENDED']) {
+
+                        $buildLocator .= $this->getBuildLocatorExt($userBuildId, $thisUserBuildGeo);
+                    } else {
+                        //default build locator
+                        $buildLocator .= ' ' . wf_Link('?module=usersmap&locfinder=true&placebld=' . $userBuildId, wf_img_sized('skins/ymaps/target.png', __('Place on map'), '10'), false, '');
+                    }
                 }
 //and neighbors state cache
                 if (!empty($this->aptdata['buildid'])) {
@@ -1141,20 +1181,20 @@ class UserProfile {
                             WHERE `switches`.`id` = " . $curOLTID;
                 $oltData = simple_queryall($query);
 
-                if (isset($oltData[0]) and ! empty($oltData[0])) {
+                if (isset($oltData[0]) and !empty($oltData[0])) {
                     $curOLTIP = $oltData[0]['ip'];
                     $curOLTModelName = $oltData[0]['modelname'];
                     $curOLTLocation = $oltData[0]['location'];
                 }
 
-                if ($curOLTAliveCheck and ! empty($curOLTIP)) {
+                if ($curOLTAliveCheck and !empty($curOLTIP)) {
                     $curOLTAlive = zb_PingICMPTimeout($curOLTIP, $curOLTAliveCheckTimeout);
                 }
 
                 if ($this->ubConfig->getAlterParam('USERPROFILE_ONU_INFO_SHOW')) {
                     $onuAdditionalData .= wf_TableCell(__('OLT'), '30%', 'row2');
 
-                    if (isset($oltData[0]) and ! empty($oltData[0])) {
+                    if (isset($oltData[0]) and !empty($oltData[0])) {
                         $webIfaceLink = wf_tag('a', false, '', 'href="http://' . $curOLTIP . '" target="_blank" title="' . __('Go to the web interface') . '"');
                         $webIfaceLink .= wf_img('skins/ymaps/network.png');
                         $webIfaceLink .= wf_tag('a', true);
@@ -2440,5 +2480,4 @@ class UserProfile {
          */
         return($profile);
     }
-
 }

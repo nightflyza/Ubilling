@@ -4,5 +4,5 @@
 error_reporting(E_ALL);
 
 if (cfr('ROOT')) {
-
+    deb(web_GPSLocationFillInputControl('tesr'));
 }
