@@ -227,7 +227,6 @@ function em_JobTypeRenderList() {
             $actionlinks = wf_ConfirmDialog($urlDelete, web_delete_icon(), $messages->getDeleteAlert(), '', $urlCancel, __('Delete') . '?');
             $actionlinks .= wf_Link($urlEdit, web_edit_icon());
 
-
             $cells .= wf_TableCell($actionlinks);
             $rows .= wf_TableRow($cells, 'row5');
         }
@@ -442,7 +441,7 @@ function web_showPreviousJobs($username) {
 
         $addform = wf_Form("", 'POST', $inputs, '');
 
-        if ((!empty($activeemployee)) AND ( !empty($alljobtypes))) {
+        if ((!empty($activeemployee)) AND (!empty($alljobtypes))) {
             $rows .= $addform;
         } else {
             show_error(__('No job types and employee available'));
@@ -1228,7 +1227,7 @@ function ts_TaskCreateForm() {
     $alljobtypes = ts_GetAllJobtypes();
     $allemployee = ts_GetActiveEmployee();
 
-    if (!empty($alljobtypes) AND ! empty($allemployee)) {
+    if (!empty($alljobtypes) AND !empty($allemployee)) {
 //construct sms sending inputs
         if ($altercfg['SENDDOG_ENABLED']) {
             $smsCheckBox = (@$altercfg['TASKMAN_SMS_PROFILE_CHECK']) ? true : false;
@@ -1299,7 +1298,7 @@ function ts_TaskCreateFormProfile($address, $mobile, $phone, $login) {
     $alljobtypes = ts_GetAllJobtypes();
     $allemployee = ts_GetActiveEmployee();
 
-    if (!empty($alljobtypes) AND ! empty($allemployee)) {
+    if (!empty($alljobtypes) AND !empty($allemployee)) {
 // telepaticheskoe ugadivanie po tegu, kto dolzhen vipolnit rabotu
         $query = "SELECT `employee`.`id` FROM `tags` INNER JOIN employee USING (tagid) WHERE `login` = '" . $login . "'";
         $telepat_who_should_do = simple_query($query);
@@ -1571,7 +1570,7 @@ function ts_TaskCreateFormUnified($address, $mobile, $phone, $login = '', $custo
     $alljobtypes = ts_GetAllJobtypes();
     $allemployee = ts_GetActiveEmployee();
 
-    if (!empty($alljobtypes) AND ! empty($allemployee)) {
+    if (!empty($alljobtypes) AND !empty($allemployee)) {
 
 //construct sms sending inputs
         if ($altercfg['SENDDOG_ENABLED']) {
@@ -1637,7 +1636,7 @@ function ts_TaskCreateFormSigreq($address, $phone) {
     $alljobtypes = ts_GetAllJobtypes();
     $allemployee = ts_GetActiveEmployee();
 
-    if (!empty($alljobtypes) AND ! empty($allemployee)) {
+    if (!empty($alljobtypes) AND !empty($allemployee)) {
 //construct sms sending inputs
         if ($altercfg['SENDDOG_ENABLED']) {
             $smsCheckBox = ($ubillingConfig->getAlterParam('TASKMAN_SMS_PROFILE_CHECK')) ? true : false;
@@ -1741,45 +1740,47 @@ function ts_ShowPanel() {
         $result .= wf_modalAuto(web_icon_extended() . ' ' . __('Tools'), __('Tools'), $tools, 'ubButton');
     }
 
+//calendar filters panel
+    if (!ubRouting::checkGet('edittask')) {
 //show type selector
-    $whoami = whoami();
-    $employeeid = ts_GetEmployeeByLogin($whoami);
-    $advFiltersEnabled = $ubillingConfig->getAlterParam('TASKMAN_ADV_FILTERS');
+        $whoami = whoami();
+        $employeeid = ts_GetEmployeeByLogin($whoami);
+        $advFiltersEnabled = $ubillingConfig->getAlterParam('TASKMAN_ADV_FILTERS');
 
-    if ($employeeid OR $advFiltersEnabled) {
-        $result .= wf_delimiter();
-        $inputs = '';
+        if ($employeeid OR $advFiltersEnabled) {
+            $result .= wf_delimiter();
+            $inputs = '';
 
-        if ($employeeid) {
-            $curselected = (isset($_POST['displaytype'])) ? $_POST['displaytype'] : '';
-            $displayTypes = array(
-                'all' => __('Show tasks for all users'),
-                'onlyme' => __('Show only mine tasks')
-            );
+            if ($employeeid) {
+                $curselected = (isset($_POST['displaytype'])) ? $_POST['displaytype'] : '';
+                $displayTypes = array(
+                    'all' => __('Show tasks for all users'),
+                    'onlyme' => __('Show only mine tasks')
+                );
 //some other employee
-            $activeEmployeeTmp = ts_GetActiveEmployee();
-            if (!empty($activeEmployeeTmp)) {
-                foreach ($activeEmployeeTmp as $actId => $empName) {
-                    $displayTypes['displayempid' . $actId] = $empName;
+                $activeEmployeeTmp = ts_GetActiveEmployee();
+                if (!empty($activeEmployeeTmp)) {
+                    foreach ($activeEmployeeTmp as $actId => $empName) {
+                        $displayTypes['displayempid' . $actId] = $empName;
+                    }
                 }
+                $inputs .= wf_Selector('displaytype', $displayTypes, '', $curselected, false, '', '', 'col-1-2-occupy');
             }
-            $inputs .= wf_Selector('displaytype', $displayTypes, '', $curselected, false, '', '', 'col-1-2-occupy');
-        }
 
-        if ($advFiltersEnabled) {
-            $inputs .= ts_AdvFiltersControls();
-        }
+            if ($advFiltersEnabled) {
+                $inputs .= ts_AdvFiltersControls();
+            }
 
-        $formClasses = ($advFiltersEnabled ? 'glamour form-grid-6cols form-grid-6cols-label-right' : 'glamour form-grid-2cols');
-        $submitClasses = ($advFiltersEnabled ? 'ubButton' : 'inline-grid-button');
-        $submitOpts = 'style="width: 100%";';
-        $inputs .= wf_SubmitClassed(true, $submitClasses, '', __('Show'), '', $submitOpts);
-        $showTypeForm = wf_Form('', 'POST', $inputs, $formClasses);
-        if (!$branchCurseFlag) {
-            $result .= $showTypeForm;
+            $formClasses = ($advFiltersEnabled ? 'glamour form-grid-6cols form-grid-6cols-label-right' : 'glamour form-grid-2cols');
+            $submitClasses = ($advFiltersEnabled ? 'ubButton' : 'inline-grid-button');
+            $submitOpts = 'style="width: 100%";';
+            $inputs .= wf_SubmitClassed(true, $submitClasses, '', __('Show'), '', $submitOpts);
+            $showTypeForm = wf_Form('', 'POST', $inputs, $formClasses);
+            if (!$branchCurseFlag) {
+                $result .= $showTypeForm;
+            }
         }
     }
-
     return ($result);
 }
 
@@ -2705,7 +2706,7 @@ function ts_TaskChangeForm($taskid) {
             $sup = wf_tag('sup') . '*' . wf_tag('sup', false);
             $inputs = wf_HiddenInput('changetask', $taskid);
             $inputs .= wf_HiddenInput('change_admin', whoami());
-            if ((cfr('TASKMANNODONDATE')) AND ( !cfr('ROOT'))) {
+            if ((cfr('TASKMANNODONDATE')) AND (!cfr('ROOT'))) {
 //manual done date selection forbidden
                 $inputs .= wf_HiddenInput('editenddate', curdate());
             } else {
@@ -2884,8 +2885,6 @@ function ts_renderLogsDataAjax($taskid = '') {
             $data[] = $each['date'];
             $data[] = $administratorChange;
             $data[] = $each['ip'];
-
-
 
             if ($each['event'] == 'create') {
                 $data[] = __('Create task');
@@ -3081,7 +3080,6 @@ function ts_logTaskChange($taskId, $parameter, $oldValue, $newValue, $weblog = f
     $parameter = ubRouting::filters($parameter, 'mres');
     $oldValue = ubRouting::filters($oldValue, 'mres');
     $newValue = ubRouting::filters($newValue, 'mres');
-
 
     $log_data_arr = array();
 
@@ -3499,49 +3497,6 @@ function ts_PrintTasksTable($datefrom, $dateto, $nopagebreaks = false) {
     }
 
     die($result);
-}
-
-/**
- * Returns list of expired undone tasks
- * 
- * @return string
- */
-function ts_ShowLate() {
-    $allemployee = ts_GetAllEmployee();
-    $alljobtypes = ts_GetAllJobtypes();
-    $curyear = curyear();
-    $curmonth = date("m");
-    $curdate = curdate();
-    if (($curmonth != 1) AND ( $curmonth != 12)) {
-        $query = "SELECT * from `taskman` WHERE `status`='0' AND `startdate` LIKE '" . $curyear . "-%' AND `startdate`< '" . $curdate . "' ORDER BY `startdate` ASC";
-    } else {
-        $query = "SELECT * from `taskman` WHERE `status`='0' AND `startdate`< '" . $curdate . "' ORDER BY `startdate` ASC";
-    }
-
-    $cells = wf_TableCell(__('Target date'));
-    $cells .= wf_TableCell(__('Task address'));
-    $cells .= wf_TableCell(__('Phone'));
-    $cells .= wf_TableCell(__('Job type'));
-    $cells .= wf_TableCell(__('Who should do'));
-    $cells .= wf_TableCell(__('Actions'));
-    $rows = wf_TableRow($cells, 'row1');
-
-    $all = simple_queryall($query);
-    if (!empty($all)) {
-        foreach ($all as $io => $each) {
-            $cells = wf_TableCell($each['startdate']);
-            $cells .= wf_TableCell($each['address']);
-            $cells .= wf_TableCell($each['phone']);
-            $cells .= wf_TableCell(@$alljobtypes[$each['jobtype']]);
-            $cells .= wf_TableCell(@$allemployee[$each['employee']]);
-            $actions = wf_Link('?module=taskman&edittask=' . $each['id'], web_edit_icon(), false, '');
-            $cells .= wf_TableCell($actions);
-            $rows .= wf_TableRow($cells, 'row3');
-        }
-    }
-
-    $result = wf_TableBody($rows, '100%', '0', 'sortable');
-    return ($result);
 }
 
 /**
