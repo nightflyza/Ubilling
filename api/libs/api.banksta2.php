@@ -513,6 +513,7 @@ class Banksta2 {
                 $data4cache = array();
                 $data4cache['id'] = $eachRec['id'];
                 $data4cache['hash'] = $eachRec['hash'];
+                $data4cache['contract'] = $eachRec['contract'];
                 $data4cache['processed'] = $eachRec['processed'];
                 $data4cache['canceled'] = $eachRec['canceled'];
                 $data4cache['service_type'] = $eachRec['service_type'];
