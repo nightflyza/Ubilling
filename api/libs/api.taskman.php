@@ -1180,7 +1180,7 @@ function ts_TaskTypicalNotesSelector($settings = true) {
 
     $rawNotes = zb_StorageGet('PROBLEMS');
     if ($settings) {
-        $settingsControl = wf_Link("?module=taskman&probsettings=true", wf_img('skins/settings.png', __('Settings')), false, '');
+        $settingsControl = wf_Link("?module=tasksprobcfg", wf_img('skins/settings.png', __('Settings')), false, '');
     } else {
         $settingsControl = '';
     }
@@ -1832,6 +1832,24 @@ function ts_TaskIsDone() {
     ");
     nr_query($queryLogTask);
     log_register('TASKMAN DONE [' . $editid . ']');
+}
+
+/**
+ * Marks some task as undone
+ * 
+ * @return void
+ */
+function ts_TaskIsUnDone() {
+    $undid = ubRouting::get('setundone', 'int');
+    simple_update_field('taskman', 'status', '0', "WHERE `id`='" . $undid . "'");
+    simple_update_field('taskman', 'enddate', 'NULL', "WHERE `id`='" . $undid . "'");
+    log_register('TASKMAN UNDONE [' . $undid . ']');
+
+    $queryLogTask = ("
+            INSERT INTO `taskmanlogs` (`id`, `taskid`, `date`, `admin`, `ip`, `event`, `logs`) 
+            VALUES (NULL, '" . $undid . "', CURRENT_TIMESTAMP, '" . whoami() . "', '" . @$_SERVER['REMOTE_ADDR'] . "', 'setundone', '')
+        ");
+    nr_query($queryLogTask);
 }
 
 /**
@@ -3130,7 +3148,7 @@ function ts_TaskProblemsEditForm() {
         $newNotes = base64_encode($newNotes);
         zb_StorageSet('PROBLEMS', $newNotes);
         log_register('TASKMAN ADD TYPICALPROBLEM');
-        rcms_redirect("?module=taskman&probsettings=true");
+        rcms_redirect("?module=tasksprobcfg");
     }
 
     if (wf_CheckPost(array('deletetypicalnote', 'typicalnote'))) {
@@ -3143,7 +3161,7 @@ function ts_TaskProblemsEditForm() {
         $newNotes = base64_encode($newNotes);
         zb_StorageSet('PROBLEMS', $newNotes);
         log_register('TASKMAN DELETE TYPICALPROBLEM');
-        rcms_redirect("?module=taskman&probsettings=true");
+        rcms_redirect("?module=tasksprobcfg");
     }
 
     $rows = '';
@@ -3189,7 +3207,7 @@ function ts_isMeBranchCursed() {
         } else {
             if (cfr('BRANCHES') OR cfr('TASKMANGULAG')) {
                 if (cfr('TSUNCURSED')) {
-//glag and branches curse excluding right
+                    //gulag and branches curse excluding right
                     $result = false;
                 } else {
                     $result = true;
