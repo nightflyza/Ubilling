@@ -276,20 +276,24 @@ if (cfr('TASKMAN')) {
             $taskAccess = true;
             $cursedFlag = ts_isMeBranchCursed();
             if ($cursedFlag) {
-                if ($taskData['status']) {
-                    //task is already done - grant access to anyone. In GULAG too.
-                    $taskAccess = true;
-                } else {
-                    //task is open. Check is this mine?
-                    $taskAccess = false;
-                    $taskEmployeeId = $taskData['employee'];
-                    $myLogin = whoami();
-                    $myEmployeeId = ts_GetEmployeeByLogin($myLogin);
-                    if (!empty($myEmployeeId)) {
-                        if ($taskEmployeeId == $myEmployeeId) {
-                            $taskAccess = true;
+                if ($taskExistsFlag) {
+                    if ($taskData['status']) {
+                        //task is already done - grant access to anyone. In GULAG too.
+                        $taskAccess = true;
+                    } else {
+                        //task is open. Check is this mine?
+                        $taskAccess = false;
+                        $taskEmployeeId = $taskData['employee'];
+                        $myLogin = whoami();
+                        $myEmployeeId = ts_GetEmployeeByLogin($myLogin);
+                        if (!empty($myEmployeeId)) {
+                            if ($taskEmployeeId == $myEmployeeId) {
+                                $taskAccess = true;
+                            }
                         }
                     }
+                } else {
+                    $taskAccess = false;
                 }
             }
 
