@@ -1811,6 +1811,21 @@ function ts_SendSMS($employeeid, $message) {
 }
 
 /**
+ * Updates SMS data record in task record
+ * 
+ * @param array $smsDataRaw
+ * 
+ * @return void
+ */
+function ts_TaskSMSDataUpdate($smsDataRaw) {
+    if (!empty($smsDataRaw)) {
+        $smsDataSave = serialize($smsDataRaw);
+        $smsDataSave = base64_encode($smsDataSave);
+        simple_update_field('taskman', 'smsdata', $smsDataSave, "WHERE `id`='" . ubRouting::get('edittask', 'int') . "'");
+    }
+}
+
+/**
  * Marks some task as done
  * 
  * @return void
@@ -1902,7 +1917,7 @@ function ts_SendTelegramVenue($chatId, $title, $address, $geo) {
 }
 
 /**
- * Flushes sms data for some task
+ * Flushes SMS data for some task
  * 
  * @param int $taskid
  * 

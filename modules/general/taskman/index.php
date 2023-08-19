@@ -241,9 +241,8 @@ if (cfr('TASKMAN')) {
         if (ubRouting::checkPost(array('postsendemployee', 'postsendsmstext'))) {
             $smsDataRaw = ts_SendSMS(ubRouting::post('postsendemployee'), ubRouting::post('postsendsmstext'));
             if (!empty($smsDataRaw)) {
-                $smsDataSave = serialize($smsDataRaw);
-                $smsDataSave = base64_encode($smsDataSave);
-                simple_update_field('taskman', 'smsdata', $smsDataSave, "WHERE `id`='" . ubRouting::get('edittask') . "'");
+                //updating SMS data in task record
+                ts_TaskSMSDataUpdate($smsDataRaw);
                 //flushing dark void
                 $darkVoid = new DarkVoid();
                 $darkVoid->flushCache();
@@ -252,7 +251,7 @@ if (cfr('TASKMAN')) {
         }
 
         /**
-         * sms data flush
+         * SMS data flush
          */
         if (ubRouting::checkGet('flushsmsdata')) {
             ts_FlushSMSData(ubRouting::get('flushsmsdata'));
