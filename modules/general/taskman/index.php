@@ -263,25 +263,27 @@ if (cfr('TASKMAN')) {
          * Salary accounting actions
          */
         if ($altCfg['SALARY_ENABLED']) {
-            //salary job deletion
-            if (ubRouting::checkGet('deletejobid')) {
-                $salary = new Salary(ubRouting::get('edittask'));
-                $salary->deleteJob(ubRouting::get('deletejobid'));
-                ubRouting::nav($salary::URL_TS . ubRouting::get('edittask'));
-            }
+            if (cfr('SALARYTASKSVIEW')) {
+                //salary job deletion
+                if (ubRouting::checkGet('deletejobid')) {
+                    $salary = new Salary(ubRouting::get('edittask'));
+                    $salary->deleteJob(ubRouting::get('deletejobid'));
+                    ubRouting::nav($salary::URL_TS . ubRouting::get('edittask'));
+                }
 
-            //salary job editing
-            if (ubRouting::checkPost(array('editsalaryjobid', 'editsalaryemployeeid', 'editsalaryjobtypeid'))) {
-                $salary = new Salary(ubRouting::get('edittask'));
-                $salary->jobEdit(ubRouting::post('editsalaryjobid'), ubRouting::post('editsalaryemployeeid'), ubRouting::post('editsalaryjobtypeid'), ubRouting::post('editsalaryfactor'), ubRouting::post('editsalaryoverprice'), ubRouting::post('editsalarynotes'));
-                ubRouting::nav($salary::URL_TS . ubRouting::get('edittask'));
-            }
+                //salary job editing
+                if (ubRouting::checkPost(array('editsalaryjobid', 'editsalaryemployeeid', 'editsalaryjobtypeid'))) {
+                    $salary = new Salary(ubRouting::get('edittask'));
+                    $salary->jobEdit(ubRouting::post('editsalaryjobid'), ubRouting::post('editsalaryemployeeid'), ubRouting::post('editsalaryjobtypeid'), ubRouting::post('editsalaryfactor'), ubRouting::post('editsalaryoverprice'), ubRouting::post('editsalarynotes'));
+                    ubRouting::nav($salary::URL_TS . ubRouting::get('edittask'));
+                }
 
-            //salary job creation
-            if (ubRouting::checkPost(array('newsalarytaskid', 'newsalaryemployeeid', 'newsalaryjobtypeid'))) {
-                $salary = new Salary(ubrouting::get('edittask'));
-                $salary->createSalaryJob(ubRouting::post('newsalarytaskid'), ubRouting::post('newsalaryemployeeid'), ubRouting::post('newsalaryjobtypeid'), ubRouting::post('newsalaryfactor'), ubRouting::post('newsalaryoverprice'), ubRouting::post('newsalarynotes'));
-                ubRouting::nav($salary::URL_TS . ubRouting::get('edittask'));
+                //salary job creation
+                if (ubRouting::checkPost(array('newsalarytaskid', 'newsalaryemployeeid', 'newsalaryjobtypeid'))) {
+                    $salary = new Salary(ubrouting::get('edittask'));
+                    $salary->createSalaryJob(ubRouting::post('newsalarytaskid'), ubRouting::post('newsalaryemployeeid'), ubRouting::post('newsalaryjobtypeid'), ubRouting::post('newsalaryfactor'), ubRouting::post('newsalaryoverprice'), ubRouting::post('newsalarynotes'));
+                    ubRouting::nav($salary::URL_TS . ubRouting::get('edittask'));
+                }
             }
         }
 
