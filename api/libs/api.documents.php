@@ -213,7 +213,6 @@ class ProfileDocuments {
         $contractDates = new ContractDates();
         $dates = $contractDates->getAllDatesFull();
 
-
         if (!empty($allcontracts)) {
             foreach ($allcontracts as $io => $eachcontract) {
                 $result[$eachcontract['login']]['contractnum'] = $eachcontract['contract'];
@@ -262,7 +261,6 @@ class ProfileDocuments {
         $curdate = curdate();
         $lastDocId = $this->getDocumentLastId();
         $newDocId = $lastDocId + 1;
-
 
         if ($this->altcfg['OPENPAYZ_SUPPORT']) {
             if ($this->altcfg['OPENPAYZ_REALID']) {
@@ -363,8 +361,6 @@ class ProfileDocuments {
                 @$userdata[$eachuser['login']]['FIRSTDAYNEXTMONTH'] = $this->transformDateLit(date("Y-m-01", strtotime('first day of +1 month')));
                 @$userdata[$eachuser['login']]['LASTDAYMONTH'] = $this->transformDateLit(date("Y-m-t"));
                 @$userdata[$eachuser['login']]['LASTDAYNEXTMONTH'] = $this->transformDateLit(date("Y-m-t", strtotime('first day of +1 month')));
-
-
 
                 //custom profile fields
                 if (isset($allCfData[$eachuser['login']])) {
@@ -691,9 +687,16 @@ class ProfileDocuments {
             @$this->customFields['CUSTNOTES'] = $_POST['customnotes'];
             @$this->customFields['CUSTSUM'] = $_POST['customsum'];
             @$this->customFields['CUSTPHONE'] = $_POST['customphone'];
-            @$pdv = ($this->customFields['CUSTSUM'] / 100) * $pdvPercent;
+            $pdv = 0;
+            if (is_numeric($this->customFields['CUSTSUM'])) {
+                @$pdv = ($this->customFields['CUSTSUM'] / 100) * $pdvPercent;
+            }
             @$this->customFields['PDV'] = $pdv;
-            @$this->customFields['CUSTSUMPDV'] = $this->customFields['CUSTSUM'] + $pdv;
+            if (is_numeric($this->customFields['CUSTSUM'])) {
+                @$this->customFields['CUSTSUMPDV'] = $this->customFields['CUSTSUM'] + $pdv;
+            } else {
+                $this->customFields['CUSTSUMPDV'] = 0;
+            }
             @$this->customFields['CUSTSUMPDVLIT'] = $morph->sum2str($this->customFields['CUSTSUMPDV']);
             @$this->customFields['CUSTSUMLIT'] = $morph->sum2str($this->customFields['CUSTSUM']);
 
@@ -1030,5 +1033,4 @@ class ProfileDocuments {
 
         return ($result);
     }
-
 }
