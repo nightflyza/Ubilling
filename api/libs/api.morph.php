@@ -65,6 +65,7 @@ class UBMorph {
      * @return string
      */
     public function sum2str($sum, $strippenny = false) {
+        $sum = (is_numeric($sum)) ? $sum : 0; //prevents TypeError on PHP >=8.2
         $zero = __('zero');
         $str[100] = array('', __('one hundred'), __('two hundred'), __('three hundred'), __('four hundred'), __('five hundred'), __('six hundred'), __('seven hundred'), __('eight hundred'), __('nine hundred'));
         $str[11] = array('', __('ten'), __('eleven'), __('twelve'), __('thirteen'), __('fourteen'), __('fifteen'), __('sixteen'), __('seventeen'), __('eightteen'), __('nineteen'), __('twenty'));
@@ -142,6 +143,7 @@ class UBMorph {
             $o[] = $penny;
             $o[] = $this->morph($penny, $forms[0][0], $forms[0][1], $forms[0][2]);
         }
+
         return preg_replace("/\s{2,}/", ' ', implode(' ', $o));
     }
 
@@ -165,5 +167,4 @@ class UBMorph {
             return $f1;
         return $f5;
     }
-
 }
