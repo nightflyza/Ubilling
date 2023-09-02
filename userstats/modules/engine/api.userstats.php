@@ -15,7 +15,7 @@ function zbs_UserCheckLoginAuth($login, $password) {
     $password = vf($password);
     $password = preg_replace('#[^a-z0-9A-Z\-_\.]#Uis', '', $password);
     $password = preg_replace('/\0/s', '', $password);
-    if (!empty($login) AND ( !empty($password))) {
+    if (!empty($login) AND (!empty($password))) {
         $query = "SELECT `IP` from `users` WHERE `login`='" . $login . "' AND MD5(`password`)='" . $password . "'";
         $data = simple_query($query);
         if (!empty($data)) {
@@ -255,7 +255,7 @@ function zbs_GetOnlineLeftCount($login, $userBalance, $userTariff, $rawDays = fa
                 break;
         }
 
-        if ($includeVServices and ! empty($totalVsrvPrice) and ! empty($balanceExpire)) {
+        if ($includeVServices and !empty($totalVsrvPrice) and !empty($balanceExpire)) {
             if ($us_config['ROUND_PROFILE_CASH']) {
                 $totalVsrvPrice = web_roundValue($totalVsrvPrice, 2);
             }
@@ -682,8 +682,6 @@ function zbs_UserShowAgentData($login) {
     $result .= 'traffd_conv=' . zbs_convert_size($traffdown) . "\n";
     $result .= 'traffu_conv=' . zbs_convert_size($traffup) . "\n";
     $result .= 'trafftotal_conv=' . zbs_convert_size($traffdown + $traffup) . "\n";
-
-
 
     $result .= "\n";
     $result .= '[CONF]' . "\n";
@@ -1820,20 +1818,20 @@ function zbs_UserTraffStats($login) {
     $cells .= la_TableCell(__('Total'));
     $rows = la_TableRow($cells, 'row1');
 
-
     if (!empty($alldirs)) {
         foreach ($alldirs as $io => $eachdir) {
             $query_downup = "SELECT `D" . $eachdir['rulenumber'] . "`,`U" . $eachdir['rulenumber'] . "` from `users` WHERE `login`='" . $login . "'";
             $downup = simple_query($query_downup);
             //yeah, no classes at all
             if ($eachdir['rulenumber'] == 0) {
-
                 if ($us_config[$ishimuraOption]) {
                     $query_hideki = "SELECT `D0`,`U0` from `" . $ishimuraTable . "` WHERE `login`='" . $login . "' AND `month`='" . date("n") . "' AND `year`='" . date("Y") . "'";
                     $dataHideki = simple_query($query_hideki);
                     if (isset($downup['D0'])) {
-                        $downup['D0'] += $dataHideki['D0'];
-                        $downup['U0'] += $dataHideki['U0'];
+                        if (isset($dataHideki['D0'])) {
+                            $downup['D0'] += $dataHideki['D0'];
+                            $downup['U0'] += $dataHideki['U0'];
+                        }
                     } else {
                         $downup['D0'] = $dataHideki['D0'];
                         $downup['U0'] = $dataHideki['U0'];
@@ -1856,7 +1854,6 @@ function zbs_UserTraffStats($login) {
      */
     $prevStatsTmp = array();
     $result .= la_tag('h3') . __('Previous month traffic stats') . la_tag('h3', true);
-
 
     $cells = la_TableCell(__('Year'));
     $cells .= la_TableCell(__('Month'));
@@ -2033,7 +2030,7 @@ function zbs_CopyrightsShow() {
     $usConf = zbs_LoadConfig();
     $baseFooter = 'Powered by <a href="https://ubilling.net.ua">Ubilling</a>';
     if ((isset($usConf['ISP_NAME'])) AND ( isset($usConf['ISP_URL']))) {
-        if ((!empty($usConf['ISP_NAME'])) AND ( !empty($usConf['ISP_URL']))) {
+        if ((!empty($usConf['ISP_NAME'])) AND (!empty($usConf['ISP_URL']))) {
             $rawUrl = strtolower($usConf['ISP_URL']);
             if (stripos($rawUrl, 'http') === false) {
                 $rawUrl = 'http://' . $rawUrl;
@@ -2453,7 +2450,7 @@ function zbs_IspLogoShow() {
     $usConf = zbs_LoadConfig();
     $result = '';
     if (isset($usConf['ISP_LOGO'])) {
-        if ((!empty($usConf['ISP_NAME'])) AND ( !empty($usConf['ISP_URL'])) AND ( (!empty($usConf['ISP_LOGO'])))) {
+        if ((!empty($usConf['ISP_NAME'])) AND (!empty($usConf['ISP_URL'])) AND ( (!empty($usConf['ISP_LOGO'])))) {
             $rawUrl = strtolower($usConf['ISP_URL']);
             if (stripos($rawUrl, 'http') === false) {
                 $rawUrl = 'http://' . $rawUrl;
@@ -2477,7 +2474,7 @@ function zbs_CustomBackground() {
     $tilesPath = $skinPath . 'tiles/';
     $result = '';
     if (isset($usConf['BACKGROUND'])) {
-        if (($usConf['BACKGROUND'] != 'DEFAULT') AND ( !empty($usConf['BACKGROUND']))) {
+        if (($usConf['BACKGROUND'] != 'DEFAULT') AND (!empty($usConf['BACKGROUND']))) {
             $customBackground = $usConf['BACKGROUND'];
             $availTiles = rcms_scandir($tilesPath);
             $availTiles = array_flip($availTiles);
@@ -2508,7 +2505,7 @@ function zbs_AnnouncementsAvailable($login) {
     $query = "SELECT `zbsannouncements`.*, `zbh`.`annid` from `zbsannouncements` LEFT JOIN (SELECT `annid` FROM `zbsannhist` WHERE `login` = '" . $login . "') as zbh ON ( `zbsannouncements`.`id`=`zbh`.`annid`) WHERE `public`='1' AND `annid` IS NULL ORDER BY `zbsannouncements`.`id` DESC LIMIT 1";
     $data = simple_queryall($query);
     if (!empty($data)) {
-        if (isset($us_config['AN_MODAL']) AND ! empty($us_config['AN_MODAL'])) {
+        if (isset($us_config['AN_MODAL']) AND !empty($us_config['AN_MODAL'])) {
             $inputs = '';
             $inputs .= la_tag('br');
             $inputs .= la_HiddenInput('anmarkasread', $data[0]['id']);
@@ -2593,7 +2590,7 @@ function zbs_remoteApiRequest($requestUrl) {
     $usConfig = zbs_LoadConfig();
     $result = '';
     if (isset($usConfig['API_URL']) AND isset($usConfig['API_KEY'])) {
-        if (!empty($usConfig['API_URL']) AND ! empty($usConfig['API_KEY'])) {
+        if (!empty($usConfig['API_URL']) AND !empty($usConfig['API_KEY'])) {
             $apiBase = $usConfig['API_URL'] . '/?module=remoteapi&key=' . $usConfig['API_KEY'];
             @$result .= file_get_contents($apiBase . $requestUrl);
         } else {
