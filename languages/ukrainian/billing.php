@@ -3494,5 +3494,9 @@ $lang['def']['Necessary purchases'] = 'Необхідні закупівлі';
 $lang['def']['It looks like your warehouse is fine'] = 'Схоже на те, що з вашим складом все гаразд';
 $lang['def']['right to'] = 'Право на';
 $lang['def']['right to ONU map'] = 'Право користуватись мапою ONU';
+$lang['def']['ONU view'] = 'Перегляд ONU';
+$lang['def']['right to view branches users ONUs'] = 'Право на перегляд ONU користувачів філій';
+$lang['def']['No ONUs of devices assigned to this user were detected'] = 'Не виявлено ONU пристроїв, що присвоєні цьому користувачеві';
 $lang['def'][''] = '';
+
 

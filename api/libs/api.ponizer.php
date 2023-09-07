@@ -1120,17 +1120,22 @@ class PONizer {
      * Renders some ONUs navigation list
      * 
      * @param array $onuArr
+     * @param string $customOnuUrl
      * 
      * @return string
      */
-    public function renderOnuNavBar($onuArr) {
+    public function renderOnuNavBar($onuArr, $customOnuUrl = '') {
         $result = '';
         if (!empty($onuArr)) {
             $result .= wf_tag('div');
             foreach ($onuArr as $io => $eachOnuId) {
                 if (isset($this->allOnu[$eachOnuId])) {
                     $onuData = $this->allOnu[$eachOnuId];
-                    $onuUrl = self::URL_ONU . $eachOnuId;
+                    if ($customOnuUrl) {
+                        $onuUrl = $customOnuUrl . $eachOnuId;
+                    } else {
+                        $onuUrl = self::URL_ONU . $eachOnuId;
+                    }
                     $onuLabel = '';
                     if (!empty($onuData['mac'])) {
                         $onuLabel .= ' ' . $onuData['mac'];
@@ -2014,6 +2019,21 @@ class PONizer {
     }
 
     /**
+     * Returns existing ONU data or empty array if it not exists
+     * 
+     * @param int $onuId
+     * 
+     * @return array
+     */
+    public function getOnuData($onuId) {
+        $result = array();
+        if (isset($this->allOnu[$onuId])) {
+            $result = $this->allOnu[$onuId];
+        }
+        return($result);
+    }
+
+    /**
      *  Returns some ONU signal level as array with following keys: raw/color/type/styled/isoffline
      * 
      * @param int $onuId
@@ -2305,10 +2325,11 @@ class PONizer {
      * Returns ONU edit form
      *
      * @param int $onuId
+     * @param bool $limitedControls
      *
      * @return string
      */
-    public function onuEditForm($onuId) {
+    public function onuEditForm($onuId, $limitedControls = false) {
         $onuId = ubRouting::filters($onuId, 'int');
         $result = '';
 
@@ -2352,7 +2373,11 @@ class PONizer {
                     //Editing feature: 100$ donate or do it yourself. Im to lazy right now.
                     $inputs .= wf_tag('input', false, '', 'name="onuextlogin_' . $each['id'] . '" type="text" value="' . $each['login'] . '" size="20" DISABLED') . ' ';
                     if (cfr('PONEDIT')) {
-                        $inputs .= wf_JSAlert(self::URL_ME . '&editonu=' . $onuId . '&deleteextuser=' . $each['id'], wf_img_sized('skins/icon_del.gif', __('Delete'), '13'), $messages->getDeleteAlert()) . ' ';
+                        $controllerUrl = self::URL_ME;
+                        if ($limitedControls) {
+                            $controllerUrl = '?module=pl_branchesonuview';
+                        }
+                        $inputs .= wf_JSAlert($controllerUrl . '&editonu=' . $onuId . '&deleteextuser=' . $each['id'], wf_img_sized('skins/icon_del.gif', __('Delete'), '13'), $messages->getDeleteAlert()) . ' ';
                     }
                     $inputs .= wf_Link(self::URL_USERPROFILE . $each['login'], web_profile_icon());
                     $inputs .= wf_tag('br');
@@ -2401,7 +2426,9 @@ class PONizer {
             }
 
             $result .= wf_delimiter();
-            $result .= wf_BackLink(self::URL_ONULIST);
+            if (!$limitedControls) {
+                $result .= wf_BackLink(self::URL_ONULIST);
+            }
 
             //back to primary user profile control
             if (!empty($this->allOnu[$onuId]['login'])) {
@@ -2412,7 +2439,7 @@ class PONizer {
 
             //ONU burial or resurrection controls
             if (!empty($this->allOnu[$onuId]['login'])) {
-                if (cfr('PONEDIT')) {
+                if (cfr('PONEDIT') AND !$limitedControls) {
                     if (@$this->altCfg['ONU_BURIAL_ENABLED']) {
                         if ($this->allOnu[$onuId]['login'] != 'dead') {
                             //this ONU is owned by some user. Burial controls here.
@@ -2441,7 +2468,7 @@ class PONizer {
             }
 
             //ONU deletion control
-            if (cfr('PONDEL')) {
+            if (cfr('PONDEL') AND !$limitedControls) {
                 $delCancelUrl = self::URL_ME . '&editonu=' . $onuId;
                 $delConfirmUrl = self::URL_ME . '&deleteonu=' . $onuId;
                 $result .= wf_ConfirmDialog($delConfirmUrl, web_delete_icon() . ' ' . __('Delete') . ' ' . __('ONU'), $messages->getDeleteAlert(), 'ubButton', $delCancelUrl);
@@ -3305,14 +3332,22 @@ class PONizer {
 
     /**
      * Renders OLT FDB list container
+     * 
+     * @param int $onuid
+     * @param string $customDataSource
      *
      * @return string
      */
-    public function renderOltFdbList($onuid = '') {
+    public function renderOltFdbList($onuid = '', $customDataSource = '') {
         $result = '';
         $columns = array('ID', 'Vlan', 'MAC', 'Address', 'Real Name', 'Tariff');
         $opts = '"order": [[ 0, "desc" ]]';
-        $result = wf_JqDtLoader($columns, self::URL_ME . '&ajaxoltfdb=true&onuid=' . $onuid . '', false, 'ONU', 100, $opts);
+        if ($customDataSource) {
+            $dataSource = $customDataSource . $onuid;
+        } else {
+            $dataSource = self::URL_ME . '&ajaxoltfdb=true&onuid=' . $onuid;
+        }
+        $result = wf_JqDtLoader($columns, $dataSource, false, 'ONU', 100, $opts);
         return ($result);
     }
 

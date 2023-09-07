@@ -3494,4 +3494,6 @@ $lang['def']['Necessary purchases'] = 'Необходимые закупки';
 $lang['def']['It looks like your warehouse is fine'] = 'Похоже, что ваш склад впорядке';
 $lang['def']['right to'] = 'Право на';
 $lang['def']['right to ONU map'] = 'Право использовать карту ONU';
-
+$lang['def']['ONU view'] = 'Просмотр ONU';
+$lang['def']['right to view branches users ONUs'] = 'Право на просмотр ONU пользователей филиалов';
+$lang['def']['No ONUs of devices assigned to this user were detected'] = 'Не обнаружено ONU устройств, присвоенных этому пользователю';
