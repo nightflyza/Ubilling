@@ -55,6 +55,7 @@ class PONONUMap {
     const ROUTE_FILTER_OLT = 'oltidfilter';
     const ROUTE_FILTER_DEREG = 'deregfilter';
     const PROUTE_OLTSELECTOR = 'renderoltidonus';
+    CONST ROUTE_BACKLINK = 'bl';
 
     /**
      * Creates new ONU MAP instance
@@ -183,7 +184,12 @@ class PONONUMap {
      */
     protected function renderControls() {
         $result = '';
-        $result .= wf_BackLink(PONizer::URL_ONULIST) . ' ';
+
+        if (ubRouting::get(self::ROUTE_BACKLINK) == 'ponizer') {
+            $result .= wf_BackLink(PONizer::URL_ONULIST) . ' ';
+        } else {
+            $result .= wf_BackLink(UbillingTaskbar::URL_ME);
+        }
         if ($this->filterOltId) {
             $result .= wf_Link(self::URL_ME, wf_img('skins/ponmap_icon.png') . ' ' . __('All') . ' ' . __('OLT'), false, 'ubButton');
         } else {
@@ -317,5 +323,4 @@ class PONONUMap {
         }
         return($result);
     }
-
 }

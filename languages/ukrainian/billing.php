@@ -3492,7 +3492,7 @@ $lang['def']['Dont do this'] = 'Не робіть так';
 $lang['def']['Danger'] = 'Небезпека';
 $lang['def']['Necessary purchases'] = 'Необхідні закупівлі';
 $lang['def']['It looks like your warehouse is fine'] = 'Схоже на те, що з вашим складом все гаразд';
-$lang['def'][''] = '';
-$lang['def'][''] = '';
+$lang['def']['right to'] = 'Право на';
+$lang['def']['right to ONU map'] = 'Право користуватись мапою ONU';
 $lang['def'][''] = '';
 

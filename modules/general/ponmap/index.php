@@ -4,7 +4,7 @@ $altCfg = $ubillingConfig->getAlter();
 
 if (@$altCfg['PONMAP_ENABLED']) {
     if ($altCfg['PON_ENABLED']) {
-        if (cfr('PON')) {
+        if (cfr('ONUMAP')) {
             $oltIdFilter = (ubRouting::checkGet(PONONUMap::ROUTE_FILTER_OLT)) ? ubRouting::get(PONONUMap::ROUTE_FILTER_OLT) : '';
             if (ubRouting::checkPost(PONONUMap::PROUTE_OLTSELECTOR, false)) {
                 $navOltId = ubRouting::post(PONONUMap::PROUTE_OLTSELECTOR);

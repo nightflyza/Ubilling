@@ -760,7 +760,7 @@ class PONizer {
      */
     protected function getOnuArrayByOltID($OltId = '') {
         $result = array();
-        if (!empty($this->allOnu) and ! empty($OltId)) {
+        if (!empty($this->allOnu) and !empty($OltId)) {
             foreach ($this->allOnu as $io => $each) {
                 if ($each['oltid'] == $OltId) {
                     $result[$io] = $each;
@@ -1205,7 +1205,7 @@ class PONizer {
         }
 
         //cache requires update
-        if ($this->onuCacheTimeout and ! $fromCache) {
+        if ($this->onuCacheTimeout and !$fromCache) {
             if ($oltId) {
                 $this->cache->set(self::KEY_ONUOLT . $oltId, $all, $this->onuCacheTimeout);
             } else {
@@ -1234,7 +1234,7 @@ class PONizer {
         if (!empty($this->allOnu)) {
             foreach ($this->allOnu as $io => $each) {
                 if (isset($result[$each['oltid']])) {
-                    $result[$each['oltid']] ++;
+                    $result[$each['oltid']]++;
                 } else {
                     $result[$each['oltid']] = 1;
                 }
@@ -1532,7 +1532,7 @@ class PONizer {
         $newId = 0;
         $modelid = @$this->allOltSnmp[$oltid]['modelid'];
         //empty MAC workaround for GPON devices
-        if (empty($macF) and ! empty($serial)) {
+        if (empty($macF) and !empty($serial)) {
             $macF = zb_MacGetRandom();
             log_register('PON CREATE ONU MAC EMPTY TRY REPLACED WITH `' . $macF . '`');
         }
@@ -1594,7 +1594,6 @@ class PONizer {
         $currentMac = $this->allOnu[$onuId]['mac'];
         $currentSerial = $this->allOnu[$onuId]['serial'];
         $currentLogin = $this->allOnu[$onuId]['login'];
-
 
         $this->onuDb->where('id', '=', $onuId);
         $this->onuDb->data('onumodelid', $onumodelid);
@@ -2221,7 +2220,7 @@ class PONizer {
         $onuUniOperStats = '';
         $offlineFlag = ($signalStatsData['isoffline']) ? true : false;
 
-        if (isset($this->allOnu[$onuId]) and ! $offlineFlag) {
+        if (isset($this->allOnu[$onuId]) and !$offlineFlag) {
             $this->loadUniOperStatsCache();
 
             if (!empty($this->allOnu[$onuId]['mac'])) {
@@ -2570,7 +2569,9 @@ class PONizer {
             }
 
             if (@$this->altCfg['PONMAP_ENABLED']) {
-                $result .= wf_Link('?module=ponmap', wf_img_sized('skins/ponmap_icon.png', '', '16', '16') . ' ' . __('ONU Map'), false, 'ubButton');
+                if (cfr('ONUMAP')) {
+                    $result .= wf_Link('?module=ponmap&bl=ponizer', wf_img_sized('skins/ponmap_icon.png', '', '16', '16') . ' ' . __('ONU Map'), false, 'ubButton');
+                }
             }
 
             if (@$this->altCfg['PON_ONU_SEARCH_ENABLED']) {
@@ -2776,7 +2777,6 @@ class PONizer {
         $lastDeregCacheAvail = $this->oltData->isDeregsAvailable();
         $oltOnuCounters = $this->getOltOnuCounts();
 
-
         $opts = '"order": [[ 0, "desc" ]]';
         if ($this->deferredLoadingFlag) {
             $opts .= ', "deferLoading": 100';
@@ -2909,7 +2909,7 @@ class PONizer {
             $tabsDivOpts = 'style="border: none;padding: 0;"';
             $tabsLstOpts = 'style="border: none;background: #fff;"';
 
-            if ($this->EnableQuickOLTLinks and ! empty($this->allOltDevices)) {
+            if ($this->EnableQuickOLTLinks and !empty($this->allOltDevices)) {
                 $QuickOLTDDLName = 'QuickOLTDDL_100500';
                 $QickOLTsArray = $this->allOltDevices;
 
@@ -2981,7 +2981,7 @@ class PONizer {
                 $oltPorts = @$this->allOltModels[$oltModelId]['ports'];
                 $snmpTemplatesMaxPort = @$this->snmpTemplates[$oltModelId]['define']['PON_ONU_PORT_MAX'];
                 $onuMaxCount = (!empty($snmpTemplatesMaxPort)) ? $snmpTemplatesMaxPort : $onuMaxCountConf;
-                if ((!empty($oltModelId)) and ( !empty($oltPorts)) and ( !empty($onuMaxCount))) {
+                if ((!empty($oltModelId)) and (!empty($oltPorts)) and (!empty($onuMaxCount))) {
                     $oltData->setOltId($oltId); //switching attractor scope
                     $maxOnuPerOlt = $oltPorts * $onuMaxCount;
                     $oltOnuFilled[$oltId] = zb_PercentValue($maxOnuPerOlt, $onuCount);
@@ -2997,7 +2997,7 @@ class PONizer {
                             $cleanInterface = strstr($eachInterface, ':', true);
 
                             if (isset($oltInterfacesFilled[$oltId][$cleanInterface])) {
-                                $oltInterfacesFilled[$oltId][$cleanInterface] ++;
+                                $oltInterfacesFilled[$oltId][$cleanInterface]++;
                             } else {
                                 $oltInterfacesFilled[$oltId][$cleanInterface] = 1;
                             }
@@ -3006,14 +3006,14 @@ class PONizer {
                                 $macSignal = $signals[$eachMac];
                                 if ((($macSignal > -27) and ( $macSignal < -25))) {
                                     if (isset($avgSignals[$oltId][$cleanInterface])) {
-                                        $avgSignals[$oltId][$cleanInterface] ++;
+                                        $avgSignals[$oltId][$cleanInterface]++;
                                     } else {
                                         $avgSignals[$oltId][$cleanInterface] = 1;
                                     }
                                 }
                                 if ((($macSignal > 0) or ( $macSignal < -27))) {
                                     if (isset($badSignals[$oltId][$cleanInterface])) {
-                                        $badSignals[$oltId][$cleanInterface] ++;
+                                        $badSignals[$oltId][$cleanInterface]++;
                                     } else {
                                         $badSignals[$oltId][$cleanInterface] = 1;
                                     }
@@ -3022,7 +3022,7 @@ class PONizer {
 
                             //storing PON ifaces descriptions, if not stored yet
                             if (!isset($oltInterfaceDescrs[$oltId][$cleanInterface])
-                                    and ! empty($ifaceDescrs) and ! empty($ifaceDescrs[$cleanInterface])) {
+                                    and !empty($ifaceDescrs) and !empty($ifaceDescrs[$cleanInterface])) {
                                 $oltInterfaceDescrs[$oltId][$cleanInterface] = ' | ' . $ifaceDescrs[$cleanInterface];
                             }
                         }
@@ -3031,7 +3031,7 @@ class PONizer {
             }
         }
 
-        if ((!empty($oltInterfacesFilled)) and ( !empty($oltOnuFilled))) {
+        if ((!empty($oltInterfacesFilled)) and (!empty($oltOnuFilled))) {
             foreach ($oltOnuFilled as $oltId => $oltFilledPercent) {
                 $oltData->setOltId($oltId);
                 $oltControls = '';
@@ -3056,7 +3056,7 @@ class PONizer {
                     foreach ($oltInterfacesFilled[$oltId] as $eachInterface => $eachInterfaceCount) {
                         $eachInterfacePercent = zb_PercentValue($oltOnuPonPortMax[$oltId], $eachInterfaceCount);
 
-                        $oltIfaceDescr = ($this->showPONIfaceDescrStatsTab and ! empty($oltInterfaceDescrs[$oltId][$eachInterface])) ? $oltInterfaceDescrs[$oltId][$eachInterface] : '';
+                        $oltIfaceDescr = ($this->showPONIfaceDescrStatsTab and !empty($oltInterfaceDescrs[$oltId][$eachInterface])) ? $oltInterfaceDescrs[$oltId][$eachInterface] : '';
 
                         $avgSignalCount = @$avgSignals[$oltId][$eachInterface];
                         $badSignalCount = @$badSignals[$oltId][$eachInterface];
@@ -3184,7 +3184,7 @@ class PONizer {
                         $pollStats = $this->pollingStatsRead($oltId);
                         if (!empty($pollStats)) {
                             $devPollTime = 0;
-                            if (!empty($pollStats['start']) and ! empty($pollStats['end'])) {
+                            if (!empty($pollStats['start']) and !empty($pollStats['end'])) {
                                 $devPollTime = $pollStats['end'] - $pollStats['start'];
                                 if ($herdEnabledFlag) {
                                     if ($devPollTime > $totalTime) {
@@ -3211,7 +3211,7 @@ class PONizer {
                             } else {
                                 $pollingStartLabel = '-';
                             }
-                            if (($pollingFinished) and ( !empty($pollStats['start'])) and ( !empty($pollStats['end']))) {
+                            if (($pollingFinished) and (!empty($pollStats['start'])) and (!empty($pollStats['end']))) {
                                 $pollingTimeLabel = zb_formatTime($pollStats['time']);
                                 $pollingEndLabel = date("Y-m-d H:i:s", $pollStats['end']);
                                 $visualLabel = web_bar($pollStats['time'], $totalTime);
@@ -3492,7 +3492,7 @@ class PONizer {
 
                     if (!isset($this->hideOnuMac[$onuMac])) {
                         //brand new BDCOM issue temorary workaround. Broken serials too.
-                        if (!ispos($onuMac, 'no:such') and ! ispos($onuMac, PHP_EOL)) {
+                        if (!ispos($onuMac, 'no:such') and !ispos($onuMac, PHP_EOL)) {
                             $data[] = $oltData;
                             $data[] = $userLink;
                             $data[] = @$allUserData[$login]['fulladress'];
@@ -3698,7 +3698,7 @@ class PONizer {
                             }
 
                             $cleanInterface = strstr($ponInterface, ':', true);
-                            $oltIfaceDescr = ($this->showPONIfaceDescrMainTab and $intDescrCacheAvail and ! empty($curOLTIfaceDescrs[$cleanInterface])) ? $curOLTIfaceDescrs[$cleanInterface] . ' | ' : '';
+                            $oltIfaceDescr = ($this->showPONIfaceDescrMainTab and $intDescrCacheAvail and !empty($curOLTIfaceDescrs[$cleanInterface])) ? $curOLTIfaceDescrs[$cleanInterface] . ' | ' : '';
                             $data[] = $oltIfaceDescr . $ponInterface;
                         }
 
@@ -3752,7 +3752,7 @@ class PONizer {
             $ajData = $json->extractJson();
 
             //update cache if required
-            if ($this->onuCacheTimeout and ! $fromCache) {
+            if ($this->onuCacheTimeout and !$fromCache) {
                 $this->cache->set(self::KEY_ONULISTAJ . $OltId, $ajData, $this->onuCacheTimeout);
             }
         }
@@ -4122,8 +4122,7 @@ class PONizer {
         $onuDb->whereRaw("`login` != '' and NOT ISNULL(`login`)");
         $allOnuRecs = $onuDb->getAll();
 
-
-        if (!empty($allOnuRecs) and ! empty($signalCache)) {
+        if (!empty($allOnuRecs) and !empty($signalCache)) {
             //Preprocess MACs if enabled. 
             //Not using reviewDataSet here, because static method call possible
             if ($validateONUMACEnabled) {
@@ -4169,8 +4168,7 @@ class PONizer {
         $onuDb->whereRaw("`login` != '' and NOT ISNULL(`login`)");
         $allOnuRecs = $onuDb->getAll();
 
-
-        if (!empty($allOnuRecs) and ! empty($deregsCache)) {
+        if (!empty($allOnuRecs) and !empty($deregsCache)) {
             //Preprocess MACs if enabled. 
             if ($validateONUMACEnabled) {
                 foreach ($deregsCache as $mac => $dereg) {
@@ -4230,7 +4228,7 @@ class PONizer {
      * @return string
      */
     protected function validatedMac($mac) {
-        if ($this->validateONUMACEnabled and ! $this->validateONUMAC($mac)) {
+        if ($this->validateONUMACEnabled and !$this->validateONUMAC($mac)) {
             if ($this->replaceInvalidONUMACWithRandom) {
                 $mac = $this->getRandomMac();
             }
@@ -4481,7 +4479,7 @@ class PONizer {
                             if (isset($line[1])) {
                                 $signal = trim($line[1]); // signal level
 
-                                if (empty($signal) or ! is_numeric($signal) or $signal == $snmpSignalOIDs['DOWNVALUE']) {
+                                if (empty($signal) or !is_numeric($signal) or $signal == $snmpSignalOIDs['DOWNVALUE']) {
                                     $signal = 'Offline';
                                 } else {
                                     if ($snmpSignalOIDs['OFFSETMODE'] == 'div') {
@@ -4499,7 +4497,7 @@ class PONizer {
                             if (isset($line[1])) {
                                 $signal = trim($line[1]); // signal level
 
-                                if (empty($signal) or ! is_numeric($signal) or $signal == $snmpSignalOIDs['DOWNVALUE']) {
+                                if (empty($signal) or !is_numeric($signal) or $signal == $snmpSignalOIDs['DOWNVALUE']) {
                                     $signal = 'Offline';
                                 } else {
                                     if ($snmpSignalOIDs['OFFSETMODE'] == 'logm') {
@@ -4605,9 +4603,9 @@ class PONizer {
                         $lastAliveTime = empty($lastAliveTime[1]) ? '' : $lastAliveTime[1];
                     }
 
-                    if (!empty($lastRegTime) or ! empty($lastDeregTime) or ! empty($lastAliveTime)) {
+                    if (!empty($lastRegTime) or !empty($lastDeregTime) or !empty($lastAliveTime)) {
                         if ($snmpSignalOIDs['SIGNALMODE'] == 'BDCOM' or ispos($snmpDevice, 'FD12XXS') or ispos($snmpDevice, 'FD16XXS')) {
-                            $lastAliveTime = (empty($lastAliveTime) or ! is_numeric($lastAliveTime)) ? 0 : $lastAliveTime;
+                            $lastAliveTime = (empty($lastAliveTime) or !is_numeric($lastAliveTime)) ? 0 : $lastAliveTime;
                             $lastAliveTime = zb_formatTime($lastAliveTime);
 
                             $lastRegTime = $this->convertBDCOMTime($lastRegTime);
@@ -4905,5 +4903,4 @@ class PONizer {
         $result .= $onuList;
         return ($result);
     }
-
 }
