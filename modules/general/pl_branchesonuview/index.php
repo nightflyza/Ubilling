@@ -100,6 +100,7 @@ if (cfr('BRANCHESONUVIEW')) {
                             show_window(__('Edit'), $pon->onuEditForm(ubRouting::get('editonu'), true));
                             show_window(__('ONU FDB'), $pon->renderOltFdbList(ubRouting::get('editonu'), '?module=pl_branchesonuview&ajaxoltfdb=true&onuid='));
                             $pon->loadonuSignalHistory(ubRouting::get('editonu'), true);
+                            zb_BillingStats(true);
                         } else {
                             show_error(__('Access denied'));
                             log_register('BRANCH ACCESS FAIL (' . $assignedUserLogin . ') ADMIN {' . whoami() . '} ONU [' . ubRouting::get('editonu') . ']');
