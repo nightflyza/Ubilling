@@ -43,8 +43,19 @@ if (cfr('BRANCHESONUVIEW')) {
                         }
                     } else {
                         if (cfr('PONEDIT')) {
-                            //rendering assign form
+                            //rendering assign form if user have any
                             show_window(__('ONU assign'), $pon->onuAssignForm($login));
+
+                            //render batch ONU register forms
+                            if ($altCfg['BRANCHES_ONUVIEW_BATCHREG']) {
+                                if (!ubRouting::checkPost('runmassonureg')) {
+                                    show_window(__('Unknown ONU'), $pon->renderBatchOnuRegList());
+                                    show_window(__('Register all unknown ONUs'), $pon->renderBatchOnuRegForm());
+                                } else {
+                                    //running batch ONU register subroutine
+                                    show_window(__('Register all unknown ONUs'), $pon->runBatchOnuRegister('?module=pl_branchesonuview&username=' . $login));
+                                }
+                            }
                         } else {
                             show_warning(__('No ONUs of devices assigned to this user were detected'));
                             show_window('', wf_BackLink(UserProfile::URL_PROFILE . $login));

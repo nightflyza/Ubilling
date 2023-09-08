@@ -4861,13 +4861,19 @@ class PONizer {
     /**
      * Performs batch unknown ONUs registration
      * 
+     * @param string $customBackLink
+     * 
      * @return string
      */
-    public function runBatchOnuRegister() {
+    public function runBatchOnuRegister($customBackLink = '') {
         set_time_limit(0);
         $result = '';
         $onuList = '';
-        $result .= wf_BackLink('?module=ponizer&onumassreg=true');
+        if ($customBackLink) {
+            $result .= wf_BackLink($customBackLink);
+        } else {
+            $result .= wf_BackLink('?module=ponizer&onumassreg=true');
+        }
         $result .= wf_delimiter(0);
         $errorCount = 0;
         $succCount = 0;
