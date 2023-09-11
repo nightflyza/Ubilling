@@ -774,7 +774,7 @@ class VlanManagement {
      * @return string
      */
     public function ajaxEditSvlan($encode) {
-        $decode = unserialize(base64_decode($encode));
+        $decode = json_decode(base64_decode($encode), true);
         $addControls = wf_HiddenInput('module', 'vlanmanagement');
         $addControls .= wf_HiddenInput('svlan', 'true');
         $addControls .= wf_HiddenInput('action', 'edit');
@@ -883,7 +883,7 @@ class VlanManagement {
         $json = new wf_JqDtHelper();
         if (!empty($this->allSvlan)) {
             foreach ($this->allSvlan as $io => $each) {
-                $eachId = base64_encode(serialize(array(
+                $eachId = base64_encode(json_encode(array(
                     'id' => $each['id'],
                     'realm_id' => $each['realm_id'],
                     'svlan' => $each['svlan'],
