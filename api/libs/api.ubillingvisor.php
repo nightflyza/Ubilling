@@ -1264,7 +1264,7 @@ class UbillingVisor {
         if (wf_CheckPost(array('editprimarycamerauserid'))) {
             $userId = vf($_POST['editprimarycamerauserid'], 3);
             $newPrimaryLogin = (wf_CheckPost(array('newprimarycameralogin'))) ? $_POST['newprimarycameralogin'] : '';
-            if (wf_CheckPost(array('newprimaryuserlogin')) AND ! wf_CheckPost(array('newprimarycameralogin'))) {
+            if (wf_CheckPost(array('newprimaryuserlogin')) AND !wf_CheckPost(array('newprimarycameralogin'))) {
                 $newPrimaryLogin = $_POST['newprimaryuserlogin'];
             }
             $this->setPrimaryAccount($userId, $newPrimaryLogin);
@@ -1450,8 +1450,12 @@ class UbillingVisor {
                 foreach ($this->allUsers as $io => $each) {
                     $usersTmp[$each['id']] = $each['realname'];
                 }
-
-                $inputs = wf_Selector('newcameravisorid', $usersTmp, __('The user who will be assigned a new camera'), '', false);
+                $inputs = '';
+                if ($this->altCfg['VISOR_USERSEL_SEARCHBL']) {
+                    $inputs .= wf_SelectorSearchable('newcameravisorid', $usersTmp, __('The user who will be assigned a new camera'), '', false);
+                } else {
+                    $inputs .= wf_Selector('newcameravisorid', $usersTmp, __('The user who will be assigned a new camera'), '', false);
+                }
                 $inputs .= wf_delimiter();
                 $inputs .= wf_HiddenInput('newcameralogin', $userLogin);
                 $inputs .= wf_Submit(__('Create'));
@@ -1618,7 +1622,6 @@ class UbillingVisor {
             $inputs .= wf_HiddenInput('cameradeleteprocessing', $cameraId);
             $inputs .= wf_tag('br');
             $inputs .= wf_Submit(__('Delete camera'));
-
 
             $result .= wf_Form('', 'POST', $inputs, 'glamour');
         }
@@ -1836,7 +1839,6 @@ class UbillingVisor {
             $dvrData = $this->allDvrs[$cameraDvrId];
             $cameraUserData = $this->allUserData[$cameraData['login']];
             $cameraIp = $cameraUserData['ip'];
-
 
             //change model mismatch warning request catched
             if (ubRouting::checkPost('disablemodelmismatchcameraid')) {
@@ -2067,7 +2069,7 @@ class UbillingVisor {
                                 if (!empty($cameraData['port'])) {
                                     if (isset($this->allUserData[$cameraData['login']])) {
                                         //DVD configuration is acceptable?
-                                        if (!empty($dvrData['login']) AND ! empty($dvrData['password']) AND ! empty($dvrData['port']) AND ! empty($dvrData['apikey'])) {
+                                        if (!empty($dvrData['login']) AND !empty($dvrData['password']) AND !empty($dvrData['port']) AND !empty($dvrData['apikey'])) {
                                             //Camera looks like it may be registgered on DVR
                                             $result .= $this->renderTrassirCameraCreateForm($cameraId);
                                         } else {
@@ -2121,7 +2123,7 @@ class UbillingVisor {
                                 if (!empty($cameraData['port'])) {
                                     if (isset($this->allUserData[$cameraData['login']])) {
                                         //DVD configuration is acceptable?
-                                        if (!empty($dvrData['login']) AND ! empty($dvrData['password']) AND ! empty($dvrData['port']) AND ! empty($dvrData['apikey'])) {
+                                        if (!empty($dvrData['login']) AND !empty($dvrData['password']) AND !empty($dvrData['port']) AND !empty($dvrData['apikey'])) {
                                             //Camera looks like it may be registgered on DVR
                                             $result .= $this->renderWolfRecorderCameraCreateForm($cameraId);
                                         } else {
@@ -2543,7 +2545,7 @@ class UbillingVisor {
 
             foreach ($this->allDvrs as $io => $each) {
                 if ($each['type'] == 'trassir') {
-                    if (!empty($each['ip']) AND ! empty($each['login']) AND ! empty($each['password']) AND ! empty($each['apikey']) AND ! empty($each['port'])) {
+                    if (!empty($each['ip']) AND !empty($each['login']) AND !empty($each['password']) AND !empty($each['apikey']) AND !empty($each['port'])) {
                         $dvrGate = new TrassirServer($each['ip'], $each['login'], $each['password'], $each['apikey'], $each['port'], $this->trassirDebug);
                         $health = $dvrGate->getHealth();
                         $cells = wf_TableCell($each['id']);
@@ -2562,7 +2564,7 @@ class UbillingVisor {
                 }
 
                 if ($each['type'] == 'wolfrecorder') {
-                    if (!empty($each['ip']) AND ! empty($each['apikey'])) {
+                    if (!empty($each['ip']) AND !empty($each['apikey'])) {
                         $apiUrl = $this->getWolfRecorderApiUrl($each['id']);
                         $dvrGate = new WolfRecorder($apiUrl, $each['apikey']);
                         if ($dvrGate->connectionOk()) {
@@ -2953,7 +2955,7 @@ class UbillingVisor {
                     $screenshotUrl = '';
                     $screenshotReply = $wolfRecorder->channelsGetScreenshot($channelGuid);
                     if ($wolfRecorder->noError($screenshotReply)) {
-                        if (isset($screenshotReply['screenshot']) AND ! empty($screenshotReply['screenshot'])) {
+                        if (isset($screenshotReply['screenshot']) AND !empty($screenshotReply['screenshot'])) {
                             $screenshotUrl = $webUrl . $screenshotReply['screenshot'];
                         } else {
                             $screenshotUrl = 'skins/noimage.jpg';
@@ -3041,7 +3043,7 @@ class UbillingVisor {
         $visorId = ubRouting::filters($visorId, 'int');
         $dvrId = ubRouting::filters($dvrId, 'int');
 
-        if (!empty($dvrId) AND ! empty($visorId)) {
+        if (!empty($dvrId) AND !empty($visorId)) {
             if (isset($this->allSecrets[$visorId])) {
                 if (isset($this->allDvrs[$dvrId])) {
                     if (isset($this->allUsers[$visorId])) {
@@ -3213,7 +3215,7 @@ class UbillingVisor {
 
                                 if ($dvrData['type'] == 'wolfrecorder') {
                                     $prefill = '';
-                                    if (!empty($secretsData['login']) AND ! empty($secretsData['password'])) {
+                                    if (!empty($secretsData['login']) AND !empty($secretsData['password'])) {
                                         $prefill = '?authprefill=' . $secretsData['login'] . '|' . $secretsData['password'];
                                     }
                                     if (empty($dvrData['apiurl'])) {
@@ -3276,7 +3278,7 @@ class UbillingVisor {
             //and tariffs fee
             $allTariffsFee = zb_TariffGetPricesAll();
             foreach ($this->allUsers as $eachUserId => $eachUserData) {
-                if (($eachUserData['chargecams']) AND ( !empty($eachUserData['primarylogin']))) {
+                if (($eachUserData['chargecams']) AND (!empty($eachUserData['primarylogin']))) {
                     if (isset($this->allUserData[$eachUserData['primarylogin']])) {
                         //further actions is required
                         $primaryAccountData = $this->allUserData[$eachUserData['primarylogin']];
@@ -3356,5 +3358,4 @@ class UbillingVisor {
             }
         }
     }
-
 }
