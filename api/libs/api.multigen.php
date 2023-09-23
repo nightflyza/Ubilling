@@ -642,7 +642,8 @@ class MultiGen {
             'ip' => __('IP'),
             'mac' => __('MAC') . ' ' . __('default'),
             'macup' => __('MAC') . ' ' . __('upper case'),
-            'macju' => __('MAC') . ' ' . __('JunOS like')
+            'macju' => __('MAC') . ' ' . __('JunOS like'),
+            'opt82' => __('OPT82') . ' ' . __('default')
         );
 
         //some additional username types
