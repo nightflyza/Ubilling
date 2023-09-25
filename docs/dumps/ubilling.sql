@@ -3232,6 +3232,7 @@ CREATE TABLE IF NOT EXISTS `crm_leads` (
   `branch` int(11) DEFAULT NULL,
   `tariff` varchar(64) DEFAULT NULL,
   `login` varchar(64) DEFAULT NULL,
+  `employeeid` int(11) DEFAULT NULL,
   `notes` varchar(255) DEFAULT NULL,
    PRIMARY KEY (`id`),
    KEY `login` (`login`)
