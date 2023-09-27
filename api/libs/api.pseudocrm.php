@@ -21,6 +21,13 @@ class PseudoCRM {
     protected $leadsDb = '';
 
     /**
+     * Activities database abstraction layer
+     * 
+     * @var object
+     */
+    protected $activitiesDb = '';
+
+    /**
      * Messages system helper placeholder
      * 
      * @var object
@@ -33,6 +40,13 @@ class PseudoCRM {
      * @var array
      */
     protected $allLeads = array();
+
+    /**
+     * Contains all activities data as id=>activityData
+     * 
+     * @var array
+     */
+    protected $allActivities = array();
 
     /**
      * Contains all employee data as id=>name
@@ -89,6 +103,8 @@ class PseudoCRM {
     const ROUTE_LEADS_LIST = 'leadslist';
     const ROUTE_LEADS_LIST_AJ = 'ajaxleadslist';
     const ROUTE_LEAD_PROFILE = 'showlead';
+    const ROUTE_ACTIVITY_PROFILE = 'showactivity';
+    const ROUTE_ACTIVITY_CREATE = 'createnewactivity';
     const ROUTE_LEAD_DETECT = 'username';
 
     /**
@@ -115,10 +131,12 @@ class PseudoCRM {
         $this->initMessages();
         $this->loadAlter();
         $this->initLeadsDb();
+        $this->initActivitiesDb();
         $this->loadEmployeeData();
         $this->loadTariffs();
         $this->loadBranches();
         $this->loadLeads();
+        $this->loadActivities();
     }
 
     /**
@@ -208,6 +226,25 @@ class PseudoCRM {
      */
     protected function loadLeads() {
         $this->allLeads = $this->leadsDb->getAll('id');
+    }
+
+    /**
+     * Inits activities database abstraction layer
+     * 
+     * @return void
+     */
+    protected function initActivitiesDb() {
+        $this->activitiesDb = new NyanORM(self::TABLE_ACTIVITIES);
+    }
+
+    /**
+     * Loads existing leads into protected property
+     * 
+     * @return void
+     */
+    protected function loadActivities() {
+        $this->activitiesDb->orderBy('id', 'DESC');
+        $this->allActivities = $this->activitiesDb->getAll('id');
     }
 
     /**
@@ -355,6 +392,21 @@ class PseudoCRM {
     }
 
     /**
+     * Checks is lead exist or not by its ID
+     * 
+     * @param int $leadId
+     * 
+     * @return bool
+     */
+    protected function isLeadExists($leadId) {
+        $result = false;
+        if (isset($this->allLeads[$leadId])) {
+            $result = true;
+        }
+        return($result);
+    }
+
+    /**
      * Returns existing lead profile title
      * 
      * @param int $leadId
@@ -380,8 +432,8 @@ class PseudoCRM {
     public function renderLeadProfile($leadId) {
         $result = '';
         $leadId = ubRouting::filters($leadId, 'int');
-        if (isset($this->allLeads[$leadId])) {
-            $leadData = $this->allLeads[$leadId];
+        if ($this->isLeadExists($leadId)) {
+            $leadData = $this->getLeadData($leadId);
             $rows = '';
 
             $cells = wf_TableCell(__('Type'), '30%', 'row2');
@@ -542,6 +594,22 @@ class PseudoCRM {
     }
 
     /**
+     * Renders new lead activity record creation dialog
+     * 
+     * @param int $leadId
+     * 
+     * @return string
+     */
+    protected function renderActivityCreateForm($leadId) {
+        $result = '';
+        if ($this->isLeadExists($leadId)) {
+            $urlCreate= self::URL_ME.'&'.self::ROUTE_ACTIVITY_CREATE.'='.$leadId;
+            //TODO: some confirm dialog here
+        }
+        return($result);
+    }
+
+    /**
      * Renders primary module controls
      * 
      * @return string
@@ -553,10 +621,14 @@ class PseudoCRM {
                 $leadId = ubRouting::get(self::ROUTE_LEAD_PROFILE, 'int');
                 $result .= wf_Link(self::URL_ME . '&' . self::ROUTE_LEADS_LIST . '=true', wf_img('skins/ukv/users.png') . ' ' . __('Existing leads'), false, 'ubButton') . ' ';
                 $result .= wf_modalAuto(web_edit_icon() . ' ' . __('Edit lead'), __('Edit lead'), $this->renderLeadEditForm($leadId), 'ubButton');
+                if (cfr(self::RIGHT_ACTIVITIES)) {
+                    $result .= wf_Link('', web_icon_create() . ' ' . __('Create new record'), false, 'ubButton');
+                }
             } else {
                 $result .= wf_modalAuto(web_icon_create() . ' ' . __('Create new lead'), __('Create new lead'), $this->renderLeadCreateForm(), 'ubButton') . ' ';
             }
         }
         return($result);
     }
+
 }

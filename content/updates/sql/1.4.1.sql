@@ -14,3 +14,13 @@ CREATE TABLE IF NOT EXISTS `crm_leads` (
    PRIMARY KEY (`id`),
    KEY `login` (`login`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
+
+CREATE TABLE IF NOT EXISTS `crm_activities` (
+  `id` INT(11) NOT NULL AUTO_INCREMENT,
+  `date` datetime NOT NULL,
+  `admin` varchar(64) DEFAULT NULL,
+  `employeeid` int(11) DEFAULT NULL,
+  `state` tinyint(1) DEFAULT 0,
+  `notes` varchar(255) DEFAULT NULL,
+   PRIMARY KEY (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
