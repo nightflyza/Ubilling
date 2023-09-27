@@ -8,3 +8,7 @@ $lang['def']['Existing leads'] = 'Існуючі ліди';
 $lang['def']['Leads'] = 'Ліди';
 $lang['def']['Create new lead'] = 'Створити нового ліда';
 $lang['def'][''] = '';
+$lang['def'][''] = '';
+$lang['def'][''] = '';
+$lang['def'][''] = '';
+$lang['def'][''] = '';

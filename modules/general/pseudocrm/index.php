@@ -12,6 +12,28 @@ if (cfr(PseudoCRM::RIGHT_VIEW)) {
             $crm->ajLeadsList();
         }
 
+        //new lead creation
+        if (ubRouting::checkPost($crm::PROUTE_LEAD_CREATE)) {
+            if (ubRouting::checkPost(array($crm::PROUTE_LEAD_ADDR, $crm::PROUTE_LEAD_NAME, $crm::PROUTE_LEAD_MOBILE))) {
+                $address = ubRouting::post($crm::PROUTE_LEAD_ADDR);
+                $realname = ubRouting::post($crm::PROUTE_LEAD_NAME);
+                $phone = ubRouting::post($crm::PROUTE_LEAD_PHONE);
+                $mobile = ubRouting::post($crm::PROUTE_LEAD_MOBILE);
+                $extmobile = ubRouting::post($crm::PROUTE_LEAD_EXTMOBILE);
+                $email = ubRouting::post($crm::PROUTE_LEAD_EMAIL);
+                $branch = ubRouting::post($crm::PROUTE_LEAD_BRANCH);
+                $tariff = ubRouting::post($crm::PROUTE_LEAD_TARIFF);
+                $login = ubRouting::post($crm::PROUTE_LEAD_LOGIN);
+                $employeeid = ubRouting::post($crm::PROUTE_LEAD_EMPLOYEE);
+                $notes = ubRouting::post($crm::PROUTE_LEAD_NOTES);
+
+                $crm->createLead($address, $realname, $phone, $mobile, $extmobile, $email, $branch, $tariff, $login, $employeeid, $notes);
+                ubRouting::nav($crm::URL_ME . '&' . $crm::ROUTE_LEADS_LIST . '=true');
+            } else {
+                show_error(__('All fields marked with an asterisk are mandatory'));
+            }
+        }
+
         //rendering existing leads list
         if (ubRouting::checkGet($crm::ROUTE_LEADS_LIST)) {
             show_window(__('Existing leads'), $crm->renderLeadsList());

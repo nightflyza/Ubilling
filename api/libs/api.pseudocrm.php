@@ -63,6 +63,13 @@ class PseudoCRM {
     protected $branchesFlag = false;
 
     /**
+     * Contains all available tariff names as tariffName=>__(tariffName)
+     * 
+     * @var array
+     */
+    protected $allTariffs = array();
+
+    /**
      * Some other predefined stuff
      */
     const RIGHT_VIEW = 'PSEUDOCRM';
@@ -107,6 +114,7 @@ class PseudoCRM {
         $this->loadAlter();
         $this->initLeadsDb();
         $this->loadEmployeeData();
+        $this->loadTariffs();
         $this->loadBranches();
         $this->loadLeads();
     }
@@ -130,6 +138,20 @@ class PseudoCRM {
     protected function loadAlter() {
         global $ubillingConfig;
         $this->altCfg = $ubillingConfig->getAlter();
+    }
+
+    /**
+     * Loads all existing tariffs from database
+     * 
+     * @return void
+     */
+    protected function loadTariffs() {
+        $allTariffsTmp = zb_TariffsGetAll();
+        if (!empty($allTariffsTmp)) {
+            foreach ($allTariffsTmp as $io => $each) {
+                $this->allTariffs[$each['name']] = __($each['name']);
+            }
+        }
     }
 
     /**
@@ -212,7 +234,7 @@ class PseudoCRM {
                 $data[] = $each['realname'];
                 $data[] = $each['phone'];
                 $data[] = $each['mobile'];
-                $actLinks = wf_Link(self::URL_ME . '&' . self::ROUTE_LEAD_PROFILE . '=' . $each['if'], web_edit_icon());
+                $actLinks = wf_Link(self::URL_ME . '&' . self::ROUTE_LEAD_PROFILE . '=' . $each['id'], web_edit_icon());
                 $data[] = $actLinks;
                 $json->addRow($data);
                 unset($data);
@@ -228,20 +250,7 @@ class PseudoCRM {
      */
     protected function renderLeadCreateForm() {
         $result = '';
-        /**
-         *  
-          `address` VARCHAR(255) NOT NULL,
-          `realname` VARCHAR(255) NOT NULL,
-          `phone` VARCHAR(32) DEFAULT NULL,
-          `mobile` VARCHAR(32) NOT NULL,
-          `extmobile` VARCHAR(32) DEFAULT NULL,
-          `email` VARCHAR(64) DEFAULT NULL,
-          `branch` INT(11) DEFAULT NULL,
-          `tariff` VARCHAR(64) DEFAULT NULL,
-          `login` VARCHAR(64) DEFAULT NULL,
-          `employeeid` INT(11) DEFAULT NULL,
-          `notes` VARCHAR(255) DEFAULT NULL,
-         */
+
         $sup = wf_tag('sup') . '*' . wf_tag('sup', true);
         $inputs = '';
         $inputs .= wf_HiddenInput(self::PROUTE_LEAD_CREATE, 'true');
@@ -255,10 +264,66 @@ class PseudoCRM {
             $branchesParams = array('' => '-');
             $branchesParams += $this->allBranches;
             $inputs .= wf_Selector(self::PROUTE_LEAD_BRANCH, $branchesParams, __('Branch'), '', true);
+        } else {
+            $inputs .= wf_HiddenInput(self::PROUTE_LEAD_BRANCH, '0');
         }
 
+
+        $tariffsParams = array('' => '-');
+        $tariffsParams += $this->allTariffs;
+        $inputs .= wf_Selector(self::PROUTE_LEAD_TARIFF, $tariffsParams, __('Tariff'), '', true);
+        $inputs .= wf_TextInput(self::PROUTE_LEAD_LOGIN, __('Login'), '', true, '15', 'login');
+        $inputs .= wf_TextInput(self::PROUTE_LEAD_NOTES, __('Notes'), '', true, '40', '');
+        $inputs .= wf_Submit(__('Create'));
         $result .= wf_Form('', 'POST', $inputs, 'glamour');
         return($result);
+    }
+
+    /**
+     * Creates new lead in database
+     * 
+     * @param string $address
+     * @param string $realname
+     * @param string $phone
+     * @param string $mobile
+     * @param string $extmobile
+     * @param string $email
+     * @param int $branch
+     * @param string $tariff
+     * @param string $login
+     * @param int $employeeid
+     * @param string $notes
+     * 
+     * @return void
+     */
+    public function createLead($address, $realname, $phone, $mobile, $extmobile, $email, $branch, $tariff, $login, $employeeid, $notes) {
+        $addressF = ubRouting::filters($address, 'mres');
+        $realnameF = ubRouting::filters($realname, 'mres');
+        $phoneF = ubRouting::filters($phone, 'mres');
+        $mobileF = ubRouting::filters($mobile, 'mres');
+        $extmobileF = ubRouting::filters($extmobile, 'mres');
+        $emailF = ubRouting::filters($email, 'mres');
+        $branchF = ubRouting::filters($branch, 'int');
+        $tariffF = ubRouting::filters($tariff, 'mres');
+        $loginF = ubRouting::filters($login, 'mres');
+        $employeeidF = ubRouting::filters($employeeid, 'int');
+        $notesF = ubRouting::filters($notes, 'mres');
+
+        $this->leadsDb->data('address', $addressF);
+        $this->leadsDb->data('realname', $realnameF);
+        $this->leadsDb->data('phone', $phoneF);
+        $this->leadsDb->data('mobile', $mobileF);
+        $this->leadsDb->data('extmobile', $extmobileF);
+        $this->leadsDb->data('email', $emailF);
+        $this->leadsDb->data('branch', $branchF);
+        $this->leadsDb->data('tariff', $tariffF);
+        $this->leadsDb->data('login', $loginF);
+        $this->leadsDb->data('employeeid', $employeeidF);
+        $this->leadsDb->data('notes', $notesF);
+
+        $this->leadsDb->create();
+        $newId = $this->leadsDb->getLastId();
+        log_register('CRM CREATE LEAD [' . $newId . ']');
     }
 
     /**
