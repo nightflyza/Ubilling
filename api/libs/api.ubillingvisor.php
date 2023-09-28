@@ -2929,9 +2929,14 @@ class UbillingVisor {
                 }
             }
 
+
             $inputs = wf_HiddenInput('editchannelguid', $channelGuid);
             $inputs .= wf_HiddenInput('editchanneldvrid', $dvrId);
-            $inputs .= wf_Selector('editchannelvisorid', $usersTmp, __('User'), $curUserId, false) . ' ';
+            if ($this->altCfg['VISOR_USERSEL_SEARCHBL']) {
+                $inputs .= wf_SelectorSearchable('editchannelvisorid', $usersTmp, __('User'), $curUserId, false) . ' ';
+            } else {
+                $inputs .= wf_Selector('editchannelvisorid', $usersTmp, __('User'), $curUserId, false) . ' ';
+            }
             $inputs .= wf_Submit(__('Save'));
             $result .= wf_Form('', 'POST', $inputs, 'glamour');
 

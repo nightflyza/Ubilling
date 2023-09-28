@@ -1,0 +1,15 @@
+     .dataTable tr {
+               height: 33px; !important;
+               min-height: 33px; !important;
+            }
+
+            .dataTable td th {
+             vertical-align: middle; !important;
+            }
+            
+            .dataTable img {
+             vertical-align: middle; !important;
+             width:15px; !important;
+             display: inline; !important;
+             float:left; !important;
+            }

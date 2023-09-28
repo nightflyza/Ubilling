@@ -90,6 +90,13 @@ class Stigma {
     protected $systemLogging = '';
 
     /**
+     * System custom logging flag/table name. Disabled if empty.
+     *
+     * @var string
+     */
+    protected $customLogging = '';
+
+    /**
      * Default icons file extension
      */
     const ICON_EXT = '.png';
@@ -199,7 +206,6 @@ class Stigma {
         $myRoutes = array(self::ROUTE_ICONSIZE, self::ROUTE_ITEMID, self::ROUTE_SCOPE, self::ROUTE_STATE);
         $myRoutes = array_flip($myRoutes);
 
-
         if (!empty($getVars)) {
             $url = '?';
             foreach ($getVars as $getVar => $getVal) {
@@ -254,6 +260,17 @@ class Stigma {
      */
     public function setSystemLogging($parameter = '') {
         $this->systemLogging = $parameter;
+    }
+
+    /**
+     * System custom database table logging flag/name public setter
+     * 
+     * @param string $parameter
+     * 
+     * @return void
+     */
+    public function setCustomLogging($parameter = '') {
+        $this->customLogging = $parameter;
     }
 
     /**
@@ -524,6 +541,11 @@ class Stigma {
                             $logging = str_replace('SYSTEM:', '', $logging);
                             $stigmaCtrl->setSystemLogging($logging);
                         }
+
+                        if (ispos($logging, 'CUSTOM:')) {
+                            $logging = str_replace('CUSTOM:', '', $logging);
+                            $stigmaCtrl->setCustomLogging($logging);
+                        }
                     }
 
                     $stigmaCtrl->saveState(ubRouting::get(self::ROUTE_ITEMID), ubRouting::get(self::ROUTE_STATE));
@@ -647,6 +669,17 @@ class Stigma {
         if ($this->systemLogging) {
             log_register('STIGMA ' . $this->scope . ' CHANGE [' . $itemId . '] `' . $this->systemLogging . '` ON  `' . $newState . '`');
         }
+
+        if ($this->customLogging) {
+            $customLogDb = new NyanORM($this->customLogging);
+            $customLogDb->data('date', curdatetime());
+            $customLogDb->data('admin', $this->myLogin);
+            $customLogDb->data('scope', $this->scope);
+            $customLogDb->data('itemid', $itemId);
+            $customLogDb->data('action', $oldState);
+            $customLogDb->data('state', $newState);
+            $customLogDb->create();
+        }
     }
 
     /**
@@ -702,7 +735,7 @@ class Stigma {
     public function getReportData($dateFrom = '', $dateTo = '') {
         $result = array();
         $dateFilters = false;
-        if (!empty($dateFrom) AND ! empty($dateTo)) {
+        if (!empty($dateFrom) AND !empty($dateTo)) {
             $dateFilters = true;
         }
 
@@ -723,13 +756,13 @@ class Stigma {
                     if (!empty($itemStates)) {
                         foreach ($itemStates as $eachState => $eachIndex) {
                             if (isset($result[$eachState])) {
-                                $result[$eachState]['count'] ++;
+                                $result[$eachState]['count']++;
                             } else {
                                 $result[$eachState]['count'] = 1;
                             }
 
                             if (isset($result[$eachState]['admins'][$eachStigmaData['admin']])) {
-                                $result[$eachState]['admins'][$eachStigmaData['admin']] ++;
+                                $result[$eachState]['admins'][$eachStigmaData['admin']]++;
                             } else {
                                 $result[$eachState]['admins'][$eachStigmaData['admin']] = 1;
                             }
@@ -767,7 +800,6 @@ class Stigma {
         $dataYear = $this->getReportData($dateYearBegin, $dateYearEnd);
         $dataAllTime = $this->getReportData();
 
-
         if (!empty($availStates)) {
             $cells = wf_TableCell(__('Job'), '30%');
             $cells .= wf_TableCell(__('Day'));
@@ -801,5 +833,4 @@ class Stigma {
         }
         return($result);
     }
-
 }

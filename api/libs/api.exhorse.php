@@ -474,28 +474,28 @@ class ExistentialHorse {
             foreach ($this->allInetUsers as $io => $eachUser) {
                 //active users
                 if ($this->isActive($eachUser) == 1) {
-                    $this->storeTmp['u_activeusers'] ++;
+                    $this->storeTmp['u_activeusers']++;
                 }
                 //inactive users
                 if ($this->isActive($eachUser) == 0) {
-                    $this->storeTmp['u_inactiveusers'] ++;
+                    $this->storeTmp['u_inactiveusers']++;
                 }
                 //just frozen bodies
                 if ($this->isActive($eachUser) == -1) {
-                    $this->storeTmp['u_frozenusers'] ++;
+                    $this->storeTmp['u_frozenusers']++;
                 }
 
                 //complex users detection
                 if ($this->isComplex($eachUser)) {
-                    $this->storeTmp['u_complextotal'] ++;
+                    $this->storeTmp['u_complextotal']++;
                     //active complex users
                     if ($this->isActive($eachUser) == 1) {
-                        $this->storeTmp['u_complexactive'] ++;
+                        $this->storeTmp['u_complexactive']++;
                     }
                 }
 
                 //total users count
-                $this->storeTmp['u_totalusers'] ++;
+                $this->storeTmp['u_totalusers']++;
             }
 
             //inactive complex users
@@ -511,14 +511,14 @@ class ExistentialHorse {
                     if (isset($this->usersCities[$eachSignup['login']])) {
                         $userCity = $this->usersCities[$eachSignup['login']];
                         if (isset($cityTmp[$userCity])) {
-                            $cityTmp[$userCity] ++;
+                            $cityTmp[$userCity]++;
                         } else {
                             $cityTmp[$userCity] = 1;
                         }
                     }
                 }
                 //count each signup
-                $this->storeTmp['u_signups'] ++;
+                $this->storeTmp['u_signups']++;
             }
 
             $this->storeTmp['u_citysignups'] = base64_encode(serialize($cityTmp));
@@ -541,12 +541,12 @@ class ExistentialHorse {
                 //total money counting
                 $this->storeTmp['f_totalmoney'] += round($each['summ'], 2);
                 //total payments count increment
-                $this->storeTmp['f_paymentscount'] ++;
+                $this->storeTmp['f_paymentscount']++;
 
                 //cash money processing
                 if (($each['summ'] >= 0) AND ( isset($this->cashIds[$each['cashtypeid']]))) {
                     $this->storeTmp['f_cashmoney'] += round($each['summ'], 2);
-                    $this->storeTmp['f_cashcount'] ++;
+                    $this->storeTmp['f_cashcount']++;
                 }
             }
 
@@ -602,7 +602,7 @@ class ExistentialHorse {
             if (!empty($allUkvUsers)) {
                 foreach ($allUkvUsers as $io => $eachUser) {
                     //total users count
-                    $this->storeTmp['c_totalusers'] ++;
+                    $this->storeTmp['c_totalusers']++;
 
                     //total debt
                     if ($eachUser['cash'] < 0) {
@@ -614,14 +614,14 @@ class ExistentialHorse {
                         $tariffPrice = $ukvTariffPrices[$eachUser['tariffid']];
                         $debtLimit = $this->ukvDebtLimit * $tariffPrice;
                         if (($eachUser['cash'] >= '-' . $debtLimit) AND ( $eachUser['active'] == 1)) {
-                            $this->storeTmp['c_activeusers'] ++;
+                            $this->storeTmp['c_activeusers']++;
                         }
                     }
 
                     //illegal users count
                     if (!empty($this->ukvIllegal)) {
                         if ($eachUser['tariffid'] == $this->ukvIllegal) {
-                            $this->storeTmp['c_illegal'] ++;
+                            $this->storeTmp['c_illegal']++;
                         }
                     }
 
@@ -629,7 +629,7 @@ class ExistentialHorse {
                     if (!empty($this->ukvComplex)) {
                         if ($this->complexFlag) {
                             if ($eachUser['tariffid'] == $this->ukvComplex) {
-                                $this->storeTmp['c_complex'] ++;
+                                $this->storeTmp['c_complex']++;
                             }
                         }
                     }
@@ -637,14 +637,14 @@ class ExistentialHorse {
                     //counting social users
                     if (!empty($this->ukvSocial)) {
                         if ($eachUser['tariffid'] == $this->ukvSocial) {
-                            $this->storeTmp['c_social'] ++;
+                            $this->storeTmp['c_social']++;
                         }
                     }
 
 
                     //current month ssignups
                     if (ispos($eachUser['regdate'], $this->curmonth . '-')) {
-                        $this->storeTmp['c_signups'] ++;
+                        $this->storeTmp['c_signups']++;
                     }
                 }
 
@@ -658,7 +658,7 @@ class ExistentialHorse {
                     //total summ
                     $this->storeTmp['c_totalmoney'] += round($eachPayment['summ'], 2);
                     //payments count
-                    $this->storeTmp['c_paymentscount'] ++;
+                    $this->storeTmp['c_paymentscount']++;
                 }
 
                 //div by zero lol
@@ -707,7 +707,6 @@ class ExistentialHorse {
         }
         $this->storeTmp['e_deadswintervals'] = $deadSwitchesCount;
 
-
         //collecting PON ONU count
         if ($this->ponFlag) {
             $onuDb = new NyanORM(self::TABLE_ONU);
@@ -736,7 +735,7 @@ class ExistentialHorse {
             $askoziaLogin = zb_StorageGet('ASKOZIAPBX_LOGIN');
             $askoziaPassword = zb_StorageGet('ASKOZIAPBX_PASSWORD');
 
-            if ((!empty($askoziaUrl)) AND ( !empty($askoziaLogin)) AND ( !empty($askoziaPassword))) {
+            if ((!empty($askoziaUrl)) AND (!empty($askoziaLogin)) AND (!empty($askoziaPassword))) {
                 $callsTmp = array();
                 $normalCalls = array();
                 $callFlows = array();
@@ -792,10 +791,10 @@ class ExistentialHorse {
                                 if (zb_isTimeBetween($workStartTime, $workEndTime, $startTime)) {
                                     //calls with less then 24 hours duration
                                     if ($each['13'] < 86400) {
-                                        if (ispos($each[14], 'ANSWERED') AND ( !ispos($each[7], 'VoiceMail'))) {
-                                            $this->storeTmp['a_totalanswered'] ++;
+                                        if (ispos($each[14], 'ANSWERED') AND (!ispos($each[7], 'VoiceMail'))) {
+                                            $this->storeTmp['a_totalanswered']++;
                                         }
-                                        $this->storeTmp['a_totalcalls'] ++;
+                                        $this->storeTmp['a_totalcalls']++;
                                         //call duration in seconds increment
                                         $this->storeTmp['a_totalcallsduration'] += $each[13];
                                     }
@@ -843,7 +842,7 @@ class ExistentialHorse {
 
                                 if ($cflowdata == 'ANSWERED') {
                                     if (zb_isTimeBetween($workStartTime, $workEndTime, $flowTime)) {
-                                        $this->storeTmp['a_totalanswered'] ++;
+                                        $this->storeTmp['a_totalanswered']++;
                                     }
                                 }
                             }
@@ -944,7 +943,6 @@ class ExistentialHorse {
         if ($this->altCfg['CAPABDIR_ENABLED']) {
             $capabUndone = 0;
             $capabTotal = 0;
-
 
             $capabDb = new NyanORM(self::TABLE_CAPABS);
             $capabDb->where('date', 'LIKE', $this->curmonth . '-%');
@@ -1095,7 +1093,6 @@ class ExistentialHorse {
         //data loading
         $yearData = $this->loadStoredData($allTimeFlag);
 
-
         //charts presets
         $chartsOptions = "
             'focusTarget': 'category',
@@ -1126,7 +1123,6 @@ class ExistentialHorse {
         $equipChartData = array(0 => array(__('Month'), __('Switches')));
         $citySignupsTmp = array();
 
-
         if ($this->ponFlag AND $this->docsisFlag) {
             $equipChartData = array(0 => array(__('Month'), __('Switches'), __('PON ONU'), __('DOCSIS modems')));
         }
@@ -1134,7 +1130,7 @@ class ExistentialHorse {
         if (!$this->docsisFlag AND $this->ponFlag) {
             $equipChartData = array(0 => array(__('Month'), __('Switches'), __('PON ONU')));
         }
-        if ($this->docsisFlag AND ! $this->ponFlag) {
+        if ($this->docsisFlag AND !$this->ponFlag) {
             $equipChartData = array(0 => array(__('Month'), __('Switches'), __('DOCSIS modems')));
         }
 
@@ -1295,38 +1291,39 @@ class ExistentialHorse {
                 }
             }
 
-
-            //finance data
-            $result .= wf_tag('h2') . __('Financial highlights') . wf_tag('h2', true);
-            $cells = wf_TableCell(__('Month'));
-            $cells .= wf_TableCell(__('Money'));
-            $cells .= wf_TableCell(__('Payments count'));
-            $cells .= wf_TableCell(__('Cash payments'));
-            $cells .= wf_TableCell(__('Cash payments count'));
-            $cells .= wf_TableCell(__('ARPU'));
-            $cells .= wf_TableCell(__('ARPAU'));
-            $rows = wf_TableRow($cells, 'row1');
-            foreach ($yearData as $yearNum => $monthArr) {
-                foreach ($monthArr as $monthNum => $each) {
-                    $yearDisplay = ($allTimeFlag) ? $yearNum . ' ' : '';
-                    $cells = wf_TableCell($yearDisplay . $months[$monthNum]);
-                    $cells .= wf_TableCell(zb_CashBigValueFormat($each['f_totalmoney']));
-                    $cells .= wf_TableCell($each['f_paymentscount']);
-                    $cells .= wf_TableCell($each['f_cashmoney'] . ' (' . zb_PercentValue($each['f_totalmoney'], $each['f_cashmoney']) . '%)');
-                    $cells .= wf_TableCell($each['f_cashcount'] . ' (' . zb_PercentValue($each['f_paymentscount'], $each['f_cashcount']) . '%)');
-                    $cells .= wf_TableCell($each['f_arpu']);
-                    $cells .= wf_TableCell($each['f_arpau']);
-                    $rows .= wf_TableRow($cells, 'row3');
-                    //chart data
-                    $yearDisplay = ($monthNum == '01') ? $yearDisplay : '';
-                    $financeChartsData[] = array($yearDisplay . $months[$monthNum], $each['f_totalmoney'], $each['f_paymentscount']);
-                    $arpuChartsData[] = array($yearDisplay . $months[$monthNum], $each['f_arpu'], $each['f_arpau']);
+            if (cfr('REPORTFINANCE')) {
+                //finance data
+                $result .= wf_tag('h2') . __('Financial highlights') . wf_tag('h2', true);
+                $cells = wf_TableCell(__('Month'));
+                $cells .= wf_TableCell(__('Money'));
+                $cells .= wf_TableCell(__('Payments count'));
+                $cells .= wf_TableCell(__('Cash payments'));
+                $cells .= wf_TableCell(__('Cash payments count'));
+                $cells .= wf_TableCell(__('ARPU'));
+                $cells .= wf_TableCell(__('ARPAU'));
+                $rows = wf_TableRow($cells, 'row1');
+                foreach ($yearData as $yearNum => $monthArr) {
+                    foreach ($monthArr as $monthNum => $each) {
+                        $yearDisplay = ($allTimeFlag) ? $yearNum . ' ' : '';
+                        $cells = wf_TableCell($yearDisplay . $months[$monthNum]);
+                        $cells .= wf_TableCell(zb_CashBigValueFormat($each['f_totalmoney']));
+                        $cells .= wf_TableCell($each['f_paymentscount']);
+                        $cells .= wf_TableCell($each['f_cashmoney'] . ' (' . zb_PercentValue($each['f_totalmoney'], $each['f_cashmoney']) . '%)');
+                        $cells .= wf_TableCell($each['f_cashcount'] . ' (' . zb_PercentValue($each['f_paymentscount'], $each['f_cashcount']) . '%)');
+                        $cells .= wf_TableCell($each['f_arpu']);
+                        $cells .= wf_TableCell($each['f_arpau']);
+                        $rows .= wf_TableRow($cells, 'row3');
+                        //chart data
+                        $yearDisplay = ($monthNum == '01') ? $yearDisplay : '';
+                        $financeChartsData[] = array($yearDisplay . $months[$monthNum], $each['f_totalmoney'], $each['f_paymentscount']);
+                        $arpuChartsData[] = array($yearDisplay . $months[$monthNum], $each['f_arpu'], $each['f_arpau']);
+                    }
                 }
-            }
-            $result .= wf_TableBody($rows, '100%', 0, '');
-            if ($chartsFlag) {
-                $result .= wf_gchartsLine($financeChartsData, __('Financial highlights'), '100%', '300px', $chartsOptions);
-                $result .= wf_gchartsLine($arpuChartsData, __('ARPU'), '100%', '300px', $chartsOptions);
+                $result .= wf_TableBody($rows, '100%', 0, '');
+                if ($chartsFlag) {
+                    $result .= wf_gchartsLine($financeChartsData, __('Financial highlights'), '100%', '300px', $chartsOptions);
+                    $result .= wf_gchartsLine($arpuChartsData, __('ARPU'), '100%', '300px', $chartsOptions);
+                }
             }
 
             // UKV cable users
@@ -1370,36 +1367,38 @@ class ExistentialHorse {
                     $result .= wf_gchartsLine($ukvChartData, __('UKV users'), '100%', '300px', $chartsOptions);
                 }
 
-                //UKV financial data
-                $result .= wf_tag('h2') . __('UKV finance') . wf_tag('h2', true);
-                $cells = wf_TableCell(__('Month'));
-                $cells .= wf_TableCell(__('Money'));
-                $cells .= wf_TableCell(__('Payments count'));
-                $cells .= wf_TableCell(__('ARPU'));
-                $cells .= wf_TableCell(__('ARPAU'));
-                $cells .= wf_TableCell(__('Debt'));
+                if (cfr('REPORTFINANCE')) {
+                    //UKV financial data
+                    $result .= wf_tag('h2') . __('UKV finance') . wf_tag('h2', true);
+                    $cells = wf_TableCell(__('Month'));
+                    $cells .= wf_TableCell(__('Money'));
+                    $cells .= wf_TableCell(__('Payments count'));
+                    $cells .= wf_TableCell(__('ARPU'));
+                    $cells .= wf_TableCell(__('ARPAU'));
+                    $cells .= wf_TableCell(__('Debt'));
 
-                $rows = wf_TableRow($cells, 'row1');
-                foreach ($yearData as $yearNum => $monthArr) {
-                    foreach ($monthArr as $monthNum => $each) {
-                        $yearDisplay = ($allTimeFlag) ? $yearNum . ' ' : '';
-                        $cells = wf_TableCell($yearDisplay . $months[$monthNum]);
-                        $cells .= wf_TableCell(zb_CashBigValueFormat($each['c_totalmoney']));
-                        $cells .= wf_TableCell($each['c_paymentscount']);
-                        $cells .= wf_TableCell($each['c_arpu']);
-                        $cells .= wf_TableCell($each['c_arpau']);
-                        $cells .= wf_TableCell($each['c_totaldebt']);
-                        $rows .= wf_TableRow($cells, 'row3');
-                        //chart data
-                        $yearDisplay = ($monthNum == '01') ? $yearDisplay : '';
-                        $ukvfChartData[] = array($yearDisplay . $months[$monthNum], $each['c_totalmoney'], $each['c_paymentscount'], $each['c_totaldebt']);
-                        $ukvarpuChartData[] = array($yearDisplay . $months[$monthNum], $each['c_arpu'], $each['c_arpau']);
+                    $rows = wf_TableRow($cells, 'row1');
+                    foreach ($yearData as $yearNum => $monthArr) {
+                        foreach ($monthArr as $monthNum => $each) {
+                            $yearDisplay = ($allTimeFlag) ? $yearNum . ' ' : '';
+                            $cells = wf_TableCell($yearDisplay . $months[$monthNum]);
+                            $cells .= wf_TableCell(zb_CashBigValueFormat($each['c_totalmoney']));
+                            $cells .= wf_TableCell($each['c_paymentscount']);
+                            $cells .= wf_TableCell($each['c_arpu']);
+                            $cells .= wf_TableCell($each['c_arpau']);
+                            $cells .= wf_TableCell($each['c_totaldebt']);
+                            $rows .= wf_TableRow($cells, 'row3');
+                            //chart data
+                            $yearDisplay = ($monthNum == '01') ? $yearDisplay : '';
+                            $ukvfChartData[] = array($yearDisplay . $months[$monthNum], $each['c_totalmoney'], $each['c_paymentscount'], $each['c_totaldebt']);
+                            $ukvarpuChartData[] = array($yearDisplay . $months[$monthNum], $each['c_arpu'], $each['c_arpau']);
+                        }
                     }
-                }
-                $result .= wf_TableBody($rows, '100%', 0, '');
-                if ($chartsFlag) {
-                    $result .= wf_gchartsLine($ukvfChartData, __('UKV finance'), '100%', '300px', $chartsOptions);
-                    $result .= wf_gchartsLine($ukvarpuChartData, __('UKV') . ' ' . __('ARPU'), '100%', '300px', $chartsOptions);
+                    $result .= wf_TableBody($rows, '100%', 0, '');
+                    if ($chartsFlag) {
+                        $result .= wf_gchartsLine($ukvfChartData, __('UKV finance'), '100%', '300px', $chartsOptions);
+                        $result .= wf_gchartsLine($ukvarpuChartData, __('UKV') . ' ' . __('ARPU'), '100%', '300px', $chartsOptions);
+                    }
                 }
             }
 
@@ -1562,11 +1561,11 @@ class ExistentialHorse {
                         $equipChartRow = array($yearDisplay . $months[$monthNum], $each['e_switches'], $each['e_pononu'], $each['e_docsis']);
                     }
 
-                    if ($this->ponFlag AND ! $this->docsisFlag) {
+                    if ($this->ponFlag AND !$this->docsisFlag) {
                         $equipChartRow = array($yearDisplay . $months[$monthNum], $each['e_switches'], $each['e_pononu']);
                     }
 
-                    if ($this->docsisFlag AND ! $this->ponFlag) {
+                    if ($this->docsisFlag AND !$this->ponFlag) {
                         $equipChartRow = array($yearDisplay . $months[$monthNum], $each['e_switches'], $each['e_docsis']);
                     }
 
@@ -1582,5 +1581,4 @@ class ExistentialHorse {
         }
         return ($result);
     }
-
 }
