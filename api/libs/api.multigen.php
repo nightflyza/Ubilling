@@ -2152,7 +2152,7 @@ class MultiGen {
                 }
             }
         }
-        /* Adding ream to username from vlan manager - Universal and Switch QinQ */
+        /* Adding realm to username from vlan manager - Universal and Switch QinQ */
         if (!empty($result)) {
             if (isset($this->allSvlan[$qinqData['svlan_id']])) {
                 $realmId = $this->allSvlan[$qinqData['svlan_id']]['realm_id'];
