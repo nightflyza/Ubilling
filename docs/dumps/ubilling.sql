@@ -3247,3 +3247,16 @@ CREATE TABLE IF NOT EXISTS `crm_activities` (
   `notes` varchar(255) DEFAULT NULL,
    PRIMARY KEY (`id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
+
+CREATE TABLE IF NOT EXISTS `crm_stateslog` (
+  `id` INT(11) NOT NULL AUTO_INCREMENT,
+  `date` datetime NOT NULL,
+  `admin` varchar(64) DEFAULT NULL,
+  `scope` varchar(64) DEFAULT NULL,
+  `itemid` varchar(128) NOT NULL,
+  `action` varchar(32) DEFAULT NULL,
+  `state` varchar(255) DEFAULT NULL,
+   PRIMARY KEY (`id`),
+   KEY `scope` (`scope`),
+   KEY `itemid` (`itemid`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;

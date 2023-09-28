@@ -95,6 +95,7 @@ class PseudoCRM {
      */
     const TABLE_LEADS = 'crm_leads';
     const TABLE_ACTIVITIES = 'crm_activities';
+    const TABLE_STATES_LOG = 'crm_stateslog';
 
     /**
      * routes here
@@ -123,6 +124,11 @@ class PseudoCRM {
     const PROUTE_LEAD_LOGIN = 'leadlogin';
     const PROUTE_LEAD_EMPLOYEE = 'leademployee';
     const PROUTE_LEAD_NOTES = 'leadnotes';
+
+    /**
+     * stigma scopes here
+     */
+    const STIGMA_LEAD_SOURCE = 'CRMSOURCE';
 
     /**
      * Creates new PseudoCRM instance
@@ -398,7 +404,7 @@ class PseudoCRM {
      * 
      * @return bool
      */
-    protected function isLeadExists($leadId) {
+    public function isLeadExists($leadId) {
         $result = false;
         if (isset($this->allLeads[$leadId])) {
             $result = true;
@@ -418,6 +424,27 @@ class PseudoCRM {
         $leadData = $this->getLeadData($leadId);
         if (!empty($leadData)) {
             $result .= $leadData['address'] . ', ' . $leadData['realname'];
+        }
+        return($result);
+    }
+
+    /**
+     * Renders existing lead source controls
+     * 
+     * @param int $leadId
+     * 
+     * @return string
+     */
+    public function renderLeadSource($leadId) {
+        $result = '';
+        if ($this->isLeadExists($leadId)) {
+            $leadSource = new Stigma(self::STIGMA_LEAD_SOURCE, $leadId);
+            $readOnly = true;
+            if (cfr(self::RIGHT_LEADS)) {
+                $readOnly = false;
+                $leadSource->stigmaController('CUSTOM:' . self::TABLE_STATES_LOG);
+            }
+            $result .= $leadSource->render($leadId, '', $readOnly);
         }
         return($result);
     }
@@ -603,7 +630,7 @@ class PseudoCRM {
     protected function renderActivityCreateForm($leadId) {
         $result = '';
         if ($this->isLeadExists($leadId)) {
-            $urlCreate= self::URL_ME.'&'.self::ROUTE_ACTIVITY_CREATE.'='.$leadId;
+            $urlCreate = self::URL_ME . '&' . self::ROUTE_ACTIVITY_CREATE . '=' . $leadId;
             //TODO: some confirm dialog here
         }
         return($result);
@@ -630,5 +657,4 @@ class PseudoCRM {
         }
         return($result);
     }
-
 }

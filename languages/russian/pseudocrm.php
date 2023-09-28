@@ -12,3 +12,7 @@ $lang['def']['Lead profile'] = 'Профиль лида';
 $lang['def']['Potential'] = 'Потенциальный';
 $lang['def']['Existing'] = 'Существующий';
 $lang['def']['Edit lead'] = 'Редактировать лида';
+$lang['def']['Create new record'] = 'Создать новую запись';
+$lang['def']['Create new activity'] = 'Создать новую активность';
+$lang['def']['Already using somewhere'] = 'Уже где-то используют';
+$lang['def']['Lead source'] = 'Источник лида';

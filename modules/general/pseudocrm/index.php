@@ -65,6 +65,10 @@ if (cfr(PseudoCRM::RIGHT_VIEW)) {
         if (ubRouting::checkGet($crm::ROUTE_LEAD_PROFILE)) {
             $leadId = ubRouting::get($crm::ROUTE_LEAD_PROFILE, 'int');
             show_window(__('Lead profile') . ': ' . $crm->getLeadLabel($leadId), $crm->renderLeadProfile($leadId));
+            //lead source here
+            if ($crm->isLeadExists($leadId)) {
+                show_window(__('Lead source'), $crm->renderLeadSource($leadId));
+            }
         }
 
         //rendering existing leads list
