@@ -63,6 +63,13 @@ class PseudoCRM {
     protected $allActiveEmployee = array();
 
     /**
+     * Contains all employee administator logins as login=>employeeId
+     * 
+     * @var array
+     */
+    protected $allEmployeeLogins = array();
+
+    /**
      * Contains branches data as id=>name
      * 
      * @var array
@@ -209,6 +216,9 @@ class PseudoCRM {
         if (!empty($allEmployeeTmp)) {
             foreach ($allEmployeeTmp as $io => $each) {
                 $this->allEmployee[$each['id']] = $each['name'];
+                if (!empty($each['admlogin'])) {
+                    $this->allEmployeeLogins[$each['admlogin']] = $each['id'];
+                }
                 if ($each['active']) {
                     $this->allActiveEmployee[$each['id']] = $each['name'];
                 }
@@ -280,13 +290,14 @@ class PseudoCRM {
         if (!empty($this->allLeads)) {
             foreach ($this->allLeads as $io => $each) {
                 $leadType = (empty($each['login'])) ? __('Potential') : __('Existing');
+                $leadProfileUrl = self::URL_ME . '&' . self::ROUTE_LEAD_PROFILE . '=' . $each['id'];
                 $data[] = $each['id'];
                 $data[] = $leadType;
                 $data[] = $each['address'];
                 $data[] = $each['realname'];
                 $data[] = $each['phone'];
                 $data[] = $each['mobile'];
-                $actLinks = wf_Link(self::URL_ME . '&' . self::ROUTE_LEAD_PROFILE . '=' . $each['id'], web_edit_icon());
+                $actLinks = wf_Link($leadProfileUrl, web_edit_icon());
                 $data[] = $actLinks;
                 $json->addRow($data);
                 unset($data);
@@ -444,7 +455,7 @@ class PseudoCRM {
                 $readOnly = false;
                 $leadSource->stigmaController('CUSTOM:' . self::TABLE_STATES_LOG);
             }
-            $result .= $leadSource->render($leadId, '', $readOnly);
+            $result .= $leadSource->render($leadId, '54', $readOnly);
         }
         return($result);
     }
@@ -631,7 +642,125 @@ class PseudoCRM {
         $result = '';
         if ($this->isLeadExists($leadId)) {
             $urlCreate = self::URL_ME . '&' . self::ROUTE_ACTIVITY_CREATE . '=' . $leadId;
-            //TODO: some confirm dialog here
+            $urlCancel = self::URL_ME . '&' . self::ROUTE_LEAD_PROFILE . '=' . $leadId;
+            $label = __('Are you realy want to create record for this lead') . '?';
+            $result .= wf_ConfirmDialog($urlCreate, web_icon_create() . ' ' . __('Create new record'), $label, 'ubButton', $urlCancel, __('Create new record'));
+        }
+        return($result);
+    }
+
+    /**
+     * Creates new activity database record for existing lead
+     * 
+     * @param int $leadId
+     * 
+     * @return int/zero on error
+     */
+    public function createActivity($leadId) {
+        $result = 0;
+        $leadId = ubRouting::filters($leadId, 'int');
+        if ($this->isLeadExists($leadId)) {
+            $adminLogin = whoami();
+            $currentEmployeeId = 0;
+            if (isset($this->allEmployeeLogins[$adminLogin])) {
+                $currentEmployeeId = $this->allEmployeeLogins[$adminLogin];
+            }
+
+            $this->activitiesDb->data('leadid', $leadId);
+            $this->activitiesDb->data('date', curdatetime());
+            $this->activitiesDb->data('admin', $adminLogin);
+            $this->activitiesDb->data('employeeid', $currentEmployeeId);
+            $this->activitiesDb->data('state', 0);
+            $this->activitiesDb->data('notes', '');
+            $this->activitiesDb->create();
+
+            $newId = $this->activitiesDb->getLastId();
+            $result = $newId;
+            log_register('CRM CREATE ACTIVITY [' . $newId . '] FOR LEAD [' . $leadId . ']');
+        }
+        return($result);
+    }
+
+    /**
+     * Checks existence of activity by its ID
+     * 
+     * @param int $activityId
+     * 
+     * @return bool
+     */
+    protected function isActivityExists($activityId) {
+        $result = false;
+        if (isset($this->allActivities[$activityId])) {
+            $result = true;
+        }
+        return($result);
+    }
+
+    /**
+     * Returns existing activity record data
+     * 
+     * @param int $activityId
+     * 
+     * @return array
+     */
+    protected function getActivityData($activityId) {
+        $result = array();
+        if (isset($this->allActivities[$activityId])) {
+            $result = $this->allActivities[$activityId];
+        }
+        return($result);
+    }
+
+    /**
+     * Renders existing activity record profile with state controllers
+     * 
+     * @param int $activityId
+     * 
+     * @return string
+     */
+    public function renderActivityProfile($activityId) {
+        $result = '';
+        $activityId = ubRouting::filters($activityId, 'int');
+        if ($this->isActivityExists($activityId)) {
+            $activityData = $this->getActivityData($activityId);
+            debarr($activityData);
+            $leadId = $activityData['leadid'];
+
+            $leadBackLink = wf_BackLink(self::URL_ME . '&' . self::ROUTE_LEAD_PROFILE . '=' . $leadId);
+            $result .= $leadBackLink;
+            $result .= wf_delimiter();
+        } else {
+            $result .= $this->messages->getStyledMessage(__('Strange exception') . ': ' . __('Activity record') . ' [' . $activityId . '] ' . __('Not exists'), 'error');
+        }
+        return($result);
+    }
+
+    /**
+     * Returns array of all lead previous activity records
+     * 
+     * @param int $leadId
+     * 
+     * @return array
+     */
+    protected function getLeadActivities($leadId) {
+        $result = array();
+        if (!empty($this->allActivities)) {
+            foreach ($this->allActivities as $activityId => $eachActivityData) {
+                if ($eachActivityData['leadid'] == $leadId) {
+                    $result[$activityId] = $eachActivityData;
+                }
+            }
+        }
+        return($result);
+    }
+
+    public function renderLeadActivitiesList($leadId) {
+        $result = '';
+        $previousActivities = $this->getLeadActivities($leadId);
+        if (!empty($previousActivities)) {
+            
+        } else {
+            $result .= $this->messages->getStyledMessage(__('Nothing to show'), 'info');
         }
         return($result);
     }
@@ -649,11 +778,17 @@ class PseudoCRM {
                 $result .= wf_Link(self::URL_ME . '&' . self::ROUTE_LEADS_LIST . '=true', wf_img('skins/ukv/users.png') . ' ' . __('Existing leads'), false, 'ubButton') . ' ';
                 $result .= wf_modalAuto(web_edit_icon() . ' ' . __('Edit lead'), __('Edit lead'), $this->renderLeadEditForm($leadId), 'ubButton');
                 if (cfr(self::RIGHT_ACTIVITIES)) {
-                    $result .= wf_Link('', web_icon_create() . ' ' . __('Create new record'), false, 'ubButton');
+                    $result .= $this->renderActivityCreateForm($leadId);
                 }
             } else {
-                $result .= wf_modalAuto(web_icon_create() . ' ' . __('Create new lead'), __('Create new lead'), $this->renderLeadCreateForm(), 'ubButton') . ' ';
+                if (ubRouting::checkGet(self::ROUTE_LEADS_LIST)) {
+                    $result .= wf_modalAuto(web_icon_create() . ' ' . __('Create new lead'), __('Create new lead'), $this->renderLeadCreateForm(), 'ubButton') . ' ';
+                }
             }
+        }
+
+        if (ubRouting::checkGet(self::ROUTE_ACTIVITY_PROFILE)) {
+            
         }
         return($result);
     }

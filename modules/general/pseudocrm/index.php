@@ -5,7 +5,10 @@ if (cfr(PseudoCRM::RIGHT_VIEW)) {
     if ($altCfg['PSEUDOCRM_ENABLED']) {
         $crm = new PseudoCRM();
         //some module controls
-        show_window('', $crm->renderPanel());
+        $crmMainControls = $crm->renderPanel();
+        if (!empty($crmMainControls)) {
+            show_window('', $crmMainControls);
+        }
 
         //rendering existing leads ajax data
         if (ubRouting::checkGet($crm::ROUTE_LEADS_LIST_AJ)) {
@@ -61,13 +64,28 @@ if (cfr(PseudoCRM::RIGHT_VIEW)) {
             }
         }
 
+        //new activity creation
+        if (cfr($crm::RIGHT_ACTIVITIES)) {
+            if (ubRouting::checkGet($crm::ROUTE_ACTIVITY_CREATE)) {
+                $newActivityLeadId = ubRouting::get($crm::ROUTE_ACTIVITY_CREATE);
+                $activityCreationResult = $crm->createActivity($newActivityLeadId);
+                //redirecting to new activity profile
+                if ($activityCreationResult) {
+                    ubRouting::nav($crm::URL_ME . '&' . $crm::ROUTE_ACTIVITY_PROFILE . '=' . $activityCreationResult);
+                } else {
+                    show_error(__('Something went wrong'));
+                }
+            }
+        }
+
         //rendering existing lead profile
         if (ubRouting::checkGet($crm::ROUTE_LEAD_PROFILE)) {
             $leadId = ubRouting::get($crm::ROUTE_LEAD_PROFILE, 'int');
             show_window(__('Lead profile') . ': ' . $crm->getLeadLabel($leadId), $crm->renderLeadProfile($leadId));
-            //lead source here
+            //lead source and activities list here
             if ($crm->isLeadExists($leadId)) {
                 show_window(__('Lead source'), $crm->renderLeadSource($leadId));
+                show_window(__('Previous activity records'), $crm->renderLeadActivitiesList($leadId));
             }
         }
 
@@ -75,6 +93,12 @@ if (cfr(PseudoCRM::RIGHT_VIEW)) {
         if (ubRouting::checkGet($crm::ROUTE_LEADS_LIST)) {
             show_window(__('Existing leads'), $crm->renderLeadsList());
         }
+
+        //rendering existing lead activity
+        if (ubRouting::checkGet($crm::ROUTE_ACTIVITY_PROFILE)) {
+            show_window(__('Activity record'), $crm->renderActivityProfile(ubRouting::get($crm::ROUTE_ACTIVITY_PROFILE)));
+        }
+
         zb_BillingStats();
     } else {
         show_error(__('This module is disabled'));

@@ -17,12 +17,14 @@ CREATE TABLE IF NOT EXISTS `crm_leads` (
 
 CREATE TABLE IF NOT EXISTS `crm_activities` (
   `id` INT(11) NOT NULL AUTO_INCREMENT,
+  `leadid` INT(11) NOT NULL,
   `date` datetime NOT NULL,
   `admin` varchar(64) DEFAULT NULL,
   `employeeid` int(11) DEFAULT NULL,
   `state` tinyint(1) DEFAULT 0,
   `notes` varchar(255) DEFAULT NULL,
-   PRIMARY KEY (`id`)
+   PRIMARY KEY (`id`),
+   KEY `leadid` (`leadid`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 
