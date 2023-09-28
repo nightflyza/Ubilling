@@ -754,11 +754,31 @@ class PseudoCRM {
         return($result);
     }
 
+    /**
+     * Renders previous lead activities list
+     * 
+     * @param int $leadId
+     * 
+     * @return string
+     */
     public function renderLeadActivitiesList($leadId) {
         $result = '';
         $previousActivities = $this->getLeadActivities($leadId);
         if (!empty($previousActivities)) {
-            
+            $result .= wf_CleanDiv();
+            foreach ($previousActivities as $activityId => $activityData) {
+                $activityUrl = self::URL_ME . '&' . self::ROUTE_ACTIVITY_PROFILE . '=' . $activityId;
+                $activityClass = ($activityData['state']) ? 'donetask' : 'undone';
+                $employeeLabel = $activityData['admin'];
+                if (isset($this->allEmployeeLogins[$activityData['admin']])) {
+                    $employeeId = $this->allEmployeeLogins[$activityData['admin']];
+                    $employeeLabel = $this->allEmployee[$employeeId];
+                }
+                $activityLabel = web_edit_icon() . ' ' . $activityData['date'] . ' - ' . $employeeLabel;
+                $result .= wf_tag('div', false, $activityClass, 'style="padding: 10px; margin: 10px;"');
+                $result .= wf_Link($activityUrl, $activityLabel, false, '', 'style="color: #FFFFFF;"');
+                $result .= wf_tag('div', true);
+            }
         } else {
             $result .= $this->messages->getStyledMessage(__('Nothing to show'), 'info');
         }
