@@ -739,10 +739,11 @@ class PseudoCRM {
      * Render existing activity states controllers
      * 
      * @param int $activityId
+     * @param int $size
      * 
      * @return string
      */
-    protected function renderActivityStatesController($activityId) {
+    protected function renderActivityStatesController($activityId, $size = 128) {
         $activityId = ubRouting::filters($activityId, 'int');
         $result = '';
         $readOnly = cfr(self::RIGHT_ACTIVITIES) ? false : true;
@@ -753,7 +754,10 @@ class PseudoCRM {
                 $stigmaInstances[$eachScope] = new Stigma($eachScope, $activityId);
                 //render state here
                 $result .= wf_tag('strong', false) . __($eachTitle) . wf_tag('strong', true) . wf_delimiter(0);
-                $result .= $stigmaInstances[$eachScope]->render($activityId, '128', $readOnly);
+                if (cfr(self::RIGHT_ACTIVITIES)) {
+                    $stigmaInstances[$eachScope]->stigmaController('CUSTOM:' . self::TABLE_STATES_LOG);
+                }
+                $result .= $stigmaInstances[$eachScope]->render($activityId, $size, $readOnly);
             }
         }
         return($result);
@@ -798,7 +802,7 @@ class PseudoCRM {
             $result .= wf_tag('div', true);
             $result .= wf_CleanDiv();
             //some state controllers here
-            $result .= $this->renderActivityStatesController($activityId);
+            $result .= $this->renderActivityStatesController($activityId, 128);
 
             $leadBackLink = wf_BackLink(self::URL_ME . '&' . self::ROUTE_LEAD_PROFILE . '=' . $leadId);
             $result .= $leadBackLink;
