@@ -96,7 +96,8 @@ if (cfr(PseudoCRM::RIGHT_VIEW)) {
 
         //rendering existing lead activity
         if (ubRouting::checkGet($crm::ROUTE_ACTIVITY_PROFILE)) {
-            show_window(__('Activity record'), $crm->renderActivityProfile(ubRouting::get($crm::ROUTE_ACTIVITY_PROFILE)));
+            $activityId = ubRouting::get($crm::ROUTE_ACTIVITY_PROFILE);
+            show_window(__('Activity record'), $crm->renderActivityProfile($activityId));
         }
 
         zb_BillingStats();

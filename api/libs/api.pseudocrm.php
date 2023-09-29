@@ -84,6 +84,13 @@ class PseudoCRM {
     protected $branchesFlag = false;
 
     /**
+     * Contains available states stigma scopes for activities as SCOPE=>__(name)
+     * 
+     * @var array
+     */
+    protected $activitiesStatesList = array();
+
+    /**
      * Contains all available tariff names as tariffName=>__(tariffName)
      * 
      * @var array
@@ -133,9 +140,12 @@ class PseudoCRM {
     const PROUTE_LEAD_NOTES = 'leadnotes';
 
     /**
-     * stigma scopes here
+     * stigma lead/activity scopes here
      */
     const STIGMA_LEAD_SOURCE = 'CRMSOURCE';
+    const STIGMA_ACT_TYPE = 'CRMACTTYPE';
+    const STIGMA_ACT_RESULT = 'CRMACTRESULT';
+    const STIGMA_ACT_TARGET = 'CRMACTTARGET';
 
     /**
      * Creates new PseudoCRM instance
@@ -143,6 +153,7 @@ class PseudoCRM {
     public function __construct() {
         $this->initMessages();
         $this->loadAlter();
+        $this->setActivitiesStatesList();
         $this->initLeadsDb();
         $this->initActivitiesDb();
         $this->loadEmployeeData();
@@ -171,6 +182,19 @@ class PseudoCRM {
     protected function loadAlter() {
         global $ubillingConfig;
         $this->altCfg = $ubillingConfig->getAlter();
+    }
+
+    /**
+     * Sets available activities states list
+     * 
+     * @return void
+     */
+    protected function setActivitiesStatesList() {
+        $this->activitiesStatesList = array(
+            self::STIGMA_ACT_TYPE => __('Marketing type'),
+            self::STIGMA_ACT_RESULT => __('Post-marketing status'),
+            self::STIGMA_ACT_TARGET => __('Marketing target'),
+        );
     }
 
     /**
@@ -688,7 +712,7 @@ class PseudoCRM {
      * 
      * @return bool
      */
-    protected function isActivityExists($activityId) {
+    public function isActivityExists($activityId) {
         $result = false;
         if (isset($this->allActivities[$activityId])) {
             $result = true;
@@ -703,10 +727,34 @@ class PseudoCRM {
      * 
      * @return array
      */
-    protected function getActivityData($activityId) {
+    public function getActivityData($activityId) {
         $result = array();
         if (isset($this->allActivities[$activityId])) {
             $result = $this->allActivities[$activityId];
+        }
+        return($result);
+    }
+
+    /**
+     * Render existing activity states controllers
+     * 
+     * @param int $activityId
+     * 
+     * @return string
+     */
+    protected function renderActivityStatesController($activityId) {
+        $activityId = ubRouting::filters($activityId, 'int');
+        $result = '';
+        $readOnly = cfr(self::RIGHT_ACTIVITIES) ? false : true;
+        $stigmaInstances = array();
+        if (!empty($this->activitiesStatesList)) {
+            foreach ($this->activitiesStatesList as $eachScope => $eachTitle) {
+                //creating some instances
+                $stigmaInstances[$eachScope] = new Stigma($eachScope, $activityId);
+                //render state here
+                $result .= wf_tag('strong', false) . __($eachTitle) . wf_tag('strong', true) . wf_delimiter(0);
+                $result .= $stigmaInstances[$eachScope]->render($activityId, '128', $readOnly);
+            }
         }
         return($result);
     }
@@ -723,8 +771,34 @@ class PseudoCRM {
         $activityId = ubRouting::filters($activityId, 'int');
         if ($this->isActivityExists($activityId)) {
             $activityData = $this->getActivityData($activityId);
-            debarr($activityData);
+
             $leadId = $activityData['leadid'];
+
+            //appending lead profile here
+            $result .= $this->renderLeadProfile($leadId);
+
+            //activity basic data
+            $result .= wf_delimiter(0);
+
+            $result .= wf_tag('div', false, 'dashtask');
+            $result .= __('Date') . ': ' . $activityData['date'];
+            $result .= wf_tag('div', true);
+
+            $result .= wf_tag('div', false, 'dashtask');
+            $result .= __('Worker') . ': ' . @$this->allEmployee[$activityData['employeeid']];
+            $result .= wf_tag('div', true);
+
+            $stateLabel = ($activityData['state']) ? __('New') : __('Closed');
+            $result .= wf_tag('div', false, 'dashtask');
+            $result .= __('Status') . ': ' . $stateLabel;
+            $result .= wf_tag('div', true);
+
+            $result .= wf_tag('div', false, 'dashtask');
+            $result .= __('Result') . ': ' . $activityData['notes'];
+            $result .= wf_tag('div', true);
+            $result .= wf_CleanDiv();
+            //some state controllers here
+            $result .= $this->renderActivityStatesController($activityId);
 
             $leadBackLink = wf_BackLink(self::URL_ME . '&' . self::ROUTE_LEAD_PROFILE . '=' . $leadId);
             $result .= $leadBackLink;
