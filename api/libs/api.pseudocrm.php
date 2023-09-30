@@ -967,6 +967,15 @@ class PseudoCRM {
         $result = '';
         $previousActivities = $this->getLeadActivities($leadId);
         if (!empty($previousActivities)) {
+            //performing stigma instances creation
+            $stigmaInstances = array();
+            if (!empty($this->activitiesStatesList)) {
+                foreach ($this->activitiesStatesList as $eachScope => $eachTitle) {
+                    //creating some instances
+                    $stigmaInstances[$eachScope] = new Stigma($eachScope);
+                }
+            }
+
             $result .= wf_CleanDiv();
             foreach ($previousActivities as $activityId => $activityData) {
                 $activityUrl = self::URL_ME . '&' . self::ROUTE_ACTIVITY_PROFILE . '=' . $activityId;
@@ -977,17 +986,15 @@ class PseudoCRM {
                     $employeeLabel = $this->allEmployee[$employeeId];
                 }
                 $activityLabel = web_edit_icon() . ' ' . $activityData['date'] . ' - ' . $employeeLabel;
-                //appending actual states list here
-                $stigmaInstances = array();
-                if (!empty($this->activitiesStatesList)) {
-                    foreach ($this->activitiesStatesList as $eachScope => $eachTitle) {
-                        //creating some instances
-                        $stigmaInstances[$eachScope] = new Stigma($eachScope);
-                        //getting each activity states
-                        $activityLabel .= ' ' . $stigmaInstances[$eachScope]->textRender($activityId, ' ', 16);
-                    }
-                }
 
+                //getting and appending each activity states
+                $activityLabel .= ' ' . $stigmaInstances[$eachScope]->textRender($activityId, ' ', 16);
+                //appending comment as result if not empty
+                if (!empty($activityData['notes'])) {
+                    $activityLabel .= ', ' . $activityData['notes'];
+                } else {
+                    $activityLabel .= ', ' . __('No result');
+                }
                 $result .= wf_tag('div', false, $activityClass, 'style="padding: 10px; margin: 10px;"');
                 $result .= wf_Link($activityUrl, $activityLabel, false, '', 'style="color: #FFFFFF;"');
                 $result .= wf_tag('div', true);

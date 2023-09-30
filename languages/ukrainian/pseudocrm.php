@@ -42,7 +42,7 @@ $lang['def']['Post-marketing status'] = 'Стан після маркетинг�
 $lang['def']['Marketing target'] = 'Ціль маркетингу';
 $lang['def']['New'] = 'Новий';
 $lang['def']['Office dialog'] = 'Офісний діалог';
+$lang['def']['No result'] = 'Без результату';
 $lang['def'][''] = '';
 $lang['def'][''] = '';
-
 
