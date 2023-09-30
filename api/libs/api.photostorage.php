@@ -301,6 +301,10 @@ class PhotoStorage {
             $cleanUserLogin = $cleanUserLogin[0];
             $result = wf_BackLink(CustomFields::URL_EDIT_BACK . $cleanUserLogin);
         }
+        if ($this->scope == 'CRMACTIVITY') {
+            $result = wf_BackLink(PseudoCRM::URL_ME . '&' . PseudoCRM::ROUTE_ACTIVITY_PROFILE . '=' . $this->itemId);
+        }
+
         return ($result);
     }
 

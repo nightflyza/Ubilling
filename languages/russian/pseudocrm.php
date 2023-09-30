@@ -41,3 +41,4 @@ $lang['def']['Marketing type'] = 'Тип маркетинга';
 $lang['def']['Post-marketing status'] = 'Состояние после маркетинга';
 $lang['def']['Marketing target'] = 'Цель маркетинга';
 $lang['def']['New'] = 'Новый';
+$lang['def']['Office dialog'] = 'Офісний діалог';

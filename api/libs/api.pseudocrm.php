@@ -144,6 +144,7 @@ class PseudoCRM {
     /**
      * stigma lead/activity scopes here
      */
+    const PHOTO_ACT_SCOPE = 'CRMACTIVITY';
     const STIGMA_LEAD_SOURCE = 'CRMSOURCE';
     const STIGMA_ACT_TYPE = 'CRMACTTYPE';
     const STIGMA_ACT_RESULT = 'CRMACTRESULT';
@@ -749,6 +750,11 @@ class PseudoCRM {
         $activityId = ubRouting::filters($activityId, 'int');
         $result = '';
         $readOnly = cfr(self::RIGHT_ACTIVITIES) ? false : true;
+        $activityData = $this->getActivityData($activityId);
+        //preventing state changes on closed activities
+        if ($activityData['state']) {
+            $readOnly = true;
+        }
         $stigmaInstances = array();
         if (!empty($this->activitiesStatesList)) {
             foreach ($this->activitiesStatesList as $eachScope => $eachTitle) {
@@ -820,12 +826,14 @@ class PseudoCRM {
             //and some controls
             $leadBackLink = wf_BackLink(self::URL_ME . '&' . self::ROUTE_LEAD_PROFILE . '=' . $leadId) . ' ';
             $activityControls = $leadBackLink;
-            if ($activityData['state']) {
-                $actOpenUrl = self::URL_ME . '&' . self::ROUTE_ACTIVITY_PROFILE . '=' . $activityId . '&' . self::ROUTE_ACTIVITY_UNDONE . '=' . $activityId;
-                $activityControls .= wf_Link($actOpenUrl, wf_img('skins/icon_unlock.png') . ' ' . __('Open'), false, 'ubButton') . ' ';
-            } else {
-                $actCloseUrl = self::URL_ME . '&' . self::ROUTE_ACTIVITY_PROFILE . '=' . $activityId . '&' . self::ROUTE_ACTIVITY_DONE . '=' . $activityId;
-                $activityControls .= wf_Link($actCloseUrl, wf_img('skins/icon_lock.png') . ' ' . __('Close'), false, 'ubButton') . ' ';
+            if (cfr(self::RIGHT_ACTIVITIES)) {
+                if ($activityData['state']) {
+                    $actOpenUrl = self::URL_ME . '&' . self::ROUTE_ACTIVITY_PROFILE . '=' . $activityId . '&' . self::ROUTE_ACTIVITY_UNDONE . '=' . $activityId;
+                    $activityControls .= wf_Link($actOpenUrl, wf_img('skins/icon_unlock.png') . ' ' . __('Open'), false, 'ubButton') . ' ';
+                } else {
+                    $actCloseUrl = self::URL_ME . '&' . self::ROUTE_ACTIVITY_PROFILE . '=' . $activityId . '&' . self::ROUTE_ACTIVITY_DONE . '=' . $activityId;
+                    $activityControls .= wf_Link($actCloseUrl, wf_img('skins/icon_lock.png') . ' ' . __('Close'), false, 'ubButton') . ' ';
+                }
             }
 
             $result .= $activityControls;
@@ -852,8 +860,15 @@ class PseudoCRM {
             $result .= wf_CleanDiv();
             //some state controllers here
             $result .= $this->renderActivityStatesController($activityId, 64);
-
-            $result .= wf_delimiter();
+            $result .= wf_delimiter(0);
+            //photostorage here
+            if ($this->altCfg['PHOTOSTORAGE_ENABLED']) {
+                $photostorage = new PhotoStorage(self::PHOTO_ACT_SCOPE, $activityId);
+                $photostorageUrl = $photostorage::MODULE_URL . '&scope=' . self::PHOTO_ACT_SCOPE . '&itemid=' . $activityId . '&mode=list';
+                $result .= wf_Link($photostorageUrl, wf_img('skins/photostorage.png') . ' ' . __('Upload images'), false, 'ubButton');
+                $result .= wf_delimiter();
+                $result .= $photostorage->renderImagesRaw();
+            }
         } else {
             $result .= $this->messages->getStyledMessage(__('Strange exception') . ': ' . __('Activity record') . ' [' . $activityId . '] ' . __('Not exists'), 'error');
         }
