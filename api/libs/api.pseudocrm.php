@@ -121,6 +121,8 @@ class PseudoCRM {
     const ROUTE_ACTIVITY_PROFILE = 'showactivity';
     const ROUTE_ACTIVITY_CREATE = 'createnewactivity';
     const ROUTE_LEAD_DETECT = 'username';
+    const ROUTE_ACTIVITY_DONE = 'setactivitydone';
+    const ROUTE_ACTIVITY_UNDONE = 'setactivityundone';
 
     /**
      * post-routes
@@ -764,6 +766,40 @@ class PseudoCRM {
     }
 
     /**
+     * Sets existing activity database record as processed
+     * 
+     * @param int $activityId
+     * 
+     * @return void
+     */
+    public function setActivityDone($activityId) {
+        $activityId = ubRouting::filters($activityId, 'int');
+        if ($this->isActivityExists($activityId)) {
+            $this->activitiesDb->data('state', 1);
+            $this->activitiesDb->where('id', '=', $activityId);
+            $this->activitiesDb->save();
+            log_register('CRM CLOSE ACTIVITY [' . $activityId . ']');
+        }
+    }
+
+    /**
+     * Sets existing activity database record as not processed
+     * 
+     * @param int $activityId
+     * 
+     * @return void
+     */
+    public function setActivityUndone($activityId) {
+        $activityId = ubRouting::filters($activityId, 'int');
+        if ($this->isActivityExists($activityId)) {
+            $this->activitiesDb->data('state', 0);
+            $this->activitiesDb->where('id', '=', $activityId);
+            $this->activitiesDb->save();
+            log_register('CRM OPEN ACTIVITY [' . $activityId . ']');
+        }
+    }
+
+    /**
      * Renders existing activity record profile with state controllers
      * 
      * @param int $activityId
@@ -780,6 +816,19 @@ class PseudoCRM {
 
             //appending lead profile here
             $result .= $this->renderLeadProfile($leadId);
+
+            //and some controls
+            $leadBackLink = wf_BackLink(self::URL_ME . '&' . self::ROUTE_LEAD_PROFILE . '=' . $leadId) . ' ';
+            $activityControls = $leadBackLink;
+            if ($activityData['state']) {
+                $actOpenUrl = self::URL_ME . '&' . self::ROUTE_ACTIVITY_PROFILE . '=' . $activityId . '&' . self::ROUTE_ACTIVITY_UNDONE . '=' . $activityId;
+                $activityControls .= wf_Link($actOpenUrl, wf_img('skins/icon_unlock.png') . ' ' . __('Open'), false, 'ubButton') . ' ';
+            } else {
+                $actCloseUrl = self::URL_ME . '&' . self::ROUTE_ACTIVITY_PROFILE . '=' . $activityId . '&' . self::ROUTE_ACTIVITY_DONE . '=' . $activityId;
+                $activityControls .= wf_Link($actCloseUrl, wf_img('skins/icon_lock.png') . ' ' . __('Close'), false, 'ubButton') . ' ';
+            }
+
+            $result .= $activityControls;
 
             //activity basic data
             $result .= wf_delimiter(0);
@@ -802,10 +851,8 @@ class PseudoCRM {
             $result .= wf_tag('div', true);
             $result .= wf_CleanDiv();
             //some state controllers here
-            $result .= $this->renderActivityStatesController($activityId, 128);
+            $result .= $this->renderActivityStatesController($activityId, 64);
 
-            $leadBackLink = wf_BackLink(self::URL_ME . '&' . self::ROUTE_LEAD_PROFILE . '=' . $leadId);
-            $result .= $leadBackLink;
             $result .= wf_delimiter();
         } else {
             $result .= $this->messages->getStyledMessage(__('Strange exception') . ': ' . __('Activity record') . ' [' . $activityId . '] ' . __('Not exists'), 'error');
