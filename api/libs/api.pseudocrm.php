@@ -299,7 +299,7 @@ class PseudoCRM {
      */
     public function renderLeadsList() {
         $result = '';
-        $columns = array('ID', 'Type', 'Full address', 'Real Name', 'Phone', 'Mobile', 'Actions');
+        $columns = array('ID', 'Type', 'Full address', 'Real Name', 'Mobile', 'Notes', 'Actions');
         $url = self::URL_ME . '&' . self::ROUTE_LEADS_LIST_AJ . '=true';
         $customStyling = wf_tag('style');
         $customStyling .= file_get_contents('skins/pseudocrm.css');
@@ -324,8 +324,8 @@ class PseudoCRM {
                 $data[] = $leadType;
                 $data[] = $each['address'];
                 $data[] = $each['realname'];
-                $data[] = $each['phone'];
                 $data[] = $each['mobile'];
+                $data[] = $each['notes'];
                 $actLinks = wf_Link($leadProfileUrl, web_edit_icon());
                 $data[] = $actLinks;
                 $json->addRow($data);
@@ -977,6 +977,17 @@ class PseudoCRM {
                     $employeeLabel = $this->allEmployee[$employeeId];
                 }
                 $activityLabel = web_edit_icon() . ' ' . $activityData['date'] . ' - ' . $employeeLabel;
+                //appending actual states list here
+                $stigmaInstances = array();
+                if (!empty($this->activitiesStatesList)) {
+                    foreach ($this->activitiesStatesList as $eachScope => $eachTitle) {
+                        //creating some instances
+                        $stigmaInstances[$eachScope] = new Stigma($eachScope);
+                        //getting each activity states
+                        $activityLabel .= ' ' . $stigmaInstances[$eachScope]->textRender($activityId, ' ', 16);
+                    }
+                }
+
                 $result .= wf_tag('div', false, $activityClass, 'style="padding: 10px; margin: 10px;"');
                 $result .= wf_Link($activityUrl, $activityLabel, false, '', 'style="color: #FFFFFF;"');
                 $result .= wf_tag('div', true);
@@ -999,8 +1010,14 @@ class PseudoCRM {
                 $leadId = ubRouting::get(self::ROUTE_LEAD_PROFILE, 'int');
                 $result .= wf_Link(self::URL_ME . '&' . self::ROUTE_LEADS_LIST . '=true', wf_img('skins/ukv/users.png') . ' ' . __('Existing leads'), false, 'ubButton') . ' ';
                 $result .= wf_modalAuto(web_edit_icon() . ' ' . __('Edit lead'), __('Edit lead'), $this->renderLeadEditForm($leadId), 'ubButton');
+                $leadData = $this->getLeadData($leadId);
                 if (cfr(self::RIGHT_ACTIVITIES)) {
                     $result .= $this->renderActivityCreateForm($leadId);
+                }
+                if (!empty($leadData)) {
+                    if ($leadData['login']) {
+                        $result .= wf_Link(UserProfile::URL_PROFILE . $leadData['login'], web_profile_icon() . ' ' . __('User profile'), false, 'ubButton') . ' ';
+                    }
                 }
             } else {
                 if (ubRouting::checkGet(self::ROUTE_LEADS_LIST)) {
@@ -1012,6 +1029,7 @@ class PseudoCRM {
         if (ubRouting::checkGet(self::ROUTE_ACTIVITY_PROFILE)) {
             
         }
+
         return($result);
     }
 }
