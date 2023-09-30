@@ -96,6 +96,15 @@ if (cfr(PseudoCRM::RIGHT_VIEW)) {
             }
         }
 
+        //activity record result editing
+        if (cfr($crm::RIGHT_ACTIVITIES)) {
+            if (ubRouting::checkPost($crm::PROUTE_ACTIVITY_EDIT)) {
+                $actitivityId = ubRouting::post($crm::PROUTE_ACTIVITY_EDIT);
+                $crm->setActivityResult($actitivityId, ubRouting::post($crm::PROUTE_ACTIVITY_NOTE));
+                ubRouting::nav($crm::URL_ME . '&' . $crm::ROUTE_ACTIVITY_PROFILE . '=' . $actitivityId);
+            }
+        }
+
 
         //rendering existing lead profile
         if (ubRouting::checkGet($crm::ROUTE_LEAD_PROFILE)) {

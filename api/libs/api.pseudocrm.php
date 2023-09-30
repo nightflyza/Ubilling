@@ -140,6 +140,8 @@ class PseudoCRM {
     const PROUTE_LEAD_LOGIN = 'leadlogin';
     const PROUTE_LEAD_EMPLOYEE = 'leademployee';
     const PROUTE_LEAD_NOTES = 'leadnotes';
+    const PROUTE_ACTIVITY_EDIT = 'editactivityid';
+    const PROUTE_ACTIVITY_NOTE = 'newactivitynote';
 
     /**
      * stigma lead/activity scopes here
@@ -781,10 +783,12 @@ class PseudoCRM {
     public function setActivityDone($activityId) {
         $activityId = ubRouting::filters($activityId, 'int');
         if ($this->isActivityExists($activityId)) {
+            $activityData = $this->getActivityData($activityId);
+            $leadId = $activityData['leadid'];
             $this->activitiesDb->data('state', 1);
             $this->activitiesDb->where('id', '=', $activityId);
             $this->activitiesDb->save();
-            log_register('CRM CLOSE ACTIVITY [' . $activityId . ']');
+            log_register('CRM CLOSE ACTIVITY [' . $activityId . '] FOR LEAD [' . $leadId . ']');
         }
     }
 
@@ -798,10 +802,54 @@ class PseudoCRM {
     public function setActivityUndone($activityId) {
         $activityId = ubRouting::filters($activityId, 'int');
         if ($this->isActivityExists($activityId)) {
+            $activityData = $this->getActivityData($activityId);
+            $leadId = $activityData['leadid'];
             $this->activitiesDb->data('state', 0);
             $this->activitiesDb->where('id', '=', $activityId);
             $this->activitiesDb->save();
-            log_register('CRM OPEN ACTIVITY [' . $activityId . ']');
+            log_register('CRM OPEN ACTIVITY [' . $activityId . '] FOR LEAD [' . $leadId . ']');
+        }
+    }
+
+    /**
+     * Renders existing activity notes aka result editing form
+     * 
+     * @param int $activityId
+     * 
+     * @return string
+     */
+    protected function renderActivityResultEditForm($activityId) {
+        $result = '';
+        $activityId = ubRouting::filters($activityId, 'int');
+        if ($this->isActivityExists($activityId)) {
+            $activityData = $this->getActivityData($activityId);
+            $currentNote = $activityData['notes'];
+            $inputs = wf_HiddenInput(self::PROUTE_ACTIVITY_EDIT, $activityId);
+            $inputs .= wf_TextInput(self::PROUTE_ACTIVITY_NOTE, __('Result'), $currentNote, false, 40) . ' ';
+            $inputs .= wf_Submit(__('Save'));
+            $result .= wf_Form('', 'POST', $inputs, '');
+        }
+        return($result);
+    }
+
+    /**
+     * Changes activity record notes aka result
+     * 
+     * @param int $activityId
+     * @param string $notes
+     * 
+     * @return void
+     */
+    public function setActivityResult($activityId, $notes = '') {
+        $activityId = ubRouting::filters($activityId, 'int');
+        $notes = ubRouting::filters($notes, 'mres');
+        if ($this->isActivityExists($activityId)) {
+            $activityData = $this->getActivityData($activityId);
+            $leadId = $activityData['leadid'];
+            $this->activitiesDb->data('notes', $notes);
+            $this->activitiesDb->where('id', '=', $activityId);
+            $this->activitiesDb->save();
+            log_register('CRM CHANGE ACTIVITY [' . $activityId . '] RESULT FOR LEAD [' . $leadId . ']');
         }
     }
 
@@ -817,8 +865,16 @@ class PseudoCRM {
         $activityId = ubRouting::filters($activityId, 'int');
         if ($this->isActivityExists($activityId)) {
             $activityData = $this->getActivityData($activityId);
-
             $leadId = $activityData['leadid'];
+
+            $readOnly = cfr(self::RIGHT_ACTIVITIES) ? false : true;
+
+            //preventing state changes on closed activities
+            if ($activityData['state']) {
+                $readOnly = true;
+            }
+
+
 
             //appending lead profile here
             $result .= $this->renderLeadProfile($leadId);
@@ -854,9 +910,15 @@ class PseudoCRM {
             $result .= __('Status') . ': ' . $stateLabel;
             $result .= wf_tag('div', true);
 
+            //here result editing/display
             $result .= wf_tag('div', false, 'dashtask');
-            $result .= __('Result') . ': ' . $activityData['notes'];
+            if ($readOnly) {
+                $result .= __('Result') . ': ' . $activityData['notes'];
+            } else {
+                $result .= $this->renderActivityResultEditForm($activityId);
+            }
             $result .= wf_tag('div', true);
+
             $result .= wf_CleanDiv();
             //some state controllers here
             $result .= $this->renderActivityStatesController($activityId, 64);
