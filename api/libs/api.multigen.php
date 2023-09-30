@@ -2128,6 +2128,7 @@ class MultiGen {
      */
     protected function getQinQUsername($userLogin, $delimiter = '.') {
         $result = '';
+        /* Generate username via Universal QinQ - manual binding in vlan manager */
         if (isset($this->usersQinQ[$userLogin])) {
             $qinqData = $this->usersQinQ[$userLogin];
             if ($this->allSvlan[$qinqData['svlan_id']]['svlan'] === '0') {
@@ -2139,6 +2140,7 @@ class MultiGen {
             $assignData = $this->userSwitchAssigns[$userLogin];
             $assignedSwitchId = $assignData['switchid'];
             $assignedPort = $assignData['port'];
+            /* Generate username via Switch QinQ - auto assign c-vlan per switch port */
             if (isset($this->switchesQinQ[$assignedSwitchId])) {
                 $qinqData = $this->switchesQinQ[$assignedSwitchId];
                 if (!empty($assignedPort)) {
@@ -2150,12 +2152,22 @@ class MultiGen {
                 }
             }
         }
+        /* Adding realm to username from vlan manager - Universal and Switch QinQ */
         if (!empty($result)) {
             if (isset($this->allSvlan[$qinqData['svlan_id']])) {
                 $realmId = $this->allSvlan[$qinqData['svlan_id']]['realm_id'];
                 if ($realmId != 1) {
                     $result .= '@' . $this->allRealms[$realmId]['realm'];
                 }
+            }
+        /* Generate username based option 82 - Switch MAC and Port */
+        } elseif (isset($this->userSwitchAssigns[$userLogin])) {
+            $realm_opt82 = 'option82';
+            $userSwitchId = @$this->userSwitchAssigns[$userLogin]['switchid'];
+            $switchMac = @$this->allSwitches[$userSwitchId]['swid'];
+            $userSwitchPort = @$this->userSwitchAssigns[$userLogin]['port'];
+            if (!empty($userSwitchPort)) {
+                $result .= $switchMac . $delimiter . $userSwitchPort . '@' . $realm_opt82;
             }
         }
         return($result);
