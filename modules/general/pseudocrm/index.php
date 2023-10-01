@@ -78,6 +78,34 @@ if (cfr(PseudoCRM::RIGHT_VIEW)) {
             }
         }
 
+        //seting activity as done
+        if (cfr($crm::RIGHT_ACTIVITIES)) {
+            if (ubRouting::checkGet($crm::ROUTE_ACTIVITY_DONE)) {
+                $actitivityId = ubRouting::get($crm::ROUTE_ACTIVITY_DONE);
+                $crm->setActivityDone($actitivityId);
+                ubRouting::nav($crm::URL_ME . '&' . $crm::ROUTE_ACTIVITY_PROFILE . '=' . $actitivityId);
+            }
+        }
+
+        //seting activity as undone
+        if (cfr($crm::RIGHT_ACTIVITIES)) {
+            if (ubRouting::checkGet($crm::ROUTE_ACTIVITY_UNDONE)) {
+                $actitivityId = ubRouting::get($crm::ROUTE_ACTIVITY_UNDONE);
+                $crm->setActivityUndone($actitivityId);
+                ubRouting::nav($crm::URL_ME . '&' . $crm::ROUTE_ACTIVITY_PROFILE . '=' . $actitivityId);
+            }
+        }
+
+        //activity record result editing
+        if (cfr($crm::RIGHT_ACTIVITIES)) {
+            if (ubRouting::checkPost($crm::PROUTE_ACTIVITY_EDIT)) {
+                $actitivityId = ubRouting::post($crm::PROUTE_ACTIVITY_EDIT);
+                $crm->setActivityResult($actitivityId, ubRouting::post($crm::PROUTE_ACTIVITY_NOTE));
+                ubRouting::nav($crm::URL_ME . '&' . $crm::ROUTE_ACTIVITY_PROFILE . '=' . $actitivityId);
+            }
+        }
+
+
         //rendering existing lead profile
         if (ubRouting::checkGet($crm::ROUTE_LEAD_PROFILE)) {
             $leadId = ubRouting::get($crm::ROUTE_LEAD_PROFILE, 'int');
@@ -96,7 +124,8 @@ if (cfr(PseudoCRM::RIGHT_VIEW)) {
 
         //rendering existing lead activity
         if (ubRouting::checkGet($crm::ROUTE_ACTIVITY_PROFILE)) {
-            show_window(__('Activity record'), $crm->renderActivityProfile(ubRouting::get($crm::ROUTE_ACTIVITY_PROFILE)));
+            $activityId = ubRouting::get($crm::ROUTE_ACTIVITY_PROFILE);
+            show_window(__('Activity record'), $crm->renderActivityProfile($activityId));
         }
 
         zb_BillingStats();

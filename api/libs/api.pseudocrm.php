@@ -84,6 +84,13 @@ class PseudoCRM {
     protected $branchesFlag = false;
 
     /**
+     * Contains available states stigma scopes for activities as SCOPE=>__(name)
+     * 
+     * @var array
+     */
+    protected $activitiesStatesList = array();
+
+    /**
      * Contains all available tariff names as tariffName=>__(tariffName)
      * 
      * @var array
@@ -114,6 +121,8 @@ class PseudoCRM {
     const ROUTE_ACTIVITY_PROFILE = 'showactivity';
     const ROUTE_ACTIVITY_CREATE = 'createnewactivity';
     const ROUTE_LEAD_DETECT = 'username';
+    const ROUTE_ACTIVITY_DONE = 'setactivitydone';
+    const ROUTE_ACTIVITY_UNDONE = 'setactivityundone';
 
     /**
      * post-routes
@@ -131,11 +140,17 @@ class PseudoCRM {
     const PROUTE_LEAD_LOGIN = 'leadlogin';
     const PROUTE_LEAD_EMPLOYEE = 'leademployee';
     const PROUTE_LEAD_NOTES = 'leadnotes';
+    const PROUTE_ACTIVITY_EDIT = 'editactivityid';
+    const PROUTE_ACTIVITY_NOTE = 'newactivitynote';
 
     /**
-     * stigma scopes here
+     * stigma lead/activity scopes here
      */
+    const PHOTO_ACT_SCOPE = 'CRMACTIVITY';
     const STIGMA_LEAD_SOURCE = 'CRMSOURCE';
+    const STIGMA_ACT_TYPE = 'CRMACTTYPE';
+    const STIGMA_ACT_RESULT = 'CRMACTRESULT';
+    const STIGMA_ACT_TARGET = 'CRMACTTARGET';
 
     /**
      * Creates new PseudoCRM instance
@@ -143,6 +158,7 @@ class PseudoCRM {
     public function __construct() {
         $this->initMessages();
         $this->loadAlter();
+        $this->setActivitiesStatesList();
         $this->initLeadsDb();
         $this->initActivitiesDb();
         $this->loadEmployeeData();
@@ -171,6 +187,19 @@ class PseudoCRM {
     protected function loadAlter() {
         global $ubillingConfig;
         $this->altCfg = $ubillingConfig->getAlter();
+    }
+
+    /**
+     * Sets available activities states list
+     * 
+     * @return void
+     */
+    protected function setActivitiesStatesList() {
+        $this->activitiesStatesList = array(
+            self::STIGMA_ACT_TYPE => __('Marketing type'),
+            self::STIGMA_ACT_RESULT => __('Post-marketing status'),
+            self::STIGMA_ACT_TARGET => __('Marketing target'),
+        );
     }
 
     /**
@@ -270,7 +299,7 @@ class PseudoCRM {
      */
     public function renderLeadsList() {
         $result = '';
-        $columns = array('ID', 'Type', 'Full address', 'Real Name', 'Phone', 'Mobile', 'Actions');
+        $columns = array('ID', 'Type', 'Full address', 'Real Name', 'Mobile', 'Notes', 'Actions');
         $url = self::URL_ME . '&' . self::ROUTE_LEADS_LIST_AJ . '=true';
         $customStyling = wf_tag('style');
         $customStyling .= file_get_contents('skins/pseudocrm.css');
@@ -295,8 +324,8 @@ class PseudoCRM {
                 $data[] = $leadType;
                 $data[] = $each['address'];
                 $data[] = $each['realname'];
-                $data[] = $each['phone'];
                 $data[] = $each['mobile'];
+                $data[] = $each['notes'];
                 $actLinks = wf_Link($leadProfileUrl, web_edit_icon());
                 $data[] = $actLinks;
                 $json->addRow($data);
@@ -688,7 +717,7 @@ class PseudoCRM {
      * 
      * @return bool
      */
-    protected function isActivityExists($activityId) {
+    public function isActivityExists($activityId) {
         $result = false;
         if (isset($this->allActivities[$activityId])) {
             $result = true;
@@ -703,12 +732,125 @@ class PseudoCRM {
      * 
      * @return array
      */
-    protected function getActivityData($activityId) {
+    public function getActivityData($activityId) {
         $result = array();
         if (isset($this->allActivities[$activityId])) {
             $result = $this->allActivities[$activityId];
         }
         return($result);
+    }
+
+    /**
+     * Render existing activity states controllers
+     * 
+     * @param int $activityId
+     * @param int $size
+     * 
+     * @return string
+     */
+    protected function renderActivityStatesController($activityId, $size = 128) {
+        $activityId = ubRouting::filters($activityId, 'int');
+        $result = '';
+        $readOnly = cfr(self::RIGHT_ACTIVITIES) ? false : true;
+        $activityData = $this->getActivityData($activityId);
+        //preventing state changes on closed activities
+        if ($activityData['state']) {
+            $readOnly = true;
+        }
+        $stigmaInstances = array();
+        if (!empty($this->activitiesStatesList)) {
+            foreach ($this->activitiesStatesList as $eachScope => $eachTitle) {
+                //creating some instances
+                $stigmaInstances[$eachScope] = new Stigma($eachScope, $activityId);
+                //render state here
+                $result .= wf_tag('strong', false) . __($eachTitle) . wf_tag('strong', true) . wf_delimiter(0);
+                if (cfr(self::RIGHT_ACTIVITIES)) {
+                    $stigmaInstances[$eachScope]->stigmaController('CUSTOM:' . self::TABLE_STATES_LOG);
+                }
+                $result .= $stigmaInstances[$eachScope]->render($activityId, $size, $readOnly);
+            }
+        }
+        return($result);
+    }
+
+    /**
+     * Sets existing activity database record as processed
+     * 
+     * @param int $activityId
+     * 
+     * @return void
+     */
+    public function setActivityDone($activityId) {
+        $activityId = ubRouting::filters($activityId, 'int');
+        if ($this->isActivityExists($activityId)) {
+            $activityData = $this->getActivityData($activityId);
+            $leadId = $activityData['leadid'];
+            $this->activitiesDb->data('state', 1);
+            $this->activitiesDb->where('id', '=', $activityId);
+            $this->activitiesDb->save();
+            log_register('CRM CLOSE ACTIVITY [' . $activityId . '] FOR LEAD [' . $leadId . ']');
+        }
+    }
+
+    /**
+     * Sets existing activity database record as not processed
+     * 
+     * @param int $activityId
+     * 
+     * @return void
+     */
+    public function setActivityUndone($activityId) {
+        $activityId = ubRouting::filters($activityId, 'int');
+        if ($this->isActivityExists($activityId)) {
+            $activityData = $this->getActivityData($activityId);
+            $leadId = $activityData['leadid'];
+            $this->activitiesDb->data('state', 0);
+            $this->activitiesDb->where('id', '=', $activityId);
+            $this->activitiesDb->save();
+            log_register('CRM OPEN ACTIVITY [' . $activityId . '] FOR LEAD [' . $leadId . ']');
+        }
+    }
+
+    /**
+     * Renders existing activity notes aka result editing form
+     * 
+     * @param int $activityId
+     * 
+     * @return string
+     */
+    protected function renderActivityResultEditForm($activityId) {
+        $result = '';
+        $activityId = ubRouting::filters($activityId, 'int');
+        if ($this->isActivityExists($activityId)) {
+            $activityData = $this->getActivityData($activityId);
+            $currentNote = $activityData['notes'];
+            $inputs = wf_HiddenInput(self::PROUTE_ACTIVITY_EDIT, $activityId);
+            $inputs .= wf_TextInput(self::PROUTE_ACTIVITY_NOTE, __('Result'), $currentNote, false, 40) . ' ';
+            $inputs .= wf_Submit(__('Save'));
+            $result .= wf_Form('', 'POST', $inputs, '');
+        }
+        return($result);
+    }
+
+    /**
+     * Changes activity record notes aka result
+     * 
+     * @param int $activityId
+     * @param string $notes
+     * 
+     * @return void
+     */
+    public function setActivityResult($activityId, $notes = '') {
+        $activityId = ubRouting::filters($activityId, 'int');
+        $notes = ubRouting::filters($notes, 'mres');
+        if ($this->isActivityExists($activityId)) {
+            $activityData = $this->getActivityData($activityId);
+            $leadId = $activityData['leadid'];
+            $this->activitiesDb->data('notes', $notes);
+            $this->activitiesDb->where('id', '=', $activityId);
+            $this->activitiesDb->save();
+            log_register('CRM CHANGE ACTIVITY [' . $activityId . '] RESULT FOR LEAD [' . $leadId . ']');
+        }
     }
 
     /**
@@ -723,12 +865,72 @@ class PseudoCRM {
         $activityId = ubRouting::filters($activityId, 'int');
         if ($this->isActivityExists($activityId)) {
             $activityData = $this->getActivityData($activityId);
-            debarr($activityData);
             $leadId = $activityData['leadid'];
 
-            $leadBackLink = wf_BackLink(self::URL_ME . '&' . self::ROUTE_LEAD_PROFILE . '=' . $leadId);
-            $result .= $leadBackLink;
-            $result .= wf_delimiter();
+            $readOnly = cfr(self::RIGHT_ACTIVITIES) ? false : true;
+
+            //preventing state changes on closed activities
+            if ($activityData['state']) {
+                $readOnly = true;
+            }
+
+
+
+            //appending lead profile here
+            $result .= $this->renderLeadProfile($leadId);
+
+            //and some controls
+            $leadBackLink = wf_BackLink(self::URL_ME . '&' . self::ROUTE_LEAD_PROFILE . '=' . $leadId) . ' ';
+            $activityControls = $leadBackLink;
+            if (cfr(self::RIGHT_ACTIVITIES)) {
+                if ($activityData['state']) {
+                    $actOpenUrl = self::URL_ME . '&' . self::ROUTE_ACTIVITY_PROFILE . '=' . $activityId . '&' . self::ROUTE_ACTIVITY_UNDONE . '=' . $activityId;
+                    $activityControls .= wf_Link($actOpenUrl, wf_img('skins/icon_unlock.png') . ' ' . __('Open'), false, 'ubButton') . ' ';
+                } else {
+                    $actCloseUrl = self::URL_ME . '&' . self::ROUTE_ACTIVITY_PROFILE . '=' . $activityId . '&' . self::ROUTE_ACTIVITY_DONE . '=' . $activityId;
+                    $activityControls .= wf_Link($actCloseUrl, wf_img('skins/icon_lock.png') . ' ' . __('Close'), false, 'ubButton') . ' ';
+                }
+            }
+
+            $result .= $activityControls;
+
+            //activity basic data
+            $result .= wf_delimiter(0);
+
+            $result .= wf_tag('div', false, 'dashtask');
+            $result .= __('Date') . ': ' . $activityData['date'];
+            $result .= wf_tag('div', true);
+
+            $result .= wf_tag('div', false, 'dashtask');
+            $result .= __('Worker') . ': ' . @$this->allEmployee[$activityData['employeeid']];
+            $result .= wf_tag('div', true);
+
+            $stateLabel = ($activityData['state']) ? __('New') : __('Closed');
+            $result .= wf_tag('div', false, 'dashtask');
+            $result .= __('Status') . ': ' . $stateLabel;
+            $result .= wf_tag('div', true);
+
+            //here result editing/display
+            $result .= wf_tag('div', false, 'dashtask');
+            if ($readOnly) {
+                $result .= __('Result') . ': ' . $activityData['notes'];
+            } else {
+                $result .= $this->renderActivityResultEditForm($activityId);
+            }
+            $result .= wf_tag('div', true);
+
+            $result .= wf_CleanDiv();
+            //some state controllers here
+            $result .= $this->renderActivityStatesController($activityId, 64);
+            $result .= wf_delimiter(0);
+            //photostorage here
+            if ($this->altCfg['PHOTOSTORAGE_ENABLED']) {
+                $photostorage = new PhotoStorage(self::PHOTO_ACT_SCOPE, $activityId);
+                $photostorageUrl = $photostorage::MODULE_URL . '&scope=' . self::PHOTO_ACT_SCOPE . '&itemid=' . $activityId . '&mode=list';
+                $result .= wf_Link($photostorageUrl, wf_img('skins/photostorage.png') . ' ' . __('Upload images'), false, 'ubButton');
+                $result .= wf_delimiter();
+                $result .= $photostorage->renderImagesRaw();
+            }
         } else {
             $result .= $this->messages->getStyledMessage(__('Strange exception') . ': ' . __('Activity record') . ' [' . $activityId . '] ' . __('Not exists'), 'error');
         }
@@ -765,6 +967,15 @@ class PseudoCRM {
         $result = '';
         $previousActivities = $this->getLeadActivities($leadId);
         if (!empty($previousActivities)) {
+            //performing stigma instances creation
+            $stigmaInstances = array();
+            if (!empty($this->activitiesStatesList)) {
+                foreach ($this->activitiesStatesList as $eachScope => $eachTitle) {
+                    //creating some instances
+                    $stigmaInstances[$eachScope] = new Stigma($eachScope);
+                }
+            }
+
             $result .= wf_CleanDiv();
             foreach ($previousActivities as $activityId => $activityData) {
                 $activityUrl = self::URL_ME . '&' . self::ROUTE_ACTIVITY_PROFILE . '=' . $activityId;
@@ -775,6 +986,15 @@ class PseudoCRM {
                     $employeeLabel = $this->allEmployee[$employeeId];
                 }
                 $activityLabel = web_edit_icon() . ' ' . $activityData['date'] . ' - ' . $employeeLabel;
+
+                //getting and appending each activity states
+                $activityLabel .= ' ' . $stigmaInstances[$eachScope]->textRender($activityId, ' ', 16);
+                //appending comment as result if not empty
+                if (!empty($activityData['notes'])) {
+                    $activityLabel .= ', ' . $activityData['notes'];
+                } else {
+                    $activityLabel .= ', ' . __('No result');
+                }
                 $result .= wf_tag('div', false, $activityClass, 'style="padding: 10px; margin: 10px;"');
                 $result .= wf_Link($activityUrl, $activityLabel, false, '', 'style="color: #FFFFFF;"');
                 $result .= wf_tag('div', true);
@@ -797,8 +1017,14 @@ class PseudoCRM {
                 $leadId = ubRouting::get(self::ROUTE_LEAD_PROFILE, 'int');
                 $result .= wf_Link(self::URL_ME . '&' . self::ROUTE_LEADS_LIST . '=true', wf_img('skins/ukv/users.png') . ' ' . __('Existing leads'), false, 'ubButton') . ' ';
                 $result .= wf_modalAuto(web_edit_icon() . ' ' . __('Edit lead'), __('Edit lead'), $this->renderLeadEditForm($leadId), 'ubButton');
+                $leadData = $this->getLeadData($leadId);
                 if (cfr(self::RIGHT_ACTIVITIES)) {
                     $result .= $this->renderActivityCreateForm($leadId);
+                }
+                if (!empty($leadData)) {
+                    if ($leadData['login']) {
+                        $result .= wf_Link(UserProfile::URL_PROFILE . $leadData['login'], web_profile_icon() . ' ' . __('User profile'), false, 'ubButton') . ' ';
+                    }
                 }
             } else {
                 if (ubRouting::checkGet(self::ROUTE_LEADS_LIST)) {
@@ -810,6 +1036,7 @@ class PseudoCRM {
         if (ubRouting::checkGet(self::ROUTE_ACTIVITY_PROFILE)) {
             
         }
+
         return($result);
     }
 }
