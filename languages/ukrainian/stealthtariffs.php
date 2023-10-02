@@ -8,4 +8,3 @@ $lang['def']['Available stealth tariffs'] = 'Наявні стелс-тариф�
 $lang['def']['Any tariffs available'] = 'Немає наявних тарифів';
 $lang['def']['All tariffs marked as stealth'] = 'Всі тарифи помічено як стелс-тарифи. Ну припустимо..';
 $lang['def']['Already stealth'] = 'Вже стелс-тариф';
-$lang['def'][''] = '';
