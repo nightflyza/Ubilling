@@ -140,6 +140,8 @@ class PseudoCRM {
      */
     const PROUTE_LEAD_CREATE = 'leadcreatenew';
     const PROUTE_LEAD_SAVE = 'leadeditexisting';
+    const PROUTE_LEAD_ASSIGN = 'assignlogintolead';
+    const PROUTE_LEAD_ASSIGN_ID = 'leadidtoassign';
     const PROUTE_LEAD_ADDR = 'leadaddress';
     const PROUTE_LEAD_NAME = 'leadname';
     const PROUTE_LEAD_PHONE = 'leadphone';
@@ -1189,6 +1191,66 @@ class PseudoCRM {
             }
         }
         $json->getJson();
+    }
+
+    /**
+     * Renders lead assign form
+     * 
+     * @param string $login
+     * 
+     * @return string
+     */
+    public function renderLeadAssignForm($login) {
+        $result = '';
+        if (isset($this->allUserData[$login])) {
+            $inputs = wf_HiddenInput(self::PROUTE_LEAD_ASSIGN, $login);
+            $availableLeadsParams = array('' => '-');
+            if (!empty($this->allLeads)) {
+                foreach ($this->allLeads as $io => $each) {
+                    //lead have no user assigned yet
+                    if (empty($each['login'])) {
+                        $availableLeadsParams[$each['id']] = $each['address'] . ' ' . $each['realname'];
+                    }
+                }
+            }
+
+            $inputs .= wf_SelectorSearchable(self::PROUTE_LEAD_ASSIGN_ID, $availableLeadsParams, __('Lead'), '', false);
+            $inputs .= wf_Submit(__('Assign'));
+
+            $result .= wf_Form('', 'POST', $inputs, 'glamour');
+            $result .= wf_delimiter();
+            $result .= web_UserControls($login);
+        } else {
+            $result .= $this->messages->getStyledMessage(__('Strange exception') . ': ' . __('User not exists'), 'error');
+        }
+        return($result);
+    }
+
+    /**
+     * Assigns some login to existing lead
+     * 
+     * @param int $leadId
+     * @param string $login
+     * 
+     * @return void/string on error
+     */
+    public function setLeadLogin($leadId, $login) {
+        $result = '';
+        $leadId = ubRouting::filters($leadId, 'int');
+        $loginF = ubRouting::filters($login, 'mres');
+        if ($this->isLeadExists($leadId)) {
+            if (isset($this->allUserData[$loginF])) {
+                $this->leadsDb->data('login', $loginF);
+                $this->leadsDb->where('id', '=', $leadId);
+                $this->leadsDb->save();
+                log_register('CRM LEAD [' . $leadId . '] ASSIGN (' . $login . ')');
+            } else {
+                $result .= __('Strange exception') . ': ' . __('User not exists') . ' (' . $login . ')';
+            }
+        } else {
+            $result .= __('Strange exception') . ': ' . __('Lead') . ' [' . $leadId . '] ' . __('Not exists');
+        }
+        return($result);
     }
 
     /**

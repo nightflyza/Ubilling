@@ -45,3 +45,4 @@ $lang['def']['Office dialog'] = 'Офисный диалог';
 $lang['def']['No result'] = 'Без результата';
 $lang['def']['Leads sources'] = 'Источники лидов';
 $lang['def']['States log'] = 'Лог состояний';
+$lang['def']['Assign lead'] = 'Присвоить лида';

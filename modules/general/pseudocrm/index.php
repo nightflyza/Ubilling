@@ -142,16 +142,29 @@ if (cfr(PseudoCRM::RIGHT_VIEW)) {
             show_window(__('States log'), $crm->renderReportStatesLog());
         }
 
+        //login to lead assign
+        if (ubRouting::checkPost(array($crm::PROUTE_LEAD_ASSIGN, $crm::PROUTE_LEAD_ASSIGN_ID))) {
+            $assignUserLogin = ubRouting::post($crm::PROUTE_LEAD_ASSIGN);
+            $assignLeadId = ubRouting::post($crm::PROUTE_LEAD_ASSIGN_ID);
+            $leadAssignResult = $crm->setLeadLogin($assignLeadId, $assignUserLogin);
+            if (empty($leadAssignResult)) {
+                ubRouting::nav($crm::URL_ME . '&' . $crm::ROUTE_LEAD_PROFILE . '=' . $assignLeadId);
+            } else {
+                show_error($leadAssignResult);
+            }
+        }
+
 
         //detecting lead by assigned login
         if (ubRouting::checkGet($crm::ROUTE_LEAD_DETECT)) {
-            $detectedLeadId = $crm->searchLeadByLogin(ubRouting::get($crm::ROUTE_LEAD_DETECT));
+            $userLogin = ubRouting::get($crm::ROUTE_LEAD_DETECT);
+            $detectedLeadId = $crm->searchLeadByLogin($userLogin);
             //go to the lead profile
             if ($detectedLeadId) {
                 ubRouting::nav($crm::URL_ME . '&' . $crm::ROUTE_LEAD_PROFILE . '=' . $detectedLeadId);
             } else {
                 //or render assigning form
-                deb('TODO: lead assign form here');
+                show_window(__('Assign lead'), $crm->renderLeadAssignForm($userLogin));
             }
         }
 
