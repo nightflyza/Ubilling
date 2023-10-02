@@ -128,6 +128,18 @@ if (cfr(PseudoCRM::RIGHT_VIEW)) {
             show_window(__('Activity record'), $crm->renderActivityProfile($activityId));
         }
 
+        //detecting lead by assigned login
+        if (ubRouting::checkGet($crm::ROUTE_LEAD_DETECT)) {
+            $detectedLeadId = $crm->searchLeadByLogin(ubRouting::get($crm::ROUTE_LEAD_DETECT));
+            //go to the lead profile
+            if ($detectedLeadId) {
+                ubRouting::nav($crm::URL_ME . '&' . $crm::ROUTE_LEAD_PROFILE . '=' . $detectedLeadId);
+            } else {
+                //or render assigning form
+                
+            }
+        }
+
         zb_BillingStats();
     } else {
         show_error(__('This module is disabled'));

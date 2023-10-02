@@ -103,6 +103,7 @@ class PseudoCRM {
     const RIGHT_VIEW = 'PSEUDOCRM';
     const RIGHT_LEADS = 'PSEUDOCRMLEADS';
     const RIGHT_ACTIVITIES = 'PSEUDOCRMACTS';
+    const RIGHT_TASKS = 'TASKMAN';
 
     /**
      * database shortcuts
@@ -988,7 +989,12 @@ class PseudoCRM {
                 $activityLabel = web_edit_icon() . ' ' . $activityData['date'] . ' - ' . $employeeLabel;
 
                 //getting and appending each activity states
-                $activityLabel .= ' ' . $stigmaInstances[$eachScope]->textRender($activityId, ' ', 16);
+                if (!empty($stigmaInstances)) {
+                    foreach ($stigmaInstances as $eachScope => $eachStigma) {
+                        $activityLabel .= ' ' . $stigmaInstances[$eachScope]->textRender($activityId, ' ', 16);
+                    }
+                }
+
                 //appending comment as result if not empty
                 if (!empty($activityData['notes'])) {
                     $activityLabel .= ', ' . $activityData['notes'];
@@ -1006,35 +1012,90 @@ class PseudoCRM {
     }
 
     /**
+     * Returns lead task creation form 
+     * 
+     * @param int $leadId
+     * 
+     * @return string
+     */
+    public function renderLeadTaskCreateForm($leadId) {
+        $result = '';
+        $leadId = ubRouting::filters($leadId, 'int');
+        if ($this->isLeadExists($leadId)) {
+            $leadData = $this->getLeadData($leadId);
+            $taskAddress = $leadData['address'];
+            $taskMobile = $leadData['mobile'];
+            $taskPhone = $leadData['phone'];
+            $taskExtMobile = $leadData['extmobile'];
+            if (!empty($taskExtMobile)) {
+                $taskMobile .= ' ' . $taskExtMobile;
+            }
+            $taskLogin = $leadData['login'];
+            $taskForm = ts_TaskCreateFormUnified($taskAddress, $taskMobile, $taskPhone, $taskLogin);
+            $result .= wf_modal(wf_img('skins/createtask.gif') . ' ' . __('Create task'), __('Create task'), $taskForm, 'ubButton', '450', '540');
+        }
+        return($result);
+    }
+
+    /**
+     * Searches lead Id by assigned login, returns 0 if not found.
+     * 
+     * @param string $userLogin
+     * 
+     * @return int
+     */
+    public function searchLeadByLogin($userLogin) {
+        $result = 0;
+        if (!empty($this->allLeads)) {
+            foreach ($this->allLeads as $io => $eachLead) {
+                if ($eachLead['login'] == $userLogin) {
+                    $result = $eachLead['id'];
+                    break;
+                }
+            }
+        }
+        return($result);
+    }
+
+    /**
      * Renders primary module controls
      * 
      * @return string
      */
     public function renderPanel() {
         $result = '';
-        if (cfr(self::RIGHT_LEADS)) {
-            if (ubRouting::checkGet(self::ROUTE_LEAD_PROFILE)) {
-                $leadId = ubRouting::get(self::ROUTE_LEAD_PROFILE, 'int');
-                $result .= wf_Link(self::URL_ME . '&' . self::ROUTE_LEADS_LIST . '=true', wf_img('skins/ukv/users.png') . ' ' . __('Existing leads'), false, 'ubButton') . ' ';
+
+        if (ubRouting::checkGet(self::ROUTE_LEAD_PROFILE)) {
+            $leadId = ubRouting::get(self::ROUTE_LEAD_PROFILE, 'int');
+            $leadData = $this->getLeadData($leadId);
+            $result .= wf_Link(self::URL_ME . '&' . self::ROUTE_LEADS_LIST . '=true', wf_img('skins/ukv/users.png') . ' ' . __('Existing leads'), false, 'ubButton') . ' ';
+
+            if (cfr(self::RIGHT_LEADS)) {
                 $result .= wf_modalAuto(web_edit_icon() . ' ' . __('Edit lead'), __('Edit lead'), $this->renderLeadEditForm($leadId), 'ubButton');
-                $leadData = $this->getLeadData($leadId);
-                if (cfr(self::RIGHT_ACTIVITIES)) {
-                    $result .= $this->renderActivityCreateForm($leadId);
+            }
+
+            if (cfr(self::RIGHT_ACTIVITIES)) {
+                $result .= $this->renderActivityCreateForm($leadId);
+            }
+            if (!empty($leadData)) {
+                if ($leadData['login']) {
+                    $result .= wf_Link(UserProfile::URL_PROFILE . $leadData['login'], web_profile_icon() . ' ' . __('User profile'), false, 'ubButton') . ' ';
                 }
-                if (!empty($leadData)) {
-                    if ($leadData['login']) {
-                        $result .= wf_Link(UserProfile::URL_PROFILE . $leadData['login'], web_profile_icon() . ' ' . __('User profile'), false, 'ubButton') . ' ';
-                    }
-                }
-            } else {
-                if (ubRouting::checkGet(self::ROUTE_LEADS_LIST)) {
+            }
+            if (cfr(self::RIGHT_TASKS)) {
+                $result .= $this->renderLeadTaskCreateForm($leadId);
+            }
+        } else {
+            if (ubRouting::checkGet(self::ROUTE_LEADS_LIST)) {
+                if (cfr(self::RIGHT_LEADS)) {
                     $result .= wf_modalAuto(web_icon_create() . ' ' . __('Create new lead'), __('Create new lead'), $this->renderLeadCreateForm(), 'ubButton') . ' ';
                 }
             }
         }
 
+
         if (ubRouting::checkGet(self::ROUTE_ACTIVITY_PROFILE)) {
-            
+            // ????
         }
 
         return($result);
