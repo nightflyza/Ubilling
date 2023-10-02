@@ -194,15 +194,15 @@ class PseudoCRM {
     }
 
     /**
-     * Sets available activities states list
+     * Sets available activities states list. May be configurable in future.
      * 
      * @return void
      */
     protected function setActivitiesStatesList() {
         $this->activitiesStatesList = array(
             self::STIGMA_ACT_TYPE => __('Marketing type'),
-            self::STIGMA_ACT_RESULT => __('Post-marketing status'),
             self::STIGMA_ACT_TARGET => __('Marketing target'),
+            self::STIGMA_ACT_RESULT => __('Post-marketing status'),
         );
     }
 
