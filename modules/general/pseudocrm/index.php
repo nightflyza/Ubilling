@@ -15,6 +15,10 @@ if (cfr(PseudoCRM::RIGHT_VIEW)) {
             $crm->ajLeadsList();
         }
 
+        //rendering states ajax log
+        if (ubRouting::checkGet($crm::ROUTE_REPORT_STATESLOG_AJ)) {
+            $crm->ajStatesLog();
+        }
         //new lead creation
         if (cfr($crm::RIGHT_LEADS)) {
             if (ubRouting::checkPost($crm::PROUTE_LEAD_CREATE)) {
@@ -131,6 +135,11 @@ if (cfr(PseudoCRM::RIGHT_VIEW)) {
         //lead sources report here
         if (ubRouting::checkGet($crm::ROUTE_REPORT_SOURCES)) {
             show_window(__('Leads sources'), $crm->renderReportLeadSources());
+        }
+
+        //lead states report here
+        if (ubRouting::checkGet($crm::ROUTE_REPORT_STATESLOG)) {
+            show_window(__('States log'), $crm->renderReportStatesLog());
         }
 
 

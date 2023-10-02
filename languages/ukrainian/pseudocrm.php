@@ -44,6 +44,7 @@ $lang['def']['New'] = 'Новий';
 $lang['def']['Office dialog'] = 'Офісний діалог';
 $lang['def']['No result'] = 'Без результату';
 $lang['def']['Leads sources'] = 'Джерела лідів';
+$lang['def']['States log'] = 'Журнал станів';
 $lang['def'][''] = '';
 $lang['def'][''] = '';
 

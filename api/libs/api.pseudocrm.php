@@ -125,6 +125,8 @@ class PseudoCRM {
     const ROUTE_ACTIVITY_DONE = 'setactivitydone';
     const ROUTE_ACTIVITY_UNDONE = 'setactivityundone';
     const ROUTE_REPORT_SOURCES = 'reportleadsources';
+    const ROUTE_REPORT_STATESLOG = 'reportstates';
+    const ROUTE_REPORT_STATESLOG_AJ = 'ajaxtstatesreport';
 
     /**
      * post-routes
@@ -1083,6 +1085,78 @@ class PseudoCRM {
     }
 
     /**
+     * Renders states report
+     * 
+     * @return string
+     */
+    public function renderReportStatesLog() {
+        $result = '';
+        $columns = array('Date', 'Worker', 'Status', 'Activity record', 'Event', 'Value');
+        $opts = ' "order": [[ 0, "desc" ]]';
+        $ajaxUrl = self::URL_ME . '&' . self::ROUTE_REPORT_STATESLOG_AJ . '=true';
+        $result .= wf_JqDtLoader($columns, $ajaxUrl, false, __('Events'), 100, $opts);
+        return($result);
+    }
+
+    /**
+     * Renders states log report ajax data
+     * 
+     * @return void
+     */
+    public function ajStatesLog() {
+        $json = new wf_JqDtHelper();
+        $statesLogDb = new NyanORM(self::TABLE_STATES_LOG);
+        $statesLogDb->where('scope', '!=', self::STIGMA_LEAD_SOURCE);
+        $statesLogDb->orderBy('id', 'DESC');
+        $allStatesLog = $statesLogDb->getAll();
+
+        if (!empty($allStatesLog)) {
+            //preloading stigma isnstances
+            $stigmaInstances = array();
+            $allStatesNames = array();
+            $allStatesIcons = array();
+            if (!empty($this->activitiesStatesList)) {
+                foreach ($this->activitiesStatesList as $eachScope => $scopeName) {
+                    $stigmaInstances[$eachScope] = new Stigma($eachScope);
+                    $allStatesNames[$eachScope] = $stigmaInstances[$eachScope]->getAllStates();
+                    if (!empty($allStatesNames[$eachScope])) {
+                        foreach ($allStatesNames[$eachScope] as $eachStateId => $eachStateName) {
+                            $allStatesIcons[$eachScope][$eachStateId] = $stigmaInstances[$eachScope]->getStateIcon($eachStateId);
+                        }
+                    }
+                }
+            }
+
+            foreach ($allStatesLog as $io => $each) {
+                $data[] = $each['date'];
+                $adminLabel = (isset($this->allEmployeeLogins[$each['admin']])) ? $this->allEmployee[$this->allEmployeeLogins[$each['admin']]] : $each['admin'];
+                $data[] = $adminLabel;
+                $scopeName = (isset($this->activitiesStatesList[$each['scope']])) ? __($this->activitiesStatesList[$each['scope']]) : __('Unknown');
+                $data[] = $scopeName;
+                $actityLink = wf_Link(self::URL_ME . '&' . self::ROUTE_ACTIVITY_PROFILE . '=' . $each['itemid'], $each['itemid']);
+                $data[] = $actityLink;
+                $data[] = __($each['action']);
+                $stateName = $each['state'];
+                $stateIcon = '';
+                $stateIconCode = '';
+                if (isset($allStatesNames[$each['scope']])) {
+                    if (isset($allStatesNames[$each['scope']][$stateName])) {
+                        $stateName = $allStatesNames[$each['scope']][$stateName];
+                        $stateIcon = $allStatesIcons[$each['scope']][$each['state']];
+                        if (!empty($stateIcon)) {
+                            $stateIconCode = wf_img_sized($stateIcon, '', 10) . ' ';
+                        }
+                    }
+                }
+                $data[] = $stateIconCode . __($stateName);
+                $json->addRow($data);
+                unset($data);
+            }
+        }
+        $json->getJson();
+    }
+
+    /**
      * Renders primary module controls
      * 
      * @return string
@@ -1117,9 +1191,14 @@ class PseudoCRM {
                 $result .= wf_modalAuto(web_icon_create() . ' ' . __('Create new lead'), __('Create new lead'), $this->renderLeadCreateForm(), 'ubButton') . ' ';
             }
             $result .= wf_Link(self::URL_ME . '&' . self::ROUTE_REPORT_SOURCES . '=true', wf_img('skins/icon_funnel16.png') . ' ' . __('Leads sources'), false, 'ubButton') . ' ';
+            $result .= wf_Link(self::URL_ME . '&' . self::ROUTE_REPORT_STATESLOG . '=true', wf_img('skins/icon_note.gif') . ' ' . __('States log'), false, 'ubButton') . ' ';
         }
 
         if (ubRouting::checkGet(self::ROUTE_REPORT_SOURCES)) {
+            $result .= wf_BackLink(self::URL_ME . '&' . self::ROUTE_LEADS_LIST . '=true') . ' ';
+        }
+
+        if (ubRouting::checkGet(self::ROUTE_REPORT_STATESLOG)) {
             $result .= wf_BackLink(self::URL_ME . '&' . self::ROUTE_LEADS_LIST . '=true') . ' ';
         }
 
