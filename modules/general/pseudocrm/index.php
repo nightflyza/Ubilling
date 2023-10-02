@@ -128,6 +128,12 @@ if (cfr(PseudoCRM::RIGHT_VIEW)) {
             show_window(__('Activity record'), $crm->renderActivityProfile($activityId));
         }
 
+        //lead sources report here
+        if (ubRouting::checkGet($crm::ROUTE_REPORT_SOURCES)) {
+            show_window(__('Leads sources'), $crm->renderReportLeadSources());
+        }
+
+
         //detecting lead by assigned login
         if (ubRouting::checkGet($crm::ROUTE_LEAD_DETECT)) {
             $detectedLeadId = $crm->searchLeadByLogin(ubRouting::get($crm::ROUTE_LEAD_DETECT));
@@ -136,7 +142,6 @@ if (cfr(PseudoCRM::RIGHT_VIEW)) {
                 ubRouting::nav($crm::URL_ME . '&' . $crm::ROUTE_LEAD_PROFILE . '=' . $detectedLeadId);
             } else {
                 //or render assigning form
-                
             }
         }
 

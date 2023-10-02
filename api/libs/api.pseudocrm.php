@@ -124,6 +124,7 @@ class PseudoCRM {
     const ROUTE_LEAD_DETECT = 'username';
     const ROUTE_ACTIVITY_DONE = 'setactivitydone';
     const ROUTE_ACTIVITY_UNDONE = 'setactivityundone';
+    const ROUTE_REPORT_SOURCES = 'reportleadsources';
 
     /**
      * post-routes
@@ -343,20 +344,32 @@ class PseudoCRM {
      */
     protected function renderLeadCreateForm() {
         $result = '';
+        //previous, may be failed form submitted data
+        $prevAddress = ubRouting::post(self::PROUTE_LEAD_ADDR);
+        $prevName = ubRouting::post(self::PROUTE_LEAD_NAME);
+        $prevMobile = ubRouting::post(self::PROUTE_LEAD_MOBILE);
+        $prevExtMobile = ubRouting::post(self::PROUTE_LEAD_EXTMOBILE);
+        $prevPhone = ubRouting::post(self::PROUTE_LEAD_PHONE);
+        $prevEmail = ubRouting::post(self::PROUTE_LEAD_EMAIL);
+        $prevBranch = ubRouting::post(self::PROUTE_LEAD_BRANCH);
+        $prevTariff = ubRouting::post(self::PROUTE_LEAD_TARIFF);
+        $prevLogin = ubRouting::post(self::PROUTE_LEAD_LOGIN);
+        $prevEmployee = ubRouting::post(self::PROUTE_LEAD_EMPLOYEE);
+        $prevNotes = ubRouting::post(self::PROUTE_LEAD_NOTES);
 
         $sup = wf_tag('sup') . '*' . wf_tag('sup', true);
         $inputs = '';
         $inputs .= wf_HiddenInput(self::PROUTE_LEAD_CREATE, 'true');
-        $inputs .= wf_TextInput(self::PROUTE_LEAD_ADDR, __('Full address') . $sup, '', true, '40', '');
-        $inputs .= wf_TextInput(self::PROUTE_LEAD_NAME, __('Real Name') . $sup, '', true, '40', '');
-        $inputs .= wf_TextInput(self::PROUTE_LEAD_MOBILE, __('Mobile') . $sup, '', true, '15', 'mobile');
-        $inputs .= wf_TextInput(self::PROUTE_LEAD_EXTMOBILE, __('Additional mobile'), '', true, '15', 'mobile');
-        $inputs .= wf_TextInput(self::PROUTE_LEAD_PHONE, __('Phone'), '', true, '15', 'mobile');
-        $inputs .= wf_TextInput(self::PROUTE_LEAD_EMAIL, __('Email'), '', true, '15', 'email');
+        $inputs .= wf_TextInput(self::PROUTE_LEAD_ADDR, __('Full address') . $sup, $prevAddress, true, '40', '');
+        $inputs .= wf_TextInput(self::PROUTE_LEAD_NAME, __('Real Name') . $sup, $prevName, true, '40', '');
+        $inputs .= wf_TextInput(self::PROUTE_LEAD_MOBILE, __('Mobile') . $sup, $prevMobile, true, '15', 'mobile');
+        $inputs .= wf_TextInput(self::PROUTE_LEAD_EXTMOBILE, __('Additional mobile'), $prevExtMobile, true, '15', 'mobile');
+        $inputs .= wf_TextInput(self::PROUTE_LEAD_PHONE, __('Phone'), $prevPhone, true, '15', 'mobile');
+        $inputs .= wf_TextInput(self::PROUTE_LEAD_EMAIL, __('Email'), $prevEmail, true, '15', 'email');
         if ($this->branchesFlag) {
             $branchesParams = array('' => '-');
             $branchesParams += $this->allBranches;
-            $inputs .= wf_Selector(self::PROUTE_LEAD_BRANCH, $branchesParams, __('Branch'), '', true);
+            $inputs .= wf_Selector(self::PROUTE_LEAD_BRANCH, $branchesParams, __('Branch'), $prevBranch, true);
         } else {
             $inputs .= wf_HiddenInput(self::PROUTE_LEAD_BRANCH, '0');
         }
@@ -364,12 +377,12 @@ class PseudoCRM {
 
         $tariffsParams = array('' => '-');
         $tariffsParams += $this->allTariffs;
-        $inputs .= wf_Selector(self::PROUTE_LEAD_TARIFF, $tariffsParams, __('Tariff'), '', true);
-        $inputs .= wf_TextInput(self::PROUTE_LEAD_LOGIN, __('Login'), '', true, '15', 'login');
+        $inputs .= wf_Selector(self::PROUTE_LEAD_TARIFF, $tariffsParams, __('Tariff'), $prevTariff, true);
+        $inputs .= wf_TextInput(self::PROUTE_LEAD_LOGIN, __('Login'), $prevLogin, true, '15', 'login');
         $employeeParams = array('' => '-');
         $employeeParams += $this->allActiveEmployee;
-        $inputs .= wf_Selector(self::PROUTE_LEAD_EMPLOYEE, $employeeParams, __('Worker'), '', true);
-        $inputs .= wf_TextInput(self::PROUTE_LEAD_NOTES, __('Notes') . $sup, '', true, '40', '');
+        $inputs .= wf_Selector(self::PROUTE_LEAD_EMPLOYEE, $employeeParams, __('Worker'), $prevEmployee, true);
+        $inputs .= wf_TextInput(self::PROUTE_LEAD_NOTES, __('Notes') . $sup, $prevNotes, true, '40', '');
         $inputs .= wf_Submit(__('Create'));
         $result .= wf_Form('', 'POST', $inputs, 'glamour');
         return($result);
@@ -1058,6 +1071,18 @@ class PseudoCRM {
     }
 
     /**
+     * Renders leads sources basic report
+     * 
+     * @return string
+     */
+    public function renderReportLeadSources() {
+        $result = '';
+        $sources = new Stigma(self::STIGMA_LEAD_SOURCE);
+        $result .= $sources->renderBasicReport();
+        return($result);
+    }
+
+    /**
      * Renders primary module controls
      * 
      * @return string
@@ -1085,12 +1110,17 @@ class PseudoCRM {
             if (cfr(self::RIGHT_TASKS)) {
                 $result .= $this->renderLeadTaskCreateForm($leadId);
             }
-        } else {
-            if (ubRouting::checkGet(self::ROUTE_LEADS_LIST)) {
-                if (cfr(self::RIGHT_LEADS)) {
-                    $result .= wf_modalAuto(web_icon_create() . ' ' . __('Create new lead'), __('Create new lead'), $this->renderLeadCreateForm(), 'ubButton') . ' ';
-                }
+        }
+
+        if (ubRouting::checkGet(self::ROUTE_LEADS_LIST)) {
+            if (cfr(self::RIGHT_LEADS)) {
+                $result .= wf_modalAuto(web_icon_create() . ' ' . __('Create new lead'), __('Create new lead'), $this->renderLeadCreateForm(), 'ubButton') . ' ';
             }
+            $result .= wf_Link(self::URL_ME . '&' . self::ROUTE_REPORT_SOURCES . '=true', wf_img('skins/icon_funnel16.png') . ' ' . __('Leads sources'), false, 'ubButton') . ' ';
+        }
+
+        if (ubRouting::checkGet(self::ROUTE_REPORT_SOURCES)) {
+            $result .= wf_BackLink(self::URL_ME . '&' . self::ROUTE_LEADS_LIST . '=true') . ' ';
         }
 
 

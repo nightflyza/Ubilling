@@ -43,3 +43,4 @@ $lang['def']['Marketing target'] = 'Цель маркетинга';
 $lang['def']['New'] = 'Новый';
 $lang['def']['Office dialog'] = 'Офисный диалог';
 $lang['def']['No result'] = 'Без результата';
+$lang['def']['Leads sources'] = 'Источники лидов';
