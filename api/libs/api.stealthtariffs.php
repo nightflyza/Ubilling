@@ -90,7 +90,7 @@ class StealthTariffs {
      * 
      * @return bool
      */
-    public function isStealth($tariffName) {
+    protected function isStealth($tariffName) {
         $result = false;
         if (isset($this->allStealthTariffs[$tariffName])) {
             $result = true;
@@ -105,7 +105,7 @@ class StealthTariffs {
      * 
      * @return bool
      */
-    public function isNotStealth($tariffName) {
+    protected function isNotStealth($tariffName) {
         $result = true;
         if (isset($this->allStealthTariffs[$tariffName])) {
             $result = false;
@@ -155,6 +155,25 @@ class StealthTariffs {
             log_register('STEALTHTARIFFS DELETE `' . $tariffName . '`');
         } else {
             $result .= __('Stealth tariffs') . ' `' . $tariffName . '` ' . __('Not exists');
+        }
+        return($result);
+    }
+
+    /**
+     * Returns array copy without stealth tariffs
+     * 
+     * @param array $tariffsArr
+     * 
+     * @return array
+     */
+    public function truncateStealth($tariffsArr) {
+        $result = array();
+        if (!empty($tariffsArr)) {
+            foreach ($tariffsArr as $eachTariff => $eachData) {
+                if ($this->isNotStealth($eachTariff)) {
+                    $result[$eachTariff] = $eachData;
+                }
+            }
         }
         return($result);
     }

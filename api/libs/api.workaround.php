@@ -710,6 +710,16 @@ function web_tariffselector($fieldname = 'tariffsel') {
         }
     }
 
+    //stealth tariffs implementation
+    if ($altCfg['STEALTH_TARIFFS_ENABLED']) {
+        $stealthTariffs = new StealthTariffs();
+        //administrator have no rights to assign stealth tariffs?
+        if (!cfr($stealthTariffs::RIGHT_STEALTH)) {
+            //dropping all of them from selector options
+            $options = $stealthTariffs->truncateStealth($options);
+        }
+    }
+
     $selector = wf_Selector($fieldname, $options, '', '', false);
     return($selector);
 }
@@ -728,6 +738,8 @@ function web_tariffselectorNoLousy($fieldname = 'tariffsel') {
         $branchControl->loadTariffs();
     }
 
+
+
     $alltariffs = zb_TariffsGetAll();
     $allousytariffs = zb_LousyTariffGetAll();
     $options = array();
@@ -743,6 +755,16 @@ function web_tariffselectorNoLousy($fieldname = 'tariffsel') {
                     $options[$eachtariff['name']] = $eachtariff['name'];
                 }
             }
+        }
+    }
+
+    //stealth tariffs implementation
+    if ($altCfg['STEALTH_TARIFFS_ENABLED']) {
+        $stealthTariffs = new StealthTariffs();
+        //administrator have no rights to assign stealth tariffs?
+        if (!cfr($stealthTariffs::RIGHT_STEALTH)) {
+            //dropping all of them from selector options
+            $options = $stealthTariffs->truncateStealth($options);
         }
     }
 
