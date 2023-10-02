@@ -151,6 +151,7 @@ if (cfr(PseudoCRM::RIGHT_VIEW)) {
                 ubRouting::nav($crm::URL_ME . '&' . $crm::ROUTE_LEAD_PROFILE . '=' . $detectedLeadId);
             } else {
                 //or render assigning form
+                deb('TODO: lead assign form here');
             }
         }
 

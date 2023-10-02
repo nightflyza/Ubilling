@@ -98,6 +98,13 @@ class PseudoCRM {
     protected $allTariffs = array();
 
     /**
+     * Contains all available users data as login=>userData
+     * 
+     * @var array
+     */
+    protected $allUserData = array();
+
+    /**
      * Some other predefined stuff
      */
     const RIGHT_VIEW = 'PSEUDOCRM';
@@ -155,6 +162,7 @@ class PseudoCRM {
     const STIGMA_ACT_TYPE = 'CRMACTTYPE';
     const STIGMA_ACT_RESULT = 'CRMACTRESULT';
     const STIGMA_ACT_TARGET = 'CRMACTTARGET';
+    const ADCOMM_ACT_SCOPE = 'ADCRMACTIVITY';
 
     /**
      * Creates new PseudoCRM instance
@@ -166,6 +174,7 @@ class PseudoCRM {
         $this->initLeadsDb();
         $this->initActivitiesDb();
         $this->loadEmployeeData();
+        $this->loadUserData();
         $this->loadTariffs();
         $this->loadBranches();
         $this->loadLeads();
@@ -257,6 +266,15 @@ class PseudoCRM {
                 }
             }
         }
+    }
+
+    /**
+     * Loads all existing users data
+     * 
+     * @return void
+     */
+    protected function loadUserData() {
+        $this->allUserData = zb_UserGetAllDataCache();
     }
 
     /**
@@ -558,8 +576,17 @@ class PseudoCRM {
             $cells .= wf_TableCell($leadData['tariff']);
             $rows .= wf_TableRow($cells, 'row3');
 
+            $userLabel = '';
+            if (!empty($leadData['login'])) {
+                if (isset($this->allUserData[$leadData['login']])) {
+                    $userData = $this->allUserData[$leadData['login']];
+                    $userUrl = UserProfile::URL_PROFILE . $leadData['login'];
+                    $userLabel = wf_Link($userUrl, wf_img_sized('skins/icon_user.gif', '', 10) . ' ' . $userData['fulladress'] . ', ' . $userData['realname']);
+                }
+            }
+
             $cells = wf_TableCell(__('Login'), '30%', 'row2');
-            $cells .= wf_TableCell($leadData['login']);
+            $cells .= wf_TableCell($userLabel);
             $rows .= wf_TableRow($cells, 'row3');
 
             $cells = wf_TableCell(__('Worker'), '30%', 'row2');
@@ -939,6 +966,7 @@ class PseudoCRM {
             //some state controllers here
             $result .= $this->renderActivityStatesController($activityId, 64);
             $result .= wf_delimiter(0);
+
             //photostorage here
             if ($this->altCfg['PHOTOSTORAGE_ENABLED']) {
                 $photostorage = new PhotoStorage(self::PHOTO_ACT_SCOPE, $activityId);
@@ -946,6 +974,13 @@ class PseudoCRM {
                 $result .= wf_Link($photostorageUrl, wf_img('skins/photostorage.png') . ' ' . __('Upload images'), false, 'ubButton');
                 $result .= wf_delimiter();
                 $result .= $photostorage->renderImagesRaw();
+            }
+
+            //few additional comments here
+            if ($this->altCfg['ADCOMMENTS_ENABLED']) {
+                $adComments = new ADcomments(self::ADCOMM_ACT_SCOPE);
+                $result .= wf_tag('strong', false) . __('Additional comments') . wf_tag('strong', true) . wf_delimiter(0);
+                $result .= $adComments->renderComments($activityId);
             }
         } else {
             $result .= $this->messages->getStyledMessage(__('Strange exception') . ': ' . __('Activity record') . ' [' . $activityId . '] ' . __('Not exists'), 'error');
