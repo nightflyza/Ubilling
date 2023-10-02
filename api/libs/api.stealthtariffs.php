@@ -183,6 +183,7 @@ class StealthTariffs {
      */
     public function truncateStealth($tariffsArr) {
         $result = array();
+
         if (!empty($tariffsArr)) {
             foreach ($tariffsArr as $eachTariff => $eachData) {
                 if ($this->isNotStealth($eachTariff)) {
@@ -208,7 +209,12 @@ class StealthTariffs {
                     $params[$eachTariffName] = $eachTariffName;
                 }
             }
-
+//
+//                    \    /
+//                    _\/\/_
+//              _____/_//\\_\_____
+//                  1981-2006
+//
             if (!empty($params)) {
                 $inputs = wf_Selector(self::PROUTE_CREATE, $params, __('Tariff'), '', false) . ' ';
                 $inputs .= wf_Submit(__('Mark this tariff as stealth'));
