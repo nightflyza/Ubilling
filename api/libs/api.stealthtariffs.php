@@ -160,6 +160,21 @@ class StealthTariffs {
     }
 
     /**
+     * Flushes existing stealth tariff on system tariff deletion
+     * 
+     * @param string $tariffName
+     * 
+     * @return void
+     */
+    public function flush($tariffName) {
+        $result = '';
+        $tariffNameF = ubRouting::filters($tariffName, 'mres');
+        $this->stealthDb->where('tariff', '=', $tariffNameF);
+        $this->stealthDb->delete();
+        log_register('STEALTHTARIFFS FLUSH `' . $tariffName . '`');
+    }
+
+    /**
      * Returns array copy without stealth tariffs
      * 
      * @param array $tariffsArr

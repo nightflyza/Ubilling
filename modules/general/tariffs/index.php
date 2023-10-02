@@ -53,6 +53,8 @@ if (cfr('TARIFFS')) {
                     zb_TariffDeleteSpeed($tariffName);
                     $dshaper = new DynamicShaper();
                     $dshaper->flushTariff($tariffName);
+                    $stealthTariffs=new StealthTariffs();
+                    $stealthTariffs->flush($tariffName);
                     ubRouting::nav('?module=tariffs');
                 } else {
                     log_register("TARIFF DELETE TRY USED `" . $tariffName . "`");
