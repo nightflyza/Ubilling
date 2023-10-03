@@ -1,37 +1,21 @@
 <?php
 
-/**
- * Click.UZ API frontend for OpenPayz
- *
- * https://docs.click.uz/click-api/
- *
- * with implementation of getinfo() request
- *
- * For a proper functioning of this frontend you need to deal with ClickUZ
- * for they to use a "payment_method" GET parameter with your frontend endpoint URL
- *
- * Possible values of "payment_method" GET parameter are:
- * getinfo
- * prepare
- * complete
- */
-
-// подключаем API OpenPayz
+// including API OpenPayz
 include ("../../libs/api.openpayz.php");
 
-class ClickUZ {
+class Providex {
     /**
      * Predefined stuff
      */
-    const PATH_CONFIG       = 'config/clickuz.ini';
-    const PATH_AGENTCODES   = 'config/agentcodes_mapping.ini';
-    const PATH_TRANSACTS    = 'tmp/';
+    const PATH_CONFIG     = 'config/providex.ini';
+    const PATH_AGENTCODES = 'config/agentcodes_mapping.ini';
+    const PATH_TRANSACTS  = 'tmp/';
 
     /**
      * Paysys specific predefines
      */
-    const HASH_PREFIX = 'CLICK_UZ_';
-    const PAYSYS = 'CLICK_UZ';
+    const HASH_PREFIX = 'PROVIDEX_';
+    const PAYSYS      = 'PROVIDEX';
 
     /**
      * Agent codes using flag
@@ -55,11 +39,11 @@ class ClickUZ {
     protected $agentcodesMapping = array();
 
     /**
-     * Merchant secret key from ClickUZ
+     * Merchant password from Providex
      *
      * @var string
      */
-    protected $secretKey = '';
+    protected $merchantPasswd = '';
 
     /**
      * Placeholder for UB API URL
@@ -101,28 +85,28 @@ class ClickUZ {
      *
      * @var array
      */
-    protected $paymentMethodsAvailable = array('getinfo', 'prepare', 'complete');
+    protected $paymentMethodsAvailable = array('preorder', 'confirmorder');
 
     /**
-     * Placeholder for ClickUZ service ID value
+     * Request ID from Payme
      *
      * @var string
      */
-    protected $serviceID = '';
+    protected $providexOrderID = null;
 
     /**
-     * Placeholder for ClickUZ customer ID value
+     * Subscriber's virtual payment ID
      *
      * @var string
      */
-    protected $customerID = '';
+    protected $subscriberVirtualID = '';
 
     /**
-     * Placeholder for ClickUZ transaction ID value
+     * Subscriber's login from Providex
      *
      * @var string
      */
-    protected $clickTransactID = '';
+    protected $subscriberLogin = '';
 
     /**
      * Contains received by listener preprocessed request data
@@ -131,36 +115,6 @@ class ClickUZ {
      */
     protected $receivedJSON = array();
 
-    /**
-     * Contains all existent op_customers as virtualid => realid(login) mapping
-     *
-     * @var array
-     */
-    protected $opCustomersAll = array();
-
-    /**
-     * Placeholder for OP customer login
-     *
-     * @var string
-     */
-    protected $userLogin = '';
-
-    /**
-     * Placeholder for error codes and their descr
-     *
-     * @var string
-     */
-    protected $errorCodes = array('0' => 'Success',
-                                  '-1' => 'SIGN CHECK FAILED!',
-                                  '-2' => 'Incorrect parameter amount',
-                                  '-3' => 'Action not found',
-                                  '-4' => 'Already paid',
-                                  '-5' => 'User does not exist by params',
-                                  '-6' => 'Transaction does not exist',
-                                  '-7' => 'Failed to update user',
-                                  '-8' => 'Error in request from click',
-                                  '-9' => 'Transaction cancelled'
-                                );
 
     /**
      * Preloads all required configuration, sets needed object properties
@@ -210,7 +164,7 @@ class ClickUZ {
         if (!empty($this->config)) {
             $this->agentcodesON         = $this->config['USE_AGENTCODES'];
             $this->agentcodesNonStrict  = $this->config['NON_STRICT_AGENTCODES'];
-            $this->secretKey            = $this->config['SECRET_KEY'];
+            $this->merchantPasswd       = $this->config['MERCHANT_PASSWORD'];
             $this->ubapiURL             = $this->config['UBAPI_URL'];
             $this->ubapiKey             = $this->config['UBAPI_KEY'];
             $this->addressCityDisplay   = $this->config['CITY_DISPLAY_IN_ADDRESS'];
@@ -220,7 +174,7 @@ class ClickUZ {
     }
 
     /**
-     * Validates ClickUZ service ID and Ubilling agent ID correlation
+     * Validates Providex merchant ID and Ubilling agent ID correlation
      *
      * @param $userLogin
      *
@@ -314,7 +268,7 @@ class ClickUZ {
                     INNER JOIN `build` ON `apt`.`buildid`=`build`.`id`
                     INNER JOIN `street` ON `build`.`streetid`=`street`.`id`
                     INNER JOIN `city` ON `street`.`cityid`=`city`.`id`"
-                . $whereStr;
+                 . $whereStr;
 
         $addresses = simple_queryall($query);
 
@@ -398,24 +352,50 @@ class ClickUZ {
     }
 
     /**
+     * Returns true/false by login/password auth
+     *
+     * @param string $login
+     * @param string $password
+     *
+     * @return bool
+     */
+    protected function checkAuth($login, $password) {
+        $result = false;
+        $login = vf($login);
+        $login = preg_replace('#[^a-z0-9A-Z\-_\.]#Uis', '', $login);
+        $login = preg_replace('/\0/s', '', $login);
+        $password = vf($password);
+        $password = preg_replace('#[^a-z0-9A-Z\-_\.]#Uis', '', $password);
+        $password = preg_replace('/\0/s', '', $password);
+
+        if (!empty($login) AND (!empty($password))) {
+            $query = "SELECT `IP` from `users` WHERE `login`='" . $login . "' AND MD5(`password`)='" . $password . "'";
+            $data = simple_query($query);
+            $result = !empty($data['IP']);
+        }
+
+        return ($result);
+    }
+
+    /**
      * Creates md5 sign string according to specs
      *
      * @return string
      */
     protected function createSign() {
-        $billingTransactID  = ($this->paymentMethod == 'prepare') ? '' : $this->receivedJSON['merchant_prepare_id'];
-        $moneyAmount        = $this->receivedJSON['amount'];
-        $actionCode         = $this->receivedJSON['action'];
-        $signTime           = $this->receivedJSON['sign_time'];
-        $sign               = md5(  $this->clickTransactID
-                                    . $this->serviceID
-                                    . $this->secretKey
-                                    . $this->customerID
-                                    . $billingTransactID
-                                    . $moneyAmount
-                                    . $actionCode
-                                    . $signTime
-                                 );
+        $email      = empty($this->receivedJSON['email']) ? '' : $this->receivedJSON['email'];
+        $orderID    = $this->receivedJSON['order'];
+        $cardNum    = $this->receivedJSON['card'];
+
+        $sign       = md5(
+                        strtoupper(
+                    strrev($email) . $this->merchantPasswd . $orderID .
+                          strrev(
+                      substr($cardNum,0,6) .
+                            substr($cardNum,-4)
+                            )
+                        )
+                    );
 
         return($sign);
     }
@@ -426,70 +406,54 @@ class ClickUZ {
      * @return bool
      */
     protected function validateSign() {
-        $clickSign      = $this->receivedJSON['sign_string'];
+        $providexSign   = $this->receivedJSON['sign'];
         $billingSign    = $this->createSign();
-        $result         = ($clickSign == $billingSign);
+        $result         = ($providexSign == $billingSign);
         return($result);
     }
 
     /**
-     * getinfo() request reply implementation
+     * Generates random CRC32-like string
+     *
+     * @return string
      */
-    protected function replyGetInfo() {
-        $reply = '';
-        $userData = $this->getUserStargazerData($this->userLogin);
-
-        if (empty($userData)) {
-            $reply = $this->replyError('-5');
-        } else {
-            $userBalance    = $userData['Cash'];
-            $userRealName   = $this->getUserRealnames($this->userLogin);
-            $userAddress    = $this->getUserAddresses($this->userLogin);
-
-            $reply = array('error' => 0,
-                           'error_note' => $this->errorCodes['0'],
-                           'params' => array('account' => $this->customerID,
-                                             'full_name' => $userRealName,
-                                             'address' => $userAddress,
-                                             'balance' => $userBalance
-                           )
-            );
-
-            $reply = json_encode($reply, JSON_UNESCAPED_UNICODE);
-        }
-
-        die($reply);
+    protected function generateOrderID() {
+        $orderID = crc32($this->receivedJSON['login'] . $this->receivedJSON['password']) . crc32(microtime(true));
+        return ($orderID);
     }
 
     /**
-     * prepare() request reply implementation
+     * [preorder] request reply implementation
      */
-    protected function replyPrepare() {
+    protected function replyPreOrder() {
         $reply = '';
-        $billingTransactID = $this->clickTransactID . $this->serviceID;
+        $moneyAmount = $this->receivedJSON['amount'];
+    // check $moneyAmount is a correct integer
+    // or float which has no more than 2 decimals
+    // or 2 decimals and unlimited trailing zeros
+        if (preg_match('/^\d+(\.[0-9]{1,2}(0*))?$/', $moneyAmount) != 1) {
+            $this->replyError(400, 'TRANSACTION_INCORRECT_AMOUNT_VALUE');
+        }
+
+        $billingTransactID = $this->generateOrderID();
 
         if ($this->checkTransactionExists($billingTransactID)) {
-            $reply = $this->replyError('-4');
+            $this->replyError(400, 'TRANSACTION_ALREADY_EXISTS');
         } else {
             $this->saveTransaction($billingTransactID);
-            $reply = array('click_trans_id'      => $this->clickTransactID,
-                           'merchant_trans_id'   => $this->customerID,
-                           'merchant_prepare_id' => $billingTransactID,
-                           'error'               => 0,
-                           'error_note'          => $this->errorCodes['0']
-            );
+            $reply = array('data' => array('order' => $billingTransactID));
             $reply = json_encode($reply);
+            die($reply);
         }
-
-        die($reply);
     }
 
     /**
-     * complete() request reply implementation
+     * [confirmorder] request reply implementation
      */
-    protected function replyComplete() {
+    protected function replyConfirmOrder() {
         $reply              = '';
-        $billingTransactID  = $this->receivedJSON['merchant_prepare_id'];
+        $billingTransactID  = $this->receivedJSON['order'];
+        $providexTransactID = $this->receivedJSON['id'];
         $paymentSumm        = $this->receivedJSON['amount'];
         $opHash             = self::HASH_PREFIX . $billingTransactID;
 
@@ -502,28 +466,35 @@ class ClickUZ {
 
                 if (empty($opHashData)) {
                     //push transaction to database
-                    op_TransactionAdd($opHash, $paymentSumm, $this->customerID, self::PAYSYS, 'ClickUZ payment ID: ' . $this->clickTransactID);
+                    op_TransactionAdd($opHash, $paymentSumm, $this->subscriberVirtualID,self::PAYSYS, 'Providex payment ID: ' . $providexTransactID);
                     op_ProcessHandlers();
 
-                    $reply = array('click_trans_id'      => $this->clickTransactID,
-                                   'merchant_trans_id'   => $this->customerID,
-                                   'merchant_confirm_id' => $billingTransactID,
-                                   'error'               => 0,
-                                   'error_note'          => $this->errorCodes['0']
+                    $reply = array('transact_id' => $providexTransactID,
+                                   'order'       => $billingTransactID,
+                                   'amount'      => $paymentSumm,
+                                   'login'       => $this->subscriberLogin,
+                                   'state'       => 'SUCCESS'
                     );
 
                     $reply = json_encode($reply);
                 } else {
-                    $reply = $this->replyError('-4');
+                    $this->replyError(400, 'TRANSACTION_ALREADY_EXISTS');
                 }
             } else {
-                $reply = $this->replyError('-2');
+                $this->replyError(400, 'TRANSACTION_INCORRECT_AMOUNT_VALUE');
             }
         } else {
-            $reply = $this->replyError('-6');
+            $this->replyError(400, 'TRANSACTION_PREORDER_NOT_FOUND');
         }
 
         die($reply);
+    }
+
+    /**
+     * Sets HTTP headers before reply
+     */
+    protected function setHTTPHeaders() {
+        header('Content-Type: application/json; charset=UTF-8');
     }
 
     /**
@@ -533,81 +504,44 @@ class ClickUZ {
      *
      * @return false|string
      */
-    protected function replyError($errorCode) {
-        $reply = array();
-        $merchTransactID = $this->clickTransactID . $this->serviceID;
-        $merchTransactIDName = '';
-
-
-        if ($this->paymentMethod == 'getinfo') {
-            $reply = array('error'      => $errorCode,
-                           'error_note' => $this->errorCodes[$errorCode]
-                          );
-        } else {
-            if ($this->paymentMethod == 'prepare') {
-                $merchTransactIDName = 'merchant_prepare_id';
-            } else {
-                $merchTransactIDName = 'merchant_confirm_id';
-                $merchTransactID = (empty($this->receivedJSON['merchant_prepare_id']) ? $merchTransactID : $this->receivedJSON['merchant_prepare_id']);
-            }
-
-            $reply = array('click_trans_id'     => $this->clickTransactID,
-                           'merchant_trans_id'  => $this->customerID,
-                           $merchTransactIDName => $merchTransactID,
-                           'error'              => $errorCode,
-                           'error_note'         => $this->errorCodes[$errorCode]
-                          );
-        }
-
-        $reply = json_encode($reply);
-        return ($reply);
+    protected function replyError($errorCode, $errorMsg) {
+        header('HTTP/1.1 ' . $errorCode  . ' ' . $errorMsg . '"', true, $errorCode);
+        die ($errorCode . ' - ' . $errorMsg);
     }
 
     /**
      * Processes requests
      */
     protected function processRequest() {
-        $this->opCustomersAll   = op_CustomersGetAll();
-        $this->clickTransactID  = $this->receivedJSON['click_trans_id'];
-        $this->serviceID        = $this->receivedJSON['service_id'];
-        $this->customerID       = ( $this->paymentMethod == 'getinfo'
-                                    ? $this->receivedJSON['params']['caller_id']
-                                    : $this->receivedJSON['merchant_trans_id'] );
+        $this->opCustomersAll  = array_flip(op_CustomersGetAll());
+        $this->subscriberLogin = $this->receivedJSON['login'];
 
-        // if payment method is not getinfo()
-        // then we need to validate the request's sign
-        if ($this->paymentMethod != 'getinfo') {
-            if (!$this->validateSign()) {
-                die($this->replyError('-1'));
-            }
-        }
+        if (!empty($this->opCustomersAll[$this->subscriberLogin])) {
+            $this->subscriberVirtualID = $this->opCustomersAll[$this->subscriberLogin];
 
-        if (!empty($this->opCustomersAll[$this->customerID])) {
-            $this->userLogin = $this->opCustomersAll[$this->customerID];
-
-            if ($this->agentcodesON and !$this->checkServiceAgentAssign($this->userLogin)) {
-                die($this->replyError('-5'));
+            if ($this->agentcodesON and !$this->checkServiceAgentAssign($this->subscriberLogin)) {
+                $this->replyError(400, 'SUBSCRIBER_NOT_FOUND');
             }
 
             switch ($this->paymentMethod) {
-                case 'getinfo':
-                    $this->replyGetInfo();
+                case 'preorder':
+                    $this->replyPreOrder();
                     break;
 
-                case 'prepare':
-                    $this->replyPrepare();
-                    break;
-
-                case 'complete':
-                    $this->replyComplete();
+                case 'confirmorder':
+                    if (!$this->validateSign()) {
+                        $this->replyError(422, 'TRANSACTION_INCORRECT_SIGN');
+                    } else {
+                        $this->replyConfirmOrder();
+                    }
                     break;
 
                 default:
-                    die($this->replyError('-3'));
+                    $this->replyError(422, 'PAYMENT_METHOD_UNKNOWN');
             }
 
         } else {
-            die($this->replyError('-5'));
+            $this->replyError(400, 'SUBSCRIBER_NOT_FOUND');
         }
     }
 
@@ -618,25 +552,33 @@ class ClickUZ {
      * @return void
      */
     public function listen() {
-        if (!empty($_GET['payment_method'])) {
-            $this->paymentMethod = $_GET['payment_method'];
+        $rawRequest = file_get_contents('php://input');
+        //parse_str($rawRequest, $this->receivedJSON);
+        $this->receivedJSON = json_decode($rawRequest, true);
 
-            if (in_array($this->paymentMethod, $this->paymentMethodsAvailable)) {
-                $rawRequest = file_get_contents('php://input');
+        $this->setHTTPHeaders();
 
-                if ($this->paymentMethod == 'getinfo') {
-                    $this->receivedJSON = json_decode($rawRequest, true);
+        if (empty($this->receivedJSON)) {
+            $this->replyError(400, 'PAYLOAD_EMPTY');
+        } else {
+            $this->receivedJSON = (isset($this->receivedJSON['data']) ? $this->receivedJSON['data'] : $this->receivedJSON);
+
+            if (empty($this->receivedJSON['providex'])) {
+                $this->replyError(422, 'UNPROCESSABLE ENTITY');
+            } else {
+                $this->paymentMethod = (empty($this->receivedJSON['method']) ? '' : trim($this->receivedJSON['method']));
+
+                if (in_array($this->paymentMethod, $this->paymentMethodsAvailable)) {
+                    if ($this->checkAuth($this->receivedJSON['login'], $this->receivedJSON['password'])) {
+                        $this->processRequest();
+                    }
+                    else {
+                        $this->replyError(401, 'UNAUTHORIZED');
+                    }
                 } else {
-                    parse_str($rawRequest, $this->receivedJSON);
-                }
-
-                if (!empty($this->receivedJSON)) {
-                   $this->processRequest();
+                    $this->replyError(422, 'PAYMENT_METHOD_UNKNOWN');
                 }
             }
         }
     }
 }
-
-$frontend = new ClickUZ();
-$frontend->listen();
