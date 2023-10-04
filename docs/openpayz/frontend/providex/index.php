@@ -39,11 +39,25 @@ class Providex {
     protected $agentcodesMapping = array();
 
     /**
-     * Merchant password from Providex
+     * Merchants ID => password mapping from Providex
      *
      * @var string
      */
-    protected $merchantPasswd = '';
+    protected $merchantIDPasswd = array();
+
+    /**
+     * Current merchant ID from "preorder" request
+     *
+     * @var string
+     */
+    protected $curMerchantID = '';
+
+    /**
+     * Current merchant password
+     *
+     * @var string
+     */
+    protected $curMerchantPasswd = '';
 
     /**
      * Placeholder for UB API URL
@@ -164,10 +178,17 @@ class Providex {
         if (!empty($this->config)) {
             $this->agentcodesON         = $this->config['USE_AGENTCODES'];
             $this->agentcodesNonStrict  = $this->config['NON_STRICT_AGENTCODES'];
-            $this->merchantPasswd       = $this->config['MERCHANT_PASSWORD'];
             $this->ubapiURL             = $this->config['UBAPI_URL'];
             $this->ubapiKey             = $this->config['UBAPI_KEY'];
             $this->addressCityDisplay   = $this->config['CITY_DISPLAY_IN_ADDRESS'];
+            $tmpMerchIDPasswd           = $this->config['MERCHANT_ID_PASSWORD_MAPPING'];
+
+            $tmpMerchIDPasswd = explode(',', $tmpMerchIDPasswd);
+            foreach ($tmpMerchIDPasswd as $eachPair) {
+                $tmpPair = explode(':', $eachPair);
+                $this->merchantIDPasswd[trim($tmpPair[0])] = trim($tmpPair[1]);
+            }
+
         } else {
             die('Fatal: config is empty!');
         }
@@ -180,17 +201,17 @@ class Providex {
      *
      * @return bool
      */
-    protected function checkServiceAgentAssign($userLogin) {
+    protected function checkMerchantAgentAssign($userLogin) {
         $result     = false;
         $agentData  = json_decode($this->getUBAgentData($userLogin), true);
 
         if (!empty($agentData['id'])) {
             // get Service ID to Ubilling agent code mapping, if exists
-            $mappedAgentBySrvID = (empty($this->agentcodesMapping[$this->serviceID]) ? 'n0ne' : $this->agentcodesMapping[$this->serviceID]);
+            $mappedAgentByMerchantID = (empty($this->agentcodesMapping[$this->curMerchantID]) ? 'n0ne' : $this->agentcodesMapping[$this->curMerchantID]);
             // get current subscriber agent ID
             $agentID = $agentData['id'];
             // compare the IDs
-            $result  = ($agentID == $mappedAgentBySrvID);
+            $result  = ($agentID == $mappedAgentByMerchantID);
         }
 
         // if $result is false and $this->agentcodesNonStrict is ON - make $result true
@@ -519,7 +540,7 @@ class Providex {
         if (!empty($this->opCustomersAll[$this->subscriberLogin])) {
             $this->subscriberVirtualID = $this->opCustomersAll[$this->subscriberLogin];
 
-            if ($this->agentcodesON and !$this->checkServiceAgentAssign($this->subscriberLogin)) {
+            if ($this->agentcodesON and !$this->checkMerchantAgentAssign($this->subscriberLogin)) {
                 $this->replyError(400, 'SUBSCRIBER_NOT_FOUND');
             }
 
