@@ -11,16 +11,21 @@ if (cfr('TARIFFEDIT')) {
         //checking is user data available?
         if (!empty($userData)) {
             $userAddress = zb_UserGetFullAddress($login) . ' (' . $login . ')';
-            $current_tariff = '';
+            $currentTariff = '';
             if (isset($userData['Tariff'])) {
-                $current_tariff = $userData['Tariff'];
+                $currentTariff = $userData['Tariff'];
             }
-
 
             //change tariff  if request received
             if (ubRouting::checkPost('newtariff')) {
                 $tariff = ubRouting::post('newtariff');
-                if (!ubRouting::checkPost('nextmonth')) {
+                $changeNextMonthFlag = (ubRouting::checkPost('nextmonth')) ? true : false;
+                //next month tariff change
+                if ($changeNextMonthFlag) {
+                    $billing->settariffnm($login, $tariff);
+                    log_register('CHANGE TariffNM (' . $login . ') ON `' . $tariff . '`');
+                } else {
+                    //or just right now
                     $billing->settariff($login, $tariff);
                     log_register('CHANGE Tariff (' . $login . ') ON `' . $tariff . '`');
                     //cache cleanup
@@ -30,10 +35,8 @@ if (cfr('TARIFFEDIT')) {
                         $billing->resetuser($login);
                         log_register('RESET User (' . $login . ')');
                     }
-                } else {
-                    $billing->settariffnm($login, $tariff);
-                    log_register('CHANGE TariffNM (' . $login . ') ON `' . $tariff . '`');
                 }
+
 
                 //auto credit option handling
                 if ($altCfg['TARIFFCHGAUTOCREDIT']) {
@@ -90,45 +93,45 @@ if (cfr('TARIFFEDIT')) {
                 }
             }
 
+            $result = '';
 
-//DDT locks
-            $form = '';
-            $formAccessible = true;
+            //DDT locks
+            $resultAccessible = true;
             $additionalDelimiter = '';
             if (@$altCfg['DDT_ENABLED']) {
                 $ddt = new DoomsDayTariffs(true);
                 $messages = new UbillingMessageHelper();
                 $currentDDTTariffs = $ddt->getCurrentTariffsDDT();
-                if (isset($currentDDTTariffs[$current_tariff])) {
-                    $ddtOptions = $currentDDTTariffs[$current_tariff];
-                    $form .= $messages->getStyledMessage(__('Current tariff') . ' ' . $current_tariff . ' ' . __('will be changed to') . ' ' . $ddtOptions['tariffmove'] . ' ' . __('automatically'), 'info');
+                if (isset($currentDDTTariffs[$currentTariff])) {
+                    $ddtOptions = $currentDDTTariffs[$currentTariff];
+                    $result .= $messages->getStyledMessage(__('Current tariff') . ' ' . $currentTariff . ' ' . __('will be changed to') . ' ' . $ddtOptions['tariffmove'] . ' ' . __('automatically'), 'info');
                     $additionalDelimiter .= wf_delimiter(0);
                     //form lock
                     $dwiTaskData = $ddt->getTaskCreated($login);
                     if ($dwiTaskData) {
-                        $form .= $messages->getStyledMessage(__('On') . ' ' . $dwiTaskData['date'] . ' ' . __('is already planned tariff change to') . ' ' . $dwiTaskData['param'], 'warning');
-                        $formAccessible = false;
+                        $result .= $messages->getStyledMessage(__('On') . ' ' . $dwiTaskData['date'] . ' ' . __('is already planned tariff change to') . ' ' . $dwiTaskData['param'], 'warning');
+                        $resultAccessible = false;
                     }
                 }
             }
 
-// Edit form construct
-            $fieldname = __('Current tariff');
-            $fieldkey = 'newtariff';
+            //rendering tariff selector
+            if ($resultAccessible) {
+                $result .= $additionalDelimiter;
 
-//rendering tariff selector
-            if ($formAccessible) {
-                $form .= $additionalDelimiter;
-                $form .= web_EditorTariffForm($fieldname, $fieldkey, $userAddress, $current_tariff, $skipLousyTariffsFlag);
+                //tariff switch form consturct
+                $fieldname = __('Current tariff');
+                $fieldkey = 'newtariff';
+                $result .= web_EditorTariffForm($fieldname, $fieldkey, $userAddress, $currentTariff, $skipLousyTariffsFlag);
 
-                $form .= wf_Link('?module=tariffedit&username=' . $login, wf_img('skins/done_icon.png') . ' ' . __('Popular tariff selector'), false, 'ubButton');
-                $form .= wf_Link('?module=tariffedit&username=' . $login . '&fulltariffslist=true', wf_img('skins/categories_icon.png') . ' ' . __('Full tariff selector'), false, 'ubButton');
+                $result .= wf_Link('?module=tariffedit&username=' . $login, wf_img('skins/done_icon.png') . ' ' . __('Popular tariff selector'), false, 'ubButton');
+                $result .= wf_Link('?module=tariffedit&username=' . $login . '&fulltariffslist=true', wf_img('skins/categories_icon.png') . ' ' . __('Full tariff selector'), false, 'ubButton');
             }
-            $form .= wf_delimiter();
+            $result .= wf_delimiter();
 
-            $form .= web_UserControls($login);
-// render form
-            show_window(__('Edit tariff'), $form);
+            $result .= web_UserControls($login);
+            // render form
+            show_window(__('Edit tariff'), $result);
         } else {
             show_error(__('Strange exception') . ': EX_EMPTY_USER_DATA');
             show_window('', wf_tag('center') . wf_img('skins/unicornchainsawwrong.png') . wf_tag('center', true));
