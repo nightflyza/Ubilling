@@ -738,25 +738,26 @@ function web_tariffselectorNoLousy($fieldname = 'tariffsel') {
         $branchControl->loadTariffs();
     }
 
-
-
     $alltariffs = zb_TariffsGetAll();
-    $allousytariffs = zb_LousyTariffGetAll();
     $options = array();
 
     if (!empty($alltariffs)) {
         foreach ($alltariffs as $io => $eachtariff) {
-            if (!zb_LousyCheckTariff($eachtariff['name'], $allousytariffs)) {
-                if ($altCfg['BRANCHES_ENABLED']) {
-                    if ($branchControl->isMyTariff($eachtariff['name'])) {
-                        $options[$eachtariff['name']] = $eachtariff['name'];
-                    }
-                } else {
+            //validating tariff accessibility depend on branch if enabled
+            if ($altCfg['BRANCHES_ENABLED']) {
+                if ($branchControl->isMyTariff($eachtariff['name'])) {
                     $options[$eachtariff['name']] = $eachtariff['name'];
                 }
+            } else {
+                //or just append to list
+                $options[$eachtariff['name']] = $eachtariff['name'];
             }
         }
     }
+
+    //excluding lousy tariffs from list, if available
+    $lousy = new LousyTariffs();
+    $options = $lousy->truncateLousy($options);
 
     //stealth tariffs implementation
     if ($altCfg['STEALTH_TARIFFS_ENABLED']) {

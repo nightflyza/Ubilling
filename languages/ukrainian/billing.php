@@ -3497,6 +3497,10 @@ $lang['def']['right to ONU map'] = 'Право користуватись мап
 $lang['def']['ONU view'] = 'Перегляд ONU';
 $lang['def']['right to view branches users ONUs'] = 'Право на перегляд ONU користувачів філій';
 $lang['def']['No ONUs of devices assigned to this user were detected'] = 'Не виявлено ONU пристроїв, що присвоєні цьому користувачеві';
+$lang['def']['Already exists'] = 'Вже існує';
+$lang['def']['Lousy tariff'] = 'Непопулярний тариф';
+$lang['def']['All tariffs marked as lousy'] = 'Всі тарифи вже помічено як непопулярні. З якоїсь причини...';
 $lang['def'][''] = '';
+
 
 

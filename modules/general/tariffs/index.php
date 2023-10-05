@@ -49,11 +49,12 @@ if (cfr('TARIFFS')) {
                 if (!zb_TariffProtected($tariffName)) { // is tariff is not used by any users?
                     $billing->deletetariff($tariffName); //tariff deletion here
                     log_register("TARIFF DELETE `" . $tariffName . "`");
-                    zb_LousyTariffDelete($tariffName);
+                    $lousy = new LousyTariffs();
+                    $lousy->flush($tariffName);
                     zb_TariffDeleteSpeed($tariffName);
                     $dshaper = new DynamicShaper();
                     $dshaper->flushTariff($tariffName);
-                    $stealthTariffs=new StealthTariffs();
+                    $stealthTariffs = new StealthTariffs();
                     $stealthTariffs->flush($tariffName);
                     ubRouting::nav('?module=tariffs');
                 } else {

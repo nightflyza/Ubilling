@@ -1,139 +1,296 @@
 <?php
 
 /**
- * management API for lousy tariffs
+ * The class designed to manage rarely used tariffs
  */
+class LousyTariffs {
 
-/**
- * Marks tariff as not polular
- *
- * @param   $tariff tariff name
- * 
- */
-function zb_LousyTariffAdd($tariff) {
-    $tariff = mysql_real_escape_string($tariff);
-    $query = "INSERT INTO `lousytariffs` (`id`,`tariff`) VALUES ('','" . $tariff . "'); ";
-    nr_query($query);
-    log_register("LOUSYTARIFF ADD `" . $tariff . "`");
-}
+    /**
+     * Contains array of all available lousy tariffs as tariffName=>lousyhData[id/tariff]
+     * 
+     * @var array
+     */
+    protected $allLousyTariffs = array();
 
-/**
- * Remove lousy mark
- *
- * @param   $tariff tariff name
- * 
- */
-function zb_LousyTariffDelete($tariff) {
-    $tariff = mysql_real_escape_string($tariff);
-    $query = "DELETE from `lousytariffs` WHERE `tariff`='" . $tariff . "' ";
-    nr_query($query);
-    log_register("LOUSYTARIFF DELETE `" . $tariff . "`");
-}
+    /**
+     * Contains array of all available system tariffs as tariffName=>tariffData
+     * 
+     * @var array
+     */
+    protected $allTariffs = array();
 
-/**
- *  Returns full list of tariffs marked as lousy
- *  @return  array
- */
-function zb_LousyTariffGetAll() {
-    $query = "SELECT `id`,`tariff` from `lousytariffs`";
-    $result = array();
-    $alldata = simple_queryall($query);
-    if (!empty($alldata)) {
-        foreach ($alldata as $io => $eachtariff) {
-            $result[$eachtariff['tariff']] = $eachtariff['id'];
-        }
+    /**
+     * Lousy tariffs database abstraction layer placeholder
+     * 
+     * @var object
+     */
+    protected $lousyDb = '';
+
+    /**
+     * System messages helper instance placeholder
+     * 
+     * @var object
+     */
+    protected $messages = '';
+
+    //some other predefined stuff
+    const TABLE_LOUSY = 'lousytariffs';
+    const RIGHT_CONFIG = 'LOUSYTARIFFS';
+    const URL_ME = '?module=lousytariffs';
+    const ROUTE_DELETE = 'deletelousytariff';
+    const PROUTE_CREATE = 'createlousytariff';
+
+//
+//                     _,._
+//                 __.'   _)
+//                <_,)'.-"a\
+//                  /' (    \
+//      _.-----..,-'   (`"--^
+//     //              |
+//    (|   `;      ,   |
+//      \   ;.----/  ,/
+//       ) // /   | |\ \
+//       \ \\`\   | |/ /
+//        \ \\ \  | |\/
+//         `" `"  `"`
+//    
+    public function __construct() {
+        $this->initMessages();
+        $this->initLousyDb();
+        $this->loadLousyTariffs();
     }
-    return ($result);
-}
 
-/**
- * Checks is tariff lousy or not?
- *
- * @param   $tariff tariff name
- * @param   $lousyarr all lousy tariffs array
- * @return  bool
- *
- */
-function zb_LousyCheckTariff($tariff, $lousyarr) {
-    $tariff = mysql_real_escape_string($tariff);
-    if (!empty($lousyarr)) {
-        //check is tariff marked as lousy?
-        if (isset($lousyarr[$tariff])) {
-            return (true);
-        } else {
-            return (false);
-        }
-    } else {
-        // if no lousy marks - all tariffs popular by default
-        return (false);
+    /**
+     * Inits message helper instance
+     * 
+     * @return void
+     */
+    protected function initMessages() {
+        $this->messages = new UbillingMessageHelper();
     }
-}
 
-/**
- *  Returns list of lousy tariffs
- *  @return  string
- */
-function web_LousyShowAll() {
-    $allousy = zb_LousyTariffGetAll();
-    $allTariffPrices = zb_TariffGetPricesAll();
+    /**
+     * Inits database abstraction layer object for further usage
+     * 
+     * @return void
+     */
+    protected function initLousyDb() {
+        $this->lousyDb = new NyanORM(self::TABLE_LOUSY);
+    }
 
-    $tablecells = wf_TableCell(__('Tariff'));
-    $tablecells .= wf_TableCell(__('Fee'));
-    $tablecells .= wf_TableCell(__('Actions'));
-    $tablerows = wf_TableRow($tablecells, 'row1');
+    /**
+     * Loads available lousy tariffs data from database
+     * 
+     * @return void
+     */
+    protected function loadLousyTariffs() {
+        $this->allLousyTariffs = $this->lousyDb->getAll('tariff');
+    }
 
-    if (!empty($allousy)) {
-        foreach ($allousy as $eachtariff => $id) {
-            if (isset($allTariffPrices[$eachtariff])) {
-                $rowClass = 'row5';
+    /**
+     * Loads existing tariffs. Required only for cfg iface.
+     * 
+     * @return void
+     */
+    protected function loadAllTariffs() {
+        $this->allTariffs = zb_TariffGetAllData();
+    }
+
+    /**
+     * Checks is tariff marked as lousy?
+     * 
+     * @param string $tariffName
+     * 
+     * @return bool
+     */
+    protected function isLousy($tariffName) {
+        $result = false;
+        if (isset($this->allLousyTariffs[$tariffName])) {
+            $result = true;
+        }
+        return($result);
+    }
+
+    /**
+     * Checks is tariff not marked as lousy?
+     * 
+     * @param string $tariffName
+     * 
+     * @return bool
+     */
+    protected function isNotLousy($tariffName) {
+        $result = true;
+        if (isset($this->allLousyTariffs[$tariffName])) {
+            $result = false;
+        }
+        return($result);
+    }
+
+    /**
+     * Creates new lousy tariff
+     * 
+     * @param string $tariffName
+     * 
+     * @return void/string on error
+     */
+    public function create($tariffName) {
+        $result = '';
+        //preloading existing tariffs
+        $this->loadAllTariffs();
+        $tariffNameF = ubRouting::filters($tariffName, 'mres');
+        if (isset($this->allTariffs[$tariffName])) {
+            if ($this->isNotLousy($tariffName)) {
+                $this->lousyDb->data('tariff', $tariffNameF);
+                $this->lousyDb->create();
+                log_register('LOUSYTARIFF CREATE `' . $tariffName . '`');
             } else {
-                $rowClass = 'sigdeleteduser';
+                $result .= __('Lousy tariff') . ' `' . $tariffName . '` ' . __('Already exists');
             }
-            $tablecells = wf_TableCell($eachtariff);
-            $tariffPrice = (isset($allTariffPrices[$eachtariff])) ? $allTariffPrices[$eachtariff] : __('Deleted');
-            $tablecells .= wf_TableCell($tariffPrice);
-            $dellink = wf_JSAlert('?module=lousytariffs&delete=' . $eachtariff, web_delete_icon(), 'Removing this may lead to irreparable results');
-            $tablecells .= wf_TableCell($dellink);
-            $tablerows .= wf_TableRow($tablecells, $rowClass);
+        } else {
+            $result .= __('Strange exception') . ': ' . __('Tariff') . ' `' . $tariffName . '` ' . __('Not exists');
         }
-    }
-    $result = wf_TableBody($tablerows, '100%', '0', 'sortable');
-    return ($result);
-}
-
-/**
- * Returns available tariffs selector excluding already lousy
- * 
- * @param string $fieldname
- * @return string
- */
-function web_LousyTariffSelector($fieldname = 'tariffsel') {
-    $alltariffs = zb_TariffsGetAll();
-    $options = array();
-
-    if (!empty($alltariffs)) {
-        $allLousy = zb_LousyTariffGetAll();
-        foreach ($alltariffs as $io => $eachtariff) {
-            if (!isset($allLousy[$eachtariff['name']])) {
-                $options[$eachtariff['name']] = $eachtariff['name'];
-            }
-        }
+        return($result);
     }
 
-    $selector = wf_Selector($fieldname, $options, '', '', false);
-    return($selector);
-}
+    /**
+     * Deletes existing lousy tariff
+     * 
+     * @param string $tariffName
+     * 
+     * @return void/string on error
+     */
+    public function delete($tariffName) {
+        $result = '';
+        $tariffNameF = ubRouting::filters($tariffName, 'mres');
+        if ($this->isLousy($tariffName)) {
+            $this->lousyDb->where('tariff', '=', $tariffNameF);
+            $this->lousyDb->delete();
+            log_register('LOUSYTARIFF DELETE `' . $tariffName . '`');
+        } else {
+            $result .= __('Lousy tariff') . ' `' . $tariffName . '` ' . __('Not exists');
+        }
+        return($result);
+    }
 
-/**
- *  Returns form for adding lousy tariff
- * 
- *  @return  string
- */
-function web_LousyAddForm() {
-    $addinputs = web_LousyTariffSelector('newlousytariff') . ' ';
-    $addinputs .= wf_Submit('Mark this tariff as not popular');
-    $addform = wf_Form('', 'POST', $addinputs, 'glamour');
-    return ($addform);
-}
+    /**
+     * Flushes existing lousy tariff on system tariff deletion
+     * 
+     * @param string $tariffName
+     * 
+     * @return void
+     */
+    public function flush($tariffName) {
+        $result = '';
+        $tariffNameF = ubRouting::filters($tariffName, 'mres');
+        $this->lousyDb->where('tariff', '=', $tariffNameF);
+        $this->lousyDb->delete();
+        log_register('LOUSYTARIFF FLUSH `' . $tariffName . '`');
+    }
 
-?>
+    /**
+     * Returns array copy without lousy tariffs
+     * 
+     * @param array $tariffsArr
+     * 
+     * @return array
+     */
+    public function truncateLousy($tariffsArr) {
+        $result = array();
+
+        if (!empty($tariffsArr)) {
+            foreach ($tariffsArr as $eachTariff => $eachData) {
+                if ($this->isNotLousy($eachTariff)) {
+                    $result[$eachTariff] = $eachData;
+                }
+            }
+        }
+        return($result);
+    }
+
+    /**
+     * Renders new  lousy tariff creation form
+     * 
+     * @return string
+     */
+    protected function renderCreateForm() {
+        $result = '';
+        if (!empty($this->allTariffs)) {
+            $params = array();
+            foreach ($this->allTariffs as $eachTariffName => $tariffData) {
+                //excluding already lousy tariffs
+                if (!$this->isLousy($eachTariffName)) {
+                    $params[$eachTariffName] = $eachTariffName;
+                }
+            }
+
+            if (!empty($params)) {
+                $inputs = wf_Selector(self::PROUTE_CREATE, $params, __('Tariff'), '', false) . ' ';
+                $inputs .= wf_Submit(__('Mark this tariff as not popular'));
+                $result .= wf_Form('', 'POST', $inputs, 'glamour');
+            } else {
+                $result .= $this->messages->getStyledMessage(__('All tariffs marked as lousy'), 'info');
+            }
+        } else {
+            $result .= $this->messages->getStyledMessage(__('Any tariffs available'), 'warning');
+        }
+        return($result);
+    }
+
+    /**
+     * Renders existing lousy tariff deletion form
+     * 
+     * @param string $tariffName
+     * 
+     * @return string
+     */
+    protected function renderDeleteForm($tariffName) {
+        $result = '';
+        if ($this->isLousy($tariffName)) {
+            $deleteUrl = self::URL_ME . '&' . self::ROUTE_DELETE . '=' . $tariffName;
+            $cancelUrl = self::URL_ME;
+            $control = web_delete_icon();
+            $customTitle = __('Delete') . ' ' . $tariffName . '?';
+            $label = $this->messages->getDeleteAlert();
+            $result .= wf_ConfirmDialog($deleteUrl, $control, $label, '', $cancelUrl, $customTitle);
+        }
+        return($result);
+    }
+
+    /**
+     * Renders list of available lousy tariffs
+     * 
+     * @return string
+     */
+    public function renderList() {
+        $result = '';
+        //preloading system data required in future
+        $this->loadAllTariffs();
+
+        if (!empty($this->allLousyTariffs)) {
+            $cells = wf_TableCell(__('Tariff'));
+            $cells .= wf_TableCell(__('Fee'));
+            $cells .= wf_TableCell(__('Actions'));
+            $rows = wf_TableRow($cells, 'row1');
+            foreach ($this->allLousyTariffs as $io => $each) {
+                if (isset($this->allTariffs[$each['tariff']])) {
+                    $tariffFee = $this->allTariffs[$each['tariff']]['Fee'];
+                    $rowClass = 'row5';
+                } else {
+                    $tariffFee = __('Deleted');
+                    $rowClass = 'sigdeleteduser';
+                }
+
+                $cells = wf_TableCell($each['tariff']);
+                $cells .= wf_TableCell($tariffFee);
+                $cells .= wf_TableCell($this->renderDeleteForm($each['tariff']));
+                $rows .= wf_TableRow($cells, $rowClass);
+            }
+            $result .= wf_TableBody($rows, '100%', 0, 'sortable');
+        } else {
+            $result .= $this->messages->getStyledMessage(__('Nothing to show'), 'info');
+        }
+        $result .= wf_delimiter();
+        $result .= $this->renderCreateForm();
+        return($result);
+    }
+}
