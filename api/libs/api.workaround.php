@@ -681,56 +681,14 @@ function zb_TariffsGetAll() {
 }
 
 /**
- * Returns available tariffs selector
+ * Returns tariff selector with optional branches, lousy and stealth tariffs filtering
  * 
  * @param string $fieldname
- * @return string
- */
-function web_tariffselector($fieldname = 'tariffsel') {
-    global $ubillingConfig;
-    $altCfg = $ubillingConfig->getAlter();
-    if ($altCfg['BRANCHES_ENABLED']) {
-        global $branchControl;
-        $branchControl->loadTariffs();
-    }
-
-
-    $alltariffs = zb_TariffsGetAll();
-    $options = array();
-
-    if (!empty($alltariffs)) {
-        foreach ($alltariffs as $io => $eachtariff) {
-            if ($altCfg['BRANCHES_ENABLED']) {
-                if ($branchControl->isMyTariff($eachtariff['name'])) {
-                    $options[$eachtariff['name']] = $eachtariff['name'];
-                }
-            } else {
-                $options[$eachtariff['name']] = $eachtariff['name'];
-            }
-        }
-    }
-
-    //stealth tariffs implementation
-    if ($altCfg['STEALTH_TARIFFS_ENABLED']) {
-        $stealthTariffs = new StealthTariffs();
-        //administrator have no rights to assign stealth tariffs?
-        if (!cfr($stealthTariffs::RIGHT_STEALTH)) {
-            //dropping all of them from selector options
-            $options = $stealthTariffs->truncateStealth($options);
-        }
-    }
-
-    $selector = wf_Selector($fieldname, $options, '', '', false);
-    return($selector);
-}
-
-/**
- * Returns tariff selector without lousy tariffs
+ * @param bool $skipLousy
  * 
- * @param string $fieldname
  * @return string
  */
-function web_tariffselectorNoLousy($fieldname = 'tariffsel') {
+function web_tariffselector($fieldname = 'tariffsel', $skipLousy = false) {
     global $ubillingConfig;
     $altCfg = $ubillingConfig->getAlter();
     if ($altCfg['BRANCHES_ENABLED']) {
@@ -756,8 +714,10 @@ function web_tariffselectorNoLousy($fieldname = 'tariffsel') {
     }
 
     //excluding lousy tariffs from list, if available
-    $lousy = new LousyTariffs();
-    $options = $lousy->truncateLousy($options);
+    if ($skipLousy) {
+        $lousy = new LousyTariffs();
+        $options = $lousy->truncateLousy($options);
+    }
 
     //stealth tariffs implementation
     if ($altCfg['STEALTH_TARIFFS_ENABLED']) {
@@ -782,86 +742,26 @@ function web_tariffselectorNoLousy($fieldname = 'tariffsel') {
  * @param string  $fieldkey
  * @param string  $useraddress
  * @param string  $olddata
- * @return string
- */
-function web_EditorTariffForm($fieldname, $fieldkey, $useraddress, $olddata = '') {
-    global $ubillingConfig;
-    $alter = $ubillingConfig->getAlter();
-
-    $login = ( isset($_GET['username']) ) ? vf($_GET['username']) : null;
-
-    $nm_flag = ( $olddata == '*_NO_TARIFF_*' ) ? 'DISABLED' : null;
-
-    if (isset($alter['SIGNUP_PAYMENTS']) && !empty($alter['SIGNUP_PAYMENTS'])) {
-        $payment = zb_UserGetSignupPrice($login);
-        $paid = zb_UserGetSignupPricePaid($login);
-        $disabled = ( $payment == $paid && $payment > 0 ) ? 'disabled' : null;
-        $charge_signup_price_checkbox = '
-            <label for="charge_signup_price_checkbox"> ' . __('Charge signup price') . '
-                <input type="checkbox"  name="charge_signup_price" id="charge_signup_price_checkbox" ' . $disabled . '> 
-            </label>
-        ';
-    } else {
-        $charge_signup_price_checkbox = null;
-    }
-
-    $nmControl = wf_tag('label', false, '', 'for="nm"');
-    $nmControl .= __('Next month');
-    $nmControl .= wf_tag('input', false, '', 'type="checkbox"  name="nextmonth" id="nm" ' . $nm_flag);
-    $nmControl .= wf_tag('label', true);
-
-    $cells = wf_TableCell(__('User'), '', 'row2');
-    $cells .= wf_TableCell($useraddress, '', 'row3');
-    $rows = wf_TableRow($cells);
-
-    $cells = wf_TableCell($fieldname, '', 'row2');
-    $cells .= wf_TableCell($olddata, '', 'row3');
-    $rows .= wf_TableRow($cells);
-
-    $cells = wf_TableCell($nmControl, '', 'row2', 'align="right"');
-    $cells .= wf_TableCell(web_tariffselector($fieldkey) . $charge_signup_price_checkbox, '', 'row3');
-    $rows .= wf_TableRow($cells);
-
-    $table = wf_TableBody($rows, '100%', 0);
-
-    $inputs = $table;
-    $inputs .= wf_tag('br');
-    $inputs .= wf_Submit(__('Change'));
-    $inputs .= wf_delimiter();
-    $form = wf_Form("", 'POST', $inputs, '');
-
-    return($form);
-}
-
-/**
- * Returns tariff changing form without lousy tariffs
+ * @param bool    $skeepLousy
  * 
- * @global object $ubillingConfig
- * @param string  $fieldname
- * @param string $fieldkey
- * @param string $useraddress
- * @param string $olddata
  * @return string
  */
-function web_EditorTariffFormWithoutLousy($fieldname, $fieldkey, $useraddress, $olddata = '') {
+function web_EditorTariffForm($fieldname, $fieldkey, $useraddress, $olddata = '', $skipLousy = false) {
     global $ubillingConfig;
     $alter = $ubillingConfig->getAlter();
 
     $login = ( isset($_GET['username']) ) ? vf($_GET['username']) : null;
 
     $nm_flag = ( $olddata == '*_NO_TARIFF_*' ) ? 'DISABLED' : null;
-
-    if (isset($alter['SIGNUP_PAYMENTS']) && !empty($alter['SIGNUP_PAYMENTS'])) {
+    $charge_signup_price_checkbox = '';
+    if (isset($alter['SIGNUP_PAYMENTS']) AND !empty($alter['SIGNUP_PAYMENTS'])) {
         $payment = zb_UserGetSignupPrice($login);
         $paid = zb_UserGetSignupPricePaid($login);
-        $disabled = ( $payment == $paid && $payment > 0 ) ? 'disabled' : null;
-        $charge_signup_price_checkbox = '
-            <label for="charge_signup_price_checkbox"> ' . __('Charge signup price') . '
-                <input type="checkbox"  name="charge_signup_price" id="charge_signup_price_checkbox" ' . $disabled . '> 
-            </label>
-        ';
-    } else {
-        $charge_signup_price_checkbox = null;
+        $disabled = ( $payment == $paid AND $payment > 0 ) ? 'disabled' : '';
+        $charge_signup_price_checkbox = ' ' . wf_tag('label', false, '', 'for="charge_signup_price_checkbox"');
+        $charge_signup_price_checkbox .= __('Charge signup price') . ' ';
+        $charge_signup_price_checkbox .= wf_tag('input', false, '', 'type="checkbox" name="charge_signup_price" id="charge_signup_price_checkbox" ' . $disabled);
+        $charge_signup_price_checkbox .= wf_tag('label', true);
     }
 
     $nmControl = wf_tag('label', false, '', 'for="nm"');
@@ -878,7 +778,7 @@ function web_EditorTariffFormWithoutLousy($fieldname, $fieldkey, $useraddress, $
     $rows .= wf_TableRow($cells);
 
     $cells = wf_TableCell($nmControl, '', 'row2', 'align="right"');
-    $cells .= wf_TableCell(web_tariffselectorNoLousy($fieldkey) . $charge_signup_price_checkbox, '', 'row3');
+    $cells .= wf_TableCell(web_tariffselector($fieldkey, $skipLousy) . $charge_signup_price_checkbox, '', 'row3');
     $rows .= wf_TableRow($cells);
 
     $table = wf_TableBody($rows, '100%', 0);
@@ -887,7 +787,7 @@ function web_EditorTariffFormWithoutLousy($fieldname, $fieldkey, $useraddress, $
     $inputs .= wf_tag('br');
     $inputs .= wf_Submit(__('Change'));
     $inputs .= wf_delimiter();
-    $form = wf_Form("", 'POST', $inputs, '');
+    $form = wf_Form('', 'POST', $inputs, '');
 
     return($form);
 }
