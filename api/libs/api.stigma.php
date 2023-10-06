@@ -20,7 +20,7 @@ class Stigma {
     protected $type = 'radiolist';
 
     /**
-     * Stigma controller renderer type: iconic, selector
+     * Stigma controller renderer type: iconic, selector, textlink, etc...
      * 
      * @var string
      */
