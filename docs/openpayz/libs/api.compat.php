@@ -143,5 +143,30 @@ if (!function_exists('rcms_redirect')) {
         }
     }
 
+    /**
+     * Checks for substring in a string or array of strings
+     *
+     * @param string $string
+     * @param string|array $search
+     *
+     * @return bool
+     */
+    function ispos_array($string, $search) {
+        if (is_array($search)) {
+            foreach ($search as $eachStr) {
+                if (strpos($string, $eachStr) !== false) {
+                    return (true);
+                }
+            }
+
+            return(false);
+        } else {
+            if (strpos($string, $search) === false) {
+                return(false);
+            } else {
+                return(true);
+            }
+        }
+    }
 }
 ?>

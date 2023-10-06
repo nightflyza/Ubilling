@@ -3279,3 +3279,7 @@ CREATE TABLE IF NOT EXISTS `mlg_culpas` (
    KEY `login` (`login`),
    KEY `culpa` (`culpa`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
+
+ALTER TABLE `contrahens_extinfo` ADD `paysys_token` VARCHAR(255) NOT NULL DEFAULT '';
+ALTER TABLE `contrahens_extinfo` ADD `paysys_secret_key` VARCHAR(255) NOT NULL DEFAULT '';
+ALTER TABLE `contrahens_extinfo` ADD `paysys_password` VARCHAR(255) NOT NULL DEFAULT '';

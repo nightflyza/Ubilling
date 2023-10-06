@@ -3,6 +3,7 @@
 //include mysql interraction layer and useful debug functions
 include("api.mysql.php");
 include("api.compat.php");
+include("api.paysysproto.php");
 
 /**
  * Registers new non processed transaction
