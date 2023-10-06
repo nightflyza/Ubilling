@@ -340,7 +340,7 @@ class PaymeUZ {
     }
 
     /**
-     * Returns all user RealNames
+     * Returns array of available or filtered by user login RealNames as login => realname
      *
      * @param string $userLogin
      *
@@ -365,7 +365,7 @@ class PaymeUZ {
 
 
     /**
-     * Returns array of available or filtered by user login address as login => address
+     * Returns array of available or filtered by user login addresses as login => address
      *
      * @param string $userLogin
      *

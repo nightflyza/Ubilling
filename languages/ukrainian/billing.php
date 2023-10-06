@@ -3501,7 +3501,10 @@ $lang['def']['Lousy tariff'] = 'Непопулярний тариф';
 $lang['def']['All tariffs marked as lousy'] = 'Всі тарифи вже помічено як непопулярні. З якоїсь причини...';
 $lang['def']['Order'] = 'Наказ';
 $lang['def']['Support project'] = 'Підтримати проєкт';
+$lang['def']['You may select OpenPayz payment system name'] = 'Ви можете вибрати найменування платіжної системи OpenPayz';
+$lang['def']['Service token'] = 'Токен сервісу';
+$lang['def']['Service secret key'] = 'Секретний ключ сервісу';
+$lang['def']['Service password'] = 'Пароль сервісу';
 $lang['def'][''] = '';
-
 
 
