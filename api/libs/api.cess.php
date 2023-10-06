@@ -1177,31 +1177,39 @@ function zb_GetAgentExtInfo($recID = '', $agentID = '', $getBaseAgentInfo = fals
     return ($result);
 }
 
-function zb_CreateAgentExtInfoRec($extinfoAgentID, $extinfoSrvType = '', $extinfoPaySysName = '', $extinfoPaySysID = '', $extinfoPaySysSrvID = '') {
+function zb_CreateAgentExtInfoRec($extinfoAgentID, $extinfoSrvType = '', $extinfoPaySysName = '', $extinfoPaySysID = '', $extinfoPaySysSrvID = '',
+                                  $extinfoPaySysToken = '', $extinfoPaySysSecretKey = '', $extinfoPaySysPassword  = '') {
     $tabAgentExtInfo = new NyanORM('contrahens_extinfo');
     $tabAgentExtInfo->dataArr(array(
-        'agentid' => $extinfoAgentID,
-        'service_type' => $extinfoSrvType,
-        'internal_paysys_name' => $extinfoPaySysName,
-        'internal_paysys_id' => $extinfoPaySysID,
-        'internal_paysys_srv_id' => $extinfoPaySysSrvID
-            )
-    );
+                                    'agentid'                   => $extinfoAgentID,
+                                    'service_type'              => $extinfoSrvType,
+                                    'internal_paysys_name'      => $extinfoPaySysName,
+                                    'internal_paysys_id'        => $extinfoPaySysID,
+                                    'internal_paysys_srv_id'    => $extinfoPaySysSrvID,
+                                    'paysys_token'              => $extinfoPaySysToken,
+                                    'paysys_secret_key'         => $extinfoPaySysSecretKey,
+                                    'paysys_password'           => $extinfoPaySysPassword
+                                    )
+                            );
 
     $tabAgentExtInfo->create();
 }
 
-function zb_EditAgentExtInfoRec($recID, $extinfoAgentID, $extinfoSrvType = '', $extinfoPaySysName = '', $extinfoPaySysID = '', $extinfoPaySysSrvID = '') {
+function zb_EditAgentExtInfoRec($recID, $extinfoAgentID, $extinfoSrvType = '', $extinfoPaySysName = '', $extinfoPaySysID = '', $extinfoPaySysSrvID = '',
+                                $extinfoPaySysToken = '', $extinfoPaySysSecretKey = '', $extinfoPaySysPassword  = '') {
     $tabAgentExtInfo = new NyanORM('contrahens_extinfo');
     $tabAgentExtInfo->dataArr(array(
-        'id' => $recID,
-        'agentid' => $extinfoAgentID,
-        'service_type' => $extinfoSrvType,
-        'internal_paysys_name' => $extinfoPaySysName,
-        'internal_paysys_id' => $extinfoPaySysID,
-        'internal_paysys_srv_id' => $extinfoPaySysSrvID
-            )
-    );
+                                    'id'                        => $recID,
+                                    'agentid'                   => $extinfoAgentID,
+                                    'service_type'              => $extinfoSrvType,
+                                    'internal_paysys_name'      => $extinfoPaySysName,
+                                    'internal_paysys_id'        => $extinfoPaySysID,
+                                    'internal_paysys_srv_id'    => $extinfoPaySysSrvID,
+                                    'paysys_token'              => $extinfoPaySysToken,
+                                    'paysys_secret_key'         => $extinfoPaySysSecretKey,
+                                    'paysys_password'           => $extinfoPaySysPassword
+                                    )
+                            );
     $tabAgentExtInfo->where('id', '=', $recID);
     $tabAgentExtInfo->save(true, true);
 }
@@ -1214,32 +1222,79 @@ function zb_EditAgentExtInfoRec($recID, $extinfoAgentID, $extinfoSrvType = '', $
  * @return string
  */
 function zb_AgentEditExtInfoForm($recID = '') {
-    $extinfoData = (empty($recID) ? array() : zb_GetAgentExtInfo($recID));
-    $extinfoEditMode = !empty($extinfoData);
-    $extinfoRecID = '';
-    $extinfoAgentID = ubRouting::checkGet('extinfo') ? ubRouting::get('extinfo') : '';
-    $extinfoSrvType = '';
-    $extinfoPaySysName = '';
-    $extinfoPaySysID = '';
-    $extinfoPaySysSrvID = '';
+    $extinfoData            = (empty($recID) ? array() : zb_GetAgentExtInfo($recID));
+    $extinfoEditMode        = !empty($extinfoData);
+    $extinfoRecID           = '';
+    $extinfoAgentID         = ubRouting::checkGet('extinfo') ? ubRouting::get('extinfo') : '';
+    $extinfoSrvType         = '';
+    $extinfoPaySysName      = '';
+    $extinfoPaySysID        = '';
+    $extinfoPaySysSrvID     = '';
+    $extinfoPaySysToken     = '';
+    $extinfoPaySysSecretKey = '';
+    $extinfoPaySysPassword  = '';
+    $allPaySys              = array();
+    $srvtypeSelectorID      = wf_InputId();
+    $openpayzSelectorID     = wf_InputId();
+    $paysysControlID        = wf_InputId();
 
     if ($extinfoEditMode) {
-        $extinfoRecID = $extinfoData[0]['id'];
-        $extinfoAgentID = $extinfoData[0]['agentid'];
-        $extinfoSrvType = $extinfoData[0]['service_type'];
-        $extinfoPaySysName = $extinfoData[0]['internal_paysys_name'];
-        $extinfoPaySysID = $extinfoData[0]['internal_paysys_id'];
-        $extinfoPaySysSrvID = $extinfoData[0]['internal_paysys_srv_id'];
+        $extinfoRecID           = $extinfoData[0]['id'];
+        $extinfoAgentID         = $extinfoData[0]['agentid'];
+        $extinfoSrvType         = $extinfoData[0]['service_type'];
+        $extinfoPaySysName      = $extinfoData[0]['internal_paysys_name'];
+        $extinfoPaySysID        = $extinfoData[0]['internal_paysys_id'];
+        $extinfoPaySysSrvID     = $extinfoData[0]['internal_paysys_srv_id'];
+        $extinfoPaySysToken     = $extinfoData[0]['paysys_token'];
+        $extinfoPaySysSecretKey = $extinfoData[0]['paysys_secret_key'];
+        $extinfoPaySysPassword  = $extinfoData[0]['paysys_password'];
+    } else {
+        // load existing OpenPayz payment systems
+        $query     = 'select distinct `paysys` from `op_transactions`';
+        $all       = simple_queryall($query);
+
+        if (!empty($all)) {
+            foreach ($all as $io => $each) {
+                $allPaySys[$each['paysys']] = $each['paysys'];
+            }
+        }
     }
 
-    $inputs = wf_Selector('extinfsrvtype', array('Internet' => __('Internet'), 'UKV' => __('UKV')), __('Choose service type'), $extinfoSrvType, true);
-    $inputs .= wf_TextInput('extinfintpaysysname', __('Payment system name'), $extinfoPaySysName, true);
-    $inputs .= wf_TextInput('extinfintpaysysid', __('Contragent code within payment system'), $extinfoPaySysID, true);
-    $inputs .= wf_TextInput('extinfintpaysyssrvid', __('Service code within payment system'), $extinfoPaySysSrvID, true);
-    $inputs .= wf_HiddenInput('extinfrecid', $extinfoRecID);
-    $inputs .= wf_HiddenInput('extinfagentid', $extinfoAgentID);
-    $inputs .= wf_HiddenInput('extinfeditmode', $extinfoEditMode);
-    $inputs .= wf_Submit(($extinfoEditMode) ? __('Edit') : __('Create'));
+    $inputs = wf_Selector('extinfsrvtype', array('Internet' => __('Internet'), 'UKV' => __('UKV')), __('Choose service type'), $extinfoSrvType, true, false, $srvtypeSelectorID);
+    $inputs.= ($extinfoEditMode) ? '' : wf_Selector('extinfoppaysys', $allPaySys, __('You may select OpenPayz payment system name'), '', true, false, $openpayzSelectorID);
+    $inputs.= wf_TextInput('extinfintpaysysname', __('Payment system name'), $extinfoPaySysName, true, '', '', '', $paysysControlID);
+    $inputs.= wf_TextInput('extinfintpaysysid', __('Contragent code within payment system'), $extinfoPaySysID, true);
+    $inputs.= wf_TextInput('extinfintpaysyssrvid', __('Service code within payment system'), $extinfoPaySysSrvID, true);
+    $inputs.= wf_TextInput('extinfintpaysystoken', __('Service token'), $extinfoPaySysToken, true);
+    $inputs.= wf_TextInput('extinfintpaysyskey', __('Service secret key'), $extinfoPaySysSecretKey, true);
+    $inputs.= wf_TextInput('extinfintpaysyspasswd', __('Service password'), $extinfoPaySysPassword, true);
+    $inputs.= wf_HiddenInput('extinfrecid', $extinfoRecID);
+    $inputs.= wf_HiddenInput('extinfagentid', $extinfoAgentID);
+    $inputs.= wf_HiddenInput('extinfeditmode', $extinfoEditMode);
+    $inputs.= wf_Submit(($extinfoEditMode) ? __('Edit') : __('Create'));
+
+    if (!$extinfoEditMode) {
+        $tmpJS = "
+                    $(document).ready(function() {
+                        if ($('#" . $srvtypeSelectorID . " option:selected').val() == 'Internet') {
+                            $('#" . $openpayzSelectorID . "').prop('disabled', false);
+                        } else {
+                            $('#" . $openpayzSelectorID . "').prop('disabled', true);
+                        }
+                        
+                        $('#" . $srvtypeSelectorID . "').on('change', function() {
+                            console.log($('#" . $srvtypeSelectorID . " option:selected').val());
+                            let opz_disabled = ($('#" . $srvtypeSelectorID . " option:selected').val() != 'Internet');
+                            $('#" . $openpayzSelectorID . "').prop('disabled', opz_disabled);
+                        });
+                        
+                        $('#" . $openpayzSelectorID . "').on('change', function() {
+                            $('#" . $paysysControlID . "').val($('#" . $openpayzSelectorID . " option:selected').val());                    
+                        });
+                    });
+                 ";
+        $inputs .= wf_EncloseWithJSTags($tmpJS);
+    }
 
     $result = wf_Form("", 'POST', $inputs, 'glamour');
 
@@ -1263,7 +1318,10 @@ function zb_RenderAgentExtInfoTable($agentID) {
         'Service type',
         'Payment system name',
         'Contragent code within payment system',
-        'Service code within payment system'
+        'Service code within payment system',
+        'Service token',
+        'Service secret key',
+        'Service password'
     );
     $keys = array(
         'id',
@@ -1271,7 +1329,10 @@ function zb_RenderAgentExtInfoTable($agentID) {
         'service_type',
         'internal_paysys_name',
         'internal_paysys_id',
-        'internal_paysys_srv_id'
+        'internal_paysys_srv_id',
+        'paysys_token',
+        'paysys_secret_key',
+        'paysys_password'
     );
 
     $result = web_GridEditor($titles, $keys, $extinfoData, 'contrahens&extinfo=' . $agentID, true, true);

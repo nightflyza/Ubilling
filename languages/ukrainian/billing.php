@@ -3497,6 +3497,10 @@ $lang['def']['right to ONU map'] = 'Право користуватись мап
 $lang['def']['ONU view'] = 'Перегляд ONU';
 $lang['def']['right to view branches users ONUs'] = 'Право на перегляд ONU користувачів філій';
 $lang['def']['No ONUs of devices assigned to this user were detected'] = 'Не виявлено ONU пристроїв, що присвоєні цьому користувачеві';
+$lang['def']['You may select OpenPayz payment system name'] = 'Ви можете вибрати найменування платіжної системи OpenPayz';
+$lang['def']['Service token'] = 'Токен сервісу';
+$lang['def']['Service secret key'] = 'Секретний ключ сервісу';
+$lang['def']['Service password'] = 'Пароль сервісу';
 $lang['def'][''] = '';
 
 

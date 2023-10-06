@@ -66,18 +66,17 @@ if (cfr('AGENTS')) {
     if (ubRouting::checkGet('extinfo')) {
         // edit extended agent info
         if (ubRouting::checkPost('extinfeditmode') and ubRouting::checkPost('extinfrecid') and ubRouting::checkPost('extinfagentid')) {
-            zb_EditAgentExtInfoRec(ubRouting::post('extinfrecid'), ubRouting::post('extinfagentid'), ubRouting::post('extinfsrvtype'), ubRouting::post('extinfintpaysysname'), ubRouting::post('extinfintpaysysid'), ubRouting::post('extinfintpaysyssrvid')
-            );
+            zb_EditAgentExtInfoRec(ubRouting::post('extinfrecid'), ubRouting::post('extinfagentid'), ubRouting::post('extinfsrvtype'), ubRouting::post('extinfintpaysysname'), ubRouting::post('extinfintpaysysid'), ubRouting::post('extinfintpaysyssrvid'));
         } elseif (ubRouting::checkPost('extinfeditmode', false) and ubRouting::checkPost('extinfagentid')) {
-            zb_CreateAgentExtInfoRec(ubRouting::post('extinfagentid'), ubRouting::post('extinfsrvtype'), ubRouting::post('extinfintpaysysname'), ubRouting::post('extinfintpaysysid'), ubRouting::post('extinfintpaysyssrvid')
-            );
+            zb_CreateAgentExtInfoRec(ubRouting::post('extinfagentid'), ubRouting::post('extinfsrvtype'), ubRouting::post('extinfintpaysysname'), ubRouting::post('extinfintpaysysid'), ubRouting::post('extinfintpaysyssrvid'));
         }
 
         show_window(__('Extended info'), zb_RenderAgentExtInfoTable(ubRouting::get('extinfo')) .
                 wf_delimiter() .
                 (ubRouting::checkGet('edit') ? zb_AgentEditExtInfoForm(ubRouting::checkGet('edit')) : zb_AgentEditExtInfoForm()) .
                 wf_delimiter() .
-                wf_BackLink('?module=contrahens'));
+                (ubRouting::checkGet('edit') ? wf_BackLink('?module=contrahens&extinfo=1') : wf_BackLink('?module=contrahens'))
+                );
     }
 
     //list ahents if not editing
