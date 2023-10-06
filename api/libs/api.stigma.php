@@ -76,6 +76,13 @@ class Stigma {
     protected $activeClass = 'todaysig';
 
     /**
+     * Configurable base-state controls class
+     * 
+     * @var string
+     */
+    protected $baseClass = 'dashtask';
+
+    /**
      * Stigma content update animation
      *
      * @var bool
@@ -142,6 +149,11 @@ class Stigma {
      * Contains defaul states delimiter for multiple states
      */
     const DELIMITER = '|';
+
+    /**
+     * Renderer methods names prefix
+     */
+    const RENDERER_PREFIX = 'renderer';
 
     /**
      * Some URLS/routes etc
@@ -311,6 +323,10 @@ class Stigma {
                         $this->activeClass = $raw['stigmasettings']['ACTIVECLASS'];
                     }
 
+                    if (isset($raw['stigmasettings']['BASECLASS'])) {
+                        $this->baseClass = $raw['stigmasettings']['BASECLASS'];
+                    }
+
                     if (isset($raw['stigmasettings']['ANIMATION'])) {
                         $this->animated = ($raw['stigmasettings']['ANIMATION']) ? false : true;
                     }
@@ -378,6 +394,109 @@ class Stigma {
     }
 
     /**
+     * Returns default iconic renderer controls
+     * 
+     * @param string $itemId
+     * @param int $size
+     * @param bool $readOnly
+     * @param array $currentStates
+     * @param string $containerName
+     * 
+     * @return string 
+     */
+    protected function rendererIconic($itemId, $size = '', $readOnly = false, $currentStates, $containerName) {
+        $result = '';
+        foreach ($this->states as $stateId => $stateName) {
+            $stateLabel = __($stateName);
+            $controlClass = $this->baseClass;
+            if (isset($currentStates[$stateId])) {
+                $controlClass .= ' ' . $this->activeClass;
+            }
+
+            $stateIcon = $this->getStateIcon($stateId);
+
+            $controlUrl = $this->baseUrl . '&' . self::ROUTE_SCOPE . '=' . $this->scope . '&' . self::ROUTE_ITEMID . '=' . $itemId . '&' . self::ROUTE_STATE . '=' . $stateId;
+            if ($size) {
+                $controlUrl .= '&' . self::ROUTE_ICONSIZE . '=' . $size;
+            }
+            if (!$readOnly) {
+                $controlLink = wf_AjaxLink($controlUrl, wf_img_sized($stateIcon, $stateLabel, $size), $containerName);
+            } else {
+                $controlLink = wf_img_sized($stateIcon, $stateLabel, $size);
+            }
+
+            $result .= wf_tag('div', false, $controlClass, '');
+            $result .= $controlLink;
+            $result .= wf_delimiter(0) . $stateLabel;
+            $result .= wf_tag('div', true);
+        }
+        return($result);
+    }
+
+    /**
+     * Returns selector renderer controls
+     * 
+     * @param string $itemId
+     * @param int $size
+     * @param bool $readOnly
+     * @param array $currentStates
+     * @param string $containerName
+     * 
+     * @return string 
+     */
+    protected function rendererSelector($itemId, $size = '', $readOnly = false, $currentStates, $containerName) {
+        $result = '';
+        $params = array();
+        $disabled = '';
+        $selected = '';
+        foreach ($this->states as $stateId => $stateName) {
+            $controlUrl = $this->baseUrl . '&' . self::ROUTE_SCOPE . '=' . $this->scope . '&' . self::ROUTE_ITEMID . '=' . $itemId . '&' . self::ROUTE_STATE . '=' . $stateId;
+            if (isset($currentStates[$stateId])) {
+                $selected = $controlUrl;
+            }
+            if ($readOnly) {
+                $disabled = ' DISABLED';
+            }
+
+            $stateLabel = __($stateName);
+            $params[$controlUrl] = $stateLabel;
+        }
+        $result .= wf_AjaxSelectorAC($containerName, $params, '', $selected, false, $disabled);
+        return($result);
+    }
+
+    /**
+     * Returns text links renderer controls
+     * 
+     * @param string $itemId
+     * @param int $size
+     * @param bool $readOnly
+     * @param array $currentStates
+     * @param string $containerName
+     * 
+     * @return string 
+     */
+    protected function rendererTextlink($itemId, $size = '', $readOnly = false, $currentStates, $containerName) {
+        $result = '';
+        foreach ($this->states as $stateId => $stateName) {
+            $stateLabel = __($stateName);
+            $controlClass = $this->baseClass;
+            if (isset($currentStates[$stateId])) {
+                $controlClass .= ' ' . $this->activeClass;
+            }
+
+            $controlUrl = $this->baseUrl . '&' . self::ROUTE_SCOPE . '=' . $this->scope . '&' . self::ROUTE_ITEMID . '=' . $itemId . '&' . self::ROUTE_STATE . '=' . $stateId;
+            if (!$readOnly) {
+                $controlLink = wf_AjaxLink($controlUrl, $stateLabel, $containerName, false, $controlClass);
+            } else {
+                $controlLink = wf_Link('#', $stateLabel, false, $controlClass);
+            }
+            $result .= $controlLink . ' ';
+        }
+        return($result);
+    }
+
+    /**
      * Renders stigma current state and editing interface for some item
      * 
      * @param string $itemId item ID to render control panel
@@ -396,7 +515,7 @@ class Stigma {
             $size = ubRouting::get(self::ROUTE_ICONSIZE, 'int');
         }
 
-//this itemid already have an stigma record
+        //this itemid already have an stigma record
         if (isset($this->allStigmas[$itemId])) {
             $rawStates = explode(self::DELIMITER, $this->allStigmas[$itemId]['state']);
             $currentStates = array_flip($rawStates);
@@ -406,52 +525,13 @@ class Stigma {
         $containerName = 'ajStigma' . $this->scope . '_' . $itemId;
         $result .= wf_AjaxLoader($this->animated);
         $result .= wf_tag('div', false, '', 'id="' . $containerName . '"');
-        //default controller renderer
-        if ($this->renderer == 'iconic') {
-            foreach ($this->states as $stateId => $stateName) {
-                $stateLabel = __($stateName);
-                $controlClass = 'dashtask';
-                if (isset($currentStates[$stateId])) {
-                    $controlClass .= ' ' . $this->activeClass;
-                }
 
-                $stateIcon = $this->getStateIcon($stateId);
-
-                $controlUrl = $this->baseUrl . '&' . self::ROUTE_SCOPE . '=' . $this->scope . '&' . self::ROUTE_ITEMID . '=' . $itemId . '&' . self::ROUTE_STATE . '=' . $stateId;
-                if ($size) {
-                    $controlUrl .= '&' . self::ROUTE_ICONSIZE . '=' . $size;
-                }
-                if (!$readOnly) {
-                    $controlLink = wf_AjaxLink($controlUrl, wf_img_sized($stateIcon, $stateLabel, $size), $containerName);
-                } else {
-                    $controlLink = wf_img_sized($stateIcon, $stateLabel, $size);
-                }
-
-                $result .= wf_tag('div', false, $controlClass, '');
-                $result .= $controlLink;
-                $result .= wf_delimiter(0) . $stateLabel;
-                $result .= wf_tag('div', true);
-            }
-        }
-
-        //selector controller renderer
-        if ($this->renderer == 'selector') {
-            $params = array();
-            $disabled = '';
-            $selected = '';
-            foreach ($this->states as $stateId => $stateName) {
-                $controlUrl = $this->baseUrl . '&' . self::ROUTE_SCOPE . '=' . $this->scope . '&' . self::ROUTE_ITEMID . '=' . $itemId . '&' . self::ROUTE_STATE . '=' . $stateId;
-                if (isset($currentStates[$stateId])) {
-                    $selected = $controlUrl;
-                }
-                if ($readOnly) {
-                    $disabled = ' DISABLED';
-                }
-
-                $stateLabel = __($stateName);
-                $params[$controlUrl] = $stateLabel;
-            }
-            $result .= wf_AjaxSelectorAC($containerName, $params, '', $selected, false, $disabled);
+        //selecting and calling controller renderer method
+        $rendererMethodName = self::RENDERER_PREFIX . ucfirst($this->renderer);
+        if (method_exists($this, $rendererMethodName)) {
+            $result .= $this->$rendererMethodName($itemId, $size, $readOnly, $currentStates, $containerName);
+        } else {
+            throw new Exception('EX_RENDERER_METHOD_NOT_EXISTS:' . $rendererMethodName);
         }
 
         $result .= wf_tag('div', true);
