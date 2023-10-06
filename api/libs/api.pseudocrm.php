@@ -118,6 +118,7 @@ class PseudoCRM {
     const TABLE_LEADS = 'crm_leads';
     const TABLE_ACTIVITIES = 'crm_activities';
     const TABLE_STATES_LOG = 'crm_stateslog';
+    const OPT_ACT_CUSTSTATES = 'PSEUDOCRM_ACT_CUSTSTATES';
 
     /**
      * routes here
@@ -173,6 +174,7 @@ class PseudoCRM {
         $this->initMessages();
         $this->loadAlter();
         $this->setActivitiesStatesList();
+        $this->setActivitiesCustomStates();
         $this->initLeadsDb();
         $this->initActivitiesDb();
         $this->loadEmployeeData();
@@ -215,6 +217,34 @@ class PseudoCRM {
             self::STIGMA_ACT_TARGET => __('Marketing target'),
             self::STIGMA_ACT_RESULT => __('Post-marketing status'),
         );
+    }
+
+    /**
+     * Sets or overrides custom activities states list depends on config option
+     * 
+     * @return void
+     */
+    protected function setActivitiesCustomStates() {
+        if (isset($this->altCfg[self::OPT_ACT_CUSTSTATES])) {
+            if (!empty($this->altCfg[self::OPT_ACT_CUSTSTATES])) {
+                $rawList = explode(',', $this->altCfg[self::OPT_ACT_CUSTSTATES]);
+                if (!empty($rawList)) {
+                    foreach ($rawList as $io => $each) {
+                        if (ispos($each, ':')) {
+                            $actStatesCustom = explode(':', $each);
+                            //at least two required sections available
+                            if (isset($actStatesCustom[0]) AND isset($actStatesCustom[1])) {
+                                $customScope = strtoupper($actStatesCustom[0]);
+                                $customStateName = __($actStatesCustom[1]);
+                                $this->activitiesStatesList[$customScope] = $customStateName;
+                            }
+                        } else {
+                            show_error(__('Wrong element format') . ' `' . $each . '` IN ' . self::OPT_ACT_CUSTSTATES);
+                        }
+                    }
+                }
+            }
+        }
     }
 
     /**
