@@ -20,6 +20,13 @@ class Stigma {
     protected $type = 'radiolist';
 
     /**
+     * Stigma controller renderer type: iconic, selector
+     * 
+     * @var string
+     */
+    protected $renderer = 'iconic';
+
+    /**
      * Contains available stigma type icons as state=>iconname
      *
      * @var array
@@ -299,6 +306,7 @@ class Stigma {
             if (isset($raw['stigmasettings'])) {
                 if (isset($raw['stigmasettings']['TYPE'])) {
                     $this->type = $raw['stigmasettings']['TYPE'];
+
                     if (isset($raw['stigmasettings']['ACTIVECLASS'])) {
                         $this->activeClass = $raw['stigmasettings']['ACTIVECLASS'];
                     }
@@ -306,6 +314,11 @@ class Stigma {
                     if (isset($raw['stigmasettings']['ANIMATION'])) {
                         $this->animated = ($raw['stigmasettings']['ANIMATION']) ? false : true;
                     }
+
+                    if (isset($raw['stigmasettings']['RENDERER'])) {
+                        $this->renderer = $raw['stigmasettings']['RENDERER'];
+                    }
+
                     foreach ($raw as $io => $each) {
                         if ($io != 'stigmasettings') {
                             $this->states[$io] = $each['NAME'];
@@ -393,31 +406,53 @@ class Stigma {
         $containerName = 'ajStigma' . $this->scope . '_' . $itemId;
         $result .= wf_AjaxLoader($this->animated);
         $result .= wf_tag('div', false, '', 'id="' . $containerName . '"');
-        foreach ($this->states as $stateId => $stateName) {
-            $stateLabel = __($stateName);
-            $controlClass = 'dashtask';
-            if (isset($currentStates[$stateId])) {
-                $controlClass .= ' ' . $this->activeClass;
-            }
+        //default controller renderer
+        if ($this->renderer == 'iconic') {
+            foreach ($this->states as $stateId => $stateName) {
+                $stateLabel = __($stateName);
+                $controlClass = 'dashtask';
+                if (isset($currentStates[$stateId])) {
+                    $controlClass .= ' ' . $this->activeClass;
+                }
 
-            $stateIcon = $this->getStateIcon($stateId);
+                $stateIcon = $this->getStateIcon($stateId);
 
-            $controlUrl = $this->baseUrl . '&' . self::ROUTE_SCOPE . '=' . $this->scope . '&' . self::ROUTE_ITEMID . '=' . $itemId . '&' . self::ROUTE_STATE . '=' . $stateId;
-            if ($size) {
-                $controlUrl .= '&' . self::ROUTE_ICONSIZE . '=' . $size;
-            }
-            if (!$readOnly) {
-                $controlLink = wf_AjaxLink($controlUrl, wf_img_sized($stateIcon, $stateLabel, $size), $containerName);
-            } else {
-                $controlLink = wf_img_sized($stateIcon, $stateLabel, $size);
-            }
+                $controlUrl = $this->baseUrl . '&' . self::ROUTE_SCOPE . '=' . $this->scope . '&' . self::ROUTE_ITEMID . '=' . $itemId . '&' . self::ROUTE_STATE . '=' . $stateId;
+                if ($size) {
+                    $controlUrl .= '&' . self::ROUTE_ICONSIZE . '=' . $size;
+                }
+                if (!$readOnly) {
+                    $controlLink = wf_AjaxLink($controlUrl, wf_img_sized($stateIcon, $stateLabel, $size), $containerName);
+                } else {
+                    $controlLink = wf_img_sized($stateIcon, $stateLabel, $size);
+                }
 
-            $result .= wf_tag('div', false, $controlClass, '');
-            $result .= $controlLink;
-            $result .= wf_delimiter(0) . $stateLabel;
-            $result .= wf_tag('div', true);
+                $result .= wf_tag('div', false, $controlClass, '');
+                $result .= $controlLink;
+                $result .= wf_delimiter(0) . $stateLabel;
+                $result .= wf_tag('div', true);
+            }
         }
 
+        //selector controller renderer
+        if ($this->renderer == 'selector') {
+            $params = array();
+            $disabled = '';
+            $selected = '';
+            foreach ($this->states as $stateId => $stateName) {
+                $controlUrl = $this->baseUrl . '&' . self::ROUTE_SCOPE . '=' . $this->scope . '&' . self::ROUTE_ITEMID . '=' . $itemId . '&' . self::ROUTE_STATE . '=' . $stateId;
+                if (isset($currentStates[$stateId])) {
+                    $selected = $controlUrl;
+                }
+                if ($readOnly) {
+                    $disabled = ' DISABLED';
+                }
+
+                $stateLabel = __($stateName);
+                $params[$controlUrl] = $stateLabel;
+            }
+            $result .= wf_AjaxSelectorAC($containerName, $params, '', $selected, false, $disabled);
+        }
 
         $result .= wf_tag('div', true);
         $result .= wf_CleanDiv();

@@ -549,17 +549,19 @@ function wf_SelectorAC($name, $params, $label, $selected = '', $br = false) {
  * @param string  $label text label for input
  * @param string  $selected selected $value for selector
  * @param bool    $br append new line
+ * @param string  $options some raw custom options
+ * 
  * @return  string
  *
  */
-function wf_AjaxSelectorAC($container, $params, $label, $selected = '', $br = false) {
+function wf_AjaxSelectorAC($container, $params, $label, $selected = '', $br = false, $options = '') {
     $inputid = wf_InputId();
     if ($br) {
         $newline = '<br>';
     } else {
         $newline = '';
     }
-    $result = '<select name="' . $inputid . '" id="' . $inputid . '" onChange="this.options[this.selectedIndex].onclick();">';
+    $result = '<select name="' . $inputid . '" id="' . $inputid . '" onChange="this.options[this.selectedIndex].onclick();" ' . $options . '>';
     if (!empty($params)) {
         foreach ($params as $value => $eachparam) {
             $sel_flag = '';
@@ -1452,7 +1454,7 @@ function wf_FullCalendar($data, $options = '', $useHTMLInTitle = false, $useHTML
     global $ubillingConfig;
 
     $elementid = wf_InputId();
-    $dragdropON = ($ubillingConfig->getAlterParam('CALENDAR_DRAG_AND_DROP_ON') and ! empty($ajaxURLForDnD));
+    $dragdropON = ($ubillingConfig->getAlterParam('CALENDAR_DRAG_AND_DROP_ON') and !empty($ajaxURLForDnD));
     $dndConfirmON = $ubillingConfig->getAlterParam('CALENDAR_DRAG_AND_DROP_CONFIRM_ON');
     $titlesSearchON = $ubillingConfig->getAlterParam('CALENDAR_TITLES_SEARCH_ON');
 
@@ -1982,7 +1984,6 @@ function wf_modalOpenedAuto($title, $content) {
     $width = "'auto'";
     $height = "'auto'";
 
-
     $dialog = '
 <script type="text/javascript">
 $(function() {
@@ -2084,7 +2085,6 @@ function wf_GraphCSV($datafile, $width = '500', $height = '300', $errorbars = fa
     $result .= $objectId . ' = new Dygraph(';
     $result .= 'document.getElementById("' . $randomId . '"), "' . $datafile . '" ' . "\n";
 
-
     $result .= ', {  errorBars: ' . $errorbars;
     $result .= (!empty($GraphTitle)) ? ', title: \'' . $GraphTitle . '\'' : '';
     $result .= (!empty($XLabel)) ? ', xlabel: \'' . $XLabel . '\'' : '';
@@ -2115,7 +2115,7 @@ function wf_GraphCSV($datafile, $width = '500', $height = '300', $errorbars = fa
 function wf_ColPicker($name, $label = '', $value = '', $br = false, $size = '', $changeCtrlColorID = '', $changeCtrlColorCSSProp = '') {
     $id = wf_InputId();
 
-    if (!empty($changeCtrlColorID) and ! empty($changeCtrlColorCSSProp)) {
+    if (!empty($changeCtrlColorID) and !empty($changeCtrlColorCSSProp)) {
         $changeCtrlColorJS = ' $(\'#' . $changeCtrlColorID . '\').css("' . $changeCtrlColorCSSProp . '", "#" + hex_str);';
     } else {
         $changeCtrlColorJS = '';
@@ -2383,7 +2383,6 @@ function wf_AutocompleteTextInput($name, $data = array(), $label = '', $value = 
     //removing ending coma
     $acData = mb_substr($acData, 0, -1, 'UTF-8');
 
-
     $autocomplete .= $acData;
 
     $autocomplete .= '
@@ -2503,7 +2502,6 @@ function wf_JqDtLoader($columns, $ajaxUrl, $saveState = false, $objects = 'users
     $saveState = ($saveState) ? 'true' : 'false';
     $opts = (!empty($opts)) ? $opts . ',' : '';
 
-
     $jq_dt = wf_tag('script', false, '', ' type="text/javascript" charset="utf-8"');
     $jq_dt .= '
  		$(document).ready(function() {                 
@@ -2571,7 +2569,6 @@ function wf_JqDtLoader($columns, $ajaxUrl, $saveState = false, $objects = 'users
     }
 
     $result .= wf_tag('table', true);
-
 
     return ($result);
 }
@@ -2669,7 +2666,7 @@ function wf_JQDTColumnTotalSumJS() {
 function wf_JQDTMarkRowJS($columnNum, $searchVal, $truncateURL = '', $truncateParam = '') {
     $truncateJSCode = '';
 
-    if (!empty($truncateURL) and ! empty($truncateParam)) {
+    if (!empty($truncateURL) and !empty($truncateParam)) {
         $truncateJSCode = '
             //var urlParamsObject = new URLSearchParams(\'' . $truncateURL . '\');
             var urlParamsObject = new URLSearchParams(window.location.search);
@@ -2771,7 +2768,7 @@ $(document).ready(function() {
 function wf_JQDTRefreshButton($jqdtID = '', $jqdtIDSelector = '', $class = '', $opts = '') {
     $result = '';
 
-    if (!empty($jqdtID) or ! empty($jqdtIDSelector)) {
+    if (!empty($jqdtID) or !empty($jqdtIDSelector)) {
         $class = (empty($class) ? 'ubButtonInline' : $class);
         $tmpInpID = wf_InputId();
         $result = wf_Link('#', wf_img('skins/refresh.gif', __('Refresh table data'), 'vertical-align: bottom'), false, $class, 'id="' . $tmpInpID . '" ' . $opts);
@@ -3591,7 +3588,7 @@ function wf_EncloseWithJSTags($content) {
 function wf_TabsGen($tabsDivID, $tabsList, $tabsBody, $mainDivOpts = '', $ulOpts = '', $tabsCarouselOn = false) {
     $result = '';
 
-    if (!empty($tabsDivID) and ! empty($tabsList) and ! empty($tabsBody)) {
+    if (!empty($tabsDivID) and !empty($tabsList) and !empty($tabsBody)) {
         $divOps = 'id="' . $tabsDivID . '" ' . $mainDivOpts;
         $initTabsJSStr = '$( "#' . $tabsDivID . '" ).tabs();';
 
@@ -3894,7 +3891,6 @@ function wf_StepsMeter($params, $current) {
 
         $code .= wf_CleanDiv();
 
-
         $result = $style . $code;
     }
     return ($result);
@@ -3956,7 +3952,7 @@ function wf_ConfirmDialogJS($url, $title, $alerttext, $class = '', $cancelUrl = 
     $dialog .= wf_tag('center', false);
     $dialog .= wf_Link($url, __('Agree'), false, 'confirmagree', $funcRunAgree);
 
-    if (!empty($cancelUrl) or ! empty($funcRunCancel)) {
+    if (!empty($cancelUrl) or !empty($funcRunCancel)) {
         $dialog .= wf_Link($cancelUrl, __('Cancel'), false, 'confirmcancel', $funcRunCancel);
     }
 
@@ -4315,5 +4311,4 @@ class wf_JqDtHelper {
     public function flushData() {
         $this->allRows = array();
     }
-
 }
