@@ -47,3 +47,7 @@ CREATE TABLE IF NOT EXISTS `stealthtariffs` (
   `tariff` varchar(64) DEFAULT NULL,
    PRIMARY KEY (`id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
+
+ALTER TABLE `contrahens_extinfo` ADD `paysys_token` VARCHAR(255) NOT NULL DEFAULT '';
+ALTER TABLE `contrahens_extinfo` ADD `paysys_secret_key` VARCHAR(255) NOT NULL DEFAULT '';
+ALTER TABLE `contrahens_extinfo` ADD `paysys_password` VARCHAR(255) NOT NULL DEFAULT '';
