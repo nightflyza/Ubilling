@@ -67,6 +67,13 @@ class PaySysProto {
     protected $agentData = array();
 
     /**
+     * Contains ID of UB agent the user is assigned to or zero if no assignment found
+     *
+     * @var array
+     */
+    protected $agentID = 0;
+
+    /**
      * Placeholder for UB API URL
      *
      * @var string
@@ -154,11 +161,12 @@ class PaySysProto {
     protected function getUBAgentData($userLogin) {
         $action = $this->ubapiURL . '?module=remoteapi&key=' . $this->ubapiKey . '&action=getagentdata&param=' . $userLogin;
         @$result = file_get_contents($action);
-
+file_put_contents('zxcv', 'RemoteAPI: ' . $action . "\n", 8);
+file_put_contents('zxcv', 'RemoteAPI result: ' . $result . "\n", 8);
         if (empty($result)) {
             $result = array();
         } else {
-            $result = json_decode($this->getUBAgentData($userLogin), true);
+            $result = json_decode($result, true);
         }
 
         $this->agentData = $result;
@@ -194,12 +202,15 @@ class PaySysProto {
      * @return int|mixed|string
      */
     protected function getUBAgentAssignedID($userLogin) {
-        $agentData  = (empty($this->agentData) ? $this->getUBAgentData($userLogin) : $this->agentData);
-        $agentID    = (empty($agentData['id'])
-                        ? (empty($this->agentcodeDefault)
-                            ? 0 : (empty($this->agentcodesNonStrict)
-                                ? 0 : $this->agentcodeDefault)) : $agentData['id']);
-        return ($agentID);
+        if (empty($this->agentID)) {
+            $agentData      = (empty($this->agentData) ? $this->getUBAgentData($userLogin) : $this->agentData);
+            $this->agentID  = (empty($agentData['id'])
+                                ? (empty($this->agentcodeDefault)
+                                    ? 0 : (empty($this->agentcodesNonStrict)
+                                        ? 0 : $this->agentcodeDefault)) : $agentData['id']);
+        }
+
+        return ($this->agentID);
     }
 
     /**

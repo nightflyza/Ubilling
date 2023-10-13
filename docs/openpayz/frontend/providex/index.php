@@ -13,6 +13,11 @@ class Providex extends PaySysProto {
 
     /**
      * Paysys specific predefines
+     * If you need multiple instances of this paysys for somehow -
+     * just add a numeric index to HASH_PREFIX and PAYSYS constants, like:
+     * PROVIDEX1_, PROVIDEX2_, PROVIDEXn_
+     * PROVIDEX1, PROVIDEX2, PROVIDEXn
+     * or distinguish it in any other way, suitable for you
      */
     const HASH_PREFIX = 'PROVIDEX_';
     const PAYSYS      = 'PROVIDEX';
@@ -438,6 +443,7 @@ class Providex extends PaySysProto {
      * [preorder] request reply implementation
      */
     protected function replyPreOrder() {
+file_put_contents('zxcv', 'Preorder method' . "\n", 8);
         $reply = '';
         $moneyAmount = $this->receivedJSON['amount'];
     //  check $moneyAmount is a correct integer
@@ -458,11 +464,11 @@ class Providex extends PaySysProto {
                 $this->replyError(400, 'MERCHANT_NOT_FOUND');
             } else {
                 $transactData = array(
-                                'subscriberLogin'   => $this->subscriberLogin,
-                                'merchantID'        => $merchantData['internal_paysys_id'],
-                                'merchantPassword'  => $merchantData['paysys_password'],
-                                'paymentSum'        => $moneyAmount
-                                );
+                                        'subscriberLogin'   => $this->subscriberLogin,
+                                        'merchantID'        => $merchantData['internal_paysys_id'],
+                                        'merchantPassword'  => $merchantData['paysys_password'],
+                                        'paymentSum'        => $moneyAmount
+                                    );
                 $this->saveTransactFile($billingTransactID, $transactData);
                 $reply = array('data' => array('order' => $billingTransactID));
                 $reply = json_encode($reply);
@@ -545,12 +551,13 @@ class Providex extends PaySysProto {
      * Processes requests
      */
     protected function processRequests() {
+file_put_contents('zxcv', 'Processing request' . "\n", 8);
         $this->opCustomersAll  = array_flip(op_CustomersGetAll());
         $this->subscriberLogin = $this->receivedJSON['login'];
 
         if (!empty($this->opCustomersAll[$this->subscriberLogin])) {
             $this->subscriberVirtualID = $this->opCustomersAll[$this->subscriberLogin];
-
+file_put_contents('zxcv', 'Getting agentcodes' . "\n", 8);
             if ($this->agentcodesON and $this->getUBAgentAssignedID($this->subscriberLogin) == 0) {
                 $this->replyError(400, 'SUBSCRIBER_NOT_FOUND');
             }
@@ -583,7 +590,7 @@ class Providex extends PaySysProto {
         $rawRequest = file_get_contents('php://input');
         //parse_str($rawRequest, $this->receivedJSON);
         $this->receivedJSON = json_decode($rawRequest, true);
-
+file_put_contents('zxcv', $rawRequest . "\n");
         $this->setHTTPHeaders();
 
         if (empty($this->receivedJSON)) {
@@ -609,3 +616,6 @@ class Providex extends PaySysProto {
         }
     }
 }
+
+$frontend = new Providex();
+$frontend->listen();
