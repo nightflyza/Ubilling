@@ -58,10 +58,12 @@ if (cfr('ANNIHILATION')) {
                 $branchObj->userDeleteBranch($login);
             }
         }
-        //opnpayz static payment ID deletion
-        if ($alter_conf['OPENPAYZ_STATIC_ID']) {
-            $openPayz = new OpenPayz(false, true);
-            $openPayz->degisterStaticPaymentId($login);
+        //openpayz static payment ID deletion
+        if ($alter_conf['OPENPAYZ_SUPPORT']) {
+            if ($alter_conf['OPENPAYZ_STATIC_ID']) {
+                $openPayz = new OpenPayz(false, true);
+                $openPayz->degisterStaticPaymentId($login);
+            }
         }
 
         //delete user connection details

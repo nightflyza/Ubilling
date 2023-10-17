@@ -984,9 +984,11 @@ function zb_UserRegister($user_data, $goprofile = true) {
     }
 
     //static OpenPayz payment IDs registration
-    if ($alterconf['OPENPAYZ_STATIC_ID']) {
-        $openPayz = new OpenPayz(false, true);
-        $openPayz->registerStaticPaymentId($login);
+    if ($alterconf['OPENPAYZ_SUPPORT']) {
+        if ($alterconf['OPENPAYZ_STATIC_ID']) {
+            $openPayz = new OpenPayz(false, true);
+            $openPayz->registerStaticPaymentId($login);
+        }
     }
 
 ///////////////////////////////////
