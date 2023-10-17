@@ -20,5 +20,13 @@ CREATE TABLE IF NOT EXISTS `op_transactions` (
 -- default customers mappings view
 CREATE VIEW op_customers (realid,virtualid) AS SELECT users.login, CRC32(users.login) FROM users LEFT JOIN op_denied ON users.login = op_denied.login WHERE op_denied.login IS NULL;
 
-
+-- static customers table
+CREATE TABLE IF NOT EXISTS `op_static` (
+  `id` int(11) NOT NULL auto_increment,
+  `realid` varchar(255) NOT NULL,
+  `virtualid` varchar(255) NOT NULL,
+   PRIMARY KEY  (`id`),
+   KEY `realid` (`realid`),
+   KEY `virtualid` (`virtualid`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 

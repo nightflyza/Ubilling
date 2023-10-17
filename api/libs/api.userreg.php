@@ -49,7 +49,7 @@ function zb_PasswordGenerate($len = 8) {
     $vocal = array('a', 'e', 'i', 'u');
     srand((double) microtime() * 1000000);
     $max = $length / 2;
-    for ($i = 1; $i <= $max; $i ++) {
+    for ($i = 1; $i <= $max; $i++) {
         $result .= $conso[rand(0, sizeof($conso) - 1)];
         $result .= $vocal[rand(0, sizeof($vocal) - 1)];
     }
@@ -438,7 +438,6 @@ function web_UserRegFormNetData($newuser_data) {
     }
     $password_proposal = zb_RegPasswordProposal();
 
-
     if (empty($ip_proposal)) {
         $alert = wf_tag('script', false, '', 'type="text/javascript"');
         $alert .= 'alert("' . __('Error') . ': ' . __('No free IP available in selected pool') . '");';
@@ -694,7 +693,6 @@ function web_UserRegFormNetData($newuser_data) {
     $form .= wf_Submit(__('Let register that user'));
     $form .= wf_tag('form', true);
 
-
     $form .= wf_tag('div', false, '', 'style="clear:both;"') . wf_tag('div', true);
     $form .= wf_StepsMeter($registerSteps, $currentStep);
     return($form);
@@ -790,7 +788,7 @@ function zb_UserRegister($user_data, $goprofile = true) {
     }
 
 //ONU auto assign options
-    if ($registerUserONU and ! empty($user_data['oltid'])) {
+    if ($registerUserONU and !empty($user_data['oltid'])) {
         $OLTID = $user_data['oltid'];
         $ONUModelID = $user_data['onumodelid'];
         $ONUIP = $user_data['onuip'];
@@ -799,7 +797,7 @@ function zb_UserRegister($user_data, $goprofile = true) {
         $needONUAssignment = !empty($ONUMAC);
     }
 
-    if (isset($user_data['userMAC']) and ! empty($user_data['userMAC'])) {
+    if (isset($user_data['userMAC']) and !empty($user_data['userMAC'])) {
         $mac = strtolower($user_data['userMAC']);
     } elseif ($billingconf['REGRANDOM_MAC']) {
 // if random mac needed
@@ -868,7 +866,6 @@ function zb_UserRegister($user_data, $goprofile = true) {
     zb_UserCreateEmail($login, '');
     zb_UserCreateSpeedOverride($login, 0);
     zb_UserRegisterLog($login);
-
 
 // if AlwaysOnline to new user needed
     if ($billingconf['REGALWONLINE']) {
@@ -964,7 +961,7 @@ function zb_UserRegister($user_data, $goprofile = true) {
 //branches assign for newly created user
     if ($alterconf['BRANCHES_ENABLED']) {
         global $branchControl;
-        if ((wf_CheckPost(array('reguserbranchid'))) AND ( !wf_CheckPost(array('reguserwithnobranch')))) {
+        if ((wf_CheckPost(array('reguserbranchid'))) AND (!wf_CheckPost(array('reguserwithnobranch')))) {
             $newUserBranchId = vf($_POST['reguserbranchid'], 3);
             $branchControl->userAssignBranch($newUserBranchId, $login);
         }
@@ -984,6 +981,12 @@ function zb_UserRegister($user_data, $goprofile = true) {
 
     if ($addressExtendedOn) {
         zb_AddAddressExtenSave($login, false, $postCode, $extenTown, $extenAddr);
+    }
+
+    //static OpenPayz payment IDs registration
+    if ($alterconf['OPENPAYZ_STATIC_ID']) {
+        $openPayz = new OpenPayz(false, true);
+        $openPayz->registerStaticPaymentId($login);
     }
 
 ///////////////////////////////////

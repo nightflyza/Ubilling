@@ -118,6 +118,41 @@ class OpenPayz {
     protected $allUsersTags = array();
 
     /**
+     * Customers database abstraction layer placeholder
+     * 
+     * @var object
+     */
+    protected $customersDb = '';
+
+    /**
+     * Transactions database abstraction layer placeholder
+     * 
+     * @var object
+     */
+    protected $transactionsDb = '';
+
+    /**
+     * Static customers database abstraction layer placeholder
+     * 
+     * @var object
+     */
+    protected $staticDb = '';
+
+    /**
+     * Length of generated static payment ID
+     * 
+     * @var int
+     */
+    protected $payidStaticLen = 0;
+
+    /**
+     * Funds flow instance placeholder
+     * 
+     * @var object
+     */
+    protected $fundsFlow = '';
+
+    /**
      * Transactions list ajax callback URL
      */
     const URL_AJAX_SOURCE = '?module=openpayz&ajax=true';
@@ -128,18 +163,37 @@ class OpenPayz {
     const URL_CHARTS = '?module=openpayz&graphs=true';
 
     /**
+     * Some other predefined stuff
+     */
+    const TABLE_CUSTOMERS = 'op_customers';
+    const TABLE_TRANSACTIONS = 'op_transactions';
+    const TABLE_STATIC = 'op_static';
+
+    /**
      * Creates new OpenPayz instance
+     * 
+     * @param bool $loadPaysys
+     * @param bool $loadCustomers
      * 
      * @return void
      */
-    public function __construct() {
+    public function __construct($loadPaySys = true, $loadCustomers = false) {
         global $ubillingConfig;
         $this->ubConfig = $ubillingConfig;
 
         $this->loadAlter();
         $this->loadOptions();
         $this->initMessages();
-        $this->loadPaySys();
+        $this->initDbLayers();
+
+        //preloading some optional data
+        if ($loadPaySys) {
+            $this->loadPaySys();
+        }
+
+        if ($loadCustomers) {
+            $this->loadCustomers();
+        }
 
         if ($this->smsRespectReminderTagID) {
             $this->allUsersTags = zb_UserGetAllTags();
@@ -169,6 +223,18 @@ class OpenPayz {
         $this->smsNotysText = $this->ubConfig->getAlterParam('OP_SMS_NOTIFY_TEXT', '');
         $this->smsRespectReminderTagID = ubRouting::filters($this->ubConfig->getAlterParam('OP_SMS_NOTIFY_RESPECT_REMINDER_TAGID'), 'fi', FILTER_VALIDATE_BOOLEAN);
         $this->smsReminderTagID = ubRouting::filters($this->ubConfig->getAlterParam('REMINDER_TAGID', 0), 'int');
+        $this->payidStaticLen = ubRouting::filters($this->ubConfig->getAlterParam('OPENPAYZ_STATIC_ID', 0), 'int');
+    }
+
+    /**
+     * Inits all required database abstraction layers
+     * 
+     * @return void
+     */
+    protected function initDbLayers() {
+        $this->customersDb = new NyanORM(self::TABLE_CUSTOMERS);
+        $this->transactionsDb = new NyanORM(self::TABLE_TRANSACTIONS);
+        $this->staticDb = new NyanORM(self::TABLE_STATIC);
     }
 
     /**
@@ -195,11 +261,9 @@ class OpenPayz {
      * @return void
      */
     protected function loadCustomers() {
-        $query = "SELECT * from `op_customers`";
-        $allcustomers = simple_queryall($query);
-
-        if (!empty($allcustomers)) {
-            foreach ($allcustomers as $io => $eachcustomer) {
+        $allCustomers = $this->customersDb->getAll();
+        if (!empty($allCustomers)) {
+            foreach ($allCustomers as $io => $eachcustomer) {
                 $this->allCustomers[$eachcustomer['virtualid']] = $eachcustomer['realid'];
             }
         }
@@ -213,18 +277,13 @@ class OpenPayz {
      * @return void
      */
     protected function loadTransactions($year = '') {
-        $year = vf($year, 3);
-        $where = '';
+        $year = ubRouting::filters($year, 'int');
         if (!empty($year) AND $year != '1488') {
-            $where = "WHERE `date` LIKE '" . $year . "-%'";
+            $this->transactionsDb->where('date', 'LIKE', $year . '-%');
         }
-        $query = "SELECT * from `op_transactions` " . $where . " ORDER by `id` ASC;";
-        $all = simple_queryall($query);
-        if (!empty($all)) {
-            foreach ($all as $io => $each) {
-                $this->allTransactions[$each['id']] = $each;
-            }
-        }
+
+        $this->transactionsDb->orderBy('id', 'ASC');
+        $this->allTransactions = $this->transactionsDb->getAll('id');
     }
 
     /**
@@ -261,9 +320,7 @@ class OpenPayz {
      * @return void
      */
     protected function loadPaySys() {
-        $result = array();
-        $query = "SELECT DISTINCT `paysys` from `op_transactions`";
-        $all = simple_queryall($query);
+        $all = $this->transactionsDb->getAll('', true, 'paysys');
         if (!empty($all)) {
             foreach ($all as $io => $each) {
                 $this->allPaySys[$each['paysys']] = $each['paysys'];
@@ -281,14 +338,82 @@ class OpenPayz {
     }
 
     /**
+     * Generates unique payment ID of configurable length
+     * 
+     * @return int
+     */
+    protected function generateUniquePaymentId() {
+        $result = 0;
+        if ($this->payidStaticLen > 0) {
+            $result = zb_rand_digits($this->payidStaticLen);
+            while (isset($this->allCustomers[$result])) {
+                $result = zb_rand_digits($this->payidStaticLen);
+            }
+        }
+        return($result);
+    }
+
+    /**
+     * Creates new static payment ID in database for some user
+     * 
+     * @param string $userLogin
+     * 
+     * @return int 
+     */
+    public function registerStaticPaymentId($userLogin) {
+        $result = '';
+        $userLoginF = ubRouting::filters($userLogin, 'mres');
+        if ($this->payidStaticLen > 0) {
+            $noPaymentId = true; //payment ID registered flag
+            $existingPayId = ''; //contains existing payment ID if it exists now
+            if (!empty($this->allCustomers)) {
+                foreach ($this->allCustomers as $eachPayId => $eachLogin) {
+                    if ($eachLogin == $userLogin) {
+                        $noPaymentId = false;
+                        $existingPayId = $eachPayId;
+                        break;
+                    }
+                }
+            }
+
+            //user have no payment ID yet?
+            if ($noPaymentId) {
+                $newPaymentId = $this->generateUniquePaymentId();
+                $this->staticDb->data('realid', $userLoginF);
+                $this->staticDb->data('virtualid', $newPaymentId);
+                $this->staticDb->create();
+                log_register('OPENPAYZ STATIC REGISTER (' . $userLogin . ') PAYID `' . $newPaymentId . '`');
+                $result = $newPaymentId;
+            } else {
+                log_register('OPENPAYZ STATIC REGISTER FAIL (' . $userLogin . ') ALREADY `' . $existingPayId . '`');
+            }
+        }
+        return($result);
+    }
+
+    /**
+     * Deregisters static payment ID by username
+     * 
+     * @param string $userLogin
+     * 
+     * @return void
+     */
+    public function degisterStaticPaymentId($userLogin) {
+        $userLoginF = ubRouting::filters($userLogin, 'mres');
+        $this->staticDb->where('realid', '=', $userLoginF);
+        $this->staticDb->delete();
+        log_register('OPENPAYZ STATIC DELETE (' . $userLogin . ')');
+    }
+
+    /**
      * Returns openpayz search form
      * 
      * @return string
      */
     public function renderSearchForm() {
-        $curYear = (wf_CheckPost(array('searchyear'))) ? vf($_POST['searchyear'], 3) : date("Y");
-        $curMonth = (wf_CheckPost(array('searchmonth'))) ? vf($_POST['searchmonth'], 3) : date("m");
-        $curPaysys = (wf_CheckPost(array('searchpaysys'))) ? vf($_POST['searchpaysys']) : '';
+        $curYear = (ubRouting::checkPost('searchyear')) ? ubRouting::post('searchyear', 'int') : date("Y");
+        $curMonth = (ubRouting::checkPost('searchmonth')) ? ubRouting::post('searchmonth', 'int') : date("m");
+        $curPaysys = (ubRouting::checkPost('searchpaysys')) ? ubRouting::post('searchpaysys', 'mres') : '';
         /**
          * No lights, no sights, every fright, every night
          * Alone, hurt and cold, she‘s shackled to the pipes
@@ -334,7 +459,6 @@ class OpenPayz {
         $cells .= wf_TableCell(__('Actions'));
         $rows = wf_TableRow($cells, 'row1');
 
-
         if (!empty($this->allTransactions)) {
             $csvdata = __('ID') . ';' . __('Date') . ';' . __('Cash') . ';' . __('Payment ID') . ';' . __('Real Name') . ';' . __('Full address') . ';' . __('Payment system') . "\n";
             foreach ($this->allTransactions as $io => $eachtransaction) {
@@ -371,8 +495,6 @@ class OpenPayz {
 
         if (!empty($csvdata)) {
             $exportFilename = 'exports/opsearch_' . $paysys . '_' . $year . '-' . $month . '.csv';
-            //fuck this legacy
-            //$csvdata = iconv('utf-8', 'windows-1251', $csvdata);
             file_put_contents($exportFilename, $csvdata);
             $exportLink = wf_Link('?module=openpayz&dload=' . base64_encode($exportFilename), wf_img('skins/excel.gif', __('Export')), false, '');
         } else {
@@ -497,7 +619,7 @@ class OpenPayz {
                     $date = date("Y-m", $timestamp);
                     $dateFull = date("Y-m-d", $timestamp);
                     if (isset($psysdata[$each['paysys']][$date]['count'])) {
-                        $psysdata[$each['paysys']][$date]['count'] ++;
+                        $psysdata[$each['paysys']][$date]['count']++;
                         $psysdata[$each['paysys']][$date]['summ'] = $psysdata[$each['paysys']][$date]['summ'] + $each['summ'];
                     } else {
                         $psysdata[$each['paysys']][$date]['count'] = 1;
@@ -507,7 +629,7 @@ class OpenPayz {
                     //current year stats
                     if (ispos($date, $curYear)) {
                         if (isset($gcYearData[$each['paysys']])) {
-                            $gcYearData[$each['paysys']] ++;
+                            $gcYearData[$each['paysys']]++;
                         } else {
                             $gcYearData[$each['paysys']] = 1;
                         }
@@ -516,7 +638,7 @@ class OpenPayz {
                     //current month stats
                     if (ispos($date, $curMonth)) {
                         if (isset($gcMonthData[$each['paysys']])) {
-                            $gcMonthData[$each['paysys']] ++;
+                            $gcMonthData[$each['paysys']]++;
                         } else {
                             $gcMonthData[$each['paysys']] = 1;
                         }
@@ -525,7 +647,7 @@ class OpenPayz {
                     //current day stats
                     if (ispos($dateFull, $curDay)) {
                         if (isset($gcDayData[$each['paysys']])) {
-                            $gcDayData[$each['paysys']] ++;
+                            $gcDayData[$each['paysys']]++;
                         } else {
                             $gcDayData[$each['paysys']] = 1;
                         }
@@ -543,7 +665,6 @@ class OpenPayz {
 
         $chartOpts = "chartArea: {  width: '90%', height: '90%' }, legend : {position: 'right'}, ";
         $fixedColors = @$this->altCfg['OPENPAYZ_PALETTE'];
-
 
         if (!empty($gcDayData)) {
             $gcDayPie = wf_gcharts3DPie($gcDayData, __('Today'), '300px', '300px', $chartOpts, $fixedColors);
@@ -574,7 +695,6 @@ class OpenPayz {
         $result .= wf_CleanDiv();
         $result .= wf_TableBody($grows, '100%', 0, '');
 
-
         if (!empty($psysdata)) {
             foreach ($psysdata as $psys => $opdate) {
                 $gchartsData[] = array(__('Date'), __('Count'), __('Cash'));
@@ -592,15 +712,16 @@ class OpenPayz {
     /**
      * Sets openpayz transaction as processed in database
      * 
-     * @param int $transactionid
+     * @param int $transactionId
      * 
      * @return void
      */
-    public function transactionSetProcessed($transactionid) {
-        $transactionid = vf($transactionid, 3);
-        $query = "UPDATE `op_transactions` SET `processed` = '1' WHERE `id`='" . $transactionid . "'";
-        nr_query($query);
-        log_register('OPENPAYZ PROCESSED [' . $transactionid . ']');
+    public function transactionSetProcessed($transactionId) {
+        $transactionId = ubRouting::filters($transactionId, 'int');
+        $this->transactionsDb->where('id', '=', $transactionId);
+        $this->transactionsDb->data('processed', '1');
+        $this->transactionsDb->save();
+        log_register('OPENPAYZ PROCESSED [' . $transactionId . ']');
     }
 
     /**
@@ -648,13 +769,13 @@ class OpenPayz {
         $this->loadRealname();
         $curYear = curyear();
         $manual_mode = $this->altCfg['OPENPAYZ_MANUAL'];
-        $query = "SELECT * from `op_transactions` WHERE `date` LIKE '" . $curYear . "-%' ORDER by `id` DESC;";
-        $alltransactions = simple_queryall($query);
+        //loading current year transactions
+        $this->loadTransactions($curYear);
+
         $json = new wf_JqDtHelper();
 
-
-        if (!empty($alltransactions)) {
-            foreach ($alltransactions as $io => $eachtransaction) {
+        if (!empty($this->allTransactions)) {
+            foreach ($this->allTransactions as $io => $eachtransaction) {
                 $control = '';
 
                 if ($manual_mode) {
@@ -791,7 +912,7 @@ class OpenPayz {
                     $tmpLogin = $eachRec['login'];
 
                     // check logins for REMINDER_TAGID presence if $this->smsRespectReminderTagID is true
-                    if ($this->smsRespectReminderTagID and ! empty($this->allUsersTags)) {
+                    if ($this->smsRespectReminderTagID and !empty($this->allUsersTags)) {
                         // skip this payment if login doesn't have REMINDER_TAGID assigned
                         if (empty($this->allUsersTags[$tmpLogin][$this->smsReminderTagID])) {
                             if ($this->smsDebugON) {
@@ -907,7 +1028,4 @@ class OpenPayz {
             log_register('OPAYZ SMS NOTIFY: sent ' . $sentCount . ' messages');
         }
     }
-
 }
-
-?>
