@@ -848,7 +848,7 @@ allow members of "{HOSTNAME}";
             foreach ($allhosts as $io => $eachhost) {
                 $login = $allIps[$eachhost['ip']];
                 $mac = '';
-                if (isset($allOnu[$login]) AND ! empty($allOnu[$login])) {
+                if (isset($allOnu[$login]) AND !empty($allOnu[$login])) {
                     $macFull = explode(":", $allOnu[$login]['mac']);
                     foreach ($macFull as $eachOctet) {
                         $validOctet = preg_replace('/^0/', '', $eachOctet);
@@ -904,7 +904,7 @@ allow members of "{HOSTNAME}";
                 $login = $allIps[$eachhost['ip']];
                 $onuId = '';
                 $onuIdentifier = '';
-                if (isset($allOnu[$login]) AND ! empty($allOnu[$login])) {
+                if (isset($allOnu[$login]) AND !empty($allOnu[$login])) {
                     $oltId = $allOnu[$login]['oltid'];
 
                     if (isset($allOltSnmpTemplates[$oltId])) {
@@ -1323,7 +1323,6 @@ function multinet_get_free_count($network_id) {
     $count_all = $last_ip - $first_ip;
     $num_hosts = pow(2, 32 - $cidr);
 
-
     if ($count_all >= $num_hosts - (3 * ceil($num_hosts / 256))) {
         $count_all = $num_hosts - (3 * ceil($num_hosts / 256));
     }
@@ -1572,6 +1571,19 @@ function zb_MultinetGetMAC($ip) {
     $query = "SELECT `mac` from `nethosts` WHERE `ip`='" . $ip . "'";
     $result = simple_query($query);
     $result = $result['mac'];
+    return($result);
+}
+
+/**
+ * Returns full nethost data by its IP
+ * 
+ * @param string $ip
+ * 
+ * @return array
+ */
+function zb_MultinetGetNethostData($ip) {
+    $query = "SELECT * from `nethosts` WHERE `ip`='" . $ip . "'";
+    $result = simple_queryall($query);
     return($result);
 }
 
@@ -1949,7 +1961,7 @@ function zb_BandwidthdGenLinks($ip) {
             // Get user's IP array:
             $alluserips = zb_UserGetAllIPs();
             $alluserips = array_flip($alluserips);
-            if (!ispos($bandwidthd_url, 'pppoe') and ! $mlgUseMikrotikGraphs) {
+            if (!ispos($bandwidthd_url, 'pppoe') and !$mlgUseMikrotikGraphs) {
 // Generate graphs paths:
                 $urls['dayr'] = $bandwidthd_url . '/' . $alluserips[$ip] . '/daily.gif';
                 $urls['days'] = null;
@@ -2407,7 +2419,7 @@ function getZabbixNASGraphIDs() {
     $allNASGraphs = array();
     $zbxAuthToken = $zbx->getAuthToken();
 
-    if (!empty($allNAS) and ! empty($zbxAuthToken)) {
+    if (!empty($allNAS) and !empty($zbxAuthToken)) {
         foreach ($allNAS as $eachNAS) {
             $reqParams = array('filter' => array('ip' => $eachNAS['nasip']));
             $zbxNASData = json_decode($zbx->runQuery('host.get', $reqParams), true);
@@ -2491,7 +2503,7 @@ function getZabbixProblems($switchIP) {
     $problemActions = array();
     $switchIP = trim($switchIP);
 
-    if (!empty($switchIP) AND ! empty($zbxAuthToken)) {
+    if (!empty($switchIP) AND !empty($zbxAuthToken)) {
         /* Selectd problem level severities
           Possible values:
           0 - not classified;
@@ -2649,17 +2661,17 @@ function convertMACDec2Hex($decMAC, $inSeparator = '.', $outSeparator = ':', $re
  * @return array|string
  */
 function trimSNMPOutput($snmpData, $oid, $removeValue = '', $rowsExplode = false, $returnAsStr = false, $oidValue = array(
-    'Counter32:',
-    'Counter64:',
-    'Gauge32:',
-    'Gauge64:',
-    'INTEGER:',
-    'Hex-STRING:',
-    'OID:',
-    'Timeticks:',
-    'STRING:',
-    'Network Address:'
-)
+            'Counter32:',
+            'Counter64:',
+            'Gauge32:',
+            'Gauge64:',
+            'INTEGER:',
+            'Hex-STRING:',
+            'OID:',
+            'Timeticks:',
+            'STRING:',
+            'Network Address:'
+        )
 ) {
     $result = ($returnAsStr) ? '' : array('', '');
 

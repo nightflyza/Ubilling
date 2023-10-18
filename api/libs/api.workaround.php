@@ -1464,7 +1464,7 @@ function web_GrepLogByUser($login, $strict = false) {
             $cells .= wf_TableCell($adminName);
             $cells .= wf_TableCell($eachevent['date']);
             $cells .= wf_TableCell($eachevent['event']);
-            $rows .= wf_TableRow($cells, 'row3');
+            $rows .= wf_TableRow($cells, 'row5');
         }
     }
     $result = wf_TableBody($rows, '100%', 0, 'sortable');
