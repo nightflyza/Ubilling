@@ -135,7 +135,19 @@ class CrimeAndPunishment {
      */
     protected function punish($login) {
         if (isset($this->capData[$login])) {
-            $penalty = '-' . ( ($this->percentpenalty) ? $this->penalty * $this->allUsers[$login]['fee'] : $this->penalty );
+            $userTariff = $this->allUsers[$login]['Tariff'];
+            $tariffFee = $this->allUsers[$login]['fee'];
+            //optional power tariff price override?
+            if ($tariffFee == 0) {
+                if ($this->altCfg['PT_ENABLED']) {
+                    $pt = new PowerTariffs();
+                    if ($pt->isPowerTariff($userTariff)) {
+                        $tariffFee = $pt->getPowerTariffPrice($userTariff);
+                    }
+                }
+            }
+
+            $penalty = '-' . ( ($this->percentpenalty) ? $this->penalty * $tariffFee : $this->penalty );
             zb_CashAdd($login, $penalty, 'add', $this->payId, 'PENALTY:' . $this->capData[$login]['days']);
             $this->debugLog("CAP PENALTY (" . $login . ") DAYS:" . $this->capData[$login]['days'] . " PENALTY:" . $penalty);
         }
@@ -255,15 +267,15 @@ class CrimeAndPunishment {
         $currentData = $this->getCapData($this->login);
 
         if (!empty($currentData)) {
-            $result.=wf_tag('div', false, 'glamour') . __('Inactive days') . ': ' . $currentData['days'] . wf_tag('div', true);
-            $result.=wf_CleanDiv();
+            $result .= wf_tag('div', false, 'glamour') . __('Inactive days') . ': ' . $currentData['days'] . wf_tag('div', true);
+            $result .= wf_CleanDiv();
         }
 
         $logData = $this->getLogData();
         if (!empty($logData)) {
             $cells = wf_TableCell(__('Date'));
-            $cells.= wf_TableCell(__('Event'));
-            $cells.= wf_TableCell(__('Details'));
+            $cells .= wf_TableCell(__('Event'));
+            $cells .= wf_TableCell(__('Details'));
             $rows = wf_TableRow($cells, 'row1');
 
             foreach ($logData as $io => $each) {
@@ -292,19 +304,18 @@ class CrimeAndPunishment {
                 $params = str_replace('PENALTY', __('Penalty'), $params);
 
                 $cells = wf_TableCell($fc . $each['date'] . $efc);
-                $cells.= wf_TableCell($fc . $each['event'] . $efc);
-                $cells.= wf_TableCell($params);
+                $cells .= wf_TableCell($fc . $each['event'] . $efc);
+                $cells .= wf_TableCell($params);
 
-                $rows.= wf_TableRow($cells, 'row3');
+                $rows .= wf_TableRow($cells, 'row3');
             }
 
-            $result.= wf_TableBody($rows, '100%', 0, 'sortable');
+            $result .= wf_TableBody($rows, '100%', 0, 'sortable');
         } else {
-            $result.= wf_tag('span', false, 'alert_warning') . __('Nothing found') . wf_tag('span', true);
+            $result .= wf_tag('span', false, 'alert_warning') . __('Nothing found') . wf_tag('span', true);
         }
         return ($result);
     }
-
 }
 
 ?>
