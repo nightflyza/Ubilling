@@ -1213,7 +1213,9 @@ class FundsFlow {
             $tariffPeriod = isset($tariffData['period']) ? $tariffData['period'] : 'month';
             if ($this->alterConf['PT_ENABLED']) {
                 $powerTariffs = new PowerTariffs();
-                if ($tariffFee == 0) { //suspicious tariff
+                //suspicious tariff?
+                if ($tariffFee == 0) {
+                    //wow too much power!
                     if ($powerTariffs->isPowerTariff($userTariff)) {
                         $tariffFee = $powerTariffs->getPowerTariffPrice($userTariff);
                     }
