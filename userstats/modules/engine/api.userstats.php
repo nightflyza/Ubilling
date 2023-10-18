@@ -187,6 +187,18 @@ function zbs_GetOnlineLeftCount($login, $userBalance, $userTariff, $rawDays = fa
         $tariffData['period'] = 'month';
     }
     $tariffFee = $tariffData['Fee'];
+
+    if ($us_config['POWERTARIFFS_ENABLED']) {
+        if ($tariffFee == 0) {
+            $powerTariffs = new NyanORM('pt_tariffs');
+            $allPowerTariffs = $powerTariffs->getAll('tariff');
+            if (isset($allPowerTariffs[$userTariff])) {
+                //custom tariff price
+                $tariffFee = $allPowerTariffs[$userTariff]['fee'];
+            }
+        }
+    }
+
     $tariffPeriod = isset($tariffData['period']) ? $tariffData['period'] : 'month';
     $includeVServices = (!empty($us_config['ONLINELEFT_CONSIDER_VSERVICES']));
     $vservicesPeriodON = (!empty($us_config['VSERVICES_CONSIDER_PERIODS']));
@@ -248,7 +260,6 @@ function zbs_GetOnlineLeftCount($login, $userBalance, $userTariff, $rawDays = fa
             case 'mixed':
                 $balanceExpire = ", " . __('enought for') . ' ' . $daysOnLine . ' ' . __('days')
                         . ", " . __('till the') . ' ' . date("d.m.Y", time() + ($daysOnLine * 24 * 60 * 60));
-                ;
                 break;
             default:
                 $balanceExpire = NULL;
