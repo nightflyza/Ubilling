@@ -461,7 +461,7 @@ class FundsFlow {
                     $cashto = $each['summ'];
                 }
 
-                if ((!ispos($each['note'], 'MOCK:')) AND ( !ispos($each['note'], 'BALANCESET:'))) {
+                if ((!ispos($each['note'], 'MOCK:')) AND (!ispos($each['note'], 'BALANCESET:'))) {
                     if (is_numeric($each['summ']) AND is_numeric($each['balance'])) {
                         $cashto = $each['summ'] + $each['balance'];
                     } else {
@@ -627,7 +627,7 @@ class FundsFlow {
                     $cashto = $eachpayment['summ'];
                 }
 
-                if ((!ispos($eachpayment['note'], 'MOCK:')) AND ( !ispos($eachpayment['note'], 'BALANCESET:'))) {
+                if ((!ispos($eachpayment['note'], 'MOCK:')) AND (!ispos($eachpayment['note'], 'BALANCESET:'))) {
                     if (is_numeric($eachpayment['summ']) AND is_numeric($eachpayment['balance'])) {
                         $cashto = $eachpayment['summ'] + $eachpayment['balance'];
                     } else {
@@ -1202,6 +1202,7 @@ class FundsFlow {
             $userBalanceRaw = $userData['Cash'];
             $userBalance = $userData['Cash'];
             $tariffData = zb_TariffGetData($userTariff);
+
             if (empty($tariffData)) {
                 //user have no tariff
                 $tariffData['name'] = '*_NO_TARIFF_*';
@@ -1210,7 +1211,14 @@ class FundsFlow {
             }
             $tariffFee = $tariffData['Fee'];
             $tariffPeriod = isset($tariffData['period']) ? $tariffData['period'] : 'month';
-
+            if ($this->alterConf['PT_ENABLED']) {
+                $powerTariffs = new PowerTariffs();
+                if ($tariffFee == 0) { //suspicious tariff
+                    if ($powerTariffs->isPowerTariff($userTariff)) {
+                        $tariffFee = $powerTariffs->getPowerTariffPrice($userTariff);
+                    }
+                }
+            }
             $daysOnLine = 0;
             $totalVsrvPrice = 0;
 
@@ -1524,5 +1532,4 @@ class FundsFlow {
 
         return ($allFundsFlow);
     }
-
 }
