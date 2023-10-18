@@ -186,18 +186,15 @@ function zbs_GetOnlineLeftCount($login, $userBalance, $userTariff, $rawDays = fa
         $tariffData['Fee'] = 0;
         $tariffData['period'] = 'month';
     }
-    $tariffFee = $tariffData['Fee'];
 
+    //power tariffs overrides some fees?
     if ($us_config['POWERTARIFFS_ENABLED']) {
-        if ($tariffFee == 0) {
-            $powerTariffs = new NyanORM('pt_tariffs');
-            $allPowerTariffs = $powerTariffs->getAll('tariff');
-            if (isset($allPowerTariffs[$userTariff])) {
-                //custom tariff price
-                $tariffFee = $allPowerTariffs[$userTariff]['fee'];
-            }
+        if ($tariffData['Fee'] == 0) {
+            $tariffData['Fee'] = zbs_GetPowerTariffPrice($userTariff);
         }
     }
+
+    $tariffFee = $tariffData['Fee'];
 
     $tariffPeriod = isset($tariffData['period']) ? $tariffData['period'] : 'month';
     $includeVServices = (!empty($us_config['ONLINELEFT_CONSIDER_VSERVICES']));
@@ -292,6 +289,23 @@ function zbs_GetOnlineLeftCount($login, $userBalance, $userTariff, $rawDays = fa
     }
 
     return ($balanceExpire);
+}
+
+/**
+ * Suggests user power tariff price
+ * 
+ * @param string $userTariff
+ * 
+ * @return float
+ */
+function zbs_GetPowerTariffPrice($userTariff) {
+    $result = 0;
+    $powerTariffs = new NyanORM('pt_tariffs');
+    $allPowerTariffs = $powerTariffs->getAll('tariff');
+    if (isset($allPowerTariffs[$userTariff])) {
+        $result = $allPowerTariffs[$userTariff]['fee'];
+    }
+    return($result);
 }
 
 /**

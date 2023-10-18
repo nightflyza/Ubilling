@@ -201,7 +201,7 @@ if ($us_config['SC_ENABLED']) {
     $sc_price = $us_config['SC_PRICE'];
     $sc_cashtypeid = $us_config['SC_CASHTYPEID'];
     $sc_monthcontrol = $us_config['SC_MONTHCONTROL'];
-    $sc_hackhcontrol = (isset($us_config['SC_HACKCONTROL']) AND ! empty($us_config['SC_HACKCONTROL'])) ? true : false;
+    $sc_hackhcontrol = (isset($us_config['SC_HACKCONTROL']) AND !empty($us_config['SC_HACKCONTROL'])) ? true : false;
     $sc_allowed = array();
     $creditResultLabel = '';
 
@@ -212,6 +212,13 @@ if ($us_config['SC_ENABLED']) {
         $tariffData['name'] = '*_NO_TARIFF_*';
         $tariffData['Fee'] = 0;
         $tariffData['period'] = 'month';
+    }
+
+    //power tariffs basic support
+    if ($tariffData['Fee'] == 0) {
+        if ($us_config['POWERTARIFFS_ENABLED']) {
+            $tariffData['Fee'] = zbs_GetPowerTariffPrice($tariff);
+        }
     }
 
     $vs_price = zbs_VServicesGetPrice($user_login, $tariffData);
@@ -295,12 +302,12 @@ if ($us_config['SC_ENABLED']) {
                     $creditSeconds = ($sc_term * 86400); //days*secs
                     $creditOffset = $nowTimestamp + $creditSeconds;
                     $scend = date("Y-m-d", $creditOffset);
-                    if ((!$frozenFlag) AND ( !$downFlag)) {
+                    if ((!$frozenFlag) AND (!$downFlag)) {
                         if (abs($current_cash) <= $tariffprice) {
                             if ($current_cash < 0) {
                                 if (zbs_CreditCheckAllowed($sc_allowed, $tariff)) {
                                     //additional hack contol enabled
-                                    if ($sc_hackhcontrol AND ! zbs_CreditLogCheckHack($user_login)) {
+                                    if ($sc_hackhcontrol AND !zbs_CreditLogCheckHack($user_login)) {
                                         $creditResultLabel = __('You can not take out a credit because you have not paid since the previous time');
                                         show_window(__('Sorry'), $creditResultLabel);
                                         $scAgentResult = array();
