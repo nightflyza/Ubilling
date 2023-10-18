@@ -1470,7 +1470,6 @@ $lang['def']['Path to installed nmap'] = 'Шлях до встановленог
 $lang['def']['right to control users map'] = 'Право використовувати карту користувачів';
 $lang['def']['Builds and users map'] = 'Мапа будинків та користувачів';
 $lang['def']['Users map'] = 'Мапа користувачів';
-$lang['def']['apt.'] = 'кв.';
 $lang['def']['Builds map'] = 'Мапа будинків';
 $lang['def']['Builds and users map'] = 'Мапа будинків та користувачів';
 $lang['def']['Users map'] = 'Мапа користувачів';

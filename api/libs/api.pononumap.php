@@ -49,13 +49,21 @@ class PONONUMap {
     protected $onuDeregFilter = '';
 
     /**
+     * Concatenate builds with similar geo coordinates?
+     * 
+     * @var bool
+     */
+    protected $clusterBuilds = false;
+
+    /**
      * Predefined routes, URLs etc.
      */
     const URL_ME = '?module=ponmap';
     const ROUTE_FILTER_OLT = 'oltidfilter';
     const ROUTE_FILTER_DEREG = 'deregfilter';
     const PROUTE_OLTSELECTOR = 'renderoltidonus';
-    CONST ROUTE_BACKLINK = 'bl';
+    const ROUTE_BACKLINK = 'bl';
+    const ROUTE_CLUSTER_BUILDS = 'showbuilds';
 
     /**
      * Creates new ONU MAP instance
@@ -64,6 +72,7 @@ class PONONUMap {
      */
     public function __construct($oltId = '') {
         $this->loadConfigs();
+        $this->setBuildsClusterer();
         $this->setOltIdFilter($oltId);
         $this->setOnuDeregFilter();
         $this->initMessages();
@@ -92,6 +101,17 @@ class PONONUMap {
     protected function setOnuDeregFilter() {
         if (ubRouting::checkGet(self::ROUTE_FILTER_DEREG)) {
             $this->onuDeregFilter = ubRouting::get(self::ROUTE_FILTER_DEREG);
+        }
+    }
+
+    /**
+     * Sets optional builds clustering
+     * 
+     * @return void
+     */
+    protected function setBuildsClusterer() {
+        if (ubRouting::checkGet(self::ROUTE_CLUSTER_BUILDS)) {
+            $this->clusterBuilds = true;
         }
     }
 
@@ -196,6 +216,11 @@ class PONONUMap {
             $result .= wf_Link(self::URL_ME, wf_img('skins/ponmap_icon.png') . ' ' . __('All') . ' ' . __('ONU'), false, 'ubButton');
             $result .= wf_Link(self::URL_ME . '&' . self::ROUTE_FILTER_DEREG . '=Power', wf_img('skins/icon_poweroutage.png') . ' ' . __('Power outages') . '?', false, 'ubButton');
             $result .= wf_Link(self::URL_ME . '&' . self::ROUTE_FILTER_DEREG . '=Wire', wf_img('skins/icon_cable.png') . ' ' . __('Wire issues') . '?', false, 'ubButton');
+            if ($this->clusterBuilds) {
+                $result .= wf_Link(self::URL_ME, wf_img('skins/switch_models.png') . ' ' . __('ONU'), false, 'ubButton');
+            } else {
+                $result .= wf_Link(self::URL_ME . '&' . self::ROUTE_CLUSTER_BUILDS . '=true', web_build_icon() . ' ' . __('Builds'), false, 'ubButton');
+            }
         }
 
         $allOlts = array('' => __('All') . ' ' . __('OLT'));
@@ -205,6 +230,55 @@ class PONONUMap {
         $result .= wf_Form('', 'POST', $inputs, 'glamour', '', '', '', $opts);
 
         $result .= wf_delimiter(0);
+        return($result);
+    }
+
+    /**
+     * Returns a list of placemarks to render
+     * 
+     * @param array $geoArray
+     * @param bool $buildsClusterer
+     * 
+     * @return string
+     */
+    protected function getPlacemarks($geoArray, $buildsClusterer = false) {
+        $result = '';
+        if (!empty($geoArray)) {
+            foreach ($geoArray as $eachGeo => $geoData) {
+                if (!empty($geoData)) {
+                    if ($buildsClusterer) {
+                        $buildUserCount = sizeof($geoData);
+                        if ($buildUserCount > 1) {
+                            $concatBuildContent = '';
+                            $rows = '';
+                            $cells = wf_TableCell(__('apt.'));
+                            $cells .= wf_TableCell(__('User'));
+                            $cells .= wf_TableCell(__('Signal'));
+                            $cells .= wf_TableCell(__('Actions'));
+                            $rows = wf_TableRow($cells, 'row1');
+                            foreach ($geoData as $io => $eachBuild) {
+                                $userLink = wf_Link(UserProfile::URL_PROFILE . $eachBuild['login'], $eachBuild['ip']);
+                                $cells = wf_TableCell($eachBuild['apt']);
+                                $cells .= wf_TableCell($userLink);
+                                $cells .= wf_TableCell($eachBuild['signal']);
+                                $cells .= wf_TableCell($eachBuild['controls']);
+                                $rows .= wf_TableRow($cells);
+                            }
+                            $concatBuildContent .= wf_TableBody($rows, '100%', 0, '');
+                            $concatBuildContent = str_replace("\n", '', $concatBuildContent);
+                            $result .= generic_mapAddMark($eachBuild['geo'], $eachBuild['streetbuild'], $concatBuildContent, '', 'twirl#buildingsIcon', '', true);
+                        } else {
+                            $eachBuild = $geoData[0]; //just first element as is
+                            $result .= generic_mapAddMark($eachBuild['geo'], $eachBuild['buildtitle'], $eachBuild['signal'], $eachBuild['controls'], $eachBuild['icon'], '', true);
+                        }
+                    } else {
+                        foreach ($geoData as $io => $eachBuild) {
+                            $result .= generic_mapAddMark($eachBuild['geo'], $eachBuild['buildtitle'], $eachBuild['signal'], $eachBuild['controls'], $eachBuild['icon'], '', true);
+                        }
+                    }
+                }
+            }
+        }
         return($result);
     }
 
@@ -225,9 +299,10 @@ class PONONUMap {
         $marksDeadUser = 0;
         $totalOnuCount = 0;
         $result .= $this->renderControls();
-
+        $renderBuilds = array();
         $result .= generic_MapContainer('', '', 'ponmap');
         if (!empty($allOnu)) {
+
             foreach ($allOnu as $io => $eachOnu) {
                 if (!empty($eachOnu['login'])) {
                     if (isset($this->allUserData[$eachOnu['login']])) {
@@ -260,8 +335,20 @@ class PONONUMap {
                                 $signalLabel = $onuSignal;
                             }
 
+                            //48.470554, 24.422853
                             if ($renderAllowedFlag) {
-                                $placemarks .= generic_mapAddMark($userData['geo'], $onuTitle, $signalLabel, $onuControls, $onuIcon, '', true);
+                                $renderBuilds[$userData['geo']][] = array(
+                                    'geo' => $userData['geo'],
+                                    'streetbuild' => $userData['streetname'] . ' ' . $userData['buildnum'],
+                                    'apt' => $userData['apt'],
+                                    'buildtitle' => $onuTitle,
+                                    'login' => $userData['login'],
+                                    'ip' => $userData['ip'],
+                                    'signal' => $signalLabel,
+                                    'controls' => $onuControls,
+                                    'icon' => $onuIcon,
+                                );
+
                                 $marksRendered++;
                             }
                         } else {
@@ -271,7 +358,7 @@ class PONONUMap {
                         if ($eachOnu['login'] != 'dead') {
                             $marksNoUser++;
                         } else {
-                            $marksDeadUser++; //TODO: may be output that somewhere in future.
+                            $marksDeadUser++;
                         }
                     }
                 } else {
@@ -279,9 +366,13 @@ class PONONUMap {
                 }
                 $totalOnuCount++;
             }
+            $placemarks .= $this->getPlacemarks($renderBuilds, $this->clusterBuilds);
         }
 
+        //rendering map
+
         $result .= generic_MapInit($this->mapsCfg['CENTER'], $this->mapsCfg['ZOOM'], $this->mapsCfg['TYPE'], $placemarks, '', $this->mapsCfg['LANG'], 'ponmap');
+        //some stats here
         $result .= $this->messages->getStyledMessage(__('Total') . ' ' . __('ONU') . ': ' . $totalOnuCount, 'info');
         $result .= $this->messages->getStyledMessage(__('ONU rendered on map') . ': ' . $marksRendered, 'success');
         if ($marksNoGeo > 0) {
