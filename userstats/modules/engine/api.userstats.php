@@ -180,6 +180,12 @@ function zbs_GetOnlineLeftCount($login, $userBalance, $userTariff, $rawDays = fa
     // DEFINE VARS:
     $us_config = zbs_LoadConfig();
     $tariffData = zbs_UserGetTariffData($userTariff);
+
+    $daysOnLine = 0;
+    $balanceExpire = '';
+    $totalVsrvPrice = 0;
+    $userFeeOffset = 0;
+
     if (empty($tariffData)) {
         //user have no tariff
         $tariffData['name'] = '*_NO_TARIFF_*';
@@ -191,6 +197,11 @@ function zbs_GetOnlineLeftCount($login, $userBalance, $userTariff, $rawDays = fa
     if ($us_config['POWERTARIFFS_ENABLED']) {
         if ($tariffData['Fee'] == 0) {
             $tariffData['Fee'] = zbs_GetPowerTariffPrice($userTariff);
+            if ($tariffData['Fee'] > 0) {
+                $userFeeOffset = zbs_GetPowerTariffDay($login);
+                $userFeeOffset = ($userFeeOffset > 0) ? $userFeeOffset - 1 : date("j") + 1;
+                $daysOnLine = ($userFeeOffset > date("j")) ? $daysOnLine - $userFeeOffset : 0;
+            }
         }
     }
 
@@ -199,10 +210,6 @@ function zbs_GetOnlineLeftCount($login, $userBalance, $userTariff, $rawDays = fa
     $tariffPeriod = isset($tariffData['period']) ? $tariffData['period'] : 'month';
     $includeVServices = (!empty($us_config['ONLINELEFT_CONSIDER_VSERVICES']));
     $vservicesPeriodON = (!empty($us_config['VSERVICES_CONSIDER_PERIODS']));
-
-    $daysOnLine = 0;
-    $balanceExpire = '';
-    $totalVsrvPrice = 0;
 
     if ($userBalance >= 0) {
         // check if tariff has no zero price and is not free
@@ -233,7 +240,7 @@ function zbs_GetOnlineLeftCount($login, $userBalance, $userTariff, $rawDays = fa
                 if ($tariffPeriod == 'month') {
                     //monthly non spread fee
                     while ($userBalance >= 0) {
-                        $daysOnLine = $daysOnLine + date('t', time() + ($daysOnLine * 24 * 60 * 60)) - date('d', time() + ($daysOnLine * 24 * 60 * 60)) + 1;
+                        $daysOnLine = $daysOnLine + $userFeeOffset + date('t', time() + ($daysOnLine * 24 * 60 * 60)) - date('d', time() + ($daysOnLine * 24 * 60 * 60)) + 1;
                         $userBalance = $userBalance - $tariffFee;
                     }
                 } else {
@@ -304,6 +311,23 @@ function zbs_GetPowerTariffPrice($userTariff) {
     $allPowerTariffs = $powerTariffs->getAll('tariff');
     if (isset($allPowerTariffs[$userTariff])) {
         $result = $allPowerTariffs[$userTariff]['fee'];
+    }
+    return($result);
+}
+
+/**
+ * Suggests user power tariff fee charge date
+ * 
+ * @param string $userLogin
+ * 
+ * @return int
+ */
+function zbs_GetPowerTariffDay($userLogin) {
+    $result = 0;
+    $powerTariffs = new NyanORM('pt_users');
+    $allPowerUsers = $powerTariffs->getAll('login');
+    if (isset($allPowerUsers[$userLogin])) {
+        $result = $allPowerUsers[$userLogin]['day'];
     }
     return($result);
 }
@@ -1735,11 +1759,8 @@ function zbs_UserShowProfile($login) {
             //custom tariff price
             $tariffPrice = $allPowerTariffs[$userdata['Tariff']]['fee'];
             //getting custom fee date for this user
-            $powerUsers = new NyanORM('pt_users');
-            $powerUsers->where('login', '=', $login);
-            $powerUserData = $powerUsers->getAll('login');
             if (!empty($powerUserData)) {
-                $feeDay = $powerUserData[$login]['day'];
+                $feeDay = zbs_GetPowerTariffDay($login);
             }
         } else {
             //this is just normal tariff
