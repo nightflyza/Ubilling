@@ -1202,6 +1202,9 @@ class FundsFlow {
             $userBalanceRaw = $userData['Cash'];
             $userBalance = $userData['Cash'];
             $tariffData = zb_TariffGetData($userTariff);
+            $userFeeOffset = 0;
+            $daysOnLine = 0;
+            $totalVsrvPrice = 0;
 
             if (empty($tariffData)) {
                 //user have no tariff
@@ -1209,6 +1212,7 @@ class FundsFlow {
                 $tariffData['Fee'] = 0;
                 $tariffData['period'] = 'month';
             }
+
             $tariffFee = $tariffData['Fee'];
             $tariffPeriod = isset($tariffData['period']) ? $tariffData['period'] : 'month';
             if ($this->alterConf['PT_ENABLED']) {
@@ -1218,11 +1222,13 @@ class FundsFlow {
                     //wow too much power!
                     if ($powerTariffs->isPowerTariff($userTariff)) {
                         $tariffFee = $powerTariffs->getPowerTariffPrice($userTariff);
+                        $userFeeOffset = $powerTariffs->getUserOffsetDay($login);
+
+                        $userFeeOffset = ($userFeeOffset > 0) ? $userFeeOffset - 1 : date("j") + 1;
+                        $daysOnLine = ($userFeeOffset > date("j")) ? $daysOnLine - $userFeeOffset : 0;
                     }
                 }
             }
-            $daysOnLine = 0;
-            $totalVsrvPrice = 0;
 
             if ($includeVServices) {
                 $totalVsrvPrice = zb_VservicesGetUserPricePeriod($login, $tariffPeriod);
@@ -1259,11 +1265,11 @@ class FundsFlow {
                             }
                         }
                     } else {
-                        //non spread fee
+                        //non spread normal fee
                         if ($tariffPeriod == 'month') {
                             //monthly non spread fee
                             while ($userBalance >= 0) {
-                                $daysOnLine = $daysOnLine + date('t', time() + ($daysOnLine * 24 * 60 * 60)) - date('d', time() + ($daysOnLine * 24 * 60 * 60)) + 1;
+                                $daysOnLine = $daysOnLine + $userFeeOffset + date('t', time() + ($daysOnLine * 24 * 60 * 60)) - date('d', time() + ($daysOnLine * 24 * 60 * 60)) + 1;
                                 $userBalance = $userBalance - $tariffFee;
                             }
                         } else {
