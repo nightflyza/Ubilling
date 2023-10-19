@@ -85,9 +85,23 @@ function zbs_CreditLogCheckHack($login) {
  * @return bool
  */
 function zbs_CreditLogCheckMonth($login) {
+    global $us_config;
     $login = mysql_real_escape_string($login);
     $pattern = date("Y-m");
     $query = "SELECT `id` from `zbssclog` WHERE `login` LIKE '" . $login . "' AND `date` LIKE '" . $pattern . "%';";
+
+    //power tariffs specific handling
+    if ($us_config['POWERTARIFFS_ENABLED']) {
+        $userFeeOffset = zbs_GetPowerTariffDay($login);
+        //implict power user detection
+        if ($userFeeOffset) {
+            $lowDay = date("Y-m-d", strtotime("-1 month", time()));
+            $maxDay = date("Y-m-d");
+            //once per month?
+            $query = "SELECT `id` from `zbssclog` WHERE `login` LIKE '" . $login . "' AND `date`  BETWEEN '" . $lowDay . "' AND '" . $maxDay . "';";
+        }
+    }
+
     $data = simple_query($query);
     if (empty($data)) {
         return (true);
