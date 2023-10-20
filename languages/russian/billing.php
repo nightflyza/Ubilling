@@ -3500,3 +3500,4 @@ $lang['def']['No ONUs of devices assigned to this user were detected'] = 'Не �
 $lang['def']['Already exists'] = 'Уже существует';
 $lang['def']['Lousy tariff'] = 'Непопулярный тариф';
 $lang['def']['All tariffs marked as lousy'] = 'Все тарифы уже помечены как непопулярные';
+$lang['def']['Order'] = 'Приказ';

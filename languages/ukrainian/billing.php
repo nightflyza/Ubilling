@@ -3499,6 +3499,8 @@ $lang['def']['No ONUs of devices assigned to this user were detected'] = 'Не �
 $lang['def']['Already exists'] = 'Вже існує';
 $lang['def']['Lousy tariff'] = 'Непопулярний тариф';
 $lang['def']['All tariffs marked as lousy'] = 'Всі тарифи вже помічено як непопулярні. З якоїсь причини...';
+$lang['def']['Order'] = 'Наказ';
+$lang['def'][''] = '';
 $lang['def'][''] = '';
 
 

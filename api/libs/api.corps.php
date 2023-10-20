@@ -62,7 +62,8 @@ class Corps {
     protected $doctypes = array(
         '1' => 'Certificate',
         '2' => 'Regulations',
-        '3' => 'Reference'
+        '3' => 'Reference',
+        '4' => 'Order'
     );
 
     /**
@@ -600,7 +601,6 @@ class Corps {
             $inputs .= wf_TextInput('editnotes', __('Notes'), $data['notes'], true, '40');
             $inputs .= wf_Submit(__('Save'));
 
-
             $result = wf_Form('', 'POST', $inputs, 'glamour');
             //contact persons editor
             $result .= $this->personsControl($id);
@@ -646,7 +646,6 @@ class Corps {
             $inputs .= wf_TextInput('addnotes', __('Notes'), '', true, '40');
 
             $inputs .= wf_Submit(__('Create'));
-
 
             $result = wf_Form('', 'POST', $inputs, 'glamour');
         } else {
@@ -732,7 +731,6 @@ class Corps {
         $corpsignatory2 = ubRouting::post('addcorpsignatory2', 'mres');
         $corpbasis = ubRouting::post('addcorpbasis', 'mres');
         $corpemail = ubRouting::post('addcorpemail', 'mres');
-
 
         $this->corpsDb->data('corpname', $corpname);
         $this->corpsDb->data('address', $address);
@@ -1141,7 +1139,6 @@ class Corps {
             $inputs .= wf_TextInput('addnotes', __('Notes'), '', true, '40');
             $inputs .= wf_Submit(__('Create'));
 
-
             $result = wf_Form(self::URL_CORPS_ADD, 'POST', $inputs, 'glamour');
         } else {
             $result = __('No existing tax types');
@@ -1278,5 +1275,4 @@ class Corps {
         }
         return ($result);
     }
-
 }
