@@ -975,6 +975,16 @@ function zbs_UserShowXmlAgentData($login) {
         }
     }
 
+    // assigned contragents export
+    if (ubRouting::checkGet('agentassigned')) {
+        $allAddress  = zbs_AddressGetFulladdresslist();
+        $userAddress = empty($allAddress) ? array() : $allAddress[$login];
+        $agentData = zbs_AgentAssignedGetDataFast($login, $userAddress);
+        $agentArray = empty($agentData) ? array() : array('agentdata' => $agentData);
+
+        zbs_XMLAgentRender($agentArray, 'data', 'agentdata', $outputFormat);
+    }
+
     //user data export
     $us_currency = $us_config['currency'];
     $userdata = zbs_UserGetStargazerData($login);

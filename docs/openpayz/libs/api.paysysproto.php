@@ -1,5 +1,9 @@
 <?php
 
+/**
+ * Fronted paysys class to be inherited
+ * Encapsulates all of the commonly used methods and props
+ */
 class PaySysProto {
     /**
      * Predefined stuff
