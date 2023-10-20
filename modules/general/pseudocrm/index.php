@@ -164,7 +164,13 @@ if (cfr(PseudoCRM::RIGHT_VIEW)) {
                 ubRouting::nav($crm::URL_ME . '&' . $crm::ROUTE_LEAD_PROFILE . '=' . $detectedLeadId);
             } else {
                 //or render assigning form
-                show_window(__('Assign lead'), $crm->renderLeadAssignForm($userLogin));
+                show_window(__('Assign existing lead'), $crm->renderLeadAssignForm($userLogin));
+                //or new lead creation form
+                if (cfr($crm::RIGHT_LEADS)) {
+                    show_window(__('Or create new lead based on this user data'), $crm->renderUserLeadCreationForm($userLogin));
+                }
+                //few user controls here
+                show_window('', web_UserControls($userLogin));
             }
         }
 

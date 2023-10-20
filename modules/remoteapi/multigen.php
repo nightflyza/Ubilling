@@ -53,6 +53,7 @@ if (($remoteApiAction == 'multigen') OR ( $remoteApiAction == 'multigentotal') O
             }
         }
 
+        //multigen accounting traffic processing
         if ($remoteApiAction == 'multigentraff') {
             $multigen->aggregateTraffic();
             die('OK: MULTIGEN_TRAFF');

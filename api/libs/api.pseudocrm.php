@@ -1248,8 +1248,85 @@ class PseudoCRM {
             $inputs .= wf_Submit(__('Assign'));
 
             $result .= wf_Form('', 'POST', $inputs, 'glamour');
-            $result .= wf_delimiter();
-            $result .= web_UserControls($login);
+        } else {
+            $result .= $this->messages->getStyledMessage(__('Strange exception') . ': ' . __('User not exists'), 'error');
+        }
+        return($result);
+    }
+
+    /**
+     * Renders lead creation form 
+     * 
+     * @param string $login
+     * 
+     * @return string 
+     */
+    public function renderUserLeadCreationForm($login) {
+        $result = '';
+        if (isset($this->allUserData[$login])) {
+            $userData = $this->allUserData[$login];
+
+            //some prefilled user data here
+            $prevAddress = $userData['fulladress'];
+            $prevName = $userData['realname'];
+            $prevMobile = $userData['mobile'];
+            $prevExtMobile = '';
+            if ($this->altCfg['MOBILES_EXT']) {
+                $extMobiles = new MobilesExt();
+                $userAdditionalMobiles = $extMobiles->getUserMobiles($login);
+                if (!empty($userAdditionalMobiles)) {
+                    foreach ($userAdditionalMobiles as $io => $each) {
+                        $prevExtMobile = $each['mobile'];
+                    }
+                }
+            }
+            $prevPhone = $userData['phone'];
+            $prevEmail = $userData['email'];
+            $prevBranch = 0;
+            if ($this->altCfg['BRANCHES_ENABLED']) {
+                global $branchControl;
+                $prevBranch = $branchControl->userGetBranch($login);
+            }
+            $prevTariff = $userData['Tariff'];
+
+            $prevLogin = $login;
+            $prevEmployee = '';
+            $curAdmLogin = whoami();
+            if (isset($this->allEmployeeLogins[$curAdmLogin])) {
+                $prevEmployee = $this->allEmployeeLogins[$curAdmLogin];
+            }
+
+            $prevNotes = '';
+
+            $sup = wf_tag('sup') . '*' . wf_tag('sup', true);
+            $inputs = '';
+            $inputs .= wf_HiddenInput(self::PROUTE_LEAD_CREATE, 'true');
+            $inputs .= wf_TextInput(self::PROUTE_LEAD_ADDR, __('Full address') . $sup, $prevAddress, true, '40', '');
+            $inputs .= wf_TextInput(self::PROUTE_LEAD_NAME, __('Real Name') . $sup, $prevName, true, '40', '');
+            $inputs .= wf_TextInput(self::PROUTE_LEAD_MOBILE, __('Mobile') . $sup, $prevMobile, true, '15', 'mobile');
+            $inputs .= wf_TextInput(self::PROUTE_LEAD_EXTMOBILE, __('Additional mobile'), $prevExtMobile, true, '15', 'mobile');
+            $inputs .= wf_TextInput(self::PROUTE_LEAD_PHONE, __('Phone'), $prevPhone, true, '15', 'mobile');
+            $inputs .= wf_TextInput(self::PROUTE_LEAD_EMAIL, __('Email'), $prevEmail, true, '15', 'email');
+            if ($this->branchesFlag) {
+                $branchesParams = array('' => '-');
+                $branchesParams += $this->allBranches;
+                $inputs .= wf_Selector(self::PROUTE_LEAD_BRANCH, $branchesParams, __('Branch'), $prevBranch, true);
+            } else {
+                $inputs .= wf_HiddenInput(self::PROUTE_LEAD_BRANCH, '0');
+            }
+
+
+            $tariffsParams = array('' => '-');
+            $tariffsParams += $this->allTariffs;
+            $inputs .= wf_Selector(self::PROUTE_LEAD_TARIFF, $tariffsParams, __('Tariff'), $prevTariff, true);
+            $inputs .= wf_HiddenInput(self::PROUTE_LEAD_LOGIN, __('Login'), $prevLogin, true, '15', 'login');
+            $employeeParams = array('' => '-');
+            $employeeParams += $this->allActiveEmployee;
+            $inputs .= wf_Selector(self::PROUTE_LEAD_EMPLOYEE, $employeeParams, __('Worker'), $prevEmployee, true);
+            $inputs .= wf_TextInput(self::PROUTE_LEAD_NOTES, __('Notes') . $sup, $prevNotes, true, '40', '');
+            $inputs .= wf_delimiter(0);
+            $inputs .= wf_Submit(__('Create new lead'));
+            $result .= wf_Form('', 'POST', $inputs, 'glamour');
         } else {
             $result .= $this->messages->getStyledMessage(__('Strange exception') . ': ' . __('User not exists'), 'error');
         }
