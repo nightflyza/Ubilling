@@ -62,8 +62,7 @@ class Corps {
     protected $doctypes = array(
         '1' => 'Certificate',
         '2' => 'Regulations',
-        '3' => 'Reference',
-        '4' => 'Order'
+        '3' => 'Reference'
     );
 
     /**
