@@ -391,6 +391,13 @@ class MultiGen {
     protected $stardust = '';
 
     /**
+     * Is mea culpa enabled flag?
+     * 
+     * @var bool
+     */
+    protected $meaCulpaFlag = false;
+
+    /**
      * Contains basic module path
      */
     const URL_ME = '?module=multigen';
@@ -514,6 +521,11 @@ class MultiGen {
      * Extended networks option name
      */
     const OPTION_EXTNETS = 'NETWORKS_EXT';
+
+    /**
+     * Mea maxima culpa coinfig option name
+     */
+    const OPTION_CULPA = 'MULTIGEN_MEACULPA_ENABLED';
 
     /**
      * Default log path
@@ -650,6 +662,16 @@ class MultiGen {
             if (($this->altCfg[self::OPTION_SWASSIGN]) AND ( $this->altCfg[self::OPTION_QINQ])) {
                 $this->usernameTypes['qinq'] = __('QinQ') . ' ' . __('default');
                 $this->usernameTypes['qinqju'] = __('QinQ') . ' ' . __('JunOS like');
+            }
+        }
+
+        // quia peccavi nimis
+        // cogitatione, verbo
+        // opere et omissione
+        if (isset($this->altCfg[self::OPTION_CULPA])) {
+            if ($this->altCfg[self::OPTION_CULPA]) {
+                $this->usernameTypes['meaculpa'] = __('Mea culpa');
+                $this->meaCulpaFlag = true;
             }
         }
 
