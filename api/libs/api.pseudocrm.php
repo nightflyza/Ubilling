@@ -1319,7 +1319,7 @@ class PseudoCRM {
             $tariffsParams = array('' => '-');
             $tariffsParams += $this->allTariffs;
             $inputs .= wf_Selector(self::PROUTE_LEAD_TARIFF, $tariffsParams, __('Tariff'), $prevTariff, true);
-            $inputs .= wf_HiddenInput(self::PROUTE_LEAD_LOGIN, __('Login'), $prevLogin, true, '15', 'login');
+            $inputs .= wf_HiddenInput(self::PROUTE_LEAD_LOGIN, $prevLogin);
             $employeeParams = array('' => '-');
             $employeeParams += $this->allActiveEmployee;
             $inputs .= wf_Selector(self::PROUTE_LEAD_EMPLOYEE, $employeeParams, __('Worker'), $prevEmployee, true);
