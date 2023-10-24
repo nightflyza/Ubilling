@@ -75,6 +75,15 @@ if (cfr('ANNIHILATION')) {
         if ($altCfg['CONDET_ENABLED']) {
             $condet = new ConnectionDetails();
             $condet->delete($login);
+            log_register('CONDET FLUSH (' . $login . ')');
+        }
+
+        //switch port bindings deletion
+        if ($altCfg['SWITCHPORT_IN_PROFILE']) {
+            $switchPortAssignsDb = new NyanORM('switchportassign');
+            $switchPortAssignsDb->where('login', '=', $login);
+            $switchPortAssignsDb->delete();
+            log_register('SWITCHPORT FLUSH (' . $login . ')');
         }
 
         //flushing some QinQ bindings
