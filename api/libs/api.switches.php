@@ -1,6 +1,22 @@
 <?php
 
 /**
+ * Returns background switch ICMP ping
+ * 
+ * @global object $ubillingConfig
+ * 
+ * @return void
+ */
+function zb_SwitchBackgroundIcmpPing($ip) {
+    global $ubillingConfig;
+    $billingConf = $ubillingConfig->getBilling();
+    $command = $billingConf['SUDO'] . ' ' . $billingConf['PING'] . ' -i 0.01 -c 10  ' . $ip;
+    $icmpPingResult = shell_exec($command);
+
+    die(wf_tag('pre') . $icmpPingResult . wf_tag('pre', true));
+}
+
+/**
  * Returns array of all currently dead devices
  * 
  * @return array
@@ -1585,6 +1601,71 @@ function zb_SwitchesRenderAjaxList() {
 }
 
 /**
+ * Updates existing switch data
+ * 
+ * @global object $ubillingConfig
+ * 
+ * @return void
+ */
+function ub_SwitchSave($switchid) {
+    global $ubillingConfig;
+    $altCfg = $ubillingConfig->getAlter();
+    $switchid = ubRouting::filters($switchid, 'int');
+    // some non-parameterized shit here, PFFFFF
+    simple_update_field('switches', 'modelid', ubRouting::post('editmodel'), "WHERE `id`='" . $switchid . "'");
+    simple_update_field('switches', 'ip', ubRouting::post('editip'), "WHERE `id`='" . $switchid . "'");
+    simple_update_field('switches', 'location', ub_SanitizeData(ubRouting::post('editlocation'), false), "WHERE `id`='" . $switchid . "'");
+    simple_update_field('switches', 'desc', ub_SanitizeData(ubRouting::post('editdesc'), false), "WHERE `id`='" . $switchid . "'");
+    simple_update_field('switches', 'snmp', ubRouting::post('editsnmp'), "WHERE `id`='" . $switchid . "'");
+    simple_update_field('switches', 'snmpwrite', ubRouting::post('editsnmpwrite'), "WHERE `id`='" . $switchid . "'");
+
+    if ($altCfg['SWITCHES_EXTENDED']) {
+        simple_update_field('switches', 'swid', ubRouting::post('editswid'), "WHERE `id`='" . $switchid . "'");
+    }
+
+    simple_update_field('switches', 'geo', preg_replace('/[^-?0-9\.,]/i', '', ubRouting::post('editgeo')), "WHERE `id`='" . $switchid . "'");
+
+    if (ubRouting::post('editparentid') != $switchid) {
+        //checks for preventing loops
+        $alllinks = array();
+        $tmpSwitches = zb_SwitchesGetAll();
+        if (!empty($tmpSwitches)) {
+            //transform array to id=>switchdata
+            foreach ($tmpSwitches as $io => $each) {
+                $allswitches[$each['id']] = $each;
+            }
+
+            //making id=>parentid array
+            foreach ($tmpSwitches as $io => $each) {
+                $alllinks[$each['id']] = $each['parentid'];
+            }
+        }
+        if (sm_CheckLoop($alllinks, $switchid, ubRouting::post('editparentid'))) {
+            simple_update_field('switches', 'parentid', ubRouting::post('editparentid'), "WHERE `id`='" . $switchid . "'");
+        }
+    }
+
+    $swGroupsEnabled = $ubillingConfig->getAlterParam('SWITCH_GROUPS_ENABLED');
+    if ($swGroupsEnabled) {
+        $switchGroups = new SwitchGroups();
+        $switchAlreadyInGroup = $switchGroups->getSwitchGroupBySwitchId($switchid);
+
+        if (empty($switchAlreadyInGroup) and !empty(ubRouting::post('editswgroup'))) {
+            $query = "INSERT INTO `switch_groups_relations` (`switch_id`, `sw_group_id`) VALUES (" . $switchid . ", " . ubRouting::post('editswgroup') . ")";
+            nr_query($query);
+        } elseif (ubRouting::post('editswgroup')) {
+            if (ubRouting::post('editswgroup') == '0') {
+                $switchGroups->removeSwitchFromGroup($switchid);
+            } else {
+                simple_update_field('switch_groups_relations', 'sw_group_id', ubRouting::post('editswgroup'), "WHERE `switch_id`='" . $switchid . "'");
+            }
+        }
+    }
+
+    log_register('SWITCH CHANGE [' . $switchid . ']' . ' IP ' . ubRouting::post('editip') . " LOC `" . ubRouting::post('editlocation') . "`");
+}
+
+/**
  * Creates new switch device in database
  * 
  * @param int    $modelid
@@ -2122,5 +2203,3 @@ function zb_SwitchesGetAssignsAll() {
 
     return ($result);
 }
-
-?>
