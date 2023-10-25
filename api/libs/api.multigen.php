@@ -525,7 +525,7 @@ class MultiGen {
     /**
      * Mea maxima culpa coinfig option name
      */
-    const OPTION_CULPA = 'MULTIGEN_MEACULPA_ENABLED';
+    const OPTION_CULPA = 'MEACULPA_ENABLED';
 
     /**
      * Default log path
