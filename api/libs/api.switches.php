@@ -113,12 +113,11 @@ function web_SwitchModelsShow() {
     $allSnmpTemplates = zb_SwitchModelsSnmpTemplatesGetAll();
     $modelsCount = array();
 
-
     //switch devices count
     if (!empty($allSwitches)) {
         foreach ($allSwitches as $io => $eachSwitchData) {
             if (isset($modelsCount[$eachSwitchData['modelid']])) {
-                $modelsCount[$eachSwitchData['modelid']] ++;
+                $modelsCount[$eachSwitchData['modelid']]++;
             } else {
                 $modelsCount[$eachSwitchData['modelid']] = 1;
             }
@@ -133,7 +132,7 @@ function web_SwitchModelsShow() {
         if (!empty($allOnu)) {
             foreach ($allOnu as $io => $eachOnuData) {
                 if (isset($modelsCount[$eachOnuData['onumodelid']])) {
-                    $modelsCount[$eachOnuData['onumodelid']] ++;
+                    $modelsCount[$eachOnuData['onumodelid']]++;
                 } else {
                     $modelsCount[$eachOnuData['onumodelid']] = 1;
                 }
@@ -554,7 +553,6 @@ function web_SwitchEditForm($switchid) {
     $allswitchmodels = zb_SwitchModelsGetAllTag();
     $switchdata = zb_SwitchGetData($switchid);
 
-
     $editinputs = wf_Selector('editmodel', $allswitchmodels, 'Model', $switchdata['modelid'], true);
     $editinputs .= wf_TextInput('editip', 'IP', $switchdata['ip'], true, 20, 'ip');
     $editinputs .= wf_TextInput('editlocation', 'Location', $switchdata['location'], true, 30);
@@ -699,9 +697,9 @@ function web_SwitchEditForm($switchid) {
 
     //SWPOLL proposal
     if (!empty($switchdata['ip'])) {
-        if (!ispos($switchdata['desc'], 'SWPOLL') AND ( !ispos($switchdata['desc'], 'NP')) AND ( !ispos($switchdata['desc'], 'OLT'))) {
+        if (!ispos($switchdata['desc'], 'SWPOLL') AND (!ispos($switchdata['desc'], 'NP')) AND (!ispos($switchdata['desc'], 'OLT'))) {
             //this is not OLT
-            if (!ispos($switchdata['desc'], 'AP') AND ( !ispos($switchdata['desc'], 'MTSIGMON'))) {
+            if (!ispos($switchdata['desc'], 'AP') AND (!ispos($switchdata['desc'], 'MTSIGMON'))) {
                 //Or some wireless access point
                 if (!empty($switchdata['snmp'])) {
                     //with some non empty snmp read comunity
@@ -944,7 +942,7 @@ function zb_SwitchesRepingAll() {
         $allswitches = zb_SwitchesGetAllLocationOrder();
         if (!empty($allswitches)) {
             foreach ($allswitches as $io => $eachswitch) {
-                if (!empty($eachswitch['ip']) AND ! ispos($eachswitch['desc'], 'NP')) {
+                if (!empty($eachswitch['ip']) AND !ispos($eachswitch['desc'], 'NP')) {
                     if (!$fastPingFlag) {
                         //regular per-device ICMP polling
                         if (!zb_PingICMP($eachswitch['ip'])) {
@@ -1526,7 +1524,7 @@ function zb_SwitchesRenderAjaxList() {
                     $countLinked++;
                 }
 
-                if ((empty($eachswitch['geo'])) AND ( !ispos($eachswitch['desc'], 'NP'))) {
+                if ((empty($eachswitch['geo'])) AND (!ispos($eachswitch['desc'], 'NP'))) {
                     if ((cfr('SWITCHESEDIT')) AND ( cfr('SWITCHMAP'))) {
                         $switchcontrols .= wf_Link('?module=switchmap&locfinder=true&placesw=' . $eachswitch['id'], wf_img('skins/ymaps/target.png', __('Place on map')), false, '');
                     }
@@ -1678,7 +1676,7 @@ function ub_SwitchDelete($switchid) {
     $switchesExtended = $ubillingConfig->getAlterParam('SWITCHES_EXTENDED');
     if ($switchesExtended) {
         $switchesUplinks = new SwitchUplinks();
-        $switchesUplinks->delete($switchid);
+        $switchesUplinks->flush($switchid);
     }
 
     $query = 'DELETE FROM `switches_qinq` WHERE `switchid` = "' . $switchid . '"';
@@ -1761,7 +1759,7 @@ function web_DeadSwitchesTop() {
                 if (!empty($deadData)) {
                     foreach ($deadData as $eachDeadIp => $eachDeadName) {
                         if (isset($topTmp[$eachDeadIp])) {
-                            $topTmp[$eachDeadIp]['count'] ++;
+                            $topTmp[$eachDeadIp]['count']++;
                         } else {
                             $topTmp[$eachDeadIp]['count'] = 1;
                             $topTmp[$eachDeadIp]['name'] = $eachDeadName;
@@ -2000,7 +1998,6 @@ function zb_SwitchReplace($fromId, $toId, $employeeId) {
     $allEmployees = ts_GetAllEmployee();
     $fromData = zb_SwitchGetData($fromId);
     $toData = zb_SwitchGetData($toId);
-
 
     if (!empty($fromData)) {
         //updating new switch device

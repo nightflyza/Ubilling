@@ -41,25 +41,27 @@ if (cfr('SWITCHES')) {
         }
     }
 //switch deletion
-    if (isset($_GET['switchdelete'])) {
-        if (!empty($_GET['switchdelete'])) {
-            if (cfr('SWITCHESEDIT')) {
-                if (ub_SwitchIsParent($_GET['switchdelete'])) {
-                    if (wf_CheckGet(array('forcedel'))) {
-                        //forced parent switch deletion, childs flush
-                        ub_SwitchFlushChilds($_GET['switchdelete']);
-                        ub_SwitchDelete($_GET['switchdelete']);
-                        rcms_redirect("?module=switches");
-                    } else {
-                        show_warning(__('This switch is the parent for other switches'));
-                    }
+    if (ubRouting::checkGet('switchdelete')) {
+        $switchToDelete = ubRouting::get('switchdelete', 'int');
+        if (cfr('SWITCHESEDIT')) {
+            //this switch is parent for some other switches
+            if (ub_SwitchIsParent($switchToDelete)) {
+                if (ubRouting::checkGet('forcedel')) {
+                    //forced parent switch deletion, childs flush
+                    ub_SwitchFlushChilds($switchToDelete);
+                    //delete the switch itself
+                    ub_SwitchDelete($switchToDelete);
+                    ubRouting::nav('?module=switches');
                 } else {
-                    ub_SwitchDelete($_GET['switchdelete']);
-                    rcms_redirect("?module=switches");
+                    show_warning(__('This switch is the parent for other switches'));
                 }
             } else {
-                show_window(__('Error'), __('Access denied'));
+                //just delete switch
+                ub_SwitchDelete($switchToDelete);
+                ubRouting::nav('?module=switches');
             }
+        } else {
+            show_window(__('Error'), __('Access denied'));
         }
     }
 
@@ -75,7 +77,6 @@ if (cfr('SWITCHES')) {
         }
 
         $swlinks .= wf_Link('?module=switches&forcereping=true', wf_img('skins/refresh.gif') . ' ' . __('Force ping'), false, 'ubButton');
-
 
         if (cfr('SWITCHESEDIT')) {
             $toolsLinks = '';
@@ -207,7 +208,7 @@ if (cfr('SWITCHES')) {
                         $switchGroups = new SwitchGroups();
                         $switchAlreadyInGroup = $switchGroups->getSwitchGroupBySwitchId($switchid);
 
-                        if (empty($switchAlreadyInGroup) and ! empty($_POST['editswgroup'])) {
+                        if (empty($switchAlreadyInGroup) and !empty($_POST['editswgroup'])) {
                             $query = "INSERT INTO `switch_groups_relations` (`switch_id`, `sw_group_id`) VALUES (" . $switchid . ", " . $_POST['editswgroup'] . ")";
                             nr_query($query);
                         } elseif (isset($_POST['editswgroup'])) {
@@ -231,14 +232,13 @@ if (cfr('SWITCHES')) {
             show_window(__('Edit switch'), web_SwitchEditForm($switchid));
             //minimap container
             if ($altCfg['SWYMAP_ENABLED']) {
-                if ((!empty($switchdata['geo'])) AND ( !wf_CheckPost(array('editmodel')))) {
+                if ((!empty($switchdata['geo'])) AND (!wf_CheckPost(array('editmodel')))) {
                     show_window(__('Mini-map'), wf_delimiter() . web_SwitchMiniMap($switchdata));
                 }
             }
 
             //downlinks list
             web_SwitchDownlinksList($switchid);
-
 
             //additional comments engine
             if ($altCfg['ADCOMMENTS_ENABLED']) {
@@ -254,4 +254,3 @@ if (cfr('SWITCHES')) {
 } else {
     show_error(__('Access denied'));
 }
-?>
