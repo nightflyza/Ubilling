@@ -1177,6 +1177,21 @@ function zb_GetAgentExtInfo($recID = '', $agentID = '', $getBaseAgentInfo = fals
     return ($result);
 }
 
+/**
+ * Creates new contragent extended info record in DB
+ *
+ * @param $extinfoAgentID
+ * @param $extinfoSrvType
+ * @param $extinfoPaySysName
+ * @param $extinfoPaySysID
+ * @param $extinfoPaySysSrvID
+ * @param $extinfoPaySysToken
+ * @param $extinfoPaySysSecretKey
+ * @param $extinfoPaySysPassword
+ *
+ * @return void
+ * @throws Exception
+ */
 function zb_CreateAgentExtInfoRec($extinfoAgentID, $extinfoSrvType = '', $extinfoPaySysName = '', $extinfoPaySysID = '', $extinfoPaySysSrvID = '',
                                   $extinfoPaySysToken = '', $extinfoPaySysSecretKey = '', $extinfoPaySysPassword  = '') {
     $tabAgentExtInfo = new NyanORM('contrahens_extinfo');
@@ -1193,8 +1208,27 @@ function zb_CreateAgentExtInfoRec($extinfoAgentID, $extinfoSrvType = '', $extinf
                             );
 
     $tabAgentExtInfo->create();
+    $recID = $tabAgentExtInfo->getLastId();
+
+    log_register('AGENT EXTEN INFO CREATE [' . $recID . ']');
 }
 
+/**
+ * Changes contragent extended info record in DB by given record ID
+ *
+ * @param $recID
+ * @param $extinfoAgentID
+ * @param $extinfoSrvType
+ * @param $extinfoPaySysName
+ * @param $extinfoPaySysID
+ * @param $extinfoPaySysSrvID
+ * @param $extinfoPaySysToken
+ * @param $extinfoPaySysSecretKey
+ * @param $extinfoPaySysPassword
+ *
+ * @return void
+ * @throws Exception
+ */
 function zb_EditAgentExtInfoRec($recID, $extinfoAgentID, $extinfoSrvType = '', $extinfoPaySysName = '', $extinfoPaySysID = '', $extinfoPaySysSrvID = '',
                                 $extinfoPaySysToken = '', $extinfoPaySysSecretKey = '', $extinfoPaySysPassword  = '') {
     $tabAgentExtInfo = new NyanORM('contrahens_extinfo');
@@ -1212,6 +1246,24 @@ function zb_EditAgentExtInfoRec($recID, $extinfoAgentID, $extinfoSrvType = '', $
                             );
     $tabAgentExtInfo->where('id', '=', $recID);
     $tabAgentExtInfo->save(true, true);
+
+    log_register('AGENT EXTEN INFO EDIT [' . $recID . ']');
+}
+
+/**
+ * Removes contragent extended info record from DB by given record ID
+ *
+ * @param $recID
+ *
+ * @return void
+ * @throws Exception
+ */
+function zb_DeleteAgentExtInfoRec($recID) {
+    $tabAgentExtInfo = new NyanORM('contrahens_extinfo');
+    $tabAgentExtInfo->where('id', '=', $recID);
+    $tabAgentExtInfo->delete();
+
+    log_register('AGENT EXTEN INFO DELETE [' . $recID . ']');
 }
 
 /**
