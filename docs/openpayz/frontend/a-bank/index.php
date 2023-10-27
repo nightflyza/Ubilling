@@ -324,6 +324,25 @@ function abank_ReplySearch($customerid, $UsrBalanceDecimals = -1) {
 }
 
 /**
+ * Checks is reference unique?
+ *
+ * @param int $rawhash reference number to check
+ *
+ * @return bool
+ */
+function abank_CheckHash($payId) {
+    $payId = mysql_real_escape_string($payId);
+    $hash = 'ABANK_' . $payId;
+    $query = "SELECT * from `op_transactions` WHERE `hash`='" . $hash . "';";
+    $data = simple_query($query);
+    if (empty($data)) {
+        return (true);
+    } else {
+        return (false);
+    }
+}
+
+/**
  * Returns payment possibility reply
  *
  * @return string
@@ -365,25 +384,6 @@ function abank_ReplyCheck($customerid, $payId) {
 
     $result = trim($result);
     return ($result);
-}
-
-/**
- * Checks is reference unique?
- *
- * @param int $rawhash reference number to check
- *
- * @return bool
- */
-function abank_CheckHash($payId) {
-    $payId = mysql_real_escape_string($payId);
-    $hash = 'ABANK_' . $payId;
-    $query = "SELECT * from `op_transactions` WHERE `hash`='" . $hash . "';";
-    $data = simple_query($query);
-    if (empty($data)) {
-        return (true);
-    } else {
-        return (false);
-    }
 }
 
 /**
