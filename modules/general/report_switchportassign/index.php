@@ -1,7 +1,7 @@
 <?php
 if (cfr('REPORTSWPORT')) {
 	
-    $switchPortAssignReport = new SwitchPortAssign();
+    $switchPortAssignReport = new SwitchPortReport();
 
     //getting polls data
     if (ubRouting::checkGet('ajaxswitchassign')) {

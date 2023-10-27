@@ -1066,7 +1066,8 @@ class UserProfile {
     protected function getSwitchAssignControls() {
 //switchport section
         if ($this->alterCfg['SWITCHPORT_IN_PROFILE']) {
-            $result = web_ProfileSwitchControlForm($this->login);
+            $switchPortAssign = new SwitchPortAssign();
+            $result = $switchPortAssign->renderEditForm($this->login);
         } else {
             $result = '';
         }

@@ -7,7 +7,7 @@ if (cfr('REPORTNOSWPORT')) {
 
     $altercfg = $ubillingConfig->getAlter();
     if ($altercfg['SWITCHPORT_IN_PROFILE']) {
-        $noSwitchPortReport = new SwitchPortAssign();
+        $noSwitchPortReport = new SwitchPortReport();
         show_window(__('Users without port assigned'), $noSwitchPortReport->renderNoSwitchPort());
     } else {
         show_error(__('This module disabled'));
