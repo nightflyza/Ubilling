@@ -480,6 +480,15 @@ class PowerTariffs {
     }
 
     /**
+     * Returns object maxDay value set by configuration
+     * 
+     * @return int
+     */
+    public function getMaxDay() {
+        return($this->maxDay);
+    }
+
+    /**
      * Check is user using one of power tariffs?
      * 
      * @param array $userData
@@ -757,5 +766,4 @@ class PowerTariffs {
             }
         }
     }
-
 }

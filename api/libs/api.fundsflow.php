@@ -1223,9 +1223,18 @@ class FundsFlow {
                     if ($powerTariffs->isPowerTariff($userTariff)) {
                         $tariffFee = $powerTariffs->getPowerTariffPrice($userTariff);
                         $userFeeOffset = $powerTariffs->getUserOffsetDay($login);
+                        $maxDay = ($powerTariffs->getMaxDay() - 1);
 
-                        $userFeeOffset = ($userFeeOffset > 0) ? $userFeeOffset - 1 : date("j") + 1;
-                        $daysOnLine = ($userFeeOffset > date("j")) ? $daysOnLine - $userFeeOffset : 0;
+                        if ($userFeeOffset == 0) {
+                            $userFeeOffset = (date('j') < $maxDay) ? date('j') + 1 : 1;
+                            $daysOnLine = (date('j') < $maxDay) ? 0 : date('j');
+                        } else {
+                            if ($userFeeOffset < 0) {
+                                $userFeeOffset = (date('j') < $maxDay) ? date('j') + 1 : 1;
+                            }
+                            $daysOnLine = ($userFeeOffset == date('j')) ? 0 : (($userFeeOffset < date('j')) ? -1 : date('j') * -1);
+                        }
+                        $userFeeOffset = $userFeeOffset - 1;
                     }
                 }
             }

@@ -199,8 +199,17 @@ function zbs_GetOnlineLeftCount($login, $userBalance, $userTariff, $rawDays = fa
             $tariffData['Fee'] = zbs_GetPowerTariffPrice($userTariff);
             if ($tariffData['Fee'] > 0) {
                 $userFeeOffset = zbs_GetPowerTariffDay($login);
-                $userFeeOffset = ($userFeeOffset > 0) ? $userFeeOffset - 1 : date("j") + 1;
-                $daysOnLine = ($userFeeOffset > date("j")) ? $daysOnLine - $userFeeOffset : 0;
+                $maxDay = (zbs_GetPowerTariffMaxDay() - 1);
+                if ($userFeeOffset == 0) {
+                    $userFeeOffset = (date('j') < $maxDay) ? date('j') + 1 : 1;
+                    $daysOnLine = (date('j') < $maxDay) ? 0 : date('j');
+                } else {
+                    if ($userFeeOffset < 0) {
+                        $userFeeOffset = (date('j') < $maxDay) ? date('j') + 1 : 1;
+                    }
+                    $daysOnLine = ($userFeeOffset == date('j')) ? 0 : (($userFeeOffset < date('j')) ? -1 : date('j') * -1);
+                }
+                $userFeeOffset = $userFeeOffset - 1;
             }
         }
     }
@@ -328,6 +337,20 @@ function zbs_GetPowerTariffDay($userLogin) {
     $allPowerUsers = $powerTariffs->getAll('login');
     if (isset($allPowerUsers[$userLogin])) {
         $result = $allPowerUsers[$userLogin]['day'];
+    }
+    return($result);
+}
+
+/**
+ * Returns value of PowerTariffs maximum day option that will be round to 1st
+ * 
+ * @return int
+ */
+function zbs_GetPowerTariffMaxDay() {
+    global $us_config;
+    $result = 26;
+    if (isset($us_config['POWERTARIFFS_MAXDAY'])) {
+        $result = $us_config['POWERTARIFFS_MAXDAY'];
     }
     return($result);
 }
