@@ -146,6 +146,13 @@ class OpenPayz {
     protected $payidStaticLen = 0;
 
     /**
+     * Prefix for newly generated static payment IDs
+     * 
+     * @var string
+     */
+    protected $payIdStaticPrefix = '';
+
+    /**
      * Funds flow instance placeholder
      * 
      * @var object
@@ -224,6 +231,7 @@ class OpenPayz {
         $this->smsRespectReminderTagID = ubRouting::filters($this->ubConfig->getAlterParam('OP_SMS_NOTIFY_RESPECT_REMINDER_TAGID'), 'fi', FILTER_VALIDATE_BOOLEAN);
         $this->smsReminderTagID = ubRouting::filters($this->ubConfig->getAlterParam('REMINDER_TAGID', 0), 'int');
         $this->payidStaticLen = ubRouting::filters($this->ubConfig->getAlterParam('OPENPAYZ_STATIC_ID', 0), 'int');
+        $this->payIdStaticPrefix = $this->ubConfig->getAlterParam('OPENPAYZ_STATIC_ID_PREFIX', '');
     }
 
     /**
@@ -345,9 +353,9 @@ class OpenPayz {
     protected function generateUniquePaymentId() {
         $result = 0;
         if ($this->payidStaticLen > 0) {
-            $result = zb_rand_digits($this->payidStaticLen);
+            $result = $this->payIdStaticPrefix . zb_rand_digits($this->payidStaticLen);
             while (isset($this->allCustomers[$result])) {
-                $result = zb_rand_digits($this->payidStaticLen);
+                $result = $this->payIdStaticPrefix . zb_rand_digits($this->payidStaticLen);
             }
         }
         return($result);
