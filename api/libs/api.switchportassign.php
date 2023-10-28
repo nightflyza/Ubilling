@@ -37,6 +37,10 @@ class SwitchPortAssign {
      * Some predefined stuff
      */
     const TABLE_ASSIGNS = 'switchportassign';
+    const PROUTE_LOGIN = 'swassignlogin';
+    const PROUTE_SWITCH = 'swassignswid';
+    const PROUTE_PORT = 'swassignswport';
+    const PROUTE_DELETE = 'swassigndelete';
 
     public function __construct() {
         $this->loadAlter();
@@ -160,6 +164,131 @@ class SwitchPortAssign {
     }
 
     /**
+     * Returns all other users with assigned same port on the same switch
+     * 
+     * @param string $login
+     * @param int $currentSwitchPort
+     * @param int $currentSwitchId
+     * 
+     * @return array
+     */
+    protected function getSameUsers($login, $currentSwitchPort, $currentSwitchId) {
+        $result = array();
+        $currentSwitchId = ubRouting::filters($currentSwitchId, 'int');
+        $currentSwitchPort = ubRouting::filters($currentSwitchPort, 'int');
+        if (!empty($login) AND !empty($currentSwitchId) AND !empty($currentSwitchPort)) {
+            if (!empty($this->allAssigns)) {
+                foreach ($this->allAssigns as $io => $each) {
+                    if ($each['switchid'] == $currentSwitchId AND $each['port'] == $currentSwitchPort) {
+                        if ($each['login'] != $login) {
+                            $result[$each['login']] = $each;
+                        }
+                    }
+                }
+            }
+        }
+        return($result);
+    }
+
+    /**
+     * Deletes existing assign database record by user login
+     * 
+     * @param string $login
+     * 
+     * @return void
+     */
+    public function delete($login) {
+        $login = ubRouting::filters($login, 'mres');
+        $this->assignsDb->where('login', '=', $login);
+        $this->assignsDb->delete();
+        log_register('SWITCHPORT DELETE (' . $login . ')');
+        // Rebuild DHCP configuration if switch used on option82
+        if ($this->altCfg['OPT82_ENABLED']) {
+            $loginNetType = multinet_get_network_params_by_login($login);
+            if (!empty($loginNetType) and $loginNetType['nettype'] = 'dhcp82') {
+                multinet_rebuild_all_handlers();
+            }
+        }
+    }
+
+    /**
+     * Creates new or updates existing assign record
+     * 
+     * @param string $login
+     * @param int $switchId
+     * @param int $port
+     * 
+     * @return void/string on error
+     */
+    public function save($login, $switchId, $port) {
+        $result = '';
+        $newAssignLoging = ubRouting::filters($login, 'mres');
+        $newSwitchId = ubRouting::filters($switchId, 'int');
+        $newPort = ubRouting::filters($port, 'int');
+
+        if ($this->isPortFree($newSwitchId, $newPort)) {
+            $currenAssignData = $this->getAssignData($login);
+            //creating new assign
+            if (empty($currenAssignData)) {
+                $this->assignsDb->data('login', $login);
+                $this->assignsDb->data('switchid', $newSwitchId);
+                $this->assignsDb->data('port', $newPort);
+                $this->assignsDb->create();
+            } else {
+                //updating existing record
+                $this->assignsDb->where('login', '=', $login);
+                $this->assignsDb->data('switchid', $newSwitchId);
+                $this->assignsDb->data('port', $newPort);
+                $this->assignsDb->save();
+            }
+            log_register('SWITCHPORT CHANGE (' . $login . ') ON SWITCHID [' . $newSwitchId . '] PORT [' . $newPort . ']');
+
+            // Rebuild DHCP configs if switch used on option82
+            if ($this->altCfg['OPT82_ENABLED']) {
+                $loginNetType = multinet_get_network_params_by_login($login);
+                if (!empty($loginNetType) and $loginNetType['nettype'] = 'dhcp82') {
+                    multinet_rebuild_all_handlers();
+                }
+            }
+        } else {
+            log_register('SWITCHPORT FAIL (' . $login . ') ON SWITCHID [' . $newSwitchId . '] PORT [' . $newPort . ']');
+            $result .= __('Port already assigned for another user');
+        }
+
+        return($result);
+    }
+
+    /**
+     * Switchport modification controller
+     * 
+     * @param string $returnUrl
+     * 
+     * @return void
+     */
+    public function catchChangeRequest($returnUrl = '') {
+        //update
+        if (ubRouting::checkPost(array(self::PROUTE_LOGIN, self::PROUTE_SWITCH, self::PROUTE_PORT))) {
+            $updateResult = $this->save(ubRouting::post(self::PROUTE_LOGIN), ubRouting::post(self::PROUTE_SWITCH), ubRouting::post(self::PROUTE_PORT));
+            if (empty($updateResult)) {
+                if (!empty($returnUrl)) {
+                    ubRouting::nav($returnUrl);
+                }
+            } else {
+                show_error($updateResult);
+            }
+        }
+
+        //delete
+        if (ubRouting::post(self::PROUTE_DELETE)) {
+            $assignToDelete = ubRouting::post(self::PROUTE_LOGIN);
+            $this->delete($assignToDelete);
+            if (!empty($returnUrl)) {
+                ubRouting::nav($returnUrl);
+            }
+        }
+    }
+
+    /**
      * Returns users switch port assign form
      * 
      * @param string $login
@@ -174,18 +303,21 @@ class SwitchPortAssign {
         $switcharrFull = array();
         $switchswpoll = array();
         $switchgeo = array();
+        $sameArr = array();
         $sameUsers = '';
+        $currentSwitchPort = '';
+        $currentSwitchId = '';
         $assignData = $this->getAssignData($login);
 
         if (!empty($this->allSwitches)) {
             foreach ($this->allSwitches as $io => $eachswitch) {
+                $switcharrFull[$eachswitch['id']] = $eachswitch['ip'] . ' - ' . $eachswitch['location'];
                 if (mb_strlen($eachswitch['location']) > 32) {
                     $switcharr[$eachswitch['id']] = $eachswitch['ip'] . ' - ' . mb_substr($eachswitch['location'], 0, 32, 'utf-8') . '...';
                 } else {
                     $switcharr[$eachswitch['id']] = $eachswitch['ip'] . ' - ' . $eachswitch['location'];
                 }
-
-                $switcharrFull[$eachswitch['id']] = $eachswitch['ip'] . ' - ' . $eachswitch['location'];
+                
                 if (ispos($eachswitch['desc'], 'SWPOLL')) {
                     $switchswpoll[$eachswitch['id']] = $eachswitch['ip'];
                 }
@@ -199,41 +331,37 @@ class SwitchPortAssign {
         if (!empty($assignData)) {
             $currentSwitchPort = $assignData['port'];
             $currentSwitchId = $assignData['switchid'];
-        } else {
-            $currentSwitchPort = '';
-            $currentSwitchId = '';
+            $sameArr = $this->getSameUsers($login, $currentSwitchPort, $currentSwitchId);
         }
-//checks other users with same switch->port 
+
+
+        //rendering other users with same switch+port 
         if ((!empty($currentSwitchId)) AND (!empty($currentSwitchPort))) {
-            $queryCheck = "SELECT `login` from `switchportassign` WHERE `port`='" . vf($currentSwitchPort) . "' AND `switchid`='" . vf($currentSwitchId, 3) . "';";
-            $checkSame = simple_queryall($queryCheck);
-            if (!empty($checkSame)) {
-                foreach ($checkSame as $ix => $eachsame) {
-                    if ($eachsame['login'] != $login) {
-                        $sameUsers .= ' ' . wf_Link("?module=userprofile&username=" . $eachsame['login'], web_profile_icon() . ' ' . $eachsame['login'], false, '');
-                    }
+            if (!empty($sameArr)) {
+                foreach ($sameArr as $ip => $each) {
+                    $sameUsers .= ' ' . wf_Link(UserProfile::URL_PROFILE . $each['login'], web_profile_icon() . ' ' . $each['login'], false, '');
                 }
             }
         }
 
-//control form construct
+        //control form construct
         $formStyle = 'glamour';
-        $inputs = wf_HiddenInput('swassignlogin', $login);
+        $inputs = wf_HiddenInput(self::PROUTE_LOGIN, $login);
         if ($this->altCfg['SWITCHPORT_IN_PROFILE'] != 4) {
-            $inputs .= wf_Selector('swassignswid', $switcharr, __('Switch'), $currentSwitchId, true);
+            $inputs .= wf_Selector(self::PROUTE_SWITCH, $switcharr, __('Switch'), $currentSwitchId, true);
         } else {
-            $inputs .= wf_JuiComboBox('swassignswid', $switcharr, __('Switch'), $currentSwitchId, true);
+            $inputs .= wf_JuiComboBox(self::PROUTE_SWITCH, $switcharr, __('Switch'), $currentSwitchId, true);
             $formStyle = 'floatpanelswide';
         }
-        $inputs .= wf_TextInput('swassignswport', __('Port'), $currentSwitchPort, false, 2, 'digits');
-        $inputs .= wf_CheckInput('swassigndelete', __('Delete'), true, false);
+        $inputs .= wf_TextInput(self::PROUTE_PORT, __('Port'), $currentSwitchPort, false, 2, 'digits');
+        $inputs .= wf_CheckInput(self::PROUTE_DELETE, __('Delete'), true, false);
         $inputs .= wf_Submit('Save');
         $controlForm = wf_Form('', "POST", $inputs, $formStyle);
-//form end
+        //form end
 
         $switchAssignController = wf_modalAuto(web_edit_icon(), __('Switch port assign'), $controlForm);
 
-//switch location and polling controls
+        //switch location and polling controls
         $switchLocators = '';
 
         if (!empty($currentSwitchId)) {
@@ -262,43 +390,6 @@ class SwitchPortAssign {
         $rows .= wf_TableRow($cells, 'row3');
 
         $result = wf_TableBody($rows, '100%', '0');
-
-//update subroutine
-        if (ubRouting::checkPost(array('swassignlogin', 'swassignswid', 'swassignswport'))) {
-            $newswid = vf($_POST['swassignswid'], 3);
-            $newport = vf($_POST['swassignswport'], 3);
-            if ($this->isPortFree($newswid, $newport)) {
-                nr_query("DELETE from `switchportassign` WHERE `login`='" . $_POST['swassignlogin'] . "'");
-                nr_query("INSERT INTO `switchportassign` (`id` ,`login` ,`switchid` ,`port`) VALUES (NULL , '" . $_POST['swassignlogin'] . "', '" . $newswid . "', '" . $newport . "');");
-                log_register("SWITCHPORT CHANGE (" . $login . ") ON SWITCHID [" . $newswid . "] PORT [" . $newport . "]");
-                // Rebuild DHCP if switch used on option82
-                $opt82EnabledFlag = $this->altCfg['OPT82_ENABLED'];
-                if ($opt82EnabledFlag) {
-                    $loginNetType = multinet_get_network_params_by_login($login);
-                    if (!empty($loginNetType) and $loginNetType['nettype'] = 'dhcp82') {
-                        multinet_rebuild_all_handlers();
-                    }
-                }
-                ubRouting::nav(UserProfile::URL_PROFILE . $login);
-            } else {
-                log_register("SWITCHPORT FAIL (" . $login . ") ON SWITCHID [" . $newswid . "] PORT [" . $newport . "]");
-                show_error(__('Port already assigned for another user'));
-            }
-        }
-//delete subroutine
-        if (isset($_POST['swassigndelete'])) {
-            nr_query("DELETE from `switchportassign` WHERE `login`='" . $_POST['swassignlogin'] . "'");
-            log_register("SWITCHPORT DELETE (" . $login . ")");
-            // Rebuild DHCP if switch used on option82
-            $opt82EnabledFlag = $ubillingConfig->getAlterParam('OPT82_ENABLED');
-            if ($opt82EnabledFlag) {
-                $loginNetType = multinet_get_network_params_by_login($login);
-                if (!empty($loginNetType) and $loginNetType['nettype'] = 'dhcp82') {
-                    multinet_rebuild_all_handlers();
-                }
-            }
-            ubRouting::nav(UserProfile::URL_PROFILE . $login);
-        }
 
         return($result);
     }

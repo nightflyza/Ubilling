@@ -80,10 +80,8 @@ if (cfr('ANNIHILATION')) {
 
         //switch port bindings deletion
         if ($altCfg['SWITCHPORT_IN_PROFILE']) {
-            $switchPortAssignsDb = new NyanORM('switchportassign');
-            $switchPortAssignsDb->where('login', '=', $login);
-            $switchPortAssignsDb->delete();
-            log_register('SWITCHPORT FLUSH (' . $login . ')');
+            $switchPortAssigns = new SwitchPortAssign();
+            $switchPortAssigns->delete($login);
         }
 
         //flushing some QinQ bindings

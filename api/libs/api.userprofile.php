@@ -1067,6 +1067,7 @@ class UserProfile {
 //switchport section
         if ($this->alterCfg['SWITCHPORT_IN_PROFILE']) {
             $switchPortAssign = new SwitchPortAssign();
+            $switchPortAssign->catchChangeRequest(self::URL_PROFILE . $this->login);
             $result = $switchPortAssign->renderEditForm($this->login);
         } else {
             $result = '';
