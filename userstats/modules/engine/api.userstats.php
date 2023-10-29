@@ -315,7 +315,7 @@ function zbs_GetOnlineLeftCount($login, $userBalance, $userTariff, $rawDays = fa
  * @return float
  */
 function zbs_GetPowerTariffPrice($userTariff) {
-    $result = 0;
+    $result = -2;
     $powerTariffs = new NyanORM('pt_tariffs');
     $allPowerTariffs = $powerTariffs->getAll('tariff');
     if (isset($allPowerTariffs[$userTariff])) {
