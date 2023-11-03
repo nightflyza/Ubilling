@@ -117,7 +117,7 @@ class PaySysProto {
         if (file_exists($config_path)) {
             $this->config = parse_ini_file($config_path);
         } else {
-            die('Fatal error: config file ' . $config_path . ' not found!');
+            $this->replyError(500, 'Fatal error: config file ' . $config_path . ' not found!');
         }
     }
 
@@ -136,7 +136,7 @@ class PaySysProto {
             $this->ubapiKey                 = isset($this->config['UBAPI_KEY']) ? $this->config['UBAPI_KEY'] : '';
             $this->addressCityDisplay       = isset($this->config['CITY_DISPLAY_IN_ADDRESS']) ? $this->config['CITY_DISPLAY_IN_ADDRESS'] : false;
         } else {
-            die('Fatal: config is empty!');
+            $this->replyError(500, 'Fatal: config is empty!');
         }
     }
 
@@ -150,7 +150,7 @@ class PaySysProto {
             if (file_exists($agent_codes_path)) {
                 $this->agentcodesMapping = parse_ini_file($agent_codes_path);
             } else {
-                die('Fatal error: agentcodes_mapping.ini file ' . $agent_codes_path . ' not found!');
+                $this->replyError(500, 'Fatal error: agentcodes_mapping.ini file ' . $agent_codes_path . ' not found!');
             }
         }
     }
@@ -165,8 +165,7 @@ class PaySysProto {
     protected function getUBAgentData($userLogin) {
         $action = $this->ubapiURL . '?module=remoteapi&key=' . $this->ubapiKey . '&action=getagentdata&param=' . $userLogin;
         @$result = file_get_contents($action);
-file_put_contents('zxcv', 'RemoteAPI: ' . $action . "\n", 8);
-file_put_contents('zxcv', 'RemoteAPI result: ' . $result . "\n", 8);
+
         if (empty($result)) {
             $result = array();
         } else {
@@ -484,6 +483,17 @@ file_put_contents('zxcv', 'RemoteAPI result: ' . $result . "\n", 8);
     }
 
     /**
+     * Saves transaction data to a dedicated for a certain paysys DB table
+     *
+     * NEEDS TO BE OVERRIDDEN
+     *
+     * @return void
+     */
+    protected function saveTransactDataDB() {
+        //todo: place your transaction to DB saving code here
+    }
+
+    /**
      * Returns current UNIX timestamp in milliseconds (13 digits)
      *
      * @return int
@@ -529,17 +539,23 @@ file_put_contents('zxcv', 'RemoteAPI result: ' . $result . "\n", 8);
     /**
      * Intended to spit out erroneous replies
      *
+     * MIGHT TO BE OVERRIDDEN
+     *
      * @param $errorCode
      * @param $errorMsg
      *
      * @return false|string|void
      */
     protected function replyError($errorCode = '', $errorMsg = '') {
-        //todo: Place your error replying code here
+        //todo: override with your error replying code here, if needed
+        header('HTTP/1.1 ' . $errorCode  . ' ' . $errorMsg . '"', true, $errorCode);
+        die($errorCode . ' - ' . $errorMsg);
     }
 
     /**
      * Requests processing routine
+     *
+     * NEEDS TO BE OVERRIDDEN
      *
      * @return void
      */
@@ -550,6 +566,8 @@ file_put_contents('zxcv', 'RemoteAPI result: ' . $result . "\n", 8);
     /**
      * Listen to your heart when he's calling for you
      * Listen to your heart, there's nothing else you can do
+     *
+     * NEEDS TO BE OVERRIDDEN
      *
      * @return void
      */
