@@ -391,6 +391,13 @@ class MultiGen {
     protected $stardust = '';
 
     /**
+     * Mea culpa protected instance
+     * 
+     * @var object
+     */
+    protected $meaCulpa = '';
+
+    /**
      * Is mea culpa enabled flag?
      * 
      * @var bool
@@ -582,6 +589,7 @@ class MultiGen {
         $this->loadScenarios();
         $this->loadUserStates();
         $this->loadNetExtUsers();
+        $this->loadMeaCulpa();
     }
 
     /**
@@ -898,6 +906,17 @@ class MultiGen {
                     }
                 }
             }
+        }
+    }
+
+    /**
+     * Loads mea culpa instance for further usage
+     * 
+     * @return void
+     */
+    protected function loadMeaCulpa() {
+        if ($this->meaCulpaFlag) {
+            $this->meaCulpa = new MeaCulpa();
         }
     }
 
@@ -2071,7 +2090,6 @@ class MultiGen {
     /**
      * Returns array of all possible radius-preprocessed usernames
      * 
-     * 
      * @return array
      */
     public function getAllUserNames() {
@@ -2090,6 +2108,11 @@ class MultiGen {
                         $this->loadAllQinQ();
                     }
                 }
+            }
+
+            //preloading culpa instance
+            if ($this->meaCulpaFlag) {
+                $this->loadMeaCulpa();
             }
         }
         if (!empty($this->allUserData)) {
@@ -2135,6 +2158,9 @@ class MultiGen {
                 break;
             case 'qinqju':
                 $result = $this->getQinQUsername($userLogin, '-');
+                break;
+            case 'meaculpa':
+                $result = $this->meaCulpa->get($userLogin);
                 break;
         }
         return ($result);
@@ -3115,6 +3141,11 @@ class MultiGen {
                         }
                     }
                 }
+
+                //preloading culpa instance
+                if ($this->meaCulpaFlag) {
+                    $this->loadMeaCulpa();
+                }
             }
         } else {
             $allUserNames = $this->getAllUserNames();
@@ -3335,6 +3366,11 @@ class MultiGen {
                     $this->loadAllQinQ();
                 }
             }
+
+            //preloading culpa instance
+            if ($this->meaCulpaFlag) {
+                $this->loadMeaCulpa();
+            }
         }
 
 
@@ -3455,6 +3491,11 @@ class MultiGen {
                         $this->loadSwithchAssigns();
                         $this->loadAllQinQ();
                     }
+                }
+
+                //preloading culpa instance
+                if ($this->meaCulpaFlag) {
+                    $this->loadMeaCulpa();
                 }
             }
 

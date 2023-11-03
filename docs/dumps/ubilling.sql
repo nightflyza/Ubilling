@@ -3269,3 +3269,13 @@ CREATE TABLE IF NOT EXISTS `stealthtariffs` (
   `tariff` varchar(64) DEFAULT NULL,
    PRIMARY KEY (`id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
+
+
+CREATE TABLE IF NOT EXISTS `mlg_culpas` (
+  `id` INT(11) NOT NULL AUTO_INCREMENT,
+  `login` varchar(64) NOT NULL,
+  `culpa` varchar(255) DEFAULT NULL,
+   PRIMARY KEY (`id`),
+   KEY `login` (`login`),
+   KEY `culpa` (`culpa`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
