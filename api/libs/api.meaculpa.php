@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * Next Gen auth basic implementation
+ */
 class MeaCulpa {
 
     /**

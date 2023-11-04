@@ -497,6 +497,38 @@ class Stigma {
     }
 
     /**
+     * Returns text links and small images renderer controls
+     * 
+     * @param string $itemId
+     * @param int $size
+     * @param bool $readOnly
+     * @param array $currentStates
+     * @param string $containerName
+     * 
+     * @return string 
+     */
+    protected function rendererImagelink($itemId, $size = '', $readOnly = false, $currentStates, $containerName) {
+        $result = '';
+        foreach ($this->states as $stateId => $stateName) {
+            $stateLabel = __($stateName);
+            $controlClass = $this->baseClass;
+            if (isset($currentStates[$stateId])) {
+                $controlClass .= ' ' . $this->activeClass;
+            }
+            $stateIcon = $this->getStateIcon($stateId);
+
+            $controlUrl = $this->baseUrl . '&' . self::ROUTE_SCOPE . '=' . $this->scope . '&' . self::ROUTE_ITEMID . '=' . $itemId . '&' . self::ROUTE_STATE . '=' . $stateId;
+            if (!$readOnly) {
+                $controlLink = wf_AjaxLink($controlUrl, wf_img_sized($stateIcon, $stateLabel, 16) . ' ' . $stateLabel, $containerName, false, $controlClass);
+            } else {
+                $controlLink = wf_Link('#', wf_img_sized($stateIcon, $stateLabel, 16) . ' ' . $stateLabel, false, $controlClass);
+            }
+            $result .= $controlLink . ' ';
+        }
+        return($result);
+    }
+
+    /**
      * Renders stigma current state and editing interface for some item
      * 
      * @param string $itemId item ID to render control panel
