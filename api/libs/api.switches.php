@@ -1650,7 +1650,7 @@ function ub_SwitchSave($switchid) {
         $switchGroups = new SwitchGroups();
         $switchAlreadyInGroup = $switchGroups->getSwitchGroupBySwitchId($switchid);
 
-        if (empty($switchAlreadyInGroup) and !empty(ubRouting::post('editswgroup'))) {
+        if (empty($switchAlreadyInGroup) and ubRouting::post('editswgroup')) {
             $query = "INSERT INTO `switch_groups_relations` (`switch_id`, `sw_group_id`) VALUES (" . $switchid . ", " . ubRouting::post('editswgroup') . ")";
             nr_query($query);
         } elseif (ubRouting::post('editswgroup')) {
