@@ -3501,3 +3501,4 @@ $lang['def']['Already exists'] = 'Уже существует';
 $lang['def']['Lousy tariff'] = 'Непопулярный тариф';
 $lang['def']['All tariffs marked as lousy'] = 'Все тарифы уже помечены как непопулярные';
 $lang['def']['Order'] = 'Приказ';
+$lang['def']['Support project'] = 'Поддержать проект';
