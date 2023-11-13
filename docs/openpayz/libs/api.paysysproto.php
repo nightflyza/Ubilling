@@ -539,7 +539,7 @@ class PaySysProto {
     /**
      * Intended to spit out erroneous replies
      *
-     * MIGHT TO BE OVERRIDDEN
+     * MIGHT BE OVERRIDDEN
      *
      * @param $errorCode
      * @param $errorMsg
