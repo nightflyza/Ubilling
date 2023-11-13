@@ -166,7 +166,7 @@ function zb_TicketCreate($from, $to, $text, $replyto = 'NULL', $admin = '') {
             . "VALUES (NULL , '" . $date . "', " . $replyto . ", '0', '" . $from . "', '" . $to . "', '" . $text . "', '" . $admin . "');";
     nr_query($query);
 
-    $logreplyto = (empty($replyto)) ? '' : 'reply to [' . $replyto . ']';
+    $logreplyto = (empty($replyto)) ? '' : 'REPLY TO [' . $replyto . ']';
     log_register("TICKET CREATE (" . $to . ") " . $logreplyto);
 }
 
@@ -237,7 +237,6 @@ function web_TicketsShow() {
     $tablecells .= wf_TableCell(__('Actions'));
     $tablerows = wf_TableRow($tablecells, 'row1');
 
-
     if (!empty($alltickets)) {
         $allrealnames = zb_UserGetAllRealnames();
         $alladdress = zb_AddressGetFulladdresslist();
@@ -266,7 +265,6 @@ function web_TicketsShow() {
     }
     $result = wf_TableBody($tablerows, '100%', '0', 'sortable');
     $result .= $paginator;
-
 
     return ($result);
 }
@@ -463,7 +461,6 @@ function web_TicketReplyForm($ticketid) {
     $replyform .= wf_AjaxLink('?module=ticketing&showticket=' . $ticketid . '&ajevents=true', wf_img('skins/log_icon_small.png') . ' ' . __('Show ticket events'), 'ajticketevents', false, 'ubButton');
     $replyform .= wf_AjaxContainer('ajticketevents', '', '');
 
-
     return ($replyform);
 }
 
@@ -511,7 +508,6 @@ function web_TicketDialogue($ticketid) {
         $userCredit = $userData['Credit'];
         $userCash = $userData['Cash'];
         $userTariff = $userData['Tariff'];
-
 
         if ($ticketdata['status']) {
             $actionlink = wf_Link('?module=ticketing&openticket=' . $ticketdata['id'], wf_img('skins/icon_unlock.png') . ' ' . __('Open'), false, 'ubButton');
@@ -605,9 +601,6 @@ function web_TicketDialogue($ticketid) {
 
             $replypanel = $replyauthor . wf_tag('br') . $replyavatar . wf_tag('br') . $replyactions;
 
-
-
-
             $tablecells = wf_TableCell('', '20%');
             $tablecells .= wf_TableCell($eachreply['date']);
             $tablerows = wf_TableRow($tablecells, 'row2');
@@ -699,7 +692,7 @@ function getTicketEvents($TicketID, $ReturnHTML = false) {
     $tQuery = "SELECT * FROM `weblogs` WHERE `event` LIKE 'TICKET%[" . $TicketID . "]'  ORDER BY `date` DESC";
     $QResult = simple_queryall($tQuery);
 
-    if ($ReturnHTML and ! empty($QResult)) {
+    if ($ReturnHTML and !empty($QResult)) {
         $TableCells = wf_TableCell(__('ID'));
         $TableCells .= wf_TableCell(__('Date'));
         $TableCells .= wf_TableCell(__('Admin'));

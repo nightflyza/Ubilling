@@ -14,9 +14,9 @@ if ($us_config['TICKETING_ENABLED']) {
      */
     function zbs_spambotsTrap() {
         $result = la_tag('input', false, 'somemagic', 'type="text" name="surname"');
-        $result.= la_tag('input', false, '', 'type="text" name="lastname" style="display:none;"');
-        $result.= la_tag('input', false, 'somemagic', 'type="text" name="seenoevil"');
-        $result.= la_tag('input', false, 'somemagic', 'type="text" name="mobile"');
+        $result .= la_tag('input', false, '', 'type="text" name="lastname" style="display:none;"');
+        $result .= la_tag('input', false, 'somemagic', 'type="text" name="seenoevil"');
+        $result .= la_tag('input', false, 'somemagic', 'type="text" name="mobile"');
         return ($result);
     }
 
@@ -124,6 +124,14 @@ if ($us_config['TICKETING_ENABLED']) {
         $query = "INSERT INTO `ticketing` (`id` ,`date` ,`replyid` , `status` ,`from` ,`to` ,`text`)
     VALUES ( NULL ,'" . $date . "', " . $replyto . ", '0','" . $from . "', " . $to . ",'" . $text . "');";
         nr_query($query);
+
+        if ($replyto != 'NULL') {
+            $logEvent = 'TICKET CREATE (' . $from . ') REPLY TO [' . $replyto . ']';
+        } else {
+            $lastId = simple_get_lastid('ticketing');
+            $logEvent = 'TICKET CREATE (' . $from . ') NEW [' . $lastId . ']';
+        }
+        log_register($logEvent);
     }
 
     /**
@@ -133,8 +141,8 @@ if ($us_config['TICKETING_ENABLED']) {
      */
     function zbs_TicketCreateForm() {
         $inputs = zbs_spambotsTrap();
-        $inputs.= la_TextArea('newticket', '', '', true, '60x10');
-        $inputs.= la_Submit(__('Post'));
+        $inputs .= la_TextArea('newticket', '', '', true, '60x10');
+        $inputs .= la_Submit(__('Post'));
 
         $result = la_Form('', 'POST', $inputs, '');
         return ($result);
@@ -151,8 +159,8 @@ if ($us_config['TICKETING_ENABLED']) {
         $ticketdata = zbs_TicketGetData($ticketid);
         if ($ticketdata['status'] == 0) {
             $inputs = zbs_spambotsTrap();
-            $inputs.= la_TextArea('replyticket', '', '', true, '60x10');
-            $inputs.= la_Submit(__('Post'));
+            $inputs .= la_TextArea('replyticket', '', '', true, '60x10');
+            $inputs .= la_Submit(__('Post'));
             $result = la_Form('', 'POST', $inputs, '');
         } else {
             $result = __('Closed');
@@ -173,9 +181,9 @@ if ($us_config['TICKETING_ENABLED']) {
         $allmytickets = zbs_TicketsGetAllMy($user_login);
 
         $cells = la_TableCell(__('ID'));
-        $cells.= la_TableCell(__('Date'));
-        $cells.= la_TableCell(__('Status'));
-        $cells.= la_TableCell(__('Actions'));
+        $cells .= la_TableCell(__('Date'));
+        $cells .= la_TableCell(__('Status'));
+        $cells .= la_TableCell(__('Actions'));
         $rows = la_TableRow($cells, 'row1');
 
         if (!empty($allmytickets)) {
@@ -186,10 +194,10 @@ if ($us_config['TICKETING_ENABLED']) {
                     $ticketstatus = la_img($iconsPath . 'anunread.gif') . ' ' . __('Open');
                 }
                 $cells = la_TableCell($eachticket['id']);
-                $cells.= la_TableCell($eachticket['date']);
-                $cells.= la_TableCell($ticketstatus);
-                $cells.= la_TableCell(la_Link('?module=ticketing&showticket=' . $eachticket['id'], __('View')));
-                $rows.= la_TableRow($cells, 'row2');
+                $cells .= la_TableCell($eachticket['date']);
+                $cells .= la_TableCell($ticketstatus);
+                $cells .= la_TableCell(la_Link('?module=ticketing&showticket=' . $eachticket['id'], __('View')));
+                $rows .= la_TableRow($cells, 'row2');
             }
         }
         $result = la_TableBody($rows, '100%', 0);
@@ -210,16 +218,15 @@ if ($us_config['TICKETING_ENABLED']) {
         $ticketdata = zbs_TicketGetData($ticketid);
         $ticketreplies = zbs_TicketGetReplies($ticketid);
 
-
         if (!empty($ticketdata)) {
             $ticketAva = la_img($iconzPath . 'userava.png');
 
             $cells = la_TableCell(__('User'));
-            $cells.= la_TableCell($ticketdata['date']);
+            $cells .= la_TableCell($ticketdata['date']);
             $rows = la_TableRow($cells, 'row1');
             $cells = la_TableCell($ticketAva, '', '', 'valign="top"');
-            $cells.= la_TableCell(nl2br($ticketdata['text']));
-            $rows.= la_TableRow($cells, 'row2');
+            $cells .= la_TableCell(nl2br($ticketdata['text']));
+            $rows .= la_TableRow($cells, 'row2');
         }
         if (!empty($ticketreplies)) {
             foreach ($ticketreplies as $io => $eachreply) {
@@ -233,11 +240,11 @@ if ($us_config['TICKETING_ENABLED']) {
                 }
 
                 $cells = la_TableCell($ticketFrom);
-                $cells.= la_TableCell($eachreply['date']);
-                $rows.= la_TableRow($cells, 'row1');
+                $cells .= la_TableCell($eachreply['date']);
+                $rows .= la_TableRow($cells, 'row1');
                 $cells = la_TableCell($ticketAva, '', '', 'valign="top"');
-                $cells.= la_TableCell(nl2br($eachreply['text']));
-                $rows.= la_TableRow($cells, 'row3');
+                $cells .= la_TableCell(nl2br($eachreply['text']));
+                $rows .= la_TableRow($cells, 'row3');
             }
         }
 
@@ -256,15 +263,15 @@ if ($us_config['TICKETING_ENABLED']) {
         $allmymessages = zbs_MessagesGetAllMy($user_login);
 
         $cells = la_TableCell(__('Date'));
-        $cells.= la_TableCell(__('Message'));
+        $cells .= la_TableCell(__('Message'));
         $rows = la_TableRow($cells, 'row1');
 
         if (!empty($allmymessages)) {
             foreach ($allmymessages as $io => $eachmessage) {
 
                 $cells = la_TableCell($eachmessage['date']);
-                $cells.= la_TableCell($eachmessage['text']);
-                $rows.= la_TableRow($cells, 'row2');
+                $cells .= la_TableCell($eachmessage['text']);
+                $rows .= la_TableRow($cells, 'row2');
             }
         }
         $result = la_TableBody($rows, '100%', 0);
@@ -321,4 +328,4 @@ if ($us_config['TICKETING_ENABLED']) {
 } else {
     show_window(__('Sorry'), __('Unfortunately helpdesk is now disabled'));
 }
-?>
+
