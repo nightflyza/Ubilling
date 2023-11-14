@@ -367,7 +367,7 @@ class OnePunch {
         $alias = ubRouting::filters($alias, 'callback', 'vf');
         $result = '';
         if (isset($this->punchScripts[$alias])) {
-            $result .= $this->punchScripts[$alias]['content'];
+            $result .= htmlentities($this->punchScripts[$alias]['content'], ENT_COMPAT, "UTF-8");
         }
         return ($result);
     }
