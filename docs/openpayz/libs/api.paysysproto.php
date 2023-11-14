@@ -489,7 +489,7 @@ class PaySysProto {
      *
      * @return void
      */
-    protected function saveTransactDataDB() {
+    protected function saveTransactDataDB($tableName = '', $transactData = '') {
         //todo: place your transaction to DB saving code here
     }
 
