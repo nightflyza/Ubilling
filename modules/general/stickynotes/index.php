@@ -10,56 +10,56 @@ if (cfr('STICKYNOTES')) {
         show_window('', $stickyNotes->panel());
 
         //sticky notes management
-        if (!wf_CheckGet(array('revelations'))) {
+        if (!ubRouting::checkGet($stickyNotes::ROUTE_REVELATIONS)) {
             //custom return URLs?
             $backUrl = '';
-            if (ubRouting::get('backurl') == 'calendar') {
-                $backUrl .= '&calendarview=true';
+            if (ubRouting::get($stickyNotes::ROUTE_BACK) == 'calendar') {
+                $backUrl .= '&' . $stickyNotes::ROUTE_CALENDAR . '=true';
             }
 
             // new note creation
-            if (wf_CheckPost(array('newtext'))) {
+            if (ubRouting::checkPost($stickyNotes::PROUTE_NEW_NOTE)) {
                 $stickyNotes->addMyNote();
-                rcms_redirect($stickyNotes::URL_ME . $backUrl);
+                ubRouting::nav($stickyNotes::URL_ME . $backUrl);
             }
 
             //note deletion
-            if (wf_CheckGet(array('delete'))) {
-                $stickyNotes->deleteNote($_GET['delete']);
-                rcms_redirect($stickyNotes::URL_ME . $backUrl);
+            if (ubRouting::checkGet($stickyNotes::ROUTE_DEL_NOTE)) {
+                $stickyNotes->deleteNote(ubRouting::get($stickyNotes::ROUTE_DEL_NOTE));
+                ubRouting::nav($stickyNotes::URL_ME . $backUrl);
             }
 
             //note editing
-            if (wf_CheckPost(array('edittext', 'editnoteid'))) {
+            if (ubRouting::checkPost(array($stickyNotes::PROUTE_EDIT_NOTE_TEXT, $stickyNotes::PROUTE_EDIT_NOTE_ID))) {
                 $stickyNotes->saveMyNote();
-                rcms_redirect($stickyNotes::URL_ME . $backUrl);
+                ubRouting::nav($stickyNotes::URL_ME . $backUrl);
             }
 
-            if ((!wf_CheckGet(array('shownote'))) AND ( !wf_CheckGet(array('editform')))) {
+            if ((!ubRouting::checkGet($stickyNotes::ROUTE_SHOW_NOTE)) AND (!ubRouting::checkGet($stickyNotes::ROUTE_EDIT_FORM))) {
                 //grid or calendar view switch
-                if (!wf_CheckGet(array('calendarview'))) {
+                if (!ubRouting::checkGet($stickyNotes::ROUTE_CALENDAR)) {
                     show_window(__('Available personal notes'), $stickyNotes->renderListGrid());
                 } else {
                     show_window(__('Available personal notes'), $stickyNotes->renderListCalendar());
                 }
             } else {
                 //rendering full note content
-                if (wf_CheckGet(array('shownote'))) {
-                    $noteData = $stickyNotes->getNoteData($_GET['shownote']);
+                if (ubRouting::checkGet($stickyNotes::ROUTE_SHOW_NOTE)) {
+                    $noteData = $stickyNotes->getNoteData(ubRouting::get($stickyNotes::ROUTE_SHOW_NOTE));
                     $noteParams = '';
-                    if (!empty($noteData['reminddate'])) {
-                        $noteParams .= ' / ' . __('Remind time') . ': ' . $noteData['reminddate'];
+                    if (!empty($noteData[$stickyNotes::PROUTE_REMIND_DATE])) {
+                        $noteParams .= ' / ' . __('Remind time') . ': ' . $noteData[$stickyNotes::PROUTE_REMIND_DATE];
                     }
 
-                    if (!empty($noteData['remindtime'])) {
-                        $noteParams .= ' ' . $noteData['remindtime'];
+                    if (!empty($noteData[$stickyNotes::PROUTE_REMIND_TIME])) {
+                        $noteParams .= ' ' . $noteData[$stickyNotes::PROUTE_REMIND_TIME];
                     }
-                    show_window(__('Sticky note') . $noteParams, $stickyNotes->renderNote($_GET['shownote']));
+                    show_window(__('Sticky note') . $noteParams, $stickyNotes->renderNote(ubRouting::get($stickyNotes::ROUTE_SHOW_NOTE)));
                 }
 
                 //note editing interface
-                if (ubRouting::checkGet('editform')) {
-                    $editNoteId = ubRouting::get('editform', 'int');
+                if (ubRouting::checkGet($stickyNotes::ROUTE_EDIT_FORM)) {
+                    $editNoteId = ubRouting::get($stickyNotes::ROUTE_EDIT_FORM, 'int');
                     show_window(__('Edit'), $stickyNotes->editForm($editNoteId, true));
                     //some controls here
                     show_window('', wf_BackLink($stickyNotes::URL_ME) . ' ' . $stickyNotes->getEditFormDeleteControls($editNoteId));
@@ -69,26 +69,26 @@ if (cfr('STICKYNOTES')) {
             //revelations management
             if (cfr('REVELATIONS')) {
                 //new revelation creation
-                if (wf_CheckPost(array('newrevelationtext'))) {
+                if (ubRouting::checkPost($stickyNotes::PROUTE_NEW_REVELATION)) {
                     $stickyNotes->addMyRevelation();
-                    rcms_redirect($stickyNotes::URL_REVELATIONS);
+                    ubRouting::nav($stickyNotes::URL_REVELATIONS);
                 }
 
                 //revelation deletion
-                if (wf_CheckGet(array('deleterev'))) {
-                    $stickyNotes->deleteRevelation($_GET['deleterev']);
-                    rcms_redirect($stickyNotes::URL_REVELATIONS);
+                if (ubRouting::checkGet($stickyNotes::ROUTE_DEL_REV)) {
+                    $stickyNotes->deleteRevelation(ubRouting::get($stickyNotes::ROUTE_DEL_REV));
+                    ubRouting::nav($stickyNotes::URL_REVELATIONS);
                 }
 
                 //revelation editing
-                if (wf_CheckPost(array('editrevelationtext', 'editrevelationid'))) {
+                if (ubRouting::checkPost(array($stickyNotes::PROUTE_EDIT_REV_TEXT, $stickyNotes::PROUTE_EDIT_REV_ID))) {
                     $stickyNotes->saveMyRevelation();
-                    rcms_redirect($stickyNotes::URL_REVELATIONS);
+                    ubRouting::nav($stickyNotes::URL_REVELATIONS);
                 }
             }
 
-            if (wf_CheckGet(array('editrev'))) {
-                show_window(__('Edit'), $stickyNotes->revelationEditForm($_GET['editrev']));
+            if (ubRouting::checkGet(array('editrev'))) {
+                show_window(__('Edit'), $stickyNotes->revelationEditForm(ubRouting::get($stickyNotes::ROUTE_EDIT_REV_FORM)));
             } else {
                 //rendering existing list
                 show_window(__('Revelations'), $stickyNotes->renderRevelationsList());
