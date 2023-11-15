@@ -6353,3 +6353,18 @@ function web_GPSLocationFillInputControl($inputId) {
     $result .= wf_tag('button', false, '', 'type="button" onclick="getGeoPosition();"') . 'GPS ' . __('Location') . wf_tag('button', true);
     return($result);
 }
+
+/**
+ * Returns cutted unicode string if its required
+ * 
+ * @param string $string
+ * @param int $size
+ * 
+ * @return string
+ */
+function zb_cutString($string, $size) {
+    if ((mb_strlen($string, 'UTF-8') > $size)) {
+        $string = mb_substr($string, 0, $size, 'utf-8') . '...';
+    }
+    return ($string);
+}

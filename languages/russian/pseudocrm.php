@@ -49,3 +49,5 @@ $lang['def']['Assign lead'] = 'Присвоить лида';
 $lang['def']['Assign existing lead'] = 'Присвоить существующего лида';
 $lang['def']['Or create new lead based on this user data'] = 'Или создать нового на основании даных пользователя';
 $lang['def']['Re-negotiated contract, same terms'] = 'Перезаключили договор, те же условия';
+$lang['def']['New comment on lead'] = 'Новый коментарий для лида';
+$lang['def']['for activity'] = 'для записи';

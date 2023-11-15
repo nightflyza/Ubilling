@@ -56,6 +56,13 @@ class PseudoCRM {
     protected $allEmployee = array();
 
     /**
+     * Contains all employee Telegram chatId as id=>chatid
+     * 
+     * @var array
+     */
+    protected $allEmployeeChatIds = array();
+
+    /**
      * Contains all active employee data as id=>name
      * 
      * @var array
@@ -103,6 +110,13 @@ class PseudoCRM {
      * @var array
      */
     protected $allUserData = array();
+
+    /**
+     * Is senddog enabled flag?
+     * 
+     * @var bool
+     */
+    protected $sendDogEnabled = false;
 
     /**
      * Some other predefined stuff
@@ -204,6 +218,7 @@ class PseudoCRM {
     protected function loadAlter() {
         global $ubillingConfig;
         $this->altCfg = $ubillingConfig->getAlter();
+        $this->sendDogEnabled = $this->altCfg['SENDDOG_ENABLED'];
     }
 
     /**
@@ -295,6 +310,9 @@ class PseudoCRM {
                 }
                 if ($each['active']) {
                     $this->allActiveEmployee[$each['id']] = $each['name'];
+                }
+                if ($each['telegram']) {
+                    $this->allEmployeeChatIds[$each['id']] = $each['telegram'];
                 }
             }
         }
@@ -1012,6 +1030,9 @@ class PseudoCRM {
 
             //few additional comments here
             if ($this->altCfg['ADCOMMENTS_ENABLED']) {
+                //catching notification for lead assidned employee
+                $this->catchADcommentNotification($leadId, $activityData);
+                //rendering adcomments
                 $adComments = new ADcomments(self::ADCOMM_ACT_SCOPE);
                 $result .= wf_tag('strong', false) . __('Additional comments') . wf_tag('strong', true) . wf_delimiter(0);
                 $result .= $adComments->renderComments($activityId);
@@ -1020,6 +1041,43 @@ class PseudoCRM {
             $result .= $this->messages->getStyledMessage(__('Strange exception') . ': ' . __('Activity record') . ' [' . $activityId . '] ' . __('Not exists'), 'error');
         }
         return($result);
+    }
+
+    /**
+     * Catches and sends notification to telegram, on new additional comment creation to lead assigned employee
+     * 
+     * @param int $leadId
+     * @param array $activityData
+     * 
+     * @return void
+     */
+    protected function catchADcommentNotification($leadId = 0, $activityData = array()) {
+        if ($this->sendDogEnabled) {
+            //someone posting new additional comment
+            if (ubRouting::checkPost(ADcomments::PROUTE_NEW_TEXT)) {
+                $leadData = $this->getLeadData($leadId);
+                if ($leadData) {
+                    $leadEmployeeId = $leadData['employeeid'];
+                    if (isset($this->allEmployeeChatIds[$leadEmployeeId])) {
+                        $employeeChatId = $this->allEmployeeChatIds[$leadEmployeeId];
+                        if ($employeeChatId) {
+                            $telegram = new UbillingTelegram();
+                            $billingUrl = ($this->altCfg['FULL_BILLING_URL']) ? $this->altCfg['FULL_BILLING_URL'] : '';
+                            $message = __('New comment on lead') . ' ' . $this->getLeadLabel($leadId) . ' ';
+                            $message .= __('for activity') . ' #' . $activityData['id'] . ' ' . __('from') . ' ' . $activityData['date'] . '. ';
+                            $commentTextPreview = zb_cutString(ubRouting::post(ADcomments::PROUTE_NEW_TEXT), 40);
+                            $message .= __('Comment') . ': "' . $commentTextPreview . '". ';
+                            if ($billingUrl) {
+                                $activityUrl = $billingUrl . self::URL_ME . '&' . self::ROUTE_ACTIVITY_PROFILE . '=' . $activityData['id'];
+                                $message .= wf_Link($activityUrl, __('Show'));
+                            }
+                            $message .= 'parseMode:{html}';
+                            $telegram->sendMessage($employeeChatId, $message, false, 'PSEUDOCRM');
+                        }
+                    }
+                }
+            }
+        }
     }
 
     /**
