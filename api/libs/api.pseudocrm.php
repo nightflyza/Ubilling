@@ -353,7 +353,7 @@ class PseudoCRM {
      */
     public function renderLeadsList() {
         $result = '';
-        $columns = array('ID', 'Type', 'Full address', 'Real Name', 'Mobile', 'Notes', 'Actions');
+        $columns = array('ID', 'Type', 'Full address', 'Real Name', 'Mobile', 'Worker', 'Notes', 'Actions');
         $url = self::URL_ME . '&' . self::ROUTE_LEADS_LIST_AJ . '=true';
         $customStyling = wf_tag('style');
         $customStyling .= file_get_contents('skins/pseudocrm.css');
@@ -374,11 +374,13 @@ class PseudoCRM {
             foreach ($this->allLeads as $io => $each) {
                 $leadType = (empty($each['login'])) ? __('Potential') : __('Existing');
                 $leadProfileUrl = self::URL_ME . '&' . self::ROUTE_LEAD_PROFILE . '=' . $each['id'];
+                $employeeName = (isset($this->allEmployee[$each['employeeid']])) ? $this->allEmployee[$each['employeeid']] : '';
                 $data[] = $each['id'];
                 $data[] = $leadType;
                 $data[] = $each['address'];
                 $data[] = $each['realname'];
                 $data[] = $each['mobile'];
+                $data[] = $employeeName;
                 $data[] = $each['notes'];
                 $actLinks = wf_Link($leadProfileUrl, web_edit_icon());
                 $data[] = $actLinks;
