@@ -881,6 +881,14 @@ function zb_UserRegister($user_data, $goprofile = true) {
         log_register('CHANGE dstat (' . $login . ') ON ' . $dstat);
     }
 
+// new users registers as frozen by default
+    if (isset($billingconf['REGFROZEN'])) {
+        if ($billingconf['REGFROZEN']) {
+            $billing->setpassive($login, 1);
+            log_register('CHANGE Passive (' . $login . ') ON 1');
+        }
+    }
+
 //set contract same as login for this user
     if (isset($alterconf['CONTRACT_SAME_AS_LOGIN'])) {
         if ($alterconf['CONTRACT_SAME_AS_LOGIN']) {
