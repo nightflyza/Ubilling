@@ -2681,6 +2681,7 @@ class Warehouse {
                         $result .= $this->messages->getStyledMessage(__('This operation cannot be edited or deleted'), 'warning');
                         $result .= wf_delimiter();
                     }
+                    $result.= wf_delimiter(0);
                 }
             }
 
