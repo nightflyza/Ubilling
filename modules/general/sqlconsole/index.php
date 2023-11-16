@@ -80,7 +80,7 @@ if ($system->checkForRight('SQLCONSOLE')) {
 //is template run or clear area?
     if (wf_CheckGet(array('runscript'))) {
         if ($punchScriptsAvail) {
-            $runcode = $onePunch->getScriptContent($_GET['runscript']);
+            $runcode = htmlentities($onePunch->getScriptContent($_GET['runscript']), ENT_COMPAT, "UTF-8");
         } else {
             $runcode = '';
         }
@@ -195,7 +195,7 @@ if ($system->checkForRight('SQLCONSOLE')) {
             if (!empty($query_result)) {
                 $recCount = count($query_result);
 
-                if (!isset($_POST['tableresult']) and ! isset($_POST['truetableresult'])) {
+                if (!isset($_POST['tableresult']) and !isset($_POST['truetableresult'])) {
                     //raw array result
                     $vdump = var_export($query_result, true);
                 } elseif (isset($_POST['truetableresult'])) {
