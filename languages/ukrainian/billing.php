@@ -3505,6 +3505,12 @@ $lang['def']['You may select OpenPayz payment system name'] = 'Ви можете
 $lang['def']['Service token'] = 'Токен сервісу';
 $lang['def']['Service secret key'] = 'Секретний ключ сервісу';
 $lang['def']['Service password'] = 'Пароль сервісу';
+$lang['def']['right to edit incoming operations'] = 'Право редагувати прихідні операції складу';
+$lang['def']['right to view report by users with no port assigned'] = 'Право переглядати звіт користувачів без присвоєного порта';
+$lang['def']['This operation cannot be edited or deleted'] = 'Цю операцію більше не можна відредагувати чи видалити';
 $lang['def'][''] = '';
+$lang['def'][''] = '';
+
+
 
 

@@ -207,6 +207,7 @@ class Warehouse {
     const URL_REPORTS = 'reports=true';
     const URL_RESERVE = 'reserve=true';
     const ROUTE_DELOUT = 'outcomedelete';
+    const ROUTE_DELIN = 'incomedelete';
     const PROUTE_MASSRESERVEOUT = 'massoutreserves';
     const PROUTE_MASSAGREEOUT = 'massoutagreement';
     const PROUTE_DOMASSRESOUT = 'runmassoutreserve';
@@ -2663,6 +2664,25 @@ class Warehouse {
             $rows .= wf_TableRow($cells, 'row3');
 
             $result .= wf_TableBody($rows, '100%', 0, 'wh_viewer');
+            //optional income editing controls
+            if (cfr('WAREHOUSEINEDT')) {
+                if ($this->altCfg['WAREHOUSE_INEDT_ENABLED']) {
+                    if ($this->isIncomeEditable($id)) {
+                        //editing form
+                        $editForm = $this->incomingEditForm($id);
+                        $result .= wf_modalAuto(web_edit_icon() . ' ' . __('Edit'), __('Edit'), $editForm, 'ubButton');
+                        
+                        //deletion form
+                        $inDelUrl = self::URL_ME . '&' . self::URL_VIEWERS . '&showinid=' . $id . '&' . self::ROUTE_DELIN . '=' . $id;
+                        $inDelCancelUrl = self::URL_ME . '&' . self::URL_VIEWERS . '&showinid=' . $id;
+                        $inDelLabel = $this->messages->getDeleteAlert();
+                        $result .= wf_ConfirmDialog($inDelUrl, web_delete_icon() . ' ' . __('Delete'), $inDelLabel, 'ubButton', $inDelCancelUrl, __('Delete') . '?');
+                    } else {
+                        $result .= $this->messages->getStyledMessage(__('This operation cannot be edited or deleted'), 'warning');
+                        $result .= wf_delimiter();
+                    }
+                }
+            }
 
             if ($this->altCfg['PHOTOSTORAGE_ENABLED']) {
                 $photoStorage = new PhotoStorage(self::PHOTOSTORAGE_SCOPE, $operationData['itemtypeid']);
@@ -2685,10 +2705,151 @@ class Warehouse {
             $result .= wf_tag('h3') . __('Additional comments') . wf_tag('h3', true);
             $result .= $adcomments->renderComments($id);
         }
-
-
-
         return ($result);
+    }
+
+    /**
+     * Renders incoming operation editing form
+     * 
+     * @param int $id
+     * 
+     * @return string
+     */
+    protected function incomingEditForm($id) {
+        $result = '';
+        if (isset($this->allIncoming[$id])) {
+            $inData = $this->allIncoming[$id];
+            $inputs = '<!--ugly hack to prevent datepicker autoopen -->';
+            $inputs .= wf_tag('input', false, '', 'type="text" name="shittyhack" style="width: 0; height: 0; top: -100px; position: absolute;"');
+            $inputs .= wf_DatePickerPreset('newindate', curdate());
+            $inputs .= wf_tag('br');
+            $inputs .= wf_HiddenInput('editincomeid', $id);
+            $inputs .= wf_Selector('edincontractorid', $this->allContractors, __('Contractor'), $inData['contractorid'], false);
+            $inputs .= wf_tag('br');
+            $inputs .= wf_Selector('edinstorageid', $this->allStorages, __('Warehouse storage'), $inData['storageid'], false);
+            $inputs .= wf_tag('br');
+            $inputs .= wf_TextInput('edincount', __('Count'), $inData['count'], false, 5);
+            $inputs .= wf_tag('br');
+            $inputs .= wf_TextInput('edinprice', __('Price per unit'), $inData['price'], false, 5);
+            $inputs .= wf_tag('br');
+            $inputs .= wf_TextInput('edinbarcode', __('Barcode'), $inData['barcode'], false, 15);
+            $inputs .= wf_tag('br');
+            $inputs .= wf_TextInput('edinnotes', __('Notes'), $inData['notes'], false, 30);
+            $inputs .= wf_tag('br');
+            $inputs .= wf_Submit(__('Save'));
+            $result .= wf_Form('', 'POST', $inputs, 'glamour');
+        }
+        return($result);
+    }
+
+    /**
+     * Catches and performs incoming operation editing request
+     * 
+     * @return void/string
+     */
+    public function incomingSaveChanges() {
+        $result = '';
+        if (ubRouting::checkPost(array('editincomeid', 'newindate', 'edincontractorid', 'edinstorageid', 'edincount'))) {
+            $id = ubRouting::post('editincomeid', 'int');
+            if ($this->isIncomeEditable($id)) {
+                if ($this->altCfg['WAREHOUSE_INEDT_ENABLED']) {
+                    $inData = $this->allIncoming[$id];
+
+                    $newDate = ubRouting::post('newindate');
+                    $newContractor = ubRouting::post('edincontractorid', 'int');
+                    $newStorage = ubRouting::post('edinstorageid', 'int');
+                    $newCount = ubRouting::post('edincount');
+                    $newPrice = ubRouting::post('edinprice');
+                    $newBarcode = ubRouting::post('edinbarcode');
+                    $newNotes = ubRouting::post('edinnotes');
+
+                    if (zb_checkDate($newDate)) {
+                        $incomeDb = new NyanORM('wh_in');
+                        $incomeDb->data('date', $newDate);
+                        $incomeDb->data('contractorid', $newContractor);
+                        $incomeDb->data('storageid', $newStorage);
+                        $incomeDb->data('count', $newCount);
+                        $incomeDb->data('price', $newPrice);
+                        $incomeDb->data('barcode', $newBarcode);
+                        $incomeDb->data('notes', $newNotes);
+                        $incomeDb->where('id', '=', $id);
+                        $incomeDb->save();
+                        log_register('WAREHOUSE INCOME EDIT [' . $id . '] ITEM [' . $inData['itemtypeid'] . '] COUNT `' . $inData['count'] . '`=>`' . $newCount . '` PRICE `' . $inData['price'] . '`=>`' . $newPrice . '`');
+                    } else {
+                        $result .= __('Wrong date format');
+                    }
+                } else {
+                    $result .= __('Disabled');
+                }
+            } else {
+                $result .= __('This operation cannot be edited or deleted');
+            }
+        }
+        return($result);
+    }
+
+    /**
+     * Deletes existing incoming operation
+     * 
+     * @param int $id
+     * 
+     * @return void/string
+     */
+    public function incomingDelete($id) {
+        $result = '';
+        $id = ubRouting::filters($id, 'int');
+        if ($this->isIncomeEditable($id)) {
+            if (@$this->altCfg['WAREHOUSE_INEDT_ENABLED']) {
+                $incomeData = $this->allOutcoming[$id];
+                $itemtypeId = $incomeData['itemtypeid'];
+                $count = $incomeData['count'];
+                $price = $incomeData['price'];
+
+                $incomeDb = new NyanORM('wh_in');
+                $incomeDb->where('id', '=', $id);
+                $incomeDb->delete();
+
+                log_register('WAREHOUSE INCOME DELETE [' . $id . '] ITEM [' . $itemtypeId . '] COUNT `' . $count . '` PRICE `' . $price . '`');
+            } else {
+                $result .= __('Disabled');
+            }
+        } else {
+            $result .= __('This operation cannot be edited or deleted');
+        }
+        return($result);
+    }
+
+    /**
+     * Checks is incoming operation existing and editable?
+     * 
+     * @param int $id
+     * 
+     * @return bool
+     */
+    public function isIncomeEditable($id) {
+        $result = true;
+        if (isset($this->allIncoming[$id])) {
+            $operationData = $this->allIncoming[$id];
+            $date = $operationData['date'];
+            $storageId = $operationData['storageid'];
+            $itemtypeId = $operationData['itemtypeid'];
+            //checking outcomes
+            if (!empty($this->allOutcoming)) {
+                foreach ($this->allOutcoming as $io => $eachOut) {
+                    if (($eachOut['itemtypeid'] == $itemtypeId) AND ($eachOut['storageid'] == $storageId)) {
+                        if ($eachOut['date'] >= $date) {
+                            //this itemtype on this storage is already touched by outcoming operations
+                            $result = false;
+                            break;
+                        }
+                    }
+                }
+            }
+        } else {
+            //not exists
+            $result = false;
+        }
+        return($result);
     }
 
     /**
@@ -3714,7 +3875,7 @@ class Warehouse {
 
 
             if (!empty($result)) {
-                $winControl = wf_Link(self::URL_ME, wf_img('skins/shopping_cart_small.png',__('Necessary purchases')));
+                $winControl = wf_Link(self::URL_ME, wf_img('skins/shopping_cart_small.png', __('Necessary purchases')));
                 show_window(__('Stats') . ' ' . $winControl, $result);
                 zb_BillingStats(true);
             }

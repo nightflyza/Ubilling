@@ -261,9 +261,7 @@ if (cfr('WAREHOUSE')) {
                     }
                     $reserveControls .= wf_Link($warehouse::URL_ME . '&' . $warehouse::URL_RESERVE . '&mass=true', web_icon_create(__('Mass reservation')), false) . ' ';
 
-
-
-                    if (!ubRouting::checkGet('mass') AND ! ubRouting::checkGet('massoutemployee')) {
+                    if (!ubRouting::checkGet('mass') AND !ubRouting::checkGet('massoutemployee')) {
                         if (wf_CheckGet(array('reshistory'))) {
                             show_window(__('Reserve') . ': ' . __('History'), $warehouse->reserveRenderHistory());
                         } else {
@@ -302,9 +300,37 @@ if (cfr('WAREHOUSE')) {
             }
 
 //viewers
-            if (wf_CheckGet(array('viewers'))) {
-                if (wf_CheckGet(array('showinid'))) {
-                    show_window(__('Incoming operation') . ': ' . $_GET['showinid'], $warehouse->incomingView($_GET['showinid']));
+            if (ubRouting::checkGet('viewers')) {
+                if (ubRouting::checkGet('showinid')) {
+                    //editing subroutine
+                    if (ubRouting::checkPost('editincomeid')) {
+                        if (cfr('WAREHOUSEINEDT')) {
+                            $incEditResult = $warehouse->incomingSaveChanges();
+                            if (empty($incEditResult)) {
+                                ubRouting::nav($warehouse::URL_ME . '&' . $warehouse::URL_VIEWERS . '&showinid=' . ubRouting::post('editincomeid'));
+                            } else {
+                                show_error($incEditResult);
+                            }
+                        } else {
+                            show_error(__('Access denied'));
+                        }
+                    }
+
+                    //deletion subroutine
+                    if (ubRouting::checkGet($warehouse::ROUTE_DELIN)) {
+                        if (cfr('WAREHOUSEINEDT')) {
+                            $incDelResult = $warehouse->incomingDelete(ubRouting::get($warehouse::ROUTE_DELIN));
+                            if (empty($incDelResult)) {
+                                ubRouting::nav($warehouse::URL_ME . '&' . $warehouse::URL_VIEWERS . '&showinid=' . ubRouting::get($warehouse::ROUTE_DELIN));
+                            } else {
+                                show_error($incDelResult);
+                            }
+                        } else {
+                            show_error(__('Access denied'));
+                        }
+                    }
+                    //rendering income op itself
+                    show_window(__('Incoming operation') . ': ' . ubRouting::get('showinid'), $warehouse->incomingView(ubRouting::get('showinid')));
                     $avidity_m = $avidity['M']['FALL'];
                     $warehouse->$avidity_m($warehouse::URL_ME . '&' . $warehouse::URL_IN);
                 }
