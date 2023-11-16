@@ -2492,9 +2492,9 @@ class Warehouse {
                 $inputs .= wf_Link(self::URL_ME . '&' . self::URL_STORAGES, wf_img_sized('skins/whstorage_icon.png', '', '10', '10'), false);
             }
             $inputs .= wf_tag('br');
-            $inputs .= wf_TextInput('newincount', __('Count'), '', false, 5);
+            $inputs .= wf_TextInput('newincount', __('Count'), '', false, 5, 'float');
             $inputs .= wf_tag('br');
-            $inputs .= wf_TextInput('newinprice', __('Price per unit'), '', false, 5);
+            $inputs .= wf_TextInput('newinprice', __('Price per unit'), '', false, 5, 'finance');
             $inputs .= wf_tag('br');
             $inputs .= wf_TextInput('newinbarcode', __('Barcode'), '', false, 15);
             $inputs .= wf_tag('br');
@@ -2526,7 +2526,7 @@ class Warehouse {
         $dateF = mysql_real_escape_string($date);
         $itemtypeid = vf($itemtypeid, 3);
         $contractorid = vf($contractorid, 3);
-        $storageid = vf($storageid);
+        $storageid = vf($storageid, 3);
         $countF = str_replace(',', '.', $count);
         $countF = str_replace('-', '', $countF);
         $countF = mysql_real_escape_string($countF);
@@ -2671,7 +2671,7 @@ class Warehouse {
                         //editing form
                         $editForm = $this->incomingEditForm($id);
                         $result .= wf_modalAuto(web_edit_icon() . ' ' . __('Edit'), __('Edit'), $editForm, 'ubButton');
-                        
+
                         //deletion form
                         $inDelUrl = self::URL_ME . '&' . self::URL_VIEWERS . '&showinid=' . $id . '&' . self::ROUTE_DELIN . '=' . $id;
                         $inDelCancelUrl = self::URL_ME . '&' . self::URL_VIEWERS . '&showinid=' . $id;
@@ -2728,9 +2728,9 @@ class Warehouse {
             $inputs .= wf_tag('br');
             $inputs .= wf_Selector('edinstorageid', $this->allStorages, __('Warehouse storage'), $inData['storageid'], false);
             $inputs .= wf_tag('br');
-            $inputs .= wf_TextInput('edincount', __('Count'), $inData['count'], false, 5);
+            $inputs .= wf_TextInput('edincount', __('Count'), $inData['count'], false, 5, 'float');
             $inputs .= wf_tag('br');
-            $inputs .= wf_TextInput('edinprice', __('Price per unit'), $inData['price'], false, 5);
+            $inputs .= wf_TextInput('edinprice', __('Price per unit'), $inData['price'], false, 5, 'finance');
             $inputs .= wf_tag('br');
             $inputs .= wf_TextInput('edinbarcode', __('Barcode'), $inData['barcode'], false, 15);
             $inputs .= wf_tag('br');
@@ -2758,10 +2758,14 @@ class Warehouse {
                     $newDate = ubRouting::post('newindate');
                     $newContractor = ubRouting::post('edincontractorid', 'int');
                     $newStorage = ubRouting::post('edinstorageid', 'int');
-                    $newCount = ubRouting::post('edincount');
-                    $newPrice = ubRouting::post('edinprice');
-                    $newBarcode = ubRouting::post('edinbarcode');
-                    $newNotes = ubRouting::post('edinnotes');
+                    $newCount = ubRouting::post('edincount', 'mres');
+                    $newCount = str_replace(',', '.', $newCount);
+                    $newCount = str_replace('-', '', $newCount);
+                    $newPrice = ubRouting::post('edinprice', 'mres');
+                    $newPrice = str_replace(',', '.', $newPrice);
+                    $newPrice = str_replace('-', '', $newPrice);
+                    $newBarcode = ubRouting::post('edinbarcode', 'mres');
+                    $newNotes = ubRouting::post('edinnotes', 'mres');
 
                     if (zb_checkDate($newDate)) {
                         $incomeDb = new NyanORM('wh_in');
