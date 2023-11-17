@@ -2430,6 +2430,46 @@ function ts_CheckDailyDuplicates($taskData, $optionValue = 1) {
 }
 
 /**
+ * Returns array of employee with some assigned tag only as id=>name
+ * 
+ * @param array $allEmployeeData
+ * @param int $tagId
+ * 
+ * @return array
+ */
+function ts_EmployeeFilterTagId($allEmployeeData, $tagId) {
+    $result = array();
+    if (!empty($allEmployeeData)) {
+        foreach ($allEmployeeData as $io => $each) {
+            if ($each['tagid'] == $tagId) {
+                $result[$each['id']] = $each['name'];
+            }
+        }
+    }
+    return($result);
+}
+
+/**
+ * Returns array of employee with some appointment substring only as id=>name
+ * 
+ * @param array $allEmployeeData
+ * @param int $appointment
+ * 
+ * @return array
+ */
+function ts_EmployeeFilterAppointment($allEmployeeData, $appointment) {
+    $result = array();
+    if (!empty($allEmployeeData)) {
+        foreach ($allEmployeeData as $io => $each) {
+            if (ispos($each['appointment'], $appointment)) {
+                $result[$each['id']] = $each['name'];
+            }
+        }
+    }
+    return($result);
+}
+
+/**
  * Shows task editing/management form aka task profile
  * 
  * @global object $ubillingConfig
@@ -2440,7 +2480,7 @@ function ts_CheckDailyDuplicates($taskData, $optionValue = 1) {
 function ts_TaskChangeForm($taskid) {
     global $ubillingConfig;
 
-    $altercfg = $ubillingConfig->getAlter();
+    $altCfg = $ubillingConfig->getAlter();
     $taskid = vf($taskid, 3);
     $taskdata = ts_GetTaskData($taskid);
     $result = '';
@@ -2488,8 +2528,8 @@ function ts_TaskChangeForm($taskid) {
         }
 //warehouse mass-outcome helper
         if (cfr('WAREHOUSEOUTRESERVE') OR cfr('WAREHOUSEOUT')) {
-            if ($altercfg['WAREHOUSE_ENABLED']) {
-                if ($altercfg['TASKMAN_WAREHOUSE_HLPR']) {
+            if ($altCfg['WAREHOUSE_ENABLED']) {
+                if ($altCfg['TASKMAN_WAREHOUSE_HLPR']) {
                     if ($taskdata['status'] == 0) {
                         $massOutUrl = Warehouse::URL_ME . '&' . Warehouse::URL_RESERVE . '&massoutemployee=' . $taskdata['employee'] . '&taskidpreset=' . $taskid;
                         $modform .= wf_Link($massOutUrl, wf_img('skins/drain_icon.png', __('Mass outcome')), false, '', 'target="_BLANK"');
@@ -2522,7 +2562,7 @@ function ts_TaskChangeForm($taskid) {
             $smsData = wf_modal(wf_img('skins/icon_sms_micro.gif', __('SMS sent to employees')), __('SMS sent to employees'), $smsDataTable . $smsDataFlushControl, '', '400', '200');
         } else {
 //post sending form
-            if ($altercfg['SENDDOG_ENABLED']) {
+            if ($altCfg['SENDDOG_ENABLED']) {
                 $smsAddress = str_replace('\'', '`', $taskdata['address']);
                 $smsAddress = mysql_real_escape_string($smsAddress);
                 $smsPhone = mysql_real_escape_string($taskdata['phone']);
@@ -2568,7 +2608,7 @@ function ts_TaskChangeForm($taskid) {
 
 //here some build passport data
         $bpData = '';
-        if ($altercfg['BUILD_EXTENDED']) {
+        if ($altCfg['BUILD_EXTENDED']) {
             if (!empty($taskLogin)) {
                 if (cfr('BUILDPASSPORT')) {
                     $allUserBuilds = zb_AddressGetBuildUsers();
@@ -2622,7 +2662,7 @@ function ts_TaskChangeForm($taskid) {
                 $tablecells .= wf_TableCell(@$UserIpMAC[$taskLogin]['mac']);
                 $tablerows .= wf_TableRow($tablecells, 'row3');
 
-                if (@$altercfg['TASKMAN_SHOW_USERTAGS']) {
+                if (@$altCfg['TASKMAN_SHOW_USERTAGS']) {
                     $userTags = __('No');
                     $userTagsRaw = zb_UserGetAllTags($taskLogin);
                     if (!empty($userTagsRaw)) {
@@ -2634,7 +2674,7 @@ function ts_TaskChangeForm($taskid) {
                     $tablerows .= wf_TableRow($tablecells, 'row3');
                 }
 
-                if (@$altercfg['SWITCHPORT_IN_PROFILE']) {
+                if (@$altCfg['SWITCHPORT_IN_PROFILE']) {
                     $allAssigns = zb_SwitchesGetAssignsAll();
                     if (isset($allAssigns[$taskLogin])) {
                         $tablecells = wf_TableCell(__('Switch'));
@@ -2661,7 +2701,7 @@ function ts_TaskChangeForm($taskid) {
         $tablecells .= wf_TableCell(nl2br($taskdata['jobnote']));
         $tablerows .= wf_TableRow($tablecells, 'row3');
 
-        if (@$altercfg['TASKRANKS_ENABLED']) {
+        if (@$altCfg['TASKRANKS_ENABLED']) {
             $taskRanksReadOnly = (!cfr('TASKRANKS')) ? true : false;
 
             $taskFails = new Stigma('TASKFAILS', $taskid);
@@ -2714,12 +2754,12 @@ function ts_TaskChangeForm($taskid) {
         }
 
 //Task duplicates check
-        if (@$altercfg['TASKMAN_DUPLICATE_CHECK']) {
-            ts_CheckDailyDuplicates($taskdata, $altercfg['TASKMAN_DUPLICATE_CHECK']);
+        if (@$altCfg['TASKMAN_DUPLICATE_CHECK']) {
+            ts_CheckDailyDuplicates($taskdata, $altCfg['TASKMAN_DUPLICATE_CHECK']);
         }
 
 //Salary accounting
-        if ($altercfg['SALARY_ENABLED']) {
+        if ($altCfg['SALARY_ENABLED']) {
             if (cfr('SALARYTASKSVIEW')) {
                 $salary = new Salary($taskid);
                 show_window(__('Additional jobs done'), $salary->taskJobCreateForm($taskid));
@@ -2727,7 +2767,7 @@ function ts_TaskChangeForm($taskid) {
         }
 
 //warehouse integration
-        if ($altercfg['WAREHOUSE_ENABLED']) {
+        if ($altCfg['WAREHOUSE_ENABLED']) {
             if (cfr('WAREHOUSE') OR cfr('WAREVIEW')) {
                 $warehouse = new Warehouse($taskid);
                 show_window(__('Additionally spent materials'), $warehouse->taskMaterialsReport($taskid));
@@ -2736,6 +2776,28 @@ function ts_TaskChangeForm($taskid) {
 
 //if task undone
         if ($taskdata['status'] == 0) {
+            $empTagidFilter = @$altCfg['TASKMAN_EMPLOYEE_TAGID_FILTER'];
+            $empAppointFilter = @$altCfg['TASKMAN_EMPLOYEE_APPOINTMENT_FILTER'];
+            $empFilteredFlag = false;
+            if ($empTagidFilter) {
+                $allTagTypes = stg_get_alltagnames();
+            }
+
+            $doneEmployeeList = $activeemployee; //defaults
+            //tagid employee filter
+            if (ubRouting::checkGet('empfiltertagid')) {
+                $allEmployeeData = ts_GetAllEmployeeData();
+                $doneEmployeeList = ts_EmployeeFilterTagId($allEmployeeData, ubRouting::get('empfiltertagid'));
+                $empFilteredFlag = true;
+            }
+
+            //appointment employee filter
+            if (ubRouting::checkGet('empfilterappointment')) {
+                $allEmployeeData = ts_GetAllEmployeeData();
+                $doneEmployeeList = ts_EmployeeFilterAppointment($allEmployeeData, ubRouting::get('empfilterappointment'));
+                $empFilteredFlag = true;
+            }
+
             $sup = wf_tag('sup') . '*' . wf_tag('sup', false);
             $inputs = wf_HiddenInput('changetask', $taskid);
             $inputs .= wf_HiddenInput('change_admin', whoami());
@@ -2746,10 +2808,32 @@ function ts_TaskChangeForm($taskid) {
                 $inputs .= wf_DatePicker('editenddate') . wf_tag('label', false) . __('Finish date') . $sup . wf_tag('label', true) . wf_tag('br');
             }
             $inputs .= wf_tag('br');
-            $inputs .= wf_Selector('editemployeedone', $activeemployee, __('Worker done'), $taskdata['employee'], true);
+            //employee custom selector here
+            if (@$altCfg['TASKMAN_EMPDONESEL_SEARCHBL']) {
+                $inputs .= wf_SelectorSearchable('editemployeedone', $doneEmployeeList, __('Worker done'), $taskdata['employee'], true);
+            } else {
+                $inputs .= wf_Selector('editemployeedone', $doneEmployeeList, __('Worker done'), $taskdata['employee'], true);
+            }
+            //custom employee filters enabled?
+            if ($empTagidFilter OR $empAppointFilter) {
+                $inputs .= wf_tag('br');
+                if ($empFilteredFlag) {
+                    $empNoFlUrl = '?module=taskman&edittask=' . $taskid;
+                    $inputs .= wf_Link($empNoFlUrl, wf_img('skins/icon_cleanup.png') . ' ' . __('Any'), false, 'ubButton');
+                }
+                if ($empTagidFilter) {
+                    $empTagIdFlUrl = '?module=taskman&edittask=' . $taskid . '&empfiltertagid=' . $empTagidFilter;
+                    $inputs .= wf_Link($empTagIdFlUrl, wf_img('skins/tagiconsmall.png') . ' ' . @$allTagTypes[$empTagidFilter], false, 'ubButton');
+                }
+                if ($empAppointFilter) {
+                    $empAppFlUrl = '?module=taskman&edittask=' . $taskid . '&empfilterappointment=' . $empAppointFilter;
+                    $inputs .= wf_Link($empAppFlUrl, wf_img('skins/shovel.png') . ' ' . $empAppointFilter, false, 'ubButton');
+                }
+                $inputs .= wf_tag('br');
+            }
             $inputs .= wf_tag('br');
             $inputs .= wf_tag('label', false) . __('Finish note') . wf_tag('label', true) . wf_tag('br');
-            $inputs .= wf_TextArea('editdonenote', '', '', true, '35x3');
+            $inputs .= wf_TextArea('editdonenote', '', '', true, '55x4');
             $inputs .= wf_tag('br');
             $inputs .= $jobgencheckbox;
             $inputs .= wf_Submit(__('This task is done'));
