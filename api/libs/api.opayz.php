@@ -179,7 +179,7 @@ class OpenPayz {
     /**
      * Creates new OpenPayz instance
      * 
-     * @param bool $loadPaysys
+     * @param bool $loadPaySys
      * @param bool $loadCustomers
      * 
      * @return void

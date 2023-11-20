@@ -427,7 +427,7 @@ class UbillingVisor {
     protected function loadPaymentIds() {
         if ($this->altCfg['OPENPAYZ_SUPPORT']) {
             if ($this->altCfg['OPENPAYZ_REALID']) {
-                $openPayz = new OpenPayz();
+                $openPayz = new OpenPayz(false, true);
                 $this->allPaymentIDs = $openPayz->getCustomersPaymentIds();
             } else {
                 if (!empty($this->allUserData)) {
