@@ -840,7 +840,7 @@ class Envy {
     public function previewScriptsResult($data) {
         $result = '';
         if (!empty($data)) {
-            $inputs = wf_tag('textarea', false, 'fileeditorarea', 'name="envypreview" cols="145" rows="30"');
+            $inputs = wf_tag('textarea', false, 'fileeditorarea', 'name="envypreview" cols="145" rows="30" spellcheck="false"');
             $inputs .= $data;
             $inputs .= wf_tag('textarea', true);
             $result .= wf_Form('', 'POST', $inputs, 'glamour');
