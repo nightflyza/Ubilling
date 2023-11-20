@@ -312,16 +312,25 @@ class OpenPayz {
      * Loads available openpayz transactions into private data property
      * 
      * @param int $year
+     * @param int $transactionId
      * 
      * @return void
      */
-    protected function loadTransactions($year = '') {
+    protected function loadTransactions($year = '', $transactionId = 0) {
         $year = ubRouting::filters($year, 'int');
+        $transactionId = ubRouting::filters($transactionId, 'int');
         if (!empty($year) AND $year != '1488') {
             $this->transactionsDb->where('date', 'LIKE', $year . '-%');
         }
 
-        $this->transactionsDb->orderBy('id', 'ASC');
+        if ($transactionId) {
+            //only one transaction
+            $this->transactionsDb->where('id', '=', $transactionId);
+        } else {
+            //or natural ordering?
+            $this->transactionsDb->orderBy('id', 'ASC');
+        }
+
         $this->allTransactions = $this->transactionsDb->getAll('id');
     }
 
@@ -882,8 +891,9 @@ class OpenPayz {
      * @return void
      */
     public function renderTransactionDetails($transactionId) {
-        $this->loadTransactions();
-        $transactionId = vf($transactionId, 3);
+        $transactionId = ubRouting::filters($transactionId, 'int');
+        $this->loadTransactions('', $transactionId);
+
         $result = '';
         $result .= wf_BackLink('?module=openpayz', '', true);
         if (isset($this->allTransactions[$transactionId])) {
