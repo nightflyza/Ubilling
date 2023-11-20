@@ -614,5 +614,4 @@ class BtrxCRM {
             $this->cache->set(self::CACHE_KEY, $this->cachedUsers, $this->cacheTimeout);
         }
     }
-
 }

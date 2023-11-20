@@ -5,7 +5,11 @@ if (cfr('OPENPAYZ')) {
 //check is openpayz enabled?
     if ($altCfg['OPENPAYZ_SUPPORT']) {
 
-        $opayz = new OpenPayz();
+        $paySysLoadFlag = false;
+        if (ubRouting::checkGet('transactionsearch') OR ubRouting::checkPost('searchpaysys')) {
+            $paySysLoadFlag = true;
+        }
+        $opayz = new OpenPayz($paySysLoadFlag);
 
         //if manual processing transaction
         if ($altCfg['OPENPAYZ_MANUAL']) {
@@ -41,14 +45,16 @@ if (cfr('OPENPAYZ')) {
             }
 
 
-
-            if (ubRouting::checkPost(array('searchyear', 'searchmonth', 'searchpaysys'))) {
+            //search some transactions here
+            if (ubRouting::checkGet('transactionsearch')) {
+               
                 show_window(__('Search'), $opayz->renderSearchForm());
-                show_window('', wf_BackLink('?module=openpayz', '', true));
-                $opayz->doSearch(ubRouting::post('searchyear'), ubRouting::post('searchmonth'), ubRouting::post('searchpaysys'));
+                //perform search
+                if (ubRouting::checkPost(array('searchyear', 'searchmonth', 'searchpaysys'))) {
+                    $opayz->doSearch(ubRouting::post('searchyear'), ubRouting::post('searchmonth'), ubRouting::post('searchpaysys'));
+                }
             } else {
                 if (!ubRouting::checkGet('showtransaction')) {
-                    show_window(__('Search'), $opayz->renderSearchForm());
                     //show transactions list
                     $opayz->renderTransactionList();
                 } else {

@@ -160,6 +160,20 @@ class OpenPayz {
     protected $fundsFlow = '';
 
     /**
+     * System caching object placeholder
+     * 
+     * @var object
+     */
+    protected $cache = '';
+
+    /**
+     * Default cached data timeout. May be configurable in future?
+     * 
+     * @var int
+     */
+    protected $cacheTimeout = 86400;
+
+    /**
      * Transactions list ajax callback URL
      */
     const URL_AJAX_SOURCE = '?module=openpayz&ajax=true';
@@ -170,11 +184,18 @@ class OpenPayz {
     const URL_CHARTS = '?module=openpayz&graphs=true';
 
     /**
+     * Default module URL
+     */
+    const URL_ME = '?module=openpayz';
+
+    /**
      * Some other predefined stuff
      */
     const TABLE_CUSTOMERS = 'op_customers';
     const TABLE_TRANSACTIONS = 'op_transactions';
     const TABLE_STATIC = 'op_static';
+    const KEY_PSYS = 'OPPAYSYS';
+    const KEY_CHARTS = 'OPCHARTS_';
 
     /**
      * Creates new OpenPayz instance
@@ -184,7 +205,7 @@ class OpenPayz {
      * 
      * @return void
      */
-    public function __construct($loadPaySys = true, $loadCustomers = false) {
+    public function __construct($loadPaySys = false, $loadCustomers = false) {
         global $ubillingConfig;
         $this->ubConfig = $ubillingConfig;
 
@@ -192,6 +213,7 @@ class OpenPayz {
         $this->loadOptions();
         $this->initMessages();
         $this->initDbLayers();
+        $this->initCache();
 
         //preloading some optional data
         if ($loadPaySys) {
@@ -243,6 +265,15 @@ class OpenPayz {
         $this->customersDb = new NyanORM(self::TABLE_CUSTOMERS);
         $this->transactionsDb = new NyanORM(self::TABLE_TRANSACTIONS);
         $this->staticDb = new NyanORM(self::TABLE_STATIC);
+    }
+
+    /**
+     * Inits Ubilling caching engine for further usage
+     * 
+     * @return void
+     */
+    protected function initCache() {
+        $this->cache = new UbillingCache();
     }
 
     /**
@@ -328,11 +359,17 @@ class OpenPayz {
      * @return void
      */
     protected function loadPaySys() {
-        $all = $this->transactionsDb->getAll('', true, 'paysys');
-        if (!empty($all)) {
-            foreach ($all as $io => $each) {
-                $this->allPaySys[$each['paysys']] = $each['paysys'];
+        $paySysCached = $this->cache->get(self::KEY_PSYS, $this->cacheTimeout);
+        if (empty($paySysCached)) {
+            $all = $this->transactionsDb->getAll('', true, 'paysys');
+            if (!empty($all)) {
+                foreach ($all as $io => $each) {
+                    $this->allPaySys[$each['paysys']] = $each['paysys'];
+                }
             }
+            $this->cache->set(self::KEY_PSYS, $this->allPaySys, $this->cacheTimeout);
+        } else {
+            $this->allPaySys = $paySysCached;
         }
     }
 
@@ -419,6 +456,7 @@ class OpenPayz {
      * @return string
      */
     public function renderSearchForm() {
+        $result = '';
         $curYear = (ubRouting::checkPost('searchyear')) ? ubRouting::post('searchyear', 'int') : date("Y");
         $curMonth = (ubRouting::checkPost('searchmonth')) ? ubRouting::post('searchmonth', 'int') : date("m");
         $curPaysys = (ubRouting::checkPost('searchpaysys')) ? ubRouting::post('searchpaysys', 'mres') : '';
@@ -433,7 +471,10 @@ class OpenPayz {
         $inputs .= wf_MonthSelector('searchmonth', __('Month'), $curMonth, false) . ' ';
         $inputs .= wf_Selector('searchpaysys', $paySysSelector, __('Payment system'), $curPaysys, false) . ' ';
         $inputs .= wf_Submit(__('Search'));
-        $result = wf_Form("", 'POST', $inputs, 'glamour');
+
+        $result .= wf_BackLink(self::URL_ME);
+        $result .= wf_delimiter();
+        $result .= wf_Form("", 'POST', $inputs, 'glamour');
         return ($result);
     }
 
@@ -578,8 +619,6 @@ class OpenPayz {
     public function renderGraphs() {
         $showYear = ubRouting::checkPost('chartsyear') ? ubRouting::post('chartsyear', 'int') : curyear();
 
-        $cache = new UbillingCache();
-        $cacheTimeout = 86400;
         $curMonth = curmonth();
         $curDay = curdate();
         $curYear = curyear();
@@ -608,16 +647,16 @@ class OpenPayz {
 
         $result = wf_BackLink('?module=openpayz', '', true);
         //cahche data extraction
-        $chacheKeyName = 'OPCHARTS_' . $showYear;
-        $cahcheDataRaw = $cache->get($chacheKeyName, $cacheTimeout);
+        $cacheKeyName = self::KEY_CHARTS . $showYear;
+        $cacheDataRaw = $this->cache->get($cacheKeyName, $this->cacheTimeout);
         //something in cache
-        if (!empty($cahcheDataRaw)) {
-            $psysdata = $cahcheDataRaw['psysdata'];
-            $gcYearData = $cahcheDataRaw['gcYearData'];
-            $gcMonthData = $cahcheDataRaw['gcMonthData'];
-            $gcDayData = $cahcheDataRaw['gcDayData'];
+        if (!empty($cacheDataRaw)) {
+            $psysdata = $cacheDataRaw['psysdata'];
+            $gcYearData = $cacheDataRaw['gcYearData'];
+            $gcMonthData = $cacheDataRaw['gcMonthData'];
+            $gcDayData = $cacheDataRaw['gcDayData'];
         } else {
-            $cahcheDataRaw = array();
+            $cacheDataRaw = array();
             //real data loading
             $this->loadTransactions($showYear);
             if (!empty($this->allTransactions)) {
@@ -664,11 +703,11 @@ class OpenPayz {
             }
 
             //store in cache
-            $cahcheDataRaw['psysdata'] = $psysdata;
-            $cahcheDataRaw['gcYearData'] = $gcYearData;
-            $cahcheDataRaw['gcMonthData'] = $gcMonthData;
-            $cahcheDataRaw['gcDayData'] = $gcDayData;
-            $cache->set($chacheKeyName, $cahcheDataRaw, $cacheTimeout);
+            $cacheDataRaw['psysdata'] = $psysdata;
+            $cacheDataRaw['gcYearData'] = $gcYearData;
+            $cacheDataRaw['gcMonthData'] = $gcMonthData;
+            $cacheDataRaw['gcDayData'] = $gcDayData;
+            $this->cache->set($cacheKeyName, $cacheDataRaw, $this->cacheTimeout);
         }
 
         $chartOpts = "chartArea: {  width: '90%', height: '90%' }, legend : {position: 'right'}, ";
@@ -830,8 +869,9 @@ class OpenPayz {
     public function renderTransactionList() {
         $opts = '"order": [[ 0, "desc" ]]';
         $columns = array('ID', 'Date', 'Cash', 'Payment ID', 'Real Name', 'Full address', 'Payment system', 'Processed');
-        $graphsUrl = wf_Link(self::URL_CHARTS, wf_img('skins/icon_stats.gif', __('Graphs')), false, '');
-        show_window(__('OpenPayz transactions') . ' ' . $graphsUrl, wf_JqDtLoader($columns, self::URL_AJAX_SOURCE, false, 'payments', 100, $opts));
+        $graphsUrl = wf_Link(self::URL_CHARTS, wf_img('skins/icon_stats.gif', __('Graphs')), false, '') . ' ';
+        $searchUrl = wf_Link(self::URL_ME . '&transactionsearch=true', web_icon_search(), false, '');
+        show_window(__('OpenPayz transactions') . ' ' . $graphsUrl . $searchUrl, wf_JqDtLoader($columns, self::URL_AJAX_SOURCE, false, 'payments', 100, $opts));
     }
 
     /**
