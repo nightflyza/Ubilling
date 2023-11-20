@@ -554,7 +554,7 @@ class OpenPayz {
         if (!empty($csvdata)) {
             $exportFilename = 'exports/opsearch_' . $paysys . '_' . $year . '-' . $month . '.csv';
             file_put_contents($exportFilename, $csvdata);
-            $exportLink = wf_Link('?module=openpayz&dload=' . base64_encode($exportFilename), wf_img('skins/excel.gif', __('Export')), false, '');
+            $exportLink = wf_Link(self::URL_ME . '&dload=' . base64_encode($exportFilename), wf_img('skins/excel.gif', __('Export')), false, '');
         } else {
             $exportLink = '';
         }
@@ -654,7 +654,7 @@ class OpenPayz {
                         trigger: 'none'
                     },";
 
-        $result = wf_BackLink('?module=openpayz', '', true);
+        $result = wf_BackLink(self::URL_ME, '', true);
         //cahche data extraction
         $cacheKeyName = self::KEY_CHARTS . $showYear;
         $cacheDataRaw = $this->cache->get($cacheKeyName, $this->cacheTimeout);
@@ -836,7 +836,7 @@ class OpenPayz {
 
                 if ($manual_mode) {
                     if ($eachtransaction['processed'] == 0) {
-                        $control .= ' ' . wf_Link('?module=openpayz&process=' . $eachtransaction['id'], web_add_icon('Payment'));
+                        $control .= ' ' . wf_Link(self::URL_ME . '&process=' . $eachtransaction['id'], web_add_icon('Payment'));
                     }
                 }
 
@@ -851,7 +851,7 @@ class OpenPayz {
                 }
 
                 $stateIcon = web_bool_led($eachtransaction['processed']);
-                $detailsControl = ' ' . wf_Link('?module=openpayz&showtransaction=' . $eachtransaction['id'], $eachtransaction['id']);
+                $detailsControl = ' ' . wf_Link(self::URL_ME . '&showtransaction=' . $eachtransaction['id'], $eachtransaction['id']);
                 $data[] = $detailsControl;
                 $data[] = $eachtransaction['date'];
                 $data[] = $eachtransaction['summ'];
@@ -895,7 +895,7 @@ class OpenPayz {
         $this->loadTransactions('', $transactionId);
 
         $result = '';
-        $result .= wf_BackLink('?module=openpayz', '', true);
+        $result .= wf_BackLink(self::URL_ME, '', true);
         if (isset($this->allTransactions[$transactionId])) {
             $result .= wf_tag('pre', false, 'floatpanelswide', '') . print_r($this->allTransactions[$transactionId], true) . wf_tag('pre', true);
             $result .= wf_CleanDiv();
