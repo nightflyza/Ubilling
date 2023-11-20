@@ -23,7 +23,7 @@ if (cfr('OPENPAYZ')) {
                     if ($transaction_data['processed'] != 1) {
                         $opayz->cashAdd($allcustomers[$customerid], $transaction_summ, $transaction_paysys);
                         $opayz->transactionSetProcessed($transaction_data['id']);
-                        ubRouting::nav('?module=openpayz');
+                        ubRouting::nav($opayz::URL_ME);
                     } else {
                         show_error(__('Already processed'));
                     }
@@ -47,7 +47,7 @@ if (cfr('OPENPAYZ')) {
 
             //search some transactions here
             if (ubRouting::checkGet('transactionsearch')) {
-               
+
                 show_window(__('Search'), $opayz->renderSearchForm());
                 //perform search
                 if (ubRouting::checkPost(array('searchyear', 'searchmonth', 'searchpaysys'))) {
@@ -71,4 +71,4 @@ if (cfr('OPENPAYZ')) {
 } else {
     show_error(__('You cant control this module'));
 }
-?>
+
