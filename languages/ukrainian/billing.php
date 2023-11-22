@@ -3510,7 +3510,7 @@ $lang['def']['right to view report by users with no port assigned'] = 'Прав�
 $lang['def']['This operation cannot be edited or deleted'] = 'Цю операцію більше не можна відредагувати чи видалити';
 $lang['def']['You have'] = 'У вас є';
 $lang['def']['notes or reminders for today'] = 'персональних нотаток чи нагадувань на сьогодні';
-$lang['def'][''] = '';
+$lang['def']['undone tasks for today'] = 'невиконаних задач на сьогодні';
 $lang['def'][''] = '';
 
 

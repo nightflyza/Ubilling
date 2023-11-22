@@ -1,23 +1,23 @@
 <?php
 
 /**
- * Sticky Notes daily notification implementation
+ * Taskman daily tasks notification
  */
-class StickyNotify {
+class TaskmanNotify {
 
     /**
-     * Contains all existing notes data as id=>noteData
+     * Contains all existing tasks data as id=>taskData
      * 
      * @var array
      */
-    protected $allNotesData = array();
+    protected $allTasksData = array();
 
     /**
-     * SitckyNotes database abstraction layer placeholder
+     * Taskman database abstraction layer placeholder
      * 
      * @var object
      */
-    protected $notesDb = '';
+    protected $tasksDb = '';
 
     /**
      * Telegram abstraction layer placeholder
@@ -55,19 +55,19 @@ class StickyNotify {
     protected $allActiveEmployee = array();
 
     public function __construct() {
-        $this->initNotesDb();
+        $this->initTasksDb();
         $this->initTelegram();
         $this->loadEmployeeData();
-        $this->loadNotesData();
+        $this->loadTasksData();
     }
 
     /**
-     * Inits notes database abstraction layer
+     * Inits taskman database abstraction layer
      * 
      * @return void
      */
-    protected function initNotesDb() {
-        $this->notesDb = new NyanORM('stickynotes');
+    protected function initTasksDb() {
+        $this->tasksDb = new NyanORM('taskman');
     }
 
     /**
@@ -103,35 +103,31 @@ class StickyNotify {
     }
 
     /**
-     * Preloads all existing notes data
+     * Preloads all existing tasks data
      * 
      * @return void
      */
-    protected function loadNotesData() {
-        $this->notesDb->where('active', '=', '1');
-        $this->allNotesData = $this->notesDb->getAll();
+    protected function loadTasksData() {
+        $curDate = curdate();
+        $this->tasksDb->where('status', '=', '0'); //only open tasks
+        $this->tasksDb->where('startdate', '=', $curDate); //saving few resources
+        $this->allTasksData = $this->tasksDb->getAll();
     }
 
     /**
-     * Returns administrator chatId if he associated with active employee
+     * Returns chatId if he associated with active employee
      * 
-     * @param string $adminLogin
+     * @param string $employeeId
      * 
      * @return int
      */
-    protected function getAdminChatId($adminLogin) {
+    protected function getEmployeeChatId($employeeId) {
         $result = 0;
-        if (!empty($adminLogin)) {
-            //associated user?
-            $adminEmployeeId = (isset($this->allEmployeeLogins[$adminLogin])) ? $this->allEmployeeLogins[$adminLogin] : 0;
-            if ($adminEmployeeId) {
-                //is it active?
-                if (isset($this->allActiveEmployee[$adminEmployeeId])) {
-                    //have chat id?
-                    if (isset($this->allEmployeeChatIds[$adminEmployeeId])) {
-                        $result = $this->allEmployeeChatIds[$adminEmployeeId];
-                    }
-                }
+        //is it active?
+        if (isset($this->allActiveEmployee[$employeeId])) {
+            //have chat id?
+            if (isset($this->allEmployeeChatIds[$employeeId])) {
+                $result = $this->allEmployeeChatIds[$employeeId];
             }
         }
         return($result);
@@ -147,24 +143,24 @@ class StickyNotify {
     protected function sendNotifications($sendingQueue) {
         if (!empty($sendingQueue)) {
             foreach ($sendingQueue as $eachChatId => $eachMessage) {
-                $this->telegram->sendMessage($eachChatId, $eachMessage, false, 'STICKYNOTIFY');
+                $this->telegram->sendMessage($eachChatId, $eachMessage, false, 'TASKMANNOTIFY');
             }
         }
     }
 
     /**
-     * Returns message queue for active notes planned today for each active employee
+     * Returns message queue for active tasks planned today for each active employee
      * 
      * @return array
      */
-    protected function getNotesTodayCount() {
+    protected function getTasksTodayCount() {
         $result = array();
         $curDate = curdate();
-        if (!empty($this->allNotesData)) {
-            $sendingQueue = array(); //contains sending queue as chatId=>notesCount
-            foreach ($this->allNotesData as $io => $each) {
-                if ($each['reminddate'] == $curDate) {
-                    $adminChatId = $this->getAdminChatId($each['owner']);
+        if (!empty($this->allTasksData)) {
+            $sendingQueue = array(); //contains sending queue as chatId=>tasksCount
+            foreach ($this->allTasksData as $io => $each) {
+                if ($each['startdate'] == $curDate) {
+                    $adminChatId = $this->getEmployeeChatId($each['employee']);
                     if ($adminChatId) {
                         if (isset($sendingQueue[$adminChatId])) {
                             $sendingQueue[$adminChatId]++;
@@ -176,8 +172,8 @@ class StickyNotify {
             }
 
             if (!empty($sendingQueue)) {
-                foreach ($sendingQueue as $eachChatId => $notesCount) {
-                    $result[$eachChatId] = '🙀 ' . __('You have') . ' ' . $notesCount . ' ' . __('notes or reminders for today');
+                foreach ($sendingQueue as $eachChatId => $tasksCount) {
+                    $result[$eachChatId] = '😾 ' . __('You have') . ' ' . $tasksCount . ' ' . __('undone tasks for today');
                 }
             }
         }
@@ -185,12 +181,12 @@ class StickyNotify {
     }
 
     /**
-     * Performs notification for notes planned today
+     * Performs notification for tasks planned today
      * 
      * @return void
      */
     public function run() {
-        $todayPlannedNotes = $this->getNotesTodayCount();
-        $this->sendNotifications($todayPlannedNotes);
+        $todayPlannedTasks = $this->getTasksTodayCount();
+        $this->sendNotifications($todayPlannedTasks);
     }
 }
