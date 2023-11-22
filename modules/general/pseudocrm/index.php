@@ -4,6 +4,7 @@ if (cfr(PseudoCRM::RIGHT_VIEW)) {
     $altCfg = $ubillingConfig->getAlter();
     if ($altCfg['PSEUDOCRM_ENABLED']) {
         $crm = new PseudoCRM();
+
         //some module controls
         $crmMainControls = $crm->renderPanel();
         if (!empty($crmMainControls)) {

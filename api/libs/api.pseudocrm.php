@@ -1081,6 +1081,53 @@ class PseudoCRM {
     }
 
     /**
+     * Sends Telegram notification about open activities to activity employee
+     * 
+     * @return void
+     */
+    public function notifyOpenActivities() {
+        if ($this->sendDogEnabled) {
+            $telegram = new UbillingTelegram();
+            $billingUrl = ($this->altCfg['FULL_BILLING_URL']) ? $this->altCfg['FULL_BILLING_URL'] : '';
+            $activityBaseUrl = $billingUrl . self::URL_ME . '&' . self::ROUTE_ACTIVITY_PROFILE . '=';
+            $sendingQueue = array(); //employeeId=>activitiesList
+            $eol = '\r\n';
+            if (!empty($this->allActivities)) {
+                foreach ($this->allActivities as $io => $each) {
+                    //activity open?
+                    if ($each['state'] == 0) {
+                        $activityEmployeeId = $each['employeeid'];
+                        $activityLink = '';
+                        $activityLink = ' #' . $each['id'] . ' ' . __('from') . ' ' . $each['date'] . '. ';
+                        if ($billingUrl) {
+                            $activityLink .= wf_Link($activityBaseUrl . $each['id'], __('Show'));
+                        }
+                        if (isset($sendingQueue[$activityEmployeeId])) {
+                            $sendingQueue[$activityEmployeeId] .= $activityLink . $eol;
+                        } else {
+                            $sendingQueue[$activityEmployeeId] = $activityLink . $eol;
+                        }
+                    }
+                }
+
+                if (!empty($sendingQueue)) {
+                    foreach ($sendingQueue as $eachEmployeeId => $eachMessages) {
+                        if (isset($this->allEmployeeChatIds[$eachEmployeeId])) {
+                            $employeeChatId = $this->allEmployeeChatIds[$eachEmployeeId];
+                            if (!empty($eachMessages)) {
+                                $message = __('The following activities are open for you') . ':' . $eol;
+                                $message .= $eachMessages;
+                                $message .= ' parseMode:{html}';
+                                $telegram->sendMessage($employeeChatId, $message, false, 'PSEUDOCRM');
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /**
      * Returns array of all lead previous activity records
      * 
      * @param int $leadId

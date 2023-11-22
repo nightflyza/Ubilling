@@ -51,3 +51,4 @@ $lang['def']['Or create new lead based on this user data'] = 'Или созда�
 $lang['def']['Re-negotiated contract, same terms'] = 'Перезаключили договор, те же условия';
 $lang['def']['New comment on lead'] = 'Новый коментарий для лида';
 $lang['def']['for activity'] = 'для записи';
+$lang['def']['The following activities are open for you'] = 'Для тебя открыты следующие записи';
