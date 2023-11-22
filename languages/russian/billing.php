@@ -3505,3 +3505,5 @@ $lang['def']['Support project'] = 'Поддержать проект';
 $lang['def']['right to edit incoming operations'] = 'Право редактировать приходные операции склада';
 $lang['def']['right to view report by users with no port assigned'] = 'Право просмотра отчета пользователей без присвоеного порта';
 $lang['def']['This operation cannot be edited or deleted'] = 'Эта операция не может быть отредактирована или удалена';
+$lang['def']['You have'] = 'У вас есть';
+$lang['def']['notes or reminders for today'] = 'персональных заметок или напоминаний на сегодня';

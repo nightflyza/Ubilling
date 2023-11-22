@@ -3508,9 +3508,10 @@ $lang['def']['Service password'] = 'Пароль сервісу';
 $lang['def']['right to edit incoming operations'] = 'Право редагувати прихідні операції складу';
 $lang['def']['right to view report by users with no port assigned'] = 'Право переглядати звіт користувачів без присвоєного порта';
 $lang['def']['This operation cannot be edited or deleted'] = 'Цю операцію більше не можна відредагувати чи видалити';
+$lang['def']['You have'] = 'У вас є';
+$lang['def']['notes or reminders for today'] = 'персональних нотаток чи нагадувань на сьогодні';
 $lang['def'][''] = '';
 $lang['def'][''] = '';
-
 
 
 
