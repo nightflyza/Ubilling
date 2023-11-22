@@ -52,3 +52,4 @@ $lang['def']['Re-negotiated contract, same terms'] = 'Перезаключили
 $lang['def']['New comment on lead'] = 'Новый коментарий для лида';
 $lang['def']['for activity'] = 'для записи';
 $lang['def']['The following activities are open for you'] = 'Для тебя открыты следующие записи';
+$lang['def']['right to manage all of PseudoCRM leads activities'] = 'Право управлять чьими-угодно записями активностей';

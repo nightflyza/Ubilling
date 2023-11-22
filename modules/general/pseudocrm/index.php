@@ -127,7 +127,7 @@ if (cfr(PseudoCRM::RIGHT_VIEW)) {
             show_window(__('Existing leads'), $crm->renderLeadsList());
         }
 
-        //rendering existing lead activity
+        //rendering existing lead activity profile
         if (ubRouting::checkGet($crm::ROUTE_ACTIVITY_PROFILE)) {
             $activityId = ubRouting::get($crm::ROUTE_ACTIVITY_PROFILE);
             show_window(__('Activity record'), $crm->renderActivityProfile($activityId));

@@ -119,11 +119,26 @@ class PseudoCRM {
     protected $sendDogEnabled = false;
 
     /**
+     * Activities protection mechanics flag
+     * 
+     * @var bool
+     */
+    protected $activityProtectedFlag = false;
+
+    /**
+     * Contains current administrator login
+     * 
+     * @var string
+     */
+    protected $myLogin = '';
+
+    /**
      * Some other predefined stuff
      */
     const RIGHT_VIEW = 'PSEUDOCRM';
     const RIGHT_LEADS = 'PSEUDOCRMLEADS';
     const RIGHT_ACTIVITIES = 'PSEUDOCRMACTS';
+    const RIGHT_ACT_MANAGER = 'PSEUDOCRMACTMGR';
     const RIGHT_TASKS = 'TASKMAN';
 
     /**
@@ -133,6 +148,7 @@ class PseudoCRM {
     const TABLE_ACTIVITIES = 'crm_activities';
     const TABLE_STATES_LOG = 'crm_stateslog';
     const OPT_ACT_CUSTSTATES = 'PSEUDOCRM_ACT_CUSTSTATES';
+    const OPT_ACT_PROTECTED = 'PSEUDOCRM_ACT_PROTECTED';
 
     /**
      * routes here
@@ -186,6 +202,7 @@ class PseudoCRM {
      */
     public function __construct() {
         $this->initMessages();
+        $this->setMyLogin();
         $this->loadAlter();
         $this->setActivitiesStatesList();
         $this->setActivitiesCustomStates();
@@ -219,6 +236,16 @@ class PseudoCRM {
         global $ubillingConfig;
         $this->altCfg = $ubillingConfig->getAlter();
         $this->sendDogEnabled = $this->altCfg['SENDDOG_ENABLED'];
+        $this->activityProtectedFlag = $this->altCfg['PSEUDOCRM_ACT_PROTECTED'];
+    }
+
+    /**
+     * Sets current administrator username property
+     * 
+     * @return void
+     */
+    protected function setMyLogin() {
+        $this->myLogin = whoami();
     }
 
     /**
@@ -869,6 +896,38 @@ class PseudoCRM {
     }
 
     /**
+     * Checks have user activity access rights to manage it open/closed states or not.
+     * 
+     * @param int $activityId
+     * 
+     * @return bool
+     */
+    protected function checkActivityAccess($activityId) {
+        $result = false;
+        //only if activity protection option enabled
+        if ($this->activityProtectedFlag) {
+            $activityId = ubRouting::filters($activityId, 'int');
+            if (cfr(self::RIGHT_ACT_MANAGER)) {
+                //user have total rights to manage all activities
+                $result = true;
+            } else {
+                //checking some activity access
+                if ($this->isActivityExists($activityId)) {
+                    $activityData = $this->getActivityData($activityId);
+                    $activityOwner = $activityData['admin'];
+                    if ($activityOwner == $this->myLogin) {
+                        //yep, thats is our activity!
+                        $result = true;
+                    }
+                }
+            }
+        } else {
+            $result = true;
+        }
+        return($result);
+    }
+
+    /**
      * Sets existing activity database record as processed
      * 
      * @param int $activityId
@@ -878,12 +937,14 @@ class PseudoCRM {
     public function setActivityDone($activityId) {
         $activityId = ubRouting::filters($activityId, 'int');
         if ($this->isActivityExists($activityId)) {
-            $activityData = $this->getActivityData($activityId);
-            $leadId = $activityData['leadid'];
-            $this->activitiesDb->data('state', 1);
-            $this->activitiesDb->where('id', '=', $activityId);
-            $this->activitiesDb->save();
-            log_register('CRM CLOSE ACTIVITY [' . $activityId . '] FOR LEAD [' . $leadId . ']');
+            if ($this->checkActivityAccess($activityId)) {
+                $activityData = $this->getActivityData($activityId);
+                $leadId = $activityData['leadid'];
+                $this->activitiesDb->data('state', 1);
+                $this->activitiesDb->where('id', '=', $activityId);
+                $this->activitiesDb->save();
+                log_register('CRM CLOSE ACTIVITY [' . $activityId . '] FOR LEAD [' . $leadId . ']');
+            }
         }
     }
 
@@ -897,12 +958,14 @@ class PseudoCRM {
     public function setActivityUndone($activityId) {
         $activityId = ubRouting::filters($activityId, 'int');
         if ($this->isActivityExists($activityId)) {
-            $activityData = $this->getActivityData($activityId);
-            $leadId = $activityData['leadid'];
-            $this->activitiesDb->data('state', 0);
-            $this->activitiesDb->where('id', '=', $activityId);
-            $this->activitiesDb->save();
-            log_register('CRM OPEN ACTIVITY [' . $activityId . '] FOR LEAD [' . $leadId . ']');
+            if ($this->checkActivityAccess($activityId)) {
+                $activityData = $this->getActivityData($activityId);
+                $leadId = $activityData['leadid'];
+                $this->activitiesDb->data('state', 0);
+                $this->activitiesDb->where('id', '=', $activityId);
+                $this->activitiesDb->save();
+                log_register('CRM OPEN ACTIVITY [' . $activityId . '] FOR LEAD [' . $leadId . ']');
+            }
         }
     }
 
@@ -978,12 +1041,14 @@ class PseudoCRM {
             $leadBackLink = wf_BackLink(self::URL_ME . '&' . self::ROUTE_LEAD_PROFILE . '=' . $leadId) . ' ';
             $activityControls = $leadBackLink;
             if (cfr(self::RIGHT_ACTIVITIES)) {
-                if ($activityData['state']) {
-                    $actOpenUrl = self::URL_ME . '&' . self::ROUTE_ACTIVITY_PROFILE . '=' . $activityId . '&' . self::ROUTE_ACTIVITY_UNDONE . '=' . $activityId;
-                    $activityControls .= wf_Link($actOpenUrl, wf_img('skins/icon_unlock.png') . ' ' . __('Open'), false, 'ubButton') . ' ';
-                } else {
-                    $actCloseUrl = self::URL_ME . '&' . self::ROUTE_ACTIVITY_PROFILE . '=' . $activityId . '&' . self::ROUTE_ACTIVITY_DONE . '=' . $activityId;
-                    $activityControls .= wf_Link($actCloseUrl, wf_img('skins/icon_lock.png') . ' ' . __('Close'), false, 'ubButton') . ' ';
+                if ($this->checkActivityAccess($activityId)) {
+                    if ($activityData['state']) {
+                        $actOpenUrl = self::URL_ME . '&' . self::ROUTE_ACTIVITY_PROFILE . '=' . $activityId . '&' . self::ROUTE_ACTIVITY_UNDONE . '=' . $activityId;
+                        $activityControls .= wf_Link($actOpenUrl, wf_img('skins/icon_unlock.png') . ' ' . __('Open'), false, 'ubButton') . ' ';
+                    } else {
+                        $actCloseUrl = self::URL_ME . '&' . self::ROUTE_ACTIVITY_PROFILE . '=' . $activityId . '&' . self::ROUTE_ACTIVITY_DONE . '=' . $activityId;
+                        $activityControls .= wf_Link($actCloseUrl, wf_img('skins/icon_lock.png') . ' ' . __('Close'), false, 'ubButton') . ' ';
+                    }
                 }
             }
 
@@ -1000,7 +1065,7 @@ class PseudoCRM {
             $result .= __('Worker') . ': ' . @$this->allEmployee[$activityData['employeeid']];
             $result .= wf_tag('div', true);
 
-            $stateLabel = ($activityData['state']) ? __('New') : __('Closed');
+            $stateLabel = ($activityData['state']) ? __('Closed') : __('New');
             $result .= wf_tag('div', false, 'dashtask');
             $result .= __('Status') . ': ' . $stateLabel;
             $result .= wf_tag('div', true);
