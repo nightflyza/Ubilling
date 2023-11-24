@@ -1384,6 +1384,54 @@ function multinet_checkIP($user_ip, $ip_begin, $ip_end) {
 /**
  * Converts bytes into human-readable values like Kb, Mb, Gb...
  * 
+ * @param int $fs
+ * @param string $traffsize
+ * 
+ * @return string
+ */
+function zb_convertSize($fs, $traffsize = 'float') {
+    if ($traffsize == 'float') {
+        if ($fs >= (1073741824 * 1024))
+            $fs = round($fs / (1073741824 * 1024) * 100) / 100 . ' ' . __('Tb');
+        elseif ($fs >= 1073741824)
+            $fs = round($fs / 1073741824 * 100) / 100 . ' ' . __('Gb');
+        elseif ($fs >= 1048576)
+            $fs = round($fs / 1048576 * 100) / 100 . ' ' . __('Mb');
+        elseif ($fs >= 1024)
+            $fs = round($fs / 1024 * 100) / 100 . ' ' . __('Kb');
+        else
+            $fs = $fs . ' ' . __('b');
+        return ($fs);
+    }
+
+    if ($traffsize == 'b') {
+        return ($fs);
+    }
+
+    if ($traffsize == 'Kb') {
+        $fs = round($fs / 1024 * 100) / 100 . ' ' . __('Kb');
+        return ($fs);
+    }
+
+    if ($traffsize == 'Mb') {
+        $fs = round($fs / 1048576 * 100) / 100 . ' ' . __('Mb');
+        return ($fs);
+    }
+    if ($traffsize == 'Gb') {
+        $fs = round($fs / 1073741824 * 100) / 100 . ' ' . __('Gb');
+        return ($fs);
+    }
+
+    if ($traffsize == 'Tb') {
+        $fs = round($fs / (1073741824 * 1024) * 100) / 100 . ' ' . __('Tb');
+        return ($fs);
+    }
+}
+
+/**
+ * Converts bytes into human-readable values like Kb, Mb, Gb, configurable via TRAFFSIZE alter option.
+ * 
+ * 
  * @global object $ubillingConfig
  * 
  * @param int $fs
@@ -1394,46 +1442,11 @@ function stg_convert_size($fs) {
     global $ubillingConfig;
     $alter_conf = $ubillingConfig->getAlter();
     $traffsize = trim($alter_conf['TRAFFSIZE']);
-    if ($traffsize == 'float') {
-        if ($fs >= (1073741824 * 1024))
-            $fs = round($fs / (1073741824 * 1024) * 100) / 100 . " Tb";
-        elseif ($fs >= 1073741824)
-            $fs = round($fs / 1073741824 * 100) / 100 . " Gb";
-        elseif ($fs >= 1048576)
-            $fs = round($fs / 1048576 * 100) / 100 . " Mb";
-        elseif ($fs >= 1024)
-            $fs = round($fs / 1024 * 100) / 100 . " Kb";
-        else
-            $fs = $fs . " b";
-        return ($fs);
-    }
-
-    if ($traffsize == 'b') {
-        return ($fs);
-    }
-
-    if ($traffsize == 'Kb') {
-        $fs = round($fs / 1024 * 100) / 100 . " Kb";
-        return ($fs);
-    }
-
-    if ($traffsize == 'Mb') {
-        $fs = round($fs / 1048576 * 100) / 100 . " Mb";
-        return ($fs);
-    }
-    if ($traffsize == 'Gb') {
-        $fs = round($fs / 1073741824 * 100) / 100 . " Gb";
-        return ($fs);
-    }
-
-    if ($traffsize == 'Tb') {
-        $fs = round($fs / (1073741824 * 1024) * 100) / 100 . " Tb";
-        return ($fs);
-    }
+    return(zb_convertSize($fs, $traffsize));
 }
 
 /**
- * Convert bytes to human-readable Gb values. Much faster than stg_convert_size()
+ * Convert bytes to human-readable Gb values. Much faster than stg_convert_size()/zb_convertSize
  * 
  * @param int $fs
  * 
