@@ -94,7 +94,7 @@ function em_EmployeeCreateForm() {
     $inputs .= wf_TextInput('employeename', 'Employee real name', '', true, 25);
     $inputs .= wf_TextInput('employeejob', 'Appointment', '', true, 15);
     $inputs .= wf_TextInput('employeemobile', 'Mobile', '', true, 15, 'mobile');
-    $inputs .= wf_TextInput('employeetelegram', 'Chat ID', '', true, 15, 'digits');
+    $inputs .= wf_TextInput('employeetelegram', 'Chat ID', '', true, 15, 'sigint');
     $inputs .= wf_TextInput('employeeadmlogin', 'Administrator', '', true, 15);
     $inputs .= em_TagSelector('editadtagid', __('Tag'));
     $inputs .= wf_delimiter(0);
@@ -150,7 +150,7 @@ function em_employeeEditForm($editemployee) {
     $editinputs = wf_TextInput('editname', 'Real Name', $employeedata['name'], true, 20);
     $editinputs .= wf_TextInput('editappointment', 'Appointment', $employeedata['appointment'], true, 20);
     $editinputs .= wf_TextInput('editmobile', __('Mobile'), $employeedata['mobile'], true, 20);
-    $editinputs .= wf_TextInput('edittelegram', __('Chat ID') . ' ' . __('Telegram'), $employeedata['telegram'], true, 20, 'digits');
+    $editinputs .= wf_TextInput('edittelegram', __('Chat ID') . ' ' . __('Telegram'), $employeedata['telegram'], true, 20, 'sigint');
     $editinputs .= wf_TextInput('editadmlogin', __('Administrator'), $employeedata['admlogin'], true, 20);
     $editinputs .= em_TagSelector('editadtagid', __('Tag'), $employeedata['tagid'], true);
     $editinputs .= wf_TextInput('amountLimit', __('Monthly top up limit'), $employeedata['amountLimit'], true, 20, 'finance');
