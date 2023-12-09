@@ -720,6 +720,8 @@ function ts_JGetUndoneTasks() {
     $advFiltersEnabled = $ubillingConfig->getAlterParam('TASKMAN_ADV_FILTERS');
     $branchConsider = ($ubillingConfig->getAlterParam('BRANCHES_ENABLED')
             and $ubillingConfig->getAlterParam('TASKMAN_BRANCHES_CONSIDER_ON'));
+    $depthMonthLimit = $ubillingConfig->getAlterParam('TASKMAN_DEPTH_LIMIT', 0);
+    $depthMonthLimit = ubRouting::filters($depthMonthLimit, 'int');
 
 //ADcomments init
     if ($altCfg['ADCOMMENTS_ENABLED']) {
@@ -733,8 +735,22 @@ function ts_JGetUndoneTasks() {
     $alljobdata = ts_getAllJobtypesData();
     $curyear = curyear();
     $curmonth = date("m");
+    $appendQuery = '';
     $appendQueryJOIN = '';
     $appendQuerySelect = '';
+
+//date filters
+    if (!$showAllYearsTasks AND ( $curmonth != 1 AND $curmonth != 12)) {
+        $dateFilter = "AND `startdate` LIKE '" . $curyear . "-%'";
+        $appendQuery .= $dateFilter;
+    }
+
+    if ($depthMonthLimit) {
+        $depthDate = date("Y-m-d", strtotime('-' . $depthMonthLimit . ' months'));
+        $dateFilter = "AND `startdate` > '" . $depthDate . "-%'";
+        $appendQuery .= $dateFilter;
+    }
+
 
 //per employee filtering
     $displaytype = (isset($_POST['displaytype'])) ? $_POST['displaytype'] : 'all';
@@ -745,13 +761,11 @@ function ts_JGetUndoneTasks() {
     if ($displaytype == 'onlyme') {
         $whoami = whoami();
         $curempid = ts_GetEmployeeByLogin($whoami);
-        $appendQuery = " AND `employee`='" . $curempid . "'";
+        $appendQuery .= " AND `employee`='" . $curempid . "'";
     } else {
         if (ispos($displaytype, 'displayempid')) {
             $displayEmployeeId = ubRouting::filters($displaytype, 'int');
-            $appendQuery = " AND `employee`='" . $displayEmployeeId . "'";
-        } else {
-            $appendQuery = '';
+            $appendQuery .= " AND `employee`='" . $displayEmployeeId . "'";
         }
     }
 
@@ -765,26 +779,19 @@ function ts_JGetUndoneTasks() {
         $appendQuerySelect = ", `branches`.`name` AS `branch_name` ";
     }
 
-    if (!$showAllYearsTasks AND ( $curmonth != 1 AND $curmonth != 12)) {
-        $query = "SELECT `taskman`.*, `jobtypes`.`jobname`" . $appendQuerySelect . " FROM `taskman` 
-                      LEFT JOIN `jobtypes` ON `taskman`.`jobtype` = `jobtypes`.`id`
-                      " . $appendQueryJOIN . " 
-                    WHERE `status`='0' AND `startdate` LIKE '" . $curyear . "-%' " . $appendQuery . " ORDER BY `date` ASC";
-    } else {
-        $query = "SELECT `taskman`.*, `jobtypes`.`jobname`" . $appendQuerySelect . " FROM `taskman`  
+    $query = "SELECT `taskman`.*, `jobtypes`.`jobname`" . $appendQuerySelect . " FROM `taskman`  
                       LEFT JOIN `jobtypes` ON `taskman`.`jobtype` = `jobtypes`.`id`
                       " . $appendQueryJOIN . " 
                     WHERE `status`='0' " . $appendQuery . " ORDER BY `date` ASC";
-    }
 
-    $allundone = simple_queryall($query);
+    $allUndoneTasks = simple_queryall($query);
     $result = '';
     $i = 1;
-    $taskcount = sizeof($allundone);
+    $taskcount = sizeof($allUndoneTasks);
     $branchName = '';
 
-    if (!empty($allundone)) {
-        foreach ($allundone as $io => $eachtask) {
+    if (!empty($allUndoneTasks)) {
+        foreach ($allUndoneTasks as $io => $eachtask) {
             if ($i != $taskcount) {
                 $thelast = ',';
             } else {
@@ -876,6 +883,8 @@ function ts_JGetDoneTasks() {
     $advFiltersEnabled = $ubillingConfig->getAlterParam('TASKMAN_ADV_FILTERS');
     $branchConsider = ($ubillingConfig->getAlterParam('BRANCHES_ENABLED')
             and $ubillingConfig->getAlterParam('TASKMAN_BRANCHES_CONSIDER_ON'));
+    $depthMonthLimit = $ubillingConfig->getAlterParam('TASKMAN_DEPTH_LIMIT', 0);
+    $depthMonthLimit = ubRouting::filters($depthMonthLimit, 'int');
 
 //ADcomments init
     if ($altCfg['ADCOMMENTS_ENABLED']) {
@@ -886,13 +895,23 @@ function ts_JGetDoneTasks() {
     }
     $allemployee = ts_GetAllEmployee();
 
-// unnecessary call - isn't it?
-//$alljobtypes = ts_GetAllJobtypes();
-
     $curyear = curyear();
     $curmonth = date("m");
+    $appendQuery = '';
     $appendQueryJOIN = '';
     $appendQuerySelect = '';
+
+//date filters
+    if (!$showAllYearsTasks AND ( $curmonth != 1 AND $curmonth != 12)) {
+        $dateFilter = "AND `startdate` LIKE '" . $curyear . "-%'";
+        $appendQuery .= $dateFilter;
+    }
+
+    if ($depthMonthLimit) {
+        $depthDate = date("Y-m-d", strtotime('-' . $depthMonthLimit . ' months'));
+        $dateFilter = "AND `startdate` > '" . $depthDate . "-%'";
+        $appendQuery .= $dateFilter;
+    }
 
 //per employee filtering
     $displaytype = (isset($_POST['displaytype'])) ? $_POST['displaytype'] : 'all';
@@ -903,13 +922,11 @@ function ts_JGetDoneTasks() {
     if ($displaytype == 'onlyme') {
         $whoami = whoami();
         $curempid = ts_GetEmployeeByLogin($whoami);
-        $appendQuery = " AND `employee`='" . $curempid . "'";
+        $appendQuery .= " AND `employee`='" . $curempid . "'";
     } else {
         if (ispos($displaytype, 'displayempid')) {
             $displayEmployeeId = ubRouting::filters($displaytype, 'int');
-            $appendQuery = " AND `employee`='" . $displayEmployeeId . "'";
-        } else {
-            $appendQuery = '';
+            $appendQuery .= " AND `employee`='" . $displayEmployeeId . "'";
         }
     }
 
@@ -923,26 +940,20 @@ function ts_JGetDoneTasks() {
         $appendQuerySelect = ", `branches`.`name` AS `branch_name` ";
     }
 
-    if (!$showAllYearsTasks AND ( $curmonth != 1 AND $curmonth != 12)) {
-        $query = "SELECT `taskman`.*, `jobtypes`.`jobname`" . $appendQuerySelect . " FROM `taskman` 
-                      LEFT JOIN `jobtypes` ON `taskman`.`jobtype` = `jobtypes`.`id`
-                      " . $appendQueryJOIN . " 
-                    WHERE `status`='1' AND `startdate` LIKE '" . $curyear . "-%' " . $appendQuery . " ORDER BY `date` ASC";
-    } else {
-        $query = "SELECT `taskman`.*, `jobtypes`.`jobname`" . $appendQuerySelect . " FROM `taskman` 
+
+    $query = "SELECT `taskman`.*, `jobtypes`.`jobname`" . $appendQuerySelect . " FROM `taskman` 
                       LEFT JOIN `jobtypes` ON `taskman`.`jobtype` = `jobtypes`.`id`
                       " . $appendQueryJOIN . "  
                     WHERE `status`='1' " . $appendQuery . " ORDER BY `date` ASC";
-    }
 
-    $allundone = simple_queryall($query);
+    $allDoneTasks = simple_queryall($query);
     $result = '';
     $i = 1;
-    $taskcount = sizeof($allundone);
+    $taskcount = sizeof($allDoneTasks);
     $branchName = '';
 
-    if (!empty($allundone)) {
-        foreach ($allundone as $io => $eachtask) {
+    if (!empty($allDoneTasks)) {
+        foreach ($allDoneTasks as $io => $eachtask) {
             if ($i != $taskcount) {
                 $thelast = ',';
             } else {
@@ -1025,6 +1036,8 @@ function ts_JGetAllTasks() {
     $advFiltersEnabled = $ubillingConfig->getAlterParam('TASKMAN_ADV_FILTERS');
     $branchConsider = ($ubillingConfig->getAlterParam('BRANCHES_ENABLED')
             and $ubillingConfig->getAlterParam('TASKMAN_BRANCHES_CONSIDER_ON'));
+    $depthMonthLimit = $ubillingConfig->getAlterParam('TASKMAN_DEPTH_LIMIT', 0);
+    $depthMonthLimit = ubRouting::filters($depthMonthLimit, 'int');
 
 //ADcomments init
     if ($altCfg['ADCOMMENTS_ENABLED']) {
@@ -1038,8 +1051,21 @@ function ts_JGetAllTasks() {
 
     $curyear = curyear();
     $curmonth = date("m");
+    $appendQuery = '';
     $appendQueryJOIN = '';
     $appendQuerySelect = '';
+
+//date filters
+    if (!$showAllYearsTasks AND ( $curmonth != 1 AND $curmonth != 12)) {
+        $dateFilter = "AND `startdate` LIKE '" . $curyear . "-%'";
+        $appendQuery .= $dateFilter;
+    }
+
+    if ($depthMonthLimit) {
+        $depthDate = date("Y-m-d", strtotime('-' . $depthMonthLimit . ' months'));
+        $dateFilter = "AND `startdate` > '" . $depthDate . "-%'";
+        $appendQuery .= $dateFilter;
+    }
 
 //per employee filtering
     $displaytype = (isset($_POST['displaytype'])) ? $_POST['displaytype'] : 'all';
@@ -1050,13 +1076,11 @@ function ts_JGetAllTasks() {
     if ($displaytype == 'onlyme') {
         $whoami = whoami();
         $curempid = ts_GetEmployeeByLogin($whoami);
-        $appendQuery = " AND `employee`='" . $curempid . "'";
+        $appendQuery .= " AND `employee`='" . $curempid . "'";
     } else {
         if (ispos($displaytype, 'displayempid')) {
             $displayEmployeeId = ubRouting::filters($displaytype, 'int');
-            $appendQuery = " AND `employee`='" . $displayEmployeeId . "'";
-        } else {
-            $appendQuery = '';
+            $appendQuery .= " AND `employee`='" . $displayEmployeeId . "'";
         }
     }
 
@@ -1070,30 +1094,23 @@ function ts_JGetAllTasks() {
         $appendQuerySelect = ", `branches`.`name` AS `branch_name` ";
     }
 
-    if (!$showAllYearsTasks AND ( $curmonth != 1 AND $curmonth != 12)) {
-        $query = "SELECT `taskman`.*, `jobtypes`.`jobname`" . $appendQuerySelect . " FROM `taskman` 
-                      LEFT JOIN `jobtypes` ON `taskman`.`jobtype` = `jobtypes`.`id`
-                      " . $appendQueryJOIN . " 
-                    WHERE `startdate` LIKE '" . $curyear . "-%' " . $appendQuery . " ORDER BY `date` ASC";
-    } else {
-        if ($appendQuery) {
-//$appendQuery = str_replace('AND', 'WHERE', $appendQuery);
-            $appendQuery = preg_replace('/AND/', 'WHERE', $appendQuery, 1);
-        }
-        $query = "SELECT `taskman`.*, `jobtypes`.`jobname`" . $appendQuerySelect . " FROM `taskman` 
+
+    if ($appendQuery) {
+        $appendQuery = preg_replace('/AND/', 'WHERE', $appendQuery, 1);
+    }
+    $query = "SELECT `taskman`.*, `jobtypes`.`jobname`" . $appendQuerySelect . " FROM `taskman` 
                       LEFT JOIN `jobtypes` ON `taskman`.`jobtype` = `jobtypes`.`id`
                       " . $appendQueryJOIN . "
                       " . $appendQuery . " ORDER BY `date` ASC";
-    }
 
-    $allundone = simple_queryall($query);
+    $allTasks = simple_queryall($query);
     $result = '';
     $i = 1;
-    $taskcount = sizeof($allundone);
+    $taskcount = sizeof($allTasks);
     $branchName = '';
 
-    if (!empty($allundone)) {
-        foreach ($allundone as $io => $eachtask) {
+    if (!empty($allTasks)) {
+        foreach ($allTasks as $io => $eachtask) {
             if ($i != $taskcount) {
                 $thelast = ',';
             } else {
