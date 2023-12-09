@@ -736,21 +736,21 @@ function ts_JGetUndoneTasks() {
     $curyear = curyear();
     $curmonth = date("m");
     $appendQuery = '';
+    $dateFilter = '';
     $appendQueryJOIN = '';
     $appendQuerySelect = '';
 
 //date filters
     if (!$showAllYearsTasks AND ( $curmonth != 1 AND $curmonth != 12)) {
         $dateFilter = "AND `startdate` LIKE '" . $curyear . "-%'";
-        $appendQuery .= $dateFilter;
     }
 
     if ($depthMonthLimit) {
         $depthDate = date("Y-m-d", strtotime('-' . $depthMonthLimit . ' months'));
         $dateFilter = "AND `startdate` > '" . $depthDate . "-%'";
-        $appendQuery .= $dateFilter;
     }
 
+    $appendQuery .= $dateFilter;
 
 //per employee filtering
     $displaytype = (isset($_POST['displaytype'])) ? $_POST['displaytype'] : 'all';
@@ -898,20 +898,21 @@ function ts_JGetDoneTasks() {
     $curyear = curyear();
     $curmonth = date("m");
     $appendQuery = '';
+    $dateFilter = '';
     $appendQueryJOIN = '';
     $appendQuerySelect = '';
 
 //date filters
     if (!$showAllYearsTasks AND ( $curmonth != 1 AND $curmonth != 12)) {
         $dateFilter = "AND `startdate` LIKE '" . $curyear . "-%'";
-        $appendQuery .= $dateFilter;
     }
 
     if ($depthMonthLimit) {
         $depthDate = date("Y-m-d", strtotime('-' . $depthMonthLimit . ' months'));
         $dateFilter = "AND `startdate` > '" . $depthDate . "-%'";
-        $appendQuery .= $dateFilter;
     }
+
+    $appendQuery .= $dateFilter;
 
 //per employee filtering
     $displaytype = (isset($_POST['displaytype'])) ? $_POST['displaytype'] : 'all';
@@ -1052,20 +1053,21 @@ function ts_JGetAllTasks() {
     $curyear = curyear();
     $curmonth = date("m");
     $appendQuery = '';
+    $dateFilter = '';
     $appendQueryJOIN = '';
     $appendQuerySelect = '';
 
 //date filters
     if (!$showAllYearsTasks AND ( $curmonth != 1 AND $curmonth != 12)) {
         $dateFilter = "AND `startdate` LIKE '" . $curyear . "-%'";
-        $appendQuery .= $dateFilter;
     }
 
     if ($depthMonthLimit) {
         $depthDate = date("Y-m-d", strtotime('-' . $depthMonthLimit . ' months'));
         $dateFilter = "AND `startdate` > '" . $depthDate . "-%'";
-        $appendQuery .= $dateFilter;
     }
+
+    $appendQuery .= $dateFilter;
 
 //per employee filtering
     $displaytype = (isset($_POST['displaytype'])) ? $_POST['displaytype'] : 'all';
