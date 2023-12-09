@@ -409,6 +409,7 @@ function web_VservicesSelector() {
 function zb_VservicesProcessAll($log_payment = true, $charge_frozen = true, $whereString = '') {
     global $ubillingConfig;
     $alterconf = $ubillingConfig->getAlter();
+    $considerCreditFlag = $ubillingConfig->getAlterParam('VSERVICES_CONSIDER_CREDIT', 0);
     $frozenUsers = array();
     $paymentTypeId = 1;
     $allUserData = zb_UserGetAllStargazerDataAssoc();
@@ -438,34 +439,55 @@ function zb_VservicesProcessAll($log_payment = true, $charge_frozen = true, $whe
             }
         }
 
-        foreach ($allServices as $io => $eachservice) {
-            $users_query = "SELECT `login` from `tags` WHERE `tagid`='" . $eachservice['tagid'] . "'";
-            $allusers = simple_queryall($users_query);
+        foreach ($allServices as $io => $eachService) {
+            $users_query = "SELECT `login` from `tags` WHERE `tagid`='" . $eachService['tagid'] . "'";
+            $allUsers = simple_queryall($users_query);
 
-            if (!empty($allusers)) {
-                foreach ($allusers as $io2 => $eachuser) {
+            if (!empty($allUsers)) {
+                foreach ($allUsers as $io2 => $eachUser) {
                     //virtual cash charging (DEPRECATED)
-                    if ($eachservice['cashtype'] == 'virtual') {
-                        $current_cash = zb_VserviceCashGet($eachuser['login']);
-                        $FeeChargeAllowed = ($current_cash < 0 AND $eachservice['fee_charge_always'] == 0) ? false : true;
+                    if ($eachService['cashtype'] == 'virtual') {
+                        $current_cash = zb_VserviceCashGet($eachUser['login']);
+                        $current_credit = $allUserData[$eachUser['login']]['Credit'];
+                        //charge fee is allowed?
+                        if ($eachService['fee_charge_always']) {
+                            $feeChargeAllowed = true;
+                        } else {
+                            if ($considerCreditFlag) {
+                                $feeChargeAllowed = ($current_cash >= '-' . $current_credit) ? true : false;
+                            } else {
+                                $feeChargeAllowed = ($current_cash > 0) ? true : false;
+                            }
+                        }
 
-                        if ($FeeChargeAllowed) {
-                            zb_VserviceCashFee($eachuser['login'], $eachservice['price'], $eachservice['id']);
+                        if ($feeChargeAllowed) {
+                            zb_VserviceCashFee($eachUser['login'], $eachService['price'], $eachService['id']);
                         }
                     }
-                    //stargazer balance charging
-                    if ($eachservice['cashtype'] == 'stargazer') {
-                        $current_cash = $allUserData[$eachuser['login']]['Cash'];
-                        $FeeChargeAllowed = ($current_cash < 0 AND $eachservice['fee_charge_always'] == 0) ? false : true;
 
-                        if ($FeeChargeAllowed) {
-                            $fee = $eachservice['price'];
+                    //stargazer balance charging
+                    if ($eachService['cashtype'] == 'stargazer') {
+                        $current_cash = $allUserData[$eachUser['login']]['Cash'];
+                        $current_credit = $allUserData[$eachUser['login']]['Credit'];
+                        //charge fee is allowed?
+                        if ($eachService['fee_charge_always']) {
+                            $feeChargeAllowed = true;
+                        } else {
+                            if ($considerCreditFlag) {
+                                $feeChargeAllowed = ($current_cash >= '-' . $current_credit) ? true : false;
+                            } else {
+                                $feeChargeAllowed = ($current_cash > 0) ? true : false;
+                            }
+                        }
+
+                        if ($feeChargeAllowed) {
+                            $fee = $eachService['price'];
                             if ($fee >= 0) {
                                 //charge cash from user balance
-                                $fee = "-" . $eachservice['price'];
+                                $fee = "-" . $eachService['price'];
                             } else {
                                 //add some cash to balance
-                                $fee = abs($eachservice['price']);
+                                $fee = abs($eachService['price']);
                             }
                             if ($log_payment) {
                                 $method = 'add';
@@ -473,12 +495,12 @@ function zb_VservicesProcessAll($log_payment = true, $charge_frozen = true, $whe
                                 $method = 'correct';
                             }
                             if ($charge_frozen) {
-                                zb_CashAdd($eachuser['login'], $fee, $method, $paymentTypeId, 'Service:' . $eachservice['id']);
-                                $allUserData[$eachuser['login']]['Cash'] += $fee; //updating preloaded cash values
+                                zb_CashAdd($eachUser['login'], $fee, $method, $paymentTypeId, 'Service:' . $eachService['id']);
+                                $allUserData[$eachUser['login']]['Cash'] += $fee; //updating preloaded cash values
                             } else {
-                                if (!isset($frozenUsers[$eachuser['login']])) {
-                                    zb_CashAdd($eachuser['login'], $fee, $method, $paymentTypeId, 'Service:' . $eachservice['id']);
-                                    $allUserData[$eachuser['login']]['Cash'] += $fee; //updating preloaded cash values
+                                if (!isset($frozenUsers[$eachUser['login']])) {
+                                    zb_CashAdd($eachUser['login'], $fee, $method, $paymentTypeId, 'Service:' . $eachService['id']);
+                                    $allUserData[$eachUser['login']]['Cash'] += $fee; //updating preloaded cash values
                                 }
                             }
                         }
