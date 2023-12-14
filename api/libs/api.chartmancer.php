@@ -77,6 +77,13 @@ class ChartMancer {
     protected $labelMargin = 8;
 
     /**
+     * Contains optional chart legend
+     * 
+     * @var array
+     */
+    protected $chartLegend = array();
+
+    /**
      * Contains default base color RGB decimal values
      * 
      * @var array
@@ -162,8 +169,16 @@ class ChartMancer {
     /**
      * Render maximum dataset value on chart?
      * 
+     * @var bool
      */
     protected $displayPeakValue = false;
+
+    /**
+     * Contains custom Y-axis label
+     * 
+     * @var string
+     */
+    protected $yAxisName = '';
 
     /**
      * Rendering debug flag
@@ -400,6 +415,30 @@ class ChartMancer {
     }
 
     /**
+     * Sets optional chart legend
+     * 
+     * @param array $chartLegend
+     * 
+     * @return void
+     */
+    public function setChartLegend($chartLegend) {
+        if (is_array($chartLegend)) {
+            $this->chartLegend = $chartLegend;
+        }
+    }
+
+    /**
+     * Sets custom Y-axis name
+     * 
+     * @param string $yAxisName
+     * 
+     * @return void
+     */
+    public function setChartYaxisName($yAxisName) {
+        $this->yAxisName = $yAxisName;
+    }
+
+    /**
      * Renders chart as PNG image into browser or into specified file
      * 
      * @param array $data
@@ -461,6 +500,7 @@ class ChartMancer {
 // Setting yMaxValue depend of data values
         if ($dataMax) {
             $yMaxValue = round($dataMax + ($dataMax * 0.3));
+            $yMaxValue = ($yMaxValue != 0) ? $yMaxValue : 2; //preventing division by zero
         }
 
 // Distance between grid lines on y-axis
@@ -502,16 +542,13 @@ class ChartMancer {
         $customColors[0] = $baseColor;
 // Nested colors palette generation here
         if ($nestedData) {
-            for ($i = 1;
-                    $i <= $nestedDepth;
-                    $i++) {
+            for ($i = 1; $i <= $nestedDepth; $i++) {
                 $randomColor = $this->getColorFromText($i);
                 $customColors[$i] = imagecolorallocate($chart, $randomColor['r'], $randomColor['g'], $randomColor['b']);
             }
         }
 
         imagefill($chart, 0, 0, $backgroundColor);
-
         imagesetthickness($chart, $this->lineWidth);
 
         /*
@@ -552,9 +589,13 @@ class ChartMancer {
         $index = 0;
 
         foreach ($data as $key => $value) {
-// Draw the bars
+            /**
+             *  Draw the bars
+             */
             if (is_array($value)) {
+//nested data rendering here
                 $i = 0;
+                $zBuffer = array();
                 foreach ($value as $io => $subVal) {
                     $x1 = $itemX - $this->barWidth / 2;
                     $y1 = $gridBottom - $subVal / $yMaxValue * $gridHeight;
@@ -565,9 +606,26 @@ class ChartMancer {
                     $y1 = (int) $y1;
                     $x2 = (int) $x2;
                     $y2 = (int) $y2;
+                    $rValue = '_' . $subVal;
+                    $zBuffer[$rValue] = array(
+                        'value' => $subVal,
+                        'x1' => $x1,
+                        'y1' => $y1,
+                        'x2' => $x2,
+                        'y2' => $y2,
+                        'colorIdx' => $i
+                    );
 
-                    imagefilledrectangle($chart, $x1, $y1, $x2, $y2, $customColors[$i]);
                     $i++;
+                }
+
+                if (!empty($zBuffer)) {
+                    krsort($zBuffer);
+                    foreach ($zBuffer as $subValue => $rParams) {
+                        if ($rParams['value'] > 0) {
+                            imagefilledrectangle($chart, $rParams['x1'], $rParams['y1'], $rParams['x2'], $rParams['y2'], $customColors[$rParams['colorIdx']]);
+                        }
+                    }
                 }
             } else {
 // raw key=>val dataset
@@ -581,8 +639,9 @@ class ChartMancer {
                 $y1 = (int) $y1;
                 $x2 = (int) $x2;
                 $y2 = (int) $y2;
-
-                imagefilledrectangle($chart, $x1, $y1, $x2, $y2, $customColors[0]);
+                if ($value > 0) {
+                    imagefilledrectangle($chart, $x1, $y1, $x2, $y2, $customColors[0]);
+                }
             }
 
 // Draw the label
@@ -613,14 +672,47 @@ class ChartMancer {
 
 // Optional chart chartTitle?
         if ($this->chartTitle) {
-            $titleX = (int) ($this->imageWidth - $this->gridLeft) / 2.3;
-            imagettftext($chart, $this->fontSize + 8, 0, $titleX, 24, $labelColor, $this->font, $this->chartTitle);
+            $titleX = ($this->imageWidth - $this->gridLeft) / 2.3;
+            imagettftext($chart, $this->fontSize + 8, 0, (int) $titleX, 24, $labelColor, $this->font, $this->chartTitle);
+        }
+// Rendering custom Y-axis label
+        if ($this->yAxisName) {
+            $yAxisX = $this->gridLeft - 40;
+            $yAxisY = (int) $this->gridTop - 10;
+            imagettftext($chart, $this->fontSize, 0, $yAxisX, $yAxisY, $labelColor, $this->font, $this->yAxisName);
         }
 // Rendering of data set peak value?
         if ($this->displayPeakValue) {
-            $peakX = (int) ($this->imageWidth - $this->gridLeft) / 2;
+            $peakX = (int) ($this->imageWidth - $this->gridLeft) - 150;
             $peakY = (int) $this->imageHeight - ($this->fontSize * 0.5);
-            imagettftext($chart, $this->fontSize, 0, $peakX, $peakY, $labelColor, $this->font, 'Max: ' . $dataMax);
+            $peakLabel = ($this->yAxisName) ? round($dataMax, 3) . ' ' . $this->yAxisName : round($dataMax, 3);
+            imagettftext($chart, $this->fontSize, 0, $peakX, $peakY, $labelColor, $this->font, 'Max: ' . $peakLabel);
+        }
+// Rendering chart legend
+        if (!empty($this->chartLegend)) {
+            $lWidth = 20;
+            foreach ($customColors as $colorIndex => $customColor) {
+                if (isset($this->chartLegend[$colorIndex])) {
+                    $rawLabel = $this->chartLegend[$colorIndex];
+                    $legendText = (((mb_strlen($rawLabel, 'UTF-8') > $this->xLabelLen + 3)) ) ? mb_substr($rawLabel, 0, $this->xLabelLen + 3, 'utf-8') . '...' : $rawLabel;
+                    $offset = $colorIndex * 10;
+                    $y1 = $this->imageHeight - 5;
+                    $y2 = $this->imageHeight - 20;
+
+                    $x1 = $offset * 10 + $lWidth;
+                    $x2 = $x1 + $lWidth;
+
+                    $x1 = (int) $x1;
+                    $y1 = (int) $y1;
+                    $x2 = (int) $x2;
+                    $y2 = (int) $y2;
+
+                    $labelX = $x2 + 5;
+
+                    imagefilledrectangle($chart, $x1, $y1, $x2, $y2, $customColor);
+                    imagettftext($chart, $this->fontSize, 0, $labelX, $y1 - 2, $labelColor, $this->font, $legendText);
+                }
+            }
         }
 
         if ($this->debug) {
