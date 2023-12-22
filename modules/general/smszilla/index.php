@@ -13,60 +13,60 @@ if (cfr('SMSZILLA')) {
             show_window('', $smszilla->panel());
 
 //templates management
-            if (wf_CheckGet(array('templates'))) {
+            if (ubRouting::checkGet('templates')) {
 //creating new template
-                if (wf_CheckPost(array('newtemplatename', 'newtemplatetext'))) {
-                    $smszilla->createTemplate($_POST['newtemplatename'], $_POST['newtemplatetext']);
-                    rcms_redirect($smszilla::URL_ME . '&templates=true');
+                if (ubRouting::checkPost(array('newtemplatename', 'newtemplatetext'))) {
+                    $smszilla->createTemplate(ubRouting::post('newtemplatename'), ubRouting::post('newtemplatetext'));
+                    ubRouting::nav($smszilla::URL_ME . '&templates=true');
                 }
 
 //deleting existing template
-                if (wf_CheckGet(array('deletetemplate'))) {
-                    $templateDeletionResult = $smszilla->deleteTemplate($_GET['deletetemplate']);
+                if (ubRouting::checkGet('deletetemplate')) {
+                    $templateDeletionResult = $smszilla->deleteTemplate(ubRouting::get('deletetemplate'));
                     if (empty($templateDeletionResult)) {
-                        rcms_redirect($smszilla::URL_ME . '&templates=true');
+                        ubRouting::nav($smszilla::URL_ME . '&templates=true');
                     } else {
                         show_error($templateDeletionResult);
                     }
                 }
 
 //editing existing template
-                if (wf_CheckGet(array('edittemplate'))) {
+                if (ubRouting::checkGet('edittemplate')) {
                     //save changes to database
-                    if (wf_CheckPost(array('edittemplateid', 'edittemplatename', 'edittemplatetext'))) {
-                        $templateEditingResult = $smszilla->saveTemplate($_POST['edittemplateid'], $_POST['edittemplatename'], $_POST['edittemplatetext']);
+                    if (ubRouting::checkPost(array('edittemplateid', 'edittemplatename', 'edittemplatetext'))) {
+                        $templateEditingResult = $smszilla->saveTemplate(ubRouting::post('edittemplateid'), ubRouting::post('edittemplatename'), ubRouting::post('edittemplatetext'));
                         if (empty($templateEditingResult)) {
-                            rcms_redirect($smszilla::URL_ME . '&templates=true&edittemplate=' . $_POST['edittemplateid']);
+                            ubRouting::nav($smszilla::URL_ME . '&templates=true&edittemplate=' . ubRouting::post('edittemplateid'));
                         } else {
                             show_error($templateEditingResult);
                         }
                     }
-                    show_window(__('Edit template'), $smszilla->renderTemplateEditForm($_GET['edittemplate']));
+                    show_window(__('Edit template'), $smszilla->renderTemplateEditForm(ubRouting::get('edittemplate')));
                 } else {
                     show_window(__('Available templates'), $smszilla->renderTemplatesList());
                 }
             }
 
 //filters management
-            if (wf_CheckGet(array('filters'))) {
+            if (ubRouting::checkGet('filters')) {
                 //rendering ajax inputs reply
-                if (wf_CheckGet(array('newfilterdirection'))) {
+                if (ubRouting::checkGet('newfilterdirection')) {
                     $smszilla->catchAjRequest();
                 }
                 //creatin new filter
-                if (wf_CheckPost(array('newfilterdirection'))) {
+                if (ubRouting::checkPost('newfilterdirection')) {
                     $creationResult = $smszilla->createFilter();
                     if (empty($creationResult)) {
-                        rcms_redirect($smszilla::URL_ME . '&filters=true');
+                        ubRouting::nav($smszilla::URL_ME . '&filters=true');
                     } else {
                         show_error($creationResult);
                     }
                 }
                 //filter deletion
-                if (wf_CheckGet(array('deletefilterid'))) {
-                    $filterDeletionResult = $smszilla->deleteFilter($_GET['deletefilterid']);
+                if (ubRouting::checkGet('deletefilterid')) {
+                    $filterDeletionResult = $smszilla->deleteFilter(ubRouting::get('deletefilterid'));
                     if (empty($filterDeletionResult)) {
-                        rcms_redirect($smszilla::URL_ME . '&filters=true');
+                        ubRouting::nav($smszilla::URL_ME . '&filters=true');
                     } else {
                         show_error($filterDeletionResult);
                     }
@@ -76,109 +76,109 @@ if (cfr('SMSZILLA')) {
             }
 
 //sending forms, etc
-            if (wf_CheckGet(array('sending'))) {
+            if (ubRouting::checkGet(array('sending'))) {
                 show_window(__('SMS sending'), $smszilla->renderSendingForm());
                 zb_BillingStats(true);
 
                 //preview ajax reply
-                if (wf_CheckGet(array('ajpreview', 'filterid', 'templateid'))) {
-                    $smszilla->ajaxPreviewReply($_GET['filterid'], $_GET['templateid']);
+                if (ubRouting::checkGet(array('ajpreview', 'filterid', 'templateid'))) {
+                    $smszilla->ajaxPreviewReply(ubRouting::get('filterid'), ubRouting::get('templateid'));
                 }
 
                 //processing of filters and performing sending
-                if (wf_CheckPost(array('sendingtemplateid', 'sendingfilterid'))) {
-                    $smszilla->filtersPreprocessing($_POST['sendingfilterid'], $_POST['sendingtemplateid']);
+                if (ubRouting::checkPost(array('sendingtemplateid', 'sendingfilterid'))) {
+                    $smszilla->filtersPreprocessing(ubRouting::post('sendingfilterid'), ubRouting::post('sendingtemplateid'));
                 }
             }
 
 //numbers lists management
-            if (wf_CheckGet(array('numlists'))) {
+            if (ubRouting::checkGet('numlists')) {
                 //creating new numbers list
-                if (wf_CheckPost(array('newnumlistname'))) {
-                    $numListCreationResult = $smszilla->createNumList($_POST['newnumlistname']);
+                if (ubRouting::checkPost('newnumlistname')) {
+                    $numListCreationResult = $smszilla->createNumList(ubRouting::post('newnumlistname'));
                     if (empty($numListCreationResult)) {
-                        rcms_redirect($smszilla::URL_ME . '&numlists=true');
+                        ubRouting::nav($smszilla::URL_ME . '&numlists=true');
                     } else {
                         show_error($numListCreationResult);
                     }
                 }
 
                 //deleting numlist
-                if (wf_CheckGet(array('deletenumlistid'))) {
-                    $numListDeletionResult = $smszilla->deleteNumList($_GET['deletenumlistid']);
+                if (ubRouting::checkGet('deletenumlistid')) {
+                    $numListDeletionResult = $smszilla->deleteNumList(ubRouting::get('deletenumlistid'));
                     if (empty($numListDeletionResult)) {
-                        rcms_redirect($smszilla::URL_ME . '&numlists=true');
+                        ubRouting::nav($smszilla::URL_ME . '&numlists=true');
                     } else {
                         show_error($numListDeletionResult);
                     }
                 }
 
                 //uploading numbers database
-                if (wf_CheckPost(array('uploadnumlistnumbers', 'newnumslistid'))) {
+                if (ubRouting::checkPost(array('uploadnumlistnumbers', 'newnumslistid'))) {
                     $smszilla->catchFileUpload();
                 }
                 //rendering ajax reply with numbers list data
-                if (wf_CheckGet(array('ajnums'))) {
+                if (ubRouting::checkGet('ajnums')) {
                     $smszilla->ajaxNumbersReply();
                 }
 
                 //editing existing numlist
-                if (wf_CheckPost(array('editnumlistid', 'editnumlistname'))) {
-                    $smszilla->saveNumList($_POST['editnumlistid'], $_POST['editnumlistname']);
-                    rcms_redirect($smszilla::URL_ME . '&numlists=true&editnumlistid=' . $_POST['editnumlistid']);
+                if (ubRouting::checkPost(array('editnumlistid', 'editnumlistname'))) {
+                    $smszilla->saveNumList(ubRouting::post('editnumlistid'), ubRouting::post('editnumlistname'));
+                    ubRouting::nav($smszilla::URL_ME . '&numlists=true&editnumlistid=' . ubRouting::post('editnumlistid'));
                 }
 
                 //deleting some single number
-                if (wf_CheckGet(array('deletenumid'))) {
-                    $smszilla->deleteNumlistNumber($_GET['deletenumid']);
-                    rcms_redirect($smszilla::URL_ME . '&numlists=true');
+                if (ubRouting::checkGet('deletenumid')) {
+                    $smszilla->deleteNumlistNumber(ubRouting::get('deletenumid'));
+                    ubRouting::nav($smszilla::URL_ME . '&numlists=true');
                 }
 
                 //creating single number
-                if (wf_CheckPost(array('newsinglenumlistid', 'newsinglenumlistmobile'))) {
-                    $singNumCreationResult = $smszilla->createNumlistSingleNumber($_POST['newsinglenumlistid'], $_POST['newsinglenumlistmobile'], @$_POST['newsinglenumlistnotes']);
+                if (ubRouting::checkPost(array('newsinglenumlistid', 'newsinglenumlistmobile'))) {
+                    $singNumCreationResult = $smszilla->createNumlistSingleNumber(ubRouting::post('newsinglenumlistid'), ubRouting::post('newsinglenumlistmobile'), ubRouting::post('newsinglenumlistnotes'));
                     if (empty($singNumCreationResult)) {
-                        rcms_redirect($smszilla::URL_ME . '&numlists=true');
+                        ubRouting::nav($smszilla::URL_ME . '&numlists=true');
                     } else {
                         show_error($singNumCreationResult);
                     }
                 }
 
                 //numlist cleanup
-                if (wf_CheckPost(array('cleanupnumlistid'))) {
-                    $numlistCleanupResult = $smszilla->cleanupNumlist($_POST['cleanupnumlistid']);
+                if (ubRouting::checkPost('cleanupnumlistid')) {
+                    $numlistCleanupResult = $smszilla->cleanupNumlist(ubRouting::post('cleanupnumlistid'));
                     if (empty($numlistCleanupResult)) {
-                        rcms_redirect($smszilla::URL_ME . '&numlists=true');
+                        ubRouting::nav($smszilla::URL_ME . '&numlists=true');
                     } else {
                         show_error($numlistCleanupResult);
                     }
                 }
 
-                if (wf_CheckGet(array('editnumlistid'))) {
+                if (ubRouting::checkGet('editnumlistid')) {
                     //existing numlist edit forms
                     show_window('', wf_BackLink($smszilla::URL_ME . '&numlists=true'));
-                    show_window(__('Edit'), $smszilla->renderNumListEditForm($_GET['editnumlistid']));
+                    show_window(__('Edit'), $smszilla->renderNumListEditForm(ubRouting::get('editnumlistid')));
                 } else {
                     //rendering numlists
                     show_window(__('Numbers lists'), $smszilla->renderNumListsList());
                     show_window(__('Upload'), $smszilla->uploadNumListNumbersForm());
                     show_window(__('Add'), $smszilla->createNumListNumberForm());
-                    show_window(__('Cleanup').' '.__('from numbers assigned to users'), $smszilla->renderCleanupNumlistForm());
+                    show_window(__('Cleanup') . ' ' . __('from numbers assigned to users'), $smszilla->renderCleanupNumlistForm());
                     show_window(__('Available numbers database'), $smszilla->renderNumsContainer());
                 }
             }
 
             //per-number excludes
-            if (wf_CheckGet(array('excludes'))) {
+            if (ubRouting::checkGet('excludes')) {
                 //creating new excludes
-                if (wf_CheckPost(array('newexcludenumber'))) {
-                    $smszilla->createExclude($_POST['newexcludenumber']);
-                    rcms_redirect($smszilla::URL_ME . '&excludes=true');
+                if (ubRouting::checkPost('newexcludenumber')) {
+                    $smszilla->createExclude(ubRouting::post('newexcludenumber'));
+                    ubRouting::nav($smszilla::URL_ME . '&excludes=true');
                 }
                 //deleting existing exclude
-                if (wf_CheckGet(array('deleteexclnumid'))) {
-                    $smszilla->deleteExlude($_GET['deleteexclnumid']);
-                    rcms_redirect($smszilla::URL_ME . '&excludes=true');
+                if (ubRouting::checkGet('deleteexclnumid')) {
+                    $smszilla->deleteExlude(ubRouting::get('deleteexclnumid'));
+                    ubRouting::nav($smszilla::URL_ME . '&excludes=true');
                 }
 
                 //list available exluded numbers base and some forms
@@ -194,4 +194,3 @@ if (cfr('SMSZILLA')) {
 } else {
     show_error(__('Access denied'));
 }
-?>
