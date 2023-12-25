@@ -2368,8 +2368,12 @@ function web_UserTraffStats($login) {
 
 // Modal window sizes:
         if (!empty($bwd['days'])) {
-//bandwidthd
+//bandwidthd legend
+            if (!ispos($bandwidthd, 'OphanimFlow') AND !ispos($bandwidthd, 'of/')) {
             $graphLegend = wf_tag('br') . wf_img('skins/bwdlegend.gif');
+            } else {
+                $graphLegend = '';
+            }
         } else {
 //mikrotik
             $graphLegend = '';

@@ -2012,6 +2012,18 @@ function zb_BandwidthdGenLinks($ip) {
             $urls['months'] = $bandwidthd_url . '/' . $ip . '-3-S.png';
             $urls['yearr'] = $bandwidthd_url . '/' . $ip . '-4-R.png';
             $urls['years'] = $bandwidthd_url . '/' . $ip . '-4-S.png';
+
+//OphanimFlow graphs
+            if (ispos($bandwidthd_url, 'OphanimFlow') OR ispos($bandwidthd_url, 'of/')) {
+                $urls['dayr'] = $bandwidthd_url . '/?module=graph&dir=R&period=day&ip=' . $ip;
+                $urls['days'] = $bandwidthd_url . '/?module=graph&dir=S&period=day&ip=' . $ip;
+                $urls['weekr'] = $bandwidthd_url . '/?module=graph&dir=R&period=week&ip=' . $ip;
+                $urls['weeks'] = $bandwidthd_url . '/?module=graph&dir=S&period=week&ip=' . $ip;
+                $urls['monthr'] = $bandwidthd_url . '/?module=graph&dir=R&period=month&ip=' . $ip;
+                $urls['months'] = $bandwidthd_url . '/?module=graph&dir=S&period=month&ip=' . $ip;
+                $urls['yearr'] = $bandwidthd_url . '/?module=graph&dir=R&period=year&ip=' . $ip;
+                $urls['years'] = $bandwidthd_url . '/?module=graph&dir=S&period=year&ip=' . $ip;
+            }
         }
 //MikroTik Multigen Hotspot users
         if (ispos($bandwidthd_url, 'mlgmths')) {
