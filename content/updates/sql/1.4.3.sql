@@ -1,0 +1,1 @@
+ALTER TABLE `envydevices` ADD `port` INT NULL DEFAULT NULL AFTER `cutend`; 

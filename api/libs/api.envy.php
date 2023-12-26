@@ -512,6 +512,7 @@ class Envy {
                 $inputs .= wf_TextInput('newdevicecustom1', __('Custom field'), '', true, '');
                 $inputs .= wf_TextInput('newdevicecutstart', __('Lines to cut at start'), '0', true, '');
                 $inputs .= wf_TextInput('newdevicecutend', __('Lines to cut at end'), '0', true, '');
+                $inputs .= wf_TextInput('newdeviceport', __('Port'), '', true, '');
                 $inputs .= wf_CheckInput('newdeviceactive', __('Active'), true, true);
                 $inputs .= wf_delimiter(0);
                 $inputs .= wf_Submit(__('Create'));
@@ -546,6 +547,7 @@ class Envy {
             $inputs .= wf_TextInput('editdevicecustom1', __('Custom field'), $deviceData['custom1'], true, '');
             $inputs .= wf_TextInput('editdevicecutstart', __('Lines to cut at start'), $deviceData['cutstart'], true, '');
             $inputs .= wf_TextInput('editdevicecutend', __('Lines to cut at end'), $deviceData['cutend'], true, '');
+            $inputs .= wf_TextInput('editdeviceport', __('Port'), $deviceData['port'], true, '');
             $inputs .= wf_CheckInput('editdeviceactive', __('Active'), true, $deviceData['active']);
             $inputs .= wf_delimiter(0);
             $inputs .= wf_Submit(__('Save'));
@@ -572,6 +574,7 @@ class Envy {
             $custom1 = ubRouting::post('newdevicecustom1', 'mres');
             $cutstart = ubRouting::post('newdevicecutstart', 'int');
             $cutend = ubRouting::post('newdevicecutend', 'int');
+            $port = ubRouting::post('newdeviceport', 'int');
 
             if (!empty($switchId)) {
                 if (!isset($this->allDevices[$switchId])) {
@@ -584,6 +587,7 @@ class Envy {
                         $this->devices->data('custom1', $custom1);
                         $this->devices->data('cutstart', $cutstart);
                         $this->devices->data('cutend', $cutend);
+                        $this->devices->data('port', $port);
                         $this->devices->create();
                         $newId = $this->devices->getLastId();
                         log_register('ENVY CREATE DEVICE [' . $newId . '] SWITCHID [' . $switchId . ']');
@@ -617,6 +621,7 @@ class Envy {
             $custom1 = ubRouting::post('editdevicecustom1', 'mres');
             $cutstart = ubRouting::post('editdevicecutstart', 'int');
             $cutend = ubRouting::post('editdevicecutend', 'int');
+            $port = ubRouting::post('editdeviceport', 'int');
 
             if (!empty($switchId)) {
                 if (isset($this->allDevices[$switchId])) {
@@ -629,6 +634,7 @@ class Envy {
                         $this->devices->data('custom1', $custom1);
                         $this->devices->data('cutstart', $cutstart);
                         $this->devices->data('cutend', $cutend);
+                        $this->devices->data('port', $port);
                         $this->devices->save();
                         log_register('ENVY EDIT DEVICE [' . $deviceId . '] SWITCHID [' . $switchId . ']');
                     } else {
@@ -790,12 +796,14 @@ class Envy {
                     $macroPass = (!empty($deviceData['password'])) ? $deviceData['password'] : 'empty_password';
                     $macroEnPass = (!empty($deviceData['enablepassword'])) ? $deviceData['enablepassword'] : 'empty_enablepassword';
                     $macroCust1 = (!empty($deviceData['custom1'])) ? $deviceData['custom1'] : 'empty_custom1';
+                    $macroPort = (!empty($deviceData['port'])) ? $deviceData['port'] : 'empty_port';
                     //some macro replacing here
                     $result = str_replace('{IP}', $this->allSwitches[$switchId]['ip'], $result);
                     $result = str_replace('{LOGIN}', $macroLogin, $result);
                     $result = str_replace('{PASSWORD}', $macroPass, $result);
                     $result = str_replace('{ENABLEPASSWORD}', $macroEnPass, $result);
                     $result = str_replace('{CUSTOM1}', $macroCust1, $result);
+                    $result = str_replace('{PORT}', $macroPort, $result);
                 }
             }
         }
