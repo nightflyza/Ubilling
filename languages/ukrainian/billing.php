@@ -3511,6 +3511,7 @@ $lang['def']['This operation cannot be edited or deleted'] = 'Цю операц�
 $lang['def']['You have'] = 'У вас є';
 $lang['def']['notes or reminders for today'] = 'персональних нотаток чи нагадувань на сьогодні';
 $lang['def']['undone tasks for today'] = 'невиконаних задач на сьогодні';
+$lang['def']['Hide'] = 'Приховати';
 $lang['def'][''] = '';
 
 

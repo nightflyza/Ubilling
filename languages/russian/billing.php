@@ -3508,3 +3508,4 @@ $lang['def']['This operation cannot be edited or deleted'] = 'Эта опера�
 $lang['def']['You have'] = 'У вас есть';
 $lang['def']['notes or reminders for today'] = 'персональных заметок или напоминаний на сегодня';
 $lang['def']['undone tasks for today'] = 'невыполненных задач на сегодня';
+$lang['def']['Hide'] = 'Скрыть';

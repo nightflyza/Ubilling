@@ -100,7 +100,7 @@ function wf_TextInput($name, $label = '', $value = '', $br = false, $size = '', 
     $pattern = ($pattern == 'digits') ? 'pattern="^\d+$" placeholder="0" title="' . __('This field can only contain digits') . '"' : $pattern;
     $pattern = ($pattern == 'finance') ? 'pattern="\d+(\.\d+)?" placeholder="0(.00)" title="' . __('The financial input format can be') . ': 1 ; 4.01 ; 2 ; 0.001"' : $pattern;
     $pattern = ($pattern == 'float') ? 'pattern="\d+(\.\d+)?" placeholder="0.00" title="' . __('This field can only contain digits') . ': 1 ; 4.01 ; 2 ; 0.001"' : $pattern;
-    $pattern = ($pattern == 'sigint') ? 'pattern="^-?\d+$" placeholder="0" title="' . __('This field can only contain digits') . ' '.__('and').' - "' : $pattern;
+    $pattern = ($pattern == 'sigint') ? 'pattern="^-?\d+$" placeholder="0" title="' . __('This field can only contain digits') . ' ' . __('and') . ' - "' : $pattern;
     // For this pattern IP adress also can be 0.0.0.0
     $pattern = ($pattern == 'ip') ? 'pattern="^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$" placeholder="0.0.0.0" title="' . __('The IP address format can be') . ': 192.1.1.1"' : $pattern;
     // For this pattern exclude cidr /31
@@ -111,7 +111,7 @@ function wf_TextInput($name, $label = '', $value = '', $br = false, $size = '', 
     $pattern = ($pattern == 'url') ? 'pattern="https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)" placeholder="http://ubilling.net.ua/" title="' . __('URL') . ': http://host.domain/ ' . __('or') . ' https://host.domain/ ' . __('or') . ' http://host.domain:port"' : $pattern;
     $pattern = ($pattern == 'geo') ? 'pattern="-?\d{1,2}(\.\d+)\s?,\s?-?\d{1,3}(\.\d+)" placeholder="0.00000,0.00000" title="' . __('The format of geographic data can be') . ': 40.7143528,-74.0059731 ; 41.40338, 2.17403 ; -14.235004 , 51.92528"' : $pattern;
     $pattern = ($pattern == 'mobile') ? 'pattern="\+?(\d{1,3})?\d{2,3}\d{7}" placeholder="(+)(38)0500000000" title="' . __('The mobile number format can be') . ': +78126121104, 0506430501, 375295431122"' : $pattern;
-    
+
     $result = '<input type="text" name="' . $name . '" value="' . $value . '" ' . $input_size . ' id="' . $inputid . '" class="' . $class . '" ' . $opts . ' ' . $pattern . '>' . "\n";
     if ($label != '') {
         $labelOpts = (empty($labelOpts) ? '' : $labelOpts);
@@ -128,7 +128,7 @@ function wf_TextInput($name, $label = '', $value = '', $br = false, $size = '', 
 }
 
 /**
- * Return password input Web From element 
+ * Return password input Web From element (legacy)
  *
  * @param  string $name name of element
  * @param  string $label text label for input
@@ -138,7 +138,7 @@ function wf_TextInput($name, $label = '', $value = '', $br = false, $size = '', 
  * @return string
  *
  */
-function wf_PasswordInput($name, $label = '', $value = '', $br = false, $size = '') {
+function wf_PasswordInputRaw($name, $label = '', $value = '', $br = false, $size = '') {
     $inputid = wf_InputId();
     //set size
     if ($size != '') {
@@ -152,6 +152,58 @@ function wf_PasswordInput($name, $label = '', $value = '', $br = false, $size = 
         $newline = '';
     }
     $result = '<input type="password" name="' . $name . '" value="' . $value . '" ' . $input_size . ' id="' . $inputid . '">' . "\n";
+    if ($label != '') {
+        $result .= ' <label for="' . $inputid . '">' . __($label) . '</label>' . "\n";
+    }
+    $result .= $newline . "\n";
+    return ($result);
+}
+
+/**
+ * Return password input Web From element with show/hide controls
+ *
+ * @param  string $name name of element
+ * @param  string $label text label for input
+ * @param  string $value current value
+ * @param  bool   $br append new line
+ * @param  string $size input size
+ * @param  bool   $showHideInput show or not show/hide password control
+ * 
+ * @return string
+ *
+ */
+function wf_PasswordInput($name, $label = '', $value = '', $br = false, $size = '', $showHideInput = true) {
+    $result = '';
+    $inputid = wf_InputId();
+    //set size
+    if ($size != '') {
+        $input_size = 'size="' . $size . '"';
+    } else {
+        $input_size = '';
+    }
+    if ($br) {
+        $newline = '<br>';
+    } else {
+        $newline = '';
+    }
+    if ($showHideInput) {
+        $result .= '<style> .passfieldhide { filter: grayscale(1); .passfieldshow { filter: grayscale(0); } } </style>';
+    }
+    //password input here
+    $result .= '<input type="password" name="' . $name . '" value="' . $value . '" ' . $input_size . ' id="' . $inputid . '">' . "\n";
+
+    if ($showHideInput) {
+        $result .= '<span class="toggle-password' . $inputid . '"><img src="skins/icon_lock.png" width="12" title=' . __('Show') . '/' . __('Hide') . '></span>';
+        $result .= "
+            <script> 
+            $('.toggle-password" . $inputid . "').click(function(){
+                $(this).children().toggleClass('passfieldhide passfieldshow');
+                let input = $(this).prev();
+                input.attr('type', input.attr('type') === 'password' ? 'text' : 'password');
+            }); 
+        </script>";
+    }
+
     if ($label != '') {
         $result .= ' <label for="' . $inputid . '">' . __($label) . '</label>' . "\n";
     }
