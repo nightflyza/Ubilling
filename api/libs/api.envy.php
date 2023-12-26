@@ -507,8 +507,13 @@ class Envy {
                 $inputs = '';
                 $inputs .= wf_Selector('newdeviceswitchid', $switchesTmp, __('Switch'), '', true);
                 $inputs .= wf_TextInput('newdevicelogin', __('Login'), '', true, '');
-                $inputs .= wf_TextInput('newdevicepassword', __('Password'), '', true, '');
-                $inputs .= wf_TextInput('newdeviceenablepassword', __('Enable password'), '', true, '');
+                if ($this->altCfg['PASSWORDSHIDE']) {
+                    $inputs .= wf_PasswordInput('newdevicepassword', __('Password'), '', true, '');
+                    $inputs .= wf_PasswordInput('newdeviceenablepassword', __('Enable password'), '', true, '');
+                } else {
+                    $inputs .= wf_TextInput('newdevicepassword', __('Password'), '', true, '');
+                    $inputs .= wf_TextInput('newdeviceenablepassword', __('Enable password'), '', true, '');
+                }
                 $inputs .= wf_TextInput('newdevicecustom1', __('Custom field'), '', true, '');
                 $inputs .= wf_TextInput('newdevicecutstart', __('Lines to cut at start'), '0', true, '');
                 $inputs .= wf_TextInput('newdevicecutend', __('Lines to cut at end'), '0', true, '');
@@ -541,8 +546,13 @@ class Envy {
             $inputs .= wf_HiddenInput('editdeviceid', $deviceData['id']);
             $inputs .= wf_HiddenInput('editdeviceswitchid', $deviceData['switchid']);
             $inputs .= wf_TextInput('editdevicelogin', __('Login'), $deviceData['login'], true, '');
-            $inputs .= wf_TextInput('editdevicepassword', __('Password'), $deviceData['password'], true, '');
-            $inputs .= wf_TextInput('editdeviceenablepassword', __('Enable password'), $deviceData['enablepassword'], true, '');
+            if ($this->altCfg['PASSWORDSHIDE']) {
+                $inputs .= wf_PasswordInput('editdevicepassword', __('Password'), $deviceData['password'], true, '');
+                $inputs .= wf_PasswordInput('editdeviceenablepassword', __('Enable password'), $deviceData['enablepassword'], true, '');
+            } else {
+                $inputs .= wf_TextInput('editdevicepassword', __('Password'), $deviceData['password'], true, '');
+                $inputs .= wf_TextInput('editdeviceenablepassword', __('Enable password'), $deviceData['enablepassword'], true, '');
+            }
             $inputs .= wf_TextInput('editdevicecustom1', __('Custom field'), $deviceData['custom1'], true, '');
             $inputs .= wf_TextInput('editdevicecutstart', __('Lines to cut at start'), $deviceData['cutstart'], true, '');
             $inputs .= wf_TextInput('editdevicecutend', __('Lines to cut at end'), $deviceData['cutend'], true, '');
@@ -713,9 +723,11 @@ class Envy {
             $cells .= wf_TableCell(__('Switch'));
             $cells .= wf_TableCell(__('Model'));
             $cells .= wf_TableCell(__('Active'));
-            $cells .= wf_TableCell(__('Login'));
-            $cells .= wf_TableCell(__('Password'));
-            $cells .= wf_TableCell(__('Enable password'));
+            if (!$this->altCfg['PASSWORDSHIDE']) {
+                $cells .= wf_TableCell(__('Login'));
+                $cells .= wf_TableCell(__('Password'));
+                $cells .= wf_TableCell(__('Enable password'));
+            }
             $cells .= wf_TableCell(__('Custom field'));
             $cells .= wf_TableCell(__('Actions'));
             $rows = wf_TableRow($cells, 'row1');
@@ -748,9 +760,11 @@ class Envy {
                 $cells .= wf_TableCell($switchData['location']);
                 $cells .= wf_TableCell($modelLabel . ' ' . @$allModelNames[$switchData['modelid']]);
                 $cells .= wf_TableCell(web_bool_led($each['active']));
-                $cells .= wf_TableCell($each['login']);
-                $cells .= wf_TableCell($each['password']);
-                $cells .= wf_TableCell($each['enablepassword']);
+                if (!$this->altCfg['PASSWORDSHIDE']) {
+                    $cells .= wf_TableCell($each['login']);
+                    $cells .= wf_TableCell($each['password']);
+                    $cells .= wf_TableCell($each['enablepassword']);
+                }
                 $cells .= wf_TableCell($each['custom1']);
                 $devControls = '';
                 $devControls .= wf_JSAlert(self::URL_ME . '&deletedevice=' . $each['switchid'], web_delete_icon(), $this->messages->getDeleteAlert()) . ' ';
@@ -1154,7 +1168,7 @@ class Envy {
         $result = '';
         $configIdOne = ubRouting::filters($configIdOne, 'int');
         $configIdTwo = ubRouting::filters($configIdTwo, 'int');
-        if (!empty($configIdOne) AND ! empty($configIdTwo)) {
+        if (!empty($configIdOne) AND !empty($configIdTwo)) {
             //same config check
             if ($configIdOne != $configIdTwo) {
                 if (isset($this->allConfigs[$configIdOne]) AND isset($this->allConfigs[$configIdTwo])) {
