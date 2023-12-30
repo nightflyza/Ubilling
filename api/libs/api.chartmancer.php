@@ -139,6 +139,13 @@ class ChartMancer {
     );
 
     /**
+     * Dynamic palette overrides
+     * 
+     * @var array
+     */
+    protected $overrideColors=array();
+
+    /**
      * Transparent background transparency flag
      * 
      * @var bool
@@ -439,6 +446,15 @@ class ChartMancer {
     }
 
     /**
+     * Sets custom colors overrides as array of RGB decimal values.
+     * 
+     * @return void
+     */
+    public function setOverrideColors($customColors) {
+        $this->overrideColors=$customColors;
+    }
+
+    /**
      * Renders chart as PNG image into browser or into specified file
      * 
      * @param array $data
@@ -506,9 +522,16 @@ class ChartMancer {
 // Distance between grid lines on y-axis
         $yLabelSpan = 20;
         if ($dataMax) {
-            if ($dataMax <= 10) {
+            if ($dataMax <= 20) {
                 $yLabelSpan = 1;
+            } else {
+                if ($dataMax<=100) {
+                    $yLabelSpan=5;
+                } else {
+                    $yLabelSpan=10;
+                }
             }
+            
             if ($dataMax >= 200) {
                 $yLabelSpan = round($dataMax / 10);
             }
@@ -543,7 +566,13 @@ class ChartMancer {
 // Nested colors palette generation here
         if ($nestedData) {
             for ($i = 1; $i <= $nestedDepth; $i++) {
-                $randomColor = $this->getColorFromText($i);
+                if (isset($this->overrideColors[$i])) {
+                    //use color override
+                    $randomColor=$this->overrideColors[$i];
+                } else {
+                    //or generating new
+                    $randomColor = $this->getColorFromText($i);
+                }
                 $customColors[$i] = imagecolorallocate($chart, $randomColor['r'], $randomColor['g'], $randomColor['b']);
             }
         }
@@ -606,8 +635,8 @@ class ChartMancer {
                     $y1 = (int) $y1;
                     $x2 = (int) $x2;
                     $y2 = (int) $y2;
-                    $rValue = '_' . $subVal;
-                    $zBuffer[$rValue] = array(
+                    @$rValue =(isset($zBuffer[$subVal])) ? ($subVal-1).'_' : $subVal;
+                    @$zBuffer[$rValue] = array(
                         'value' => $subVal,
                         'x1' => $x1,
                         'y1' => $y1,
@@ -615,7 +644,6 @@ class ChartMancer {
                         'y2' => $y2,
                         'colorIdx' => $i
                     );
-
                     $i++;
                 }
 
@@ -655,15 +683,16 @@ class ChartMancer {
             $labelY = (int) $labelY;
 
 // Skipping some labels display?
-            $labelText = (((mb_strlen($key, 'UTF-8') > $this->xLabelLen)) ) ? mb_substr($key, 0, $this->xLabelLen, 'utf-8') . '...' : $key;
             $index++;
             if ($dataSize > 10) {
                 $labelIterator = (int) ($dataSize / $xAxisLabelCount);
                 $labelIterator = ($labelIterator == 0) ? 1 : $labelIterator; //prevents mod by zero
                 if (($index) % $labelIterator == 0) {
+                    $labelText = (((mb_strlen($key, 'UTF-8') > $this->xLabelLen)) ) ? mb_substr($key, 0, $this->xLabelLen, 'utf-8') . '...' : $key;
                     imagettftext($chart, $this->fontSize, 0, $labelX, $labelY, $labelColor, $this->font, $labelText);
                 }
             } else {
+                $labelText = (((mb_strlen($key, 'UTF-8') > $this->xLabelLen)) ) ? mb_substr($key, 0, $this->xLabelLen, 'utf-8') . '...' : $key;
                 imagettftext($chart, $this->fontSize, 0, $labelX, $labelY, $labelColor, $this->font, $labelText);
             }
 
