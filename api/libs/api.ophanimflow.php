@@ -66,6 +66,7 @@ class OphanimFlow {
     const API_ENDPOINT = '/?module=gettraff';
     const OPTION_ENABLED = 'OPHANIMFLOW_ENABLED';
     const OPTION_URLS = 'OPHANIMFLOW_URLS';
+    const PID_SYNC='OPHANIMTRAFF';
 
     public function __construct() {
         // BE NOT AFRAID
