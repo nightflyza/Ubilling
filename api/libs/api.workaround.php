@@ -2311,6 +2311,7 @@ function web_UserTraffStats($login) {
             $downup = simple_query($query_downup);
 //yeah, no classes at all
             if ($dir['rulenumber'] == 0) {
+                //ishimura enabled?
                 if ($altCfg[$ishimuraOption]) {
                     $query_hideki = "SELECT `D0`,`U0` from `" . $ishimuraTable . "` WHERE `login`='" . $login . "' AND `month`='" . date("n") . "' AND `year`='" . curyear() . "'";
                     $dataHideki = simple_query($query_hideki);
@@ -2320,6 +2321,18 @@ function web_UserTraffStats($login) {
                     } else {
                         $downup['D0'] = $dataHideki['D0'];
                         $downup['U0'] = $dataHideki['U0'];
+                    }
+                }
+                //or ophanim flow may be?
+                if ($altCfg[OphanimFlow::OPTION_ENABLED]) {
+                    $ophahnimFlow = new OphanimFlow();
+                    $ophanimCmonth = $ophahnimFlow->getUserCurMonthTraff($login);
+                    if (isset($downup['D0'])) {
+                        $downup['D0'] += $ophanimCmonth['D0'];
+                        $downup['U0'] += $ophanimCmonth['U0'];
+                    } else {
+                        $downup['D0'] = $ophanimCmonth['D0'];
+                        $downup['U0'] = $ophanimCmonth['U0'];
                     }
                 }
             }
@@ -2370,7 +2383,7 @@ function web_UserTraffStats($login) {
         if (!empty($bwd['days'])) {
 //bandwidthd legend
             if (!ispos($bandwidthd, 'OphanimFlow') AND !ispos($bandwidthd, 'of/')) {
-            $graphLegend = wf_tag('br') . wf_img('skins/bwdlegend.gif');
+                $graphLegend = wf_tag('br') . wf_img('skins/bwdlegend.gif');
             } else {
                 $graphLegend = '';
             }
@@ -2425,8 +2438,10 @@ function web_UserTraffStats($login) {
         foreach ($dirs as $dir) {
             $query_prev = "SELECT `D" . $dir['rulenumber'] . "`, `U" . $dir['rulenumber'] . "`, `month`, `year`, `cash` FROM `stat` WHERE `login` = '" . $login . "' ORDER BY `year`,`month`;";
             $prevmonths = simple_queryall($query_prev);
+
 //and again no classes
             if ($dir['rulenumber'] == 0) {
+                //ishimura traffic accounting?
                 if ($altCfg[$ishimuraOption]) {
                     $query_hideki = "SELECT `D0`,`U0`,`month`,`year`,`cash` from `" . $ishimuraTable . "` WHERE `login`='" . $login . "' ORDER BY `year`,`month`;";
                     $dataHideki = simple_queryall($query_hideki);
@@ -2436,7 +2451,23 @@ function web_UserTraffStats($login) {
                                 if ($stgEach['year'] == $each['year'] AND $stgEach['month'] == $each['month']) {
                                     $prevmonths[$ia]['D0'] += $each['D0'];
                                     $prevmonths[$ia]['U0'] += $each['U0'];
-                                    $prevmonths[$ia]['cash'] += $each['cash'];
+                                    //$prevmonths[$ia]['cash'] += $each['cash'];
+                                }
+                            }
+                        }
+                    }
+                }
+
+                //or just OphanimFlow integration?
+                if ($altCfg[OphanimFlow::OPTION_ENABLED]) {
+                    $ophahnimFlow = new OphanimFlow();
+                    $ophRaw = $ophahnimFlow->getUserAllTraff($login);
+                    if (!empty($ophRaw)) {
+                        foreach ($ophRaw as $io => $each) {
+                            foreach ($prevmonths as $ia => $stgEach) {
+                                if ($stgEach['year'] == $each['year'] AND $stgEach['month'] == $each['month']) {
+                                    $prevmonths[$ia]['D0'] += $each['D0'];
+                                    $prevmonths[$ia]['U0'] += $each['U0'];
                                 }
                             }
                         }
