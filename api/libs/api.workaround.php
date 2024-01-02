@@ -2474,6 +2474,7 @@ function web_UserTraffStats($login) {
                     }
                 }
             }
+
             if (!empty($prevmonths)) {
                 $prevmonths = array_reverse($prevmonths);
             }

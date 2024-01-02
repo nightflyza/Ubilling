@@ -977,7 +977,7 @@ function zbs_UserShowXmlAgentData($login) {
 
     // assigned contragents export
     if (ubRouting::checkGet('agentassigned')) {
-        $allAddress  = zbs_AddressGetFulladdresslist();
+        $allAddress = zbs_AddressGetFulladdresslist();
         $userAddress = empty($allAddress) ? array() : $allAddress[$login];
         $agentData = zbs_AgentAssignedGetDataFast($login, $userAddress);
         $agentArray = empty($agentData) ? array() : array('agentdata' => $agentData);
@@ -1886,6 +1886,8 @@ function zbs_UserTraffStats($login) {
     $monthnames = zbs_months_array_wz();
     $ishimuraOption = 'ISHIMURA_ENABLED';
     $ishimuraTable = 'mlg_ishimura';
+    $ophanimOption = 'OPHANIM_ENABLED';
+    $ophanimTable = 'ophtraff';
     /*
      * Current month traffic stats
      */
@@ -1904,6 +1906,7 @@ function zbs_UserTraffStats($login) {
             //yeah, no classes at all
             if ($eachdir['rulenumber'] == 0) {
                 if ($us_config[$ishimuraOption]) {
+                    //ishimura traffic stats
                     $query_hideki = "SELECT `D0`,`U0` from `" . $ishimuraTable . "` WHERE `login`='" . $login . "' AND `month`='" . date("n") . "' AND `year`='" . date("Y") . "'";
                     $dataHideki = simple_query($query_hideki);
                     if (isset($downup['D0'])) {
@@ -1916,7 +1919,25 @@ function zbs_UserTraffStats($login) {
                         $downup['U0'] = $dataHideki['U0'];
                     }
                 }
+
+                //OphanimFlow integration
+                if ($us_config[$ophanimOption]) {
+                    $ophDb = new NyanORM($ophanimTable);
+                    $ophDb->selectable(array('login', 'D0', 'U0'));
+                    $ophDb->where('login', '=', $login);
+                    $ophDb->where('year', '=', date("Y"));
+                    $ophDb->where('month', '=', date("n"));
+                    $rawOphTraff = $ophDb->getAll();
+                    if (isset($downup['D0'])) {
+                        if (!empty($rawOphTraff)) {
+                            $downup['D0'] += $rawOphTraff[0]['D0'];
+                            $downup['U0'] += $rawOphTraff[0]['U0'];
+                        }
+                    }
+                }
             }
+
+
             $cells = la_TableCell($eachdir['rulename']);
             $cells .= la_TableCell(zbs_convert_size($downup['D' . $eachdir['rulenumber']]));
             $cells .= la_TableCell(zbs_convert_size($downup['U' . $eachdir['rulenumber']]));
@@ -1949,6 +1970,7 @@ function zbs_UserTraffStats($login) {
             $allprevmonth = simple_queryall($query_prev);
             //and again no classes
             if ($eachdir['rulenumber'] == 0) {
+                //ishimura traffic mixing
                 if ($us_config[$ishimuraOption]) {
                     $query_hideki = "SELECT `D0`,`U0`,`month`,`year`,`cash` from `" . $ishimuraTable . "` WHERE `login`='" . $login . "' ORDER BY `year`,`month`;";
                     $dataHideki = simple_queryall($query_hideki);
@@ -1958,7 +1980,26 @@ function zbs_UserTraffStats($login) {
                                 if ($stgEach['year'] == $each['year'] AND $stgEach['month'] == $each['month']) {
                                     $allprevmonth[$ia]['D0'] += $each['D0'];
                                     $allprevmonth[$ia]['U0'] += $each['U0'];
-                                    $allprevmonth[$ia]['cash'] += $each['cash'];
+                                    //$allprevmonth[$ia]['cash'] += $each['cash'];
+                                }
+                            }
+                        }
+                    }
+                }
+
+                //OphanimFlow traffic mixing
+                if ($us_config[$ophanimOption]) {
+                    $ophDb = new NyanORM($ophanimTable);
+                    $ophDb->selectable(array('login', 'D0', 'U0', 'month', 'year'));
+                    $ophDb->where('login', '=', $login);
+                    $ophDb->orderBy('year`,`month', 'DESC');
+                    $allOphTraff = $ophDb->getAll();
+                    if (!empty($allOphTraff)) {
+                        foreach ($allOphTraff as $io => $each) {
+                            foreach ($allprevmonth as $ia => $stgEach) {
+                                if ($stgEach['year'] == $each['year'] AND $stgEach['month'] == $each['month']) {
+                                    $allprevmonth[$ia]['D0'] += $each['D0'];
+                                    $allprevmonth[$ia]['U0'] += $each['U0'];
                                 }
                             }
                         }
