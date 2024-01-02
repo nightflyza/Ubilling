@@ -359,6 +359,21 @@ if ($system->checkForRight('ONLINE')) {
                     }
                 }
             }
+
+            if (@$alter_conf[OphanimFlow::OPTION_ENABLED]) {
+                $ophanimFlow = new OphanimFlow();
+                $ophTraf = $ophanimFlow->getAllUsersAggrTraff();
+                if (!empty($ophTraf)) {
+                    foreach ($ophTraf as $ophLogin => $ophBytes) {
+                        if (isset($additionalTraffic[$ophLogin])) {
+                            $additionalTraffic[$ophLogin] += $ophBytes;
+                        } else {
+                            $additionalTraffic[$ophLogin] = $ophBytes;
+                        }
+                    }
+                }
+            }
+            
             $allcontracts = array();
             $allcontractdates = array();
 
@@ -528,7 +543,7 @@ if ($system->checkForRight('ONLINE')) {
                         $uc = 'U' . $classcounter . '';
                         $tinet = $tinet + ($eachuser[$dc] + $eachuser[$uc]);
                     }
-                    //ishimura traffic mixing
+                    //ishimura and ophanim traffic mixing
                     $currentAdditionalTraff = (isset($additionalTraffic[$eachuser['login']])) ? $additionalTraffic[$eachuser['login']] : 0;
                     $tinet = $tinet + $currentAdditionalTraff;
 
