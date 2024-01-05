@@ -6,7 +6,7 @@ if ($altCfg['MAPON_ENABLED']) {
         $mapsConfig = $ubillingConfig->getYmaps();
         $mapon = new MapOn();
         try {
-            $lastRouteFlag = wf_CheckGet(array('alldayroutes')) ? false : true;
+            $lastRouteFlag = ubRouting::checkGet('alldayroutes') ? false : true;
             $units = $mapon->getUnits();
             $unitDrivers = array();
 
@@ -46,13 +46,13 @@ if ($altCfg['MAPON_ENABLED']) {
                     }
 
                     $carName = $each['driver'] . ' - ' . $each['number'];
-                    $state = $each['label'] . ' ' . __($each['state']);
+                    $state = $each['label'] . ' - ' . __($each['state']);
                     $mileage = __('Total mileage') . ': ' . ($each['mileage'] / 1000) . ' ' . __('kilometer');
                     $speed = ($each['speed']) ? $each['speed'] : 0;
                     $voltage = $each['supply_voltage'];
                     $carParams = __('Speed') . ': ' . $speed . ' ' . __('km/h') . wf_tag('br');
                     $carParams .= __('Voltage') . ': ' . $voltage . ' ' . __('Volt');
-
+                    $carParams .= wf_delimiter(1) . $each['lat'] . ',' . $each['lng'];
                     $carLabel = $mileage . wf_tag('br') . $carParams;
                     $placemarks .= generic_mapAddMark($each['lat'] . ',' . $each['lng'], $state, $carName, $carLabel, $icon, '', true);
                 }
@@ -135,7 +135,8 @@ if ($altCfg['MAPON_ENABLED']) {
 
                 //render map
                 $container = generic_MapContainer('100%', '650px');
-                $container .= generic_MapInit($mapsConfig['CENTER'], $mapsConfig['ZOOM'], $mapsConfig['TYPE'], $placemarks, '', $mapsConfig['LANG']);
+                $editor = generic_MapEditor('maponpointlocation', __('Place coordinates'), '');
+                $container .= generic_MapInit($mapsConfig['CENTER'], $mapsConfig['ZOOM'], $mapsConfig['TYPE'], $placemarks, $editor, $mapsConfig['LANG']);
                 show_window(__('Cars'), $container);
 
                 //render controls

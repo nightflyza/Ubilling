@@ -20,6 +20,13 @@ class Stigma {
     protected $type = 'radiolist';
 
     /**
+     * Stigma controller renderer type: iconic, selector, textlink, etc...
+     * 
+     * @var string
+     */
+    protected $renderer = 'iconic';
+
+    /**
      * Contains available stigma type icons as state=>iconname
      *
      * @var array
@@ -69,6 +76,13 @@ class Stigma {
     protected $activeClass = 'todaysig';
 
     /**
+     * Configurable base-state controls class
+     * 
+     * @var string
+     */
+    protected $baseClass = 'dashtask';
+
+    /**
      * Stigma content update animation
      *
      * @var bool
@@ -88,6 +102,13 @@ class Stigma {
      * @var string
      */
     protected $systemLogging = '';
+
+    /**
+     * System custom logging flag/table name. Disabled if empty.
+     *
+     * @var string
+     */
+    protected $customLogging = '';
 
     /**
      * Default icons file extension
@@ -128,6 +149,11 @@ class Stigma {
      * Contains defaul states delimiter for multiple states
      */
     const DELIMITER = '|';
+
+    /**
+     * Renderer methods names prefix
+     */
+    const RENDERER_PREFIX = 'renderer';
 
     /**
      * Some URLS/routes etc
@@ -199,7 +225,6 @@ class Stigma {
         $myRoutes = array(self::ROUTE_ICONSIZE, self::ROUTE_ITEMID, self::ROUTE_SCOPE, self::ROUTE_STATE);
         $myRoutes = array_flip($myRoutes);
 
-
         if (!empty($getVars)) {
             $url = '?';
             foreach ($getVars as $getVar => $getVal) {
@@ -257,6 +282,17 @@ class Stigma {
     }
 
     /**
+     * System custom database table logging flag/name public setter
+     * 
+     * @param string $parameter
+     * 
+     * @return void
+     */
+    public function setCustomLogging($parameter = '') {
+        $this->customLogging = $parameter;
+    }
+
+    /**
      * Preloads current scope settings from config file
      * 
      * @throws Exception
@@ -282,13 +318,23 @@ class Stigma {
             if (isset($raw['stigmasettings'])) {
                 if (isset($raw['stigmasettings']['TYPE'])) {
                     $this->type = $raw['stigmasettings']['TYPE'];
+
                     if (isset($raw['stigmasettings']['ACTIVECLASS'])) {
                         $this->activeClass = $raw['stigmasettings']['ACTIVECLASS'];
+                    }
+
+                    if (isset($raw['stigmasettings']['BASECLASS'])) {
+                        $this->baseClass = $raw['stigmasettings']['BASECLASS'];
                     }
 
                     if (isset($raw['stigmasettings']['ANIMATION'])) {
                         $this->animated = ($raw['stigmasettings']['ANIMATION']) ? false : true;
                     }
+
+                    if (isset($raw['stigmasettings']['RENDERER'])) {
+                        $this->renderer = $raw['stigmasettings']['RENDERER'];
+                    }
+
                     foreach ($raw as $io => $each) {
                         if ($io != 'stigmasettings') {
                             $this->states[$io] = $each['NAME'];
@@ -348,37 +394,21 @@ class Stigma {
     }
 
     /**
-     * Renders stigma current state and editing interface for some item
+     * Returns default iconic renderer controls
      * 
-     * @param string $itemId item ID to render control panel
-     * @param int $size optional size of state icons
-     * @param bool $readOnly render panel as read-only state preview
+     * @param string $itemId
+     * @param int $size
+     * @param bool $readOnly
+     * @param array $currentStates
+     * @param string $containerName
      * 
-     * @return string
+     * @return string 
      */
-    public function render($itemId, $size = '', $readOnly = false) {
+    protected function rendererIconic($itemId, $size = '', $readOnly = false, $currentStates, $containerName) {
         $result = '';
-
-        $itemId = ubRouting::filters($itemId, 'mres');
-        $currentStates = array();
-
-        if (ubRouting::checkGet(self::ROUTE_ICONSIZE)) {
-            $size = ubRouting::get(self::ROUTE_ICONSIZE, 'int');
-        }
-
-//this itemid already have an stigma record
-        if (isset($this->allStigmas[$itemId])) {
-            $rawStates = explode(self::DELIMITER, $this->allStigmas[$itemId]['state']);
-            $currentStates = array_flip($rawStates);
-            unset($currentStates['']);
-        }
-
-        $containerName = 'ajStigma' . $this->scope . '_' . $itemId;
-        $result .= wf_AjaxLoader($this->animated);
-        $result .= wf_tag('div', false, '', 'id="' . $containerName . '"');
         foreach ($this->states as $stateId => $stateName) {
             $stateLabel = __($stateName);
-            $controlClass = 'dashtask';
+            $controlClass = $this->baseClass;
             if (isset($currentStates[$stateId])) {
                 $controlClass .= ' ' . $this->activeClass;
             }
@@ -400,7 +430,141 @@ class Stigma {
             $result .= wf_delimiter(0) . $stateLabel;
             $result .= wf_tag('div', true);
         }
+        return($result);
+    }
 
+    /**
+     * Returns selector renderer controls
+     * 
+     * @param string $itemId
+     * @param int $size
+     * @param bool $readOnly
+     * @param array $currentStates
+     * @param string $containerName
+     * 
+     * @return string 
+     */
+    protected function rendererSelector($itemId, $size = '', $readOnly = false, $currentStates, $containerName) {
+        $result = '';
+        $params = array();
+        $disabled = '';
+        $selected = '';
+        foreach ($this->states as $stateId => $stateName) {
+            $controlUrl = $this->baseUrl . '&' . self::ROUTE_SCOPE . '=' . $this->scope . '&' . self::ROUTE_ITEMID . '=' . $itemId . '&' . self::ROUTE_STATE . '=' . $stateId;
+            if (isset($currentStates[$stateId])) {
+                $selected = $controlUrl;
+            }
+            if ($readOnly) {
+                $disabled = ' DISABLED';
+            }
+
+            $stateLabel = __($stateName);
+            $params[$controlUrl] = $stateLabel;
+        }
+        $result .= wf_AjaxSelectorAC($containerName, $params, '', $selected, false, $disabled);
+        return($result);
+    }
+
+    /**
+     * Returns text links renderer controls
+     * 
+     * @param string $itemId
+     * @param int $size
+     * @param bool $readOnly
+     * @param array $currentStates
+     * @param string $containerName
+     * 
+     * @return string 
+     */
+    protected function rendererTextlink($itemId, $size = '', $readOnly = false, $currentStates, $containerName) {
+        $result = '';
+        foreach ($this->states as $stateId => $stateName) {
+            $stateLabel = __($stateName);
+            $controlClass = $this->baseClass;
+            if (isset($currentStates[$stateId])) {
+                $controlClass .= ' ' . $this->activeClass;
+            }
+
+            $controlUrl = $this->baseUrl . '&' . self::ROUTE_SCOPE . '=' . $this->scope . '&' . self::ROUTE_ITEMID . '=' . $itemId . '&' . self::ROUTE_STATE . '=' . $stateId;
+            if (!$readOnly) {
+                $controlLink = wf_AjaxLink($controlUrl, $stateLabel, $containerName, false, $controlClass);
+            } else {
+                $controlLink = wf_Link('#', $stateLabel, false, $controlClass);
+            }
+            $result .= $controlLink . ' ';
+        }
+        return($result);
+    }
+
+    /**
+     * Returns text links and small images renderer controls
+     * 
+     * @param string $itemId
+     * @param int $size
+     * @param bool $readOnly
+     * @param array $currentStates
+     * @param string $containerName
+     * 
+     * @return string 
+     */
+    protected function rendererImagelink($itemId, $size = '', $readOnly = false, $currentStates, $containerName) {
+        $result = '';
+        foreach ($this->states as $stateId => $stateName) {
+            $stateLabel = __($stateName);
+            $controlClass = $this->baseClass;
+            if (isset($currentStates[$stateId])) {
+                $controlClass .= ' ' . $this->activeClass;
+            }
+            $stateIcon = $this->getStateIcon($stateId);
+
+            $controlUrl = $this->baseUrl . '&' . self::ROUTE_SCOPE . '=' . $this->scope . '&' . self::ROUTE_ITEMID . '=' . $itemId . '&' . self::ROUTE_STATE . '=' . $stateId;
+            if (!$readOnly) {
+                $controlLink = wf_AjaxLink($controlUrl, wf_img_sized($stateIcon, $stateLabel, 16) . ' ' . $stateLabel, $containerName, false, $controlClass);
+            } else {
+                $controlLink = wf_Link('#', wf_img_sized($stateIcon, $stateLabel, 16) . ' ' . $stateLabel, false, $controlClass);
+            }
+            $result .= $controlLink . ' ';
+        }
+        return($result);
+    }
+
+    /**
+     * Renders stigma current state and editing interface for some item
+     * 
+     * @param string $itemId item ID to render control panel
+     * @param int $size optional size of state icons
+     * @param bool $readOnly render panel as read-only state preview
+     * 
+     * @return string
+     */
+    public function render($itemId, $size = '', $readOnly = false) {
+        $result = '';
+
+        $itemId = ubRouting::filters($itemId, 'mres');
+        $currentStates = array();
+
+        if (ubRouting::checkGet(self::ROUTE_ICONSIZE)) {
+            $size = ubRouting::get(self::ROUTE_ICONSIZE, 'int');
+        }
+
+        //this itemid already have an stigma record
+        if (isset($this->allStigmas[$itemId])) {
+            $rawStates = explode(self::DELIMITER, $this->allStigmas[$itemId]['state']);
+            $currentStates = array_flip($rawStates);
+            unset($currentStates['']);
+        }
+
+        $containerName = 'ajStigma' . $this->scope . '_' . $itemId;
+        $result .= wf_AjaxLoader($this->animated);
+        $result .= wf_tag('div', false, '', 'id="' . $containerName . '"');
+
+        //selecting and calling controller renderer method
+        $rendererMethodName = self::RENDERER_PREFIX . ucfirst($this->renderer);
+        if (method_exists($this, $rendererMethodName)) {
+            $result .= $this->$rendererMethodName($itemId, $size, $readOnly, $currentStates, $containerName);
+        } else {
+            throw new Exception('EX_RENDERER_METHOD_NOT_EXISTS:' . $rendererMethodName);
+        }
 
         $result .= wf_tag('div', true);
         $result .= wf_CleanDiv();
@@ -523,6 +687,11 @@ class Stigma {
                         if (ispos($logging, 'SYSTEM:')) {
                             $logging = str_replace('SYSTEM:', '', $logging);
                             $stigmaCtrl->setSystemLogging($logging);
+                        }
+
+                        if (ispos($logging, 'CUSTOM:')) {
+                            $logging = str_replace('CUSTOM:', '', $logging);
+                            $stigmaCtrl->setCustomLogging($logging);
                         }
                     }
 
@@ -647,6 +816,17 @@ class Stigma {
         if ($this->systemLogging) {
             log_register('STIGMA ' . $this->scope . ' CHANGE [' . $itemId . '] `' . $this->systemLogging . '` ON  `' . $newState . '`');
         }
+
+        if ($this->customLogging) {
+            $customLogDb = new NyanORM($this->customLogging);
+            $customLogDb->data('date', curdatetime());
+            $customLogDb->data('admin', $this->myLogin);
+            $customLogDb->data('scope', $this->scope);
+            $customLogDb->data('itemid', $itemId);
+            $customLogDb->data('action', $oldState);
+            $customLogDb->data('state', $newState);
+            $customLogDb->create();
+        }
     }
 
     /**
@@ -702,7 +882,7 @@ class Stigma {
     public function getReportData($dateFrom = '', $dateTo = '') {
         $result = array();
         $dateFilters = false;
-        if (!empty($dateFrom) AND ! empty($dateTo)) {
+        if (!empty($dateFrom) AND !empty($dateTo)) {
             $dateFilters = true;
         }
 
@@ -723,13 +903,13 @@ class Stigma {
                     if (!empty($itemStates)) {
                         foreach ($itemStates as $eachState => $eachIndex) {
                             if (isset($result[$eachState])) {
-                                $result[$eachState]['count'] ++;
+                                $result[$eachState]['count']++;
                             } else {
                                 $result[$eachState]['count'] = 1;
                             }
 
                             if (isset($result[$eachState]['admins'][$eachStigmaData['admin']])) {
-                                $result[$eachState]['admins'][$eachStigmaData['admin']] ++;
+                                $result[$eachState]['admins'][$eachStigmaData['admin']]++;
                             } else {
                                 $result[$eachState]['admins'][$eachStigmaData['admin']] = 1;
                             }
@@ -767,7 +947,6 @@ class Stigma {
         $dataYear = $this->getReportData($dateYearBegin, $dateYearEnd);
         $dataAllTime = $this->getReportData();
 
-
         if (!empty($availStates)) {
             $cells = wf_TableCell(__('Job'), '30%');
             $cells .= wf_TableCell(__('Day'));
@@ -801,5 +980,4 @@ class Stigma {
         }
         return($result);
     }
-
 }

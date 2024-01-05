@@ -302,6 +302,7 @@ class PBXMonitor {
             foreach ($allVoiceFiles as $io => $each) {
                 $fileName = $each;
                 if (filesize($this->voicePath . $fileName) > 0) {
+                    $rowFiltered = false;
                     $explodedFile = explode('_', $fileName);
                     $cleanDate = explode('.', $explodedFile[2]);
                     $cleanDate = $cleanDate[0];
@@ -326,24 +327,24 @@ class PBXMonitor {
 
                         if ((empty($filterLogin)) OR ( $filterLogin == $userLogin)) {
                             if ($renderAll) {
+                                $rowFiltered = true;
+                            } else {
+                                if (ispos($cleanDate, $curYear)) {
+                                    $rowFiltered = true;
+                                }
+                            }
+
+                            //append data to results
+                            if ($rowFiltered) {
                                 $data[] = wf_img($callDirection) . ' ' . $cleanDate;
                                 $data[] = $callingNumber;
                                 $data[] = $userLink;
                                 $data[] = $this->renderUserTags($userLogin);
                                 $data[] = $this->getSoundcontrols($fileUrl) . $allCallsLabel;
                                 $json->addRow($data);
-                            } else {
-                                if (ispos($cleanDate, $curYear)) {
-                                    $data[] = wf_img($callDirection) . ' ' . $cleanDate;
-                                    $data[] = $callingNumber;
-                                    $data[] = $userLink;
-                                    $data[] = $this->renderUserTags($userLogin);
-                                    $data[] = $this->getSoundcontrols($fileUrl) . $allCallsLabel;
-                                    $json->addRow($data);
-                                }
+                                unset($data);
                             }
                         }
-                        unset($data);
                     }
                 }
             }
@@ -355,6 +356,7 @@ class PBXMonitor {
             foreach ($allArchiveFiles as $io => $each) {
                 $fileName = $each;
                 if (filesize($this->archivePath . $fileName) > 0) {
+                    $rowFiltered = false;
                     $explodedFile = explode('_', $fileName);
                     $cleanDate = explode('.', $explodedFile[2]);
                     $cleanDate = $cleanDate[0];
@@ -378,24 +380,24 @@ class PBXMonitor {
                         $fileUrl = self::URL_ME . '&dlpbxcall=' . $fileName;
                         if ((empty($filterLogin)) OR ( $filterLogin == $userLogin)) {
                             if ($renderAll) {
-                                $data[] = wf_img($callDirection) . ' ' . $cleanDate;
-                                $data[] = $callingNumber;
-                                $data[] = $userLink;
-                                $data[] = $this->renderUserTags($userLogin);
-                                $data[] = $this->getSoundcontrols($fileUrl) . ' ' . $archiveLabel . $allCallsLabel;
-                                $json->addRow($data);
+                                $rowFiltered = true;
                             } else {
                                 if (ispos($cleanDate, $curYear)) {
-                                    $data[] = wf_img($callDirection) . ' ' . $cleanDate;
-                                    $data[] = $callingNumber;
-                                    $data[] = $userLink;
-                                    $data[] = $this->renderUserTags($userLogin);
-                                    $data[] = $this->getSoundcontrols($fileUrl) . ' ' . $archiveLabel . $allCallsLabel;
-                                    $json->addRow($data);
+                                    $rowFiltered = true;
                                 }
                             }
                         }
-                        unset($data);
+
+                        //append data to results
+                        if ($rowFiltered) {
+                            $data[] = wf_img($callDirection) . ' ' . $cleanDate;
+                            $data[] = $callingNumber;
+                            $data[] = $userLink;
+                            $data[] = $this->renderUserTags($userLogin);
+                            $data[] = $this->getSoundcontrols($fileUrl) . $archiveLabel . $allCallsLabel;
+                            $json->addRow($data);
+                            unset($data);
+                        }
                     }
                 }
             }

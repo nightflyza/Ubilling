@@ -1,13 +1,35 @@
 <?php
 
-// Set following option to 1 for enable debug mode
-define('XHPROF', 0);
+////////////////////////////////////////////////////////////////////////////////
+//   Copyright (C) Ubilling Development Team                                  //
+//   https://ubilling.net.ua                                                  //
+//                                                                            //
+//   This program is distributed in the hope that it will be useful,          //
+//   but WITHOUT ANY WARRANTY, without even the implied warranty of           //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.                     //
+//                                                                            //
+//   This product released under GNU General Public License v2                //
+////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * is Xhprof Hierarchical Profiler enabled?
+ */
+$minimalBillingConfig = @parse_ini_file('config/billing.ini');
+if (@$minimalBillingConfig['XHPROF']) {
+    define('XHPROF', 1);
+} else {
+    define('XHPROF', 0);
+}
+
 if (XHPROF) {
-    define("XHPROF_ROOT", __DIR__ . '/xhprof');
-    require_once (XHPROF_ROOT . '/xhprof_lib/utils/xhprof_lib.php');
-    require_once (XHPROF_ROOT . '/xhprof_lib/utils/xhprof_runs.php');
-//append XHPROF_FLAGS_NO_BUILTINS if your PHP instance crashes
-    xhprof_enable(XHPROF_FLAGS_CPU + XHPROF_FLAGS_MEMORY);
+    //xhprof installed?
+    if (file_exists('modules/foreign/xhprof/xhprof_lib/utils/xhprof_lib.php')) {
+        define("XHPROF_ROOT", __DIR__ . '/modules/foreign/xhprof');
+        require_once (XHPROF_ROOT . '/xhprof_lib/utils/xhprof_lib.php');
+        require_once (XHPROF_ROOT . '/xhprof_lib/utils/xhprof_runs.php');
+        //append XHPROF_FLAGS_NO_BUILTINS if your PHP instance crashes
+        xhprof_enable(XHPROF_FLAGS_CPU + XHPROF_FLAGS_MEMORY);
+    }
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -137,11 +159,33 @@ if (!empty($menu_points)) {
 }
 
 if (XHPROF) {
-    $xhprof_data = xhprof_disable();
-    $xhprof_runs = new XHProfRuns_Default();
-    $xhprof_run_id = $xhprof_runs->save_run($xhprof_data, "xhprof_ubilling");
-    $xhprof_link = wf_modal('XHPROF', 'XHPROF DEBUG DATA', '<iframe src="xhprof/xhprof_html/index.php?run=' . $xhprof_run_id . '&source=xhprof_ubilling" width="100%" height="750"></iframe>', '', '1024', '768');
+    if (defined('XHPROF_ROOT')) {
+        $xhprof_data = xhprof_disable();
+        $xhprof_runs = new XHProfRuns_Default();
+        $xhprof_run_id = $xhprof_runs->save_run($xhprof_data, "xhprof_ubilling");
+        $xhprof_content = '<iframe src="modules/foreign/xhprof/xhprof_html/index.php?run=' . $xhprof_run_id . '&source=xhprof_ubilling" width="100%" height="750"></iframe>';
+        $xhprof_link = wf_modal(wf_img_sized('skins/xhprof.png', __('XHPROF'), 20), 'XHProf current page results', $xhprof_content, '', '1024', '768');
+    } else {
+        $xhprof_install_url = '?module=report_sysload&xhprofmoduleinstall=true';
+        $xhprof_install_form = wf_AjaxLink($xhprof_install_url, wf_img('skins/icon_download.png') . ' ' . __('Download') . ' ' . __('XHProf'), 'xhprofinstall', true, 'ubButton');
+        $xhprof_install_form .= wf_AjaxContainer('xhprofinstall');
+        $xhprof_link = wf_modal(wf_img_sized('skins/xhprof.png', __('XHPROF'), 20), __('Download') . ' XHProf', $xhprof_install_form, '', '320', '200');
+    }
 }
+
 // Start output
 require_once(CUR_SKIN_PATH . 'skin.general.php');
 
+// 
+// Everything is better with unicorns
+// 
+// _______\)%%%%%%%%._              
+//`''''-'-;   % % % % %'-._         
+//        :b) \            '-.      
+//        : :__)'    .'    .'       
+//        :.::/  '.'   .'           
+//        o_i/   :    ;             
+//               :   .'             
+//                ''`
+// Glory to Ukraine!
+//

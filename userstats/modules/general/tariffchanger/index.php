@@ -89,7 +89,8 @@ function zbs_TariffSelector($tc_tariffsallowed, $user_tariff) {
     global $us_config;
     if ($us_config['SHOW_SPEED']) {
         $rawSpeedMbits = (@$us_config['SHOW_SPEED_MB']) ? true : false;
-        $allSpeeds = zbs_TariffGetAllSpeeds($rawSpeedMbits);
+        $speedOffset = (@$us_config['SHOW_SPEED_1000B']) ? 1000 : 1024;
+        $allSpeeds = zbs_TariffGetAllSpeeds($rawSpeedMbits, $speedOffset);
     }
     $params = array();
     if (!empty($tc_tariffsallowed)) {
@@ -117,7 +118,8 @@ function zbs_TariffSelector($tc_tariffsallowed, $user_tariff) {
  * @param float  $tc_priceup
  * @param float  $tc_pricedown
  * @param float  $tc_pricesimilar
- * @return float
+ * 
+ * @return array
  */
 function zbs_TariffGetChangePrice($tc_tariffsallowed, $user_tariff, $tc_priceup, $tc_pricedown, $tc_pricesimilar) {
     $allprices = zbs_TariffGetAllPrices();
@@ -125,17 +127,21 @@ function zbs_TariffGetChangePrice($tc_tariffsallowed, $user_tariff, $tc_priceup,
     $result = array();
     if (!empty($tc_tariffsallowed)) {
         foreach ($tc_tariffsallowed as $eachtariff) {
-            //if higer then current fee
-            if ($allprices[$eachtariff] > $current_fee) {
-                $result[$eachtariff] = $tc_priceup;
-            }
-            //if lower then current
-            if ($allprices[$eachtariff] < $current_fee) {
-                $result[$eachtariff] = $tc_pricedown;
-            }
-            // if eq
-            if ($allprices[$eachtariff] == $current_fee) {
-                $result[$eachtariff] = $tc_pricesimilar;
+            if (isset($allprices[$eachtariff])) {
+                //if higer then current fee
+                if ($allprices[$eachtariff] > $current_fee) {
+                    $result[$eachtariff] = $tc_priceup;
+                }
+                //if lower then current
+                if ($allprices[$eachtariff] < $current_fee) {
+                    $result[$eachtariff] = $tc_pricedown;
+                }
+                // if eq
+                if ($allprices[$eachtariff] == $current_fee) {
+                    $result[$eachtariff] = $tc_pricesimilar;
+                }
+            } else {
+                $result[$eachtariff] = 0;
             }
         }
     }
@@ -222,7 +228,7 @@ function zbs_TariffChangeForm($login, $tc_tariffsallowed, $tc_priceup, $tc_price
 
     $sumbitLabel = ($nmChangeFlag) ? __('I want this tariff next month') : __('I want this tariff right now');
 
-    $inputs.= la_tag('input',false,'','type="submit" style="word-wrap: break-word; white-space: normal;" value="'.$sumbitLabel.'"');
+    $inputs .= la_tag('input', false, '', 'type="submit" style="word-wrap: break-word; white-space: normal;" value="' . $sumbitLabel . '"');
 
     $form .= la_Form('', 'POST', $inputs, '');
 

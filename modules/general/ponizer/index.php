@@ -38,21 +38,24 @@ if ($altCfg['PON_ENABLED']) {
         }
 
         //creating new ONU device
-        if (ubRouting::checkPost(array('createnewonu', 'newoltid', 'newmac'))) {
-            if (cfr('PONEDIT')) {
-                $onuCreateResult = $pon->onuCreate(ubRouting::post('newonumodelid'), ubRouting::post('newoltid'), ubRouting::post('newip'), ubRouting::post('newmac'), ubRouting::post('newserial'), ubRouting::post('newlogin'));
-                if ($onuCreateResult) {
-                    $newCreatedONUId = simple_get_lastid('pononu');
-                    if ($ubillingConfig->getAlterParam('OPT82_ENABLED')) {
-                        multinet_rebuild_all_handlers();
+        if (ubRouting::checkPost(array('createnewonu', 'newoltid'))) {
+            //MAC or Serial is required
+            if (ubRouting::checkPost('newmac') OR ubRouting::checkPost('newserial')) {
+                if (cfr('PONEDIT')) {
+                    $onuCreateResult = $pon->onuCreate(ubRouting::post('newonumodelid'), ubRouting::post('newoltid'), ubRouting::post('newip'), ubRouting::post('newmac'), ubRouting::post('newserial'), ubRouting::post('newlogin'));
+                    if ($onuCreateResult) {
+                        $newCreatedONUId = simple_get_lastid('pononu');
+                        if ($ubillingConfig->getAlterParam('OPT82_ENABLED')) {
+                            multinet_rebuild_all_handlers();
+                        }
+                        ubRouting::nav($pon::URL_ONU . $newCreatedONUId);
+                    } else {
+                        show_error(__('This MAC have wrong format') . ' ' . __('or') . ' ' . __('MAC duplicate'));
                     }
-                    ubRouting::nav($pon::URL_ONU . $newCreatedONUId);
                 } else {
-                    show_error(__('This MAC have wrong format'));
+                    log_register('PON CREATE ONU ACCESS VIOLATION');
+                    show_error(__('Access denied'));
                 }
-            } else {
-                log_register('PON CREATE ONU ACCESS VIOLATION');
-                show_error(__('Access denied'));
             }
         }
 
@@ -151,10 +154,17 @@ if ($altCfg['PON_ENABLED']) {
         if (ubRouting::checkGet('username')) {
             //try to detect ONU id by user login
             $login = ubRouting::get('username');
-            $userOnuId = $pon->getOnuIdByUser($login);
-            //redirecting to assigned ONU
-            if ($userOnuId) {
-                ubRouting::nav($pon::URL_ONU . $userOnuId);
+            $userOnuIds = $pon->getOnuIdByUserAll($login);
+
+            if ($userOnuIds) {
+                if (sizeof($userOnuIds) > 1) {
+                    //multiple ONUs here... rendering ONU navigation here
+                    show_window(__('This user has multiple devices assigned'), $pon->renderOnuNavBar($userOnuIds));
+                    show_window('', web_UserControls(ubRouting::get('username')));
+                } else {
+                    //redirecting to single assigned ONU
+                    ubRouting::nav($pon::URL_ONU . $userOnuIds[0]);
+                }
             } else {
                 //rendering assign form
                 show_window(__('ONU assign'), $pon->onuAssignForm($login));
@@ -217,6 +227,16 @@ if ($altCfg['PON_ENABLED']) {
             show_window(__('Stats'), $pon->renderOltStats());
         }
 
+        //pondata cache cleanup
+        if (ubRouting::checkGet('pondatacleanup')) {
+            if (cfr('ROOT')) {
+                $oltData = new OLTAttractor();
+                $ponDataCleanupResult = $oltData->flushAllCacheData();
+                log_register('PON DATACACHE FLUSHED `' . $ponDataCleanupResult . '` CONTAINERS');
+                ubRouting::nav($pon::URL_ME . '&oltstats=true');
+            }
+        }
+
         //OLTs polling log render here
         if (ubRouting::checkGet('polllogs')) {
             show_window(__('OLT polling log'), $pon->renderLogControls());
@@ -238,6 +258,9 @@ if ($altCfg['PON_ENABLED']) {
                 } else {
                     show_error(__('Search') . ' ' . __('ONU') . ' ' . __('Disabled'));
                 }
+            } else {
+                show_window('', wf_BackLink($pon::URL_ONULIST));
+                show_warning(__('Search query') . ' ' . __('is empty'));
             }
         }
 

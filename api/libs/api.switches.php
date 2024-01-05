@@ -1,6 +1,22 @@
 <?php
 
 /**
+ * Returns background switch ICMP ping
+ * 
+ * @global object $ubillingConfig
+ * 
+ * @return void
+ */
+function zb_SwitchBackgroundIcmpPing($ip) {
+    global $ubillingConfig;
+    $billingConf = $ubillingConfig->getBilling();
+    $command = $billingConf['SUDO'] . ' ' . $billingConf['PING'] . ' -i 0.01 -c 10  ' . $ip;
+    $icmpPingResult = shell_exec($command);
+
+    die(wf_tag('pre') . $icmpPingResult . wf_tag('pre', true));
+}
+
+/**
  * Returns array of all currently dead devices
  * 
  * @return array
@@ -113,12 +129,11 @@ function web_SwitchModelsShow() {
     $allSnmpTemplates = zb_SwitchModelsSnmpTemplatesGetAll();
     $modelsCount = array();
 
-
     //switch devices count
     if (!empty($allSwitches)) {
         foreach ($allSwitches as $io => $eachSwitchData) {
             if (isset($modelsCount[$eachSwitchData['modelid']])) {
-                $modelsCount[$eachSwitchData['modelid']] ++;
+                $modelsCount[$eachSwitchData['modelid']]++;
             } else {
                 $modelsCount[$eachSwitchData['modelid']] = 1;
             }
@@ -133,7 +148,7 @@ function web_SwitchModelsShow() {
         if (!empty($allOnu)) {
             foreach ($allOnu as $io => $eachOnuData) {
                 if (isset($modelsCount[$eachOnuData['onumodelid']])) {
-                    $modelsCount[$eachOnuData['onumodelid']] ++;
+                    $modelsCount[$eachOnuData['onumodelid']]++;
                 } else {
                     $modelsCount[$eachOnuData['onumodelid']] = 1;
                 }
@@ -311,14 +326,23 @@ function ub_SwitchModelDelete($modelId) {
  * 
  * @param string $name Input element name
  * @param string $label Input element label
+ * @param int $selected preselected in switch ID
  * @param int $currentSwitchId switch for whom this widget showed
+ * @param bool $notSearchable Explictly disables searchable functionality
  * 
  * @return string
  */
-function web_SwitchUplinkSelector($name, $label = '', $selected = '', $currentSwitchId = '') {
+function web_SwitchUplinkSelector($name, $label = '', $selected = '', $currentSwitchId = '', $notSearchable = false) {
+    global $ubillingConfig;
+    $result = '';
     $tmpArr = array('' => '-');
     $validSwitches = array();
     $allswitchesRaw = array();
+    $searchableFlag = ($ubillingConfig->getAlterParam('SWITCHUPL_SEARCHBL')) ? true : false;
+    if ($notSearchable) {
+        $searchableFlag = false;
+    }
+
     $query = "SELECT * from `switches` WHERE `desc` NOT LIKE '%NP%' AND `geo` != '' ORDER BY `location` ASC;";
     $allswitches = simple_queryall($query);
     if (!empty($allswitches)) {
@@ -353,7 +377,11 @@ function web_SwitchUplinkSelector($name, $label = '', $selected = '', $currentSw
         }
     }
 
-    $result = wf_Selector($name, $tmpArr, $label, $selected, false);
+    if ($searchableFlag) {
+        $result .= wf_SelectorSearchable($name, $tmpArr, $label, $selected, false);
+    } else {
+        $result .= wf_Selector($name, $tmpArr, $label, $selected, false);
+    }
     return ($result);
 }
 
@@ -368,18 +396,18 @@ function web_SwitchFormAdd() {
     $swGroupsEnabled = $ubillingConfig->getAlterParam('SWITCH_GROUPS_ENABLED');
     $equipmentModels = zb_SwitchModelsGetAll();
     if (!empty($equipmentModels)) {
-        $addinputs = wf_TextInput('newip', 'IP', '', true, 20);
+        $addinputs = wf_TextInput('newip', 'IP', '', true, 20, 'ip');
         $addinputs .= wf_TextInput('newlocation', 'Location', '', true, 30);
         $addinputs .= wf_TextInput('newdesc', 'Description', '', true, 30);
         $addinputs .= wf_TextInput('newsnmp', 'SNMP community', '', true, 20);
         $addinputs .= wf_TextInput('newsnmpwrite', 'SNMP write community', '', true, 20);
         if ($altCfg['SWITCHES_EXTENDED']) {
-            $addinputs .= wf_TextInput('newswid', 'Switch ID', '', true, 20);
+            $addinputs .= wf_TextInput('newswid', 'Switch ID', '', true, 20, 'mac');
         }
         $addinputs .= wf_TextInput('newgeo', 'Geo location', '', true, 20, 'geo');
         $addinputs .= web_SwitchModelSelector('newswitchmodel', $equipmentModels);
         $addinputs .= wf_tag('br');
-        $addinputs .= web_SwitchUplinkSelector('newparentid', __('Uplink switch'), '');
+        $addinputs .= web_SwitchUplinkSelector('newparentid', __('Uplink switch'), '', '', true);
         $addinputs .= wf_tag('br');
 
         if (cfr('SWITCHGROUPS') and $swGroupsEnabled) {
@@ -504,7 +532,7 @@ function web_SwitchDownlinksList($switchId) {
                 $includePortFlag = ($switchesExtended == 2) ? true : false;
                 $cells .= wf_TableCell($switchesUplinks->getUplinkTinyDesc($each['id'], $includePortFlag));
                 //separate uplink port
-                if ($switchesExtended==3) {
+                if ($switchesExtended == 3) {
                     $cells .= wf_TableCell($switchesUplinks->getUplinkPort($each['id']));
                 }
             }
@@ -541,9 +569,8 @@ function web_SwitchEditForm($switchid) {
     $allswitchmodels = zb_SwitchModelsGetAllTag();
     $switchdata = zb_SwitchGetData($switchid);
 
-
     $editinputs = wf_Selector('editmodel', $allswitchmodels, 'Model', $switchdata['modelid'], true);
-    $editinputs .= wf_TextInput('editip', 'IP', $switchdata['ip'], true, 20);
+    $editinputs .= wf_TextInput('editip', 'IP', $switchdata['ip'], true, 20, 'ip');
     $editinputs .= wf_TextInput('editlocation', 'Location', $switchdata['location'], true, 30);
     $editinputs .= wf_TextInput('editdesc', 'Description', $switchdata['desc'], true, 30);
     $editinputs .= wf_TextInput('editsnmp', 'SNMP community', $switchdata['snmp'], true, 20);
@@ -556,7 +583,7 @@ function web_SwitchEditForm($switchid) {
         } else {
             $macVenControl = '';
         }
-        $editinputs .= wf_TextInput('editswid', __('Switch ID') . ' (MAC) ' . $macVenControl, $switchdata['swid'], true, 20);
+        $editinputs .= wf_TextInput('editswid', __('Switch ID') . ' (MAC) ' . $macVenControl, $switchdata['swid'], true, 20, 'mac');
     }
     $editinputs .= wf_TextInput('editgeo', 'Geo location', $switchdata['geo'], true, 20, 'geo');
     if (!empty($switchdata['parentid'])) {
@@ -649,7 +676,7 @@ function web_SwitchEditForm($switchid) {
     }
 
     if (cfr('SWITCHESEDIT')) {
-        $result .= wf_AjaxLink('?module=switchhistory&ajax=true&&switchid=' . $switchid, wf_img('skins/log_icon_small.png') . ' ' . __('History'), 'icmppingcontainer', false, 'ubButton') . ' ';
+        $result .= wf_AjaxLink('?module=switchhistory&ajax=true&switchid=' . $switchid, wf_img('skins/log_icon_small.png') . ' ' . __('History'), 'icmppingcontainer', false, 'ubButton') . ' ';
     }
 
     if (cfr('SWCASH')) {
@@ -670,6 +697,12 @@ function web_SwitchEditForm($switchid) {
         }
     }
 
+    if (cfr('REPORTSWPORT')) {
+        if (@$altCfg['SWITCHPORT_IN_PROFILE']) {
+            $result .= wf_Link('?module=report_switchportassign&switchid=' . $switchid, wf_img('skins/icon_user_16.gif') . ' ' . __('Switch port assign'), false, 'ubButton');
+        }
+    }
+
     if (cfr('SWITCHESEDIT')) {
         $deletionUrl = '?module=switches&switchdelete=' . $switchid;
         $cancelUrl = '?module=switches&edit=' . $switchid;
@@ -680,9 +713,9 @@ function web_SwitchEditForm($switchid) {
 
     //SWPOLL proposal
     if (!empty($switchdata['ip'])) {
-        if (!ispos($switchdata['desc'], 'SWPOLL') AND ( !ispos($switchdata['desc'], 'NP')) AND ( !ispos($switchdata['desc'], 'OLT'))) {
+        if (!ispos($switchdata['desc'], 'SWPOLL') AND (!ispos($switchdata['desc'], 'NP')) AND (!ispos($switchdata['desc'], 'OLT'))) {
             //this is not OLT
-            if (!ispos($switchdata['desc'], 'AP') AND ( !ispos($switchdata['desc'], 'MTSIGMON'))) {
+            if (!ispos($switchdata['desc'], 'AP') AND (!ispos($switchdata['desc'], 'MTSIGMON'))) {
                 //Or some wireless access point
                 if (!empty($switchdata['snmp'])) {
                     //with some non empty snmp read comunity
@@ -911,55 +944,77 @@ function zb_SwitchesDeadLog($currenttime, $deadSwitches) {
  */
 function zb_SwitchesRepingAll() {
     global $ubillingConfig;
+    $switchRepingProcess = new StarDust('SWPING');
     $altCfg = $ubillingConfig->getAlter();
-    $allswitches = zb_SwitchesGetAllLocationOrder();
     $deadswitches = array();
-    $deathTime = zb_SwitchesGetAllDeathTime();
+    $fastPingFlag = $ubillingConfig->getAlterParam('FASTPING_ENABLED');
+    if ($fastPingFlag) {
+        $fastPing = new FastPing();
+    }
 
-    if (!empty($allswitches)) {
-        foreach ($allswitches as $io => $eachswitch) {
-
-            if (!ispos($eachswitch['desc'], 'NP')) {
-                if (!zb_PingICMP($eachswitch['ip'])) {
-                    $secondChance = zb_PingICMP($eachswitch['ip']);
-                    if (!$secondChance) {
-                        $lastChance = zb_PingICMP($eachswitch['ip']);
-                        if (!$lastChance) {
-                            if (empty($altCfg['SWITCH_PING_CUSTOM_SCRIPT'])) {
-                                //yep, switch looks like it really down
-                                $deadswitches[$eachswitch['ip']] = $eachswitch['location'];
-                                if (!isset($deathTime[$eachswitch['ip']])) {
-                                    zb_SwitchDeathTimeSet($eachswitch['ip']);
-                                }
-                            } else {
-                                //really last-last chance
-                                $customTestCommand = $altCfg['SWITCH_PING_CUSTOM_SCRIPT'] . ' ' . $eachswitch['ip'];
-                                $customScriptRun = shell_exec($customTestCommand);
-                                $customScriptRun = trim($customScriptRun);
-                                if ($customScriptRun != '1') {
-                                    $deadswitches[$eachswitch['ip']] = $eachswitch['location'];
-                                    if (!isset($deathTime[$eachswitch['ip']])) {
-                                        zb_SwitchDeathTimeSet($eachswitch['ip']);
+    if ($switchRepingProcess->notRunning()) {
+        $switchRepingProcess->start();
+        $deathTime = zb_SwitchesGetAllDeathTime();
+        $allswitches = zb_SwitchesGetAllLocationOrder();
+        if (!empty($allswitches)) {
+            foreach ($allswitches as $io => $eachswitch) {
+                if (!empty($eachswitch['ip']) AND !ispos($eachswitch['desc'], 'NP')) {
+                    if (!$fastPingFlag) {
+                        //regular per-device ICMP polling
+                        if (!zb_PingICMP($eachswitch['ip'])) {
+                            $secondChance = zb_PingICMP($eachswitch['ip']);
+                            if (!$secondChance) {
+                                $lastChance = zb_PingICMP($eachswitch['ip']);
+                                if (!$lastChance) {
+                                    if (empty($altCfg['SWITCH_PING_CUSTOM_SCRIPT'])) {
+                                        //yep, switch looks like it really down
+                                        $deadswitches[$eachswitch['ip']] = $eachswitch['location'];
+                                        if (!isset($deathTime[$eachswitch['ip']])) {
+                                            zb_SwitchDeathTimeSet($eachswitch['ip']);
+                                        }
+                                    } else {
+                                        //really last-last chance
+                                        $customTestCommand = $altCfg['SWITCH_PING_CUSTOM_SCRIPT'] . ' ' . $eachswitch['ip'];
+                                        $customScriptRun = shell_exec($customTestCommand);
+                                        $customScriptRun = trim($customScriptRun);
+                                        if ($customScriptRun != '1') {
+                                            $deadswitches[$eachswitch['ip']] = $eachswitch['location'];
+                                            if (!isset($deathTime[$eachswitch['ip']])) {
+                                                zb_SwitchDeathTimeSet($eachswitch['ip']);
+                                            }
+                                        } else {
+                                            zb_SwitchDeathTimeResurrection($eachswitch['ip']);
+                                        }
                                     }
                                 } else {
                                     zb_SwitchDeathTimeResurrection($eachswitch['ip']);
                                 }
+                            } else {
+                                zb_SwitchDeathTimeResurrection($eachswitch['ip']);
                             }
                         } else {
                             zb_SwitchDeathTimeResurrection($eachswitch['ip']);
                         }
                     } else {
-                        zb_SwitchDeathTimeResurrection($eachswitch['ip']);
+                        //fast ping query
+                        if ($fastPing->isDead($eachswitch['ip'])) {
+                            zb_SwitchDeathTimeSet($eachswitch['ip']);
+                            $deadswitches[$eachswitch['ip']] = $eachswitch['location'];
+                            if (!isset($deathTime[$eachswitch['ip']])) {
+                                zb_SwitchDeathTimeSet($eachswitch['ip']);
+                            }
+                        } else {
+                            zb_SwitchDeathTimeResurrection($eachswitch['ip']);
+                        }
                     }
-                } else {
-                    zb_SwitchDeathTimeResurrection($eachswitch['ip']);
                 }
             }
         }
-    }
 
-    $newdata = serialize($deadswitches);
-    zb_StorageSet('SWDEAD', $newdata);
+        $newdata = serialize($deadswitches);
+        zb_StorageSet('SWDEAD', $newdata);
+        $switchRepingProcess->stop();
+    }
     return ($deadswitches);
 }
 
@@ -976,6 +1031,7 @@ function zb_SwitchesForcePing() {
     $currenttime = time();
     $reping_timeout = $alterconf['SW_PINGTIMEOUT'];
     $deathTime = zb_SwitchesGetAllDeathTime();
+    $fastPingFlag = $ubillingConfig->getAlterParam('FASTPING_ENABLED');
 
     //counters
     $countTotal = 0;
@@ -1005,6 +1061,10 @@ function zb_SwitchesForcePing() {
 
     //force total reping and update cache
     if (wf_CheckGet(array('forcereping'))) {
+        if ($fastPingFlag) {
+            $fastPing = new FastPing();
+            $fastPing->repingDevices();
+        }
         zb_SwitchesRepingAll();
         zb_StorageSet('SWPINGTIME', $currenttime);
         if (wf_CheckGet(array('ajaxping'))) {
@@ -1480,7 +1540,7 @@ function zb_SwitchesRenderAjaxList() {
                     $countLinked++;
                 }
 
-                if ((empty($eachswitch['geo'])) AND ( !ispos($eachswitch['desc'], 'NP'))) {
+                if ((empty($eachswitch['geo'])) AND (!ispos($eachswitch['desc'], 'NP'))) {
                     if ((cfr('SWITCHESEDIT')) AND ( cfr('SWITCHMAP'))) {
                         $switchcontrols .= wf_Link('?module=switchmap&locfinder=true&placesw=' . $eachswitch['id'], wf_img('skins/ymaps/target.png', __('Place on map')), false, '');
                     }
@@ -1541,6 +1601,71 @@ function zb_SwitchesRenderAjaxList() {
 }
 
 /**
+ * Updates existing switch data
+ * 
+ * @global object $ubillingConfig
+ * 
+ * @return void
+ */
+function ub_SwitchSave($switchid) {
+    global $ubillingConfig;
+    $altCfg = $ubillingConfig->getAlter();
+    $switchid = ubRouting::filters($switchid, 'int');
+    // some non-parameterized shit here, PFFFFF
+    simple_update_field('switches', 'modelid', ubRouting::post('editmodel'), "WHERE `id`='" . $switchid . "'");
+    simple_update_field('switches', 'ip', ubRouting::post('editip'), "WHERE `id`='" . $switchid . "'");
+    simple_update_field('switches', 'location', ub_SanitizeData(ubRouting::post('editlocation'), false), "WHERE `id`='" . $switchid . "'");
+    simple_update_field('switches', 'desc', ub_SanitizeData(ubRouting::post('editdesc'), false), "WHERE `id`='" . $switchid . "'");
+    simple_update_field('switches', 'snmp', ubRouting::post('editsnmp'), "WHERE `id`='" . $switchid . "'");
+    simple_update_field('switches', 'snmpwrite', ubRouting::post('editsnmpwrite'), "WHERE `id`='" . $switchid . "'");
+
+    if ($altCfg['SWITCHES_EXTENDED']) {
+        simple_update_field('switches', 'swid', ubRouting::post('editswid'), "WHERE `id`='" . $switchid . "'");
+    }
+
+    simple_update_field('switches', 'geo', preg_replace('/[^-?0-9\.,]/i', '', ubRouting::post('editgeo')), "WHERE `id`='" . $switchid . "'");
+
+    if (ubRouting::post('editparentid') != $switchid) {
+        //checks for preventing loops
+        $alllinks = array();
+        $tmpSwitches = zb_SwitchesGetAll();
+        if (!empty($tmpSwitches)) {
+            //transform array to id=>switchdata
+            foreach ($tmpSwitches as $io => $each) {
+                $allswitches[$each['id']] = $each;
+            }
+
+            //making id=>parentid array
+            foreach ($tmpSwitches as $io => $each) {
+                $alllinks[$each['id']] = $each['parentid'];
+            }
+        }
+        if (sm_CheckLoop($alllinks, $switchid, ubRouting::post('editparentid'))) {
+            simple_update_field('switches', 'parentid', ubRouting::post('editparentid'), "WHERE `id`='" . $switchid . "'");
+        }
+    }
+
+    $swGroupsEnabled = $ubillingConfig->getAlterParam('SWITCH_GROUPS_ENABLED');
+    if ($swGroupsEnabled) {
+        $switchGroups = new SwitchGroups();
+        $switchAlreadyInGroup = $switchGroups->getSwitchGroupBySwitchId($switchid);
+
+        if (empty($switchAlreadyInGroup) and ubRouting::post('editswgroup')) {
+            $query = "INSERT INTO `switch_groups_relations` (`switch_id`, `sw_group_id`) VALUES (" . $switchid . ", " . ubRouting::post('editswgroup') . ")";
+            nr_query($query);
+        } elseif (ubRouting::post('editswgroup')) {
+            if (ubRouting::post('editswgroup') == '0') {
+                $switchGroups->removeSwitchFromGroup($switchid);
+            } else {
+                simple_update_field('switch_groups_relations', 'sw_group_id', ubRouting::post('editswgroup'), "WHERE `switch_id`='" . $switchid . "'");
+            }
+        }
+    }
+
+    log_register('SWITCH CHANGE [' . $switchid . ']' . ' IP ' . ubRouting::post('editip') . " LOC `" . ubRouting::post('editlocation') . "`");
+}
+
+/**
  * Creates new switch device in database
  * 
  * @param int    $modelid
@@ -1553,14 +1678,14 @@ function zb_SwitchesRenderAjaxList() {
  * @param int    $parentid
  */
 function ub_SwitchAdd($modelid, $ip, $desc, $location, $snmp, $swid, $geo, $parentid = '', $snmpwrite = '', $switchgroupid = '') {
-    $modelid = vf($modelid, 3);
-    $ip = mysql_real_escape_string($ip);
-    $desc = mysql_real_escape_string($desc);
-    $location = mysql_real_escape_string($location);
-    $snmp = mysql_real_escape_string($snmp);
-    $snmpwrite = mysql_real_escape_string($snmpwrite);
-    $swid = mysql_real_escape_string($swid);
-    $parentid = vf($parentid, 3);
+    $modelid = ubRouting::filters($modelid, 'int');
+    $ip = ubRouting::filters($ip, 'mres');
+    $desc = ub_SanitizeData($desc);
+    $location = ub_SanitizeData($location);
+    $snmp = ubRouting::filters($snmp, 'mres');
+    $snmpwrite = ubRouting::filters($snmpwrite, 'mres');
+    $swid = ubRouting::filters($swid, 'mres');
+    $parentid = ubRouting::filters($parentid, 'int');
     if (!empty($parentid)) {
         $parentid = "'" . $parentid . "'";
     } else {
@@ -1627,6 +1752,12 @@ function ub_SwitchDelete($switchid) {
     if ($swGroupsEnabled) {
         $switchGroups = new SwitchGroups();
         $switchGroups->removeSwitchFromGroup($switchid);
+    }
+
+    $switchesExtended = $ubillingConfig->getAlterParam('SWITCHES_EXTENDED');
+    if ($switchesExtended) {
+        $switchesUplinks = new SwitchUplinks();
+        $switchesUplinks->flush($switchid);
     }
 
     $query = 'DELETE FROM `switches_qinq` WHERE `switchid` = "' . $switchid . '"';
@@ -1709,7 +1840,7 @@ function web_DeadSwitchesTop() {
                 if (!empty($deadData)) {
                     foreach ($deadData as $eachDeadIp => $eachDeadName) {
                         if (isset($topTmp[$eachDeadIp])) {
-                            $topTmp[$eachDeadIp]['count'] ++;
+                            $topTmp[$eachDeadIp]['count']++;
                         } else {
                             $topTmp[$eachDeadIp]['count'] = 1;
                             $topTmp[$eachDeadIp]['name'] = $eachDeadName;
@@ -1919,8 +2050,8 @@ function zb_SwitchReplaceForm($fromSwitchId) {
     }
 
     $inputs = wf_HiddenInput('switchreplace', $fromSwitchId);
-    $inputs .= wf_Selector('toswtichreplace', $paramsNp, 'NP ' . __('Switch'), '', false);
-    $inputs .= wf_Selector('replaceemployeeid', $employee, __('Worker'), '', false);
+    $inputs .= wf_SelectorSearchable('toswtichreplace', $paramsNp, 'NP ' . __('Switch'), '', false);
+    $inputs .= wf_SelectorSearchable('replaceemployeeid', $employee, __('Worker'), '', false);
     $inputs .= wf_Submit('Save');
     $result = wf_Form('', 'POST', $inputs, 'glamour');
     $result .= wf_CleanDiv();
@@ -1939,41 +2070,75 @@ function zb_SwitchReplaceForm($fromSwitchId) {
  * @return void
  */
 function zb_SwitchReplace($fromId, $toId, $employeeId) {
-    $fromId = vf($fromId, 3);
-    $toId = vf($toId, 3);
-    $employeeId = vf($employeeId, 3);
+    global $ubillingConfig;
+    $fromId = ubRouting::filters($fromId, 'int');
+    $toId = ubRouting::filters($toId, 'int');
+    $employeeId = ubRouting::filters($employeeId, 'int');
+
+    $switchesDb = new NyanORM('switches');
     $allEmployees = ts_GetAllEmployee();
     $fromData = zb_SwitchGetData($fromId);
     $toData = zb_SwitchGetData($toId);
+
     if (!empty($fromData)) {
+        //updating new switch device
+        $switchesDb->where('id', '=', $toId);
         //copy geo coordinates to new switch
-        simple_update_field('switches', 'geo', $fromData['geo'], "WHERE `id`='" . $toId . "'");
+        $switchesDb->data('geo', $fromData['geo']);
         //setting new description and remove NP flag
         $newDescriptionTo = str_replace('NP', 'm:' . @$allEmployees[$employeeId], $toData['desc']);
-        simple_update_field('switches', 'desc', $newDescriptionTo, "WHERE `id`='" . $toId . "'");
+        $switchesDb->data('desc', $newDescriptionTo);
         //copy location
-        simple_update_field('switches', 'location', $fromData['location'], "WHERE `id`='" . $toId . "'");
+        $switchesDb->data('location', $fromData['location']);
         //copy switch parent ID
         if (!empty($fromData['parentid'])) {
-            simple_update_field('switches', 'parentid', $fromData['parentid'], "WHERE `id`='" . $toId . "'");
+            $switchesDb->data('parentid', $fromData['parentid']);
         } else {
-            $parentId_q = "UPDATE `switches` SET `parentid`=NULL WHERE `id`='" . $toId . "';";
-            nr_query($parentId_q);
+            //or dropping if not set before
+            $switchesDb->data('parentid', 'NULL');
         }
-        //moving childs if it present
-        simple_update_field('switches', 'parentid', $toId, "WHERE `parentid`='" . $fromId . "'");
+        //saving new switch
+        $switchesDb->save();
+
+        //updating old switch device
+        $switchesDb->where('id', '=', $fromId);
 
         // doing old switch cleanup and disabling it
-        simple_update_field('switches', 'geo', '', "WHERE `id`='" . $fromId . "'");
+        $switchesDb->data('geo', ''); //not located anywhere now
         $newFromLocation = __('removed from') . ': ' . $fromData['location'];
-        simple_update_field('switches', 'location', $newFromLocation, "WHERE `id`='" . $fromId . "'");
+        $switchesDb->data('location', $newFromLocation); //unmouned from somwhere
         $newFromDesc = 'NP u:' . @$allEmployees[$employeeId];
-        simple_update_field('switches', 'desc', $newFromDesc, "WHERE `id`='" . $fromId . "'");
-        $parentIdFrom_q = "UPDATE `switches` SET `parentid`=NULL WHERE `id`='" . $fromId . "';";
-        nr_query($parentIdFrom_q);
-        log_register("SWITCH REPLACE FROM [" . $fromId . "] TO [" . $toId . "] EMPLOYEE [" . $employeeId . "]");
+        $switchesDb->data('desc', $newFromDesc); // NP + employee name
+        $switchesDb->data('parentid', 'NULL'); // unmounted switch have no parents
+        //saving old switch device
+        $switchesDb->save();
+
+        //moving childs if it present
+        $switchesDb->where('parentid', '=', $fromId);
+        $switchesDb->data('parentid', $toId);
+        $switchesDb->save();
+
+        //update user switchportassigns
+        if ($ubillingConfig->getAlterParam('SWITCHPORT_IN_PROFILE')) {
+            if ($ubillingConfig->getAlterParam('USER_SWITCHPORT_AUTOREPLACE')) {
+                $switchPortAssignDb = new NyanORM('switchportassign');
+                $switchPortAssignDb->where('switchid', '=', $fromId);
+                $switchPortAssignDb->data('switchid', $toId);
+                $switchPortAssignDb->save();
+                // update qinq swithc delegation
+                if ($ubillingConfig->getAlterParam('QINQ_ENABLED') and $ubillingConfig->getAlterParam('QINQ_SWITCH_AUTOREPLACE')) {
+                    $switchesQinqDb = new NyanORM('switches_qinq');
+                    $switchesQinqDb->where('switchid', '=', $fromId);
+                    $switchesQinqDb->data('switchid', $toId);
+                    $switchesQinqDb->save();
+                }
+            }
+        }
+
+        //log this replace
+        log_register('SWITCH REPLACE FROM [' . $fromId . '] TO [' . $toId . '] EMPLOYEE [' . $employeeId . ']');
     } else {
-        show_error(__('Strange exeption') . ': FROM_SWITCH_EMPTY_DATA');
+        show_error(__('Strange exception') . ': FROM_SWITCH_EMPTY_DATA');
     }
 }
 
@@ -2038,5 +2203,3 @@ function zb_SwitchesGetAssignsAll() {
 
     return ($result);
 }
-
-?>

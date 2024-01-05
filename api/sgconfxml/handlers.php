@@ -278,6 +278,56 @@ function billing_edittariff($tariff, $options) {
     $NoDiscount = '';
     $Threshold = '';
 
+    $dayATmp = array();
+    $dayBTmp = array();
+    $nightATmp = array();
+    $nightBTmp = array();
+
+    // A-a-a-a-a-a-a!
+    // https://stg.net.ua/doc/ch11.html
+    // A-A-A-A-A-A!!!1
+    for ($i = 0; $i <= 9; $i++) {
+        if (isset($PriceDay[$i])) {
+            if (strpos($PriceDay[$i], '/') !== false) {
+                $prices = explode('/', $PriceDay[$i]);
+                if (sizeof($prices) == 2) {
+                    $dayATmp[$i] = $prices[0];
+                    $dayBTmp[$i] = $prices[1];
+                } else {
+                    debarr(sizeof($prices));
+                    $dayATmp[$i] = 0;
+                    $dayBTmp[$i] = 0;
+                }
+            } else {
+                $dayATmp[$i] = $PriceDay[$i];
+                $dayBTmp[$i] = $PriceDay[$i];
+            }
+        } else {
+            $dayATmp[$i] = 0;
+            $dayBTmp[$i] = 0;
+        }
+
+        if (isset($PriceNight[$i])) {
+            if (strpos($PriceNight[$i], '/') !== false) {
+                $prices = explode('/', $PriceNight[$i]);
+                if (sizeof($prices) == 2) {
+                    $nightATmp[$i] = $prices[0];
+                    $nightBTmp[$i] = $prices[1];
+                } else {
+                    $nightATmp[$i] = 0;
+                    $nightBTmp[$i] = 0;
+                }
+            } else {
+                $nightATmp[$i] = $PriceNight[$i];
+                $nightBTmp[$i] = $PriceNight[$i];
+            }
+        } else {
+            $nightATmp[$i] = 0;
+            $nightBTmp[$i] = 0;
+        }
+    }
+
+
     for ($i = 0; $i <= 9; $i++) {
         $delimiter = ($i < 9) ? '/' : '';
         if (isset($options['NoDiscount'][$i])) {
@@ -298,14 +348,11 @@ function billing_edittariff($tariff, $options) {
             $Threshold .= '0' . $delimiter;
         }
 
-        /**
-         * Shall fix this in future. May be. No one need it.
-         * ..wait.. oh shi...
-         */
-        $PriceDayA .= '0' . $delimiter;
-        $PriceDayB .= '0' . $delimiter;
-        $PriceNightA .= '0' . $delimiter;
-        $PriceNightB .= '0' . $delimiter;
+
+        $PriceDayA .= $dayATmp[$i] . $delimiter;
+        $PriceDayB .= $dayBTmp[$i] . $delimiter;
+        $PriceNightA .= $nightATmp[$i] . $delimiter;
+        $PriceNightB .= $nightBTmp[$i] . $delimiter;
     }
 
 
@@ -317,7 +364,6 @@ function billing_edittariff($tariff, $options) {
     $string .= "<NoDiscount value=\"$NoDiscount\"/>";
     $string .= "<Threshold value=\"$Threshold\"/>";
     $string .= "</SetTariff>";
-
     executor($string);
 }
 

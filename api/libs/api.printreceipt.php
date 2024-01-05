@@ -4,6 +4,7 @@
  * Receipts/Bills printing
  */
 class PrintReceipt {
+
     /**
      * Contains array user statuses. Possible values: "debt" / "debtasbalance" / "undebt" / "all"
      *
@@ -67,10 +68,8 @@ class PrintReceipt {
      */
     protected $receiptTemplateFolders = array();
 
-
     const TEMPLATE_PATH = 'content/documents/receipt_template/';
     const URL_ME = '?module=printreceipts';
-
 
     public function __construct() {
         global $ubillingConfig;
@@ -79,17 +78,17 @@ class PrintReceipt {
         $this->extenAddressOn = $this->ubConfig->getAlterParam('ADDRESS_EXTENDED_ENABLED');
 
         $this->receiptAllUserStatuses = array(
-                                              'debt' => __('Debtors'),
-                                              'debtasbalance' => __('Debtors (as of current balance)'),
-                                              'undebt' => __('AntiDebtors'),
-                                              'all' => __('All')
-                                             );
+            'debt' => __('Debtors'),
+            'debtasbalance' => __('Debtors (as of current balance)'),
+            'undebt' => __('AntiDebtors'),
+            'all' => __('All')
+        );
 
         $this->receiptAllFrozenStatuses = array(
-                                                'all' => __('All'),
-                                                'unfrozen' => __('Not frozen'),
-                                                'frozen' => __('Frozen')
-                                               );
+            'all' => __('All'),
+            'unfrozen' => __('Not frozen'),
+            'frozen' => __('Frozen')
+        );
 
         $this->reloadCitiesStreetsBuilds();
 
@@ -169,13 +168,13 @@ class PrintReceipt {
     protected function saveToDB($login, $rcptNum, $rcptDate, $rcptSum, $rcptBody) {
         $tabInvoices = new nya_invoices();
         $tabInvoices->dataArr(array(
-                                    'login' => $login,
-                                    'invoice_num' => $rcptNum,
-                                    'invoice_date' => $rcptDate,
-                                    'invoice_sum' => $rcptSum,
-                                    'invoice_body' => $rcptBody,
-                                    )
-                             );
+            'login' => $login,
+            'invoice_num' => $rcptNum,
+            'invoice_date' => $rcptDate,
+            'invoice_sum' => $rcptSum,
+            'invoice_body' => $rcptBody,
+                )
+        );
         $tabInvoices->create();
     }
 
@@ -275,9 +274,7 @@ class PrintReceipt {
      *
      * @return array
      */
-    public function getUsersPrintData($receiptServiceType, $receiptUserStatus, $receiptUserLogin = '', $receiptDebtCash = '',
-                                      $receiptCity = '', $receiptStreet = '', $receiptBuild = '', $receiptTagID = '',
-                                      $receiptTariff = '', $receiptFrozenStatus = '') {
+    public function getUsersPrintData($receiptServiceType, $receiptUserStatus, $receiptUserLogin = '', $receiptDebtCash = '', $receiptCity = '', $receiptStreet = '', $receiptBuild = '', $receiptTagID = '', $receiptTariff = '', $receiptFrozenStatus = '') {
         $whereClause = '';
         $debtAsBalance = 0;
 
@@ -298,20 +295,20 @@ class PrintReceipt {
                 break;
         }
 
-        if ($receiptServiceType == 'inetsrv' and !empty($receiptFrozenStatus) and $receiptFrozenStatus != 'all') {
+        if ($receiptServiceType == 'inetsrv' and ! empty($receiptFrozenStatus) and $receiptFrozenStatus != 'all') {
             if (empty($whereClause)) {
                 $whereClause = ' WHERE ';
             } else {
-                $whereClause.= ' AND ';
+                $whereClause .= ' AND ';
             }
 
             switch ($receiptFrozenStatus) {
                 case 'frozen':
-                    $whereClause.= ' `Passive` = 1 ';
+                    $whereClause .= ' `Passive` = 1 ';
                     break;
 
                 case 'unfrozen':
-                    $whereClause.= ' `Passive` = 0 ';
+                    $whereClause .= ' `Passive` = 0 ';
                     break;
             }
         }
@@ -320,17 +317,17 @@ class PrintReceipt {
             if (empty($whereClause)) {
                 $whereClause = ' WHERE ';
             } else {
-                $whereClause.= ' AND ';
+                $whereClause .= ' AND ';
             }
 
-            $whereClause.= " `city` = '" . $receiptCity . "' ";
+            $whereClause .= " `city` = '" . $receiptCity . "' ";
 
             if (!empty($receiptStreet)) {
-                $whereClause.= " AND `street` = '" . str_ireplace($receiptCity, '', $receiptStreet) . "' ";
+                $whereClause .= " AND `street` = '" . str_ireplace($receiptCity, '', $receiptStreet) . "' ";
             }
 
             if (!empty($receiptBuild)) {
-                $whereClause.= " AND `build` = '" . str_ireplace($receiptCity . $receiptStreet, '', $receiptBuild) . "' ";
+                $whereClause .= " AND `build` = '" . str_ireplace($receiptCity . $receiptStreet, '', $receiptBuild) . "' ";
             }
         }
 
@@ -351,13 +348,13 @@ class PrintReceipt {
             if (empty($whereClause)) {
                 $whereClause = ' WHERE ';
             } else {
-                $whereClause.= ' AND ';
+                $whereClause .= ' AND ';
             }
 
             if ($receiptServiceType == 'inetsrv') {
-                $whereClause.= " `tariffname` = '" . $receiptTariff . "' ";
+                $whereClause .= " `tariffname` = '" . $receiptTariff . "' ";
             } else {
-                $whereClause.= " `tariffid` = '" . $receiptTariff . "' ";
+                $whereClause .= " `tariffid` = '" . $receiptTariff . "' ";
             }
         }
 
@@ -365,10 +362,10 @@ class PrintReceipt {
             if (empty($whereClause)) {
                 $whereClause = ' WHERE ';
             } else {
-                $whereClause.= ' AND ';
+                $whereClause .= ' AND ';
             }
 
-            $whereClause.= ($receiptServiceType == 'inetsrv') ? " `login` = '" . $receiptUserLogin . "' " : " `login` = " . $receiptUserLogin . " ";
+            $whereClause .= ($receiptServiceType == 'inetsrv') ? " `login` = '" . $receiptUserLogin . "' " : " `login` = " . $receiptUserLogin . " ";
         }
 
         if ($this->extenAddressOn) {
@@ -383,7 +380,7 @@ class PrintReceipt {
             $query = "SELECT * FROM
                           (SELECT `users`.`login`, `users`.`cash`, `realname`.`realname`, `users`.`Passive`, `tariffs`.`name` AS `tariffname`, `tariffs`.`fee` AS `tariffprice`, 
                                   `contracts`.`contract`, `contractdates`.`date` AS `contractdate`, `phones`.`phone`, `phones`.`mobile`, `emails`.`email`,   
-                                  `tmp_addr`.`cityname` AS `city`, `tmp_addr`.`streetname` AS `street`, `tmp_addr`.`buildnum` AS `build`, `tmp_addr`.`apt`, 
+                                  `tmp_addr`.`cityname` AS `city`, `tmp_addr`.`streetname` AS `street`, `tmp_addr`.`buildnum` AS `build`, `tmp_addr`.`apt`, `passportdata`.`pinn` AS `inn`,
                                   " . $tag_query_str . " 
                                   " . $addrexten_query . "
                                   " . $debtAsBalance . " AS `debtasbalance`                                  
@@ -393,7 +390,8 @@ class PrintReceipt {
                                   LEFT JOIN `contractdates` USING(`contract`)
                                   LEFT JOIN `realname` USING(`login`) 
                                   LEFT JOIN `phones` USING(`login`) 
-                                  LEFT JOIN `emails` USING(`login`)
+				  LEFT JOIN `emails` USING(`login`)
+				  LEFT JOIN `passportdata` USING(`login`)
                                   LEFT JOIN (SELECT `address`.`login`,`city`.`id`,`city`.`cityname`,`street`.`streetname`,`build`.`buildnum`,`apt`.`apt` 
                                                 FROM `address` 
                                                     INNER JOIN `apt` ON `address`.`aptid`= `apt`.`id` 
@@ -401,10 +399,9 @@ class PrintReceipt {
                                                     INNER JOIN `street` ON `build`.`streetid`=`street`.`id` 
                                                     INNER JOIN `city` ON `street`.`cityid`=`city`.`id` 
                                             ) AS `tmp_addr` USING(`login`) "
-                                  . $addrexten_join
-                                  . $tag_join_str . " ) AS tmpQ " .
-                          $whereClause . " ORDER BY `street` ASC, `build` ASC";
-
+                    . $addrexten_join
+                    . $tag_join_str . " ) AS tmpQ " .
+                    $whereClause . " ORDER BY `street` ASC, `build` ASC";
         } else {
             $query = "SELECT * FROM 
                           ( SELECT `ukv_users`.`id` AS login, `ukv_users`.*, `ukv_users`.`regdate` AS `contractdate`, `ukv_tariffs`.`tariffname`, `ukv_tariffs`.`price` AS `tariffprice`,
@@ -413,9 +410,9 @@ class PrintReceipt {
                                    " . $debtAsBalance . " AS `debtasbalance`                                   
                                     FROM `ukv_users` 
                                         LEFT JOIN `ukv_tariffs` ON `ukv_users`.`tariffid` = `ukv_tariffs`.`id` "
-                                        . $addrexten_join
-                                        . $tag_join_str . ") AS tmpQ " .
-                          $whereClause . " ORDER BY `street` ASC, `build` ASC";
+                    . $addrexten_join
+                    . $tag_join_str . ") AS tmpQ " .
+                    $whereClause . " ORDER BY `street` ASC, `build` ASC";
         }
 
         $usersDataToPrint = simple_queryall($query);
@@ -436,11 +433,11 @@ class PrintReceipt {
      *
      * @return string
      */
-    public function printReceipts($usersDataToPrint, $rcptServiceName = '', $rcptPayTillDate = '', $rcptMonthsCnt = 1,
-                                  $rcptPayForPeriod = '', $rcptSaveToDB = false, $rcptTemplateFolder = '') {
+    public function printReceipts($usersDataToPrint, $rcptServiceName = '', $rcptPayTillDate = '', $rcptMonthsCnt = 1, $rcptPayForPeriod = '', $rcptSaveToDB = false, $rcptTemplateFolder = '') {
         $rcptTemplateFolder = (empty($rcptTemplateFolder) or $rcptTemplateFolder == '-') ? '' : $rcptTemplateFolder . '/';
         $rawTemplate = file_get_contents(self::TEMPLATE_PATH . $rcptTemplateFolder . "payment_receipt.tpl");
         $rawTemplateHeader = file_get_contents(self::TEMPLATE_PATH . $rcptTemplateFolder . "payment_receipt_head.tpl");
+
         $rawTemplateFooter = file_get_contents(self::TEMPLATE_PATH . $rcptTemplateFolder . "payment_receipt_footer.tpl");
         $printableTemplate = '';
         $qrCodeExtInfo = '';
@@ -483,7 +480,17 @@ class PrintReceipt {
             $rcptPayTillDate = $tmpDate->format($formatDates);
         }
 
-        $tabInvoices = new nya_invoices();
+        if ($rcptSaveToDB) {
+            $tabInvoices = new nya_invoices();
+            $tabInvoices->selectable('id');
+            $tabInvoices->limit(1);
+            $tabInvoices->orderBy('id', 'DESC');
+            $lastIDRec = $tabInvoices->getAll();
+        } else {
+            $lastIDRec = array();
+        }
+
+        $lastID = (empty($lastIDRec) ? 0 : $lastIDRec[0]['id']);
         $curArrIdx = 0;
         log_register('PRINT RECEIPTS: number of users to proceed [' . count($usersDataToPrint) . ']');
         //
@@ -494,18 +501,17 @@ class PrintReceipt {
                 continue;
             }
 
-            $lastID = $tabInvoices->getLastId();
             $curArrIdx++;
             $curUsrContractDate = date($formatDates, strtotime($eachUser['contractdate']));
 
-            if (!$rcptSaveToDB or empty($lastID) or $invNumCurDateTime) {
-                if (empty($lastID) or !$rcptSaveToDB) {
-                    $receiptNextNum = date($formatDatesNoDelim . $formatTimeNoDelim) . '-' . $curArrIdx;
-                } else {
+            if (!$rcptSaveToDB or $invNumCurDateTime) {
+                if ($invNumCurDateTime) {
                     $receiptNextNum = date($formatDatesNoDelim . $formatTimeNoDelim);
+                } else {
+                    $receiptNextNum = date($formatDatesNoDelim . $formatTimeNoDelim) . '-' . $curArrIdx;
                 }
             } else {
-                $receiptNextNum = $lastID;
+                $receiptNextNum = ++$lastID;
             }
 
             if ($eachUser['debtasbalance']) {
@@ -514,74 +520,92 @@ class PrintReceipt {
                 $receiptPaySum = $eachUser['tariffprice'] * $rcptMonthsCnt;
             }
 
-/*            // replacing macro values for qr-code info in template
-            $tmpQRCode = str_ireplace('{CURDATE}', date($formatDates), $qrCodeExtInfo);
-            $tmpQRCode = str_ireplace('{PAYFORPERIODSTR}', $rcptPayForPeriod, $qrCodeExtInfo);
-            $tmpQRCode = str_ireplace('{PAYTILLMONTHYEAR}', date($formatMonthYear, strtotime("+1 month")), $qrCodeExtInfo);
-            $tmpQRCode = str_ireplace('{PAYTILLDATE}', $rcptPayTillDate, $qrCodeExtInfo);
-            $tmpQRCode = str_ireplace('{SERVICENAME}', $rcptServiceName, $qrCodeExtInfo);
-            $tmpQRCode = str_ireplace('{CONTRACT}', $eachUser['contract'], $qrCodeExtInfo);
-            $tmpQRCode = str_ireplace('{REALNAME}', $eachUser['realname'], $qrCodeExtInfo);
-            $tmpQRCode = str_ireplace('{CITY}', $eachUser['city'], $qrCodeExtInfo);
-            $tmpQRCode = str_ireplace('{STREET}', $eachUser['street'], $qrCodeExtInfo);
-            $tmpQRCode = str_ireplace('{BUILD}', $eachUser['build'], $qrCodeExtInfo);
-            $tmpQRCode = str_ireplace('{APT}', (!empty($eachUser['apt'])) ? '/' . $eachUser['apt'] : '', $qrCodeExtInfo);
-            $tmpQRCode = str_ireplace('{PHONE}', $eachUser['phone'], $qrCodeExtInfo);
-            $tmpQRCode = str_ireplace('{MOBILE}', $eachUser['mobile'], $qrCodeExtInfo);
-            $tmpQRCode = str_ireplace('{TARIFF}', $eachUser['tariffname'], $qrCodeExtInfo);
-            $tmpQRCode = str_ireplace('{TARIFFPRICE}', $eachUser['tariffprice'], $qrCodeExtInfo);
-            $tmpQRCode = str_ireplace('{TARIFFPRICECOINS}', $eachUser['tariffprice'] * 100, $qrCodeExtInfo);
-            $tmpQRCode = str_ireplace('{TARIFFPRICEDECIMALS}', number_format((float)$eachUser['tariffprice'], 2, '.', ''), $qrCodeExtInfo);
-            $tmpQRCode = str_ireplace('{SUMM}', $receiptPaySum, $qrCodeExtInfo);
-            $tmpQRCode = str_ireplace('{SUMMCOINS}', $receiptPaySum * 100, $qrCodeExtInfo);
-            $tmpQRCode = str_ireplace('{SUMMDECIMALS}', number_format((float)($receiptPaySum),2, '.', ''), $qrCodeExtInfo);
+            /*            // replacing macro values for qr-code info in template
+              $tmpQRCode = str_ireplace('{CURDATE}', date($formatDates), $qrCodeExtInfo);
+              $tmpQRCode = str_ireplace('{PAYFORPERIODSTR}', $rcptPayForPeriod, $qrCodeExtInfo);
+              $tmpQRCode = str_ireplace('{PAYTILLMONTHYEAR}', date($formatMonthYear, strtotime("+1 month")), $qrCodeExtInfo);
+              $tmpQRCode = str_ireplace('{PAYTILLDATE}', $rcptPayTillDate, $qrCodeExtInfo);
+              $tmpQRCode = str_ireplace('{SERVICENAME}', $rcptServiceName, $qrCodeExtInfo);
+              $tmpQRCode = str_ireplace('{CONTRACT}', $eachUser['contract'], $qrCodeExtInfo);
+              $tmpQRCode = str_ireplace('{REALNAME}', $eachUser['realname'], $qrCodeExtInfo);
+              $tmpQRCode = str_ireplace('{CITY}', $eachUser['city'], $qrCodeExtInfo);
+              $tmpQRCode = str_ireplace('{STREET}', $eachUser['street'], $qrCodeExtInfo);
+              $tmpQRCode = str_ireplace('{BUILD}', $eachUser['build'], $qrCodeExtInfo);
+              $tmpQRCode = str_ireplace('{APT}', (!empty($eachUser['apt'])) ? '/' . $eachUser['apt'] : '', $qrCodeExtInfo);
+              $tmpQRCode = str_ireplace('{PHONE}', $eachUser['phone'], $qrCodeExtInfo);
+              $tmpQRCode = str_ireplace('{MOBILE}', $eachUser['mobile'], $qrCodeExtInfo);
+              $tmpQRCode = str_ireplace('{TARIFF}', $eachUser['tariffname'], $qrCodeExtInfo);
+              $tmpQRCode = str_ireplace('{TARIFFPRICE}', $eachUser['tariffprice'], $qrCodeExtInfo);
+              $tmpQRCode = str_ireplace('{TARIFFPRICECOINS}', $eachUser['tariffprice'] * 100, $qrCodeExtInfo);
+              $tmpQRCode = str_ireplace('{TARIFFPRICEDECIMALS}', number_format((float)$eachUser['tariffprice'], 2, '.', ''), $qrCodeExtInfo);
+              $tmpQRCode = str_ireplace('{SUMM}', $receiptPaySum, $qrCodeExtInfo);
+              $tmpQRCode = str_ireplace('{SUMMCOINS}', $receiptPaySum * 100, $qrCodeExtInfo);
+              $tmpQRCode = str_ireplace('{SUMMDECIMALS}', number_format((float)($receiptPaySum),2, '.', ''), $qrCodeExtInfo);
 
-            // replacing macro values in template
-            $rowtemplate = $rawTemplate;
-            $rowtemplate = str_ireplace('{QR_INDEX}', ++$i, $rowtemplate);
-            $rowtemplate = str_ireplace('{QR_CODE_CONTENT}', $tmpQRCode, $rowtemplate);
-            $rowtemplate = str_ireplace('{CURDATE}', date($formatDates), $rowtemplate);
-            $rowtemplate = str_ireplace('{PAYFORPERIODSTR}', $rcptPayForPeriod, $rowtemplate);
-            $rowtemplate = str_ireplace('{PAYTILLMONTHYEAR}', date($formatMonthYear, strtotime("+1 month")), $rowtemplate);
-            $rowtemplate = str_ireplace('{PAYTILLDATE}', $rcptPayTillDate, $rowtemplate);
-            $rowtemplate = str_ireplace('{SERVICENAME}', $rcptServiceName, $rowtemplate);
-            $rowtemplate = str_ireplace('{CONTRACT}', $eachUser['contract'], $rowtemplate);
-            $rowtemplate = str_ireplace('{REALNAME}', $eachUser['realname'], $rowtemplate);
-            $rowtemplate = str_ireplace('{CITY}', $eachUser['city'], $rowtemplate);
-            $rowtemplate = str_ireplace('{STREET}', $eachUser['street'], $rowtemplate);
-            $rowtemplate = str_ireplace('{BUILD}', $eachUser['build'], $rowtemplate);
-            $rowtemplate = str_ireplace('{APT}', (!empty($eachUser['apt'])) ? '/' . $eachUser['apt'] : '', $rowtemplate);
-            $rowtemplate = str_ireplace('{PHONE}', $eachUser['phone'], $rowtemplate);
-            $rowtemplate = str_ireplace('{MOBILE}', $eachUser['mobile'], $rowtemplate);
-            $rowtemplate = str_ireplace('{TARIFF}', $eachUser['tariffname'], $rowtemplate);
-            $rowtemplate = str_ireplace('{TARIFFPRICE}', $eachUser['tariffprice'], $rowtemplate);
-            $rowtemplate = str_ireplace('{TARIFFPRICECOINS}', $eachUser['tariffprice'] * 100, $rowtemplate);
-            $rowtemplate = str_ireplace('{TARIFFPRICEDECIMALS}', number_format((float)$eachUser['tariffprice'], 2, '.', ''), $rowtemplate);
-            $rowtemplate = str_ireplace('{SUMM}', $receiptPaySum, $rowtemplate);
-            $rowtemplate = str_ireplace('{SUMMCOINS}', $receiptPaySum * 100, $rowtemplate);
-            $rowtemplate = str_ireplace('{SUMMDECIMALS}', number_format((float)($receiptPaySum),2, '.', ''), $rowtemplate);
+              // replacing macro values in template
+              $rowtemplate = $rawTemplate;
+              $rowtemplate = str_ireplace('{QR_INDEX}', ++$i, $rowtemplate);
+              $rowtemplate = str_ireplace('{QR_CODE_CONTENT}', $tmpQRCode, $rowtemplate);
+              $rowtemplate = str_ireplace('{CURDATE}', date($formatDates), $rowtemplate);
+              $rowtemplate = str_ireplace('{PAYFORPERIODSTR}', $rcptPayForPeriod, $rowtemplate);
+              $rowtemplate = str_ireplace('{PAYTILLMONTHYEAR}', date($formatMonthYear, strtotime("+1 month")), $rowtemplate);
+              $rowtemplate = str_ireplace('{PAYTILLDATE}', $rcptPayTillDate, $rowtemplate);
+              $rowtemplate = str_ireplace('{SERVICENAME}', $rcptServiceName, $rowtemplate);
+              $rowtemplate = str_ireplace('{CONTRACT}', $eachUser['contract'], $rowtemplate);
+              $rowtemplate = str_ireplace('{REALNAME}', $eachUser['realname'], $rowtemplate);
+              $rowtemplate = str_ireplace('{CITY}', $eachUser['city'], $rowtemplate);
+              $rowtemplate = str_ireplace('{STREET}', $eachUser['street'], $rowtemplate);
+              $rowtemplate = str_ireplace('{BUILD}', $eachUser['build'], $rowtemplate);
+              $rowtemplate = str_ireplace('{APT}', (!empty($eachUser['apt'])) ? '/' . $eachUser['apt'] : '', $rowtemplate);
+              $rowtemplate = str_ireplace('{PHONE}', $eachUser['phone'], $rowtemplate);
+              $rowtemplate = str_ireplace('{MOBILE}', $eachUser['mobile'], $rowtemplate);
+              $rowtemplate = str_ireplace('{TARIFF}', $eachUser['tariffname'], $rowtemplate);
+              $rowtemplate = str_ireplace('{TARIFFPRICE}', $eachUser['tariffprice'], $rowtemplate);
+              $rowtemplate = str_ireplace('{TARIFFPRICECOINS}', $eachUser['tariffprice'] * 100, $rowtemplate);
+              $rowtemplate = str_ireplace('{TARIFFPRICEDECIMALS}', number_format((float)$eachUser['tariffprice'], 2, '.', ''), $rowtemplate);
+              $rowtemplate = str_ireplace('{SUMM}', $receiptPaySum, $rowtemplate);
+              $rowtemplate = str_ireplace('{SUMMCOINS}', $receiptPaySum * 100, $rowtemplate);
+              $rowtemplate = str_ireplace('{SUMMDECIMALS}', number_format((float)($receiptPaySum),2, '.', ''), $rowtemplate);
 
-            $printableTemplate.= $rowtemplate;
-        }*/
+              $printableTemplate.= $rowtemplate;
+              } */
 
 
 
             // replacing macro values for qr-code info in template
             $tmpQRCode = $qrCodeExtInfo;
             $tmpQRCode = $this->replaceMainTemplateMacro(
-                $tmpQRCode,
-                date($formatDates), date($formatTime), date($formatDatesNoDelim),
-                date($formatTimeNoDelim), $receiptNextNum, $rcptMonthsCnt, $rcptPayForPeriod,
-                date($formatMonthYear, strtotime("+1 month")),
-                $rcptPayTillDate, $rcptServiceName, $eachUser['contract'], $curUsrContractDate,
-                $eachUser['realname'], $eachUser['city'], $eachUser['street'], $eachUser['build'],
-                (!empty($eachUser['apt'])) ? '/' . $eachUser['apt'] : '',
-                $eachUser['postal_code'], $eachUser['town_district'], $eachUser['address_exten'],
-                $eachUser['phone'], $eachUser['mobile'],
-                $eachUser['tariffname'], $eachUser['tariffprice'], $eachUser['tariffprice'] * 100,
-                number_format((float)$eachUser['tariffprice'], 2, '.', ''),
-                $receiptPaySum, $receiptPaySum * 100,
-                number_format((float)($receiptPaySum), 2, '.', '')
+                            $tmpQRCode,
+                            date($formatDates),
+                            date($formatTime),
+                            date($formatDatesNoDelim),
+                            date($formatTimeNoDelim),
+                            $receiptNextNum,
+                            $rcptMonthsCnt,
+                            $rcptPayForPeriod,
+                            date($formatMonthYear, strtotime("+1 month")),
+                            $rcptPayTillDate,
+                            $rcptServiceName,
+                            $eachUser['contract'],
+                            $curUsrContractDate,
+                            $eachUser['realname'],
+                            $eachUser['city'],
+                            $eachUser['street'],
+                            $eachUser['build'],
+                            (!empty($eachUser['apt'])) ? '/' . $eachUser['apt'] : '',
+                            $eachUser['postal_code'],
+                            $eachUser['town_district'],
+                            $eachUser['address_exten'],
+                            $eachUser['phone'],
+                            $eachUser['mobile'],
+                            @$eachUser['inn'],
+                            $eachUser['tariffname'],
+                            $eachUser['tariffprice'],
+                            $eachUser['tariffprice'] * 100,
+                            number_format((float) $eachUser['tariffprice'], 2, '.', ''),
+                            $receiptPaySum,
+                            $receiptPaySum * 100,
+                            number_format((float) ($receiptPaySum), 2, '.', '')
             );
 
             // replacing macro values in template
@@ -600,20 +624,37 @@ class PrintReceipt {
                 $rowtemplate = str_ireplace('{QR_CODE_EMBEDDED}', '', $rowtemplate);
             }
 
+
             $rowtemplate = $this->replaceMainTemplateMacro(
-                $rowtemplate,
-                date($formatDates), date($formatTime), date($formatDatesNoDelim),
-                date($formatTimeNoDelim), $receiptNextNum, $rcptMonthsCnt, $rcptPayForPeriod,
-                date($formatMonthYear, strtotime("+1 month")),
-                $rcptPayTillDate, $rcptServiceName, $eachUser['contract'], $curUsrContractDate,
-                $eachUser['realname'], $eachUser['city'], $eachUser['street'], $eachUser['build'],
-                (!empty($eachUser['apt'])) ? '/' . $eachUser['apt'] : '',
-                $eachUser['postal_code'], $eachUser['town_district'], $eachUser['address_exten'],
-                $eachUser['phone'], $eachUser['mobile'],
-                $eachUser['tariffname'], $eachUser['tariffprice'], $eachUser['tariffprice'] * 100,
-                number_format((float)$eachUser['tariffprice'], 2, '.', ''),
-                $receiptPaySum, $receiptPaySum * 100,
-                number_format((float)($receiptPaySum), 2, '.', '')
+                            $rowtemplate,
+                            date($formatDates),
+                            date($formatTime),
+                            date($formatDatesNoDelim),
+                            date($formatTimeNoDelim),
+                            $receiptNextNum,
+                            $rcptMonthsCnt,
+                            $rcptPayForPeriod,
+                            date($formatMonthYear, strtotime("+1 month")),
+                            $rcptPayTillDate, $rcptServiceName, $eachUser['contract'],
+                            $curUsrContractDate,
+                            $eachUser['realname'],
+                            $eachUser['city'],
+                            $eachUser['street'],
+                            $eachUser['build'],
+                            (!empty($eachUser['apt'])) ? '/' . $eachUser['apt'] : '',
+                            $eachUser['apt'], $eachUser['postal_code'],
+                            $eachUser['town_district'],
+                            $eachUser['address_exten'],
+                            $eachUser['phone'],
+                            $eachUser['mobile'],
+                            @$eachUser['inn'],
+                            zb_OschadCSgen(@$eachUser['inn']),
+                            $eachUser['tariffname'],
+                            $eachUser['tariffprice'],
+                            $eachUser['tariffprice'] * 100,
+                            number_format((float) $eachUser['tariffprice'], 2, '.', ''),
+                            $receiptPaySum, $receiptPaySum * 100,
+                            number_format((float) ($receiptPaySum), 2, '.', '')
             );
 
             $printableTemplate .= $rowtemplate;
@@ -672,16 +713,8 @@ class PrintReceipt {
      *
      * @return mixed
      */
-    public function replaceMainTemplateMacro($rcptTemplate, $tplCurDate = '', $tplCurTime = '', $tplCurDateNoDelims = '',
-                                             $tplCurTimeNoDelims = '', $tplInvoiceNum = '', $tplMonthCnt = '',
-                                             $tplPayForPeriodStr = '', $tplPayTillMnthYr = '', $tplPayTillDate = '',
-                                             $tplSrvName = '', $tplContract = '', $tplContractDate = '',
-                                             $tplRealName = '', $tplCity = '', $tplStreet = '', $tplBuild = '', $tplApt = '',
-                                             $tplEAddrPostCode = '', $tplEAddrTwnDstr = '', $tplEAddrExt = '',
-                                             $tplPhone = '', $tplMobile = '',
-                                             $tplTariff = '', $tplTrfPrice = 0, $tplTrfPriceCoins = 0, $tplTrfPriceDecimals = 0,
-                                             $tplSumm = 0, $tplSummCoins = 0, $tplSummDecimals = 0
-                                            ) {
+    public function replaceMainTemplateMacro($rcptTemplate, $tplCurDate = '', $tplCurTime = '', $tplCurDateNoDelims = '', $tplCurTimeNoDelims = '', $tplInvoiceNum = '', $tplMonthCnt = '', $tplPayForPeriodStr = '', $tplPayTillMnthYr = '', $tplPayTillDate = '', $tplSrvName = '', $tplContract = '', $tplContractDate = '', $tplRealName = '', $tplCity = '', $tplStreet = '', $tplBuild = '', $tplApt = '', $tplAPT2 = '', $tplEAddrPostCode = '', $tplEAddrTwnDstr = '', $tplEAddrExt = '', $tplPhone = '', $tplMobile = '', $tplInn = '', $tploshadCS = '', $tplTariff = '', $tplTrfPrice = 0, $tplTrfPriceCoins = 0, $tplTrfPriceDecimals = 0, $tplSumm = 0, $tplSummCoins = 0, $tplSummDecimals = 0
+    ) {
 
         $rcptTemplate = str_ireplace('{CURDATE}', $tplCurDate, $rcptTemplate);
         $rcptTemplate = str_ireplace('{CURTIME}', $tplCurTime, $rcptTemplate);
@@ -700,10 +733,13 @@ class PrintReceipt {
         $rcptTemplate = str_ireplace('{STREET}', $tplStreet, $rcptTemplate);
         $rcptTemplate = str_ireplace('{BUILD}', $tplBuild, $rcptTemplate);
         $rcptTemplate = str_ireplace('{APT}', $tplApt, $rcptTemplate);
+        $rcptTemplate = str_ireplace('{APT2}', $tplAPT2, $rcptTemplate);
         $rcptTemplate = str_ireplace('{EXTADDR_POSTALCODE}', $tplEAddrPostCode, $rcptTemplate);
         $rcptTemplate = str_ireplace('{EXTADDR_TOWNDISTR}', $tplEAddrTwnDstr, $rcptTemplate);
         $rcptTemplate = str_ireplace('{EXTADDR_ADDREXT}', $tplEAddrExt, $rcptTemplate);
         $rcptTemplate = str_ireplace('{PHONE}', $tplPhone, $rcptTemplate);
+        $rcptTemplate = str_ireplace('{INN}', $tplInn, $rcptTemplate);
+        $rcptTemplate = str_ireplace('{oshadCS}', $tploshadCS, $rcptTemplate);
         $rcptTemplate = str_ireplace('{MOBILE}', $tplMobile, $rcptTemplate);
         $rcptTemplate = str_ireplace('{TARIFF}', $tplTariff, $rcptTemplate);
         $rcptTemplate = str_ireplace('{TARIFFPRICE}', $tplTrfPrice, $rcptTemplate);
@@ -724,52 +760,52 @@ class PrintReceipt {
     public function renderWebForm() {
         $inputs = '';
         if ($this->receiptsHistoryOn) {
-            $inputs.= wf_Link(self::URL_ME . '&showhistory=true', __('Issued receipts'), true, 'ubButton', 'style="width: 90%; text-align: center;"');
-            $inputs.= wf_delimiter(0);
+            $inputs .= wf_Link(self::URL_ME . '&showhistory=true', __('Issued receipts'), true, 'ubButton', 'style="width: 90%; text-align: center;"');
+            $inputs .= wf_delimiter(0);
         }
-        $inputs.= wf_tag('div', false, '', 'style="line-height: 0.8em"');
-        $inputs.= wf_RadioInput('receiptsrv', __('Internet'), 'inetsrv', false, true, 'ReceiptSrvInet');
-        $inputs.= wf_RadioInput('receiptsrv', __('UKV'), 'ctvsrv', true, false, 'ReceiptSrvCTV');
-        $inputs.= wf_delimiter(0);
-        $inputs.= wf_TextInput('receiptsrvtxt', __('Service'), __('Internet'), true, '28', '', '', 'ReceiptSrvName');
-        $inputs.= wf_delimiter(0);
-        $inputs.= wf_Selector('receipttemplate', $this->receiptTemplateFolders, __('Choose template'), '', true, false, 'ReceiptTemplate');
-        $inputs.= wf_delimiter(0);
-        $inputs.= wf_Selector('receiptsubscrstatus', $this->receiptAllUserStatuses, __('Subscriber\'s account status'), '', true, false, 'ReceiptDirSel');
-        $inputs.= wf_Selector('receiptfrozenstatus', $this->receiptAllFrozenStatuses, __('Subscriber\'s frozen status'), '', true, false, 'ReceiptFrozenSel');
-        $inputs.= wf_TextInput('receiptdebtcash', __('The threshold at which the money considered user debtor'), '0', true, '4', '', '', 'ReceiptDebtSumm');
-        $inputs.= wf_TextInput('receiptmonthscnt', __('Amount of months to be payed(will be multiplied on tariff cost)'), '1', true, '4', '', '', 'ReceiptMonthsCnt');
-        $inputs.= wf_delimiter(0);
-        $inputs.= wf_Selector('receiptscities', $this->receiptAllCities, __('City'), '', true, true, 'ReceiptCities');
-        $inputs.= wf_Selector('receiptstreets', array('-' => '-'), __('Street'), '', true, true, 'ReceiptStreets');
-        $inputs.= wf_Selector('receiptbuilds', array('-' => '-'), __('Build'), '', true, true, 'ReceiptBuilds');
-        $inputs.= wf_delimiter(0);
-        $inputs.= wf_Selector('receipttariffs', $this->getAllTariffs(), __('User has tariff assigned'), '', true, true, 'ReceiptTariffs');
-        $inputs.= wf_delimiter(0);
-        $inputs.= wf_Selector('receipttags', $this->getAllTags(), __('User have tag assigned'), '', true, true, 'ReceiptTags');
-        $inputs.= wf_delimiter(0);
-        $inputs.= wf_TextInput('receiptpayperiod', __('Pay for period(months), e.g.: March 2019, April 2019'), '', true, '40', '', '', 'ReceiptPayPeriod');
-        $inputs.= wf_delimiter(0);
-        $inputs.= wf_tag('span', false);
-        $inputs.= wf_DatePickerPreset('receiptpaytill', date("Y-m-d", strtotime("+5 days")), true);
-        $inputs.= wf_nbsp(2) . __('Pay till date');
-        $inputs.= wf_tag('span', true);
+        $inputs .= wf_tag('div', false, '', 'style="line-height: 0.8em"');
+        $inputs .= wf_RadioInput('receiptsrv', __('Internet'), 'inetsrv', false, true, 'ReceiptSrvInet');
+        $inputs .= wf_RadioInput('receiptsrv', __('UKV'), 'ctvsrv', true, false, 'ReceiptSrvCTV');
+        $inputs .= wf_delimiter(0);
+        $inputs .= wf_TextInput('receiptsrvtxt', __('Service'), __('Internet'), true, '28', '', '', 'ReceiptSrvName');
+        $inputs .= wf_delimiter(0);
+        $inputs .= wf_Selector('receipttemplate', $this->receiptTemplateFolders, __('Choose template'), '', true, false, 'ReceiptTemplate');
+        $inputs .= wf_delimiter(0);
+        $inputs .= wf_Selector('receiptsubscrstatus', $this->receiptAllUserStatuses, __('Subscriber\'s account status'), '', true, false, 'ReceiptDirSel');
+        $inputs .= wf_Selector('receiptfrozenstatus', $this->receiptAllFrozenStatuses, __('Subscriber\'s frozen status'), '', true, false, 'ReceiptFrozenSel');
+        $inputs .= wf_TextInput('receiptdebtcash', __('The threshold at which the money considered user debtor'), '0', true, '4', '', '', 'ReceiptDebtSumm');
+        $inputs .= wf_TextInput('receiptmonthscnt', __('Amount of months to be payed(will be multiplied on tariff cost)'), '1', true, '4', '', '', 'ReceiptMonthsCnt');
+        $inputs .= wf_delimiter(0);
+        $inputs .= wf_Selector('receiptscities', $this->receiptAllCities, __('City'), '', true, true, 'ReceiptCities');
+        $inputs .= wf_Selector('receiptstreets', array('-' => '-'), __('Street'), '', true, true, 'ReceiptStreets');
+        $inputs .= wf_Selector('receiptbuilds', array('-' => '-'), __('Build'), '', true, true, 'ReceiptBuilds');
+        $inputs .= wf_delimiter(0);
+        $inputs .= wf_Selector('receipttariffs', $this->getAllTariffs(), __('User has tariff assigned'), '', true, true, 'ReceiptTariffs');
+        $inputs .= wf_delimiter(0);
+        $inputs .= wf_Selector('receipttags', $this->getAllTags(), __('User have tag assigned'), '', true, true, 'ReceiptTags');
+        $inputs .= wf_delimiter(0);
+        $inputs .= wf_TextInput('receiptpayperiod', __('Pay for period(months), e.g.: March 2019, April 2019'), '', true, '40', '', '', 'ReceiptPayPeriod');
+        $inputs .= wf_delimiter(0);
+        $inputs .= wf_tag('span', false);
+        $inputs .= wf_DatePickerPreset('receiptpaytill', date("Y-m-d", strtotime("+5 days")), true);
+        $inputs .= wf_nbsp(2) . __('Pay till date');
+        $inputs .= wf_tag('span', true);
 
         if ($this->receiptsHistoryOn) {
-            $inputs.= wf_delimiter(1);
-            $inputs.= wf_CheckInput('receiptsaveindb', __('Save receipt(s) to DB'), true, false, 'ReceiptSaveInDB');
+            $inputs .= wf_delimiter(1);
+            $inputs .= wf_CheckInput('receiptsaveindb', __('Save receipt(s) to DB'), true, false, 'ReceiptSaveInDB');
         }
 
-        $inputs.= wf_delimiter(1);
-        $inputs.= wf_HiddenInput('tmpstreetsall', base64_encode(json_encode($this->receiptAllStreets)), 'TmpStreetsAll');
-        $inputs.= wf_HiddenInput('tmpbuildsall', base64_encode(json_encode($this->receiptAllBuilds)), 'TmpBuildsAll');
-        $inputs.= wf_HiddenInput('tmpinettariffs', base64_encode(json_encode($this->getAllTariffs())), 'TmpInetTariffs');
-        $inputs.= wf_HiddenInput('tmpukvtariffs', base64_encode(json_encode($this->getAllTariffs(false))), 'TmpUkvTariffs');
-        $inputs.= wf_HiddenInput('printthemall', 'true', 'PrintThemAll');
-        $inputs.= wf_Submit(__('Print'), '', 'class="ubButton" style="width: 100%"');
+        $inputs .= wf_delimiter(1);
+        $inputs .= wf_HiddenInput('tmpstreetsall', base64_encode(json_encode($this->receiptAllStreets)), 'TmpStreetsAll');
+        $inputs .= wf_HiddenInput('tmpbuildsall', base64_encode(json_encode($this->receiptAllBuilds)), 'TmpBuildsAll');
+        $inputs .= wf_HiddenInput('tmpinettariffs', base64_encode(json_encode($this->getAllTariffs())), 'TmpInetTariffs');
+        $inputs .= wf_HiddenInput('tmpukvtariffs', base64_encode(json_encode($this->getAllTariffs(false))), 'TmpUkvTariffs');
+        $inputs .= wf_HiddenInput('printthemall', 'true', 'PrintThemAll');
+        $inputs .= wf_Submit(__('Print'), '', 'class="ubButton" style="width: 100%"');
 
-        $inputs.= wf_tag('script', false, '', 'type="text/javascript"');
-        $inputs.= '$(document).ready(function() {                        
+        $inputs .= wf_tag('script', false, '', 'type="text/javascript"');
+        $inputs .= '$(document).ready(function() {                        
                         $("[name=receiptsrv]").change(function(evt) {
                             var tmpStr;
                             
@@ -885,8 +921,8 @@ class PrintReceipt {
                         filterBuildsSelect(keyword, source);
                    });
                   ';
-        $inputs.= wf_tag('script', true);
-        $inputs.= wf_tag('div', true);
+        $inputs .= wf_tag('script', true);
+        $inputs .= wf_tag('div', true);
 
         $form = wf_Form('?module=printreceipts', 'POST', $inputs, 'glamour', '', 'ReceiptPrintForm', "_blank");
 
@@ -907,44 +943,44 @@ class PrintReceipt {
      */
     public function renderWebFormForProfile($receiptLogin, $receiptServiceType, $receiptServiceName = '', $userBalance = 0, $receiptStreet = '', $receiptBuild = '') {
         $receiptSumSources = array(
-                                   'debtasbalance' => __('Get current balance debt sum'),
-                                   '' => __('Specify number of months')
-                                  );
+            'debtasbalance' => __('Get current balance debt sum'),
+            '' => __('Specify number of months')
+        );
 
         $inputs = wf_Selector('receipttemplate', $this->receiptTemplateFolders, __('Choose template'), '', true, false, 'ReceiptTemplate');
-        $inputs.= wf_delimiter(0);
-        $inputs.= wf_TextInput('receiptsrvtxt', __('Service'), __($receiptServiceName), true, '28', '', '', 'ReceiptSrvName');
-        $inputs.= wf_delimiter(0);
+        $inputs .= wf_delimiter(0);
+        $inputs .= wf_TextInput('receiptsrvtxt', __('Service'), __($receiptServiceName), true, '28', '', '', 'ReceiptSrvName');
+        $inputs .= wf_delimiter(0);
 
         if ($userBalance < 0) {
-            $inputs.= wf_Selector('receiptsumsource', $receiptSumSources, __('Specify receipt sum source'), '', true, false, 'ReceiptSumSource');
-            $inputs.= wf_TextInput('receiptbalancesum', __('Current user\'s balance debt sum'), abs(round($userBalance, 2)), true, '4', '', '', 'ReceiptBalanceSum', 'readonly="readonly"');
+            $inputs .= wf_Selector('receiptsumsource', $receiptSumSources, __('Specify receipt sum source'), '', true, false, 'ReceiptSumSource');
+            $inputs .= wf_TextInput('receiptbalancesum', __('Current user\'s balance debt sum'), abs(round($userBalance, 2)), true, '4', '', '', 'ReceiptBalanceSum', 'readonly="readonly"');
         }
 
-        $inputs.= wf_TextInput('receiptmonthscnt', __('Amount of months to be payed(will be multiplied on tariff cost)'), '1', true, '4', '', '', 'ReceiptMonthsCnt');
-        $inputs.= wf_TextInput('receiptpayperiod', __('Pay for period(months), e.g.: March 2019, April 2019'), '', true, '40', '', '', 'ReceiptPayPeriod');
-        $inputs.= wf_delimiter(0);
-        $inputs.= wf_tag('span', false);
-        $inputs.= wf_DatePickerPreset('receiptpaytill', date("Y-m-d", strtotime("+5 days")), true);
-        $inputs.= wf_nbsp(2) . __('Pay till date');
-        $inputs.= wf_tag('span', true);
+        $inputs .= wf_TextInput('receiptmonthscnt', __('Amount of months to be payed(will be multiplied on tariff cost)'), '1', true, '4', '', '', 'ReceiptMonthsCnt');
+        $inputs .= wf_TextInput('receiptpayperiod', __('Pay for period(months), e.g.: March 2019, April 2019'), '', true, '40', '', '', 'ReceiptPayPeriod');
+        $inputs .= wf_delimiter(0);
+        $inputs .= wf_tag('span', false);
+        $inputs .= wf_DatePickerPreset('receiptpaytill', date("Y-m-d", strtotime("+5 days")), true);
+        $inputs .= wf_nbsp(2) . __('Pay till date');
+        $inputs .= wf_tag('span', true);
 
         if ($this->receiptsHistoryOn) {
-            $inputs.= wf_delimiter(1);
-            $inputs.= wf_CheckInput('receiptsaveindb', __('Save receipt(s) to DB'), true, false, 'ReceiptSaveInDB');
+            $inputs .= wf_delimiter(1);
+            $inputs .= wf_CheckInput('receiptsaveindb', __('Save receipt(s) to DB'), true, false, 'ReceiptSaveInDB');
         }
 
-        $inputs.= wf_HiddenInput('receiptsubscrstatus', '', 'ReceiptSubscrStatus');
-        $inputs.= wf_HiddenInput('receiptdebtcash', '');
-        $inputs.= wf_HiddenInput('receiptsrv', $receiptServiceType);
-        $inputs.= wf_HiddenInput('receiptslogin', $receiptLogin);
-        $inputs.= wf_HiddenInput('receiptstreets', $receiptStreet);
-        $inputs.= wf_HiddenInput('receiptbuilds', $receiptBuild);
-        $inputs.= wf_HiddenInput('printthemall', 'true');
-        $inputs.= wf_delimiter(0);
-        $inputs.= wf_Submit(__('Print'), '', 'class="ubButton" style="width: 100%"');
+        $inputs .= wf_HiddenInput('receiptsubscrstatus', '', 'ReceiptSubscrStatus');
+        $inputs .= wf_HiddenInput('receiptdebtcash', '');
+        $inputs .= wf_HiddenInput('receiptsrv', $receiptServiceType);
+        $inputs .= wf_HiddenInput('receiptslogin', $receiptLogin);
+        $inputs .= wf_HiddenInput('receiptstreets', $receiptStreet);
+        $inputs .= wf_HiddenInput('receiptbuilds', $receiptBuild);
+        $inputs .= wf_HiddenInput('printthemall', 'true');
+        $inputs .= wf_delimiter(0);
+        $inputs .= wf_Submit(__('Print'), '', 'class="ubButton" style="width: 100%"');
 
-        $form = wf_Form('?module=printreceipts',  'POST', $inputs, 'glamour', '', 'ReceiptPrintForm', "_blank");
+        $form = wf_Form('?module=printreceipts', 'POST', $inputs, 'glamour', '', 'ReceiptPrintForm', "_blank");
 
         if ($userBalance < 0) {
             $form .= wf_tag('script', false, '', 'type="text/javascript"');
@@ -1008,7 +1044,7 @@ class PrintReceipt {
 
         $form = wf_Form('', 'POST', $inputs, 'glamour', '', $formID) . wf_delimiter(0);
 
-        return ( $form . wf_JqDtLoader($columns, $ajaxUrlStr, false,  __('results'), 100) );
+        return ( $form . wf_JqDtLoader($columns, $ajaxUrlStr, false, __('results'), 100) );
     }
 
     /**
@@ -1035,4 +1071,5 @@ class PrintReceipt {
 
         $json->getJson();
     }
+
 }

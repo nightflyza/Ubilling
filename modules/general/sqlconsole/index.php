@@ -48,6 +48,7 @@ if ($system->checkForRight('SQLCONSOLE')) {
     if (cfr('ROOT')) {
         $migrationControls .= wf_Link("?module=migration", wf_img('skins/icon_puzzle.png') . ' ' . __('Migration'), false, 'ubButton');
         $migrationControls .= wf_Link("?module=migration2", wf_img('skins/icon_puzzle.png') . ' ' . __('Migration') . ' 2', false, 'ubButton');
+        $migrationControls .= wf_Link("?module=migration2_exten", wf_img('skins/icon_puzzle.png') . ' ' . __('Migration live (occupancy & tags)'), false, 'ubButton');
         $migrationControls .= wf_Link("?module=migration2_ukv", wf_img('skins/icon_puzzle.png') . ' ' . __('Migration') . ' 2 UKV', false, 'ubButton');
     }
     if (cfr('MIKMIGR')) {
@@ -79,7 +80,7 @@ if ($system->checkForRight('SQLCONSOLE')) {
 //is template run or clear area?
     if (wf_CheckGet(array('runscript'))) {
         if ($punchScriptsAvail) {
-            $runcode = $onePunch->getScriptContent($_GET['runscript']);
+            $runcode = htmlentities($onePunch->getScriptContent($_GET['runscript']), ENT_COMPAT, "UTF-8");
         } else {
             $runcode = '';
         }
@@ -164,6 +165,7 @@ if ($system->checkForRight('SQLCONSOLE')) {
             ob_start();
 
             if (!extension_loaded('mysql')) {
+                mysqli_report(0); //TODO: make here normal fix for PHP 8.2
                 $queried = mysqli_query($loginDB, $newquery);
             } else {
                 $queried = mysql_query($newquery);
@@ -173,6 +175,7 @@ if ($system->checkForRight('SQLCONSOLE')) {
                 return(show_error(wf_tag('b') . __('Wrong query') . ': ' . wf_tag('b', true) . $newquery));
             } else {
                 if (!extension_loaded('mysql')) {
+                    mysqli_report(0); //TODO: make here normal fix for PHP 8.2
                     while (@$row = mysqli_fetch_assoc($queried)) {
                         $query_result[] = $row;
                     }
@@ -192,7 +195,7 @@ if ($system->checkForRight('SQLCONSOLE')) {
             if (!empty($query_result)) {
                 $recCount = count($query_result);
 
-                if (!isset($_POST['tableresult']) and ! isset($_POST['truetableresult'])) {
+                if (!isset($_POST['tableresult']) and !isset($_POST['truetableresult'])) {
                     //raw array result
                     $vdump = var_export($query_result, true);
                 } elseif (isset($_POST['truetableresult'])) {

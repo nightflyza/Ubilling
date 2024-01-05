@@ -27,6 +27,19 @@ class PONProto {
     protected $onuOfflineSignalLevel = '-9000';
 
     /**
+     * Placeholder for SERIAL_CASE_MODE SNMP template option
+     *  0 - no case convert
+     *  1 - lowercase
+     *  2 - uppercase
+     *
+     * As far as MAC and Serial are interchangeable during polling for a historical reason
+     * - we should keep "1" as a default value.
+     *
+     * @var bool
+     */
+    protected $onuSerialCaseMode = 1;
+
+    /**
      * SNMPHelper object instance
      *
      * @var object
@@ -172,7 +185,13 @@ class PONProto {
                     $macRaw = trim($line[1]); //mac address
                     $devIndex = trim($line[0]); //device index
                     $macRaw = str_replace(' ', ':', $macRaw);
-                    $macRaw = strtolower($macRaw);
+
+                    if ($this->onuSerialCaseMode == 1) {
+                        $macRaw = strtolower($macRaw);
+                    } elseif ($this->onuSerialCaseMode == 2) {
+                        $macRaw = strtoupper($macRaw);
+                    }
+
                     $macTmp[$devIndex] = $macRaw;
                 }
             }
@@ -239,7 +258,13 @@ class PONProto {
                     $macRaw = trim($line[1]); //mac address
                     $devIndex = trim($line[0]); //device index
                     $macRaw = str_replace(' ', ':', $macRaw);
-                    $macRaw = strtolower($macRaw);
+
+                    if ($this->onuSerialCaseMode == 1) {
+                        $macRaw = strtolower($macRaw);
+                    } elseif ($this->onuSerialCaseMode == 2) {
+                        $macRaw = strtoupper($macRaw);
+                    }
+
                     $onuTmp[$devIndex] = $macRaw;
                 }
             }
@@ -294,4 +319,22 @@ class PONProto {
         }
     }
 
+    /**
+     * Replaces standard 4-line routine with snmpwalking and removing OID and VALUE portions and returns an array of cleared values
+     *
+     * @param string $snmpIPPORT
+     * @param string $snmpCommunity
+     * @param string $snmpOID
+     * @param string $removeOIDPart
+     * @param string $removeVALUE
+     * @param bool $snmpCacheON
+     *
+     * @return array
+     */
+    protected function walkCleared($snmpIPPORT, $snmpCommunity, $snmpOID, $removeOIDPart = '', $removeVALUE = '', $snmpCacheON = false) {
+        $oidIndex = $this->snmp->walk($snmpIPPORT, $snmpCommunity, $snmpOID, $snmpCacheON);
+        $oidIndex = trimSNMPOutput($oidIndex, $snmpOID . '.' . $removeOIDPart, $removeVALUE, true);
+
+        return ($oidIndex);
+    }
 }

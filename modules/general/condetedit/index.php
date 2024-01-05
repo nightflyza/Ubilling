@@ -4,17 +4,16 @@ if (cfr('CONDET')) {
     $altCfg = $ubillingConfig->getAlter();
     if ($altCfg['CONDET_ENABLED']) {
         if (wf_CheckGet(array('username'))) {
-            $login = $_GET['username'];
-
+            $login = ubRouting::get('username');
             $conDet = new ConnectionDetails();
 
-            if (wf_CheckPost(array('editcondet'))) {
-                $conDet->set($login, $_POST['newseal'], $_POST['newlength'], $_POST['newprice']);
-                rcms_redirect('?module=condetedit&username=' . $login);
+            if (ubRouting::checkPost('editcondet')) {
+                $conDet->set($login, ubRouting::post('newseal'), ubRouting::post('newlength'), ubRouting::post('newprice'), ubRouting::post('newterm'));
+                ubRouting::nav($conDet::URL_ME . $login);
             }
 
             show_window(__('Edit') . ' ' . __('Connection details'), $conDet->editForm($login));
-            
+
 //additional notes
             if ($altCfg['ADCOMMENTS_ENABLED']) {
                 $adcomments = new ADcomments('CONDET');
@@ -31,4 +30,3 @@ if (cfr('CONDET')) {
 } else {
     show_error(__('Access denied'));
 }
-?>

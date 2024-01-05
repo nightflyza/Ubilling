@@ -3,7 +3,7 @@
 /**
  * Sphinx database abstraction layer
  */
-Class SphinxDB {
+class SphinxDB {
 
     /**
      * Placeholder for db link
@@ -43,7 +43,7 @@ Class SphinxDB {
     /**
      * Limit number of search results
      */
-    CONST SEARCHLIMIT = 100;
+    const SEARCHLIMIT = 100;
 
     public function __construct() {
         $this->LoadAlter();
@@ -66,35 +66,25 @@ Class SphinxDB {
      * @return boolean or object
      */
     protected function dbConnect() {
-        if (isset($this->altCfg['SPHINX_SEARCH_HOST'])) {
-            $host = $this->altCfg['SPHINX_SEARCH_HOST'];
-
-            if (isset($this->altCfg['SPHINX_SEARCH_SQL_PORT'])) {
-                $port = $this->altCfg['SPHINX_SEARCH_SQL_PORT'];
-
-                if (isset($this->altCfg['SPHINX_SEARCH_USER'])) {
-                    $user = $this->altCfg['SPHINX_SEARCH_USER'];
-
-                    if (isset($this->altCfg['SPHINX_SEARCH_PASSWORD'])) {
-                        $password = $this->altCfg['SPHINX_SEARCH_PASSWORD'];
-
-                        if (isset($this->altCfg['SPHINX_SEARCH_DB'])) {
-                            $db = $this->altCfg['SPHINX_SEARCH_DB'];
-                        } else {
-                            return false;
-                        }
-                    } else {
-                        return false;
-                    }
-                } else {
-                    return false;
-                }
-            } else {
+        $params = array(
+            'SPHINX_SEARCH_HOST',
+            'SPHINX_SEARCH_SQL_PORT',
+            'SPHINX_SEARCH_USER',
+            'SPHINX_SEARCH_PASSWORD',
+            'SPHINX_SEARCH_DB'
+        );
+        foreach ($params as $param) {
+            if (!isset($this->altCfg[$param])) {
                 return false;
             }
-        } else {
-            return false;
         }
+
+        $host = $this->altCfg['SPHINX_SEARCH_HOST'];
+        $port = $this->altCfg['SPHINX_SEARCH_SQL_PORT'];
+        $user = $this->altCfg['SPHINX_SEARCH_USER'];
+        $password = $this->altCfg['SPHINX_SEARCH_PASSWORD'];
+        $db = $this->altCfg['SPHINX_SEARCH_DB'];
+
         if (!extension_loaded('mysql')) {
             $this->db = new mysqli($host, $user, $password, $db, $port);
             if ($this->db->connect_error) {
@@ -103,8 +93,6 @@ Class SphinxDB {
             $this->dbDriver = 'mysqli';
 
             return true;
-        } elseif (!extension_loaded('mysql')) {
-            die('Unable to load module for database server "mysql": PHP mysql extension not available!');
         } else {
             $this->db = mysql_connect($host . ':' . $port, $user, $password);
             if (empty($this->db)) {
@@ -139,15 +127,12 @@ Class SphinxDB {
             $this->queryOptions .= ' LIMIT ' . self::SEARCHLIMIT;
         }
 
-
         if (!empty($searchString)) {
-
             if ($this->dbDriver == 'none') {
                 return $search;
             }
 
             $query = "SELECT * FROM " . $this->searchIndexes . " WHERE MATCH ('" . $searchString . "') " . $this->queryOptions;
-
 
             if ($this->dbDriver == 'mysqli') {
                 if ($result = $this->db->query($query, MYSQLI_USE_RESULT)) {
@@ -198,8 +183,8 @@ class SphinxSearch {
      * @return string
      */
     protected function escapeString($string) {
-        $from = array('/');
-        $to = array('\\\/');
+        $from = array('\\', '(', ')', '|', '-', '!', '@', '~', '"', '&', '/', '^', '$', '=', '<');
+        $to = array('\\\\', '\\\(', '\\\)', '\\\|', '\\\-', '\\\!', '\\\@', '\\\~', '\\\"', '\\\&', '\\\/', '\\\^', '\\\$', '\\\=', '\\\<');
         return str_replace($from, $to, $string);
     }
 

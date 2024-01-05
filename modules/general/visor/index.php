@@ -171,7 +171,10 @@ if (cfr('VISOR')) {
 
         //channel editing form
         if (ubRouting::checkGet(array('editchannel', 'dvrid'))) {
-            show_window(__('Edit') . ' ' . __('channel'), $visor->renderChannelEditForm(ubRouting::get('editchannel'), ubRouting::get('dvrid')));
+            $channelId = ubRouting::get('editchannel');
+            $dvrId = ubRouting::get('dvrid');
+            $dvrName = $visor->getDvrName($dvrId);
+            show_window(__('Edit') . ' ' . __('channel') . ' ' . $channelId . ' @ ' . $dvrName, $visor->renderChannelEditForm($channelId, $dvrId));
         }
 
         //DVRs health
@@ -189,4 +192,3 @@ if (cfr('VISOR')) {
 } else {
     show_error(__('Access denied'));
 }
-?>

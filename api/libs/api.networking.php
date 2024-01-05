@@ -561,6 +561,24 @@ function multinet_get_network_params($network_id) {
 }
 
 /**
+ * Returns array of existing network parameters
+ * 
+ * @param var $login
+ * 
+ * @return array
+ */
+function multinet_get_network_params_by_login($login) {
+    $result = array();
+    $query = 'SELECT `networks`.* FROM `users`
+            INNER JOIN `nethosts` USING (`ip`)
+            INNER JOIN `networks` ON  `nethosts`.`netid` = `networks`.`id`
+            WHERE `login`="' . $login . '"';
+    $result = simple_query($query);
+
+    return($result);
+}
+
+/**
  * Returns array of existing service parameters
  * 
  * @param int $serviceid
@@ -644,8 +662,7 @@ function dhcp_get_all_data_assoc() {
 function handle_dhcp_rebuild_static($netid, $confname, $ddns = false, $loginIps = array(), $allNetHosts = array()) {
     $query = "SELECT * from `nethosts` WHERE `netid`='" . $netid . "'";
 
-
-// check haz it .conf name or not?
+    // check haz it .conf name or not?
     if (!empty($confname)) {
         $allhosts = array();
         if (!empty($allNetHosts)) {
@@ -656,7 +673,7 @@ function handle_dhcp_rebuild_static($netid, $confname, $ddns = false, $loginIps 
             }
         }
         $confpath = 'multinet/' . $confname;
-        //$allhosts = simple_queryall($query);
+
         $result = '';
         if (!empty($allhosts)) {
             foreach ($allhosts as $io => $eachhost) {
@@ -694,40 +711,55 @@ function handle_dhcp_rebuild_static($netid, $confname, $ddns = false, $loginIps 
  * @return void
  */
 function handle_dhcp_rebuild_option82($netid, $confname) {
-    $query = "SELECT * from `nethosts` WHERE `netid`='" . $netid . "'";
+    $query = "SELECT `login`,`users`.`ip` as `ip`,`option`,`port`,`switches`.`ip` AS `swip`,`swid`
+              FROM `users` 
+              INNER JOIN `nethosts` USING (ip)
+              LEFT JOIN (SELECT * FROM `switchportassign`) as switchportassign USING (login)
+              LEFT JOIN `switches` ON (`switchportassign`.switchid=`switches`.`id`)
+              WHERE `netid` = '" . $netid . "'";
     if (!empty($confname)) {
         $confpath = 'multinet/' . $confname;
         $allhosts = simple_queryall($query);
         $result = '';
         if (!empty($allhosts)) {
+            $customTemplate = file_get_contents(CONFIG_PATH . "dhcp/option82.template");
+            if (empty($customTemplate)) {
+                $customTemplate = '
+class "{HOSTNAME}" {
+match if binary-to-ascii (16, 8, "", option agent.remote-id) = "{REMOTEID}" and binary-to-ascii (10, 8, "", option agent.circuit-id) = "{CIRCUITID}";
+}
+
+pool {
+range {IP};
+allow members of "{HOSTNAME}";
+}
+' . "\n";
+            }
             foreach ($allhosts as $io => $eachhost) {
+                $parseTemplate = $customTemplate;
                 $dhcphostname = 'm' . str_replace('.', 'x', $eachhost['ip']);
                 $options = explode('|', $eachhost['option']);
-                $customTemplate = file_get_contents(CONFIG_PATH . "dhcp/option82.template");
-                if (empty($customTemplate)) {
-                    $customTemplate = '
-       class "{HOSTNAME}" {
-        match if binary-to-ascii (16, 8, "", option agent.remote-id) = "{REMOTEID}" and binary-to-ascii (10, 8, "", option agent.circuit-id) = "{CIRCUITID}";
-       }
-
-        pool {
-        range {IP};
-        allow members of "{HOSTNAME}";
-        }
-        ' . "\n";
-                }
 
                 if (isset($options[1])) {
-                    $parseTemplate = $customTemplate;
                     $parseTemplate = str_ireplace('{HOSTNAME}', $dhcphostname, $parseTemplate);
                     $parseTemplate = str_ireplace('{REMOTEID}', $options[0], $parseTemplate);
                     $parseTemplate = str_ireplace('{CIRCUITID}', $options[1], $parseTemplate);
                     $parseTemplate = str_ireplace('{IP}', $eachhost['ip'], $parseTemplate);
-
+                    $parseTemplate = str_ireplace('{SWITCHIP}', $eachhost['swip'], $parseTemplate);
+                    $parseTemplate = str_ireplace('{SWITCHMAC}', $eachhost['swid'], $parseTemplate);
+                    $parseTemplate = str_ireplace('{SWITCHPORT}', $eachhost['port'], $parseTemplate);
                     $result .= $parseTemplate;
+                } else {
+                    if (preg_match('/{SWITCHIP}|{SWITCHMAC}|{PORT}/', $customTemplate)) {
+                        $parseTemplate = str_ireplace('{HOSTNAME}', $dhcphostname, $parseTemplate);
+                        $parseTemplate = str_ireplace('{IP}', $eachhost['ip'], $parseTemplate);
+                        $parseTemplate = str_ireplace('{SWITCHIP}', $eachhost['swip'], $parseTemplate);
+                        $parseTemplate = str_ireplace('{SWITCHMAC}', $eachhost['swid'], $parseTemplate);
+                        $parseTemplate = str_ireplace('{SWITCHPORT}', $eachhost['port'], $parseTemplate);
+                        $result .= $parseTemplate;
+                    }
                 }
             }
-
             file_put_contents($confpath, $result);
         } else {
             file_put_contents($confpath, $result);
@@ -752,6 +784,16 @@ function handle_dhcp_rebuild_option82_vpu($netid, $confname) {
         $allIps = GetAllUserIp();
         $result = '';
         if (!empty($allhosts)) {
+            $customTemplate = file_get_contents(CONFIG_PATH . "dhcp/option82_vpu.template");
+            if (empty($customTemplate)) {
+                $customTemplate = '
+class "{HOSTNAME}" { match if binary-to-ascii (16, 8, "", option agent.remote-id) = "{REMOTEID}" and binary-to-ascii(10, 16, "", substring(option agent.circuit-id,2,2)) = "{CIRCUITID}"; }
+pool {
+range {IP};
+allow members of "{HOSTNAME}";
+}
+' . "\n";
+            }
             foreach ($allhosts as $io => $eachhost) {
                 $login = $allIps[$eachhost['ip']];
                 if (isset($allVlans[$login])) {
@@ -759,17 +801,7 @@ function handle_dhcp_rebuild_option82_vpu($netid, $confname) {
                     $remote = GetTermRemoteByNetid($netid);
                     $vlan = $allVlans[$login];
                     $dhcphostname = 'm' . str_replace('.', 'x', $eachhost['ip']);
-                    $customTemplate = file_get_contents(CONFIG_PATH . "dhcp/option82_vpu.template");
                     if (!empty($vlan)) {
-                        if (empty($customTemplate)) {
-                            $customTemplate = '
-class "{HOSTNAME}" { match if binary-to-ascii (16, 8, "", option agent.remote-id) = "{REMOTEID}" and binary-to-ascii(10, 16, "", substring(option agent.circuit-id,2,2)) = "{CIRCUITID}"; }
-pool {
-range {IP};
-allow members of "{HOSTNAME}";
-}
-' . "\n";
-                        }
                         $parseTemplate = $customTemplate;
                         $parseTemplate = str_ireplace('{HOSTNAME}', $dhcphostname, $parseTemplate);
                         $parseTemplate = str_ireplace('{CIRCUITID}', $vlan, $parseTemplate);
@@ -803,10 +835,20 @@ function handle_dhcp_rebuild_option82_bdcom($netid, $confname) {
         $allIps = GetAllUserIp();
         $result = '';
         if (!empty($allhosts)) {
+            $customTemplate = file_get_contents(CONFIG_PATH . "dhcp/option82_bdcom.template");
+            if (empty($customTemplate)) {
+                $customTemplate = '
+class "{HOSTNAME}" { match if binary-to-ascii(16,8,":",substring(option agent.remote-id,0,6)) = "{CIRCUITID}"; }
+pool {
+range {IP};
+allow members of "{HOSTNAME}";
+}
+' . "\n";
+            }
             foreach ($allhosts as $io => $eachhost) {
                 $login = $allIps[$eachhost['ip']];
                 $mac = '';
-                if (isset($allOnu[$login]) AND ! empty($allOnu[$login])) {
+                if (isset($allOnu[$login]) AND !empty($allOnu[$login])) {
                     $macFull = explode(":", $allOnu[$login]['mac']);
                     foreach ($macFull as $eachOctet) {
                         $validOctet = preg_replace('/^0/', '', $eachOctet);
@@ -815,16 +857,7 @@ function handle_dhcp_rebuild_option82_bdcom($netid, $confname) {
                     $mac_len = strlen($mac);
                     $mac = substr($mac, 0, $mac_len - 1);
                     $dhcphostname = 'm' . str_replace('.', 'x', $eachhost['ip']);
-                    $customTemplate = file_get_contents(CONFIG_PATH . "dhcp/option82_bdcom.template");
-                    if (empty($customTemplate)) {
-                        $customTemplate = '
-class "{HOSTNAME}" { match if binary-to-ascii(16,8,":",substring(option agent.remote-id,0,6)) = "{CIRCUITID}"; }
-pool {
-range {IP};
-allow members of "{HOSTNAME}";
-}
-' . "\n";
-                    }
+
                     $parseTemplate = $customTemplate;
                     $parseTemplate = str_ireplace('{HOSTNAME}', $dhcphostname, $parseTemplate);
                     $parseTemplate = str_ireplace('{CIRCUITID}', $mac, $parseTemplate);
@@ -857,11 +890,21 @@ function handle_dhcp_rebuild_option82_zte($netid, $confname) {
         $allOltSnmpTemplates = loadOltSnmpTemplates();
         $result = '';
         if (!empty($allhosts)) {
+            $customTemplate = file_get_contents(CONFIG_PATH . "dhcp/option82_zte.template");
+            if (empty($customTemplate)) {
+                $customTemplate = '
+class "{HOSTNAME}" { match if substring(option agent.circuit-id,49,12) = "{CIRCUITID}"; }
+pool {
+range {IP};
+allow members of "{HOSTNAME}";
+}
+' . "\n";
+            }
             foreach ($allhosts as $io => $eachhost) {
                 $login = $allIps[$eachhost['ip']];
                 $onuId = '';
                 $onuIdentifier = '';
-                if (isset($allOnu[$login]) AND ! empty($allOnu[$login])) {
+                if (isset($allOnu[$login]) AND !empty($allOnu[$login])) {
                     $oltId = $allOnu[$login]['oltid'];
 
                     if (isset($allOltSnmpTemplates[$oltId])) {
@@ -879,16 +922,7 @@ function handle_dhcp_rebuild_option82_zte($netid, $confname) {
                             $onuId .= strtoupper($eachOctet);
                         }
                         $dhcphostname = 'm' . str_replace('.', 'x', $eachhost['ip']);
-                        $customTemplate = file_get_contents(CONFIG_PATH . "dhcp/option82_zte.template");
-                        if (empty($customTemplate)) {
-                            $customTemplate = '
-class "{HOSTNAME}" { match if substring(option agent.circuit-id,49,12) = "{CIRCUITID}"; }
-pool {
-range {IP};
-allow members of "{HOSTNAME}";
-}
-' . "\n";
-                        }
+
                         $parseTemplate = $customTemplate;
                         $parseTemplate = str_ireplace('{HOSTNAME}', $dhcphostname, $parseTemplate);
                         $parseTemplate = str_ireplace('{CIRCUITID}', $onuId, $parseTemplate);
@@ -991,13 +1025,15 @@ function multinet_rebuild_globalconf() {
 
     $global_template = file_get_contents("config/dhcp/global.template");
     $subnets_template = file_get_contents("config/dhcp/subnets.template");
-    $alldhcpsubnets = dhcp_get_all_data_assoc();
     $allNetsData = multinet_get_all_networks_assoc();
+    $alldhcpsubnets = dhcp_get_all_data_assoc();
+
     $allMembers_q = "SELECT `ip` from `nethosts` WHERE `option` != 'NULL'";
     $allMembers = simple_queryall($allMembers_q);
     $membersMacroContent = '';
     $vlanMembersMacroContent = '';
     $onuMembersMacroContent = '';
+    $subnets = '';
 
     if (!empty($allMembers)) {
         foreach ($allMembers as $ix => $eachMember) {
@@ -1027,27 +1063,30 @@ function multinet_rebuild_globalconf() {
         }
     }
 
-    $subnets = '';
+
     if (!empty($alldhcpsubnets)) {
         foreach ($alldhcpsubnets as $io => $eachnet) {
-            $netdata = $allNetsData[$eachnet['netid']];
-            $templatedata['{STARTIP}'] = $netdata['startip'];
-            $templatedata['{ENDIP}'] = $netdata['endip'];
-            $templatedata['{CIDR}'] = explode('/', $netdata['desc']);
-            $templatedata['{NETWORK}'] = $templatedata['{CIDR}'][0];
-            $templatedata['{CIDR}'] = $templatedata['{CIDR}'][1];
-            $templatedata['{ROUTERS}'] = int2ip(ip2int($templatedata['{STARTIP}']) + 1);
-            $templatedata['{MASK}'] = multinet_cidr2mask($templatedata['{CIDR}']);
-            $dhcpdata = $alldhcpsubnets[$eachnet['netid']];
-            if (isset($dhcpdata['confname'])) {
-                $templatedata['{HOSTS}'] = $dhcpdata['confname'];
-// check if override?
-                if (!empty($dhcpdata['dhcpconfig'])) {
-                    $currentsubtpl = $dhcpdata['dhcpconfig'];
-                } else {
-                    $currentsubtpl = $subnets_template;
+            //network really exists?
+            if (isset($allNetsData[$eachnet['netid']])) {
+                $netdata = $allNetsData[$eachnet['netid']];
+                $templatedata['{STARTIP}'] = $netdata['startip'];
+                $templatedata['{ENDIP}'] = $netdata['endip'];
+                $templatedata['{CIDR}'] = explode('/', $netdata['desc']);
+                $templatedata['{NETWORK}'] = $templatedata['{CIDR}'][0];
+                $templatedata['{CIDR}'] = $templatedata['{CIDR}'][1];
+                $templatedata['{ROUTERS}'] = int2ip(ip2int($templatedata['{STARTIP}']) + 1);
+                $templatedata['{MASK}'] = multinet_cidr2mask($templatedata['{CIDR}']);
+                $dhcpdata = $alldhcpsubnets[$eachnet['netid']];
+                if (isset($dhcpdata['confname'])) {
+                    $templatedata['{HOSTS}'] = $dhcpdata['confname'];
+                    // check for override?
+                    if (!empty($dhcpdata['dhcpconfig'])) {
+                        $currentsubtpl = $dhcpdata['dhcpconfig'];
+                    } else {
+                        $currentsubtpl = $subnets_template;
+                    }
+                    $subnets .= multinet_ParseTemplate($currentsubtpl, $templatedata) . "\n";
                 }
-                $subnets .= multinet_ParseTemplate($currentsubtpl, $templatedata) . "\n";
             }
         }
     }
@@ -1116,29 +1155,37 @@ function multinet_rebuild_all_handlers() {
 
                 case 'dhcp82':
                     if ($opt82EnabledFlag) {
-                        $dhcpdata82 = $allDhcpData[$eachnet['id']];
-                        handle_dhcp_rebuild_option82($eachnet['id'], $dhcpdata82['confname']);
+                        if (isset($allDhcpData[$eachnet['id']])) {
+                            $dhcpdata82 = $allDhcpData[$eachnet['id']];
+                            handle_dhcp_rebuild_option82($eachnet['id'], $dhcpdata82['confname']);
+                        }
                     }
                     break;
 
                 case 'dhcp82_vpu':
                     if ($opt82EnabledFlag) {
-                        $dhcpdata82_vpu = $allDhcpData[$eachnet['id']];
-                        handle_dhcp_rebuild_option82_vpu($eachnet['id'], $dhcpdata82_vpu['confname']);
+                        if (isset($allDhcpData[$eachnet['id']])) {
+                            $dhcpdata82_vpu = $allDhcpData[$eachnet['id']];
+                            handle_dhcp_rebuild_option82_vpu($eachnet['id'], $dhcpdata82_vpu['confname']);
+                        }
                     }
                     break;
 
                 case 'dhcp82_bdcom':
                     if ($opt82EnabledFlag) {
-                        $dhcpdata82_bdcom = $allDhcpData[$eachnet['id']];
-                        handle_dhcp_rebuild_option82_bdcom($eachnet['id'], $dhcpdata82_bdcom['confname']);
+                        if (isset($allDhcpData[$eachnet['id']])) {
+                            $dhcpdata82_bdcom = $allDhcpData[$eachnet['id']];
+                            handle_dhcp_rebuild_option82_bdcom($eachnet['id'], $dhcpdata82_bdcom['confname']);
+                        }
                     }
                     break;
 
                 case 'dhcp82_zte':
                     if ($opt82EnabledFlag) {
-                        $dhcpdata82_zte = $allDhcpData[$eachnet['id']];
-                        handle_dhcp_rebuild_option82_zte($eachnet['id'], $dhcpdata82_zte['confname']);
+                        if (isset($allDhcpData[$eachnet['id']])) {
+                            $dhcpdata82_zte = $allDhcpData[$eachnet['id']];
+                            handle_dhcp_rebuild_option82_zte($eachnet['id'], $dhcpdata82_zte['confname']);
+                        }
                     }
                     break;
 
@@ -1276,7 +1323,6 @@ function multinet_get_free_count($network_id) {
     $count_all = $last_ip - $first_ip;
     $num_hosts = pow(2, 32 - $cidr);
 
-
     if ($count_all >= $num_hosts - (3 * ceil($num_hosts / 256))) {
         $count_all = $num_hosts - (3 * ceil($num_hosts / 256));
     }
@@ -1338,6 +1384,54 @@ function multinet_checkIP($user_ip, $ip_begin, $ip_end) {
 /**
  * Converts bytes into human-readable values like Kb, Mb, Gb...
  * 
+ * @param int $fs
+ * @param string $traffsize
+ * 
+ * @return string
+ */
+function zb_convertSize($fs, $traffsize = 'float') {
+    if ($traffsize == 'float') {
+        if ($fs >= (1073741824 * 1024))
+            $fs = round($fs / (1073741824 * 1024) * 100) / 100 . ' ' . __('Tb');
+        elseif ($fs >= 1073741824)
+            $fs = round($fs / 1073741824 * 100) / 100 . ' ' . __('Gb');
+        elseif ($fs >= 1048576)
+            $fs = round($fs / 1048576 * 100) / 100 . ' ' . __('Mb');
+        elseif ($fs >= 1024)
+            $fs = round($fs / 1024 * 100) / 100 . ' ' . __('Kb');
+        else
+            $fs = $fs . ' ' . __('b');
+        return ($fs);
+    }
+
+    if ($traffsize == 'b') {
+        return ($fs);
+    }
+
+    if ($traffsize == 'Kb') {
+        $fs = round($fs / 1024 * 100) / 100 . ' ' . __('Kb');
+        return ($fs);
+    }
+
+    if ($traffsize == 'Mb') {
+        $fs = round($fs / 1048576 * 100) / 100 . ' ' . __('Mb');
+        return ($fs);
+    }
+    if ($traffsize == 'Gb') {
+        $fs = round($fs / 1073741824 * 100) / 100 . ' ' . __('Gb');
+        return ($fs);
+    }
+
+    if ($traffsize == 'Tb') {
+        $fs = round($fs / (1073741824 * 1024) * 100) / 100 . ' ' . __('Tb');
+        return ($fs);
+    }
+}
+
+/**
+ * Converts bytes into human-readable values like Kb, Mb, Gb, configurable via TRAFFSIZE alter option.
+ * 
+ * 
  * @global object $ubillingConfig
  * 
  * @param int $fs
@@ -1348,46 +1442,11 @@ function stg_convert_size($fs) {
     global $ubillingConfig;
     $alter_conf = $ubillingConfig->getAlter();
     $traffsize = trim($alter_conf['TRAFFSIZE']);
-    if ($traffsize == 'float') {
-        if ($fs >= (1073741824 * 1024))
-            $fs = round($fs / (1073741824 * 1024) * 100) / 100 . " Tb";
-        elseif ($fs >= 1073741824)
-            $fs = round($fs / 1073741824 * 100) / 100 . " Gb";
-        elseif ($fs >= 1048576)
-            $fs = round($fs / 1048576 * 100) / 100 . " Mb";
-        elseif ($fs >= 1024)
-            $fs = round($fs / 1024 * 100) / 100 . " Kb";
-        else
-            $fs = $fs . " b";
-        return ($fs);
-    }
-
-    if ($traffsize == 'b') {
-        return ($fs);
-    }
-
-    if ($traffsize == 'Kb') {
-        $fs = round($fs / 1024 * 100) / 100 . " Kb";
-        return ($fs);
-    }
-
-    if ($traffsize == 'Mb') {
-        $fs = round($fs / 1048576 * 100) / 100 . " Mb";
-        return ($fs);
-    }
-    if ($traffsize == 'Gb') {
-        $fs = round($fs / 1073741824 * 100) / 100 . " Gb";
-        return ($fs);
-    }
-
-    if ($traffsize == 'Tb') {
-        $fs = round($fs / (1073741824 * 1024) * 100) / 100 . " Tb";
-        return ($fs);
-    }
+    return(zb_convertSize($fs, $traffsize));
 }
 
 /**
- * Convert bytes to human-readable Gb values. Much faster than stg_convert_size()
+ * Convert bytes to human-readable Gb values. Much faster than stg_convert_size()/zb_convertSize
  * 
  * @param int $fs
  * 
@@ -1529,6 +1588,19 @@ function zb_MultinetGetMAC($ip) {
 }
 
 /**
+ * Returns full nethost data by its IP
+ * 
+ * @param string $ip
+ * 
+ * @return array
+ */
+function zb_MultinetGetNethostData($ip) {
+    $query = "SELECT * from `nethosts` WHERE `ip`='" . $ip . "'";
+    $result = simple_queryall($query);
+    return($result);
+}
+
+/**
  * Returns user IP address by its login
  * 
  * @param string $login
@@ -1634,6 +1706,7 @@ function zb_DirectionAdd($rulenumber, $rulename) {
 function zb_NasAdd($netid, $nasip, $nasname, $nastype, $bandw) {
     $netid = vf($netid, 3);
     $nasname = mysql_real_escape_string($nasname);
+    $nasname = trim($nasname);
     $nastype = vf($nastype);
     $bandw = trim($bandw);
     $bandw = mysql_real_escape_string($bandw);
@@ -1662,6 +1735,7 @@ function zb_NasUpdateParams($nasid, $nastype, $nasip, $nasname, $nasbwdurl, $net
     $nastype = ubRouting::filters($nastype, 'mres');
     $nasip = ubRouting::filters($nasip, 'mres');
     $nasname = ubRouting::filters($nasname, 'mres');
+    $nasname = trim($nasname);
     $nasbwdurl = trim(ubRouting::filters($nasbwdurl, 'mres'));
     $netid = ubRouting::filters($netid, 'int');
 
@@ -1900,7 +1974,7 @@ function zb_BandwidthdGenLinks($ip) {
             // Get user's IP array:
             $alluserips = zb_UserGetAllIPs();
             $alluserips = array_flip($alluserips);
-            if (!ispos($bandwidthd_url, 'pppoe') and ! $mlgUseMikrotikGraphs) {
+            if (!ispos($bandwidthd_url, 'pppoe') and !$mlgUseMikrotikGraphs) {
 // Generate graphs paths:
                 $urls['dayr'] = $bandwidthd_url . '/' . $alluserips[$ip] . '/daily.gif';
                 $urls['days'] = null;
@@ -1938,6 +2012,18 @@ function zb_BandwidthdGenLinks($ip) {
             $urls['months'] = $bandwidthd_url . '/' . $ip . '-3-S.png';
             $urls['yearr'] = $bandwidthd_url . '/' . $ip . '-4-R.png';
             $urls['years'] = $bandwidthd_url . '/' . $ip . '-4-S.png';
+
+//OphanimFlow graphs
+            if (ispos($bandwidthd_url, 'OphanimFlow') OR ispos($bandwidthd_url, 'of/')) {
+                $urls['dayr'] = $bandwidthd_url . '/?module=graph&dir=R&period=day&ip=' . $ip;
+                $urls['days'] = $bandwidthd_url . '/?module=graph&dir=S&period=day&ip=' . $ip;
+                $urls['weekr'] = $bandwidthd_url . '/?module=graph&dir=R&period=week&ip=' . $ip;
+                $urls['weeks'] = $bandwidthd_url . '/?module=graph&dir=S&period=week&ip=' . $ip;
+                $urls['monthr'] = $bandwidthd_url . '/?module=graph&dir=R&period=month&ip=' . $ip;
+                $urls['months'] = $bandwidthd_url . '/?module=graph&dir=S&period=month&ip=' . $ip;
+                $urls['yearr'] = $bandwidthd_url . '/?module=graph&dir=R&period=year&ip=' . $ip;
+                $urls['years'] = $bandwidthd_url . '/?module=graph&dir=S&period=year&ip=' . $ip;
+            }
         }
 //MikroTik Multigen Hotspot users
         if (ispos($bandwidthd_url, 'mlgmths')) {
@@ -2358,7 +2444,7 @@ function getZabbixNASGraphIDs() {
     $allNASGraphs = array();
     $zbxAuthToken = $zbx->getAuthToken();
 
-    if (!empty($allNAS) and ! empty($zbxAuthToken)) {
+    if (!empty($allNAS) and !empty($zbxAuthToken)) {
         foreach ($allNAS as $eachNAS) {
             $reqParams = array('filter' => array('ip' => $eachNAS['nasip']));
             $zbxNASData = json_decode($zbx->runQuery('host.get', $reqParams), true);
@@ -2442,7 +2528,7 @@ function getZabbixProblems($switchIP) {
     $problemActions = array();
     $switchIP = trim($switchIP);
 
-    if (!empty($switchIP) AND ! empty($zbxAuthToken)) {
+    if (!empty($switchIP) AND !empty($zbxAuthToken)) {
         /* Selectd problem level severities
           Possible values:
           0 - not classified;
@@ -2589,24 +2675,28 @@ function convertMACDec2Hex($decMAC, $inSeparator = '.', $outSeparator = ':', $re
  * TIP: if you need to trim some $snmpData without OID portion already
  * - just set $oid parameter to an empty string
  *
- * @param string $snmpData
- * @param string $oid
- * @param false $returnAsStr
+ * @param string       $snmpData
+ * @param string       $oid
+ * @param string       $removeValue
+ * @param bool         $rowsExplode
+ * @param false        $returnAsStr
  *
  * @param array|string $oidValue
+ *
  * @return array|string
  */
-function trimSNMPOutput($snmpData, $oid, $returnAsStr = false, $oidValue = array('Counter32:',
-    'Counter64:',
-    'Gauge32:',
-    'Gauge64:',
-    'INTEGER:',
-    'STRING:',
-    'OID:',
-    'Timeticks:',
-    'Hex-STRING:',
-    'Network Address:'
-)
+function trimSNMPOutput($snmpData, $oid, $removeValue = '', $rowsExplode = false, $returnAsStr = false, $oidValue = array(
+            'Counter32:',
+            'Counter64:',
+            'Gauge32:',
+            'Gauge64:',
+            'INTEGER:',
+            'Hex-STRING:',
+            'OID:',
+            'Timeticks:',
+            'STRING:',
+            'Network Address:'
+        )
 ) {
     $result = ($returnAsStr) ? '' : array('', '');
 
@@ -2619,16 +2709,22 @@ function trimSNMPOutput($snmpData, $oid, $returnAsStr = false, $oidValue = array
         $snmpData = str_replace($oid, '', $snmpData);
         // removing VALUE portion
         $snmpData = str_replace($oidValue, '', $snmpData);
-        // trimming leading and trailing dots and spaces
-        $snmpData = trim($snmpData, '. \n\r\t');
+        // removing some "specific" $removeValue
+        $snmpData = str_replace($removeValue, '', $snmpData);
 
         if (!$returnAsStr) {
-            $snmpData = explode('=', $snmpData);
+            if ($rowsExplode) {
+                $snmpData = explodeRows($snmpData);
+            } else {
+                // trimming leading and trailing dots and spaces
+                $snmpData = trim($snmpData, '. \n\r\t');
+                $snmpData = explode('=', $snmpData);
 
-            if (isset($snmpData[1])) {
-                // trimming possible extra spaces
-                $snmpData[0] = trim($snmpData[0]);
-                $snmpData[1] = trim($snmpData[1]);
+                if (isset($snmpData[1])) {
+                    // trimming possible extra spaces
+                    $snmpData[0] = trim($snmpData[0]);
+                    $snmpData[1] = trim($snmpData[1]);
+                }
             }
         }
 

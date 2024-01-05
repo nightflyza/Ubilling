@@ -241,3 +241,7 @@ function validateVlanUsernameForm(oltId, onuId, port, vlan, type, interface, int
 
     return false;
 }
+
+$( "#Form_register_submit" ).click(function() {
+    $(this).attr("disabled", "disabled");   
+ });

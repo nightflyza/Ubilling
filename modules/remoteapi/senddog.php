@@ -10,6 +10,7 @@ if (ubRouting::get('action') == 'senddog') {
         $parallelMode = ($ubillingConfig->getAlterParam('SENDDOG_PARALLEL_MODE')) ? true : false;
         $dogWalkingAllowed = ($parallelMode) ? false : true;
         $sendDogPidFile = SendDog::PID_PATH;
+        $sendDogProcess = new StarDust('SENDDOG');
 
         if ($parallelMode) {
             // no another dog walking here
@@ -48,7 +49,7 @@ if (ubRouting::get('action') == 'senddog') {
                     die('OK:SENDDOG SMS HISTORY DISABLED');
                 }
             }
-
+            $sendDogProcess->start();
             $sendDogTelegram = $runSendDog->telegramProcessing();
             $sendDogEmail = $runSendDog->emailProcessing();
             $sendDogSms = $runSendDog->smsProcessing();
@@ -57,6 +58,8 @@ if (ubRouting::get('action') == 'senddog') {
             if ($sendDogAdvOn and $phpMailerOn) {
                 $sendDogEmailPMailer = ' PHPEML `' . $runSendDog->phpMailProcessing() . '`';
             }
+
+            $sendDogProcess->stop();
 
             //the dog's walk is over
             if (file_exists($sendDogPidFile)) {

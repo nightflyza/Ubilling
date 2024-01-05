@@ -16,3 +16,6 @@ OFFSETMODE="div"
 DOWNVALUE="-80000"
 SNMODE="STRING"
 
+[misc]
+ONU_RENDER_MODE="serial"
+

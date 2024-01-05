@@ -1,0 +1,1 @@
+ALTER TABLE `visor_dvrs` ADD `apiurl` VARCHAR(255) NULL DEFAULT NULL AFTER `password`;

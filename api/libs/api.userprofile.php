@@ -153,6 +153,13 @@ class UserProfile {
     protected $mobilesExt = array();
 
     /**
+     * Contains custom profile fields instance for current user
+     *
+     * @var object
+     */
+    protected $customFields = '';
+
+    /**
      * Path to SMS template for user quick credentials sending
      *
      * @var string
@@ -190,6 +197,7 @@ class UserProfile {
             $this->loadPaymentID();
             $this->loadPlugins();
             $this->loadMobilesExt();
+            $this->loadCustomFields();
         } else {
             throw new Exception(self::EX_EMPTY_LOGIN);
         }
@@ -381,7 +389,11 @@ class UserProfile {
         if (!isset($this->alterCfg['NO_ADCOMMENTS_IN_PROFILE'])) {
             if ($this->alterCfg['ADCOMMENTS_ENABLED']) {
                 $adcomments = new ADcomments('USERNOTES');
-                $result = ' ' . wf_Link('?module=notesedit&username=' . $this->login, $adcomments->getCommentsIndicator($this->login, '12'), false, '');
+                if (cfr('NOTES')) {
+                    $result = ' ' . wf_Link('?module=notesedit&username=' . $this->login, $adcomments->getCommentsIndicator($this->login, '12'), false, '');
+                } else {
+                    $result = ' ' . $adcomments->getCommentsIndicator($this->login, '12');
+                }
             } else {
                 $result = '';
             }
@@ -416,7 +428,7 @@ class UserProfile {
             foreach ($plugins as $modulename => $eachplugin) {
                 $renderable = true;
                 //checks for required pluging rights
-                if (isset($eachplugin['need_right']) AND ! empty($eachplugin['need_right'])) {
+                if (isset($eachplugin['need_right']) AND !empty($eachplugin['need_right'])) {
                     if (cfr($eachplugin['need_right'])) {
                         $renderable = true;
                     } else {
@@ -472,7 +484,7 @@ class UserProfile {
                 foreach ($rawPlugins as $modulename => $eachplugin) {
                     $renderable = true;
                     //checks for required pluging rights
-                    if (isset($eachplugin['need_right']) AND ! empty($eachplugin['need_right'])) {
+                    if (isset($eachplugin['need_right']) AND !empty($eachplugin['need_right'])) {
                         if (cfr($eachplugin['need_right'])) {
                             $renderable = true;
                         } else {
@@ -531,10 +543,12 @@ class UserProfile {
      * @return void
      */
     protected function loadPaymentID() {
-        if ($this->alterCfg['OPENPAYZ_REALID']) {
-            $this->paymentid = zb_PaymentIDGet($this->login);
-        } else {
-            $this->paymentid = ip2int($this->userdata['IP']);
+        if ($this->alterCfg['OPENPAYZ_SUPPORT']) {
+            if ($this->alterCfg['OPENPAYZ_REALID']) {
+                $this->paymentid = zb_PaymentIDGet($this->login);
+            } else {
+                $this->paymentid = ip2int($this->userdata['IP']);
+            }
         }
     }
 
@@ -555,6 +569,15 @@ class UserProfile {
                 }
             }
         }
+    }
+
+    /**
+     * Preloads custom profile fields instance
+     * 
+     * @return void
+     */
+    protected function loadCustomFields() {
+        $this->customFields = new CustomFields($this->login);
     }
 
     /**
@@ -758,6 +781,38 @@ class UserProfile {
     }
 
     /**
+     * Returns extended build locator modal window
+     * 
+     * @param int $userBuildId
+     * @param string $currentGeo
+     * 
+     * @return string
+     */
+    protected function getBuildLocatorExt($userBuildId, $currentGeo) {
+        $result = '';
+        $locContent = '';
+        if (cfr('BUILDS')) {
+            if (ubRouting::checkPost(array('blextbuildid', 'blextbuildgeo'))) {
+                zb_AddressChangeBuildGeo(ubRouting::post('blextbuildid'), ubRouting::post('blextbuildgeo'));
+                ubRouting::nav(self::URL_PROFILE . $this->login);
+            }
+            $locInputs = wf_HiddenInput('blextbuildid', $userBuildId);
+            $locInputs .= wf_TextInput('blextbuildgeo', __('Geo location'), $currentGeo, false, 15, 'geo', '', 'blextbuildgeo');
+            //GPS geolocation accessible?
+            if (zb_isHttpsRequest()) {
+                $locInputs .= wf_delimiter();
+                $locInputs .= web_GPSLocationFillInputControl('blextbuildgeo') . ' ';
+            }
+            $locInputs .= wf_Submit(__('Save'));
+            $locContent .= wf_Form('', 'POST', $locInputs, 'glamour');
+            $locContent .= wf_delimiter();
+        }
+        $locContent .= wf_Link('?module=usersmap&locfinder=true&placebld=' . $userBuildId, wf_img_sized('skins/ymaps/target.png', __('Place on map'), '10') . ' ' . __('Place on map'), false, 'ubButton');
+        $result .= wf_modalAuto(wf_img_sized('skins/ymaps/target.png', __('Place on map') . ': ' . $this->useraddress, '10'), __('Place on map') . ': ' . $this->useraddress, $locContent);
+        return($result);
+    }
+
+    /**
      * gets build location control and neighbors cache lister
      * 
      * @return string
@@ -772,7 +827,15 @@ class UserProfile {
                     $locatorIcon = wf_img_sized('skins/icon_search_small.gif', __('Find on map'), 10);
                     $buildLocator = ' ' . wf_Link("?module=usersmap&findbuild=" . $thisUserBuildGeo, $locatorIcon, false);
                 } else {
-                    $buildLocator .= ' ' . wf_Link('?module=usersmap&locfinder=true&placebld=' . $this->aptdata['buildid'], wf_img_sized('skins/ymaps/target.png', __('Place on map'), '10'), false, '');
+                    $userBuildId = $this->aptdata['buildid'];
+                    //extended build locator
+                    if (@$this->alterCfg['BUILDLOCATOR_EXTENDED']) {
+
+                        $buildLocator .= $this->getBuildLocatorExt($userBuildId, $thisUserBuildGeo);
+                    } else {
+                        //default build locator
+                        $buildLocator .= ' ' . wf_Link('?module=usersmap&locfinder=true&placebld=' . $userBuildId, wf_img_sized('skins/ymaps/target.png', __('Place on map'), '10'), false, '');
+                    }
                 }
 //and neighbors state cache
                 if (!empty($this->aptdata['buildid'])) {
@@ -983,7 +1046,8 @@ class UserProfile {
         if (isset($this->alterCfg['CONTRACTDATE_IN_PROFILE'])) {
             if ($this->alterCfg['CONTRACTDATE_IN_PROFILE']) {
                 if (!empty($this->contract)) {
-                    $allContractDates = zb_UserContractDatesGetAll($this->contract);
+                    $contractDates = new ContractDates();
+                    $allContractDates = $contractDates->getAllDatesBasic($this->contract);
                     $contractDate = (isset($allContractDates[$this->contract])) ? $allContractDates[$this->contract] : __('No');
                     $result .= $this->addRow(__('Contract date'), $contractDate);
                 } else {
@@ -1002,7 +1066,9 @@ class UserProfile {
     protected function getSwitchAssignControls() {
 //switchport section
         if ($this->alterCfg['SWITCHPORT_IN_PROFILE']) {
-            $result = web_ProfileSwitchControlForm($this->login);
+            $switchPortAssign = new SwitchPortAssign();
+            $switchPortAssign->catchChangeRequest(self::URL_PROFILE . $this->login);
+            $result = $switchPortAssign->renderEditForm($this->login);
         } else {
             $result = '';
         }
@@ -1117,20 +1183,20 @@ class UserProfile {
                             WHERE `switches`.`id` = " . $curOLTID;
                 $oltData = simple_queryall($query);
 
-                if (isset($oltData[0]) and ! empty($oltData[0])) {
+                if (isset($oltData[0]) and !empty($oltData[0])) {
                     $curOLTIP = $oltData[0]['ip'];
                     $curOLTModelName = $oltData[0]['modelname'];
                     $curOLTLocation = $oltData[0]['location'];
                 }
 
-                if ($curOLTAliveCheck and ! empty($curOLTIP)) {
+                if ($curOLTAliveCheck and !empty($curOLTIP)) {
                     $curOLTAlive = zb_PingICMPTimeout($curOLTIP, $curOLTAliveCheckTimeout);
                 }
 
                 if ($this->ubConfig->getAlterParam('USERPROFILE_ONU_INFO_SHOW')) {
                     $onuAdditionalData .= wf_TableCell(__('OLT'), '30%', 'row2');
 
-                    if (isset($oltData[0]) and ! empty($oltData[0])) {
+                    if (isset($oltData[0]) and !empty($oltData[0])) {
                         $webIfaceLink = wf_tag('a', false, '', 'href="http://' . $curOLTIP . '" target="_blank" title="' . __('Go to the web interface') . '"');
                         $webIfaceLink .= wf_img('skins/ymaps/network.png');
                         $webIfaceLink .= wf_tag('a', true);
@@ -1174,7 +1240,7 @@ class UserProfile {
                         $raw = file_get_contents($onuInterfacesCache);
                         $raw = unserialize($raw);
                         foreach ($raw as $mac => $interface) {
-                            if ($mac == $onu_data['mac']) {
+                            if ($mac == $onu_data['mac'] or $mac == $onu_data['serial']) {
                                 $onuInterface = $interface;
                                 break;
                             }
@@ -1470,6 +1536,28 @@ class UserProfile {
             $result = $this->addRow(__('Signup paid'), zb_UserGetSignupPricePaid($this->login) . '/' . zb_UserGetSignupPrice($this->login));
         }
         return ($result);
+    }
+
+    /**
+     * Returns discount controller
+     * 
+     * @return string
+     */
+    protected function getDiscountController() {
+        $result = '';
+        if (isset($this->alterCfg['DISCOUNTS_ENABLED'])) {
+            if ($this->alterCfg['DISCOUNTS_ENABLED']) {
+                $discounts = new Discounts();
+                $userDiscountPercent = $discounts->getUserDiscount($this->login);
+                if ($userDiscountPercent) {
+                    $renderDiscountPerncent = $userDiscountPercent . '%';
+                } else {
+                    $renderDiscountPerncent = __('No');
+                }
+                $result = $this->addRow(__('Discount'), $renderDiscountPerncent, true);
+            }
+        }
+        return($result);
     }
 
     /**
@@ -2082,6 +2170,23 @@ class UserProfile {
     }
 
     /**
+     * Renders deferred sales controller and form
+     * 
+     * @return string
+     */
+    protected function getDeferredSaleController() {
+        $result = '';
+        if ($this->alterCfg['DEFERRED_SALE_ENABLED']) {
+            if (cfr('DEFSALE')) {
+                $deferredSale = new DeferredSale($this->login);
+                $result .= ' ' . $deferredSale->renderForm();
+                $result .= $deferredSale->catchRequest();
+            }
+        }
+        return($result);
+    }
+
+    /**
      * Returns receipt controls (BOBER GDE COMMENT????)
      * 
      * @return string
@@ -2156,10 +2261,6 @@ class UserProfile {
     }
 
     /**
-      Брат, братан, братишка Когда меня отпустит?
-     */
-
-    /**
      * Renders user profile with all loaded data
      * 
      * @return string
@@ -2221,12 +2322,14 @@ class UserProfile {
             $profile .= $this->addRow(__('Email'), $this->mail);
         }
 //payment ID data
-        $profile .= $this->addRow(__('Payment ID'), $this->paymentid, true);
+        if ($this->alterCfg['OPENPAYZ_SUPPORT']) {
+            $profile .= $this->addRow(__('Payment ID'), $this->paymentid, true);
+        }
 //LAT data row
         $profile .= $this->getUserLat();
-//login row
+//Login row
         $profile .= $this->addRow(__('Login'), $this->userdata['login'], true);
-//password row
+//Password row
         $profile .= $this->getUserPassword();
 //User IP data and extended networks controls if available
         $profile .= $this->addRow(__('IP') . ' ' . $this->getNasInfoControls($this->userdata['IP']), $this->userdata['IP'] . $this->getExtNetsControls() . $this->getNasInfoContrainer(), true);
@@ -2242,10 +2345,12 @@ class UserProfile {
         $profile .= $this->getVisorBacklinks();
 //Speed override row
         $profile .= $this->addRow(__('Speed override'), $this->speedoverride);
-// signup pricing row
+//Signup pricing row
         $profile .= $this->getSignupPricing();
 //User current cash row
-        $profile .= $this->addRow(__('Balance') . $this->getEasyChargeController(), $this->getUserCash(), true);
+        $profile .= $this->addRow(__('Balance') . $this->getEasyChargeController() . $this->getDeferredSaleController(), $this->getUserCash(), true);
+//User discount row
+        $profile .= $this->getDiscountController();
 //User credit row & easycredit control if needed
         $profile .= $this->addRow(__('Credit') . ' ' . $this->getEasyCreditController(), $this->userdata['Credit'], true);
 //credit expire row
@@ -2282,12 +2387,12 @@ class UserProfile {
 
             if (!empty($FrozenAll)) {
                 foreach ($FrozenAll as $usr => $usrlogin) {
-                    $profile .= $this->addRow("&nbsp&nbsp&nbsp&nbsp" . __('Freeze days total amount'), $usrlogin['freeze_days_amount'], false, '50%');
-                    $profile .= $this->addRow("&nbsp&nbsp&nbsp&nbsp" . __('Freeze days used'), $usrlogin['freeze_days_used'], false, '50%');
-                    $profile .= $this->addRow("&nbsp&nbsp&nbsp&nbsp" . __('Freeze days available'), $usrlogin['freeze_days_amount'] - $usrlogin['freeze_days_used'], false, '50%');
-                    $profile .= $this->addRow("&nbsp&nbsp&nbsp&nbsp" . __('Workdays amount to restore freeze days'), $usrlogin['work_days_restore'], false, '50%');
-                    $profile .= $this->addRow("&nbsp&nbsp&nbsp&nbsp" . __('Days worked after freeze days used up'), $usrlogin['days_worked'], false, '50%');
-                    $profile .= $this->addRow("&nbsp&nbsp&nbsp&nbsp" . __('Workdays left to restore'), $usrlogin['work_days_restore'] - $usrlogin['days_worked'], false, '50%');
+                    $profile .= $this->addRow(wf_nbsp(4) . __('Freeze days total amount'), $usrlogin['freeze_days_amount'], false, '50%');
+                    $profile .= $this->addRow(wf_nbsp(4) . __('Freeze days used'), $usrlogin['freeze_days_used'], false, '50%');
+                    $profile .= $this->addRow(wf_nbsp(4) . __('Freeze days available'), $usrlogin['freeze_days_amount'] - $usrlogin['freeze_days_used'], false, '50%');
+                    $profile .= $this->addRow(wf_nbsp(4) . __('Workdays amount to restore freeze days'), $usrlogin['work_days_restore'], false, '50%');
+                    $profile .= $this->addRow(wf_nbsp(4) . __('Days worked after freeze days used up'), $usrlogin['days_worked'], false, '50%');
+                    $profile .= $this->addRow(wf_nbsp(4) . __('Workdays left to restore'), $usrlogin['work_days_restore'] - $usrlogin['days_worked'], false, '50%');
                 }
             }
         }
@@ -2336,7 +2441,7 @@ class UserProfile {
         $profile .= $this->getUserCpeControls();
 
 //Custom filelds display
-        $profile .= cf_FieldShower($this->login);
+        $profile .= $this->customFields->renderUserFields();
 //Tags add control and exiting tags listing
         if ($this->ubConfig->getAlterParam('USERPROFILE_TAG_SECTION_HIGHLIGHT')) {
             if (cfr('TAGS')) {
@@ -2357,7 +2462,7 @@ class UserProfile {
                 $profile .= wf_Link('?module=usertags&username=' . $this->login, web_add_icon(__('Tags')), false);
             }
 
-            $profile .= stg_show_user_tags($this->login);
+            $profile .= stg_show_user_tags($this->login, true);
         }
 
 //main profile controls here
@@ -2365,8 +2470,16 @@ class UserProfile {
 
 //Profile ending anchor for addcash links scroll
         $profile .= wf_tag('a', false, '', 'id="profileending"') . wf_tag('a', true);
-
+        /**
+         * Dinosaurs are my best friends
+         * Through thick and thin, until the very end
+         * People tell me, do not pretend
+         * Stop living in your made up world again
+         * But the dinosaurs, they`re real to me
+         * They bring me up and make me happy
+         * I wished all the world could see
+         * The dinosaurs are a part of me
+         */
         return($profile);
     }
-
 }

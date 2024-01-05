@@ -61,10 +61,10 @@ if (@$altCfg['LDAPMGR_ENABLED']) {
 
             show_window(__('Groups'), $ldapMgr->renderGroupsList());
         }
+        zb_BillingStats();
     } else {
         show_error(__('Access denied'));
     }
 } else {
     show_error(__('This module is disabled'));
 }
-?>

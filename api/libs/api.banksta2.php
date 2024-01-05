@@ -26,6 +26,20 @@ class Banksta2 {
     protected $messages = null;
 
     /**
+     * UbillingCache instance placeholder
+     *
+     * @var null
+     */
+    protected $ubCache = null;
+
+    /**
+     * Placeholder for BANKSTA2_CACHE_LIFETIME from alter.ini
+     *
+     * @var int
+     */
+    protected $cacheLifeTime = 900;
+
+    /**
      * List of allowed extensions
      *
      * @var array
@@ -67,6 +81,13 @@ class Banksta2 {
      * @var array
      */
     protected $bankstaRecordsAll = array();
+
+    /**
+     * Already preprocessed banksta records IDs from BANKSTA2_TABLE
+     *
+     * @var array
+     */
+    protected $bankstaRecordsAllIDs = array();
 
     /**
      * Contains available Inet users data as login => userdata
@@ -167,6 +188,7 @@ class Banksta2 {
                                                 'col_paytime'           => 'bspaytime_col',
                                                 'col_contract'          => 'bscontract_col',
                                                 'col_srvidents'         => 'bssrvidents_col',
+                                                'sum_in_coins'          => 'bspaymincoins',
                                                 'guess_contract'        => 'bstryguesscontract',
                                                 'srvidents_preffered'   => 'bssrvidentspreff',
                                                 'contract_delim_start'  => 'bscontractdelimstart',
@@ -177,20 +199,25 @@ class Banksta2 {
                                                 'inet_srv_start_delim'  => 'bsinetdelimstart',
                                                 'inet_srv_end_delim'    => 'bsinetdelimend',
                                                 'inet_srv_keywords'     => 'bsinetkeywords',
+                                                'noesc_inet_srv_keywords' => 'bsinetkeywordsnoesc',
                                                 'ukv_srv_start_delim'   => 'bsukvdelimstart',
                                                 'ukv_srv_end_delim'     => 'bsukvdelimend',
                                                 'ukv_srv_keywords'      => 'bsukvkeywords',
+                                                'noesc_ukv_srv_keywords' => 'bsukvkeywordsnoesc',
                                                 'skip_row'              => 'bsskiprow',
                                                 'col_skiprow'           => 'bsskiprow_col',
                                                 'skip_row_keywords'     => 'bsskiprowkeywords',
+                                                'noesc_skip_row_keywords' => 'bsskiprowkeywordsnoesc',
                                                 'replace_strs'          => 'bsreplacestrs',
                                                 'col_replace_strs'      => 'bscolsreplacestrs',
                                                 'strs_to_replace'       => 'bsstrstoreplace',
                                                 'strs_to_replace_with'  => 'bsstrstoreplacewith',
                                                 'replacements_cnt'      => 'bsreplacementscnt',
+                                                'noesc_replace_keywords' => 'bsreplacekeywordsnoesc',
                                                 'remove_strs'           => 'bsremovestrs',
                                                 'col_remove_strs'       => 'bscolremovestrs',
                                                 'strs_to_remove'        => 'bsstrstoremove',
+                                                'noesc_remove_keywords' => 'bsremovekeywordsnoesc',
                                                 'payment_type_id'       => 'bspaymtypeid'
                                              );
 
@@ -199,7 +226,10 @@ class Banksta2 {
      * Default storage table name
      */
     const BANKSTA2_TABLE = 'banksta2';
-    const BANKSTA2_PRESETS_TABLE = 'banksta2_presets';
+    const BANKSTA2_PRESETS_TABLE  = 'banksta2_presets';
+    const BANKSTA2_USER_CACHE_KEY = "BANKSTA2_USERS_DATA";
+    const BANKSTA2_PROCBS_CACHE_KEY = "BANKSTA2_PROCBS_DATA";
+    const BANKSTA2_MAPPRESETS_CACHE_KEY = "BANKSTA2_MAPPRESETS_DATA";
 
     /**
      * Routing URLs
@@ -223,15 +253,13 @@ class Banksta2 {
 
     public function __construct() {
         global $ubillingConfig, $billing;
-        $this->ubConfig=$ubillingConfig;
-        $this->billing=$billing;
+        $this->ubConfig = $ubillingConfig;
+        $this->billing = $billing;
+        $this->ubCache = new UbillingCache();
         $this->initMessages();
         $this->loadOptions();
-        $this->loadUserDataInet();
-        $this->loadUserDataUKV();
-        $this->loadUKVTariffs();
-        $this->loadProcessedBankstaRecs();
-        $this->loadMappingPresets();
+        $this->loadProcessedBankstaRecsIDs();
+
         $this->bankstaServiceType = array('Internet' => __('Internet'),
                                           'UKV' => __('UKV'),
                                           'Telepathy' => __('Telepathy')
@@ -269,107 +297,272 @@ class Banksta2 {
         $this->opayzIDAsContract = $this->ubConfig->getAlterParam('BANKSTA2_OPAYZID_AS_CONTRACT');
         $this->inetSrvAllotedIDs = explode(',', trim($this->ubConfig->getAlterParam('BANKSTA2_INETSRV_ALLOTED_IDS'), "\t\n\r\0\x0B,"));
         $this->ctvSrvAllotedIDs = explode(',', trim($this->ubConfig->getAlterParam('BANKSTA2_CTVSRV_ALLOTED_IDS'), "\t\n\r\0\x0B,"));
+        $this->cacheLifeTime = ($this->ubConfig->getAlterParam('BANKSTA2_CACHE_LIFETIME')) ? $this->ubConfig->getAlterParam('BANKSTA2_CACHE_LIFETIME') : 900;
     }
 
+    /**
+     * Returns essential user data suitable for caching
+     *
+     * @return array
+     */
+    public function getUsersDataForCache() {
+        $cacheArray     = array();
+        $userDataInet   = $this->loadUserDataInet();
+        $userDataUKV    = $this->loadUserDataUKV();
+        $ukvTariffs     = $this->loadUKVTariffs();
+
+        $cacheArray['usersinet']            = (empty($userDataInet['usersdata']) ? array() : $userDataInet['usersdata']);
+        $cacheArray['usersinetcontracts']   = (empty($userDataInet['userscontracts']) ? array() : $userDataInet['userscontracts']);
+        $cacheArray['usersukv']             = (empty($userDataUKV['usersdata']) ? array() : $userDataUKV['usersdata']);
+        $cacheArray['usersukvcontracts']    = (empty($userDataUKV['userscontracts']) ? array() : $userDataUKV['userscontracts']);
+        $cacheArray['tariffsukv']           = (empty($ukvTariffs) ? array() : $ukvTariffs);
+
+        return ($cacheArray);
+    }
+
+    /**
+     * Returns user data from cache
+     *
+     * @return array
+     */
+    public function getUsersDataCached($force = false) {
+        $userDataCached = array();
+
+        if ($force) {
+            $this->ubCache->set(self::BANKSTA2_USER_CACHE_KEY, $this->getUsersDataForCache(), $this->cacheLifeTime);
+            $userDataCached = $this->ubCache->get(self::BANKSTA2_USER_CACHE_KEY, $this->cacheLifeTime);
+        } else {
+            $thisInstance = $this;
+            $userDataCached = $this->ubCache->getCallback(self::BANKSTA2_USER_CACHE_KEY, function () use ($thisInstance) {
+                                    return ($thisInstance->getUsersDataForCache());
+                                }, $this->cacheLifeTime);
+        }
+
+        $this->allUsersDataInet = $userDataCached['usersinet'];
+        $this->allContractsInet = $userDataCached['usersinetcontracts'];
+        $this->allUsersDataUKV  = $userDataCached['usersukv'];
+        $this->allContractsUKV  = $userDataCached['usersukvcontracts'];
+        $this->ukvTariffs       = $userDataCached['tariffsukv'];
+
+        return ($userDataCached);
+    }
+
+    /**
+     * Returns processed bank statements data from cache
+     *
+     * @return array
+     */
+    public function getProcessedBSRecsCached($force = false) {
+        $processedBSRecsCached = array();
+
+        if ($force) {
+            $this->ubCache->set(self::BANKSTA2_PROCBS_CACHE_KEY, $this->loadProcessedBankstaRecs(), $this->cacheLifeTime);
+            $processedBSRecsCached = $this->ubCache->get(self::BANKSTA2_PROCBS_CACHE_KEY, $this->cacheLifeTime);
+        } else {
+            $thisInstance = $this;
+            $processedBSRecsCached = $this->ubCache->getCallback(self::BANKSTA2_PROCBS_CACHE_KEY, function () use ($thisInstance) {
+                                            return ($thisInstance->loadProcessedBankstaRecs());
+                                        }, $this->cacheLifeTime);
+        }
+
+        $this->bankstaRecordsAll = $processedBSRecsCached;
+        return ($processedBSRecsCached);
+    }
+
+    /**
+     * Returns processed bank statements data from cache
+     *
+     * @return array
+     */
+    public function getMappingPresetsCached($force = false) {
+        $mappingPresetsCached = array();
+
+        if ($force) {
+            $this->ubCache->set(self::BANKSTA2_MAPPRESETS_CACHE_KEY, $this->loadMappingPresets(), $this->cacheLifeTime);
+            $mappingPresetsCached = $this->ubCache->get(self::BANKSTA2_MAPPRESETS_CACHE_KEY, $this->cacheLifeTime);
+        } else {
+            $thisInstance = $this;
+            $mappingPresetsCached = $this->ubCache->getCallback(self::BANKSTA2_MAPPRESETS_CACHE_KEY, function () use ($thisInstance) {
+                                            return ($thisInstance->loadMappingPresets());
+                                        }, $this->cacheLifeTime);
+        }
+
+        $this->fieldsMappingPresets = $mappingPresetsCached;
+        return ($mappingPresetsCached);
+    }
 
     /**
      * Loads all available Internet users data from database
      *
-     * @return void
+     * @return array
      */
     protected function loadUserDataInet() {
-        $allOpenPayzUsers = array();
-        $this->allUsersDataInet = zb_UserGetAllData();
+        $result             = array();
+        $allOpenPayzUsers   = array();
+        $allUsersDataInet   = array();
+        $allContractsInet   = array();
+        $allUsersData       = zb_UserGetAllData();
 
-        // getting openpayz customers, if any
-        if ($this->opayzIDAsContract) {
-            $tQuery = "SELECT * FROM `op_customers`";
-            $tQueryResult = simple_queryall($tQuery);
+        if (!empty($allUsersData)) {
+            foreach ($allUsersData as $eachLogin => $eachUserData) {
+                $allUsersDataInet[$eachUserData['login']] = array('login'       => $eachUserData['login'],
+                                                                  'contract'    => $eachUserData['contract'],
+                                                                  'fulladress'  => $eachUserData['fulladress'],
+                                                                  'realname'    => $eachUserData['realname'],
+                                                                  'Tariff'      => $eachUserData['Tariff']
+                                                                 );
+            }
 
-            if (!empty($tQueryResult)) {
-                foreach ($tQueryResult as $eachRec => $eachOpayzUser) {
-                    if (!empty($eachOpayzUser['virtualid'])) {
-                        $allOpenPayzUsers[$eachOpayzUser['realid']] = $eachOpayzUser['virtualid'];
+            if (!empty($allUsersDataInet)) {
+                // getting openpayz customers, if any
+                if ($this->opayzIDAsContract) {
+                    $tQuery       = "SELECT * FROM `op_customers`";
+                    $tQueryResult = simple_queryall($tQuery);
+
+                    if (!empty($tQueryResult)) {
+                        foreach ($tQueryResult as $eachRec => $eachOpayzUser) {
+                            if (!empty($eachOpayzUser['virtualid'])) {
+                                $allOpenPayzUsers[$eachOpayzUser['realid']] = $eachOpayzUser['virtualid'];
+                            }
+                        }
+                    }
+                }
+
+                foreach ($allUsersDataInet as $io => $eachUser) {
+                    $login = $eachUser['login'];
+
+                    if (!empty($eachUser['contract'])) {
+                        $allContractsInet[$eachUser['contract']] = $login;
+                    } elseif ($this->opayzIDAsContract and !empty($allOpenPayzUsers[$login])) {
+                        $allContractsInet[$allOpenPayzUsers[$login]] = $login;
                     }
                 }
             }
         }
 
-        if (!empty($this->allUsersDataInet)) {
-            foreach ($this->allUsersDataInet as $io => $each) {
-                $login = $each['login'];
+        $result['usersdata']        = $allUsersDataInet;
+        $result['userscontracts']   = $allContractsInet;
 
-                if (!empty($each['contract'])) {
-                    $this->allContractsInet[$each['contract']] = $login;
-                } elseif ($this->opayzIDAsContract and !empty($allOpenPayzUsers[$login])){
-                    $this->allContractsInet[$allOpenPayzUsers[$login]] = $login;
-                }
-            }
-        }
+        return ($result);
     }
 
     /**
      * Loads all available UKV users data from database
      *
-     * @return void
+     * @return array
      */
     protected function loadUserDataUKV() {
         $tQuery = "SELECT * from `ukv_users`";
         $allUsers = simple_queryall($tQuery);
+        $allUsersDataUKV = array();
+        $allContractsUKV = array();
+        $result = array();
 
         if (!empty($allUsers)) {
-            foreach ($allUsers as $io => $each) {
-                $this->allUsersDataUKV[$each['id']] = $each;
-                $this->allContractsUKV[$each['contract']] = $each['id'];
+            foreach ($allUsers as $io => $eachUser) {
+                $allUsersDataUKV[$eachUser['id']] = array('id'       => $eachUser['id'],
+                                                          'contract' => $eachUser['contract'],
+                                                          'realname' => $eachUser['realname'],
+                                                          'tariffid' => $eachUser['tariffid'],
+                                                          'street'   => $eachUser['street'],
+                                                          'build'    => $eachUser['build'],
+                                                          'apt'      => $eachUser['apt']
+                                                        );
+
+                $allContractsUKV[$eachUser['contract']] = $eachUser['id'];
             }
         }
+
+        $result['usersdata']        = $allUsersDataUKV;
+        $result['userscontracts']   = $allContractsUKV;
+
+        return ($result);
     }
 
     /**
      * Loads UKV tariffs into private tariffs prop
      *
-     * @return void
+     * @return array
      */
     protected function loadUKVTariffs() {
         $tQuery = "SELECT * from `ukv_tariffs` ORDER by `tariffname` ASC;";
         $allTariffs = simple_queryall($tQuery);
+        $ukvTariffs = array();
+
         if (!empty($allTariffs)) {
             foreach ($allTariffs as $io => $each) {
-                $this->ukvTariffs[$each['id']] = $each;
+                $ukvTariffs[$each['id']] = $each;
             }
         }
+
+        return ($ukvTariffs);
     }
 
     /**
-     * Loads all of banksta rows to further checks to private property
+     * Loads all of banksta rows to private property for further use
      *
-     * @return void
+     * @return array
      */
-    protected function loadProcessedBankstaRecs() {
+    public function loadProcessedBankstaRecs() {
         $tQuery = "SELECT * FROM `" . self::BANKSTA2_TABLE . "`";
         $tQueryResult = simple_queryall($tQuery);
+        $bankstaRecordsAll = array();
 
         if (!empty($tQueryResult)) {
             foreach ($tQueryResult as $io => $eachRec) {
-                $this->bankstaRecordsAll[$eachRec['id']] = $eachRec;
+                $data4cache = array();
+                $data4cache['id'] = $eachRec['id'];
+                $data4cache['hash'] = $eachRec['hash'];
+                $data4cache['contract'] = $eachRec['contract'];
+                $data4cache['processed'] = $eachRec['processed'];
+                $data4cache['canceled'] = $eachRec['canceled'];
+                $data4cache['service_type'] = $eachRec['service_type'];
+
+                $bankstaRecordsAll[$eachRec['id']] = $data4cache;
+
             }
         }
+
+        return ($bankstaRecordsAll);
+    }
+
+    /**
+     * Loads all of banksta rows IDs to private property for further use
+     *
+     * @return array
+     */
+    public function loadProcessedBankstaRecsIDs() {
+        $tQuery = "SELECT `id` FROM `" . self::BANKSTA2_TABLE . "`";
+        $tQueryResult = simple_queryall($tQuery);
+        $bankstaRecordsAllIDs = array();
+
+        if (!empty($tQueryResult)) {
+            foreach ($tQueryResult as $io => $eachRec) {
+                $bankstaRecordsAllIDs[$eachRec['id']] = $eachRec['id'];
+            }
+        }
+
+        $this->bankstaRecordsAllIDs = $bankstaRecordsAllIDs;
+        return ($bankstaRecordsAllIDs);
     }
 
     /**
      * Load fields mapping presets (FMPs)
      *
-     * @return void
+     * @return array
      */
     public function loadMappingPresets() {
         $tQuery = "SELECT * FROM `" . self::BANKSTA2_PRESETS_TABLE . "`";
         $tQueryResult = simple_queryall($tQuery);
+        $fieldsMappingPresets = array();
 
         if (!empty($tQueryResult)) {
             foreach ($tQueryResult as $eachRec) {
-                $this->fieldsMappingPresets[$eachRec['id']] = $eachRec;
+                $fieldsMappingPresets[$eachRec['id']] = $eachRec;
             }
         }
+
+        return ($fieldsMappingPresets);
     }
 
     /**
@@ -378,6 +571,7 @@ class Banksta2 {
      * @return array
      */
     public function getMappingPresets() {
+        $this->getMappingPresetsCached();
         return ($this->fieldsMappingPresets);
     }
 
@@ -417,6 +611,7 @@ class Banksta2 {
      */
     public function getFMPDataJSON($fmpID, $arrayToRemap = array()) {
         $result = array();
+        $this->getMappingPresetsCached();
 
         if (isset($this->fieldsMappingPresets[$fmpID]) and !empty($this->fieldsMappingPresets[$fmpID])) {
             $fmpData = $this->fieldsMappingPresets[$fmpID];
@@ -449,6 +644,7 @@ class Banksta2 {
      * @return string
      */
     public function getMappingPresetsSelector($selectorID = '', $selectorClass = '', $inContainer = false, $title = '', $insBR = false, $insRefreshButton = false) {
+        $this->getMappingPresetsCached();
         $labelTitle = (empty($title)) ? __('Choose fields mapping preset') : $title;
         $ctrlID = (empty($selectorID)) ? 'BankstaPresetsSelector' : $selectorID;
         $ctrlClass = (empty($selectorClass)) ? '__BankstaPresetsSelector' : $selectorClass;
@@ -487,10 +683,13 @@ class Banksta2 {
      * @return array|mixed
      */
     public function getBankstaRecDetails($recID) {
+        $this->getProcessedBSRecsCached();
         $result = array();
 
         if (isset($this->bankstaRecordsAll[$recID])) {
-            $result = $this->bankstaRecordsAll[$recID];
+            //$result = $this->bankstaRecordsAll[$recID];
+            $query = "SELECT * FROM `" . self::BANKSTA2_TABLE . "` WHERE `id` = '" . $recID . "'";
+            $result = simple_query($query);
         }
 
         return ($result);
@@ -504,7 +703,7 @@ class Banksta2 {
      * @return void
      */
     public function setBankstaRecProcessed($bankstaRecID) {
-        if (isset($this->bankstaRecordsAll[$bankstaRecID])) {
+        if (isset($this->bankstaRecordsAllIDs[$bankstaRecID])) {
             simple_update_field(self::BANKSTA2_TABLE, 'processed', 1, "WHERE `id`='" . $bankstaRecID . "';");
             //log_register('BANKSTA2 [' . $bankstaRecID . '] SET AS PROCESSED');
         } else {
@@ -520,7 +719,7 @@ class Banksta2 {
      * @return void
      */
     public function setBankstaRecCanceled($bankstaRecID) {
-        if (isset($this->bankstaRecordsAll[$bankstaRecID])) {
+        if (isset($this->bankstaRecordsAllIDs[$bankstaRecID])) {
             simple_update_field(self::BANKSTA2_TABLE, 'processed', 1, "WHERE `id`='" . $bankstaRecID . "';");
             simple_update_field(self::BANKSTA2_TABLE, 'canceled', 1, "WHERE `id`='" . $bankstaRecID . "';");
             log_register('BANKSTA2 [' . $bankstaRecID . '] SET AS CANCELED');
@@ -537,7 +736,7 @@ class Banksta2 {
      * @return void
      */
     public function setBankstaRecUnCanceled($bankstaRecID) {
-        if (isset($this->bankstaRecordsAll[$bankstaRecID])) {
+        if (isset($this->bankstaRecordsAllIDs[$bankstaRecID])) {
             simple_update_field(self::BANKSTA2_TABLE, 'processed', 0, "WHERE `id`='" . $bankstaRecID . "';");
             simple_update_field(self::BANKSTA2_TABLE, 'canceled', 0, "WHERE `id`='" . $bankstaRecID . "';");
             log_register('BANKSTA2 [' . $bankstaRecID . '] SET AS UNCANCELED');
@@ -555,6 +754,7 @@ class Banksta2 {
      * @return void
      */
     public function setBankstaRecContract($bankstaRecID, $contract) {
+        $this->getProcessedBSRecsCached();
         $contract = mysql_real_escape_string($contract);
         $contract = trim($contract);
 
@@ -576,6 +776,7 @@ class Banksta2 {
      * @return void
      */
     public function setBankstaRecSrvType($bankstaRecID, $srvType) {
+        $this->getProcessedBSRecsCached();
         $srvType = mysql_real_escape_string($srvType);
         $srvType = trim($srvType);
 
@@ -653,6 +854,7 @@ class Banksta2 {
     protected function checkHashExists($hash) {
         $query = "SELECT `id` FROM `" . self::BANKSTA2_TABLE . "` WHERE `hash`='" . $hash . "'";
         $data = simple_query($query);
+
         if (empty($data)) {
             return (false);
         } else {
@@ -685,48 +887,59 @@ class Banksta2 {
     /**
      * Adds new fields mapping preset to DB
      *
-     * @param string $fmpName
-     * @param string $fmpColRealName
-     * @param string $fmpColAddr
-     * @param string $fmpColPaySum
-     * @param string $fmpColPayPurpose
-     * @param string $fmpColPayDate
-     * @param string $fmpColPayTime
-     * @param string $fmpColContract
-     * @param int $fmpGuessContract
-     * @param string $fmpContractDelimStart
-     * @param string $fmpContractDelimEnd
-     * @param int $fmpContractMinLen
-     * @param int $fmpContractMaxLen
-     * @param string $fmpSrvType
-     * @param string $fmpInetStartDelim
-     * @param string $fmpInetEndDelim
-     * @param string $fmpInetKeywords
-     * @param string $fmpUKVDelimStart
-     * @param string $fmpUKVDelimEnd
-     * @param string $fmpUKVKeywords
-     * @param int $fmpSkipRow
-     * @param string $fmpColSkipRow
-     * @param string $fmpSkipRowKeywords
-     * @param int $fmpReplaceStrs
-     * @param string $fmpColReplaceStrs
-     * @param string $fmpStrsToReplace
-     * @param string $fmpStrsToReplaceWith
-     * @param string $fmpReplacementsCount
-     * @param int $fmpRemoveStrs
-     * @param string $fmpColRemoveStrs
-     * @param string $fmpStrsToRemove
-     * @param int $fmpPaymentTypeID
+     * @param $fmpName
+     * @param $fmpColRealName
+     * @param $fmpColAddr
+     * @param $fmpColPaySum
+     * @param $fmpColPayPurpose
+     * @param $fmpColPayDate
+     * @param $fmpColPayTime
+     * @param $fmpColContract
+     * @param $fmpPaySumInCoins
+     * @param $fmpGuessContract
+     * @param $fmpContractDelimStart
+     * @param $fmpContractDelimEnd
+     * @param $fmpContractMinLen
+     * @param $fmpContractMaxLen
+     * @param $fmpSrvType
+     * @param $fmpInetStartDelim
+     * @param $fmpInetEndDelim
+     * @param $fmpInetKeywords
+     * @param $fmpNoEscInetKeywords
+     * @param $fmpUKVDelimStart
+     * @param $fmpUKVDelimEnd
+     * @param $fmpUKVKeywords
+     * @param $fmpNoEscUKVKeywords
+     * @param $fmpSkipRow
+     * @param $fmpColSkipRow
+     * @param $fmpSkipRowKeywords
+     * @param $fmpNoEscSkipRowKeywords
+     * @param $fmpReplaceStrs
+     * @param $fmpColReplaceStrs
+     * @param $fmpStrsToReplace
+     * @param $fmpStrsToReplaceWith
+     * @param $fmpReplacementsCount
+     * @param $fmpNoEscReplaceKeywords
+     * @param $fmpRemoveStrs
+     * @param $fmpColRemoveStrs
+     * @param $fmpStrsToRemove
+     * @param $fmpNoEscRemoveKeywords
+     * @param $fmpPaymentTypeID
+     * @param $fmpColSrvIdents
+     * @param $fmpSrvIdentsPreffered
+     *
+     * @return void
      */
     public function addFieldsMappingPreset($fmpName, $fmpColRealName = 'NONE', $fmpColAddr = 'NONE', $fmpColPaySum = 'NONE', $fmpColPayPurpose = 'NONE',
-                                           $fmpColPayDate = 'NONE', $fmpColPayTime = 'NONE', $fmpColContract = 'NONE', $fmpGuessContract = 0,
-                                           $fmpContractDelimStart = '', $fmpContractDelimEnd = '', $fmpContractMinLen = 0, $fmpContractMaxLen = 0,
-                                           $fmpSrvType = '', $fmpInetStartDelim = '', $fmpInetEndDelim = '', $fmpInetKeywords = '',
-                                           $fmpUKVDelimStart = '', $fmpUKVDelimEnd = '', $fmpUKVKeywords = '',
-                                           $fmpSkipRow = 0, $fmpColSkipRow = '', $fmpSkipRowKeywords = '',
-                                           $fmpReplaceStrs = 0, $fmpColReplaceStrs = '', $fmpStrsToReplace = '', $fmpStrsToReplaceWith = '', $fmpReplacementsCount = '',
-                                           $fmpRemoveStrs = 0, $fmpColRemoveStrs = '', $fmpStrsToRemove = '', $fmpPaymentTypeID = 0,
-                                           $fmpColSrvIdents = 0, $fmpSrvIdentsPreffered = 0
+                                           $fmpColPayDate = 'NONE', $fmpColPayTime = 'NONE', $fmpColContract = 'NONE', $fmpPaySumInCoins = 0, $fmpGuessContract = 0,
+                                           $fmpContractDelimStart = '', $fmpContractDelimEnd = '', $fmpContractMinLen = 0, $fmpContractMaxLen = 0, $fmpSrvType = '',
+                                           $fmpInetStartDelim = '', $fmpInetEndDelim = '', $fmpInetKeywords = '', $fmpNoEscInetKeywords = 0,
+                                           $fmpUKVDelimStart = '', $fmpUKVDelimEnd = '', $fmpUKVKeywords = '', $fmpNoEscUKVKeywords = 0,
+                                           $fmpSkipRow = 0, $fmpColSkipRow = '', $fmpSkipRowKeywords = '', $fmpNoEscSkipRowKeywords = 0,
+                                           $fmpReplaceStrs = 0, $fmpColReplaceStrs = '', $fmpStrsToReplace = '',
+                                           $fmpStrsToReplaceWith = '', $fmpReplacementsCount = '', $fmpNoEscReplaceKeywords = 0,
+                                           $fmpRemoveStrs = 0, $fmpColRemoveStrs = '', $fmpStrsToRemove = '', $fmpNoEscRemoveKeywords = 0,
+                                           $fmpPaymentTypeID = 0, $fmpColSrvIdents = 0, $fmpSrvIdentsPreffered = 0
                                           ) {
 
         $fmpColRealName     = (wf_emptyNonZero($fmpColRealName) ? 'NONE' : $fmpColRealName);
@@ -740,25 +953,29 @@ class Banksta2 {
 
 
         $tQuery = "INSERT INTO `" . self::BANKSTA2_PRESETS_TABLE .
-                  "` (`presetname`, `col_realname`, `col_address`, `col_paysum`, `col_paypurpose`, `col_paydate`, 
+                  "` (`presetname`, `col_realname`, `col_address`, `col_paysum`, `sum_in_coins`, `col_paypurpose`, `col_paydate`, 
                             `col_paytime`, `col_contract`, `col_srvidents`, `guess_contract`, `srvidents_preffered`, 
                             `contract_delim_start`, `contract_delim_end`, `contract_min_len`, `contract_max_len`, 
-                            `service_type`, `inet_srv_start_delim`, `inet_srv_end_delim`, `inet_srv_keywords`, 
-                            `ukv_srv_start_delim`, `ukv_srv_end_delim`, `ukv_srv_keywords`, `skip_row`, `col_skiprow`, `skip_row_keywords`,
-                            `replace_strs`, `col_replace_strs`, `strs_to_replace`, `strs_to_replace_with`, `replacements_cnt`,
-                            `remove_strs`, `col_remove_strs`, `strs_to_remove`, `payment_type_id`) 
-                        VALUES ('" . $fmpName . "', '" . $fmpColRealName . "', '" . $fmpColAddr . "', '" . $fmpColPaySum . "', '" .
+                            `service_type`, `inet_srv_start_delim`, `inet_srv_end_delim`, `inet_srv_keywords`, `noesc_inet_srv_keywords`,
+                            `ukv_srv_start_delim`, `ukv_srv_end_delim`, `ukv_srv_keywords`, `noesc_ukv_srv_keywords`, 
+                            `skip_row`, `col_skiprow`, `skip_row_keywords`, `noesc_skip_row_keywords`,
+                            `replace_strs`, `col_replace_strs`, `strs_to_replace`, `strs_to_replace_with`, `replacements_cnt`, `noesc_replace_keywords`,
+                            `remove_strs`, `col_remove_strs`, `strs_to_remove`, `noesc_remove_keywords`, `payment_type_id`) 
+                  VALUES ('" . $fmpName . "', '" . $fmpColRealName . "', '" . $fmpColAddr . "', '" . $fmpColPaySum . "', '" . $fmpPaySumInCoins  . "', '" .
                   $fmpColPayPurpose . "', '" . $fmpColPayDate . "', '" . $fmpColPayTime . "', '" . $fmpColContract . "', '" . $fmpColSrvIdents . "', " .
                   $fmpGuessContract . ", " . $fmpSrvIdentsPreffered . ", '" . $fmpContractDelimStart . "', '" . $fmpContractDelimEnd . "', " .
                   $fmpContractMinLen . ", " . $fmpContractMaxLen . ", '" . $fmpSrvType . "', '" .
-                  $fmpInetStartDelim . "', '" . $fmpInetEndDelim . "', '" . $fmpInetKeywords . "', '" .
-                  $fmpUKVDelimStart . "', '" . $fmpUKVDelimEnd . "', '" . $fmpUKVKeywords . "', '" .
-                  $fmpSkipRow  . "', '" . $fmpColSkipRow  . "', '" . $fmpSkipRowKeywords . "', '" .
-                  $fmpReplaceStrs . "', '" . $fmpColReplaceStrs . "', '" . $fmpStrsToReplace . "', '" . $fmpStrsToReplaceWith . "', '" . $fmpReplacementsCount . "', '" .
-                  $fmpRemoveStrs . "', '" . $fmpColRemoveStrs . "', '" . $fmpStrsToRemove . "', " . $fmpPaymentTypeID . ")";
+                  $fmpInetStartDelim . "', '" . $fmpInetEndDelim . "', '" . $fmpInetKeywords . "', " . $fmpNoEscInetKeywords  . ", '" .
+                  $fmpUKVDelimStart . "', '" . $fmpUKVDelimEnd . "', '" . $fmpUKVKeywords . "', " . $fmpNoEscUKVKeywords . ", '" .
+                  $fmpSkipRow  . "', '" . $fmpColSkipRow  . "', '" . $fmpSkipRowKeywords . "', " . $fmpNoEscSkipRowKeywords . ", '" .
+                  $fmpReplaceStrs . "', '" . $fmpColReplaceStrs . "', '" . $fmpStrsToReplace . "', '" .
+                  $fmpStrsToReplaceWith . "', '" . $fmpReplacementsCount . "', '" . $fmpNoEscReplaceKeywords . "', '" .
+                  $fmpRemoveStrs . "', '" . $fmpColRemoveStrs . "', '" . $fmpStrsToRemove . "', " . $fmpNoEscRemoveKeywords . ", " . $fmpPaymentTypeID . ")";
 
         nr_query($tQuery);
         log_register('CREATE banksta2 fields mapping preset [' . $fmpName . ']');
+
+        $this->getMappingPresetsCached(true);
     }
 
     /**
@@ -766,47 +983,58 @@ class Banksta2 {
      *
      * @param $fmpID
      * @param $fmpName
-     * @param string $fmpColRealName
-     * @param string $fmpColAddr
-     * @param string $fmpColPaySum
-     * @param string $fmpColPayPurpose
-     * @param string $fmpColPayDate
-     * @param string $fmpColPayTime
-     * @param string $fmpColContract
-     * @param int $fmpGuessContract
-     * @param string $fmpContractDelimStart
-     * @param string $fmpContractDelimEnd
-     * @param int $fmpContractMinLen
-     * @param int $fmpContractMaxLen
-     * @param string $fmpSrvType
-     * @param string $fmpInetStartDelim
-     * @param string $fmpInetEndDelim
-     * @param string $fmpInetKeywords
-     * @param string $fmpUKVDelimStart
-     * @param string $fmpUKVDelimEnd
-     * @param string $fmpUKVKeywords
-     * @param int $fmpSkipRow
-     * @param string $fmpColSkipRow
-     * @param string $fmpSkipRowKeywords
-     * @param int $fmpReplaceStrs
-     * @param string $fmpColReplaceStrs
-     * @param string $fmpStrsToReplace
-     * @param string $fmpStrsToReplaceWith
-     * @param string $fmpReplacementsCount
-     * @param int $fmpRemoveStrs
-     * @param string $fmpColRemoveStrs
-     * @param string $fmpStrsToRemove
-     * @param int $fmpPaymentTypeID
+     * @param $fmpColRealName
+     * @param $fmpColAddr
+     * @param $fmpColPaySum
+     * @param $fmpColPayPurpose
+     * @param $fmpColPayDate
+     * @param $fmpColPayTime
+     * @param $fmpColContract
+     * @param $fmpPaySumInCoins
+     * @param $fmpGuessContract
+     * @param $fmpContractDelimStart
+     * @param $fmpContractDelimEnd
+     * @param $fmpContractMinLen
+     * @param $fmpContractMaxLen
+     * @param $fmpSrvType
+     * @param $fmpInetStartDelim
+     * @param $fmpInetEndDelim
+     * @param $fmpInetKeywords
+     * @param $fmpNoEscInetKeywords
+     * @param $fmpUKVDelimStart
+     * @param $fmpUKVDelimEnd
+     * @param $fmpUKVKeywords
+     * @param $fmpNoEscUKVKeywords
+     * @param $fmpSkipRow
+     * @param $fmpColSkipRow
+     * @param $fmpSkipRowKeywords
+     * @param $fmpNoEscSkipRowKeywords
+     * @param $fmpReplaceStrs
+     * @param $fmpColReplaceStrs
+     * @param $fmpStrsToReplace
+     * @param $fmpStrsToReplaceWith
+     * @param $fmpReplacementsCount
+     * @param $fmpNoEscReplaceKeywords
+     * @param $fmpRemoveStrs
+     * @param $fmpColRemoveStrs
+     * @param $fmpStrsToRemove
+     * @param $fmpNoEscRemoveKeywords
+     * @param $fmpPaymentTypeID
+     * @param $fmpColSrvIdents
+     * @param $fmpSrvIdentsPreffered
+     *
+     * @return void
      */
     public function editFieldsMappingPreset($fmpID, $fmpName, $fmpColRealName = 'NONE', $fmpColAddr = 'NONE', $fmpColPaySum = 'NONE', $fmpColPayPurpose = 'NONE',
-                                            $fmpColPayDate = 'NONE', $fmpColPayTime = 'NONE', $fmpColContract = 'NONE', $fmpGuessContract = 0,
-                                            $fmpContractDelimStart = '', $fmpContractDelimEnd = '', $fmpContractMinLen = 0, $fmpContractMaxLen = 0,
-                                            $fmpSrvType = '', $fmpInetStartDelim = '', $fmpInetEndDelim = '', $fmpInetKeywords = '',
-                                            $fmpUKVDelimStart = '', $fmpUKVDelimEnd = '', $fmpUKVKeywords = '',
-                                            $fmpSkipRow = 0, $fmpColSkipRow = '', $fmpSkipRowKeywords = '',
-                                            $fmpReplaceStrs = 0, $fmpColReplaceStrs = '', $fmpStrsToReplace = '', $fmpStrsToReplaceWith = '', $fmpReplacementsCount = '',
-                                            $fmpRemoveStrs = 0, $fmpColRemoveStrs = '', $fmpStrsToRemove = '', $fmpPaymentTypeID = 0,
-                                            $fmpColSrvIdents = 0, $fmpSrvIdentsPreffered = 0
+                                            $fmpColPayDate = 'NONE', $fmpColPayTime = 'NONE', $fmpColContract = 'NONE', $fmpPaySumInCoins = 0, $fmpGuessContract = 0,
+                                            $fmpContractDelimStart = '', $fmpContractDelimEnd = '', $fmpContractMinLen = 0, $fmpContractMaxLen = 0, $fmpSrvType = '',
+                                            $fmpInetStartDelim = '', $fmpInetEndDelim = '', $fmpInetKeywords = '', $fmpNoEscInetKeywords = 0,
+                                            $fmpUKVDelimStart = '', $fmpUKVDelimEnd = '', $fmpUKVKeywords = '', $fmpNoEscUKVKeywords = 0,
+                                            $fmpSkipRow = 0, $fmpColSkipRow = '', $fmpSkipRowKeywords = '', $fmpNoEscSkipRowKeywords = 0,
+                                            $fmpReplaceStrs = 0, $fmpColReplaceStrs = '', $fmpStrsToReplace = '',
+                                            $fmpStrsToReplaceWith = '', $fmpReplacementsCount = '', $fmpNoEscReplaceKeywords = 0,
+                                            $fmpRemoveStrs = 0, $fmpColRemoveStrs = '', $fmpStrsToRemove = '', $fmpNoEscRemoveKeywords = 0,
+                                            $fmpPaymentTypeID = 0, $fmpColSrvIdents = 0, $fmpSrvIdentsPreffered = 0
                                            ) {
 
         $fmpColRealName     = (wf_emptyNonZero($fmpColRealName) ? 'NONE' : $fmpColRealName);
@@ -819,44 +1047,51 @@ class Banksta2 {
         $fmpColSrvIdents    = (wf_emptyNonZero($fmpColSrvIdents) ? 'NONE' : $fmpColSrvIdents);
 
         $tQuery = "UPDATE `" . self::BANKSTA2_PRESETS_TABLE . "` SET 
-                            `presetname`            = '" . $fmpName . "', 
-                            `col_realname`          = '" . $fmpColRealName . "',  
-                            `col_address`           = '" . $fmpColAddr . "', 
-                            `col_paysum`            = '" . $fmpColPaySum . "', 
-                            `col_paypurpose`        = '" . $fmpColPayPurpose . "', 
-                            `col_paydate`           = '" . $fmpColPayDate . "',  
-                            `col_paytime`           = '" . $fmpColPayTime . "',  
-                            `col_contract`          = '" . $fmpColContract . "',  
-                            `col_srvidents`         = '" . $fmpColSrvIdents . "',                            
-                            `guess_contract`        = " . $fmpGuessContract . ", 
-                            `srvidents_preffered`   = " . $fmpSrvIdentsPreffered . ",
-                            `contract_delim_start`  = '" . $fmpContractDelimStart . "', 
-                            `contract_delim_end`    = '" . $fmpContractDelimEnd . "',
-                            `contract_min_len`      = " . $fmpContractMinLen . ",
-                            `contract_max_len`      = " . $fmpContractMaxLen . ", 
-                            `service_type`          = '" . $fmpSrvType . "',  
-                            `inet_srv_start_delim`  = '" . $fmpInetStartDelim . "', 
-                            `inet_srv_end_delim`    = '" . $fmpInetEndDelim . "', 
-                            `inet_srv_keywords`     = '" . $fmpInetKeywords . "', 
-                            `ukv_srv_start_delim`   = '" . $fmpUKVDelimStart . "',  
-                            `ukv_srv_end_delim`     = '" . $fmpUKVDelimEnd . "', 
-                            `ukv_srv_keywords`      = '" . $fmpUKVKeywords . "',
-                            `skip_row`              = '" . $fmpSkipRow . "',
-                            `col_skiprow`           = '" . $fmpColSkipRow . "',                            
-                            `skip_row_keywords`     = '" . $fmpSkipRowKeywords . "',
-                            `replace_strs`          = '" . $fmpReplaceStrs . "',
-                            `col_replace_strs`      = '" . $fmpColReplaceStrs . "',
-                            `strs_to_replace`       = '" . $fmpStrsToReplace . "',
-                            `strs_to_replace_with`  = '" . $fmpStrsToReplaceWith . "',
-                            `replacements_cnt`      = '" . $fmpReplacementsCount . "',
-                            `remove_strs`           = '" . $fmpRemoveStrs . "',
-                            `col_remove_strs`       = '" . $fmpColRemoveStrs . "',
-                            `strs_to_remove`        = '" . $fmpStrsToRemove . "',
-                            `payment_type_id`       = " . $fmpPaymentTypeID . "
+                            `presetname`                = '" . $fmpName . "', 
+                            `col_realname`              = '" . $fmpColRealName . "',  
+                            `col_address`               = '" . $fmpColAddr . "', 
+                            `col_paysum`                = '" . $fmpColPaySum . "', 
+                            `col_paypurpose`            = '" . $fmpColPayPurpose . "', 
+                            `col_paydate`               = '" . $fmpColPayDate . "',  
+                            `col_paytime`               = '" . $fmpColPayTime . "',  
+                            `col_contract`              = '" . $fmpColContract . "',  
+                            `col_srvidents`             = '" . $fmpColSrvIdents . "',
+                            `sum_in_coins`              = '" . $fmpPaySumInCoins . "',                           
+                            `guess_contract`            = " . $fmpGuessContract . ", 
+                            `srvidents_preffered`       = " . $fmpSrvIdentsPreffered . ",
+                            `contract_delim_start`      = '" . $fmpContractDelimStart . "', 
+                            `contract_delim_end`        = '" . $fmpContractDelimEnd . "',
+                            `contract_min_len`          = " . $fmpContractMinLen . ",
+                            `contract_max_len`          = " . $fmpContractMaxLen . ", 
+                            `service_type`              = '" . $fmpSrvType . "',  
+                            `inet_srv_start_delim`      = '" . $fmpInetStartDelim . "', 
+                            `inet_srv_end_delim`        = '" . $fmpInetEndDelim . "', 
+                            `inet_srv_keywords`         = '" . $fmpInetKeywords . "',
+                            `noesc_inet_srv_keywords`   = '" . $fmpNoEscInetKeywords . "', 
+                            `ukv_srv_start_delim`       = '" . $fmpUKVDelimStart . "',  
+                            `ukv_srv_end_delim`         = '" . $fmpUKVDelimEnd . "', 
+                            `ukv_srv_keywords`          = '" . $fmpUKVKeywords . "',
+                            `noesc_ukv_srv_keywords`    = '" . $fmpNoEscUKVKeywords . "',
+                            `skip_row`                  = '" . $fmpSkipRow . "',
+                            `col_skiprow`               = '" . $fmpColSkipRow . "',                            
+                            `skip_row_keywords`         = '" . $fmpSkipRowKeywords . "',
+                            `noesc_skip_row_keywords`   = '" . $fmpNoEscSkipRowKeywords . "',
+                            `replace_strs`              = '" . $fmpReplaceStrs . "',
+                            `col_replace_strs`          = '" . $fmpColReplaceStrs . "',
+                            `strs_to_replace`           = '" . $fmpStrsToReplace . "',
+                            `strs_to_replace_with`      = '" . $fmpStrsToReplaceWith . "',
+                            `replacements_cnt`          = '" . $fmpReplacementsCount . "',
+                            `noesc_replace_keywords`    = '" . $fmpNoEscReplaceKeywords . "',
+                            `remove_strs`               = '" . $fmpRemoveStrs . "',
+                            `col_remove_strs`           = '" . $fmpColRemoveStrs . "',
+                            `strs_to_remove`            = '" . $fmpStrsToRemove . "',
+                            `noesc_remove_keywords`     = '" . $fmpNoEscRemoveKeywords . "',
+                            `payment_type_id`           = " . $fmpPaymentTypeID . "
                         WHERE `id` = " . $fmpID;
 
         nr_query($tQuery);
         log_register('CHANGE banksta2 fields mapping preset [' . $fmpName . ']');
+        $this->getMappingPresetsCached(true);
     }
 
     /**
@@ -871,6 +1106,7 @@ class Banksta2 {
         $tQuery = "DELETE FROM `" . self::BANKSTA2_PRESETS_TABLE . "` WHERE `id` = '" . $fmpId . "'";
         nr_query($tQuery);
         log_register('DELETE banksta2 fields mapping preset [' . $fmpId . '] ` ' . $fmpName);
+        $this->getMappingPresetsCached(true);
     }
 
     /**
@@ -885,6 +1121,7 @@ class Banksta2 {
         $tQuery = "DELETE FROM `" . self::BANKSTA2_TABLE . "` WHERE `hash` = '" . $statementHash . "'";
         nr_query($tQuery);
         log_register('DELETE banksta2 statement [' . $statementHash . '] ` ' . $fileName);
+        $this->getProcessedBSRecsCached(true);
     }
 
     /**
@@ -1005,12 +1242,16 @@ class Banksta2 {
      * @param string $delimiter
      * @return string
      */
-    public function prepareRegexStrings($keyWordStr, $delimiter = ',') {
+    public function prepareRegexStrings($keyWordStr, $delimiter = ',', $noEscaping = false) {
         $keywordsStr = '';
         $keywordsArray = explode($delimiter, $keyWordStr);
 
         foreach ($keywordsArray as $keyWord) {
-            $keywordsStr.= trim(preg_quote($keyWord, '/')) . '|';
+            if ($noEscaping) {
+                $keywordsStr.= trim($keyWord) . '|';
+            } else {
+                $keywordsStr.= trim(preg_quote($keyWord, '/')) . '|';
+            }
         }
 
         $keywordsStr = rtrim($keywordsStr, '|');
@@ -1028,32 +1269,49 @@ class Banksta2 {
      * @return string
      */
     public function preprocessBStatement($statementRawData, $importOpts, $skipLastChecksForm = false) {
-        $statementRawData = unserialize(base64_decode($statementRawData));
+        $statementRawData  = unserialize(base64_decode($statementRawData));
+
+        $noescInetKeywords = wf_getBoolFromVar($importOpts['noesc_inet_srv_keywords']);
+        $noescUKVKeywords  = wf_getBoolFromVar($importOpts['noesc_ukv_srv_keywords']);
+        $noescSkipKeywords = wf_getBoolFromVar($importOpts['noesc_skip_row_keywords']);
+        $noescRplcKeywords = wf_getBoolFromVar($importOpts['noesc_replace_keywords']);
+        $noescRmvKeywords  = wf_getBoolFromVar($importOpts['noesc_remove_keywords']);
 
         $contractGuess   = $importOpts['guess_contract'];
         $contractDelimS  = (empty($importOpts['contract_delim_start'])) ? '' : preg_quote($importOpts['contract_delim_start'], '/');
         $contractDelimE  = (empty($importOpts['contract_delim_end'])) ? '' : preg_quote($importOpts['contract_delim_end'], '/');
-        $contactMinLen   = $importOpts['contract_min_len'];
-        $contactMaxLen   = $importOpts['contract_max_len'];
+        $contractMinLen  = $importOpts['contract_min_len'];
+        $contractMaxLen  = $importOpts['contract_max_len'];
         $serviceType     = $importOpts['service_type'];
         $paymentTypeID   = $importOpts['payment_type_id'];
+
         $inetSrvDelimS   = (empty($importOpts['inet_srv_start_delim'])) ? '' : preg_quote($importOpts['inet_srv_start_delim'], '/');
         $inetSrvDelimE   = (empty($importOpts['inet_srv_end_delim'])) ? '' : preg_quote($importOpts['inet_srv_end_delim'], '/');
-        $inetSrvKeywords = (empty($importOpts['inet_srv_keywords'])) ? '' : preg_quote($importOpts['inet_srv_keywords'], '/');
+        $inetSrvKeywords = (empty($importOpts['inet_srv_keywords']))
+                            ? '' : ($noescInetKeywords ? $importOpts['inet_srv_keywords'] : preg_quote($importOpts['inet_srv_keywords'], '/'));
+
         $ukvSrvDelimS    = (empty($importOpts['ukv_srv_start_delim'])) ? '' : preg_quote($importOpts['ukv_srv_start_delim'], '/');
         $ukvSrvDelimE    = (empty($importOpts['ukv_srv_end_delim'])) ? '' : preg_quote($importOpts['ukv_srv_end_delim'], '/');
-        $ukvSrvKeywords  = (empty($importOpts['ukv_srv_keywords'])) ? '' : preg_quote($importOpts['ukv_srv_keywords'], '/');
+        $ukvSrvKeywords  = (empty($importOpts['ukv_srv_keywords']))
+                            ? '' : ($noescUKVKeywords ? $importOpts['ukv_srv_keywords'] : preg_quote($importOpts['ukv_srv_keywords'], '/'));
+
         $skipRow         = $importOpts['skip_row'];
         $skipRowCols     = ($importOpts['col_skiprow'] !== 'NONE') ? explode(',', str_replace(' ', '', $importOpts['col_skiprow'])) : array();
-        $skipRowKeywords = (empty($importOpts['skip_row_keywords'])) ? '' : preg_quote($importOpts['skip_row_keywords'], '/');
+        $skipRowKeywords = (empty($importOpts['skip_row_keywords']))
+                            ? '' : ($noescSkipKeywords ? $importOpts['skip_row_keywords'] : preg_quote($importOpts['skip_row_keywords'], '/'));
+
         $strsReplace     = $importOpts['replace_strs'];
         $strsReplaceCols = ($importOpts['col_replace_strs'] !== 'NONE') ? explode(',', str_replace(' ', '', $importOpts['col_replace_strs'])) : array();
-        $strsReplaceChars     = (empty($importOpts['strs_to_replace'])) ? '' : preg_quote($importOpts['strs_to_replace']);
+        $strsReplaceChars     = (empty($importOpts['strs_to_replace']))
+                                ? '' : ($noescRplcKeywords ? $importOpts['strs_to_replace'] : preg_quote($importOpts['strs_to_replace']));
         $strsReplaceCharsWith = (empty($importOpts['strs_to_replace_with'])) ? '' : $importOpts['strs_to_replace_with'];
         $strsReplacementsCnt  = (empty($importOpts['replacements_cnt'])) ? -1 : $importOpts['replacements_cnt'];
+
         $strsRemove      = $importOpts['remove_strs'];
         $strsRemoveCols  = ($importOpts['col_remove_strs'] !== 'NONE') ? explode(',', str_replace(' ', '', $importOpts['col_remove_strs'])) : array();
-        $strsRemoveChars = (empty($importOpts['strs_to_remove'])) ? '' : preg_quote($importOpts['strs_to_remove']);
+        $strsRemoveChars = (empty($importOpts['strs_to_remove']))
+                            ? '' : ($noescRmvKeywords ? $importOpts['strs_to_remove'] : preg_quote($importOpts['strs_to_remove']));
+
         $srvsIDsIdentsPreff = $importOpts['srvidents_preffered'];
 
         // creating essential regex bodies
@@ -1065,27 +1323,27 @@ class Banksta2 {
 
         // trying to get Inet service keywords
         if (!empty($inetSrvKeywords)) {
-            $keywordsStrInet = $this->prepareRegexStrings($inetSrvKeywords, $this->regexKeywordsDelimiter);
+            $keywordsStrInet = $this->prepareRegexStrings($inetSrvKeywords, $this->regexKeywordsDelimiter, $noescInetKeywords);
         }
 
         // trying to get UKV service keywords
         if (!empty($ukvSrvKeywords)) {
-            $keywordsStrUKV = $this->prepareRegexStrings($ukvSrvKeywords, $this->regexKeywordsDelimiter);
+            $keywordsStrUKV = $this->prepareRegexStrings($ukvSrvKeywords, $this->regexKeywordsDelimiter, $noescUKVKeywords);
         }
 
         // trying to get skipping row keywords
         if ($skipRow and !empty($skipRowCols)) {
-            $keywordsStrSkipRow = $this->prepareRegexStrings($skipRowKeywords, $this->regexKeywordsDelimiter);
+            $keywordsStrSkipRow = $this->prepareRegexStrings($skipRowKeywords, $this->regexKeywordsDelimiter, $noescSkipKeywords);
         }
 
         // trying to get replacement keywords
         if ($strsReplace and !empty($strsReplaceCols)) {
-            $keywordsStrReplaceChars = $this->prepareRegexStrings($strsReplaceChars, $this->regexKeywordsDelimiter);
+            $keywordsStrReplaceChars = $this->prepareRegexStrings($strsReplaceChars, $this->regexKeywordsDelimiter, $noescRplcKeywords);
         }
 
         // trying to get removing keywords
         if ($strsRemove and !empty($strsRemoveCols)) {
-            $keywordsStrRemoveChars = $this->prepareRegexStrings($strsRemoveChars, $this->regexKeywordsDelimiter);
+            $keywordsStrRemoveChars = $this->prepareRegexStrings($strsRemoveChars, $this->regexKeywordsDelimiter, $noescRmvKeywords);
         }
 
         $i = 0;
@@ -1110,10 +1368,9 @@ class Banksta2 {
 
             // removing characters/strings from specified fields
             if ($strsRemove and !empty($strsRemoveCols) and !empty($keywordsStrRemoveChars)) {
-                foreach ($strsReplaceCols as $strsReplaceCol) {
-                    if (isset($eachRow[$strsReplaceCol])) {
-                        //$eachRow[$strsReplaceCol] = str_replace($strsReplaceChars, '', $eachRow[$strsReplaceCol]);
-                        $eachRow[$strsReplaceCol] = preg_replace('/(' . $keywordsStrRemoveChars . ')/msiu', '', $eachRow[$strsReplaceCol]);
+                foreach ($strsRemoveCols as $strsRemoveCol) {
+                    if (isset($eachRow[$strsRemoveCol])) {
+                        $eachRow[$strsRemoveCol] = preg_replace('/(' . $keywordsStrRemoveChars . ')/msiu', '', $eachRow[$strsRemoveCol]);
                     }
                 }
             }
@@ -1122,7 +1379,8 @@ class Banksta2 {
             $address  = ($importOpts['col_address'] !== 'NONE' and isset($eachRow[$importOpts['col_address']])) ? $eachRow[$importOpts['col_address']] : '';
             $notes    = ($importOpts['col_paypurpose'] !== 'NONE' and isset($eachRow[$importOpts['col_paypurpose']])) ? $eachRow[$importOpts['col_paypurpose']] : '';
             $ptime    = ($importOpts['col_paytime'] !== 'NONE' and isset($eachRow[$importOpts['col_paytime']])) ? $eachRow[$importOpts['col_paytime']] : '';
-            $summ     = (isset($eachRow[$importOpts['col_paysum']])) ? preg_replace('/[^-(0-9)\.,]/', '', $eachRow[$importOpts['col_paysum']]) : '';
+            $summ     = (isset($eachRow[$importOpts['col_paysum']])) ? preg_replace('/[^-0-9\.,]/', '', $eachRow[$importOpts['col_paysum']]) : '';
+            $summ     = ((!empty($summ) and $importOpts['sum_in_coins']) ? ($summ / 100) : $summ);
             $pdate    = (isset($eachRow[$importOpts['col_paydate']])) ? $eachRow[$importOpts['col_paydate']] : '';
             $contract = ($importOpts['col_contract'] !== 'NONE' and isset($eachRow[$importOpts['col_contract']])) ? $eachRow[$importOpts['col_contract']] : '';
             $service_type       = $serviceType;
@@ -1146,11 +1404,11 @@ class Banksta2 {
                 if (empty($contract)) {
                     // if contract guessing enabled and at least one of the delimiters is not empty
                     if ($contractGuess) {
-                        if (empty($contactMinLen) or empty($contactMaxLen)) {
+                        if (empty($contractMinLen) or empty($contractMaxLen)) {
                             if ($contractDelimS != '' or $contractDelimE != '') {
                                 //$contractDelimS = '(' . $contractDelimS . ')';
                                 //$contractDelimE = '(' . $contractDelimE . ')';
-                                //preg_match('/' . $contractDelimS . '(\D)*?\d{' . $contactMinLen . ',' . $contactMaxLen . '}(\D)*?' . $contractDelimE . '/msu', $notes, $matchResult);
+                                //preg_match('/' . $contractDelimS . '(\D)*?\d{' . $contractMinLen . ',' . $contractMaxLen . '}(\D)*?' . $contractDelimE . '/msu', $notes, $matchResult);
                             //} else {
                                 preg_match('/' . $contractDelimS . '(.*?)' . $contractDelimE . '/msu', $notes, $matchResult);
                             }
@@ -1161,7 +1419,7 @@ class Banksta2 {
                                 $contract = 'unknown_' . $i;
                             }
                         } else {
-                            preg_match('/(\D)?(\d{' . $contactMinLen . ',' . $contactMaxLen . '})(\D)?/msu', $notes, $matchResult);
+                            preg_match('/(\D)?(\d{' . $contractMinLen . ',' . $contractMaxLen . '})(\D)?/msu', $notes, $matchResult);
 
                             if (isset($matchResult[2])) {
                                 $contract = trim($matchResult[2]);
@@ -1254,6 +1512,9 @@ class Banksta2 {
             $statementData[$tArrayIndex]['paymtype_id'] = $payment_type_id;
 
             if (!$skipLastChecksForm) {
+                $cancelTitle = ($cancelRow) ? 'Yes' : 'No';
+                $cancelTitle = ($this->translateLstChkFieldNames) ? __($cancelTitle) : $cancelTitle;
+
                 $cells.= wf_TableCell($contract);
                 $cells.= wf_TableCell($summ);
                 $cells.= wf_TableCell($address);
@@ -1262,9 +1523,9 @@ class Banksta2 {
                 $cells.= wf_TableCell($pdate);
                 $cells.= wf_TableCell($ptime);
                 $cells.= wf_TableCell($service_type);
-                $cells.= wf_TableCell($cancelRow);
+                $cells.= wf_TableCell($cancelTitle);
 
-                $rows.= wf_TableRow($cells, 'row3');
+                $rows.= wf_TableRow($cells, (($cancelRow) ? 'row6' : 'row3'));
             }
         }
 
@@ -1381,8 +1642,9 @@ class Banksta2 {
         }
 
         if (!empty($paymentsToPush)) {
-
-            $ukv = new UkvSystem();
+            $this->getUsersDataCached();
+            $needProcessUKV = $this->checkNeedProcessUKV($paymentsToPush);
+            $ukv = $needProcessUKV ? new UkvSystem() : null;
             $allParentUsers = ($checkForCorpUsers and !$refiscalize) ? cu_GetAllParentUsers() : array();
 
             foreach ($paymentsToPush as $eachRecID => $eachRec) {
@@ -1549,6 +1811,7 @@ class Banksta2 {
      */
     protected function checkBankstaRowIsUnprocessed($bankstaid) {
         $result = false;
+        $this->getProcessedBSRecsCached();
 
         if (isset($this->bankstaRecordsAll[$bankstaid])) {
             if ($this->bankstaRecordsAll[$bankstaid]['processed'] == 0) {
@@ -1570,11 +1833,33 @@ class Banksta2 {
     }
 
     /**
+     * Checks $paymentsToPush array for UKV records presence
+     *
+     * @param $paymentsToPush
+     *
+     * @return bool
+     */
+    public function checkNeedProcessUKV($paymentsToPush) {
+        $result = false;
+
+        if (!empty($paymentsToPush)) {
+            foreach ($paymentsToPush as $eachRecID => $eachRec) {
+                if (strtolower($eachRec['service']) == 'ukv') {
+                    $result = true;
+                    break;
+                }
+            }
+        }
+
+        return ($result);
+    }
+
+    /**
      * Returns main buttons controls for banksta2
      *
      * @return string
      */
-    public function web_MainButtonsControls() {
+    public static function web_MainButtonsControls() {
         $controls = wf_Link(self::URL_BANKSTA2_BANKSTALIST, wf_img('skins/menuicons/receipt_small_compl.png') . wf_nbsp() . __('Uploaded bank statements'), false, 'ubButton') . wf_nbsp(2);
         $controls.= wf_Link(self::URL_BANKSTA2_UPLOADFORM, wf_img('skins/menuicons/receipt_small.png') . wf_nbsp() . __('Upload bank statement'), false, 'ubButton') . wf_nbsp(2);
         $controls.= wf_Link(self::URL_BANKSTA2_PRESETS, wf_img('skins/icon_note.gif') . wf_nbsp() . __('Fields mapping presets'), false, 'ubButton');
@@ -1679,12 +1964,19 @@ class Banksta2 {
             $inputs = wf_TextInput('bspaymtypeid', __('Custom payment type ID for this bank statement'), 0, true, '4', 'digits', '', 'BankstaPaymentTypeID');
             $inputs.= wf_delimiter(0);
             $inputs.= wf_Selector('bsrealname_col', $bsrealname_arr, __('User realname'), '0', true);
+            $inputs.= wf_delimiter(0);
             $inputs.= wf_Selector('bsaddress_col', $bsaddress_arr, __('User address'), '1', true);
+            $inputs.= wf_delimiter(0);
             $inputs.= wf_Selector('bspaysum_col', $bspaysum_arr, __('Payment sum'), '2', true);
+            $inputs.= wf_CheckInput('bspaymincoins', __('Bank statement "SUM" field presented in coins(need to be divided by 100)'), true, false, 'BankstaPaymInCoins');
+            $inputs.= wf_delimiter(0);
             $inputs.= wf_Selector('bspaypurpose_col', $bspaypurpose_arr, __('Payment purpose'), '3', true);
+            $inputs.= wf_delimiter(0);
             $inputs.= wf_Selector('bspaydate_col', $bspaydate_arr, __('Payment date'), '4', true);
+            $inputs.= wf_delimiter(0);
             $inputs.= wf_Selector('bspaytime_col', $bspaytime_arr, __('Payment time'), '5', true);
 
+            //contract defining controls
             $inputs.= wf_delimiter(0);
             $inputs.= wf_Selector('bscontract_col', $bscontract_arr, __('User contract') . ' (' . __('Payment ID') . ')', '6', true);
             $inputs.= wf_CheckInput('bstryguesscontract', __('Try to get contract from payment purpose field'), true, false, 'BankstaTryGuessContract');
@@ -1703,19 +1995,23 @@ class Banksta2 {
             $inputs.= wf_TextInput('bscontractmaxlen', __('Contract') . ' (' . __('Payment ID') . '): ' . __('max length'), '0', true, '', '', '', 'BankstaContractMaxLen');
             $inputs.= wf_tag('div', true);
 
+            //service types defining controls
             $inputs.= wf_delimiter(0);
             $inputs.= wf_Selector('bssrvtype', $this->bankstaServiceType, __('Service type'), '21', true, false, 'BankstaSrvType');
             $inputs.= wf_tag('div', false, '', 'id="BankstaServiceGuessingBlock" style="border: 1px solid #ddd; border-radius: 4px; padding: 4px"');
             $inputs.= wf_TextInput('bsinetdelimstart', __('Internet service before keywords delimiter string'), '', true, '', '', '', 'BankstaInetDelimStart');
             $inputs.= wf_TextInput('bsinetkeywords', __('Internet service determination keywords') . ', ' . __('separated with') . ' BANKSTA2_REGEX_KEYWORDS_DELIM', '', true, '40', '', '', 'BankstaInetKeyWords');
             $inputs.= wf_TextInput('bsinetdelimend', __('Internet service after keywords delimiter string'), '', true, '', '', '', 'BankstaInetDelimEnd');
+            $inputs.= wf_CheckInput('bsinetkeywordsnoesc', __('Don\'t escape or process in any other way the keywords - just left them "as is"'), true, false, 'BankstaInetKeyWordsNoEsc');
             $inputs.= wf_delimiter(0);
             $inputs.= wf_TextInput('bsukvdelimstart', __('UKV service before keywords delimiter string'), '', true, '', '', '', 'BankstaUKVDelimStart');
             $inputs.= wf_TextInput('bsukvkeywords', __('UKV service determination keywords') . ', ' . __('separated with') . ' BANKSTA2_REGEX_KEYWORDS_DELIM', '', true, '40', '', '', 'BankstaUKVKeyWords');
             $inputs.= wf_TextInput('bsukvdelimend', __('UKV service after keywords delimiter string'), '', true, '', '', '', 'BankstaUKVDelimEnd');
+            $inputs.= wf_CheckInput('bsukvkeywordsnoesc', __('Don\'t escape or process in any other way the keywords - just left them "as is"'), true, false, 'BankstaUKVKeyWordsNoEsc');
             $inputs.= wf_tag('div', true);
             $inputs.= wf_delimiter(0);
 
+            //allotted service IDs controls
             $inputs.= wf_Selector('bssrvidents_col', $bssrvidents_arr, __('Number of the dedicated field which contains services IDs identifiers mapped via BANKSTA2_INETSRV_ALLOTED_IDS and BANKSTA2_CTVSRV_ALLOTED_IDS'), '6', true);
             $inputs.= wf_CheckInput('bssrvidentspreff', __('Services IDs identifiers from the dedicated field take precedence over service type telepathy'), true, false, 'BankstaSrvIdentsPreff');
             $inputs.= wf_tag('h4', false, '', 'style="font-weight: 400; width: 980px; padding: 2px 0 8px 28px; color: #666; margin-block-end: 0; margin-block-start: 0;"');
@@ -1723,14 +2019,17 @@ class Banksta2 {
             $inputs.= wf_tag('h4', true);
             $inputs.= wf_delimiter(0);
 
+            //row skipping controls
             $inputs.= wf_CheckInput('bsskiprow', __('Skip row processing if specified fields contain keywords below'), true, false, 'BankstaSkipRow');
             $inputs.= wf_tag('div', false, '', 'id="BankstaSkipRowBlock" style="border: 1px solid #ddd; border-radius: 4px; padding: 4px"');
             //$inputs.= wf_Selector('bsskiprow_col', $bsrealname_arr, __('Fields to check row skipping(multiple fields must be separated with comas)'), 'NONE', true);
             $inputs.= wf_TextInput('bsskiprow_col', __('Fields to check row skipping') . '(' . __('multiple fields must be separated with comas') . ')', '', true, '', '', '', 'BankstaSkipRowKeyWordsCols');
             $inputs.= wf_TextInput('bsskiprowkeywords', __('Row skipping determination keywords') . ', ' . __('separated with') . ' BANKSTA2_REGEX_KEYWORDS_DELIM', '', true, '40', '', '', 'BankstaSkipRowKeyWords');
+            $inputs.= wf_CheckInput('bsskiprowkeywordsnoesc', __('Don\'t escape or process in any other way the keywords - just left them "as is"'), true, false, 'BankstaSkipRowKeyWordsNoEsc');
             $inputs.= wf_tag('div', true);
             $inputs.= wf_delimiter(0);
 
+            //words/strings replacing controls
             $inputs.= wf_CheckInput('bsreplacestrs', __('Replace characters specified below in specified fields'), true, false, 'BankstaReplaceStrs');
             $inputs.= wf_tag('div', false, '', 'id="BankstaReplaceStrsBlock" style="border: 1px solid #ddd; border-radius: 4px; padding: 4px"');
             //$inputs.= wf_Selector('bscolsreplacestrs', $bsrealname_arr, __('Fields to perform replacing(multiple fields must be separated with comas)'), 'NONE', true);
@@ -1738,14 +2037,17 @@ class Banksta2 {
             $inputs.= wf_TextInput('bsstrstoreplace', __('Replaced characters or strings') . ', ' . __('separated with') . ' BANKSTA2_REGEX_KEYWORDS_DELIM', '', true, '40', '', '', 'BankstaReplaceStrsChars');
             $inputs.= wf_TextInput('bsstrstoreplacewith', __('Replacing characters or string'), '', true, '40', '', '', 'BankstaReplaceStrsWith');
             $inputs.= wf_TextInput('bsreplacementscnt', __('Replacements count'), '', true, '40', '', '', 'BankstaReplaceStrsCnt');
+            $inputs.= wf_CheckInput('bsreplacekeywordsnoesc', __('Don\'t escape or process in any other way the keywords - just left them "as is"'), true, false, 'BankstaReplaceKeyWordsNoEsc');
             $inputs.= wf_tag('div', true);
             $inputs.= wf_delimiter(0);
 
+            //words/strings removing controls
             $inputs.= wf_CheckInput('bsremovestrs', __('Remove characters specified below in specified fields'), true, false, 'BankstaRemoveStrs');
             $inputs.= wf_tag('div', false, '', 'id="BankstaRemoveStrsBlock" style="border: 1px solid #ddd; border-radius: 4px; padding: 4px"');
             //$inputs.= wf_Selector('bscolremovestrs', $bsrealname_arr, __('Fields to perform replacing(multiple fields must be separated with comas)'), 'NONE', true);
             $inputs.= wf_TextInput('bscolremovestrs', __('Fields to perform removing') . '(' . __('multiple fields must be separated with comas') . ')', '', true, '', '', '', 'BankstaRemoveStrsCols');
             $inputs.= wf_TextInput('bsstrstoremove', __('Removed characters or strings') . ', ' . __('separated with') . ' BANKSTA2_REGEX_KEYWORDS_DELIM', '', true, '40', '', '', 'BankstaRemoveStrsChars');
+            $inputs.= wf_CheckInput('bsremovekeywordsnoesc', __('Don\'t escape or process in any other way the keywords - just left them "as is"'), true, false, 'BankstaRemoveKeyWordsNoEsc');
             $inputs.= wf_tag('div', true);
             $inputs.= wf_delimiter(0);
 
@@ -1998,7 +2300,7 @@ class Banksta2 {
      *
      * @return void
      */
-    public function web_FMPForm() {
+    public static function web_FMPForm() {
         $lnkId = wf_InputId();
         $addServiceJS = wf_tag('script', false, '', 'type="text/javascript"');
         $addServiceJS.= wf_JSAjaxModalOpener(self::URL_ME, array('fmpcreate' => 'true'), $lnkId, false, 'POST');
@@ -2006,7 +2308,7 @@ class Banksta2 {
 
         show_window(__('Fields mapping presets'), wf_Link('#', web_add_icon() . ' ' .
                     __('Add fields mapping preset'), false, 'ubButton', 'id="' . $lnkId . '"') .
-                    wf_delimiter() . $addServiceJS . $this->renderFMPJQDT()
+                    wf_delimiter() . $addServiceJS . self::renderFMPJQDT()
                    );
     }
 
@@ -2055,6 +2357,8 @@ class Banksta2 {
             $rows = wf_TableRow($cells, 'row1');
 
             if (!empty($tQueryResult)) {
+                $this->getUsersDataCached();
+
                 foreach ($tQueryResult as $io => $eachRec) {
                     $recProcessed = ($eachRec['processed']) ? true : false;
                     $recCanceled = ($eachRec['canceled']) ? true : false;
@@ -2377,7 +2681,7 @@ class Banksta2 {
     /**
      * Renders uploaded statements ajax list JSON for JQDT
      */
-    function renderBStatementsListJSON() {
+    public static function renderBStatementsListJSON() {
         $tQuery = "SELECT `filename`, `hash`, `date`, `admin`, 
                           COUNT(`id`) AS `rowcount`, COUNT(if(`processed` > 0 and `canceled` <= 0, 1, null)) AS processed_cnt, COUNT(if(`canceled` > 0, 1, null)) AS canceled_cnt
                        FROM `" . self::BANKSTA2_TABLE . "` GROUP BY `hash` ORDER BY `date` DESC;";
@@ -2417,7 +2721,7 @@ class Banksta2 {
      *
      * @return string
      */
-    public function renderBStatementsJQDT() {
+    public static function renderBStatementsJQDT() {
         $ajaxUrlStr = '' . self::URL_ME . '&bslistajax=true';
         $jqdtId = 'jqdt_' . md5($ajaxUrlStr);
         $columns = array(__('Date'), __('Filename'), __('Total rows'), __('Processed rows'), __('Canceled rows'), __('Admin'), __('Actions'));
@@ -2455,7 +2759,7 @@ class Banksta2 {
     /**
      * Renders fields mapping presets ajax list JSON for JQDT
      */
-    public function renderFMPListJSON() {
+    public static function renderFMPListJSON() {
         $tQuery = "SELECT `id`, `presetname`, `payment_type_id`, `col_realname`, `col_address`, `col_paysum`, `col_paypurpose`, 
                           `col_paydate`, `col_paytime`, `col_contract`, `guess_contract`, `skip_row`, 
                           `replace_strs`, `remove_strs`, `service_type`  
@@ -2512,7 +2816,7 @@ class Banksta2 {
      *
      * @return string
      */
-    protected function renderFMPJQDT() {
+    protected static function renderFMPJQDT() {
         $ajaxUrlStr = '' . self::URL_ME . '&fmpajax=true';
         $jqdtId = 'jqdt_' . md5($ajaxUrlStr);
         $errorModalWindowId = wf_InputId();
@@ -2636,6 +2940,9 @@ class Banksta2 {
         $inputscells.= wf_TableCell(wf_TextInput('fmpcolpaydate', __('Payment date column number'), 'NONE', false, '4'));
         $inputscells.= wf_TableCell(wf_TextInput('fmpcolpaytime', __('Payment time column number'), 'NONE', true, '4'));
         $inputsrows.= wf_TableRow($inputscells);
+
+        $inputscells = wf_TableCell(wf_CheckInput('fmppaymincoins', __('Bank statement "SUM" field presented in coins(need to be divided by 100)'), true, false, 'BankstaPaymInCoins'), '', '', '', '2');
+        $inputsrows.= wf_TableRow($inputscells);
         $inputs.= wf_TableBody($inputsrows, '', '0', '', 'cellspacing="4px" style="margin-top: 8px;"');
 
         $inputs.= wf_tag('hr', false, '', 'style="margin-bottom: 11px;"');
@@ -2656,10 +2963,12 @@ class Banksta2 {
         $inputs.= wf_TextInput('fmpinetdelimstart', __('Internet service before keywords delimiter string'), '', true, '', '', '', 'BankstaInetDelimStart');
         $inputs.= wf_TextInput('fmpinetkeywords', __('Internet service determination keywords') . ', ' . __('separated with') . ' BANKSTA2_REGEX_KEYWORDS_DELIM', '', true, '40', '', '', 'BankstaInetKeyWords');
         $inputs.= wf_TextInput('fmpinetdelimend', __('Internet service after keywords delimiter string'), '', true, '', '', '', 'BankstaInetDelimEnd');
+        $inputs.= wf_CheckInput('fmpinetkeywordsnoesc', __('Don\'t escape or process in any other way the keywords - just left them "as is"'), true, false, 'BankstaInetKeyWordsNoEsc');
         $inputs.= wf_delimiter(0);
         $inputs.= wf_TextInput('fmpukvdelimstart', __('UKV service before keywords delimiter string'), '', true, '', '', '', 'BankstaUKVDelimStart');
         $inputs.= wf_TextInput('fmpukvkeywords', __('UKV service determination keywords') . ', ' . __('separated with') . ' BANKSTA2_REGEX_KEYWORDS_DELIM', '', true, '40', '', '', 'BankstaUKVKeyWords');
         $inputs.= wf_TextInput('fmpukvdelimend', __('UKV service after keywords delimiter string'), '', true, '', '', '', 'BankstaUKVDelimEnd');
+        $inputs.= wf_CheckInput('fmpukvkeywordsnoesc', __('Don\'t escape or process in any other way the keywords - just left them "as is"'), true, false, 'BankstaUKVKeyWordsNoEsc');
         $inputs.= wf_delimiter(0);
         $inputs.= wf_TextInput('fmpcolsrvidents', __('Number of the dedicated field which contains services IDs identifiers mapped via BANKSTA2_INETSRV_ALLOTED_IDS and BANKSTA2_CTVSRV_ALLOTED_IDS'), 'NONE', true, '4');
         $inputs.= wf_CheckInput('fmpsrvidentspreff', __('Services IDs identifiers from the dedicated field take precedence over service type telepathy'), true, false, 'BankstaSrvIdentsPreff');
@@ -2671,16 +2980,19 @@ class Banksta2 {
         $inputs.= wf_CheckInput('fmpskiprow', __('Skip row processing if specified fields contain keywords below'), true, false, 'BankstaSkipRow');
         $inputs.= wf_TextInput('fmpcolskiprow', __('Fields to check row skipping') . '(' . __('multiple fields must be separated with comas') . ')', '', true, '', '', '', 'BankstaSkipRowKeyWordsCol');
         $inputs.= wf_TextInput('fmpskiprowkeywords', __('Row skipping determination keywords') . ', ' . __('separated with') . ' BANKSTA2_REGEX_KEYWORDS_DELIM', '', true, '40', '', '', 'BankstaSkipRowKeyWords');
+        $inputs.= wf_CheckInput('fmpskiprokeywordsnoesc', __('Don\'t escape or process in any other way the keywords - just left them "as is"'), true, false, 'BankstaSkipRowKeyWordsNoEsc');
         $inputs.= wf_delimiter(0);
         $inputs.= wf_CheckInput('fmpreplacestrs', __('Replace characters specified below in specified fields'), true, false, 'BankstaReplaceStrs');
         $inputs.= wf_TextInput('fmpcolsreplacestrs', __('Fields to perform replacing') . '(' . __('multiple fields must be separated with comas') . ')', '', true, '', '', '', 'BankstaReplaceStrsCols');
         $inputs.= wf_TextInput('fmpstrstoreplace', __('Replaced characters or strings') . ', ' . __('separated with') . ' BANKSTA2_REGEX_KEYWORDS_DELIM', '', true, '40', '', '', 'BankstaReplaceStrsChars');
         $inputs.= wf_TextInput('fmpstrstoreplacewith', __('Replacing characters or string'), '', true, '40', '', '', 'BankstaReplaceStrsWith');
         $inputs.= wf_TextInput('fmpstrsreplacecount', __('Replacements count'), '', true, '40', '', '', 'BankstaReplaceStrsCount');
+        $inputs.= wf_CheckInput('fmpreplacekeywordsnoesc', __('Don\'t escape or process in any other way the keywords - just left them "as is"'), true, false, 'BankstaReplaceKeyWordsNoEsc');
         $inputs.= wf_delimiter(0);
         $inputs.= wf_CheckInput('fmpremovestrs', __('Remove characters specified below in specified fields'), true, false, 'BankstaRemoveStrs');
         $inputs.= wf_TextInput('fmpcolsremovestrs', __('Fields to perform removing') . '(' . __('multiple fields must be separated with comas') . ')', '', true, '', '', '', 'BankstaRemoveStrsCols');
         $inputs.= wf_TextInput('fmpstrstoremove', __('Removed characters or strings') . ', ' . __('separated with') . ' BANKSTA2_REGEX_KEYWORDS_DELIM', '', true, '40', '', '', 'BankstaRemoveStrsChars');
+        $inputs.= wf_CheckInput('fmpremovekeywordsnoesc', __('Don\'t escape or process in any other way the keywords - just left them "as is"'), true, false, 'BankstaRemoveKeyWordsNoEsc');
         $inputs.= wf_delimiter(0);
 
         $inputs.= wf_CheckInput('formclose', __('Close form after operation'), false, true, $closeFormChkId, '__CloseFrmOnSubmitChk');
@@ -2700,6 +3012,7 @@ class Banksta2 {
      * @return string
      */
     public function renderFMPEditForm($fmpID, $modalWindowId, $clone = false) {
+        $this->getMappingPresetsCached();
         $formId             = 'Form_' . wf_InputId();
         $closeFormChkId     = 'CloseFrmChkID_' . wf_InputId();
 
@@ -2717,6 +3030,12 @@ class Banksta2 {
         $rowSkipping        = (empty($fmpData['skip_row'])) ? false : true;
         $strReplacing       = (empty($fmpData['replace_strs'])) ? false : true;
         $strRemoving        = (empty($fmpData['remove_strs'])) ? false : true;
+        $sumInCoins         = (empty($fmpData['sum_in_coins'])) ? false : true;
+        $noescInetKeyWords  = (empty($fmpData['noesc_inet_srv_keywords'])) ? false : true;
+        $noescUKVKeyWords   = (empty($fmpData['noesc_ukv_srv_keywords'])) ? false : true;
+        $noescSkipKeyWords  = (empty($fmpData['noesc_skip_row_keywords'])) ? false : true;
+        $noescRplcKeyWords  = (empty($fmpData['noesc_replace_keywords'])) ? false : true;
+        $noescRmvKeyWords   = (empty($fmpData['noesc_remove_keywords'])) ? false : true;
 
         $inputs = wf_TextInput('fmpname', __('Preset name'), $fmpData['presetname'], false, '', '', '__FMPEmptyCheck');
         $inputs.= wf_nbsp(8);
@@ -2730,6 +3049,9 @@ class Banksta2 {
         $inputscells = wf_TableCell(wf_TextInput('fmpcolpaypurpose', __('Payment purpose column number'), $colPayPurpose, false, '4'));
         $inputscells.= wf_TableCell(wf_TextInput('fmpcolpaydate', __('Payment date column number'), $colPayDate, false, '4'));
         $inputscells.= wf_TableCell(wf_TextInput('fmpcolpaytime', __('Payment time column number'), $colPayTime, true, '4'));
+        $inputsrows.= wf_TableRow($inputscells);
+
+        $inputscells = wf_TableCell(wf_CheckInput('fmppaymincoins', __('Bank statement "SUM" field presented in coins(need to be divided by 100)'), true, $sumInCoins, 'BankstaPaymInCoins'), '', '', '', '2');
         $inputsrows.= wf_TableRow($inputscells);
         $inputs.= wf_TableBody($inputsrows, '', '0', '', 'cellspacing="4px" style="margin-top: 8px;"');
 
@@ -2751,10 +3073,12 @@ class Banksta2 {
         $inputs.= wf_TextInput('fmpinetdelimstart', __('Internet service before keywords delimiter string'), $fmpData['inet_srv_start_delim'], true, '', '', '', 'BankstaInetDelimStart');
         $inputs.= wf_TextInput('fmpinetkeywords', __('Internet service determination keywords') . ', ' . __('separated with') . ' BANKSTA2_REGEX_KEYWORDS_DELIM', $fmpData['inet_srv_keywords'], true, '40', '', '', 'BankstaInetKeyWords');
         $inputs.= wf_TextInput('fmpinetdelimend', __('Internet service after keywords delimiter string'), $fmpData['inet_srv_end_delim'], true, '', '', '', 'BankstaInetDelimEnd');
+        $inputs.= wf_CheckInput('fmpinetkeywordsnoesc', __('Don\'t escape or process in any other way the keywords - just left them "as is"'), true, $noescInetKeyWords, 'BankstaInetKeyWordsNoEsc');
         $inputs.= wf_delimiter(0);
         $inputs.= wf_TextInput('fmpukvdelimstart', __('UKV service before keywords delimiter string'), $fmpData['ukv_srv_start_delim'], true, '', '', '', 'BankstaUKVDelimStart');
         $inputs.= wf_TextInput('fmpukvkeywords', __('UKV service determination keywords') . ', ' . __('separated with') . ' BANKSTA2_REGEX_KEYWORDS_DELIM', $fmpData['ukv_srv_keywords'], true, '40', '', '', 'BankstaUKVKeyWords');
         $inputs.= wf_TextInput('fmpukvdelimend', __('UKV service after keywords delimiter string'), $fmpData['ukv_srv_end_delim'], true, '', '', '', 'BankstaUKVDelimEnd');
+        $inputs.= wf_CheckInput('fmpukvkeywordsnoesc', __('Don\'t escape or process in any other way the keywords - just left them "as is"'), true, $noescUKVKeyWords, 'BankstaUKVKeyWordsNoEsc');
         $inputs.= wf_delimiter(0);
         $inputs.= wf_TextInput('fmpcolsrvidents', __('Number of the dedicated field which contains services IDs identifiers mapped via BANKSTA2_INETSRV_ALLOTED_IDS and BANKSTA2_CTVSRV_ALLOTED_IDS'), $colSrvIdents, true, '4');
         $inputs.= wf_CheckInput('fmpsrvidentspreff', __('Services IDs identifiers from the dedicated field take precedence over service type telepathy'), true, $prefferSrvIdents, 'BankstaSrvIdentsPreff');
@@ -2766,16 +3090,19 @@ class Banksta2 {
         $inputs.= wf_CheckInput('fmpskiprow', __('Skip row processing if specified fields contain keywords below'), true, $rowSkipping, 'BankstaSkipRow');
         $inputs.= wf_TextInput('fmpcolskiprow', __('Fields to check row skipping') . '(' . __('multiple fields must be separated with comas') . ')', $fmpData['col_skiprow'], true, '', '', '', 'BankstaSkipRowKeyWordsCol');
         $inputs.= wf_TextInput('fmpskiprowkeywords', __('Row skipping determination keywords') . ', ' . __('separated with') . ' BANKSTA2_REGEX_KEYWORDS_DELIM', $fmpData['skip_row_keywords'], true, '40', '', '', 'BankstaSkipRowKeyWords');
+        $inputs.= wf_CheckInput('fmpskiprokeywordsnoesc', __('Don\'t escape or process in any other way the keywords - just left them "as is"'), true, $noescSkipKeyWords, 'BankstaSkipRowKeyWordsNoEsc');
         $inputs.= wf_delimiter(0);
         $inputs.= wf_CheckInput('fmpreplacestrs', __('Replace characters specified below in specified fields'), true, $strReplacing, 'BankstaReplaceStrs');
         $inputs.= wf_TextInput('fmpcolsreplacestrs', __('Fields to perform replacing') . '(' . __('multiple fields must be separated with comas') . ')', $fmpData['col_replace_strs'], true, '', '', '', 'BankstaReplaceStrsCols');
         $inputs.= wf_TextInput('fmpstrstoreplace', __('Replaced characters or strings') . ', ' . __('separated with') . ' BANKSTA2_REGEX_KEYWORDS_DELIM', $fmpData['strs_to_replace'], true, '40', '', '', 'BankstaReplaceStrsChars');
         $inputs.= wf_TextInput('fmpstrstoreplacewith', __('Replacing characters or string'), $fmpData['strs_to_replace_with'], true, '40', '', '', 'BankstaReplaceStrsWith');
         $inputs.= wf_TextInput('fmpstrsreplacecount', __('Replacements count'), $fmpData['replacements_cnt'], true, '40', '', '', 'BankstaReplaceStrsCount');
+        $inputs.= wf_CheckInput('fmpreplacekeywordsnoesc', __('Don\'t escape or process in any other way the keywords - just left them "as is"'), true, $noescRplcKeyWords, 'BankstaReplaceKeyWordsNoEsc');
         $inputs.= wf_delimiter(0);
         $inputs.= wf_CheckInput('fmpremovestrs', __('Remove characters specified below in specified fields'), true, $strRemoving, 'BankstaRemoveStrs');
         $inputs.= wf_TextInput('fmpcolsremovestrs', __('Fields to perform removing') . '(' . __('multiple fields must be separated with comas') . ')', $fmpData['col_remove_strs'], true, '', '', '', 'BankstaRemoveStrsCols');
         $inputs.= wf_TextInput('fmpstrstoremove', __('Removed characters or strings') . ', ' . __('separated with') . ' BANKSTA2_REGEX_KEYWORDS_DELIM', $fmpData['strs_to_remove'], true, '40', '', '', 'BankstaRemoveStrsChars');
+        $inputs.= wf_CheckInput('fmpremovekeywordsnoesc', __('Don\'t escape or process in any other way the keywords - just left them "as is"'), true, $noescRmvKeyWords, 'BankstaRemoveKeyWordsNoEsc');
         $inputs.= wf_delimiter(0);
 
         $inputs.= wf_CheckInput('formclose', __('Close form after operation'), false, true, $closeFormChkId, '__CloseFrmOnSubmitChk');

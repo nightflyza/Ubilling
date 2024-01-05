@@ -431,6 +431,13 @@ class TasksQualRep {
         return($result);
     }
 
+    /**
+     * Extracts per admin states changes count from states data array
+     * 
+     * @param array $dataArray
+     * 
+     * @return array
+     */
     protected function getAdminStats($dataArray) {
         $result = array();
 
@@ -459,6 +466,10 @@ class TasksQualRep {
     public function renderCallsReport() {
         $result = '';
         $allEmployeeLogins = ts_GetAllEmployeeLoginsAssocCached();
+        $activeEmployeeLogins = ts_GetActiveEmployeeLogins();
+        if (!empty($activeEmployeeLogins)) {
+            $activeEmployeeLogins = array_flip($activeEmployeeLogins);
+        }
 
         $dataDay = $this->taskRanks->getReportData($this->dateCurrentDay, $this->dateCurrentDay);
         $dataWeek = $this->taskRanks->getReportData($this->dateWeekBegin, $this->dateWeekEnd);
@@ -481,20 +492,21 @@ class TasksQualRep {
             $cells .= wf_TableCell(__('All time'));
             $rows = wf_TableRow($cells, 'row1');
             foreach ($adminsAllTime as $eachAdmin => $allTimeCount) {
-                $adminName = (isset($allEmployeeLogins[$eachAdmin])) ? $allEmployeeLogins[$eachAdmin] : $eachAdmin;
+                if (isset($activeEmployeeLogins[$eachAdmin])) {
+                    $adminName = (isset($allEmployeeLogins[$eachAdmin])) ? $allEmployeeLogins[$eachAdmin] : $eachAdmin;
+                    $dayCount = (isset($adminsDay[$eachAdmin])) ? $adminsDay[$eachAdmin] : 0;
+                    $weekCount = (isset($adminsWeek[$eachAdmin])) ? $adminsWeek[$eachAdmin] : 0;
+                    $monthCount = (isset($adminsMonth[$eachAdmin])) ? $adminsMonth[$eachAdmin] : 0;
+                    $yearCount = (isset($adminsYear[$eachAdmin])) ? $adminsYear[$eachAdmin] : 0;
 
-                $dayCount = (isset($adminsDay[$eachAdmin])) ? $adminsDay[$eachAdmin] : 0;
-                $weekCount = (isset($adminsWeek[$eachAdmin])) ? $adminsWeek[$eachAdmin] : 0;
-                $monthCount = (isset($adminsMonth[$eachAdmin])) ? $adminsMonth[$eachAdmin] : 0;
-                $yearCount = (isset($adminsYear[$eachAdmin])) ? $adminsYear[$eachAdmin] : 0;
-
-                $cells = wf_TableCell($adminName, '30%');
-                $cells .= wf_TableCell($dayCount);
-                $cells .= wf_TableCell($weekCount);
-                $cells .= wf_TableCell($monthCount);
-                $cells .= wf_TableCell($yearCount);
-                $cells .= wf_TableCell($allTimeCount);
-                $rows .= wf_TableRow($cells, 'row5');
+                    $cells = wf_TableCell($adminName, '30%');
+                    $cells .= wf_TableCell($dayCount);
+                    $cells .= wf_TableCell($weekCount);
+                    $cells .= wf_TableCell($monthCount);
+                    $cells .= wf_TableCell($yearCount);
+                    $cells .= wf_TableCell($allTimeCount);
+                    $rows .= wf_TableRow($cells, 'row5');
+                }
             }
 
             $result .= wf_TableBody($rows, '100%', 0, 'sortable');

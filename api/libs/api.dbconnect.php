@@ -88,6 +88,7 @@ class DbConnect {
         if (extension_loaded('mysql')) {
             $this->result = @mysql_query($sql, $this->conn);
         } else {
+            mysqli_report(0); //TODO: make here normal fix for PHP 8.2
             $this->result = @$this->conn->query($sql);
         }
         return($this->result != false);

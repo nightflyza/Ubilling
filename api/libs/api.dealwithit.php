@@ -898,7 +898,11 @@ class DealWithIt {
                                 zb_CashAdd($login, $summ, 'add', $cashType, 'SCHEDULED');
                                 break;
                             case 'corrcash':
-                                zb_CashAdd($login, $param, 'correct', 1, 'SCHEDULED');
+                                $corrNote = 'SCHEDULED';
+                                if (ispos($each['note'], 'DEFSALE:')) {
+                                    $corrNote = $each['note'];
+                                }
+                                zb_CashAdd($login, $param, 'correct', 1, $corrNote);
                                 break;
                             case 'setcash':
                                 zb_CashAdd($login, $param, 'set', 1, 'SCHEDULED');

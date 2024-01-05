@@ -31,28 +31,41 @@ if (ubRouting::get('action') == 'fullhostscan') {
             $diffPrev = array();
 
             //mixing ishimura aggregated traffic
-            if (@$alterconf['ISHIMURA_ENABLED']) {
-                $ishimuraOption = MultiGen::OPTION_ISHIMURA;
+            $ishimuraOption = MultiGen::OPTION_ISHIMURA;
+            if ($alterconf[$ishimuraOption]) {
                 $ishimuraTable = MultiGen::NAS_ISHIMURA;
                 $additionalTraffic = array();
-                if ($alterconf[$ishimuraOption]) {
-                    $query_hideki = "SELECT `login`,`D0`,`U0` from `" . $ishimuraTable . "` WHERE `month`='" . date("n") . "' AND `year`='" . curyear() . "'";
-                    $dataHideki = simple_queryall($query_hideki);
-                    if (!empty($dataHideki)) {
-                        foreach ($dataHideki as $io => $each) {
-                            $additionalTraffic[$each['login']] = $each['D0'] + $each['U0'];
-                        }
-                    }
 
-                    if (!empty($curTraff) AND ! empty($additionalTraffic)) {
-                        foreach ($curTraff as $io => $each) {
-                            if (isset($additionalTraffic[$each['login']])) {
-                                $curTraff[$io]['traff'] += $additionalTraffic[$each['login']];
-                            }
+                $query_hideki = "SELECT `login`,`D0`,`U0` from `" . $ishimuraTable . "` WHERE `month`='" . date("n") . "' AND `year`='" . curyear() . "'";
+                $dataHideki = simple_queryall($query_hideki);
+                if (!empty($dataHideki)) {
+                    foreach ($dataHideki as $io => $each) {
+                        $additionalTraffic[$each['login']] = $each['D0'] + $each['U0'];
+                    }
+                }
+
+                if (!empty($curTraff) AND !empty($additionalTraffic)) {
+                    foreach ($curTraff as $io => $each) {
+                        if (isset($additionalTraffic[$each['login']])) {
+                            $curTraff[$io]['traff'] += $additionalTraffic[$each['login']];
                         }
                     }
                 }
             }
+
+            //mixing ophanim traffic data
+            if ($alterconf[OphanimFlow::OPTION_ENABLED]) {
+                $ophTraff = new OphanimFlow();
+                $additionalTraffic = $ophTraff->getAllUsersAggrTraff();
+                if (!empty($curTraff) AND !empty($additionalTraffic)) {
+                    foreach ($curTraff as $io => $each) {
+                        if (isset($additionalTraffic[$each['login']])) {
+                            $curTraff[$io]['traff'] += $additionalTraffic[$each['login']];
+                        }
+                    }
+                }
+            }
+
             if (!file_exists('exports/prevtraff')) {
                 $prevTraff = $curTraff;
                 $savePrev = serialize($prevTraff);
@@ -115,10 +128,10 @@ if (ubRouting::get('action') == 'fullhostscan') {
         //renew DN data
         if (file_exists(DATA_PATH . "dn")) {
             //directory clanup
-            $oldDnData = rcms_scandir(DATA_PATH . "dn/");
+            $oldDnData = rcms_scandir(DATA_PATH . '"dn/');
             if (!empty($oldDnData)) {
                 foreach ($oldDnData as $deleteFile) {
-                    unlink(DATA_PATH . "dn/" . $deleteFile);
+                    unlink(DATA_PATH . 'dn/' . $deleteFile);
                 }
             }
 
@@ -128,10 +141,14 @@ if (ubRouting::get('action') == 'fullhostscan') {
                 $allUserIps = array_flip($allUserIps);
                 foreach ($activeIps as $ix => $aip) {
                     if (isset($allUserIps[$aip])) {
-                        file_put_contents(DATA_PATH . "dn/" . $allUserIps[$aip], 'alive');
+                        file_put_contents(DATA_PATH . 'dn/' . $allUserIps[$aip], 'alive');
                     }
                 }
             }
+
+            //put some timeline data 
+            $dnTimelineData = curdatetime() . ';' . sizeof($activeIps) . PHP_EOL;
+            file_put_contents('content/documents/dntimeline.log', $dnTimelineData, FILE_APPEND);
         } else {
             die('FAIL:NO_CONTENT_DN_EXISTS');
         }

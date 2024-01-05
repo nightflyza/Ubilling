@@ -11,4 +11,10 @@ $lang['def']['last link up time'] = 'дата последнего "link up"';
 $lang['def']['Current user\'s address lists'] = 'Адрес-листы текущего пользователя';
 $lang['def']['session info'] = 'информация о сессии';
 $lang['def']['get session info for current user'] = 'получить информацию о сессии для текущего пользователя';
-$lang['def'][''] = '';
+$lang['def']['Generator'] = 'Генератор';
+$lang['def']['Generator code in'] = 'Код генератора в';
+$lang['def']['Generator code is empty'] = 'Код генератора пустой';
+$lang['def']['Login generator definition not exists'] = 'Определения генератора логинов не существует';
+$lang['def']['doesnt set loginProposal property or returns empty proposal'] = 'не установил свойство loginProposal или вернул пустое предложение';
+$lang['def']['returned existing login as proposal'] = 'вернул уже существующий логин как предложение';
+

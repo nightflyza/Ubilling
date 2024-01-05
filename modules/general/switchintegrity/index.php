@@ -113,12 +113,34 @@ if (cfr('SWITCHESEDIT')) {
                 $result .= $messages->getStyledMessage(__('Because some of uplink switches deleted loop, check is skipped'), 'error');
             }
 
-            return ($result);
+            //IP duplicates
+            if (!empty($all)) {
+                $tmp = array();
+                $dupIpCount = 0;
+                foreach ($all as $switchId => $switchData) {
+                    if (!empty($switchData['ip'])) {
+                        $tmp[$switchData['ip']][] = $switchData;
+                    }
+                }
+
+                foreach ($tmp as $switchIp => $switchesOn) {
+                    if (sizeof($switchesOn) > 1) {
+                        foreach ($switchesOn as $index => $swDupData) {
+                            $swLabel = wf_Link('?module=switches&edit=' . $swDupData['id'], '[' . $swDupData['id'] . ']') . ' ' . $swDupData['location'];
+                            $result .= $messages->getStyledMessage(__('Duplicate') . ' ' . __('IP') . ': ' . $switchIp . ' ' . $swLabel, 'warning');
+                            $dupIpCount++;
+                        }
+                    }
+                }
+                if (!$dupIpCount) {
+                    $result .= $messages->getStyledMessage(__('Duplicate') . ' ' . __('IP') . ': ' . __('Nothing found'), 'success');
+                }
+            }
         }
+        return ($result);
     }
 
     show_window(__('Switches integrity check'), web_SwitchesIntegrityReport());
 } else {
     show_error(__('Access denied'));
 }
-?>

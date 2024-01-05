@@ -133,7 +133,6 @@ CHAPTEREND_ARP=true
 
 CHAPTER_DISCOUNT=Discounts support
 DISCOUNTS_ENABLED=TRIGGER|Discount support is enabled
-DISCOUNT_PERCENT_CFID=VARCHAR|Discount rate custom profile field ID
 DISCOUNT_OPERATION=VARCHAR|Discount operation type
 DISCOUNT_CASHTYPEID=VARCHAR|Discount cash type
 CUD_ENABLED=TRIGGER|Is Cumulative discounts enabled
@@ -160,16 +159,6 @@ DOCSIS_MODEM_NETID=VARCHAR|DOCSIS modems network ID
 docsis_cm_source=VARCHAR|DOCSIS modems config source path
 docsis_cm_bin=VARCHAR|DOCIS modems config binary path
 CHAPTEREND_DOCSIS=true
-
-CHAPTER_TURBOSMS=TurboSMS support
-TSMS_ENABLED=TRIGGER|TurboSMS support is enabled
-TSMS_GATEWAY=VARCHAR|TurboSMS gateway address
-TSMS_DB="VARCHAR|Working database name
-TSMS_LOGIN=VARCHAR|User login to access TurboSMS gateway
-TSMS_PASSWORD=VARCHAR|User password for access TurboSMS gateway|PASSWD
-TSMS_PHONEPREFIX=VARCHAR|Mobile phone additional prefix
-CHAPTEREND_TURBOSMS=true
-
 
 CHAPTER_BEH=Behavior
 TARIFFCHGRESET=TRIGGER|User reset after tariff change

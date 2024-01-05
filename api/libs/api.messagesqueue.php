@@ -395,6 +395,27 @@ class MessagesQueue {
     }
 
     /**
+     * Runs SendDog queues processing
+     * 
+     * @return int 1 - ok, 0 - already running
+     */
+    public function runTheDog() {
+        $result = 1;
+        $sendogPidFile = SendDog::PID_PATH;
+        //senddog isnt running now?
+        if (!file_exists($sendogPidFile)) {
+            //im to lazy to do this in normal way
+            $command = '/bin/ubapi senddog';
+            shell_exec($command);
+            log_register('SENDDOG MANUAL RUN');
+        } else {
+            $result = 0;
+            log_register('SENDDOG ALREADY RUNS');
+        }
+        return($result);
+    }
+
+    /**
      * Renders module control panel
      * 
      * @return string
@@ -409,7 +430,7 @@ class MessagesQueue {
         $indicatorStyle = 'float:right;';
         $dogIndicator = '';
         if (file_exists($sendogPidFile)) {
-            $lastDogWalkTime = file_get_contents($sendogPidFile);
+            $lastDogWalkTime = @file_get_contents($sendogPidFile);
             $dogIndicator = wf_img('skins/dog_stand.png', __('SendDog is working') . ' ' . __('from') . ' ' . $lastDogWalkTime, $indicatorStyle);
             if (cfr('ROOT')) {
                 $stopForm = '';
@@ -424,6 +445,17 @@ class MessagesQueue {
             }
         } else {
             $dogIndicator = wf_img('skins/dog_sleep.png', __('SendDog is sleeping'), $indicatorStyle);
+            if (cfr('ROOT')) {
+                $runForm = '';
+                $runForm .= wf_tag('center') . wf_img('skins/dog_sleep.png') . wf_tag('center', true);
+                $runForm .= __('SendDog is sleeping');
+                $runForm .= wf_CleanDiv();
+                $runForm .= wf_delimiter(0);
+                $inputs = wf_HiddenInput('runthedog', 'true');
+                $inputs .= wf_Submit(__('Run the dog'));
+                $runForm .= wf_Form('', 'POST', $inputs, 'glamour');
+                $dogIndicator = wf_modalAuto($dogIndicator, __('Manage'), $runForm);
+            }
         }
         $result .= $dogIndicator;
         return ($result);

@@ -227,6 +227,38 @@ class SwitchUplinks {
     }
 
     /**
+     * Delete switch uplink data record from database
+     * 
+     * @param int $switchId
+     * 
+     * @return void
+     */
+    public function delete($switchId) {
+        $switchId = ubRouting::filters($switchId, 'int');
+        if ($switchId) {
+            $this->switchUplinks->where('switchid', '=', $switchId);
+            $this->switchUplinks->delete();
+            log_register('SWITCHUPLINK DELETE [' . $switchId . ']');
+        }
+    }
+
+    /**
+     * Delete switch uplink data record from database on switch deletion
+     * 
+     * @param int $switchId
+     * 
+     * @return void
+     */
+    public function flush($switchId) {
+        $switchId = ubRouting::filters($switchId, 'int');
+        if ($switchId) {
+            $this->switchUplinks->where('switchid', '=', $switchId);
+            $this->switchUplinks->delete();
+            log_register('SWITCHUPLINK FLUSH [' . $switchId . ']');
+        }
+    }
+
+    /**
      * Renders current instance uplink data in compact format
      * 
      * @return string
@@ -252,7 +284,7 @@ class SwitchUplinks {
             }
 
             //empty existing record
-            if (!$this->uplinkData['media'] AND ! $this->uplinkData['speed'] AND ! $this->uplinkData['port']) {
+            if (!$this->uplinkData['media'] AND !$this->uplinkData['speed'] AND !$this->uplinkData['port']) {
                 $result .= __('Uplink parameters is not set');
             }
         } else {
@@ -322,5 +354,4 @@ class SwitchUplinks {
         }
         return($result);
     }
-
 }

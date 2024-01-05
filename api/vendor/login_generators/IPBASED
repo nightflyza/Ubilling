@@ -1,0 +1,1 @@
+ $this->loginProposal=str_replace('.', 'x', $this->ipProposal);

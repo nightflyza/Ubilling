@@ -17,7 +17,7 @@ function generic_MapContainer($width = '', $height = '', $id = '') {
     $width = (!empty($width)) ? $width : '100%';
     $height = (!empty($height)) ? $height : '800px';
     $id = (!empty($id)) ? $id : 'ubmap';
-    $result = wf_tag('div', false, '', 'id="' . $id . '" style="width:'.$width.'; height:'.$height.';"');
+    $result = wf_tag('div', false, '', 'id="' . $id . '" style="width:' . $width . '; height:' . $height . ';"');
     $result .= wf_tag('div', true);
     return ($result);
 }
@@ -304,16 +304,20 @@ function generic_MapAddLine($coord1, $coord2, $color = '', $hint = '', $width = 
 }
 
 /**
- * Returns map circle
+ * Returns circle map placemark
  * 
  * @param string $coords - map coordinates
  * @param int $radius - circle radius in meters
- * @param string $content 
+ * @param string $content - popup balloon content
+ * @param string $hint - on mouseover hint
+ * @param string $color - circle border color, default: 009d25
+ * @param float  $opacity - border opacity from 0 to 1, default: 0.8
+ * @param string $fillColor - fill color of circle, default: 00a20b55
+ * @param float $fillOpacity - fill opacity from 0 to 1, default: 0.5
  * 
  * @return string
- *  
  */
-function generic_MapAddCircle($coords, $radius, $content = '', $hint = '') {
+function generic_MapAddCircle($coords, $radius, $content = '', $hint = '', $color = '009d25', $opacity = 0.8, $fillColor = '00a20b55', $fillOpacity = 0.5) {
     $circelId = wf_InputId();
     $coords = explode(',', $coords);
     $lat = $coords[0];
@@ -323,11 +327,11 @@ function generic_MapAddCircle($coords, $radius, $content = '', $hint = '') {
             var circlecoords_' . $circelId . ' =  {lat: ' . $lat . ', lng: ' . $lng . '} ;
                
             var cicrcle_' . $circelId . ' = new google.maps.Circle({
-            strokeColor: \'#006107\',
-            strokeOpacity: 0.8,
+            strokeColor: \'#' . $color . '\',
+            strokeOpacity: ' . $opacity . ',
             strokeWeight: 1,
-            fillColor: \'#00a20b55\',
-            fillOpacity: 0.35,
+            fillColor: \'#' . $fillColor . '\',
+            fillOpacity: ' . $fillOpacity . ',
             map: map,
             center: circlecoords_' . $circelId . ',
             radius: ' . $radius . '

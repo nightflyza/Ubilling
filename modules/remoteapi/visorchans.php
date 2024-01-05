@@ -4,7 +4,7 @@
 if (ubRouting::get('action') == 'visorchans') {
     if ($alterconf['VISOR_ENABLED']) {
         if (ubRouting::checkGet(array('param', 'userid'))) {
-            if ($alterconf['TRASSIRMGR_ENABLED']) {
+            if ($alterconf['WOLFRECORDER_ENABLED'] OR $alterconf['TRASSIRMGR_ENABLED']) {
                 $chanCall = ubRouting::get('param');
                 $visor = new UbillingVisor();
                 $maxQual = (ubRouting::checkGet('fullsize')) ? true : false;

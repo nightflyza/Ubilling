@@ -272,8 +272,13 @@ class DarkVoid {
         if (isset($this->altCfg['WATCHDOG_ENABLED'])) {
             if ($this->altCfg['WATCHDOG_ENABLED']) {
                 $watchDogMaintenance = zb_StorageGet('WATCHDOG_MAINTENANCE');
+                $watchDogSmsSilence = zb_StorageGet('WATCHDOG_SMSSILENCE');
                 if ($watchDogMaintenance) {
                     $this->alerts .= wf_Link('?module=watchdog', wf_img('skins/maintenance.png', __('Watchdog') . ': ' . __('Disabled')));
+                }
+
+                if ($watchDogSmsSilence) {
+                    $this->alerts .= wf_Link('?module=watchdog', wf_img('skins/smssilence.png', __('Watchdog') . ': ' . __('SMS silence')));
                 }
             }
         }
@@ -282,6 +287,10 @@ class DarkVoid {
         if ($this->altCfg['TB_SWITCHMON']) {
             $dead_raw = zb_StorageGet('SWDEAD');
             $last_pingtime = zb_StorageGet('SWPINGTIME');
+
+            if (!is_numeric($last_pingtime)) {
+                $last_pingtime = 0;
+            }
             $deathTime = zb_SwitchesGetAllDeathTime();
             $deadarr = array();
             $content = '';

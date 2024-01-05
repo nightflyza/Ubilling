@@ -69,13 +69,13 @@ class GlobalSearch {
      * 
      * @return void
      */
-    public function __construct() {
+    public function __construct($stylesPath = '') {
         global $ubillingConfig;
         $this->ubConfig = $ubillingConfig;
 
         $this->loadAlter();
         $this->setPlaceholder();
-        $this->setStyles();
+        $this->setStyles($stylesPath);
         $this->setJsRuntime();
     }
 
@@ -99,23 +99,39 @@ class GlobalSearch {
         } else {
             $searchLib = 'glsearch.js';
         }
-        $this->jsRuntime = wf_tag('script', false, '', 'type="text/javascript" language="javascript" src="modules/jsc/' . $searchLib . '"');
+
+        $libPath = '';
+        if (file_exists(CUR_SKIN_PATH . $searchLib)) {
+            $libPath = CUR_SKIN_PATH . $searchLib;
+        } else {
+            $libPath = 'modules/jsc/' . $searchLib;
+        }
+
+        $this->jsRuntime = wf_tag('script', false, '', 'type="text/javascript" language="javascript" src="' . $libPath . '"');
         $this->jsRuntime .= wf_tag('script', true);
     }
 
     /**
      * Sets CSS input styling
      * 
+     * @param string $stylesPath custom css location path
+     * 
      * @return void
      */
-    protected function setStyles() {
+    protected function setStyles($stylesPath = '') {
         if (@$this->alterConf['SPHINX_SEARCH_ENABLED']) {
             $searchCss = 'sphinxsearch.css';
         } else {
             $searchCss = 'glsearch.css';
         }
 
-        $this->styles = wf_tag('link', false, '', 'rel="stylesheet" href="skins/' . $searchCss . '" type="text/css" media="screen""');
+        if (empty($stylesPath)) {
+            $fullPath = 'skins/' . $searchCss;
+        } else {
+            $fullPath = $stylesPath . $searchCss;
+        }
+
+        $this->styles = wf_tag('link', false, '', 'rel="stylesheet" href="' . $fullPath . '" type="text/css" media="screen""');
         $this->styles .= wf_tag('link', true);
     }
 
@@ -131,22 +147,27 @@ class GlobalSearch {
     /**
      * Renders search form
      * 
+     * @param string $appendClass
+     * 
      * @return string
      */
-    public function renderSearchInput() {
+    public function renderSearchInput($appendClass = '') {
         $result = '';
+        if (!empty($appendClass)) {
+            $appendClass = ' ' . $appendClass;
+        }
         if ($this->alterConf['GLOBALSEARCH_ENABLED']) {
             $result .= $this->styles;
             $result .= $this->jsRuntime;
             if (@$this->alterConf['SPHINX_SEARCH_ENABLED']) {
                 //render SphinxSearch input
-                $result .= wf_tag('input', false, 'sphinxsearch-input', 'type="text" name="globalsearchquery" autocomplete="off" id="sphinxsearchinput" oninput="querySearch(this.value)"' . $this->placeholder);
-                $result.= wf_HiddenInput('globalsearch_type', 'full');
+                $result .= wf_tag('input', false, 'sphinxsearch-input' . $appendClass, 'type="text" name="globalsearchquery" autocomplete="off" id="sphinxsearchinput" oninput="querySearch(this.value)"' . $this->placeholder);
+                $result .= wf_HiddenInput('globalsearch_type', 'full');
                 $result .= wf_tag('ul', false, 'ui-menu ui-widget  ui-autocomplete ui-front sphinxsearchcontainer', 'id="ssearchcontainer" style="display: none;"');
                 $result .= wf_tag('ul', true);
             } else {
                 //render standard GlobalSearch input                               
-                $result .= wf_tag('input', false, '.ui-autocomplete', 'type="text" id="globalsearch" name="globalsearchquery"' . $this->placeholder);
+                $result .= wf_tag('input', false, '.ui-autocomplete' . $appendClass, 'type="text" id="globalsearch" name="globalsearchquery"' . $this->placeholder);
                 $result .= wf_tag('input', false, '', 'type="hidden" id="globalsearch_type" name="globalsearch_type" value=""');
             }
         } else {
@@ -280,26 +301,28 @@ class GlobalSearch {
             }
 
             if (isset($this->fields['paymentid'])) {
-                if ($this->alterConf['OPENPAYZ_REALID']) {
-                    $allPayIds_q = "SELECT * from `op_customers`";
-                    $allPayIds = simple_queryall($allPayIds_q);
-                    $tmpArrPayids = array();
-                    if (!empty($allPayIds)) {
-                        foreach ($allPayIds as $io => $each) {
-                            $tmpArrPayids[$each['realid']] = $each['virtualid'];
+                if ($this->alterConf['OPENPAYZ_SUPPORT']) {
+                    if ($this->alterConf['OPENPAYZ_REALID']) {
+                        $allPayIds_q = "SELECT * from `op_customers`";
+                        $allPayIds = simple_queryall($allPayIds_q);
+                        $tmpArrPayids = array();
+                        if (!empty($allPayIds)) {
+                            foreach ($allPayIds as $io => $each) {
+                                $tmpArrPayids[$each['realid']] = $each['virtualid'];
+                            }
                         }
-                    }
-                    $this->rawData = $this->rawData + $this->transformArray($tmpArrPayids, __('Payment ID'), 'payid');
-                } else {
-                    $allPayIds_q = "SELECT `login`,`IP` from `users`";
-                    $allPayIds = simple_queryall($allPayIds_q);
-                    $tmpArrPayids = array();
-                    if (!empty($allPayIds)) {
-                        foreach ($allPayIds as $io => $each) {
-                            $tmpArrPayids[$each['login']] = ip2int($each['IP']);
+                        $this->rawData = $this->rawData + $this->transformArray($tmpArrPayids, __('Payment ID'), 'payid');
+                    } else {
+                        $allPayIds_q = "SELECT `login`,`IP` from `users`";
+                        $allPayIds = simple_queryall($allPayIds_q);
+                        $tmpArrPayids = array();
+                        if (!empty($allPayIds)) {
+                            foreach ($allPayIds as $io => $each) {
+                                $tmpArrPayids[$each['login']] = ip2int($each['IP']);
+                            }
                         }
+                        $this->rawData = $this->rawData + $this->transformArray($tmpArrPayids, __('Payment ID'), 'payid');
                     }
-                    $this->rawData = $this->rawData + $this->transformArray($tmpArrPayids, __('Payment ID'), 'payid');
                 }
             }
 

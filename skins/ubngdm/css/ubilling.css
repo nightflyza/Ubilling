@@ -33,6 +33,17 @@
     background-color: #e1e1e1;
 }
 
+.row6 {
+    background-color: #e1e1e1;
+    padding: 1px 1px 1px 1px;
+    color: #B0C4DEFF;
+}
+
+.row6:hover {
+    background-color: #ECECEC;
+    color: #2E8B57FF;
+}
+
 .ChosenOne {
     background-color: #CDB38B;
 }
@@ -1053,7 +1064,7 @@ div.dhtml_menu div.vert_menu a.active:hover
     box-shadow: 0 0 10px rgba(0,0,0,0.5);
     padding:10px;
     width: 90%;
-    height: 200px;
+    /*height: 200px;*/
 }
 
 #ui-datepicker-div .ui-state-highlight {

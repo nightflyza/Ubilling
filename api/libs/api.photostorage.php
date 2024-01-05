@@ -34,6 +34,13 @@ class PhotoStorage {
     protected $imagesCount = array();
 
     /**
+     * Contains loaded images paths for each item in some scope as scope=>itemid=>imagesList
+     * 
+     * @var array
+     */
+    protected $imagesList = array();
+
+    /**
      * Contains current photostorage items scope
      *
      * @var string
@@ -117,7 +124,7 @@ class PhotoStorage {
      * @return void
      */
     protected function setScope($scope) {
-        $this->scope = mysql_real_escape_string($scope);
+        $this->scope = ubRouting::filters($scope, 'mres');
     }
 
     /**
@@ -128,7 +135,7 @@ class PhotoStorage {
      * @return void
      */
     protected function setItemid($itemid) {
-        $this->itemId = mysql_real_escape_string($itemid);
+        $this->itemId = ubRouting::filters($itemid, 'mres');
     }
 
     /**
@@ -185,16 +192,16 @@ class PhotoStorage {
      * @return void
      */
     protected function loadAllImages() {
-        if ((!empty($this->scope)) AND ( !empty($this->itemId))) {
+        if ((!empty($this->scope)) AND (!empty($this->itemId))) {
             $query = "SELECT * from `photostorage` ORDER by `id` ASC;";
             $all = simple_queryall($query);
             $this->imagesLoadedFlag = true;
             if (!empty($all)) {
                 foreach ($all as $io => $each) {
                     $this->allimages[$each['id']] = $each;
-
+                    $this->imagesList[$each['scope']][$each['item']][] = $each['filename'];
                     if (isset($this->imagesCount[$each['scope']][$each['item']])) {
-                        $this->imagesCount[$each['scope']][$each['item']] ++;
+                        $this->imagesCount[$each['scope']][$each['item']]++;
                     } else {
                         $this->imagesCount[$each['scope']][$each['item']] = 1;
                     }
@@ -209,7 +216,7 @@ class PhotoStorage {
      * @param string $filename
      */
     protected function registerImage($filename) {
-        if ((!empty($this->scope)) AND ( !empty($this->itemId))) {
+        if ((!empty($this->scope)) AND (!empty($this->itemId))) {
             $filename = mysql_real_escape_string($filename);
             $date = curdatetime();
             $query = "INSERT INTO `photostorage` (`id`, `scope`, `item`, `date`, `admin`, `filename`) "
@@ -225,7 +232,7 @@ class PhotoStorage {
      * @param int $imageid
      */
     protected function unregisterImage($imageid) {
-        if ((!empty($this->scope)) AND ( !empty($this->itemId))) {
+        if ((!empty($this->scope)) AND (!empty($this->itemId))) {
             $imageid = vf($imageid, 3);
             $date = curdatetime();
             $query = "DELETE from `photostorage` WHERE `id`='" . $imageid . "';";
@@ -258,7 +265,7 @@ class PhotoStorage {
      */
     public function uploadControlsPanel() {
         $result = '';
-        if ((!empty($this->scope)) AND ( !empty($this->itemId))) {
+        if ((!empty($this->scope)) AND (!empty($this->itemId))) {
             $result .= wf_Link(self::MODULE_URL . '&scope=' . $this->scope . '&itemid=' . $this->itemId . '&mode=cam', wf_img('skins/photostorage.png') . ' ' . __('Webcamera snapshot'), false, 'ubButton');
             $result .= wf_Link(self::MODULE_URL . '&scope=' . $this->scope . '&itemid=' . $this->itemId . '&mode=loader', wf_img('skins/photostorage_upload.png') . ' ' . __('Upload file from HDD'), false, 'ubButton');
         }
@@ -285,9 +292,19 @@ class PhotoStorage {
         if ($this->scope == 'TASKMAN') {
             $result = wf_BackLink('?module=taskman&edittask=' . $this->itemId);
         }
+
         if ($this->scope == 'UKVUSERPROFILE') {
             $result = wf_BackLink('?module=ukv&users=true&showuser=' . $this->itemId);
         }
+        if ($this->scope == 'CFITEMS') {
+            $cleanUserLogin = explode(CustomFields::PHOTOSTORAGE_ITEMID_DELIMITER, $this->itemId);
+            $cleanUserLogin = $cleanUserLogin[0];
+            $result = wf_BackLink(CustomFields::URL_EDIT_BACK . $cleanUserLogin);
+        }
+        if ($this->scope == 'CRMACTIVITY') {
+            $result = wf_BackLink(PseudoCRM::URL_ME . '&' . PseudoCRM::ROUTE_ACTIVITY_PROFILE . '=' . $this->itemId);
+        }
+
         return ($result);
     }
 
@@ -312,6 +329,34 @@ class PhotoStorage {
     }
 
     /**
+     * Returns array of links of images for some itemId in current scope if it exists
+     * 
+     * @param string $itemId
+     * 
+     * @return array
+     */
+    public function getImagesList($itemId) {
+        $result = array();
+        $this->itemId = $itemId;
+        if (!$this->imagesLoadedFlag) {
+            $this->loadAllImages();
+        }
+
+        if (isset($this->imagesList[$this->scope])) {
+            if (isset($this->imagesList[$this->scope][$itemId])) {
+                $imageFiles = $this->imagesList[$this->scope][$itemId];
+                if (!empty($imageFiles)) {
+                    foreach ($imageFiles as $io => $eachFilename) {
+                        $result[] = $this->getImageUrl($eachFilename);
+                    }
+                }
+            }
+        }
+
+        return($result);
+    }
+
+    /**
      * Retuns all available scopes and images count in it as scope=>count
      * 
      * @return array
@@ -325,7 +370,7 @@ class PhotoStorage {
         if (!empty($this->allimages)) {
             foreach ($this->allimages as $io => $each) {
                 if (isset($result[$each['scope']])) {
-                    $result[$each['scope']] ++;
+                    $result[$each['scope']]++;
                 } else {
                     $result[$each['scope']] = 1;
                 }
@@ -428,7 +473,6 @@ class PhotoStorage {
                     $mngLink = ' ' . wf_Link($mngUrl, __('Show'), false, '', 'target=_blank');
                     $mngLink = str_replace('"', '', $mngLink);
                     $imgCaption .= $mngLink;
-
 
                     $galleryOptions = 'data-caption="' . $imgCaption . '" data-gallery="1" rel="' . $galleryRel . '" ' . $previewStyle . '"';
                     $imgGallery = wf_Link($this->getImageUrl($eachimage['filename']), $imgPreview, false, '', $galleryOptions);
@@ -783,8 +827,6 @@ class PhotoStorage {
         $labelSave = wf_img('skins/save.png') . ' ' . __('Save');
         $labelSaveF = str_replace('"', '', $labelSave);
 
-
-
         $container = wf_tag('div', false, 'content');
         $container .= wf_tag('div', false, 'webcamholder');
         $container .= wf_tag('video', false, '', 'autoplay id="webcamvideo"') . wf_tag('video', true);
@@ -798,7 +840,6 @@ class PhotoStorage {
         $container .= wf_tag('div', false, '', 'id="savedImages"');
         $container .= wf_tag('div', true);
 
-
         $uploadJs = wf_tag('script', false, '', 'language="JavaScript"');
         $jScript = file_get_contents('modules/jsc/webcamlib/script.js');
         eval($jScript);
@@ -811,8 +852,6 @@ class PhotoStorage {
         $result .= wf_delimiter(0);
         $result .= wf_BackLink(self::MODULE_URL . '&scope=' . $this->scope . '&itemid=' . $this->itemId . '&mode=list');
 
-
         return ($result);
     }
-
 }

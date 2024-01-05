@@ -63,7 +63,7 @@ if (cfr('BUILDS')) {
 
                     if (empty($FoundBuildID)) {
                         simple_update_field('build', 'buildnum', trim(ubRouting::post('editbuildnum')), "WHERE `id`='" . $buildid . "'");
-                        simple_update_field('build', 'geo', preg_replace('/[^-?0-9\.,]/i', '', ubRouting::post('editbuildgeo')), "WHERE `id`='" . $buildid . "'");
+                        zb_AddressChangeBuildGeo($buildid, ubRouting::post('editbuildgeo'));
                         log_register("CHANGE AddressBuild [" . $buildid . "] NUM `" . trim(ubRouting::post('editbuildnum')) . "`");
                         die();
                     } else {

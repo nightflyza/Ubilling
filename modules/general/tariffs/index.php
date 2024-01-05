@@ -49,10 +49,13 @@ if (cfr('TARIFFS')) {
                 if (!zb_TariffProtected($tariffName)) { // is tariff is not used by any users?
                     $billing->deletetariff($tariffName); //tariff deletion here
                     log_register("TARIFF DELETE `" . $tariffName . "`");
-                    zb_LousyTariffDelete($tariffName);
+                    $lousy = new LousyTariffs();
+                    $lousy->flush($tariffName);
                     zb_TariffDeleteSpeed($tariffName);
                     $dshaper = new DynamicShaper();
                     $dshaper->flushTariff($tariffName);
+                    $stealthTariffs = new StealthTariffs();
+                    $stealthTariffs->flush($tariffName);
                     ubRouting::nav('?module=tariffs');
                 } else {
                     log_register("TARIFF DELETE TRY USED `" . $tariffName . "`");
@@ -69,7 +72,7 @@ if (cfr('TARIFFS')) {
                     if (zb_checkMoney($tariffOptions['Fee'])) {
                         $billing->edittariff($tariffName, $tariffOptions); //pushing new tariff options to stargazer
                         log_register('TARIFF CHANGE `' . $tariffName . '`');
-                        rcms_redirect('?module=tariffs&action=edit&tariffname=' . $tariffName);
+                        ubRouting::nav('?module=tariffs&action=edit&tariffname=' . $tariffName);
                     } else {
                         log_register('TARIFF CHANGE `' . $tariffName . '` FAIL FEE `' . $tariffOptions['Fee'] . '`');
                     }

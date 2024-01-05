@@ -1,0 +1,10 @@
+$agentPrefix = $this->agentId;
+$prefixSize = 6;
+
+for ($i = $this->incrementsOffset; $i < $this->incrementsMaxLimit; $i++) {
+                $nextIncrementDerProposal = $agentPrefix . sprintf('%0' . $prefixSize . 'd', $i);
+                if (!isset($this->busyLogins[$nextIncrementDerProposal])) {
+                    $this->loginProposal = $nextIncrementDerProposal;
+                    break;
+                }
+            }

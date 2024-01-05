@@ -26,9 +26,10 @@ require_once('api/libs/api.workaround.php');
 require_once('api/libs/api.usms.php');
 require_once('api/libs/api.payments.php');
 require_once('api/libs/api.usertags.php');
+require_once('api/libs/api.vservices.php');
 require_once('api/libs/api.cess.php');
 require_once('api/libs/api.cardpay.php');
-require_once('api/libs/api.cf.php');
+require_once('api/libs/api.customfields.php');
 require_once('api/libs/api.switches.php');
 require_once('api/libs/api.gravatar.php');
 require_once('api/libs/api.ticketing.php');
@@ -113,6 +114,7 @@ require_once('api/libs/api.switchlogin.php');
 require_once('api/libs/api.ubrouting.php');
 require_once('api/libs/api.nyanorm.php');
 require_once('api/libs/api.zabbix.php');
+require_once('api/libs/api.backups.php');
 
 /**
  * Initial class creation

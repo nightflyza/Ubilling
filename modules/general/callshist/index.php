@@ -38,6 +38,7 @@ if ($altcfg['CALLSHIST_ENABLED']) {
             $controlsLinks .= wf_Link($report::URL_ME, wf_img('skins/done_icon.png') . ' ' . __('All calls'), false, 'ubButton');
             show_window('', $controlsLinks);
         }
+        zb_BillingStats(true);
     } else {
         show_error(__('Access denied'));
     }

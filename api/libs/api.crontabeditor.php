@@ -80,6 +80,9 @@ class CrontabEditor {
             if (ispos($linuxDistro, 'Debian GNU/Linux 11 (bullseye)')) {
                 $result = 'Debian11';
             }
+            if (ispos($linuxDistro, 'Debian GNU/Linux 12 (bookworm)')) {
+                $result = 'Debian12';
+            }
         }
         return($result);
     }
@@ -146,5 +149,4 @@ class CrontabEditor {
         }
         return($result);
     }
-
 }

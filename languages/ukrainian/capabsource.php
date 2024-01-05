@@ -12,3 +12,4 @@ $lang['def']['Telemarketing'] = 'Телемаркетинг';
 $lang['def']['Billboard / Citylight'] = 'Білборд / сітілайт';
 $lang['def']['Newspaper'] = 'Газета';
 $lang['def']['Using at another address'] = 'Користуються за іншою адресою';
+$lang['def']['Front office'] = 'Фронт-офіс';

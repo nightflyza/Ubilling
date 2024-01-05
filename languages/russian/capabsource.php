@@ -11,4 +11,5 @@ $lang['def']['We dont know'] = 'Мы не знаем';
 $lang['def']['Telemarketing'] = 'Телемаркетинг';
 $lang['def']['Billboard / Citylight'] = 'Билборд / ситилайт';
 $lang['def']['Newspaper'] = 'Газета';
+$lang['def']['Front office'] = 'Фронт-офис';
 

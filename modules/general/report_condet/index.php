@@ -18,7 +18,7 @@ if (cfr('CONDET')) {
         //is UKV enabled?
         if ($altCfg['UKV_ENABLED']) {
             $reportControls = wf_Link('?module=report_condet', wf_img('skins/ymaps/globe.png') . ' ' . __('Internet'), false, 'ubButton');
-            $reportControls.= wf_Link('?module=report_condet&ukv=true', wf_img('skins/ukv/tv.png') . ' ' . __('CaTV'), false, 'ubButton');
+            $reportControls .= wf_Link('?module=report_condet&ukv=true', wf_img('skins/ukv/tv.png') . ' ' . __('CaTV'), false, 'ubButton');
             show_window('', $reportControls);
         }
 
@@ -38,5 +38,5 @@ if (cfr('CONDET')) {
 } else {
     show_error(__('Access denied'));
 }
-?>
+
 

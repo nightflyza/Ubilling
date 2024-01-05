@@ -10,13 +10,7 @@ if (cfr('USERSMAP')) {
         //wysiwyg build map placement
         if (wf_CheckPost(array('buildplacing', 'placecoords'))) {
             if (cfr('BUILDS')) {
-                $buildid = vf($_POST['buildplacing'], 3);
-                $buildid = trim($buildid);
-                $placegeo = mysql_real_escape_string($_POST['placecoords']);
-                $placegeo = preg_replace('/[^0-9\.,]/i', '', $placegeo);
-
-                simple_update_field('build', 'geo', $placegeo, "WHERE `id`='" . $buildid . "'");
-                log_register('BUILD CHANGE [' . $buildid . ']' . ' GEO `' . $placegeo . '`');
+                zb_AddressChangeBuildGeo(ubRouting::post('buildplacing'), ubRouting::post('placecoords'));
                 rcms_redirect("?module=usersmap&locfinder=true");
             } else {
                 show_window(__('Error'), __('Access denied'));
@@ -36,8 +30,6 @@ if (cfr('USERSMAP')) {
 
         //collect biulds geolocation data
         $placemarks = um_MapDrawBuilds();
-
-
 
         //setting custom zoom and map center if need to find some build
 

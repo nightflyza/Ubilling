@@ -6,11 +6,11 @@
 class ADcomments {
 
     /**
-     * Current scope comments data
+     * Current scope and item comments data as id=>commentData
      *
      * @var array
      */
-    protected $data = array();
+    protected $allCommentsData = array();
 
     /**
      * Current instance scope
@@ -41,18 +41,25 @@ class ADcomments {
     protected $item = '';
 
     /**
-     * Instance administrators login
+     * Current instance administrator login
      *
      * @var string
      */
     protected $mylogin = '';
 
     /**
-     * Current scope items array
+     * Current scope items counters as item=>commentsCount
      *
      * @var array
      */
     protected $scopeItems = array();
+
+    /**
+     * Comments data database abstraction layer
+     *
+     * @var object
+     */
+    protected $commentsDb = '';
 
     /**
      * Scope items loaded flag 
@@ -61,6 +68,27 @@ class ADcomments {
      */
     protected $scopeItemsLoaded = false;
 
+    /**
+     * Default editing area size
+     *
+     * @var string
+     */
+    protected $textAreaSize = '60x10';
+
+    /**
+     * Some predefined stuff here
+     */
+    const TABLE_COMMENTS = 'adcomments';
+    const PROUTE_NEW_TEXT = 'newadcommentstext';
+    const PROUTE_EDIT_FORM = 'adcommentseditid';
+    const PROUTE_EDIT_ID = 'adcommentsmodifyid';
+    const PROUTE_EDIT_TEXT = 'adcommentsmodifytext';
+    const PROUTE_DELETE = 'adcommentsdeleteid';
+    const CACHE_KEY = 'ADCOMMENTS_';
+
+    /**
+     * when everything goes wrong
+     */
     const EX_EMPTY_SCOPE = 'EMPTY_SCOPE_RECEIVED';
     const EX_EMPTY_ITEM = 'EMPTY_ITEMID_RECEIVED';
     const EX_EMPTY_QUERY_STRING = 'EMPTY_SERVER_QUERY_STRING_RECEIVED';
@@ -75,27 +103,23 @@ class ADcomments {
             $this->setScope($scope);
             $this->setMyLogin();
             $this->initCache();
+            $this->initDb();
         } else {
             throw new Exception(self::EX_EMPTY_SCOPE);
         }
     }
 
     /**
-     * Initalizes system cache object for further usage
+     * Current instance comments scope
+     * 
+     * @param string $scope scope of items comments
      * 
      * @return void
      */
-    protected function initCache() {
-        $this->cache = new UbillingCache();
-    }
-
-    /**
-     * Clear scope cache object
-     * 
-     * @return void
-     */
-    protected function clearScopeCache() {
-        $this->cache->delete('ADCOMMENTS_' . $this->scope);
+    protected function setScope($scope) {
+        $scope = trim($scope);
+        $scope = ubRouting::filters($scope, 'mres');
+        $this->scope = $scope;
     }
 
     /**
@@ -108,16 +132,30 @@ class ADcomments {
     }
 
     /**
-     * Current instance comments scope
-     * 
-     * @param string $scope
+     * Initalizes system cache object for further usage
      * 
      * @return void
      */
-    protected function setScope($scope) {
-        $scope = trim($scope);
-        $scope = mysql_real_escape_string($scope);
-        $this->scope = $scope;
+    protected function initCache() {
+        $this->cache = new UbillingCache();
+    }
+
+    /**
+     * Inits database abstraction layer
+     * 
+     * @return void
+     */
+    protected function initDb() {
+        $this->commentsDb = new NyanORM(self::TABLE_COMMENTS);
+    }
+
+    /**
+     * Clear scope cache object
+     * 
+     * @return void
+     */
+    protected function clearScopeCache() {
+        $this->cache->delete(self::CACHE_KEY . $this->scope);
     }
 
     /**
@@ -129,7 +167,7 @@ class ADcomments {
      */
     protected function setItem($item) {
         $item = trim($item);
-        $item = mysql_real_escape_string($item);
+        $item = ubRouting::filters($item, 'mres');
         $this->item = $item;
     }
 
@@ -141,13 +179,10 @@ class ADcomments {
     protected function loadComments() {
         if (!empty($this->scope)) {
             if (!empty($this->item)) {
-                $query = "SELECT * from `adcomments` WHERE `scope`='" . $this->scope . "' AND `item`='" . $this->item . "' ORDER BY `date` ASC;";
-                $all = simple_queryall($query);
-                if (!empty($all)) {
-                    foreach ($all as $io => $each) {
-                        $this->data[$each['id']] = $each;
-                    }
-                }
+                $this->commentsDb->where('scope', '=', $this->scope);
+                $this->commentsDb->where('item', '=', $this->item);
+                $this->commentsDb->orderBy('date', 'ASC');
+                $this->allCommentsData = $this->commentsDb->getAll('id');
             } else {
                 throw new Exception(self::EX_EMPTY_ITEM);
             }
@@ -157,61 +192,75 @@ class ADcomments {
     }
 
     /**
-     * Returns new comment interface
+     * Returns new comment creation form
      * 
      * @return string
      */
     protected function commentAddForm() {
-        $inputs = wf_TextArea('newadcommentstext', '', '', true, '60x10');
+        $inputs = wf_TextArea(self::PROUTE_NEW_TEXT, '', '', true, $this->textAreaSize);
         $inputs .= wf_Submit(__('Save'));
-        $result = wf_Form("", 'POST', $inputs, 'glamour');
+        $result = wf_Form('', 'POST', $inputs, 'glamour');
         return ($result);
     }
 
     /**
-     * Creates new comment in database
+     * Creates some new comment in database
      * 
-     * @param string $text text for new comment
+     * @param string $text text of new comment
      * 
      * @return void
      */
     protected function createComment($text) {
         $curdate = curdatetime();
         $text = strip_tags($text);
-        $text = mysql_real_escape_string($text);
-        $query = "INSERT INTO `adcomments` (`id`, `scope`, `item`, `date`, `admin`, `text`) "
-                . "VALUES (NULL, '" . $this->scope . "', '" . $this->item . "', '" . $curdate . "', '" . $this->mylogin . "', '" . $text . "');";
-        nr_query($query);
-        log_register("ADCOMM CREATE SCOPE `" . $this->scope . "` ITEM [" . $this->item . "]");
+        $text = ubRouting::filters($text, 'mres');
+
+        $this->commentsDb->data('scope', $this->scope);
+        $this->commentsDb->data('item', $this->item);
+        $this->commentsDb->data('date', $curdate);
+        $this->commentsDb->data('admin', $this->mylogin);
+        $this->commentsDb->data('text', $text);
+        $this->commentsDb->create();
+
+        log_register('ADCOMM CREATE SCOPE `' . $this->scope . '` ITEM [' . $this->item . ']');
         $this->clearScopeCache();
     }
 
     /**
      * Deletes comment from database
      * 
-     * @param type $id existing comment database ID
+     * @param int $id existing comment database ID
      * 
      * @return void
      */
     protected function deleteComment($id) {
-        $id = vf($id, 3);
-        $query = "DELETE FROM `adcomments` WHERE `id`='" . $id . "';";
-        nr_query($query);
-        log_register("ADCOMM DELETE SCOPE `" . $this->scope . "` ITEM [" . $this->item . "]");
+        $id = ubRouting::filters($id, 'int');
+
+        $this->commentsDb->where('id', '=', $id);
+        $this->commentsDb->delete();
+
+        log_register('ADCOMM DELETE SCOPE `' . $this->scope . '` ITEM [' . $this->item . ']');
         $this->clearScopeCache();
     }
 
     /**
-     * Changes comment text in database
+     * Edits some comment text in database
      * 
      * @param int  $id existing comment database ID
      * @param string $text new text for comment
+     * 
+     * @return void
      */
     protected function modifyComment($id, $text) {
-        $id = vf($id, 3);
+        $id = ubRouting::filters($id, 'int');
         $text = strip_tags($text);
-        simple_update_field('adcomments', 'text', $text, "WHERE `id`='" . $id . "';");
-        log_register("ADCOMM CHANGE SCOPE `" . $this->scope . "` ITEM [" . $this->item . "]");
+        $text = ubRouting::filters($text, 'mres');
+
+        $this->commentsDb->data('text', $text);
+        $this->commentsDb->where('id', '=', $id);
+        $this->commentsDb->save();
+
+        log_register('ADCOMM CHANGE SCOPE `' . $this->scope . '` ITEM [' . $this->item . ']');
         $this->clearScopeCache();
     }
 
@@ -230,26 +279,26 @@ class ADcomments {
         }
 
         ///new comment creation
-        if (wf_CheckPost(array('newadcommentstext'))) {
-            $this->createComment($_POST['newadcommentstext']);
+        if (ubRouting::checkPost(self::PROUTE_NEW_TEXT)) {
+            $this->createComment(ubRouting::post(self::PROUTE_NEW_TEXT));
             if ($returnUrl) {
-                rcms_redirect($returnUrl);
+                ubRouting::nav($returnUrl);
             }
         }
 
         //comment deletion
-        if (wf_CheckPost(array('adcommentsdeleteid'))) {
-            $this->deleteComment($_POST['adcommentsdeleteid']);
+        if (ubRouting::checkPost(self::PROUTE_DELETE)) {
+            $this->deleteComment(ubRouting::post(self::PROUTE_DELETE));
             if ($returnUrl) {
-                rcms_redirect($returnUrl);
+                ubRouting::nav($returnUrl);
             }
         }
 
         //comment editing
-        if (wf_CheckPost(array('adcommentsmodifyid', 'adcommentsmodifytext'))) {
-            $this->modifyComment($_POST['adcommentsmodifyid'], $_POST['adcommentsmodifytext']);
+        if (ubRouting::checkPost(array(self::PROUTE_EDIT_ID, self::PROUTE_EDIT_TEXT))) {
+            $this->modifyComment(ubRouting::post(self::PROUTE_EDIT_ID), ubRouting::post(self::PROUTE_EDIT_TEXT));
             if ($returnUrl) {
-                rcms_redirect($returnUrl);
+                ubRouting::nav($returnUrl);
             }
         }
     }
@@ -257,29 +306,30 @@ class ADcomments {
     /**
      * Returns JavaScript comfirmation box for deleting/editing inputs
      * 
-     * @param string $alert
+     * @param string $alertText
+     * 
      * @return string
      */
-    protected function jsAlert($alert) {
-        $result = 'onClick="return confirm(\'' . $alert . '\');"';
+    protected function jsAlert($alertText) {
+        $result = 'onClick="return confirm(\'' . $alertText . '\');"';
         return ($result);
     }
 
     /**
-     * Returns coment controls for own comments or if im root user
+     * Returns coment controls for own comments or for the user with root rights
      * 
      * @param int $commentid existing additional comment ID
      * @return string
      */
     protected function commentControls($commentid) {
         $result = '';
-        if (isset($this->data[$commentid])) {
-            if (($this->data[$commentid]['admin'] == $this->mylogin) OR ( cfr('ROOT'))) {
-                $deleteInputs = wf_HiddenInput('adcommentsdeleteid', $commentid);
+        if (isset($this->allCommentsData[$commentid])) {
+            if (($this->allCommentsData[$commentid]['admin'] == $this->mylogin) OR ( cfr('ROOT'))) {
+                $deleteInputs = wf_HiddenInput(self::PROUTE_DELETE, $commentid);
                 $deleteInputs .= wf_tag('input', false, '', 'type="image" src="skins/icon_del.gif" title="' . __('Delete') . '" ' . $this->jsAlert(__('Removing this may lead to irreparable results')));
                 $deleteForm = wf_Form('', 'POST', $deleteInputs, '');
 
-                $editInputs = wf_HiddenInput('adcommentseditid', $commentid);
+                $editInputs = wf_HiddenInput(self::PROUTE_EDIT_FORM, $commentid);
                 $editInputs .= wf_tag('input', false, '', 'type="image" src="skins/icon_edit.gif"  title="' . __('Edit') . '" ' . $this->jsAlert(__('Are you serious')));
                 $editForm = wf_Form('', 'POST', $editInputs, '');
 
@@ -291,16 +341,17 @@ class ADcomments {
     }
 
     /**
-     * Returns comment edit form
+     * Returns comment editing form
      * 
      * @param int $commentid existing database comment ID
+     * 
      * @return string
      */
     protected function commentEditForm($commentid) {
         $result = '';
-        if (isset($this->data[$commentid])) {
-            $inputs = wf_HiddenInput('adcommentsmodifyid', $commentid);
-            $inputs .= wf_TextArea('adcommentsmodifytext', '', $this->data[$commentid]['text'], true, '60x10');
+        if (isset($this->allCommentsData[$commentid])) {
+            $inputs = wf_HiddenInput(self::PROUTE_EDIT_ID, $commentid);
+            $inputs .= wf_TextArea(self::PROUTE_EDIT_TEXT, '', $this->allCommentsData[$commentid]['text'], true, $this->textAreaSize);
             $inputs .= wf_Submit(__('Save'));
             $result = wf_Form('', 'POST', $inputs, 'glamour');
         }
@@ -314,31 +365,30 @@ class ADcomments {
      * @return string
      */
     public function renderComments($item) {
-        $this->setItem($item);
-        $this->loadComments();
-        $this->commentSaver();
-        @$employeeLogins = unserialize(ts_GetAllEmployeeLoginsCached());
-
         $result = '';
         $rows = '';
 
-        if (!empty($this->data)) {
-            foreach ($this->data as $io => $each) {
+        $this->setItem($item);
+        $this->loadComments();
+        $this->commentSaver();
+        $employeeLogins = ts_GetAllEmployeeLoginsAssocCached();
+
+        if (!empty($this->allCommentsData)) {
+            foreach ($this->allCommentsData as $io => $each) {
                 $authorRealname = (isset($employeeLogins[$each['admin']])) ? $employeeLogins[$each['admin']] : $each['admin'];
                 $authorName = wf_tag('center') . wf_tag('b') . $authorRealname . wf_tag('b', true) . wf_tag('center', true);
                 $authorAvatar = wf_tag('center') . @gravatar_ShowAdminAvatar($each['admin'], '64') . wf_tag('center', true);
                 $commentController = wf_tag('center') . $this->commentControls($each['id']) . wf_tag('center', true);
                 $authorPanel = $authorName . wf_tag('br') . $authorAvatar . wf_tag('br') . $commentController;
-
                 $commentText = nl2br($each['text']);
-                if (wf_CheckPost(array('adcommentseditid'))) {
-                    if ($_POST['adcommentseditid'] == $each['id']) {
+
+                if (ubRouting::checkPost(self::PROUTE_EDIT_FORM)) {
+                    //is editing form required for this comment?
+                    if (ubRouting::post(self::PROUTE_EDIT_FORM) == $each['id']) {
+                        //overriding text with editing form
                         $commentText = $this->commentEditForm($each['id']);
-                    } else {
-                        $commentText = nl2br($each['text']);
                     }
                 }
-
 
                 $cells = wf_TableCell('', '20%');
                 $cells .= wf_TableCell($each['date']);
@@ -357,18 +407,37 @@ class ADcomments {
     }
 
     /**
-     * Loads scope items list if its really needed
+     * Loads current scope items from database or cache
+     * 
+     * @return array
+     */
+    protected function getScopeItemsCached() {
+        $cachedData = array();
+        //getting from cache
+        $cachedData = $this->cache->get(self::CACHE_KEY . $this->scope, $this->cacheTime);
+        if (empty($cachedData)) {
+            //cache must be updated
+            $this->commentsDb->selectable(array('id', 'scope', 'item', 'text'));
+            $this->commentsDb->where('scope', '=', $this->scope);
+            $cachedData = $this->commentsDb->getAll();
+            if (empty($cachedData)) {
+                $cachedData = array();
+            }
+            $this->cache->set(self::CACHE_KEY . $this->scope, $cachedData, $this->cacheTime);
+        }
+        return($cachedData);
+    }
+
+    /**
+     * Loads scope items list with counters if its really required
      * 
      * @rerturn void
      */
     protected function loadScopeItems() {
         if ($this->scope) {
-            $query = "SELECT * from `adcomments` WHERE `scope`='" . $this->scope . "';";
-            $all = $this->cache->getCallback('ADCOMMENTS_' . $this->scope, function() use ($query) {
-                return (simple_queryall($query));
-            }, $this->cacheTime);
-            if (!empty($all)) {
-                foreach ($all as $io => $each) {
+            $cachedData = $this->getScopeItemsCached();
+            if (!empty($cachedData)) {
+                foreach ($cachedData as $io => $each) {
                     if (isset($this->scopeItems[$each['item']])) {
                         $this->scopeItems[$each['item']] ++;
                     } else {
@@ -376,6 +445,7 @@ class ADcomments {
                     }
                 }
             }
+
             $this->scopeItemsLoaded = true;
         } else {
             throw new Exception(self::EX_EMPTY_SCOPE);
@@ -386,6 +456,7 @@ class ADcomments {
      * Checks have item some comments or not?
      * 
      * @param string $item
+     * 
      * @return bool
      */
     public function haveComments($item) {
@@ -405,6 +476,7 @@ class ADcomments {
      * Checks have item some additional comments and return native indicator
      * 
      * @param string $item
+     * 
      * @return int
      */
     public function getCommentsCount($item) {
@@ -430,6 +502,28 @@ class ADcomments {
             $counter = $this->getCommentsCount($item);
             $result = wf_img_sized('skins/adcomments.png', __('Additional comments') . ' (' . $counter . ')', $size, $size);
         } else {
+//                                    .  .
+//                                    |\_|\
+//                                    | a_a\    I'm Batman.
+//                                    | | "]
+//                                ____| '-\___
+//                               /.----.___.-'\
+//                              //        _    \
+//                             //   .-. (~v~) /|
+//                            |'|  /\:  .--  / \
+//                           // |-/  \_/____/\/~|
+//                          |/  \ |  []_|_|_] \ |
+//                          | \  | \ |___   _\ ]_}
+//                          | |  '-' /   '.'  |
+//                          | |     /    /|:  |
+//                          | |     |   / |:  /\
+//                          | |     /  /  |  /  \
+//                          | |    |  /  /  |    \
+//                          \ |    |/\/  |/|/\    \
+//                           \|\ |\|  |  | / /\/\__\
+//                            \ \| | /   | |__
+//                                 / |   |____)
+//                                 |_/
             $result = '';
         }
         return ($result);
@@ -444,7 +538,7 @@ class ADcomments {
      *                    )
      *
      *      where $comment will be represented as an associative array
-     *      which repeats the `adcomments` table structure
+     *      with following keys: id,scope,item,text
      *
      * @return array
      *
@@ -452,20 +546,13 @@ class ADcomments {
      */
     public function getScopeItemsCommentsAll() {
         if ($this->scope) {
-            $query = "SELECT * from `adcomments` WHERE `scope`='" . $this->scope . "';";
-            $all = $this->cache->getCallback('ADCOMMENTS_' . $this->scope, function() use ($query) {
-                return (simple_queryall($query));
-            }, $this->cacheTime);
-
             $itemsComments = array();
-
-            if (!empty($all)) {
-                foreach ($all as $io => $each) {
+            $cachedData = $this->getScopeItemsCached();
+            if (!empty($cachedData)) {
+                foreach ($cachedData as $io => $each) {
                     $itemsComments[$each['item']][] = $each;
                 }
             }
-
-            $this->scopeItemsLoaded = true;
 
             return ($itemsComments);
         } else {
@@ -474,5 +561,3 @@ class ADcomments {
     }
 
 }
-
-?>

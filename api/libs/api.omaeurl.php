@@ -56,11 +56,17 @@ class OmaeUrl {
 
     /**
      * Contains post data array that will be pushed to remote URL
-     * 
      *
      * @var array
      */
     protected $postData = array();
+
+    /**
+     * Contains RAW-post data just as text
+     *
+     * @var string
+     */
+    protected $rawPostData = '';
 
     /**
      * Contains get data that will be mixed into URL on requests
@@ -207,6 +213,21 @@ class OmaeUrl {
     }
 
     /**
+     * Puts some data into protected rawPostData property for further usage in POST requests
+     * 
+     * @param string $body content body to push
+     * 
+     * @return void
+     */
+    public function dataPostRaw($body = '') {
+        if (!empty($body)) {
+            $this->rawPostData = $body;
+        } else {
+            $this->flushRawPostData();
+        }
+    }
+
+    /**
      * Puts some data into protected getData property for further usage
      * 
      * @param string $field record field name to push data
@@ -261,6 +282,15 @@ class OmaeUrl {
      */
     protected function flushPostData() {
         $this->postData = array();
+    }
+
+    /**
+     * Flushes current instance rawPostData content
+     * 
+     * @return void
+     */
+    protected function flushRawPostData() {
+        $this->rawPostData = '';
     }
 
     /**
@@ -325,6 +355,11 @@ class OmaeUrl {
                 foreach ($this->getData as $getKey => $getValue) {
                     $remoteUrl .= '&' . $getKey . '=' . $getValue . '&';
                 }
+            }
+
+            //appending RAW POST request body as is
+            if (!empty($this->rawPostData)) {
+                $this->setOpt(CURLOPT_POSTFIELDS, $this->rawPostData);
             }
 
             //appending POST vars into options

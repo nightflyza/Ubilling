@@ -86,6 +86,11 @@ class FDBArchive {
     const PATH_CACHE = 'exports/';
 
     /**
+     * Contains default FDB caches storage path for OLTs
+     */
+    const OLT_PATH_CACHE = 'exports/pondata/fdb/';
+
+    /**
      * Contains default switches FDB cache record postfix
      */
     const EXT_SWITCHES = '_fdb';
@@ -297,10 +302,10 @@ class FDBArchive {
     protected function saveOltCache() {
         $newDate = curdatetime();
         if (@$this->altCfg['PON_ENABLED']) {
-            $allCachedData = rcms_scandir(self::PATH_CACHE, '*' . self::EXT_OLTS);
+            $allCachedData = rcms_scandir(self::OLT_PATH_CACHE, '*' . self::EXT_OLTS);
             if (!empty($allCachedData)) {
                 foreach ($allCachedData as $cacheIndex => $cacheFile) {
-                    $rawData = file_get_contents(self::PATH_CACHE . $cacheFile);
+                    $rawData = file_get_contents(self::OLT_PATH_CACHE . $cacheFile);
                     if (!empty($rawData)) {
                         $oltId = $this->extractOltId($cacheFile);
                         $oltIp = $this->getOltIp($oltId);

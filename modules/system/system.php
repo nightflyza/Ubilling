@@ -125,7 +125,9 @@ class rcms_system extends rcms_user {
      */
     public function __construct($language_select_form = '', $skin_select_form = '') {
         global $lang;
-
+        if (!$language_select_form) {
+            $language_select_form = '';
+        }
         // Loading configuration
         $this->config = parse_ini_file(CONFIG_PATH . 'config.ini');
         if (empty($this->config['site_url'])) {

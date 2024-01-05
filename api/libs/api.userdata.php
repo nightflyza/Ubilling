@@ -1356,84 +1356,15 @@ function zb_UserIsAlive($userData) {
 }
 
 /**
- * Creates contract date with some contract 
+ * Creates contract date with some contract (TODO: remove this legacy function)
  *  
  *  @param $contract - existing contract 
  *  @param $date - contract creation date in datetime format
  *  @return void
  */
 function zb_UserContractDateCreate($contract, $date) {
-    $contract = mysql_real_escape_string($contract);
-    $date = mysql_real_escape_string($date);
-    $query = "INSERT INTO `contractdates` (
-                        `id` ,
-                        `contract` ,
-                        `date`
-                        )
-                        VALUES (
-                        NULL , '" . $contract . "', '" . $date . "'
-                        );";
-    nr_query($query);
-    log_register("CREATE UserContractDate [" . $contract . "] " . $date);
-}
-
-/**
- * Get all of existing contract dates
- * 
- *  @return array
- */
-function zb_UserContractDatesGetAll($contract = '') {
-    $query_wh = (!empty($contract)) ? " WHERE `contractdates`.`contract` = '" . $contract . "'" : "";
-    $query = "SELECT * from `contractdates`" . $query_wh;
-    $all = simple_queryall($query);
-    $result = array();
-
-    if (!empty($all)) {
-        foreach ($all as $io => $each) {
-            $result[$each['contract']] = $each['date'];
-        }
-    }
-    return ($result);
-}
-
-/**
- *  Set contract date with some contract 
- *  
- *  @param $contract - existing contract 
- *  @param $date - contract creation date in datetime format
- *  @return void
- */
-function zb_UserContractDateSet($contract, $date) {
-    $contract = mysql_real_escape_string($contract);
-    $date = mysql_real_escape_string($date);
-    $query = "UPDATE `contractdates` SET `date`='" . $date . "' WHERE `contract`='" . $contract . "'";
-    nr_query($query);
-    log_register("CHANGE UserContractDate [" . $contract . "] " . $date);
-}
-
-/**
- * Shows contract create date modify form
- * 
- * @return string
- */
-function web_UserContractDateChangeForm($contract, $date = '') {
-    if (!empty($date)) {
-        $inputs = wf_DatePickerPreset('newcontractdate', $date);
-    } else {
-        $inputs = wf_DatePicker('newcontractdate');
-    }
-
-    $cells = wf_TableCell(__('Current date'), '', 'row2');
-    $cells .= wf_TableCell($date, '', 'row3');
-    $rows = wf_tablerow($cells);
-    $cells = wf_TableCell(__('New date'), '', 'row2');
-    $cells .= wf_TableCell($inputs, '', 'row3');
-    $rows .= wf_tablerow($cells);
-    $form = wf_TableBody($rows, '100%', 0);
-    $form .= wf_Submit('Save');
-
-    $result = wf_Form("", 'POST', $form, '');
-    return ($result);
+    $contractDates = new ContractDates();
+    $contractDates->set($contract, $date);
 }
 
 /**

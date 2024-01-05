@@ -119,7 +119,7 @@ if (cfr('TASKMANSEARCH')) {
             $inputs .= wf_CheckInput('cb_admin', '', false, false);
             $inputs .= wf_Selector('admin', $this->allAdmins, __('Administrator'), '', true);
             $inputs .= wf_CheckInput('cb_id', '', false, false);
-            $inputs .= wf_TextInput('taskid', __('ID'), '', true, 4);
+            $inputs .= wf_TextInput('taskid', __('ID'), '', true, 7);
             $inputs .= wf_CheckInput('cb_taskdays', '', false, false);
             $inputs .= wf_TextInput('taskdays', __('Implementation took more days'), '', true, 4);
             $inputs .= wf_CheckInput('cb_taskaddress', '', false, false);

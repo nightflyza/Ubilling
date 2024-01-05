@@ -188,7 +188,7 @@ class OnePunch {
             $scriptData = $this->punchScripts[$alias];
             $namePreset = $scriptData['name'];
             $aliasPreset = $scriptData['alias'];
-            $contentPreset = $scriptData['content'];
+            $contentPreset = htmlentities($scriptData['content'], ENT_COMPAT, "UTF-8");
             $scriptId = $scriptData['id'];
             $inputs .= wf_HiddenInput('editscriptid', $scriptId);
             $inputs .= wf_HiddenInput('editscriptoldalias', $aliasPreset);
@@ -267,7 +267,6 @@ class OnePunch {
             $newScriptContent = ubRouting::post('editscriptcontent', 'mres');
             if (isset($this->punchScripts[$oldScriptAlias])) {
                 $scriptData = $this->punchScripts[$oldScriptAlias];
-
 
                 if ($scriptData['alias'] != $newScriptAlias) {
                     if ($this->checkAlias($newScriptAlias)) {
@@ -398,7 +397,7 @@ class OnePunch {
                 $alias = $scriptData['alias'];
                 $name = $scriptData['name'];
                 $content = $scriptData['content'];
-                if (!empty($alias) AND ! empty($name) AND ! empty($content)) {
+                if (!empty($alias) AND !empty($name) AND !empty($content)) {
                     if ($this->isAliasFree($alias)) {
                         $result .= $this->createScript($alias, $name, $content);
                     } else {
@@ -415,5 +414,4 @@ class OnePunch {
         }
         return($result);
     }
-
 }

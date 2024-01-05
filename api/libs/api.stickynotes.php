@@ -85,6 +85,26 @@ class StickyNotes {
     const PREVIEW_LEN = 190;
 
     /**
+     * Routes and other predefined stuff
+     */
+    const ROUTE_CALENDAR = 'calendarview';
+    const ROUTE_BACK = 'backurl';
+    const ROUTE_SHOW_NOTE = 'shownote';
+    const ROUTE_EDIT_FORM = 'editform';
+    const ROUTE_DEL_NOTE = 'delete';
+    const PROUTE_NEW_NOTE = 'newtext';
+    const PROUTE_EDIT_NOTE_TEXT = 'edittext';
+    const PROUTE_EDIT_NOTE_ID = 'editnoteid';
+    const PROUTE_NEW_REVELATION = 'newrevelationtext';
+    const ROUTE_DEL_REV = 'deleterev';
+    const PROUTE_EDIT_REV_TEXT = 'editrevelationtext';
+    const PROUTE_EDIT_REV_ID = 'editrevelationid';
+    const ROUTE_EDIT_REV_FORM = 'editrev';
+    const ROUTE_REVELATIONS = 'revelations';
+    const PROUTE_REMIND_DATE = 'reminddate';
+    const PROUTE_REMIND_TIME = 'remindtime';
+
+    /**
      * Creates new sticky notes instance
      * 
      * @param bool $onlyActive
@@ -307,7 +327,7 @@ class StickyNotes {
                 $cells .= wf_TableCell($each['reminddate']);
                 $cells .= wf_TableCell($each['remindtime']);
                 $cells .= wf_TableCell(web_bool_led($each['active']), '', '', 'sorttable_customkey="' . $each['active'] . '"');
-                $viewLink = wf_Link(self::URL_ME . '&shownote=' . $each['id'], $this->cutString($each['text'], 100), false, '');
+                $viewLink = wf_Link(self::URL_ME . '&shownote=' . $each['id'], $this->cutString(htmlentities($each['text'], ENT_COMPAT, "UTF-8"), 100), false, '');
                 $cells .= wf_TableCell($viewLink);
                 $actLinks = '';
                 if ($this->notesPreview) {
@@ -323,7 +343,7 @@ class StickyNotes {
                 $actLinks .= wf_Link(self::URL_ME . '&editform=' . $each['id'], web_edit_icon(), false) . ' ';
                 if ($this->notesPreview) {
                     //preview dialog
-                    $previewContent = nl2br($this->makeFullNoteLink($this->cutString(strip_tags($each['text']), self::PREVIEW_LEN), $each['id']));
+                    $previewContent = nl2br($this->makeFullNoteLink($this->cutString(strip_tags(htmlentities($each['text'], ENT_COMPAT, "UTF-8")), self::PREVIEW_LEN), $each['id']));
                     $actLinks .= wf_modal(wf_img('skins/icon_search_small.gif', __('Preview')), __('Preview'), $previewContent, '', '640', '480');
                 }
                 $cells .= wf_TableCell($actLinks);
@@ -793,10 +813,11 @@ class StickyNotes {
     public function editForm($noteId, $wideForm = false) {
         $noteData = $this->getNoteData($noteId);
         if (!empty($noteData)) {
+            $noteText = htmlentities($noteData['text'], ENT_COMPAT, "UTF-8");
             $textAreaDimensions = ($wideForm) ? '80x25' : '50x15';
             $inputs = wf_HiddenInput('editnoteid', $noteId);
             $inputs .= wf_tag('label') . __('Text') . ': ' . wf_tag('br') . wf_tag('label', true);
-            $inputs .= wf_TextArea('edittext', '', $noteData['text'], true, $textAreaDimensions);
+            $inputs .= wf_TextArea('edittext', '', $noteText, true, $textAreaDimensions);
             $checkState = ($noteData['active'] == 1) ? true : false;
             $inputs .= wf_CheckInput('editactive', __('Personal note active'), true, $checkState);
             $inputs .= wf_DatePickerPreset('editreminddate', $noteData['reminddate']);
@@ -971,7 +992,8 @@ class StickyNotes {
         if (!empty($noteData)) {
             $messages = new UbillingMessageHelper();
             if ($noteData['owner'] == $this->myLogin) {
-                $result = strip_tags($noteData['text']);
+                $result = htmlentities($noteData['text'], ENT_COMPAT, "UTF-8");
+                $result = strip_tags($result);
                 $result = nl2br($result);
                 $result .= wf_delimiter(2);
                 $backUrl = '';
@@ -1046,6 +1068,7 @@ class StickyNotes {
                 }
                 if (empty($noteDate) OR ( strtotime($noteDate) <= time())) {
                     $tmpText = $each['text'];
+                    $tmpText = htmlentities($tmpText, ENT_COMPAT, "UTF-8");
                     $tmpText = strip_tags($tmpText);
                     $output = $tmpText;
                     $output .= $delimiterId;
@@ -1054,7 +1077,6 @@ class StickyNotes {
                     $output = $this->cutString($output, self::PREVIEW_LEN);
                     $output = $this->makeFullNoteLink($output, $each['id']);
                     $output = nl2br($output);
-
 
                     $result .= $this->renderStickyNote($output, $offsetLeft);
                     $offsetLeft = $offsetLeft + 10;
@@ -1071,7 +1093,7 @@ class StickyNotes {
                     $curDayOfWeek = 7; //thats is sunday!
                 }
 
-                if (!empty($each['dayfrom']) AND ( !empty($each['dayto']))) {
+                if (!empty($each['dayfrom']) AND (!empty($each['dayto']))) {
                     if (($curDay >= $each['dayfrom']) AND ( $curDay <= $each['dayto'])) {
                         $needToShow = true;
                     }
@@ -1083,7 +1105,7 @@ class StickyNotes {
                     }
                 }
 
-                if (empty($each['dayfrom']) AND ( !empty($each['dayto']))) {
+                if (empty($each['dayfrom']) AND (!empty($each['dayto']))) {
 
                     if ($curDay <= $each['dayto']) {
                         $needToShow = true;
@@ -1124,7 +1146,6 @@ class StickyNotes {
                     $output = $this->cutString($output, self::PREVIEW_LEN);
                     $output = nl2br($output);
 
-
                     $result .= $this->renderStickyNote($output, $offsetLeft, true);
                     $offsetLeft = $offsetLeft + 10;
                 }
@@ -1138,7 +1159,4 @@ class StickyNotes {
         }
         return ($result);
     }
-
 }
-
-?>

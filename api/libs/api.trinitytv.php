@@ -1417,6 +1417,34 @@ class TrinityTv {
     }
 
     /**
+     * Deletes some device by its ID if it assigned to specified login (for remoteapi callback)
+     * 
+     * @param int $deviceId
+     * @param string $userLogin
+     * 
+     * @return void/string on error
+     */
+    public function deleteDeviceByIdProtected($deviceId, $userLogin) {
+        $result = '';
+        $deviceId = ubRouting::filters($deviceId, 'int');
+        $allDevices = $this->getDevices();
+        //device exists?
+        if (isset($allDevices[$deviceId])) {
+            $deviceData = $allDevices[$deviceId];
+            //have correct assign for user that requested deletion?
+            if ($deviceData['login'] == $userLogin) {
+                $result .= $this->deleteDeviceById($deviceId);
+            } else {
+                //masking actual devices quantity and assigns from user
+                $result .= __('No such device');
+            }
+        } else {
+            $result .= __('No such device');
+        }
+        return($result);
+    }
+
+    /**
      * Deletes subscription
      * 
      * @param string $login

@@ -281,6 +281,13 @@ class ExtContras {
     protected $ecInvoicesON = 1;
 
     /**
+     *  Placeholder for EXTCONTRAS_OVERDUE_CONTRACT_NO_ADDR alter.ini option
+     *
+     * @var int
+     */
+    protected $ecFullCtrctOverdueNoAddrOnly = 1;
+
+    /**
      * Placeholder for EXTCONTRAS_CACHE_LIFETIME from alter.ini
      *
      * @var int
@@ -435,6 +442,7 @@ class ExtContras {
     const DBFLD_MONEY_DATE_EDIT = 'date_edit';
     const DBFLD_MONEY_SMACCRUAL = 'summ_accrual';
     const DBFLD_MONEY_SMPAYMENT = 'summ_payment';
+    const DBFLD_MONEY_DATE_PAYMENT = 'date_payment';
     const DBFLD_MONEY_INCOMING = 'incoming';
     const DBFLD_MONEY_OUTGOING = 'outgoing';
     const DBFLD_MONEY_PAYNOTES = 'paynotes';
@@ -572,6 +580,7 @@ class ExtContras {
         $this->fileStorageEnabled = $this->ubConfig->getAlterParam('FILESTORAGE_ENABLED');
         $this->cacheLifeTime = $this->ubConfig->getAlterParam('EXTCONTRAS_CACHE_LIFETIME', 1800);
         $this->ecInvoicesON = $this->ubConfig->getAlterParam('EXTCONTRAS_INVOICE_ON', 1);
+        $this->ecFullCtrctOverdueNoAddrOnly = $this->ubConfig->getAlterParam('EXTCONTRAS_OVERDUE_CONTRACT_NO_ADDR', 1);
         $this->ecEditablePreiod = $this->ubConfig->getAlterParam('EXTCONTRAS_EDIT_ALLOWED_DAYS');
         $this->ecEditablePreiod = empty($this->ecEditablePreiod) ? (60 * 86400) : ($this->ecEditablePreiod * 86400); // Option is in days
         $this->ecReadOnlyAccess = (!cfr('EXTCONTRASRW'));
@@ -752,7 +761,7 @@ class ExtContras {
     }
 
     /**
-     * Loads extended external counterparties data
+     * Loads extended external finops data
      *
      * @param bool $forceDBLoad
      * @param string $whereRaw
@@ -892,7 +901,7 @@ class ExtContras {
     public function checkCurMonthPaymExists($ecRecID, $contractCheck = false, $addressCheck = false, $checkSum = false) {
         $result = '';
 
-        if (!empty($ecRecID) and ! empty($this->allExtContras[$ecRecID][self::DBFLD_EXTCONTRAS_PAYDAY])) {
+        if (!empty($ecRecID) and !empty($this->allExtContras[$ecRecID][self::DBFLD_EXTCONTRAS_PAYDAY])) {
             $tmpECPayDay = $this->allExtContras[$ecRecID][self::DBFLD_EXTCONTRAS_PAYDAY];
             $tmpECProfileID = $this->allExtContras[$ecRecID][self::DBFLD_EXTCONTRAS_PROFILE_ID];
             $tmpECContractID = $this->allExtContras[$ecRecID][self::DBFLD_EXTCONTRAS_CONTRACT_ID];
@@ -901,41 +910,63 @@ class ExtContras {
             $curMonthEnd = date('Y-m-') . date('t');
             $fullPaymentSum = 0;
 
+            // getting full payment sum for a current contract
             if (!empty($this->allECContracts[$tmpECContractID][self::DBFLD_CTRCT_FULLSUM])) {
                 $fullPaymentSum = $this->allECContracts[$tmpECContractID][self::DBFLD_CTRCT_FULLSUM];
             }
 
+            // setting initial mandatory filtering by contragent profile ID
             $this->dbECMoney->selectable(self::DBFLD_COMMON_ID);
             $this->dbECMoney->where(self::DBFLD_MONEY_PROFILEID, '=', $tmpECProfileID);
 
+            // adding filtering by contract ID if it's "contract check"
             if ($contractCheck) {
                 $this->dbECMoney->where(self::DBFLD_MONEY_CNTRCTID, '=', $tmpECContractID);
             }
 
-            if ($addressCheck and empty($fullPaymentSum) and ! empty($this->allECAddresses[$tmpECAddressID][self::DBFLD_ADDRESS_SUM])) {
+            // if it's address check, and there is a payment sum for current address,
+            // and we didn't get full payment sum for a current contract on a very first step
+            // then we're trying to get a current address payment sum
+            if ($addressCheck and empty($fullPaymentSum) and !empty($this->allECAddresses[$tmpECAddressID][self::DBFLD_ADDRESS_SUM])) {
                 $fullPaymentSum = $this->allECAddresses[$tmpECAddressID][self::DBFLD_ADDRESS_SUM];
             }
 
+            // adding filtering by payment sum "!= 0" to be sure that the financial operation was ever paid
             $this->dbECMoney->where(self::DBFLD_MONEY_SMPAYMENT, '!=', 0);
 
             if (!empty($fullPaymentSum)) {
+                // if we've got full payment sum for a current contract(or address) ...
                 if ($addressCheck) {
+                    // ... and it's "address check"
+                    // - then we search either for a financial operation with current address ID
+                    //   or for a financial operation with current payment sum
+                    // - because address check in this case(when we have full payment sum for a current contract) - is just in case
                     $this->dbECMoney->whereRaw(' (`' . self::DBFLD_MONEY_ADDRESSID . '` = ' . $tmpECAddressID
                             . ' OR `' . self::DBFLD_MONEY_SMPAYMENT . '` = ' . $fullPaymentSum . ') ');
                 } else {
+                    // ... and it's "contract check" - then we search for a financial operation with current or grater payment sum
                     $this->dbECMoney->where(self::DBFLD_MONEY_SMPAYMENT, '>=', $fullPaymentSum);
                 }
             } elseif ($addressCheck) {
+                // this means that our contract doesn't have payment sum filled
+                // - and we search for a financial operation with current address ID
+                //
                 // this line will never be executed, if all the fields in contract and address dictionaries are filled correctly
                 $this->dbECMoney->where(self::DBFLD_MONEY_ADDRESSID, '=', $tmpECAddressID);
             }
 
+            // finally - adding filter by date to range it in current month
             $this->dbECMoney->whereRaw(' `' . self::DBFLD_MONEY_DATE . '` BETWEEN "' . $curMonthStart . '" AND "' . $curMonthEnd . '" + INTERVAL 1 DAY ');
 //$this->dbECMoney->setDebug(true, true);
+            // getting the ID(s) of the supposed existing payment(s) - or nothing
             $result = $this->dbECMoney->getAll(self::DBFLD_COMMON_ID);
         }
 
-        if ($checkSum and ! empty($result)) {
+        // if "check sum" - trying to sum up all of the existing payments
+        // to get the total paid sum
+        // totally used for "address check" to determine if total sum all payments for a certain addresses of the contract
+        // are "covering" - i.e. are equal or grater than - the full contract sum
+        if ($checkSum and !empty($result)) {
             $tmpPayedSum = 0;
 
             foreach ($result as $paymID => $paymData) {
@@ -944,6 +975,25 @@ class ExtContras {
 
             $result = $tmpPayedSum;
         }
+
+        return ($result);
+    }
+
+
+    /**
+     * Returns array of addresses assigned to a certain combination of $profileID + $contractID
+     *
+     * @param $profileID
+     * @param $contractID
+     *
+     * @return mixed
+     */
+    public function checkContractHasAddresses($profileID, $contractID) {
+//$this->dbExtContras->setDebug(true, true);
+        $this->dbExtContras->selectable(array(self::DBFLD_COMMON_ID, self::DBFLD_EXTCONTRAS_ADDRESS_ID));
+        $this->dbExtContras->where(self::DBFLD_EXTCONTRAS_PROFILE_ID, '=', $profileID);
+        $this->dbExtContras->where(self::DBFLD_EXTCONTRAS_CONTRACT_ID, '=', $contractID);
+        $result = $this->dbExtContras->getAll(self::DBFLD_COMMON_ID);
 
         return ($result);
     }
@@ -1002,10 +1052,10 @@ class ExtContras {
 
             foreach ($totalsColumns as $colNum) {
                 $opts .= '
-                    curPageSum = api.column( ' . $colNum . ', {page:"current"} ).data().sum();
-                    curPageTotal = api.column( ' . $colNum . ' ).data().sum();
+                    curPageSum = api.column( ' . $colNum . ', {page:"current"} ).data().sum().toFixed(2);
+                    curPageTotal = api.column( ' . $colNum . ' ).data().sum().toFixed(2);
                     
-                    footerHTML = " " + curPageSum + " ' . __($totalsColsLegendStr)
+                    footerHTML = " " + curPageSum + " ' . __($totalsColsLegendStr) . wf_delimiter(0)
                                  . ' ( " + curPageTotal + " ' . __($totalsColsLegendStr) . ' )";
                     
                     $( api.column(' . $colNum . ').footer() ).html( footerHTML );                    
@@ -1297,6 +1347,8 @@ class ExtContras {
         $dictControls .= wf_Link(self::URL_ME . '&' . self::URL_DICTPERIODS . '=true', wf_img_sized('skins/clock.png') . ' ' . __('Periods dictionary'), false, 'ubButton');
         $inputs .= wf_modalAuto(web_icon_extended() . ' ' . __('Dictionaries'), __('Dictionaries'), $dictControls, 'ubButton');
         $inputs .= wf_jsAjaxDynamicWindowButton(self::URL_ME, array(self::ROUTE_FORCECACHE_UPD => 'true'), wf_img('skins/refresh.gif') . ' ' . __('Refresh cache data'), '', 'ubButton');
+
+        // JS helper functions for forms, modals, etc
         $inputs .= wf_EncloseWithJSTags(wf_JSEmptyFunc() . wf_JSElemInsertedCatcherFunc() . $this->getDatePickerModalInitJS());
 
         return ($inputs);
@@ -2438,6 +2490,7 @@ class ExtContras {
                 if (!empty($tmpExtContrasRecs)) {
                     foreach ($tmpExtContrasRecs as $eachID => $eachData) {
                         if ($eachData[self::DBFLD_EXTCONTRAS_PROFILE_ID] == $profileRecID) {
+                            // $eachID === $eachData[self::DBFLD_COMMON_ID]
                             $hasPaymentsCurMonth = $this->checkCurMonthPaymExists($eachData[self::DBFLD_COMMON_ID]);
 
                             if (!empty($hasPaymentsCurMonth)) {
@@ -2588,8 +2641,9 @@ class ExtContras {
                 $data[] = $actions;
 
                 $hasPaymentsCurMonth = $this->checkCurMonthPaymExists($curRecID, true);
+                $hasAddressesAtached = ($this->ecFullCtrctOverdueNoAddrOnly) ? $this->checkContractHasAddresses($profileRecID, $contractRecID) : false;
 
-                if (date('j') > $payDay and empty($hasPaymentsCurMonth)) {
+                if (empty($hasAddressesAtached) and date('j') > $payDay and empty($hasPaymentsCurMonth)) {
                     $payTimeExpired = 1;
                     $this->createMissedPayment($curRecID, $profileRecID, $contractRecID, $addrRecID, $periodRecID, $payDay, $contractSum);
                 } else {
@@ -2794,7 +2848,7 @@ class ExtContras {
     }
 
     /**
-     * Updates a missed payment record payed date field
+     * Updates a missed payment record paid date field
      *
      * @param        $missPaymID
      * @param string $datePayed
@@ -2807,6 +2861,45 @@ class ExtContras {
             $this->dbECMissedPayms->where('id', '=', $missPaymID);
             $this->dbECMissedPayms->save();
         }
+    }
+
+    /**
+     * Returns payday of the contragent by profile ID + contract ID [+ address ID]
+     *
+     * @param $profileID
+     * @param $contractID
+     * @param $addressID
+     *
+     * @return int|string
+     */
+    public function getContraPayday($profileID, $contractID, $addressID = 0) {
+        $this->dbExtContras->where();
+        $this->dbExtContras->whereRaw();
+        $this->dbExtContras->selectable('payday');
+        $this->dbExtContras->where(self::DBFLD_EXTCONTRAS_PROFILE_ID, '=', $profileID);
+        $this->dbExtContras->where(self::DBFLD_EXTCONTRAS_CONTRACT_ID, '=', $contractID);
+
+        if (!empty($addressID)) {
+            $this->dbExtContras->where(self::DBFLD_EXTCONTRAS_ADDRESS_ID, '=', $addressID);
+        }
+
+        $result = $this->dbExtContras->getAll();
+        $result = empty($result[0][self::DBFLD_EXTCONTRAS_PAYDAY]) ? '' : $result[0][self::DBFLD_EXTCONTRAS_PAYDAY];
+
+        return ($result);
+    }
+
+    /**
+     * Returns payday of the missed payment by its ID
+     *
+     * @param $missPaymID
+     *
+     * @return mixed|string
+     */
+    public function getMissedPaymentPayDay($missPaymID) {
+        $datePayDue = empty($this->allECMissedPayms[$missPaymID]) ? '' : $this->allECMissedPayms[$missPaymID][self::DBFLD_MISSPAYMS_DATE_PAYMENT];
+
+        return ($datePayDue);
     }
 
     /**
@@ -3100,26 +3193,27 @@ class ExtContras {
         $ajaxURL = '' . self::URL_ME . '&' . self::ROUTE_FINOPS_JSON . '=true' . $detailsFilter;
 
         $colTargets1 = '[1, 2]';
-        $colTargets2 = '[13, 14]';
+        $colTargets2 = '[14, 15]';
         $totalsCols  = ($this->ecInvoicesON ? array(9, 10) : array(8, 9));
 
         $columns[] = __('ID');
         $columns[] = __('Counterparty');
+        $columns[] = __('Contract');
+        $columns[] = __('Address');
 
         if ($this->ecInvoicesON) {
             $columns[] = __('Invoice');
             $colTargets1 = '[1, 2, 3]';
-            $colTargets2 = '[14, 15]';
+            $colTargets2 = '[15, 16]';
         }
 
-        $columns[] = __('Contract');
-        $columns[] = __('Address');
         $columns[] = __('Leading financial operation');
         $columns[] = __('Operation purpose');
         $columns[] = __('Operation date');
         $columns[] = __('Edit date');
         $columns[] = __('Accrual sum');
         $columns[] = __('Payment sum');     //9
+        $columns[] = __('Needed to pay on date');
         $columns[] = __('Ingoing');
         $columns[] = __('Outgoing');
         $columns[] = __('Payment notes');
@@ -3136,7 +3230,7 @@ class ExtContras {
             ';
 
         $result = $this->getStdJQDTWithJSForCRUDs($ajaxURL, $columns, $opts, $stdJSForCRUDs, $customJSCode, $markRowForID,
-                                    self::URL_ME . '&' . self::URL_EXTCONTRAS . '=true&' . self::MISC_MARKROW_URL . '=' . $markRowForID,
+                                        self::URL_ME . '&' . self::URL_EXTCONTRAS . '=true&' . self::MISC_MARKROW_URL . '=' . $markRowForID,
                                       self::MISC_MARKROW_URL, true, $totalsCols, $this->currencyStr);
         return($result);
     }
@@ -3151,6 +3245,7 @@ class ExtContras {
             $this->dbECMoney->whereRaw($whereRaw);
         }
 
+//$this->dbECMoney->setDebug(true, true);
         $this->loadDataFromTableCached(self::TABLE_ECMONEY, self::TABLE_ECMONEY, !empty($whereRaw), true, '', '', !empty($whereRaw));
         $json = new wf_JqDtHelper();
 

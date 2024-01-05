@@ -25,9 +25,14 @@ if ($_GET['action'] == 'trinitytvcontrol') {
                 $subResult = $trinityClass->addDeviceByCode($_GET['userlogin'], $_GET['code']);
                 die($subResult);
             }
-            // Delete device MAC
+            // Delete device by MAC
             if (wf_CheckGet(array('mac')) and $_GET['param'] == 'deldevice') {
                 $subResult = $trinityClass->deleteDevice($_GET['userlogin'], $_GET['mac']);
+                die($subResult);
+            }
+            // Delete device by ID
+            if (ubRouting::checkGet(array('devid', 'userlogin')) AND ubRouting::get('param') == 'deldeviceid') {
+                $subResult = $trinityClass->deleteDeviceByIdProtected(ubRouting::get('devid'), ubRouting::get('userlogin'));
                 die($subResult);
             }
         }

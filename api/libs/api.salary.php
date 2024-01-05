@@ -1150,7 +1150,7 @@ class Salary {
                 }
                 $cells = wf_TableCell($each['date']);
                 $cells .= wf_TableCell($this->renderPaidDataLed($each['id']));
-                $cells .= wf_TableCell(@$this->allEmployee[$each['employeeid']]);
+                $cells .= wf_TableCell(@$this->allEmployeeRaw[$each['employeeid']]);
                 $cells .= wf_TableCell(@$this->allJobtypes[$each['jobtypeid']]);
                 $cells .= wf_TableCell($factor . ' / ' . $unit);
                 $cells .= wf_TableCell($each['overprice']);
@@ -2330,7 +2330,7 @@ class Salary {
                         nr_query($query);
                     }
                 }
-                log_register('SALARY CREATE TIMESHEET EMPLOYEECOUUNT `' . $counter . '`');
+                log_register('SALARY CREATE TIMESHEET EMPLOYEECOUNT `' . $counter . '`');
             } else {
                 $result = 1;
                 log_register('SALARY CREATE TIMESHEET FAIL EXISTING DATE `' . $date . '`');

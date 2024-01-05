@@ -473,24 +473,25 @@ class UbillingTelegram {
      * @param string $message text message to send
      * @param array $keyboard keyboard encoded with makeKeyboard method
      * @param bool $nosplit dont automatically split message into 4096 slices
+     * @param int $replyToMsgId optional message ID which is reply for
      * 
      * @return string/bool
      */
-    public function directPushMessage($chatid, $message, $keyboard = array(), $noSplit = false) {
+    public function directPushMessage($chatid, $message, $keyboard = array(), $noSplit = false, $replyToMsgId = '') {
         $result = '';
         if ($noSplit) {
-            $result = $this->apiSendMessage($chatid, $message, $keyboard);
+            $result = $this->apiSendMessage($chatid, $message, $keyboard, $replyToMsgId);
         } else {
             $messageSize = mb_strlen($message, 'UTF-8');
             if ($messageSize > self::MESSAGE_LIMIT) {
                 $messageSplit = $this->splitMessage($message);
                 if (!empty($messageSplit)) {
                     foreach ($messageSplit as $io => $eachMessagePart) {
-                        $result = $this->apiSendMessage($chatid, $eachMessagePart, $keyboard);
+                        $result = $this->apiSendMessage($chatid, $eachMessagePart, $keyboard, $replyToMsgId);
                     }
                 }
             } else {
-                $result = $this->apiSendMessage($chatid, $message, $keyboard);
+                $result = $this->apiSendMessage($chatid, $message, $keyboard, $replyToMsgId);
             }
         }
         return($result);
@@ -502,11 +503,12 @@ class UbillingTelegram {
      * @param int $chatid remote chatId
      * @param string $message text message to send
      * @param array $keyboard keyboard encoded with makeKeyboard method
+     * @param int $replyToMsgId optional message ID which is reply for
      * @throws Exception
      * 
      * @return string/bool
      */
-    protected function apiSendMessage($chatid, $message, $keyboard = array()) {
+    protected function apiSendMessage($chatid, $message, $keyboard = array(), $replyToMsgId = '') {
         $result = '';
         $data['chat_id'] = $chatid;
         $data['text'] = $message;
@@ -519,6 +521,11 @@ class UbillingTelegram {
         //default sending method
         $method = 'sendMessage';
 
+        //setting optional replied message ID for normal messages
+        if ($replyToMsgId) {
+            $method = 'sendMessage?reply_to_message_id=' . $replyToMsgId;
+        }
+
         //location sending
         if (ispos($message, 'sendLocation:')) {
             $cleanGeo = str_replace('sendLocation:', '', $message);
@@ -526,6 +533,9 @@ class UbillingTelegram {
             $geoLat = trim($cleanGeo[0]);
             $geoLon = trim($cleanGeo[1]);
             $locationParams = '?chat_id=' . $chatid . '&latitude=' . $geoLat . '&longitude=' . $geoLon;
+            if ($replyToMsgId) {
+                $locationParams .= '&reply_to_message_id=' . $replyToMsgId;
+            }
             $method = 'sendLocation' . $locationParams;
         }
 
@@ -537,6 +547,9 @@ class UbillingTelegram {
                 $cleanMessage = str_replace($parseModeMask, '', $message);
                 $data['text'] = $cleanMessage;
                 $method = 'sendMessage?parse_mode=' . $cleanParseMode;
+                if ($replyToMsgId) {
+                    $method .= '&reply_to_message_id=' . $replyToMsgId;
+                }
             }
         }
 
@@ -562,6 +575,9 @@ class UbillingTelegram {
             $geoLat = trim($cleanGeo[0]);
             $geoLon = trim($cleanGeo[1]);
             $locationParams = '?chat_id=' . $chatid . '&latitude=' . $geoLat . '&longitude=' . $geoLon;
+            if ($replyToMsgId) {
+                $locationParams .= '&reply_to_message_id=' . $replyToMsgId;
+            }
             $method = 'sendVenue' . $locationParams;
         }
 
@@ -573,11 +589,16 @@ class UbillingTelegram {
 
             if (preg_match('!\{(.*?)\}!si', $message, $tmpCaption)) {
                 $cleanCaption = $tmpCaption[1];
+                $cleanCaption = urlencode($cleanCaption);
             }
 
             $photoParams = '?chat_id=' . $chatid . '&photo=' . $cleanPhoto;
             if (!empty($cleanCaption)) {
                 $photoParams .= '&caption=' . $cleanCaption;
+            }
+
+            if ($replyToMsgId) {
+                $photoParams .= '&reply_to_message_id=' . $replyToMsgId;
             }
             $method = 'sendPhoto' . $photoParams;
         }
@@ -783,6 +804,128 @@ class UbillingTelegram {
     }
 
     /**
+     * Returns file path by its file ID
+     * 
+     * @param string $fileId
+     * 
+     * @return string
+     */
+    public function getFilePath($fileId) {
+        $result = '';
+        if (!empty($this->botToken)) {
+            $method = 'getFile';
+            $url = $this->apiUrl . $this->botToken . '/' . $method . '?file_id=' . $fileId;
+            if ($this->debug) {
+                deb($url);
+            }
+            $ch = curl_init();
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+            curl_setopt($ch, CURLOPT_URL, $url);
+            curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json'));
+            if ($this->debug) {
+                $result = curl_exec($ch);
+                deb($result);
+                $curlError = curl_error($ch);
+                if (!empty($curlError)) {
+                    show_error(__('Error') . ' ' . __('Telegram') . ': ' . $curlError);
+                } else {
+                    show_success(__('Telegram API sending via') . ' ' . $this->apiUrl . ' ' . __('success'));
+                }
+            } else {
+                $result = curl_exec($ch);
+            }
+
+            curl_close($ch);
+
+            if (!empty($result)) {
+                $result = json_decode($result, true);
+                if (@$result['ok']) {
+                    //we got it!
+                    $result = $result['result']['file_path'];
+                } else {
+                    //something went wrong
+                    $result = '';
+                }
+            }
+        }
+        return($result);
+    }
+
+    /**
+     * Returns some file content
+     * 
+     * @param string $filePath
+     * 
+     * @return mixed
+     */
+    public function downloadFile($filePath) {
+        $result = '';
+        if (!empty($this->botToken)) {
+            $cleanApiUrl = str_replace('bot', '', $this->apiUrl);
+            $url = $cleanApiUrl . 'file/bot' . $this->botToken . '/' . $filePath;
+            $ch = curl_init();
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+            curl_setopt($ch, CURLOPT_URL, $url);
+            curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json'));
+            $result = curl_exec($ch);
+            curl_close($ch);
+        }
+        return($result);
+    }
+
+    /**
+     * Returns preprocessed message in standard, fixed fields format
+     * 
+     * @param array $messageData
+     * @param bool $isChannel
+     * 
+     * @return array
+     */
+    protected function preprocessMessageData($messageData, $isChannel = false) {
+        $result = array();
+        $result['message_id'] = $messageData['message_id'];
+
+        if (!$isChannel) {
+            //normal messages/groups
+            $result['from']['id'] = $messageData['from']['id'];
+            $result['from']['first_name'] = $messageData['from']['first_name'];
+            @$result['from']['username'] = $messageData['from']['username'];
+            @$result['from']['language_code'] = $messageData['from']['language_code'];
+        } else {
+            //channel posts
+            $result['from']['id'] = $messageData['sender_chat']['id'];
+            $result['from']['first_name'] = $messageData['sender_chat']['title'];
+            @$result['from']['username'] = $messageData['sender_chat']['username'];
+            @$result['from']['language_code'] = '';
+        }
+        $result['chat']['id'] = $messageData['chat']['id'];
+        $result['date'] = $messageData['date'];
+        $result['chat']['type'] = $messageData['chat']['type'];
+        @$result['text'] = $messageData['text'];
+        @$result['photo'] = $messageData['photo'];
+        @$result['document'] = $messageData['document'];
+        //photos and documents have only caption
+        if (!empty($result['photo']) OR ! empty($result['document'])) {
+            @$result['text'] = $messageData['caption'];
+        }
+        @$result['voice'] = $messageData['voice'];
+        @$result['audio'] = $messageData['audio'];
+        @$result['video_note'] = $messageData['video_note'];
+        @$result['location'] = $messageData['location'];
+        @$result['sticker'] = $messageData['sticker'];
+        @$result['new_chat_member'] = $messageData['new_chat_member'];
+        @$result['left_chat_member'] = $messageData['left_chat_member'];
+        @$result['reply_to_message'] = $messageData['reply_to_message'];
+        //decode replied message too if received
+        if ($result['reply_to_message']) {
+            $result['reply_to_message'] = $this->preprocessMessageData($result['reply_to_message']);
+        }
+
+
+        return($result);
+    }
+
+    /**
      * Returns webhook data
      * 
      * @param bool $rawData receive raw reply or preprocess to something more simple.
@@ -801,29 +944,19 @@ class UbillingTelegram {
             if (!$rawData) {
                 if (isset($postRaw['message'])) {
                     if (isset($postRaw['message']['from'])) {
-                        $result['message_id'] = $postRaw['message']['message_id'];
-                        $result['from']['id'] = $postRaw['message']['from']['id'];
-                        @$result['from']['username'] = $postRaw['message']['from']['username'];
-                        $result['from']['first_name'] = $postRaw['message']['from']['first_name'];
-                        @$result['from']['language_code'] = $postRaw['message']['from']['language_code'];
-                        $result['chat']['id'] = $postRaw['message']['chat']['id'];
-                        $result['date'] = $postRaw['message']['date'];
-                        $result['chat']['type'] = $postRaw['message']['chat']['type'];
-                        @$result['text'] = $postRaw['message']['text'];
-                        @$result['photo'] = $postRaw['message']['photo'];
-                        @$result['document'] = $postRaw['message']['document'];
-                        @$result['voice'] = $postRaw['message']['voice'];
-                        @$result['audio'] = $postRaw['message']['audio'];
-                        @$result['video_note'] = $postRaw['message']['video_note'];
+                        $result = $this->preprocessMessageData($postRaw['message']);
+                    }
+                } else {
+                    if (isset($postRaw['channel_post'])) {
+                        $result = $this->preprocessMessageData($postRaw['channel_post'], true);
                     }
                 }
             } else {
                 $result = $postRaw;
             }
         }
+
         return($result);
     }
 
 }
-
-?>

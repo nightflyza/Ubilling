@@ -49,13 +49,39 @@ function zb_PasswordGenerate($len = 8) {
     $vocal = array('a', 'e', 'i', 'u');
     srand((double) microtime() * 1000000);
     $max = $length / 2;
-    for ($i = 1; $i <= $max; $i ++) {
+    for ($i = 1; $i <= $max; $i++) {
         $result .= $conso[rand(0, sizeof($conso) - 1)];
         $result .= $vocal[rand(0, sizeof($vocal) - 1)];
     }
     $result .= rand(10, 99);
 
     return ($result);
+}
+
+/**
+ * Returns two-hands typing optimized password proposal
+ * 
+ * @param int $len
+ * 
+ * @return string
+ */
+function zb_PasswordGenerateTH($len = 8) {
+    $leftHand = array('q', 'w', 'e', 'r', 't', 'a', 's', 'd', 'f', 'g', 'z', 'x', 'c', 'v', 'b', '2', '3', '4', '5', '6');
+    $rightHand = array('y', 'u', 'p', 'h', 'j', 'k', 'n', 'm', '7', '8', '9');
+    $password = '';
+    $left = true;
+
+    for ($i = 0; $i < $len; $i++) {
+        if ($left) {
+            $password .= $leftHand[array_rand($leftHand)];
+            $left = false;
+        } else {
+            $password .= $rightHand[array_rand($rightHand)];
+            $left = true;
+        }
+    }
+
+    return $password;
 }
 
 /**
@@ -123,7 +149,7 @@ function web_AddressBuildShowAptsCheck($buildid, $apt = '', $login = '') {
     }
 
 
-    //display of users which lives in this apt
+//display of users which lives in this apt
     if ($someoneLiveHere) {
         $allAddress = zb_AddressGetAddressAllData();
         if (!empty($allAddress)) {
@@ -140,7 +166,7 @@ function web_AddressBuildShowAptsCheck($buildid, $apt = '', $login = '') {
                 $result .= $messages->getStyledMessage(__('The apartment has one lives, we have nothing against, just be warned'), 'warning');
             }
 
-            //additional cosmetic delimiter for binder module
+//additional cosmetic delimiter for binder module
             if (!empty($login)) {
                 $result .= wf_delimiter(0);
             }
@@ -151,7 +177,7 @@ function web_AddressBuildShowAptsCheck($buildid, $apt = '', $login = '') {
         }
     }
 
-    //modal window width control for cosmetic purposes
+//modal window width control for cosmetic purposes
     if (!empty($result)) {
         $result .= wf_tag('div', false, '', 'style="width:900px;"') . wf_tag('div', true);
     }
@@ -289,252 +315,6 @@ function zb_AllBusyLogins() {
 }
 
 /**
- * Filters user login for only allowed symbols
- * 
- * @param string $login
- * @return string
- */
-function zb_RegLoginFilter($login) {
-    $login = str_replace(' ', '_', $login);
-    $result = preg_replace("#[^a-z0-9A-Z_]#Uis", '', $login);
-    return ($result);
-}
-
-/**
- * Returns new user login proposal by some params
- * 
- * @param string $cityalias
- * @param string $streetalias
- * @param string $buildnum
- * @param string $apt
- * @param string $ip_proposal
- * @param int    $agentid
- * @return string
- */
-function zb_RegLoginProposal($cityalias, $streetalias, $buildnum, $apt, $ip_proposal, $agentid = '') {
-    $alterconf = rcms_parse_ini_file(CONFIG_PATH . "alter.ini");
-    $result = '';
-    if (isset($alterconf['LOGIN_GENERATION'])) {
-        $type = $alterconf['LOGIN_GENERATION'];
-//default address based generation
-        if ($type == 'DEFAULT') {
-            $result = $cityalias . $streetalias . $buildnum . 'ap' . $apt . '_' . zb_rand_string();
-            $result = zb_RegLoginFilter($result);
-        }
-
-//same as default but without random
-        if ($type == 'ONLYADDRESS') {
-            $result = $cityalias . $streetalias . $buildnum . 'ap' . $apt;
-            $result = zb_RegLoginFilter($result);
-        }
-
-//use an timestamp
-        if ($type == 'TIMESTAMP') {
-            $result = time();
-        }
-
-//use an timestamp md5 hash
-        if ($type == 'TIMESTAMPMD5') {
-            $result = md5(time());
-        }
-
-//use an next incremented number
-        if ($type == 'INCREMENT') {
-            $busylogins = zb_AllBusyLogins();
-            for ($i = 1; $i < 100000; $i++) {
-                if (!isset($busylogins[$i])) {
-                    $result = $i;
-                    break;
-                }
-            }
-        }
-
-//use four digits increment with zero prefix
-        if ($type == 'INCREMENTFOUR') {
-            $busylogins = zb_AllBusyLogins();
-            $prefixSize = 4;
-            for ($i = 1; $i < 100000; $i++) {
-                $nextIncrementProposal = sprintf('%0' . $prefixSize . 'd', $i);
-                if (!isset($busylogins[$nextIncrementProposal])) {
-                    $result = $nextIncrementProposal;
-                    break;
-                }
-            }
-        }
-
-//use five five digits increment with zero prefix
-        if ($type == 'INCREMENTFIVE') {
-            $busylogins = zb_AllBusyLogins();
-            $prefixSize = 5;
-            for ($i = 1; $i < 100000; $i++) {
-                $nextIncrementProposal = sprintf('%0' . $prefixSize . 'd', $i);
-                if (!isset($busylogins[$nextIncrementProposal])) {
-                    $result = $nextIncrementProposal;
-                    break;
-                }
-            }
-        }
-
-//use six digits increment with zero prefix
-        if ($type == 'INCREMENTSIX') {
-            $busylogins = zb_AllBusyLogins();
-            $prefixSize = 6;
-            for ($i = 1; $i < 1000000; $i++) {
-                $nextIncrementProposal = sprintf('%0' . $prefixSize . 'd', $i);
-                if (!isset($busylogins[$nextIncrementProposal])) {
-                    $result = $nextIncrementProposal;
-                    break;
-                }
-            }
-        }
-
-//use four digits increment
-        if ($type == 'INCREMENTFOURREV') {
-            $busylogins = zb_AllBusyLogins();
-            $prefixSize = 4;
-            for ($i = 1; $i < 100000; $i++) {
-//$nextIncrementRevProposal = sprintf('%0' . $prefixSize . 'd', $i);
-//$nextIncrementRevProposal = strrev($nextIncrementRevProposal);
-                $nextIncrementRevProposal = sprintf('%-0' . $prefixSize . 's', $i);
-                if (!isset($busylogins[$nextIncrementRevProposal])) {
-                    $result = $nextIncrementRevProposal;
-                    break;
-                }
-            }
-        }
-
-//use five digits increment
-        if ($type == 'INCREMENTFIVEREV') {
-            $busylogins = zb_AllBusyLogins();
-            $prefixSize = 5;
-            for ($i = 1; $i < 100000; $i++) {
-//$nextIncrementRevProposal = sprintf('%0' . $prefixSize . 'd', $i);
-//$nextIncrementRevProposal = strrev($nextIncrementRevProposal);
-                $nextIncrementRevProposal = sprintf('%-0' . $prefixSize . 's', $i);
-                if (!isset($busylogins[$nextIncrementRevProposal])) {
-                    $result = $nextIncrementRevProposal;
-                    break;
-                }
-            }
-        }
-
-//use six digits increment
-        if ($type == 'INCREMENTSIXREV') {
-            $busylogins = zb_AllBusyLogins();
-            $prefixSize = 6;
-            for ($i = 1; $i < 1000000; $i++) {
-//$nextIncrementRevProposal = sprintf('%0' . $prefixSize . 'd', $i);
-//$nextIncrementRevProposal = strrev($nextIncrementRevProposal);
-                $nextIncrementRevProposal = sprintf('%-0' . $prefixSize . 's', $i);
-                if (!isset($busylogins[$nextIncrementRevProposal])) {
-                    $result = $nextIncrementRevProposal;
-                    break;
-                }
-            }
-        }
-
-//use an proposed IP last two octets
-        if ($type == 'IPBASED') {
-            $ip_tmp = str_replace('.', 'x', $ip_proposal);
-            $result = $ip_tmp;
-        }
-
-//use an proposed IP last two octets
-        if ($type == 'IPBASEDLAST') {
-            $ip_tmp = explode('.', $ip_proposal);
-            if (($ip_tmp[2] < 100) AND ( $ip_tmp[2] >= 10)) {
-                $ip_tmp[2] = '0' . $ip_tmp[2];
-            }
-            if (($ip_tmp[3] < 100) AND ( $ip_tmp[3] >= 10)) {
-                $ip_tmp[3] = '0' . $ip_tmp[3];
-            }
-            if ($ip_tmp[2] < 10) {
-                $ip_tmp[2] = '00' . $ip_tmp[2];
-            }
-            if ($ip_tmp[3] < 10) {
-                $ip_tmp[3] = '00' . $ip_tmp[3];
-            }
-
-            $result = $ip_tmp[2] . $ip_tmp[3];
-        }
-
-// just random string as login
-        if ($type == 'RANDOM') {
-            $result = zb_rand_string(10);
-        }
-
-// 8 random digits
-        if ($type == 'RANDOM8') {
-            $result = zb_rand_digits(8);
-        }
-
-// 4 random digits - yeah, shoot that fucking leg
-        if ($type == 'RANDOM4') {
-            $result = zb_rand_digits();
-        }
-
-// 4 random digits with check for uniqueness - may shoot your both legs
-        if ($type == 'RANDOM4_CHECK') {
-            $busylogins = zb_AllBusyLogins();
-
-            while (true) {
-                $nextIncrementProposal = zb_rand_digits();
-
-                if (!isset($busylogins[$nextIncrementProposal])) {
-                    $result = $nextIncrementProposal;
-                    break;
-                }
-            }
-        }
-
-// just random string as login
-        if ($type == 'RANDOMSAFE') {
-            $randomStringProposal = zb_rand_string(10);
-            $filteredChars = array('q', 'Q', 'i', 'I', 'l', 'L', 'j', 'J', 'o', 'O', '1', '0', 'g', 'G');
-            $result = str_replace($filteredChars, 'x', $randomStringProposal);
-        }
-
-//contrahent based model
-        if ($type == 'DEREBAN') {
-            $busylogins = zb_AllBusyLogins();
-            $agentPrefix = $agentid;
-            $prefixSize = 6;
-            for ($i = 1; $i < 1000000; $i++) {
-                $nextIncrementDerProposal = $agentPrefix . sprintf('%0' . $prefixSize . 'd', $i);
-                if (!isset($busylogins[$nextIncrementDerProposal])) {
-                    $result = $nextIncrementDerProposal;
-                    break;
-                }
-            }
-        }
-
-//Like DEFAULT but increment in the end. Increment counter unique per every alias.
-//So it can be unique for city, or for city + every street if alias for street was set.
-        if ($type == 'VSRAT_INCREMENT') {
-            $busylogins = zb_AllBusyLogins();
-            for ($i = 1; $i < 100000; $i++) {
-                $proposal = $cityalias . $streetalias . '_' . $i;
-                if (!isset($busylogins[$proposal])) {
-                    $result = $proposal;
-                    break;
-                }
-            }
-        }
-
-
-/////  if wrong option - use DEFAULT
-        if (empty($result)) {
-            $result = $cityalias . $streetalias . $buildnum . 'ap' . $apt . '_' . zb_rand_string();
-            $result = zb_RegLoginFilter($result);
-        }
-    } else {
-        die(strtoupper('you have missed a essential option. before update read release notes motherfucker!'));
-    }
-
-    return ($result);
-}
-
-/**
  * Returns new user password proposal
  * 
  * @return string
@@ -557,6 +337,9 @@ function zb_RegPasswordProposal() {
             case 2:
                 $password_proposal = zb_PasswordGenerate($passwordsLenght);
                 break;
+            case 3:
+                $password_proposal = zb_PasswordGenerateTH($passwordsLenght);
+                break;
             default :
                 $password_proposal = zb_rand_string(8);
                 break;
@@ -565,6 +348,18 @@ function zb_RegPasswordProposal() {
         die(strtoupper('you have missed a essential option. before update read release notes motherfucker!'));
     }
     return ($password_proposal);
+}
+
+/**
+ * Filters user login for only allowed symbols
+ * 
+ * @param string $login
+ * @return string
+ */
+function zb_RegLoginFilter($login) {
+    $login = str_replace(' ', '_', $login);
+    $result = preg_replace("#[^a-z0-9A-Z_]#Uis", '', $login);
+    return ($result);
 }
 
 /**
@@ -606,6 +401,7 @@ function web_UserRegFormNetData($newuser_data) {
     global $registerSteps;
     global $ubillingConfig;
     $currentStep = 4;
+    $form = '';
     $alterconf = $ubillingConfig->getAlter();
     if ($alterconf['BRANCHES_ENABLED']) {
         global $branchControl;
@@ -633,9 +429,14 @@ function web_UserRegFormNetData($newuser_data) {
     }
 
     $ip_proposal = multinet_get_next_freeip('nethosts', 'ip', multinet_get_service_networkid($newuser_data['service']));
-    $login_proposal = zb_RegLoginProposal($cityalias, $streetalias, $buildnum, $apt, $ip_proposal, $agentPrefixID);
+    $login_proposal = '';
+    $loginGenerator = new SayMyName($cityalias, $streetalias, $buildnum, $apt, $ip_proposal, $agentPrefixID);
+    try {
+        $login_proposal = $loginGenerator->getLogin();
+    } catch (Exception $exception) {
+        show_error(__('Strange exception') . ': ' . $exception->getMessage());
+    }
     $password_proposal = zb_RegPasswordProposal();
-
 
     if (empty($ip_proposal)) {
         $alert = wf_tag('script', false, '', 'type="text/javascript"');
@@ -652,7 +453,7 @@ function web_UserRegFormNetData($newuser_data) {
     } else {
         $modifier = '';
     }
-    $form = '';
+
     $addressCheck = web_AddressBuildShowAptsCheck($buildata['id'], $apt);
     if (!empty($addressCheck)) {
         $form .= wf_modalOpenedAuto(__('Warning'), $addressCheck, '800', '300');
@@ -662,7 +463,11 @@ function web_UserRegFormNetData($newuser_data) {
 
     $form .= wf_tag('tr', false, 'row3');
     $form .= wf_tag('td', false, '', 'width="65%"');
-    $form .= wf_tag('input', false, '', 'type="text" name="login" value="' . $login_proposal . '" ' . $modifier);
+    if ($safe_mode) {
+        $form .= wf_tag('input', false, '', 'type="text" name="login" value="' . $login_proposal . '" READONLY');
+    } else {
+        $form .= wf_TextInput('login', '', $login_proposal, false, '', 'login');
+    }
     $form .= wf_tag('td', true);
     $form .= wf_tag('td', false);
     $form .= __('Login') . ' ' . zb_CheckLoginRscriptdCompat($login_proposal);
@@ -691,7 +496,7 @@ function web_UserRegFormNetData($newuser_data) {
     if (isset($alterconf['USERREG_MAC_INPUT_ENABLED']) and $alterconf['USERREG_MAC_INPUT_ENABLED']) {
         $form .= wf_tag('tr', false, 'row3');
         $form .= wf_tag('td', false);
-        $form .= wf_tag('input', false, '', 'type="text" name="userMAC"');
+        $form .= wf_TextInput('userMAC', '', '', false, 12, 'mac');
         $form .= wf_tag('td', true);
         $form .= wf_tag('td', false);
         $form .= __('MAC');
@@ -983,7 +788,7 @@ function zb_UserRegister($user_data, $goprofile = true) {
     }
 
 //ONU auto assign options
-    if ($registerUserONU and ! empty($user_data['oltid'])) {
+    if ($registerUserONU and !empty($user_data['oltid'])) {
         $OLTID = $user_data['oltid'];
         $ONUModelID = $user_data['onumodelid'];
         $ONUIP = $user_data['onuip'];
@@ -992,7 +797,7 @@ function zb_UserRegister($user_data, $goprofile = true) {
         $needONUAssignment = !empty($ONUMAC);
     }
 
-    if (isset($user_data['userMAC']) and ! empty($user_data['userMAC'])) {
+    if (isset($user_data['userMAC']) and !empty($user_data['userMAC'])) {
         $mac = strtolower($user_data['userMAC']);
     } elseif ($billingconf['REGRANDOM_MAC']) {
 // if random mac needed
@@ -1062,7 +867,6 @@ function zb_UserRegister($user_data, $goprofile = true) {
     zb_UserCreateSpeedOverride($login, 0);
     zb_UserRegisterLog($login);
 
-
 // if AlwaysOnline to new user needed
     if ($billingconf['REGALWONLINE']) {
         $alwaysonline = 1;
@@ -1075,6 +879,14 @@ function zb_UserRegister($user_data, $goprofile = true) {
         $dstat = 1;
         $billing->setdstat($login, $dstat);
         log_register('CHANGE dstat (' . $login . ') ON ' . $dstat);
+    }
+
+// new users registers as frozen by default
+    if (isset($billingconf['REGFROZEN'])) {
+        if ($billingconf['REGFROZEN']) {
+            $billing->setpassive($login, 1);
+            log_register('CHANGE Passive (' . $login . ') ON 1');
+        }
     }
 
 //set contract same as login for this user
@@ -1157,7 +969,7 @@ function zb_UserRegister($user_data, $goprofile = true) {
 //branches assign for newly created user
     if ($alterconf['BRANCHES_ENABLED']) {
         global $branchControl;
-        if ((wf_CheckPost(array('reguserbranchid'))) AND ( !wf_CheckPost(array('reguserwithnobranch')))) {
+        if ((wf_CheckPost(array('reguserbranchid'))) AND (!wf_CheckPost(array('reguserwithnobranch')))) {
             $newUserBranchId = vf($_POST['reguserbranchid'], 3);
             $branchControl->userAssignBranch($newUserBranchId, $login);
         }
@@ -1167,7 +979,7 @@ function zb_UserRegister($user_data, $goprofile = true) {
     if ($registerUserONU and $needONUAssignment) {
         $PONAPIObject = new PONizer();
 
-        if ($PONAPIObject->checkMacUnique($ONUMAC)) {
+        if ($PONAPIObject->checkOnuUnique($ONUMAC)) {
             $PONAPIObject->onuCreate($ONUModelID, $OLTID, $ONUIP, $ONUMAC, $ONUSerial, $login);
         } else {
             $ONUID = $PONAPIObject->getOnuIDbyIdent($ONUMAC);
@@ -1179,7 +991,15 @@ function zb_UserRegister($user_data, $goprofile = true) {
         zb_AddAddressExtenSave($login, false, $postCode, $extenTown, $extenAddr);
     }
 
-    ///////////////////////////////////
+    //static OpenPayz payment IDs registration
+    if ($alterconf['OPENPAYZ_SUPPORT']) {
+        if ($alterconf['OPENPAYZ_STATIC_ID']) {
+            $openPayz = new OpenPayz(false, true);
+            $openPayz->registerStaticPaymentId($login);
+        }
+    }
+
+///////////////////////////////////
     if ($goprofile) {
         rcms_redirect("?module=userprofile&username=" . $login . '&justregistered=true');
     }

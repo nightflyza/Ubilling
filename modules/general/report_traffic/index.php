@@ -29,6 +29,7 @@ if (cfr('REPORTTRAFFIC')) {
 
                 //Yep, no traffic classes at all. Just internet accounting here.
                 if ($eachclass['rulenumber'] == 0) {
+                    //ishimura data
                     if ($altCfg[$ishimuraOption]) {
                         $query_hideki = "SELECT SUM(`D0`) as `downloaded`, SUM(`U0`) as `uploaded` from `" . $ishimuraTable . "` WHERE  `month`='" . date("n") . "' AND `year`='" . curyear() . "'";
                         $dataHideki = simple_query($query_hideki);
@@ -36,6 +37,17 @@ if (cfr('REPORTTRAFFIC')) {
                             @$classtraff[$eachclass['rulename']] += $dataHideki['downloaded'] + $dataHideki['uploaded'];
                         } else {
                             $classtraff[$eachclass['rulename']] = $dataHideki['downloaded'] + $dataHideki['uploaded'];
+                        }
+                    }
+
+                    //or ophanim flow may be?
+                    if ($altCfg[OphanimFlow::OPTION_ENABLED]) {
+                        $ophanim = new OphanimFlow();
+                        $ophTraff = $ophanim->getAllUsersAggrTraff();
+                        if (!empty($ophTraff)) {
+                            foreach ($ophTraff as $io => $each) {
+                                $classtraff[$eachclass['rulename']] += $each;
+                            }
                         }
                     }
                 }
@@ -74,6 +86,9 @@ if (cfr('REPORTTRAFFIC')) {
                         if (!ispos($bwd, 'mlgmths') AND !ispos($bwd, 'mlgmtppp') AND !ispos($bwd, 'mlgmtdhcp')) {
                             // Extention:
                             $ext = '.png';
+                            // Modals:
+                            $width = 940;
+                            $height = 666;
 
                             // Links:
                             $d_day = $bwd . 'Total-1-R' . $ext;
@@ -85,9 +100,21 @@ if (cfr('REPORTTRAFFIC')) {
                             $u_month = $bwd . 'Total-3-S' . $ext;
                             $u_year = $bwd . 'Total-4-S' . $ext;
 
-                            // Modals:
-                            $width = 940;
-                            $height = 666;
+                            //OphanimFlow graphs
+                            if (ispos($bwd, 'OphanimFlow') OR ispos($bwd, 'of/')) {
+                                $d_day = $bwd . '/?module=graph&ip=0.0.0.0&dir=R&period=day';
+                                $d_week = $bwd . '/?module=graph&ip=0.0.0.0&dir=R&period=week';
+                                $d_month = $bwd . '/?module=graph&ip=0.0.0.0&dir=R&period=month';
+                                $d_year = $bwd . '/?module=graph&ip=0.0.0.0&dir=R&period=year';
+                                $u_day = $bwd . '/?module=graph&ip=0.0.0.0&dir=S&period=day';
+                                $u_week = $bwd . '/?module=graph&ip=0.0.0.0&dir=S&period=week';
+                                $u_month = $bwd . '/?module=graph&ip=0.0.0.0&dir=S&period=month';
+                                $u_year = $bwd . '/?module=graph&ip=0.0.0.0&dir=S&period=year';
+                                $width = 1600;
+                                $height = 900;
+                            }
+
+
                             $daygraph = __('Downloaded') . wf_img(zb_BandwidthdImgLink($d_day)) . wf_tag('br') . __('Uploaded') . wf_tag('br') . wf_img(zb_BandwidthdImgLink($u_day));
                             $weekgraph = __('Downloaded') . wf_img(zb_BandwidthdImgLink($d_week)) . wf_tag('br') . __('Uploaded') . wf_tag('br') . wf_img(zb_BandwidthdImgLink($u_week));
                             $monthgraph = __('Downloaded') . wf_img(zb_BandwidthdImgLink($d_month)) . wf_tag('br') . __('Uploaded') . wf_tag('br') . wf_img(zb_BandwidthdImgLink($u_month));
@@ -151,6 +178,12 @@ if (cfr('REPORTTRAFFIC')) {
                         }
                 }
 
+                if (!ispos($bwd, 'OphanimFlow') AND !ispos($bwd, 'of/')) {
+                    $graphLegend = wf_tag('br') . wf_img('skins/bwdlegend.gif');
+                } else {
+                    $graphLegend = '';
+                }
+
                 // Buttons:
                 $gday = wf_modal(__('Graph by day'), __('Graph by day'), $daygraph . $graphLegend, '', $width, $height);
                 $gweek = wf_modal(__('Graph by week'), __('Graph by week'), $weekgraph . $graphLegend, '', $width, $height);
@@ -174,5 +207,6 @@ if (cfr('REPORTTRAFFIC')) {
 
     web_TstatsShow();
     web_TstatsNas();
-} else
+} else {
     show_error(__('You cant control this module'));
+}

@@ -15,7 +15,7 @@ function zbs_UserCheckLoginAuth($login, $password) {
     $password = vf($password);
     $password = preg_replace('#[^a-z0-9A-Z\-_\.]#Uis', '', $password);
     $password = preg_replace('/\0/s', '', $password);
-    if (!empty($login) AND ( !empty($password))) {
+    if (!empty($login) AND (!empty($password))) {
         $query = "SELECT `IP` from `users` WHERE `login`='" . $login . "' AND MD5(`password`)='" . $password . "'";
         $data = simple_query($query);
         if (!empty($data)) {
@@ -180,20 +180,45 @@ function zbs_GetOnlineLeftCount($login, $userBalance, $userTariff, $rawDays = fa
     // DEFINE VARS:
     $us_config = zbs_LoadConfig();
     $tariffData = zbs_UserGetTariffData($userTariff);
+
+    $daysOnLine = 0;
+    $balanceExpire = '';
+    $totalVsrvPrice = 0;
+    $userFeeOffset = 0;
+
     if (empty($tariffData)) {
         //user have no tariff
         $tariffData['name'] = '*_NO_TARIFF_*';
         $tariffData['Fee'] = 0;
         $tariffData['period'] = 'month';
     }
+
+    //power tariffs overrides some fees?
+    if ($us_config['POWERTARIFFS_ENABLED']) {
+        if ($tariffData['Fee'] == 0) {
+            $tariffData['Fee'] = zbs_GetPowerTariffPrice($userTariff);
+            if ($tariffData['Fee'] > 0) {
+                $userFeeOffset = zbs_GetPowerTariffDay($login);
+                $maxDay = (zbs_GetPowerTariffMaxDay() - 1);
+                if ($userFeeOffset == 0) {
+                    $userFeeOffset = (date('j') < $maxDay) ? date('j') + 1 : 1;
+                    $daysOnLine = (date('j') < $maxDay) ? 0 : date('j');
+                } else {
+                    if ($userFeeOffset < 0) {
+                        $userFeeOffset = (date('j') < $maxDay) ? date('j') + 1 : 1;
+                    }
+                    $daysOnLine = ($userFeeOffset == date('j')) ? 0 : (($userFeeOffset < date('j')) ? -1 : date('j') * -1);
+                }
+                $userFeeOffset = $userFeeOffset - 1;
+            }
+        }
+    }
+
     $tariffFee = $tariffData['Fee'];
+
     $tariffPeriod = isset($tariffData['period']) ? $tariffData['period'] : 'month';
     $includeVServices = (!empty($us_config['ONLINELEFT_CONSIDER_VSERVICES']));
     $vservicesPeriodON = (!empty($us_config['VSERVICES_CONSIDER_PERIODS']));
-
-    $daysOnLine = 0;
-    $balanceExpire = '';
-    $totalVsrvPrice = 0;
 
     if ($userBalance >= 0) {
         // check if tariff has no zero price and is not free
@@ -224,7 +249,7 @@ function zbs_GetOnlineLeftCount($login, $userBalance, $userTariff, $rawDays = fa
                 if ($tariffPeriod == 'month') {
                     //monthly non spread fee
                     while ($userBalance >= 0) {
-                        $daysOnLine = $daysOnLine + date('t', time() + ($daysOnLine * 24 * 60 * 60)) - date('d', time() + ($daysOnLine * 24 * 60 * 60)) + 1;
+                        $daysOnLine = $daysOnLine + $userFeeOffset + date('t', time() + ($daysOnLine * 24 * 60 * 60)) - date('d', time() + ($daysOnLine * 24 * 60 * 60)) + 1;
                         $userBalance = $userBalance - $tariffFee;
                     }
                 } else {
@@ -248,14 +273,13 @@ function zbs_GetOnlineLeftCount($login, $userBalance, $userTariff, $rawDays = fa
             case 'mixed':
                 $balanceExpire = ", " . __('enought for') . ' ' . $daysOnLine . ' ' . __('days')
                         . ", " . __('till the') . ' ' . date("d.m.Y", time() + ($daysOnLine * 24 * 60 * 60));
-                ;
                 break;
             default:
                 $balanceExpire = NULL;
                 break;
         }
 
-        if ($includeVServices and ! empty($totalVsrvPrice) and ! empty($balanceExpire)) {
+        if ($includeVServices and !empty($totalVsrvPrice) and !empty($balanceExpire)) {
             if ($us_config['ROUND_PROFILE_CASH']) {
                 $totalVsrvPrice = web_roundValue($totalVsrvPrice, 2);
             }
@@ -281,6 +305,54 @@ function zbs_GetOnlineLeftCount($login, $userBalance, $userTariff, $rawDays = fa
     }
 
     return ($balanceExpire);
+}
+
+/**
+ * Suggests user power tariff price
+ * 
+ * @param string $userTariff
+ * 
+ * @return float
+ */
+function zbs_GetPowerTariffPrice($userTariff) {
+    $result = -2;
+    $powerTariffs = new NyanORM('pt_tariffs');
+    $allPowerTariffs = $powerTariffs->getAll('tariff');
+    if (isset($allPowerTariffs[$userTariff])) {
+        $result = $allPowerTariffs[$userTariff]['fee'];
+    }
+    return($result);
+}
+
+/**
+ * Suggests user power tariff fee charge date
+ * 
+ * @param string $userLogin
+ * 
+ * @return int
+ */
+function zbs_GetPowerTariffDay($userLogin) {
+    $result = 0;
+    $powerTariffs = new NyanORM('pt_users');
+    $allPowerUsers = $powerTariffs->getAll('login');
+    if (isset($allPowerUsers[$userLogin])) {
+        $result = $allPowerUsers[$userLogin]['day'];
+    }
+    return($result);
+}
+
+/**
+ * Returns value of PowerTariffs maximum day option that will be round to 1st
+ * 
+ * @return int
+ */
+function zbs_GetPowerTariffMaxDay() {
+    global $us_config;
+    $result = 26;
+    if (isset($us_config['POWERTARIFFS_MAXDAY'])) {
+        $result = $us_config['POWERTARIFFS_MAXDAY'];
+    }
+    return($result);
 }
 
 /**
@@ -683,8 +755,6 @@ function zbs_UserShowAgentData($login) {
     $result .= 'traffu_conv=' . zbs_convert_size($traffup) . "\n";
     $result .= 'trafftotal_conv=' . zbs_convert_size($traffdown + $traffup) . "\n";
 
-
-
     $result .= "\n";
     $result .= '[CONF]' . "\n";
     $result .= ' currency=' . $us_currency;
@@ -872,11 +942,15 @@ function zbs_UserShowXmlAgentData($login) {
                 $payDesc = array();
             }
 
-            if ($us_config['OPENPAYZ_REALID']) {
-                $opayzPaymentid = zbs_PaymentIDGet($login);
+            if ($us_config['OPENPAYZ_ENABLED']) {
+                if ($us_config['OPENPAYZ_REALID']) {
+                    $opayzPaymentid = zbs_PaymentIDGet($login);
+                } else {
+                    $userdata = zbs_UserGetStargazerData($login);
+                    $opayzPaymentid = ip2int($userdata['IP']);
+                }
             } else {
-                $userdata = zbs_UserGetStargazerData($login);
-                $opayzPaymentid = ip2int($userdata['IP']);
+                $opayzPaymentid = 0;
             }
 
             if (!empty($paySys)) {
@@ -901,6 +975,16 @@ function zbs_UserShowXmlAgentData($login) {
         }
     }
 
+    // assigned contragents export
+    if (ubRouting::checkGet('agentassigned')) {
+        $allAddress = zbs_AddressGetFulladdresslist();
+        $userAddress = empty($allAddress) ? array() : $allAddress[$login];
+        $agentData = zbs_AgentAssignedGetDataFast($login, $userAddress);
+        $agentArray = empty($agentData) ? array() : array('agentdata' => $agentData);
+
+        zbs_XMLAgentRender($agentArray, 'data', 'agentdata', $outputFormat);
+    }
+
     //user data export
     $us_currency = $us_config['currency'];
     $userdata = zbs_UserGetStargazerData($login);
@@ -921,10 +1005,14 @@ function zbs_UserShowXmlAgentData($login) {
     $down = $userdata['Down'];
 
     //payment id handling
-    if ($us_config['OPENPAYZ_REALID']) {
-        $paymentid = zbs_PaymentIDGet($login);
+    if ($us_config['OPENPAYZ_ENABLED']) {
+        if ($us_config['OPENPAYZ_REALID']) {
+            $paymentid = zbs_PaymentIDGet($login);
+        } else {
+            $paymentid = ip2int($userdata['IP']);
+        }
     } else {
-        $paymentid = ip2int($userdata['IP']);
+        $paymentid = 0;
     }
 
     if ($userdata['CreditExpire'] != 0) {
@@ -1047,8 +1135,7 @@ function zbs_PaymentIDGet($login) {
  * 
  * @return string
  */
-function zbs_TariffGetSpeed($tariff, $raw = false) {
-    $offset = 1024;
+function zbs_TariffGetSpeed($tariff, $raw = false, $offset = 1024) {
     $query = "SELECT * from `speeds` where `Tariff`='" . $tariff . "'";
     $speedData = simple_query($query);
     $result = '';
@@ -1079,8 +1166,7 @@ function zbs_TariffGetSpeed($tariff, $raw = false) {
  * 
  * @return array
  */
-function zbs_TariffGetAllSpeeds($rawMbitSpeeds = false) {
-    $offset = 1024;
+function zbs_TariffGetAllSpeeds($rawMbitSpeeds = false, $offset = 1024) {
     $query = "SELECT * from `speeds`";
     $speedData = simple_queryall($query);
     $result = array();
@@ -1548,17 +1634,21 @@ function zbs_UserShowProfile($login) {
     }
 
     //payment id handling
-    if ($us_config['OPENPAYZ_REALID']) {
-        $paymentid = zbs_PaymentIDGet($login);
+    if ($us_config['OPENPAYZ_ENABLED']) {
+        if ($us_config['OPENPAYZ_REALID']) {
+            $paymentid = zbs_PaymentIDGet($login);
+        } else {
+            $paymentid = ip2int($userdata['IP']);
+        }
     } else {
-        $paymentid = ip2int($userdata['IP']);
+        $paymentid = 0;
     }
 
     //payment id qr dialog
     $paymentidqr = '';
     if (isset($us_config['PAYMENTID_QR'])) {
         if ($us_config['PAYMENTID_QR']) {
-            $paymentidqr = la_modal(la_img($iconsPath . 'qrcode.png', 'QR-code'), __('Payment ID'), la_tag('center') . la_img('qrgen.php?data=' . $paymentid) . la_tag('center', true), '', '300', '250');
+            $paymentidqr = la_modal(la_img($iconsPath . 'qrcode.png', 'QR-code'), __('Payment ID'), la_tag('center') . la_img('modules/jsc/qrgen.php?data=' . $paymentid) . la_tag('center', true), '', '300', '250');
         }
     }
 
@@ -1572,10 +1662,10 @@ function zbs_UserShowProfile($login) {
     //tariff speeds
     if ($us_config['SHOW_SPEED']) {
         $rawSpeedMbits = (@$us_config['SHOW_SPEED_MB']) ? true : false;
-        $speedOffset = 1024;
+        $speedOffset = (@$us_config['SHOW_SPEED_1000B']) ? 1000 : 1024;
         $userSpeedOverride = zbs_SpeedGetOverride($login);
         if ($userSpeedOverride == 0) {
-            $showSpeed = zbs_TariffGetSpeed($userdata['Tariff'], $rawSpeedMbits);
+            $showSpeed = zbs_TariffGetSpeed($userdata['Tariff'], $rawSpeedMbits, $speedOffset);
         } else {
             if (!$rawSpeedMbits) {
                 if ($userSpeedOverride < $speedOffset) {
@@ -1662,9 +1752,11 @@ function zbs_UserShowProfile($login) {
     $payIdAbbr .= __('Payment ID');
     $payIdAbbr .= la_tag('abbr', true);
 
-    $profile .= la_TableCell($payIdAbbr, '', 'row1');
-    $profile .= la_TableCell($paymentid . ' ' . $paymentidqr);
-    $profile .= la_tag('tr', true);
+    if ($us_config['OPENPAYZ_ENABLED']) {
+        $profile .= la_TableCell($payIdAbbr, '', 'row1');
+        $profile .= la_TableCell($paymentid . ' ' . $paymentidqr);
+        $profile .= la_tag('tr', true);
+    }
 
     $profile .= la_tag('tr');
     $profile .= la_TableCell(__('Contract'), '', 'row1');
@@ -1700,11 +1792,8 @@ function zbs_UserShowProfile($login) {
             //custom tariff price
             $tariffPrice = $allPowerTariffs[$userdata['Tariff']]['fee'];
             //getting custom fee date for this user
-            $powerUsers = new NyanORM('pt_users');
-            $powerUsers->where('login', '=', $login);
-            $powerUserData = $powerUsers->getAll('login');
             if (!empty($powerUserData)) {
-                $feeDay = $powerUserData[$login]['day'];
+                $feeDay = zbs_GetPowerTariffDay($login);
             }
         } else {
             //this is just normal tariff
@@ -1797,6 +1886,8 @@ function zbs_UserTraffStats($login) {
     $monthnames = zbs_months_array_wz();
     $ishimuraOption = 'ISHIMURA_ENABLED';
     $ishimuraTable = 'mlg_ishimura';
+    $ophanimOption = 'OPHANIM_ENABLED';
+    $ophanimTable = 'ophtraff';
     /*
      * Current month traffic stats
      */
@@ -1808,26 +1899,45 @@ function zbs_UserTraffStats($login) {
     $cells .= la_TableCell(__('Total'));
     $rows = la_TableRow($cells, 'row1');
 
-
     if (!empty($alldirs)) {
         foreach ($alldirs as $io => $eachdir) {
             $query_downup = "SELECT `D" . $eachdir['rulenumber'] . "`,`U" . $eachdir['rulenumber'] . "` from `users` WHERE `login`='" . $login . "'";
             $downup = simple_query($query_downup);
             //yeah, no classes at all
             if ($eachdir['rulenumber'] == 0) {
-
                 if ($us_config[$ishimuraOption]) {
+                    //ishimura traffic stats
                     $query_hideki = "SELECT `D0`,`U0` from `" . $ishimuraTable . "` WHERE `login`='" . $login . "' AND `month`='" . date("n") . "' AND `year`='" . date("Y") . "'";
                     $dataHideki = simple_query($query_hideki);
                     if (isset($downup['D0'])) {
-                        $downup['D0'] += $dataHideki['D0'];
-                        $downup['U0'] += $dataHideki['U0'];
+                        if (isset($dataHideki['D0'])) {
+                            $downup['D0'] += $dataHideki['D0'];
+                            $downup['U0'] += $dataHideki['U0'];
+                        }
                     } else {
                         $downup['D0'] = $dataHideki['D0'];
                         $downup['U0'] = $dataHideki['U0'];
                     }
                 }
+
+                //OphanimFlow integration
+                if ($us_config[$ophanimOption]) {
+                    $ophDb = new NyanORM($ophanimTable);
+                    $ophDb->selectable(array('login', 'D0', 'U0'));
+                    $ophDb->where('login', '=', $login);
+                    $ophDb->where('year', '=', date("Y"));
+                    $ophDb->where('month', '=', date("n"));
+                    $rawOphTraff = $ophDb->getAll();
+                    if (isset($downup['D0'])) {
+                        if (!empty($rawOphTraff)) {
+                            $downup['D0'] += $rawOphTraff[0]['D0'];
+                            $downup['U0'] += $rawOphTraff[0]['U0'];
+                        }
+                    }
+                }
             }
+
+
             $cells = la_TableCell($eachdir['rulename']);
             $cells .= la_TableCell(zbs_convert_size($downup['D' . $eachdir['rulenumber']]));
             $cells .= la_TableCell(zbs_convert_size($downup['U' . $eachdir['rulenumber']]));
@@ -1845,7 +1955,6 @@ function zbs_UserTraffStats($login) {
     $prevStatsTmp = array();
     $result .= la_tag('h3') . __('Previous month traffic stats') . la_tag('h3', true);
 
-
     $cells = la_TableCell(__('Year'));
     $cells .= la_TableCell(__('Month'));
     $cells .= la_TableCell(__('Traffic classes'));
@@ -1861,6 +1970,7 @@ function zbs_UserTraffStats($login) {
             $allprevmonth = simple_queryall($query_prev);
             //and again no classes
             if ($eachdir['rulenumber'] == 0) {
+                //ishimura traffic mixing
                 if ($us_config[$ishimuraOption]) {
                     $query_hideki = "SELECT `D0`,`U0`,`month`,`year`,`cash` from `" . $ishimuraTable . "` WHERE `login`='" . $login . "' ORDER BY `year`,`month`;";
                     $dataHideki = simple_queryall($query_hideki);
@@ -1870,7 +1980,26 @@ function zbs_UserTraffStats($login) {
                                 if ($stgEach['year'] == $each['year'] AND $stgEach['month'] == $each['month']) {
                                     $allprevmonth[$ia]['D0'] += $each['D0'];
                                     $allprevmonth[$ia]['U0'] += $each['U0'];
-                                    $allprevmonth[$ia]['cash'] += $each['cash'];
+                                    //$allprevmonth[$ia]['cash'] += $each['cash'];
+                                }
+                            }
+                        }
+                    }
+                }
+
+                //OphanimFlow traffic mixing
+                if ($us_config[$ophanimOption]) {
+                    $ophDb = new NyanORM($ophanimTable);
+                    $ophDb->selectable(array('login', 'D0', 'U0', 'month', 'year'));
+                    $ophDb->where('login', '=', $login);
+                    $ophDb->orderBy('year`,`month', 'DESC');
+                    $allOphTraff = $ophDb->getAll();
+                    if (!empty($allOphTraff)) {
+                        foreach ($allOphTraff as $io => $each) {
+                            foreach ($allprevmonth as $ia => $stgEach) {
+                                if ($stgEach['year'] == $each['year'] AND $stgEach['month'] == $each['month']) {
+                                    $allprevmonth[$ia]['D0'] += $each['D0'];
+                                    $allprevmonth[$ia]['U0'] += $each['U0'];
                                 }
                             }
                         }
@@ -2021,7 +2150,7 @@ function zbs_CopyrightsShow() {
     $usConf = zbs_LoadConfig();
     $baseFooter = 'Powered by <a href="https://ubilling.net.ua">Ubilling</a>';
     if ((isset($usConf['ISP_NAME'])) AND ( isset($usConf['ISP_URL']))) {
-        if ((!empty($usConf['ISP_NAME'])) AND ( !empty($usConf['ISP_URL']))) {
+        if ((!empty($usConf['ISP_NAME'])) AND (!empty($usConf['ISP_URL']))) {
             $rawUrl = strtolower($usConf['ISP_URL']);
             if (stripos($rawUrl, 'http') === false) {
                 $rawUrl = 'http://' . $rawUrl;
@@ -2441,7 +2570,7 @@ function zbs_IspLogoShow() {
     $usConf = zbs_LoadConfig();
     $result = '';
     if (isset($usConf['ISP_LOGO'])) {
-        if ((!empty($usConf['ISP_NAME'])) AND ( !empty($usConf['ISP_URL'])) AND ( (!empty($usConf['ISP_LOGO'])))) {
+        if ((!empty($usConf['ISP_NAME'])) AND (!empty($usConf['ISP_URL'])) AND ( (!empty($usConf['ISP_LOGO'])))) {
             $rawUrl = strtolower($usConf['ISP_URL']);
             if (stripos($rawUrl, 'http') === false) {
                 $rawUrl = 'http://' . $rawUrl;
@@ -2465,7 +2594,7 @@ function zbs_CustomBackground() {
     $tilesPath = $skinPath . 'tiles/';
     $result = '';
     if (isset($usConf['BACKGROUND'])) {
-        if (($usConf['BACKGROUND'] != 'DEFAULT') AND ( !empty($usConf['BACKGROUND']))) {
+        if (($usConf['BACKGROUND'] != 'DEFAULT') AND (!empty($usConf['BACKGROUND']))) {
             $customBackground = $usConf['BACKGROUND'];
             $availTiles = rcms_scandir($tilesPath);
             $availTiles = array_flip($availTiles);
@@ -2496,7 +2625,7 @@ function zbs_AnnouncementsAvailable($login) {
     $query = "SELECT `zbsannouncements`.*, `zbh`.`annid` from `zbsannouncements` LEFT JOIN (SELECT `annid` FROM `zbsannhist` WHERE `login` = '" . $login . "') as zbh ON ( `zbsannouncements`.`id`=`zbh`.`annid`) WHERE `public`='1' AND `annid` IS NULL ORDER BY `zbsannouncements`.`id` DESC LIMIT 1";
     $data = simple_queryall($query);
     if (!empty($data)) {
-        if (isset($us_config['AN_MODAL']) AND ! empty($us_config['AN_MODAL'])) {
+        if (isset($us_config['AN_MODAL']) AND !empty($us_config['AN_MODAL'])) {
             $inputs = '';
             $inputs .= la_tag('br');
             $inputs .= la_HiddenInput('anmarkasread', $data[0]['id']);
@@ -2581,7 +2710,7 @@ function zbs_remoteApiRequest($requestUrl) {
     $usConfig = zbs_LoadConfig();
     $result = '';
     if (isset($usConfig['API_URL']) AND isset($usConfig['API_KEY'])) {
-        if (!empty($usConfig['API_URL']) AND ! empty($usConfig['API_KEY'])) {
+        if (!empty($usConfig['API_URL']) AND !empty($usConfig['API_KEY'])) {
             $apiBase = $usConfig['API_URL'] . '/?module=remoteapi&key=' . $usConfig['API_KEY'];
             @$result .= file_get_contents($apiBase . $requestUrl);
         } else {

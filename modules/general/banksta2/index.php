@@ -1,57 +1,60 @@
 <?php
 if (cfr('BANKSTA2')) {
     if ($ubillingConfig->getAlterParam('BANKSTA2_ENABLED')) {
-        $Banksta = new Banksta2;
+        show_window(__('Banksta processing'), Banksta2::web_MainButtonsControls());
 
-        show_window(__('Banksta processing'), $Banksta->web_MainButtonsControls());
-
-        if (wf_CheckGet(array('bankstalist'))) {
-            show_window(__('Previously loaded bank statements'), $Banksta->renderBStatementsJQDT());
+        if (ubRouting::checkGet('bankstalist')) {
+            show_window(__('Previously loaded bank statements'), Banksta2::renderBStatementsJQDT());
         }
 
         zb_BillingStats(true);
 
-        if (wf_CheckGet(array('fmpajax'))) {
-            $Banksta->renderFMPListJSON();
+        if (ubRouting::checkGet('fmpajax')) {
+            Banksta2::renderFMPListJSON();
         }
 
-        if (wf_CheckGet(array('bslistajax'))) {
-            $Banksta->renderBStatementsListJSON();
+        if (ubRouting::checkGet('bslistajax')) {
+            Banksta2::renderBStatementsListJSON();
         }
 
-        if (wf_CheckGet(array('presets'))) {
-            $Banksta->web_FMPForm();
+        if (ubRouting::checkGet('presets')) {
+            Banksta2::web_FMPForm();
         }
 
-        if (wf_CheckGet(array('refreshfmpselector'))) {
-            die($Banksta->getMappingPresetsSelector($_GET['fmpselectorid'], $_GET['fmpselectorclass']));
+        $Banksta = new Banksta2;
+
+        if (ubRouting::checkGet('refreshfmpselector')) {
+            die($Banksta->getMappingPresetsSelector(ubRouting::get('fmpselectorid'), ubRouting::get('fmpselectorclass')));
         }
 
-        if (wf_CheckGet(array('showhash'))) {
-            if (wf_CheckPost(array('bankstaeditrowid'))){
+        if (ubRouting::checkGet('showhash')) {
+            if (ubRouting::checkPost('bankstaeditrowid')){
 
-                if (wf_CheckPost(array('recallrowprocessing'))) {
-                    $Banksta->setBankstaRecUnCanceled($_POST['bankstaeditrowid']);
+                if (ubRouting::checkPost('recallrowprocessing')) {
+                    $Banksta->setBankstaRecUnCanceled(ubRouting::post('bankstaeditrowid'));
                 }
 
-                if (wf_CheckPost(array('cancelrowprocessing'))) {
-                    $Banksta->setBankstaRecCanceled($_POST['bankstaeditrowid']);
+                if (ubRouting::checkPost('cancelrowprocessing')) {
+                    $Banksta->setBankstaRecCanceled(ubRouting::post('bankstaeditrowid'));
                 }
 
-                if (wf_CheckPost(array('newbankstacontract'))) {
-                    $Banksta->setBankstaRecContract($_POST['bankstaeditrowid'], $_POST['newbankstacontract']);
+                if (ubRouting::checkPost('newbankstacontract')) {
+                    $Banksta->setBankstaRecContract(ubRouting::post('bankstaeditrowid'), ubRouting::post('newbankstacontract'));
                 }
 
-                if (wf_CheckPost(array('newbankstarvtype'))) {
-                    $Banksta->setBankstaRecSrvType($_POST['bankstaeditrowid'], $_POST['newbankstarvtype']);
+                if (ubRouting::checkPost('newbankstarvtype')) {
+                    $Banksta->setBankstaRecSrvType(ubRouting::post('bankstaeditrowid'), ubRouting::post('newbankstarvtype'));
                 }
+
+                $Banksta->getProcessedBSRecsCached(true);
+                $Banksta->getUsersDataCached(true);
             }
 
-            if (wf_CheckPost(array('bankstaneedpaymentspush'))) {
-                $Banksta->pushStatementPayments($_POST['bankstaneedpaymentspush'], wf_getBoolFromVar($_POST['bankstaneedrefiscalize'], true));
+            if (ubRouting::checkPost('bankstaneedpaymentspush')) {
+                $Banksta->pushStatementPayments(ubRouting::post('bankstaneedpaymentspush'), wf_getBoolFromVar(ubRouting::post('bankstaneedrefiscalize'), true));
             }
 
-            $fileInfoArray = $Banksta->getFileInfoByHash($_GET['showhash']);
+            $fileInfoArray = $Banksta->getFileInfoByHash(ubRouting::get('showhash'));
             $fileInfo = __('Date') . ': ' . $fileInfoArray['date'] . wf_nbsp(2) . '|' . wf_nbsp(2) .
                         __('Filename') . ': ' . $fileInfoArray['filename'] . wf_nbsp(2) . '|' . wf_nbsp(2) .
                         __('Total rows') . ': ' . $fileInfoArray['rowcount'] . wf_nbsp(2) . '|' . wf_nbsp(2) .
@@ -60,121 +63,162 @@ if (cfr('BANKSTA2')) {
             /*            __('Processed rows') . ': ' . $fileInfoArray['processed_cnt'] . wf_nbsp(2) . '|' . wf_nbsp(2) .
                         __('Canceled rows') . ': ' . $fileInfoArray['canceled_cnt'] . wf_nbsp(2) . '|' . wf_nbsp(2) .*/
 
-            show_window($fileInfo, $Banksta->web_BSProcessingForm($_GET['showhash']));
+            show_window($fileInfo, $Banksta->web_BSProcessingForm(ubRouting::get('showhash')));
         }
 
-        if (wf_CheckGet(array('showdetailed'))) {
+        if (ubRouting::checkGet('showdetailed')) {
             $windowContent = wf_tag('pre', false, 'floatpanelswide', 'style="width: 90%; padding: 10px 15px;"');
-            $windowContent.= print_r($Banksta->getBankstaRecDetails($_GET['showdetailed']), true);
+            $windowContent.= print_r($Banksta->getBankstaRecDetails(ubRouting::get('showdetailed')), true);
             $windowContent.= wf_tag('pre', true);
 
-            die(wf_modalAutoForm(__('Detailed info'), $windowContent, $_GET['detailsWinID'], '', true));
+            die(wf_modalAutoForm(__('Detailed info'), $windowContent, ubRouting::get('detailsWinID'), '', true));
         }
 
-        if (wf_CheckPost(array('delStatement')) and wf_CheckPost(array('hash'))) {
-            $Banksta->deleteBankStatement($_POST['hash']);
+        if (ubRouting::checkPost('delStatement') and ubRouting::checkPost('hash')) {
+            $Banksta->deleteBankStatement(ubRouting::post('hash'));
             die();
         }
 
         // create fields mapping preset
-        if (wf_CheckPost(array('fmpcreate'))) {
-            if (wf_CheckPost(array('fmpname'))) {
-                $newFMPName = $_POST['fmpname'];
+        if (ubRouting::checkPost('fmpcreate')) {
+            if (ubRouting::checkPost('fmpname')) {
+                $newFMPName = ubRouting::post('fmpname');
                 $foundId = $Banksta->checkFMPNameExists($newFMPName);
 
                 if (empty($foundId)) {
-                    if (wf_CheckGet(array('fmpquickadd'))) {
-                        $Banksta->addFieldsMappingPreset($newFMPName, $_POST['bsrealname_col'], $_POST['bsaddress_col'], $_POST['bspaysum_col'],
-                                                         $_POST['bspaypurpose_col'], $_POST['bspaydate_col'], $_POST['bspaytime_col'], $_POST['bscontract_col'],
-                                                        (wf_CheckPost(array('bstryguesscontract'))) ? 1 : 0,
-                                                         mysql_real_escape_string($_POST['bscontractdelimstart']), mysql_real_escape_string($_POST['bscontractdelimend']),
-                                                         $_POST['bscontractminlen'], $_POST['bscontractmaxlen'], $_POST['bssrvtype'],
-                                                         mysql_real_escape_string($_POST['bsinetdelimstart']), mysql_real_escape_string($_POST['bsinetdelimend']),
-                                                         mysql_real_escape_string($_POST['bsinetkeywords']), mysql_real_escape_string($_POST['bsukvdelimstart']),
-                                                         mysql_real_escape_string($_POST['bsukvdelimend']), mysql_real_escape_string($_POST['bsukvkeywords']),
-                                                        (wf_CheckPost(array('bsskiprow'))) ? 1 : 0,
-                                                         mysql_real_escape_string($_POST['bsskiprow_col']), mysql_real_escape_string($_POST['bsskiprowkeywords']),
-                                                        (wf_CheckPost(array('bsreplacestrs'))) ? 1 : 0,
-                                                         mysql_real_escape_string($_POST['bscolsreplacestrs']),  mysql_real_escape_string($_POST['bsstrstoreplace']),
-                                                         mysql_real_escape_string($_POST['bsstrstoreplacewith']),  mysql_real_escape_string($_POST['bsreplacementscnt']),
-                                                        (wf_CheckPost(array('bsremovestrs'))) ? 1 : 0,
-                                                         mysql_real_escape_string($_POST['bscolremovestrs']),  mysql_real_escape_string($_POST['bsstrstoremove']),
-                                                         $_POST['bspaymtypeid'], $_POST['bssrvidents_col'], (wf_CheckPost(array('bssrvidentspreff'))) ? 1 : 0
-                                                        );
-                    } else {
-                        $Banksta->addFieldsMappingPreset($newFMPName, $_POST['fmpcolrealname'], $_POST['fmpcoladdr'], $_POST['fmpcolpaysum'],
-                                                         $_POST['fmpcolpaypurpose'], $_POST['fmpcolpaydate'], $_POST['fmpcolpaytime'], $_POST['fmpcolcontract'],
-                                                        (wf_CheckPost(array('fmptryguesscontract'))) ? 1 : 0,
-                                                         mysql_real_escape_string($_POST['fmpcontractdelimstart']), mysql_real_escape_string($_POST['fmpcontractdelimend']),
-                                                         $_POST['fmpcontractminlen'], $_POST['fmpcontractmaxlen'], $_POST['fmpsrvtype'],
-                                                         mysql_real_escape_string($_POST['fmpinetdelimstart']), mysql_real_escape_string($_POST['fmpinetdelimend']),
-                                                         mysql_real_escape_string($_POST['fmpinetkeywords']), mysql_real_escape_string($_POST['fmpukvdelimstart']),
-                                                         mysql_real_escape_string($_POST['fmpukvdelimend']), mysql_real_escape_string($_POST['fmpukvkeywords']),
-                                                        (wf_CheckPost(array('fmpskiprow'))) ? 1 : 0,
-                                                         mysql_real_escape_string($_POST['fmpcolskiprow']), mysql_real_escape_string($_POST['fmpskiprowkeywords']),
-                                                        (wf_CheckPost(array('fmpreplacestrs'))) ? 1 : 0,
-                                                         mysql_real_escape_string($_POST['fmpcolsreplacestrs']),  mysql_real_escape_string($_POST['fmpstrstoreplace']),
-                                                         mysql_real_escape_string($_POST['fmpstrstoreplacewith']),  mysql_real_escape_string($_POST['fmpstrsreplacecount']),
-                                                        (wf_CheckPost(array('fmpremovestrs'))) ? 1 : 0,
-                                                         mysql_real_escape_string($_POST['fmpcolsremovestrs']),  mysql_real_escape_string($_POST['fmpstrstoremove']),
-                                                         $_POST['fmppaymtypeid'], $_POST['fmpcolsrvidents'], (wf_CheckPost(array('fmpsrvidentspreff'))) ? 1 : 0
-                                                        );
+                    if (ubRouting::checkGet('fmpquickadd')) {
+                        $Banksta->addFieldsMappingPreset($newFMPName,
+                                                         ubRouting::post('bsrealname_col', 'int'), ubRouting::post('bsaddress_col', 'int'), ubRouting::post('bspaysum_col', 'int'),
+                                                         ubRouting::post('bspaypurpose_col', 'int'), ubRouting::post('bspaydate_col', 'int'), ubRouting::post('bspaytime_col', 'int'),
+                                                         ubRouting::post('bscontract_col', 'int'),
+                                                         (ubRouting::checkPost('bspaymincoins') ? 1 : 0),
+                                                         (ubRouting::checkPost('bstryguesscontract') ? 1 : 0),
+                                                         ubRouting::post('bscontractdelimstart', 'mres'), ubRouting::post('bscontractdelimend', 'mres'),
+                                                         ubRouting::post('bscontractminlen', 'int'), ubRouting::post('bscontractmaxlen', 'int'),
+                                                         ubRouting::post('bssrvtype'),
+                                                         ubRouting::post('bsinetdelimstart', 'mres'), ubRouting::post('bsinetdelimend', 'mres'),
+                                                         ubRouting::post('bsinetkeywords', 'mres'), (ubRouting::checkPost('bsinetkeywordsnoesc') ? 1 : 0),
+                                                         ubRouting::post('bsukvdelimstart', 'mres'), ubRouting::post('bsukvdelimend', 'mres'),
+                                                         ubRouting::post('bsukvkeywords', 'mres'), (ubRouting::checkPost('bsukvkeywordsnoesc') ? 1 : 0),
+                                                         (ubRouting::checkPost('bsskiprow') ? 1 : 0),
+                                                         ubRouting::post('bsskiprow_col', 'vf'), ubRouting::post('bsskiprowkeywords', 'mres'),
+                                                         (ubRouting::checkPost('bsskiprowkeywordsnoesc') ? 1 : 0),
+                                                         (ubRouting::checkPost('bsreplacestrs') ? 1 : 0),
+                                                         ubRouting::post('bscolsreplacestrs', 'vf'), ubRouting::post('bsstrstoreplace', 'mres'),
+                                                         ubRouting::post('bsstrstoreplacewith', 'mres'), ubRouting::post('bsreplacementscnt', 'int'),
+                                                         (ubRouting::checkPost('bsreplacekeywordsnoesc') ? 1 : 0),
+                                                         (ubRouting::checkPost('bsremovestrs') ? 1 : 0),
+                                                         ubRouting::post('bscolremovestrs', 'vf'), ubRouting::post('bsstrstoremove', 'mres'),
+                                                         (ubRouting::checkPost('bsremovekeywordsnoesc') ? 1 : 0),
+                                                         ubRouting::post('bspaymtypeid', 'int'), ubRouting::post('bssrvidents_col', 'int'),
+                                                         (ubRouting::checkPost('bssrvidentspreff') ? 1 : 0)
+                        );
+                    }
+                    else {
+                        $Banksta->addFieldsMappingPreset($newFMPName,
+                                                         ubRouting::post('fmpcolrealname', 'int'), ubRouting::post('fmpcoladdr', 'int'), ubRouting::post('fmpcolpaysum', 'int'),
+                                                         ubRouting::post('fmpcolpaypurpose', 'int'), ubRouting::post('fmpcolpaydate', 'int'), ubRouting::post('fmpcolpaytime', 'int'),
+                                                         ubRouting::post('fmpcolcontract', 'int'),
+                                                         (ubRouting::checkPost('fmppaymincoins') ? 1 : 0),
+                                                         (ubRouting::checkPost('fmptryguesscontract') ? 1 : 0),
+                                                         ubRouting::post('fmpcontractdelimstart', 'mres'), ubRouting::post('fmpcontractdelimend', 'mres'),
+                                                         ubRouting::post('fmpcontractminlen', 'int'), ubRouting::post('fmpcontractmaxlen', 'int'),
+                                                         ubRouting::post('fmpsrvtype'),
+                                                         ubRouting::post('fmpinetdelimstart', 'mres'), ubRouting::post('fmpinetdelimend', 'mres'),
+                                                         ubRouting::post('fmpinetkeywords', 'mres'), (ubRouting::checkPost('fmpinetkeywordsnoesc') ? 1 : 0),
+                                                         ubRouting::post('fmpukvdelimstart', 'mres'), ubRouting::post('fmpukvdelimend', 'mres'),
+                                                         ubRouting::post('fmpukvkeywords', 'mres'), (ubRouting::checkPost('fmpukvkeywordsnoesc') ? 1 : 0),
+                                                         (ubRouting::checkPost('fmpskiprow') ? 1 : 0),
+                                                         ubRouting::post('fmpcolskiprow', 'vf'), ubRouting::post('fmpskiprowkeywords', 'mres'),
+                                                         (ubRouting::checkPost('fmpskiprokeywordsnoesc') ? 1 : 0),
+                                                         (ubRouting::checkPost('fmpreplacestrs') ? 1 : 0),
+                                                         ubRouting::post('fmpcolsreplacestrs', 'vf'), ubRouting::post('fmpstrstoreplace', 'mres'),
+                                                         ubRouting::post('fmpstrstoreplacewith', 'mres'), ubRouting::post('fmpstrsreplacecount', 'int'),
+                                                         (ubRouting::checkPost('fmpreplacekeywordsnoesc') ? 1 : 0),
+                                                         (ubRouting::checkPost('fmpremovestrs') ? 1 : 0),
+                                                         ubRouting::post('fmpcolsremovestrs', 'vf'), ubRouting::post('fmpstrstoremove', 'mres'),
+                                                         (ubRouting::checkPost('fmpremovekeywordsnoesc') ? 1 : 0),
+                                                         ubRouting::post('fmppaymtypeid', 'int'), ubRouting::post('fmpcolsrvidents', 'int'),
+                                                         (ubRouting::checkPost('fmpsrvidentspreff') ? 1 : 0)
+                        );
                     }
                     die();
                 } else {
                     $errormes = $Banksta->getUbMsgHelperInstance()->getStyledMessage(__('Preset with such name already exists with ID: ') . $foundId,
                                                                                         'error', 'style="margin: auto 0; padding: 10px 3px; width: 100%;"');
-                    die(wf_modalAutoForm(__('Error'), $errormes, $_POST['errfrmid'], '', true));
+                    die(wf_modalAutoForm(__('Error'), $errormes, ubRouting::post('errfrmid'), '', true));
                 }
             }
 
-            die(wf_modalAutoForm(__('Add fields mapping preset'), $Banksta->renderFMPAddForm($_POST['modalWindowId']), $_POST['modalWindowId'], $_POST['modalWindowBodyId'], true));
+            die(wf_modalAutoForm(__('Add fields mapping preset'), $Banksta->renderFMPAddForm(ubRouting::post('modalWindowId')), ubRouting::post('modalWindowId'), ubRouting::post('modalWindowBodyId'), true));
         }
 
         // manipulate fields mapping preset
-        if (wf_CheckPost(array('fmpid'))) {
-            $fmpID = $_POST['fmpid'];
-            $fmpEdit = wf_CheckPost(array('fmpedit'));
-            $fmpClone = wf_CheckPost(array('fmpclone'));
+        if (ubRouting::checkPost('fmpid')) {
+            $fmpID = ubRouting::post('fmpid');
+            $fmpEdit = ubRouting::post('fmpedit');
+            $fmpClone = ubRouting::post('fmpclone');
 
             // edit/clone fields mapping preset
             if ($fmpEdit or $fmpClone) {
-                 if (wf_CheckPost(array('fmpname'))) {
-                     $newFMPName = $_POST['fmpname'];
+                 if (ubRouting::checkPost('fmpname')) {
+                     $newFMPName = ubRouting::post('fmpname');
                      $foundId = ($fmpClone) ? $Banksta->checkFMPNameExists($newFMPName) : $Banksta->checkFMPNameExists($newFMPName, $fmpID);
 
                      if (empty($foundId)) {
                          if ($fmpEdit) {
-                             $Banksta->editFieldsMappingPreset($fmpID, $newFMPName, $_POST['fmpcolrealname'], $_POST['fmpcoladdr'], $_POST['fmpcolpaysum'],
-                                                               $_POST['fmpcolpaypurpose'], $_POST['fmpcolpaydate'], $_POST['fmpcolpaytime'], $_POST['fmpcolcontract'],
-                                                               (wf_CheckPost(array('fmptryguesscontract'))) ? 1 : 0,
-                                                               $_POST['fmpcontractdelimstart'], $_POST['fmpcontractdelimend'],
-                                                               $_POST['fmpcontractminlen'], $_POST['fmpcontractmaxlen'], $_POST['fmpsrvtype'],
-                                                               $_POST['fmpinetdelimstart'], $_POST['fmpinetdelimend'], $_POST['fmpinetkeywords'],
-                                                               $_POST['fmpukvdelimstart'], $_POST['fmpukvdelimend'], $_POST['fmpukvkeywords'],
-                                                               (wf_CheckPost(array('fmpskiprow'))) ? 1 : 0,
-                                                               $_POST['fmpcolskiprow'], $_POST['fmpskiprowkeywords'],
-                                                               (wf_CheckPost(array('fmpreplacestrs'))) ? 1 : 0,
-                                                               $_POST['fmpcolsreplacestrs'], $_POST['fmpstrstoreplace'], $_POST['fmpstrstoreplacewith'], $_POST['fmpstrsreplacecount'],
-                                                               (wf_CheckPost(array('fmpremovestrs'))) ? 1 : 0,
-                                                               $_POST['fmpcolsremovestrs'], $_POST['fmpstrstoremove'],
-                                                               $_POST['fmppaymtypeid'], $_POST['fmpcolsrvidents'], (wf_CheckPost(array('fmpsrvidentspreff'))) ? 1 : 0
+                             $Banksta->editFieldsMappingPreset($fmpID, $newFMPName,
+                                                               ubRouting::post('fmpcolrealname', 'int'), ubRouting::post('fmpcoladdr', 'int'), ubRouting::post('fmpcolpaysum', 'int'),
+                                                               ubRouting::post('fmpcolpaypurpose', 'int'), ubRouting::post('fmpcolpaydate', 'int'), ubRouting::post('fmpcolpaytime', 'int'),
+                                                               ubRouting::post('fmpcolcontract', 'int'),
+                                                               (ubRouting::checkPost('fmppaymincoins') ? 1 : 0),
+                                                               (ubRouting::checkPost('fmptryguesscontract') ? 1 : 0),
+                                                               ubRouting::post('fmpcontractdelimstart', 'mres'), ubRouting::post('fmpcontractdelimend', 'mres'),
+                                                               ubRouting::post('fmpcontractminlen', 'int'), ubRouting::post('fmpcontractmaxlen', 'int'),
+                                                               ubRouting::post('fmpsrvtype'),
+                                                               ubRouting::post('fmpinetdelimstart', 'mres'), ubRouting::post('fmpinetdelimend', 'mres'),
+                                                               ubRouting::post('fmpinetkeywords', 'mres'), (ubRouting::checkPost('fmpinetkeywordsnoesc') ? 1 : 0),
+                                                               ubRouting::post('fmpukvdelimstart', 'mres'), ubRouting::post('fmpukvdelimend', 'mres'),
+                                                               ubRouting::post('fmpukvkeywords', 'mres'), (ubRouting::checkPost('fmpukvkeywordsnoesc') ? 1 : 0),
+                                                               (ubRouting::checkPost('fmpskiprow') ? 1 : 0),
+                                                               ubRouting::post('fmpcolskiprow', 'vf'), ubRouting::post('fmpskiprowkeywords', 'mres'),
+                                                               (ubRouting::checkPost('fmpskiprokeywordsnoesc') ? 1 : 0),
+                                                               (ubRouting::checkPost('fmpreplacestrs') ? 1 : 0),
+                                                               ubRouting::post('fmpcolsreplacestrs', 'vf'), ubRouting::post('fmpstrstoreplace', 'mres'),
+                                                               ubRouting::post('fmpstrstoreplacewith', 'mres'), ubRouting::post('fmpstrsreplacecount', 'int'),
+                                                               (ubRouting::checkPost('fmpreplacekeywordsnoesc') ? 1 : 0),
+                                                               (ubRouting::checkPost('fmpremovestrs') ? 1 : 0),
+                                                               ubRouting::post('fmpcolsremovestrs', 'vf'), ubRouting::post('fmpstrstoremove', 'mres'),
+                                                               (ubRouting::checkPost('fmpremovekeywordsnoesc') ? 1 : 0),
+                                                               ubRouting::post('fmppaymtypeid', 'int'), ubRouting::post('fmpcolsrvidents', 'int'),
+                                                               (ubRouting::checkPost('fmpsrvidentspreff') ? 1 : 0)
                              );
                          } elseif ($fmpClone) {
-                             $Banksta->addFieldsMappingPreset($newFMPName, $_POST['fmpcolrealname'], $_POST['fmpcoladdr'], $_POST['fmpcolpaysum'],
-                                                              $_POST['fmpcolpaypurpose'], $_POST['fmpcolpaydate'], $_POST['fmpcolpaytime'], $_POST['fmpcolcontract'],
-                                                              (wf_CheckPost(array('fmptryguesscontract'))) ? 1 : 0,
-                                                              $_POST['fmpcontractdelimstart'], $_POST['fmpcontractdelimend'],
-                                                              $_POST['fmpcontractminlen'], $_POST['fmpcontractmaxlen'], $_POST['fmpsrvtype'],
-                                                              $_POST['fmpinetdelimstart'], $_POST['fmpinetdelimend'], $_POST['fmpinetkeywords'],
-                                                              $_POST['fmpukvdelimstart'], $_POST['fmpukvdelimend'], $_POST['fmpukvkeywords'],
-                                                              (wf_CheckPost(array('fmpskiprow'))) ? 1 : 0,
-                                                              $_POST['fmpcolskiprow'], $_POST['fmpskiprowkeywords'],
-                                                              (wf_CheckPost(array('fmpreplacestrs'))) ? 1 : 0,
-                                                              $_POST['fmpcolsreplacestrs'], $_POST['fmpstrstoreplace'], $_POST['fmpstrstoreplacewith'], $_POST['fmpstrsreplacecount'],
-                                                              (wf_CheckPost(array('fmpremovestrs'))) ? 1 : 0,
-                                                              $_POST['fmpcolsremovestrs'], $_POST['fmpstrstoremove'],
-                                                              $_POST['fmppaymtypeid'], $_POST['fmpcolsrvidents'], (wf_CheckPost(array('fmpsrvidentspreff'))) ? 1 : 0
+                             $Banksta->addFieldsMappingPreset($newFMPName,
+                                                              ubRouting::post('fmpcolrealname', 'int'), ubRouting::post('fmpcoladdr', 'int'), ubRouting::post('fmpcolpaysum', 'int'),
+                                                              ubRouting::post('fmpcolpaypurpose', 'int'), ubRouting::post('fmpcolpaydate', 'int'), ubRouting::post('fmpcolpaytime', 'int'),
+                                                              ubRouting::post('fmpcolcontract', 'int'),
+                                                              (ubRouting::checkPost('fmppaymincoins') ? 1 : 0),
+                                                              (ubRouting::checkPost('fmptryguesscontract') ? 1 : 0),
+                                                              ubRouting::post('fmpcontractdelimstart', 'mres'), ubRouting::post('fmpcontractdelimend', 'mres'),
+                                                              ubRouting::post('fmpcontractminlen', 'int'), ubRouting::post('fmpcontractmaxlen', 'int'),
+                                                              ubRouting::post('fmpsrvtype'),
+                                                              ubRouting::post('fmpinetdelimstart', 'mres'), ubRouting::post('fmpinetdelimend', 'mres'),
+                                                              ubRouting::post('fmpinetkeywords', 'mres'), (ubRouting::checkPost('fmpinetkeywordsnoesc') ? 1 : 0),
+                                                              ubRouting::post('fmpukvdelimstart', 'mres'), ubRouting::post('fmpukvdelimend', 'mres'),
+                                                              ubRouting::post('fmpukvkeywords', 'mres'), (ubRouting::checkPost('fmpukvkeywordsnoesc') ? 1 : 0),
+                                                              (ubRouting::checkPost('fmpskiprow') ? 1 : 0),
+                                                              ubRouting::post('fmpcolskiprow', 'vf'), ubRouting::post('fmpskiprowkeywords', 'mres'),
+                                                              (ubRouting::checkPost('fmpskiprokeywordsnoesc') ? 1 : 0),
+                                                              (ubRouting::checkPost('fmpreplacestrs') ? 1 : 0),
+                                                              ubRouting::post('fmpcolsreplacestrs', 'vf'), ubRouting::post('fmpstrstoreplace', 'mres'),
+                                                              ubRouting::post('fmpstrstoreplacewith', 'mres'), ubRouting::post('fmpstrsreplacecount', 'int'),
+                                                              (ubRouting::checkPost('fmpreplacekeywordsnoesc') ? 1 : 0),
+                                                              (ubRouting::checkPost('fmpremovestrs') ? 1 : 0),
+                                                              ubRouting::post('fmpcolsremovestrs', 'vf'), ubRouting::post('fmpstrstoremove', 'mres'),
+                                                              (ubRouting::checkPost('fmpremovekeywordsnoesc') ? 1 : 0),
+                                                              ubRouting::post('fmppaymtypeid', 'int'), ubRouting::post('fmpcolsrvidents', 'int'),
+                                                              (ubRouting::checkPost('fmpsrvidentspreff') ? 1 : 0)
                              );
                          }
 
@@ -182,45 +226,45 @@ if (cfr('BANKSTA2')) {
                      } else {
                          $errormes = $Banksta->getUbMsgHelperInstance()->getStyledMessage(__('Preset with such name already exists with ID: ') . $foundId,
                              'error', 'style="margin: auto 0; padding: 10px 3px; width: 100%;"');
-                         die(wf_modalAutoForm(__('Error'), $errormes, $_POST['errfrmid'], '', true));
+                         die(wf_modalAutoForm(__('Error'), $errormes, ubRouting::post('errfrmid'), '', true));
                      }
                  }
 
-                die(wf_modalAutoForm(__('Edit fields mapping preset'), $Banksta->renderFMPEditForm($fmpID, $_POST['modalWindowId'], $fmpClone), $_POST['modalWindowId'], $_POST['modalWindowBodyId'], true));
+                die(wf_modalAutoForm(__('Edit fields mapping preset'), $Banksta->renderFMPEditForm($fmpID, ubRouting::post('modalWindowId'), $fmpClone), ubRouting::post('modalWindowId'), ubRouting::post('modalWindowBodyId'), true));
             }
 
             // delete fields mapping preset
-            if (wf_CheckPost(array('delFMP'))) {
+            if (ubRouting::checkPost('delFMP')) {
                 $Banksta->deleteFieldsMappingPreset($fmpID);
                 die();
             }
 
             // get fields mapping preset data JSON
-            if (wf_CheckPost(array('getfmpdata'))) {
+            if (ubRouting::checkPost('getfmpdata')) {
                 die($Banksta->getFMPDataJSON($fmpID, $Banksta->dbPresetsFlds2PreprocForm));
             }
         }
 
         //show upload form
-        if (wf_CheckGet(array('uploadform'))) {
+        if (ubRouting::checkGet('uploadform')) {
             show_window(__('Payments import from bank statement file'), $Banksta->web_FileUploadForm());
         }
 
-        if (wf_CheckGet(array('proceedstatementimport'))) {
+        if (ubRouting::checkGet('proceedstatementimport')) {
             $statementFileData = unserialize(base64_decode(zb_StorageGet('BANKSTA2_STATEMENT_FILEDATA')));
             $Banksta->processBankStatement(unserialize(base64_decode(zb_StorageGet('BANKSTA2_STATEMENT_DATA'))), $statementFileData);
             rcms_redirect($Banksta::URL_BANKSTA2_PROCESSING . $statementFileData['hash']);
         }
 
-        if (wf_CheckPost(array('import_rawdata'))) {
+        if (ubRouting::checkPost('import_rawdata')) {
             $importOptions = array();
-            $skipLastChecks = (wf_CheckPost(array('bsskiplastcheck'))) ? 1 : 0;
+            $skipLastChecks = (ubRouting::checkPost('bsskiplastcheck')) ? 1 : 0;
 
             foreach ($Banksta->dbPresetsFlds2PreprocForm as $item => $value) {
-                $importOptions[$item] = (wf_CheckPost(array($value))) ? $_POST[$value] : 0;
+                $importOptions[$item] = (ubRouting::checkPost($value)) ? ubRouting::post($value) : 0;
             }
 
-            $lastCheksData = $Banksta->preprocessBStatement($_POST['import_rawdata'], $importOptions, $skipLastChecks);
+            $lastCheksData = $Banksta->preprocessBStatement(ubRouting::post('import_rawdata'), $importOptions, $skipLastChecks);
 
             if (!$skipLastChecks) {
                 $Banksta->web_LastChecksForm($lastCheksData);
@@ -229,15 +273,15 @@ if (cfr('BANKSTA2')) {
             }
         }
 
-        if (wf_CheckPost(array('bankstatementuploaded'))) {
+        if (ubRouting::checkPost('bankstatementuploaded')) {
             //upload file and show preprocessing form
             $importFileData  = $Banksta->uploadFile();
-            $delimiter       = $_POST['delimiter'];
-            $encoding        = $_POST['encoding'];
-            $useDBFColNames  = (wf_CheckPost(array('usedbfcolnames'))) ? $_POST['usedbfcolnames'] : false;
-            $skipRowsCount = (wf_CheckPost(array('skiprowscount'))) ? $_POST['skiprowscount'] : 0;
-            $errormes = '';
+            $delimiter       = ubRouting::post('delimiter');
+            $encoding        = ubRouting::post('encoding');
+            $useDBFColNames  = (ubRouting::checkPost('usedbfcolnames')) ? ubRouting::post('usedbfcolnames') : false;
+            $skipRowsCount   = (ubRouting::checkPost('skiprowscount')) ? ubRouting::post('skiprowscount') : 0;
 
+            $errormes = '';
             $errormes = $Banksta->preprocessImportFile($importFileData['savedname'], $delimiter, $encoding, $useDBFColNames, $skipRowsCount);
 
             if (empty($errormes)) {
@@ -248,7 +292,7 @@ if (cfr('BANKSTA2')) {
             }
         }
 
-        if (wf_CheckGet(array('fieldmapping'))) {
+        if (ubRouting::checkGet('fieldmapping')) {
             $Banksta->web_FieldsMappingForm(zb_StorageGet('BANKSTA2_RAWDATA'));
         }
     } else {

@@ -4,67 +4,67 @@ if (cfr('SWITCHES')) {
     $altCfg = $ubillingConfig->getAlter();
 
     //icmp ping handling
-    if (wf_CheckGet(array('backgroundicmpping'))) {
-        $billingConf = $ubillingConfig->getBilling();
-        $command = $billingConf['SUDO'] . ' ' . $billingConf['PING'] . ' -i 0.01 -c 10  ' . $_GET['backgroundicmpping'];
-        $icmpPingResult = shell_exec($command);
-        die(wf_tag('pre') . $icmpPingResult . wf_tag('pre', true));
+    if (ubRouting::checkGet('backgroundicmpping')) {
+        zb_SwitchBackgroundIcmpPing(ubRouting::get('backgroundicmpping'));
     }
 
     //switch by IP detecting
-    if (wf_CheckGet(array('gotoswitchbyip'))) {
-        $detectSwitchId = zb_SwitchGetIdbyIP($_GET['gotoswitchbyip']);
+    if (ubRouting::checkGet('gotoswitchbyip')) {
+        $detectSwitchId = zb_SwitchGetIdbyIP(ubRouting::get('gotoswitchbyip'));
         if ($detectSwitchId) {
-            rcms_redirect('?module=switches&edit=' . $detectSwitchId);
+            ubRouting::nav('?module=switches&edit=' . $detectSwitchId);
         } else {
-            show_warning(__('Strange exeption') . ': NO_SUCH_IP');
+            show_error(__('Strange exeption') . ': NO_SUCH_IP');
         }
     }
 
-//switch adding
-    if (isset($_POST['newswitchmodel'])) {
+    //new switch creation
+    if (ubRouting::checkPost('newswitchmodel')) {
         if (cfr('SWITCHESEDIT')) {
-            $modelid = $_POST['newswitchmodel'];
-            $ip = $_POST['newip'];
-            $desc = $_POST['newdesc'];
-            $location = $_POST['newlocation'];
-            $snmp = $_POST['newsnmp'];
-            $swid = ($altCfg['SWITCHES_EXTENDED']) ? $_POST['newswid'] : '';
-            $geo = $_POST['newgeo'];
-            $parentid = $_POST['newparentid'];
-            $snmpwrite = $_POST['newsnmpwrite'];
-            $switchgroup = (wf_CheckPost(array('newswgroup'))) ? $_POST['newswgroup'] : '';
+            $modelid = ubRouting::post('newswitchmodel');
+            $ip = ubRouting::post('newip');
+            $desc = ubRouting::post('newdesc');
+            $location = ubRouting::post('newlocation');
+            $snmp = ubRouting::post('newsnmp');
+            $swid = ($altCfg['SWITCHES_EXTENDED']) ? ubRouting::post('newswid') : '';
+            $geo = ubRouting::post('newgeo');
+            $parentid = ubRouting::post('newparentid');
+            $snmpwrite = ubRouting::post('newsnmpwrite');
+            $switchgroup = (ubRouting::checkPost('newswgroup')) ? ubRouting::post('newswgroup') : '';
             ub_SwitchAdd($modelid, $ip, $desc, $location, $snmp, $swid, $geo, $parentid, $snmpwrite, $switchgroup);
-            rcms_redirect("?module=switches");
+            ubRouting::nav('?module=switches');
         } else {
             show_window(__('Error'), __('Access denied'));
         }
     }
-//switch deletion
-    if (isset($_GET['switchdelete'])) {
-        if (!empty($_GET['switchdelete'])) {
-            if (cfr('SWITCHESEDIT')) {
-                if (ub_SwitchIsParent($_GET['switchdelete'])) {
-                    if (wf_CheckGet(array('forcedel'))) {
-                        //forced parent switch deletion, childs flush
-                        ub_SwitchFlushChilds($_GET['switchdelete']);
-                        ub_SwitchDelete($_GET['switchdelete']);
-                        rcms_redirect("?module=switches");
-                    } else {
-                        show_warning(__('This switch is the parent for other switches'));
-                    }
+
+    //existing switch deletion
+    if (ubRouting::checkGet('switchdelete')) {
+        $switchToDelete = ubRouting::get('switchdelete', 'int');
+        if (cfr('SWITCHESEDIT')) {
+            //this switch is parent for some other switches
+            if (ub_SwitchIsParent($switchToDelete)) {
+                if (ubRouting::checkGet('forcedel')) {
+                    //forced parent switch deletion, childs flush
+                    ub_SwitchFlushChilds($switchToDelete);
+                    //delete the switch itself
+                    ub_SwitchDelete($switchToDelete);
+                    ubRouting::nav('?module=switches');
                 } else {
-                    ub_SwitchDelete($_GET['switchdelete']);
-                    rcms_redirect("?module=switches");
+                    show_warning(__('This switch is the parent for other switches'));
                 }
             } else {
-                show_window(__('Error'), __('Access denied'));
+                //just delete switch
+                ub_SwitchDelete($switchToDelete);
+                ubRouting::nav('?module=switches');
             }
+        } else {
+            show_window(__('Error'), __('Access denied'));
         }
     }
 
 
-    if (!isset($_GET['edit'])) {
+    if (!ubRouting::checkGet('edit')) {
         $swlinks = '';
         if (cfr('SWITCHESEDIT')) {
             $swlinks .= wf_modalAuto(wf_img('skins/add_icon.png') . ' ' . __('Add switch'), __('Add switch'), web_SwitchFormAdd(), 'ubButton');
@@ -75,7 +75,6 @@ if (cfr('SWITCHES')) {
         }
 
         $swlinks .= wf_Link('?module=switches&forcereping=true', wf_img('skins/refresh.gif') . ' ' . __('Force ping'), false, 'ubButton');
-
 
         if (cfr('SWITCHESEDIT')) {
             $toolsLinks = '';
@@ -96,9 +95,6 @@ if (cfr('SWITCHES')) {
             $swlinks .= wf_modalAuto(web_icon_extended() . ' ' . __('Tools'), __('Tools'), $toolsLinks, 'ubButton');
         }
 
-
-
-
         if ($altCfg['SWYMAP_ENABLED']) {
             $swlinks .= wf_Link('?module=switchmap', wf_img('skins/ymaps/network.png') . ' ' . __('Switches map'), false, 'ubButton');
         }
@@ -110,46 +106,50 @@ if (cfr('SWITCHES')) {
         }
 
         //parental switch deletion alternate controls
-        if (isset($_GET['switchdelete'])) {
+        if (ubRouting::checkGet('switchdelete')) {
             $swlinks = '';
-            $swlinks .= wf_Link('?module=switches&edit=' . $_GET['switchdelete'], web_edit_icon() . ' ' . __('Edit'), false, 'ubButton') . ' ';
-            $swlinks .= wf_JSAlertStyled('?module=switches&switchdelete=' . $_GET['switchdelete'] . '&forcedel=true', web_delete_icon() . ' ' . __('Force deletion'), __('Removing this may lead to irreparable results'), 'ubButton');
+            $swlinks .= wf_Link('?module=switches&edit=' . ubRouting::get('switchdelete'), web_edit_icon() . ' ' . __('Edit'), false, 'ubButton') . ' ';
+            $swlinks .= wf_JSAlertStyled('?module=switches&switchdelete=' . ubRouting::get('switchdelete') . '&forcedel=true', web_delete_icon() . ' ' . __('Force deletion'), __('Removing this may lead to irreparable results'), 'ubButton');
         }
+
         show_window('', $swlinks);
 
-        if (!isset($_GET['timemachine'])) {
-            if ((!isset($_GET['switchdelete']))) {
-                if (wf_CheckGet(array('forcereping'))) {
+        if (!ubRouting::get('timemachine')) {
+            if (!ubRouting::checkget('switchdelete')) {
+                if (ubRouting::checkGet('forcereping')) {
                     zb_SwitchesForcePing();
                 }
+
                 //display switches list
-                if (wf_CheckGet(array('ajaxlist'))) {
+                if (ubRouting::checkGet('ajaxlist')) {
                     die(zb_SwitchesRenderAjaxList());
                 }
+
+                //rendering of existing switches list
                 show_window(__('Available switches'), web_SwitchesRenderList());
             }
         } else {
             //show dead switch time machine
-            if (!isset($_GET['snapshot'])) {
+            if (!ubRouting::checkGet('snapshot')) {
                 //cleanup subroutine
-                if (wf_CheckGet(array('flushalldead'))) {
+                if (ubRouting::checkGet('flushalldead')) {
                     ub_SwitchesTimeMachineCleanup();
-                    rcms_redirect("?module=switches&timemachine=true");
+                    ubRouting::nav('?module=switches&timemachine=true');
                 }
 
                 //calendar view time machine
-                if (!wf_CheckPost(array('switchdeadlogsearch'))) {
+                if (!ubRouting::checkPost('switchdeadlogsearch')) {
                     $deadTimeMachine = ub_JGetSwitchDeadLog();
                     $timeMachine = wf_FullCalendar($deadTimeMachine);
                 } else {
                     //search processing
-                    $timeMachine = ub_SwitchesTimeMachineSearch($_POST['switchdeadlogsearch']);
+                    $timeMachine = ub_SwitchesTimeMachineSearch(ubRouting::post('switchdeadlogsearch'));
                 }
                 $timeMachineCleanupControl = wf_JSAlert('?module=switches&timemachine=true&flushalldead=true', wf_img('skins/icon_cleanup.png', __('Cleanup')), __('Are you serious'));
                 //here some searchform
 
                 $timeMachineSearchForm = web_SwitchTimeMachineSearchForm() . wf_tag('br');
-                if (wf_CheckGet(array('deadtop'))) {
+                if (ubRouting::checkGet('deadtop')) {
                     $tmControls = wf_BackLink('?module=switches', __('Back')) . ' ' . wf_Link('?module=switches&timemachine=true', wf_img('skins/time_machine.png') . ' ' . __('Time machine'), false, 'ubButton');
                     show_window('', $tmControls);
                     show_window(__('Dead switches top') . ' ' . curmonth(), web_DeadSwitchesTop());
@@ -160,67 +160,21 @@ if (cfr('SWITCHES')) {
                 }
             } else {
                 //showing dead switches snapshot
-                ub_SwitchesTimeMachineShowSnapshot($_GET['snapshot']);
+                ub_SwitchesTimeMachineShowSnapshot(ubRouting::get('snapshot'));
             }
         }
     } else {
-        //editing switch form
-        $switchid = vf($_GET['edit'], 3);
+        //switch edit form
+        $switchid = ubRouting::get('edit', 'int');
         $switchdata = zb_SwitchGetData($switchid);
         if (!empty($switchdata)) {
 
-            //if someone edit switch 
-            if (wf_CheckPost(array('editmodel'))) {
+            //if someone edits switch 
+            if (ubRouting::checkPost('editmodel')) {
                 if (cfr('SWITCHESEDIT')) {
-                    simple_update_field('switches', 'modelid', $_POST['editmodel'], "WHERE `id`='" . $switchid . "'");
-                    simple_update_field('switches', 'ip', $_POST['editip'], "WHERE `id`='" . $switchid . "'");
-                    simple_update_field('switches', 'location', $_POST['editlocation'], "WHERE `id`='" . $switchid . "'");
-                    simple_update_field('switches', 'desc', $_POST['editdesc'], "WHERE `id`='" . $switchid . "'");
-                    simple_update_field('switches', 'snmp', $_POST['editsnmp'], "WHERE `id`='" . $switchid . "'");
-                    simple_update_field('switches', 'snmpwrite', $_POST['editsnmpwrite'], "WHERE `id`='" . $switchid . "'");
-                    if ($altCfg['SWITCHES_EXTENDED']) {
-                        simple_update_field('switches', 'swid', $_POST['editswid'], "WHERE `id`='" . $switchid . "'");
-                    }
-                    simple_update_field('switches', 'geo', preg_replace('/[^-?0-9\.,]/i', '', $_POST['editgeo']), "WHERE `id`='" . $switchid . "'");
-                    if ($_POST['editparentid'] != $switchid) {
-                        //checks for preventing loops
-                        $alllinks = array();
-                        $tmpSwitches = zb_SwitchesGetAll();
-                        if (!empty($tmpSwitches)) {
-                            //transform array to id=>switchdata
-                            foreach ($tmpSwitches as $io => $each) {
-                                $allswitches[$each['id']] = $each;
-                            }
-
-                            //making id=>parentid array
-                            foreach ($tmpSwitches as $io => $each) {
-                                $alllinks[$each['id']] = $each['parentid'];
-                            }
-                        }
-                        if (sm_CheckLoop($alllinks, $switchid, $_POST['editparentid'])) {
-                            simple_update_field('switches', 'parentid', $_POST['editparentid'], "WHERE `id`='" . $switchid . "'");
-                        }
-                    }
-
-                    $swGroupsEnabled = $ubillingConfig->getAlterParam('SWITCH_GROUPS_ENABLED');
-                    if ($swGroupsEnabled) {
-                        $switchGroups = new SwitchGroups();
-                        $switchAlreadyInGroup = $switchGroups->getSwitchGroupBySwitchId($switchid);
-
-                        if (empty($switchAlreadyInGroup) and ! empty($_POST['editswgroup'])) {
-                            $query = "INSERT INTO `switch_groups_relations` (`switch_id`, `sw_group_id`) VALUES (" . $switchid . ", " . $_POST['editswgroup'] . ")";
-                            nr_query($query);
-                        } elseif (isset($_POST['editswgroup'])) {
-                            if ($_POST['editswgroup'] == '0') {
-                                $switchGroups->removeSwitchFromGroup($switchid);
-                            } else {
-                                simple_update_field('switch_groups_relations', 'sw_group_id', $_POST['editswgroup'], "WHERE `switch_id`='" . $switchid . "'");
-                            }
-                        }
-                    }
-
-                    log_register('SWITCH CHANGE [' . $switchid . ']' . ' IP ' . $_POST['editip'] . " LOC `" . $_POST['editlocation'] . "`");
-                    rcms_redirect("?module=switches&edit=" . $switchid);
+                    //saving switch data
+                    ub_SwitchSave($switchid);
+                    ubRouting::nav('?module=switches&edit=' . $switchid);
                 } else {
                     show_error(__('Access denied'));
                 }
@@ -231,14 +185,13 @@ if (cfr('SWITCHES')) {
             show_window(__('Edit switch'), web_SwitchEditForm($switchid));
             //minimap container
             if ($altCfg['SWYMAP_ENABLED']) {
-                if ((!empty($switchdata['geo'])) AND ( !wf_CheckPost(array('editmodel')))) {
+                if ((!empty($switchdata['geo'])) AND (!ubRouting::checkPost('editmodel'))) {
                     show_window(__('Mini-map'), wf_delimiter() . web_SwitchMiniMap($switchdata));
                 }
             }
 
             //downlinks list
             web_SwitchDownlinksList($switchid);
-
 
             //additional comments engine
             if ($altCfg['ADCOMMENTS_ENABLED']) {
@@ -254,4 +207,3 @@ if (cfr('SWITCHES')) {
 } else {
     show_error(__('Access denied'));
 }
-?>

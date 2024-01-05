@@ -1,43 +1,54 @@
 <?php
 
 if (cfr('PLDHCP')) {
+    $alter_conf = $ubillingConfig->getAlter();
+    if ($alter_conf['DHCP_ENABLED']) {
 
-
-    if (ubRouting::checkGet('username')) {
-        $login = ubRouting::get('username');
-        $config = $ubillingConfig->getBilling();
-        $alter_conf = $ubillingConfig->getAlter();
-        $cat_path = $config['CAT'];
-        $grep_path = $config['GREP'];
-        $tail_path = $config['TAIL'];
-        $sudo_path = $config['SUDO'];
-        $leasefile = $alter_conf['NMLEASES'];
-        $userdata = zb_UserGetStargazerData($login);
-        $user_ip = $userdata['IP'];
-        $user_mac = zb_MultinetGetMAC($user_ip);
-        $messages = new UbillingMessageHelper();
-        $currentMacLabel = $messages->getStyledMessage(wf_tag('h2') . __('Current MAC') . ': ' . $user_mac . wf_tag('h2', true), 'info');
-        show_window('', $currentMacLabel);
-        $command = $sudo_path . ' ' . $cat_path . ' ' . $leasefile . ' | ' . $grep_path . ' ' . $user_mac . ' | ' . $tail_path . '  -n 30';
-        $output = shell_exec($command);
-        if (!empty($output)) {
-            $result = '';
-            $rowdata = '';
-            $allrows = explodeRows($output);
-            foreach ($allrows as $eachrow) {
-                if (!empty($eachrow)) {
-                    $celldata = wf_TableCell($eachrow);
-                    $rowdata .= wf_TableRow($celldata, 'row3');
+        if (ubRouting::checkGet('username')) {
+            $userLogin = ubRouting::get('username');
+            $userMac = '';
+            $userIp = '';
+            if (ubRouting::checkGet(array('userip', 'usermac'))) {
+                $userIp = ubRouting::get('userip');
+                $userMac = ubRouting::get('usermac');
+            } else {
+                $userData = zb_UserGetStargazerData($userLogin);
+                if (!empty($userData)) {
+                    $userIp = $userData['IP'];
+                    $userMac = zb_MultinetGetMAC($userIp);
                 }
             }
-            $result = wf_TableBody($rowdata, '100%', 0);
-            show_window(__('User DHCP log'), $result);
+
+            $plDhcp = new DHCPPL($userLogin, $userIp, $userMac);
+            //rendering current user mac info
+            show_window('', $plDhcp->getMacLabel());
+
+            //rendering user dhcp log data
+            $winControl = '';
+            if ($userLogin AND $userIp AND $userMac) {
+                if (ubRouting::get('zen')) {
+                    $winControl = wf_Link($plDhcp::URL_ME . '&username=' . $userLogin, wf_img('skins/log_icon_small.png', __('Normal')));
+                } else {
+                    $zenUrl = $plDhcp::URL_ME . '&username=' . $userLogin . '&userip=' . $userIp . '&usermac=' . $userMac . '&zen=true';
+                    $winControl = wf_Link($zenUrl, wf_img('skins/zen.png', __('Zen')));
+                }
+            }
+
+            if (ubRouting::checkGet('zen')) {
+                $zenFlow = new ZenFlow($plDhcp->getFlowId(), $plDhcp->render(), $plDhcp->getTimeout());
+                show_window($winControl . ' ' . __('User DHCP log') . ', ' . __('Zen'), $zenFlow->render());
+            } else {
+                show_window($winControl . ' ' . __('User DHCP log'), $plDhcp->render());
+            }
+
+
+            show_window('', web_UserControls($userLogin));
         } else {
-            show_warning(__('User DHCP log') . ': ' . __('Nothing found'));
+            show_error(__('Strange exception') . ': ' . __('Empty login'));
+            show_window('', wf_tag('center') . wf_img('skins/unicornwrong.png') . wf_tag('center', true));
         }
-
-
-        show_window('', web_UserControls($login));
+    } else {
+        show_error(__('This module is disabled'));
     }
 } else {
     show_error(__('You cant control this module'));

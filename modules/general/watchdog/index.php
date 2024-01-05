@@ -48,6 +48,12 @@ if (cfr('WATCHDOG')) {
             ubRouting::nav('?module=watchdog');
         }
 
+        //enabling/disabling sms silence mode
+        if (ubRouting::checkGet('smssilence')) {
+            $interface->setSmsSilence(ubRouting::get('smssilence'));
+            ubRouting::nav('?module=watchdog');
+        }
+
 
         //show watchdog main control panel
         show_window('', $interface->panel());
@@ -78,4 +84,3 @@ if (cfr('WATCHDOG')) {
 } else {
     show_error(__('Access denied'));
 }
-?>

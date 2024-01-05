@@ -69,7 +69,7 @@ function wf_Form($action, $method, $inputs, $class = '', $legend = '', $CtrlID =
  * @param  string $value current value
  * @param  bool   $br append new line
  * @param  string $size input size
- * @param  string $pattern input check pattern. Avaible: geo, mobile, finance, ip, net-cidr, digits, email, alpha, alphanumeric,mac,float
+ * @param  string $pattern input check pattern. Avaible: geo, mobile, finance, ip, net-cidr, digits, email, alpha, alphanumeric,mac,float,login,url,sigint
  * @param  string $class class of the element
  * @param  string $ctrlID id of the element
  * @param  string $options
@@ -95,19 +95,22 @@ function wf_TextInput($name, $label = '', $value = '', $br = false, $size = '', 
         $newline = '';
     }
     // We will verify that we correctly enter data by input type
-    $pattern = ($pattern == 'geo') ? 'pattern="-?\d{1,2}(\.\d+)\s?,\s?-?\d{1,3}(\.\d+)" placeholder="0.00000,0.00000" title="' . __('The format of geographic data can be') . ': 40.7143528,-74.0059731 ; 41.40338, 2.17403 ; -14.235004 , 51.92528"' : $pattern;
-    $pattern = ($pattern == 'mobile') ? 'pattern="\+?(\d{1,3})?\d{2,3}\d{7}" placeholder="(+)(38)0500000000" title="' . __('The mobile number format can be') . ': +78126121104, 0506430501, 375295431122"' : $pattern;
+    $pattern = ($pattern == 'alpha') ? 'pattern="[a-zA-Z]+" placeholder="aZ" title="' . __('This field can only contain Latin letters') . '"' : $pattern;
+    $pattern = ($pattern == 'alphanumeric') ? 'pattern="[a-zA-Z0-9]+" placeholder="aZ09" title="' . __('This field can only contain Latin letters and numbers') . '"' : $pattern;
+    $pattern = ($pattern == 'digits') ? 'pattern="^\d+$" placeholder="0" title="' . __('This field can only contain digits') . '"' : $pattern;
     $pattern = ($pattern == 'finance') ? 'pattern="\d+(\.\d+)?" placeholder="0(.00)" title="' . __('The financial input format can be') . ': 1 ; 4.01 ; 2 ; 0.001"' : $pattern;
     $pattern = ($pattern == 'float') ? 'pattern="\d+(\.\d+)?" placeholder="0.00" title="' . __('This field can only contain digits') . ': 1 ; 4.01 ; 2 ; 0.001"' : $pattern;
+    $pattern = ($pattern == 'sigint') ? 'pattern="^-?\d+$" placeholder="0" title="' . __('This field can only contain digits') . ' ' . __('and') . ' - "' : $pattern;
     // For this pattern IP adress also can be 0.0.0.0
     $pattern = ($pattern == 'ip') ? 'pattern="^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$" placeholder="0.0.0.0" title="' . __('The IP address format can be') . ': 192.1.1.1"' : $pattern;
     // For this pattern exclude cidr /31
     $pattern = ($pattern == 'net-cidr') ? 'pattern="^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\/([0-9]|[1-2][0-9]|30|32)$" placeholder="0.0.0.0/0" title="' . __('The format of IP address with mask can be') . ': 192.1.1.1/32 ' . __('and the mask can not be /31') . '"' : $pattern;
-    $pattern = ($pattern == 'digits') ? 'pattern="^\d+$" placeholder="0" title="' . __('This field can only contain digits') . '"' : $pattern;
     $pattern = ($pattern == 'email') ? 'pattern="^([\w\._-]+)@([\w\._-]+)\.([a-z]{2,6}\.?)$" placeholder="bobrik@bobrik.com" title="' . __('This field can only contain email address') . '"' : $pattern;
-    $pattern = ($pattern == 'alpha') ? 'pattern="[a-zA-Z]+" placeholder="aZ" title="' . __('This field can only contain Latin letters') . '"' : $pattern;
-    $pattern = ($pattern == 'alphanumeric') ? 'pattern="[a-zA-Z0-9]+" placeholder="aZ09" title="' . __('This field can only contain Latin letters and numbers') . '"' : $pattern;
+    $pattern = ($pattern == 'login') ? 'pattern="[a-zA-Z0-9_]+" placeholder="aZ09_" title="' . __('This field can only contain Latin letters and numbers') . ' ' . __('and') . ' _' . '"' : $pattern;
     $pattern = ($pattern == 'mac') ? 'pattern="^[a-fA-F0-9]{2}:[a-fA-F0-9]{2}:[a-fA-F0-9]{2}:[a-fA-F0-9]{2}:[a-fA-F0-9]{2}:[a-fA-F0-9]{2}$|^[a-fA-F0-9]{2}-[a-fA-F0-9]{2}-[a-fA-F0-9]{2}-[a-fA-F0-9]{2}-[a-fA-F0-9]{2}-[a-fA-F0-9]{2}$" placeholder="00:02:02:34:72:a5" title="' . __('This MAC have wrong format') . '"' : $pattern;
+    $pattern = ($pattern == 'url') ? 'pattern="https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)" placeholder="http://ubilling.net.ua/" title="' . __('URL') . ': http://host.domain/ ' . __('or') . ' https://host.domain/ ' . __('or') . ' http://host.domain:port"' : $pattern;
+    $pattern = ($pattern == 'geo') ? 'pattern="-?\d{1,2}(\.\d+)\s?,\s?-?\d{1,3}(\.\d+)" placeholder="0.00000,0.00000" title="' . __('The format of geographic data can be') . ': 40.7143528,-74.0059731 ; 41.40338, 2.17403 ; -14.235004 , 51.92528"' : $pattern;
+    $pattern = ($pattern == 'mobile') ? 'pattern="\+?(\d{1,3})?\d{2,3}\d{7}" placeholder="(+)(38)0500000000" title="' . __('The mobile number format can be') . ': +78126121104, 0506430501, 375295431122"' : $pattern;
 
     $result = '<input type="text" name="' . $name . '" value="' . $value . '" ' . $input_size . ' id="' . $inputid . '" class="' . $class . '" ' . $opts . ' ' . $pattern . '>' . "\n";
     if ($label != '') {
@@ -125,7 +128,7 @@ function wf_TextInput($name, $label = '', $value = '', $br = false, $size = '', 
 }
 
 /**
- * Return password input Web From element 
+ * Return password input Web From element (legacy)
  *
  * @param  string $name name of element
  * @param  string $label text label for input
@@ -135,7 +138,7 @@ function wf_TextInput($name, $label = '', $value = '', $br = false, $size = '', 
  * @return string
  *
  */
-function wf_PasswordInput($name, $label = '', $value = '', $br = false, $size = '') {
+function wf_PasswordInputRaw($name, $label = '', $value = '', $br = false, $size = '') {
     $inputid = wf_InputId();
     //set size
     if ($size != '') {
@@ -149,6 +152,58 @@ function wf_PasswordInput($name, $label = '', $value = '', $br = false, $size = 
         $newline = '';
     }
     $result = '<input type="password" name="' . $name . '" value="' . $value . '" ' . $input_size . ' id="' . $inputid . '">' . "\n";
+    if ($label != '') {
+        $result .= ' <label for="' . $inputid . '">' . __($label) . '</label>' . "\n";
+    }
+    $result .= $newline . "\n";
+    return ($result);
+}
+
+/**
+ * Return password input Web From element with show/hide controls
+ *
+ * @param  string $name name of element
+ * @param  string $label text label for input
+ * @param  string $value current value
+ * @param  bool   $br append new line
+ * @param  string $size input size
+ * @param  bool   $showHideInput show or not show/hide password control
+ * 
+ * @return string
+ *
+ */
+function wf_PasswordInput($name, $label = '', $value = '', $br = false, $size = '', $showHideInput = true) {
+    $result = '';
+    $inputid = wf_InputId();
+    //set size
+    if ($size != '') {
+        $input_size = 'size="' . $size . '"';
+    } else {
+        $input_size = '';
+    }
+    if ($br) {
+        $newline = '<br>';
+    } else {
+        $newline = '';
+    }
+    if ($showHideInput) {
+        $result .= '<style> .passfieldhide { filter: grayscale(1); .passfieldshow { filter: grayscale(0); } } </style>';
+    }
+    //password input here
+    $result .= '<input type="password" name="' . $name . '" value="' . $value . '" ' . $input_size . ' id="' . $inputid . '">' . "\n";
+
+    if ($showHideInput) {
+        $result .= '<span class="toggle-password' . $inputid . '"><img src="skins/icon_lock.png" width="12" title=' . __('Show') . '/' . __('Hide') . '></span>';
+        $result .= "
+            <script> 
+            $('.toggle-password" . $inputid . "').click(function(){
+                $(this).children().toggleClass('passfieldhide passfieldshow');
+                let input = $(this).prev();
+                input.attr('type', input.attr('type') === 'password' ? 'text' : 'password');
+            }); 
+        </script>";
+    }
+
     if ($label != '') {
         $result .= ' <label for="' . $inputid . '">' . __($label) . '</label>' . "\n";
     }
@@ -547,17 +602,19 @@ function wf_SelectorAC($name, $params, $label, $selected = '', $br = false) {
  * @param string  $label text label for input
  * @param string  $selected selected $value for selector
  * @param bool    $br append new line
+ * @param string  $options some raw custom options
+ * 
  * @return  string
  *
  */
-function wf_AjaxSelectorAC($container, $params, $label, $selected = '', $br = false) {
+function wf_AjaxSelectorAC($container, $params, $label, $selected = '', $br = false, $options = '') {
     $inputid = wf_InputId();
     if ($br) {
         $newline = '<br>';
     } else {
         $newline = '';
     }
-    $result = '<select name="' . $inputid . '" id="' . $inputid . '" onChange="this.options[this.selectedIndex].onclick();">';
+    $result = '<select name="' . $inputid . '" id="' . $inputid . '" onChange="this.options[this.selectedIndex].onclick();" ' . $options . '>';
     if (!empty($params)) {
         foreach ($params as $value => $eachparam) {
             $sel_flag = '';
@@ -1450,7 +1507,7 @@ function wf_FullCalendar($data, $options = '', $useHTMLInTitle = false, $useHTML
     global $ubillingConfig;
 
     $elementid = wf_InputId();
-    $dragdropON = ($ubillingConfig->getAlterParam('CALENDAR_DRAG_AND_DROP_ON') and ! empty($ajaxURLForDnD));
+    $dragdropON = ($ubillingConfig->getAlterParam('CALENDAR_DRAG_AND_DROP_ON') and !empty($ajaxURLForDnD));
     $dndConfirmON = $ubillingConfig->getAlterParam('CALENDAR_DRAG_AND_DROP_CONFIRM_ON');
     $titlesSearchON = $ubillingConfig->getAlterParam('CALENDAR_TITLES_SEARCH_ON');
 
@@ -1980,7 +2037,6 @@ function wf_modalOpenedAuto($title, $content) {
     $width = "'auto'";
     $height = "'auto'";
 
-
     $dialog = '
 <script type="text/javascript">
 $(function() {
@@ -2082,7 +2138,6 @@ function wf_GraphCSV($datafile, $width = '500', $height = '300', $errorbars = fa
     $result .= $objectId . ' = new Dygraph(';
     $result .= 'document.getElementById("' . $randomId . '"), "' . $datafile . '" ' . "\n";
 
-
     $result .= ', {  errorBars: ' . $errorbars;
     $result .= (!empty($GraphTitle)) ? ', title: \'' . $GraphTitle . '\'' : '';
     $result .= (!empty($XLabel)) ? ', xlabel: \'' . $XLabel . '\'' : '';
@@ -2113,7 +2168,7 @@ function wf_GraphCSV($datafile, $width = '500', $height = '300', $errorbars = fa
 function wf_ColPicker($name, $label = '', $value = '', $br = false, $size = '', $changeCtrlColorID = '', $changeCtrlColorCSSProp = '') {
     $id = wf_InputId();
 
-    if (!empty($changeCtrlColorID) and ! empty($changeCtrlColorCSSProp)) {
+    if (!empty($changeCtrlColorID) and !empty($changeCtrlColorCSSProp)) {
         $changeCtrlColorJS = ' $(\'#' . $changeCtrlColorID . '\').css("' . $changeCtrlColorCSSProp . '", "#" + hex_str);';
     } else {
         $changeCtrlColorJS = '';
@@ -2381,7 +2436,6 @@ function wf_AutocompleteTextInput($name, $data = array(), $label = '', $value = 
     //removing ending coma
     $acData = mb_substr($acData, 0, -1, 'UTF-8');
 
-
     $autocomplete .= $acData;
 
     $autocomplete .= '
@@ -2501,7 +2555,6 @@ function wf_JqDtLoader($columns, $ajaxUrl, $saveState = false, $objects = 'users
     $saveState = ($saveState) ? 'true' : 'false';
     $opts = (!empty($opts)) ? $opts . ',' : '';
 
-
     $jq_dt = wf_tag('script', false, '', ' type="text/javascript" charset="utf-8"');
     $jq_dt .= '
  		$(document).ready(function() {                 
@@ -2569,7 +2622,6 @@ function wf_JqDtLoader($columns, $ajaxUrl, $saveState = false, $objects = 'users
     }
 
     $result .= wf_tag('table', true);
-
 
     return ($result);
 }
@@ -2667,7 +2719,7 @@ function wf_JQDTColumnTotalSumJS() {
 function wf_JQDTMarkRowJS($columnNum, $searchVal, $truncateURL = '', $truncateParam = '') {
     $truncateJSCode = '';
 
-    if (!empty($truncateURL) and ! empty($truncateParam)) {
+    if (!empty($truncateURL) and !empty($truncateParam)) {
         $truncateJSCode = '
             //var urlParamsObject = new URLSearchParams(\'' . $truncateURL . '\');
             var urlParamsObject = new URLSearchParams(window.location.search);
@@ -2769,7 +2821,7 @@ $(document).ready(function() {
 function wf_JQDTRefreshButton($jqdtID = '', $jqdtIDSelector = '', $class = '', $opts = '') {
     $result = '';
 
-    if (!empty($jqdtID) or ! empty($jqdtIDSelector)) {
+    if (!empty($jqdtID) or !empty($jqdtIDSelector)) {
         $class = (empty($class) ? 'ubButtonInline' : $class);
         $tmpInpID = wf_InputId();
         $result = wf_Link('#', wf_img('skins/refresh.gif', __('Refresh table data'), 'vertical-align: bottom'), false, $class, 'id="' . $tmpInpID . '" ' . $opts);
@@ -3348,13 +3400,13 @@ function wf_jsAjaxFormSubmit($submitFormClasses, $submitFormIDCtrlClass, $jqdtID
                                     $( \'#' . $errorModalWindowId . '\' ).dialog("open");                                                
                                 } else {
                                     var customJQDTToReload = $(\'#closestJQDTID\').val();
+
                                     if (!empty(customJQDTToReload)) {
                                         $(\'#\' + customJQDTToReload).DataTable().ajax.reload();
                                     } else {
-                                        ' . (empty($jqdtID) ? ' ' : '$(\'#' . $jqdtID . '\').DataTable().ajax.reload();') .
-            '
+                                        ' . (empty($jqdtID) ? ' ' : '$(\'#' . $jqdtID . '\').DataTable().ajax.reload();') . '
                                     }
-                                    $( \'#\'+$("' . $submitFormIDCtrlClass . '").val() ).dialog("close");
+                                    $( \'#\' + $("' . $submitFormIDCtrlClass . '").val() ).dialog("close");
                                 }
                             }                        
                 });
@@ -3589,7 +3641,7 @@ function wf_EncloseWithJSTags($content) {
 function wf_TabsGen($tabsDivID, $tabsList, $tabsBody, $mainDivOpts = '', $ulOpts = '', $tabsCarouselOn = false) {
     $result = '';
 
-    if (!empty($tabsDivID) and ! empty($tabsList) and ! empty($tabsBody)) {
+    if (!empty($tabsDivID) and !empty($tabsList) and !empty($tabsBody)) {
         $divOps = 'id="' . $tabsDivID . '" ' . $mainDivOpts;
         $initTabsJSStr = '$( "#' . $tabsDivID . '" ).tabs();';
 
@@ -3668,7 +3720,7 @@ function wf_JSEmptyFunc() {
             // discuss at: http://phpjs.org/functions/empty
             
             var key;
-            if (mixed_var === "" || mixed_var === 0 || mixed_var === "0" || mixed_var === null || mixed_var === false || mixed_var === undefined ) {
+            if (mixed_var === "" || mixed_var === 0 || mixed_var === "0" || mixed_var === null || mixed_var === \'null\' || mixed_var === false || mixed_var === undefined || mixed_var === \'undefined\' ) {
                 return true;
             }
             
@@ -3892,7 +3944,6 @@ function wf_StepsMeter($params, $current) {
 
         $code .= wf_CleanDiv();
 
-
         $result = $style . $code;
     }
     return ($result);
@@ -3954,7 +4005,7 @@ function wf_ConfirmDialogJS($url, $title, $alerttext, $class = '', $cancelUrl = 
     $dialog .= wf_tag('center', false);
     $dialog .= wf_Link($url, __('Agree'), false, 'confirmagree', $funcRunAgree);
 
-    if (!empty($cancelUrl) or ! empty($funcRunCancel)) {
+    if (!empty($cancelUrl) or !empty($funcRunCancel)) {
         $dialog .= wf_Link($cancelUrl, __('Cancel'), false, 'confirmcancel', $funcRunCancel);
     }
 
@@ -4198,6 +4249,56 @@ function wf_DatesTimesRangeFilter($inTable = true, $tableCellsOnly = false, $tab
 }
 
 /**
+ * Returns select2 searchable input widget
+ * 
+ * @param string $name
+ * @param array $params
+ * @param string $label
+ * @param string $selected
+ * @param bool $br
+ * @param string $options
+ * 
+ * @return string
+ */
+function wf_SelectorSearchable($name, $params, $label, $selected = '', $br = false, $options = '') {
+    $result = '';
+    $inputId = wf_InputId();
+    $ctrlClass = 'select2_' . $inputId;
+    $curLang = curlang();
+    $initCode = '<link href="modules/jsc/select2/css/select2.css" rel="stylesheet" />';
+    $initCode .= wf_tag('script', false, '', 'src="modules/jsc/select2/js/select2.min.js"');
+    $initCode .= wf_tag('script', true);
+    $initCode .= wf_tag('script', false, '', 'src="modules/jsc/select2/js/i18n/' . $curLang . '.js"');
+    $initCode .= wf_tag('script', true);
+
+    $initCode .= wf_tag('script');
+    $initCode .= '$(document).ready(function() { $(".' . $ctrlClass . '").select2(); });';
+    $initCode .= wf_tag('script', true);
+
+    $result .= $initCode;
+    $result .= wf_Selector($name, $params, $label, $selected, $br, false, '', $ctrlClass, $options);
+    return($result);
+}
+
+/**
+ * Returns select2 searchable input widget with auto-submit function
+ * 
+ * @param string $name
+ * @param array $params
+ * @param string $label
+ * @param string $selected
+ * @param bool $br
+ * @param string $options
+ * 
+ * @return string
+ */
+function wf_SelectorSearchableAC($name, $params, $label, $selected = '', $br = false) {
+    $options = 'onChange="this.form.submit();"';
+    $result = wf_SelectorSearchable($name, $params, $label, $selected, $br, $options);
+    return($result);
+}
+
+/**
  * JQuery Data Tables JSON formatting class
  */
 class wf_JqDtHelper {
@@ -4263,5 +4364,4 @@ class wf_JqDtHelper {
     public function flushData() {
         $this->allRows = array();
     }
-
 }

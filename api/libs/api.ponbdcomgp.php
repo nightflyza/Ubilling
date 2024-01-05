@@ -16,6 +16,8 @@ class PONBdcomGP extends PONBdcom {
         $oltIp = $this->oltParameters['IP'];
         $oltCommunity = $this->oltParameters['COMMUNITY'];
         $oltNoFDBQ = $this->oltParameters['NOFDB'];
+        $this->onuSerialCaseMode = (isset($this->snmpTemplates[$oltModelId]['misc']['SERIAL_CASE_MODE'])
+                                    ? $this->snmpTemplates[$oltModelId]['misc']['SERIAL_CASE_MODE'] : 1);
 
         $sigIndexOID = $this->snmpTemplates[$oltModelId]['signal']['SIGINDEX'];
         $sigIndex = $this->snmp->walk($oltIp . ':' . self::SNMPPORT, $oltCommunity, $sigIndexOID, self::SNMPCACHE);

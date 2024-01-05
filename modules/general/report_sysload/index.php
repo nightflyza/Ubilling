@@ -57,7 +57,11 @@ if (cfr('SYSLOAD')) {
 
     $globconf = $ubillingConfig->getBilling();
     $alterconf = $ubillingConfig->getAlter();
-    $monit_url = $globconf['PHPSYSINFO'];
+    $monit_url = '';
+    if (!empty($globconf['PHPSYSINFO'])) {
+        $monit_url = MODULES_DOWNLOADABLE . $globconf['PHPSYSINFO'];
+    }
+
     $cache_info = $alterconf['UBCACHE_STORAGE'];
 
     //custom scripts output handling. We must run this before all others.
@@ -92,8 +96,13 @@ if (cfr('SYSLOAD')) {
         } else {
             //installing phpsysinfo
             if (wf_CheckGet(array('phpsysinfoinstall'))) {
-                zb_InstallPhpsysinfo();
-                die(wf_tag('span', false, 'alert_success') . __('Done') . wf_tag('span', true));
+                if (cfr('ROOT')) {
+                    zb_InstallPhpsysinfo();
+                    $installNotification = wf_tag('span', false, 'alert_success') . __('Done') . '! ' . __('Refresh page') . '.' . wf_tag('span', true);
+                    die($installNotification);
+                } else {
+                    die(wf_tag('span', false, 'alert_error') . __('Access denied') . wf_tag('span', true));
+                }
             }
             $monitCode = wf_AjaxLink('?module=report_sysload&phpsysinfoinstall=true', wf_img('skins/icon_download.png') . ' ' . __('Download') . ' ' . __('phpSysInfo'), 'phpsysinfoinstall', true, 'ubButton');
             $monitCode .= wf_AjaxContainer('phpsysinfoinstall');
@@ -102,10 +111,26 @@ if (cfr('SYSLOAD')) {
         }
     }
 
+    //xhprof installation
+    if (ubRouting::checkGet('xhprofmoduleinstall')) {
+        if (cfr('ROOT')) {
+            zb_InstallXhprof();
+            $installNotification = wf_tag('span', false, 'alert_success') . __('Done') . '! ' . __('Refresh page') . '.' . wf_tag('span', true);
+            die($installNotification);
+        } else {
+            die(wf_tag('span', false, 'alert_error') . __('Access denied') . wf_tag('span', true));
+        }
+    }
+
     //Cache
     if ($cache_info == 'files' OR $cache_info = 'memcached') {
         $cacheInfo = zb_ListCacheInformRenderContainer();
-        $sysInfoData .= wf_modalAuto(wf_img('skins/icon_cache.png') . ' ' . __('Cache'), __('Cache information'), $cacheInfo, 'ubButton');
+        $sysInfoData .= wf_modalAuto(wf_img('skins/icon_cache.png') . ' ' . __('Cache'), __('Cache information'), $cacheInfo, 'ubButton') . ' ';
+    }
+
+    //process monitor
+    if (cfr('ROOT')) {
+        $sysInfoData .= wf_Link(ProcessMon::URL_ME, wf_img('skins/icon_thread.png') . ' ' . __('Background processes'), false, 'ubButton') . ' ';
     }
 
     //apachezen
@@ -131,7 +156,7 @@ if (cfr('SYSLOAD')) {
     show_window('', $sysHealthControls);
 
     $defaultContainerContent = web_ReportSysloadRenderLA();
-    $defaultContainerContent.= web_ReportSysloadRenderDisksCapacity();
+    $defaultContainerContent .= web_ReportSysloadRenderDisksCapacity();
     $sysLoadContainer = wf_AjaxContainer('reportsysloadcontainer', '', $defaultContainerContent);
 
     if (ubRouting::checkGet('ajsysload')) {

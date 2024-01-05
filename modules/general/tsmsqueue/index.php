@@ -6,10 +6,23 @@ if ($ubillingConfig->getAlterParam('SENDDOG_ENABLED')) {
                 and $ubillingConfig->getAlterParam('SMS_SERVICES_ADVANCED_PHPMAILER_ON'));
 
         $messagesQueue = new MessagesQueue();
+
         //manual senddog PID cleanup
         if (ubRouting::checkPost('calmthedog')) {
             if (cfr('ROOT')) {
                 $messagesQueue->calmTheDog();
+            }
+        }
+
+        //manual senddog run
+        if (ubRouting::checkPost('runthedog')) {
+            if (cfr('ROOT')) {
+                $manualRunResult = $messagesQueue->runTheDog();
+                if ($manualRunResult) {
+                    ubRouting::nav($messagesQueue::URL_ME);
+                } else {
+                    show_warning(__('SendDog').': '.__('Already running'));
+                }
             }
         }
 
@@ -214,4 +227,3 @@ if ($ubillingConfig->getAlterParam('SENDDOG_ENABLED')) {
 } else {
     show_error(__('This module is disabled'));
 }
-?>

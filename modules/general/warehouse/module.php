@@ -9,5 +9,6 @@ $this->registerModule($module, 'main', __('Warehouse'), 'Nightfly', array(
     'WAREHOUSEDIR' => __('right to control warehouse directories'),
     'WAREHOUSEREPORTS' => __('right to control warehouse reports'),
     'WAREVIEW' => __('right to view materials spent on tasks'),
-    'WAREHOUSERETURNS' => __('right to return outcoming operations')
+    'WAREHOUSERETURNS' => __('right to return outcoming operations'),
+    'WAREHOUSEINEDT' => __('right to edit incoming operations')
 ));

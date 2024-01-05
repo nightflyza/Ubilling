@@ -14,7 +14,6 @@ json
 libxml
 mbstring
 memcached
-mysql
 mysqli
 mysqlnd
 openssl

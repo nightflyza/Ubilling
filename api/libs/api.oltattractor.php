@@ -15,6 +15,7 @@ class OLTAttractor {
     /**
      * Some basic paths and data parameters here
      */
+    const CACHE_ROOT_PATH = 'exports/pondata/';
     const SIGCACHE_PATH = 'exports/pondata/signals/';
     const SIGCACHE_EXT = 'OLTSIGNALS';
     const DISTCACHE_PATH = 'exports/pondata/dist/';
@@ -34,6 +35,8 @@ class OLTAttractor {
     const TEMPERATURE_EXT = 'OLTTEMPERATURE';
     const MACDEVIDCACHE_PATH = 'exports/pondata/macdev/';
     const MACDEVIDCACHE_EXT = 'ONUMACDEVINDEX';
+    const UNIOPERSTATS_PATH = 'exports/pondata/unioperstats/';
+    const UNIOPERSTATS_EXT = 'UNIOPERSTATS';
 
     /**
      * ONUs signal history path
@@ -513,6 +516,35 @@ class OLTAttractor {
     public function readDeregs() {
         $dataContainer = self::DEREGCACHE_PATH . $this->oltId . '_' . self::DEREGCACHE_EXT;
         $result = $this->getData($dataContainer);
+        return ($result);
+    }
+
+    /**
+     * Saves OLT all ONUs UNI-ports operational statuses
+     *
+     * @param array $uniStatsArr array of [onuMac/onuSerial] => (ethPort => Status) like 1(up) or 0(down)
+     *
+     * @return void
+     *
+     * @throws Exception
+     */
+    public function writeUniOperStats($uniStatsArr) {
+        $dataToSave = $uniStatsArr;
+        $dataContainer = self::UNIOPERSTATS_PATH . $this->oltId . '_' . self::UNIOPERSTATS_EXT;
+        $this->saveData($dataContainer, $dataToSave);
+    }
+
+    /**
+     * Returns OLT all ONUs UNI-ports operational statuses
+     *
+     * @return array as array of [onuMac/onuSerial] => (ethPort => Status) like 1(up) or 0(down)
+     *
+     * @throws Exception
+     */
+    public function readUniOperStats() {
+        $dataContainer = self::UNIOPERSTATS_PATH . $this->oltId . '_' . self::UNIOPERSTATS_EXT;
+        $result = $this->getData($dataContainer);
+        return ($result);
     }
 
     /**
@@ -571,6 +603,17 @@ class OLTAttractor {
     public function getFdbAll() {
         $containerPath = self::FDBCACHE_PATH;
         $containerMark = self::FDBCACHE_EXT;
+        return($this->getContainersContent($containerPath, $containerMark));
+    }
+
+    /**
+     * Returns list of all OLTs available ONUs UNI-ports operational statuses [onuMac/onuSerial] => (ethPort => Status) like 1(up) or 0(down)
+     *
+     * @return array
+     */
+    public function getUniOperStatsAll() {
+        $containerPath = self::UNIOPERSTATS_PATH;
+        $containerMark = self::UNIOPERSTATS_EXT;
         return($this->getContainersContent($containerPath, $containerMark));
     }
 
@@ -751,6 +794,30 @@ class OLTAttractor {
         $containerPath = self::SIGCACHE_PATH;
         $containerMark = self::SIGCACHE_EXT;
         return($this->checkContainersAvailable($containerPath, $containerMark));
+    }
+
+    /**
+     * Performs cleanup of all available cached data 
+     * 
+     * @return int
+     */
+    public function flushAllCacheData() {
+        $allContainers = rcms_scandir(self::CACHE_ROOT_PATH, '*', 'dir');
+        $result = 0;
+        if (!empty($allContainers)) {
+            foreach ($allContainers as $io => $each) {
+                $containerPath = self::CACHE_ROOT_PATH . $each . '/';
+                $containersList = rcms_scandir($containerPath);
+                if (!empty($containersList)) {
+                    foreach ($containersList as $index => $eachContainer)
+                        if ($eachContainer != 'placeholder') {
+                            rcms_delete_files($containerPath . $eachContainer);
+                            $result++;
+                        }
+                }
+            }
+        }
+        return($result);
     }
 
 }

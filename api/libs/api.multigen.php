@@ -97,6 +97,13 @@ class MultiGen {
     protected $allNetworks = array();
 
     /**
+     * Contains all users with ext networks assign
+     * 
+     * @var array
+     */
+    protected $netExtUsers = array();
+
+    /**
      * Contains available NAS servers as id=>data
      *
      * @var array
@@ -377,6 +384,27 @@ class MultiGen {
     protected $instanceId = '';
 
     /**
+     * stardust process manager instance
+     *
+     * @var object
+     */
+    protected $stardust = '';
+
+    /**
+     * Mea culpa protected instance
+     * 
+     * @var object
+     */
+    protected $meaCulpa = '';
+
+    /**
+     * Is mea culpa enabled flag?
+     * 
+     * @var bool
+     */
+    protected $meaCulpaFlag = false;
+
+    /**
      * Contains basic module path
      */
     const URL_ME = '?module=multigen';
@@ -410,6 +438,11 @@ class MultiGen {
      * Default accounting table name
      */
     const NAS_ACCT = 'mlg_acct';
+
+    /**
+     * Default postauth table name
+     */
+    const NAS_POSTAUTH = 'mlg_postauth';
 
     /**
      * Default traffic aggregation table name
@@ -487,12 +520,22 @@ class MultiGen {
     const OPTION_ISHIMURA = 'ISHIMURA_ENABLED';
 
     /**
-     * Default 
+     * Usernames cache expiring timeout option name
      */
     const OPTION_USERNAMESTIMEOUT = 'MULTIGEN_UNTIMEOUT';
 
     /**
-     * log path
+     * Extended networks option name
+     */
+    const OPTION_EXTNETS = 'NETWORKS_EXT';
+
+    /**
+     * Mea maxima culpa coinfig option name
+     */
+    const OPTION_CULPA = 'MEACULPA_ENABLED';
+
+    /**
+     * Default log path
      */
     const LOG_PATH = 'exports/multigen.log';
 
@@ -507,6 +550,11 @@ class MultiGen {
     const COA_PATH = 'exports/coa_queue_';
 
     /**
+     * Default RemoteAPI lock name
+     */
+    const MULTIGEN_PID = 'MULTIGEN';
+
+    /**
      * Creates new MultiGen instance
      * 
      * @return void
@@ -515,6 +563,7 @@ class MultiGen {
         $this->loadConfigs();
         $this->setOptions();
         $this->initMessages();
+        $this->initStarDust();
         $this->initCache();
         $this->loadNases();
         $this->loadNasAttributes();
@@ -539,6 +588,8 @@ class MultiGen {
         $this->loadAllQinQ();
         $this->loadScenarios();
         $this->loadUserStates();
+        $this->loadNetExtUsers();
+        $this->loadMeaCulpa();
     }
 
     /**
@@ -622,6 +673,16 @@ class MultiGen {
             }
         }
 
+        // quia peccavi nimis
+        // cogitatione, verbo
+        // opere et omissione
+        if (isset($this->altCfg[self::OPTION_CULPA])) {
+            if ($this->altCfg[self::OPTION_CULPA]) {
+                $this->usernameTypes['meaculpa'] = __('Mea culpa');
+                $this->meaCulpaFlag = true;
+            }
+        }
+
 
         $this->serviceTypes = array(
             'none' => __('No'),
@@ -693,6 +754,15 @@ class MultiGen {
      */
     protected function initCache() {
         $this->cache = new UbillingCache();
+    }
+
+    /**
+     * Inits process manager
+     * 
+     * @return void
+     */
+    protected function initStarDust() {
+        $this->stardust = new StarDust(self::MULTIGEN_PID);
     }
 
     /**
@@ -817,6 +887,36 @@ class MultiGen {
             foreach ($networksRaw as $io => $each) {
                 $this->allNetworks[$each['id']] = $each;
             }
+        }
+    }
+
+    /**
+     * Loads users extended networks data
+     * 
+     * @return void
+     */
+    protected function loadNetExtUsers() {
+        if (isset($this->altCfg[self::OPTION_EXTNETS])) {
+            if ($this->altCfg[self::OPTION_EXTNETS]) {
+                $netExtUsers_q = "SELECT * from `netextpools` WHERE `login` <> '';";
+                $rawNetExtUsers = simple_queryall($netExtUsers_q);
+                if (!empty($rawNetExtUsers)) {
+                    foreach ($rawNetExtUsers as $io => $each) {
+                        $this->netExtUsers[$each['login']] = $each['pool'] . "/" . $each['netmask'];
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Loads mea culpa instance for further usage
+     * 
+     * @return void
+     */
+    protected function loadMeaCulpa() {
+        if ($this->meaCulpaFlag) {
+            $this->meaCulpa = new MeaCulpa();
         }
     }
 
@@ -1219,6 +1319,33 @@ class MultiGen {
     }
 
     /**
+     * Performs cleanup of accounting data for some period
+     * 
+     * @param int $days
+     * @param int $unfinished
+     * 
+     * @return void
+     */
+    public function cleanupAccounting($daysCount = 0, $unfinished = 0) {
+        $daysCount = ubRouting::filters($daysCount, 'int');
+        if ($daysCount) {
+            $intervalq = "<= NOW() - INTERVAL " . $daysCount . " DAY ";
+            //old finished sessions, accounting data
+            $query = "DELETE FROM `" . self::NAS_ACCT . "` WHERE `acctstarttime` " . $intervalq . " AND `acctstoptime` IS NOT NULL";
+            nr_query($query);
+            //postauth
+            $query = "DELETE FROM `" . self::NAS_POSTAUTH . "` WHERE `authdate` " . $intervalq;
+            nr_query($query);
+            if ($unfinished) {
+                //old unfinished sessions (seems its dead)
+                $query = "DELETE FROM `" . self::NAS_ACCT . "` WHERE `acctupdatetime` " . $intervalq . " AND `acctstoptime` IS NULL";
+                nr_query($query);
+            }
+            log_register('MULTIGEN ACCOUNTING CLEANUP `' . $daysCount . '` DAYS');
+        }
+    }
+
+    /**
      * Renders list of flushed scenarios
      * 
      * @return string
@@ -1357,7 +1484,7 @@ class MultiGen {
                     $newOperator_f = ubRouting::filters($newOperator, 'mres');
                     $newContent = ubRouting::post('newcontent');
                     $newContent_f = ubRouting::filters($newContent, 'mres');
-
+                    $newContent_f = trim($newContent_f);
 
                     $query = "INSERT INTO `" . self::NAS_ATTRIBUTES . "` (`id`,`nasid`,`scenario`,`modifier`,`attribute`,`operator`,`content`) VALUES "
                             . "(NULL,'" . $nasId . "','" . $newScenario_f . "','" . $newModifier_f . "','" . $newAttribute_f . "','" . $newOperator_f . "','" . $newContent_f . "');";
@@ -1388,12 +1515,14 @@ class MultiGen {
                     if (isset($this->nasAttributes[$attributeId])) {
                         $chAttribute = ubRouting::post('chattribute');
                         $chAttribute = trim($chAttribute);
+                        $chContent = ubRouting::post('chcontent');
+                        $chContent = trim($chContent);
                         $where = "WHERE `id`='" . $attributeId . "';";
                         simple_update_field(self::NAS_ATTRIBUTES, 'scenario', ubRouting::post('chscenario'), $where);
                         simple_update_field(self::NAS_ATTRIBUTES, 'modifier', ubRouting::post('chmodifier'), $where);
                         simple_update_field(self::NAS_ATTRIBUTES, 'attribute', $chAttribute, $where);
                         simple_update_field(self::NAS_ATTRIBUTES, 'operator', ubRouting::post('choperator'), $where);
-                        simple_update_field(self::NAS_ATTRIBUTES, 'content', ubRouting::post('chcontent'), $where);
+                        simple_update_field(self::NAS_ATTRIBUTES, 'content', $chContent, $where);
                         log_register('MULTIGEN NAS [' . $nasId . '] CHANGE ATTRIBUTE [' . $attributeId . ']');
                     } else {
                         $result .= __('Something went wrong') . ': EX_ATTRIBUTE_NOT_EXIST';
@@ -1589,10 +1718,10 @@ class MultiGen {
      * @return void
      */
     protected function writeScenarioStats($nasId, $scenario, $attributeState) {
-        if ((!isset($this->scenarioStats[$nasId])) OR ( !isset($this->scenarioStats[$nasId][$scenario])) OR ( !isset($this->scenarioStats[$nasId][$scenario][$attributeState]))) {
+        if ((!isset($this->scenarioStats[$nasId])) OR (!isset($this->scenarioStats[$nasId][$scenario])) OR (!isset($this->scenarioStats[$nasId][$scenario][$attributeState]))) {
             $this->scenarioStats[$nasId][$scenario][$attributeState] = 1;
         } else {
-            $this->scenarioStats[$nasId][$scenario][$attributeState] ++;
+            $this->scenarioStats[$nasId][$scenario][$attributeState]++;
         }
     }
 
@@ -1912,6 +2041,13 @@ class MultiGen {
                     $switchMac = @$switchData['swid'];
                     $template = str_replace('{USERSWITCHMAC}', $switchMac, $template);
                 }
+
+                if (strpos($template, '{NETEXT}') !== false) {
+                    if (isset($this->netExtUsers[$userLogin])) {
+                        $netExtData = $this->netExtUsers[$userLogin];
+                        $template = str_replace('{NETEXT}', $netExtData, $template);
+                    }
+                }
             }
 
             if (isset($this->allNas[$nasId])) {
@@ -1954,10 +2090,9 @@ class MultiGen {
     /**
      * Returns array of all possible radius-preprocessed usernames
      * 
-     * 
      * @return array
      */
-    protected function getAllUserNames() {
+    public function getAllUserNames() {
         $result = array();
         if (empty($this->allUserData)) {
             $this->loadUserData();
@@ -1974,12 +2109,17 @@ class MultiGen {
                     }
                 }
             }
+
+            //preloading culpa instance
+            if ($this->meaCulpaFlag) {
+                $this->loadMeaCulpa();
+            }
         }
         if (!empty($this->allUserData)) {
             foreach ($this->allUserData as $eachUserLogin => $eachUserData) {
                 foreach ($this->usernameTypes as $eachUsernameType => $usernameTypeName) {
                     $userName = $this->getLoginUsername($eachUserLogin, $eachUserData, $eachUsernameType);
-                    $result[$eachUserLogin][] = $userName;
+                    $result[$eachUserLogin][] = (string) $userName;
                 }
             }
         }
@@ -2018,6 +2158,9 @@ class MultiGen {
                 break;
             case 'qinqju':
                 $result = $this->getQinQUsername($userLogin, '-');
+                break;
+            case 'meaculpa':
+                $result = $this->meaCulpa->get($userLogin);
                 break;
         }
         return ($result);
@@ -2074,11 +2217,12 @@ class MultiGen {
      * 
      * @return string
      */
-    protected function getUserLogin($userName, $allUserNames) {
+    public function getUserLogin($userName, $allUserNames) {
         $result = '';
         if (!empty($allUserNames)) {
+            $userName = (string) $userName;
             foreach ($allUserNames as $login => $each) {
-                if (array_search($userName, $each) !== false) {
+                if (array_search($userName, $each, true) !== false) {
                     $result = $login;
                     break;
                 }
@@ -2105,7 +2249,7 @@ class MultiGen {
                     foreach ($userNases as $eachNasId) {
                         @$nasOptions = $this->nasOptions[$eachNasId];
                         @$userNameType = $nasOptions['usernametype'];
-                        if ($userNameType == 'mac' or $userNameType == 'macju' or $userNameType == 'ip' or $userNameType == 'macup') {
+                        if ($userNameType != 'login') {
                             $userName = $this->getLoginUsername($userLogin, $userData, $userNameType);
                             if (!empty($userName)) {
                                 if (!empty($nasOptions)) {
@@ -2164,7 +2308,7 @@ class MultiGen {
      * @return void
      */
     protected function replaceSingleUser($newUserName, $oldUserName) {
-        if (!empty($newUserName) and ! empty($oldUserName)) {
+        if (!empty($newUserName) and !empty($oldUserName)) {
             foreach ($this->scenarios as $eachScenario) {
                 $query = 'UPDATE `' . self::SCENARIO_PREFIX . $eachScenario . '` SET `username`="' . $newUserName . '" WHERE `username`="' . $oldUserName . '"';
                 nr_query($query);
@@ -2182,7 +2326,7 @@ class MultiGen {
      * @return void
      */
     protected function changeFramedIp($newIp, $oldIp, $userName) {
-        if (!empty($newIp) and ! empty($oldIp)) {
+        if (!empty($newIp) and !empty($oldIp)) {
             $query = 'UPDATE `' . self::SCENARIO_PREFIX . 'reply' . '` SET `Value`="' . $newIp . '" WHERE `attribute`="Framed-IP-Address" AND `value`="' . $oldIp . '" AND `username`="' . $userName . '"';
             nr_query($query);
         }
@@ -2385,7 +2529,7 @@ class MultiGen {
                                                 }
 
                                                 //emulating reset action if something changed in user attributes
-                                                if ((!empty($nasServices['coadisconnect'])) AND ( !empty($nasServices['coaconnect']))) {
+                                                if ((!empty($nasServices['coadisconnect'])) AND (!empty($nasServices['coaconnect']))) {
                                                     if (($this->userStates[$userLogin]['changed'] == -2) AND ( $this->userStates[$userLogin]['current'] == 1) AND ( $this->userStates[$userLogin]['previous'] == 1)) {
                                                         $newCoADisconnectContent = $this->getAttributeValue($userLogin, $userName, $eachNasId, $nasServices['coadisconnect']) . "\n";
                                                         $this->saveCoaQueue($newCoADisconnectContent);
@@ -2691,7 +2835,7 @@ class MultiGen {
              * Watch out the fire
              * Of the Saiya
              */
-            if ((!empty($this->nasOptions)) AND ( !empty($this->allNas))) {
+            if ((!empty($this->nasOptions)) AND (!empty($this->allNas))) {
                 foreach ($this->nasOptions as $io => $each) {
                     if (($io != $nasId) AND ( isset($this->allNas[$io]))) {
                         $nasBasicData = $this->allNas[$io];
@@ -2997,13 +3141,18 @@ class MultiGen {
                         }
                     }
                 }
+
+                //preloading culpa instance
+                if ($this->meaCulpaFlag) {
+                    $this->loadMeaCulpa();
+                }
             }
         } else {
             $allUserNames = $this->getAllUserNames();
         }
 
-        if (wf_CheckGet(array('login'))) {
-            $filterLogin = $_GET['login'];
+        if (ubRouting::checkGet('login')) {
+            $filterLogin = ubRouting::get('login');
         } else {
             $filterLogin = '';
         }
@@ -3217,6 +3366,11 @@ class MultiGen {
                     $this->loadAllQinQ();
                 }
             }
+
+            //preloading culpa instance
+            if ($this->meaCulpaFlag) {
+                $this->loadMeaCulpa();
+            }
         }
 
 
@@ -3337,6 +3491,11 @@ class MultiGen {
                         $this->loadSwithchAssigns();
                         $this->loadAllQinQ();
                     }
+                }
+
+                //preloading culpa instance
+                if ($this->meaCulpaFlag) {
+                    $this->loadMeaCulpa();
                 }
             }
 
@@ -3561,7 +3720,6 @@ class MultiGen {
                         $newDownTraffic = $stgDownTraffic + $diffDownTraffic;
                         $newUpTraffic = $stgUpTraffic + $diffUpTraffic;
 
-
                         if (($diffDownTraffic != 0) OR ( $diffUpTraffic != 0)) {
                             $this->saveTrafficData($changedLogin, $newDownTraffic, $newUpTraffic);
                             $newPreviousDown = $previousDownTraffic + $diffDownTraffic;
@@ -3628,4 +3786,30 @@ class MultiGen {
         }
     }
 
+    /**
+     * Performs check of multigen-rebuild lock
+     * 
+     * @return bool 
+     */
+    public function isMultigenRunning() {
+        return($this->stardust->isRunning());
+    }
+
+    /**
+     * Locks Multigen regeneration
+     * 
+     * @return void
+     */
+    public function runPidStart() {
+        $this->stardust->start();
+    }
+
+    /**
+     * Releases Multigen regeneration lock
+     * 
+     * @return void
+     */
+    public function runPidEnd() {
+        $this->stardust->stop();
+    }
 }

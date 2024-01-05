@@ -403,15 +403,26 @@ class PonZte {
                 $match2[self::DESC_OLT] += 1;
                 $match = $match2;
             }
-        } else {
-            switch (strlen($binary)) {
-            case 29:
-                preg_match("/(\d{4})(\d{9})(\d{8})(\d{8})/", $binary, $match);
-                break;
-            }
-            foreach ($match as &$each) {
-                $each = bindec($each);
-            }
+        }
+        return($match);
+    }
+
+    /**
+     * Coverts dec value to binary with byte offset. For ZTE C6XX/
+     * 
+     * @param int $binary
+     * 
+     * @return array()
+     */
+    protected function getDecodeTypeC6XX($binary) {
+        $match = array();
+        switch (strlen($binary)) {
+        case 29:
+            preg_match("/(\d{4})(\d{9})(\d{8})(\d{8})/", $binary, $match);
+            break;
+        }
+        foreach ($match as &$each) {
+            $each = bindec($each);
         }
         return($match);
     }
@@ -956,12 +967,12 @@ class PonZte {
                         // c025.2fac.ff3c   3701   Dynamic   vport-1/3/1.5:1
                         $interfaceVport =  str_replace('gpon-onu_', 'vport-', $this->gponOltInterfaceDecode($vportIndex));
                         $interfaceVport =  str_replace(':', '.', $interfaceVport);
-                        $interfaceVportDecode = $this->getDecodeType(decbin($devIndex));
+                        $interfaceVportDecode = $this->getDecodeTypeC6XX(decbin($devIndex));
                         $interfaceName = $interfaceVport . $interfaceVportDecode[3] . ':' . $interfaceVportDecode[4];
-                        $interfaceVportDecode = $this->getDecodeType(decbin($devIndex));
+                        $interfaceVportDecode = $this->getDecodeTypeC6XX(decbin($devIndex));
                         $interfaceName = $interfaceVport . $interfaceVportDecode[3] . ':' . $interfaceVportDecode[4];
                         */
-                        $interfaceVportDecode = $this->getDecodeType(decbin($devIndex));
+                        $interfaceVportDecode = $this->getDecodeTypeC6XX(decbin($devIndex));
                         $interfaceName = $interfaceVport . $interfaceVportDecode[2];
                         if ($interfaceName) {
                             if (isset($decParts[0])) {
@@ -1032,9 +1043,12 @@ class PonZte {
      */
     protected function onuidParseGpon() {
         $snTmp = array();
-
-        foreach ($this->snIndex as $ioIndex => $eachSn) {
-            $snTmp[$this->interfaceDecode($ioIndex)] = $eachSn;
+        if ($this->currentSnmpTemplate['onu_reg']['VERSION'] == 'C6XX') {
+            $snTmp = $this->snIndex;
+        } else {
+            foreach ($this->snIndex as $ioIndex => $eachSn) {
+                $snTmp[$this->interfaceDecode($ioIndex)] = $eachSn;
+            }
         }
         $this->olt->writeOnuCache($snTmp);
     }

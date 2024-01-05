@@ -36,7 +36,7 @@ if (cfr('CASH')) {
                             if ($operation == 'add' and $ubillingConfig->getAlterParam('DREAMKAS_ENABLED') and wf_CheckPost(array('dofiscalizepayment'))) {
                                 $lastDKError = doSomethingHorrible($login, $cash);
 
-                                if (isset($lastDKError) and !empty($lastDKError)) {
+                                if (isset($lastDKError) and ! empty($lastDKError)) {
                                     $lastDKErrorParam = '&lastdkerror=' . urlencode($lastDKError);
                                 }
                             }
@@ -56,7 +56,7 @@ if (cfr('CASH')) {
                         if ($operation == 'add' and $ubillingConfig->getAlterParam('DREAMKAS_ENABLED') and wf_CheckPost(array('dofiscalizepayment'))) {
                             $lastDKError = doSomethingHorrible($login, $cash);
 
-                            if (isset($lastDKError) and !empty($lastDKError)) {
+                            if (isset($lastDKError) and ! empty($lastDKError)) {
                                 $lastDKErrorParam = '&lastdkerror=' . urlencode($lastDKError);
                             }
                         }
@@ -90,14 +90,14 @@ if (cfr('CASH')) {
         $user_tariff = $user_data['Tariff'];
         $tariff_price = zb_TariffGetPrice($user_tariff);
         if (@$alter['BABLOGUESSING']) {
-            $tariff_price+=zb_VservicesGetUserPrice($login);
+            $tariff_price += zb_VservicesGetUserPrice($login);
         }
         $fieldnames = array('fieldname1' => __('Current Cash state'), 'fieldname2' => __('New cash'));
         $fieldkey = 'newcash';
 
         $form = '';
-        $form.= wf_FormDisabler();
-        $form.= web_EditorCashDataForm($fieldnames, $fieldkey, $useraddress, $current_balance, $tariff_price, $userrealname);
+        $form .= wf_FormDisabler();
+        $form .= web_EditorCashDataForm($fieldnames, $fieldkey, $useraddress, $current_balance, $tariff_price, $userrealname);
 
         // Check is user corporate?
         if ($alter['USER_LINKING_ENABLED']) {
@@ -257,4 +257,3 @@ function doSomethingHorrible($login, $cash) {
 
     return ($voracity_i);
 }
-?>

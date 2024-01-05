@@ -33,6 +33,18 @@
     background-color: #e1e1e1;
 }
 
+.row6 {
+    background-color: #e1e1e1;
+    padding: 1px 1px 1px 1px;
+    color: #B0C4DEFF;
+}
+
+.row6:hover {
+    background-color: #ECECEC;
+    color: #2E8B57FF;
+}
+
+
 .ChosenOne {
     background-color: #CDB38B;
 }
@@ -1057,7 +1069,7 @@ div.dhtml_menu div.vert_menu a.active:hover
     box-shadow: 0 0 10px rgba(0,0,0,0.5);
     padding:10px;
     width: 90%;
-    height: 200px;
+/*    height: 200px;*/
 }
 
 #ui-datepicker-div .ui-state-highlight {
@@ -1107,59 +1119,59 @@ div.dhtml_menu div.vert_menu a.active:hover
 }
 
 .confirmcancel {
-	box-shadow:inset 0px 1px 0px 0px #f5978e;
-	background:linear-gradient(to bottom, #f24537 5%, #c62d1f 100%);
-	background-color:#f24537;
-	border-radius:6px;
-	border:1px solid #d02718;
-	display:inline-block;
-	cursor:pointer;
-	color:#ffffff !important;
-	font-family:Arial;
-	font-size:15px;
-	font-weight:bold;
-	padding:6px 24px;
-	text-decoration:none;
-	text-shadow:0px 1px 0px #810e05;
+    box-shadow:inset 0px 1px 0px 0px #f5978e;
+    background:linear-gradient(to bottom, #f24537 5%, #c62d1f 100%);
+    background-color:#f24537;
+    border-radius:6px;
+    border:1px solid #d02718;
+    display:inline-block;
+    cursor:pointer;
+    color:#ffffff !important;
+    font-family:Arial;
+    font-size:15px;
+    font-weight:bold;
+    padding:6px 24px;
+    text-decoration:none;
+    text-shadow:0px 1px 0px #810e05;
 }
 .confirmcancel:hover {
-	background:linear-gradient(to bottom, #c62d1f 5%, #f24537 100%);
-	background-color:#c62d1f;
-        color:#ffffff;
-        text-decoration:none;
+    background:linear-gradient(to bottom, #c62d1f 5%, #f24537 100%);
+    background-color:#c62d1f;
+    color:#ffffff;
+    text-decoration:none;
 }
 .confirmcancel:active {
-	position:relative;
-	top:1px;
-        color:#ffffff;
+    position:relative;
+    top:1px;
+    color:#ffffff;
 }
 
 .confirmagree {
-	box-shadow:inset 0px 1px 0px 0px #a4e271;
-	background:linear-gradient(to bottom, #89c403 5%, #77a809 100%);
-	background-color:#89c403;
-	border-radius:6px;
-	border:1px solid #74b807;
-	display:inline-block;
-	cursor:pointer;
-	color:#ffffff !important;
-	font-family:Arial;
-	font-size:15px;
-	font-weight:bold;
-	padding:6px 24px;
-	text-decoration:none;
-	text-shadow:0px 1px 0px #528009;
+    box-shadow:inset 0px 1px 0px 0px #a4e271;
+    background:linear-gradient(to bottom, #89c403 5%, #77a809 100%);
+    background-color:#89c403;
+    border-radius:6px;
+    border:1px solid #74b807;
+    display:inline-block;
+    cursor:pointer;
+    color:#ffffff !important;
+    font-family:Arial;
+    font-size:15px;
+    font-weight:bold;
+    padding:6px 24px;
+    text-decoration:none;
+    text-shadow:0px 1px 0px #528009;
 }
 .confirmagree:hover {
-	background:linear-gradient(to bottom, #77a809 5%, #89c403 100%);
-	background-color:#77a809;
-        color:#ffffff;
-        text-decoration:none;
+    background:linear-gradient(to bottom, #77a809 5%, #89c403 100%);
+    background-color:#77a809;
+    color:#ffffff;
+    text-decoration:none;
 }
 .confirmagree:active {
-	position:relative;
-	top:1px;
-        color:#ffffff;
+    position:relative;
+    top:1px;
+    color:#ffffff;
 }
 
 .labels-top label {
@@ -1510,3 +1522,17 @@ div.dhtml_menu div.vert_menu a.active:hover
 .ubButtonInline:disabled {
     color: rgba(16, 16, 16, 0.3);
 }
+
+.useredittable  tr { 
+    line-height: 20px; 
+}
+
+.useredittable td {
+    height: 20px;
+}
+
+.useredittable img {
+    height: 16px;
+    width: 16px;
+}
+

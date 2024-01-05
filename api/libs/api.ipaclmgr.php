@@ -324,6 +324,7 @@ class IpACLMgr {
         if (!empty($ip)) {
             if (isset($this->allowedIps[$ip])) {
                 unlink(IPACLALLOWIP_PATH . $ip);
+                log_register('IPACL DELETE IP `' . $ip . '`');
             } else {
                 $result = __('IP') . ' ' . __('Unknown');
                 log_register('IPACL DELETE FAIL IP `' . $ip . '` UNKNOWN');

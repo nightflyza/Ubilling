@@ -55,3 +55,11 @@ $lang['def']['All cameras live by themselves'] = 'Усі камери живут
 $lang['def']['no primary account set'] = 'не встановлено основний аккаунт';
 $lang['def']['Funds for cameras will be charged from the main account at the end of the month'] = 'Грошові кошти буде знято з основного аккаунту наприкінці місяця';
 $lang['def']['Main account is frozen'] = 'Основний аккаунт заморожено';
+$lang['def']['What are your forgot there'] = 'Ти що тут забув';
+$lang['def']['Storages is not available'] = 'Немає доступних сховищ';
+$lang['def']['Storage'] = 'Сховище';
+$lang['def']['Recording now is running'] = 'Запис зараз триває';
+$lang['def']['Recording is not running'] = 'Запис не запущено';
+$lang['def']['Recording'] = 'Запис';
+$lang['def'][''] = '';
+

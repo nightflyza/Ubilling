@@ -13,6 +13,13 @@ class Envy {
     protected $billCfg = array();
 
     /**
+     * System alter.ini config stored as key=>value
+     *
+     * @var array
+     */
+    protected $altCfg = array();
+
+    /**
      * Contains all available devices models
      *
      * @var array
@@ -76,6 +83,13 @@ class Envy {
     protected $messages = '';
 
     /**
+     * Contains process manager instance
+     *
+     * @var object
+     */
+    protected $stardust = '';
+
+    /**
      * Some other required consts for routing etc
      */
     const URL_ME = '?module=envy';
@@ -90,6 +104,7 @@ class Envy {
     const ROUTE_ARCHIVE_AJ = 'ajarchive';
     const ROUTE_FILTER = 'devicefilter';
     const ROUTE_CLEANUP = 'cleanuparchive';
+    const ENVYPROC_PID = 'ENVYPROC_';
 
     /**
      *   ___ _ ____   ___   _ 
@@ -106,9 +121,11 @@ class Envy {
     public function __construct() {
         $this->initMessages();
         $this->loadConfigs();
+        $this->loadAlter();
         $this->loadDeviceModels();
         $this->loadSwitches();
         $this->initScrips();
+        $this->initStarDust();
         $this->loadScripts();
         $this->initDevices();
         $this->loadDevices();
@@ -126,6 +143,16 @@ class Envy {
     protected function loadConfigs() {
         global $ubillingConfig;
         $this->billCfg = $ubillingConfig->getBilling();
+        $this->ubConfig = $ubillingConfig;
+    }
+
+    /**
+     * Loads system alter.ini config into private data property
+     *
+     * @return void
+     */
+    protected function loadAlter() {
+        $this->altCfg = $this->ubConfig->getAlter();
     }
 
     /**
@@ -162,6 +189,52 @@ class Envy {
      */
     protected function initArchive() {
         $this->archive = new NyanORM('envydata');
+    }
+
+    /**
+     * Inits process manager
+     * 
+     * @return void
+     */
+    protected function initStarDust() {
+        $this->stardust = new StarDust();
+    }
+
+    /**
+     * Performs check of Switch envy process lock via DB. 
+     * Using this only for checks of possibility real collector runs.
+     * 
+     * @param int $swId
+     * 
+     * @return bool 
+     */
+    protected function isProcessLocked($swIP) {
+        $this->stardust->setProcess(self::ENVYPROC_PID . $swIP);
+        $result = $this->stardust->isRunning();
+        return($result);
+    }
+
+    /**
+     * Updates some Switch process stats
+     * 
+     * @param int $swIP Existing Switch IP
+     * @param int $processStartTime process start timestame
+     * @param int $processEndTime process end timestamp
+     * @param bool $finished process finished or not flag
+     * 
+     * @return void
+     */
+    protected function processStatsUpdate($swIP, $finished = false) {
+        //collector process locking and releasing of locks here
+        if ($finished) {
+            //release lock
+            $this->stardust->setProcess(self::ENVYPROC_PID . $swIP);
+            $this->stardust->stop();
+        } else {
+            //set lock for process of some DevID
+            $this->stardust->setProcess(self::ENVYPROC_PID . $swIP);
+            $this->stardust->start();
+        }
     }
 
     /**
@@ -434,11 +507,12 @@ class Envy {
                 $inputs = '';
                 $inputs .= wf_Selector('newdeviceswitchid', $switchesTmp, __('Switch'), '', true);
                 $inputs .= wf_TextInput('newdevicelogin', __('Login'), '', true, '');
-                $inputs .= wf_TextInput('newdevicepassword', __('Password'), '', true, '');
-                $inputs .= wf_TextInput('newdeviceenablepassword', __('Enable password'), '', true, '');
+                $inputs .= wf_PasswordInput('newdevicepassword', __('Password'), '', true, '');
+                $inputs .= wf_PasswordInput('newdeviceenablepassword', __('Enable password'), '', true, '');
                 $inputs .= wf_TextInput('newdevicecustom1', __('Custom field'), '', true, '');
                 $inputs .= wf_TextInput('newdevicecutstart', __('Lines to cut at start'), '0', true, '');
                 $inputs .= wf_TextInput('newdevicecutend', __('Lines to cut at end'), '0', true, '');
+                $inputs .= wf_TextInput('newdeviceport', __('Port'), '', true, '');
                 $inputs .= wf_CheckInput('newdeviceactive', __('Active'), true, true);
                 $inputs .= wf_delimiter(0);
                 $inputs .= wf_Submit(__('Create'));
@@ -468,11 +542,12 @@ class Envy {
             $inputs .= wf_HiddenInput('editdeviceid', $deviceData['id']);
             $inputs .= wf_HiddenInput('editdeviceswitchid', $deviceData['switchid']);
             $inputs .= wf_TextInput('editdevicelogin', __('Login'), $deviceData['login'], true, '');
-            $inputs .= wf_TextInput('editdevicepassword', __('Password'), $deviceData['password'], true, '');
-            $inputs .= wf_TextInput('editdeviceenablepassword', __('Enable password'), $deviceData['enablepassword'], true, '');
+            $inputs .= wf_PasswordInput('editdevicepassword', __('Password'), $deviceData['password'], true, '');
+            $inputs .= wf_PasswordInput('editdeviceenablepassword', __('Enable password'), $deviceData['enablepassword'], true, '');
             $inputs .= wf_TextInput('editdevicecustom1', __('Custom field'), $deviceData['custom1'], true, '');
             $inputs .= wf_TextInput('editdevicecutstart', __('Lines to cut at start'), $deviceData['cutstart'], true, '');
             $inputs .= wf_TextInput('editdevicecutend', __('Lines to cut at end'), $deviceData['cutend'], true, '');
+            $inputs .= wf_TextInput('editdeviceport', __('Port'), $deviceData['port'], true, '');
             $inputs .= wf_CheckInput('editdeviceactive', __('Active'), true, $deviceData['active']);
             $inputs .= wf_delimiter(0);
             $inputs .= wf_Submit(__('Save'));
@@ -499,6 +574,7 @@ class Envy {
             $custom1 = ubRouting::post('newdevicecustom1', 'mres');
             $cutstart = ubRouting::post('newdevicecutstart', 'int');
             $cutend = ubRouting::post('newdevicecutend', 'int');
+            $port = ubRouting::post('newdeviceport', 'int');
 
             if (!empty($switchId)) {
                 if (!isset($this->allDevices[$switchId])) {
@@ -511,6 +587,7 @@ class Envy {
                         $this->devices->data('custom1', $custom1);
                         $this->devices->data('cutstart', $cutstart);
                         $this->devices->data('cutend', $cutend);
+                        $this->devices->data('port', $port);
                         $this->devices->create();
                         $newId = $this->devices->getLastId();
                         log_register('ENVY CREATE DEVICE [' . $newId . '] SWITCHID [' . $switchId . ']');
@@ -544,6 +621,7 @@ class Envy {
             $custom1 = ubRouting::post('editdevicecustom1', 'mres');
             $cutstart = ubRouting::post('editdevicecutstart', 'int');
             $cutend = ubRouting::post('editdevicecutend', 'int');
+            $port = ubRouting::post('editdeviceport', 'int');
 
             if (!empty($switchId)) {
                 if (isset($this->allDevices[$switchId])) {
@@ -556,6 +634,7 @@ class Envy {
                         $this->devices->data('custom1', $custom1);
                         $this->devices->data('cutstart', $cutstart);
                         $this->devices->data('cutend', $cutend);
+                        $this->devices->data('port', $port);
                         $this->devices->save();
                         log_register('ENVY EDIT DEVICE [' . $deviceId . '] SWITCHID [' . $switchId . ']');
                     } else {
@@ -640,10 +719,6 @@ class Envy {
             $cells .= wf_TableCell(__('Switch'));
             $cells .= wf_TableCell(__('Model'));
             $cells .= wf_TableCell(__('Active'));
-            $cells .= wf_TableCell(__('Login'));
-            $cells .= wf_TableCell(__('Password'));
-            $cells .= wf_TableCell(__('Enable password'));
-            $cells .= wf_TableCell(__('Custom field'));
             $cells .= wf_TableCell(__('Actions'));
             $rows = wf_TableRow($cells, 'row1');
 
@@ -675,10 +750,6 @@ class Envy {
                 $cells .= wf_TableCell($switchData['location']);
                 $cells .= wf_TableCell($modelLabel . ' ' . @$allModelNames[$switchData['modelid']]);
                 $cells .= wf_TableCell(web_bool_led($each['active']));
-                $cells .= wf_TableCell($each['login']);
-                $cells .= wf_TableCell($each['password']);
-                $cells .= wf_TableCell($each['enablepassword']);
-                $cells .= wf_TableCell($each['custom1']);
                 $devControls = '';
                 $devControls .= wf_JSAlert(self::URL_ME . '&deletedevice=' . $each['switchid'], web_delete_icon(), $this->messages->getDeleteAlert()) . ' ';
                 $devControls .= wf_modalAuto(web_edit_icon(), __('Edit') . ' ' . $switchData['ip'], $this->renderDeviceEditForm($each['switchid'])) . ' ';
@@ -725,12 +796,14 @@ class Envy {
                     $macroPass = (!empty($deviceData['password'])) ? $deviceData['password'] : 'empty_password';
                     $macroEnPass = (!empty($deviceData['enablepassword'])) ? $deviceData['enablepassword'] : 'empty_enablepassword';
                     $macroCust1 = (!empty($deviceData['custom1'])) ? $deviceData['custom1'] : 'empty_custom1';
+                    $macroPort = (!empty($deviceData['port'])) ? $deviceData['port'] : 'empty_port';
                     //some macro replacing here
                     $result = str_replace('{IP}', $this->allSwitches[$switchId]['ip'], $result);
                     $result = str_replace('{LOGIN}', $macroLogin, $result);
                     $result = str_replace('{PASSWORD}', $macroPass, $result);
                     $result = str_replace('{ENABLEPASSWORD}', $macroEnPass, $result);
                     $result = str_replace('{CUSTOM1}', $macroCust1, $result);
+                    $result = str_replace('{PORT}', $macroPort, $result);
                 }
             }
         }
@@ -767,7 +840,7 @@ class Envy {
     public function previewScriptsResult($data) {
         $result = '';
         if (!empty($data)) {
-            $inputs = wf_tag('textarea', false, 'fileeditorarea', 'name="envypreview" cols="145" rows="30"');
+            $inputs = wf_tag('textarea', false, 'fileeditorarea', 'name="envypreview" cols="145" rows="30" spellcheck="false"');
             $inputs .= $data;
             $inputs .= wf_tag('textarea', true);
             $result .= wf_Form('', 'POST', $inputs, 'glamour');
@@ -865,7 +938,7 @@ class Envy {
      * 
      * @return void/string on error
      */
-    public function storeArchiveData($switchId, $data) {
+    protected function storeArchiveData($switchId, $data) {
         $result = '';
         $switchId = ubRouting::filters($switchId, 'int');
         if (!empty($switchId)) {
@@ -973,6 +1046,24 @@ class Envy {
     }
 
     /**
+     * Start process for get and store config data
+     * 
+     * @param int $devId
+     * 
+     * @return void
+     */
+    public function procStoreArchiveData($devId) {
+        if (!$this->isProcessLocked($this->allSwitches[$devId]['ip'])) {
+            //starting process
+            $this->processStatsUpdate($this->allSwitches[$devId]['ip'], false);
+            //polling device
+            $this->storeArchiveData($devId, $this->runDeviceScript($devId));
+            //finishing process
+            $this->processStatsUpdate($this->allSwitches[$devId]['ip'], true);
+        }
+    }
+
+    /**
      * Stores all available envy-devices configs into archive
      * 
      * @return void
@@ -980,10 +1071,27 @@ class Envy {
     public function storeArchiveAllDevices() {
         if (!empty($this->allScripts)) {
             if (!empty($this->allDevices)) {
-                foreach ($this->allDevices as $io => $each) {
-                    if ($each['active']) {
-                        $this->storeArchiveData($each['switchid'], $this->runDeviceScript($each['switchid']));
+                if (!$this->isProcessLocked('ALL')) {
+                    //starting envy process
+                    $this->processStatsUpdate('ALL', false);
+
+                    foreach ($this->allDevices as $io => $each) {
+                        if ($each['active']) {
+                            if (@!$this->altCfg['MULTI_ENVY_PROC']) {
+                                $this->procStoreArchiveData($each['switchid']);
+                            } else {
+                                //starting herd of envy here!
+                                $procTimeout = 0;
+                                if ($this->altCfg['MULTI_ENVY_PROC'] > 1) {
+                                    $procTimeout = ubRouting::filters($this->altCfg['MULTI_ENVY_PROC'], 'int');
+                                }
+                                $this->stardust->runBackgroundProcess('/bin/ubapi "multienvy&devid=' . $each['switchid'] . '"', $procTimeout);
+                            }
+                        }
                     }
+
+                    //finishing envy process
+                    $this->processStatsUpdate('ALL', true);
                 }
             }
         }
@@ -1046,7 +1154,7 @@ class Envy {
         $result = '';
         $configIdOne = ubRouting::filters($configIdOne, 'int');
         $configIdTwo = ubRouting::filters($configIdTwo, 'int');
-        if (!empty($configIdOne) AND ! empty($configIdTwo)) {
+        if (!empty($configIdOne) AND !empty($configIdTwo)) {
             //same config check
             if ($configIdOne != $configIdTwo) {
                 if (isset($this->allConfigs[$configIdOne]) AND isset($this->allConfigs[$configIdTwo])) {

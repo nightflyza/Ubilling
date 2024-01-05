@@ -414,8 +414,13 @@ if (cfr('EXTCONTRAS')) {
 
         if (ubRouting::checkPost($ExtContras::ROUTE_FINOPS_ACTS)) {
             $moneyDateValue = curdatetime();
+            $profileID      = ubRouting::post($ExtContras::CTRL_MONEY_PROFILEID);
+            $contractID     = ubRouting::post($ExtContras::CTRL_MONEY_CNTRCTID);
+            $addressID      = ubRouting::post($ExtContras::CTRL_MONEY_ADDRESSID);
 
             if (ubRouting::checkPost($ExtContras::ROUTE_ACTION_CREATE)) {
+//                $payDay         = $ExtContras->getContraPayday($profileID, $contractID, $addressID);
+//                $paymentDueDate = date('Y-m-') . $payDay;
                 $moneyDateField = $ExtContras::DBFLD_MONEY_DATE;
             } else {
                 $moneyDateField = $ExtContras::DBFLD_MONEY_DATE_EDIT;
@@ -429,21 +434,12 @@ if (cfr('EXTCONTRAS')) {
                 $createModality = false;
             }
 
-            // comes here from a hidden input of finops webform
-            if (ubRouting::checkPost($ExtContras::MISC_MISSED_PAYMENT_PROCESSING)) {
-                $missedPyamID = ubRouting::post($ExtContras::MISC_MISSED_PAYMENT_ID);
-
-                if (!empty($missedPyamID)) {
-                    $ExtContras->updateMissedPaymentPayedDate($missedPyamID);
-                }
-            }
-
             $finopIncoming = (ubRouting::post($ExtContras::CTRL_MONEY_INOUT) == 'incoming') ? 1 : 0;
             $finopOutgoing = (ubRouting::post($ExtContras::CTRL_MONEY_INOUT) == 'outgoing') ? 1 : 0;
 
-            $dataArray = array($ExtContras::DBFLD_MONEY_PROFILEID   => ubRouting::post($ExtContras::CTRL_MONEY_PROFILEID),
-                               $ExtContras::DBFLD_MONEY_CNTRCTID    => ubRouting::post($ExtContras::CTRL_MONEY_CNTRCTID),
-                               $ExtContras::DBFLD_MONEY_ADDRESSID   => ubRouting::post($ExtContras::CTRL_MONEY_ADDRESSID),
+            $dataArray = array($ExtContras::DBFLD_MONEY_PROFILEID   => $profileID,
+                               $ExtContras::DBFLD_MONEY_CNTRCTID    => $contractID,
+                               $ExtContras::DBFLD_MONEY_ADDRESSID   => $addressID,
                                $ExtContras::DBFLD_MONEY_INVOICEID   => ubRouting::post($ExtContras::CTRL_MONEY_INVOICEID),
                                $ExtContras::DBFLD_MONEY_ACCRUALID   => ubRouting::post($ExtContras::CTRL_MONEY_ACCRUALID),
                                $ExtContras::DBFLD_MONEY_PURPOSE     => ubRouting::post($ExtContras::CTRL_MONEY_PURPOSE),
@@ -454,6 +450,22 @@ if (cfr('EXTCONTRAS')) {
                                $ExtContras::DBFLD_MONEY_OUTGOING    => $finopOutgoing,
                                $moneyDateField => $moneyDateValue
                               );
+
+            /*if (ubRouting::checkPost($ExtContras::ROUTE_ACTION_CREATE)) {
+                $dataArray[$ExtContras::DBFLD_MONEY_DATE_PAYMENT] = $paymentDueDate;
+            }*/
+
+            // comes here from a hidden input of finops webform
+            if (ubRouting::checkPost($ExtContras::MISC_MISSED_PAYMENT_PROCESSING)) {
+                $missedPyamID = ubRouting::post($ExtContras::MISC_MISSED_PAYMENT_ID);
+
+                if (!empty($missedPyamID)) {
+                    $ExtContras->updateMissedPaymentPayedDate($missedPyamID);
+
+                    $paymentDueDate = $ExtContras->getMissedPaymentPayDay($missedPyamID);
+                    $dataArray[$ExtContras::DBFLD_MONEY_DATE_PAYMENT] = $paymentDueDate;
+                }
+            }
 
             $showResult = $ExtContras->processCRUDs($dataArray, $ExtContras::TABLE_ECMONEY, $ExtContras::CTRL_MONEY_PURPOSE,
                 'finopsWebForm', false, array(),

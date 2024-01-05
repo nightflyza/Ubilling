@@ -20,28 +20,28 @@ class Corps {
     protected $ibanFlag = false;
 
     /**
-     * Contains available corps to normal users bindings
+     * Contains available corps to normal users bindings as login=>corpId
      *
      * @var array
      */
     protected $users = array();
 
     /**
-     * Contains available corps
+     * Contains available corps as id=>corpData
      *
      * @var array
      */
     protected $corps = array();
 
     /**
-     * Contains available corps contact persons
+     * Contains available corps contact persons as id=>personData
      *
      * @var array
      */
     protected $persons = array();
 
     /**
-     * Contains existing tax types
+     * Contains existing tax types as id=>type
      *
      * @var array
      */
@@ -66,6 +66,34 @@ class Corps {
     );
 
     /**
+     * Contains corps data database abstraction layer
+     *
+     * @var object
+     */
+    protected $corpsDb = '';
+
+    /**
+     * Contains taxtypes database abstraction layer
+     *
+     * @var object
+     */
+    protected $taxtypesDb = '';
+
+    /**
+     * Contains persons database abstraction layer
+     *
+     * @var object
+     */
+    protected $personsDb = '';
+
+    /**
+     * Contains users database abstraction layer
+     *
+     * @var object
+     */
+    protected $usersDb = '';
+
+    /**
      * Some predefined module routing URLs
      */
     const ROUTE_PREFIX = 'show';
@@ -81,12 +109,19 @@ class Corps {
     const URL_CORPS_DEL = '?module=corps&show=corps&deleteid=';
     const URL_USER = 'user';
     const URL_USER_MANAGE = '?module=corps&show=user&username=';
+    const URL_AJDT = 'ajax';
+    //some datasources here
+    const TABLE_DATA = 'corp_data';
+    const TABLE_TAXTYPES = 'corp_taxtypes';
+    const TABLE_PERSONS = 'corp_persons';
+    const TABLE_USERS = 'corp_users';
 
     /**
      * Creates new corps object instance
      */
     public function __construct() {
         $this->loadConfigs();
+        $this->initDb();
         $this->loadUsers();
         $this->loadCorps();
         $this->loadPersons();
@@ -110,6 +145,27 @@ class Corps {
         if (@$this->altCfg['RFCORPS']) {
             $this->rfCorpsFlag = true;
         }
+
+        if (@$this->altCfg['CORPS_ADDT']) {
+            $rawTypes = explode(',', $this->altCfg['CORPS_ADDT']);
+            if (!empty($rawTypes)) {
+                foreach ($rawTypes as $io => $eachDt) {
+                    $this->doctypes[] = $eachDt;
+                }
+            }
+        }
+    }
+
+    /**
+     * Inits all required database abstraction layers
+     * 
+     * @return void
+     */
+    protected function initDb() {
+        $this->corpsDb = new NyanORM(self::TABLE_DATA);
+        $this->taxtypesDb = new NyanORM(self::TABLE_TAXTYPES);
+        $this->personsDb = new NyanORM(self::TABLE_PERSONS);
+        $this->usersDb = new NyanORM(self::TABLE_USERS);
     }
 
     /**
@@ -118,13 +174,8 @@ class Corps {
      * @return void
      */
     protected function loadCorps() {
-        $query = "SELECT * from `corp_data`";
-        $all = simple_queryall($query);
-        if (!empty($all)) {
-            foreach ($all as $io => $each) {
-                $this->corps[$each['id']] = $each;
-            }
-        }
+        $this->corpsDb->orderBy('id', 'DESC');
+        $this->corps = $this->corpsDb->getAll('id');
     }
 
     /**
@@ -133,8 +184,7 @@ class Corps {
      * @return void
      */
     protected function loadTaxtypes() {
-        $query = "SELECT * from `corp_taxtypes`";
-        $all = simple_queryall($query);
+        $all = $this->taxtypesDb->getAll();
         if (!empty($all)) {
             foreach ($all as $io => $each) {
                 $this->taxtypes[$each['id']] = $each['type'];
@@ -148,13 +198,7 @@ class Corps {
      * @return void
      */
     protected function loadPersons() {
-        $query = "SELECT * from `corp_persons`";
-        $all = simple_queryall($query);
-        if (!empty($all)) {
-            foreach ($all as $io => $each) {
-                $this->persons[$each['id']] = $each;
-            }
-        }
+        $this->persons = $this->personsDb->getAll('id');
     }
 
     /**
@@ -163,8 +207,7 @@ class Corps {
      * @return void
      */
     protected function loadUsers() {
-        $query = "SELECT * from `corp_users`";
-        $all = simple_queryall($query);
+        $all = $this->usersDb->getAll();
         if (!empty($all)) {
             foreach ($all as $io => $each) {
                 $this->users[$each['login']] = $each['corpid'];
@@ -180,7 +223,7 @@ class Corps {
      * @return string
      */
     protected function taxtypeEditForm($id) {
-        $id = vf($id, 3);
+        $id = ubRouting::filters($id, 'int');
         $result = '';
         if (isset($this->taxtypes[$id])) {
             $taxtypename = $this->taxtypes[$id];
@@ -216,11 +259,13 @@ class Corps {
      * @return void
      */
     public function taxtypeCreate($type) {
-        $type = mysql_real_escape_string($type);
-        $query = "INSERT INTO  `corp_taxtypes` (`id`, `type`) VALUES (NULL, '" . $type . "'); ";
-        nr_query($query);
-        $newId = simple_get_lastid('corp_taxtypes');
-        log_register("CORPS CREATE TAXTYPE [" . $newId . "]");
+        $type = ubRouting::filters($type, 'mres');
+
+        $this->taxtypesDb->data('type', $type);
+        $this->taxtypesDb->create();
+
+        $newId = $this->taxtypesDb->getLastId();
+        log_register('CORPS CREATE TAXTYPE [' . $newId . ']');
     }
 
     /**
@@ -264,11 +309,11 @@ class Corps {
      * @return void
      */
     public function taxtypeDelete($id) {
-        $id = vf($id, 3);
+        $id = ubRouting::filters($id, 'int');
         if (isset($this->taxtypes[$id])) {
-            $query = "DELETE from `corp_taxtypes` WHERE `id`='" . $id . "';";
-            nr_query($query);
-            log_register("CORPS DELETE TAXTYPE [" . $id . "]");
+            $this->taxtypesDb->where('id', '=', $id);
+            $this->taxtypesDb->delete();
+            log_register('CORPS DELETE TAXTYPE [' . $id . ']');
         }
     }
 
@@ -281,56 +326,64 @@ class Corps {
      * @return void
      */
     public function taxtypeEdit($id, $type) {
-        $id = vf($id, 3);
+        $id = ubRouting::filters($id, 'int');
         if (isset($this->taxtypes[$id])) {
-            simple_update_field('corp_taxtypes', 'type', $type, "WHERE `id`='" . $id . "';");
-            log_register("CORPS EDIT TAXTYPE [" . $id . "]");
+            $this->taxtypesDb->data('type', $type);
+            $this->taxtypesDb->where('id', '=', $id);
+            $this->taxtypesDb->save();
+            log_register('CORPS EDIT TAXTYPE [' . $id . ']');
         }
     }
 
     /**
-     * list available corps with some controls
+     * list available corps list container
      * 
      * @return string
      */
     public function corpsList() {
+        $result = '';
+        $columns = array('ID', 'Corp name', 'Address', 'Document type', 'Document date', 'Tax payer status', 'Actions');
+        $ajUrl = self::URL_CORPS_LIST . '&' . self::URL_AJDT . '=true';
+        $result .= wf_JqDtLoader($columns, $ajUrl, false, __('Corporate users'), 50, '"order": [[ 0, "desc" ]]');
+        return($result);
+    }
 
-        $cells = wf_TableCell(__('ID'));
-        $cells .= wf_TableCell(__('Corp name'));
-        $cells .= wf_TableCell(__('Address'));
-        $cells .= wf_TableCell(__('Document type'));
-        $cells .= wf_TableCell(__('Document date'));
-        $cells .= wf_TableCell(__('Tax payer status'));
-        $cells .= wf_TableCell(__('Actions'));
-        $rows = wf_TableRow($cells, 'row1');
+    /**
+     * list available corps JSON data with some controls
+     * 
+     * @return void
+     */
+    public function corpsListAjax() {
+        $json = new wf_JqDtHelper();
+
         if (!empty($this->corps)) {
             foreach ($this->corps as $io => $each) {
-                $cells = wf_TableCell($each['id']);
-                $cells .= wf_TableCell($each['corpname']);
-                $cells .= wf_TableCell($each['address']);
                 if (isset($this->doctypes[$each['doctype']])) {
                     $doctype = __($this->doctypes[$each['doctype']]);
                 } else {
                     $doctype = $each['doctype'];
                 }
-                $cells .= wf_TableCell($doctype);
-                $cells .= wf_TableCell($each['docdate']);
                 if (isset($this->taxtypes[$each['taxtype']])) {
                     $taxtype = $this->taxtypes[$each['taxtype']];
                 } else {
                     $taxtype = $each['taxtype'];
                 }
-                $cells .= wf_TableCell($taxtype);
                 $actlinks = wf_JSAlert(self::URL_CORPS_DEL . $each['id'], web_delete_icon(), $this->alertDelete()) . ' ';
                 $actlinks .= wf_JSAlert(self::URL_CORPS_EDIT . $each['id'], web_edit_icon(), __('Are you serious')) . ' ';
                 $actlinks .= wf_modal(wf_img('skins/icon_search_small.gif', __('Preview')), $each['corpname'], $this->corpPreview($each['id']), '', '800', '600');
-                $cells .= wf_TableCell($actlinks);
-                $rows .= wf_TableRow($cells, 'row3');
+
+                $data[] = $each['id'];
+                $data[] = $each['corpname'];
+                $data[] = $each['address'];
+                $data[] = $doctype;
+                $data[] = $each['docdate'];
+                $data[] = $taxtype;
+                $data[] = $actlinks;
+                $json->addRow($data);
+                unset($data);
             }
         }
-
-        $result = wf_TableBody($rows, '100%', 0, 'sortable');
-        return ($result);
+        $json->getJson();
     }
 
     /**
@@ -341,7 +394,7 @@ class Corps {
      * @return string
      */
     public function corpPreview($id) {
-        $id = vf($id, 3);
+        $id = ubRouting::filters($id, 'int');
         $result = '';
         if (isset($this->corps[$id])) {
             $cells = wf_TableCell(__('Corp name'), '', 'row2');
@@ -408,6 +461,26 @@ class Corps {
             $cells .= wf_TableCell($taxtype);
             $rows .= wf_TableRow($cells, 'row3');
 
+            $cells = wf_TableCell(__('Short name'), '', 'row2');
+            $cells .= wf_TableCell($this->corps[$id]['corpnameabbr']);
+            $rows .= wf_TableRow($cells, 'row3');
+
+            $cells = wf_TableCell(__('Signatory'), '', 'row2');
+            $cells .= wf_TableCell($this->corps[$id]['corpsignatory']);
+            $rows .= wf_TableRow($cells, 'row3');
+
+            $cells = wf_TableCell(__('Signatory') . ' 2', '', 'row2');
+            $cells .= wf_TableCell($this->corps[$id]['corpsignatory2']);
+            $rows .= wf_TableRow($cells, 'row3');
+
+            $cells = wf_TableCell(__('Basis'), '', 'row2');
+            $cells .= wf_TableCell($this->corps[$id]['corpbasis']);
+            $rows .= wf_TableRow($cells, 'row3');
+
+            $cells = wf_TableCell(__('Email'), '', 'row2');
+            $cells .= wf_TableCell($this->corps[$id]['corpemail']);
+            $rows .= wf_TableRow($cells, 'row3');
+
             $cells = wf_TableCell(__('Notes'), '', 'row2');
             $cells .= wf_TableCell($this->corps[$id]['notes']);
             $rows .= wf_TableRow($cells, 'row3');
@@ -447,7 +520,7 @@ class Corps {
      * @return string
      */
     protected function corpListUsers($id) {
-        $id = vf($id, 3);
+        $id = ubRouting::filters($id, 'int');
         $result = '';
         $userArr = array();
         if (isset($this->corps[$id])) {
@@ -495,7 +568,7 @@ class Corps {
      * @return string
      */
     public function corpEditForm($id) {
-        $id = vf($id, 3);
+        $id = ubRouting::filters($id, 'int');
         $result = '';
         if (isset($this->corps[$id])) {
             $data = $this->corps[$id];
@@ -519,9 +592,13 @@ class Corps {
             $inputs .= wf_TextInput('editndstaxnum', $ndsNumLabel, $data['ndstaxnum'], true, '20');
             $inputs .= wf_TextInput('editinncode', $innCodeLabel, $data['inncode'], true, '20');
             $inputs .= wf_Selector('edittaxtype', $this->taxtypes, __('Tax type'), $data['taxtype'], true);
+            $inputs .= wf_TextInput('editcorpnameabbr', __('Short name'), $data['corpnameabbr'], true, '20');
+            $inputs .= wf_TextInput('editcorpsignatory', __('Signatory'), $data['corpsignatory'], true, '20');
+            $inputs .= wf_TextInput('editcorpsignatory2', __('Signatory') . ' 2', $data['corpsignatory2'], true, '20');
+            $inputs .= wf_TextInput('editcorpbasis', __('Basis'), $data['corpbasis'], true, '20');
+            $inputs .= wf_TextInput('editcorpemail', __('Email'), $data['corpemail'], true, '20');
             $inputs .= wf_TextInput('editnotes', __('Notes'), $data['notes'], true, '40');
             $inputs .= wf_Submit(__('Save'));
-
 
             $result = wf_Form('', 'POST', $inputs, 'glamour');
             //contact persons editor
@@ -533,8 +610,7 @@ class Corps {
     }
 
     /**
-     * returns corp creation form
-     * 
+     * Returns corp creation form
      * 
      * @return string
      */
@@ -560,9 +636,15 @@ class Corps {
             $inputs .= wf_TextInput('addndstaxnum', $ndsNumLabel, '', true, '20');
             $inputs .= wf_TextInput('addinncode', $innCodeLabel, '', true, '20');
             $inputs .= wf_Selector('addtaxtype', $this->taxtypes, __('Tax type'), '', true);
-            $inputs .= wf_TextInput('addnotes', __('Notes'), '', true, '40');
-            $inputs .= wf_Submit(__('Create'));
+            $inputs .= wf_TextInput('addcorpnameabbr', __('Short name'), '', true, '20');
+            $inputs .= wf_TextInput('addcorpsignatory', __('Signatory'), '', true, '20');
+            $inputs .= wf_TextInput('addcorpsignatory2', __('Signatory') . ' 2', '', true, '20');
+            $inputs .= wf_TextInput('addcorpbasis', __('Basis'), '', true, '20');
+            $inputs .= wf_TextInput('addcorpemail', __('Email'), '', true, '20');
 
+            $inputs .= wf_TextInput('addnotes', __('Notes'), '', true, '40');
+
+            $inputs .= wf_Submit(__('Create'));
 
             $result = wf_Form('', 'POST', $inputs, 'glamour');
         } else {
@@ -579,11 +661,11 @@ class Corps {
      * @return void
      */
     public function corpDelete($id) {
-        $id = vf($id, 3);
+        $id = ubRouting::filters($id, 'int');
         if (isset($this->corps[$id])) {
-            $query = "DELETE from `corp_data` WHERE `id`='" . $id . "'; ";
-            nr_query($query);
-            log_register("CORPS DELETE CORP [" . $id . "]");
+            $this->corpsDb->where('id', '=', $id);
+            $this->corpsDb->delete();
+            log_register('CORPS DELETE CORP [' . $id . ']');
         }
     }
 
@@ -595,49 +677,83 @@ class Corps {
      * @return void
      */
     public function corpSave($id) {
-        $id = vf($id, 3);
+        $id = ubRouting::filters($id, 'int');
         if (isset($this->corps[$id])) {
-            simple_update_field('corp_data', 'corpname', $_POST['editcorpname'], "WHERE `id`='" . $id . "'");
-            simple_update_field('corp_data', 'address', $_POST['editcoraddress'], "WHERE `id`='" . $id . "'");
-            simple_update_field('corp_data', 'doctype', $_POST['editdoctype'], "WHERE `id`='" . $id . "'");
-            simple_update_field('corp_data', 'docdate', $_POST['editdocdate'], "WHERE `id`='" . $id . "'");
-            simple_update_field('corp_data', 'docnum', $_POST['editdocnum'], "WHERE `id`='" . $id . "'");
-            simple_update_field('corp_data', 'bankacc', $_POST['editbankacc'], "WHERE `id`='" . $id . "'");
-            simple_update_field('corp_data', 'bankname', $_POST['editbankname'], "WHERE `id`='" . $id . "'");
-            simple_update_field('corp_data', 'bankmfo', $_POST['editbankmfo'], "WHERE `id`='" . $id . "'");
-            simple_update_field('corp_data', 'edrpou', $_POST['editedrpou'], "WHERE `id`='" . $id . "'");
-            simple_update_field('corp_data', 'ndstaxnum', $_POST['editndstaxnum'], "WHERE `id`='" . $id . "'");
-            simple_update_field('corp_data', 'inncode', $_POST['editinncode'], "WHERE `id`='" . $id . "'");
-            simple_update_field('corp_data', 'taxtype', $_POST['edittaxtype'], "WHERE `id`='" . $id . "'");
-            simple_update_field('corp_data', 'notes', $_POST['editnotes'], "WHERE `id`='" . $id . "'");
-            log_register("CORPS EDIT CORP [" . $id . "]");
+
+            $this->corpsDb->data('corpname', ubRouting::post('editcorpname', 'mres'));
+            $this->corpsDb->data('address', ubRouting::post('editcoraddress', 'mres'));
+            $this->corpsDb->data('doctype', ubRouting::post('editdoctype', 'mres'));
+            $this->corpsDb->data('docdate', ubRouting::post('editdocdate', 'mres'));
+            $this->corpsDb->data('docnum', ubRouting::post('editdocnum', 'mres'));
+            $this->corpsDb->data('bankacc', ubRouting::post('editbankacc', 'mres'));
+            $this->corpsDb->data('bankname', ubRouting::post('editbankname', 'mres'));
+            $this->corpsDb->data('bankmfo', ubRouting::post('editbankmfo', 'mres'));
+            $this->corpsDb->data('edrpou', ubRouting::post('editedrpou', 'mres'));
+            $this->corpsDb->data('ndstaxnum', ubRouting::post('editndstaxnum', 'mres'));
+            $this->corpsDb->data('inncode', ubRouting::post('editinncode', 'mres'));
+            $this->corpsDb->data('taxtype', ubRouting::post('edittaxtype', 'mres'));
+            $this->corpsDb->data('notes', ubRouting::post('editnotes', 'mres'));
+            $this->corpsDb->data('corpnameabbr', ubRouting::post('editcorpnameabbr', 'mres'));
+            $this->corpsDb->data('corpsignatory', ubRouting::post('editcorpsignatory', 'mres'));
+            $this->corpsDb->data('corpsignatory2', ubRouting::post('editcorpsignatory2', 'mres'));
+            $this->corpsDb->data('corpbasis', ubRouting::post('editcorpbasis', 'mres'));
+            $this->corpsDb->data('corpemail', ubRouting::post('editcorpemail', 'mres'));
+            $this->corpsDb->where('id', '=', $id);
+            $this->corpsDb->save();
+
+            log_register('CORPS EDIT CORP [' . $id . ']');
         }
     }
 
     /**
-     * creates new corp in database
+     * Creates new corp in database
      * 
      * @return int
      */
     public function corpCreate() {
-        $corpname = mysql_real_escape_string($_POST['createcorpname']);
-        $address = mysql_real_escape_string($_POST['createaddress']);
-        $doctype = vf($_POST['createdoctype'], 3);
-        $docdate = mysql_real_escape_string($_POST['createdocdate']);
-        $docnum = mysql_real_escape_string($_POST['adddocnum']);
-        $bankacc = mysql_real_escape_string($_POST['addbankacc']);
-        $bankname = mysql_real_escape_string($_POST['addbankname']);
-        $bankmfo = mysql_real_escape_string($_POST['addbankmfo']);
-        $edrpou = mysql_real_escape_string($_POST['addedrpou']);
-        $taxnum = mysql_real_escape_string($_POST['addndstaxnum']);
-        $inncode = mysql_real_escape_string($_POST['addinncode']);
-        $taxtype = vf($_POST['addtaxtype'], 3);
-        $notes = mysql_real_escape_string($_POST['addnotes']);
-        $query = "INSERT INTO `corp_data` (`id`, `corpname`, `address`, `doctype`, `docnum`, `docdate`, `bankacc`, `bankname`, `bankmfo`, `edrpou`, `ndstaxnum`, `inncode`, `taxtype`, `notes`) "
-                . "VALUES (NULL, '" . $corpname . "', '" . $address . "', '" . $doctype . "', '" . $docnum . "', '" . $docdate . "', '" . $bankacc . "', '" . $bankname . "', '" . $bankmfo . "', '" . $edrpou . "', '" . $taxnum . "', '" . $inncode . "', '" . $taxtype . "', '" . $notes . "');";
-        nr_query($query);
-        $newID = simple_get_lastid('corp_data');
-        log_register("CORPS CREATE CORP [" . $newID . "]");
+        $corpname = ubRouting::post('createcorpname', 'mres');
+        $address = ubRouting::post('createaddress', 'mres');
+        $doctype = ubRouting::post('createdoctype', 'int');
+        $docdate = ubRouting::post('createdocdate', 'mres');
+        $docnum = ubRouting::post('adddocnum', 'mres');
+        $bankacc = ubRouting::post('addbankacc', 'mres');
+        $bankname = ubRouting::post('addbankname', 'mres');
+        $bankmfo = ubRouting::post('addbankmfo', 'mres');
+        $edrpou = ubRouting::post('addedrpou', 'mres');
+        $taxnum = ubRouting::post('addndstaxnum', 'mres');
+        $inncode = ubRouting::post('addinncode', 'mres');
+        $taxtype = ubRouting::post('addtaxtype', 'int');
+        $notes = ubRouting::post('addnotes', 'mres');
+
+        $corpnameabbr = ubRouting::post('addcorpnameabbr', 'mres');
+        $corpsignatory = ubRouting::post('addcorpsignatory', 'mres');
+        $corpsignatory2 = ubRouting::post('addcorpsignatory2', 'mres');
+        $corpbasis = ubRouting::post('addcorpbasis', 'mres');
+        $corpemail = ubRouting::post('addcorpemail', 'mres');
+
+        $this->corpsDb->data('corpname', $corpname);
+        $this->corpsDb->data('address', $address);
+        $this->corpsDb->data('doctype', $doctype);
+        $this->corpsDb->data('docnum', $docnum);
+        $this->corpsDb->data('docdate', $docdate);
+        $this->corpsDb->data('bankacc', $bankacc);
+        $this->corpsDb->data('bankname', $bankname);
+        $this->corpsDb->data('bankmfo', $bankmfo);
+        $this->corpsDb->data('edrpou', $edrpou);
+        $this->corpsDb->data('ndstaxnum', $taxnum);
+        $this->corpsDb->data('inncode', $inncode);
+        $this->corpsDb->data('taxtype', $taxtype);
+        $this->corpsDb->data('notes', $notes);
+        $this->corpsDb->data('corpnameabbr', $corpnameabbr);
+        $this->corpsDb->data('corpsignatory', $corpsignatory);
+        $this->corpsDb->data('corpsignatory2', $corpsignatory2);
+        $this->corpsDb->data('corpbasis', $corpbasis);
+        $this->corpsDb->data('corpemail', $corpemail);
+
+        $this->corpsDb->create();
+
+        $newID = $this->corpsDb->getLastId();
+        log_register('CORPS CREATE CORP [' . $newID . ']');
         return ($newID);
     }
 
@@ -661,7 +777,7 @@ class Corps {
      * @return string
      */
     protected function personsList($corpid) {
-        $corpid = vf($corpid, 3);
+        $corpid = ubRouting::filters($corpid, 'int');
         $result = '';
         if (!empty($this->persons)) {
             $cells = wf_TableCell(__('ID'));
@@ -698,7 +814,7 @@ class Corps {
      * @return string
      */
     protected function personsControl($corpid) {
-        $corpid = vf($corpid, 3);
+        $corpid = ubRouting::filters($corpid, 'int');
         $result = '';
         if (!empty($this->persons)) {
             $cells = wf_TableCell(__('ID'));
@@ -741,7 +857,7 @@ class Corps {
      * @return string
      */
     public function personCreateForm($corpid) {
-        $corpid = vf($corpid, 3);
+        $corpid = ubRouting::filters($corpid, 'int');
         $result = '';
         $sup = wf_tag('sup') . '*' . wf_tag('sup', true);
         if (isset($this->corps[$corpid])) {
@@ -768,7 +884,7 @@ class Corps {
      * @return string
      */
     protected function personEditForm($id) {
-        $id = vf($id, 3);
+        $id = ubRouting::filters($id, 'int');
         $result = '';
         $sup = wf_tag('sup') . '*' . wf_tag('sup', true);
         if (isset($this->persons[$id])) {
@@ -797,16 +913,19 @@ class Corps {
      * @return void
      */
     public function personSave($id) {
-        $id = vf($id, 3);
+        $id = ubRouting::filters($id, 'int');
         if (isset($this->persons[$id])) {
 
-            simple_update_field('corp_persons', 'realname', $_POST['editpersonrealname'], "WHERE `id`='" . $id . "'");
-            simple_update_field('corp_persons', 'phone', $_POST['editpersonphone'], "WHERE `id`='" . $id . "'");
-            simple_update_field('corp_persons', 'im', $_POST['editpersonim'], "WHERE `id`='" . $id . "'");
-            simple_update_field('corp_persons', 'email', $_POST['editpersonemail'], "WHERE `id`='" . $id . "'");
-            simple_update_field('corp_persons', 'appointment', $_POST['editpersonappointment'], "WHERE `id`='" . $id . "'");
-            simple_update_field('corp_persons', 'notes', $_POST['editpersonnotes'], "WHERE `id`='" . $id . "'");
-            log_register("CORPS EDIT PERSON [" . $id . "]");
+            $this->personsDb->data('realname', ubRouting::post('editpersonrealname', 'mres'));
+            $this->personsDb->data('phone', ubRouting::post('editpersonphone', 'mres'));
+            $this->personsDb->data('im', ubRouting::post('editpersonim', 'mres'));
+            $this->personsDb->data('email', ubRouting::post('editpersonemail', 'mres'));
+            $this->personsDb->data('appointment', ubRouting::post('editpersonappointment', 'mres'));
+            $this->personsDb->data('notes', ubRouting::post('editpersonnotes', 'mres'));
+            $this->personsDb->where('id', '=', $id);
+            $this->personsDb->save();
+
+            log_register('CORPS EDIT PERSON [' . $id . ']');
         }
     }
 
@@ -816,20 +935,28 @@ class Corps {
      * @return void
      */
     public function personCreate() {
-        if (wf_CheckPost(array('addpersoncorpid', 'addpersonrealname'))) {
-            $corpid = vf($_POST['addpersoncorpid']);
-            $realname = mysql_real_escape_string($_POST['addpersonrealname']);
-            $phone = mysql_real_escape_string($_POST['addpersonphone']);
-            $im = mysql_real_escape_string($_POST['addpersonim']);
-            $email = mysql_real_escape_string($_POST['addpersonemail']);
-            $appointment = mysql_real_escape_string($_POST['addpersonappointment']);
-            $notes = mysql_real_escape_string($_POST['addpersonnotes']);
+        if (ubRouting::checkPost(array('addpersoncorpid', 'addpersonrealname'))) {
+            $corpid = ubRouting::post('addpersoncorpid', 'int');
 
             if (isset($this->corps[$corpid])) {
-                $query = "INSERT INTO `corp_persons` (`id`, `corpid`, `realname`, `phone`, `im`, `email`, `appointment`, `notes`) VALUES (NULL, '" . $corpid . "', '" . $realname . "', '" . $phone . "', '" . $im . "', '" . $email . "', '" . $appointment . "', '" . $notes . "');";
-                nr_query($query);
-                $newId = simple_get_lastid('corp_persons');
-                log_register("CORPS CREATE PERSON [" . $newId . "] FOR CORP [" . $corpid . "]");
+                $realname = ubRouting::post('addpersonrealname', 'mres');
+                $phone = ubRouting::post('addpersonphone', 'mres');
+                $im = ubRouting::post('addpersonim', 'mres');
+                $email = ubRouting::post('addpersonemail', 'mres');
+                $appointment = ubRouting::post('addpersonappointment', 'mres');
+                $notes = ubRouting::post('addpersonnotes', 'mres');
+
+                $this->personsDb->data('corpid', $corpid);
+                $this->personsDb->data('realname', $realname);
+                $this->personsDb->data('phone', $phone);
+                $this->personsDb->data('im', $im);
+                $this->personsDb->data('email', $email);
+                $this->personsDb->data('appointment', $appointment);
+                $this->personsDb->data('notes', $notes);
+                $this->personsDb->create();
+
+                $newId = $this->personsDb->getLastId();
+                log_register('CORPS CREATE PERSON [' . $newId . '] FOR CORP [' . $corpid . ']');
             }
         }
     }
@@ -842,7 +969,7 @@ class Corps {
      * @return bool
      */
     public function taxtypeProtected($id) {
-        $id = vf($id, 3);
+        $id = ubRouting::filters($id, 'int');
         $result = false;
         if (!empty($this->corps)) {
             foreach ($this->corps as $io => $each) {
@@ -863,10 +990,12 @@ class Corps {
      * @return void
      */
     public function personDelete($id) {
-        $id = vf($id, 3);
-        $query = "DELETE from `corp_persons` WHERE `id`='" . $id . "';";
-        nr_query($query);
-        log_register("CORPS DELETE PERSON [" . $id . "]");
+        $id = ubRouting::filters($id, 'int');
+
+        $this->personsDb->where('id', '=', $id);
+        $this->personsDb->delete();
+
+        log_register('CORPS DELETE PERSON [' . $id . ']');
     }
 
     /**
@@ -878,11 +1007,14 @@ class Corps {
      * @return void
      */
     public function userBind($login, $corpid) {
-        $login = mysql_real_escape_string($login);
-        $corpid = vf($corpid, 3);
+        $loginF = ubRouting::filters($login, 'mres');
+        $corpid = ubRouting::filters($corpid, 'int');
+
         if (!isset($this->users[$login])) {
-            $query = "INSERT INTO `corp_users` (`id`, `login`, `corpid`) VALUES (NULL, '" . $login . "', '" . $corpid . "'); ";
-            nr_query($query);
+            $this->usersDb->data('login', $loginF);
+            $this->usersDb->data('corpid', $corpid);
+            $this->usersDb->create();
+
             log_register('CORPS BIND USER (' . $login . ') TO [' . $corpid . ']');
         }
     }
@@ -895,10 +1027,10 @@ class Corps {
      * @return void
      */
     function userUnbind($login) {
-        $login = mysql_real_escape_string($login);
+        $loginF = ubRouting::filters($login, 'mres');
         if (isset($this->users[$login])) {
-            $query = "DELETE FROM `corp_users` WHERE `login`='" . $login . "';";
-            nr_query($query);
+            $this->usersDb->where('login', '=', $loginF);
+            $this->usersDb->delete();
             log_register('CORPS UNBIND USER (' . $login . ')');
         }
     }
@@ -926,7 +1058,7 @@ class Corps {
      * @return string
      */
     public function userUnbindForm($login) {
-        $login = mysql_real_escape_string($login);
+        $login = ubRouting::filters($login, 'mres');
         $result = '';
         if (isset($this->users[$login])) {
             $inputs = wf_HiddenInput('corpsunbindlogin', $login);
@@ -957,7 +1089,11 @@ class Corps {
             }
 
             $inputs = wf_HiddenInput('bindsomelogin', $login);
-            $inputs .= wf_Selector('bindlogintocorpid', $corpsarr, __('Corporate user'), '', false);
+            if ($this->altCfg['CORPSEL_SEARCHBL']) {
+                $inputs .= wf_SelectorSearchable('bindlogintocorpid', $corpsarr, __('Corporate user'), '', false);
+            } else {
+                $inputs .= wf_Selector('bindlogintocorpid', $corpsarr, __('Corporate user'), '', false);
+            }
             $inputs .= wf_Submit(__('Create user ling with existing corporate user'));
             $result = wf_Form("", 'POST', $inputs, 'glamour');
         }
@@ -993,9 +1129,14 @@ class Corps {
             $inputs .= wf_TextInput('addndstaxnum', $ndsNumLabel, '', true, '20');
             $inputs .= wf_TextInput('addinncode', $innCodeLabel, '', true, '20');
             $inputs .= wf_Selector('addtaxtype', $this->taxtypes, __('Tax type'), '', true);
+            $inputs .= wf_TextInput('addcorpnameabbr', __('Short name'), '', true, '20');
+            $inputs .= wf_TextInput('addcorpsignatory', __('Signatory'), '', true, '20');
+            $inputs .= wf_TextInput('addcorpsignatory2', __('Signatory') . ' 2', '', true, '20');
+            $inputs .= wf_TextInput('addcorpbasis', __('Basis'), '', true, '20');
+            $inputs .= wf_TextInput('addcorpemail', __('Email'), '', true, '20');
+
             $inputs .= wf_TextInput('addnotes', __('Notes'), '', true, '40');
             $inputs .= wf_Submit(__('Create'));
-
 
             $result = wf_Form(self::URL_CORPS_ADD, 'POST', $inputs, 'glamour');
         } else {
@@ -1012,7 +1153,7 @@ class Corps {
      * @return bool
      */
     public function corpProtected($id) {
-        $id = vf($id, 3);
+        $id = ubRouting::filters($id, 'int');
         $result = false;
         if (!empty($this->users)) {
             foreach ($this->users as $login => $corpid) {
@@ -1133,7 +1274,4 @@ class Corps {
         }
         return ($result);
     }
-
 }
-
-?>

@@ -159,7 +159,7 @@ class SormYahont {
     protected function setOptions() {
         //setting ISP location options
         $this->ispName = @$this->altCfg['SORM_ISPNAME'];
-        $this->branchId=@$this->altCfg['SORM_BRANCHID'];
+        $this->branchId = @$this->altCfg['SORM_BRANCHID'];
         $this->ispCountry = @$this->altCfg['SORM_ISPCOUNTRY'];
         $this->ispRegion = @$this->altCfg['SORM_ISPREGION'];
         $this->ispDistrict = @$this->altCfg['SORM_ISPDISTRICT'];
@@ -184,7 +184,8 @@ class SormYahont {
      * @return void
      */
     protected function loadContractDates() {
-        $this->allContractDates = zb_UserContractDatesGetAll();
+        $contractDates = new ContractDates();
+        $this->allContractDates = $contractDates->getAllDatesBasic();
     }
 
     /**
@@ -348,7 +349,7 @@ class SormYahont {
                     '', // apt
                     $each['fulladress'], //using user address as device address
                 );
-                $result.= $this->arrayToCsv($dataTmp, self::DELIMITER, self::ENCLOSURE, true) . PHP_EOL;
+                $result .= $this->arrayToCsv($dataTmp, self::DELIMITER, self::ENCLOSURE, true) . PHP_EOL;
             }
         }
         return ($result);
@@ -376,7 +377,7 @@ class SormYahont {
                     '', //using empty value as service deactivation date
                     '', // using empty service custom parameters
                 );
-                $result.= $this->arrayToCsv($dataTmp, self::DELIMITER, self::ENCLOSURE, true) . PHP_EOL;
+                $result .= $this->arrayToCsv($dataTmp, self::DELIMITER, self::ENCLOSURE, true) . PHP_EOL;
             }
         }
         return ($result);
@@ -417,7 +418,7 @@ class SormYahont {
                         $each['part'] . $each['serial'], //card part and number
                         $each['cash'] // card price
                     );
-                    $result.= $this->arrayToCsv($dataTmp, self::DELIMITER, self::ENCLOSURE, true) . PHP_EOL;
+                    $result .= $this->arrayToCsv($dataTmp, self::DELIMITER, self::ENCLOSURE, true) . PHP_EOL;
                 }
             }
         }
@@ -462,7 +463,7 @@ class SormYahont {
                                 '', //and nothing about its address
                                 $each['summ'], //but we know transaction summ
                             );
-                            $result.= $this->arrayToCsv($dataTmp, self::DELIMITER, self::ENCLOSURE, true) . PHP_EOL;
+                            $result .= $this->arrayToCsv($dataTmp, self::DELIMITER, self::ENCLOSURE, true) . PHP_EOL;
                         }
                     }
                 }
@@ -501,7 +502,7 @@ class SormYahont {
                         $this->ispBuildNum, //build num
                         $each['summ'], // payment sum
                     );
-                    $result.= $this->arrayToCsv($dataTmp, self::DELIMITER, self::ENCLOSURE, true) . PHP_EOL;
+                    $result .= $this->arrayToCsv($dataTmp, self::DELIMITER, self::ENCLOSURE, true) . PHP_EOL;
                 }
             }
         }
@@ -532,7 +533,7 @@ class SormYahont {
                         $each['summ'], // payment sum
                         $each['note'], // payment notes
                     );
-                    $result.= $this->arrayToCsv($dataTmp, self::DELIMITER, self::ENCLOSURE, true) . PHP_EOL;
+                    $result .= $this->arrayToCsv($dataTmp, self::DELIMITER, self::ENCLOSURE, true) . PHP_EOL;
                 }
             }
         }
@@ -570,7 +571,7 @@ class SormYahont {
                     $this->ispBuildNum, //location build
                     7, // NAS type AAA
                 );
-                $result.= $this->arrayToCsv($dataTmp, self::DELIMITER, self::ENCLOSURE, true) . PHP_EOL;
+                $result .= $this->arrayToCsv($dataTmp, self::DELIMITER, self::ENCLOSURE, true) . PHP_EOL;
             }
         }
         return ($result);
@@ -591,7 +592,7 @@ class SormYahont {
             '', //end date
             __('Internet'), //localised service name
         );
-        $result.= $this->arrayToCsv($dataTmp, self::DELIMITER, self::ENCLOSURE, true) . PHP_EOL;
+        $result .= $this->arrayToCsv($dataTmp, self::DELIMITER, self::ENCLOSURE, true) . PHP_EOL;
         return ($result);
     }
 
@@ -612,7 +613,7 @@ class SormYahont {
                     '', //type end date
                     __($cashTypeName) //type name localised
                 );
-                $result.= $this->arrayToCsv($dataTmp, self::DELIMITER, self::ENCLOSURE, true) . PHP_EOL;
+                $result .= $this->arrayToCsv($dataTmp, self::DELIMITER, self::ENCLOSURE, true) . PHP_EOL;
             }
         }
         return ($result);
@@ -639,7 +640,7 @@ class SormYahont {
                         '01.01.2017 00:00:00', //start date
                         '', //end date
                     );
-                    $result.= $this->arrayToCsv($dataTmp, self::DELIMITER, self::ENCLOSURE, true) . PHP_EOL;
+                    $result .= $this->arrayToCsv($dataTmp, self::DELIMITER, self::ENCLOSURE, true) . PHP_EOL;
                 }
             }
         }
@@ -660,7 +661,7 @@ class SormYahont {
             '', //end date
             __('Passport data') //document type name
         );
-        $result.= $this->arrayToCsv($dataTmp, self::DELIMITER, self::ENCLOSURE, true) . PHP_EOL;
+        $result .= $this->arrayToCsv($dataTmp, self::DELIMITER, self::ENCLOSURE, true) . PHP_EOL;
         return ($result);
     }
 
@@ -677,7 +678,7 @@ class SormYahont {
             '', //end date
             $this->ispName //Branch name
         );
-        $result.= $this->arrayToCsv($dataTmp, self::DELIMITER, self::ENCLOSURE, true) . PHP_EOL;
+        $result .= $this->arrayToCsv($dataTmp, self::DELIMITER, self::ENCLOSURE, true) . PHP_EOL;
         return ($result);
     }
 

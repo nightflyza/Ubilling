@@ -13,30 +13,60 @@
  * @param string $phisaddr
  * @param string $phone
  * @param string $contrname
+ * @param string $agnameabbr
+ * @param string $agsignatory
+ * @param string $agsignatory2
+ * @param string $agbasis
+ * @param string $agmail
+ * @param string $siteurl
  * 
  * @return void
  */
-function zb_ContrAhentAdd($bankacc, $bankname, $bankcode, $edrpo, $ipn, $licensenum, $juraddr, $phisaddr, $phone, $contrname) {
-    $bankacc = mysql_real_escape_string($bankacc);
-    $bankname = mysql_real_escape_string($bankname);
-    $bankcode = mysql_real_escape_string($bankcode);
-    $edrpo = mysql_real_escape_string($edrpo);
-    $ipn = mysql_real_escape_string($ipn);
-    $licensenum = mysql_real_escape_string($licensenum);
-    $juraddr = mysql_real_escape_string($juraddr);
-    $phisaddr = mysql_real_escape_string($phisaddr);
-    $phone = mysql_real_escape_string($phone);
-    $contrname = mysql_real_escape_string($contrname);
-    $query = "INSERT INTO `contrahens` (`id` ,`bankacc` ,`bankname` , `bankcode` , `edrpo` , `ipn` , `licensenum` , `juraddr` , `phisaddr` , `phone` ,`contrname`)
-        VALUES (NULL , '" . $bankacc . "', '" . $bankname . "', '" . $bankcode . "', '" . $edrpo . "', '" . $ipn . "', '" . $licensenum . "','" . $juraddr . "', '" . $phisaddr . "','" . $phone . "','" . $contrname . "');";
-    nr_query($query);
-    log_register("AGENT CREATE `" . $contrname . "`");
+function zb_ContrAhentAdd($bankacc, $bankname, $bankcode, $edrpo, $ipn, $licensenum, $juraddr, $phisaddr, $phone, $contrname, $agnameabbr, $agsignatory, $agsignatory2, $agbasis, $agmail, $siteurl) {
+    $bankacc = ubRouting::filters($bankacc, 'mres');
+    $bankname = ubRouting::filters($bankname, 'mres');
+    $bankcode = ubRouting::filters($bankcode, 'mres');
+    $edrpo = ubRouting::filters($edrpo, 'mres');
+    $ipn = ubRouting::filters($ipn, 'mres');
+    $licensenum = ubRouting::filters($licensenum, 'mres');
+    $juraddr = ubRouting::filters($juraddr, 'mres');
+    $phisaddr = ubRouting::filters($phisaddr, 'mres');
+    $phone = ubRouting::filters($phone, 'mres');
+    $contrnameF = ubRouting::filters($contrname, 'mres');
+    $agnameabbr = ubRouting::filters($agnameabbr, 'mres');
+    $agsignatory = ubRouting::filters($agsignatory, 'mres');
+    $agsignatory2 = ubRouting::filters($agsignatory2, 'mres');
+    $agbasis = ubRouting::filters($agbasis, 'mres');
+    $agmail = ubRouting::filters($agmail, 'mres');
+    $siteurl = ubRouting::filters($siteurl, 'mres');
+
+    $agentsDb = new NyanORM('contrahens');
+    $agentsDb->data('bankacc', $bankacc);
+    $agentsDb->data('bankname', $bankname);
+    $agentsDb->data('bankcode', $bankcode);
+    $agentsDb->data('edrpo', $edrpo);
+    $agentsDb->data('ipn', $ipn);
+    $agentsDb->data('licensenum', $licensenum);
+    $agentsDb->data('juraddr', $juraddr);
+    $agentsDb->data('phisaddr', $phisaddr);
+    $agentsDb->data('phone', $phone);
+    $agentsDb->data('contrname', $contrnameF);
+    $agentsDb->data('agnameabbr', $agnameabbr);
+    $agentsDb->data('agsignatory', $agsignatory);
+    $agentsDb->data('agsignatory2', $agsignatory2);
+    $agentsDb->data('agbasis', $agbasis);
+    $agentsDb->data('agmail', $agmail);
+    $agentsDb->data('siteurl', $siteurl);
+    $agentsDb->create();
+
+    $newId = $agentsDb->getLastId();
+
+    log_register('AGENT CREATE `' . $contrname . '` AS [' . $newId . ']');
 }
 
 /**
  * Changes existing contrahent record in database
  * 
- * @param int $ahentid
  * @param string $bankacc
  * @param string $bankname
  * @param string $bankcode
@@ -47,35 +77,55 @@ function zb_ContrAhentAdd($bankacc, $bankname, $bankcode, $edrpo, $ipn, $license
  * @param string $phisaddr
  * @param string $phone
  * @param string $contrname
+ * @param string $agnameabbr
+ * @param string $agsignatory
+ * @param string $agsignatory2
+ * @param string $agbasis
+ * @param string $agmail
+ * @param string $siteurl
  * 
  * @return void
  */
-function zb_ContrAhentChange($ahentid, $bankacc, $bankname, $bankcode, $edrpo, $ipn, $licensenum, $juraddr, $phisaddr, $phone, $contrname) {
-    $ahentid = vf($ahentid, 3);
-    $bankacc = mysql_real_escape_string($bankacc);
-    $bankname = mysql_real_escape_string($bankname);
-    $bankcode = mysql_real_escape_string($bankcode);
-    $edrpo = mysql_real_escape_string($edrpo);
-    $ipn = mysql_real_escape_string($ipn);
-    $licensenum = mysql_real_escape_string($licensenum);
-    $juraddr = mysql_real_escape_string($juraddr);
-    $phisaddr = mysql_real_escape_string($phisaddr);
-    $phone = mysql_real_escape_string($phone);
-    $contrname = mysql_real_escape_string($contrname);
-    $query = "UPDATE `contrahens` SET 
-        `bankacc` = '" . $bankacc . "',
-        `bankname` = '" . $bankname . "',
-        `bankcode` = '" . $bankcode . "',
-        `edrpo` = '" . $edrpo . "',
-        `ipn` = '" . $ipn . "',
-        `licensenum` = '" . $licensenum . "',
-        `juraddr` = '" . $juraddr . "',
-        `phisaddr` = '" . $phisaddr . "',
-        `phone` = '" . $phone . "',
-        `contrname` = '" . $contrname . "'
-          WHERE `contrahens`.`id` =" . $ahentid . " LIMIT 1;";
-    nr_query($query);
-    log_register("AGENT CHANGE `" . $contrname . "`");
+function zb_ContrAhentChange($ahentid, $bankacc, $bankname, $bankcode, $edrpo, $ipn, $licensenum, $juraddr, $phisaddr, $phone, $contrname, $agnameabbr, $agsignatory, $agsignatory2, $agbasis, $agmail, $siteurl) {
+    $ahentid = ubRouting::filters($ahentid, 'int');
+    $bankacc = ubRouting::filters($bankacc, 'mres');
+    $bankname = ubRouting::filters($bankname, 'mres');
+    $bankcode = ubRouting::filters($bankcode, 'mres');
+    $edrpo = ubRouting::filters($edrpo, 'mres');
+    $ipn = ubRouting::filters($ipn, 'mres');
+    $licensenum = ubRouting::filters($licensenum, 'mres');
+    $juraddr = ubRouting::filters($juraddr, 'mres');
+    $phisaddr = ubRouting::filters($phisaddr, 'mres');
+    $phone = ubRouting::filters($phone, 'mres');
+    $contrnameF = ubRouting::filters($contrname, 'mres');
+    $agnameabbr = ubRouting::filters($agnameabbr, 'mres');
+    $agsignatory = ubRouting::filters($agsignatory, 'mres');
+    $agsignatory2 = ubRouting::filters($agsignatory2, 'mres');
+    $agbasis = ubRouting::filters($agbasis, 'mres');
+    $agmail = ubRouting::filters($agmail, 'mres');
+    $siteurl = ubRouting::filters($siteurl, 'mres');
+
+    $agentsDb = new NyanORM('contrahens');
+    $agentsDb->data('bankacc', $bankacc);
+    $agentsDb->data('bankname', $bankname);
+    $agentsDb->data('bankcode', $bankcode);
+    $agentsDb->data('edrpo', $edrpo);
+    $agentsDb->data('ipn', $ipn);
+    $agentsDb->data('licensenum', $licensenum);
+    $agentsDb->data('juraddr', $juraddr);
+    $agentsDb->data('phisaddr', $phisaddr);
+    $agentsDb->data('phone', $phone);
+    $agentsDb->data('contrname', $contrnameF);
+    $agentsDb->data('agnameabbr', $agnameabbr);
+    $agentsDb->data('agsignatory', $agsignatory);
+    $agentsDb->data('agsignatory2', $agsignatory2);
+    $agentsDb->data('agbasis', $agbasis);
+    $agentsDb->data('agmail', $agmail);
+    $agentsDb->data('siteurl', $siteurl);
+    $agentsDb->where('id', '=', $ahentid);
+    $agentsDb->save();
+
+    log_register('AGENT CHANGE `' . $contrname . '` AS [' . $ahentid . ']');
 }
 
 /**
@@ -86,10 +136,13 @@ function zb_ContrAhentChange($ahentid, $bankacc, $bankname, $bankcode, $edrpo, $
  * @return void
  */
 function zb_ContrAhentDelete($id) {
-    $id = vf($id, 3);
-    $query = "DELETE from `contrahens` where `id`='" . $id . "'";
-    nr_query($query);
-    log_register("AGENT DELETE [" . $id . "]");
+    $id = ubRouting::filters($id, 'int');
+
+    $agentsDb = new NyanORM('contrahens');
+    $agentsDb->where('id', '=', $id);
+    $agentsDb->delete();
+
+    log_register('AGENT DELETE [' . $id . ']');
 }
 
 /**
@@ -140,6 +193,7 @@ function zb_ContrAhentShow() {
         'Phone',
         'Contrahent name',
     );
+
     $keys = array(
         'id',
         'bankacc',
@@ -156,9 +210,9 @@ function zb_ContrAhentShow() {
 
     if ($ubillingConfig->getAlterParam('AGENTS_EXTINFO_ON')) {
         $extactbutton = wf_img('skins/icons/articlepost.png', __('Extended info'));
-        $result = web_GridEditor($titles, $keys, $allcontr, 'contrahens', true, true, '', 'extinfo', $extactbutton);
+        $result = web_GridEditor($titles, $keys, $allcontr, 'contrahens', true, true, '', 'extinfo', $extactbutton, true);
     } else {
-        $result = web_GridEditor($titles, $keys, $allcontr, 'contrahens', true, true);
+        $result = web_GridEditor($titles, $keys, $allcontr, 'contrahens', true, true, '', '', '', true);
     }
 
     return($result);
@@ -173,16 +227,22 @@ function zb_ContrAhentAddForm() {
     $sup = wf_tag('sup') . '*' . wf_tag('sup', true);
 
     $inputs = '';
-    $inputs .= wf_TextInput('newcontrname', __('Contrahent name') . $sup, '', true);
-    $inputs .= wf_TextInput('newbankacc', __('Bank account'), '', true);
-    $inputs .= wf_TextInput('newbankname', __('Bank name'), '', true);
-    $inputs .= wf_TextInput('newbankcode', __('Bank code'), '', true);
-    $inputs .= wf_TextInput('newedrpo', __('EDRPOU'), '', true);
-    $inputs .= wf_TextInput('newipn', __('IPN'), '', true);
-    $inputs .= wf_TextInput('newlicensenum', __('License number'), '', true);
-    $inputs .= wf_TextInput('newjuraddr', __('Juridical address'), '', true);
-    $inputs .= wf_TextInput('newphisaddr', __('Phisical address'), '', true);
-    $inputs .= wf_TextInput('newphone', __('Phone'), '', true);
+    $inputs .= wf_TextInput('newcontrname', __('Contrahent name') . $sup, '', true, 20);
+    $inputs .= wf_TextInput('newbankacc', __('Bank account'), '', true, 20);
+    $inputs .= wf_TextInput('newbankname', __('Bank name'), '', true, 20);
+    $inputs .= wf_TextInput('newbankcode', __('Bank code'), '', true, 20);
+    $inputs .= wf_TextInput('newedrpo', __('EDRPOU'), '', true, 20);
+    $inputs .= wf_TextInput('newipn', __('IPN'), '', true, 20);
+    $inputs .= wf_TextInput('newlicensenum', __('License number'), '', true, 20);
+    $inputs .= wf_TextInput('newjuraddr', __('Juridical address'), '', true, 20);
+    $inputs .= wf_TextInput('newphisaddr', __('Phisical address'), '', true, 20);
+    $inputs .= wf_TextInput('newphone', __('Phone'), '', true, 20);
+    $inputs .= wf_TextInput('newagnameabbr', __('Short name'), '', true, 20);
+    $inputs .= wf_TextInput('newagsignatory', __('Signatory'), '', true, 20);
+    $inputs .= wf_TextInput('newagsignatory2', __('Signatory') . ' 2', '', true, 20);
+    $inputs .= wf_TextInput('newagbasis', __('Basis'), '', true, 20);
+    $inputs .= wf_TextInput('newagmail', __('Mail'), '', true, 20, 'email');
+    $inputs .= wf_TextInput('newsiteurl', __('Site URL'), '', true, 20, 'url');
     $inputs .= wf_Submit(__('Create'));
 
     $result = wf_Form("", 'POST', $inputs, 'glamour');
@@ -213,6 +273,12 @@ function zb_ContrAhentEditForm($ahentid) {
     $inputs .= wf_TextInput('changejuraddr', __('Juridical address'), $cdata['juraddr'], true);
     $inputs .= wf_TextInput('changephisaddr', __('Phisical address'), $cdata['phisaddr'], true);
     $inputs .= wf_TextInput('changephone', __('Phone'), $cdata['phone'], true);
+    $inputs .= wf_TextInput('changeagnameabbr', __('Short name'), $cdata['agnameabbr'], true, 20);
+    $inputs .= wf_TextInput('changeagsignatory', __('Signatory'), $cdata['agsignatory'], true, 20);
+    $inputs .= wf_TextInput('changeagsignatory2', __('Signatory') . ' 2', $cdata['agsignatory2'], true, 20);
+    $inputs .= wf_TextInput('changeagbasis', __('Basis'), $cdata['agbasis'], true, 20);
+    $inputs .= wf_TextInput('changeagmail', __('Mail'), $cdata['agmail'], true, 20, 'email');
+    $inputs .= wf_TextInput('changesiteurl', __('Site URL'), $cdata['siteurl'], true, 20, 'url');
 
     $inputs .= wf_Submit(__('Save'));
     $result = wf_Form("", 'POST', $inputs, 'glamour');
@@ -259,10 +325,12 @@ function zb_ContrAhentSelectPreset($currentId = '') {
 /**
  * Returns array of all agent=>street assigns 
  * 
+ * @param string $order
+ * 
  * @return array
  */
-function zb_AgentAssignGetAllData() {
-    $query = "SELECT * from `ahenassign`";
+function zb_AgentAssignGetAllData($order = '') {
+    $query = "SELECT * from `ahenassign` " . $order;
     $allassigns = simple_queryall($query);
     return($allassigns);
 }
@@ -336,7 +404,7 @@ function web_AgentAssignForm() {
  * @return string
  */
 function web_AgentAssignShow() {
-    $allassigns = zb_AgentAssignGetAllData();
+    $allassigns = zb_AgentAssignGetAllData("ORDER BY `id` DESC");
     $allahens = zb_ContrAhentGetAllData();
     $usedStreets = array();
     $agentnames = array();
@@ -901,7 +969,6 @@ function zb_PrintCheck($paymentid, $realpaymentId = false) {
     return($result);
 }
 
-
 /**
  * Returns ahent selector for registration form
  * 
@@ -1110,34 +1177,93 @@ function zb_GetAgentExtInfo($recID = '', $agentID = '', $getBaseAgentInfo = fals
     return ($result);
 }
 
-
-function zb_CreateAgentExtInfoRec($extinfoAgentID, $extinfoSrvType = '', $extinfoPaySysName = '', $extinfoPaySysID = '', $extinfoPaySysSrvID = '') {
+/**
+ * Creates new contragent extended info record in DB
+ *
+ * @param $extinfoAgentID
+ * @param $extinfoSrvType
+ * @param $extinfoPaySysName
+ * @param $extinfoPaySysID
+ * @param $extinfoPaySysSrvID
+ * @param $extinfoPaySysToken
+ * @param $extinfoPaySysSecretKey
+ * @param $extinfoPaySysPassword
+ *
+ * @return void
+ * @throws Exception
+ */
+function zb_CreateAgentExtInfoRec($extinfoAgentID, $extinfoSrvType = '', $extinfoPaySysName = '', $extinfoPaySysID = '', $extinfoPaySysSrvID = '',
+                                  $extinfoPaySysToken = '', $extinfoPaySysSecretKey = '', $extinfoPaySysPassword  = '') {
     $tabAgentExtInfo = new NyanORM('contrahens_extinfo');
     $tabAgentExtInfo->dataArr(array(
-                                  'agentid'                => $extinfoAgentID,
-                                  'service_type'           => $extinfoSrvType,
-                                  'internal_paysys_name'   => $extinfoPaySysName,
-                                  'internal_paysys_id'     => $extinfoPaySysID,
-                                  'internal_paysys_srv_id' => $extinfoPaySysSrvID
-                                   )
-                             );
+                                    'agentid'                   => $extinfoAgentID,
+                                    'service_type'              => $extinfoSrvType,
+                                    'internal_paysys_name'      => $extinfoPaySysName,
+                                    'internal_paysys_id'        => $extinfoPaySysID,
+                                    'internal_paysys_srv_id'    => $extinfoPaySysSrvID,
+                                    'paysys_token'              => $extinfoPaySysToken,
+                                    'paysys_secret_key'         => $extinfoPaySysSecretKey,
+                                    'paysys_password'           => $extinfoPaySysPassword
+                                    )
+                            );
 
     $tabAgentExtInfo->create();
+    $recID = $tabAgentExtInfo->getLastId();
+
+    log_register('AGENT EXTEN INFO CREATE [' . $recID . ']');
 }
 
-function zb_EditAgentExtInfoRec($recID, $extinfoAgentID, $extinfoSrvType = '', $extinfoPaySysName = '', $extinfoPaySysID = '', $extinfoPaySysSrvID = '') {
+/**
+ * Changes contragent extended info record in DB by given record ID
+ *
+ * @param $recID
+ * @param $extinfoAgentID
+ * @param $extinfoSrvType
+ * @param $extinfoPaySysName
+ * @param $extinfoPaySysID
+ * @param $extinfoPaySysSrvID
+ * @param $extinfoPaySysToken
+ * @param $extinfoPaySysSecretKey
+ * @param $extinfoPaySysPassword
+ *
+ * @return void
+ * @throws Exception
+ */
+function zb_EditAgentExtInfoRec($recID, $extinfoAgentID, $extinfoSrvType = '', $extinfoPaySysName = '', $extinfoPaySysID = '', $extinfoPaySysSrvID = '',
+                                $extinfoPaySysToken = '', $extinfoPaySysSecretKey = '', $extinfoPaySysPassword  = '') {
     $tabAgentExtInfo = new NyanORM('contrahens_extinfo');
     $tabAgentExtInfo->dataArr(array(
-                                    'id'                     => $recID,
-                                    'agentid'                => $extinfoAgentID,
-                                    'service_type'           => $extinfoSrvType,
-                                    'internal_paysys_name'   => $extinfoPaySysName,
-                                    'internal_paysys_id'     => $extinfoPaySysID,
-                                    'internal_paysys_srv_id' => $extinfoPaySysSrvID
-                                   )
-                             );
+                                    'id'                        => $recID,
+                                    'agentid'                   => $extinfoAgentID,
+                                    'service_type'              => $extinfoSrvType,
+                                    'internal_paysys_name'      => $extinfoPaySysName,
+                                    'internal_paysys_id'        => $extinfoPaySysID,
+                                    'internal_paysys_srv_id'    => $extinfoPaySysSrvID,
+                                    'paysys_token'              => $extinfoPaySysToken,
+                                    'paysys_secret_key'         => $extinfoPaySysSecretKey,
+                                    'paysys_password'           => $extinfoPaySysPassword
+                                    )
+                            );
     $tabAgentExtInfo->where('id', '=', $recID);
     $tabAgentExtInfo->save(true, true);
+
+    log_register('AGENT EXTEN INFO EDIT [' . $recID . ']');
+}
+
+/**
+ * Removes contragent extended info record from DB by given record ID
+ *
+ * @param $recID
+ *
+ * @return void
+ * @throws Exception
+ */
+function zb_DeleteAgentExtInfoRec($recID) {
+    $tabAgentExtInfo = new NyanORM('contrahens_extinfo');
+    $tabAgentExtInfo->where('id', '=', $recID);
+    $tabAgentExtInfo->delete();
+
+    log_register('AGENT EXTEN INFO DELETE [' . $recID . ']');
 }
 
 /**
@@ -1148,32 +1274,79 @@ function zb_EditAgentExtInfoRec($recID, $extinfoAgentID, $extinfoSrvType = '', $
  * @return string
  */
 function zb_AgentEditExtInfoForm($recID = '') {
-    $extinfoData        = (empty($recID) ? array() : zb_GetAgentExtInfo($recID));
-    $extinfoEditMode    = !empty($extinfoData);
-    $extinfoRecID       = '';
-    $extinfoAgentID     = ubRouting::checkGet('extinfo') ? ubRouting::get('extinfo') : '';
-    $extinfoSrvType     = '';
-    $extinfoPaySysName  = '';
-    $extinfoPaySysID    = '';
-    $extinfoPaySysSrvID = '';
+    $extinfoData            = (empty($recID) ? array() : zb_GetAgentExtInfo($recID));
+    $extinfoEditMode        = !empty($extinfoData);
+    $extinfoRecID           = '';
+    $extinfoAgentID         = ubRouting::checkGet('extinfo') ? ubRouting::get('extinfo') : '';
+    $extinfoSrvType         = '';
+    $extinfoPaySysName      = '';
+    $extinfoPaySysID        = '';
+    $extinfoPaySysSrvID     = '';
+    $extinfoPaySysToken     = '';
+    $extinfoPaySysSecretKey = '';
+    $extinfoPaySysPassword  = '';
+    $allPaySys              = array();
+    $srvtypeSelectorID      = wf_InputId();
+    $openpayzSelectorID     = wf_InputId();
+    $paysysControlID        = wf_InputId();
 
     if ($extinfoEditMode) {
-        $extinfoRecID       = $extinfoData[0]['id'];
-        $extinfoAgentID     = $extinfoData[0]['agentid'];
-        $extinfoSrvType     = $extinfoData[0]['service_type'];
-        $extinfoPaySysName  = $extinfoData[0]['internal_paysys_name'];
-        $extinfoPaySysID    = $extinfoData[0]['internal_paysys_id'];
-        $extinfoPaySysSrvID = $extinfoData[0]['internal_paysys_srv_id'];
+        $extinfoRecID           = $extinfoData[0]['id'];
+        $extinfoAgentID         = $extinfoData[0]['agentid'];
+        $extinfoSrvType         = $extinfoData[0]['service_type'];
+        $extinfoPaySysName      = $extinfoData[0]['internal_paysys_name'];
+        $extinfoPaySysID        = $extinfoData[0]['internal_paysys_id'];
+        $extinfoPaySysSrvID     = $extinfoData[0]['internal_paysys_srv_id'];
+        $extinfoPaySysToken     = $extinfoData[0]['paysys_token'];
+        $extinfoPaySysSecretKey = $extinfoData[0]['paysys_secret_key'];
+        $extinfoPaySysPassword  = $extinfoData[0]['paysys_password'];
+    } else {
+        // load existing OpenPayz payment systems
+        $query     = 'select distinct `paysys` from `op_transactions`';
+        $all       = simple_queryall($query);
+
+        if (!empty($all)) {
+            foreach ($all as $io => $each) {
+                $allPaySys[$each['paysys']] = $each['paysys'];
+            }
+        }
     }
 
-    $inputs = wf_Selector('extinfsrvtype', array('Internet' => __('Internet'), 'UKV' => __('UKV')), __('Choose service type'), $extinfoSrvType, true);
-    $inputs.= wf_TextInput('extinfintpaysysname', __('Payment system name'), $extinfoPaySysName, true);
+    $inputs = wf_Selector('extinfsrvtype', array('Internet' => __('Internet'), 'UKV' => __('UKV')), __('Choose service type'), $extinfoSrvType, true, false, $srvtypeSelectorID);
+    $inputs.= ($extinfoEditMode) ? '' : wf_Selector('extinfoppaysys', $allPaySys, __('You may select OpenPayz payment system name'), '', true, false, $openpayzSelectorID);
+    $inputs.= wf_TextInput('extinfintpaysysname', __('Payment system name'), $extinfoPaySysName, true, '', '', '', $paysysControlID);
     $inputs.= wf_TextInput('extinfintpaysysid', __('Contragent code within payment system'), $extinfoPaySysID, true);
     $inputs.= wf_TextInput('extinfintpaysyssrvid', __('Service code within payment system'), $extinfoPaySysSrvID, true);
+    $inputs.= wf_TextInput('extinfintpaysystoken', __('Service token'), $extinfoPaySysToken, true);
+    $inputs.= wf_TextInput('extinfintpaysyskey', __('Service secret key'), $extinfoPaySysSecretKey, true);
+    $inputs.= wf_TextInput('extinfintpaysyspasswd', __('Service password'), $extinfoPaySysPassword, true);
     $inputs.= wf_HiddenInput('extinfrecid', $extinfoRecID);
     $inputs.= wf_HiddenInput('extinfagentid', $extinfoAgentID);
     $inputs.= wf_HiddenInput('extinfeditmode', $extinfoEditMode);
-    $inputs .= wf_Submit(($extinfoEditMode) ? __('Edit') : __('Create'));
+    $inputs.= wf_Submit(($extinfoEditMode) ? __('Edit') : __('Create'));
+
+    if (!$extinfoEditMode) {
+        $tmpJS = "
+                    $(document).ready(function() {
+                        if ($('#" . $srvtypeSelectorID . " option:selected').val() == 'Internet') {
+                            $('#" . $openpayzSelectorID . "').prop('disabled', false);
+                        } else {
+                            $('#" . $openpayzSelectorID . "').prop('disabled', true);
+                        }
+                        
+                        $('#" . $srvtypeSelectorID . "').on('change', function() {
+                            console.log($('#" . $srvtypeSelectorID . " option:selected').val());
+                            let opz_disabled = ($('#" . $srvtypeSelectorID . " option:selected').val() != 'Internet');
+                            $('#" . $openpayzSelectorID . "').prop('disabled', opz_disabled);
+                        });
+                        
+                        $('#" . $openpayzSelectorID . "').on('change', function() {
+                            $('#" . $paysysControlID . "').val($('#" . $openpayzSelectorID . " option:selected').val());                    
+                        });
+                    });
+                 ";
+        $inputs .= wf_EncloseWithJSTags($tmpJS);
+    }
 
     $result = wf_Form("", 'POST', $inputs, 'glamour');
 
@@ -1197,7 +1370,10 @@ function zb_RenderAgentExtInfoTable($agentID) {
         'Service type',
         'Payment system name',
         'Contragent code within payment system',
-        'Service code within payment system'
+        'Service code within payment system',
+        'Service token',
+        'Service secret key',
+        'Service password'
     );
     $keys = array(
         'id',
@@ -1205,11 +1381,15 @@ function zb_RenderAgentExtInfoTable($agentID) {
         'service_type',
         'internal_paysys_name',
         'internal_paysys_id',
-        'internal_paysys_srv_id'
+        'internal_paysys_srv_id',
+        'paysys_token',
+        'paysys_secret_key',
+        'paysys_password'
     );
 
     $result = web_GridEditor($titles, $keys, $extinfoData, 'contrahens&extinfo=' . $agentID, true, true);
 
     return($result);
 }
+
 ?>

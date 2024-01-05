@@ -261,9 +261,7 @@ if (cfr('WAREHOUSE')) {
                     }
                     $reserveControls .= wf_Link($warehouse::URL_ME . '&' . $warehouse::URL_RESERVE . '&mass=true', web_icon_create(__('Mass reservation')), false) . ' ';
 
-
-
-                    if (!ubRouting::checkGet('mass') AND ! ubRouting::checkGet('massoutemployee')) {
+                    if (!ubRouting::checkGet('mass') AND !ubRouting::checkGet('massoutemployee')) {
                         if (wf_CheckGet(array('reshistory'))) {
                             show_window(__('Reserve') . ': ' . __('History'), $warehouse->reserveRenderHistory());
                         } else {
@@ -286,10 +284,12 @@ if (cfr('WAREHOUSE')) {
                                     show_window(__('Error'), $massResOutResult);
                                 }
                             } else {
-                                //rendering some UI
+                                //rendering some mass reserve outcome UI
                                 $massOutEmployeeId = ubRouting::get('massoutemployee');
                                 $massoutEmployeeName = $warehouse->getEmployeeName($massOutEmployeeId);
-                                $massOutWinLabel = __('Mass outcome') . ' ' . __('from reserved on') . ' ' . $massoutEmployeeName;
+                                $massOutWinLabel = __('Mass outcome') . ' ' . __('from reserved on') . ' ' . $massoutEmployeeName . ' ';
+                                $massEmpChForm = $warehouse->renderMassOutEmployyeReplaceForm($massOutEmployeeId);
+                                $massOutWinLabel .= wf_modalAuto(wf_img('skins/icon_replace_employee.png', __('Change employee')), __('Change employee'), $massEmpChForm);
                                 show_window($massOutWinLabel, $warehouse->renderMassOutForm($massOutEmployeeId));
                             }
                         }
@@ -300,15 +300,47 @@ if (cfr('WAREHOUSE')) {
             }
 
 //viewers
-            if (wf_CheckGet(array('viewers'))) {
-                if (wf_CheckGet(array('showinid'))) {
-                    show_window(__('Incoming operation') . ': ' . $_GET['showinid'], $warehouse->incomingView($_GET['showinid']));
+            if (ubRouting::checkGet('viewers')) {
+                if (ubRouting::checkGet('showinid')) {
+                    //editing subroutine
+                    if (ubRouting::checkPost('editincomeid')) {
+                        if (cfr('WAREHOUSEINEDT')) {
+                            $incEditResult = $warehouse->incomingSaveChanges();
+                            if (empty($incEditResult)) {
+                                ubRouting::nav($warehouse::URL_ME . '&' . $warehouse::URL_VIEWERS . '&showinid=' . ubRouting::post('editincomeid'));
+                            } else {
+                                show_error($incEditResult);
+                            }
+                        } else {
+                            show_error(__('Access denied'));
+                        }
+                    }
+
+                    //deletion subroutine
+                    if (ubRouting::checkGet($warehouse::ROUTE_DELIN)) {
+                        if (cfr('WAREHOUSEINEDT')) {
+                            $incDelResult = $warehouse->incomingDelete(ubRouting::get($warehouse::ROUTE_DELIN));
+                            if (empty($incDelResult)) {
+                                ubRouting::nav($warehouse::URL_ME . '&' . $warehouse::URL_VIEWERS . '&showinid=' . ubRouting::get($warehouse::ROUTE_DELIN));
+                            } else {
+                                show_error($incDelResult);
+                            }
+                        } else {
+                            show_error(__('Access denied'));
+                        }
+                    }
+                    //rendering income op itself
+                    show_window(__('Incoming operation') . ': ' . ubRouting::get('showinid'), $warehouse->incomingView(ubRouting::get('showinid')));
                     $avidity_m = $avidity['M']['FALL'];
                     $warehouse->$avidity_m($warehouse::URL_ME . '&' . $warehouse::URL_IN);
                 }
 
-                if (wf_CheckGet(array('showoutid'))) {
-                    show_window(__('Outcoming operation') . ': ' . $_GET['showoutid'], $warehouse->outcomingView($_GET['showoutid']));
+                if (ubRouting::checkGet('showoutid')) {
+                    if (ubRouting::checkGet($warehouse::ROUTE_DELOUT)) {
+                        $warehouse->outcomingDelete(ubRouting::get($warehouse::ROUTE_DELOUT));
+                        ubRouting::nav($warehouse::URL_ME . '&' . $warehouse::URL_VIEWERS . '&showoutid=' . ubRouting::get($warehouse::ROUTE_DELOUT));
+                    }
+                    show_window(__('Outcoming operation') . ': ' . ubRouting::get('showoutid'), $warehouse->outcomingView(ubRouting::get('showoutid')));
                     $avidity_m = $avidity['M']['FALL'];
                     $warehouse->$avidity_m($warehouse::URL_ME . '&' . $warehouse::URL_OUT);
                 }
@@ -394,6 +426,16 @@ if (cfr('WAREHOUSE')) {
                     }
                 }
 
+                if (ubRouting::checkGet('contractorincomes')) {
+                    if (cfr('WAREHOUSEREPORTS')) {
+                        show_window(__('Income') . ' ' . __('from') . ' ' . __('Contractor'), $warehouse->renderContractorIncomesReport());
+                        $avidity_m = $avidity['M']['FALL'];
+                        $warehouse->$avidity_m($warehouse::URL_ME . '&' . $warehouse::URL_REPORTS . '&' . 'totalremains=true');
+                    } else {
+                        show_error(__('Access denied'));
+                    }
+                }
+
                 if (ubRouting::checkGet('returns')) {
                     if (cfr('WAREHOUSEREPORTS')) {
                         if (ubRouting::checkGet('ajreturnslist')) {
@@ -420,4 +462,3 @@ if (cfr('WAREHOUSE')) {
 } else {
     show_error(__('Permission denied'));
 }
-?>

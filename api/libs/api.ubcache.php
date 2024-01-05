@@ -76,7 +76,6 @@ class UbillingCache {
     /**
      * Cache keys prefix
      */
-
     const CACHE_PREFIX = 'UBCACHE_';
 
     /**
@@ -268,7 +267,6 @@ class UbillingCache {
         $keyRaw = $key;
         $key = $this->genKey($key);
 
-
         //files storage
         if ($this->storage == 'files') {
             $cacheName = $this->storagePath . $key;
@@ -412,6 +410,9 @@ class UbillingCache {
         //memcached storage
         if ($this->storage == 'memcached') {
             $keys = $this->memcached->getAllKeys();
+            if ($keys == false) {
+                $keys = array(); //preventing issues on PHP 8.2
+            }
             $keys = preg_grep("/^" . self::CACHE_PREFIX . "/", $keys);
             if ($show_data) {
                 $this->memcached->getDelayed($keys);
@@ -447,25 +448,24 @@ class UbillingCache {
         $cache_data = $this->getAllcache();
         $this->logEvent('TOTAL CLEANUP');
         //files storage
-        if ($this->storage == 'files' and ! empty($cache_data)) {
+        if ($this->storage == 'files' and !empty($cache_data)) {
             foreach ($cache_data as $cache) {
                 unlink($this->storagePath . $cache);
             }
         }
 
         //memcached storage
-        if ($this->storage == 'memcached' and ! empty($cache_data)) {
+        if ($this->storage == 'memcached' and !empty($cache_data)) {
             $result = $this->memcached->deleteMulti($cache_data);
             return($result);
         }
 
         //redis storage
-        if ($this->storage == 'redis' and ! empty($cache_data)) {
+        if ($this->storage == 'redis' and !empty($cache_data)) {
             $result = $this->redis->delete($cache_data);
             return($result);
         }
     }
-
 }
 
 ?>

@@ -86,6 +86,7 @@ class EventView {
     const ROUTE_STATS = 'eventstats';
     const ROUTE_ZEN = 'zenmode';
     const ROUTE_DROPCACHE = 'forcecache';
+    const ROUTE_ZENPROFILES = 'zenprofiles';
     const PROUTE_FILTERADMIN = 'eventadmin';
     const PROUTE_FILTEREVENTTEXT = 'eventsearch';
     const PROUTE_FILTERDATE = 'eventdate';
@@ -213,7 +214,7 @@ class EventView {
      * @return void
      */
     protected function setProfileLinks() {
-        if (ubRouting::checkPost(self::PROUTE_PROFILELINKS)) {
+        if (ubRouting::checkPost(self::PROUTE_PROFILELINKS) or ubRouting::checkGet(self::ROUTE_ZENPROFILES)) {
             $this->profileLinksFlag = true;
         }
     }
@@ -258,7 +259,7 @@ class EventView {
         $result = array();
         $this->weblogsDb->orderBy('id', 'DESC'); //from newest to oldest
         //
-            //date filters ignores default render limits
+        //date filters ignores default render limits
         if (!empty($this->filterDate)) {
             $this->eventLimit = 0; //show all of events by selected date
             $this->weblogsDb->where('date', 'LIKE', $this->filterDate . '%');
@@ -332,16 +333,15 @@ class EventView {
         $result = '';
         $zenMode = ubRouting::checkGet(self::ROUTE_ZEN) ? true : false;
 
-        if (!$zenMode) {
+        if ($zenMode) {
+            $this->eventLimit = 50;
+        } else {
             $result .= $this->renderEventLimits();
             $result .= wf_delimiter(0);
             $result .= $this->renderSearchForm();
-        } else {
-            $this->eventLimit = 50;
         }
 
         $allEvents = $this->getAllEventsFiltered();
-
 
         if (!empty($allEvents)) {
             $tablecells = wf_TableCell(__('ID'));
@@ -351,14 +351,13 @@ class EventView {
             $tablecells .= wf_TableCell(__('Event'));
             $tablerows = wf_TableRow($tablecells, 'row1');
 
-
             foreach ($allEvents as $io => $eachevent) {
                 $event = htmlspecialchars($eachevent['event']);
                 if ($this->profileLinksFlag) {
                     if (preg_match('!\((.*?)\)!si', $event, $tmpLoginMatches)) {
                         @$loginExtracted = $tmpLoginMatches[1];
                         if (!empty($loginExtracted)) {
-                            if (!ispos($event, '((')) { // ignore UKV user id-s 
+                            if (!ispos($event, '((') AND !ispos($event, 'SWITCH')) { // ignore UKV user id-s and switch locations
                                 $userProfileLink = wf_Link('?module=userprofile&username=' . $loginExtracted, web_profile_icon() . ' ' . $loginExtracted);
                                 $event = str_replace($loginExtracted, $userProfileLink, $event);
                             }
@@ -401,85 +400,89 @@ class EventView {
      */
     protected function getEventStats() {
         $result = array();
-        $current_monthlog = "logs_" . date("m") . "_" . date("Y") . "";
 
-        //is current month logs table exists?
-        if (zb_CheckTableExists($current_monthlog)) {
-            $cmonth = date("Y-m-");
-            $cday = date("d");
+        $cmonth = date("Y-m-");
+        $cday = date("d");
 
-            //force cache cleanup
-            if (ubRouting::checkGet(self::ROUTE_DROPCACHE)) {
-                $this->cache->delete(self::CACHE_KEY);
-                ubRouting::nav(self::URL_ME . '&' . self::ROUTE_STATS . '=true');
-            }
+        //force cache cleanup
+        if (ubRouting::checkGet(self::ROUTE_DROPCACHE)) {
+            $this->cache->delete(self::CACHE_KEY);
+            ubRouting::nav(self::URL_ME . '&' . self::ROUTE_STATS . '=true');
+        }
 
-            $cachedStats = $this->cache->get(self::CACHE_KEY, $this->cacheTimeout);
-            //is cache expired?
-            if (empty($cachedStats)) {
-                $rawData = array();
-                /**
-                 * Using direct MySQL queries here instead of NyanORM - due memory economy purposes and preventing
-                 * of multiple arrays reordering overheads. And laziness of course :P
-                 */
-                $reg_q = "SELECT COUNT(`id`) from `userreg` WHERE `date` LIKE '" . $cmonth . "%'";
-                $regc = simple_query($reg_q);
-                $regc = $regc['COUNT(`id`)'];
+        $cachedStats = $this->cache->get(self::CACHE_KEY, $this->cacheTimeout);
+        //is cache expired?
+        if (empty($cachedStats)) {
+            $rawData = array();
+            /**
+             * Using direct MySQL queries here instead of NyanORM - due memory economy purposes and preventing
+             * of multiple arrays reordering overheads. And laziness of course :P
+             */
+            $reg_q = "SELECT COUNT(`id`) from `userreg` WHERE `date` LIKE '" . $cmonth . "%'";
+            $regc = simple_query($reg_q);
+            $regc = $regc['COUNT(`id`)'];
 
-                $mac_q = "SELECT COUNT(`id`) from `weblogs` WHERE `date` LIKE '" . $cmonth . "%' AND `event` LIKE 'CHANGE MultiNetHostMac%'";
-                $macc = simple_query($mac_q);
-                $macc = $macc['COUNT(`id`)'];
+            $mac_q = "SELECT COUNT(`id`) from `weblogs` WHERE `date` LIKE '" . $cmonth . "%' AND `event` LIKE 'CHANGE MultiNetHostMac%'";
+            $macc = simple_query($mac_q);
+            $macc = $macc['COUNT(`id`)'];
 
-                $events_q = "SELECT COUNT(`id`) from `weblogs` WHERE `date` LIKE '" . $cmonth . "%'";
-                $eventsc = simple_query($events_q);
-                $eventsc = $eventsc['COUNT(`id`)'];
+            $events_q = "SELECT COUNT(`id`) from `weblogs` WHERE `date` LIKE '" . $cmonth . "%'";
+            $eventsc = simple_query($events_q);
+            $eventsc = $eventsc['COUNT(`id`)'];
 
-                $switch_q = "SELECT COUNT(`id`) from `weblogs` WHERE `date` LIKE '" . $cmonth . "%' AND `event` LIKE 'SWITCH ADD%'";
-                $switchc = simple_query($switch_q);
-                $switchc = $switchc['COUNT(`id`)'];
+            $switch_q = "SELECT COUNT(`id`) from `weblogs` WHERE `date` LIKE '" . $cmonth . "%' AND `event` LIKE 'SWITCH ADD%'";
+            $switchc = simple_query($switch_q);
+            $switchc = $switchc['COUNT(`id`)'];
 
-                $switchch_q = "SELECT COUNT(`id`) from `weblogs` WHERE `date` LIKE '" . $cmonth . "%' AND `event` LIKE 'SWITCH REPLACE%'";
-                $switchcch = simple_query($switchch_q);
-                $switchcch = $switchcch['COUNT(`id`)'];
+            $switchch_q = "SELECT COUNT(`id`) from `weblogs` WHERE `date` LIKE '" . $cmonth . "%' AND `event` LIKE 'SWITCH REPLACE%'";
+            $switchcch = simple_query($switchch_q);
+            $switchcch = $switchcch['COUNT(`id`)'];
 
-                $credit_q = "SELECT COUNT(`id`) from `weblogs` WHERE `date` LIKE '" . $cmonth . "%' AND `event` LIKE 'CHANGE Credit%' AND `event` NOT LIKE '%CreditExpire%'";
-                $creditc = simple_query($credit_q);
-                $creditc = $creditc['COUNT(`id`)'];
+            $credit_q = "SELECT COUNT(`id`) from `weblogs` WHERE `date` LIKE '" . $cmonth . "%' AND `event` LIKE 'CHANGE Credit%' AND `event` NOT LIKE '%CreditExpire%'";
+            $creditc = simple_query($credit_q);
+            $creditc = $creditc['COUNT(`id`)'];
 
-                $pay_q = "SELECT COUNT(`id`) from `payments` WHERE `date` LIKE '" . $cmonth . "%' AND `summ`>0";
-                $payc = simple_query($pay_q);
-                $payc = $payc['COUNT(`id`)'];
+            $pay_q = "SELECT COUNT(`id`) from `payments` WHERE `date` LIKE '" . $cmonth . "%' AND `summ`>0";
+            $payc = simple_query($pay_q);
+            $payc = $payc['COUNT(`id`)'];
 
-                $tarch_q = "SELECT COUNT(`id`) from`weblogs` WHERE `date` LIKE '" . $cmonth . "%' AND `event` LIKE 'CHANGE TariffNM%'";
-                $tarchc = simple_query($tarch_q);
-                $tarchc = $tarchc['COUNT(`id`)'];
+            $tarch_q = "SELECT COUNT(`id`) from`weblogs` WHERE `date` LIKE '" . $cmonth . "%' AND `event` LIKE 'CHANGE TariffNM%'";
+            $tarchc = simple_query($tarch_q);
+            $tarchc = $tarchc['COUNT(`id`)'];
 
+            $current_monthlog = "logs_" . date("m") . "_" . date("Y") . "";
+
+            //is current month logs table exists?
+            if (zb_CheckTableExists($current_monthlog)) {
                 $stg_q = "SELECT COUNT(`unid`) from `logs_" . date("m") . "_" . date("Y") . "`";
                 $stgc = simple_query($stg_q);
                 $stgc = $stgc['COUNT(`unid`)'];
-
-                $sms_q = "SELECT COUNT(`id`) from`weblogs` WHERE `date` LIKE '" . $cmonth . "%' AND `event` LIKE 'USMS SEND SMS %'";
-                $smsc = simple_query($sms_q);
-                $smsc = $smsc['COUNT(`id`)'];
-
-                $rawData['regc'] = $regc;
-                $rawData['macc'] = $macc;
-                $rawData['eventsc'] = $eventsc;
-                $rawData['switchc'] = $switchc;
-                $rawData['switchcch'] = $switchcch;
-                $rawData['creditc'] = $creditc;
-                $rawData['payc'] = $payc;
-                $rawData['tarchc'] = $tarchc;
-                $rawData['stgc'] = $stgc;
-                $rawData['smsc'] = $smsc;
-                //put new data to cache
-                $result = $rawData;
-                $this->cache->set(self::CACHE_KEY, $rawData, $this->cacheTimeout);
             } else {
-                //just returning cached data
-                $result = $cachedStats;
+                $stgc = 0;
             }
+
+            $sms_q = "SELECT COUNT(`id`) from`weblogs` WHERE `date` LIKE '" . $cmonth . "%' AND `event` LIKE 'USMS SEND SMS %'";
+            $smsc = simple_query($sms_q);
+            $smsc = $smsc['COUNT(`id`)'];
+
+            $rawData['regc'] = $regc;
+            $rawData['macc'] = $macc;
+            $rawData['eventsc'] = $eventsc;
+            $rawData['switchc'] = $switchc;
+            $rawData['switchcch'] = $switchcch;
+            $rawData['creditc'] = $creditc;
+            $rawData['payc'] = $payc;
+            $rawData['tarchc'] = $tarchc;
+            $rawData['stgc'] = $stgc;
+            $rawData['smsc'] = $smsc;
+            //put new data to cache
+            $result = $rawData;
+            $this->cache->set(self::CACHE_KEY, $rawData, $this->cacheTimeout);
+        } else {
+            //just returning cached data
+            $result = $cachedStats;
         }
+
 
         return($result);
     }
@@ -533,7 +536,6 @@ class EventView {
             $cells .= wf_TableCell(round(($eventStats['creditc'] / $cday), 2));
             $rows .= wf_TableRow($cells, 'row3');
 
-
             $cells = wf_TableCell(__('Payments processed'));
             $cells .= wf_TableCell($eventStats['payc']);
             $cells .= wf_TableCell(round(($eventStats['payc'] / $cday), 2));
@@ -549,16 +551,17 @@ class EventView {
             $cells .= wf_TableCell(round(($eventStats['smsc'] / $cday), 2));
             $rows .= wf_TableRow($cells, 'row3');
 
-
             $cells = wf_TableCell(__('External billing events'));
             $cells .= wf_TableCell($eventStats['eventsc']);
             $cells .= wf_TableCell(round(($eventStats['eventsc'] / $cday), 2));
             $rows .= wf_TableRow($cells, 'row3');
 
-            $cells = wf_TableCell(__('Internal billing events'));
-            $cells .= wf_TableCell($eventStats['stgc']);
-            $cells .= wf_TableCell(round(($eventStats['stgc'] / $cday), 2));
-            $rows .= wf_TableRow($cells, 'row3');
+            if ($eventStats['stgc'] != 0) {
+                $cells = wf_TableCell(__('Internal billing events'));
+                $cells .= wf_TableCell($eventStats['stgc']);
+                $cells .= wf_TableCell(round(($eventStats['stgc'] / $cday), 2));
+                $rows .= wf_TableRow($cells, 'row3');
+            }
 
             $result = wf_TableBody($rows, '100%', 0);
             $cacheCleanRoute = self::URL_ME . '&' . self::ROUTE_STATS . '=true' . '&' . self::ROUTE_DROPCACHE . '=true';
@@ -569,5 +572,4 @@ class EventView {
 
         return($result);
     }
-
 }

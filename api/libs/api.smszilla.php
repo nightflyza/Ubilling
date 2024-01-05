@@ -405,18 +405,20 @@ class SMSZilla {
      */
     protected function getOpenPayzCustomers() {
         $result = array();
-        if ($this->altCfg['OPENPAYZ_REALID']) {
-            $query = "SELECT `realid`,`virtualid` from `op_customers`";
-            $allcustomers = simple_queryall($query);
-            if (!empty($allcustomers)) {
-                foreach ($allcustomers as $io => $eachcustomer) {
-                    $result[$eachcustomer['realid']] = $eachcustomer['virtualid'];
+        if ($this->altCfg['OPENPAYZ_SUPPORT']) {
+            if ($this->altCfg['OPENPAYZ_REALID']) {
+                $query = "SELECT `realid`,`virtualid` from `op_customers`";
+                $allcustomers = simple_queryall($query);
+                if (!empty($allcustomers)) {
+                    foreach ($allcustomers as $io => $eachcustomer) {
+                        $result[$eachcustomer['realid']] = $eachcustomer['virtualid'];
+                    }
                 }
-            }
-        } else {
-            if (!empty($this->allUserData)) {
-                foreach ($this->allUserData as $io => $each) {
-                    $result[$each['login']] = ip2int($each['ip']);
+            } else {
+                if (!empty($this->allUserData)) {
+                    foreach ($this->allUserData as $io => $each) {
+                        $result[$each['login']] = ip2int($each['ip']);
+                    }
                 }
             }
         }
@@ -630,6 +632,45 @@ class SMSZilla {
     }
 
     /**
+     * Returns user online left days without additional DB queries
+     * runDataLoaders() must be run once, before usage
+     * 
+     * @param string $login existing users login
+     * 
+     * @return int >=0: days left, -1: debt, -2: zero tariff price
+     */
+    protected function getUserOnlineLeftDayCount($login) {
+        $result = 0;
+        if (empty($this->fundsFlow)) {
+            $this->initFundsFlow();
+        }
+        $onlineLeftCount = $this->fundsFlow->getOnlineLeftCountFast($login);
+        if ($onlineLeftCount >= 0) {
+            $result = $onlineLeftCount;
+        }
+        return ($result);
+    }
+
+    /**
+     * Returns user online to date
+     * 
+     * @param string $login existing users login
+     * 
+     * @return string
+     */
+    protected function getUserOnlineToDate($login) {
+        $result = date("d.m.Y");
+        if (empty($this->fundsFlow)) {
+            $this->initFundsFlow();
+        }
+        $daysOnLine = $this->fundsFlow->getOnlineLeftCountFast($login);
+        if ($daysOnLine >= 0) {
+            $result = date("d.m.Y", time() + ($daysOnLine * 24 * 60 * 60));
+        }
+        return ($result);
+    }
+
+    /**
      * Sets all necessary options
      * 
      * @return void
@@ -650,6 +691,7 @@ class SMSZilla {
             'filteraddress' => 'Address contains',
             'filterao' => 'User is AlwaysOnline',
             'filterbranch' => 'Branch',
+            'filternobranch' => 'No branch',
             'filtercashdays' => 'Balance is enought less than days',
             'filtercashgreater' => 'Balance is greater than',
             'filtercashlesser' => 'Balance is less than',
@@ -695,6 +737,7 @@ class SMSZilla {
             '{REALNAME}' => __('Real Name'),
             '{TARIFF}' => __('Tariff'),
             '{TARIFFPRICE}' => __('Tariff fee'),
+            '{TARIFFPERIOD}' => __('Tariff period'),
             '{PAYMENTID}' => __('Payment ID'),
             '{CREDIT}' => __('Credit'),
             '{CASH}' => __('Balance'),
@@ -708,7 +751,9 @@ class SMSZilla {
             '{CONTRACT}' => __('User contract'),
             '{EMAIL}' => __('Email'),
             '{CURDATE}' => __('Current date'),
-            '{PASSWORD}' => __('Password')
+            '{PASSWORD}' => __('Password'),
+            '{USERONLINELEFTDAY}' => __('The remaining number of days to use the service'),
+            '{USERONLINETODATE}' => __('Tariff period'),
         );
 
         if ((isset($this->altCfg['SMSZILLA_MOBILE_LEN'])) AND ( $this->altCfg['SMSZILLA_COUNTRY_CODE'])) {
@@ -1547,6 +1592,7 @@ class SMSZilla {
                 $inputs .= wf_CheckInput('newfilternotariff', __('User have no tariff assigned'), true, false);
                 $inputs .= wf_CheckInput('newfilterextmobiles', __('Use additional mobiles'), true, false);
                 $inputs .= wf_Selector('newfilterbranch', $branchParams, __('Branch'), '', true, false);
+                $inputs .= wf_CheckInput('newfilternobranch', __('No branch'), true, false);
                 $inputs .= wf_Selector('newfilterdistrict', $districtsParams, __('District'), '', true, false);
             }
 
@@ -2122,6 +2168,7 @@ class SMSZilla {
                 $result = str_ireplace('{REALNAME}', $this->filteredEntities[$entity]['realname'], $result);
                 $result = str_ireplace('{TARIFF}', $this->filteredEntities[$entity]['Tariff'], $result);
                 $result = str_ireplace('{TARIFFPRICE}', @$this->allTariffPrices[$this->filteredEntities[$entity]['Tariff']], $result);
+                $result = str_ireplace('{TARIFFPERIOD}', __(@$this->allTariffs[$this->filteredEntities[$entity]['Tariff']]['period']), $result);
                 $result = str_ireplace('{PAYMENTID}', @$this->opCustomers[$this->filteredEntities[$entity]['login']], $result);
                 $result = str_ireplace('{CREDIT}', $this->filteredEntities[$entity]['Credit'], $result);
                 $result = str_ireplace('{CASH}', $this->filteredEntities[$entity]['Cash'], $result);
@@ -2141,6 +2188,8 @@ class SMSZilla {
                 $result = str_ireplace('{EMAIL}', $this->filteredEntities[$entity]['email'], $result);
                 $result = str_ireplace('{CURDATE}', date("Y-m-d"), $result);
                 $result = str_ireplace('{PASSWORD}', $this->filteredEntities[$entity]['Password'], $result);
+                $result = str_ireplace('{USERONLINELEFTDAY}', $this->getUserOnlineLeftDayCount($entity), $result);
+                $result = str_ireplace('{USERONLINETODATE}', $this->getUserOnlineToDate($entity), $result);
                 break;
             case 'ukv':
 
@@ -2255,6 +2304,10 @@ class SMSZilla {
                             $data[] = $messageText;
                             $data[] = $textLen;
                             $data[] = $smsCount;
+                            if ($this->sms->smsRoutingFlag) {
+                                $data[] = $this->sms->smsDirections->getDirectionNameById();
+                            }
+
                             $json->addRow($data);
                             unset($data);
 
@@ -2281,6 +2334,10 @@ class SMSZilla {
                             $data[] = $messageText;
                             $data[] = $textLen;
                             $data[] = $smsCount;
+                            if ($this->sms->smsRoutingFlag) {
+                                $data[] = $this->sms->smsDirections->getDirectionNameById();
+                            }
+
                             $json->addRow($data);
                             unset($data);
 
@@ -2305,6 +2362,10 @@ class SMSZilla {
                             $data[] = $messageText;
                             $data[] = $textLen;
                             $data[] = $smsCount;
+                            if ($this->sms->smsRoutingFlag) {
+                                $data[] = $this->sms->smsDirections->getDirectionNameById();
+                            }
+
                             $json->addRow($data);
                             unset($data);
 
@@ -2920,6 +2981,30 @@ class SMSZilla {
                     case 'login':
                         foreach ($this->filteredEntities as $io => $entity) {
                             if ($this->branches->userGetBranch($entity['login']) != $param) {
+                                unset($this->filteredEntities[$entity['login']]);
+                            }
+                        }
+                        break;
+                }
+            }
+        }
+    }
+
+    /**
+     * Users without branch filter
+     * 
+     * @param string $direction
+     * @param string $param
+     * 
+     * @return void
+     */
+    protected function filternobranch($direction, $param) {
+        if (!empty($param)) {
+            if (!empty($this->filteredEntities)) {
+                switch ($direction) {
+                    case 'login':
+                        foreach ($this->filteredEntities as $io => $entity) {
+                            if ($this->branches->userGetBranch($entity['login'])) {
                                 unset($this->filteredEntities[$entity['login']]);
                             }
                         }

@@ -5,7 +5,11 @@ if (cfr('OPENPAYZ')) {
 //check is openpayz enabled?
     if ($altCfg['OPENPAYZ_SUPPORT']) {
 
-        $opayz = new OpenPayz();
+        $paySysLoadFlag = false;
+        if (ubRouting::checkGet('transactionsearch') OR ubRouting::checkPost('searchpaysys')) {
+            $paySysLoadFlag = true;
+        }
+        $opayz = new OpenPayz($paySysLoadFlag);
 
         //if manual processing transaction
         if ($altCfg['OPENPAYZ_MANUAL']) {
@@ -19,7 +23,7 @@ if (cfr('OPENPAYZ')) {
                     if ($transaction_data['processed'] != 1) {
                         $opayz->cashAdd($allcustomers[$customerid], $transaction_summ, $transaction_paysys);
                         $opayz->transactionSetProcessed($transaction_data['id']);
-                        ubRouting::nav('?module=openpayz');
+                        ubRouting::nav($opayz::URL_ME);
                     } else {
                         show_error(__('Already processed'));
                     }
@@ -41,14 +45,16 @@ if (cfr('OPENPAYZ')) {
             }
 
 
+            //search some transactions here
+            if (ubRouting::checkGet('transactionsearch')) {
 
-            if (ubRouting::checkPost(array('searchyear', 'searchmonth', 'searchpaysys'))) {
                 show_window(__('Search'), $opayz->renderSearchForm());
-                show_window('', wf_BackLink('?module=openpayz', '', true));
-                $opayz->doSearch(ubRouting::post('searchyear'), ubRouting::post('searchmonth'), ubRouting::post('searchpaysys'));
+                //perform search
+                if (ubRouting::checkPost(array('searchyear', 'searchmonth', 'searchpaysys'))) {
+                    $opayz->doSearch(ubRouting::post('searchyear'), ubRouting::post('searchmonth'), ubRouting::post('searchpaysys'));
+                }
             } else {
                 if (!ubRouting::checkGet('showtransaction')) {
-                    show_window(__('Search'), $opayz->renderSearchForm());
                     //show transactions list
                     $opayz->renderTransactionList();
                 } else {
@@ -65,4 +71,4 @@ if (cfr('OPENPAYZ')) {
 } else {
     show_error(__('You cant control this module'));
 }
-?>
+

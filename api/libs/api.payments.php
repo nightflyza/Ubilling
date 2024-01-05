@@ -285,13 +285,15 @@ function zb_PaymentsGetMonthCount($year, $month) {
  * @return string
  */
 function zb_PaymentIDGet($login) {
-    $login = mysql_real_escape_string($login);
-    $query = "SELECT `virtualid` from `op_customers` WHERE `realid`='" . $login . "'";
-    $result = simple_query($query);
-    if (!empty($result)) {
-        $result = $result['virtualid'];
-    } else {
-        $result = '';
+    global $ubillingConfig;
+    $result = '';
+    if ($ubillingConfig->getAlterParam('OPENPAYZ_SUPPORT')) {
+        $login = mysql_real_escape_string($login);
+        $query = "SELECT `virtualid` from `op_customers` WHERE `realid`='" . $login . "'";
+        $result = simple_query($query);
+        if (!empty($result)) {
+            $result = $result['virtualid'];
+        }
     }
     return ($result);
 }
