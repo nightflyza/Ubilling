@@ -54,9 +54,40 @@ class PixelCraft
      */
     protected $colorsAllocated = array();
 
+    /**
+     * TTF font path
+     * 
+     * @var string
+     */
+    protected $font = 'skins/OpenSans-Regular.ttf';
+
+    /**
+     * Font size in pt.
+     * 
+     * @var int
+     */
+    protected $fontSize = 10;
+
+     /**
+     * Drawing line width in px
+     * 
+     * @var int
+     */
+    protected $lineWidth=1;
+
+    /**
+     * Contains watermark image copy
+     * 
+     * @var GDimage
+     */
+    protected $watermark = '';
+
+    /**
+     * Schweigen im wald
+     */
     public function __construct()
     {
-        //Schweigen im wald
+        //What did you expect here?
     }
 
     /**
@@ -71,6 +102,28 @@ class PixelCraft
         if (is_int($quality)) {
             $this->quality = $quality;
         }
+    }
+
+     /**
+     * Set TTF font path
+     *
+     * @param  string  $font  TTF font path
+     *
+     * @return  void
+     */
+    public function setFont($font) {
+        $this->font = $font;
+    }
+
+    /**
+     * Set font size in pt.
+     *
+     * @param  int  $fontSize  Font size in pt.
+     *
+     * @return  void
+     */
+    public function setFontSize($fontSize) {
+        $this->fontSize = $fontSize;
     }
 
     /**
@@ -181,6 +234,38 @@ class PixelCraft
         return ($result);
     }
 
+    /**
+     * Loads some image into protected property from file 
+     * 
+     * @param string $fileName readable image file path
+     
+     * @return bool
+     */
+    protected function loadImageFile($filePath,$propertyName='image')
+    {
+        $result = false;
+        $imageParams = $this->getImageParams($filePath);
+        $imageType = $this->detectImageType('', $imageParams);
+        if (!empty($imageType)) {
+            $loaderFunctionName = 'imagecreatefrom' . $imageType;
+            if (function_exists($loaderFunctionName)) {
+                $this->$propertyName = $loaderFunctionName($filePath);
+                //setting loaded image base props
+                if ($this->$propertyName != false) {
+                    if ($propertyName=='image') {
+                        $this->imageWidth = $imageParams[0];
+                        $this->imageHeight = $imageParams[1];
+                        $this->imageType = $imageType;
+                    }
+                    $result = true;
+                }
+            } else {
+                throw new Exception('EX_NOT_SUPPORTED_FILETYPE:' . $imageType);
+            }
+        }
+        return ($result);
+    }
+
 
     /**
      * Loads some image into protected property from file 
@@ -191,23 +276,22 @@ class PixelCraft
      */
     public function loadImage($filePath)
     {
-        $result = false;
-        $imageParams = $this->getImageParams($filePath);
-        $imageType = $this->detectImageType('', $imageParams);
-        if (!empty($imageType)) {
-            $loaderFunctionName = 'imagecreatefrom' . $imageType;
-            if (function_exists($loaderFunctionName)) {
-                $this->image = $loaderFunctionName($filePath);
-                //setting loaded image base props
-                if ($this->image != false) {
-                    $this->imageWidth = $imageParams[0];
-                    $this->imageHeight = $imageParams[1];
-                    $this->imageType = $imageType;
-                    $result = true;
-                }
-            } else {
-                throw new Exception('EX_NOT_SUPPORTED_FILETYPE:' . $imageType);
-            }
+        $result = $this->loadImageFile($filePath,'image');
+        return ($result);
+    }
+
+    /**
+     * Loads some watermark image into protected property from file 
+     * 
+     * @param string $fileName readable image file path
+     
+     * @return bool
+     */
+    public function loadWatermark($filePath)
+    {
+        $result = $this->loadImageFile($filePath,'watermark');
+        if ($result) {
+            imagealphablending($this->watermark, false);
         }
         return ($result);
     }
@@ -227,6 +311,10 @@ class PixelCraft
         if ($this->image) {
             $saveFunctionName = 'image' . $type;
             if (function_exists($saveFunctionName)) {
+                     //custom header on browser output
+                     if (!$fileName) {
+                        header('Content-Type: image/'.$type);
+                     }
                 if ($type == 'jpeg' or $type == 'png') {
                     if ($type == 'png') {
                         imagesavealpha($this->image, true);
@@ -243,6 +331,10 @@ class PixelCraft
                 $this->imageWidth = 0;
                 $this->imageHeight = 0;
                 $this->imageType = '';
+                //nothing else matters
+                if ($fileName===false) {
+                    die();
+                }
             } else {
                 throw new Exception('EX_NOT_SUPPORTED_FILETYPE:' . $type);
             }
@@ -356,6 +448,168 @@ class PixelCraft
         } else {
             throw new Exception('EX_COLOR_NOT_EXISTS:' . $colorName);
         }
+    }
+
+
+    /**
+     * Prints some text string at specified X/Y coords with default font
+     * 
+     * @param int $x
+     * @param int $y
+     * @param string $text
+     * @param string $colorName
+     * @param int $size=1
+     * @param bool $vertical
+     * 
+     * @return void
+     */
+    public function drawString($x,$y,$text,$colorName, $size=1, $vertical=false) {
+        if (!empty($text)) {
+            if (isset($this->colorPalette[$colorName])) {
+                $colorData = $this->colorPalette[$colorName];
+                if (isset($this->colorsAllocated[$colorName])) {
+                    $textColor = $this->colorsAllocated[$colorName];
+                } else {
+                    $textColor = imagecolorallocate($this->image, $colorData['r'], $colorData['g'], $colorData['b']);
+                    $this->colorsAllocated[$colorName] = $textColor;
+                }
+
+                if ($vertical) {
+                    imagestringup($this->image, $size, $x, $y, $text, $textColor);
+                } else {
+                    imagestring($this->image, $size, $x, $y, $text, $textColor);
+                }
+            } else {
+                throw new Exception('EX_COLOR_NOT_EXISTS:' . $colorName);
+            }
+     }
+    }
+
+    /**
+     * Write text to the image using TrueType fonts
+     * 
+     * @param int $x
+     * @param int $y
+     * @param string $text
+     * @param string $colorName
+     * 
+     * @return void
+     */
+    public function drawText($x,$y,$text,$colorName) {
+        if (!empty($text)) {
+            if (isset($this->colorPalette[$colorName])) {
+                $colorData = $this->colorPalette[$colorName];
+                if (isset($this->colorsAllocated[$colorName])) {
+                    $textColor = $this->colorsAllocated[$colorName];
+                } else {
+                    $textColor = imagecolorallocate($this->image, $colorData['r'], $colorData['g'], $colorData['b']);
+                    $this->colorsAllocated[$colorName] = $textColor;
+                }
+                
+                imagettftext($this->image, $this->fontSize, 0, $x, $y, $textColor, $this->font, $text);
+            } else {
+                throw new Exception('EX_COLOR_NOT_EXISTS:' . $colorName);
+            }
+        }
+    }
+
+    /**
+     * Set the thickness for line drawing in px
+     * 
+     * @param int $lineWidth 
+     * 
+     * @return void
+     */
+    public function setLineWidth($lineWidth) {
+        imagesetthickness($this->image, $lineWidth);
+    }
+
+    /**
+     * Draws filled rectangle
+     * 
+     * @param int $x1
+     * @param int $y1
+     * @param int $x2
+     * @param int $y2
+     * @param string $colorName
+     * 
+     * @return void
+     */
+    public function drawRectangle($x1,$y1,$x2,$y2,$colorName) {
+        if (isset($this->colorPalette[$colorName])) {
+            $colorData = $this->colorPalette[$colorName];
+            if (isset($this->colorsAllocated[$colorName])) {
+                $drawingColor = $this->colorsAllocated[$colorName];
+            } else {
+                $drawingColor = imagecolorallocate($this->image, $colorData['r'], $colorData['g'], $colorData['b']);
+                $this->colorsAllocated[$colorName] = $drawingColor;
+            }
+         
+           imagefilledrectangle($this->image, $x1, $y1, $x2, $y2, $drawingColor);
+        } else {
+            throw new Exception('EX_COLOR_NOT_EXISTS:' . $colorName);
+        }
+    }
+
+    /**
+     * Draws a line
+     * 
+     * @param int $x1
+     * @param int $y1
+     * @param int $x2
+     * @param int $y2
+     * @param string $colorName
+     * 
+     * @return void
+     */
+    public function drawLine($x1,$y1,$x2,$y2,$colorName) {
+        if (isset($this->colorPalette[$colorName])) {
+            $colorData = $this->colorPalette[$colorName];
+            if (isset($this->colorsAllocated[$colorName])) {
+                $drawingColor = $this->colorsAllocated[$colorName];
+            } else {
+                $drawingColor = imagecolorallocate($this->image, $colorData['r'], $colorData['g'], $colorData['b']);
+                $this->colorsAllocated[$colorName] = $drawingColor;
+            }
+            
+           imageline($this->image, $x1, $y1, $x2, $y2, $drawingColor);
+        } else {
+            throw new Exception('EX_COLOR_NOT_EXISTS:' . $colorName);
+        }
+    }
+
+
+    /**
+     * Puts preloaded watermark on base image
+     * 
+     * @param int $stretch=true
+     * @param int $x=0
+     * @param int $y=0
+     * 
+     * @return void
+     */
+    public function drawWatermark($stretch=true,$x=0,$y=0) {
+       imagealphablending($this->watermark, false); 
+       $watermarkWidth=imagesx($this->watermark);
+       $watermarkHeight=imagesy($this->watermark);
+       if ($stretch) {
+            imagecopyresampled($this->image, $this->watermark, $x, $y, 0, 0, $this->imageWidth, $this->imageHeight, $watermarkWidth, $watermarkHeight);
+        } else {
+            imagecopy($this->image, $this->watermark, $x, $y, 0, 0, $watermarkWidth, $watermarkHeight);
+        }
+    }
+
+
+    /**
+     * Applies pixelation filter
+     * 
+     * @param int $blockSize
+     * @param bool $smooth=true
+     * 
+     * @return void
+     */
+    public function pixelate($blockSize,$smooth=true) {
+        imagefilter($this->image, IMG_FILTER_PIXELATE, $blockSize,$smooth);
     }
 
 }
