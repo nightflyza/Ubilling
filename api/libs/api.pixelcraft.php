@@ -1,7 +1,15 @@
 <?php
 
 /**
- * Tiny image processing library
+ * PixelCraft is a lightweight PHP library designed for easy image processing using the GD lib. 
+ * With PixelCraft, you can perform basic image operations such as resizing, cropping, drawing of watermarks, and format conversion.
+ * The library is characterized by its user-friendly interface and minimal code footprint, 
+ * allowing for quick and efficient image processing in PHP projects.
+ * 
+ * @package PixelCraft
+ * @author Rostyslav Haitkulov <info@ubilling.net.ua>
+ * @see https://github.com/nightflyza/PixelCraft
+ * @license MIT
  */
 class PixelCraft
 {
@@ -379,7 +387,6 @@ class PixelCraft
                 $this->image = $imageCopy;
                 $this->imageWidth = $nWidth;
                 $this->imageHeight = $nHeight;
-                imagedestroy($imageCopy);
             }
         }
     }
@@ -397,7 +404,6 @@ class PixelCraft
         if ($this->imageWidth and $this->imageHeight) {
             $imageResized = imagescale($this->image, $width, $height);
             $this->image = $imageResized;
-            imagedestroy($imageResized);
             $this->imageWidth = $width;
             $this->imageHeight = $height;
         }

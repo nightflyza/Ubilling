@@ -15,7 +15,7 @@ if (cfr('ROOT')) {
     $pc->addColor('blue',0,0,255);
     $pc->addColor('yellow',255,255,0);
 
-    //$pc->fill('black');
+    $pc->fill('black');
     $pc->setLineWidth(5);
    
         for ($x=0;$x<600;$x++) {
@@ -40,7 +40,8 @@ if (cfr('ROOT')) {
         $pc->loadWatermark('skins/taskbar/exhorse.png');
         $pc->drawWatermark(false,380,100);
         
-        
+        $pc->scale(0.51);
+        $pc->resize(320,240);
         $pc->saveImage(null,'png');
         
        
