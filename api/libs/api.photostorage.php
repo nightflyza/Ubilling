@@ -98,6 +98,7 @@ class PhotoStorage {
     const ROUTE_PROXY = 'getimg';
     const EX_NOSCOPE = 'NO_OBJECT_SCOPE_SET';
     const EX_WRONG_EXT = 'WRONG_FILE_EXTENSION';
+    const WATRERMARK_PATH = 'content/documents/watermark.png';
 
     /**
      * Initializes photostorage engine for some scope/item id
@@ -701,6 +702,37 @@ class PhotoStorage {
     }
 
     /**
+     * Performs some image postprocessing on images uploads
+     * 
+     * @param string $filePath
+     * 
+     * @return void
+     */
+    public function imagePostProcessing($filePath) {
+        $pixelCraft = new PixelCraft();
+        $pixelCraft->loadImage($filePath);
+        $imageWidth = $pixelCraft->getImageWidth();
+        $imageHeight = $pixelCraft->getImageHeight();
+        $originalType = $pixelCraft->getImageType();
+
+        //recopressing image
+        if ($this->altCfg['PHOTOSTORAGE_RECOMPRESS']) {
+            if ($originalType == 'jpeg') {
+                $pixelCraft->setQuality(70);
+            }
+        }
+
+        //appending watermark
+        if ($this->altCfg['PHOTOSTORAGE_WATERMARK']) {
+            $pixelCraft->loadWatermark(self::WATRERMARK_PATH);
+            $pixelCraft->drawWatermark(false, $imageWidth - 120, 20);
+        }
+
+        //saving post-processed image
+        $pixelCraft->saveImage($filePath, $originalType);
+    }
+
+    /**
      * Catches file upload in background
      *
      * @param string $customBackLink
@@ -726,6 +758,11 @@ class PhotoStorage {
                     $newSavePath = $this->storagePath . $newFilename;
                     @move_uploaded_file($_FILES['photostorageFileUpload']['tmp_name'], $newSavePath);
                     if (file_exists($newSavePath)) {
+                        //image postprocessing 
+                        if (@$this->altCfg['PHOTOSTORAGE_POSTPROCESSING']) {
+                            $this->imagePostProcessing($newSavePath);
+                        }
+
                         $uploadResult = wf_tag('span', false, 'alert_success') . __('Photo upload complete') . wf_tag('span', true);
                         $this->registerImage($newFilename);
 
