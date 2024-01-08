@@ -3,48 +3,39 @@
 //just dummy module for testing purposes
 error_reporting(E_ALL);
 if (cfr('ROOT')) {
-    $pc=new PixelCraft();
-    $pc->loadImage('exports/volk10.jpg');
+    $pc = new PixelCraft();
+    $pc->loadImage('skins/taskbar/user_add.jpg');
+    $pc->resize(32,32);
+    //$pc->createImage(50, 50);
+ //   $pc->fill('green');
+   // $pc->drawString(10, 10, 'some', 'black', 3,false);
+   // $pc->drawPixel(1, 1, 'red');
+    //$pc->saveImage(null,'png');
     
-    //$pc->createImage(640,480);
-    //$pc->loadImage('skins/unicornwrong.png');
+    $width = $pc->getImageWidth();
+    $height = $pc->getImageHeight();
+    deb($width . 'x' . $height);
 
+    $map = $pc->getColorMap(false);
+    //debarr($map);
 
-        // $pc->pixelate(3,true);
-        //$pc->scale(0.50);
-        //$pc->resize(320,240);
-    //$pc->fill('black');
-    $pc->setLineWidth(2);
+    $pc->createImage(128,128);
+    $result = '';
+    foreach ($map as $x => $ys) {
+
+        foreach ($ys as $y => $color) {
+            $hex=$pc->rgbToHex($color);
+            //$pc->addColor($hex,$color['r'],$color['g'],$color['b']);
+            //$pc->drawPixel($x,$y,$hex);
+            
+            $result .= '<font style="font-weight: bold;" color="' . $hex . '">@</font>';
+        }
+        $result .= '<br>';
+    }
+
+   deb('<small>'.$result.'</small>');
+  // $pc->renderImage();
    
-        for ($x=0;$x<600;$x++) {
-            $pc->drawPixel($x,5,'blue');
-        }
-
-        for ($y=0;$y<400;$y++) {
-            $pc->drawPixel(5,$y,'yellow');
-        }
-    
-        $pc->drawString(20,20,'some test text','red',5,false);
-        $pc->drawString(40,200,'some test text','red',5,true);
-
-        $pc->setLineWidth(20);
-        $pc->drawRectangle(300,300,400,400,'blue');
-
-        $pc->setFontSize(18);
-
-        
-        $pc->drawLine(300,300,400,400,'yellow');
-        $pc->drawLine(300,400,400,300,'grey');
-
-        $pc->setFont('skins/Bebas_Neue_Cyrillic.ttf');
-        $pc->drawText(200,400,'test TTF ну і з кирилицею','red');
-        $pc->drawTextAutoSize(450,10,'ну піде здається АУФ','white','');
-
-        $pc->loadWatermark('skins/taskbar/exhorse.png');
-        $pc->drawWatermark(false,380,100);
-       
-        $pc->saveImage(null,'jpeg');
-     //  debarr($pc);
     
 
 }

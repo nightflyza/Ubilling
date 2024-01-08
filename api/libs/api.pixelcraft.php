@@ -109,6 +109,7 @@ class PixelCraft
         $this->addColor('white', 255, 255, 255);
         $this->addColor('black', 0, 0, 0);
         $this->addColor('red', 255, 0, 0);
+        $this->addColor('green', 0, 255, 0);
         $this->addColor('blue', 0, 0, 255);
         $this->addColor('yellow', 255, 255, 0);
         $this->addColor('grey', 85, 85, 85);
@@ -371,6 +372,18 @@ class PixelCraft
     }
 
     /**
+     * Renders current instance image into browser
+     * 
+     * @param string $type
+     * 
+     * @return void
+     */
+    public function renderImage($type = 'png')
+    {
+        $this->saveImage(null, $type);
+    }
+
+    /**
      * Creates new empty true-color image
      * 
      * @return void
@@ -535,13 +548,17 @@ class PixelCraft
     /**
      * Returns font size that fits into image width
      * 
+     * @param int $fontSize font size that required to fit text
+     * @param string $text text data that required to fit
+     * @param int $padding text padding in px
+     * 
      * @return int
      */
     protected function guessFontSize($fontSize, $text, $padding)
     {
         $box = imageftbbox($fontSize, 0, $this->font, $text);
         $boxWidth = $box[4] - $box[6];
-        $imageWidth = $this->imageWidth -($padding*2);
+        $imageWidth = $this->imageWidth - ($padding * 2);
         if ($boxWidth > $imageWidth) {
             $fontSize = $fontSize - 1;
             return $this->guessFontSize($fontSize, $text, $padding);
@@ -556,6 +573,7 @@ class PixelCraft
      * @param int $padding
      * @param string $text
      * @param string $colorName
+     * @param string $outlineColor
      * 
      * @return void
      */
@@ -672,5 +690,61 @@ class PixelCraft
     public function pixelate($blockSize, $smooth = true)
     {
         imagefilter($this->image, IMG_FILTER_PIXELATE, $blockSize, $smooth);
+    }
+
+    /**
+     * Returns RGB values for some specified image pixel as r/g/b/a(lpha)
+     * 
+     * @return array
+     */
+    public function getPixelColor($x, $y)
+    {
+        $result = array();
+        $rgb = imagecolorat($this->image, $x, $y);
+        $components = imagecolorsforindex($this->image, $rgb);
+        $result['r'] = $components['red'];
+        $result['g'] = $components['green'];
+        $result['b'] = $components['blue'];
+        $result['a'] = $components['alpha'];
+        return ($result);
+    }
+
+    /**
+     * Converts RGB components array into hex string
+     * 
+     * @param array $rgb RGB/RGBa components array
+     * 
+     * @return string
+     */
+    public function rgbToHex($rgb)
+    {
+        $result = '';
+        if (!empty($rgb)) {
+            $result = sprintf("#%02x%02x%02x", $rgb['r'], $rgb['g'], $rgb['b']);
+        }
+        return ($result);
+    }
+
+    /**
+     * Returns color map for current intance image as array(x,y)=>color
+     * 
+     * @param bool $hex returns map values as rrggbb hex values or raw rgba components
+     * 
+     * @return array
+     */
+    public function getColorMap($hex = true)
+    {
+        $result = array();
+        for ($x = 0; $x < $this->imageWidth; $x++) {
+            for ($y = 0; $y < $this->imageHeight; $y++) {
+                $rgb = $this->getPixelColor($x, $y);
+                if ($hex) {
+                    $result[$x][$y] = $this->rgbToHex($rgb);
+                } else {
+                    $result[$x][$y] = $rgb;
+                }
+            }
+        }
+        return ($result);
     }
 }
