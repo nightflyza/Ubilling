@@ -3,23 +3,30 @@
 //just dummy module for testing purposes
 error_reporting(E_ALL);
 if (cfr('ROOT')) {
+
+    $file='skins/taskbar/globe.jpg';
+    if (ubRouting::post('file')) {
+        $file='skins/taskbar/'.ubRouting::post('file');
+    }
     $pc = new PixelCraft();
-    $pc->loadImage('skins/taskbar/user_add.jpg');
+    $pc->loadImage($file);
     $pc->resize(32,32);
-    //$pc->createImage(50, 50);
- //   $pc->fill('green');
-   // $pc->drawString(10, 10, 'some', 'black', 3,false);
-   // $pc->drawPixel(1, 1, 'red');
-    //$pc->saveImage(null,'png');
     
     $width = $pc->getImageWidth();
     $height = $pc->getImageHeight();
-    deb($width . 'x' . $height);
+
+    $allIcons=rcms_scandir('skins/taskbar/','*.*');
+    $sel=array();
+    foreach($allIcons as $io=>$each) {
+        $sel[$each]=$each;
+    }
+    $inputs=wf_Selector('file',$sel,'icon');
+    $inputs.=wf_Submit('image 2 ascii');
+    $form=wf_Form('','POST',$inputs);
+    deb($form);
 
     $map = $pc->getColorMap(false);
-    //debarr($map);
-
-    $pc->createImage(128,128);
+    
     $result = '';
     foreach ($map as $x => $ys) {
 
@@ -27,7 +34,6 @@ if (cfr('ROOT')) {
             $hex=$pc->rgbToHex($color);
             //$pc->addColor($hex,$color['r'],$color['g'],$color['b']);
             //$pc->drawPixel($x,$y,$hex);
-            
             $result .= '<font style="font-weight: bold;" color="' . $hex . '">@</font>';
         }
         $result .= '<br>';

@@ -11,8 +11,7 @@
  * @see https://github.com/nightflyza/PixelCraft
  * @license MIT
  */
-class PixelCraft
-{
+class PixelCraft {
 
     /**
      * Contains image copy to perform some magic on it
@@ -41,6 +40,7 @@ class PixelCraft
      * @var int
      */
     protected $imageWidth = 0;
+
     /**
      * Contains loaded image original height
      * 
@@ -93,19 +93,16 @@ class PixelCraft
     /**
      * Schweigen im wald
      */
-    public function __construct()
-    {
+    public function __construct() {
         $this->setDefaultColors();
     }
-
 
     /**
      * Sets few default colors to palette
      * 
      * @return void
      */
-    protected function setDefaultColors()
-    {
+    protected function setDefaultColors() {
         $this->addColor('white', 255, 255, 255);
         $this->addColor('black', 0, 0, 0);
         $this->addColor('red', 255, 0, 0);
@@ -122,8 +119,7 @@ class PixelCraft
      * 
      * @return void
      */
-    public function setQuality($quality)
-    {
+    public function setQuality($quality) {
         if (is_int($quality)) {
             $this->quality = $quality;
         }
@@ -136,8 +132,7 @@ class PixelCraft
      *
      * @return  void
      */
-    public function setFont($font)
-    {
+    public function setFont($font) {
         $this->font = $font;
     }
 
@@ -148,8 +143,7 @@ class PixelCraft
      *
      * @return  void
      */
-    public function setFontSize($fontSize)
-    {
+    public function setFontSize($fontSize) {
         $this->fontSize = $fontSize;
     }
 
@@ -158,8 +152,7 @@ class PixelCraft
      * 
      * @return int
      */
-    public function getImageWidth()
-    {
+    public function getImageWidth() {
         return ($this->imageWidth);
     }
 
@@ -168,8 +161,7 @@ class PixelCraft
      * 
      * @return int
      */
-    public function getImageHeight()
-    {
+    public function getImageHeight() {
         return ($this->imageHeight);
     }
 
@@ -178,8 +170,7 @@ class PixelCraft
      * 
      * @return string
      */
-    public function getImageType()
-    {
+    public function getImageType() {
         return ($this->imageType);
     }
 
@@ -190,8 +181,7 @@ class PixelCraft
      * 
      * @return array
      */
-    protected function getImageParams($filePath)
-    {
+    protected function getImageParams($filePath) {
         return (@getimagesize($filePath));
     }
 
@@ -205,11 +195,9 @@ class PixelCraft
      * 
      * @return void
      */
-    public function addColor($colorName, $r, $g, $b)
-    {
+    public function addColor($colorName, $r, $g, $b) {
         $this->colorPalette[$colorName] = array('r' => $r, 'g' => $g, 'b' => $b);
     }
-
 
     /**
      * Checks is some image valid?
@@ -219,8 +207,7 @@ class PixelCraft
      * 
      * @return bool
      */
-    public function isImageValid($filePath = '', $imageParams = array())
-    {
+    public function isImageValid($filePath = '', $imageParams = array()) {
         $result = false;
         if (empty($imageParams) and !empty($filePath)) {
             $imageParams = $this->getImageParams($filePath);
@@ -244,8 +231,7 @@ class PixelCraft
      * 
      * @return string
      */
-    protected function detectImageType($filePath = '', $imageParams = array())
-    {
+    protected function detectImageType($filePath = '', $imageParams = array()) {
         $result = '';
         if ($this->isImageValid($filePath, $imageParams)) {
             if (empty($imageParams) and !empty($filePath)) {
@@ -265,11 +251,10 @@ class PixelCraft
      * Loads some image into protected property from file 
      * 
      * @param string $fileName readable image file path
-     
+
      * @return bool
      */
-    protected function loadImageFile($filePath, $propertyName = 'image')
-    {
+    protected function loadImageFile($filePath, $propertyName = 'image') {
         $result = false;
         $imageParams = $this->getImageParams($filePath);
         $imageType = $this->detectImageType('', $imageParams);
@@ -293,16 +278,14 @@ class PixelCraft
         return ($result);
     }
 
-
     /**
      * Loads some image into protected property from file 
      * 
      * @param string $fileName readable image file path
-     
+
      * @return bool
      */
-    public function loadImage($filePath)
-    {
+    public function loadImage($filePath) {
         $result = $this->loadImageFile($filePath, 'image');
         return ($result);
     }
@@ -311,18 +294,16 @@ class PixelCraft
      * Loads some watermark image into protected property from file 
      * 
      * @param string $fileName readable image file path
-     
+
      * @return bool
      */
-    public function loadWatermark($filePath)
-    {
+    public function loadWatermark($filePath) {
         $result = $this->loadImageFile($filePath, 'watermark');
         if ($result) {
             imagealphablending($this->watermark, false);
         }
         return ($result);
     }
-
 
     /**
      * Renders current instance image into browser or specified file path
@@ -332,8 +313,7 @@ class PixelCraft
      * 
      * @return bool
      */
-    public function saveImage($fileName = null, $type)
-    {
+    public function saveImage($fileName = null, $type) {
         $result = false;
         if ($this->image) {
             $saveFunctionName = 'image' . $type;
@@ -378,8 +358,7 @@ class PixelCraft
      * 
      * @return void
      */
-    public function renderImage($type = 'png')
-    {
+    public function renderImage($type = 'png') {
         $this->saveImage(null, $type);
     }
 
@@ -388,13 +367,11 @@ class PixelCraft
      * 
      * @return void
      */
-    public function createImage($width, $height)
-    {
+    public function createImage($width, $height) {
         $this->image = imagecreatetruecolor($width, $height);
         $this->imageWidth = $width;
         $this->imageHeight = $height;
     }
-
 
     /**
      * Scales image to some scale
@@ -403,8 +380,7 @@ class PixelCraft
      * 
      * @return void
      */
-    public function scale($scale)
-    {
+    public function scale($scale) {
         if ($this->imageWidth and $this->imageHeight) {
             if ($scale != 1) {
                 $nWidth = $this->imageWidth * $scale;
@@ -428,8 +404,7 @@ class PixelCraft
      * 
      * @return void
      */
-    public function resize($width, $height)
-    {
+    public function resize($width, $height) {
         if ($this->imageWidth and $this->imageHeight) {
             $imageResized = imagescale($this->image, $width, $height);
             $this->image = $imageResized;
@@ -443,8 +418,7 @@ class PixelCraft
      * 
      * @return void
      */
-    public function crop($width, $height)
-    {
+    public function crop($width, $height) {
         if ($this->imageWidth and $this->imageHeight) {
             $imageCropped = imagecrop($this->image, array('x' => 0, 'y' => 0, 'width' => $width, 'height' => $height));
             $this->image = $imageCropped;
@@ -453,7 +427,6 @@ class PixelCraft
         }
     }
 
-
     /**
      * Allocates and returns some image color by its name
      * 
@@ -461,8 +434,7 @@ class PixelCraft
      * 
      * @return int
      */
-    protected function allocateColor($colorName)
-    {
+    protected function allocateColor($colorName) {
         $result = 0;
         if (isset($this->colorPalette[$colorName])) {
             $colorData = $this->colorPalette[$colorName];
@@ -485,9 +457,8 @@ class PixelCraft
      * 
      * @return void
      */
-    public function fill($colorName)
-    {
-        imagefill($this->image, 0, 0,  $this->allocateColor($colorName));
+    public function fill($colorName) {
+        imagefill($this->image, 0, 0, $this->allocateColor($colorName));
     }
 
     /**
@@ -499,11 +470,9 @@ class PixelCraft
      * 
      * @return void
      */
-    public function drawPixel($x, $y, $colorName)
-    {
+    public function drawPixel($x, $y, $colorName) {
         imagesetpixel($this->image, $x, $y, $this->allocateColor($colorName));
     }
-
 
     /**
      * Prints some text string at specified X/Y coords with default font
@@ -517,8 +486,7 @@ class PixelCraft
      * 
      * @return void
      */
-    public function drawString($x, $y, $text, $colorName, $size = 1, $vertical = false)
-    {
+    public function drawString($x, $y, $text, $colorName, $size = 1, $vertical = false) {
         if (!empty($text)) {
             if ($vertical) {
                 imagestringup($this->image, $size, $x, $y, $text, $this->allocateColor($colorName));
@@ -538,8 +506,7 @@ class PixelCraft
      * 
      * @return void
      */
-    public function drawText($x, $y, $text, $colorName)
-    {
+    public function drawText($x, $y, $text, $colorName) {
         if (!empty($text)) {
             imagettftext($this->image, $this->fontSize, 0, $x, $y, $this->allocateColor($colorName), $this->font, $text);
         }
@@ -554,8 +521,7 @@ class PixelCraft
      * 
      * @return int
      */
-    protected function guessFontSize($fontSize, $text, $padding)
-    {
+    protected function guessFontSize($fontSize, $text, $padding) {
         $box = imageftbbox($fontSize, 0, $this->font, $text);
         $boxWidth = $box[4] - $box[6];
         $imageWidth = $this->imageWidth - ($padding * 2);
@@ -577,8 +543,7 @@ class PixelCraft
      * 
      * @return void
      */
-    public function drawTextAutoSize($y, $padding = 10, $text, $colorName, $outlineColor = '')
-    {
+    public function drawTextAutoSize($y, $padding = 10, $text, $colorName, $outlineColor = '') {
         if (!empty($text)) {
             $defaultFontSize = 40;
             $border = 1;
@@ -606,8 +571,7 @@ class PixelCraft
      * 
      * @return void
      */
-    public function setLineWidth($lineWidth)
-    {
+    public function setLineWidth($lineWidth) {
         $this->lineWidth = $lineWidth;
         imagesetthickness($this->image, $this->lineWidth);
     }
@@ -623,8 +587,7 @@ class PixelCraft
      * 
      * @return void
      */
-    public function drawRectangle($x1, $y1, $x2, $y2, $colorName)
-    {
+    public function drawRectangle($x1, $y1, $x2, $y2, $colorName) {
         if (isset($this->colorPalette[$colorName])) {
             $colorData = $this->colorPalette[$colorName];
             if (isset($this->colorsAllocated[$colorName])) {
@@ -651,11 +614,9 @@ class PixelCraft
      * 
      * @return void
      */
-    public function drawLine($x1, $y1, $x2, $y2, $colorName)
-    {
+    public function drawLine($x1, $y1, $x2, $y2, $colorName) {
         imageline($this->image, $x1, $y1, $x2, $y2, $this->allocateColor($colorName));
     }
-
 
     /**
      * Puts preloaded watermark on base image
@@ -666,8 +627,7 @@ class PixelCraft
      * 
      * @return void
      */
-    public function drawWatermark($stretch = true, $x = 0, $y = 0)
-    {
+    public function drawWatermark($stretch = true, $x = 0, $y = 0) {
         imagealphablending($this->watermark, false);
         $watermarkWidth = imagesx($this->watermark);
         $watermarkHeight = imagesy($this->watermark);
@@ -678,7 +638,6 @@ class PixelCraft
         }
     }
 
-
     /**
      * Applies pixelation filter
      * 
@@ -687,8 +646,7 @@ class PixelCraft
      * 
      * @return void
      */
-    public function pixelate($blockSize, $smooth = true)
-    {
+    public function pixelate($blockSize, $smooth = true) {
         imagefilter($this->image, IMG_FILTER_PIXELATE, $blockSize, $smooth);
     }
 
@@ -697,8 +655,7 @@ class PixelCraft
      * 
      * @return array
      */
-    public function getPixelColor($x, $y)
-    {
+    public function getPixelColor($x, $y) {
         $result = array();
         $rgb = imagecolorat($this->image, $x, $y);
         $components = imagecolorsforindex($this->image, $rgb);
@@ -716,8 +673,7 @@ class PixelCraft
      * 
      * @return string
      */
-    public function rgbToHex($rgb)
-    {
+    public function rgbToHex($rgb) {
         $result = '';
         if (!empty($rgb)) {
             $result = sprintf("#%02x%02x%02x", $rgb['r'], $rgb['g'], $rgb['b']);
@@ -732,8 +688,7 @@ class PixelCraft
      * 
      * @return array
      */
-    public function getColorMap($hex = true)
-    {
+    public function getColorMap($hex = true) {
         $result = array();
         for ($x = 0; $x < $this->imageWidth; $x++) {
             for ($y = 0; $y < $this->imageHeight; $y++) {
