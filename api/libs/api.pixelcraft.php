@@ -14,7 +14,7 @@ class PixelCraft
     protected $image = '';
 
     /**
-     * Contains image type 
+     * Contains image rendering quality
      * 
      * @var int
      */
@@ -68,12 +68,12 @@ class PixelCraft
      */
     protected $fontSize = 10;
 
-     /**
+    /**
      * Drawing line width in px
      * 
      * @var int
      */
-    protected $lineWidth=1;
+    protected $lineWidth = 1;
 
     /**
      * Contains watermark image copy
@@ -104,14 +104,15 @@ class PixelCraft
         }
     }
 
-     /**
+    /**
      * Set TTF font path
      *
      * @param  string  $font  TTF font path
      *
      * @return  void
      */
-    public function setFont($font) {
+    public function setFont($font)
+    {
         $this->font = $font;
     }
 
@@ -122,7 +123,8 @@ class PixelCraft
      *
      * @return  void
      */
-    public function setFontSize($fontSize) {
+    public function setFontSize($fontSize)
+    {
         $this->fontSize = $fontSize;
     }
 
@@ -241,7 +243,7 @@ class PixelCraft
      
      * @return bool
      */
-    protected function loadImageFile($filePath,$propertyName='image')
+    protected function loadImageFile($filePath, $propertyName = 'image')
     {
         $result = false;
         $imageParams = $this->getImageParams($filePath);
@@ -252,7 +254,7 @@ class PixelCraft
                 $this->$propertyName = $loaderFunctionName($filePath);
                 //setting loaded image base props
                 if ($this->$propertyName != false) {
-                    if ($propertyName=='image') {
+                    if ($propertyName == 'image') {
                         $this->imageWidth = $imageParams[0];
                         $this->imageHeight = $imageParams[1];
                         $this->imageType = $imageType;
@@ -276,7 +278,7 @@ class PixelCraft
      */
     public function loadImage($filePath)
     {
-        $result = $this->loadImageFile($filePath,'image');
+        $result = $this->loadImageFile($filePath, 'image');
         return ($result);
     }
 
@@ -289,7 +291,7 @@ class PixelCraft
      */
     public function loadWatermark($filePath)
     {
-        $result = $this->loadImageFile($filePath,'watermark');
+        $result = $this->loadImageFile($filePath, 'watermark');
         if ($result) {
             imagealphablending($this->watermark, false);
         }
@@ -311,10 +313,10 @@ class PixelCraft
         if ($this->image) {
             $saveFunctionName = 'image' . $type;
             if (function_exists($saveFunctionName)) {
-                     //custom header on browser output
-                     if (!$fileName) {
-                        header('Content-Type: image/'.$type);
-                     }
+                //custom header on browser output
+                if (!$fileName) {
+                    header('Content-Type: image/' . $type);
+                }
                 if ($type == 'jpeg' or $type == 'png') {
                     if ($type == 'png') {
                         imagesavealpha($this->image, true);
@@ -332,7 +334,7 @@ class PixelCraft
                 $this->imageHeight = 0;
                 $this->imageType = '';
                 //nothing else matters
-                if ($fileName===false) {
+                if ($fileName === false) {
                     die();
                 }
             } else {
@@ -401,6 +403,31 @@ class PixelCraft
         }
     }
 
+
+    /**
+     * Allocates and returns some image color by its name
+     * 
+     * @param string $colorName
+     * 
+     * @return int
+     */
+    protected function allocateColor($colorName)
+    {
+        $result = 0;
+        if (isset($this->colorPalette[$colorName])) {
+            $colorData = $this->colorPalette[$colorName];
+            if (isset($this->colorsAllocated[$colorName])) {
+                $result = $this->colorsAllocated[$colorName];
+            } else {
+                $result = imagecolorallocate($this->image, $colorData['r'], $colorData['g'], $colorData['b']);
+                $this->colorsAllocated[$colorName] = $result;
+            }
+        } else {
+            throw new Exception('EX_COLOR_NOT_EXISTS:' . $colorName);
+        }
+        return ($result);
+    }
+
     /**
      * Fills image with some color from palette 
      * 
@@ -410,18 +437,7 @@ class PixelCraft
      */
     public function fill($colorName)
     {
-        if (isset($this->colorPalette[$colorName])) {
-            $colorData = $this->colorPalette[$colorName];
-            if (isset($this->colorsAllocated[$colorName])) {
-                $fillColor = $this->colorsAllocated;
-            } else {
-                $fillColor = imagecolorallocate($this->image, $colorData['r'], $colorData['g'], $colorData['b']);
-                $this->colorsAllocated[$colorName] = $fillColor;
-            }
-            imagefill($this->image, 0, 0, $fillColor);
-        } else {
-            throw new Exception('EX_COLOR_NOT_EXISTS:' . $colorName);
-        }
+        imagefill($this->image, 0, 0,  $this->allocateColor($colorName));
     }
 
     /**
@@ -435,19 +451,7 @@ class PixelCraft
      */
     public function drawPixel($x, $y, $colorName)
     {
-        if (isset($this->colorPalette[$colorName])) {
-            $colorData = $this->colorPalette[$colorName];
-            if (isset($this->colorsAllocated[$colorName])) {
-                $pixelColor = $this->colorsAllocated[$colorName];
-            } else {
-                $pixelColor = imagecolorallocate($this->image, $colorData['r'], $colorData['g'], $colorData['b']);
-                $this->colorsAllocated[$colorName] = $pixelColor;
-            }
-
-            imagesetpixel($this->image, $x, $y, $pixelColor);
-        } else {
-            throw new Exception('EX_COLOR_NOT_EXISTS:' . $colorName);
-        }
+        imagesetpixel($this->image, $x, $y, $this->allocateColor($colorName));
     }
 
 
@@ -463,26 +467,15 @@ class PixelCraft
      * 
      * @return void
      */
-    public function drawString($x,$y,$text,$colorName, $size=1, $vertical=false) {
+    public function drawString($x, $y, $text, $colorName, $size = 1, $vertical = false)
+    {
         if (!empty($text)) {
-            if (isset($this->colorPalette[$colorName])) {
-                $colorData = $this->colorPalette[$colorName];
-                if (isset($this->colorsAllocated[$colorName])) {
-                    $textColor = $this->colorsAllocated[$colorName];
-                } else {
-                    $textColor = imagecolorallocate($this->image, $colorData['r'], $colorData['g'], $colorData['b']);
-                    $this->colorsAllocated[$colorName] = $textColor;
-                }
-
-                if ($vertical) {
-                    imagestringup($this->image, $size, $x, $y, $text, $textColor);
-                } else {
-                    imagestring($this->image, $size, $x, $y, $text, $textColor);
-                }
+            if ($vertical) {
+                imagestringup($this->image, $size, $x, $y, $text, $this->allocateColor($colorName));
             } else {
-                throw new Exception('EX_COLOR_NOT_EXISTS:' . $colorName);
+                imagestring($this->image, $size, $x, $y, $text, $this->allocateColor($colorName));
             }
-     }
+        }
     }
 
     /**
@@ -495,21 +488,10 @@ class PixelCraft
      * 
      * @return void
      */
-    public function drawText($x,$y,$text,$colorName) {
+    public function drawText($x, $y, $text, $colorName)
+    {
         if (!empty($text)) {
-            if (isset($this->colorPalette[$colorName])) {
-                $colorData = $this->colorPalette[$colorName];
-                if (isset($this->colorsAllocated[$colorName])) {
-                    $textColor = $this->colorsAllocated[$colorName];
-                } else {
-                    $textColor = imagecolorallocate($this->image, $colorData['r'], $colorData['g'], $colorData['b']);
-                    $this->colorsAllocated[$colorName] = $textColor;
-                }
-                
-                imagettftext($this->image, $this->fontSize, 0, $x, $y, $textColor, $this->font, $text);
-            } else {
-                throw new Exception('EX_COLOR_NOT_EXISTS:' . $colorName);
-            }
+            imagettftext($this->image, $this->fontSize, 0, $x, $y, $this->allocateColor($colorName), $this->font, $text);
         }
     }
 
@@ -520,7 +502,8 @@ class PixelCraft
      * 
      * @return void
      */
-    public function setLineWidth($lineWidth) {
+    public function setLineWidth($lineWidth)
+    {
         imagesetthickness($this->image, $lineWidth);
     }
 
@@ -535,7 +518,8 @@ class PixelCraft
      * 
      * @return void
      */
-    public function drawRectangle($x1,$y1,$x2,$y2,$colorName) {
+    public function drawRectangle($x1, $y1, $x2, $y2, $colorName)
+    {
         if (isset($this->colorPalette[$colorName])) {
             $colorData = $this->colorPalette[$colorName];
             if (isset($this->colorsAllocated[$colorName])) {
@@ -544,8 +528,8 @@ class PixelCraft
                 $drawingColor = imagecolorallocate($this->image, $colorData['r'], $colorData['g'], $colorData['b']);
                 $this->colorsAllocated[$colorName] = $drawingColor;
             }
-         
-           imagefilledrectangle($this->image, $x1, $y1, $x2, $y2, $drawingColor);
+
+            imagefilledrectangle($this->image, $x1, $y1, $x2, $y2, $drawingColor);
         } else {
             throw new Exception('EX_COLOR_NOT_EXISTS:' . $colorName);
         }
@@ -562,20 +546,9 @@ class PixelCraft
      * 
      * @return void
      */
-    public function drawLine($x1,$y1,$x2,$y2,$colorName) {
-        if (isset($this->colorPalette[$colorName])) {
-            $colorData = $this->colorPalette[$colorName];
-            if (isset($this->colorsAllocated[$colorName])) {
-                $drawingColor = $this->colorsAllocated[$colorName];
-            } else {
-                $drawingColor = imagecolorallocate($this->image, $colorData['r'], $colorData['g'], $colorData['b']);
-                $this->colorsAllocated[$colorName] = $drawingColor;
-            }
-            
-           imageline($this->image, $x1, $y1, $x2, $y2, $drawingColor);
-        } else {
-            throw new Exception('EX_COLOR_NOT_EXISTS:' . $colorName);
-        }
+    public function drawLine($x1, $y1, $x2, $y2, $colorName)
+    {
+        imageline($this->image, $x1, $y1, $x2, $y2, $this->allocateColor($colorName));
     }
 
 
@@ -588,11 +561,12 @@ class PixelCraft
      * 
      * @return void
      */
-    public function drawWatermark($stretch=true,$x=0,$y=0) {
-       imagealphablending($this->watermark, false); 
-       $watermarkWidth=imagesx($this->watermark);
-       $watermarkHeight=imagesy($this->watermark);
-       if ($stretch) {
+    public function drawWatermark($stretch = true, $x = 0, $y = 0)
+    {
+        imagealphablending($this->watermark, false);
+        $watermarkWidth = imagesx($this->watermark);
+        $watermarkHeight = imagesy($this->watermark);
+        if ($stretch) {
             imagecopyresampled($this->image, $this->watermark, $x, $y, 0, 0, $this->imageWidth, $this->imageHeight, $watermarkWidth, $watermarkHeight);
         } else {
             imagecopy($this->image, $this->watermark, $x, $y, 0, 0, $watermarkWidth, $watermarkHeight);
@@ -608,8 +582,8 @@ class PixelCraft
      * 
      * @return void
      */
-    public function pixelate($blockSize,$smooth=true) {
-        imagefilter($this->image, IMG_FILTER_PIXELATE, $blockSize,$smooth);
+    public function pixelate($blockSize, $smooth = true)
+    {
+        imagefilter($this->image, IMG_FILTER_PIXELATE, $blockSize, $smooth);
     }
-
 }

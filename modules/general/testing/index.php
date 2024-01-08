@@ -4,6 +4,8 @@
 error_reporting(E_ALL);
 if (cfr('ROOT')) {
     $pc=new PixelCraft();
+    $pc->loadImage('exports/1.jpg');
+    
     $pc->createImage(640,480);
     $pc->loadImage('skins/unicornwrong.png');
 
@@ -13,7 +15,7 @@ if (cfr('ROOT')) {
     $pc->addColor('blue',0,0,255);
     $pc->addColor('yellow',255,255,0);
 
-   // $pc->fill('black');
+    //$pc->fill('black');
     $pc->setLineWidth(5);
    
         for ($x=0;$x<600;$x++) {
@@ -38,5 +40,9 @@ if (cfr('ROOT')) {
         $pc->loadWatermark('skins/taskbar/exhorse.png');
         $pc->drawWatermark(false,380,100);
         
+        
         $pc->saveImage(null,'png');
+        
+       
+
 }
