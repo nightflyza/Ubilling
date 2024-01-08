@@ -425,6 +425,20 @@ class PixelCraft
         }
     }
 
+    /**
+     * Crops image to new dimensions
+     * 
+     * @return void
+     */
+    public function crop($width, $height) {
+        if ($this->imageWidth and $this->imageHeight) {
+            $imageCropped=imagecrop($this->image,array('x'=>0,'y'=>0,'width'=>$width,'height'=>$height));
+            $this->image = $imageCropped;
+            $this->imageWidth = $width;
+            $this->imageHeight = $height;
+        }
+    }
+
 
     /**
      * Allocates and returns some image color by its name
