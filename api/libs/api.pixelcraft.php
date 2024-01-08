@@ -95,7 +95,23 @@ class PixelCraft
      */
     public function __construct()
     {
-        //What did you expect here?
+        $this->setDefaultColors();
+    }
+
+
+    /**
+     * Sets few default colors to palette
+     * 
+     * @return void
+     */
+    protected function setDefaultColors()
+    {
+        $this->addColor('white', 255, 255, 255);
+        $this->addColor('black', 0, 0, 0);
+        $this->addColor('red', 255, 0, 0);
+        $this->addColor('blue', 0, 0, 255);
+        $this->addColor('yellow', 255, 255, 0);
+        $this->addColor('grey', 85, 85, 85);
     }
 
     /**
@@ -510,7 +526,8 @@ class PixelCraft
      */
     public function setLineWidth($lineWidth)
     {
-        imagesetthickness($this->image, $lineWidth);
+        $this->lineWidth=$lineWidth;
+        imagesetthickness($this->image, $this->lineWidth);
     }
 
     /**

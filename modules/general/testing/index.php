@@ -9,14 +9,12 @@ if (cfr('ROOT')) {
     $pc->createImage(640,480);
     $pc->loadImage('skins/unicornwrong.png');
 
-    $pc->addColor('white',255,255,255);
-    $pc->addColor('black',0,0,0);
-    $pc->addColor('red',255,0,0);
-    $pc->addColor('blue',0,0,255);
-    $pc->addColor('yellow',255,255,0);
 
-    $pc->fill('black');
-    $pc->setLineWidth(5);
+        // $pc->pixelate(3,true);
+        //$pc->scale(0.50);
+        //$pc->resize(320,240);
+    //$pc->fill('black');
+    $pc->setLineWidth(2);
    
         for ($x=0;$x<600;$x++) {
             $pc->drawPixel($x,5,'blue');
@@ -33,16 +31,17 @@ if (cfr('ROOT')) {
         $pc->drawRectangle(100,100,200,200,'blue');
 
         $pc->setFontSize(18);
+
         $pc->drawText(200,500,'test TTF ну і з кирилицею','red');
         $pc->drawLine(100,100,200,200,'yellow');
+        $pc->drawLine(100,200,200,100,'grey');
 
 
         $pc->loadWatermark('skins/taskbar/exhorse.png');
         $pc->drawWatermark(false,380,100);
-        
-        $pc->scale(0.51);
-        $pc->resize(320,240);
+       
         $pc->saveImage(null,'png');
+     //  debarr($pc);
         
        
 
