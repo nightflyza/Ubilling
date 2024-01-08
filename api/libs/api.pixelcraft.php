@@ -430,9 +430,10 @@ class PixelCraft
      * 
      * @return void
      */
-    public function crop($width, $height) {
+    public function crop($width, $height)
+    {
         if ($this->imageWidth and $this->imageHeight) {
-            $imageCropped=imagecrop($this->image,array('x'=>0,'y'=>0,'width'=>$width,'height'=>$height));
+            $imageCropped = imagecrop($this->image, array('x' => 0, 'y' => 0, 'width' => $width, 'height' => $height));
             $this->image = $imageCropped;
             $this->imageWidth = $width;
             $this->imageHeight = $height;
@@ -532,6 +533,55 @@ class PixelCraft
     }
 
     /**
+     * Returns font size that fits into image width
+     * 
+     * @return int
+     */
+    protected function guessFontSize($fontSize, $text, $padding)
+    {
+        $box = imageftbbox($fontSize, 0, $this->font, $text);
+        $boxWidth = $box[4] - $box[6];
+        $imageWidth = $this->imageWidth -($padding*2);
+        if ($boxWidth > $imageWidth) {
+            $fontSize = $fontSize - 1;
+            return $this->guessFontSize($fontSize, $text, $padding);
+        }
+        return ($fontSize);
+    }
+
+    /**
+     * Write single text to the image using TrueType font with auto size selection
+     * 
+     * @param int $y
+     * @param int $padding
+     * @param string $text
+     * @param string $colorName
+     * 
+     * @return void
+     */
+    public function drawTextAutoSize($y, $padding = 10, $text, $colorName, $outlineColor = '')
+    {
+        if (!empty($text)) {
+            $defaultFontSize = 40;
+            $border = 1;
+            $x = $padding;
+            //guessing font size
+            $fontSize = $this->guessFontSize($defaultFontSize, $text, $padding);
+
+            //drawing outline if required
+            if ($outlineColor) {
+                for ($c1 = ($x - abs($border)); $c1 <= ($x + abs($border)); $c1++) {
+                    for ($c2 = ($y - abs($border)); $c2 <= ($y + abs($border)); $c2++) {
+                        imagettftext($this->image, $fontSize, 0, $c1, $c2, $this->allocateColor($outlineColor), $this->font, $text);
+                    }
+                }
+            }
+            //and text with selected color
+            imagettftext($this->image, $fontSize, 0, $x, $y, $this->allocateColor($colorName), $this->font, $text);
+        }
+    }
+
+    /**
      * Set the thickness for line drawing in px
      * 
      * @param int $lineWidth 
@@ -540,7 +590,7 @@ class PixelCraft
      */
     public function setLineWidth($lineWidth)
     {
-        $this->lineWidth=$lineWidth;
+        $this->lineWidth = $lineWidth;
         imagesetthickness($this->image, $this->lineWidth);
     }
 

@@ -4,10 +4,10 @@
 error_reporting(E_ALL);
 if (cfr('ROOT')) {
     $pc=new PixelCraft();
-    $pc->loadImage('exports/1.jpg');
+    $pc->loadImage('exports/volk10.jpg');
     
-    $pc->createImage(640,480);
-    $pc->loadImage('skins/unicornwrong.png');
+    //$pc->createImage(640,480);
+    //$pc->loadImage('skins/unicornwrong.png');
 
 
         // $pc->pixelate(3,true);
@@ -28,21 +28,23 @@ if (cfr('ROOT')) {
         $pc->drawString(40,200,'some test text','red',5,true);
 
         $pc->setLineWidth(20);
-        $pc->drawRectangle(100,100,200,200,'blue');
+        $pc->drawRectangle(300,300,400,400,'blue');
 
         $pc->setFontSize(18);
 
-        $pc->drawText(200,500,'test TTF ну і з кирилицею','red');
-        $pc->drawLine(100,100,200,200,'yellow');
-        $pc->drawLine(100,200,200,100,'grey');
+        
+        $pc->drawLine(300,300,400,400,'yellow');
+        $pc->drawLine(300,400,400,300,'grey');
 
+        $pc->setFont('skins/Bebas_Neue_Cyrillic.ttf');
+        $pc->drawText(200,400,'test TTF ну і з кирилицею','red');
+        $pc->drawTextAutoSize(450,10,'ну піде здається АУФ','white','');
 
         $pc->loadWatermark('skins/taskbar/exhorse.png');
         $pc->drawWatermark(false,380,100);
        
-        $pc->saveImage(null,'png');
+        $pc->saveImage(null,'jpeg');
      //  debarr($pc);
-        
-       
+    
 
 }
