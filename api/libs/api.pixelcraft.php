@@ -414,7 +414,7 @@ class PixelCraft {
     }
 
     /**
-     * Crops image to new dimensions
+     * Crops image to new dimensions starting from 0x0
      * 
      * @return void
      */
@@ -424,6 +424,20 @@ class PixelCraft {
             $this->image = $imageCropped;
             $this->imageWidth = $width;
             $this->imageHeight = $height;
+        }
+    }
+
+    /**
+     * Crops image to selected region by coords
+     * 
+     * @return void
+     */
+    public function cropRegion($x1, $y1, $x2, $y2) {
+        if ($this->imageWidth and $this->imageHeight) {
+            $imageCropped = imagecrop($this->image, array('x' => $x1, 'y' => $y1, 'width' => $x2, 'height' => $y2));
+            $this->image = $imageCropped;
+            $this->imageWidth = $x2;
+            $this->imageHeight = $y2;
         }
     }
 
@@ -682,7 +696,7 @@ class PixelCraft {
     }
 
     /**
-     * Returns color map for current intance image as array(x,y)=>color
+     * Returns color map for current intance image as array(y,x)=>color
      * 
      * @param bool $hex returns map values as rrggbb hex values or raw rgba components
      * 
@@ -694,9 +708,9 @@ class PixelCraft {
             for ($y = 0; $y < $this->imageHeight; $y++) {
                 $rgb = $this->getPixelColor($x, $y);
                 if ($hex) {
-                    $result[$x][$y] = $this->rgbToHex($rgb);
+                    $result[$y][$x] = $this->rgbToHex($rgb);
                 } else {
-                    $result[$x][$y] = $rgb;
+                    $result[$y][$x] = $rgb;
                 }
             }
         }
