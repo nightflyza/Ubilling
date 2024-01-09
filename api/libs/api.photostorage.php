@@ -525,8 +525,8 @@ class PhotoStorage {
                     $imgFull = wf_img_sized($this->getImageUrl($eachimage['filename']), '', '100%');
                     $imgFull .= wf_tag('br');
                     $imgFull .= __('Date') . ': ' . $eachimage['date'] . ' / ';
-                    $imgFull .= __('Admin') . ': ' . $eachimage['admin'].' ';
-                    
+                    $imgFull .= __('Admin') . ': ' . $eachimage['admin'] . ' ';
+
                     $dimensions = 'width:' . ($this->photoCfg['IMGLIST_PREV_W'] + 10) . 'px;';
                     $dimensions .= 'height:' . ($this->photoCfg['IMGLIST_PREV_H'] + 10) . 'px;';
                     $result .= wf_tag('div', false, '', 'style="float:left;  ' . $dimensions . ' padding:15px;" id="ajRefCont_' . $eachimage['id'] . '"');
@@ -709,84 +709,82 @@ class PhotoStorage {
      * @return void
      */
     public function imagePostProcessing($filePath) {
-        $result='';
+        $result = '';
         $pixelCraft = new PixelCraft();
         $pixelCraft->loadImage($filePath);
         $imageWidth = $pixelCraft->getImageWidth();
         $imageHeight = $pixelCraft->getImageHeight();
         $originalType = $pixelCraft->getImageType();
 
-        
-        $result.= wf_tag('span', false, 'alert_info') . __('Original image dimensions').' :'.$imageWidth.'x'.$imageHeight . wf_tag('span', true);
-        $fileSizeOrig=filesize($filePath);
-        $result.= wf_tag('span', false, 'alert_info') . __('Uploaded file size').': '.zb_convertSize($fileSizeOrig) . wf_tag('span', true);
+        $result .= wf_tag('span', false, 'alert_info') . __('Original image dimensions') . ' :' . $imageWidth . 'x' . $imageHeight . wf_tag('span', true);
+        $fileSizeOrig = filesize($filePath);
+        $result .= wf_tag('span', false, 'alert_info') . __('Uploaded file size') . ': ' . zb_convertSize($fileSizeOrig) . wf_tag('span', true);
 
-        $imgInfo='';
-        $imgInfo.=whoami().' Date: '.date("Y-m-d H:i:s").' ';
-        $imgInfo.= 'Orig: '.$imageWidth.'x'.$imageHeight.' '.$originalType.', ' . zb_convertSize($fileSizeOrig).' ';
-        
+        $imgInfo = '';
+        $imgInfo .= whoami() . ' Date: ' . date("Y-m-d H:i:s") . ' ';
+        $imgInfo .= 'Orig: ' . $imageWidth . 'x' . $imageHeight . ' ' . $originalType . ', ' . zb_convertSize($fileSizeOrig) . ' ';
 
         //recompressing image
         if ($this->altCfg['PHOTOSTORAGE_RECOMPRESS']) {
-            $quality=-1;
+            $quality = -1;
             if ($originalType == 'jpeg') {
-                $quality=70;
+                $quality = 70;
                 $pixelCraft->setQuality($quality);
             }
 
             if ($originalType == 'png') {
-                $quality=9;
+                $quality = 9;
                 $pixelCraft->setQuality($quality);
             }
-            $result.= wf_tag('span', false, 'alert_info') . __('Image compression').': '. $quality . wf_tag('span', true);
-            $imgInfo.= 'Recompress: '.$quality.' ';
+            $result .= wf_tag('span', false, 'alert_info') . __('Image compression') . ': ' . $quality . wf_tag('span', true);
+            $imgInfo .= 'Recompress: ' . $quality . ' ';
         }
 
-        
+
         //appending watermark
         if ($this->altCfg['PHOTOSTORAGE_WATERMARK']) {
             $pixelCraft->loadWatermark(self::WATRERMARK_PATH);
             $pixelCraft->drawWatermark(false, $imageWidth - 120, 20);
-            $result.= wf_tag('span', false, 'alert_info') . __('Watermark applied') . wf_tag('span', true);
+            $result .= wf_tag('span', false, 'alert_info') . __('Watermark applied') . wf_tag('span', true);
         }
 
         //automatic downscale of huge images
         if ($this->altCfg['PHOTOSTORAGE_AUTORESIZE']) {
-            $scale=1;
-            if ($imageWidth>=4000 OR $imageHeight>=4000) {
-                $scale=0.5;
+            $scale = 1;
+            if ($imageWidth >= 4000 OR $imageHeight >= 4000) {
+                $scale = 0.5;
                 $pixelCraft->scale($scale);
                 $imageWidth = $pixelCraft->getImageWidth();
                 $imageHeight = $pixelCraft->getImageHeight();
             } else {
-                if ($imageWidth>=2000 OR $imageHeight>=2000) {
-                    $scale=0.8;
+                if ($imageWidth >= 2000 OR $imageHeight >= 2000) {
+                    $scale = 0.8;
                     $pixelCraft->scale($scale);
                     $imageWidth = $pixelCraft->getImageWidth();
                     $imageHeight = $pixelCraft->getImageHeight();
                 }
             }
 
-            if ($scale!=1) {
-                $result.= wf_tag('span', false, 'alert_info') . __('New image dimensions').' :'.$imageWidth.'x'.$imageHeight . wf_tag('span', true);
-                $imgInfo.= 'Rescale x'.$scale.': '.$imageWidth.'x'.$imageHeight.' ';
+            if ($scale != 1) {
+                $result .= wf_tag('span', false, 'alert_info') . __('New image dimensions') . ' :' . $imageWidth . 'x' . $imageHeight . wf_tag('span', true);
+                $imgInfo .= 'Rescale x' . $scale . ': ' . $imageWidth . 'x' . $imageHeight . ' ';
             }
-            $result.= wf_tag('span', false, 'alert_info') . __('Image scale').': '. $scale . wf_tag('span', true);
+            $result .= wf_tag('span', false, 'alert_info') . __('Image scale') . ': ' . $scale . wf_tag('span', true);
         }
 
         if ($this->altCfg['PHOTOSTORAGE_DRAWIMGINFO']) {
-            $infoX=5;
-            $infoY=$imageHeight-10;
-            $pixelCraft->drawString($infoX,$infoY,$imgInfo,'yellow',1,false);
+            $infoX = 5;
+            $infoY = $imageHeight - 10;
+            $pixelCraft->drawString($infoX, $infoY, $imgInfo, 'yellow', 1, false);
         }
 
         //saving post-processed image
         $pixelCraft->saveImage($filePath, $originalType);
 
         //updating filesize
-        clearstatcache(true,$filePath);
-        $fileSizeProcessed=filesize($filePath);
-        $result.= wf_tag('span', false, 'alert_info') . __('Saved file size').': '.zb_convertSize($fileSizeProcessed) . wf_tag('span', true);
+        clearstatcache(true, $filePath);
+        $fileSizeProcessed = filesize($filePath);
+        $result .= wf_tag('span', false, 'alert_info') . __('Saved file size') . ': ' . zb_convertSize($fileSizeProcessed) . wf_tag('span', true);
 
         return($result);
     }
@@ -818,11 +816,11 @@ class PhotoStorage {
                     @move_uploaded_file($_FILES['photostorageFileUpload']['tmp_name'], $newSavePath);
                     if (file_exists($newSavePath)) {
                         $uploadResult = wf_tag('span', false, 'alert_success') . __('Photo upload complete') . wf_tag('span', true);
-                        
+
                         //image postprocessing 
-                         if (@$this->altCfg['PHOTOSTORAGE_POSTPROCESSING']) {
-                                $uploadResult.= $this->imagePostProcessing($newSavePath);
-                         }
+                        if (@$this->altCfg['PHOTOSTORAGE_POSTPROCESSING']) {
+                            $uploadResult .= $this->imagePostProcessing($newSavePath);
+                        }
 
                         $this->registerImage($newFilename);
 
