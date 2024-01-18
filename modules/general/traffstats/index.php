@@ -31,7 +31,6 @@ if (cfr('TRAFFSTATS')) {
         $traffStats = new TraffStats($login);
         $useraddress = zb_UserGetFullAddress($login);
         $trafficReport = $traffStats->renderUserTraffStats();
-        $trafficReport .= web_UserControls($login);
         show_window(__('Traffic stats') . ' ' . $useraddress . ' (' . $login . ')', $trafficReport);
     }
 } else {

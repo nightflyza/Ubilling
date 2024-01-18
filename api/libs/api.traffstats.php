@@ -88,6 +88,13 @@ class TraffStats {
      */
     protected $login = '';
 
+    /**
+     * System messages helper object placeholder
+     *
+     * @var object
+     */
+    protected $messages = '';
+
 
     /**
      * Creates new traffStats instance
@@ -96,6 +103,7 @@ class TraffStats {
      */
     public function __construct($login = '') {
         $this->setLogin($login);
+        $this->initMessages();
         $this->loadConfigs();
         $this->loadDirs();
         $this->initDbLayers();
@@ -112,6 +120,15 @@ class TraffStats {
         if (!empty($login)) {
             $this->login = ubRouting::filters($login, 'mres');
         }
+    }
+
+    /**
+     * Inits message helper instance for further usage
+     *
+     * @return void
+     */
+    protected function initMessages() {
+        $this->messages = new UbillingMessageHelper();
     }
 
     /**
@@ -580,13 +597,13 @@ class TraffStats {
 
                 if (isset($bwd[$dlKey])) {
                     $imgLink = zb_BandwidthdImgLink($bwd[$dlKey]);
-                    $imgBody = wf_img_sized($imgLink, __('Downloaded'),'100%');
+                    $imgBody = wf_img_sized($imgLink, __('Downloaded'), '100%');
                     $chartBody .= $imgBody;
                 }
 
                 if (isset($bwd[$ulKey])) {
                     $imgLink = zb_BandwidthdImgLink($bwd[$ulKey]);
-                    $imgBody = wf_delimiter() . wf_img_sized($imgLink, __('Uploaded'),'100%');
+                    $imgBody = wf_delimiter() . wf_img_sized($imgLink, __('Uploaded'), '100%');
                     $chartBody .= $imgBody;
                 }
 
@@ -701,17 +718,27 @@ class TraffStats {
         $result = '';
 
         $this->loadUserData();
-        $this->loadTraffStats();
-        $this->loadIshimuraStats();
+        if (!empty($this->userData)) {
+            $this->loadTraffStats();
+            $this->loadIshimuraStats();
 
-        // Current month traffic stats:
-        $result .= $this->renderCurMonthStats();
+            // Current month traffic stats
+            $result .= $this->renderCurMonthStats();
 
-        // Some charts here
-        $result .= $this->renderCharts();
+            // Some charts here
+            $result .= $this->renderCharts();
 
-        // Traffic statistic by previous months:
-        $result .= $this->renderPrevMonthStats();
+            // Traffic statistic by previous months
+            $result .= $this->renderPrevMonthStats();
+
+            // and some user controls
+            $result .= web_UserControls($this->login);
+        } else {
+            $result .= $this->messages->getStyledMessage(__('Strange exception') . ': EMPTY_DATABASE_USERDATA', 'error');
+            $result .= wf_delimiter(0);
+            $result .= wf_tag('center') . wf_img('skins/unicornwrong.png') . wf_tag('center', true);
+            $result .= wf_delimiter();
+        }
         return ($result);
     }
 }
