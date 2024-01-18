@@ -11,7 +11,7 @@ if (cfr('TRAFFSTATS')) {
                 $remoteImg->setTimeout(1);
                 $rawImg = $remoteImg->response();
                 $recvErr = $remoteImg->error();
-                if (empty($recvErr) AND !ispos($rawImg, '404')) {
+                if (empty($recvErr) and !ispos($rawImg, '404')) {
                     die($rawImg);
                 } else {
                     $noImage = file_get_contents('skins/noimage.jpg');
@@ -25,10 +25,14 @@ if (cfr('TRAFFSTATS')) {
     }
 
 
+
     if (ubRouting::checkGet('username')) {
         $login = ubRouting::get('username');
+        $traffStats = new TraffStats($login);
         $useraddress = zb_UserGetFullAddress($login);
-        show_window(__('Traffic stats') . ' ' . $useraddress . ' (' . $login . ')', web_UserTraffStats($login) . web_UserControls($login));
+        $trafficReport = $traffStats->renderUserTraffStats();
+        $trafficReport .= web_UserControls($login);
+        show_window(__('Traffic stats') . ' ' . $useraddress . ' (' . $login . ')', $trafficReport);
     }
 } else {
     show_error(__('Access denied'));

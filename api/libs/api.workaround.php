@@ -23,12 +23,12 @@ function web_UserControls($login) {
             $controls .= wf_Link($urlProfile . $login, wf_img_sized('skins/backprofile.png', __('Back to user profile'), '16') . ' ' . __('Back to user profile'), false, 'ubbackprofile') . ' ';
         }
 
-        if ((cfr('USEREDIT')) AND ( @$_GET['module'] != 'useredit')) {
+        if ((cfr('USEREDIT')) and (@$_GET['module'] != 'useredit')) {
             $controls .= wf_Link($urlUserEdit . $login, wf_img_sized('skins/backedit.png', __('Back to user edit'), '16') . ' ' . __('Back to user edit'), false, 'ubbackedit');
         }
     }
     $controls .= wf_tag('div', true);
-    return($controls);
+    return ($controls);
 }
 
 /**
@@ -107,7 +107,7 @@ function web_trigger($value) {
     } else {
         $result = __('No');
     }
-    return($result);
+    return ($result);
 }
 
 /**
@@ -141,7 +141,7 @@ function web_EditorStringDataForm($fieldnames, $fieldkey, $useraddress, $olddata
     $form = wf_Form("", 'POST', $form, '');
     $form .= wf_delimiter();
 
-    return($form);
+    return ($form);
 }
 
 /**
@@ -204,7 +204,7 @@ function web_EditorStringDataFormPassword($fieldnames, $fieldkey, $useraddress, 
         case 3:
             $password_proposal = zb_PasswordGenerateTH($passwordsLenght);
             break;
-        default :
+        default:
             $password_proposal = zb_rand_string(8);
             break;
     }
@@ -227,7 +227,7 @@ function web_EditorStringDataFormPassword($fieldnames, $fieldkey, $useraddress, 
     $form = wf_Form("", 'POST', $form, '');
     $form .= wf_delimiter();
 
-    return($form);
+    return ($form);
 }
 
 /**
@@ -247,7 +247,7 @@ function web_EditorStringDataFormContract($fieldnames, $fieldkey, $useraddress, 
     if (empty($olddata)) {
         $allcontracts = zb_UserGetAllContracts();
         $top_offset = 100000;
-//contract generation mode default
+        //contract generation mode default
         if ($altcfg['CONTRACT_GENERATION_DEFAULT']) {
             for ($i = 1; $i < $top_offset; $i++) {
                 if (!isset($allcontracts[$i])) {
@@ -256,7 +256,7 @@ function web_EditorStringDataFormContract($fieldnames, $fieldkey, $useraddress, 
                 }
             }
         } else {
-//alternate generation method
+            //alternate generation method
             $max_contract = max(array_keys($allcontracts));
             $contract_proposal = $max_contract + 1;
         }
@@ -280,7 +280,7 @@ function web_EditorStringDataFormContract($fieldnames, $fieldkey, $useraddress, 
     $inputs .= wf_delimiter();
     $form = wf_Form("", 'POST', $inputs, '');
 
-    return($form);
+    return ($form);
 }
 
 /**
@@ -329,20 +329,20 @@ function zb_NewMacSelect($name = 'newmac') {
                     $resultArr[$newmac] = $newmac;
                 }
             }
-//revert array due usability reasons (i hope).
+            //revert array due usability reasons (i hope).
             if (@$alter_conf['NMREVERSE']) {
                 $resultArr = array_reverse($resultArr);
             }
         }
     }
-//searchable MAC selector?
+    //searchable MAC selector?
     if (@$alter_conf['MACSEL_SEARCHBL']) {
         $result = wf_SelectorSearchable($name, $resultArr, '', '', false);
     } else {
         $result = wf_Selector($name, $resultArr, '', '', false);
     }
 
-    return($result);
+    return ($result);
 }
 
 /**
@@ -421,7 +421,7 @@ function web_MacEditForm($userAddress = '', $manualInput = false, $currentMac = 
     $inputs .= wf_delimiter();
     $result .= wf_Form('', 'POST', $inputs, '');
 
-    return($result);
+    return ($result);
 }
 
 /**
@@ -453,7 +453,7 @@ function web_EditorDateDataForm($fieldnames, $fieldkey, $useraddress, $olddata =
     $inputs .= wf_delimiter();
     $form = wf_Form("", 'POST', $inputs, '');
 
-    return($form);
+    return ($form);
 }
 
 /**
@@ -470,7 +470,7 @@ function web_CashTypeSelector($CashType = '') {
         }
 
         $defaultCashtype = zb_StorageGet('DEF_CT');
-//if no default cashtype selected
+        //if no default cashtype selected
         if (empty($defaultCashtype)) {
             $defaultCashtype = 'NOP';
         }
@@ -480,7 +480,7 @@ function web_CashTypeSelector($CashType = '') {
         $selector = wf_Selector('cashtype', $cashtypes, '', $selectCashType, false);
     }
 
-    return($selector);
+    return ($selector);
 }
 
 /**
@@ -512,9 +512,9 @@ function web_EditorCashDataForm($fieldnames, $fieldkey, $useraddress, $olddata =
     $field2 = $fieldnames['fieldname2'];
     $me = whoami();
 
-//cash suspect checking 
+    //cash suspect checking 
     $alterconf = $ubillingConfig->getAlter();
-//balance editing limiting
+    //balance editing limiting
     $limitedFinance = false;
     if (@$alterconf['CAN_TOUCH_MONEY']) {
         if (!empty($alterconf['CAN_TOUCH_MONEY'])) {
@@ -543,7 +543,7 @@ function web_EditorCashDataForm($fieldnames, $fieldkey, $useraddress, $olddata =
 
     $radio = '';
     $radio .= wf_RadioInput('operation', __('Add cash'), 'add', false, true);
-//additional controls
+    //additional controls
     $extRadio = '';
     $extRadio .= wf_RadioInput('operation', __('Correct saldo'), 'correct', false, false);
     $extRadio .= wf_RadioInput('operation', __('Mock payment'), 'mock', false, false);
@@ -556,7 +556,7 @@ function web_EditorCashDataForm($fieldnames, $fieldkey, $useraddress, $olddata =
     } else {
         $radio .= $extRadio;
     }
-//cash input widget
+    //cash input widget
     $cashInputControl = wf_tag('input', false, '', ' type="text" name="' . $fieldkey . '" size="5" id="cashfield" ' . $cashfieldanchor . ' autofocus');
     $cashInputControl .= ' ' . __('The expected payment') . ': ' . $tariff_price;
 
@@ -612,7 +612,7 @@ function web_EditorCashDataForm($fieldnames, $fieldkey, $useraddress, $olddata =
     $form .= wf_Form('', 'POST', $table, '');
     $form .= wf_delimiter();
 
-    return($form);
+    return ($form);
 }
 
 /**
@@ -666,7 +666,7 @@ function web_EditorTrigerDataForm($fieldname, $fieldkey, $useraddress, $olddata 
     $inputs .= wf_delimiter();
     $form = wf_Form("", 'POST', $inputs, '');
 
-    return($form);
+    return ($form);
 }
 
 /**
@@ -731,7 +731,7 @@ function web_tariffselector($fieldname = 'tariffsel', $skipLousy = false) {
 
     $selector = wf_Selector($fieldname, $options, '', '', false);
 
-    return($selector);
+    return ($selector);
 }
 
 /**
@@ -750,14 +750,14 @@ function web_EditorTariffForm($fieldname, $fieldkey, $useraddress, $olddata = ''
     global $ubillingConfig;
     $alter = $ubillingConfig->getAlter();
 
-    $login = ( isset($_GET['username']) ) ? vf($_GET['username']) : null;
+    $login = (isset($_GET['username'])) ? vf($_GET['username']) : null;
 
-    $nm_flag = ( $olddata == '*_NO_TARIFF_*' ) ? 'DISABLED' : null;
+    $nm_flag = ($olddata == '*_NO_TARIFF_*') ? 'DISABLED' : null;
     $charge_signup_price_checkbox = '';
-    if (isset($alter['SIGNUP_PAYMENTS']) AND !empty($alter['SIGNUP_PAYMENTS'])) {
+    if (isset($alter['SIGNUP_PAYMENTS']) and !empty($alter['SIGNUP_PAYMENTS'])) {
         $payment = zb_UserGetSignupPrice($login);
         $paid = zb_UserGetSignupPricePaid($login);
-        $disabled = ( $payment == $paid AND $payment > 0 ) ? 'disabled' : '';
+        $disabled = ($payment == $paid and $payment > 0) ? 'disabled' : '';
         $charge_signup_price_checkbox = ' ' . wf_tag('label', false, '', 'for="charge_signup_price_checkbox"');
         $charge_signup_price_checkbox .= __('Charge signup price') . ' ';
         $charge_signup_price_checkbox .= wf_tag('input', false, '', 'type="checkbox" name="charge_signup_price" id="charge_signup_price_checkbox" ' . $disabled);
@@ -789,7 +789,7 @@ function web_EditorTariffForm($fieldname, $fieldkey, $useraddress, $olddata = ''
     $inputs .= wf_delimiter();
     $form = wf_Form('', 'POST', $inputs, '');
 
-    return($form);
+    return ($form);
 }
 
 /**
@@ -821,7 +821,7 @@ function web_EditorTwoStringDataForm($fieldnames, $fieldkeys, $olddata) {
     $inputs .= wf_delimiter();
     $form = wf_Form("", 'POST', $inputs, '');
 
-    return($form);
+    return ($form);
 }
 
 /**
@@ -877,7 +877,7 @@ function web_EditorSixStringDataForm($fieldnames, $fieldkeys, $olddata) {
     $inputs .= wf_delimiter();
     $form = wf_Form("", 'POST', $inputs, '');
 
-    return($form);
+    return ($form);
 }
 
 /**
@@ -1050,7 +1050,7 @@ function web_TariffSpeedLister() {
         }
     }
 
-    return($result);
+    return ($result);
 }
 
 /**
@@ -1063,7 +1063,7 @@ function zb_ProfileGetStgData($login) {
     $login = vf($login);
     $query = "SELECT * from `users` WHERE `login`='" . $login . "'";
     $userdata = simple_query($query);
-    return($userdata);
+    return ($userdata);
 }
 
 /**
@@ -1107,7 +1107,7 @@ function web_PaymentEditForm($paymentData) {
         $cells .= wf_TableCell(wf_DatePickerPreset('newpaymentdate', $paymentDate), '', 'row3');
         $rows = wf_TableRow($cells);
 
-        if ($paymentData['admin'] != 'external' AND $paymentData['admin'] != 'openpayz' AND $paymentData['admin'] != 'guest') {
+        if ($paymentData['admin'] != 'external' and $paymentData['admin'] != 'openpayz' and $paymentData['admin'] != 'guest') {
             $cells = wf_TableCell(__('Payment type'), '', 'row2');
             $cells .= wf_TableCell(web_CashTypeSelector($paymentData['cashtypeid']), '', 'row3');
             $rows .= wf_TableRow($cells);
@@ -1152,19 +1152,19 @@ function web_PaymentsByUser($login) {
     $currentAdminLogin = whoami();
     $idencEnabled = (@$alter_conf['IDENC_ENABLED']) ? true : false;
 
-//extract admin logins with payments delete rights
+    //extract admin logins with payments delete rights
     if (!empty($alter_conf['CAN_DELETE_PAYMENTS'])) {
         $deletingAdmins = explode(',', $alter_conf['CAN_DELETE_PAYMENTS']);
         $deletingAdmins = array_flip($deletingAdmins);
     }
 
-//extract admin logins with date edit rights
+    //extract admin logins with date edit rights
     if (!empty($alter_conf['CAN_EDIT_PAYMENTS'])) {
         $editingAdmins = explode(',', $alter_conf['CAN_EDIT_PAYMENTS']);
         $editingAdmins = array_flip($editingAdmins);
     }
 
-//setting editing/deleting flags
+    //setting editing/deleting flags
     $iCanDeletePayments = (isset($deletingAdmins[$currentAdminLogin])) ? true : false;
     $iCanEditPayments = (isset($editingAdmins[$currentAdminLogin])) ? true : false;
 
@@ -1183,7 +1183,7 @@ function web_PaymentsByUser($login) {
 
     if (!empty($allpayments)) {
         foreach ($allpayments as $eachpayment) {
-//hightlight of today payments
+            //hightlight of today payments
             if ($alter_conf['HIGHLIGHT_TODAY_PAYMENTS']) {
                 if (ispos($eachpayment['date'], $curdate)) {
                     $hlight = 'paytoday';
@@ -1202,14 +1202,14 @@ function web_PaymentsByUser($login) {
                 $printcheck .= wf_tag('a', true);
             }
 
-//payments deleting controls
+            //payments deleting controls
             if ($iCanDeletePayments) {
                 $deleteControls = wf_JSAlert('?module=addcash&username=' . $login . '&paymentdelete=' . $eachpayment['id'], wf_img('skins/delete_small.png', __('Delete')), __('Removing this may lead to irreparable results')) . ' &nbsp; ';
             } else {
                 $deleteControls = '';
             }
 
-//payments editing form
+            //payments editing form
             if ($iCanEditPayments) {
                 $editControls = wf_modalAuto(wf_img_sized('skins/icon_edit.gif', __('Edit'), '10'), __('Edit'), web_PaymentEditForm($eachpayment), '') . ' &nbsp; ';
             } else {
@@ -1242,7 +1242,7 @@ function web_PaymentsByUser($login) {
     $result = wf_TableBody($rows, '100%', '0', 'sortable');
     $result .= __('Total payments') . ': ' . wf_tag('b') . abs($total_payments) . wf_tag('b') . wf_tag('br');
 
-    return($result);
+    return ($result);
 }
 
 /**
@@ -1276,7 +1276,7 @@ function web_GrepLogByUser($login, $strict = false) {
         }
     }
     $result = wf_TableBody($rows, '100%', 0, 'sortable');
-    return($result);
+    return ($result);
 }
 
 /**
@@ -1311,7 +1311,7 @@ function web_EditorTableDataFormOneField($fieldname, $fieldkey, $formurl, $oldda
     $inputs .= wf_Submit(__('Create'));
     $form = wf_Form('', 'POST', $inputs, 'glamour');
 
-    return($table . $form);
+    return ($table . $form);
 }
 
 /**
@@ -1322,7 +1322,7 @@ function web_EditorTableDataFormOneField($fieldname, $fieldkey, $formurl, $oldda
  */
 function web_year_selector() {
     $selector = wf_YearSelector('yearsel');
-    return($selector);
+    return ($selector);
 }
 
 /**
@@ -1420,7 +1420,7 @@ function web_FinRepControls($title = '', $content) {
     $result .= wf_tag('br');
     $result .= $content;
     $result .= wf_tag('div', true);
-    return($result);
+    return ($result);
 }
 
 /**
@@ -1438,13 +1438,13 @@ function web_PaymentsShow($query) {
     $allapayments = simple_queryall($query);
     $allservicenames = zb_VservicesGetAllNamesLabeled();
     $idencEnabled = (@$alter_conf['IDENC_ENABLED']) ? true : false;
-//getting full contract list
+    //getting full contract list
     if ($alter_conf['FINREP_CONTRACT']) {
         $allcontracts = zb_UserGetAllContracts();
         $allcontracts = array_flip($allcontracts);
     }
 
-//getting all users tariffs
+    //getting all users tariffs
     if ($alter_conf['FINREP_TARIFF']) {
         $alltariffs = zb_TariffsGetAllUsers();
     }
@@ -1458,14 +1458,14 @@ function web_PaymentsShow($query) {
     }
     $cells .= wf_TableCell(__('Date'));
     $cells .= wf_TableCell(__('Cash'));
-//optional contract display
+    //optional contract display
     if ($alter_conf['FINREP_CONTRACT']) {
         $cells .= wf_TableCell(__('Contract'));
     }
     $cells .= wf_TableCell(__('Login'));
     $cells .= wf_TableCell(__('Full address'));
     $cells .= wf_TableCell(__('Real Name'));
-//optional tariff display
+    //optional tariff display
     if ($alter_conf['FINREP_TARIFF']) {
         $cells .= wf_TableCell(__('Tariff'));
     }
@@ -1487,14 +1487,14 @@ function web_PaymentsShow($query) {
             }
             $cells .= wf_TableCell($eachpayment['date']);
             $cells .= wf_TableCell($eachpayment['summ']);
-//optional contract display
+            //optional contract display
             if ($alter_conf['FINREP_CONTRACT']) {
                 $cells .= wf_TableCell(@$allcontracts[$eachpayment['login']]);
             }
             $cells .= wf_TableCell(wf_Link('?module=userprofile&username=' . $eachpayment['login'], (web_profile_icon() . ' ' . $eachpayment['login']), false, ''));
             $cells .= wf_TableCell(@$alladrs[$eachpayment['login']]);
             $cells .= wf_TableCell(@$allrealnames[$eachpayment['login']]);
-//optional tariff display
+            //optional tariff display
             if ($alter_conf['FINREP_TARIFF']) {
                 $cells .= wf_TableCell(@$alltariffs[$eachpayment['login']]);
             }
@@ -1513,7 +1513,7 @@ function web_PaymentsShow($query) {
     $result = wf_TableBody($rows, '100%', '0', 'sortable');
     $result .= wf_tag('strong') . __('Cash') . ': ' . $total . wf_tag('strong', true) . wf_tag('br');
     $result .= wf_tag('strong') . __('Count') . ': ' . $totalPaycount . wf_tag('strong', true);
-    return($result);
+    return ($result);
 }
 
 /**
@@ -1532,7 +1532,7 @@ function web_bar($count, $total) {
     }
 
     $code = wf_img_sized($barurl, '', $width . '%', '14');
-    return($code);
+    return ($code);
 }
 
 /**
@@ -1582,7 +1582,7 @@ function daysOfWeek($any = false) {
     $result[5] = rcms_date_localise('Friday');
     $result[6] = rcms_date_localise('Saturday');
     $result[7] = rcms_date_localise('Sunday');
-    return($result);
+    return ($result);
 }
 
 /**
@@ -1603,8 +1603,9 @@ function months_array_wz() {
         '9' => 'September',
         '10' => 'October',
         '11' => 'November',
-        '12' => 'December');
-    return($months);
+        '12' => 'December'
+    );
+    return ($months);
 }
 
 /**
@@ -1638,7 +1639,7 @@ function allocDayTimeline() {
             $result[$timeLabel] = 0;
         }
     }
-    return($result);
+    return ($result);
 }
 
 /**
@@ -1664,41 +1665,41 @@ function web_PaymentsShowGraph($year) {
     $cells .= wf_TableCell(__('Visual'), '50%');
     $rows = wf_TableRow($cells, 'row1');
 
-//caching subroutine
+    //caching subroutine
 
     $renewTime = $cache->get('YPD_LAST', $cacheTime);
     if (empty($renewTime)) {
-//first usage
+        //first usage
         $renewTime = $curtime;
         $cache->set('YPD_LAST', $renewTime, $cacheTime);
         $updateCache = true;
     } else {
-//cache time already set
+        //cache time already set
         $timeShift = $curtime - $renewTime;
         if ($timeShift > $cacheTime) {
-//cache update needed
+            //cache update needed
             $updateCache = true;
         } else {
-//load data from cache or init new cache
+            //load data from cache or init new cache
             $yearPayData_raw = $cache->get('YPD_CACHE', $cacheTime);
             if (empty($yearPayData_raw)) {
-//first usage
+                //first usage
                 $emptyCache = array();
                 $emptyCache = serialize($emptyCache);
                 $emptyCache = base64_encode($emptyCache);
                 $cache->set('YPD_CACHE', $emptyCache, $cacheTime);
                 $updateCache = true;
             } else {
-// data loaded from cache
+                // data loaded from cache
                 $yearPayData = base64_decode($yearPayData_raw);
                 $yearPayData = unserialize($yearPayData);
                 $updateCache = false;
-//check is current year already cached?
+                //check is current year already cached?
                 if (!isset($yearPayData[$year]['graphs'])) {
                     $updateCache = true;
                 }
 
-//check is manual cache refresh is needed?
+                //check is manual cache refresh is needed?
                 if (wf_CheckGet(array('forcecache'))) {
                     $updateCache = true;
                     rcms_redirect("?module=report_finance");
@@ -1712,16 +1713,16 @@ function web_PaymentsShowGraph($year) {
         if ($ubillingConfig->getAlterParam('REPORT_FINANCE_IGNORE_ID')) {
             $exIdArr = array_map('trim', explode(',', $ubillingConfig->getAlterParam('REPORT_FINANCE_IGNORE_ID')));
             $exIdArr = array_filter($exIdArr);
-// Create and WHERE to query
+            // Create and WHERE to query
             if (!empty($exIdArr)) {
                 $dopWhere = ' AND ';
                 $dopWhere .= ' `cashtypeid` != ' . implode(' AND `cashtypeid` != ', $exIdArr);
             }
         }
-//extracting all of needed payments in one query
+        //extracting all of needed payments in one query
         if ($ubillingConfig->getAlterParam('REPORT_FINANCE_CONSIDER_NEGATIVE')) {
-// ugly way to get payments with negative sums
-// performance degradation is kinda twice
+            // ugly way to get payments with negative sums
+            // performance degradation is kinda twice
             $allYearPayments_q = "(SELECT * FROM `payments` 
                                         WHERE `date` LIKE '" . $year . "-%' AND `summ` < '0' 
                                             AND note NOT LIKE 'Service:%' 
@@ -1738,8 +1739,8 @@ function web_PaymentsShowGraph($year) {
         $allYearPayments = simple_queryall($allYearPayments_q);
         if (!empty($allYearPayments)) {
             foreach ($allYearPayments as $idx => $eachYearPayment) {
-//Here we can get up to 50% of CPU time on month extraction, but this hacks is to ugly :(
-//Benchmark results: http://pastebin.com/i7kadpN7
+                //Here we can get up to 50% of CPU time on month extraction, but this hacks is to ugly :(
+                //Benchmark results: http://pastebin.com/i7kadpN7
                 $statsMonth = date("m", strtotime($eachYearPayment['date']));
                 if (isset($yearStats[$statsMonth])) {
                     $yearStats[$statsMonth]['count']++;
@@ -1773,13 +1774,13 @@ function web_PaymentsShowGraph($year) {
         }
         $result = wf_TableBody($rows, '100%', '0', 'sortable');
         $yearPayData[$year]['graphs'] = $result;
-//write to cache
+        //write to cache
         $cache->set('YPD_LAST', $curtime, $cacheTime);
         $newCache = serialize($yearPayData);
         $newCache = base64_encode($newCache);
         $cache->set('YPD_CACHE', $newCache, $cacheTime);
     } else {
-//take data from cache
+        //take data from cache
         if (isset($yearPayData[$year]['graphs'])) {
             $result = $yearPayData[$year]['graphs'];
             $result .= __('Cache state at time') . ': ' . date("Y-m-d H:i:s", ($renewTime)) . ' ';
@@ -1817,16 +1818,16 @@ function web_PaymentsShowGraphPerBranch($year) {
     if ($ubillingConfig->getAlterParam('REPORT_FINANCE_IGNORE_ID')) {
         $exIdArr = array_map('trim', explode(',', $ubillingConfig->getAlterParam('REPORT_FINANCE_IGNORE_ID')));
         $exIdArr = array_filter($exIdArr);
-// Create and WHERE to query
+        // Create and WHERE to query
         if (!empty($exIdArr)) {
             $dopWhere = ' AND ';
             $dopWhere .= ' `cashtypeid` != ' . implode(' AND `cashtypeid` != ', $exIdArr);
         }
     }
-//extracting all of needed payments in one query
+    //extracting all of needed payments in one query
     if ($ubillingConfig->getAlterParam('REPORT_FINANCE_CONSIDER_NEGATIVE')) {
-// ugly way to get payments with negative sums
-// performance degradation is kinda twice
+        // ugly way to get payments with negative sums
+        // performance degradation is kinda twice
         $allYearPayments_q = "(SELECT * FROM `payments` 
                                         WHERE `date` LIKE '" . $year . "-%' AND `summ` < '0' 
                                             AND note NOT LIKE 'Service:%' 
@@ -1920,14 +1921,14 @@ function web_PaymentsShowGraphPerBranch($year) {
  */
 function web_GridEditor($titles, $keys, $alldata, $module, $delete = true, $edit = false, $prefix = '', $extaction = '', $extbutton = '', $emptyWarning = false) {
     $result = '';
-//headers
+    //headers
     $cells = '';
     foreach ($titles as $eachtitle) {
         $cells .= wf_TableCell(__($eachtitle));
     }
     $cells .= wf_TableCell(__('Actions'));
     $rows = wf_TableRow($cells, 'row1');
-//headers end
+    //headers end
 
     $cells = '';
     if (!empty($alldata)) {
@@ -1970,7 +1971,7 @@ function web_GridEditor($titles, $keys, $alldata, $module, $delete = true, $edit
         }
     }
 
-    return($result);
+    return ($result);
 }
 
 /**
@@ -2013,7 +2014,7 @@ function web_NasList() {
             $deleteDialogTitle = __('Delete') . ' ' . __('NAS') . ' ' . $eachNasData['nasip'] . '?';
             $actions .= wf_ConfirmDialog($deleteUrl, web_delete_icon(), $messages->getDeleteAlert(), '', $cancelUrl, $deleteDialogTitle);
             $actions .= wf_Link('?module=nas&edit=' . $eachNasData['id'], web_edit_icon());
-            if ($eachNasData['nastype'] == 'mikrotik' AND $altCfg['MIKROTIK_SUPPORT']) {
+            if ($eachNasData['nastype'] == 'mikrotik' and $altCfg['MIKROTIK_SUPPORT']) {
                 $actions .= wf_Link('?module=mikrotikextconf&nasid=' . $eachNasData['id'], web_icon_extended('MikroTik extended configuration'));
             }
             if ($altCfg['MULTIGEN_ENABLED']) {
@@ -2037,7 +2038,7 @@ function web_NasList() {
         $result .= $messages->getStyledMessage(__('Nothing to show'), 'warning');
     }
 
-    return($result);
+    return ($result);
 }
 
 /**
@@ -2052,7 +2053,7 @@ function zb_NasGetTypes() {
         'mikrotik' => 'MikroTik',
         'radius' => 'RADIUS'
     );
-    return($nastypes);
+    return ($nastypes);
 }
 
 /**
@@ -2071,7 +2072,7 @@ function web_NasAddForm() {
 
     $form = wf_Form('', 'POST', $inputs, 'glamour');
 
-    return($form);
+    return ($form);
 }
 
 /**
@@ -2101,7 +2102,7 @@ function web_NasEditForm($nasId) {
     $result = wf_Form('', 'POST', $editinputs, 'glamour');
     $result .= wf_delimiter();
     $result .= wf_BackLink('?module=nas');
-    return($result);
+    return ($result);
 }
 
 /**
@@ -2157,25 +2158,25 @@ function web_AddressAptForm($login) {
         $extenTown = (empty($extenAddrData['town_district'])) ? '' : $extenAddrData['town_district'];
         $extenAddr = (empty($extenAddrData['address_exten'])) ? '' : $extenAddrData['address_exten'];
 
-// empty row divider
+        // empty row divider
         $cells = wf_TableCell(wf_nbsp());
         $cells .= wf_TableCell(wf_nbsp());
         $cells .= wf_TableCell(wf_HiddenInput('change_extended_address', 'true'));
         $rows .= wf_TableRow($cells, 'row2');
 
-// postal code
+        // postal code
         $cells = wf_TableCell(__('Postal code'));
         $cells .= wf_TableCell($postCode);
         $cells .= wf_TableCell(wf_TextInput('changepostcode', '', $postCode, false, '10'));
         $rows .= wf_TableRow($cells, 'row3');
 
-// town/district/region
+        // town/district/region
         $cells = wf_TableCell(__('Town/District/Region'));
         $cells .= wf_TableCell($extenTown);
         $cells .= wf_TableCell(wf_TextInput('changetowndistr', '', $extenTown, false, '47'));
         $rows .= wf_TableRow($cells, 'row3');
 
-// extended address info
+        // extended address info
         $cells = wf_TableCell(__('Extended address info'));
         $cells .= wf_TableCell($extenAddr);
         $cells .= wf_TableCell(wf_TextArea('changeaddrexten', '', $extenAddr, false, '48x4'));
@@ -2188,7 +2189,7 @@ function web_AddressAptForm($login) {
     $form = wf_Form("", 'POST', $table, '');
     $form .= web_AddressBuildShowAptsCheck($aptdata['buildid'], $aptdata['apt'], $login);
 
-    return($form);
+    return ($form);
 }
 
 /**
@@ -2259,7 +2260,7 @@ function web_AddressOccupancyForm() {
     $form = wf_TableBody($form, '100%', 0, 'glamour');
     $form .= wf_CleanDiv();
 
-    return($form);
+    return ($form);
 }
 
 /**
@@ -2281,226 +2282,9 @@ function zb_BandwidthdImgLink($url) {
         $result = $url;
     }
 
-    return($result);
+    return ($result);
 }
 
-/**
- * Generates user's traffic statistic module content
- * 
- * @param   str     $login  User's login, for whitch generate module content
- * @return  str             Module content
- */
-function web_UserTraffStats($login) {
-    global $ubillingConfig;
-    $altCfg = $ubillingConfig->getAlter();
-    $ishimuraOption = MultiGen::OPTION_ISHIMURA;
-    $ishimuraTable = MultiGen::NAS_ISHIMURA;
-    $login = vf($login);
-    $dirs = zb_DirectionsGetAll();
-
-// Current month traffic stats:
-    $cells = wf_TableCell(__('Traffic classes'));
-    $cells .= wf_TableCell(__('Downloaded'));
-    $cells .= wf_TableCell(__('Uploaded'));
-    $cells .= wf_TableCell(__('Total'));
-    $rows = wf_TableRow($cells, 'row1');
-
-    if (!empty($dirs)) {
-        foreach ($dirs as $dir) {
-            $query_downup = "SELECT `D" . $dir['rulenumber'] . "`,`U" . $dir['rulenumber'] . "` FROM `users` WHERE `login` = '" . $login . "'";
-            $downup = simple_query($query_downup);
-//yeah, no classes at all
-            if ($dir['rulenumber'] == 0) {
-                //ishimura enabled?
-                if ($altCfg[$ishimuraOption]) {
-                    $query_hideki = "SELECT `D0`,`U0` from `" . $ishimuraTable . "` WHERE `login`='" . $login . "' AND `month`='" . date("n") . "' AND `year`='" . curyear() . "'";
-                    $dataHideki = simple_query($query_hideki);
-                    if (isset($downup['D0'])) {
-                        @$downup['D0'] += $dataHideki['D0'];
-                        @$downup['U0'] += $dataHideki['U0'];
-                    } else {
-                        $downup['D0'] = $dataHideki['D0'];
-                        $downup['U0'] = $dataHideki['U0'];
-                    }
-                }
-                //or ophanim flow may be?
-                if ($altCfg[OphanimFlow::OPTION_ENABLED]) {
-                    $ophahnimFlow = new OphanimFlow();
-                    $ophanimCmonth = $ophahnimFlow->getUserCurMonthTraff($login);
-                    if (isset($downup['D0'])) {
-                        $downup['D0'] += $ophanimCmonth['D0'];
-                        $downup['U0'] += $ophanimCmonth['U0'];
-                    } else {
-                        $downup['D0'] = $ophanimCmonth['D0'];
-                        $downup['U0'] = $ophanimCmonth['U0'];
-                    }
-                }
-            }
-
-            $cells = wf_TableCell($dir['rulename']);
-            $cells .= wf_TableCell(stg_convert_size($downup['D' . $dir['rulenumber']]), '', '', 'sorttable_customkey="' . $downup['D' . $dir['rulenumber']] . '"');
-            $cells .= wf_TableCell(stg_convert_size($downup['U' . $dir['rulenumber']]), '', '', 'sorttable_customkey="' . $downup['U' . $dir['rulenumber']] . '"');
-            $cells .= wf_TableCell(stg_convert_size(($downup['U' . $dir['rulenumber']] + $downup['D' . $dir['rulenumber']])), '', '', 'sorttable_customkey="' . ($downup['U' . $dir['rulenumber']] + $downup['D' . $dir['rulenumber']]) . '"');
-            $rows .= wf_TableRow($cells, 'row3');
-        }
-    }
-
-    $result = wf_tag('h3') . __('Current month traffic stats') . wf_tag('h3', true);
-    $result .= wf_TableBody($rows, '100%', '0', 'sortable');
-// End of current month traffic stats
-// Per-user graphs buttons:
-    $ip = zb_UserGetIP($login);
-    $bandwidthd = zb_BandwidthdGetUrl($ip);
-
-    if (!empty($bandwidthd)) {
-        $bwd = zb_BandwidthdGenLinks($ip);
-
-// Dayly graph button:
-        $daybw = wf_img(zb_BandwidthdImgLink($bwd['dayr']), __('Downloaded'));
-        if (!empty($bwd['days'])) {
-            $daybw .= wf_delimiter() . wf_img(zb_BandwidthdImgLink($bwd['days']), __('Uploaded'));
-        }
-
-// Weekly graph button:
-        $weekbw = wf_img(zb_BandwidthdImgLink($bwd['weekr']), __('Downloaded'));
-        if (!empty($bwd['weeks'])) {
-            $weekbw .= wf_delimiter() . wf_img(zb_BandwidthdImgLink($bwd['weeks']), __('Uploaded'));
-        }
-
-// Monthly graph button:
-        $monthbw = wf_img(zb_BandwidthdImgLink($bwd['monthr']), __('Downloaded'));
-        if (!empty($bwd['months'])) {
-            $monthbw .= wf_delimiter() . wf_img(zb_BandwidthdImgLink($bwd['months']), __('Uploaded'));
-        }
-
-// Yearly graph button:
-        $yearbw = wf_img(zb_BandwidthdImgLink($bwd['yearr']), __('Downloaded'));
-        if (!empty($bwd['years'])) {
-            $yearbw .= wf_delimiter() . wf_img(zb_BandwidthdImgLink($bwd['years']), __('Uploaded'));
-        }
-
-// Modal window sizes:
-        if (!empty($bwd['days'])) {
-//bandwidthd legend
-            if (!ispos($bandwidthd, 'OphanimFlow') AND !ispos($bandwidthd, 'of/')) {
-                $graphLegend = wf_tag('br') . wf_img('skins/bwdlegend.gif');
-            } else {
-                $graphLegend = '';
-            }
-        } else {
-//mikrotik
-            $graphLegend = '';
-        }
-
-        $result .= wf_delimiter();
-        $result .= wf_tag('h3') . __('Graphs') . wf_tag('h3', true);
-
-        $bwcells = '';
-        $zbxExtended = (isset($bwd['zbxexten']) and $bwd['zbxexten'] == true);
-
-        if ($zbxExtended) {
-            $fiveminsbw = wf_img($bwd['5mins'], __('Downloaded'));
-            $zbxLink = $bwd['zbxlink'];
-
-            $bwcells .= wf_TableCell(wf_link($zbxLink, wf_img_sized('skins/zabbix_ico.png', '', '16', '16') . ' ' . __('Go to graph on Zabbix server'), false, 'ubButton', 'target="__blank"'));
-            $bwcells .= wf_TableCell(wf_modalAuto(wf_img_sized('skins/icon_stats.gif', '', '16', '16') . ' ' . __('Graph by 5 minutes'), __('Graph by 5 minutes'), $fiveminsbw, 'ubButton'));
-        }
-
-        $bwcells .= wf_TableCell(wf_modalAuto(wf_img_sized('skins/icon_stats.gif', '', '16', '16') . ' ' . __('Graph by day'), __('Graph by day'), $daybw . $graphLegend, 'ubButton'));
-        $bwcells .= wf_TableCell(wf_modalAuto(wf_img_sized('skins/icon_stats.gif', '', '16', '16') . ' ' . __('Graph by week'), __('Graph by week'), $weekbw . $graphLegend, 'ubButton'));
-        $bwcells .= wf_TableCell(wf_modalAuto(wf_img_sized('skins/icon_stats.gif', '', '16', '16') . ' ' . __('Graph by month'), __('Graph by month'), $monthbw . $graphLegend, 'ubButton'));
-        $bwcells .= wf_TableCell(wf_modalAuto(wf_img_sized('skins/icon_stats.gif', '', '16', '16') . ' ' . __('Graph by year'), __('Graph by year'), $yearbw . $graphLegend, 'ubButton'));
-        $bwrows = wf_TableRow($bwcells);
-
-// Adding graphs buttons to result:
-        $result .= wf_TableBody($bwrows, '', '0', '');
-        $result .= wf_delimiter();
-    } else {
-// Commented to save useful space for normal data. TODO: take a decision about this notification in future.
-//$messages = new UbillingMessageHelper();
-//$result .= $messages->getStyledMessage(__('No user graphs because no NAS with bandwidthd for his network'), 'info');
-    }
-// End of per-user graphs buttons
-// Traffic statistic by previous months:
-    $monthNames = months_array_wz();
-    $result .= wf_tag('h3') . __('Previous month traffic stats') . wf_tag('h3', true);
-
-    $cells = wf_TableCell(__('Year'));
-    $cells .= wf_TableCell(__('Month'));
-    $cells .= wf_TableCell(__('Traffic classes'));
-    $cells .= wf_TableCell(__('Downloaded'));
-    $cells .= wf_TableCell(__('Uploaded'));
-    $cells .= wf_TableCell(__('Total'));
-    $cells .= wf_TableCell(__('Cash'));
-    $rows = wf_TableRow($cells, 'row1');
-
-    if (!empty($dirs)) {
-        foreach ($dirs as $dir) {
-            $query_prev = "SELECT `D" . $dir['rulenumber'] . "`, `U" . $dir['rulenumber'] . "`, `month`, `year`, `cash` FROM `stat` WHERE `login` = '" . $login . "' ORDER BY `year`,`month`;";
-            $prevmonths = simple_queryall($query_prev);
-
-//and again no classes
-            if ($dir['rulenumber'] == 0) {
-                //ishimura traffic accounting?
-                if ($altCfg[$ishimuraOption]) {
-                    $query_hideki = "SELECT `D0`,`U0`,`month`,`year`,`cash` from `" . $ishimuraTable . "` WHERE `login`='" . $login . "' ORDER BY `year`,`month`;";
-                    $dataHideki = simple_queryall($query_hideki);
-                    if (!empty($dataHideki)) {
-                        foreach ($dataHideki as $io => $each) {
-                            foreach ($prevmonths as $ia => $stgEach) {
-                                if ($stgEach['year'] == $each['year'] AND $stgEach['month'] == $each['month']) {
-                                    $prevmonths[$ia]['D0'] += $each['D0'];
-                                    $prevmonths[$ia]['U0'] += $each['U0'];
-                                    //$prevmonths[$ia]['cash'] += $each['cash'];
-                                }
-                            }
-                        }
-                    }
-                }
-
-                //or just OphanimFlow integration?
-                if ($altCfg[OphanimFlow::OPTION_ENABLED]) {
-                    $ophahnimFlow = new OphanimFlow();
-                    $ophRaw = $ophahnimFlow->getUserAllTraff($login);
-                    if (!empty($ophRaw)) {
-                        foreach ($ophRaw as $io => $each) {
-                            foreach ($prevmonths as $ia => $stgEach) {
-                                if ($stgEach['year'] == $each['year'] AND $stgEach['month'] == $each['month']) {
-                                    $prevmonths[$ia]['D0'] += $each['D0'];
-                                    $prevmonths[$ia]['U0'] += $each['U0'];
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            if (!empty($prevmonths)) {
-                $prevmonths = array_reverse($prevmonths);
-            }
-
-
-            if (!empty($prevmonths)) {
-                foreach ($prevmonths as $prevmonth) {
-                    $cells = wf_TableCell($prevmonth['year']);
-                    $cells .= wf_TableCell(rcms_date_localise($monthNames[$prevmonth['month']]));
-                    $cells .= wf_TableCell($dir['rulename']);
-                    $cells .= wf_TableCell(stg_convert_size($prevmonth['D' . $dir['rulenumber']]), '', '', 'sorttable_customkey="' . $prevmonth['D' . $dir['rulenumber']] . '"');
-                    $cells .= wf_TableCell(stg_convert_size($prevmonth['U' . $dir['rulenumber']]), '', '', 'sorttable_customkey="' . $prevmonth['U' . $dir['rulenumber']] . '"');
-                    $cells .= wf_TableCell(stg_convert_size(($prevmonth['U' . $dir['rulenumber']] + $prevmonth['D' . $dir['rulenumber']])), '', '', 'sorttable_customkey="' . ($prevmonth['U' . $dir['rulenumber']] + $prevmonth['D' . $dir['rulenumber']]) . '"');
-                    $cells .= wf_TableCell(round($prevmonth['cash'], 2));
-                    $rows .= wf_TableRow($cells, 'row3');
-                }
-            }
-        }
-    }
-// End of traffic statistic by previous months
-// Generate table:
-    $result .= wf_TableBody($rows, '100%', '0', 'sortable');
-
-// Return result:
-    return $result;
-}
 
 /**
  * Returns array of users count on each available tariff plan (deprecated?)
@@ -2521,7 +2305,7 @@ function zb_TariffGetCount() {
     } else {
         show_error(__('No tariffs found'));
     }
-    return($result);
+    return ($result);
 }
 
 /**
@@ -2534,18 +2318,18 @@ function zb_TariffGetLiveCount() {
     $alltariffs = zb_TariffsGetAll();
 
     $result = array();
-//fill array with some tariff entries
+    //fill array with some tariff entries
     if (!empty($alltariffs)) {
         foreach ($alltariffs as $io => $eachtariff) {
             $result[$eachtariff['name']]['alive'] = 0;
             $result[$eachtariff['name']]['dead'] = 0;
         }
     }
-//count users  for each tariff
+    //count users  for each tariff
     if (!empty($allusers)) {
         foreach ($allusers as $ia => $eachlogin) {
             if (isset($result[$eachlogin['Tariff']])) {
-                if ($eachlogin['Cash'] >= ('-' . $eachlogin['Credit']) AND $eachlogin['Passive'] == 0 AND $eachlogin['Down'] == 0 AND $eachlogin['Passive'] == 0) {
+                if ($eachlogin['Cash'] >= ('-' . $eachlogin['Credit']) and $eachlogin['Passive'] == 0 and $eachlogin['Down'] == 0 and $eachlogin['Passive'] == 0) {
                     $result[$eachlogin['Tariff']]['alive'] = $result[$eachlogin['Tariff']]['alive'] + 1;
                 } else {
                     $result[$eachlogin['Tariff']]['dead'] = $result[$eachlogin['Tariff']]['dead'] + 1;
@@ -2554,7 +2338,7 @@ function zb_TariffGetLiveCount() {
         }
     }
 
-    return($result);
+    return ($result);
 }
 
 /**
@@ -2579,7 +2363,7 @@ function web_barTariffs($alive, $dead) {
     $code = wf_img_sized($barurl, __('Active users') . ': ' . $alive, $widthAlive . '%', '14');
     $code .= wf_img_sized($barblackurl, __('Inactive users') . ': ' . $dead, $widthDead . '%', '14');
 
-    return($code);
+    return ($code);
 }
 
 /**
@@ -2662,7 +2446,7 @@ function web_TariffShowReport() {
     $result .= __('Active users') . ': ' . $liveusersCounter;
     $result .= wf_tag('br');
     $result .= __('Inactive users') . ': ' . $deadusersCounter;
-    return($result);
+    return ($result);
 }
 
 /**
@@ -2677,7 +2461,7 @@ function web_TariffShowMoveReport() {
     $billing_conf = $ubillingConfig->getBilling();
     $chartData = array();
     $nmchange = '#!/bin/sh' . "\n";
-//is nmchange enabled?
+    //is nmchange enabled?
     if ($alter_conf['NMCHANGE']) {
         $sgconf = $billing_conf['SGCONF'];
         $stg_host = $billing_conf['STG_HOST'];
@@ -2705,7 +2489,7 @@ function web_TariffShowMoveReport() {
     if (!empty($allmoves)) {
         foreach ($allmoves as $io => $eachmove) {
 
-//generate NMCHANGE option
+            //generate NMCHANGE option
             if ($alter_conf['NMCHANGE']) {
                 $nmchange .= $sgconf . ' set -s ' . $stg_host . ' -p ' . $stg_port . ' -a' . $stg_login . ' -w' . $stg_passwd . ' -u' . $eachmove['login'] . ' --always-online 0' . "\n";
                 $nmchange .= $sgconf . ' set -s ' . $stg_host . ' -p ' . $stg_port . ' -a' . $stg_login . ' -w' . $stg_passwd . ' -u' . $eachmove['login'] . ' --always-online 1' . "\n";
@@ -2714,7 +2498,7 @@ function web_TariffShowMoveReport() {
             @$current_price = $alltariffprices[$eachmove['Tariff']];
             @$next_price = $alltariffprices[$eachmove['TariffChange']];
             @$difference = $next_price - $current_price;
-//coloring movements
+            //coloring movements
             if ($difference < 0) {
                 $cashcolor = '#a90000';
             } else {
@@ -2735,7 +2519,7 @@ function web_TariffShowMoveReport() {
 
     $result = wf_TableBody($tablerows, '100%', 0, 'sortable');
 
-//coloring profit
+    //coloring profit
     if ($totaldiff < 0) {
         $profitcolor = '#a90000';
     } else {
@@ -2747,15 +2531,15 @@ function web_TariffShowMoveReport() {
     $result .= __('PROFIT') . ': ' . $totaldiff;
     $result .= wf_tag('font', true);
 
-//yep, lets write nmchange
+    //yep, lets write nmchange
     if ($alter_conf['NMCHANGE']) {
         if (date("d") != 1) {
-// protect of override on 1st day
+            // protect of override on 1st day
             file_put_contents(CONFIG_PATH . 'nmchange.sh', $nmchange);
         }
     }
 
-    return($result);
+    return ($result);
 }
 
 /**
@@ -2847,7 +2631,8 @@ function translit_string($var) {
     $NpjBiLetters = array(
         "й" => "jj", "ё" => "jo", "ж" => "zh", "х" => "kh", "ч" => "ch",
         "ш" => "sh", "щ" => "shh", "э" => "je", "ю" => "ju", "я" => "ja",
-        "ъ" => "", "ь" => "");
+        "ъ" => "", "ь" => ""
+    );
 
     $NpjCaps = "АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЬЪЫЭЮЯІЇЄ ";
     $NpjSmall = "абвгдеёжзийклмнопрстуфхцчшщьъыэюяіїє ";
@@ -2872,9 +2657,9 @@ function translit_string($var) {
  */
 function ispos($string, $search) {
     if (strpos($string, $search) === false) {
-        return(false);
+        return (false);
     } else {
-        return(true);
+        return (true);
     }
 }
 
@@ -2894,12 +2679,12 @@ function ispos_array($string, $search) {
             }
         }
 
-        return(false);
+        return (false);
     } else {
         if (strpos($string, $search) === false) {
-            return(false);
+            return (false);
         } else {
-            return(true);
+            return (true);
         }
     }
 }
@@ -2915,7 +2700,7 @@ function zb_NumEncode($data) {
     $letters = array('A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J');
     $letters = array_reverse($letters);
     $result = str_replace($numbers, $letters, $data);
-    return($result);
+    return ($result);
 }
 
 /**
@@ -2929,7 +2714,7 @@ function zb_NumUnEncode($data) {
     $letters = array('A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J');
     $letters = array_reverse($letters);
     $result = str_replace($letters, $numbers, $data);
-    return($result);
+    return ($result);
 }
 
 /**
@@ -2963,7 +2748,7 @@ function web_UserArrayShower($usersarr) {
         }
 
 
-//additional finance links
+        //additional finance links
         if ($alterconf['FAST_CASH_LINK']) {
             $fastcash = true;
         } else {
@@ -2975,12 +2760,12 @@ function web_UserArrayShower($usersarr) {
         $tablecells .= wf_TableCell(__('Real Name'));
         $tablecells .= wf_TableCell(__('IP'));
         $tablecells .= wf_TableCell(__('Tariff'));
-// last activity time
+        // last activity time
         if ($alterconf['ONLINE_LAT']) {
             $tablecells .= wf_TableCell(__('LAT'));
         }
         $tablecells .= wf_TableCell(__('Active'));
-//online detect
+        //online detect
         if ($alterconf['DN_ONLINE_DETECT']) {
             $tablecells .= wf_TableCell(__('Users online'));
         }
@@ -2994,7 +2779,7 @@ function web_UserArrayShower($usersarr) {
 
             $usercash = @$thisUserData['Cash'];
             $usercredit = @$thisUserData['Credit'];
-//finance check
+            //finance check
             $activity = web_green_led();
             $activity_flag = 1;
             if ($usercash < '-' . $usercredit) {
@@ -3002,7 +2787,7 @@ function web_UserArrayShower($usersarr) {
                 $activity_flag = 0;
             }
 
-//fast cash link
+            //fast cash link
             if ($fastcash) {
                 $financelink = wf_Link('?module=addcash&username=' . $eachlogin, wf_img('skins/icon_dollar.gif', __('Finance operations')), false, '');
             } else {
@@ -3093,7 +2878,7 @@ function web_UserCorpsArrayShower($usersarr, $callBack = '') {
             $alluserlat = zb_LatGetAllUsers();
         }
 
-//additional finance links
+        //additional finance links
         if ($alterconf['FAST_CASH_LINK']) {
             $fastcash = true;
         } else {
@@ -3110,7 +2895,7 @@ function web_UserCorpsArrayShower($usersarr, $callBack = '') {
             $corpsFlag = false;
         }
 
-//filestorage support for corporate users contracts
+        //filestorage support for corporate users contracts
         if (@$alterconf['FILESTORAGE_ENABLED']) {
             $filestorageFlag = true;
             $filestorage = new FileStorage('USERCONTRACT');
@@ -3128,12 +2913,12 @@ function web_UserCorpsArrayShower($usersarr, $callBack = '') {
         }
         $tablecells .= wf_TableCell(__('IP'));
         $tablecells .= wf_TableCell(__('Tariff'));
-// last activity time
+        // last activity time
         if ($alterconf['ONLINE_LAT']) {
             $tablecells .= wf_TableCell(__('LAT'));
         }
         $tablecells .= wf_TableCell(__('Active'));
-//online detect
+        //online detect
         if ($alterconf['DN_ONLINE_DETECT']) {
             $tablecells .= wf_TableCell(__('Users online'));
         }
@@ -3145,7 +2930,7 @@ function web_UserCorpsArrayShower($usersarr, $callBack = '') {
         foreach ($usersarr as $eachlogin) {
             @$usercash = $allusercash[$eachlogin];
             @$usercredit = $allusercredits[$eachlogin];
-//finance check
+            //finance check
             $activity = web_green_led();
             $activity_flag = 1;
             if ($usercash < '-' . $usercredit) {
@@ -3153,7 +2938,7 @@ function web_UserCorpsArrayShower($usersarr, $callBack = '') {
                 $activity_flag = 0;
             }
 
-//fast cash link
+            //fast cash link
             if ($fastcash) {
                 $financelink = wf_Link('?module=addcash&username=' . $eachlogin, wf_img('skins/icon_dollar.gif', __('Finance operations')), false, '');
             } else {
@@ -3257,7 +3042,7 @@ function zb_BillingCheckUpdates($return = false) {
     }
 
     if ($return) {
-        return($result);
+        return ($result);
     } else {
         die($result);
     }
@@ -3272,7 +3057,7 @@ function zb_InstallBillingSerial() {
     $randomid = 'UB' . md5(curdatetime() . zb_rand_string(8));
     $newhostid_q = "INSERT INTO `ubstats` (`id` ,`key` ,`value`) VALUES (NULL , 'ubid', '" . $randomid . "');";
     nr_query($newhostid_q);
-    return($randomid);
+    return ($randomid);
 }
 
 /**
@@ -3302,17 +3087,17 @@ function zb_BillingStats($quiet = true, $modOverride = '') {
     }
 
     if (empty($hostid)) {
-//register new Ubilling serial
+        //register new Ubilling serial
         $thisubid = zb_InstallBillingSerial();
     } else {
         $thisubid = $hostid;
         //updating cache if required
-        if (empty($cachedHostId) AND !empty($hostid)) {
+        if (empty($cachedHostId) and !empty($hostid)) {
             $cache->set('UBHID', $hostid, $cacheTime);
         }
     }
 
-//modules callbacks
+    //modules callbacks
     $moduleStats = 'xnone';
     if ($modOverride) {
         $moduleStats = 'x' . $modOverride;
@@ -3321,14 +3106,13 @@ function zb_BillingStats($quiet = true, $modOverride = '') {
             $moduleClean = str_replace('x', '', ubRouting::get('module'));
             $moduleStats = 'x' . $moduleClean;
         } else {
-            
         }
     }
 
-//detect stats collection feature
+    //detect stats collection feature
     $thiscollect = (file_exists($statsflag)) ? 0 : 1;
 
-//disabling collect subroutine
+    //disabling collect subroutine
     if (ubRouting::checkPost('editcollect')) {
         if (!ubRouting::checkPost('collectflag')) {
             file_put_contents($statsflag, 'Im greedy bastard');
@@ -3339,36 +3123,36 @@ function zb_BillingStats($quiet = true, $modOverride = '') {
         }
         ubRouting::nav('?module=report_sysload');
     }
-//detect ubilling version
+    //detect ubilling version
     $releaseinfo = file_get_contents("RELEASE");
     $ubversion = explode(' ', $releaseinfo);
     $ubversion = vf($ubversion[0], 3);
 
     $ubillingInstanceStats = $cache->get('UBINSTANCE', $cacheTime);
     if (empty($ubillingInstanceStats)) {
-//detect total user count
+        //detect total user count
         $usercount_q = "SELECT COUNT(`login`) from `users`";
         $usercount = simple_query($usercount_q);
         $usercount = $usercount['COUNT(`login`)'];
 
-//detect tariffs count
+        //detect tariffs count
         $tariffcount_q = "SELECT COUNT(`name`) from `tariffs`";
         $tariffcount = simple_query($tariffcount_q);
         $tariffcount = $tariffcount['COUNT(`name`)'];
 
-//detect nas count
+        //detect nas count
         $nascount_q = "SELECT COUNT(`id`) from `nas`";
         $nascount = simple_query($nascount_q);
         $nascount = $nascount['COUNT(`id`)'];
 
-//detect payments count
+        //detect payments count
         $paycount_q = "SELECT COUNT(`id`) from `payments`";
         $paycount = simple_query($paycount_q);
         $paycount = $paycount['COUNT(`id`)'];
         $paycount = $paycount / 100;
         $paycount = round($paycount);
 
-//detect ubilling actions count
+        //detect ubilling actions count
         $eventcount_q = "SELECT COUNT(`id`) from `weblogs`";
         $eventcount = simple_query($eventcount_q);
         $eventcount = $eventcount['COUNT(`id`)'];
@@ -3415,7 +3199,7 @@ function zb_BillingStats($quiet = true, $modOverride = '') {
             $httpCode = curl_getinfo($curlStats, CURLINFO_HTTP_CODE);
             curl_close($curlStats);
 
-            if ($output !== false AND $httpCode == 200) {
+            if ($output !== false and $httpCode == 200) {
                 $output = trim($output);
                 if (ispos($output, $deployMark)) {
                     $output = str_replace($deployMark, '', $output);
@@ -3460,7 +3244,7 @@ function crc16($string) {
  * @return string
  */
 function zb_MacVendorSearchmac($mac) {
-// searchmac.com API request
+    // searchmac.com API request
     $url = 'http://searchmac.com/api/v2/' . $mac;
     $ubVer = file_get_contents('RELEASE');
     $agent = 'MacVenUbilling/' . trim($ubVer);
@@ -3486,7 +3270,7 @@ function zb_MacVendorLookup($mac) {
     global $ubillingConfig;
     $altcfg = $ubillingConfig->getALter();
     $result = '';
-//use old macvendorlookup.com API
+    //use old macvendorlookup.com API
     if (isset($altcfg['MACVEN_OLD'])) {
         if ($altcfg['MACVEN_OLD']) {
             $url = 'http://www.macvendorlookup.com/api/v2/';
@@ -3522,16 +3306,16 @@ function web_ConfigEditorShow($prefix, $configdata, $optsdata) {
     global $configOptionsMissed;
     $messages = new UbillingMessageHelper();
     $result = '';
-    if ((!empty($configdata)) AND (!empty($optsdata))) {
+    if ((!empty($configdata)) and (!empty($optsdata))) {
         foreach ($optsdata as $option => $handlers) {
 
-            if ((isset($configdata[$option])) OR ( ispos($option, 'CHAPTER'))) {
+            if ((isset($configdata[$option])) or (ispos($option, 'CHAPTER'))) {
                 if (!ispos($option, 'CHAPTER')) {
                     $currentdata = $configdata[$option];
                     $handlers = explode('|', $handlers);
                     $type = $handlers[0];
 
-//option description
+                    //option description
                     if (!empty($handlers[1])) {
                         $description = trim($handlers[1]);
                         $description = __($description);
@@ -3539,7 +3323,7 @@ function web_ConfigEditorShow($prefix, $configdata, $optsdata) {
                         $description = $option;
                     }
 
-//option controls
+                    //option controls
                     if ($type == 'TRIGGER') {
                         $control = web_bool_led($configdata[$option]);
                     }
@@ -3792,8 +3576,7 @@ function zb_DBStatsRender() {
             $cells = wf_TableCell($each['name']);
             if (!empty($each['rows'])) {
                 $dbrows = $each['rows'];
-                $totalRows = $totalRows + $each['rows'];
-                ;
+                $totalRows = $totalRows + $each['rows'];;
             } else {
                 $dbrows = 0;
             }
@@ -3905,7 +3688,7 @@ function zb_DBCheckRender() {
             $rows .= wf_TableRow($cells, 'row3');
         }
     }
-    return($rows);
+    return ($rows);
 }
 
 /**
@@ -4025,7 +3808,7 @@ function zb_TranslitString($string, $caseSensetive = false) {
  * 
  */
 function web_roundValue($value, $precision = 2) {
-    $precision = ( $precision < 0 ) ? 0 : $precision;
+    $precision = ($precision < 0) ? 0 : $precision;
     $multiplier = pow(10, $precision);
     $rounded = (($value >= 0) ? ceil($value * $multiplier) : floor($value * $multiplier)) / $multiplier;
     return $rounded;
@@ -4039,7 +3822,7 @@ function web_roundValue($value, $precision = 2) {
  * @return string
  */
 function zb_CashBigValueFormat($cashValue) {
-    return(number_format($cashValue, 0, '.', ' '));
+    return (number_format($cashValue, 0, '.', ' '));
 }
 
 /**
@@ -4073,7 +3856,7 @@ function zb_AnalyticsSignupsGetCountYear($year) {
     foreach ($months as $eachmonth => $monthname) {
         $result[$eachmonth] = (isset($tmpArr[$eachmonth])) ? $tmpArr[$eachmonth]['count'] : 0;
     }
-    return($result);
+    return ($result);
 }
 
 /**
@@ -4106,7 +3889,7 @@ function zb_AnalyticsSigReqGetCountYear($year) {
         $monthcount = (isset($tmpArr[$eachmonth])) ? $tmpArr[$eachmonth]['count'] : 0;
         $result[$eachmonth] = $monthcount;
     }
-    return($result);
+    return ($result);
 }
 
 /**
@@ -4141,7 +3924,7 @@ function zb_AnalyticsTicketingGetCountYear($datefilter) {
         $monthcount = (isset($tmpArr[$eachmonth])) ? $tmpArr[$eachmonth]['count'] : 0;
         $result[$eachmonth] = $monthcount;
     }
-    return($result);
+    return ($result);
 }
 
 /**
@@ -4175,7 +3958,7 @@ function zb_AnalyticsTaskmanGetCountYear($year) {
         $monthcount = (isset($tmpArr[$eachmonth])) ? $tmpArr[$eachmonth]['count'] : 0;
         $result[$eachmonth] = $monthcount;
     }
-    return($result);
+    return ($result);
 }
 
 /**
@@ -4190,10 +3973,10 @@ function zb_DownloadFile($filePath, $contentType = '') {
         if (file_exists($filePath)) {
             log_register("DOWNLOAD FILE `" . $filePath . "`");
 
-            if (($contentType == '') OR ( $contentType == 'default')) {
+            if (($contentType == '') or ($contentType == 'default')) {
                 $contentType = 'application/octet-stream';
             } else {
-//additional content types
+                //additional content types
                 if ($contentType == 'docx') {
                     $contentType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
                 }
@@ -4279,7 +4062,7 @@ function web_SnmpSwitchControlForm($login, $allswitches, $allportassigndata, $su
             $switcharr[$eachswitch['id']] = $eachswitch['ip'] . ' - ' . $eachswitch['location'];
         }
     }
-//getting current data
+    //getting current data
     $assignData = array();
     if (isset($allportassigndata[$login])) {
         $assignData = $allportassigndata[$login];
@@ -4295,14 +4078,14 @@ function web_SnmpSwitchControlForm($login, $allswitches, $allportassigndata, $su
     }
 
 
-//control form construct
+    //control form construct
     $inputs = wf_HiddenInput('swassignlogin', $login);
     $inputs .= wf_Selector('swassignswid', $switcharr, __('Switch'), $suggestswitchid, true);
     $inputs .= wf_TextInput('swassignswport', __('Port'), $suggestswitchport, false, '2');
     $inputs .= wf_CheckInput('swassigndelete', __('Delete'), true, false);
     $inputs .= wf_Submit('Save');
     $controlForm = wf_Form('', "POST", $inputs, 'glamour');
-//form end
+    //form end
 
     $switchAssignController = wf_modal(web_edit_icon(), __('Switch port assign'), $controlForm, '', '450', '200');
 
@@ -4318,7 +4101,7 @@ function web_SnmpSwitchControlForm($login, $allswitches, $allportassigndata, $su
 
     $result = wf_TableBody($rows, '100%', '0');
 
-//update subroutine
+    //update subroutine
     if (wf_CheckPost(array('swassignlogin', 'swassignswid', 'swassignswport'))) {
         $newswid = vf($_POST['swassignswid'], 3);
         $newport = vf($_POST['swassignswport'], 3);
@@ -4327,7 +4110,7 @@ function web_SnmpSwitchControlForm($login, $allswitches, $allportassigndata, $su
         log_register("CHANGE SWITCHPORT (" . $login . ") ON SWITCHID [" . $newswid . "] PORT [" . $newport . "]");
         rcms_redirect('?module=switchpoller&switchid=' . $suggestswitchid);
     }
-//delete subroutine
+    //delete subroutine
     if (isset($_POST['swassigndelete'])) {
         nr_query("DELETE from `switchportassign` WHERE `login`='" . $_POST['swassignlogin'] . "'");
         log_register("DELETE SWITCHPORT (" . $login . ")");
@@ -4345,7 +4128,7 @@ function zb_TariffGetPeriodsAll() {
     $result = array();
     $dbSchema = zb_CheckDbSchema();
     if ($dbSchema > 0) {
-//stargazer >= 2.409
+        //stargazer >= 2.409
         $query = "SELECT `name`,`period` from `tariffs`";
         $all = simple_queryall($query);
         if (!empty($all)) {
@@ -4354,7 +4137,7 @@ function zb_TariffGetPeriodsAll() {
             }
         }
     } else {
-//stargazer 2.408
+        //stargazer 2.408
         $query = "SELECT `name` from `tariffs`";
         $all = simple_queryall($query);
         if (!empty($all)) {
@@ -4395,7 +4178,7 @@ function zb_CreditLogCheckHack($login) {
     $data = simple_query($query);
     if (empty($data)) {
         return (true);
-    } elseif (!empty($data) AND $data['note'] != 'SCFEE') {
+    } elseif (!empty($data) and $data['note'] != 'SCFEE') {
         return (true);
     } else {
         return (false);
@@ -4471,7 +4254,7 @@ function zb_CreditLogGetAll() {
  * @return string
  */
 function web_EasyCreditForm($login, $cash, $credit, $userTariff, $easycreditoption) {
-/////////////////internal controller
+    /////////////////internal controller
     if (wf_CheckPost(array('easycreditlogin', 'easycreditlimit', 'easycreditexpire'))) {
         global $billing;
         $setCredit = vf($_POST['easycreditlimit']);
@@ -4479,10 +4262,10 @@ function web_EasyCreditForm($login, $cash, $credit, $userTariff, $easycreditopti
         $setExpire = mysql_real_escape_string($_POST['easycreditexpire']);
         if (zb_checkDate($setExpire)) {
             if (zb_checkMoney($setCredit)) {
-//set credit
+                //set credit
                 $billing->setcredit($setLogin, $setCredit);
                 log_register('CHANGE Credit (' . $setLogin . ') ON ' . $setCredit);
-//set credit expire date
+                //set credit expire date
                 $billing->setcreditexpire($setLogin, $setExpire);
                 log_register('CHANGE CreditExpire (' . $setLogin . ') ON ' . $setExpire);
                 rcms_redirect('?module=userprofile&username=' . $setLogin);
@@ -4502,7 +4285,7 @@ function web_EasyCreditForm($login, $cash, $credit, $userTariff, $easycreditopti
     @$tariffPrice = (isset($allTariffsData[$userTariff])) ? $allTariffsData[$userTariff]['Fee'] : 0;
     $tariffPeriod = 'month';
     if ($tariffPrice) {
-//some valid tariff
+        //some valid tariff
         if (isset($allTariffsData[$userTariff]['period'])) {
             $tariffPeriod = $allTariffsData[$userTariff]['period'];
         }
@@ -4511,7 +4294,7 @@ function web_EasyCreditForm($login, $cash, $credit, $userTariff, $easycreditopti
     if ($cash >= '-' . $credit) {
         $creditProposal = $tariffPrice;
         $creditNote = __('The amount of money in the account at the moment is sufficient to provide the service. It is therefore proposed to set a credit limit on the fee of the tariff.');
-//daily tariffs fix for active users
+        //daily tariffs fix for active users
         if ($tariffPeriod == 'day') {
             $creditProposal = $tariffPrice * $easycreditoption;
             $creditNote = __('The amount of money in the account at the moment is sufficient to provide the service. It is therefore proposed to set a credit limit on the fee of the tariff.');
@@ -4520,27 +4303,27 @@ function web_EasyCreditForm($login, $cash, $credit, $userTariff, $easycreditopti
     } else {
         $creditProposal = abs($cash);
         $creditNote = __('At the moment the account have debt. It is proposed to establish credit in its size.');
-//daily tariffs fix for debtors
+        //daily tariffs fix for debtors
         if ($tariffPeriod == 'day') {
             $creditProposal = abs($cash) + ($tariffPrice * $easycreditoption);
             $creditNote = __('At the moment the account have debt. It is proposed to establish credit in its size.');
             $creditNote .= ' + ' . $easycreditoption . ' ' . __('days') . '.';
         }
 
-//small and ugly hack to avoid precision issues with floating point values
+        //small and ugly hack to avoid precision issues with floating point values
         if (ispos($creditProposal, '.')) {
             $creditProposal = $creditProposal + 1;
             $creditProposal = round($creditProposal);
         }
     }
 
-//calculate credit expire date
+    //calculate credit expire date
     $nowTimestamp = time();
     $creditSeconds = ($easycreditoption * 86400); //days*secs
     $creditOffset = $nowTimestamp + $creditSeconds;
     $creditExpireDate = date("Y-m-d", $creditOffset);
 
-//construct form
+    //construct form
     $controlIcon = wf_tag('img', false, '', 'src="skins/icon_calendar.gif" height="10"');
     $inputs = '';
     $inputs .= wf_HiddenInput('easycreditlogin', $login);
@@ -4566,7 +4349,7 @@ function web_EasyCreditForm($login, $cash, $credit, $userTariff, $easycreditopti
  */
 function web_ReportSysloadCustomScripts($scriptoption) {
     $result = '';
-//internal script ajax handling
+    //internal script ajax handling
     if (wf_CheckGet(array('ajxcscrun'))) {
         $runpath = base64_decode($_GET['ajxcscrun']);
         if (!empty($runpath)) {
@@ -4608,7 +4391,7 @@ function zb_xml2array($contents, $get_attributes = 1, $priority = 'tag') {
         return array();
     }
 
-//Get the XML parser of PHP - PHP must have this module for the parser to work
+    //Get the XML parser of PHP - PHP must have this module for the parser to work
     $parser = xml_parser_create('');
     xml_parser_set_option($parser, XML_OPTION_TARGET_ENCODING, "UTF-8");
     xml_parser_set_option($parser, XML_OPTION_CASE_FOLDING, 0);
@@ -4618,19 +4401,19 @@ function zb_xml2array($contents, $get_attributes = 1, $priority = 'tag') {
 
     if (!$xml_values)
         return; //Hmm...
-//Initializations
+    //Initializations
     $xml_array = array();
     $parents = array();
     $opened_tags = array();
     $arr = array();
 
     $current = &$xml_array; //Refference
-//Go through the tags.
+    //Go through the tags.
     $repeated_tag_index = array(); //Multiple tags with same name will be turned into an array
     foreach ($xml_values as $data) {
         unset($attributes, $value); //Remove existing values, or there will be trouble
-//This command will extract these variables into the foreach scope
-// tag(string), type(string), level(int), attributes(array).
+        //This command will extract these variables into the foreach scope
+        // tag(string), type(string), level(int), attributes(array).
         extract($data); //We could use the array by itself, but this cooler.
 
         $result = array();
@@ -4643,7 +4426,7 @@ function zb_xml2array($contents, $get_attributes = 1, $priority = 'tag') {
                 $result['value'] = $value; //Put the value in a assoc array if we are in the 'Attribute' mode
         }
 
-//Set the attributes too.
+        //Set the attributes too.
         if (isset($attributes) and $get_attributes) {
             foreach ($attributes as $attr => $val) {
                 if ($priority == 'tag')
@@ -4653,8 +4436,8 @@ function zb_xml2array($contents, $get_attributes = 1, $priority = 'tag') {
             }
         }
 
-//See tag status and do the needed.
-        if ($type == "open") {//The starting of the tag '<tag>'
+        //See tag status and do the needed.
+        if ($type == "open") { //The starting of the tag '<tag>'
             $parent[$level - 1] = &$current;
             if (!is_array($current) or (!in_array($tag, array_keys($current)))) { //Insert New tag
                 $current[$tag] = $result;
@@ -4664,10 +4447,10 @@ function zb_xml2array($contents, $get_attributes = 1, $priority = 'tag') {
 
                 $current = &$current[$tag];
             } else { //There was another element with the same tag name
-                if (isset($current[$tag][0])) {//If there is a 0th element it is already an array
+                if (isset($current[$tag][0])) { //If there is a 0th element it is already an array
                     $current[$tag][$repeated_tag_index[$tag . '_' . $level]] = $result;
                     $repeated_tag_index[$tag . '_' . $level]++;
-                } else {//This section will make the value an array if multiple tags with the same name appear together
+                } else { //This section will make the value an array if multiple tags with the same name appear together
                     $current[$tag] = array($current[$tag], $result); //This will combine the existing item and the new item together to make an array
                     $repeated_tag_index[$tag . '_' . $level] = 2;
 
@@ -4680,15 +4463,15 @@ function zb_xml2array($contents, $get_attributes = 1, $priority = 'tag') {
                 $current = &$current[$tag][$last_item_index];
             }
         } elseif ($type == "complete") { //Tags that ends in 1 line '<tag />'
-//See if the key is already taken.
+            //See if the key is already taken.
             if (!isset($current[$tag])) { //New Key
                 $current[$tag] = $result;
                 $repeated_tag_index[$tag . '_' . $level] = 1;
                 if ($priority == 'tag' and $attributes_data)
                     $current[$tag . '_attr'] = $attributes_data;
             } else { //If taken, put all things inside a list(array)
-                if (isset($current[$tag][0]) and is_array($current[$tag])) {//If it is already an array...
-// ...push the new element into that array.
+                if (isset($current[$tag][0]) and is_array($current[$tag])) { //If it is already an array...
+                    // ...push the new element into that array.
                     $current[$tag][$repeated_tag_index[$tag . '_' . $level]] = $result;
 
                     if ($priority == 'tag' and $get_attributes and $attributes_data) {
@@ -4716,7 +4499,7 @@ function zb_xml2array($contents, $get_attributes = 1, $priority = 'tag') {
         }
     }
 
-    return($xml_array);
+    return ($xml_array);
 }
 
 /**
@@ -4852,8 +4635,8 @@ function web_MemCachedRenderStats() {
             }
 
 
-//cache efficiency calc
-            if ((isset($rawStats[$memcachedHost . ':' . $memcachedPort]['get_hits'])) AND ( isset($rawStats[$memcachedHost . ':' . $memcachedPort]['get_misses']))) {
+            //cache efficiency calc
+            if ((isset($rawStats[$memcachedHost . ':' . $memcachedPort]['get_hits'])) and (isset($rawStats[$memcachedHost . ':' . $memcachedPort]['get_misses']))) {
                 $cacheHits = $rawStats[$memcachedHost . ':' . $memcachedPort]['get_hits'];
                 $cacheMisses = $rawStats[$memcachedHost . ':' . $memcachedPort]['get_misses'];
                 $cacheTotal = $cacheHits + $cacheMisses;
@@ -4900,8 +4683,8 @@ function web_RedisRenderStats() {
             $rows .= wf_TableRow($cells, 'row3');
         }
 
-//cache efficiency calc
-        if ((isset($rawStats['keyspace_hits'])) AND ( isset($rawStats['keyspace_misses']))) {
+        //cache efficiency calc
+        if ((isset($rawStats['keyspace_hits'])) and (isset($rawStats['keyspace_misses']))) {
             $cacheHits = $rawStats['keyspace_hits'];
             $cacheMisses = $rawStats['keyspace_misses'];
             $cacheTotal = $cacheHits + $cacheMisses;
@@ -4923,7 +4706,7 @@ function web_RedisRenderStats() {
  * @return float
  */
 function zb_Percent($sum, $percent) {
-// и не надо ржать, я реально не могу запомнить чего куда делить и умножать
+    // и не надо ржать, я реально не могу запомнить чего куда делить и умножать
     $result = $percent / 100 * $sum;
     return ($result);
 }
@@ -4988,10 +4771,10 @@ function zb_isDateBetween($fromDate, $toDate, $checkDate) {
     $checkDate = strtotime($checkDate);
     $checkDate = date("Y-m-d", $checkDate);
     $checkDate = strtotime($checkDate);
-    if ($checkDate >= $fromDate AND $checkDate <= $toDate) {
+    if ($checkDate >= $fromDate and $checkDate <= $toDate) {
         $result = true;
     }
-    return($result);
+    return ($result);
 }
 
 /**
@@ -5009,17 +4792,17 @@ function zb_formatTime($seconds) {
     $seconds = $seconds % 60;
 
     if ($init < 3600) {
-//less than 1 hour
+        //less than 1 hour
         if ($init < 60) {
-//less than minute
+            //less than minute
             $result = $seconds . ' ' . __('sec.');
         } else {
-//more than one minute
+            //more than one minute
             $result = $minutes . ' ' . __('minutes') . ' ' . $seconds . ' ' . __('seconds');
         }
     } else {
         if ($init < 86400) {
-//more than hour
+            //more than hour
             $result = $hours . ' ' . __('hour') . ' ' . $minutes . ' ' . __('minutes') . ' ' . $seconds . ' ' . __('seconds');
         } else {
             $hoursLeft = $hours - ($days * 24);
@@ -5118,7 +4901,7 @@ function zb_CacheInformKeyView($dataKey) {
             }
         }
     }
-    return($result);
+    return ($result);
 }
 
 /**
@@ -5369,10 +5152,10 @@ function zb_InitGhostMode($adminLogin) {
         if (!empty($userData)) {
             $myLogin = whoami();
             $myData = $system->getUserData($myLogin);
-//current login data is used for ghost mode identification
+            //current login data is used for ghost mode identification
             setcookie('ghost_user', $myLogin . ':' . $myData['password'], null);
             $_COOKIE['ghost_user'] = $myLogin . ':' . $myData['password'];
-//login of another admin
+            //login of another admin
             rcms_log_put('Notification', $myLogin, 'Ghost logged in as ' . $adminLogin);
             log_register('GHOSTMODE {' . $myLogin . '} LOGIN AS {' . $adminLogin . '}');
             setcookie('ubilling_user', $adminLogin . ':' . $userData['password'], null);
@@ -5401,7 +5184,7 @@ function zb_BackupsRotate($maxAge) {
             $allBackups = rcms_scandir($backupsDirectory, '*' . $backupsExtension);
             if (!empty($allBackups)) {
                 foreach ($allBackups as $io => $eachDump) {
-//trying to extract date from filename
+                    //trying to extract date from filename
                     $cleanName = $eachDump;
                     $cleanName = str_replace($backupsPrefix, '', $cleanName);
                     $cleanName = str_replace($backupsExtension, '', $cleanName);
@@ -5434,7 +5217,7 @@ function zb_TariffNameFilter($tariffname) {
     $tariffname = trim($tariffname);
     $tariffname = preg_replace("#[^a-z0-9A-Z\-_\.]#Uis", '', $tariffname);
     if (strlen($tariffname) > 32) {
-//stargazer dramatically fails on long tariff names
+        //stargazer dramatically fails on long tariff names
         $tariffname = substr($tariffname, 0, 32);
     }
     return ($tariffname);
@@ -5464,7 +5247,7 @@ function zb_TariffTimeSelector($t, $selected = false) {
         }
         $result .= wf_tag('option', false, '', $b) . $a . $i . wf_tag('option', true);
     }
-    return($result);
+    return ($result);
 }
 
 /**
@@ -5511,7 +5294,7 @@ function web_TariffLister() {
             $actions = wf_JSAlert("?module=tariffs&action=delete&tariffname=" . $eachtariff['name'], web_delete_icon(), __('Delete') . ' ' . $eachtariff['name'] . '? ' . __('Removing this may lead to irreparable results'));
             $actions .= wf_JSAlert("?module=tariffs&action=edit&tariffname=" . $eachtariff['name'], web_edit_icon(), __('Edit') . ' ' . $eachtariff['name'] . '? ' . __('Are you serious'));
             $actions .= wf_Link('?module=tariffspeeds&tariff=' . $eachtariff['name'], wf_img('skins/icon_speed.gif', __('Edit speed')), false, '');
-            $actions .= ( isset($alter['SIGNUP_PAYMENTS']) && !empty($alter['SIGNUP_PAYMENTS']) ) ? wf_Link('?module=signupprices&tariff=' . $eachtariff['name'], wf_img('skins/icons/register.png', __('Edit signup price')), false, '') : null;
+            $actions .= (isset($alter['SIGNUP_PAYMENTS']) && !empty($alter['SIGNUP_PAYMENTS'])) ? wf_Link('?module=signupprices&tariff=' . $eachtariff['name'], wf_img('skins/icons/register.png', __('Edit signup price')), false, '') : null;
             $cells .= wf_TableCell($actions);
             $rows .= wf_TableRow($cells, 'row5');
         }
@@ -5519,7 +5302,7 @@ function web_TariffLister() {
 
     $result .= wf_TableBody($rows, '100%', 0, 'sortable');
 
-    return($result);
+    return ($result);
 }
 
 /**
@@ -5621,7 +5404,7 @@ function web_TariffCreateForm() {
     $allInputs = $inputs . $inputsDirs;
     $allInputs .= wf_Submit(__('Create new tariff'));
     $result .= wf_Form('', 'POST', $allInputs, '', '', 'tariff_add');
-    return($result);
+    return ($result);
 }
 
 /**
@@ -5678,40 +5461,40 @@ function web_TariffEditForm($tariffname) {
             $inputsDirs .= wf_tag('legend', true);
 
             $rulenumber = $dir['rulenumber'];
-            $arrTime = explode('-', $tariffdata ["Time" . $rulenumber]);
-            $day = explode(':', $arrTime [0]);
-            $night = explode(':', $arrTime [1]);
+            $arrTime = explode('-', $tariffdata["Time" . $rulenumber]);
+            $day = explode(':', $arrTime[0]);
+            $night = explode(':', $arrTime[1]);
 
-            $tariffdata ['Time'] [$rulenumber] ['Dmin'] = $day [1];
-            $tariffdata ['Time'] [$rulenumber] ['Dhour'] = $day [0];
-            $tariffdata ['Time'] [$rulenumber] ['Nmin'] = $night [1];
-            $tariffdata ['Time'] [$rulenumber] ['Nhour'] = $night [0];
+            $tariffdata['Time'][$rulenumber]['Dmin'] = $day[1];
+            $tariffdata['Time'][$rulenumber]['Dhour'] = $day[0];
+            $tariffdata['Time'][$rulenumber]['Nmin'] = $night[1];
+            $tariffdata['Time'][$rulenumber]['Nhour'] = $night[0];
 
             $inputsDirs .= wf_tag('select', false, '', 'id="dhour' . $dir['rulenumber'] . '"  name="options[dhour][' . $dir['rulenumber'] . ']"');
             $inputsDirs .= wf_tag('option', false, '', '') . '00' . wf_tag('option', true);
-            $inputsDirs .= zb_TariffTimeSelector(24, $tariffdata['Time'][$dir['rulenumber']] ['Dhour']);
+            $inputsDirs .= zb_TariffTimeSelector(24, $tariffdata['Time'][$dir['rulenumber']]['Dhour']);
             $inputsDirs .= wf_tag('select', true);
 
             $inputsDirs .= wf_tag('select', false, '', 'id="dmin' . $dir['rulenumber'] . '"  name="options[dmin][' . $dir['rulenumber'] . ']"');
             $inputsDirs .= wf_tag('option', false, '', '') . '00' . wf_tag('option', true);
-            $inputsDirs .= zb_TariffTimeSelector(60, $tariffdata['Time'][$dir['rulenumber']] ['Dmin']);
+            $inputsDirs .= zb_TariffTimeSelector(60, $tariffdata['Time'][$dir['rulenumber']]['Dmin']);
             $inputsDirs .= wf_tag('select', true);
             $inputsDirs .= ' (' . __('hours') . '/' . __('minutes') . ') ' . __('Day');
 
-            $inputsDirs .= wf_TextInput('options[PriceDay][' . $dir['rulenumber'] . ']', __('Price day'), zb_tariff_yoba_price($tariffdata ["PriceDayA" . $dir['rulenumber']], $tariffdata ["PriceDayB" . $dir['rulenumber']]), false, 3);
-            $inputsDirs .= wf_TextInput('options[Threshold][' . $dir['rulenumber'] . ']', __('Threshold') . ' (' . __('Mb') . ')', $tariffdata ["Threshold$dir[rulenumber]"], true, 3, 'digits');
+            $inputsDirs .= wf_TextInput('options[PriceDay][' . $dir['rulenumber'] . ']', __('Price day'), zb_tariff_yoba_price($tariffdata["PriceDayA" . $dir['rulenumber']], $tariffdata["PriceDayB" . $dir['rulenumber']]), false, 3);
+            $inputsDirs .= wf_TextInput('options[Threshold][' . $dir['rulenumber'] . ']', __('Threshold') . ' (' . __('Mb') . ')', $tariffdata["Threshold$dir[rulenumber]"], true, 3, 'digits');
 
             $inputsDirs .= wf_tag('select', false, '', 'id="nhour' . $dir['rulenumber'] . '"  name="options[nhour][' . $dir['rulenumber'] . ']"');
             $inputsDirs .= wf_tag('option', false, '', '') . '00' . wf_tag('option', true);
-            $inputsDirs .= zb_TariffTimeSelector(24, $tariffdata['Time'][$dir['rulenumber']] ['Nhour']);
+            $inputsDirs .= zb_TariffTimeSelector(24, $tariffdata['Time'][$dir['rulenumber']]['Nhour']);
             $inputsDirs .= wf_tag('select', true);
 
             $inputsDirs .= wf_tag('select', false, '', 'id="nmin' . $dir['rulenumber'] . '"  name="options[nmin][' . $dir['rulenumber'] . ']"');
             $inputsDirs .= wf_tag('option', false, '', '') . '00' . wf_tag('option', true);
-            $inputsDirs .= zb_TariffTimeSelector(60, $tariffdata['Time'][$dir['rulenumber']] ['Nmin']);
+            $inputsDirs .= zb_TariffTimeSelector(60, $tariffdata['Time'][$dir['rulenumber']]['Nmin']);
             $inputsDirs .= wf_tag('select', true);
             $inputsDirs .= ' (' . __('hours') . '/' . __('minutes') . ') ' . __('Night');
-            $inputsDirs .= wf_TextInput('options[PriceNight][' . $dir['rulenumber'] . ']', __('Price night'), zb_tariff_yoba_price($tariffdata ["PriceNightA$dir[rulenumber]"], $tariffdata ["PriceNightB$dir[rulenumber]"]), false, 3);
+            $inputsDirs .= wf_TextInput('options[PriceNight][' . $dir['rulenumber'] . ']', __('Price night'), zb_tariff_yoba_price($tariffdata["PriceNightA$dir[rulenumber]"], $tariffdata["PriceNightB$dir[rulenumber]"]), false, 3);
 
             $inputsDirs .= wf_CheckInput('options[NoDiscount][' . $dir['rulenumber'] . ']', __('Without threshold'), true, $tariffdata["NoDiscount" . $rulenumber]);
             $inputsDirs .= wf_CheckInput('options[SinglePrice][' . $dir['rulenumber'] . ']', __('Price does not depend on time'), true, $tariffdata["SinglePrice" . $rulenumber]);
@@ -5729,7 +5512,7 @@ function web_TariffEditForm($tariffname) {
         $result .= $messages->getStyledMessage(__('Something went wrong') . ': FATAL_TARIFF_NOT_EXISTS', 'error');
     }
 
-    return($result);
+    return ($result);
 }
 
 /**
@@ -5743,7 +5526,7 @@ function web_ProfileSwitchZabbixProblem($login) {
     $login = mysql_real_escape_string($login);
     $query = "SELECT `ip` FROM `switchportassign` LEFT JOIN `switches` ON (switchid=`switches`.`id`) WHERE login = '" . $login . "' LIMIT 1";
 
-//getting switch IP
+    //getting switch IP
     $swIP = simple_query($query);
 
     if (!empty($swIP)) {
@@ -5755,7 +5538,7 @@ function web_ProfileSwitchZabbixProblem($login) {
             $rows = wf_TableRow($cells, 'row3');
 
             foreach ($allProblems as $io => $problemData) {
-// Colorized problem
+                // Colorized problem
                 if ($problemData['severity'] == 5) {
                     $problemColor = wf_tag('font', false, '', 'color="#8B0000"') . wf_tag('b', false);
                     $problemColorEnd = wf_tag('b', true) . wf_tag('font', true);
@@ -5803,7 +5586,9 @@ function zb_array_insert(&$array, $position, $insert) {
     } else {
         $pos = array_search($position, array_keys($array));
         $array = array_merge(
-                array_slice($array, 0, $pos), $insert, array_slice($array, $pos)
+            array_slice($array, 0, $pos),
+            $insert,
+            array_slice($array, $pos)
         );
     }
 }
@@ -5863,7 +5648,7 @@ function web_EasyFreezeForm($login) {
     $inputs .= wf_Submit(__('Freeze user'));
 
     $result = wf_Form('', 'POST', $inputs, 'glamour');
-    return($result);
+    return ($result);
 }
 
 /**
@@ -5885,7 +5670,7 @@ function zb_EasyFreezeController() {
         $dateFrom = ubRouting::post('easyfreezedatefrom');
         $dateTo = ubRouting::post('easyfreezedateto');
 
-        if (zb_checkDate($dateFrom) AND zb_checkDate($dateTo)) {
+        if (zb_checkDate($dateFrom) and zb_checkDate($dateTo)) {
             //freezing
             if (ubRouting::checkPost('easyfreezerightnow')) {
                 //just freeze user right now
@@ -5908,7 +5693,7 @@ function zb_EasyFreezeController() {
             $result .= __('Wrong date format');
         }
     }
-    return($result);
+    return ($result);
 }
 
 /**
@@ -6006,7 +5791,7 @@ function web_ReportSysloadRenderLA() {
     $laGauges .= wf_renderGauge(round($loadAvg[1], 2), '5' . ' ' . __('minutes'), 'LA', $laOpts, 300);
     $laGauges .= wf_renderGauge(round($loadAvg[2], 2), '15' . ' ' . __('minutes'), 'LA', $laOpts, 300);
     $laGauges .= wf_CleanDiv();
-    return($laGauges);
+    return ($laGauges);
 }
 
 /**
@@ -6050,7 +5835,7 @@ function web_ReportSysloadRenderDisksCapacity() {
         }
     }
     $result .= wf_CleanDiv();
-    return($result);
+    return ($result);
 }
 
 /**
@@ -6070,7 +5855,7 @@ function web_ReportSysloadRenderTop() {
         $messages = new UbillingMessageHelper();
         $result .= $messages->getStyledMessage(__('batch top path') . ' ' . __('is empty'), 'error');
     }
-    return($result);
+    return ($result);
 }
 
 /**
@@ -6090,7 +5875,7 @@ function web_ReportSysloadRenderUptime() {
         $messages = new UbillingMessageHelper();
         $result .= $messages->getStyledMessage(__('uptime path') . ' ' . __('is empty'), 'error');
     }
-    return($result);
+    return ($result);
 }
 
 /**
@@ -6102,7 +5887,7 @@ function web_ReportSysloadRenderUptime() {
 function web_ReportSysloadRenderDF() {
     $result = '';
     $result .= wf_tag('pre') . shell_exec('df -h') . wf_tag('pre', true);
-    return($result);
+    return ($result);
 }
 
 /**
@@ -6124,7 +5909,7 @@ function web_AdministratorRegForm() {
     $inputs .= wf_Submit(__('Administrators registration'));
 
     $result .= wf_Form('', 'POST', $inputs, 'floatpanels', '', '', '', 'autocomplete="off"');
-    return($result);
+    return ($result);
 }
 
 /**
@@ -6156,7 +5941,7 @@ function web_AdministratorEditForm($adminLogin) {
         $messages = new UbillingMessageHelper();
         $result .= $messages->getStyledMessage(__('User') . ' ' . $adminLogin, 256 . ' ' . __('Not exists'), 'error');
     }
-    return($result);
+    return ($result);
 }
 
 /**
@@ -6226,7 +6011,7 @@ function zb_ReadLastLines($filePath, $linesCount) {
         $command = $tailPath . ' -n ' . $linesCount . ' ' . $filePath;
         $result = shell_exec($command);
     }
-    return($result);
+    return ($result);
 }
 
 /**
@@ -6264,7 +6049,7 @@ function zb_rightControl($right, $controlString) {
         //no specific right required to output control
         $result .= $controlString;
     }
-    return($result);
+    return ($result);
 }
 
 /**
@@ -6284,7 +6069,7 @@ function ub_SanitizeData($data, $mres = true) {
     }
     $result = str_replace('"', '``', $result);
     $result = str_replace("'", '`', $result);
-    return($result);
+    return ($result);
 }
 
 /**
@@ -6299,7 +6084,7 @@ function ub_SanitizeData($data, $mres = true) {
  */
 function zb_ParseTagData($openTag, $closeTag, $stringToParse = '', $mutipleResults = false) {
     $result = '';
-    if (!empty($openTag) AND !empty($closeTag) AND !empty($stringToParse)) {
+    if (!empty($openTag) and !empty($closeTag) and !empty($stringToParse)) {
         $replacements = array(
             '(' => '\(',
             ')' => '\)',
@@ -6333,7 +6118,7 @@ function zb_ParseTagData($openTag, $closeTag, $stringToParse = '', $mutipleResul
             }
         }
     }
-    return($result);
+    return ($result);
 }
 
 /**
@@ -6376,7 +6161,7 @@ function zb_isHttpsRequest() {
             $result = true;
         }
     }
-    return($result);
+    return ($result);
 }
 
 /**
@@ -6405,7 +6190,7 @@ function web_GPSLocationFillInputControl($inputId) {
     $result .= wf_tag('script', true);
     $result .= wf_tag('div', false, '', 'id="gpswaitcontainer" style="float:left;"') . wf_tag('div', true);
     $result .= wf_tag('button', false, '', 'type="button" onclick="getGeoPosition();"') . 'GPS ' . __('Location') . wf_tag('button', true);
-    return($result);
+    return ($result);
 }
 
 /**
