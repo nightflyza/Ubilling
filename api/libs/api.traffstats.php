@@ -95,6 +95,8 @@ class TraffStats {
      */
     protected $messages = '';
 
+    //some other predefined stuff
+    const ROUTE_PROX_IMG = 'loadimg';
 
     /**
      * Creates new traffStats instance
@@ -105,7 +107,6 @@ class TraffStats {
         $this->setLogin($login);
         $this->initMessages();
         $this->loadConfigs();
-        $this->loadDirs();
         $this->initDbLayers();
     }
 
@@ -719,6 +720,7 @@ class TraffStats {
 
         $this->loadUserData();
         if (!empty($this->userData)) {
+            $this->loadDirs();
             $this->loadTraffStats();
             $this->loadIshimuraStats();
 
@@ -740,5 +742,49 @@ class TraffStats {
             $result .= wf_delimiter();
         }
         return ($result);
+    }
+
+    /**
+     * Catches image proxy request and renders some image
+     *
+     * @return void
+     */
+    public function catchImgProxyRequest() {
+        if ($this->altCfg['BANDWIDTHD_PROXY']) {
+            if (ubRouting::checkGet(self::ROUTE_PROX_IMG)) {
+                $remoteImageUrl = base64_decode(ubRouting::get(self::ROUTE_PROX_IMG));
+                $remoteImageUrl = trim($remoteImageUrl);
+                if (!empty($remoteImageUrl)) {
+                    $remoteImg = new OmaeUrl($remoteImageUrl);
+                    $remoteImg->setTimeout(1);
+                    $rawImg = $remoteImg->response();
+                    $recvErr = $remoteImg->error();
+                    $type = '';
+                    if (ispos($remoteImageUrl, '.png') or ispos($remoteImageUrl, 'module=graph')) {
+                        $type = 'png';
+                    } else {
+                        if (ispos($remoteImageUrl, '.gif')) {
+                            $type = 'gif';
+                        }
+                    }
+
+                    if (empty($recvErr) and !ispos($rawImg, '404')) {
+                        if (!empty($type)) {
+                            header('Content-Type: image/' . $type);
+                        }
+
+                        die($rawImg);
+                    } else {
+                        header('Content-Type: image/jpeg');
+                        $noImage = file_get_contents('skins/noimage.jpg');
+                        die($noImage);
+                    }
+                } else {
+                    header('Content-Type: image/jpeg');
+                    $noImage = file_get_contents('skins/noimage.jpg');
+                    die($noImage);
+                }
+            }
+        }
     }
 }
