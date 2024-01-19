@@ -89,6 +89,27 @@ class TraffStats {
     protected $login = '';
 
     /**
+     * On-demand charts loading flag
+     *
+     * @var bool
+     */
+    protected $ondemandFlag = true;
+
+    /**
+     * System caching object instance
+     *
+     * @var object
+     */
+    protected $cache = '';
+
+    /**
+     * Default caching timeout
+     *
+     * @var int
+     */
+    protected $cachingTimeout = 3600;
+
+    /**
      * System messages helper object placeholder
      *
      * @var object
@@ -96,7 +117,13 @@ class TraffStats {
     protected $messages = '';
 
     //some other predefined stuff
+    const URL_ME = '?module=traffstats';
     const ROUTE_PROX_IMG = 'loadimg';
+    const ROUTE_LOGIN = 'username';
+    const ROUTE_AJUSER = 'defferedgraph';
+    const ROUTE_AJCAT = 'grcat';
+    const KEY_GRAPH = 'DEFFEREDGRAPH';
+    const AJ_CONTAINER = 'ajdefferedcontainer';
 
     /**
      * Creates new traffStats instance
@@ -106,6 +133,7 @@ class TraffStats {
     public function __construct($login = '') {
         $this->setLogin($login);
         $this->initMessages();
+        $this->initCache();
         $this->loadConfigs();
         $this->initDbLayers();
     }
@@ -133,6 +161,16 @@ class TraffStats {
     }
 
     /**
+     * Inits system caching engine
+     *
+     * @return void
+     */
+    protected function initCache() {
+        $this->cache = new UbillingCache();
+    }
+
+
+    /**
      * Loads traffic directions
      *
      * @return void
@@ -149,6 +187,7 @@ class TraffStats {
     protected function loadConfigs() {
         global $ubillingConfig;
         $this->altCfg = $ubillingConfig->getAlter();
+        $this->ondemandFlag = $ubillingConfig->getAlterParam('ONDEMAND_CHARTS', false);
 
         $this->trafScale = trim($this->altCfg['TRAFFSIZE']);
 
@@ -531,49 +570,21 @@ class TraffStats {
     protected function renderCharts() {
         $result = '';
         $bwd = $this->genGraphLinks();
+        $cachedUserCharts = array();
+        $cachedCharts = array();
+        $updateCache = false;
+
+        $chartCategories = array(
+            'hour' => __('Hour'),
+            'day' => __('Graph by day'),
+            'week' => __('Graph by week'),
+            'month' => __('Graph by month'),
+            'year' => __('Graph by year'),
+        );
+
 
         if (!empty($bwd)) {
-            $chartCategories = array(
-                'hour' => __('Hour'),
-                'day' => __('Graph by day'),
-                'week' => __('Graph by week'),
-                'month' => __('Graph by month'),
-                'year' => __('Graph by year'),
-            );
-
             $icon = wf_img_sized('skins/icon_stats.gif', '', '16', '16');
-
-            // Hour button:
-            $hourbw = '';
-            if (isset($bwd['hourr']) and isset($bwd['hours'])) {
-                $hourbw = wf_img(zb_BandwidthdImgLink($bwd['hourr']), __('Downloaded'));
-                $hourbw .= wf_img(zb_BandwidthdImgLink($bwd['hours']), __('Uploaded'));
-            }
-
-            // Daily graph button:
-            $daybw = wf_img(zb_BandwidthdImgLink($bwd['dayr']), __('Downloaded'));
-            if (!empty($bwd['days'])) {
-                $daybw .= wf_delimiter() . wf_img(zb_BandwidthdImgLink($bwd['days']), __('Uploaded'));
-            }
-
-            // Weekly graph button:
-            $weekbw = wf_img(zb_BandwidthdImgLink($bwd['weekr']), __('Downloaded'));
-            if (!empty($bwd['weeks'])) {
-                $weekbw .= wf_delimiter() . wf_img(zb_BandwidthdImgLink($bwd['weeks']), __('Uploaded'));
-            }
-
-            // Monthly graph button:
-            $monthbw = wf_img(zb_BandwidthdImgLink($bwd['monthr']), __('Downloaded'));
-            if (!empty($bwd['months'])) {
-                $monthbw .= wf_delimiter() . wf_img(zb_BandwidthdImgLink($bwd['months']), __('Uploaded'));
-            }
-
-            // Yearly graph button:
-            $yearbw = wf_img(zb_BandwidthdImgLink($bwd['yearr']), __('Downloaded'));
-            if (!empty($bwd['years'])) {
-                $yearbw .= wf_delimiter() . wf_img(zb_BandwidthdImgLink($bwd['years']), __('Uploaded'));
-            }
-
             $result .= wf_delimiter();
             $result .= wf_tag('h3') . __('Graphs') . wf_tag('h3', true);
 
@@ -590,37 +601,97 @@ class TraffStats {
             }
 
 
-            foreach ($chartCategories as $categoryId => $categoryTitle) {
-                $chartBody = '';
-                $dlKey = $categoryId . 'r';
-                $ulKey = $categoryId . 's';
-                $chartTitle = $categoryTitle;
-
-                if (isset($bwd[$dlKey])) {
-                    $imgLink = zb_BandwidthdImgLink($bwd[$dlKey]);
-                    $imgBody = wf_img_sized($imgLink, __('Downloaded'), '100%');
-                    $chartBody .= $imgBody;
-                }
-
-                if (isset($bwd[$ulKey])) {
-                    $imgLink = zb_BandwidthdImgLink($bwd[$ulKey]);
-                    $imgBody = wf_delimiter() . wf_img_sized($imgLink, __('Uploaded'), '100%');
-                    $chartBody .= $imgBody;
-                }
-
-                if (!empty($chartBody)) {
-                    $chartBody = wf_tag('div', false, '', 'style="width:100%;"') . $chartBody . wf_tag('div', true);
-                    $bwcells .= wf_TableCell(wf_modalAuto($icon . ' ' . $chartTitle, $chartTitle, $chartBody, 'ubButton'));
+            if ($this->ondemandFlag) {
+                $cachedCharts = $this->cache->get(self::KEY_GRAPH, $this->cachingTimeout);
+                if (!empty($cachedCharts)) {
+                    if (isset($cachedCharts[$this->login])) {
+                        $cachedUserCharts = $cachedCharts[$this->login];
+                    }
+                } else {
+                    $cachedCharts = array();
                 }
             }
 
+            if ($this->ondemandFlag) {
+                if (empty($cachedUserCharts)) {
+                    $updateCache = true;
+                }
+            } else {
+                $updateCache = true;
+            }
+
+            //charts cats processing here
+            if ($updateCache) {
+                foreach ($chartCategories as $categoryId => $categoryTitle) {
+                    $chartBody = '';
+                    $dlKey = $categoryId . 'r';
+                    $ulKey = $categoryId . 's';
+                    $chartTitle = $categoryTitle;
+
+                    if (isset($bwd[$dlKey])) {
+                        $imgLink = zb_BandwidthdImgLink($bwd[$dlKey]);
+                        $imgBody = wf_img_sized($imgLink, __('Downloaded'), '100%');
+                        $chartBody .= $imgBody;
+                    }
+
+                    if (isset($bwd[$ulKey])) {
+                        $imgLink = zb_BandwidthdImgLink($bwd[$ulKey]);
+                        $imgBody = wf_delimiter() . wf_img_sized($imgLink, __('Uploaded'), '100%');
+                        $chartBody .= $imgBody;
+                    }
+
+                    if (!empty($chartBody)) {
+                        if ($this->ondemandFlag) {
+                            $cachedCharts[$this->login][$categoryId] = array('title' => $chartTitle, 'body' => $chartBody);
+                            $defLink = $this->getAjChartLink($categoryId, $chartTitle);
+                            $bwcells .= wf_TableCell($defLink);
+                        } else {
+                            $chartBody = wf_tag('div', false, '', 'style="width:100%;"') . $chartBody . wf_tag('div', true);
+                            $bwcells .= wf_TableCell(wf_modalAuto($icon . ' ' . $chartTitle, $chartTitle, $chartBody, 'ubButton'));
+                        }
+                    }
+                }
+
+                //cache update
+                if ($this->ondemandFlag) {
+                    $this->cache->set(self::KEY_GRAPH, $cachedCharts, $this->cachingTimeout);
+                }
+            } else {
+                //deffered cache filled
+                if ($this->ondemandFlag) {
+                    foreach ($chartCategories as $categoryId => $categoryTitle) {
+                        $defLink = $this->getAjChartLink($categoryId, $categoryTitle);
+                        $bwcells .= wf_TableCell($defLink);
+                    }
+                }
+            }
 
             // Adding graphs buttons to result:
             $bwrows = wf_TableRow($bwcells);
             $result .= wf_TableBody($bwrows, '', '0', '');
+            if ($this->ondemandFlag) {
+                $result .= wf_AjaxLoader();
+                $result .= wf_AjaxContainer(self::AJ_CONTAINER);
+            }
             $result .= wf_delimiter();
         }
 
+        return ($result);
+    }
+
+    /**
+     * Returns link body for deffered charts loading
+     *
+     * @param string $graphCat
+     * @param string $title
+     * 
+     * @return string
+     */
+    protected function getAjChartLink($graphCat, $title) {
+        $result = '';
+        $icon = wf_img_sized('skins/icon_stats.gif', '', '16', '16');
+        $defUrl = self::URL_ME . '&' . self::ROUTE_AJUSER . '=' . $this->login . '&' . self::ROUTE_AJCAT . '=' . $graphCat;
+        $result .= wf_AjaxLink($defUrl, $icon . ' ' . $title, self::AJ_CONTAINER, false, 'ubButton');
         return ($result);
     }
 
@@ -786,5 +857,49 @@ class TraffStats {
                 }
             }
         }
+    }
+
+    /**
+     * Renders deffered chart request data
+     *
+     * @return void
+     */
+    public function catchDefferedCallback() {
+        $result = '';
+        $notice = __('Something went wrong') . ': ';
+        if ($this->ondemandFlag) {
+            if (ubRouting::checkGet(array(self::ROUTE_AJUSER, self::ROUTE_AJCAT))) {
+
+                $userLogin = ubRouting::get(self::ROUTE_AJUSER, 'mres');
+                $chartCat = ubRouting::get(self::ROUTE_AJCAT, 'mres');
+
+                if ($userLogin and $chartCat) {
+                    $cachedCharts = $this->cache->get(self::KEY_GRAPH, $this->cachingTimeout);
+                    if (!empty($cachedCharts)) {
+                        if (isset($cachedCharts[$userLogin])) {
+                            $userCache = $cachedCharts[$userLogin];
+                            if (isset($userCache[$chartCat])) {
+                                $styling = 'width:1540px; height:800px; border:0px solid;';
+                                $chartBody = wf_tag('div', false, '', 'style="' . $styling . '"') . $userCache[$chartCat]['body'] . wf_tag('div', true);
+                                $result .= wf_modalOpenedAuto($userCache[$chartCat]['title'], $chartBody);
+                            } else {
+                                $result .= $this->messages->getStyledMessage($notice . __('no cached cat') . ' [' . $chartCat . ']', 'error');
+                            }
+                        } else {
+                            $result .= $this->messages->getStyledMessage($notice . __('No user charts'), 'error');
+                        }
+                    } else {
+                        $result .= $this->messages->getStyledMessage($notice . __('Empty charts cache'), 'error');
+                    }
+                } else {
+                    $result .= $this->messages->getStyledMessage($notice . __('Empty params'), 'error');
+                }
+            } else {
+                $result .= $this->messages->getStyledMessage($notice . __('Missed params'), 'error');
+            }
+        } else {
+            $result .= $this->messages->getStyledMessage($notice . __('Disabled'), 'error');
+        }
+        die($result);
     }
 }
