@@ -411,154 +411,155 @@ class TraffStats {
         $bwdUrl = zb_BandwidthdGetUrl($ip);
         $netid = zb_NetworkGetByIp($ip);
         $nasid = zb_NasGetByNet($netid);
-        $nasdata = zb_NasGetData($nasid);
-        $nastype = ($mlgUseMikrotikGraphs) ? 'mikrotik' : $nasdata['nastype'];
+        if ($nasid) {
+            $nasdata = zb_NasGetData($nasid);
+            $nastype = ($mlgUseMikrotikGraphs) ? 'mikrotik' : $nasdata['nastype'];
 
-        $zbxAllGraphs = array();
+            $zbxAllGraphs = array();
 
-        if ($zbxGraphsEnabled) {
-            $zbxAllGraphs = getCachedZabbixNASGraphIDs();
-        }
-
-        if (!empty($zbxAllGraphs) and isset($zbxAllGraphs[$nasdata['nasip']])) {
-            switch ($zbxGraphsSearchIdnetify) {
-                case 'MAC':
-                    $userSearchIdentify = zb_MultinetGetMAC($ip);
-                    break;
-
-                case 'login':
-                    $userSearchIdentify = zb_UserGetLoginByIp($ip);
-                    break;
-
-                default:
-                    $userSearchIdentify = $ip;
+            if ($zbxGraphsEnabled) {
+                $zbxAllGraphs = getCachedZabbixNASGraphIDs();
             }
 
-            $urls = getZabbixUserGraphLinks($ip, $zbxGraphsSearchField, $userSearchIdentify, $zbxAllGraphs, $zbxGraphsExtended);
-        } else {
-            if (!empty($bwdUrl)) {
-                // RouterOS graph model:
-                if ($nastype == 'mikrotik') {
-                    // Get user's IP array:
-                    $alluserips = zb_UserGetAllIPs();
-                    $alluserips = array_flip($alluserips);
-                    if (!ispos($bwdUrl, 'pppoe') and !$mlgUseMikrotikGraphs) {
-                        // Generate graphs paths:
-                        $urls['dayr'] = $bwdUrl . '/' . $alluserips[$ip] . '/daily.gif';
-                        $urls['days'] = null;
-                        $urls['weekr'] = $bwdUrl . '/' . $alluserips[$ip] . '/weekly.gif';
-                        $urls['weeks'] = null;
-                        $urls['monthr'] = $bwdUrl . '/' . $alluserips[$ip] . '/monthly.gif';
-                        $urls['months'] = null;
-                        $urls['yearr'] = $bwdUrl . '/' . $alluserips[$ip] . '/yearly.gif';
-                        $urls['years'] = null;
-                    } elseif ($mlgUseMikrotikGraphs) {
-                        $urls['dayr'] = $bwdUrl . '/' . 'mlg_' . $ip . '/daily.gif';
-                        $urls['days'] = null;
-                        $urls['weekr'] = $bwdUrl . '/' . 'mlg_' . $ip . '/weekly.gif';
-                        $urls['weeks'] = null;
-                        $urls['monthr'] = $bwdUrl . '/' . 'mlg_' . $ip . '/monthly.gif';
-                        $urls['months'] = null;
-                        $urls['yearr'] = $bwdUrl . '/' . 'mlg_' . $ip . '/yearly.gif';
+            if (!empty($zbxAllGraphs) and isset($zbxAllGraphs[$nasdata['nasip']])) {
+                switch ($zbxGraphsSearchIdnetify) {
+                    case 'MAC':
+                        $userSearchIdentify = zb_MultinetGetMAC($ip);
+                        break;
+
+                    case 'login':
+                        $userSearchIdentify = zb_UserGetLoginByIp($ip);
+                        break;
+
+                    default:
+                        $userSearchIdentify = $ip;
+                }
+
+                $urls = getZabbixUserGraphLinks($ip, $zbxGraphsSearchField, $userSearchIdentify, $zbxAllGraphs, $zbxGraphsExtended);
+            } else {
+                if (!empty($bwdUrl)) {
+                    // RouterOS graph model:
+                    if ($nastype == 'mikrotik') {
+                        // Get user's IP array:
+                        $alluserips = zb_UserGetAllIPs();
+                        $alluserips = array_flip($alluserips);
+                        if (!ispos($bwdUrl, 'pppoe') and !$mlgUseMikrotikGraphs) {
+                            // Generate graphs paths:
+                            $urls['dayr'] = $bwdUrl . '/' . $alluserips[$ip] . '/daily.gif';
+                            $urls['days'] = null;
+                            $urls['weekr'] = $bwdUrl . '/' . $alluserips[$ip] . '/weekly.gif';
+                            $urls['weeks'] = null;
+                            $urls['monthr'] = $bwdUrl . '/' . $alluserips[$ip] . '/monthly.gif';
+                            $urls['months'] = null;
+                            $urls['yearr'] = $bwdUrl . '/' . $alluserips[$ip] . '/yearly.gif';
+                            $urls['years'] = null;
+                        } elseif ($mlgUseMikrotikGraphs) {
+                            $urls['dayr'] = $bwdUrl . '/' . 'mlg_' . $ip . '/daily.gif';
+                            $urls['days'] = null;
+                            $urls['weekr'] = $bwdUrl . '/' . 'mlg_' . $ip . '/weekly.gif';
+                            $urls['weeks'] = null;
+                            $urls['monthr'] = $bwdUrl . '/' . 'mlg_' . $ip . '/monthly.gif';
+                            $urls['months'] = null;
+                            $urls['yearr'] = $bwdUrl . '/' . 'mlg_' . $ip . '/yearly.gif';
+                        } else {
+                            $urls['dayr'] = $bwdUrl . $alluserips[$ip] . '>/daily.gif';
+                            $urls['days'] = null;
+                            $urls['weekr'] = $bwdUrl . $alluserips[$ip] . '>/weekly.gif';
+                            $urls['weeks'] = null;
+                            $urls['monthr'] = $bwdUrl . $alluserips[$ip] . '>/monthly.gif';
+                            $urls['months'] = null;
+                            $urls['yearr'] = $bwdUrl . $alluserips[$ip] . '>/yearly.gif';
+                            $urls['years'] = null;
+                        }
                     } else {
-                        $urls['dayr'] = $bwdUrl . $alluserips[$ip] . '>/daily.gif';
-                        $urls['days'] = null;
-                        $urls['weekr'] = $bwdUrl . $alluserips[$ip] . '>/weekly.gif';
-                        $urls['weeks'] = null;
-                        $urls['monthr'] = $bwdUrl . $alluserips[$ip] . '>/monthly.gif';
-                        $urls['months'] = null;
-                        $urls['yearr'] = $bwdUrl . $alluserips[$ip] . '>/yearly.gif';
-                        $urls['years'] = null;
+                        // Banwidthd graphs model:
+                        $urls['dayr'] = $bwdUrl . '/' . $ip . '-1-R.png';
+                        $urls['days'] = $bwdUrl . '/' . $ip . '-1-S.png';
+                        $urls['weekr'] = $bwdUrl . '/' . $ip . '-2-R.png';
+                        $urls['weeks'] = $bwdUrl . '/' . $ip . '-2-S.png';
+                        $urls['monthr'] = $bwdUrl . '/' . $ip . '-3-R.png';
+                        $urls['months'] = $bwdUrl . '/' . $ip . '-3-S.png';
+                        $urls['yearr'] = $bwdUrl . '/' . $ip . '-4-R.png';
+                        $urls['years'] = $bwdUrl . '/' . $ip . '-4-S.png';
+
+                        //OphanimFlow graphs
+                        if (ispos($bwdUrl, 'OphanimFlow') or ispos($bwdUrl, 'of/')) {
+                            $urls['hourr'] = $bwdUrl . '/?module=graph&dir=R&period=hour&ip=' . $ip;
+                            $urls['hours'] = $bwdUrl . '/?module=graph&dir=S&period=hour&ip=' . $ip;
+                            $urls['dayr'] = $bwdUrl . '/?module=graph&dir=R&period=day&ip=' . $ip;
+                            $urls['days'] = $bwdUrl . '/?module=graph&dir=S&period=day&ip=' . $ip;
+                            $urls['weekr'] = $bwdUrl . '/?module=graph&dir=R&period=week&ip=' . $ip;
+                            $urls['weeks'] = $bwdUrl . '/?module=graph&dir=S&period=week&ip=' . $ip;
+                            $urls['monthr'] = $bwdUrl . '/?module=graph&dir=R&period=month&ip=' . $ip;
+                            $urls['months'] = $bwdUrl . '/?module=graph&dir=S&period=month&ip=' . $ip;
+                            $urls['yearr'] = $bwdUrl . '/?module=graph&dir=R&period=year&ip=' . $ip;
+                            $urls['years'] = $bwdUrl . '/?module=graph&dir=S&period=year&ip=' . $ip;
+                        }
                     }
-                } else {
-                    // Banwidthd graphs model:
-                    $urls['dayr'] = $bwdUrl . '/' . $ip . '-1-R.png';
-                    $urls['days'] = $bwdUrl . '/' . $ip . '-1-S.png';
-                    $urls['weekr'] = $bwdUrl . '/' . $ip . '-2-R.png';
-                    $urls['weeks'] = $bwdUrl . '/' . $ip . '-2-S.png';
-                    $urls['monthr'] = $bwdUrl . '/' . $ip . '-3-R.png';
-                    $urls['months'] = $bwdUrl . '/' . $ip . '-3-S.png';
-                    $urls['yearr'] = $bwdUrl . '/' . $ip . '-4-R.png';
-                    $urls['years'] = $bwdUrl . '/' . $ip . '-4-S.png';
+                    //MikroTik Multigen Hotspot users
+                    if (ispos($bwdUrl, 'mlgmths')) {
+                        $bwdUrl = str_replace('mlgmths', 'graphs/queue/', $bwdUrl);
+                        $allUserMacs = zb_UserGetAllIpMACs();
+                        if (isset($allUserMacs[$ip])) {
+                            $userMac = $allUserMacs[$ip];
+                            $userMacUpper = strtoupper($userMac);
+                            $queueName = '<hotspot-' . urlencode($userMacUpper);
 
-                    //OphanimFlow graphs
-                    if (ispos($bwdUrl, 'OphanimFlow') or ispos($bwdUrl, 'of/')) {
-                        $urls['hourr'] = $bwdUrl . '/?module=graph&dir=R&period=hour&ip=' . $ip;
-                        $urls['hours'] = $bwdUrl . '/?module=graph&dir=S&period=hour&ip=' . $ip;
-                        $urls['dayr'] = $bwdUrl . '/?module=graph&dir=R&period=day&ip=' . $ip;
-                        $urls['days'] = $bwdUrl . '/?module=graph&dir=S&period=day&ip=' . $ip;
-                        $urls['weekr'] = $bwdUrl . '/?module=graph&dir=R&period=week&ip=' . $ip;
-                        $urls['weeks'] = $bwdUrl . '/?module=graph&dir=S&period=week&ip=' . $ip;
-                        $urls['monthr'] = $bwdUrl . '/?module=graph&dir=R&period=month&ip=' . $ip;
-                        $urls['months'] = $bwdUrl . '/?module=graph&dir=S&period=month&ip=' . $ip;
-                        $urls['yearr'] = $bwdUrl . '/?module=graph&dir=R&period=year&ip=' . $ip;
-                        $urls['years'] = $bwdUrl . '/?module=graph&dir=S&period=year&ip=' . $ip;
+                            $urls['dayr'] = $bwdUrl . $queueName . '>/daily.gif';
+                            $urls['days'] = null;
+                            $urls['weekr'] = $bwdUrl . $queueName . '>/weekly.gif';
+                            $urls['weeks'] = null;
+                            $urls['monthr'] = $bwdUrl . $queueName . '>/monthly.gif';
+                            $urls['months'] = null;
+                            $urls['yearr'] = $bwdUrl . $queueName . '>/yearly.gif';
+                            $urls['years'] = null;
+                        }
                     }
-                }
-                //MikroTik Multigen Hotspot users
-                if (ispos($bwdUrl, 'mlgmths')) {
-                    $bwdUrl = str_replace('mlgmths', 'graphs/queue/', $bwdUrl);
-                    $allUserMacs = zb_UserGetAllIpMACs();
-                    if (isset($allUserMacs[$ip])) {
-                        $userMac = $allUserMacs[$ip];
-                        $userMacUpper = strtoupper($userMac);
-                        $queueName = '<hotspot-' . urlencode($userMacUpper);
+                    //MikroTik Multigen PPP
+                    if (ispos($bwdUrl, 'mlgmtppp')) {
+                        $bwdUrl = str_replace('mlgmtppp', 'graphs/queue/', $bwdUrl);
 
-                        $urls['dayr'] = $bwdUrl . $queueName . '>/daily.gif';
-                        $urls['days'] = null;
-                        $urls['weekr'] = $bwdUrl . $queueName . '>/weekly.gif';
-                        $urls['weeks'] = null;
-                        $urls['monthr'] = $bwdUrl . $queueName . '>/monthly.gif';
-                        $urls['months'] = null;
-                        $urls['yearr'] = $bwdUrl . $queueName . '>/yearly.gif';
-                        $urls['years'] = null;
+                        $alluserips = zb_UserGetAllIPs();
+                        $alluserips = array_flip($alluserips);
+
+                        if (isset($alluserips[$ip])) {
+                            $userLogin = $alluserips[$ip];
+                            $queueName = urlencode('<pppoe-' . $userLogin . '>');
+
+                            $urls['dayr'] = $bwdUrl . $queueName . '/daily.gif';
+                            $urls['days'] = null;
+                            $urls['weekr'] = $bwdUrl . $queueName . '/weekly.gif';
+                            $urls['weeks'] = null;
+                            $urls['monthr'] = $bwdUrl . $queueName . '/monthly.gif';
+                            $urls['months'] = null;
+                            $urls['yearr'] = $bwdUrl . $queueName . '/yearly.gif';
+                            $urls['years'] = null;
+                        }
                     }
-                }
-                //MikroTik Multigen PPP
-                if (ispos($bwdUrl, 'mlgmtppp')) {
-                    $bwdUrl = str_replace('mlgmtppp', 'graphs/queue/', $bwdUrl);
 
-                    $alluserips = zb_UserGetAllIPs();
-                    $alluserips = array_flip($alluserips);
+                    //MikroTik Multigen DHCP
+                    if (ispos($bwdUrl, 'mlgmtdhcp')) {
+                        $bwdUrl = str_replace('mlgmtdhcp', 'graphs/queue/', $bwdUrl);
 
-                    if (isset($alluserips[$ip])) {
-                        $userLogin = $alluserips[$ip];
-                        $queueName = urlencode('<pppoe-' . $userLogin . '>');
+                        $allUserMacs = zb_UserGetAllIpMACs();
+                        if (isset($allUserMacs[$ip])) {
+                            $userMac = $allUserMacs[$ip];
+                            $userMacUpper = strtoupper($userMac);
+                            $queueName = 'dhcp-ds<' . urlencode($userMacUpper);
 
-                        $urls['dayr'] = $bwdUrl . $queueName . '/daily.gif';
-                        $urls['days'] = null;
-                        $urls['weekr'] = $bwdUrl . $queueName . '/weekly.gif';
-                        $urls['weeks'] = null;
-                        $urls['monthr'] = $bwdUrl . $queueName . '/monthly.gif';
-                        $urls['months'] = null;
-                        $urls['yearr'] = $bwdUrl . $queueName . '/yearly.gif';
-                        $urls['years'] = null;
-                    }
-                }
-
-                //MikroTik Multigen DHCP
-                if (ispos($bwdUrl, 'mlgmtdhcp')) {
-                    $bwdUrl = str_replace('mlgmtdhcp', 'graphs/queue/', $bwdUrl);
-
-                    $allUserMacs = zb_UserGetAllIpMACs();
-                    if (isset($allUserMacs[$ip])) {
-                        $userMac = $allUserMacs[$ip];
-                        $userMacUpper = strtoupper($userMac);
-                        $queueName = 'dhcp-ds<' . urlencode($userMacUpper);
-
-                        $urls['dayr'] = $bwdUrl . $queueName . '>/daily.gif';
-                        $urls['days'] = null;
-                        $urls['weekr'] = $bwdUrl . $queueName . '>/weekly.gif';
-                        $urls['weeks'] = null;
-                        $urls['monthr'] = $bwdUrl . $queueName . '>/monthly.gif';
-                        $urls['months'] = null;
-                        $urls['yearr'] = $bwdUrl . $queueName . '>/yearly.gif';
-                        $urls['years'] = null;
+                            $urls['dayr'] = $bwdUrl . $queueName . '>/daily.gif';
+                            $urls['days'] = null;
+                            $urls['weekr'] = $bwdUrl . $queueName . '>/weekly.gif';
+                            $urls['weeks'] = null;
+                            $urls['monthr'] = $bwdUrl . $queueName . '>/monthly.gif';
+                            $urls['months'] = null;
+                            $urls['yearr'] = $bwdUrl . $queueName . '>/yearly.gif';
+                            $urls['years'] = null;
+                        }
                     }
                 }
             }
         }
-
         return ($urls);
     }
 
@@ -879,7 +880,7 @@ class TraffStats {
                         if (isset($cachedCharts[$userLogin])) {
                             $userCache = $cachedCharts[$userLogin];
                             if (isset($userCache[$chartCat])) {
-                                $styling = 'width:1540px; height:800px; border:0px solid;';
+                                $styling = 'width:1540px; height:810px; border:0px solid;';
                                 $chartBody = wf_tag('div', false, '', 'style="' . $styling . '"') . $userCache[$chartCat]['body'] . wf_tag('div', true);
                                 $result .= wf_modalOpenedAuto($userCache[$chartCat]['title'], $chartBody);
                             } else {

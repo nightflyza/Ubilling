@@ -7,7 +7,7 @@ if (cfr('TRAFFSTATS')) {
         $traffStats->catchImgProxyRequest();
     }
 
-    if (ubRouting::checkGet(array(TraffStats::ROUTE_AJUSER,TraffStats::ROUTE_AJCAT))) {
+    if (ubRouting::checkGet(array(TraffStats::ROUTE_AJUSER, TraffStats::ROUTE_AJCAT))) {
         $traffStats = new TraffStats();
         $traffStats->catchDefferedCallback();
     }
