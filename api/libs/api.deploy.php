@@ -8,6 +8,7 @@ class Avarice {
     private $data = array();
     private $serial = '';
     private $raw = array();
+    private $ident='gHN';
 
     public function __construct() {
         $this->getSerial();
@@ -20,7 +21,7 @@ class Avarice {
      * @param $data data to encode
      * @param $key  encoding key
      * 
-     * @return binary
+     * @return string
      */
     protected function xoror($data, $key) {
         $result = '';
@@ -29,11 +30,11 @@ class Avarice {
                 @$result .= $data[$i] ^ $key[$j];
             }
         }
-        return($result);
+        return ($result);
     }
 
     /**
-     * pack xorored binary data into storable ascii data
+     * packs xorored binary data into storable ascii data
      * 
      * @param $data
      * 
@@ -96,7 +97,7 @@ class Avarice {
     }
 
     /**
-     * gets ubilling system key into private key prop
+     * sets ubilling system key into private key prop
      * 
      * @return void
      */
@@ -122,7 +123,7 @@ class Avarice {
             if (isset($this->data[$module])) {
                 return (true);
             } else {
-                return(false);
+                return (false);
             }
         }
     }
@@ -152,23 +153,25 @@ class Avarice {
     /**
      * check license key before storing it
      * 
-     * @param $key string key to check valid format
+     * @param string $key key to check 4 valid format
      * 
      * @return bool
      */
     protected function checkLicenseValidity($key) {
-        @$key = $this->unpack($key);
-        @$key = $this->xoror($key, $this->serial);
-        @$key = unserialize($key);
-        if (!empty($key)) {
-            return (true);
-        } else {
-            return (false);
+        $result = false;
+        if (@strpos($key, strrev($this->ident), 0) !== false) {
+            @$key = $this->unpack($key);
+            @$key = $this->xoror($key, $this->serial);
+            @$key = unserialize($key);
+            if (!empty($key)) {
+                $result = true;
+            }
         }
+        return ($result);
     }
 
     /**
-     * public function that deletes key from database
+     * deletes key database record
      * 
      * @param $keyname string identify key into database
      * 
@@ -195,7 +198,7 @@ class Avarice {
             $query = "INSERT INTO `ubstorage` (`id`, `key`, `value`) VALUES (NULL, '" . $keyname . "', '" . $key . "');";
             nr_query($query);
             log_register("AVARICE INSTALL KEY `" . $keyname . '`');
-            return(true);
+            return (true);
         } else {
             log_register("AVARICE TRY INSTALL WRONG KEY");
             return (false);
@@ -209,13 +212,12 @@ class Avarice {
         if ($this->checkLicenseValidity($key)) {
             simple_update_field('ubstorage', 'value', $key, "WHERE `key`='" . $index . "'");
             log_register("AVARICE UPDATE KEY `" . $index . '`');
-            return(true);
+            return (true);
         } else {
             log_register("AVARICE TRY UPDATE WRONG KEY");
             return (false);
         }
     }
-
 }
 
 /**
@@ -239,7 +241,7 @@ function zb_LicenseLister() {
             $editinputs .= wf_TextArea('editlicense', '', $each['LICENSE'], true, '50x10');
             $editinputs .= wf_Submit(__('Save'));
             $editform = wf_Form("", 'POST', $editinputs, 'glamour');
-            $editcontrol = wf_modal(web_edit_icon(), __('Edit') . ' ' . $each['MODULE'], $editform, '', '500', '300');
+            $editcontrol = wf_modalAuto(web_edit_icon(), __('Edit') . ' ' . $each['MODULE'], $editform, '');
             $deletionUrl = '?module=licensekeys&licensedelete=' . $each['KEY'];
             $cancelUrl = '?module=licensekeys';
             $delLabel = __('Delete') . ' ' . __('License key') . ' ' . $each['MODULE'] . '? ';
@@ -263,5 +265,3 @@ function zb_LicenseLister() {
     $result .= $addcontrol;
     show_window(__('Installed license keys'), $result);
 }
-
-?>
