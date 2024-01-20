@@ -260,7 +260,7 @@ function zb_LicenseLister() {
     $addinputs = wf_TextArea('createlicense', '', '', true, '50x10');
     $addinputs .= wf_Submit(__('Save'));
     $addform = wf_Form("", 'POST', $addinputs, 'glamour');
-    $addcontrol = wf_modal(web_icon_create() . ' ' . __('Install license key'), __('Install license key'), $addform, 'ubButton', '500', '300');
+    $addcontrol = wf_modalAuto(web_icon_create() . ' ' . __('Install license key'), __('Install license key'), $addform, 'ubButton');
     $result .= wf_delimiter(0);
     $result .= $addcontrol;
     show_window(__('Installed license keys'), $result);
