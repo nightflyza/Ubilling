@@ -696,6 +696,25 @@ class PixelCraft {
     }
 
     /**
+     * Converts hex color string to RGB components array
+     * 
+     * @param string $hex hex string as RRGGBB
+     * 
+     * @return array
+     */
+    public function hexToRgb($hex) {
+        $result = '';
+        if (!empty($hex)) {
+            $hex=str_replace('#','',$hex);
+            $r = hexdec(substr($hex, 0, 2));
+            $g = hexdec(substr($hex, 2, 2));
+            $b = hexdec(substr($hex, 4, 2));
+            $result = array('r' => $r, 'g' => $g, 'b' => $b);
+        }
+        return ($result);
+    }
+
+    /**
      * Returns color map for current intance image as array(y,x)=>color
      * 
      * @param bool $hex returns map values as rrggbb hex values or raw rgba components
