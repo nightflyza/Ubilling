@@ -1156,11 +1156,11 @@ function zb_AgentStatsRender($mask = '') {
  *
  * @return array
  */
-function zb_GetAgentExtInfo($recID = '', $agentID = '', $getBaseAgentInfo = false) {
+function zb_GetAgentExtInfo($recID = '', $agentID = '', $getBaseAgentInfo = false, $whereRawStr = '', $assocByField = '') {
     $tabAgentExtInfo = new NyanORM('contrahens_extinfo');
 
     if ($getBaseAgentInfo) {
-        $tabAgentExtInfo->selectable(array('`contrahens_extinfo`.*', '`contrahens`.`contrname`'));
+        $tabAgentExtInfo->selectable(array('`contrahens_extinfo`.*', '`contrahens`.*'));
         $tabAgentExtInfo->joinOn('LEFT', 'contrahens', " `contrahens_extinfo`.`agentid` = `contrahens`.`id` ");
     }
 
@@ -1172,7 +1172,11 @@ function zb_GetAgentExtInfo($recID = '', $agentID = '', $getBaseAgentInfo = fals
         $tabAgentExtInfo->where('agentid', '=', $agentID);
     }
 
-    $result = $tabAgentExtInfo->getAll();
+    if (!empty($whereRawStr)) {
+        $tabAgentExtInfo->whereRaw($whereRawStr);
+    }
+
+    $result = $tabAgentExtInfo->getAll($assocByField);
 
     return ($result);
 }

@@ -172,6 +172,62 @@ class Reminder {
     protected $rmdDebugON = false;
 
     /**
+     * Placeholder for REMINDER_PRIVATBANK_INVOICE_PUSH alter.ini option
+     *
+     * @var bool
+     */
+    protected $rmdPrivatBankInvoicesON = false;
+
+    /**
+     * Placeholder for REMINDER_PBI_AUTH_LOGIN alter.ini option
+     *
+     * @var string
+     */
+    protected $rmdPBIAuthLogin = '';
+
+    /**
+     * Placeholder for REMINDER_PBI_URL alter.ini option
+     *
+     * @var string
+     */
+    protected $rmdPBIURL= '';
+
+    /**
+     * Placeholder for REMINDER_PBI_DAY_TARIFF_MULTIPLIER alter.ini option
+     *
+     * @var int
+     */
+    protected $rmdPBIDayTariffMultiplier = 1;
+
+    /**
+     * Placeholder for REMINDER_PBI_USER_FILTER_PAYSYS_LIST alter.ini option
+     *
+     * @var array
+     */
+    protected $rmdPBIUserFilterPaysysList = array();
+
+    /**
+     * Contains array of user logins filtered by OpenPayz payment systems listed in $rmdPBIUserFilterPaysysList
+     *
+     * @var array
+     */
+    protected $rmdPBIPaysysFilteredUsersList = array();
+
+    /**
+     * Flag which intended to indicate that there are users filtered by OpenPayz payment systems listed in $rmdPBIUserFilterPaysysList
+     *
+     * @var bool
+     */
+    protected $rmdPBIPaysysFilteredUsersExist = false;
+
+    /**
+     * Contains data of the "contragents" which have PRIVAT_INVOICE_PUSH service in their "external info"
+     *
+     * @var array
+     */
+    protected $rmdPBIContragentsData = array();
+
+    /**
      * Placeholder for UbillingConfig object
      *
      * @var null
@@ -189,6 +245,10 @@ class Reminder {
     const CREDITPREFIX = 'CREDIT.';
     const CAPPREFIX = 'CAP.';
     const FROZENPREFIX = 'FROZEN.';
+    const PI_INVOICE = 'PRIVATBANK_INVOICE';
+    const OPAYZ_TRANSACTIONS_TABLE = 'op_transactions';
+    const OPAYZ_CUSTOMERS_TABLE = 'op_customers';
+    const CONTRAGENTS_SQL_WHERE_RAW = " `internal_paysys_name` = 'PRIVAT_INVOICE_PUSH' ";
 
     /**
      * it's a magic
@@ -205,6 +265,18 @@ class Reminder {
         $this->extMobilesObj = new MobilesExt();
         $this->money = new FundsFlow();
         $this->money->runDataLoders();
+
+        if ($this->rmdPrivatBankInvoicesON) {
+            if (empty($this->rmdPBIAuthLogin) or empty($this->rmdPBIURL)) {
+                log_register('REMINDER ERROR:  PRIVAT INVOICE service intended for use, but no login/URL provided - thus regular SMSes will be used');
+                $this->rmdPrivatBankInvoicesON = false;
+            } else {
+                $this->getUsersByPaysys();
+                $this->rmdPBIContragentsData = zb_GetAgentExtInfo('', '', true, self::CONTRAGENTS_SQL_WHERE_RAW, 'agentid');
+            }
+        }
+
+file_put_contents('exports/REMINDER_DEBUG', '');
     }
 
     /**
@@ -246,6 +318,14 @@ class Reminder {
         $this->rmdTemplateCAP = $this->ubConfig->getAlterParam('REMINDER_TEMPLATE_CAP');
         $this->rmdTemplateFrozen = $this->ubConfig->getAlterParam('REMINDER_TEMPLATE_FROZEN');
         $this->rmdForceTranslit = ubRouting::filters($this->ubConfig->getAlterParam('REMINDER_FORCE_TRANSLIT', true), 'fi', FILTER_VALIDATE_BOOLEAN);
+
+        // PrivatBank Invoices options
+        $this->rmdPrivatBankInvoicesON = $this->ubConfig->getAlterParam('REMINDER_PRIVATBANK_INVOICE_PUSH', false);
+        //$this->rmdPBIAuthLogin = base64_encode($this->ubConfig->getAlterParam('REMINDER_PBI_AUTH_LOGIN', ''));
+        $this->rmdPBIAuthLogin = $this->ubConfig->getAlterParam('REMINDER_PBI_AUTH_LOGIN', '');
+        $this->rmdPBIURL = $this->ubConfig->getAlterParam('REMINDER_PBI_URL', '');
+        $this->rmdPBIDayTariffMultiplier = $this->ubConfig->getAlterParam('REMINDER_PBI_DAY_TARIFF_MULTIPLIER', 1);
+        $this->rmdPBIUserFilterPaysysList = $this->ubConfig->getAlterParam('REMINDER_PBI_USER_FILTER_PAYSYS_LIST', '');
 
         if (!ubRouting::filters($this->ubConfig->getAlterParam('CAP_ENABLED'), 'fi', FILTER_VALIDATE_BOOLEAN)
                 or empty($this->rmdCAPDayLimit)) {
@@ -391,12 +471,69 @@ class Reminder {
         }
     }
 
+
+    protected function createPBInvoice($login) {
+        $invoiceArray = array();
+        $userAddress  = $this->AllTemplates[$login]['address'];
+        $userAgent    = empty($userAddress) ? zb_AgentAssignedGetData($login) : zb_AgentAssignedGetDataFast($login, $userAddress);
+
+        if (!empty($this->rmdPBIContragentsData[$userAgent['id']])) {
+            $userAgentFullData  = $this->rmdPBIContragentsData[$userAgent['id']];
+            $userTariff         = $this->AllTemplates[$login]['tariff'];
+            $userTariffData     = zb_TariffGetData($userTariff);
+            $userTariffPeriod   = $userTariffData['period'];
+            $userTariffPrice    = ($userTariffPeriod == 'day') ? $userTariffData['Fee'] * $this->rmdPBIDayTariffMultiplier : $userTariffData['Fee'];
+            $invoiceCloseDate   = new DateTime('+2 weeks');
+            $invoiceCloseDate   = $invoiceCloseDate->format('Y-m-d');
+            $userCellPhoneNum   = $this->AllTemplates[$login]['mobile'];
+log_register('REMINDER  $userCellPhoneNum  ' . $userCellPhoneNum);
+            $userCellPhoneNum   = preg_match('/^(\+38|38)/', $userCellPhoneNum) ? $userCellPhoneNum : $this->rmdPhonePrefix . $userCellPhoneNum;
+
+            $invoiceArray = array('invoicemsg' => array(
+                                    'invoicetype'    => 'S',
+                                    'comctype'       => 8,
+                                    'company'        => $userAgentFullData['paysys_secret_key'],
+                                    'companyid'      => $userAgentFullData['internal_paysys_id'],
+                                    'servicecod'     => $userAgentFullData['internal_paysys_srv_id'],
+                                    'serviceid'      => $userAgentFullData['paysys_token'],
+                                    'invname'        => $userAgentFullData['paysys_secret_key'],
+                                    'destname'       => $userAgentFullData['paysys_password'],
+                                    'mfod'           => $userAgentFullData['bankcode'],
+                                    'okpod'          => $userAgentFullData['edrpo'],
+                                    'amount'         => $userTariffPrice,
+                                    'clphone'        => $userCellPhoneNum,
+                                    'invclosingdate' => $invoiceCloseDate,
+                                    'extparams'      => array('param' => array(
+                                                        'name'  => 'bill_identifier',
+                                                        'value' => $this->AllTemplates[$login]['contract']
+                                                        )
+                                                    )
+                                    )
+                                 );
+log_register('REMIDER:  print_r($invoiceArray)  ' . print_r($invoiceArray, true));
+            $invoiceArray = json_encode($invoiceArray);
+log_register('REMIDER:  ' . $invoiceArray);
+        }
+
+        return ($invoiceArray);
+    }
+
     /**
      * Make queue for sms send
      *
      * @return void
      */
     public function remindUsers() {
+        if ($this->rmdPrivatBankInvoicesON) {
+            $omaeURL = new OmaeUrl($this->rmdPBIURL);
+$verbose = fopen('php://temp', 'w+');
+$omaeURL->setOpt(CURLOPT_VERBOSE, true);
+$omaeURL->setOpt(CURLOPT_STDERR, $verbose);
+            $omaeURL->setOpt(CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
+            $omaeURL->setOpt(CURLOPT_USERPWD, $this->rmdPBIAuthLogin);
+            $omaeURL->dataHeader('Content-type', 'application/json;charset=utf-8');
+        }
+log_register('REMINDER:  $this->AllLogin  ' . print_r($this->AllLogin, true));
         foreach ($this->AllLogin as $userLoginData) {
             // yep, we evaluate $liveDays, $liveTime and $cacheTime on every iteration
             // 'cause they may be re-assigned below, depending on processing type
@@ -415,11 +552,41 @@ class Reminder {
 
             // process base service expiration
             // certain user must not be a debtor and not to be frozen and processing mode must not be equal to 2
+log_register('REMINDER:  $onlineDaysLeft <= $liveDays  ' . $onlineDaysLeft <= $liveDays);
+log_register('REMINDER:  $userLoginData[Passive]  ' . $userLoginData['Passive']);
             if ($onlineDaysLeft <= $liveDays and $onlineDaysLeft >= 0 and $this->rmdMode != 2 and empty($userLoginData['Passive'])) {
-
+log_register('REMINDER:  $this->rmdPrivatBankInvoicesON  ' . $this->rmdPrivatBankInvoicesON);
+log_register('REMINDER:  $this->rmdPBIUserFilterPaysysList  ' . $this->rmdPBIUserFilterPaysysList);
+log_register('REMINDER:  $this->rmdPBIPaysysFilteredUsersList  ' . print_r($this->rmdPBIPaysysFilteredUsersList, true));
                 if (!file_exists(self::FLAGPREFIX . $eachLogin)) {
-                    $this->createRemindMsg($eachLogin, $numbers, self::FLAGPREFIX);
-                    $this->debugReminder('CONSIDER BASE SERVICE', $eachLogin, $userLoginData['Cash'], print_r($numbers, true), $liveDays, $liveTime, $cacheTime, 'online days left: ' . $onlineDaysLeft);
+                    if ($this->rmdPrivatBankInvoicesON) {
+                        $proceedInvoice = true;
+
+                        if (!empty($this->rmdPBIUserFilterPaysysList)) {
+                            $proceedInvoice = in_array($eachLogin, $this->rmdPBIPaysysFilteredUsersList);
+                        }
+
+                        if ($proceedInvoice) {
+                            $invoice = $this->createPBInvoice($eachLogin);
+                            $omaeURL->dataPostRaw($invoice);
+                            $sendResult = $omaeURL->response();
+                            file_put_contents(self::FLAGPREFIX . $eachLogin, '');
+                        } else {
+                            log_register('REMINDER:  NO LOGINS FOUND BY OPAYZ PAYSYS FILTER FOR PRIVATBANK INVOICE');
+                        }
+
+log_register('REMINDER:  $sendResult  ' . $sendResult);
+log_register('REMINDER:  $omaeURL->lastRequestInfo  ' . print_r($omaeURL->lastRequestInfo(), true));
+log_register('REMINDER:  $omaeURL->error ' . print_r($omaeURL->error(), true));
+file_put_contents('exports/REMINDER_DEBUG', print_r($omaeURL->lastRequestInfo(), true), 8);
+
+rewind($verbose);
+file_put_contents('exports/REMINDER_VERBOSE', stream_get_contents($verbose));
+
+                    } else {
+                        $this->createRemindMsg($eachLogin, $numbers, self::FLAGPREFIX);
+                        $this->debugReminder('CONSIDER BASE SERVICE', $eachLogin, $userLoginData['Cash'], print_r($numbers, true), $liveDays, $liveTime, $cacheTime, 'online days left: ' . $onlineDaysLeft);
+                    }
                 }
             }
 
@@ -541,6 +708,46 @@ class Reminder {
                 }
             }
         }
+    }
+
+    /**
+     * Retrieves user logins from OPAYZ_CUSTOMERS_TABLE which are filtered by $this->rmdPBIUserFilterPaysysList
+     *
+     * @return array|string[]
+     */
+    protected function getUsersByPaysys() {
+        $result = array();
+
+        if (!empty($this->rmdPBIUserFilterPaysysList)) {
+            $whereStr = '';
+            $pbiUserFilterPaysysList = explode(',', $this->rmdPBIUserFilterPaysysList);
+
+            foreach ($pbiUserFilterPaysysList as $eachPaysys) {
+                if (!empty($eachPaysys)) {
+                    $whereStr.= " '" . $eachPaysys . "', ";
+                }
+            }
+
+            $whereStr = trim($whereStr, ',');
+
+            if (!empty($whereStr)) {
+                $opCustomersTable = new NyanORM(self::OPAYZ_CUSTOMERS_TABLE);
+
+                $opCustomersTable->selectable('realid');
+                $opCustomersTable->joinOn('INNER', self::OPAYZ_TRANSACTIONS_TABLE,
+                                          self::OPAYZ_CUSTOMERS_TABLE . ".`virtualid` = " .
+                                          self::OPAYZ_TRANSACTIONS_TABLE . ".`customerid`" .
+                                          " AND " . self::OPAYZ_TRANSACTIONS_TABLE . ".`paysys` IN (" . $whereStr . ") "
+                                         );
+                $result = $opCustomersTable->getAll('realid', true, true);
+                $result = array_keys($result);
+            }
+
+            $this->rmdPBIPaysysFilteredUsersList  = $result;
+            $this->rmdPBIPaysysFilteredUsersExist = !empty($result);
+        }
+
+        return ($result);
     }
 
     /**
