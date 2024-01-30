@@ -1160,7 +1160,13 @@ function zb_GetAgentExtInfo($recID = '', $agentID = '', $getBaseAgentInfo = fals
     $tabAgentExtInfo = new NyanORM('contrahens_extinfo');
 
     if ($getBaseAgentInfo) {
-        $tabAgentExtInfo->selectable(array('`contrahens_extinfo`.*', '`contrahens`.*'));
+        $tabAgentExtInfo->selectable(array('`contrahens_extinfo`.*',
+                                           '`contrahens`.`bankacc`', '`contrahens`.`bankname`', '`contrahens`.`bankcode`',
+                                           '`contrahens`.`edrpo`', '`contrahens`.`ipn`', '`contrahens`.`licensenum`',
+                                           '`contrahens`.`juraddr`', '`contrahens`.`phisaddr`', '`contrahens`.`phone`',
+                                           '`contrahens`.`contrname`', '`contrahens`.`agnameabbr`', '`contrahens`.`agsignatory`',
+                                           '`contrahens`.`agsignatory2`', '`contrahens`.`agbasis`', '`contrahens`.`agmail`', '`contrahens`.`siteurl`'
+                                    ));
         $tabAgentExtInfo->joinOn('LEFT', 'contrahens', " `contrahens_extinfo`.`agentid` = `contrahens`.`id` ");
     }
 
@@ -1313,6 +1319,14 @@ function zb_AgentEditExtInfoForm($recID = '') {
             foreach ($all as $io => $each) {
                 $allPaySys[$each['paysys']] = $each['paysys'];
             }
+        }
+
+        // check if PrivatBank invoices sending is on
+        global $ubillingConfig;
+        $rmdPBInvoicesON = $ubillingConfig->getAlterParam('REMINDER_PRIVATBANK_INVOICE_PUSH', false);
+
+        if ($rmdPBInvoicesON) {
+            $allPaySys['PRIVAT_INVOICE_PUSH'] = 'PRIVAT_INVOICE_PUSH';
         }
     }
 
