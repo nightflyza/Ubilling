@@ -204,7 +204,7 @@ class Reminder {
      *
      * @var array
      */
-    protected $rmdPBIUserFilterPaysysList = array();
+    protected $rmdPBIUserFilterPaysysList = '';
 
     /**
      * Contains array of user logins filtered by OpenPayz payment systems listed in $rmdPBIUserFilterPaysysList
@@ -212,13 +212,6 @@ class Reminder {
      * @var array
      */
     protected $rmdPBIPaysysFilteredUsersList = array();
-
-    /**
-     * Flag which intended to indicate that there are users filtered by OpenPayz payment systems listed in $rmdPBIUserFilterPaysysList
-     *
-     * @var bool
-     */
-    protected $rmdPBIPaysysFilteredUsersExist = false;
 
     /**
      * Contains data of the "contragents" which have PRIVAT_INVOICE_PUSH service in their "external info"
@@ -241,6 +234,21 @@ class Reminder {
      */
     protected $extMobilesObj = null;
 
+    /**
+     * OMAEURL instance placeholder
+     *
+     * @var null
+     */
+    protected $omaeURL = null;
+
+    /**
+     * OMAEURL verbose logging stream
+     *
+     * @var string
+     */
+    protected $omaeVerboseLoggingStream = '';
+
+
     const FLAGPREFIX = 'exports/REMINDER.';
     const CREDITPREFIX = 'CREDIT.';
     const CAPPREFIX = 'CAP.';
@@ -249,6 +257,7 @@ class Reminder {
     const OPAYZ_TRANSACTIONS_TABLE = 'op_transactions';
     const OPAYZ_CUSTOMERS_TABLE = 'op_customers';
     const CONTRAGENTS_SQL_WHERE_RAW = " `internal_paysys_name` = 'PRIVAT_INVOICE_PUSH' ";
+    const OMAEURL_DEBUG_FILE = 'exports/REMINDER_OMAEURL_DEBUG';
 
     /**
      * it's a magic
@@ -268,30 +277,29 @@ class Reminder {
 
         if ($this->rmdPrivatBankInvoicesON) {
             if (empty($this->rmdPBIAuthLogin) or empty($this->rmdPBIURL)) {
-                log_register('REMINDER ERROR:  PRIVAT INVOICE service intended for use, but no login/URL provided - thus regular SMSes will be used');
+                $this->debugReminderRAW('ERROR:  PRIVAT INVOICE service intended for use, but no login/URL provided - thus regular SMSes will be used');
                 $this->rmdPrivatBankInvoicesON = false;
             } else {
                 $this->getUsersByPaysys();
                 $this->rmdPBIContragentsData = zb_GetAgentExtInfo('', '', true, self::CONTRAGENTS_SQL_WHERE_RAW, 'agentid');
             }
         }
-
-file_put_contents('exports/REMINDER_DEBUG', '');
     }
 
-    /**
-     * load alter.ini config
-     *
-     * @return void
-     */
-    /*    protected function loadAlter() {
-      $this->AltCfg = $this->ubConfig->getAlter();
-      $this->considerCredits = $this->ubConfig->getAlterParam('REMINDER_CONSIDER_CREDIT');
-      // check if credits considering correct mode is set
-      $this->considerCredits = (empty($this->considerCredits) or $this->considerCredits > 2) ? 0 : $this->considerCredits;
+    protected function initOmaeURL() {
+        $this->omaeURL = new OmaeUrl($this->rmdPBIURL);
+        $this->omaeURL->setOpt(CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
+        $this->omaeURL->setOpt(CURLOPT_USERPWD, $this->rmdPBIAuthLogin);
+        $this->omaeURL->dataHeader('Content-type', 'application/json;charset=utf-8');
 
-      }
-     */
+        if ($this->rmdDebugON) {
+            $this->omaeVerboseLoggingStream = fopen('php://temp', 'w+');
+            $this->omaeURL->setOpt(CURLOPT_VERBOSE, true);
+            $this->omaeURL->setOpt(CURLOPT_STDERR, $this->omaeVerboseLoggingStream);
+            file_put_contents(self::OMAEURL_DEBUG_FILE, '');
+        }
+    }
+
 
     /**
      * Loads essential options values
@@ -321,7 +329,6 @@ file_put_contents('exports/REMINDER_DEBUG', '');
 
         // PrivatBank Invoices options
         $this->rmdPrivatBankInvoicesON = $this->ubConfig->getAlterParam('REMINDER_PRIVATBANK_INVOICE_PUSH', false);
-        //$this->rmdPBIAuthLogin = base64_encode($this->ubConfig->getAlterParam('REMINDER_PBI_AUTH_LOGIN', ''));
         $this->rmdPBIAuthLogin = $this->ubConfig->getAlterParam('REMINDER_PBI_AUTH_LOGIN', '');
         $this->rmdPBIURL = $this->ubConfig->getAlterParam('REMINDER_PBI_URL', '');
         $this->rmdPBIDayTariffMultiplier = $this->ubConfig->getAlterParam('REMINDER_PBI_DAY_TARIFF_MULTIPLIER', 1);
@@ -489,30 +496,31 @@ file_put_contents('exports/REMINDER_DEBUG', '');
 log_register('REMINDER  $userCellPhoneNum  ' . $userCellPhoneNum);
             $userCellPhoneNum   = preg_match('/^(\+38|38)/', $userCellPhoneNum) ? $userCellPhoneNum : $this->rmdPhonePrefix . $userCellPhoneNum;
 
-            $invoiceArray = array('invoicemsg' => array(
-                                    'invoicetype'    => 'S',
-                                    'comctype'       => 8,
-                                    'company'        => $userAgentFullData['paysys_secret_key'],
-                                    'companyid'      => $userAgentFullData['internal_paysys_id'],
-                                    'servicecod'     => $userAgentFullData['internal_paysys_srv_id'],
-                                    'serviceid'      => $userAgentFullData['paysys_token'],
-                                    'invname'        => $userAgentFullData['paysys_secret_key'],
-                                    'destname'       => $userAgentFullData['paysys_password'],
-                                    'mfod'           => $userAgentFullData['bankcode'],
-                                    'okpod'          => $userAgentFullData['edrpo'],
-                                    'amount'         => $userTariffPrice,
-                                    'clphone'        => $userCellPhoneNum,
-                                    'invclosingdate' => $invoiceCloseDate,
-                                    'extparams'      => array('param' => array(
-                                                        'name'  => 'bill_identifier',
-                                                        'value' => $this->AllTemplates[$login]['contract']
+            $invoiceArray = array(
+                                'invoicetype'    => 'S',
+                                'comctype'       => '8',
+                                'company'        => $userAgentFullData['paysys_secret_key'],
+                                'companyid'      => $userAgentFullData['internal_paysys_id'],
+                                'servicecod'     => $userAgentFullData['internal_paysys_srv_id'],
+                                'serviceid'      => $userAgentFullData['paysys_token'],
+                                'invname'        => $userAgentFullData['paysys_secret_key'],
+                                'destname'       => $userAgentFullData['paysys_password'],
+                                'mfod'           => $userAgentFullData['bankcode'],
+                                'okpod'          => $userAgentFullData['edrpo'],
+                                'amount'         => floatval(number_format($userTariffPrice, 2, '.', '')),
+                                'clphone'        => $userCellPhoneNum,
+                                'invclosingdate' => $invoiceCloseDate,
+                                'extparams'      => array('param' => array(array(
+                                                            'name'  => 'bill_identifier',
+                                                            'value' => $this->AllTemplates[$login]['contract']
+                                                            )
                                                         )
                                                     )
-                                    )
-                                 );
-log_register('REMIDER:  print_r($invoiceArray)  ' . print_r($invoiceArray, true));
+                                );
+
+            $this->debugReminderRAW('invoiceArray  ' . print_r($invoiceArray, true));
             $invoiceArray = json_encode($invoiceArray);
-log_register('REMIDER:  ' . $invoiceArray);
+            $this->debugReminderRAW('invoiceJSON  ' . $invoiceArray);
         }
 
         return ($invoiceArray);
@@ -525,14 +533,9 @@ log_register('REMIDER:  ' . $invoiceArray);
      */
     public function remindUsers() {
         if ($this->rmdPrivatBankInvoicesON) {
-            $omaeURL = new OmaeUrl($this->rmdPBIURL);
-$verbose = fopen('php://temp', 'w+');
-$omaeURL->setOpt(CURLOPT_VERBOSE, true);
-$omaeURL->setOpt(CURLOPT_STDERR, $verbose);
-            $omaeURL->setOpt(CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
-            $omaeURL->setOpt(CURLOPT_USERPWD, $this->rmdPBIAuthLogin);
-            $omaeURL->dataHeader('Content-type', 'application/json;charset=utf-8');
+            $this->initOmaeURL();
         }
+
 log_register('REMINDER:  $this->AllLogin  ' . print_r($this->AllLogin, true));
         foreach ($this->AllLogin as $userLoginData) {
             // yep, we evaluate $liveDays, $liveTime and $cacheTime on every iteration
@@ -555,12 +558,14 @@ log_register('REMINDER:  $this->AllLogin  ' . print_r($this->AllLogin, true));
 log_register('REMINDER:  $onlineDaysLeft <= $liveDays  ' . $onlineDaysLeft <= $liveDays);
 log_register('REMINDER:  $userLoginData[Passive]  ' . $userLoginData['Passive']);
             if ($onlineDaysLeft <= $liveDays and $onlineDaysLeft >= 0 and $this->rmdMode != 2 and empty($userLoginData['Passive'])) {
-log_register('REMINDER:  $this->rmdPrivatBankInvoicesON  ' . $this->rmdPrivatBankInvoicesON);
-log_register('REMINDER:  $this->rmdPBIUserFilterPaysysList  ' . $this->rmdPBIUserFilterPaysysList);
-log_register('REMINDER:  $this->rmdPBIPaysysFilteredUsersList  ' . print_r($this->rmdPBIPaysysFilteredUsersList, true));
+                $this->debugReminderRAW('rmdPrivatBankInvoicesON  ' . $this->rmdPrivatBankInvoicesON);
+                $this->debugReminderRAW('rmdPBIUserFilterPaysysList  ' . $this->rmdPBIUserFilterPaysysList);
+                $this->debugReminderRAW('rmdPBIPaysysFilteredUsersList  ' . print_r($this->rmdPBIPaysysFilteredUsersList, true));
+
                 if (!file_exists(self::FLAGPREFIX . $eachLogin)) {
                     if ($this->rmdPrivatBankInvoicesON) {
                         $proceedInvoice = true;
+                        $sendResult = '';
 
                         if (!empty($this->rmdPBIUserFilterPaysysList)) {
                             $proceedInvoice = in_array($eachLogin, $this->rmdPBIPaysysFilteredUsersList);
@@ -568,21 +573,22 @@ log_register('REMINDER:  $this->rmdPBIPaysysFilteredUsersList  ' . print_r($this
 
                         if ($proceedInvoice) {
                             $invoice = $this->createPBInvoice($eachLogin);
-                            $omaeURL->dataPostRaw($invoice);
-                            $sendResult = $omaeURL->response();
+                            $this->omaeURL->dataPostRaw($invoice);
+                            $sendResult = $this->omaeURL->response();
                             file_put_contents(self::FLAGPREFIX . $eachLogin, '');
                         } else {
                             log_register('REMINDER:  NO LOGINS FOUND BY OPAYZ PAYSYS FILTER FOR PRIVATBANK INVOICE');
                         }
 
-log_register('REMINDER:  $sendResult  ' . $sendResult);
-log_register('REMINDER:  $omaeURL->lastRequestInfo  ' . print_r($omaeURL->lastRequestInfo(), true));
-log_register('REMINDER:  $omaeURL->error ' . print_r($omaeURL->error(), true));
-file_put_contents('exports/REMINDER_DEBUG', print_r($omaeURL->lastRequestInfo(), true), 8);
+                        $this->debugReminderRAW(' PBI send result  ' . $sendResult);
+                        $this->debugReminderRAW(' PBI OMAEURL lastRequestInfo  ' . print_r($this->omaeURL->lastRequestInfo(), true));
+                        $this->debugReminderRAW(' PBI OMAEURL error  ' . print_r($this->omaeURL->error(), true));
 
-rewind($verbose);
-file_put_contents('exports/REMINDER_VERBOSE', stream_get_contents($verbose));
-
+                        if ($this->rmdDebugON) {
+                            rewind($this->omaeVerboseLoggingStream);
+                            file_put_contents(self::OMAEURL_DEBUG_FILE, stream_get_contents($this->omaeVerboseLoggingStream), 8);
+                            file_put_contents(self::OMAEURL_DEBUG_FILE, print_r($this->omaeURL->lastRequestInfo(), true), 8);
+                        }
                     } else {
                         $this->createRemindMsg($eachLogin, $numbers, self::FLAGPREFIX);
                         $this->debugReminder('CONSIDER BASE SERVICE', $eachLogin, $userLoginData['Cash'], print_r($numbers, true), $liveDays, $liveTime, $cacheTime, 'online days left: ' . $onlineDaysLeft);
@@ -672,6 +678,10 @@ file_put_contents('exports/REMINDER_VERBOSE', stream_get_contents($verbose));
      * @return void
      */
     public function forceRemind() {
+        if ($this->rmdPrivatBankInvoicesON) {
+            $this->initOmaeURL();
+        }
+
         foreach ($this->AllLogin as $userLoginData) {
             $eachLogin = $userLoginData['login'];
             $numbers = array($userLoginData['mobile']);
@@ -682,7 +692,39 @@ file_put_contents('exports/REMINDER_VERBOSE', stream_get_contents($verbose));
                 $numbers = $numbers + $userExtMobs;
             }
 
-            $this->createRemindMsg($eachLogin, $numbers, '', true);
+            $this->debugReminderRAW('rmdPrivatBankInvoicesON  ' . $this->rmdPrivatBankInvoicesON);
+            $this->debugReminderRAW('rmdPBIUserFilterPaysysList  ' . $this->rmdPBIUserFilterPaysysList);
+            $this->debugReminderRAW('rmdPBIPaysysFilteredUsersList  ' . print_r($this->rmdPBIPaysysFilteredUsersList, true));
+
+            if ($this->rmdPrivatBankInvoicesON) {
+                $proceedInvoice = true;
+                $sendResult = '';
+
+                if (!empty($this->rmdPBIUserFilterPaysysList)) {
+                    $proceedInvoice = in_array($eachLogin, $this->rmdPBIPaysysFilteredUsersList);
+                }
+
+                if ($proceedInvoice) {
+                    $invoice = $this->createPBInvoice($eachLogin);
+                    $this->omaeURL->dataPostRaw($invoice);
+                    $sendResult = $this->omaeURL->response();
+                    file_put_contents(self::FLAGPREFIX . $eachLogin, '');
+                } else {
+                    log_register('REMINDER:  NO LOGINS FOUND BY OPAYZ PAYSYS FILTER FOR PRIVATBANK INVOICE');
+                }
+
+                $this->debugReminderRAW(' PBI send result  ' . $sendResult);
+                $this->debugReminderRAW(' PBI OMAEURL lastRequestInfo  ' . print_r($this->omaeURL->lastRequestInfo(), true));
+                $this->debugReminderRAW(' PBI OMAEURL error  ' . print_r($this->omaeURL->error(), true));
+
+                if ($this->rmdDebugON) {
+                    rewind($this->omaeVerboseLoggingStream);
+                    file_put_contents(self::OMAEURL_DEBUG_FILE, stream_get_contents($this->omaeVerboseLoggingStream), 8);
+                    file_put_contents(self::OMAEURL_DEBUG_FILE, print_r($this->omaeURL->lastRequestInfo(), true), 8);
+                }
+            } else {
+                $this->createRemindMsg($eachLogin, $numbers, '', true);
+            }
         }
     }
 
@@ -744,7 +786,6 @@ file_put_contents('exports/REMINDER_VERBOSE', stream_get_contents($verbose));
             }
 
             $this->rmdPBIPaysysFilteredUsersList  = $result;
-            $this->rmdPBIPaysysFilteredUsersExist = !empty($result);
         }
 
         return ($result);
@@ -772,6 +813,17 @@ file_put_contents('exports/REMINDER_VERBOSE', stream_get_contents($verbose));
             log_register('REMINDER cacheTime: ' . $cacheTime);
             log_register('REMINDER ' . $leftTime);
         }
+    }
+
+    /**
+     * Provides simple debugging of reminder processing
+     *
+     * @param $logmsg
+     *
+     * @return void
+     */
+    protected function debugReminderRAW($logmsg) {
+        if ($this->rmdDebugON) { log_register('REMINDER:  ' . $logmsg); }
     }
 
 }
