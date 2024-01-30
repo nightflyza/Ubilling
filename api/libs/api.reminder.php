@@ -770,11 +770,10 @@ log_register('REMINDER:  $userLoginData[Passive]  ' . $userLoginData['Passive'])
                 }
             }
 
-            $whereStr = trim($whereStr, ',');
+            $whereStr = trim($whereStr, ', ');
 
             if (!empty($whereStr)) {
                 $opCustomersTable = new NyanORM(self::OPAYZ_CUSTOMERS_TABLE);
-
                 $opCustomersTable->selectable('realid');
                 $opCustomersTable->joinOn('INNER', self::OPAYZ_TRANSACTIONS_TABLE,
                                           self::OPAYZ_CUSTOMERS_TABLE . ".`virtualid` = " .
