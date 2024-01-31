@@ -57,9 +57,9 @@ class OpenPayz {
     /**
      * Placeholder for UbillingConfig object
      *
-     * @var null
+     * @var object
      */
-    protected $ubConfig = null;
+    protected $ubConfig = '';
 
     /**
      * Placeholder for OP_SMS_NOTIFY_PAYMENTS_PULL_INTERVAL alter.ini option
