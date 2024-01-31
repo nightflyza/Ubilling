@@ -14,6 +14,10 @@ if (ubRouting::get('action') == 'userbynum') {
                 if (isset($allUserData[$guessedLogin])) {
                     $result['result'] = 1;
                     $result['userdata'] = $allUserData[$guessedLogin];
+                    if ($alterconf['OPENPAYZ_SUPPORT']) {
+                        $openPayz = new OpenPayz(false, false);
+                        $result['userdata']['paymentid'] = $openPayz->getCustomerPaymentId($guessedLogin);
+                    }
                 }
             }
 
