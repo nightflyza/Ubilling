@@ -3221,7 +3221,7 @@ class UbillingVisor {
                                 if ($dvrData['type'] == 'wolfrecorder') {
                                     $prefill = '';
                                     if (!empty($secretsData['login']) AND !empty($secretsData['password'])) {
-                                        $prefill = '?authprefill=' . $secretsData['login'] . '|' . $secretsData['password'];
+                                        $prefill = '?authprefill=' . $secretsData['login'] . '_' . $secretsData['password'];
                                     }
                                     if (empty($dvrData['apiurl'])) {
                                         $result[$each['dvrid']]['weburl'] = 'http://' . $dvrData['ip'] . '/wr/' . $prefill;
