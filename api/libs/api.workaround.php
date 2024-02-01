@@ -1234,7 +1234,9 @@ function web_PaymentsByUser($login) {
             $rows .= wf_TableRow($cells, $hlight);
 
             if (is_numeric($eachpayment['summ'])) {
-                $total_payments = $total_payments + $eachpayment['summ'];
+                if ($eachpayment['summ'] > 0) {
+                    $total_payments = $total_payments + $eachpayment['summ'];
+                }
             }
         }
     }
