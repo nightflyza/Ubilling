@@ -1,17 +1,17 @@
 <?php
 
 if (cfr('CASH')) {
-    if (isset($_GET['username'])) {
+    if (ubRouting::checkGet('username')) {
         $alter = $ubillingConfig->getAlter();
-        $login = vf($_GET['username']);
+        $login = ubRouting::get('username', 'vf');
 
-        // Change finance state if need:
-        if (isset($_POST['newcash'])) {
+        // Change finance state on request:
+        if (ubRouting::checkPost('newcash', false)) {
             // Init
-            $cash = $_POST['newcash'];
-            $operation = vf($_POST['operation']);
-            $cashtype = vf($_POST['cashtype']);
-            $note = ( isset($_POST['newpaymentnote']) ) ? mysql_real_escape_string($_POST['newpaymentnote']) : '';
+            $cash = ubRouting::post('newcash');
+            $operation = ubRouting::post('operation', 'vf');
+            $cashtype = ubRouting::post('cashtype', 'int');
+            $note = (ubRouting::checkPost('newpaymentnote')) ? ubRouting::post('newpaymentnote', 'mres') : '';
 
             // Empty cash hotfix:
             if ($cash != '') {
@@ -22,7 +22,7 @@ if (cfr('CASH')) {
                     $employeeLimit = @$employeeData['amountLimit'];
                     $lastDKErrorParam = '';
 
-                    if (!cfr('ROOT') and ! empty($employeeLimit)) {
+                    if (!cfr('ROOT') and !empty($employeeLimit)) {
                         $query = "SELECT sum(`summ`) as `summa` FROM `payments` WHERE MONTH(`date`) = MONTH(NOW()) AND YEAR(`date`) = YEAR(NOW()) AND admin = '" . $whoami . "' AND `summ`>0";
                         $summa = simple_query($query);
                         $summa = $summa['summa'];
@@ -36,12 +36,12 @@ if (cfr('CASH')) {
                             if ($operation == 'add' and $ubillingConfig->getAlterParam('DREAMKAS_ENABLED') and wf_CheckPost(array('dofiscalizepayment'))) {
                                 $lastDKError = doSomethingHorrible($login, $cash);
 
-                                if (isset($lastDKError) and ! empty($lastDKError)) {
+                                if (isset($lastDKError) and !empty($lastDKError)) {
                                     $lastDKErrorParam = '&lastdkerror=' . urlencode($lastDKError);
                                 }
                             }
 
-                            rcms_redirect("?module=addcash&username=" . $login . $lastDKErrorParam);
+                            ubRouting::nav("?module=addcash&username=" . $login . $lastDKErrorParam);
                         } else {
                             show_window('', wf_modalOpened(__('Error'), __('Payment amount exceeded per month') . wf_tag('br') . __('You can top up for the amount of:') . ' ' . __($employeeLimit - $summa), '400', '200'));
                             log_register('BALANCEADDFAIL (' . $login . ') AMOUNT LIMIT `' . mysql_real_escape_string($employeeLimit - $summa) . '` TRY ADD SUMM `' . $cash . '`');
@@ -56,12 +56,12 @@ if (cfr('CASH')) {
                         if ($operation == 'add' and $ubillingConfig->getAlterParam('DREAMKAS_ENABLED') and wf_CheckPost(array('dofiscalizepayment'))) {
                             $lastDKError = doSomethingHorrible($login, $cash);
 
-                            if (isset($lastDKError) and ! empty($lastDKError)) {
+                            if (isset($lastDKError) and !empty($lastDKError)) {
                                 $lastDKErrorParam = '&lastdkerror=' . urlencode($lastDKError);
                             }
                         }
 
-                        rcms_redirect("?module=addcash&username=" . $login . $lastDKErrorParam);
+                        ubRouting::nav('?module=addcash&username=' . $login . $lastDKErrorParam);
                     }
                 } else {
                     show_window('', wf_modalOpened(__('Error'), __('Wrong format of a sum of money to pay'), '400', '200'));
@@ -105,20 +105,20 @@ if (cfr('CASH')) {
                 if (cu_IsChild($login)) {
                     $allchildusers = cu_GetAllLinkedUsers();
                     $parent_link = $allchildusers[$login];
-                    rcms_redirect("?module=corporate&userlink=" . $parent_link . "&control=cash");
+                    ubRouting::nav("?module=corporate&userlink=" . $parent_link . "&control=cash");
                 }
 
                 if (cu_IsParent($login)) {
                     $allparentusers = cu_GetAllParentUsers();
                     $parent_link = $allparentusers[$login];
-                    rcms_redirect("?module=corporate&userlink=" . $parent_link . "&control=cash");
+                    ubRouting::nav("?module=corporate&userlink=" . $parent_link . "&control=cash");
                 }
             }
         }
 
         //payments deletion
         if (wf_CheckGet(array('paymentdelete'))) {
-            $deletePaymentId = vf($_GET['paymentdelete'], 3);
+            $deletePaymentId = ubRouting::get('paymentdelete', 'int');
             $deletingAdmins = array();
             $iCanDeletePayments = false;
             $currentAdminLogin = whoami();
@@ -134,20 +134,20 @@ if (cfr('CASH')) {
                 $queryDeletion = "DELETE from `payments` WHERE `id`='" . $deletePaymentId . "' ;";
                 nr_query($queryDeletion);
                 log_register("PAYMENT DELETE [" . $deletePaymentId . "] (" . $login . ")");
-                rcms_redirect('?module=addcash&username=' . $login . '#cashfield');
+                ubRouting::nav('?module=addcash&username=' . $login . '#cashfield');
             } else {
                 log_register("PAYMENT UNAUTH DELETION ATTEMPT [" . $deletePaymentId . "] (" . $login . ")");
             }
         }
 
         //payments date editing
-        if (wf_CheckPost(array('editpaymentid', 'newpaymentdate', 'cashtype', 'paymentdata'))) {
-            $editPaymentId = vf($_POST['editpaymentid'], 3);
-            $newPaymentDate = $_POST['newpaymentdate'];
-            $cachTypeId = vf($_POST['cashtype'], 3);
-            $PaymentNote = trim(@$_POST['paymentnote']);
+        if (ubRouting::checkPost(array('editpaymentid', 'newpaymentdate', 'cashtype', 'paymentdata'))) {
+            $editPaymentId = ubRouting::post('editpaymentid', 'int');
+            $newPaymentDate = ubRouting::post('newpaymentdate');
+            $cachTypeId = ubRouting::post('cashtype', 'int');
+            $PaymentNote = trim(ubRouting::post('paymentnote'));
 
-            $paymentDataBase = $_POST['paymentdata'];
+            $paymentDataBase = ubRouting::post('paymentdata');
             $paymentData = base64_decode($paymentDataBase);
             $paymentData = unserialize($paymentData);
 
@@ -177,7 +177,7 @@ if (cfr('CASH')) {
                     if (zb_checkDate($newPaymentDate)) {
                         simple_update_field('payments', 'date', $newPaymentDateTime, "WHERE `id`='" . $editPaymentId . "'");
                         log_register("PAYMENT EDIT DATE [" . $editPaymentId . "] (" . $login . ") FROM `" . $oldPaymentDate . "` ON `" . $newPaymentDate . "`");
-                        rcms_redirect('?module=addcash&username=' . $login);
+                        ubRouting::nav('?module=addcash&username=' . $login);
                     } else {
                         show_error(__('Wrong date format'));
                         log_register("PAYMENT EDIT DATE FAIL [" . $editPaymentId . "] (" . $login . ")");
@@ -187,7 +187,7 @@ if (cfr('CASH')) {
                     if ($cachTypeId) {
                         simple_update_field('payments', 'cashtypeid', $cachTypeId, "WHERE `id`='" . $editPaymentId . "'");
                         log_register("PAYMENT EDIT CACHTYPEID [" . $editPaymentId . "] (" . $login . ") FROM `" . $oldPaymentCacheTypeID . "` ON `" . $cachTypeId . "`");
-                        rcms_redirect('?module=addcash&username=' . $login);
+                        ubRouting::nav('?module=addcash&username=' . $login);
                     } else {
                         show_error(__('Something went wrong'));
                         log_register("PAYMENT EDIT CACHTYPEID FAIL [" . $editPaymentId . "] (" . $login . ")");
@@ -196,7 +196,7 @@ if (cfr('CASH')) {
                 if ($PaymentNote != $oldPaymentNote) {
                     simple_update_field('payments', 'note', $PaymentNote, "WHERE `id`='" . $editPaymentId . "'");
                     log_register("PAYMENT EDIT NOTE [" . $editPaymentId . "] (" . $login . ") FROM `" . $oldPaymentNote . "` ON `" . $PaymentNote . "`");
-                    rcms_redirect('?module=addcash&username=' . $login);
+                    ubRouting::nav('?module=addcash&username=' . $login);
                 }
             } else {
                 log_register("PAYMENT UNAUTH EDITING ATTEMPT [" . $editPaymentId . "] (" . $login . ")");
@@ -207,7 +207,7 @@ if (cfr('CASH')) {
 
         if (wf_CheckGet(array('lastdkerror'))) {
             $messages = new UbillingMessageHelper();
-            $errorMessage = $messages->getStyledMessage(urldecode($_GET['lastdkerror']), 'error');
+            $errorMessage = $messages->getStyledMessage(urldecode(ubRouting::get('lastdkerror')), 'error');
             $errorWindow = wf_modalAutoForm(__('Fiscalization error'), $errorMessage, '', '', true, 'true', '700');
         }
 
