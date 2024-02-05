@@ -1245,6 +1245,7 @@ function ts_TaskCreateForm() {
 
     $alljobtypes = ts_GetAllJobtypes();
     $allemployee = ts_GetActiveEmployee();
+    $preselectedEmployee=$ubillingConfig->getAlterParam('TASKMAN_ANYONE_EMPLOYEEID','');
 
     if (!empty($alljobtypes) AND !empty($allemployee)) {
 //construct sms sending inputs
@@ -1283,7 +1284,7 @@ function ts_TaskCreateForm() {
         $inputs .= wf_tag('br');
         $inputs .= wf_Selector('newtaskjobtype', $alljobtypes, __('Job type'), '', true);
         $inputs .= wf_tag('br');
-        $inputs .= wf_Selector('newtaskemployee', $allemployee, __('Who should do'), '', true);
+        $inputs .= wf_Selector('newtaskemployee', $allemployee, __('Who should do'), $preselectedEmployee, true);
         $inputs .= wf_tag('br');
         $inputs .= ts_TaskTypicalNotesSelector();
         $inputs .= wf_tag('label') . __('Job note') . wf_tag('label', true) . wf_tag('br');
@@ -1316,6 +1317,7 @@ function ts_TaskCreateFormProfile($address, $mobile, $phone, $login) {
 
     $alljobtypes = ts_GetAllJobtypes();
     $allemployee = ts_GetActiveEmployee();
+    $preselectedEmployee=$ubillingConfig->getAlterParam('TASKMAN_ANYONE_EMPLOYEEID','');
 
     if (!empty($alljobtypes) AND !empty($allemployee)) {
 // telepaticheskoe ugadivanie po tegu, kto dolzhen vipolnit rabotu
@@ -1379,7 +1381,12 @@ function ts_TaskCreateFormProfile($address, $mobile, $phone, $login) {
         $inputs .= wf_tag('br');
         $inputs .= wf_Selector('newtaskjobtype', $alljobtypes, __('Job type'), '', true);
         $inputs .= wf_tag('br');
-        $inputs .= wf_Selector('newtaskemployee', $allemployee, __('Who should do'), @$telepat_who_should_do['id'], true, $employeeSorting);
+        if (!empty($telepat_who_should_do)) {
+            $telepat_who_should_do=$$telepat_who_should_do['id'];
+        } else {
+            $telepat_who_should_do=$preselectedEmployee;
+        }
+        $inputs .= wf_Selector('newtaskemployee', $allemployee, __('Who should do'), $telepat_who_should_do, true, $employeeSorting);
         $inputs .= wf_tag('br');
         $inputs .= wf_tag('label') . __('Job note') . wf_tag('label', true) . wf_tag('br');
         $inputs .= ts_TaskTypicalNotesSelector();
@@ -1588,6 +1595,7 @@ function ts_TaskCreateFormUnified($address, $mobile, $phone, $login = '', $custo
     $altercfg = $ubillingConfig->getAlter();
     $alljobtypes = ts_GetAllJobtypes();
     $allemployee = ts_GetActiveEmployee();
+    $preselectedEmployee=$ubillingConfig->getAlterParam('TASKMAN_ANYONE_EMPLOYEEID','');
 
     if (!empty($alljobtypes) AND !empty($allemployee)) {
 
@@ -1619,7 +1627,7 @@ function ts_TaskCreateFormUnified($address, $mobile, $phone, $login = '', $custo
         $inputs .= wf_tag('br');
         $inputs .= wf_Selector('newtaskjobtype', $alljobtypes, __('Job type'), '', true);
         $inputs .= wf_tag('br');
-        $inputs .= wf_Selector('newtaskemployee', $allemployee, __('Who should do'), '', true);
+        $inputs .= wf_Selector('newtaskemployee', $allemployee, __('Who should do'), $preselectedEmployee, true);
         $inputs .= wf_tag('br');
         $inputs .= wf_tag('label') . __('Job note') . wf_tag('label', true) . wf_tag('br');
         $inputs .= ts_TaskTypicalNotesSelector();
@@ -1654,6 +1662,7 @@ function ts_TaskCreateFormSigreq($address, $phone) {
     $altercfg = $ubillingConfig->getAlter();
     $alljobtypes = ts_GetAllJobtypes();
     $allemployee = ts_GetActiveEmployee();
+    $preselectedEmployee=$ubillingConfig->getAlterParam('TASKMAN_ANYONE_EMPLOYEEID','');
 
     if (!empty($alljobtypes) AND !empty($allemployee)) {
 //construct sms sending inputs
@@ -1682,7 +1691,7 @@ function ts_TaskCreateFormSigreq($address, $phone) {
         $inputs .= wf_tag('br');
         $inputs .= wf_Selector('newtaskjobtype', $alljobtypes, __('Job type'), '', true);
         $inputs .= wf_tag('br');
-        $inputs .= wf_Selector('newtaskemployee', $allemployee, __('Who should do'), '', true);
+        $inputs .= wf_Selector('newtaskemployee', $allemployee, __('Who should do'), $preselectedEmployee, true);
         $inputs .= wf_tag('br');
         $inputs .= wf_tag('label') . __('Job note') . wf_tag('label', true) . wf_tag('br');
         $inputs .= ts_TaskTypicalNotesSelector();
