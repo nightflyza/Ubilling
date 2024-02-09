@@ -2722,7 +2722,7 @@ class Warehouse {
             $inData = $this->allIncoming[$id];
             $inputs = '<!--ugly hack to prevent datepicker autoopen -->';
             $inputs .= wf_tag('input', false, '', 'type="text" name="shittyhack" style="width: 0; height: 0; top: -100px; position: absolute;"');
-            $inputs .= wf_DatePickerPreset('newindate', curdate());
+            $inputs .= wf_DatePickerPreset('newindate', $inData['date']);
             $inputs .= wf_tag('br');
             $inputs .= wf_HiddenInput('editincomeid', $id);
             $inputs .= wf_Selector('edincontractorid', $this->allContractors, __('Contractor'), $inData['contractorid'], false);
