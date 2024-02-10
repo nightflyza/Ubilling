@@ -1382,7 +1382,7 @@ function ts_TaskCreateFormProfile($address, $mobile, $phone, $login) {
         $inputs .= wf_Selector('newtaskjobtype', $alljobtypes, __('Job type'), '', true);
         $inputs .= wf_tag('br');
         if (!empty($telepat_who_should_do)) {
-            $telepat_who_should_do=$$telepat_who_should_do['id'];
+            $telepat_who_should_do=$telepat_who_should_do['id'];
         } else {
             $telepat_who_should_do=$preselectedEmployee;
         }
