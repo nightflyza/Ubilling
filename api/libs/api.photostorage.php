@@ -812,35 +812,40 @@ class PhotoStorage {
                 }
 
                 if ($fileAccepted) {
-                    //checking image validity
-                    $pixelCraft = new PixelCraft();
-                    if ($pixelCraft->isImageValid($_FILES['photostorageFileUpload']['tmp_name'])) {
-                        $newFilename = date("Y_m_d_His") . '_' . zb_rand_string(8) . '_upload.jpg';
-                        $newSavePath = $this->storagePath . $newFilename;
-                        @move_uploaded_file($_FILES['photostorageFileUpload']['tmp_name'], $newSavePath);
-                        if (file_exists($newSavePath)) {
-                            $uploadResult = wf_tag('span', false, 'alert_success') . __('Photo upload complete') . wf_tag('span', true);
+                    //upload successful?
+                    if (file_exists(@$_FILES['photostorageFileUpload']['tmp_name'])) {
+                        //checking image validity
+                        $pixelCraft = new PixelCraft();
+                        if ($pixelCraft->isImageValid($_FILES['photostorageFileUpload']['tmp_name'])) {
+                            $newFilename = date("Y_m_d_His") . '_' . zb_rand_string(8) . '_upload.jpg';
+                            $newSavePath = $this->storagePath . $newFilename;
+                            @move_uploaded_file($_FILES['photostorageFileUpload']['tmp_name'], $newSavePath);
+                            if (file_exists($newSavePath)) {
+                                $uploadResult = wf_tag('span', false, 'alert_success') . __('Photo upload complete') . wf_tag('span', true);
 
-                            //image postprocessing 
-                            if (@$this->altCfg['PHOTOSTORAGE_POSTPROCESSING']) {
-                                $uploadResult .= $this->imagePostProcessing($newSavePath);
-                            }
+                                //image postprocessing 
+                                if (@$this->altCfg['PHOTOSTORAGE_POSTPROCESSING']) {
+                                    $uploadResult .= $this->imagePostProcessing($newSavePath);
+                                }
 
-                            $this->registerImage($newFilename);
+                                $this->registerImage($newFilename);
 
-                            // forwarding $customBackLink back to renderUploadForm() routine
-                            if (empty($customBackLink)) {
-                                $customBackLink = '';
+                                // forwarding $customBackLink back to renderUploadForm() routine
+                                if (empty($customBackLink)) {
+                                    $customBackLink = '';
+                                } else {
+                                    $customBackLink = '&custombacklink=' . $customBackLink;
+                                }
+
+                                ubRouting::nav(self::MODULE_URL . '&scope=' . $this->scope . '&itemid=' . $this->itemId . '&mode=loader&preview=' . $newFilename . $customBackLink);
                             } else {
-                                $customBackLink = '&custombacklink=' . $customBackLink;
+                                $uploadResult = wf_tag('span', false, 'alert_error') . __('Photo upload failed') . wf_tag('span', true);
                             }
-
-                            ubRouting::nav(self::MODULE_URL . '&scope=' . $this->scope . '&itemid=' . $this->itemId . '&mode=loader&preview=' . $newFilename . $customBackLink);
                         } else {
-                            $uploadResult = wf_tag('span', false, 'alert_error') . __('Photo upload failed') . wf_tag('span', true);
+                            $uploadResult = wf_tag('span', false, 'alert_error') . __('Photo upload failed') . ': ' . __('File') . ' ' . __('is corrupted') . wf_tag('span', true);
                         }
                     } else {
-                        $uploadResult = wf_tag('span', false, 'alert_error') . __('Photo upload failed') . ': ' . __('File') . ' ' . __('is corrupted') . wf_tag('span', true);
+                        $uploadResult = wf_tag('span', false, 'alert_error') . __('Photo upload failed') . ': ' . __('File not found') . wf_tag('span', true);
                     }
                 } else {
                     $uploadResult = wf_tag('span', false, 'alert_error') . __('Photo upload failed') . ': ' . self::EX_WRONG_EXT . wf_tag('span', true);
