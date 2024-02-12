@@ -117,6 +117,15 @@ class OmaeUrl {
      */
     protected $referrer = '';
 
+
+    protected $verboseLogON = false;
+
+    protected $verboseLogStream = '';
+
+    protected $verboseLogFilePath = '';
+
+    const DEFAULT_VERBOSE_LOG_PATH = 'exports/OMAE_VERBOSE_LOG';
+
     /**
      * Creates new omae wa mou shindeiru instance
      * 
@@ -346,6 +355,12 @@ class OmaeUrl {
         }
 
         if (!empty($this->url)) {
+            if ($this->verboseLogON) {
+                $this->verboseLogStream = fopen('php://temp', 'w+');
+                $this->setOpt(CURLOPT_VERBOSE, true);
+                $this->setOpt(CURLOPT_STDERR, $this->verboseLogStream);
+            }
+
             $remoteUrl = $this->url;
             //appending GET vars to URL
             if (!empty($this->getData)) {
@@ -407,6 +422,13 @@ class OmaeUrl {
                 $this->error = true;
             }
             curl_close($ch);
+
+            if ($this->verboseLogON) {
+                rewind($this->verboseLogStream);
+                file_put_contents($this->verboseLogFilePath, stream_get_contents($this->verboseLogStream), 8);
+                file_put_contents($this->verboseLogFilePath, print_r($this->lastRequestInfo(), true), 8);
+                fclose($this->verboseLogStream);
+            }
         } else {
             throw new Exception('SHINDEIRU_URL_EMPTY');
         }
@@ -487,4 +509,15 @@ class OmaeUrl {
         $this->setOpt(CURLOPT_USERPWD, $login . ':' . $password);
     }
 
+    /**
+     * $verboseLogON setter
+     *
+     * @param $state
+     *
+     * @return void
+     */
+    public function setVerboseLog($state, $logFilePath = '') {
+        $this->verboseLogON = $state;
+        $this->verboseLogFilePath = empty($logFilePath) ? self::DEFAULT_VERBOSE_LOG_PATH : $logFilePath;
+    }
 }

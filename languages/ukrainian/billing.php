@@ -3512,6 +3512,9 @@ $lang['def']['You have'] = 'У вас є';
 $lang['def']['notes or reminders for today'] = 'персональних нотаток чи нагадувань на сьогодні';
 $lang['def']['undone tasks for today'] = 'невиконаних задач на сьогодні';
 $lang['def']['Hide'] = 'Приховати';
+$lang['def']['Users with this tag IDs will be excluded form current service processing. Tag IDs should be separated with coma.'] = 'Користувачи зі вказаними тегами будуть виключені з обробки даним сервісом. ID тегів мають відокремлюватись комами.';
+$lang['def']['Excluded user tags'] = 'Виключені користувацькі теги';
+$lang['def']['Non-existent tag with ID'] = 'Неіснуючий тег з ID';
 $lang['def'][''] = '';
 
 
