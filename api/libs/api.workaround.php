@@ -6209,3 +6209,93 @@ function zb_cutString($string, $size) {
     }
     return ($string);
 }
+
+/**
+ * Converts a $delimited_string, delimited with $delimiter, like 'abc, defg, abracadabra' or '1, 4,5, 11,'
+ * into a one-dimensional array, like [abc, defg, abracadabra] or [1, 4, 5, 11]
+ * or a two-dimensional associative array, like [abc => abc, defg => defg, abracadabra => abracadabra]
+ *                                           or [1 => 1, 4 => 4, 5 => 5, 11 => 11]
+ * with or without any DUPLICATES
+ *
+ * It supposed that one using this function understands that $assocValuesAsKeys and $allowDuplicates
+ * are two SELF-EXCLUSIONAL parameters
+ *
+ * @param $delimited_string
+ * @param $delimiter
+ * @param $assocValuesAsKeys
+ * @param $allowDuplicates
+ *
+ * @return array
+ */
+function zb_DelimitedStringToArray($delimited_string, $delimiter = ',', $assocValuesAsKeys = false, $allowDuplicates = false) {
+    $result = array();
+    //$allowDuplicates = ($assocValuesAsKeys) ? false : $allowDuplicates;
+
+    if (!empty($delimited_string)) {
+        $tmp_arr = explode($delimiter, trim($delimited_string, $delimiter . ' '));
+
+        foreach ($tmp_arr as $eachElem) {
+            if (!$allowDuplicates and in_array(trim($eachElem), array_values($result))) {
+                continue;
+            }
+
+            if ($assocValuesAsKeys) {
+                $result[trim($eachElem)] = trim($eachElem);
+            } else {
+                $result[] = trim($eachElem);
+            }
+        }
+    }
+
+    return ($result);
+}
+
+/**
+ * Intended to create string suitable for an SQL WHERE IN clause usage from a $delimited_string, delimited with $delimiter
+ *
+ * @param $delimited_string
+ * @param $delimiter
+ * @param $stringINClause
+ *
+ * @return string
+ */
+function zb_DelimitedStringToSQLWHEREIN($delimited_string, $delimiter = ',', $stringINClause = false) {
+    $whereStr  = '';
+    $valuesArr = zb_DelimitedStringToArray($delimited_string, $delimiter);
+
+    if (!empty($valuesArr)) {
+        foreach ($valuesArr as $eachElem) {
+            if (!empty($eachElem)) {
+                $whereStr.= ($stringINClause) ? " '" . $eachElem . "', " : " " . $eachElem . ", ";
+            }
+        }
+
+        $whereStr = trim($whereStr, ', ');
+    }
+
+    return ($whereStr);
+}
+
+/**
+ * Intended to create string suitable for an SQL WHERE IN clause usage from an one-dimensional array of values
+ *
+ * @param $valuesArr
+ * @param $stringINClause
+ *
+ * @return string
+ */
+function zb_ArrayToSQLWHEREIN($valuesArr, $stringINClause = false) {
+    $whereStr  = '';
+
+    if (!empty($valuesArr)) {
+        foreach ($valuesArr as $eachElem) {
+            if (!empty($eachElem)) {
+                $whereStr.= ($stringINClause) ? " '" . $eachElem . "', " : " " . $eachElem . ", ";
+            }
+        }
+
+        $whereStr = trim($whereStr, ', ');
+    }
+
+    return ($whereStr);
+}

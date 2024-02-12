@@ -171,6 +171,32 @@ function stg_get_alltagnames() {
 }
 
 /**
+ * Returns array of available tagtypes as id => name, filtered by $tagIDs
+ * or just empty array
+ *
+ * @param $tagIDs
+ *
+ * @return array
+ */
+function stg_get_alltagnames_filtered($tagIDs = array()) {
+    $result = array();
+    $whereStr = zb_ArrayToSQLWHEREIN($tagIDs);
+
+    if (!empty($whereStr)) {
+        $query = "SELECT * FROM `tagtypes` WHERE `id` IN (" . $whereStr . ")";
+        $alltagtypes = simple_queryall($query);
+
+        if (!empty($alltagtypes)) {
+            foreach ($alltagtypes as $io => $eachtype) {
+                $result[$eachtype['id']] = $eachtype['tagname'];
+            }
+        }
+    }
+
+    return($result);
+}
+
+/**
  * Returns array of some tag type data
  * 
  * @param int $tagtypeid
@@ -411,14 +437,19 @@ function stg_get_tag_body_deleter($id, $login, $tagid) {
     $messages = new UbillingMessageHelper();
     $query = "SELECT * from `tagtypes` where `id`='" . $id . "'";
     $tagbody = simple_query($query);
+    $tagNotExists = empty($tagbody);
     $result = '';
 
-    $result .= wf_tag('font', false, '', 'color="' . $tagbody['tagcolor'] . '" size="' . $tagbody['tagsize'] . '"');
-    $result .= $tagbody['tagname'];
+    $tagColor = ($tagNotExists) ? '#FF0000' : $tagbody['tagcolor'];
+    $tagSize  = ($tagNotExists) ? '6' : $tagbody['tagsize'];
+    $tagName  = ($tagNotExists) ? __('Non-existent tag with ID') . ': ' . $id : $tagbody['tagname'];
+
+    $result .= wf_tag('font', false, '', 'color="' . $tagColor . '" size="' . $tagSize . '"');
+    $result .= $tagName;
     $result .= wf_tag('sup');
     $deleteUrl = '?module=usertags&username=' . $login . '&deletetag=' . $tagid;
     $cancelUrl = '?module=usertags&username=' . $login;
-    $dialogTitle = __('Delete tag') . ' ' . $tagbody['tagname'] . '?';
+    $dialogTitle = __('Delete tag') . ' ' . $tagName . '?';
     $deleteDialog = wf_ConfirmDialog($deleteUrl, web_delete_icon(), $messages->getDeleteAlert(), '', $cancelUrl, $dialogTitle);
     $result .= $deleteDialog;
     $result .= wf_tag('sup', true);
