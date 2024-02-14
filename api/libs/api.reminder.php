@@ -305,6 +305,7 @@ class Reminder {
         $this->omaeURL->setVerboseLog($this->rmdDebugON, self::OMAEURL_DEBUG_FILE);
         $this->omaeURL->setOpt(CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
         $this->omaeURL->setOpt(CURLOPT_USERPWD, $this->rmdPBIAuthLogin);
+        $this->omaeURL->setOpt(CURLOPT_POST, true);
         $this->omaeURL->dataHeader('Content-type', 'application/json;charset=utf-8');
 
         /*if ($this->rmdDebugON) {
@@ -460,9 +461,6 @@ class Reminder {
                     . $pbiJOIN
                     . $whereString;
 
-
-
-
             $tmp = simple_queryall($query);
 print($query);
             if (!empty($tmp)) {
@@ -573,6 +571,10 @@ log_register('REMINDER  $userCellPhoneNum  ' . $userCellPhoneNum);
         $paysysFilterForUsersNeeded = !empty($this->rmdPBIUserFilterPaysysList);
         $paysysFilteredUsersFound   = !empty($this->rmdPBIPaysysFilteredUsersList);
 
+        $this->debugReminderRAW('rmdPrivatBankInvoicesON:  ' . $this->rmdPrivatBankInvoicesON);
+        $this->debugReminderRAW('rmdPBIUserFilterPaysysList:  ' . $this->rmdPBIUserFilterPaysysList);
+        $this->debugReminderRAW('rmdPBIPaysysFilteredUsersList:  ' . print_r($this->rmdPBIPaysysFilteredUsersList, true));
+
         if ($paysysFilterForUsersNeeded and !$paysysFilteredUsersFound) {
             log_register('REMINDER: NO LOGINS FOUND BY OPAYZ PAYSYS FILTER FOR PRIVATBANK INVOICE');
         }
@@ -595,29 +597,34 @@ file_put_contents('exports/REMINDER_AllLogin', print_r($this->AllLogin, true));
                 $numbers = $numbers + $userExtMobs;
             }
 
-log_register('REMINDER:  $onlineDaysLeft <= $liveDays  ' . $onlineDaysLeft <= $liveDays);
+            $this->debugReminderRAW('--------');
+            $this->debugReminderRAW('processing login: (' . $eachLogin . ')');
+            $this->debugReminderRAW('onlineDaysLeft: ' . $onlineDaysLeft);
+            $this->debugReminderRAW('CHECKFILE exists: ' . (file_exists(self::FLAGPREFIX . $eachLogin) ? 'YES (user will be skipped from processing)' : 'NO'));
+            $this->debugReminderRAW('BASE service processing is: ' . (($onlineDaysLeft <= $liveDays and $onlineDaysLeft >= 0 and $this->rmdMode != 2 and empty($userLoginData['Passive'])) ? 'ON' : 'OFF'));
+            $this->debugReminderRAW('CREDIT EXPIRATION processing is: ' . (($this->rmdConsiderCredits and $onlineDaysLeft == -1 and empty($userLoginData['Passive'])) ? 'ON' : 'OFF'));
+            $this->debugReminderRAW('CAP users processing is: ' . (($this->rmdConsiderCAP and $onlineDaysLeft == -1 and ! empty($userLoginData['days']) and empty($userLoginData['Passive'])) ? 'ON' : 'OFF'));
+            $this->debugReminderRAW('FROZEN users processing is: ' . (($this->rmdConsiderFrozen and ! empty($userLoginData['Passive'])) ? 'ON' : 'OFF'));
 
             // process base service expiration
             // certain user must not be a debtor and not to be frozen and processing mode must not be equal to 2
             if ($onlineDaysLeft <= $liveDays and $onlineDaysLeft >= 0 and $this->rmdMode != 2 and empty($userLoginData['Passive'])) {
-                $this->debugReminderRAW('rmdPrivatBankInvoicesON  ' . $this->rmdPrivatBankInvoicesON);
-                $this->debugReminderRAW('rmdPBIUserFilterPaysysList  ' . $this->rmdPBIUserFilterPaysysList);
-                $this->debugReminderRAW('rmdPBIPaysysFilteredUsersList  ' . print_r($this->rmdPBIPaysysFilteredUsersList, true));
-
                 if (!file_exists(self::FLAGPREFIX . $eachLogin)) {
                     $curUserPBIOnly = !empty($userLoginData['pbi_only']);
                     $curUserPBISMS  = !empty($userLoginData['pbi_sms']);
+                    $needToSendPBI  = ($this->rmdPrivatBankInvoicesON
+                                       and ($curUserPBIOnly or $curUserPBISMS)
+                                       and (!$paysysFilterForUsersNeeded
+                                            or ($paysysFilterForUsersNeeded and $paysysFilteredUsersFound))
+                                      );
 
-$this->debugReminderRAW($eachLogin . '  pbi_only: ' . $userLoginData['pbi_only'] . '  pbi_sms: ' . $userLoginData['pbi_sms']);
-$this->debugReminderRAW(wf_getBoolFromVar(($this->rmdPrivatBankInvoicesON and ($curUserPBIOnly or $curUserPBISMS)
-                          and (!$paysysFilterForUsersNeeded or ($paysysFilterForUsersNeeded and $paysysFilteredUsersFound)) )));
+                    $this->debugReminderRAW('PBI params:  pbi_only: ' . $userLoginData['pbi_only'] . '  pbi_sms: ' . $userLoginData['pbi_sms']);
+                    $this->debugReminderRAW('PBI invoice will be send:  ' . ($needToSendPBI ? 'YES' : 'NO'));
+
 print("\n\n" . $eachLogin . '  pbi_only: ' . $userLoginData['pbi_only'] . '  pbi_sms: ' . $userLoginData['pbi_sms'] . "\n");
-print("\n\n" . wf_getBoolFromVar(($this->rmdPrivatBankInvoicesON and ($curUserPBIOnly or $curUserPBISMS)
-        and (!$paysysFilterForUsersNeeded or ($paysysFilterForUsersNeeded and $paysysFilteredUsersFound)) )));
+print('PBI invoice will be send:  ' . ($needToSendPBI ? 'YES' : 'NO'));
 
-                    if ($this->rmdPrivatBankInvoicesON and ($curUserPBIOnly or $curUserPBISMS)
-                        and (!$paysysFilterForUsersNeeded or ($paysysFilterForUsersNeeded and $paysysFilteredUsersFound)) ) {
-
+                    if ($needToSendPBI) {
                         $proceedInvoice = true;
                         $sendResult     = '';
 
@@ -743,6 +750,10 @@ print("\n\n" . wf_getBoolFromVar(($this->rmdPrivatBankInvoicesON and ($curUserPB
         $paysysFilterForUsersNeeded = !empty($this->rmdPBIUserFilterPaysysList);
         $paysysFilteredUsersFound   = !empty($this->rmdPBIPaysysFilteredUsersList);
 
+        $this->debugReminderRAW('rmdPrivatBankInvoicesON  ' . $this->rmdPrivatBankInvoicesON);
+        $this->debugReminderRAW('rmdPBIUserFilterPaysysList  ' . $this->rmdPBIUserFilterPaysysList);
+        $this->debugReminderRAW('rmdPBIPaysysFilteredUsersList  ' . print_r($this->rmdPBIPaysysFilteredUsersList, true));
+
         if ($paysysFilterForUsersNeeded and !$paysysFilteredUsersFound) {
             log_register('REMINDER FORCED: NO LOGINS FOUND BY OPAYZ PAYSYS FILTER FOR PRIVATBANK INVOICE');
         }
@@ -757,22 +768,24 @@ print("\n\n" . wf_getBoolFromVar(($this->rmdPrivatBankInvoicesON and ($curUserPB
                 $numbers = $numbers + $userExtMobs;
             }
 
-            $this->debugReminderRAW('rmdPrivatBankInvoicesON  ' . $this->rmdPrivatBankInvoicesON);
-            $this->debugReminderRAW('rmdPBIUserFilterPaysysList  ' . $this->rmdPBIUserFilterPaysysList);
-            $this->debugReminderRAW('rmdPBIPaysysFilteredUsersList  ' . print_r($this->rmdPBIPaysysFilteredUsersList, true));
-
             $curUserPBIOnly = !empty($userLoginData['pbi_only']);
             $curUserPBISMS  = !empty($userLoginData['pbi_sms']);
-$this->debugReminderRAW($eachLogin . '  pbi_only: ' . $userLoginData['pbi_only'] . '  pbi_sms: ' . $userLoginData['pbi_sms']);
-$this->debugReminderRAW(wf_getBoolFromVar(($this->rmdPrivatBankInvoicesON and ($curUserPBIOnly or $curUserPBISMS)
-                      and (!$paysysFilterForUsersNeeded or ($paysysFilterForUsersNeeded and $paysysFilteredUsersFound)) )));
+            $needToSendPBI  = ($this->rmdPrivatBankInvoicesON
+                               and ($curUserPBIOnly or $curUserPBISMS)
+                                   and (!$paysysFilterForUsersNeeded
+                                        or ($paysysFilterForUsersNeeded and $paysysFilteredUsersFound))
+                              );
+
+            $this->debugReminderRAW('--------');
+            $this->debugReminderRAW('processing login: (' . $eachLogin . ')');
+            $this->debugReminderRAW('PBI params:  pbi_only: ' . $userLoginData['pbi_only'] . '  pbi_sms: ' . $userLoginData['pbi_sms']);
+            $this->debugReminderRAW('PBI invoice will be send:  ' . ($needToSendPBI ? 'YES' : 'NO'));
+
+
 print($eachLogin . '  pbi_only: ' . $userLoginData['pbi_only'] . '  pbi_sms: ' . $userLoginData['pbi_sms']);
-print(wf_getBoolFromVar(($this->rmdPrivatBankInvoicesON and ($curUserPBIOnly or $curUserPBISMS)
-      and (!$paysysFilterForUsersNeeded or ($paysysFilterForUsersNeeded and $paysysFilteredUsersFound)) )));
+print('PBI invoice will be send:  ' . ($needToSendPBI ? 'YES' : 'NO'));
 
-            if ($this->rmdPrivatBankInvoicesON and ($curUserPBIOnly or $curUserPBISMS)
-               and (!$paysysFilterForUsersNeeded or ($paysysFilterForUsersNeeded and $paysysFilteredUsersFound)) ) {
-
+            if ($needToSendPBI) {
                 $proceedInvoice = true;
                 $sendResult     = '';
 
@@ -892,7 +905,7 @@ print(wf_getBoolFromVar(($this->rmdPrivatBankInvoicesON and ($curUserPBIOnly or 
      *
      * @return void
      */
-    protected function debugReminderRAW($logmsg) {
+    private function debugReminderRAW($logmsg) {
         if ($this->rmdDebugON) { log_register('REMINDER:  ' . $logmsg); }
     }
 
