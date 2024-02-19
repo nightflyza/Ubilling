@@ -128,7 +128,7 @@ if (ubRouting::get('action') == 'fullhostscan') {
         //renew DN data
         if (file_exists(DATA_PATH . "dn")) {
             //directory clanup
-            $oldDnData = rcms_scandir(DATA_PATH . '"dn/');
+            $oldDnData = rcms_scandir(DATA_PATH . 'dn/');
             if (!empty($oldDnData)) {
                 foreach ($oldDnData as $deleteFile) {
                     unlink(DATA_PATH . 'dn/' . $deleteFile);
