@@ -484,9 +484,7 @@ function zb_VservicesProcessAll($log_payment = true, $charge_frozen = true, $whe
             $excludedTagsWhereStr = empty($excludedTags) ? "" : " AND `login` NOT IN (SELECT `login` FROM `tags` WHERE `tagid` IN (" . $excludedTags . "))";
             $users_query = "SELECT `login` from `tags` WHERE `tagid`='" . $eachService['tagid'] . "'" . $excludedTagsWhereStr;
             $allUsers = simple_queryall($users_query);
-file_put_contents('exports/vsrv_query_login_' . $eachService['tagid'], $users_query);
-file_put_contents('exports/vsrv_selected_logins_' . $eachService['tagid'], print_r($allUsers, true));
-file_put_contents('exports/vsrv_traversed_logins_' . $eachService['tagid'], '');
+
             if (!empty($allUsers)) {
                 foreach ($allUsers as $io2 => $eachUser) {
                     //virtual cash charging (DEPRECATED)
@@ -508,7 +506,6 @@ file_put_contents('exports/vsrv_traversed_logins_' . $eachService['tagid'], '');
                             zb_VserviceCashFee($eachUser['login'], $eachService['price'], $eachService['id']);
                         }
                     }
-file_put_contents('exports/vsrv_traversed_logins_' . $eachService['tagid'], print_r($eachUser, true) . "\n" . $eachUser['login'] . "\n\n", 8);
 
                     //stargazer balance charging
                     if ($eachService['cashtype'] == 'stargazer') {
