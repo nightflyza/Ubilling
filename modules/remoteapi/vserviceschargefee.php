@@ -20,9 +20,7 @@ if (ubRouting::get('action') == 'vserviceschargefee') {
         }
     }
     log_register('REMOTEAPI VSERVICE_CHARGE_FEE STARTED');
-
     zb_VservicesProcessAll($regularPayments, $vservicesChargeFrozen, $vservicesChargePeriod);
-
     log_register('REMOTEAPI VSERVICE_CHARGE_FEE FINISHED');
     die('OK:SERVICE_CHARGE_FEE');
 }

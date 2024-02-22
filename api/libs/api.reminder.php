@@ -307,13 +307,6 @@ class Reminder {
         $this->omaeURL->setOpt(CURLOPT_USERPWD, $this->rmdPBIAuthLogin);
         $this->omaeURL->setOpt(CURLOPT_POST, true);
         $this->omaeURL->dataHeader('Content-type', 'application/json;charset=utf-8');
-
-        /*if ($this->rmdDebugON) {
-            $this->omaeVerboseLoggingStream = fopen('php://temp', 'w+');
-            $this->omaeURL->setOpt(CURLOPT_VERBOSE, true);
-            $this->omaeURL->setOpt(CURLOPT_STDERR, $this->omaeVerboseLoggingStream);
-            file_put_contents(self::OMAEURL_DEBUG_FILE, '');
-        }*/
     }
 
 
@@ -462,7 +455,7 @@ class Reminder {
                     . $whereString;
 
             $tmp = simple_queryall($query);
-print($query);
+
             if (!empty($tmp)) {
                 $this->AllLogin = $tmp;
             }
@@ -513,8 +506,8 @@ print($query);
 
     protected function createPBInvoice($login) {
         $invoiceArray = array();
-        $userAddress  = $this->AllTemplates[$login]['address'];
-        $userAgent    = empty($userAddress) ? zb_AgentAssignedGetData($login) : zb_AgentAssignedGetDataFast($login, $userAddress);
+        $userAddress  = empty($this->AllTemplates[$login]['address']) ? '' : $this->AllTemplates[$login]['address'];
+        $userAgent    = zb_AgentAssignedGetDataFast($login, $userAddress);
 
         if (!empty($this->rmdPBIContragentsData[$userAgent['id']])) {
             $userAgentFullData  = $this->rmdPBIContragentsData[$userAgent['id']];
@@ -525,7 +518,6 @@ print($query);
             $invoiceCloseDate   = new DateTime('+2 weeks');
             $invoiceCloseDate   = $invoiceCloseDate->format('Y-m-d');
             $userCellPhoneNum   = $this->AllTemplates[$login]['mobile'];
-log_register('REMINDER  $userCellPhoneNum  ' . $userCellPhoneNum);
             $userCellPhoneNum   = preg_match('/^(\+38|38)/', $userCellPhoneNum) ? $userCellPhoneNum : $this->rmdPhonePrefix . $userCellPhoneNum;
 
             $invoiceArray = array(
@@ -579,8 +571,6 @@ log_register('REMINDER  $userCellPhoneNum  ' . $userCellPhoneNum);
             log_register('REMINDER: NO LOGINS FOUND BY OPAYZ PAYSYS FILTER FOR PRIVATBANK INVOICE');
         }
 
-file_put_contents('exports/REMINDER_AllLogin', print_r($this->AllLogin, true));
-//return;
         foreach ($this->AllLogin as $userLoginData) {
             // yep, we evaluate $liveDays, $liveTime and $cacheTime on every iteration
             // 'cause they may be re-assigned below, depending on processing type
@@ -610,6 +600,7 @@ file_put_contents('exports/REMINDER_AllLogin', print_r($this->AllLogin, true));
             // certain user must not be a debtor and not to be frozen and processing mode must not be equal to 2
             if ($onlineDaysLeft <= $liveDays and $onlineDaysLeft >= 0 and $this->rmdMode != 2 and empty($userLoginData['Passive'])) {
                 if (!file_exists(self::FLAGPREFIX . $eachLogin)) {
+                    // check, if all conditions for sending PB invoice to current user are met
                     $curUserPBIOnly = !empty($userLoginData['pbi_only']);
                     $curUserPBISMS  = !empty($userLoginData['pbi_sms']);
                     $needToSendPBI  = ($this->rmdPrivatBankInvoicesON
@@ -621,13 +612,12 @@ file_put_contents('exports/REMINDER_AllLogin', print_r($this->AllLogin, true));
                     $this->debugReminderRAW('PBI params:  pbi_only: ' . $userLoginData['pbi_only'] . '  pbi_sms: ' . $userLoginData['pbi_sms']);
                     $this->debugReminderRAW('PBI invoice will be send:  ' . ($needToSendPBI ? 'YES' : 'NO'));
 
-print("\n\n" . $eachLogin . '  pbi_only: ' . $userLoginData['pbi_only'] . '  pbi_sms: ' . $userLoginData['pbi_sms'] . "\n");
-print('PBI invoice will be send:  ' . ($needToSendPBI ? 'YES' : 'NO'));
-
                     if ($needToSendPBI) {
                         $proceedInvoice = true;
                         $sendResult     = '';
 
+                        // if REMINDER_PBI_USER_FILTER_PAYSYS_LIST is used and we've found some users which fall under the filter -
+                        // check, if current user is in that list
                         if ($paysysFilterForUsersNeeded) {
                             $proceedInvoice = in_array($eachLogin, $this->rmdPBIPaysysFilteredUsersList);
                         }
@@ -646,12 +636,6 @@ print('PBI invoice will be send:  ' . ($needToSendPBI ? 'YES' : 'NO'));
                         $this->debugReminderRAW(' PBI send result  ' . $sendResult);
                         $this->debugReminderRAW(' PBI OMAEURL lastRequestInfo  ' . print_r($this->omaeURL->lastRequestInfo(), true));
                         $this->debugReminderRAW(' PBI OMAEURL error  ' . print_r($this->omaeURL->error(), true));
-
-                        /*if ($this->rmdDebugON) {
-                            rewind($this->omaeVerboseLoggingStream);
-                            file_put_contents(self::OMAEURL_DEBUG_FILE, stream_get_contents($this->omaeVerboseLoggingStream), 8);
-                            file_put_contents(self::OMAEURL_DEBUG_FILE, print_r($this->omaeURL->lastRequestInfo(), true), 8);
-                        }*/
                     }
 
                     if (!$curUserPBIOnly or $curUserPBISMS) {
@@ -768,6 +752,7 @@ print('PBI invoice will be send:  ' . ($needToSendPBI ? 'YES' : 'NO'));
                 $numbers = $numbers + $userExtMobs;
             }
 
+            // check, if all conditions for sending PB invoice to current user are met
             $curUserPBIOnly = !empty($userLoginData['pbi_only']);
             $curUserPBISMS  = !empty($userLoginData['pbi_sms']);
             $needToSendPBI  = ($this->rmdPrivatBankInvoicesON
@@ -781,14 +766,12 @@ print('PBI invoice will be send:  ' . ($needToSendPBI ? 'YES' : 'NO'));
             $this->debugReminderRAW('PBI params:  pbi_only: ' . $userLoginData['pbi_only'] . '  pbi_sms: ' . $userLoginData['pbi_sms']);
             $this->debugReminderRAW('PBI invoice will be send:  ' . ($needToSendPBI ? 'YES' : 'NO'));
 
-
-print($eachLogin . '  pbi_only: ' . $userLoginData['pbi_only'] . '  pbi_sms: ' . $userLoginData['pbi_sms']);
-print('PBI invoice will be send:  ' . ($needToSendPBI ? 'YES' : 'NO'));
-
             if ($needToSendPBI) {
                 $proceedInvoice = true;
                 $sendResult     = '';
 
+                // if REMINDER_PBI_USER_FILTER_PAYSYS_LIST is used and we've found some users which fall under the filter -
+                // check, if current user is in that list
                 if ($paysysFilterForUsersNeeded) {
                     $proceedInvoice = in_array($eachLogin, $this->rmdPBIPaysysFilteredUsersList);
                 }
@@ -798,7 +781,6 @@ print('PBI invoice will be send:  ' . ($needToSendPBI ? 'YES' : 'NO'));
                     $invoice = $this->createPBInvoice($eachLogin);
                     $this->omaeURL->dataPostRaw($invoice);
                     $sendResult = $this->omaeURL->response();
-                    file_put_contents(self::FLAGPREFIX . $eachLogin, '');
                 } elseif ($paysysFilterForUsersNeeded) {
                     $this->debugReminderRAW(' ERROR sending PB invoice for user: ' . $eachLogin . ' - login not found by OPAYZ PAYSYS filter');
                 }
@@ -807,12 +789,6 @@ print('PBI invoice will be send:  ' . ($needToSendPBI ? 'YES' : 'NO'));
                 $this->debugReminderRAW(' PBI send result  ' . $sendResult);
                 $this->debugReminderRAW(' PBI OMAEURL lastRequestInfo  ' . print_r($this->omaeURL->lastRequestInfo(), true));
                 $this->debugReminderRAW(' PBI OMAEURL error  ' . print_r($this->omaeURL->error(), true));
-
-                /*if ($this->rmdDebugON) {
-                    rewind($this->omaeVerboseLoggingStream);
-                    file_put_contents(self::OMAEURL_DEBUG_FILE, stream_get_contents($this->omaeVerboseLoggingStream), 8);
-                    file_put_contents(self::OMAEURL_DEBUG_FILE, print_r($this->omaeURL->lastRequestInfo(), true), 8);
-                }*/
             }
 
             if (!$curUserPBIOnly or $curUserPBISMS) {
