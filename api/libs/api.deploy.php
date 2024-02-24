@@ -8,7 +8,7 @@ class Avarice {
     private $data = array();
     private $serial = '';
     private $raw = array();
-    private $ident='gHN';
+    private $ident='HN';
 
     public function __construct() {
         $this->getSerial();
