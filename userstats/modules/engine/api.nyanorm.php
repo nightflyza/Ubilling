@@ -184,8 +184,8 @@ class NyanORM {
                 if ($noTabNameEnclosure) {
                     $this->join[] = $joinExpression . " JOIN " . $tableName . " USING (" . $using . ")";
                 } else {
-                $this->join[] = $joinExpression . " JOIN `" . $tableName . "` USING (" . $using . ")";
-            }
+                    $this->join[] = $joinExpression . " JOIN `" . $tableName . "` USING (" . $using . ")";
+                }
             }
         } else {
             $this->flushJoin();
@@ -221,8 +221,8 @@ class NyanORM {
                 if ($noTabNameEnclosure) {
                     $this->join[] = $joinExpression . " JOIN " . $tableName . " ON (" . $on . ")";
                 } else {
-                $this->join[] = $joinExpression . " JOIN `" . $tableName . "` ON (" . $on . ")";
-            }
+                    $this->join[] = $joinExpression . " JOIN `" . $tableName . "` ON (" . $on . ")";
+                }
             }
         } else {
             $this->flushJoin();
@@ -509,7 +509,7 @@ class NyanORM {
 
     /**
      * Returns all records of current database object instance
-     * 
+     *
      * @param string $assocByField field name to automatically make it as index key in results array
      * @param bool $flushParams flush all query parameters like where, order, limit and other after execution?
      * @param bool $distinctON add "DISTINCT" keyword for a "SELECT" clause
@@ -904,7 +904,7 @@ class NyanORM {
                     $fieldName = ($makeFieldAliases) ? $eachField['Field'] . ' AS ' . $this->tableName . $fieldAliasSeparator . $eachField['Field']
                         : $eachField['Field'];
 
-                    // append leading table name with dot to the field name to explicitly distinguish fields in a query
+                    // append leading table name with dot to the field name to explicitly distinguish fields in a query?
                     $result[] = ($addLeadingTabName) ? $this->tableName . '.' . $fieldName : $fieldName;
                 }
             } else {
