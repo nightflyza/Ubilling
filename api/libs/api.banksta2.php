@@ -1643,6 +1643,7 @@ class Banksta2 {
 
         if (!empty($paymentsToPush)) {
             $this->getUsersDataCached();
+            $this->getProcessedBSRecsCached(true);
             $needProcessUKV = $this->checkNeedProcessUKV($paymentsToPush);
             $ukv = $needProcessUKV ? new UkvSystem() : null;
             $allParentUsers = ($checkForCorpUsers and !$refiscalize) ? cu_GetAllParentUsers() : array();
