@@ -336,18 +336,20 @@ function wf_CheckInput($name, $label = '', $br = false, $checked = false, $CtrlI
 }
 
 /**
- * Return textarea Web From element 
+ * Return textarea Web form element
  *
  * @param string  $name name of element
  * @param string  $label text label for input
  * @param string  $value value for element
  * @param bool    $br append new line - bool
- * @param string  $size size in format "10x20"
+ * @param string  $size size in format "20x10"
+ * @param string  $inputId custom inputId
+ * 
  * @return  string
  *
  */
-function wf_TextArea($name, $label = '', $value = '', $br = false, $size = '') {
-    $inputid = wf_InputId();
+function wf_TextArea($name, $label = '', $value = '', $br = false, $size = '', $inputId = '') {
+    $elementInputId = ($inputId) ? $inputId :  wf_InputId();
     //set columns and rows count
     if ($size != '') {
         $sizexplode = explode('x', $size);
@@ -360,9 +362,9 @@ function wf_TextArea($name, $label = '', $value = '', $br = false, $size = '') {
     } else {
         $newline = '';
     }
-    $result = '<textarea name="' . $name . '" ' . $input_size . ' id="' . $inputid . '">' . $value . '</textarea>' . "\n";
+    $result = '<textarea name="' . $name . '" ' . $input_size . ' id="' . $elementInputId . '">' . $value . '</textarea>' . "\n";
     if ($label != '') {
-        $result .= ' <label for="' . $inputid . '">' . __($label) . '</label>' . "\n";
+        $result .= ' <label for="' . $elementInputId . '">' . __($label) . '</label>' . "\n";
     }
     $result .= $newline . "\n";
     return ($result);

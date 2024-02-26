@@ -45,7 +45,7 @@ class ADcomments {
      *
      * @var string
      */
-    protected $mylogin = '';
+    protected $myLogin = '';
 
     /**
      * Current scope items counters as item=>commentsCount
@@ -122,13 +122,14 @@ class ADcomments {
         $this->scope = $scope;
     }
 
+
     /**
      * Sets current administrator login into private prop
      * 
      * @return void
      */
     protected function setMyLogin() {
-        $this->mylogin = whoami();
+        $this->myLogin = whoami();
     }
 
     /**
@@ -191,15 +192,29 @@ class ADcomments {
         }
     }
 
+
+
     /**
      * Returns new comment creation form
      * 
      * @return string
      */
     protected function commentAddForm() {
+        $result = '';
         $inputs = wf_TextArea(self::PROUTE_NEW_TEXT, '', '', true, $this->textAreaSize);
         $inputs .= wf_Submit(__('Save'));
-        $result = wf_Form('', 'POST', $inputs, 'glamour');
+
+        $result .= wf_tag('div', false, '', 'style="float:left;"');
+        $result .= wf_Form('', 'POST', $inputs, 'glamour');
+        $result .= wf_tag('div', true);
+
+        //princess fast reply form if its enabled?
+        if ($this->scope == 'TASKMAN') {
+            $adCommFr = new ADcommFR();
+            $result .= $adCommFr->renderPrincessFastReplies();
+        }
+
+        $result .= wf_CleanDiv();
         return ($result);
     }
 
@@ -218,7 +233,7 @@ class ADcomments {
         $this->commentsDb->data('scope', $this->scope);
         $this->commentsDb->data('item', $this->item);
         $this->commentsDb->data('date', $curdate);
-        $this->commentsDb->data('admin', $this->mylogin);
+        $this->commentsDb->data('admin', $this->myLogin);
         $this->commentsDb->data('text', $text);
         $this->commentsDb->create();
 
@@ -324,7 +339,7 @@ class ADcomments {
     protected function commentControls($commentid) {
         $result = '';
         if (isset($this->allCommentsData[$commentid])) {
-            if (($this->allCommentsData[$commentid]['admin'] == $this->mylogin) OR ( cfr('ROOT'))) {
+            if (($this->allCommentsData[$commentid]['admin'] == $this->myLogin) or (cfr('ROOT'))) {
                 $deleteInputs = wf_HiddenInput(self::PROUTE_DELETE, $commentid);
                 $deleteInputs .= wf_tag('input', false, '', 'type="image" src="skins/icon_del.gif" title="' . __('Delete') . '" ' . $this->jsAlert(__('Removing this may lead to irreparable results')));
                 $deleteForm = wf_Form('', 'POST', $deleteInputs, '');
@@ -425,7 +440,7 @@ class ADcomments {
             }
             $this->cache->set(self::CACHE_KEY . $this->scope, $cachedData, $this->cacheTime);
         }
-        return($cachedData);
+        return ($cachedData);
     }
 
     /**
@@ -439,7 +454,7 @@ class ADcomments {
             if (!empty($cachedData)) {
                 foreach ($cachedData as $io => $each) {
                     if (isset($this->scopeItems[$each['item']])) {
-                        $this->scopeItems[$each['item']] ++;
+                        $this->scopeItems[$each['item']]++;
                     } else {
                         $this->scopeItems[$each['item']] = 1;
                     }
@@ -502,28 +517,28 @@ class ADcomments {
             $counter = $this->getCommentsCount($item);
             $result = wf_img_sized('skins/adcomments.png', __('Additional comments') . ' (' . $counter . ')', $size, $size);
         } else {
-//                                    .  .
-//                                    |\_|\
-//                                    | a_a\    I'm Batman.
-//                                    | | "]
-//                                ____| '-\___
-//                               /.----.___.-'\
-//                              //        _    \
-//                             //   .-. (~v~) /|
-//                            |'|  /\:  .--  / \
-//                           // |-/  \_/____/\/~|
-//                          |/  \ |  []_|_|_] \ |
-//                          | \  | \ |___   _\ ]_}
-//                          | |  '-' /   '.'  |
-//                          | |     /    /|:  |
-//                          | |     |   / |:  /\
-//                          | |     /  /  |  /  \
-//                          | |    |  /  /  |    \
-//                          \ |    |/\/  |/|/\    \
-//                           \|\ |\|  |  | / /\/\__\
-//                            \ \| | /   | |__
-//                                 / |   |____)
-//                                 |_/
+            //                                    .  .
+            //                                    |\_|\
+            //                                    | a_a\    I'm Batman.
+            //                                    | | "]
+            //                                ____| '-\___
+            //                               /.----.___.-'\
+            //                              //        _    \
+            //                             //   .-. (~v~) /|
+            //                            |'|  /\:  .--  / \
+            //                           // |-/  \_/____/\/~|
+            //                          |/  \ |  []_|_|_] \ |
+            //                          | \  | \ |___   _\ ]_}
+            //                          | |  '-' /   '.'  |
+            //                          | |     /    /|:  |
+            //                          | |     |   / |:  /\
+            //                          | |     /  /  |  /  \
+            //                          | |    |  /  /  |    \
+            //                          \ |    |/\/  |/|/\    \
+            //                           \|\ |\|  |  | / /\/\__\
+            //                            \ \| | /   | |__
+            //                                 / |   |____)
+            //                                 |_/
             $result = '';
         }
         return ($result);
@@ -559,5 +574,4 @@ class ADcomments {
             throw new Exception(self::EX_EMPTY_SCOPE);
         }
     }
-
 }
