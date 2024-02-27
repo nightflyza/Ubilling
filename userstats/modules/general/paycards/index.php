@@ -252,5 +252,6 @@ if ($pc_enabled) {
 }
 
 if ($pcAgentCall) {
-    zbs_XMLAgentRender($pcAgentResult, 'data', '', $pcAgentOutputFormat, false);
+    //zbs_XMLAgentRender($pcAgentResult, 'data', '', $pcAgentOutputFormat, false);
+    XMLAgent::renderResponse($pcAgentResult, 'data', '', $pcAgentOutputFormat, false);
 }
