@@ -1304,6 +1304,24 @@ function zbs_UserGetAllTagsUnique($login = '', $whereTagID = '') {
 }
 
 /**
+ * Returns array of available virtualservices as Service:id=>tagname
+ *
+ * @return array
+ */
+function zbs_VservicesGetAllNamesLabeled() {
+    $result = array();
+    $allservices = zbs_getVservicesAll();
+    $alltagnames = zbs_getTagNames();
+    if (!empty($allservices)) {
+        foreach ($allservices as $io => $eachservice) {
+            @$result['Service:' . $eachservice['id']] = $alltagnames[$eachservice['tagid']];
+        }
+    }
+
+    return ($result);
+}
+
+/**
  * Returns total cost of all additional services.
  *
  * @param string $login user's login
@@ -2780,4 +2798,145 @@ function zbs_AerialAlertNotification() {
             show_window(__('Error'), __('Wrong reply received') . ': ' . $rawData);
         }
     }
+}
+
+
+/**
+ * Returns array of fees by some login from harvested fees database
+ *
+ * @param string $login existing user login
+ *
+ * @return array
+ */
+function zbs_GetUserDBFees($login, $date_from = '', $date_to = '') {
+    $result = array();
+    $login  = ubRouting::filters($login, 'mres');
+    $feesDb = new NyanORM('fees');
+    $feesDb->where('login', '=', $login);
+
+    if (!empty($date_from)) {
+        $feesDb->where('date', '>=', $date_from);
+    }
+
+    if (!empty($date_to)) {
+        $feesDb->where('date', '<=', $date_to);
+    }
+
+    $allFees = $feesDb->getAll();
+
+    if (!empty($allFees)) {
+        foreach ($allFees as $io => $each) {
+            $counter = strtotime($each['date']);
+            // trying to avoid duplicate keys
+            while (array_key_exists($counter, $result)) {
+                $counter++;
+            }
+
+            $result[$counter]['login'] = $each['login'];
+            $result[$counter]['date'] = $each['date'];
+            $result[$counter]['admin'] = $each['admin'];
+            $result[$counter]['summ'] = $each['summ'];
+            $result[$counter]['from'] = $each['from'];
+            $result[$counter]['to'] = $each['to'];
+            $result[$counter]['operation'] = 'Fee';
+            $result[$counter]['note'] = $each['note'];
+            $result[$counter]['cashtype'] = $each['cashtype'];
+        }
+    }
+
+    return($result);
+}
+
+
+function zbs_GetUserAdditionalFees($login, $date_from = '', $date_to = '', $whereStr = '') {
+    $result = array();
+    $login  = ubRouting::filters($login, 'mres');
+    $paymentsDB = new NyanORM('payments');
+    $paymentsDB->where('login', '=', $login);
+    $paymentsDB->where('summ', '<', 0);
+
+    if (!empty($date_from)) {
+        $paymentsDB->where('date', '>=', $date_from);
+    }
+
+    if (!empty($date_to)) {
+        $paymentsDB->where('date', '<=', $date_to);
+    }
+
+    if (!empty($whereStr)) {
+        $paymentsDB->whereRaw(' AND ' . $whereStr);
+    }
+
+    $additionalFees = $paymentsDB->getAll();
+
+    if (!empty($additionalFees)) {
+        foreach ($additionalFees as $io => $eachFee) {
+            $counter = strtotime($eachFee['date']);
+            // trying to avoid duplicate keys
+            while (array_key_exists($counter, $result)) {
+                $counter++;
+            }
+
+            if (ispos($eachFee['note'], 'MOCK:')) {
+                $cashto = $eachFee['balance'];
+            }
+
+            if (ispos($eachFee['note'], 'BALANCESET:')) {
+                $cashto = $eachFee['summ'];
+            }
+
+            if ((!ispos($eachFee['note'], 'MOCK:')) AND (!ispos($eachFee['note'], 'BALANCESET:'))) {
+                if (is_numeric($eachFee['summ']) AND is_numeric($eachFee['balance'])) {
+                    $cashto = $eachFee['summ'] + $eachFee['balance'];
+                } else {
+                    $cashto = __('Corrupted');
+                }
+            }
+
+            $result[$counter]['login'] = $eachFee['login'];
+            $result[$counter]['date'] = $eachFee['date'];
+            $result[$counter]['admin'] = $eachFee['admin'];
+            $result[$counter]['summ'] = $eachFee['summ'];
+            $result[$counter]['from'] = $eachFee['balance'];
+            $result[$counter]['to'] = $cashto;
+            $result[$counter]['operation'] = 'Payment';
+            $result[$counter]['note'] = $eachFee['note'];
+            $result[$counter]['cashtype'] = $eachFee['cashtypeid'];
+        }
+    }
+
+    return($result);
+}
+
+function zbs_concatArraysAvoidDuplicateKeys($arr1, $arr2) {
+    $resultArray = array();
+    // searching and fixing duplicates in $arr1 - $arr2 arrays
+    $duplicates = array_intersect_key($arr1, $arr2);
+
+    if (!empty($duplicates)) {
+        foreach ($duplicates as $key => $val) {
+            // walking through duplicates array and trying to get
+            // a unique key instead of existing duplicate key
+            if (array_key_exists($key, $arr2)) {
+                $tmpVal = $arr2[$key];
+                $tmpKey = $key + 1;
+
+                while (array_key_exists($tmpKey, $arr1) or
+                       array_key_exists($tmpKey, $arr2)
+                ) {
+
+                    $tmpKey++;
+                }
+
+                // remove array item with duplicate key and set it's preserved value to new key
+                // we're not worried about the keys order as concatenated array
+                // will be later sorted by keys anyway
+                unset($arr2[$key]);
+                $arr2[$tmpKey] = $tmpVal;
+            }
+        }
+    }
+
+    $resultArray = $arr1 + $arr2;
+    return($resultArray);
 }

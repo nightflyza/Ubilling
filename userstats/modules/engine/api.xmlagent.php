@@ -153,6 +153,8 @@ class XMLAgent {
                             or ubRouting::checkGet('tickets')
                             or ubRouting::checkGet('opayz')
                             or ubRouting::checkGet('agentassigned')
+                            or ubRouting::checkGet('tariffvservices')
+                            or ubRouting::checkGet('feecharges')
                            );
 
         if (!empty($user_login)) {
@@ -178,7 +180,19 @@ class XMLAgent {
 
                 if (ubRouting::checkGet('agentassigned')) {
                     $subSection     = 'agentdata';
-                    $resultToRender = $this->getUserAgent($user_login);
+                    $resultToRender = $this->getUserContrAgent($user_login);
+                }
+
+                if (ubRouting::checkGet('tariffvservices')) {
+                    $subSection     = 'tariffvservices';
+                    $resultToRender = $this->getUserTariffAndVservices($user_login);
+                }
+
+                if (ubRouting::checkGet('feecharges')) {
+                    $subSection     = 'feecharge';
+                    $date_from      = ubRouting::checkGet('datefrom') ? ubRouting::get('datefrom') : '';
+                    $date_to        = ubRouting::checkGet('dateto') ? ubRouting::get('dateto') : '';
+                    $resultToRender = $this->getUserFeeCharges($user_login, $date_from, $date_to);
                 }
             }
         }
@@ -189,16 +203,6 @@ class XMLAgent {
         }
 
         $this->renderResponse($resultToRender, $mainSection, $subSection, $outputFormat, $messages);
-    }
-
-
-    /**
-     * Renders error response when the XMLAgent is disabled by config
-     *
-     * @return void
-     */
-    public function renderDisabledErrorResponse() {
-        $this->renderResponse(array(array('reason' => 'disabled')), 'error', '', $this->outputFormat);
     }
 
 
@@ -222,7 +226,6 @@ class XMLAgent {
             if (!empty($mainSection)) {
                 $result .= '<' . $mainSection . '>' . PHP_EOL;
             }
-
             if (!empty($data)) {
                 foreach ($data as $index => $record) {
                     if (!empty($subSection)) {
@@ -423,7 +426,7 @@ class XMLAgent {
      *
      * @return array
      */
-    protected function getUserAgent($login) {
+    protected function getUserContrAgent($login) {
         $allAddress = zbs_AddressGetFulladdresslist();
         $userAddress = empty($allAddress) ? array() : $allAddress[$login];
         $agentData = zbs_AgentAssignedGetDataFast($login, $userAddress);
@@ -533,6 +536,7 @@ class XMLAgent {
 
         $reqResult = array();
         $reqResult[] = array('address' => @$alladdress[$login]);
+
         if ($this->uscfgAddressStructON) {
             if (!empty($alladdressStruct)) {
                 foreach ($alladdressStruct[$login] as $field => $value) {
@@ -540,6 +544,15 @@ class XMLAgent {
                 }
             }
         }
+
+        $tariffData = zbs_UserGetTariffData($userdata['Tariff']);
+        $tariffPeriod = isset($tariffData['period']) ? $tariffData['period'] : 'month';
+        $vservicesPeriodON = $this->usConfig->getUstasParam('VSERVICES_CONSIDER_PERIODS', 0);
+        $includeVServices = $this->usConfig->getUstasParam('ONLINELEFT_CONSIDER_VSERVICES', 0);
+        $totalVsrvPrice = ($vservicesPeriodON) ? zbs_vservicesGetUserPricePeriod($login, $tariffPeriod) : zbs_vservicesGetUserPrice($login);
+        $payedTillDate = (($balanceExpire !== 'No' and $balanceExpire !== 'debt' and is_numeric($balanceExpire))
+                            ? date("d.m.Y", time() + ($balanceExpire * 24 * 60 * 60)) : 'none');
+
         $reqResult[] = array('realname' => @$allrealnames[$login]);
         $reqResult[] = array('login' => $login);
         $reqResult[] = array('cash' => @round($userdata['Cash'], 2));
@@ -559,10 +572,80 @@ class XMLAgent {
         $reqResult[] = array('trafftotal' => zbs_convert_size($traffdown + $traffup));
         $reqResult[] = array('accountstate' => $passive_state . $down_state);
         $reqResult[] = array('accountexpire' => $balanceExpire);
+        $reqResult[] = array('payedtilldate' => $payedTillDate);
+        $reqResult[] = array('payedtillvsrvincluded' => $includeVServices);
+        $reqResult[] = array('vservicescost' => $totalVsrvPrice);
         $reqResult[] = array('currency' => $this->uscfgCurrency);
         $reqResult[] = array('version' => $apiVer);
 
         return ($reqResult);
     }
 
+
+    /**
+     * Data collector for "tariffvservices" request
+     *
+     * @param $login
+     *
+     * @return array
+     */
+    protected function getUserTariffAndVservices($login) {
+        $tariffvsrvs = array();
+        $userData    = zbs_UserGetStargazerData($login);
+        $tariffData  = (!empty($userData['Tariff']) ? zbs_UserGetTariffData($userData['Tariff']) : array());
+
+        if (!empty($tariffData)) {
+            $vsrvsData      = zbs_vservicesGetUsersAll($login, true, true);
+
+            $tariffvsrvs['tariffname']       = $userData['Tariff'];
+            $tariffvsrvs['tariffprice']      = $tariffData['Fee'];
+            $tariffvsrvs['tariffdaysperiod'] = $tariffData['period'];
+
+            if (!empty($vsrvsData)) {
+                $vsrvsData = $vsrvsData[$login];
+
+                foreach ($vsrvsData as $eachID => $eachSrv) {
+                    $tariffvsrvs['vsrvname' . $eachID]        = $eachSrv['vsrvname'];
+                    $tariffvsrvs['vsrvprice' . $eachID]       = $eachSrv['price'];
+                    $tariffvsrvs['vsrvdaysperiod' . $eachID]  = $eachSrv['daysperiod'];
+                }
+            }
+
+            $tariffvsrvs = empty($tariffvsrvs) ? array() : array('tariffvservices' => $tariffvsrvs);
+        }
+
+        return ($tariffvsrvs);
+    }
+
+
+    /**
+     * Data collector for "feecharges" request
+     *
+     * @param $login
+     *
+     * @return array
+     */
+    protected function getUserFeeCharges($login, $date_from = '', $date_to = '') {
+        $feeCharges         = array();
+        $vservicesLabeled   = zbs_VservicesGetAllNamesLabeled();
+        $tmpFees            = zbs_GetUserDBFees($login, $date_from, $date_to);
+        $tmpAdditionalFees  = zbs_GetUserAdditionalFees($login, $date_from, $date_to);
+        $allFees            = zbs_concatArraysAvoidDuplicateKeys($tmpFees, $tmpAdditionalFees);
+
+        if (!empty($allFees)) {
+            ksort($allFees);
+        }
+
+        if (!empty($allFees)) {
+            foreach ($allFees as $io => $eachFee) {
+                $feeCharges[$io]['date'] = $eachFee['date'];
+                $feeCharges[$io]['summ'] = $eachFee['summ'];
+                $feeCharges[$io]['balance'] = $eachFee['from'];
+                $feeCharges[$io]['note'] = ((ispos($eachFee['note'], 'Service:') and !empty($vservicesLabeled[$eachFee['note']]))
+                                            ? $vservicesLabeled[$eachFee['note']] : $eachFee['date']);
+            }
+        }
+
+        return ($feeCharges);
+    }
 }
