@@ -320,4 +320,19 @@ function int2ip($src) {
     return sprintf('%d.%d.%d.%d', $s1, $src - 256 * $s1, $i2, $i1);
 }
 
+/**
+ * Checks for substring in string
+ *
+ * @param string $string
+ * @param string $search
+ *
+ * @return bool
+ */
+function ispos($string, $search) {
+    if (strpos($string, $search) === false) {
+        return (false);
+    } else {
+        return (true);
+    }
+}
 ?>
