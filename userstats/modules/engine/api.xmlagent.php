@@ -597,21 +597,19 @@ class XMLAgent {
         if (!empty($tariffData)) {
             $vsrvsData      = zbs_vservicesGetUsersAll($login, true, true);
 
-            $tariffvsrvs['tariffname']       = $userData['Tariff'];
-            $tariffvsrvs['tariffprice']      = $tariffData['Fee'];
-            $tariffvsrvs['tariffdaysperiod'] = $tariffData['period'];
+            $tariffvsrvs[$tariffData['name']]['tariffname']       = $tariffData['name'];
+            $tariffvsrvs[$tariffData['name']]['tariffprice']      = $tariffData['Fee'];
+            $tariffvsrvs[$tariffData['name']]['tariffdaysperiod'] = $tariffData['period'];
 
             if (!empty($vsrvsData)) {
                 $vsrvsData = $vsrvsData[$login];
 
                 foreach ($vsrvsData as $eachID => $eachSrv) {
-                    $tariffvsrvs['vsrvname' . $eachID]        = $eachSrv['vsrvname'];
-                    $tariffvsrvs['vsrvprice' . $eachID]       = $eachSrv['price'];
-                    $tariffvsrvs['vsrvdaysperiod' . $eachID]  = $eachSrv['daysperiod'];
+                    $tariffvsrvs[$eachID]['vsrvname']        = $eachSrv['vsrvname'];
+                    $tariffvsrvs[$eachID]['vsrvprice']       = $eachSrv['price'];
+                    $tariffvsrvs[$eachID]['vsrvdaysperiod']  = $eachSrv['daysperiod'];
                 }
             }
-
-            $tariffvsrvs = empty($tariffvsrvs) ? array() : array('tariffvservices' => $tariffvsrvs);
         }
 
         return ($tariffvsrvs);
@@ -648,4 +646,9 @@ class XMLAgent {
 
         return ($feeCharges);
     }
+
+    //todo: create 2 more requests
+    //      "activetariffsvservices"
+    //      "taskmancreate" + &request_body + &request_type=new_subscriber | &request_type=support_request
+
 }
