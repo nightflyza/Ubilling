@@ -1214,10 +1214,16 @@ function zbs_SpeedGetOverride($login) {
  * 
  * @return array
  */
-function zbs_getVservicesAll() {
+function zbs_getVservicesAll($excludeArchived = false) {
     $result = array();
-    $query = "SELECT * from `vservices`";
-    $all = simple_queryall($query);
+    $vservDb = new NyanORM('vservices');
+
+    if ($excludeArchived) {
+        $vservDb->where('archived', '=', '0');
+    }
+
+    $all = $vservDb->getAll();
+
     if (!empty($all)) {
         foreach ($all as $io => $each) {
             $result[$each['tagid']] = $each['price'];
@@ -1349,10 +1355,15 @@ function zbs_vservicesGetUserPrice($login) {
  *
  * @return array
  */
-function zbs_vservicesGetAllPricesPeriods() {
+function zbs_vservicesGetAllPricesPeriods($excludeArchived = false) {
     $result = array();
-    $query = "SELECT * from `vservices`";
-    $all = simple_queryall($query);
+    $vservDb = new NyanORM('vservices');
+
+    if ($excludeArchived) {
+        $vservDb->where('archived', '=', '0');
+    }
+
+    $all = $vservDb->getAll();
 
     if (!empty($all)) {
         foreach ($all as $io => $each) {
@@ -1418,7 +1429,7 @@ function zbs_vservicesGetUserPricePeriod($login, $defaultPeriod = 'month') {
  *
  * @return array
  */
-function zbs_vservicesGetUsersAll($login = '', $includePeriod = false, $includeVSrvName = false) {
+function zbs_vservicesGetUsersAll($login = '', $includePeriod = false, $includeVSrvName = false, $excludeArchived = false) {
     $result = array();
     $allTagNames = array();
     $allUserTags = zbs_UserGetAllTagsUnique($login);
@@ -1429,7 +1440,7 @@ function zbs_vservicesGetUsersAll($login = '', $includePeriod = false, $includeV
 
     //user have some tags assigned
     if (!empty($allUserTags)) {
-        $vservicePrices = ($includePeriod) ? zbs_vservicesGetAllPricesPeriods() : zbs_getVservicesAll();
+        $vservicePrices = ($includePeriod) ? zbs_vservicesGetAllPricesPeriods($excludeArchived) : zbs_getVservicesAll($excludeArchived);
 
         foreach ($allUserTags as $eachLogin => $data) {
             $tmpArr = array();
@@ -2932,4 +2943,9 @@ function zbs_concatArraysAvoidDuplicateKeys($arr1, $arr2) {
 
     $resultArray = $arr1 + $arr2;
     return($resultArray);
+}
+
+
+function zbs_GetTariffsDataAll($excludeLousy = false) {
+    //todo:  implement
 }

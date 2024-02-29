@@ -22,8 +22,18 @@ function zb_VsericeDelete($vservId) {
  * 
  * @return array
  */
-function zb_VserviceGetAllData() {
+function zb_VserviceGetAllData($excludeArchived = false, $onlyArchived = false) {
     $vservDb = new NyanORM('vservices');
+
+    if ($excludeArchived and $onlyArchived) {
+        // No, no, no, no
+        // Don't phunk with my heart
+    } elseif ($excludeArchived) {
+        $vservDb->where('archived', '=', '0');
+    } elseif ($onlyArchived) {
+        $vservDb->where('archived', '=', '1');
+    }
+
     $result = $vservDb->getAll();
     return ($result);
 }
@@ -73,15 +83,20 @@ function web_VserviceAddForm() {
     if ($ubillingConfig->getAlterParam('VCASH_ENABLED')) {
         $serviceFeeTypes['virtual'] = __('virtual services cash');
     }
-    $inputs = stg_tagid_selector() . wf_tag('br');
-    $inputs .= wf_Selector('newcashtype', $serviceFeeTypes, __('Cash type'), '', true);
-    $inputs .= web_priority_selector() . wf_tag('br');
-    $inputs .= wf_TextInput('newfee', __('Fee'), '', true, '5');
-    $inputs .= wf_TextInput('newperiod', __('Charge period in days'), '', true, '5', 'digits');
-    $inputs .= wf_TextInput('newexcludetags', __('Users with this tag IDs will be excluded form current service processing. Tag IDs should be separated with coma.'), '', true);
-    $inputs .= wf_CheckInput('feechargealways', __('Always charge fee, even if balance cash < 0'), true, false);
-    $inputs .= wf_Submit(__('Create'));
-    $result = wf_Form("", 'POST', $inputs, 'glamour');
+
+    $inputs =  wf_Selector('newtagid', stg_tagid_selector(true), __('Tag'), '', false, false, '', '', '', true);
+    $inputs .= wf_Selector('newcashtype', $serviceFeeTypes, __('Cash type'), '', false, false, '', '', '', true);
+    $inputs .= wf_Selector('newpriority', web_priority_selector(6, true), __('Priority'), '', false, false, '', '', '', true);
+    $inputs .= wf_TextInput('newfee', __('Fee'), '', false, '', '', '', '', '', true);
+    $inputs .= wf_TextInput('newperiod', __('Charge period in days'), '', false, '', '', '', '', '', true);
+    $inputs .= wf_TextInput('newexcludetags', __('Excluded user tags') . '*', '', false, '', '', '', '', '', true);
+    $inputs .= wf_tag('span', false, 'full-width-occupy');
+    $inputs .= '*' . __('Users with this tag IDs will be excluded form current service processing. Tag IDs should be separated with coma.');
+    $inputs .= wf_tag('span', true);
+    $inputs .= wf_CheckInput('feechargealways', __('Always charge fee, even if balance cash < 0'), false, false, '', '', 'style="margin-left: auto;"', 'style="text-align: left;"');
+    $inputs .= wf_CheckInput('newarchived', __('Mark the service as "Archived"'), false, false, '', '', 'style="margin-left: auto;"', 'style="text-align: left;"');
+    $inputs .= wf_SubmitClassed(true, 'ubButton', '', __('Create'));
+    $result = wf_Form("", 'POST', $inputs, 'glamour form-grid-2cols form-grid-2cols-label-right labels-top');
     return($result);
 }
 
@@ -113,17 +128,22 @@ function web_VserviceEditForm($vserviceId) {
         }
 
         $feeIsChargedAlways = ($serviceData['fee_charge_always'] == 1) ? true : false;
+        $isArchived = ($serviceData['archived'] == 1) ? true : false;
 
-        $inputs = wf_Selector('edittagid', $allTags, __('Tag'), $serviceData['tagid'], true);
-        $inputs .= wf_Selector('editcashtype', $serviceFeeTypes, __('Cash type'), $serviceData['cashtype'], true);
-        $inputs .= wf_Selector('editpriority', $priorities, __('Priority'), $serviceData['priority'], true);
-        $inputs .= wf_TextInput('editfee', __('Fee'), $serviceData['price'], true, '5');
-        $inputs .= wf_TextInput('editperiod', __('Charge period in days'), $serviceData['charge_period_days'], true, '5', 'digits');
-        $inputs .= wf_TextInput('editexcludetags', __('Users with this tag IDs will be excluded form current service processing. Tag IDs should be separated with coma.'), $serviceData['exclude_tags'], true);
-        $inputs .= wf_CheckInput('editfeechargealways', __('Always charge fee, even if balance cash < 0'), true, $feeIsChargedAlways);
-        $inputs .= wf_Submit(__('Save'));
+        $inputs = wf_Selector('edittagid', $allTags, __('Tag'), $serviceData['tagid'],  false, false, '', '', '', true);
+        $inputs .= wf_Selector('editcashtype', $serviceFeeTypes, __('Cash type'), $serviceData['cashtype'],  false, false, '', '', '', true);
+        $inputs .= wf_Selector('editpriority', $priorities, __('Priority'), $serviceData['priority'],  false, false, '', '', '', true);
+        $inputs .= wf_TextInput('editfee', __('Fee'), $serviceData['price'], false, '5', '', '', '', '', true);
+        $inputs .= wf_TextInput('editperiod', __('Charge period in days'), $serviceData['charge_period_days'], false, '5', 'digits', '', '', '', true);
+        $inputs .= wf_TextInput('editexcludetags', __('Excluded user tags'), $serviceData['exclude_tags'], false, '5', 'digits', '', '', '', true);
+        $inputs .= wf_tag('span', false, 'full-width-occupy');
+        $inputs .= '*' . __('Users with this tag IDs will be excluded form current service processing. Tag IDs should be separated with coma.');
+        $inputs .= wf_tag('span', true);
+        $inputs .= wf_CheckInput('editfeechargealways', __('Always charge fee, even if balance cash < 0'), false, $feeIsChargedAlways, '', '', 'style="margin-left: auto;"', 'style="text-align: left;"');
+        $inputs .= wf_CheckInput('editarchived', __('Mark the service as "Archived"'), false, $isArchived, '', '', 'style="margin-left: auto;"', 'style="text-align: left;"');
+        $inputs .= wf_SubmitClassed(true, 'ubButton', '', __('Save'));
 
-        $result .= wf_Form("", 'POST', $inputs, 'glamour');
+        $result .= wf_Form("", 'POST', $inputs, 'glamour form-grid-2cols form-grid-2cols-label-right labels-top');
         $result .= wf_delimiter();
         $result .= wf_BackLink('?module=vservices');
     } else {
@@ -153,7 +173,8 @@ function web_VservicesShow() {
         'Priority',
         'Always charge fee',
         'Charge period in days',
-        'Excluded user tags'
+        'Excluded user tags',
+        'Archived',
     );
     $keys = array('id',
         'tagid',
@@ -162,7 +183,8 @@ function web_VservicesShow() {
         'priority',
         'fee_charge_always',
         'charge_period_days',
-        'exclude_tags'
+        'exclude_tags',
+        'archived'
     );
 
     show_window(__('Virtual services'), web_GridEditorVservices($titles, $keys, $allvservices, 'vservices'));
@@ -194,7 +216,7 @@ function web_GridEditorVservices($titles, $keys, $alldata, $module) {
             $cells .= wf_TableCell(__($eachtitle), '', '', 'style="height: 20px; font-weight: 600; text-align: center;"');
         }
 
-        $cells .= wf_TableCell(__('Actions'));
+        $cells .= wf_TableCell(__('Actions'), '', '', 'style="height: 20px; font-weight: 600; text-align: center;"');
         $rows = wf_TableRow($cells, 'row1');
 
         foreach ($alldata as $io => $eachdata) {
@@ -215,6 +237,10 @@ function web_GridEditorVservices($titles, $keys, $alldata, $module) {
 
                         case 'fee_charge_always':
                             $cells .= wf_TableCell(web_bool_led($eachdata[$eachkey]), '210px', '', 'style="text-align: center;"');
+                            break;
+
+                        case 'archived':
+                            $cells .= wf_TableCell(web_bool_led($eachdata[$eachkey]), '', '', 'style="text-align: center;"');
                             break;
 
                         case 'exclude_tags':
@@ -720,7 +746,7 @@ function zb_VservicesGetUsersAll($login = '', $includePeriod = false, $includeVS
  * 
  * @return void
  */
-function zb_VserviceCreate($tagid, $price, $cashtype, $priority, $feechargealways = 0, $feechargeperiod = 0, $excludedtags = '') {
+function zb_VserviceCreate($tagid, $price, $cashtype, $priority, $feechargealways = 0, $feechargeperiod = 0, $excludedtags = '', $archived = 0) {
     $tagid = ubRouting::filters($tagid, 'int');
     $price = ubRouting::filters($price, 'mres');
     $cashtype = ubRouting::filters($cashtype, 'mres');
@@ -736,6 +762,7 @@ function zb_VserviceCreate($tagid, $price, $cashtype, $priority, $feechargealway
     $vservDb->data('fee_charge_always', $feechargealways);
     $vservDb->data('charge_period_days', $feechargeperiod);
     $vservDb->data('exclude_tags', $excludedtags);
+    $vservDb->data('archived', $archived);
     $vservDb->create();
     $newId = $vservDb->getLastId();
     log_register('VSERVICE CREATE TAG [' . $tagid . '] PRICE `' . $price . '` [' . $cashtype . '] `' . $priority . '` [' . $feechargealways . '] `' . '` [' . $feechargeperiod . '] ` AS [' . $newId . ']');
@@ -754,7 +781,7 @@ function zb_VserviceCreate($tagid, $price, $cashtype, $priority, $feechargealway
  * 
  * @return void
  */
-function zb_VserviceEdit($vserviceId, $tagid, $price, $cashtype, $priority, $feechargealways = 0, $feechargeperiod = 0, $excludedtags = '') {
+function zb_VserviceEdit($vserviceId, $tagid, $price, $cashtype, $priority, $feechargealways = 0, $feechargeperiod = 0, $excludedtags = '', $archived = 0) {
     $vserviceId = ubRouting::filters($vserviceId, 'int');
     $tagid = ubRouting::filters($tagid, 'int');
     $price = ubRouting::filters($price, 'mres');
@@ -771,6 +798,7 @@ function zb_VserviceEdit($vserviceId, $tagid, $price, $cashtype, $priority, $fee
     $vservDb->data('fee_charge_always', $feechargealways);
     $vservDb->data('charge_period_days', $feechargeperiod);
     $vservDb->data('exclude_tags', $excludedtags);
+    $vservDb->data('archived', $archived);
     $vservDb->where('id', '=', $vserviceId);
     $vservDb->save();
 
