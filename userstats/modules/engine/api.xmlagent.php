@@ -754,6 +754,21 @@ class XMLAgent {
         $sigreqID = 0;
         $result   = array();
 
+// $requestBody JSON structure:
+/*
+{
+    "date": "2024-02-29 19:57:50",
+    "state": 0,
+    "ip": "app_IP_addr",
+    "street": "Some_City Some_Street",
+    "build": "111",
+    "apt": "222",
+    "realname": "FirstName LastName",
+    "phone": "0551234567",
+    "service": "Internet",
+    "notes": "Some important notes here"
+}
+*/
         if (!empty($requestBody)) {
             $requestBody = json_decode($requestBody);
             $sigreqDB = new NyanORM('sigreq');
@@ -772,20 +787,4 @@ class XMLAgent {
 
         return ($result);
     }
-
-
-/*
-{
-    "date": "2024-02-29 19:57:50",
-    "state": 0,
-    "ip": "app_IP_addr",
-    "street": "Some_City Some_Street",
-    "build": "111",
-    "apt": "222",
-    "realname": "FirstName LastName",
-    "phone": "0551234567",
-    "service": "Internet",
-    "notes": "Some important notes here"
-}
-*/
 }
