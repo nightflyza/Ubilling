@@ -68,9 +68,9 @@ function zb_UserGetAllTagsUnique($login = '', $whereTagID = '') {
  * @param int $max
  * @return string
  */
-function web_priority_selector($max = 6) {
+function web_priority_selector($max = 6, $noWebControlReturn = false) {
     $params = array_combine(range($max, 1), range($max, 1));
-    $result = wf_Selector('newpriority', $params, __('Priority'), '', false);
+    $result = $noWebControlReturn ? $params : wf_Selector('newpriority', $params, __('Priority'), '', false);
     return ($result);
 }
 
@@ -318,7 +318,7 @@ function stg_tagadd_selector() {
  * 
  * @return string
  */
-function stg_tagid_selector() {
+function stg_tagid_selector($noWebControlReturn = false) {
     $query = "SELECT * from `tagtypes`";
     $alltypes = simple_queryall($query);
     $tmpArr = array();
@@ -328,7 +328,7 @@ function stg_tagid_selector() {
         }
     }
 
-    $result = wf_Selector('newtagid', $tmpArr, __('Tag'), '', false);
+    $result = $noWebControlReturn ? $tmpArr : wf_Selector('newtagid', $tmpArr, __('Tag'), '', false);
     return ($result);
 }
 
