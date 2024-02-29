@@ -165,8 +165,7 @@ class XMLAgent {
             if ($getUserData) {
                 $mainSection    = 'userdata';
                 $resultToRender = $this->getUserData($user_login);
-            }
-            else {
+            } else {
                 if (ubRouting::checkGet('payments') and $this->uscfgPaymentsON) {
                     $subSection     = 'payment';
                     $resultToRender = $this->getUserPayments($user_login);
@@ -693,7 +692,7 @@ class XMLAgent {
                 $feeCharges[$io]['summ'] = $eachFee['summ'];
                 $feeCharges[$io]['balance'] = $eachFee['from'];
                 $feeCharges[$io]['note'] = ((ispos($eachFee['note'], 'Service:') and !empty($vservicesLabeled[$eachFee['note']]))
-                                            ? $vservicesLabeled[$eachFee['note']] : $eachFee['date']);
+                                            ? $vservicesLabeled[$eachFee['note']] : $eachFee['note']);
             }
         }
 
@@ -754,7 +753,7 @@ class XMLAgent {
         $sigreqID = 0;
         $result   = array();
 
-// $requestBody JSON structure:
+// expected $requestBody JSON structure:
 /*
 {
     "date": "2024-02-29 19:57:50",
