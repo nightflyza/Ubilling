@@ -313,7 +313,7 @@ function wf_RadioInput($name, $label = '', $value = '', $br = false, $checked = 
  * @return  string
  *
  */
-function wf_CheckInput($name, $label = '', $br = false, $checked = false, $CtrlID = '', $CtrlClass = '') {
+function wf_CheckInput($name, $label = '', $br = false, $checked = false, $CtrlID = '', $CtrlClass = '', $options = '', $labelOptions = '') {
     $inputid = ((empty($CtrlID)) ? 'ChkBox_' . wf_InputId() : $CtrlID);
     $inputClass = ((empty($CtrlClass)) ? '' : ' class="' . $CtrlClass . '" ');
 
@@ -327,9 +327,9 @@ function wf_CheckInput($name, $label = '', $br = false, $checked = false, $CtrlI
     } else {
         $check = '';
     }
-    $result = '<input type="checkbox" id="' . $inputid . '" ' . $inputClass . 'name="' . $name . '" ' . $check . ' />';
+    $result = '<input type="checkbox" id="' . $inputid . '" ' . $inputClass . 'name="' . $name . '" ' . $check . ' ' . $options . ' />';
     if ($label != '') {
-        $result .= ' <label for="' . $inputid . '">' . __($label) . '</label>' . "\n";
+        $result .= ' <label for="' . $inputid . '" ' . $labelOptions . '>' . __($label) . '</label>' . "\n";
     }
     $result .= $newline . "\n";
     return ($result);

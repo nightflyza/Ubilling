@@ -591,8 +591,8 @@ class XMLAgent {
      */
     protected function getUserTariffAndVservices($login) {
         $tariffvsrvs = array();
-        $userData    = zbs_UserGetStargazerData($login);
-        $tariffData  = (!empty($userData['Tariff']) ? zbs_UserGetTariffData($userData['Tariff']) : array());
+        $userTariff  = zbs_UserGetTariff($login);
+        $tariffData  = (!empty($userTariff) ? zbs_UserGetTariffData($userTariff) : array());
 
         if (!empty($tariffData)) {
             $vsrvsData      = zbs_vservicesGetUsersAll($login, true, true);
@@ -647,6 +647,11 @@ class XMLAgent {
         return ($feeCharges);
     }
 
+
+    protected function getAllTariffsVservices() {
+        $tariffsvservices   = array();
+        $vservices          = zbs_vservicesGetUsersAll('', true, true, true);
+    }
     //todo: create 2 more requests
     //      "activetariffsvservices"
     //      "taskmancreate" + &request_body + &request_type=new_subscriber | &request_type=support_request

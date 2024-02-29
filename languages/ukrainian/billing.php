@@ -3515,6 +3515,7 @@ $lang['def']['Hide'] = 'Приховати';
 $lang['def']['Users with this tag IDs will be excluded form current service processing. Tag IDs should be separated with coma.'] = 'Користувачі зі вказаними тегами будуть виключені з обробки даним сервісом. ID тегів мають відокремлюватись комами.';
 $lang['def']['Excluded user tags'] = 'Виключені користувацькі теги';
 $lang['def']['Non-existent tag with ID'] = 'Неіснуючий тег з ID';
+$lang['def']['Mark the service as "Archived"'] = 'Позначити сервіс як "Архівний"';
 $lang['def'][''] = '';
 
 
