@@ -3516,6 +3516,7 @@ $lang['def']['Users with this tag IDs will be excluded form current service proc
 $lang['def']['Excluded user tags'] = 'Виключені користувацькі теги';
 $lang['def']['Non-existent tag with ID'] = 'Неіснуючий тег з ID';
 $lang['def']['Mark the service as "Archived"'] = 'Позначити сервіс як "Архівний"';
+$lang['def']['Archived'] = 'Архівний';
 $lang['def'][''] = '';
 
 

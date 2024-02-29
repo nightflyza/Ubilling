@@ -43,18 +43,18 @@ if ($user_ip) {
     if (!isset($_GET['module'])) {
         if ($us_config['UBA_ENABLED']) {
             // UBAgent SUPPORT:
-            if (isset($_GET['ubagent'])) {
+            if (ubRouting::checkGet('ubagent')) {
                 zbs_UserShowAgentData($user_login);
             }
 
             // XMLAgent SUPPORT:
-            if (isset($_GET['xmlagent'])) {
+            if (ubRouting::checkGet('xmlagent')) {
                 //zbs_UserShowXmlAgentData($user_login);
                 new XMLAgent($user_login);
             }
         } else {
             //REST API disabled by configuration
-            if (isset($_GET['xmlagent'])) {
+            if (ubRouting::checkGet('xmlagent')) {
                 $errorOutputFormat = 'xml';
                 if (ubRouting::checkGet('json')) {
                     $errorOutputFormat = 'json';

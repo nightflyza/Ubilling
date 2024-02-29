@@ -96,6 +96,9 @@ class XMLAgent {
      */
     protected $usOpayzCfg = array();
 
+    const TICKET_TYPE_SUPPORT = 'support_request';
+    const TICKET_TYPE_SIGNUP  = 'signup_request';
+
 
     public function __construct($user_login = '') {
         $this->loadConfig();
@@ -155,6 +158,7 @@ class XMLAgent {
                             or ubRouting::checkGet('agentassigned')
                             or ubRouting::checkGet('tariffvservices')
                             or ubRouting::checkGet('feecharges')
+                            or ubRouting::checkGet('ticketcreate')
                            );
 
         if (!empty($user_login)) {
@@ -194,12 +198,31 @@ class XMLAgent {
                     $date_to        = ubRouting::checkGet('dateto') ? ubRouting::get('dateto') : '';
                     $resultToRender = $this->getUserFeeCharges($user_login, $date_from, $date_to);
                 }
+
+                if (ubRouting::checkGet('ticketcreate') and ubRouting::checkGet('tickettext')
+                    and ubRouting::checkGet('tickettype') and ubRouting::get('tickettype') == self::TICKET_TYPE_SUPPORT
+                ) {
+                    $text = base64_decode(ubRouting::get('tickettext'));
+                    $resultToRender = $this->createSupportTicket($user_login, $text);
+                }
             }
         }
 
         if (ubRouting::checkGet('announcements') and $this->uscfgAnnouncementsON) {
             $messages       = true;
             $resultToRender = $this->getAnnouncements();
+        }
+
+        if (ubRouting::checkGet('activetariffsvservices')) {
+            $subSection     = 'activetariffsvservices';
+            $resultToRender = $this->getAllTariffsVservices();
+        }
+
+        if (ubRouting::checkGet('ticketcreate') and ubRouting::checkGet('tickettype')
+            and ubRouting::get('tickettype') == self::TICKET_TYPE_SIGNUP
+        ) {
+            $requestJSON = file_get_contents("php://input");
+            $resultToRender = $this->createSignUpRequest($requestJSON);
         }
 
         $this->renderResponse($resultToRender, $mainSection, $subSection, $outputFormat, $messages);
@@ -617,6 +640,36 @@ class XMLAgent {
 
 
     /**
+     * Data collector for "activetariffsvservices" request
+     *
+     * @return array
+     */
+    protected function getAllTariffsVservices() {
+        $alltariffsvservices = array();
+        $tariffsNoLousy      = zbs_GetTariffsDataAll(true);
+        $vservicesNoArchived = zbs_getVservicesAllWithNames(true);
+
+        if (!empty($tariffsNoLousy)) {
+            foreach ($tariffsNoLousy as $eachName => $eachRec) {
+                $alltariffsvservices[$eachName]['tariffname']       = $eachRec['name'];
+                $alltariffsvservices[$eachName]['tariffprice']      = $eachRec['Fee'];
+                $alltariffsvservices[$eachName]['tariffdaysperiod'] = $eachRec['period'];
+            }
+        }
+
+        if (!empty($vservicesNoArchived)) {
+            foreach ($vservicesNoArchived as $eachID => $eachSrv) {
+                $alltariffsvservices[$eachID]['vsrvname']        = $eachSrv['vsrvname'];
+                $alltariffsvservices[$eachID]['vsrvprice']       = $eachSrv['price'];
+                $alltariffsvservices[$eachID]['vsrvdaysperiod']  = $eachSrv['charge_period_days'];
+            }
+        }
+
+        return ($alltariffsvservices);
+    }
+
+
+    /**
      * Data collector for "feecharges" request
      *
      * @param $login
@@ -648,12 +701,91 @@ class XMLAgent {
     }
 
 
-    protected function getAllTariffsVservices() {
-        $tariffsvservices   = array();
-        $vservices          = zbs_vservicesGetUsersAll('', true, true, true);
-    }
-    //todo: create 2 more requests
-    //      "activetariffsvservices"
-    //      "taskmancreate" + &request_body + &request_type=new_subscriber | &request_type=support_request
+    /**
+     * Support request creation routine
+     *
+     * @param $login
+     * @param $tickettext
+     *
+     * @return array[]
+     * @throws Exception
+     */
+    protected function createSupportTicket($login, $tickettext) {
+        $ticketID = 0;
+        $result   = array();
 
+        if (!empty($login) and !empty($tickettext)) {
+            $from = mysql_real_escape_string($login);
+            $text = mysql_real_escape_string(strip_tags($tickettext));
+            $date = curdatetime();
+
+            $ticketDB = new NyanORM('ticketing');
+            $ticketDB->dataArr(array(
+                                'date'   => $date,
+                                'status' => '0',
+                                'from'   => $from,
+                                'text'   => $text
+                               ));
+            $ticketDB->create();
+            $ticketID = $ticketDB->getLastId();
+        }
+
+        if (empty($ticketID)) {
+            $result = array('ticket' => array('created' => 'error', 'id' => 0));
+        } else {
+            $result = array('ticket' => array('created' => 'success', 'id' => $ticketID));
+            $logEvent = 'TICKET CREATE (' . $from . ') NEW [' . $ticketID . ']';
+            log_register($logEvent);
+        }
+
+        return ($result);
+    }
+
+
+    /**
+     * Sign up request creation routine
+     *
+     * @param $requestBody
+     *
+     * @return array[]
+     * @throws Exception
+     */
+    protected function createSignUpRequest($requestBody) {
+        $sigreqID = 0;
+        $result   = array();
+
+        if (!empty($requestBody)) {
+            $requestBody = json_decode($requestBody);
+            $sigreqDB = new NyanORM('sigreq');
+            $sigreqDB->dataArr($requestBody);
+            $sigreqDB->create();
+            $sigreqID = $sigreqDB->getLastId();
+        }
+
+        if (empty($sigreqID)) {
+            $result = array('signup_request' => array('created' => 'error', 'id' => 0));
+        } else {
+            $result = array('signup_request' => array('created' => 'success', 'id' => $sigreqID));
+            $logEvent = 'SIGNUP REQUEST CREATED WITH ID: ' . $sigreqID;
+            log_register($logEvent);
+        }
+
+        return ($result);
+    }
+
+
+/*
+{
+    "date": "2024-02-29 19:57:50",
+    "state": 0,
+    "ip": "app_IP_addr",
+    "street": "Some_City Some_Street",
+    "build": "111",
+    "apt": "222",
+    "realname": "FirstName LastName",
+    "phone": "0551234567",
+    "service": "Internet",
+    "notes": "Some important notes here"
+}
+*/
 }
