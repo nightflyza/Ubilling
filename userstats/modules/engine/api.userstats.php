@@ -1238,6 +1238,37 @@ function zbs_getVservicesAll($excludeArchived = false) {
     return ($result);
 }
 
+
+/**
+ * Returns all vservices data with tag names, optionally excluding archived services
+ *
+ * @param $excludeArchived
+ *
+ * @return array
+ */
+function zbs_getVservicesAllWithNames($excludeArchived = false) {
+    $result = array();
+    $vservDb = new NyanORM('vservices');
+
+    if ($excludeArchived) {
+        $vservDb->where('archived', '=', '0');
+    }
+
+    $allVsrvs = $vservDb->getAll('tagid');
+
+    if (!empty($allVsrvs)) {
+        $allTagNames = zbs_getTagNames();
+
+        foreach ($allVsrvs as $io => $each) {
+            $result[$each['tagid']] = $each;
+            $result[$each['tagid']]['vsrvname'] = (empty($allTagNames[$each['tagid']]) ? '' : $allTagNames[$each['tagid']]);
+        }
+    }
+
+    return ($result);
+}
+
+
 /**
  * Returns array of tag names as id=>name
  * 
@@ -2859,6 +2890,17 @@ function zbs_GetUserDBFees($login, $date_from = '', $date_to = '') {
 }
 
 
+/**
+ * Returns all additional fee-payments(based on negative sums) with optional filters
+ *
+ * @param $login
+ * @param $date_from
+ * @param $date_to
+ * @param $whereStr
+ *
+ * @return array
+ * @throws Exception
+ */
 function zbs_GetUserAdditionalFees($login, $date_from = '', $date_to = '', $whereStr = '') {
     $result = array();
     $login  = ubRouting::filters($login, 'mres');
@@ -2919,6 +2961,15 @@ function zbs_GetUserAdditionalFees($login, $date_from = '', $date_to = '', $wher
     return($result);
 }
 
+
+/**
+ * Concats 2 arrays with numerical keys avoiding key duplicates
+ *
+ * @param $arr1
+ * @param $arr2
+ *
+ * @return mixed
+ */
 function zbs_concatArraysAvoidDuplicateKeys($arr1, $arr2) {
     $resultArray = array();
     // searching and fixing duplicates in $arr1 - $arr2 arrays
@@ -2953,6 +3004,23 @@ function zbs_concatArraysAvoidDuplicateKeys($arr1, $arr2) {
 }
 
 
+/**
+ * Returns all tariffs data, excluding lousy tariffs if necessary
+ *
+ * @param $excludeLousy
+ *
+ * @return array
+ */
 function zbs_GetTariffsDataAll($excludeLousy = false) {
-    //todo:  implement
+    $allTariffs = array();
+    $tariffDB   = new NyanORM('tariffs');
+    $allTariffs = $tariffDB->getAll('name');
+
+    if (!empty($allTariffs) and $excludeLousy) {
+        $lousyDb = new NyanORM('lousytariffs');
+        $allLousyTariffs = $lousyDb->getAll('tariff');
+        $allTariffs = array_diff_key($allTariffs, $allLousyTariffs);
+    }
+
+    return ($allTariffs);
 }
