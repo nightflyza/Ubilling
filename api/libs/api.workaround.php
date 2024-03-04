@@ -5949,7 +5949,6 @@ function web_AdministratorEditForm($adminLogin) {
 /**
  * Returns bank statements file upload form.
  * Backported from old banksta API as HotFix. 
- * TODO: need to be replaced where it used with normal forms.
  * 
  * @param string $action
  * @param string $method

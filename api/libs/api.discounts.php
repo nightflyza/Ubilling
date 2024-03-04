@@ -210,8 +210,6 @@ class Discounts {
     /**
      * Returns array of all payments made during some optional period
      * 
-     * TODO: make workaround for dayly runs of processPayments with option DISCOUNTS_DAILY. 
-     * 
      * @return array
      */
     protected function getAllPeriodPayments() {
