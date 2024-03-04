@@ -52,7 +52,7 @@ header#header h1.site_title, header#header h2.section_title {
     margin: 0;
     font-size: 22px;
     display: block;
-    width: 23%;
+    width: 20%;
     height: 55px;
     font-weight: normal;
     text-align: left;
@@ -74,14 +74,15 @@ header#header h1.site_title a {
 header#header h2.section_title {
     text-align: center;
     text-indent: 4.5%;
-    width: 68%;
+    width: 64%;
     background: url(../images/header_shadow.png) no-repeat left top;
+    border: 1px solid wheat;
 }
 
 
 .btn_view_help {
     float: right;
-    width: 9%;
+    width: 16%;
 }
 
 .btn_view_help a {

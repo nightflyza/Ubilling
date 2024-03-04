@@ -46,9 +46,9 @@ function web_HelpIconShow() {
             if (cfr('PROCRAST')) {
                 $helpChapterContent .= wf_Link('?module=procrast', wf_img('skins/gamepad.png', __('Procrastination helper'))) . ' ';
             }
-            if ($normalMode) {
-                $helpChapterContent .= wf_Link('https://ubilling.net.ua/?module=fnpages&pid=donate', wf_img('skins/heart16.png', __('Support project'))) . ' ';
-            }
+
+            $helpChapterContent .= wf_Link('https://ubilling.net.ua/?module=fnpages&pid=donate', wf_img('skins/heart16.png', __('Support project'))) . ' ';
+
             $containerStyle = 'style="min-width:400px; max-width:800px; min-height:200px; max-height:500px;"';
             $helpChapterContent = wf_AjaxContainer('contexthelpchapter', $containerStyle, $helpChapterContent);
 
@@ -56,7 +56,7 @@ function web_HelpIconShow() {
         }
 
         if ($normalMode) {
-            $result .= wf_Link('https://ubilling.net.ua/?module=fnpages&pid=donate', wf_img_sized('skins/heart32.png', __('Support project'), '20'), false, '', 'target="_blank"').'';
+            $result .= ' ' . wf_Link('https://ubilling.net.ua/?module=fnpages&pid=donate', wf_img_sized('skins/heart32.png', __('Support project'), '20'), false, '', 'target="_blank"') . '';
         }
     }
     return ($result);
