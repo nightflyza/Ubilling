@@ -16,13 +16,13 @@ if (cfr('PROCRAST')) {
 
         $tbiconsize = '128';
         $template = wf_tag('div', false, 'dashtask', 'style="height:' . ($tbiconsize + 30) . 'px; width:' . ($tbiconsize + 30) . 'px;"');
-        $template.= wf_tag('a', false, '', 'href="' . $task_link . '"');
-        $template.= wf_tag('img', false, '', 'src="' . $task_icon . '" border="0" width="' . $tbiconsize . '"  height="' . $tbiconsize . '" alt="' . $task_text . '" title="' . $task_text . '"');
-        $template.= wf_tag('a', true);
-        $template.= wf_tag('br');
-        $template.= wf_tag('br');
-        $template.= $task_text;
-        $template.= wf_tag('div', true);
+        $template .= wf_tag('a', false, '', 'href="' . $task_link . '"');
+        $template .= wf_tag('img', false, '', 'src="' . $task_icon . '" border="0" width="' . $tbiconsize . '"  height="' . $tbiconsize . '" alt="' . $task_text . '" title="' . $task_text . '"');
+        $template .= wf_tag('a', true);
+        $template .= wf_tag('br');
+        $template .= wf_tag('br');
+        $template .= $task_text;
+        $template .= wf_tag('div', true);
         return ($template);
     }
 
@@ -52,19 +52,22 @@ if (cfr('PROCRAST')) {
                 $jsCode = file_get_contents('modules/jsc/procrastdata/hextris/run.html');
                 show_window(__('Hextris'), $jsCode, 'center');
                 break;
-              case 'duckhunt':
+            case 'duckhunt':
                 $jsCode = file_get_contents('modules/jsc/procrastdata/duckhunt.html');
                 show_window(__('Duck hunt'), $jsCode, 'center');
                 break;
-             case 'circus':
+            case 'circus':
                 $jsCode = file_get_contents('modules/jsc/procrastdata/circus.html');
                 show_window(__('Circus Charlie'), $jsCode, 'center');
                 break;
-              case 'pixeldefense':
+            case 'pixeldefense':
                 $jsCode = file_get_contents('modules/jsc/procrastdata/pixeldefense.html');
                 show_window(__('PixelDefense'), $jsCode, 'center');
                 break;
-          
+            case 'doom':
+                $jsCode = file_get_contents('modules/jsc/procrastdata/doom.html');
+                show_window(__('Doom'), $jsCode, 'center');
+                break;
         }
         show_window('', wf_BackLink('?module=procrast'));
     } else {
@@ -78,20 +81,20 @@ if (cfr('PROCRAST')) {
             'motox3m' => __('Moto X3M'),
             'circus' => __('Circus Charlie'),
             'pixeldefense' => __('PixelDefense'),
+            'doom' => __('Doom'),
         );
 
 
         if (!empty($applicationArr)) {
             foreach ($applicationArr as $io => $each) {
-                $applicationsList.=zb_buildGameIcon('?module=procrast&run=' . $io, $io . '.png', $each);
+                $applicationsList .= zb_buildGameIcon('?module=procrast&run=' . $io, $io . '.png', $each);
             }
         }
 
-        $applicationsList.=wf_CleanDiv();
+        $applicationsList .= wf_CleanDiv();
         show_window(__('Procrastination helper'), $applicationsList);
         zb_BillingStats(true);
     }
 } else {
     show_error(__('Access denied'));
 }
-?>
