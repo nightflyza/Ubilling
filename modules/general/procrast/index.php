@@ -2,32 +2,8 @@
 
 if (cfr('PROCRAST')) {
 
-    /**
-     * Returns game icon and link as standard panel
-     * 
-     * @return string
-     */
-    function zb_buildGameIcon($link, $icon, $text) {
-        $icon_path = 'modules/jsc/procrastdata/icons/';
-
-        $task_link = $link;
-        $task_icon = $icon_path . $icon;
-        $task_text = $text;
-
-        $tbiconsize = '128';
-        $template = wf_tag('div', false, 'dashtask', 'style="height:' . ($tbiconsize + 30) . 'px; width:' . ($tbiconsize + 30) . 'px;"');
-        $template .= wf_tag('a', false, '', 'href="' . $task_link . '"');
-        $template .= wf_tag('img', false, '', 'src="' . $task_icon . '" border="0" width="' . $tbiconsize . '"  height="' . $tbiconsize . '" alt="' . $task_text . '" title="' . $task_text . '"');
-        $template .= wf_tag('a', true);
-        $template .= wf_tag('br');
-        $template .= wf_tag('br');
-        $template .= $task_text;
-        $template .= wf_tag('div', true);
-        return ($template);
-    }
-
-    if (wf_CheckGet(array('run'))) {
-        $application = vf($_GET['run']);
+    if (ubRouting::checkGet('run')) {
+        $application = ubRouting::get('run', 'vf');
         switch ($application) {
             case 'tetris':
                 $jsTetris = file_get_contents('modules/jsc/procrastdata/jstetris/tetris.html');
@@ -71,30 +47,81 @@ if (cfr('PROCRAST')) {
         }
         show_window('', wf_BackLink('?module=procrast'));
     } else {
-        $applicationsList = '';
-        $applicationArr = array(
-            'tetris' => __('Tetris'),
-            '2048' => __('2048'),
-            'astray' => __('Astray'),
-            'hextris' => __('Hextris'),
-            'duckhunt' => __('Duck hunt'),
-            'motox3m' => __('Moto X3M'),
-            'circus' => __('Circus Charlie'),
-            'pixeldefense' => __('PixelDefense'),
-            'doom' => __('Doom'),
-        );
-
-
-        if (!empty($applicationArr)) {
-            foreach ($applicationArr as $io => $each) {
-                $applicationsList .= zb_buildGameIcon('?module=procrast&run=' . $io, $io . '.png', $each);
+        //CDN invokable apps here
+        $cachingTimeout = 86400;
+        $cdnUrl = 'https://cdn.ubilling.net.ua/';
+        $routeList = '?list=true';
+        $routeInvoke = '?module=procrast&rinvoke=';
+        $cache = new UbillingCache();
+        $invocableApps = $cache->get('INVPROCR', $cachingTimeout);
+        if (empty($invocableApps)) {
+            $invocableApps = array();
+            $cdn = new OmaeUrl($cdnUrl . $routeList);
+            $ubVer = file_get_contents('RELEASE');
+            $agent = 'ProcrastUbilling/' . trim($ubVer);
+            $cdn->setUserAgent($agent);
+            $rawInvokeData = $cdn->response();
+            if (!empty($rawInvokeData)) {
+                @$jsonValidity = json_decode($rawInvokeData, true);
+                if (is_array($jsonValidity)) {
+                    $invocableApps = $jsonValidity;
+                }
             }
+            $cache->set('INVPROCR', $invocableApps, $cachingTimeout);
         }
 
-        $applicationsList .= wf_CleanDiv();
-        show_window(__('Procrastination helper'), $applicationsList);
-        zb_BillingStats(true);
+
+        if (ubRouting::checkGet('rinvoke')) {
+            //invocing remote app here
+            $remoteInvokedApp = ubRouting::get('rinvoke', 'vf');
+            if (isset($invocableApps[$remoteInvokedApp])) {
+                $appData = $invocableApps[$remoteInvokedApp];
+                if ($appData) {
+                    $invokeCode = '';
+                    $style = 'style="width: 70vw; height: 70vh;"';
+                    $options = 'id="dos" src="' . $cdnUrl . $appData['url'] . '" frameborder="0" ' . $style . ' allowfullscreen';
+                    $invokeCode .= wf_tag('iframe', false, '', $options);
+                    $invokeCode .= wf_tag('iframe', true);
+                    $invokeCode .= wf_tag('script', false) . ' document.getElementById("dos").focus(); ' . wf_tag('script', true);
+                    show_window(__($appData['name']), $invokeCode);
+                }
+            } else {
+                show_error(__('Strange exception'));
+            }
+            show_window('', wf_BackLink('?module=procrast'));
+        } else {
+            //rendering apps list
+            $applicationsList = '';
+            $applicationArr = array(
+                'tetris' => __('Tetris'),
+                '2048' => __('2048'),
+                'astray' => __('Astray'),
+                'hextris' => __('Hextris'),
+                'duckhunt' => __('Duck hunt'),
+                'motox3m' => __('Moto X3M'),
+                'circus' => __('Circus Charlie'),
+                'pixeldefense' => __('PixelDefense'),
+            );
+
+
+            if (!empty($applicationArr)) {
+                foreach ($applicationArr as $io => $each) {
+                    $applicationsList .= zb_buildGameIcon('?module=procrast&run=' . $io, $io . '.png', $each);
+                }
+            }
+
+
+            if (!empty($invocableApps)) {
+                foreach ($invocableApps as $io => $each) {
+                    $applicationsList .= zb_buildGameIcon($routeInvoke . $io, $cdnUrl . $each['icon'], $each['name']);
+                }
+            }
+
+            $applicationsList .= wf_CleanDiv();
+            show_window(__('Procrastination helper'), $applicationsList);
+        }
     }
+    zb_BillingStats(true);
 } else {
     show_error(__('Access denied'));
 }

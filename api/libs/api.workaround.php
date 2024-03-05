@@ -6265,7 +6265,7 @@ function zb_DelimitedStringToSQLWHEREIN($delimited_string, $delimiter = ',', $st
     if (!empty($valuesArr)) {
         foreach ($valuesArr as $eachElem) {
             if (!empty($eachElem)) {
-                $whereStr.= ($stringINClause) ? " '" . $eachElem . "', " : " " . $eachElem . ", ";
+                $whereStr .= ($stringINClause) ? " '" . $eachElem . "', " : " " . $eachElem . ", ";
             }
         }
 
@@ -6289,7 +6289,7 @@ function zb_ArrayToSQLWHEREIN($valuesArr, $stringINClause = false) {
     if (!empty($valuesArr)) {
         foreach ($valuesArr as $eachElem) {
             if (!empty($eachElem)) {
-                $whereStr.= ($stringINClause) ? " '" . $eachElem . "', " : " " . $eachElem . ", ";
+                $whereStr .= ($stringINClause) ? " '" . $eachElem . "', " : " " . $eachElem . ", ";
             }
         }
 
@@ -6297,4 +6297,31 @@ function zb_ArrayToSQLWHEREIN($valuesArr, $stringINClause = false) {
     }
 
     return ($whereStr);
+}
+
+/**
+ * Returns game icon and link as standard panel
+ * 
+ * @return string
+ */
+function zb_buildGameIcon($link, $icon, $text) {
+    $icon_path = '';
+    if (!ispos($icon, 'http')) {
+        $icon_path = 'modules/jsc/procrastdata/icons/'; //local icon?
+    }
+
+    $task_link = $link;
+    $task_icon = $icon_path . $icon;
+    $task_text = $text;
+
+    $tbiconsize = '128';
+    $template = wf_tag('div', false, 'dashtask', 'style="height:' . ($tbiconsize + 30) . 'px; width:' . ($tbiconsize + 30) . 'px;"');
+    $template .= wf_tag('a', false, '', 'href="' . $task_link . '"');
+    $template .= wf_tag('img', false, '', 'src="' . $task_icon . '" border="0" width="' . $tbiconsize . '"  height="' . $tbiconsize . '" alt="' . $task_text . '" title="' . $task_text . '"');
+    $template .= wf_tag('a', true);
+    $template .= wf_tag('br');
+    $template .= wf_tag('br');
+    $template .= $task_text;
+    $template .= wf_tag('div', true);
+    return ($template);
 }

@@ -47,7 +47,9 @@ function web_HelpIconShow() {
                 $helpChapterContent .= wf_Link('?module=procrast', wf_img('skins/gamepad.png', __('Procrastination helper'))) . ' ';
             }
 
-            $helpChapterContent .= wf_Link('https://ubilling.net.ua/?module=fnpages&pid=donate', wf_img('skins/heart16.png', __('Support project'))) . ' ';
+            if (!$normalMode) {
+                $helpChapterContent .= wf_Link('https://ubilling.net.ua/?module=fnpages&pid=donate', wf_img('skins/heart16.png', __('Support project'))) . ' ';
+            }
 
             $containerStyle = 'style="min-width:400px; max-width:800px; min-height:200px; max-height:500px;"';
             $helpChapterContent = wf_AjaxContainer('contexthelpchapter', $containerStyle, $helpChapterContent);
