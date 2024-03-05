@@ -1,12 +1,12 @@
 <?php
 
 /**
- * PON ONU rebooting class
+ * PON Disable lan port on onu class
  */
 class OnuDlp extends OnuBase {
 
     /**
-     * Performs ONU reboot
+     * Performs Disable lan port on onu
      *
      * @return bool
      *
@@ -79,7 +79,7 @@ class OnuDlp extends OnuBase {
     }
 
     /**
-     * Returns ONU reboot button
+     * Returns Disable lan port on onu button
      *
      * @return string
      */
