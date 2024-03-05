@@ -19,6 +19,30 @@ if ($altcfg['ONU_MASTER_ENABLED']) {
                 }
             }
 
+            if (ubRouting::checkPost('DlpOnu')) {
+                $dlpResult = $onuMaster->dlp->dlpOnu();
+
+                if ($dlpResult) {
+                    show_success('Disabled lan port  DONE');
+                    log_register('ONUMASTER ONU DLP for login (' . $userLogin . ')');
+                } else {
+                    show_error($onuMaster->dlp->displayMessage);
+                    log_register('ONUMASTER ONU DLP failed for login (' . $userLogin . '). Message: ' . $onuMaster->dlp->displayMessage);
+                }
+            }
+
+            if (ubRouting::checkPost('ElpOnu')) {
+                $elpResult = $onuMaster->elp->elpOnu();
+
+                if ($elpResult) {
+                    show_success('Enabled lan port  DONE');
+                    log_register('ONUMASTER ONU DLP for login (' . $userLogin . ')');
+                } else {
+                    show_error($onuMaster->elp->displayMessage);
+                    log_register('ONUMASTER ONU ELP failed for login (' . $userLogin . '). Message: ' . $onuMaster->elp->displayMessage);
+                }
+            }
+
             if (ubRouting::checkPost('DeleteOnu')) {
                 $delResult = $onuMaster->delete->deleteOnu();
 
