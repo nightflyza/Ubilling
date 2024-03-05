@@ -1,8 +1,0 @@
-$prefixSize = 5;   
-for ($i = $this->incrementsOffset; $i < $this->incrementsMaxLimit; $i++) {
-                $nextIncrementProposal = sprintf('%0' . $prefixSize . 'd', $i);
-                if (!isset($this->busyLogins[$nextIncrementProposal])) {
-                    $this->loginProposal = $nextIncrementProposal;
-                    break;
-                }
-            }

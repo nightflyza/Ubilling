@@ -1,9 +1,0 @@
-class "{HOSTNAME}" { 
-	match if substring(option agent.circuit-id,49,12) = "{CIRCUITID}";
-}
-
-pool {
-	range {IP};
-	allow members of "{HOSTNAME}";
-}
-

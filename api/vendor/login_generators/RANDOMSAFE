@@ -1,3 +1,0 @@
-$randomStringProposal = zb_rand_string(10);
-$filteredChars = array('q', 'Q', 'i', 'I', 'l', 'L', 'j', 'J', 'o', 'O', '1', '0', 'g', 'G');
-$this->loginProposal = str_replace($filteredChars, 'x', $randomStringProposal);

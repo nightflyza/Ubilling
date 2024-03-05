@@ -1,9 +1,0 @@
-class "{HOSTNAME}" { 
-	match if binary-to-ascii(16,8,":",substring(option agent.remote-id,0,6)) = "{CIRCUITID}"; 
-}
-
-pool {
-	range {IP};
-	allow members of "{HOSTNAME}";
-}
-

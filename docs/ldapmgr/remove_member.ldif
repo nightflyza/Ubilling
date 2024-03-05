@@ -1,5 +1,0 @@
-dn: cn={GROUP},{GROUP_OU}
-changetype: modify
-delete: member
-member: uid={LOGIN},{PEOPLE_OU}
-

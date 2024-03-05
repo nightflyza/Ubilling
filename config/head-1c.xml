@@ -1,3 +1,0 @@
-<РеєстрПрибутковихКасовихОрдерів xmlns="http://www.oplata.1c.ua" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-        <ДатаПочатку>{FROMDATE}T{FROMTIME}</ДатаПочатку>
-	<ДатаКінця>{TODATE}T{TOTIME}</ДатаКінця>

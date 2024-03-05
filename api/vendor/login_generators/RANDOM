@@ -1,1 +1,0 @@
-$this->loginProposal=zb_rand_string(10);

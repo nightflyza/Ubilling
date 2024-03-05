@@ -1,5 +1,0 @@
-host = localhost
-port = 3306
-username = mylogin
-password = newpassword
-database = stg

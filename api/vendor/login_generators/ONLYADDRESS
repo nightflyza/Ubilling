@@ -1,1 +1,0 @@
-$this->loginProposal = $this->cityAlias . $this->streetAlias . $this->buildNum . $this->apartmentDelimiter  . $this->apt;

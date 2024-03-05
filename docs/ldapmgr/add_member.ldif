@@ -1,4 +1,0 @@
-dn: cn={GROUP},{GROUP_OU}
-changetype: modify
-add: member
-member: uid={LOGIN},{PEOPLE_OU}

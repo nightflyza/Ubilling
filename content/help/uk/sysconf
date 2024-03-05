@@ -1,7 +1,0 @@
-За допомогою цього модулю можна переглянути опції, з якими в поточний момент сконфігуровано Ubilling.
-
-<a href="https://wiki.ubilling.net.ua/doku.php?id=alteriniconf" class="ubButton" target="_blank"><img src="skins/icon_wiki_small.png">  alter.ini - основні налаштування</a><br>
-<a href="https://wiki.ubilling.net.ua/doku.php?id=switchmap" class="ubButton" target="_blank"><img src="skins/icon_wiki_small.png"> ymaps.ini - налаштування мап</a><br>
-<a href="https://wiki.ubilling.net.ua/doku.php?id=userstats"class="ubButton" target="_blank"><img src="skins/icon_wiki_small.png">  userstats.ini - кабінет користувача</a><br>
-<a href="https://wiki.ubilling.net.ua/doku.php?id=remoteapi" class="ubButton" target="_blank"><img src="skins/icon_wiki_small.png"> crontab - періодичні задачі</a><br>
-

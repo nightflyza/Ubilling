@@ -1,7 +1,0 @@
-for ($i = $this->incrementsOffset; $i < $this->incrementsMaxLimit; $i++) {
-    $proposal = $this->cityAlias . $this->streetAlias . '_' . $i;
-    if (!isset($this->busyLogins[$proposal])) {
-        $this->loginProposal = $proposal;
-        break;
-    }
-}
