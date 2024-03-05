@@ -101,6 +101,8 @@ require_once('api/libs/api.onubase.php');
 require_once('api/libs/api.onudelete.php');
 require_once('api/libs/api.onuregister.php');
 require_once('api/libs/api.onureboot.php');
+require_once('api/libs/api.onudlp.php');
+require_once('api/libs/api.onuelp.php');
 require_once('api/libs/api.onuderegister.php');
 require_once('api/libs/api.onudescribe.php');
 require_once('api/libs/api.onumaster.php');
