@@ -79,7 +79,7 @@ class OnuElp extends OnuBase {
     }
 
     /**
-     * Returns ONU reboot button
+     * Returns Enable lan port on onu button
      *
      * @return string
      */
