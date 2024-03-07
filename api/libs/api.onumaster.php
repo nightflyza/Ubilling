@@ -29,7 +29,7 @@ class OnuMaster {
     public $dlp = '';
 
     /**
-     * Placeholder for OnuDlp class
+     * Placeholder for OnuElp class
      *
      * @var object
      */
