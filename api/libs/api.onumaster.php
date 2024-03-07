@@ -21,7 +21,20 @@ class OnuMaster {
      * @var object
      */
     public $reboot = '';
+    /**
+     * Placeholder for OnuDlp class
+     *
+     * @var object
+     */
+    public $dlp = '';
 
+    /**
+     * Placeholder for OnuDlp class
+     *
+     * @var object
+     */
+    public $elp = '';
+    
     /**
      * Placeholder for OnuDeregister class
      *
@@ -74,6 +87,14 @@ class OnuMaster {
         if ($this->altCfg['ONUAUTO_CONFIG_REBOOT']) {
             $this->reboot = new OnuReboot($login);
         }
+        
+        if ($this->altCfg['ONUAUTO_CONFIG_DLP']) {
+            $this->dlp = new OnuDlp($login);
+        }
+
+        if ($this->altCfg['ONUAUTO_CONFIG_ELP']) {
+            $this->elp = new OnuElp($login);
+        }
 
         if (isset($this->altCfg['ONUAUTO_CONFIG_DEREGISTER']) and $this->altCfg['ONUAUTO_CONFIG_DEREGISTER']) {
             $this->deregister = new OnuDeregister($login);
@@ -117,6 +138,17 @@ class OnuMaster {
                     $windowContents.= $this->describe->DescribeForm($login) . wf_delimiter(0);
                 }
 
+                if ($this->altCfg['ONUAUTO_CONFIG_DLP']) {
+
+                    $windowContents.= $this->dlp->dlpForm() . wf_delimiter(0);
+                }
+
+                if ($this->altCfg['ONUAUTO_CONFIG_ELP']) {
+
+                    $windowContents.= $this->elp->elpForm() . wf_delimiter(0);
+                }
+
+                
                 if ($this->altCfg['ONUAUTO_CONFIG_REBOOT']) {
                     $windowContents.= $this->reboot->rebootForm() . wf_delimiter(0);
                 }
