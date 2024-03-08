@@ -1,5 +1,5 @@
 <?php
-$altcfg = rcms_parse_ini_file(CONFIG_PATH . 'alter.ini');
+$altcfg = $ubillingConfig->getAlter();
 
 if ($altcfg['ONU_MASTER_ENABLED']) {
     if (cfr('ONUMASTER')) {
@@ -82,6 +82,13 @@ if ($altcfg['ONU_MASTER_ENABLED']) {
             }
 
             $onuMaster->renderMain($userLogin);
+            zb_BillingStats();
+        } else {
+            show_error(__('Strange exception').': '.__('Empty login'));
         }
+    } else {
+        show_error(__('Access denied'));
     }
+} else {
+    show_error(__('This module is disabled'));
 }
