@@ -9,8 +9,14 @@ class Manifestator {
      *
      * @var string
      */
-
     protected $name = 'AppName';
+
+    /**
+     * short application name
+     *
+     * @var string
+     */
+    protected $shortName = 'ShortName';
 
     /**
      * The start URL 
@@ -74,15 +80,30 @@ class Manifestator {
      * Sets the name of the web application.
      * 
      * @param string $name The name of the web application.
+     * 
+     * @return void
      */
     public function setName($name) {
         $this->name = $name;
     }
 
     /**
+     * Sets the shortName of the web application.
+     * 
+     * @param string $name The name of the web application.
+     * 
+     * @return void
+     */
+    public function setShortName($name) {
+        $this->shortName = $name;
+    }
+
+    /**
      * Sets the start URL of the web application.
      * 
      * @param string $startUrl The start URL of the web application.
+     * 
+     * @return void
      */
     public function setStartUrl($startUrl) {
         $this->startUrl = $startUrl;
@@ -91,7 +112,9 @@ class Manifestator {
     /**
      * Sets the display mode of the web application.
      * 
-     * @param string $display The display mode of the web application.
+     * @param string $display The display mode of the web application. fullscreen|standalone|minimal-ui|browser
+     * 
+     * @return void
      */
     public function setDisplay($display) {
         $this->display = $display;
@@ -101,6 +124,8 @@ class Manifestator {
      * Sets the theme color of the web application.
      * 
      * @param string $themeColor The theme color of the web application.
+     * 
+     * @return void
      */
     public function setThemeColor($themeColor) {
         $this->themeColor = $themeColor;
@@ -110,6 +135,8 @@ class Manifestator {
      * Sets the background color of the web application.
      * 
      * @param string $backgroundColor The background color of the web application.
+     * 
+     * @return void
      */
     public function setBackgroundColor($backgroundColor) {
         $this->backgroundColor = $backgroundColor;
@@ -119,6 +146,8 @@ class Manifestator {
      * Sets the icons set of the web application.
      * 
      * @param array $icons An array of icons for the web application.
+     * 
+     * @return void
      */
     public function setIcons($icons) {
         $this->icons = $icons;
@@ -132,7 +161,7 @@ class Manifestator {
     protected function getManifest() {
         $result = array(
             'name' => $this->name,
-            'short_name' => $this->name,
+            'short_name' => $this->shortName,
             'start_url' => $this->startUrl,
             'display' => $this->display,
             'theme_color' => $this->themeColor,
