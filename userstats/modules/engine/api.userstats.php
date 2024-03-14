@@ -2874,15 +2874,15 @@ function zbs_GetUserDBFees($login, $date_from = '', $date_to = '') {
                 $counter++;
             }
 
-            $result[$counter]['login'] = $each['login'];
-            $result[$counter]['date'] = $each['date'];
-            $result[$counter]['admin'] = $each['admin'];
-            $result[$counter]['summ'] = $each['summ'];
-            $result[$counter]['from'] = $each['from'];
-            $result[$counter]['to'] = $each['to'];
-            $result[$counter]['operation'] = 'Fee';
-            $result[$counter]['note'] = $each['note'];
-            $result[$counter]['cashtype'] = $each['cashtype'];
+            $result[$counter]['login']      = $each['login'];
+            $result[$counter]['date']       = $each['date'];
+            $result[$counter]['admin']      = $each['admin'];
+            $result[$counter]['summ']       = $each['summ'];
+            $result[$counter]['from']       = $each['from'];
+            $result[$counter]['to']         = $each['to'];
+            $result[$counter]['operation']  = 'Fee';
+            $result[$counter]['note']       = $each['note'];
+            $result[$counter]['cashtype']   = $each['cashtype'];
         }
     }
 
@@ -2946,15 +2946,15 @@ function zbs_GetUserAdditionalFees($login, $date_from = '', $date_to = '', $wher
                 }
             }
 
-            $result[$counter]['login'] = $eachFee['login'];
-            $result[$counter]['date'] = $eachFee['date'];
-            $result[$counter]['admin'] = $eachFee['admin'];
-            $result[$counter]['summ'] = $eachFee['summ'];
-            $result[$counter]['from'] = $eachFee['balance'];
-            $result[$counter]['to'] = $cashto;
-            $result[$counter]['operation'] = 'Payment';
-            $result[$counter]['note'] = $eachFee['note'];
-            $result[$counter]['cashtype'] = $eachFee['cashtypeid'];
+            $result[$counter]['login']      = $eachFee['login'];
+            $result[$counter]['date']       = $eachFee['date'];
+            $result[$counter]['admin']      = $eachFee['admin'];
+            $result[$counter]['summ']       = $eachFee['summ'];
+            $result[$counter]['from']       = $eachFee['balance'];
+            $result[$counter]['to']         = $cashto;
+            $result[$counter]['operation']  = 'Payment';
+            $result[$counter]['note']       = $eachFee['note'];
+            $result[$counter]['cashtype']   = $eachFee['cashtypeid'];
         }
     }
 
