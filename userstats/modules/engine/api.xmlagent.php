@@ -221,6 +221,9 @@ class XMLAgent {
             and ubRouting::get('tickettype') == self::TICKET_TYPE_SIGNUP
         ) {
             $requestJSON = file_get_contents("php://input");
+file_put_contents('../exports/restapi', print_r($_GET, true) . "\n\n");
+file_put_contents('../exports/restapi', print_r($_POST, true) . "\n\n", 8);
+file_put_contents('../exports/restapi', $requestJSON . "\n\n", 8);
             $resultToRender = $this->createSignUpRequest($requestJSON);
         }
 
@@ -688,11 +691,19 @@ class XMLAgent {
 
         if (!empty($allFees)) {
             foreach ($allFees as $io => $eachFee) {
-                $feeCharges[$io]['date'] = $eachFee['date'];
-                $feeCharges[$io]['summ'] = $eachFee['summ'];
+                $feeCharges[$io]['date']    = $eachFee['date'];
+                $feeCharges[$io]['summ']    = $eachFee['summ'];
                 $feeCharges[$io]['balance'] = $eachFee['from'];
-                $feeCharges[$io]['note'] = ((ispos($eachFee['note'], 'Service:') and !empty($vservicesLabeled[$eachFee['note']]))
+                $feeCharges[$io]['note']    = ((ispos($eachFee['note'], 'Service:') and !empty($vservicesLabeled[$eachFee['note']]))
                                             ? $vservicesLabeled[$eachFee['note']] : $eachFee['note']);
+
+                if ($eachFee['operation'] == 'Fee') {
+                    $feeCharges[$io]['type'] = 'mainsrv';
+                } elseif (ispos($eachFee['note'], 'Service:')) {
+                    $feeCharges[$io]['type'] = 'virtualsrv';
+                } else {
+                    $feeCharges[$io]['type'] = 'other';
+                }
             }
         }
 
@@ -770,6 +781,7 @@ class XMLAgent {
 */
         if (!empty($requestBody)) {
             $requestBody = json_decode($requestBody);
+file_put_contents('../exports/restapi', print_r($requestBody, true), 8);
             $sigreqDB = new NyanORM('sigreq');
             $sigreqDB->dataArr($requestBody);
             $sigreqDB->create();
