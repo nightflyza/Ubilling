@@ -768,6 +768,24 @@ function zbs_UserShowAgentData($login) {
     die();
 }
 
+
+/**
+ * Renders some data as XML
+ *
+ * !!! should be considered as a possible replacement for an "old" zbs_XMLAgentRender() function !!!
+ *
+ * @param array $data data array for rendering
+ * @param string $mainSection all output data parent element tag name
+ * @param string $subSection parent tag for each data qunique element tag name
+ * @param string $format output format: xml or json
+ * @param bool $messages is data contain announcements data for render
+ *
+ * @return void
+ */
+/*function zbs_XMLAgentRender($data, $mainSection = '', $subSection = '', $format = 'xml', $messages = false) {
+    XMLAgent::renderResponse($data, $mainSection = '', $subSection = '', $format = 'xml', $messages = false);
+}*/
+
 /**
  * Renders some data as XML
  * 
