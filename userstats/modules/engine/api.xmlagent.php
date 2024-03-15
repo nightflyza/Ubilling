@@ -96,8 +96,24 @@ class XMLAgent {
      */
     protected $usOpayzCfg = array();
 
-    const TICKET_TYPE_SUPPORT = 'support_request';
-    const TICKET_TYPE_SIGNUP  = 'signup_request';
+    /**
+     * Placeholder for XMLAGENT_DEBUG_ON "userstats.ini" option
+     *
+     * @var bool
+     */
+    protected $debug = false;
+
+    /**
+     * Placeholder for XMLAGENT_DEBUG_DEEP_ON "userstats.ini" option
+     *
+     * @var bool
+     */
+    protected $debugDeep = false;
+
+
+    const TICKET_TYPE_SUPPORT   = 'support_request';
+    const TICKET_TYPE_SIGNUP    = 'signup_request';
+    const DEBUG_FILE_PATH       = 'exports/xmlagent.debug';
 
 
     public function __construct($user_login = '') {
@@ -135,6 +151,8 @@ class XMLAgent {
         $this->uscfgOpenPayzURL         = $this->usConfig->getUstasParam('OPENPAYZ_URL', '../openpayz/backend/');
         $this->uscfgOpenPayzPaySys      = $this->usConfig->getUstasParam('OPENPAYZ_PAYSYS', 0);
         $this->uscfgCurrency            = $this->usConfig->getUstasParam('currency', 'UAH');
+        $this->debug                    = $this->usConfig->getUstasParam('XMLAGENT_DEBUG_ON', false);
+        $this->debugDeep                = $this->usConfig->getUstasParam('XMLAGENT_DEBUG_DEEP_ON', false);
     }
 
 
@@ -151,6 +169,8 @@ class XMLAgent {
         $mainSection    = 'data';
         $subSection     = '';
         $messages       = false;
+        $restapiMethod  = '';
+        $debugData      = '';
         $getUserData    = !(ubRouting::checkGet('payments')
                             or ubRouting::checkGet('announcements')
                             or ubRouting::checkGet('tickets')
@@ -164,6 +184,7 @@ class XMLAgent {
         if (!empty($user_login)) {
             if ($getUserData) {
                 $mainSection    = 'userdata';
+                $restapiMethod  = 'getuserdata';
                 $resultToRender = $this->getUserData($user_login);
             } else {
                 if (ubRouting::checkGet('payments') and $this->uscfgPaymentsON) {
@@ -201,7 +222,9 @@ class XMLAgent {
                 if (ubRouting::checkGet('ticketcreate') and ubRouting::checkGet('tickettext')
                     and ubRouting::checkGet('tickettype') and ubRouting::get('tickettype') == self::TICKET_TYPE_SUPPORT
                 ) {
-                    $text = base64_decode(ubRouting::get('tickettext'));
+                    $text           = base64_decode(ubRouting::get('tickettext'));
+                    $debugData      = $text;
+                    $restapiMethod  = 'supportticketcreate';
                     $resultToRender = $this->createSupportTicket($user_login, $text);
                 }
             }
@@ -209,6 +232,7 @@ class XMLAgent {
 
         if (ubRouting::checkGet('announcements') and $this->uscfgAnnouncementsON) {
             $messages       = true;
+            $restapiMethod  = 'announcements';
             $resultToRender = $this->getAnnouncements();
         }
 
@@ -221,12 +245,14 @@ class XMLAgent {
             and ubRouting::get('tickettype') == self::TICKET_TYPE_SIGNUP
         ) {
             $requestJSON = file_get_contents("php://input");
-file_put_contents('../exports/restapi', print_r($_GET, true) . "\n\n");
-file_put_contents('../exports/restapi', print_r($_POST, true) . "\n\n", 8);
-file_put_contents('../exports/restapi', $requestJSON . "\n\n", 8);
+            $debugData      = $requestJSON;
+            $restapiMethod  = 'signupticketcreate';
             $resultToRender = $this->createSignUpRequest($requestJSON);
         }
 
+        $restapiMethod  = (empty($restapiMethod) and !empty($subSection)) ? $subSection : $restapiMethod;
+
+        $this->debugLog($restapiMethod, $debugData);
         $this->renderResponse($resultToRender, $mainSection, $subSection, $outputFormat, $messages);
     }
 
@@ -302,7 +328,6 @@ file_put_contents('../exports/restapi', $requestJSON . "\n\n", 8);
             $result .= json_encode($jsonData);
         }
 
-
         //pushing result to client
         $contentType = 'text';
 
@@ -315,6 +340,7 @@ file_put_contents('../exports/restapi', $requestJSON . "\n\n", 8);
         header("Cache-Control: no-store, no-cache, must-revalidate"); // HTTP/1.1
         header("Pragma: no-cache");
         header('Access-Control-Allow-Origin: *');
+
         die($result);
     }
 
@@ -781,7 +807,6 @@ file_put_contents('../exports/restapi', $requestJSON . "\n\n", 8);
 */
         if (!empty($requestBody)) {
             $requestBody = json_decode($requestBody);
-file_put_contents('../exports/restapi', print_r($requestBody, true), 8);
             $sigreqDB = new NyanORM('sigreq');
             $sigreqDB->dataArr($requestBody);
             $sigreqDB->create();
@@ -797,5 +822,35 @@ file_put_contents('../exports/restapi', print_r($requestBody, true), 8);
         }
 
         return ($result);
+    }
+
+    /**
+     * Writes some debbuggins to log or/and to a local file
+     *
+     * @param $debugData
+     *
+     * @return void
+     */
+    protected function debugLog($restapiMethod = '', $debugData = '') {
+        if ($this->debug) {
+            $requsterIP     = $_SERVER['REMOTE_ADDR'];
+            $requestMethod  = $_SERVER['REQUEST_METHOD'];
+            $requestURI     = $_SERVER['REQUEST_URI'];
+
+            log_register('XMLAGENT: [ ' . $restapiMethod . ' ] was called from [ ' . $requsterIP . ' ] via HTTP ' . $requestMethod . ' with params: ' . $requestURI);
+        }
+
+        if ($this->debugDeep) {
+            file_put_contents(self::DEBUG_FILE_PATH,
+                              "========  START OF DEBUG RECORD  ========" . "\n" .
+                              curdatetime() . '    ' . $restapiMethod . "\n" .
+                              "Debug data:\n" . $debugData . "\n" .
+                              "********  GLOBAL ARRAYS  ********\n" .
+                              "SERVER:\n" . print_r($_SERVER, true) . "\n\n" .
+                              "RQUEST:\n" . print_r($_REQUEST, true) . "\n" .
+                              "========  END OF DEBUG RECORD  ========" . "\n\n\n\n",
+                              FILE_APPEND
+            );
+        }
     }
 }
