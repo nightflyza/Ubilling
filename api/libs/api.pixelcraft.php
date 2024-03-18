@@ -290,6 +290,39 @@ class PixelCraft {
         return ($result);
     }
 
+
+    /**
+     * Loads a instance image from an base64 encoded image string.
+     *
+     * @param string $encodedImage The encoded image string.
+     * @param string $propertyName The name of the property to store the image in. Default is 'image'.
+     * 
+     * @return bool Returns true if the base image is successfully loaded, false otherwise.
+     */
+    public function loadBaseImage($encodedImage, $propertyName = 'image') {
+        $result = false;
+        if (!empty($encodedImage)) {
+            $decodedImage = base64_decode($encodedImage);
+            if ($decodedImage) {
+                $imageParams = getimagesizefromstring($decodedImage);
+                $imageType = $this->detectImageType('', $imageParams);
+
+                if (!empty($imageType)) {
+                    $this->$propertyName = imagecreatefromstring($decodedImage);
+                    if ($this->$propertyName != false) {
+                        if ($propertyName == 'image') {
+                            $this->imageWidth = $imageParams[0];
+                            $this->imageHeight = $imageParams[1];
+                            $this->imageType = $imageType;
+                        }
+                        $result = true;
+                    }
+                }
+            }
+        }
+        return ($result);
+    }
+
     /**
      * Loads some watermark image into protected property from file 
      * 
@@ -341,6 +374,55 @@ class PixelCraft {
                 //nothing else matters
                 if ($fileName === false) {
                     die();
+                }
+            } else {
+                throw new Exception('EX_NOT_SUPPORTED_FILETYPE:' . $type);
+            }
+        } else {
+            throw new Exception('EX_VOID_IMAGE');
+        }
+        return ($result);
+    }
+
+    /**
+     * Returns current instance image as base64 encoded text
+     *
+     * @param string $type image mime type
+     * @param bool $htmlData data ready to embed as img src HTML base64 data (data URI scheme)
+     * 
+     * @return void
+     */
+    public function getImageBase($type = 'png', $htmlData = false) {
+        $result = '';
+        if ($this->image) {
+            $saveFunctionName = 'image' . $type;
+            if (function_exists($saveFunctionName)) {
+                ob_start();
+                if ($type == 'jpeg' or $type == 'png') {
+                    if ($type == 'png') {
+                        imagesavealpha($this->image, true);
+                    }
+                }
+                $result = $saveFunctionName($this->image, null, $this->quality);
+
+                //memory free
+                imagedestroy($this->image);
+
+                //droppin image props
+                $this->imageWidth = 0;
+                $this->imageHeight = 0;
+                $this->imageType = '';
+                $imageBody = ob_get_contents();
+
+                ob_end_clean();
+                if (!empty($imageBody)) {
+                    $result = base64_encode($imageBody);
+                    // print($imageBody);
+                }
+
+                //optional html embed data
+                if ($htmlData) {
+                    $result = 'data:image/' . $type . ';charset=utf-8;base64,' . $result;
                 }
             } else {
                 throw new Exception('EX_NOT_SUPPORTED_FILETYPE:' . $type);
@@ -705,7 +787,7 @@ class PixelCraft {
     public function hexToRgb($hex) {
         $result = '';
         if (!empty($hex)) {
-            $hex=str_replace('#','',$hex);
+            $hex = str_replace('#', '', $hex);
             $r = hexdec(substr($hex, 0, 2));
             $g = hexdec(substr($hex, 2, 2));
             $b = hexdec(substr($hex, 4, 2));
