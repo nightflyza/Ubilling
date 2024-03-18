@@ -53,6 +53,12 @@ class Manifestator {
      */
     protected $icons = array();
 
+    /**
+     * Contains appended custom data
+     *
+     * @var array
+     */
+    protected $appendData = array();
 
     /**
      * Constructor method.
@@ -153,6 +159,18 @@ class Manifestator {
         $this->icons = $icons;
     }
 
+
+    /**
+     * Sets the custom data to be appended to the manifest.
+     *
+     * @param array $customData An array of custom data to be appended.
+     * 
+     * @return void
+     */
+    public function setAppendData($customData = array()) {
+        $this->appendData = $customData;
+    }
+
     /**
      * Returns application manifest array
      *
@@ -168,6 +186,10 @@ class Manifestator {
             'background_color' => $this->backgroundColor,
             'icons' => $this->icons
         );
+
+        if (!empty($this->appendData)) {
+            $result+=$this->appendData;
+        }
         return ($result);
     }
 
