@@ -841,16 +841,20 @@ class XMLAgent {
         }
 
         if ($this->debugDeep) {
-            file_put_contents(self::DEBUG_FILE_PATH,
-                              "========  START OF DEBUG RECORD  ========" . "\n" .
-                              curdatetime() . '    ' . $restapiMethod . "\n" .
-                              "Debug data:\n" . $debugData . "\n" .
-                              "********  GLOBAL ARRAYS  ********\n" .
-                              "SERVER:\n" . print_r($_SERVER, true) . "\n\n" .
-                              "RQUEST:\n" . print_r($_REQUEST, true) . "\n" .
-                              "========  END OF DEBUG RECORD  ========" . "\n\n\n\n",
-                              FILE_APPEND
-            );
+            if (file_exists(self::DEBUG_FILE_PATH)) {
+                file_put_contents(self::DEBUG_FILE_PATH,
+                                  "========  START OF DEBUG RECORD  ========" . "\n" .
+                                  curdatetime() . '    ' . $restapiMethod . "\n" .
+                                  "Debug data:\n" . $debugData . "\n" .
+                                  "********  GLOBAL ARRAYS  ********\n" .
+                                  "SERVER:\n" . print_r($_SERVER, true) . "\n\n" .
+                                  "RQUEST:\n" . print_r($_REQUEST, true) . "\n" .
+                                  "========  END OF DEBUG RECORD  ========" . "\n\n\n\n",
+                                  FILE_APPEND
+                );
+            } else {
+                log_register('XMLAGENT: trying to use "deep" debugging, but no "exports" DIR found on it\'s place');
+            }
         }
     }
 }
