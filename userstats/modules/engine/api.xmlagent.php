@@ -853,7 +853,7 @@ class XMLAgent {
                                   FILE_APPEND
                 );
             } else {
-                log_register('XMLAGENT: trying to use "deep" debugging, but no "exports" DIR found on it\'s place');
+                log_register('XMLAGENT: trying to use "deep" debugging, but no "exports" DIR found where it should be');
             }
         }
     }
