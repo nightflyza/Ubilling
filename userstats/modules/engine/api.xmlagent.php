@@ -223,8 +223,8 @@ class XMLAgent {
                     $resultToRender = $this->getUserFeeCharges($user_login, $date_from, $date_to);
                 }
 
-                if (ubRouting::checkGet('ticketcreate') and ubRouting::checkGet('tickettext')
-                    and ubRouting::checkGet('tickettype') and ubRouting::get('tickettype') == self::TICKET_TYPE_SUPPORT
+                if (ubRouting::checkGet(array('ticketcreate', 'tickettext', 'tickettype'))
+                    and ubRouting::get('tickettype') == self::TICKET_TYPE_SUPPORT
                 ) {
                     $text           = base64_decode(ubRouting::get('tickettext'));
                     $debugData      = $text;
@@ -245,7 +245,7 @@ class XMLAgent {
             $resultToRender = $this->getAllTariffsVservices();
         }
 
-        if (ubRouting::checkGet('ticketcreate') and ubRouting::checkGet('tickettype')
+        if (ubRouting::checkGet(array('ticketcreate', 'tickettype'))
             and ubRouting::get('tickettype') == self::TICKET_TYPE_SIGNUP
         ) {
             $requestJSON = file_get_contents("php://input");
