@@ -171,15 +171,18 @@ class XMLAgent {
         $messages       = false;
         $restapiMethod  = '';
         $debugData      = '';
-        $getUserData    = !(ubRouting::checkGet('payments')
-                            or ubRouting::checkGet('announcements')
-                            or ubRouting::checkGet('tickets')
-                            or ubRouting::checkGet('opayz')
-                            or ubRouting::checkGet('agentassigned')
-                            or ubRouting::checkGet('tariffvservices')
-                            or ubRouting::checkGet('feecharges')
-                            or ubRouting::checkGet('ticketcreate')
-                           );
+        $getUserData    = !(ubRouting::checkGet(array(
+                                    'payments',
+                                    'announcements',
+                                    'tickets',
+                                    'opayz',
+                                    'agentassigned',
+                                    'tariffvservices',
+                                    'feecharges',
+                                    'ticketcreate'
+                                    ),
+                                true, true)
+                            );
 
         if (!empty($user_login)) {
             if ($getUserData) {
