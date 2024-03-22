@@ -28,26 +28,50 @@ class ubRouting {
      * 
      * @param array/string $params array of variable names to check or single variable name as string
      * @param bool  $ignoreEmpty ignore or not existing variables with empty values (like wf_Check)
+     * @param bool $atleastOneExists returns "true" when encounters the very first existent GET param. Respects the $ignoreEmpty parameter.
      * 
      * @return bool
      */
-    public static function checkGet($params, $ignoreEmpty = true) {
+    public static function checkGet($params, $ignoreEmpty = true, $atleastOneExists = false) {
         if (!empty($params)) {
             if (!is_array($params)) {
                 //single param check
                 $params = array($params);
             }
+
             foreach ($params as $eachparam) {
                 if (!isset($_GET[$eachparam])) {
-                    return (false);
+                    if ($atleastOneExists) {
+                        // traversing through the array till existent GET param found or the end of the array
+                        continue;
+                    } else {
+                        return (false);
+                    }
+                } elseif ($atleastOneExists and !$ignoreEmpty) {
+                    return (true);
                 }
+
                 if ($ignoreEmpty) {
                     if (empty($_GET[$eachparam])) {
-                        return (false);
+                        if ($atleastOneExists) {
+                            // traversing through the array till existent and non-empty GET param found or the end of the array
+                            continue;
+                        } else {
+                            return (false);
+                        }
+                    } elseif ($atleastOneExists) {
+                        return (true);
                     }
                 }
             }
-            return(true);
+
+            if ($atleastOneExists) {
+                // if "$atleastOneExists = true" and we got here - none of the GET parameters were existent or non-empty then,
+                // and we failed to find at least one
+                return (false);
+            } else {
+                return (true);
+            }
         } else {
             throw new Exception('EX_PARAMS_EMPTY');
         }
@@ -55,29 +79,53 @@ class ubRouting {
 
     /**
      * Checks is all of variables array present in POST scope
-     * 
+     *
      * @param array/string $params array of variable names to check or single variable name as string
      * @param bool  $ignoreEmpty ignore or not existing variables with empty values (like wf_Check)
-     * 
+     * @param bool $atleastOneExists returns "true" when encounters the very first existent GET param. Respects the $ignoreEmpty parameter.
+     *
      * @return bool
      */
-    public static function checkPost($params, $ignoreEmpty = true) {
+    public static function checkPost($params, $ignoreEmpty = true, $atleastOneExists = false) {
         if (!empty($params)) {
             if (!is_array($params)) {
                 //single param check
                 $params = array($params);
             }
+
             foreach ($params as $eachparam) {
                 if (!isset($_POST[$eachparam])) {
-                    return (false);
+                    if ($atleastOneExists) {
+                        // traversing through the array till existent POST param found or the end of the array
+                        continue;
+                    } else {
+                        return (false);
+                    }
+                } elseif ($atleastOneExists and !$ignoreEmpty) {
+                    return (true);
                 }
+
                 if ($ignoreEmpty) {
                     if (empty($_POST[$eachparam])) {
-                        return (false);
+                        if ($atleastOneExists) {
+                            // traversing through the array till existent and non-empty POST param found or the end of the array
+                            continue;
+                        } else {
+                            return (false);
+                        }
+                    } elseif ($atleastOneExists) {
+                        return (true);
                     }
                 }
             }
-            return (true);
+
+            if ($atleastOneExists) {
+                // if "$atleastOneExists = true" and we got here - none of the POST parameters were existent or non-empty then,
+                // and we failed to find at least one
+                return (false);
+            } else {
+                return (true);
+            }
         } else {
             throw new Exception('EX_PARAMS_EMPTY');
         }
