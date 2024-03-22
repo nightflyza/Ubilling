@@ -178,6 +178,7 @@ class XMLAgent {
                                     'opayz',
                                     'agentassigned',
                                     'tariffvservices',
+                                    'activetariffsvservices',
                                     'feecharges',
                                     'ticketcreate'
                                     ),
