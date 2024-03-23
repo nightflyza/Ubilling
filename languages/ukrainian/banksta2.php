@@ -2,7 +2,7 @@
 $lang['def']['Banksta processing'] = 'Обробка банківських виписок';
 $lang['def']['Preset with such name already exists with ID: '] = 'Шаблон з таким іменем вже існує з ID: ';
 $lang['def']['Payments import from bank statement file'] = 'Імпорт платежів з банківської виписки';
-$lang['def']['Choose fields mapping preset'] = 'Выберіть шаблон відповідності полів';
+$lang['def']['Choose fields mapping preset'] = 'Виберіть шаблон відповідності полів';
 $lang['def']['Refresh selector data'] = 'Оновити дані випадаючого списку';
 $lang['def']['No file was selected'] = 'Файл не було вибрано';
 $lang['def']['Upload bank statement'] = 'Завантажити банківську виписку';
