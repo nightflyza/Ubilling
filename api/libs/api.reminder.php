@@ -609,7 +609,7 @@ class Reminder {
                                             or ($paysysFilterForUsersNeeded and $paysysFilteredUsersFound))
                                       );
 
-                    $this->debugReminderRAW('PBI params:  pbi_only: ' . $userLoginData['pbi_only'] . '  pbi_sms: ' . $userLoginData['pbi_sms']);
+                    $this->debugReminderRAW('PBI params:  pbi_only: ' . $curUserPBIOnly . '  pbi_sms: ' . $curUserPBISMS);
                     $this->debugReminderRAW('PBI invoice will be send:  ' . ($needToSendPBI ? 'YES' : 'NO'));
 
                     if ($needToSendPBI) {
@@ -763,7 +763,7 @@ class Reminder {
 
             $this->debugReminderRAW('--------');
             $this->debugReminderRAW('processing login: (' . $eachLogin . ')');
-            $this->debugReminderRAW('PBI params:  pbi_only: ' . $userLoginData['pbi_only'] . '  pbi_sms: ' . $userLoginData['pbi_sms']);
+            $this->debugReminderRAW('PBI params:  pbi_only: ' . $curUserPBIOnly . '  pbi_sms: ' . $curUserPBISMS);
             $this->debugReminderRAW('PBI invoice will be send:  ' . ($needToSendPBI ? 'YES' : 'NO'));
 
             if ($needToSendPBI) {
