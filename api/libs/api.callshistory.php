@@ -244,6 +244,8 @@ class CallsHistory {
             $result .= $messages->getStyledMessage(__('skipped') . ': ' . $countMissed, 'warning');
         }
 
+        //some logging, why not?
+        log_register('CALLSHIST USERS UPDATE GUESSED `' . $countGuessed . '` MISSED`' . $countMissed . '`');
 
         return ($result);
     }
