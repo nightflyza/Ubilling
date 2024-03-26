@@ -26,7 +26,14 @@ if ($altcfg['CALLSHIST_ENABLED']) {
         } else {
             //user logins telepathy update
             if (cfr('ROOT')) {
-                show_window(__('User calls assign update'), $report->updateUnknownLogins());
+                $callsHistUpdProcess = new StarDust('CALLSHIST_UPD');
+                if ($callsHistUpdProcess->notRunning()) {
+                    $callsHistUpdProcess->start();
+                    show_window(__('User calls assign update'), $report->updateUnknownLogins());
+                    $callsHistUpdProcess->stop();
+                } else {
+                    show_error(__('User calls assign update') . ' ' . __('Already running'));
+                }
                 show_window('', wf_BackLink($report::URL_ME));
             } else {
                 show_error(__('Access denied'));

@@ -9,11 +9,11 @@ if (ubRouting::get('action') == 'exhorse') {
             $exhorse = new ExistentialHorse();
             $exhorse->runHorse();
             $existentialHorseProcess->stop();
-            die('OK: EXHORSE');
+            die('OK:EXHORSE');
         } else {
             die('SKIP:EXHORSE_ALREADY_RUNNING');
         }
     } else {
-        die('ERROR: EXHORSE DISABLED');
+        die('ERROR:EXHORSE_DISABLED');
     }
 }
