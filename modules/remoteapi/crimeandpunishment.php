@@ -3,7 +3,7 @@
 /*
  * Crime And Punishment processing
  */
-if ($_GET['action'] == 'crimeandpunishment') {
+if (ubRouting::get('action') == 'crimeandpunishment') {
     if ($alterconf['CAP_ENABLED']) {
         $dostoevsky = new CrimeAndPunishment();
         $dostoevsky->processing();

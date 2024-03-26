@@ -3,7 +3,7 @@
 /*
  * PoliceDog processing
  */
-if ($_GET['action'] == 'policedog') {
+if (ubRouting::get('action') == 'policedog') {
     if ($alterconf['POLICEDOG_ENABLED']) {
         $runPoliceDog = new PoliceDog();
         $runPoliceDog->fastScan();

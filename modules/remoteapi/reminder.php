@@ -3,7 +3,7 @@
 /*
  * send sms queue to remind users about payments
  */
-//if ($_GET['action'] == 'reminder') {
+
 if (ubRouting::get('action') == 'reminder') {
     global $ubillingConfig;
 

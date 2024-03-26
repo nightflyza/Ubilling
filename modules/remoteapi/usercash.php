@@ -14,7 +14,7 @@ if (ubRouting::get('action') == 'usercash') {
          *   \  _`-     |   /
          *   "  `-._  <_ (
          *   `-.,),)
-         *  ^^ ETO BELOCHKA! ^^
+         *  ^^ CE BILOCHKA! ^^
          */
         $userLogin = ubRouting::get('login');
         $summ = ubRouting::get('summ');

@@ -3,7 +3,7 @@
 /*
  * UKV charge fee processing
  */
-if ($_GET['action'] == 'ukvfeeprocessing') {
+if (ubRouting::get('action')  == 'ukvfeeprocessing') {
     if ($alterconf['UKV_ENABLED']) {
         $ukvApiRun = new UkvSystem();
         $ukvFee = $ukvApiRun->feeChargeAll();

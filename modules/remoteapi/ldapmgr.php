@@ -1,7 +1,7 @@
 <?php
 
 //LDAP Mgr users export
-if ($_GET['action'] == 'ldapmgr') {
+if (ubRouting::get('action') == 'ldapmgr') {
     if ($alterconf['LDAPMGR_ENABLED']) {
         $ldapMgr = new UbillingLDAPManager();
         if (isset($_GET['param'])) {

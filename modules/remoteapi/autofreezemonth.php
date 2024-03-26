@@ -3,7 +3,7 @@
 /*
  * auto freezing call which use AUTOFREEZE_CASH_LIMIT as month count
  */
-if ($_GET['action'] == 'autofreezemonth') {
+if (ubRouting::get('action') == 'autofreezemonth') {
     if (isset($alterconf['AUTOFREEZE_CASH_LIMIT'])) {
         $tariffPrices = zb_TariffGetPricesAll();
         $tariffPriceMultiplier = abs($alterconf['AUTOFREEZE_CASH_LIMIT']);
@@ -11,8 +11,8 @@ if ($_GET['action'] == 'autofreezemonth') {
         $allUsersToFreeze = simple_queryall($autoFreezeQuery);
         $freezeCount = 0;
         //optional zbs SC check
-        if (wf_CheckGet(array('param'))) {
-            if ($_GET['param'] == 'nocredit') {
+        if (ubRouting::checkGet('param')) {
+            if (ubRouting::get('param') == 'nocredit') {
                 $creditZbsCheck = true;
                 $creditZbsUsers = zb_CreditLogGetAll();
             } else {
@@ -31,7 +31,7 @@ if ($_GET['action'] == 'autofreezemonth') {
                 if (isset($tariffPrices[$freezeUserTariff])) {
                     $freezeUserTariffPrice = $tariffPrices[$freezeUserTariff];
                     $tariffFreezeLimit = '-' . ($freezeUserTariffPrice * $tariffPriceMultiplier);
-                    if (($freezeCash <= $tariffFreezeLimit) AND ( $freezeUserTariffPrice != 0)) {
+                    if (($freezeCash <= $tariffFreezeLimit) and ($freezeUserTariffPrice != 0)) {
                         //zbs credit check  
                         if ($creditZbsCheck) {
                             if (!isset($creditZbsUsers[$freezeLogin])) {

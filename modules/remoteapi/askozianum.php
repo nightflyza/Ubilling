@@ -1,10 +1,10 @@
 <?php
 
 //askozia number telepathy
-if ($_GET['action'] == 'askozianum') {
+if (ubRouting::get('action') == 'askozianum') {
     if ($alterconf['ASKOZIA_ENABLED']) {
-        if (isset($_GET['param'])) {
-            $number = $_GET['param'];
+        if (ubRouting::checkGet('param')) {
+            $number = ubRouting::get('param');
             $askNum = new PBXNum();
             $askNum->setNumber($number);
             $askNum->renderReply();
@@ -15,5 +15,3 @@ if ($_GET['action'] == 'askozianum') {
         die('ERROR: ASKOIZA DISABLED');
     }
 }
-
-          

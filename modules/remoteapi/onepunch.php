@@ -1,10 +1,10 @@
 <?php
 
 //One-Punch Scripts startup
-if ($_GET['action'] == 'onepunch') {
+if (ubRouting::get('action') == 'onepunch') {
     if ($alterconf['ONEPUNCH_ENABLED']) {
-        if (wf_CheckGet(array('param'))) {
-            $onePunchScriptAlias = $_GET['param'];
+        if (ubRouting::checkGet('param')) {
+            $onePunchScriptAlias = ubRouting::get('param');
             $onePunchScripts = new OnePunch($onePunchScriptAlias);
             $onePunchScriptCode = $onePunchScripts->getScriptContent($onePunchScriptAlias);
             eval($onePunchScriptCode);
