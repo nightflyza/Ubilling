@@ -738,12 +738,42 @@ class PixelCraft {
      * Applies pixelation filter
      * 
      * @param int $blockSize
-     * @param bool $smooth=true
+     * @param bool $smooth
      * 
      * @return void
      */
     public function pixelate($blockSize, $smooth = true) {
         imagefilter($this->image, IMG_FILTER_PIXELATE, $blockSize, $smooth);
+    }
+
+    /**
+     * Applies image filters set to current instance base image
+     *
+     * @param array|int $filterSet must contains array of filters as index=>(IMAGE_FILTER=>argsArray)
+     * 
+     * @return void
+     */
+    public function imageFilters($filterSet = array()) {
+        if (!empty($filterSet)) {
+            foreach ($filterSet as $eachFilterIdx => $eachFilterData) {
+                if (is_array($eachFilterData)) {
+                    foreach ($eachFilterData as $eachFilter => $eachFilterArgs/*  */) {
+                        if (is_array($eachFilterArgs)) {
+                            $filterArgsTmp = array();
+                            $filterArgsTmp[] = $this->image;
+                            $filterArgsTmp[] = $eachFilter;
+                            foreach ($eachFilterArgs as $io => $each) {
+                                $filterArgsTmp[] = $each;
+                            }
+                            //not using just "..." arg unpack operator here due PHP <5.6 compat
+                            call_user_func_array('imagefilter', $filterArgsTmp);
+                        } else {
+                            imagefilter($this->image, $eachFilter, $eachFilterArgs);
+                        }
+                    }
+                }
+            }
+        }
     }
 
     /**
@@ -797,6 +827,18 @@ class PixelCraft {
     }
 
     /**
+     * Calculates the brightness value of an RGB color.
+     *
+     * @param array $rgb The RGB color values as an associative array with keys 'r', 'g', and 'b'.
+     * 
+     * @return int The brightness value of the RGB color.
+     */
+    public function rgbToBrightness($rgb) {
+        $result = round(($rgb['r'] + $rgb['g'] + $rgb['b']) / 3);
+        return ($result);
+    }
+
+    /**
      * Returns color map for current intance image as array(y,x)=>color
      * 
      * @param bool $hex returns map values as rrggbb hex values or raw rgba components
@@ -815,6 +857,22 @@ class PixelCraft {
                 }
             }
         }
+        return ($result);
+    }
+
+
+    /**
+     * Calculates the brightness of a pixel at the specified coordinates.
+     *
+     * @param int $x The x-coordinate of the pixel.
+     * @param int $y The y-coordinate of the pixel.
+     * 
+     * @return int The brightness value of the pixel.
+     */
+    public function getPixelBrightness($x, $y) {
+        $result = false;
+        $pixelColor = $this->getPixelColor($x, $y);
+        $result = $this->rgbToBrightness($pixelColor);
         return ($result);
     }
 }
