@@ -504,9 +504,12 @@ class ChartMancer {
     /**
      * Renders chart as PNG image into browser or into specified file
      * 
-     * @param array $data
+     * @param array $data chart dataset
+     * @param string $filename filename to export chart. May be empty for rendering to browser
+     *                         may contain name of .png file to save as file on FS, or be like 
+     *                         base64 or base64html to return chart as base64 encoded string
      * 
-     * @return bool
+     * @return bool|string
      */
     public function renderChart($data, $fileName = '') {
         if ($this->debug) {
@@ -801,15 +804,56 @@ class ChartMancer {
         }
 
         if (empty($fileName)) {
+            //browser output
             header('Content-Type: image/png');
             $result = imagepng($chart);
             imagedestroy($chart);
             die();
         } else {
-            $result = imagepng($chart, $fileName);
-            imagedestroy($chart);
+            if (strpos($fileName, 'base64') !== false) {
+                //encode image as base64 data
+                $htmlOutput = (strpos($fileName, 'base64html') !== false) ? true : false;
+                $result = $this->getChartBase($chart, $htmlOutput);
+            } else {
+                //just save as PNG file
+                $result = imagepng($chart, $fileName);
+                imagedestroy($chart);
+            }
         }
 
+        return ($result);
+    }
+
+    /**
+     * Returns current chart as base64 encoded text
+     *
+     * @param GdImage $image chart image instance to export
+     * @param bool $htmlData data ready to embed as img src HTML base64 data (data URI scheme)
+     * 
+     * @return void
+     */
+    public function getChartBase($image, $htmlData = false) {
+        $result = '';
+        $type = 'png';
+        $quality = -1;
+        if ($image) {
+            ob_start();
+            imagesavealpha($image, true);
+            $result = imagepng($image, null, $quality);
+            imagedestroy($image);
+            $imageBody = ob_get_contents();
+            ob_end_clean();
+            if (!empty($imageBody)) {
+                $result = base64_encode($imageBody);
+            }
+
+            //optional html embed data
+            if ($htmlData) {
+                $result = 'data:image/' . $type . ';charset=utf-8;base64,' . $result;
+            }
+        } else {
+            throw new Exception('EX_VOID_CHART');
+        }
         return ($result);
     }
 }
