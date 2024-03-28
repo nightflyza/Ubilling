@@ -483,7 +483,7 @@ class UbillingVisor {
         $result .= wf_Link(self::URL_ME . self::URL_CAMS, wf_img('skins/photostorage.png') . ' ' . __('Cams'), false, 'ubButton') . ' ';
         if (cfr('VISOREDIT')) {
             $result .= wf_Link(self::URL_ME . self::URL_DVRS, wf_img('skins/icon_restoredb.png') . ' ' . __('DVRs'), false, 'ubButton') . ' ';
-            if ($this->trassirEnabled OR $this->wolfRecorderEnabled) {
+            if ($this->trassirEnabled or $this->wolfRecorderEnabled) {
                 $result .= wf_Link(self::URL_ME . self::URL_CHANS, wf_img('skins/play.png') . ' ' . __('Channels'), false, 'ubButton') . ' ';
                 $result .= wf_Link(self::URL_ME . self::URL_HEALTH, wf_img('skins/log_icon_small.png') . ' ' . __('DVR health'), false, 'ubButton') . ' ';
             }
@@ -518,6 +518,7 @@ class UbillingVisor {
         if (!empty($this->allUsers)) {
             foreach ($this->allUsers as $io => $each) {
                 $tariffingLabel = '';
+                $primaryAccountCash = 0;
                 $data[] = $each['id'];
                 $data[] = $each['regdate'];
                 $visorUserLabel = $this->iconVisorUser() . ' ' . $each['realname'];
@@ -536,9 +537,11 @@ class UbillingVisor {
                             $tariffingLabel = $tariffingNotice = wf_img_sized('skins/icon_lock.png', __('All cameras live by themselves'), 16);
                         }
 
-                        if ($this->allUserData[$primaryAccount]['Passive'] AND $each['chargecams']) {
+                        if ($this->allUserData[$primaryAccount]['Passive'] and $each['chargecams']) {
                             $tariffingLabel = wf_img_sized('skins/icon_passive.gif', __('Main account is frozen') . '. ' . __('All cameras live by themselves'), 16);
                         }
+                    } else {
+                        $primAccLink = __('User').' '.__('Not exists');
                     }
                 } else {
                     $primAccLink = '';
@@ -606,7 +609,7 @@ class UbillingVisor {
             log_register('VISOR USER CREATE [' . $newId . '] NAME `' . $newRealName . '`');
             $result = $newId;
         }
-        return($result);
+        return ($result);
     }
 
     /**
@@ -645,7 +648,7 @@ class UbillingVisor {
                 }
             }
         }
-        return($result);
+        return ($result);
     }
 
     /**
@@ -667,7 +670,7 @@ class UbillingVisor {
                 }
             }
         }
-        return($result);
+        return ($result);
     }
 
     /**
@@ -687,7 +690,7 @@ class UbillingVisor {
                 }
             }
         }
-        return($result);
+        return ($result);
     }
 
     /**
@@ -707,7 +710,7 @@ class UbillingVisor {
                 }
             }
         }
-        return($result);
+        return ($result);
     }
 
     /**
@@ -796,7 +799,7 @@ class UbillingVisor {
                         $tariffingNotice .= __('All cameras live by themselves');
                     }
 
-                    if ($this->allUserData[$primaryAccount]['Passive'] AND $userData['chargecams']) {
+                    if ($this->allUserData[$primaryAccount]['Passive'] and $userData['chargecams']) {
                         $tariffingNotice = wf_img_sized('skins/icon_passive.gif', __('Freezed'), 12) . ' ';
                         $tariffingNotice .= __('Main account is frozen') . '. ' . __('All cameras live by themselves');
                     }
@@ -821,7 +824,7 @@ class UbillingVisor {
             }
         }
 
-        return($result);
+        return ($result);
     }
 
     /**
@@ -848,7 +851,7 @@ class UbillingVisor {
                 $result = $this->allSecrets[$userId];
             }
         }
-        return($result);
+        return ($result);
     }
 
     /**
@@ -881,7 +884,7 @@ class UbillingVisor {
             $rows .= wf_TableRow($cells, 'row3');
             $result .= $rows;
         }
-        return($result);
+        return ($result);
     }
 
     /**
@@ -955,7 +958,7 @@ class UbillingVisor {
             $userId = ubRouting::filters($userId, 'int');
             $unassignedCount = 0;
             $chanControlLinks = '';
-            if ($this->trassirEnabled OR $this->wolfRecorderEnabled) {
+            if ($this->trassirEnabled or $this->wolfRecorderEnabled) {
                 if (!empty($this->allDvrs)) {
                     foreach ($this->allDvrs as $io => $eachDvr) {
                         if ($eachDvr['type'] == 'trassir') {
@@ -997,7 +1000,7 @@ class UbillingVisor {
                 $result .= $chanControlLinks;
             }
         }
-        return($result);
+        return ($result);
     }
 
     /**
@@ -1018,7 +1021,7 @@ class UbillingVisor {
                 $result = true;
             }
         }
-        return($result);
+        return ($result);
     }
 
     /**
@@ -1031,7 +1034,7 @@ class UbillingVisor {
     protected function renderUserAssignedChannels($userId) {
         $result = '';
         $userId = ubRouting::filters($userId, 'int');
-        if ($this->trassirEnabled OR $this->wolfRecorderEnabled) {
+        if ($this->trassirEnabled or $this->wolfRecorderEnabled) {
             if (ubRouting::checkGet('chanspreview')) {
 
                 if (!$this->isChansProtected($userId)) {
@@ -1122,7 +1125,7 @@ class UbillingVisor {
                 }
             }
         }
-        return($result);
+        return ($result);
     }
 
     /**
@@ -1146,7 +1149,7 @@ class UbillingVisor {
                 }
             }
         }
-        return($result);
+        return ($result);
     }
 
     /**
@@ -1170,7 +1173,7 @@ class UbillingVisor {
                 $result .= wf_CleanDiv();
             }
         }
-        return($result);
+        return ($result);
     }
 
     /**
@@ -1208,7 +1211,7 @@ class UbillingVisor {
             $inputs .= wf_Submit(__('Save'));
             $result .= wf_Form('', 'POST', $inputs, 'glamour');
         }
-        return($result);
+        return ($result);
     }
 
     /**
@@ -1264,7 +1267,7 @@ class UbillingVisor {
         if (wf_CheckPost(array('editprimarycamerauserid'))) {
             $userId = vf($_POST['editprimarycamerauserid'], 3);
             $newPrimaryLogin = (wf_CheckPost(array('newprimarycameralogin'))) ? $_POST['newprimarycameralogin'] : '';
-            if (wf_CheckPost(array('newprimaryuserlogin')) AND !wf_CheckPost(array('newprimarycameralogin'))) {
+            if (wf_CheckPost(array('newprimaryuserlogin')) and !wf_CheckPost(array('newprimarycameralogin'))) {
                 $newPrimaryLogin = $_POST['newprimaryuserlogin'];
             }
             $this->setPrimaryAccount($userId, $newPrimaryLogin);
@@ -1307,7 +1310,7 @@ class UbillingVisor {
             $columns = array('ID', 'Primary', 'User', 'Address', 'DVR', 'IP', 'Tariff', 'Active', 'Online', 'Balance', 'Credit', 'Actions');
         }
         $result .= wf_JqDtLoader($columns, $url, false, __('Cams'), 50, $opts);
-        return($result);
+        return ($result);
     }
 
     /**
@@ -1378,7 +1381,7 @@ class UbillingVisor {
     public function iconVisorUser($size = '') {
         $size = vf($size, 3);
         $result = (!empty($size)) ? wf_img('skins/icon_camera_small.png') : wf_img_sized('skins/icon_camera_small.png', '', $size, $size);
-        return($result);
+        return ($result);
     }
 
     /**
@@ -1468,7 +1471,7 @@ class UbillingVisor {
         } else {
             $result .= $this->messages->getStyledMessage(__('No existing Visor users avaliable, you must create one at least to assign cameras'), 'error');
         }
-        return($result);
+        return ($result);
     }
 
     /**
@@ -1559,7 +1562,7 @@ class UbillingVisor {
             $inputs .= wf_Submit(__('Save'));
             $result .= wf_Form('', 'POST', $inputs, 'glamour');
         }
-        return($result);
+        return ($result);
     }
 
     /**
@@ -1625,7 +1628,7 @@ class UbillingVisor {
 
             $result .= wf_Form('', 'POST', $inputs, 'glamour');
         }
-        return($result);
+        return ($result);
     }
 
     /**
@@ -1646,7 +1649,7 @@ class UbillingVisor {
         } else {
             $result .= __('Something went wrong') . ': ' . __('No such camera exists') . ' [' . $cameraId . ']';
         }
-        return($result);
+        return ($result);
     }
 
     /**
@@ -1799,7 +1802,7 @@ class UbillingVisor {
         } else {
             $result .= $this->messages->getStyledMessage(__('Something went wrong') . ': ' . __('No such camera exists') . ' [' . $cameraId . ']', 'error');
         }
-        return($result);
+        return ($result);
     }
 
     /**
@@ -1819,7 +1822,7 @@ class UbillingVisor {
                 }
             }
         }
-        return($result);
+        return ($result);
     }
 
     /**
@@ -1850,7 +1853,7 @@ class UbillingVisor {
             }
 
 
-            if ($curState == 1 OR $curState == 0) {
+            if ($curState == 1 or $curState == 0) {
                 $inputs = wf_HiddenInput('disablemodelmismatchcameraid', $cameraId);
                 $inputs .= wf_CheckInput('modelmismatchdisabled', __('Model mismatch warning disabled on this DVR'), false, $curState);
                 $inputs .= wf_Submit(__('Save'));
@@ -1863,7 +1866,7 @@ class UbillingVisor {
         } else {
             $result .= $this->messages->getStyledMessage(__('Something went wrong') . ': ' . __('Camera') . ' ' . __('Not exists') . ' [' . $cameraId . ']', 'error');
         }
-        return($result);
+        return ($result);
     }
 
     /**
@@ -1947,7 +1950,7 @@ class UbillingVisor {
         } else {
             $result .= $this->messages->getStyledMessage(__('Something went wrong') . ': ' . __('Camera') . ' ' . __('Not exists') . ' [' . $cameraId . ']', 'error');
         }
-        return($result);
+        return ($result);
     }
 
     /**
@@ -2042,7 +2045,7 @@ class UbillingVisor {
         } else {
             $result .= $this->messages->getStyledMessage(__('Something went wrong') . ': ' . __('Camera') . ' ' . __('Not exists') . ' [' . $cameraId . ']', 'error');
         }
-        return($result);
+        return ($result);
     }
 
     /**
@@ -2069,7 +2072,7 @@ class UbillingVisor {
                                 if (!empty($cameraData['port'])) {
                                     if (isset($this->allUserData[$cameraData['login']])) {
                                         //DVD configuration is acceptable?
-                                        if (!empty($dvrData['login']) AND !empty($dvrData['password']) AND !empty($dvrData['port']) AND !empty($dvrData['apikey'])) {
+                                        if (!empty($dvrData['login']) and !empty($dvrData['password']) and !empty($dvrData['port']) and !empty($dvrData['apikey'])) {
                                             //Camera looks like it may be registgered on DVR
                                             $result .= $this->renderTrassirCameraCreateForm($cameraId);
                                         } else {
@@ -2096,7 +2099,7 @@ class UbillingVisor {
             $result .= $this->messages->getStyledMessage(__('Something went wrong') . ': ' . __('Camera') . ' ' . __('Not exists') . ' [' . $cameraId . ']', 'error');
         }
 
-        return($result);
+        return ($result);
     }
 
     /**
@@ -2123,7 +2126,7 @@ class UbillingVisor {
                                 if (!empty($cameraData['port'])) {
                                     if (isset($this->allUserData[$cameraData['login']])) {
                                         //DVD configuration is acceptable?
-                                        if (!empty($dvrData['login']) AND !empty($dvrData['password']) AND !empty($dvrData['port']) AND !empty($dvrData['apikey'])) {
+                                        if (!empty($dvrData['login']) and !empty($dvrData['password']) and !empty($dvrData['port']) and !empty($dvrData['apikey'])) {
                                             //Camera looks like it may be registgered on DVR
                                             $result .= $this->renderWolfRecorderCameraCreateForm($cameraId);
                                         } else {
@@ -2150,7 +2153,7 @@ class UbillingVisor {
             $result .= $this->messages->getStyledMessage(__('Something went wrong') . ': ' . __('Camera') . ' ' . __('Not exists') . ' [' . $cameraId . ']', 'error');
         }
 
-        return($result);
+        return ($result);
     }
 
     /**
@@ -2252,7 +2255,7 @@ class UbillingVisor {
         $inputs .= wf_Submit(__('Create'));
 
         $result .= wf_Form('', 'POST', $inputs, 'glamour');
-        return($result);
+        return ($result);
     }
 
     /**
@@ -2323,7 +2326,7 @@ class UbillingVisor {
         } else {
             $result .= $this->messages->getStyledMessage(__('Something went wrong') . ': ' . __('No such DVR exists'), 'error');
         }
-        return($result);
+        return ($result);
     }
 
     /**
@@ -2433,7 +2436,7 @@ class UbillingVisor {
                 }
             }
         }
-        return($result);
+        return ($result);
     }
 
     /**
@@ -2493,7 +2496,7 @@ class UbillingVisor {
         } else {
             $result .= $this->messages->getStyledMessage(__('This module is disabled') . ': ' . __('Doomsday tariffs'), 'error');
         }
-        return($result);
+        return ($result);
     }
 
     /**
@@ -2519,7 +2522,7 @@ class UbillingVisor {
                 $result = $proto . $host . $port . $defaultUrl;
             }
         }
-        return($result);
+        return ($result);
     }
 
     /**
@@ -2545,7 +2548,7 @@ class UbillingVisor {
 
             foreach ($this->allDvrs as $io => $each) {
                 if ($each['type'] == 'trassir') {
-                    if (!empty($each['ip']) AND !empty($each['login']) AND !empty($each['password']) AND !empty($each['apikey']) AND !empty($each['port'])) {
+                    if (!empty($each['ip']) and !empty($each['login']) and !empty($each['password']) and !empty($each['apikey']) and !empty($each['port'])) {
                         $dvrGate = new TrassirServer($each['ip'], $each['login'], $each['password'], $each['apikey'], $each['port'], $this->trassirDebug);
                         $health = $dvrGate->getHealth();
                         $cells = wf_TableCell($each['id']);
@@ -2564,7 +2567,7 @@ class UbillingVisor {
                 }
 
                 if ($each['type'] == 'wolfrecorder') {
-                    if (!empty($each['ip']) AND !empty($each['apikey'])) {
+                    if (!empty($each['ip']) and !empty($each['apikey'])) {
                         $apiUrl = $this->getWolfRecorderApiUrl($each['id']);
                         $dvrGate = new WolfRecorder($apiUrl, $each['apikey']);
                         if ($dvrGate->connectionOk()) {
@@ -2602,7 +2605,7 @@ class UbillingVisor {
         } else {
             $result .= $this->messages->getStyledMessage(__('Nothing to show'), 'warning');
         }
-        return($result);
+        return ($result);
     }
 
     /**
@@ -2641,7 +2644,7 @@ class UbillingVisor {
         $result .= wf_delimiter();
         $result .= wf_modalAuto(wf_img('skins/ukv/add.png') . ' ' . __('Create'), __('Create'), $this->renderDVRsCreateForm(), 'ubButton');
 
-        return($result);
+        return ($result);
     }
 
     /**
@@ -2661,7 +2664,7 @@ class UbillingVisor {
                 }
             }
         }
-        return($result);
+        return ($result);
     }
 
     /**
@@ -2687,7 +2690,7 @@ class UbillingVisor {
         } else {
             $result .= __('Something went wrong') . ': ' . __('No such DVR exists') . ' [' . $dvrId . ']';
         }
-        return($result);
+        return ($result);
     }
 
     /**
@@ -2822,7 +2825,7 @@ class UbillingVisor {
         } else {
             $result .= $this->messages->getStyledMessage(__('DVRs') . ' ' . __('Not exists'), 'warning');
         }
-        return($result);
+        return ($result);
     }
 
     /**
@@ -2845,7 +2848,7 @@ class UbillingVisor {
         $inputs .= wf_Selector('recordchannelmode', $this->recordModes, __('Archive record mode'), $currentModeId, false) . ' ';
         $inputs .= wf_Submit(__('Save'));
         $result .= wf_Form('', 'POST', $inputs, 'glamour');
-        return($result);
+        return ($result);
     }
 
     /**
@@ -2898,7 +2901,7 @@ class UbillingVisor {
             $result .= 'var player = new Playerjs({id:"' . $uniqId . '", file:"' . $streamUrl . '", autoplay:' . $autoPlayMode . '});';
             $result .= wf_tag('script', true);
         }
-        return($result);
+        return ($result);
     }
 
     /**
@@ -2960,7 +2963,7 @@ class UbillingVisor {
                     $screenshotUrl = '';
                     $screenshotReply = $wolfRecorder->channelsGetScreenshot($channelGuid);
                     if ($wolfRecorder->noError($screenshotReply)) {
-                        if (isset($screenshotReply['screenshot']) AND !empty($screenshotReply['screenshot'])) {
+                        if (isset($screenshotReply['screenshot']) and !empty($screenshotReply['screenshot'])) {
                             $screenshotUrl = $webUrl . $screenshotReply['screenshot'];
                         } else {
                             $screenshotUrl = 'skins/noimage.jpg';
@@ -2993,7 +2996,7 @@ class UbillingVisor {
                 $result .= wf_link(self::URL_ME . self::URL_USERVIEW . $curUserId, $this->iconVisorUser() . ' ' . @$this->allUsers[$curUserId]['realname'], false, 'ubButton');
             }
         }
-        return($result);
+        return ($result);
     }
 
     /**
@@ -3048,7 +3051,7 @@ class UbillingVisor {
         $visorId = ubRouting::filters($visorId, 'int');
         $dvrId = ubRouting::filters($dvrId, 'int');
 
-        if (!empty($dvrId) AND !empty($visorId)) {
+        if (!empty($dvrId) and !empty($visorId)) {
             if (isset($this->allSecrets[$visorId])) {
                 if (isset($this->allDvrs[$dvrId])) {
                     if (isset($this->allUsers[$visorId])) {
@@ -3134,7 +3137,7 @@ class UbillingVisor {
                 }
             }
         }
-        return($result);
+        return ($result);
     }
 
     /**
@@ -3187,7 +3190,7 @@ class UbillingVisor {
             }
         }
         $result = json_encode($urlTmp);
-        return($result);
+        return ($result);
     }
 
     /**
@@ -3220,7 +3223,7 @@ class UbillingVisor {
 
                                 if ($dvrData['type'] == 'wolfrecorder') {
                                     $prefill = '';
-                                    if (!empty($secretsData['login']) AND !empty($secretsData['password'])) {
+                                    if (!empty($secretsData['login']) and !empty($secretsData['password'])) {
                                         $prefill = '?authprefill=' . $secretsData['login'] . '_' . $secretsData['password'];
                                     }
                                     if (empty($dvrData['apiurl'])) {
@@ -3237,7 +3240,7 @@ class UbillingVisor {
         }
         $result = json_encode($result);
 
-        return($result);
+        return ($result);
     }
 
     /**
@@ -3252,7 +3255,7 @@ class UbillingVisor {
         if (isset($this->allDvrs[$dvrId])) {
             $result .= $this->allDvrs[$dvrId]['name'] . ' - ' . $this->allDvrs[$dvrId]['ip'];
         }
-        return($result);
+        return ($result);
     }
 
     /**
@@ -3267,7 +3270,7 @@ class UbillingVisor {
         if (isset($this->allDvrs[$dvrId])) {
             $result .= $this->allDvrs[$dvrId]['name'];
         }
-        return($result);
+        return ($result);
     }
 
     /**
@@ -3283,7 +3286,7 @@ class UbillingVisor {
             //and tariffs fee
             $allTariffsFee = zb_TariffGetPricesAll();
             foreach ($this->allUsers as $eachUserId => $eachUserData) {
-                if (($eachUserData['chargecams']) AND (!empty($eachUserData['primarylogin']))) {
+                if (($eachUserData['chargecams']) and (!empty($eachUserData['primarylogin']))) {
                     if (isset($this->allUserData[$eachUserData['primarylogin']])) {
                         //further actions is required
                         $primaryAccountData = $this->allUserData[$eachUserData['primarylogin']];

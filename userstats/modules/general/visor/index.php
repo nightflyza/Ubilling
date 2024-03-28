@@ -389,6 +389,7 @@ if (@$us_config['VISOR_ENABLED']) {
          */
         public function renderDvrAuthData() {
             $result = '';
+            if (!empty($this->myUserData)) {
             $myVisorId = $this->myUserData['id'];
             $requestUrl = '&action=visorchans&userid=' . $myVisorId . '&param=authdata';
             $rawData = zbs_remoteApiRequest($requestUrl);
@@ -415,6 +416,7 @@ if (@$us_config['VISOR_ENABLED']) {
                     $result .= la_TableBody($rows, '100%', 0, 'resp-table');
                 }
             }
+        }
             return($result);
         }
 
