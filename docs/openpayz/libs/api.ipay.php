@@ -264,7 +264,7 @@ class IpayMasterPass {
             "user_id": "' . $user_id . '",
             "pmt_desc": "Internet service for:' . $user_id . '",
             "pmt_info": {
-                "acc": ' . $user_id . '
+                "acc": "' . $user_id . '"
                 }
                 }
                 }
