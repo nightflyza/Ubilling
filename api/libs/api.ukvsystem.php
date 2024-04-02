@@ -2389,6 +2389,7 @@ class UkvSystem {
             $cashPairs = base64_encode($cashPairs);
             $cashInputs = wf_HiddenInput('bankstaneedpaymentspush', $cashPairs);
             $cashInputs .= wf_Submit(__('Bank statement processing'));
+            $result.=wf_FormDisabler();
             $result .= wf_Form('', 'POST', $cashInputs, 'glamour');
         }
 
