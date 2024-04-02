@@ -3641,8 +3641,9 @@ class Warehouse {
     public function reportAllStoragesRemains() {
         $result = '';
         if (!empty($this->allIncoming)) {
-            $columns = array('Category', 'Warehouse item types', 'Count', 'Reserved', 'Total', 'Actions');
-            $result = wf_JqDtLoader($columns, self::URL_ME . '&' . self::URL_REPORTS . '&' . self::URL_REAJTREM, true, 'Warehouse item types', 50);
+            $columns = array('Category', 'Warehouse item types', 'At storage', 'Reserved', 'Total', 'Actions');
+            $options=' "dom": \'<"F"lfB>rti<"F"ps>\',  buttons: [\'csv\', \'excel\', \'pdf\', \'print\']';
+            $result = wf_JqDtLoader($columns, self::URL_ME . '&' . self::URL_REPORTS . '&' . self::URL_REAJTREM, true, 'Warehouse item types', 50, $options);
         } else {
             $result = $this->messages->getStyledMessage(__('Nothing found'), 'warning');
         }
