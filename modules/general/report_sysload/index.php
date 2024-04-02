@@ -2,7 +2,7 @@
 
 if (cfr('SYSLOAD')) {
 
-    if (wf_CheckGet(array('checkupdates'))) {
+    if (ubRouting::checkGet('checkupdates')) {
         zb_BillingCheckUpdates();
     }
 
