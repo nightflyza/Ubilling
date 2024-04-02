@@ -386,7 +386,7 @@ class UbillingCache {
      * 
      * @param bool $show_data
      * 
-     * @return void
+     * @return array
      */
     public function getAllcache($show_data = false) {
         $result = array();

@@ -3536,7 +3536,7 @@ function zb_JSHider() {
 }
 
 /**
- * Gets list of ubilling database tables with stats
+ * Gets list of ubilling database tables with some stats
  * 
  * @return array
  */
@@ -3551,6 +3551,10 @@ function zb_DBGetStats() {
             $stats[$filtered[0]]['name'] = $each['Name'];
             $stats[$filtered[0]]['rows'] = $each['Rows'];
             $stats[$filtered[0]]['size'] = $each['Data_length'];
+            $stats[$filtered[0]]['engine'] = $each['Engine'];
+            $stats[$filtered[0]]['collation'] = $each['Collation'];
+            $stats[$filtered[0]]['comment'] = $each['Comment'];
+            $stats[$filtered[0]]['raw'] = $each;
         }
     }
 
@@ -3571,6 +3575,8 @@ function zb_DBStatsRender() {
     $totalCount = 0;
     if (!empty($all)) {
         $cells = wf_TableCell(__('Table name'));
+        $cells .= wf_TableCell(__('Engine'));
+        $cells .= wf_TableCell(__('Encoding'));
         $cells .= wf_TableCell(__('Rows'));
         $cells .= wf_TableCell(__('Size'));
         $rows = wf_TableRow($cells, 'row1');
@@ -3582,7 +3588,14 @@ function zb_DBStatsRender() {
             } else {
                 $dbrows = 0;
             }
-
+            
+            if (!empty($each['engine'])) {
+                $tableEngine=$each['engine'];    
+            } else {
+                $tableEngine=$each['comment'];
+            }
+            $cells.= wf_TableCell($tableEngine);
+            $cells.= wf_TableCell($each['collation']);
             $cells .= wf_TableCell($dbrows);
             if (!empty($each['size'])) {
                 @$size = stg_convert_size($each['size']);

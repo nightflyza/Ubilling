@@ -6,7 +6,7 @@ if (cfr('SYSLOAD')) {
         zb_BillingCheckUpdates();
     }
 
-    if (wf_CheckGet(array('phpinfo'))) {
+    if (ubRouting::checkGet('phpinfo')) {
         phpinfo();
         die();
     }
@@ -15,44 +15,44 @@ if (cfr('SYSLOAD')) {
 
     //ajax data loaders
     //database check
-    if (wf_CheckGet(array('ajaxdbcheck'))) {
+    if (ubRouting::checkGet('ajaxdbcheck')) {
         die(zb_DBCheckRender());
     }
     //database fix
-    if (wf_CheckGet(array('dbrepairtable'))) {
-        die(zb_DBRepairTable($_GET['dbrepairtable']));
+    if (ubRouting::checkGet('dbrepairtable')) {
+        die(zb_DBRepairTable(ubRouting::get('dbrepairtable')));
     }
     //database stats
-    if (wf_CheckGet(array('ajaxdbstats'))) {
+    if (ubRouting::checkGet('ajaxdbstats')) {
         die(zb_DBStatsRender());
     }
     // Cache keys info
-    if (wf_CheckGet(array('ajaxcacheinfo'))) {
+    if (ubRouting::checkGet('ajaxcacheinfo')) {
         die(zb_ListCacheInform());
     }
     // Cache keys and data info
-    if (wf_CheckGet(array('ajaxcachedata'))) {
+    if (ubRouting::checkGet('ajaxcachedata')) {
         die(zb_ListCacheInform('data'));
     }
     //cache key data preview 
-    if (wf_CheckGet(array('datacachekeyview'))) {
+    if (ubRouting::checkGet('datacachekeyview')) {
         die(zb_CacheInformKeyView(ubRouting::get('datacachekeyview')));
     }
     // Clear cache
-    if (wf_CheckGet(array('ajaxcacheclear'))) {
+    if (ubRouting::checkGet('ajaxcacheclear')) {
         die(zb_ListCacheInform('clear'));
     }
     //memcached stats
-    if (wf_CheckGet(array('ajaxmemcachedstats'))) {
+    if (ubRouting::checkGet('ajaxmemcachedstats')) {
         die(web_MemCachedRenderStats());
     }
     //redis stats
-    if (wf_CheckGet(array('ajaxredisstats'))) {
+    if (ubRouting::checkGet('ajaxredisstats')) {
         die(web_RedisRenderStats());
     }
     //cache key destroy
-    if (wf_CheckGet(array('deletecachekey'))) {
-        die(zb_CacheKeyDestroy($_GET['deletecachekey']));
+    if (ubRouting::checkGet('deletecachekey')) {
+        die(zb_CacheKeyDestroy(ubRouting::get('deletecachekey')));
     }
 
     $globconf = $ubillingConfig->getBilling();
@@ -95,7 +95,7 @@ if (cfr('SYSLOAD')) {
             $sysInfoData .= wf_modalAuto(wf_img('skins/snmp.png') . ' ' . __('phpSysInfo'), __('System health with phpSysInfo'), $monitCode, 'ubButton');
         } else {
             //installing phpsysinfo
-            if (wf_CheckGet(array('phpsysinfoinstall'))) {
+            if (ubRouting::checkGet(array('phpsysinfoinstall'))) {
                 if (cfr('ROOT')) {
                     zb_InstallPhpsysinfo();
                     $installNotification = wf_tag('span', false, 'alert_success') . __('Done') . '! ' . __('Refresh page') . '.' . wf_tag('span', true);
@@ -123,7 +123,7 @@ if (cfr('SYSLOAD')) {
     }
 
     //Cache
-    if ($cache_info == 'files' OR $cache_info = 'memcached') {
+    if ($cache_info == 'files' or $cache_info = 'memcached') {
         $cacheInfo = zb_ListCacheInformRenderContainer();
         $sysInfoData .= wf_modalAuto(wf_img('skins/icon_cache.png') . ' ' . __('Cache'), __('Cache information'), $cacheInfo, 'ubButton') . ' ';
     }
@@ -140,14 +140,14 @@ if (cfr('SYSLOAD')) {
 
     show_window('', $sysInfoData);
 
-//custom scripts shows data
+    //custom scripts shows data
     if (isset($alterconf['SYSLOAD_CUSTOM_SCRIPTS'])) {
         if (!empty($alterconf['SYSLOAD_CUSTOM_SCRIPTS'])) {
             show_window(__('Additional monitoring'), $customScriptsData);
         }
     }
 
-//system health here
+    //system health here
 
     $sysHealthControls = wf_AjaxLink('?module=report_sysload&ajsysload=health', wf_img('skins/icon_health.png') . ' ' . __('System health'), 'reportsysloadcontainer', false, 'ubButton') . ' ';
     $sysHealthControls .= wf_AjaxLink('?module=report_sysload&ajsysload=top', wf_img('skins/icon_process.png') . ' ' . __('Process'), 'reportsysloadcontainer', false, 'ubButton') . ' ';
@@ -182,4 +182,3 @@ if (cfr('SYSLOAD')) {
 } else {
     show_error(__('You cant control this module'));
 }
-
