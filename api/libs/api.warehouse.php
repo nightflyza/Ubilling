@@ -1269,6 +1269,7 @@ class Warehouse {
         $employeeId = ubRouting::filters($employeeId, 'int');
         $employeeInventory = array();
         $form = '';
+        $form .= wf_FormDisabler();
         if (!empty($employeeId)) {
             if (isset($this->allEmployee[$employeeId])) {
                 if (!empty($this->allReserve)) {
@@ -2973,10 +2974,12 @@ class Warehouse {
     }
 
     /**
-      Жизнь дерьмо,
-      Возненавидь любя.
-      Всем смертям назло
-      Убей себя сам.
+      Туди не страшно йти
+      Тому хто відчує
+      І усвідомить це -
+      Смерть перед очима,
+      Та гірше за плечима -
+      Там небуття сумирно жде 
      */
 
     /**
@@ -3323,6 +3326,7 @@ class Warehouse {
             $cells .= wf_TableCell($notifications, '', '', 'valign="top"');
             $rows = wf_TableRow($cells);
             $result = wf_TableBody($rows, '100%', 0, '');
+            $result .= wf_FormDisabler();
 
             //photostorage integration
             if ($this->altCfg['PHOTOSTORAGE_ENABLED']) {
