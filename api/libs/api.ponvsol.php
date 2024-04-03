@@ -232,7 +232,7 @@ class PONVsol extends PONProto {
                 if (isset($ONUsSignals[$devId])) {
 //signal history filling
 
-                    $signal = $ONUsSignals[$devId]['SignalRXdBm'];
+                    $signal = (isset($ONUsSignals[$devId]['SignalRXdBm']) ? $ONUsSignals[$devId]['SignalRXdBm'] : '');
 
                     if (!empty($signal)) {
                         $result[$eachMac] = $signal;
