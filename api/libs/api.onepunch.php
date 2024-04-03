@@ -297,7 +297,7 @@ class OnePunch {
     }
 
     /**
-     * Performs old dev console code templates
+     * Performs old dev console code templates migration into one-punch scripts
      * 
      * @return void
      */
