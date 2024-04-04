@@ -394,6 +394,38 @@ class TraffStats {
     }
 
     /**
+     * Returns the custom dimensions for OphanimFlow charts. 
+     * The custom dimensions in the format '&w={width}&h={height}' or array[w,h], or an empty string|array if no dimensions are found.
+     * 
+     * @param bool $asArray Whether to return the dimensions as an array or a string.
+     *
+     * @return string|array
+     */
+    protected function getOphCustomDimensions($asArray = false) {
+        $result = ($asArray) ? array() : '';
+        $delimiter = 'x';
+        if (isset($this->altCfg[OphanimFlow::OPTION_DIMENSIONS])) {
+            $optionValue = $this->altCfg[OphanimFlow::OPTION_DIMENSIONS];
+            if (!empty($optionValue) and ispos($optionValue, $delimiter)) {
+                $raw = explode($delimiter, $optionValue);
+                if (isset($raw[0]) and isset($raw[1])) {
+                    $w = ubRouting::filters($raw[0], 'int');
+                    $h = ubRouting::filters($raw[1], 'int');
+                    if ($w and $h) {
+                        if ($asArray) {
+                            $result['w'] = $w;
+                            $result['h'] = $h;
+                        } else {
+                            $result .= '&w=' . $w . '&h=' . $h;
+                        }
+                    }
+                }
+            }
+        }
+        return ($result);
+    }
+
+    /**
      * Generates user IP graph images links array
      * 
      * @return array
@@ -484,16 +516,17 @@ class TraffStats {
 
                         //OphanimFlow graphs
                         if (ispos($bwdUrl, 'OphanimFlow') or ispos($bwdUrl, 'of/')) {
-                            $urls['hourr'] = $bwdUrl . '/?module=graph&dir=R&period=hour&ip=' . $ip;
-                            $urls['hours'] = $bwdUrl . '/?module=graph&dir=S&period=hour&ip=' . $ip;
-                            $urls['dayr'] = $bwdUrl . '/?module=graph&dir=R&period=day&ip=' . $ip;
-                            $urls['days'] = $bwdUrl . '/?module=graph&dir=S&period=day&ip=' . $ip;
-                            $urls['weekr'] = $bwdUrl . '/?module=graph&dir=R&period=week&ip=' . $ip;
-                            $urls['weeks'] = $bwdUrl . '/?module=graph&dir=S&period=week&ip=' . $ip;
-                            $urls['monthr'] = $bwdUrl . '/?module=graph&dir=R&period=month&ip=' . $ip;
-                            $urls['months'] = $bwdUrl . '/?module=graph&dir=S&period=month&ip=' . $ip;
-                            $urls['yearr'] = $bwdUrl . '/?module=graph&dir=R&period=year&ip=' . $ip;
-                            $urls['years'] = $bwdUrl . '/?module=graph&dir=S&period=year&ip=' . $ip;
+                            $customDimensions = $this->getOphCustomDimensions();
+                            $urls['hourr'] = $bwdUrl . '/?module=graph&dir=R&period=hour&ip=' . $ip . $customDimensions;
+                            $urls['hours'] = $bwdUrl . '/?module=graph&dir=S&period=hour&ip=' . $ip . $customDimensions;
+                            $urls['dayr'] = $bwdUrl . '/?module=graph&dir=R&period=day&ip=' . $ip . $customDimensions;
+                            $urls['days'] = $bwdUrl . '/?module=graph&dir=S&period=day&ip=' . $ip . $customDimensions;
+                            $urls['weekr'] = $bwdUrl . '/?module=graph&dir=R&period=week&ip=' . $ip . $customDimensions;
+                            $urls['weeks'] = $bwdUrl . '/?module=graph&dir=S&period=week&ip=' . $ip . $customDimensions;
+                            $urls['monthr'] = $bwdUrl . '/?module=graph&dir=R&period=month&ip=' . $ip . $customDimensions;
+                            $urls['months'] = $bwdUrl . '/?module=graph&dir=S&period=month&ip=' . $ip . $customDimensions;
+                            $urls['yearr'] = $bwdUrl . '/?module=graph&dir=R&period=year&ip=' . $ip . $customDimensions;
+                            $urls['years'] = $bwdUrl . '/?module=graph&dir=S&period=year&ip=' . $ip . $customDimensions;
                         }
                     }
                     //MikroTik Multigen Hotspot users
@@ -902,5 +935,239 @@ class TraffStats {
             $result .= $this->messages->getStyledMessage($notice . __('Disabled'), 'error');
         }
         die($result);
+    }
+
+    //TODO: refactor following two methods of global traffic report. They was backported as is.
+
+    /**
+     * Renders the global traffic report.
+     *
+     * This method retrieves traffic data for each traffic class and generates a report.
+     * It calculates the total traffic for each class by summing the download and upload traffic values from the 'users' table.
+     * If the traffic class is 0, it also includes additional traffic data from the 'ishimura' table and the 'ophanim' flow.
+     *
+     * @return string
+     */
+    public function renderTrafficReport() {
+        $ishimuraOption = MultiGen::OPTION_ISHIMURA;
+        $ishimuraTable = MultiGen::NAS_ISHIMURA;
+
+        $allclasses = zb_DirectionsGetAll();
+        $classtraff = array();
+        $traffCells = wf_TableCell(__('Traffic classes'), '20%');
+        $traffCells .= wf_TableCell(__('Traffic'), '20%');
+        $traffCells .= wf_TableCell(__('Traffic classes'));
+        $traffRows = wf_TableRow($traffCells, 'row1');
+
+        if (!empty($allclasses)) {
+            foreach ($allclasses as $eachclass) {
+                $d_name = 'D' . $eachclass['rulenumber'];
+                $u_name = 'U' . $eachclass['rulenumber'];
+                $query_d = "SELECT SUM(`" . $d_name . "`) FROM `users`";
+                $query_u = "SELECT SUM(`" . $u_name . "`) FROM `users`";
+                $classdown = simple_query($query_d);
+                $classdown = $classdown['SUM(`' . $d_name . '`)'];
+                $classup = simple_query($query_u);
+                $classup = $classup['SUM(`' . $u_name . '`)'];
+                $classtraff[$eachclass['rulename']] = $classdown + $classup;
+
+                //Yep, no traffic classes at all. Just internet accounting here.
+                if ($eachclass['rulenumber'] == 0) {
+                    //ishimura data
+                    if ($this->altCfg[$ishimuraOption]) {
+                        $query_hideki = "SELECT SUM(`D0`) as `downloaded`, SUM(`U0`) as `uploaded` from `" . $ishimuraTable . "` WHERE  `month`='" . date("n") . "' AND `year`='" . curyear() . "'";
+                        $dataHideki = simple_query($query_hideki);
+                        if (isset($classtraff[$eachclass['rulename']])) {
+                            @$classtraff[$eachclass['rulename']] += $dataHideki['downloaded'] + $dataHideki['uploaded'];
+                        } else {
+                            $classtraff[$eachclass['rulename']] = $dataHideki['downloaded'] + $dataHideki['uploaded'];
+                        }
+                    }
+
+                    //or ophanim flow may be?
+                    if ($this->altCfg[OphanimFlow::OPTION_ENABLED]) {
+                        $ophanim = new OphanimFlow();
+                        $ophTraff = $ophanim->getAllUsersAggrTraff();
+                        if (!empty($ophTraff)) {
+                            foreach ($ophTraff as $io => $each) {
+                                $classtraff[$eachclass['rulename']] += $each;
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (!empty($classtraff)) {
+                $total = max($classtraff);
+                foreach ($classtraff as $name => $count) {
+                    $traffCells = wf_TableCell($name);
+                    $traffCells .= wf_TableCell(stg_convert_size($count), '', '', 'sorttable_customkey="' . $count . '"');
+                    $traffCells .= wf_TableCell(web_bar($count, $total), '', '', 'sorttable_customkey="' . $count . '"');
+                    $traffRows .= wf_TableRow($traffCells, 'row3');
+                }
+            }
+        }
+        $result = wf_TableBody($traffRows, '100%', 0, 'sortable');
+        return ($result);
+    }
+
+    /**
+     * Renders the traffic report NAS charts.
+     *
+     * This method retrieves the NAS list with bandwidthd set up and generates charts for each NAS.
+     * The charts include daily, weekly, monthly, and yearly traffic data.
+     *
+     * @return string
+     */
+    public function renderTrafficReportNasCharts() {
+
+        // Get NAS list with bandwidth setted up:
+        $query = 'SELECT * FROM `nas` WHERE `bandw` != "" GROUP by `bandw`';
+        $result = simple_queryall($query);
+
+        // Check presence of any entry:
+        if (!empty($result)) {
+            $graphRows = null;
+
+            foreach ($result as $nas) {
+                $bwd = $nas['bandw'];
+                switch ($nas['nastype']) {
+                    case 'local':
+                    case 'radius':
+                    case 'rscriptd':
+                        //normal bandwidthd
+                        if (!ispos($bwd, 'mlgmths') and !ispos($bwd, 'mlgmtppp') and !ispos($bwd, 'mlgmtdhcp')) {
+                            // Extention:
+                            $ext = '.png';
+                            // Modals:
+                            $width = 940;
+                            $height = 666;
+
+                            // Links:
+                            $d_day = $bwd . 'Total-1-R' . $ext;
+                            $d_week = $bwd . 'Total-2-R' . $ext;
+                            $d_month = $bwd . 'Total-3-R' . $ext;
+                            $d_year = $bwd . 'Total-4-R' . $ext;
+                            $u_day = $bwd . 'Total-1-S' . $ext;
+                            $u_week = $bwd . 'Total-2-S' . $ext;
+                            $u_month = $bwd . 'Total-3-S' . $ext;
+                            $u_year = $bwd . 'Total-4-S' . $ext;
+
+                            //OphanimFlow graphs
+                            if (ispos($bwd, 'OphanimFlow') or ispos($bwd, 'of/')) {
+                                $width = 1540; //defaults
+                                $height = 400;
+                                $offsetX = 60; //window size offsets
+                                $offsetY = 60;
+
+                                $custParams = '';
+                                $customDimensions = $this->getOphCustomDimensions(true);
+                                if ($customDimensions) {
+                                    $custParams = $this->getOphCustomDimensions(false); //as string
+                                    $width = $customDimensions['w'];
+                                    $height = $customDimensions['h'];
+                                }
+                                $d_day = $bwd . '/?module=graph&ip=0.0.0.0&dir=R&period=day' . $custParams;
+                                $d_week = $bwd . '/?module=graph&ip=0.0.0.0&dir=R&period=week' . $custParams;
+                                $d_month = $bwd . '/?module=graph&ip=0.0.0.0&dir=R&period=month' . $custParams;
+                                $d_year = $bwd . '/?module=graph&ip=0.0.0.0&dir=R&period=year' . $custParams;
+                                $u_day = $bwd . '/?module=graph&ip=0.0.0.0&dir=S&period=day' . $custParams;
+                                $u_week = $bwd . '/?module=graph&ip=0.0.0.0&dir=S&period=week' . $custParams;
+                                $u_month = $bwd . '/?module=graph&ip=0.0.0.0&dir=S&period=month' . $custParams;
+                                $u_year = $bwd . '/?module=graph&ip=0.0.0.0&dir=S&period=year' . $custParams;
+
+                                $width = $width + $offsetX;
+                                $height = ($height * 2) + ($offsetY * 2);
+                            }
+
+                            $daygraph = __('Downloaded') . wf_img(zb_BandwidthdImgLink($d_day)) . wf_tag('br') . __('Uploaded') . wf_tag('br') . wf_img(zb_BandwidthdImgLink($u_day));
+                            $weekgraph = __('Downloaded') . wf_img(zb_BandwidthdImgLink($d_week)) . wf_tag('br') . __('Uploaded') . wf_tag('br') . wf_img(zb_BandwidthdImgLink($u_week));
+                            $monthgraph = __('Downloaded') . wf_img(zb_BandwidthdImgLink($d_month)) . wf_tag('br') . __('Uploaded') . wf_tag('br') . wf_img(zb_BandwidthdImgLink($u_month));
+                            $yeargraph = __('Downloaded') . wf_img(zb_BandwidthdImgLink($d_year)) . wf_tag('br') . __('Uploaded') . wf_tag('br') . wf_img(zb_BandwidthdImgLink($u_year));
+                            $graphLegend = wf_tag('br') . wf_img('skins/bwdlegend.gif');
+                        } else {
+                            //Multigen Mikrotik hotspot
+                            $bwd = str_replace('mlgmths', 'graphs/iface/bridge', $bwd);
+                            $bwd = str_replace('mlgmtppp', 'graphs/iface/bridge', $bwd);
+                            $bwd = str_replace('mlgmtdhcp', 'graphs/iface/bridge', $bwd);
+
+                            $ext = '.gif';
+                            $daily = $bwd . '/daily' . $ext;
+                            $weekly = $bwd . '/weekly' . $ext;
+                            $monthly = $bwd . '/monthly' . $ext;
+                            $yearly = $bwd . '/yearly' . $ext;
+
+                            // Modals:
+                            $width = 530;
+                            $height = 250;
+                            $daygraph = wf_img(zb_BandwidthdImgLink($daily));
+                            $weekgraph = wf_img(zb_BandwidthdImgLink($weekly));
+                            $monthgraph = wf_img(zb_BandwidthdImgLink($monthly));
+                            $yeargraph = wf_img(zb_BandwidthdImgLink($yearly));
+                            $graphLegend = '';
+                        }
+                        break;
+                    case 'mikrotik':
+                        if (!ispos($bwd, 'pppoe')) {
+                            $options = zb_NasOptionsGet($nas['id']);
+                            if (!empty($options['graph_interface'])) {
+                                // Extention:
+                                $ext = '.gif';
+
+                                // Links:
+                                $daily = $bwd . '/../iface/' . $options['graph_interface'] . '/daily' . $ext;
+                                $weekly = $bwd . '/../iface/' . $options['graph_interface'] . '/weekly' . $ext;
+                                $monthly = $bwd . '/../iface/' . $options['graph_interface'] . '/monthly' . $ext;
+                                $yearly = $bwd . '/../iface/' . $options['graph_interface'] . '/yearly' . $ext;
+
+                                // Modals:
+                                $width = 530;
+                                $height = 230;
+                                $daygraph = wf_img($daily);
+                                $weekgraph = wf_img($weekly);
+                                $monthgraph = wf_img($monthly);
+                                $yeargraph = wf_img($yearly);
+                                $graphLegend = '';
+                                break;
+                            } else {
+                                show_error(__('For NAS') . ' `' . $nas['nasname'] . '` ' . __('was not set correct graph interface'));
+                            }
+                        } else {
+                            $width = 530;
+                            $height = 230;
+                            $daygraph = '';
+                            $weekgraph = '';
+                            $monthgraph = '';
+                            $yeargraph = '';
+                            $graphLegend = '';
+                        }
+                }
+
+                if (!ispos($bwd, 'OphanimFlow') and !ispos($bwd, 'of/')) {
+                    $graphLegend = wf_tag('br') . wf_img('skins/bwdlegend.gif');
+                } else {
+                    $graphLegend = '';
+                }
+
+                // Buttons:
+                $gday = wf_modal(__('Graph by day'), __('Graph by day'), $daygraph . $graphLegend, '', $width, $height);
+                $gweek = wf_modal(__('Graph by week'), __('Graph by week'), $weekgraph . $graphLegend, '', $width, $height);
+                $gmonth = wf_modal(__('Graph by month'), __('Graph by month'), $monthgraph . $graphLegend, '', $width, $height);
+                $gyear = wf_modal(__('Graph by year'), __('Graph by year'), $yeargraph . $graphLegend, '', $width, $height);
+
+                // Put buttons to table row:
+                $graphCells = wf_TableCell($nas['nasname'], '', 'row2');
+                $graphCells .= wf_TableCell($gday);
+                $graphCells .= wf_TableCell($gweek);
+                $graphCells .= wf_TableCell($gmonth);
+                $graphCells .= wf_TableCell($gyear);
+                $graphRows .= wf_TableRow($graphCells, 'row3');
+            }
+
+            $result = wf_TableBody($graphRows, '100%', 0, '');
+        } else {
+            $result = '';
+        }
+        return ($result);
     }
 }
