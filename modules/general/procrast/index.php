@@ -27,13 +27,16 @@ if (cfr('PROCRAST')) {
 
 
         if (ubRouting::checkGet('rinvoke')) {
-            //invocing remote app here
+            //invoking remote app here
             $remoteInvokedApp = ubRouting::get('rinvoke', 'vf');
             if (isset($invocableApps[$remoteInvokedApp])) {
                 $appData = $invocableApps[$remoteInvokedApp];
                 if ($appData) {
                     $invokeCode = '';
                     $style = 'style="width: 70vw; height: 70vh;"';
+                    if (ispos($appData['params'],'CUSTOMVIEW:')) {
+                        $style=str_replace('CUSTOMVIEW:','',$appData['params']);
+                    }
                     $options = 'id="dos" src="' . $cdnUrl . $appData['url'] . '" frameborder="0" ' . $style . ' allowfullscreen';
                     $invokeCode .= wf_tag('iframe', false, '', $options);
                     $invokeCode .= wf_tag('iframe', true);
