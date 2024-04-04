@@ -18,13 +18,6 @@ class DevConsole {
     protected $onePunch = '';
 
     /**
-     * System messages helper instance
-     *
-     * @var object
-     */
-    protected $messages = '';
-
-    /**
      * Some predefined stuff like routes here
      */
     const URL_ME = '?module=sqlconsole';
@@ -55,10 +48,16 @@ class DevConsole {
     const PROUTE_OPE_ALIAS = 'editscriptalias';
     const PROUTE_OPE_CONTENT = 'editscriptcontent';
     const PROUTE_HLIGHT = 'phphightlight';
+    const PROUTE_TABLE = 'tableresult';
+    const PROUTE_TRUETABLE = 'truetableresult';
 
 
+    /**
+     * Plagued by doubt that it can be done
+     * In a culture so committed to temporal pleasure and distraction
+     * Should I flee into lifelong mountain retreat?
+     */
     public function __construct() {
-        $this->initMessages();
         $this->loadConfigs();
         if (ubRouting::checkGet(self::ROUTE_PHP_CON)) {
             $this->initOnePunch();
@@ -74,15 +73,6 @@ class DevConsole {
     protected function loadConfigs() {
         global $ubillingConfig;
         $this->altCfg = $ubillingConfig->getAlter();
-    }
-
-    /**
-     * Initializes system messages helper
-     * 
-     * @return void
-     */
-    protected function initMessages() {
-        $this->messages = new UbillingMessageHelper();
     }
 
     /**
@@ -132,8 +122,8 @@ class DevConsole {
         $startQuery = '';
         $result = '';
         $sqlinputs = $this->renderControls();
-        $tableResultFlag = (ubRouting::checkPost('tableresult')) ? true : false;
-        $trueTableResultFlag = (ubRouting::checkPost('truetableresult')) ? true : false;
+        $tableResultFlag = (ubRouting::checkPost(self::PROUTE_TABLE)) ? true : false;
+        $trueTableResultFlag = (ubRouting::checkPost(self::PROUTE_TRUETABLE)) ? true : false;
         if (ubRouting::checkPost(self::PROUTE_SQL)) {
             if ($this->altCfg[self::OPTION_KEEP]) {
                 $startQuery = ubRouting::post(self::PROUTE_SQL, 'callback', 'trim');
@@ -141,8 +131,8 @@ class DevConsole {
         }
 
         $sqlinputs .= wf_TextArea(self::PROUTE_SQL, '', $startQuery, true, '80x10');
-        $sqlinputs .= wf_CheckInput('tableresult', 'Display query result as table', true, $tableResultFlag);
-        $sqlinputs .= wf_CheckInput('truetableresult', 'Display query result as table with fields', true, $trueTableResultFlag);
+        $sqlinputs .= wf_CheckInput(self::PROUTE_TABLE, 'Display query result as table', true, $tableResultFlag);
+        $sqlinputs .= wf_CheckInput(self::PROUTE_TRUETABLE, 'Display query result as table with fields', true, $trueTableResultFlag);
         $sqlinputs .= wf_Submit('Process query');
         $result = wf_Form('', 'POST', $sqlinputs, 'glamour');
         return ($result);
@@ -194,14 +184,14 @@ class DevConsole {
 
         //php console grid assemble
         $phpcells = wf_TableCell($phpForm, '50%', '', 'valign="top"');
-        if (ubRouting::checkGet(array('scriptadd'))) {
+        if (ubRouting::checkGet(array(self::ROUTE_OP_CREATE))) {
             //show script creation form
             $punchCreateForm = $this->onePunch->renderCreateForm();
 
             //override devconsole forms with script creation interface
             $phpcells = wf_TableCell($punchCreateForm, '100%', '', 'valign="top"');
         } else {
-            if (ubRouting::checkGet('editscript')) {
+            if (ubRouting::checkGet(self::ROUTE_OP_EDIT)) {
                 //show scripts edit form
                 $punchEditForm = $this->onePunch->renderEditForm($_GET['editscript']);
 
@@ -287,10 +277,10 @@ class DevConsole {
                 // trying to render SQL query execution results depends on selected options
                 if (!empty($query_result)) {
                     $recCount = count($query_result);
-                    if (!ubRouting::checkPost('tableresult') and !ubRouting::checkPost('truetableresult')) {
+                    if (!ubRouting::checkPost(self::PROUTE_TABLE) and !ubRouting::checkPost(self::PROUTE_TRUETABLE)) {
                         //raw array result
                         $vdump = var_export($query_result, true);
-                    } elseif (ubRouting::checkPost('truetableresult')) {
+                    } elseif (ubRouting::checkPost(self::PROUTE_TRUETABLE)) {
                         //show query result as table with fields
                         $tablecells = '';
                         $tablerows = '';
