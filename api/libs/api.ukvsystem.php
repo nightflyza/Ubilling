@@ -3473,7 +3473,8 @@ class UkvSystem {
                 $month_summ = $this->paymentsGetMonthSumm($year, $eachmonth);
                 $paycount = $this->paymentsGetMonthCount($year, $eachmonth);
 
-                $monthArpu = @round($month_summ / $paycount, 2);
+                $monthArpu = (empty($paycount) ? 0 : @round($month_summ / $paycount, 2));
+
                 if (is_nan($monthArpu)) {
                     $monthArpu = 0;
                 }
