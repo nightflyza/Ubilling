@@ -846,6 +846,7 @@ class ChartMancer {
             $totaltime = $mtime[0] + $mtime[1] - $starttime;
             $debugX = $this->imageWidth - 150;
             $totalBars = $drawCalls + $drawSkip;
+	    $totalBars = ($totalBars != 0) ? $totalBars : 1;
             $skipPercent = round((($drawCalls / $totalBars) * 100), 2);
             imagettftext($chart, 8, 0, $debugX, 10, $labelColor, $this->font, 'DS: ' . $dataSize . ' items');
             imagettftext($chart, 8, 0, $debugX, 22, $labelColor, $this->font, 'DC: ' . $drawCalls . ' bars (' . $skipPercent . '%)');
