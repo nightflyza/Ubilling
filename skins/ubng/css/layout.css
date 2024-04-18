@@ -74,7 +74,9 @@ header#header h2.section_title {
     line-height: 55px;
     color: #fff;
     text-shadow: 0 -1px 0 #000;
+    /*
     max-width: 442px;
+    */
 }
 
 header#header h1.site_title sup {
@@ -128,7 +130,9 @@ section#secondary_bar .user {
     float: left;
     width: 23%;
     height: 38px;
+    /*
     max-width: 442px;
+    */
 }
 
 .user p {
@@ -246,7 +250,9 @@ aside#sidebar {
     float: left;
     min-height: 500px;
     margin-top: -4px;
+    /*
     max-width: 442px;
+    */
 }
 
 #sidebar hr {
