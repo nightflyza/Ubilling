@@ -74,9 +74,13 @@ if (cfr('ROOT')) {
             //generating MySQL dump
             $dumpName = 'content/backups/sql/generated_' . date("Y-m-d_H_i_s") . '.sql';
             $dumpData = '';
-            $newAptId = zb_AddressGetLastid();
+            $newAptId = @zb_AddressGetLastid();
+            if (empty($newAptId)) {
+                $newAptId = 0;
+            }
             $allFreeIps = multinet_get_all_free_ip('nethosts', 'ip', $netID);
             $admin = whoami();
+            $usedMacs = array();
 
             if (sizeof($allFreeIps) >= $neednum) {
                 for ($i = 1; $i <= $neednum; $i++) {
@@ -88,6 +92,12 @@ if (cfr('ROOT')) {
                     $randomPhone = rand(111111, 999999);
                     $randomMobile = '380' . rand(1111111, 9999999);
                     $randomMac = '14:' . '88' . ':' . rand(10, 99) . ':' . rand(10, 99) . ':' . rand(10, 99) . ':' . rand(10, 99);
+                    if (isset($usedMacs[$randomMac])) {
+                        while (isset($usedMacs[$randomMac])) {
+                            $randomMac = '14:' . '88' . ':' . rand(10, 99) . ':' . rand(10, 99) . ':' . rand(10, 99) . ':' . rand(10, 99);
+                        }
+                    }
+                    $usedMacs[$randomMac] = 1; //mark as used
                     $randomApt = $i;
                     $randomCash = rand(0, 500);
                     $randomFloor = rand(1, 9);
@@ -115,7 +125,7 @@ if (cfr('ROOT')) {
                     $dumpData .= "INSERT INTO `emails`  (`id`,`login`,`email`) VALUES  (NULL, '" . $randomLogin . "','');" . PHP_EOL;
                     $dumpData .= "INSERT INTO `userspeeds` (`id` ,`login` ,`speed`) VALUES (NULL , '" . $randomLogin . "', '0');" . PHP_EOL;
                     //user register log
-                    $dumpData .= "INSERT INTO `userreg` (`id` ,`date` ,`admin` ,`login` ,`address`) VALUES (NULL , '" . curdatetime() . "', '" . $admin . "', '" . $randomLogin . "', 'someaddress');" . PHP_EOL;
+                    $dumpData .= "INSERT INTO `userreg` (`id` ,`date` ,`admin` ,`login` ,`address`) VALUES (NULL , '" . curdatetime() . "', '" . $admin . "', '" . $randomLogin . "', 'someaddress " . $randomApt . "');" . PHP_EOL;
                     $dumpData .= PHP_EOL;
                 }
 
