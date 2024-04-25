@@ -7,6 +7,8 @@ class CallMeBack {
 
     /**
      * Some calls data model placeholder
+     * 
+     * @var object
      */
     protected $calls = '';
 
@@ -79,7 +81,7 @@ class CallMeBack {
      */
     protected function getUndoneCalls() {
         $this->calls->where('state', '=', 'undone');
-        return($this->calls->getAll('id'));
+        return ($this->calls->getAll('id'));
     }
 
     /**
@@ -89,7 +91,7 @@ class CallMeBack {
      */
     protected function getDoneCalls() {
         $this->calls->where('state', '!=', 'undone');
-        return($this->calls->getAll('id'));
+        return ($this->calls->getAll('id'));
     }
 
     /**
@@ -101,10 +103,12 @@ class CallMeBack {
      */
     public function createCall($number) {
         $number = ubRouting::filters($number, 'int');
-        $this->calls->data('date', curdatetime());
-        $this->calls->data('number', $number);
-        $this->calls->data('state', 'undone');
-        $this->calls->create();
+        if ($number) {
+            $this->calls->data('date', curdatetime());
+            $this->calls->data('number', $number);
+            $this->calls->data('state', 'undone');
+            $this->calls->create();
+        }
     }
 
     /**
@@ -134,7 +138,7 @@ class CallMeBack {
     public function getUndoneCount() {
         $this->calls->where('state', '=', 'undone');
         $result = $this->calls->getFieldsCount();
-        return($result);
+        return ($result);
     }
 
     /**
@@ -144,7 +148,7 @@ class CallMeBack {
      */
     protected function getDoneCallsCount() {
         $this->calls->where('state', '!=', 'undone');
-        return($this->calls->getFieldsCount());
+        return ($this->calls->getFieldsCount());
     }
 
     /**
@@ -160,7 +164,7 @@ class CallMeBack {
         if (!empty($detectedLogin)) {
             $result .= wf_Link(self::URL_USERPROFILE . $detectedLogin, web_profile_icon() . ' ' . @$this->allAddress[$detectedLogin]);
         }
-        return($result);
+        return ($result);
     }
 
     /**
@@ -195,7 +199,7 @@ class CallMeBack {
             $messages = new UbillingMessageHelper();
             $result .= $messages->getStyledMessage(__('Nothing to show'), 'success');
         }
-        return($result);
+        return ($result);
     }
 
     /**
@@ -207,7 +211,7 @@ class CallMeBack {
         $result = '';
         $result .= wf_Link(self::URL_ME, wf_img('skins/undone_icon.png') . ' ' . __('Undone calls'), false, 'ubButton') . ' ';
         $result .= wf_Link(self::URL_ME . '&showdone=true', wf_img('skins/done_icon.png') . ' ' . __('Processed calls'), false, 'ubButton') . ' ';
-        return($result);
+        return ($result);
     }
 
     /**
@@ -226,7 +230,7 @@ class CallMeBack {
             $messages = new UbillingMessageHelper();
             $result .= $messages->getStyledMessage(__('Nothing to show'), 'warning');
         }
-        return($result);
+        return ($result);
     }
 
     /**
@@ -248,11 +252,11 @@ class CallMeBack {
             case 'wrongnum':
                 $result = wf_img('skins/calls/phone_fail.png') . ' ' . __('Wrong number');
                 break;
-            default :
+            default:
                 $result = $state;
                 break;
         }
-        return($result);
+        return ($result);
     }
 
     /**
@@ -288,5 +292,4 @@ class CallMeBack {
             $json->getJson();
         }
     }
-
 }

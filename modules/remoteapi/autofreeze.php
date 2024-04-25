@@ -4,7 +4,7 @@
  * auto freezing call
  */
 
-if ($_GET['action'] == 'autofreeze') {
+if (ubRouting::get('action') == 'autofreeze') {
     if (isset($alterconf['AUTOFREEZE_CASH_LIMIT'])) {
         $afCashLimit = $alterconf['AUTOFREEZE_CASH_LIMIT'];
         $autoFreezeQuery = "SELECT * from `users` WHERE `Passive`='0' AND `Cash`<='" . $afCashLimit . "' AND `Credit`='0';";

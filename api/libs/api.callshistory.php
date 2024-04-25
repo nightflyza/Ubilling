@@ -201,9 +201,11 @@ class CallsHistory {
     /**
      * Updates data for calls without previously guessed user login
      * 
-     * @return string
+     * @param bool $rawResult
+     * 
+     * @return string|array
      */
-    public function updateUnknownLogins() {
+    public function updateUnknownLogins($rawResult = false) {
         set_time_limit(0);
         $messages = new UbillingMessageHelper();
         $this->loadCalls();
@@ -232,9 +234,19 @@ class CallsHistory {
             }
         }
 
-        $result .= $messages->getStyledMessage(__('telepathically guessed') . ': ' . $countGuessed, 'info');
-        $result .= $messages->getStyledMessage(__('skipped') . ': ' . $countMissed, 'warning');
+        if ($rawResult) {
+            $result = array(
+                'GUESSED' => $countGuessed,
+                'MISSED' => $countMissed,
+            );
+        } else {
+            $result .= $messages->getStyledMessage(__('telepathically guessed') . ': ' . $countGuessed, 'info');
+            $result .= $messages->getStyledMessage(__('skipped') . ': ' . $countMissed, 'warning');
+        }
+
+        //some logging, why not?
+        log_register('CALLSHIST USERS UPDATE GUESSED `' . $countGuessed . '` MISSED`' . $countMissed . '`');
+
         return ($result);
     }
-
 }

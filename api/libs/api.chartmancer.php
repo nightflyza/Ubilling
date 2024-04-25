@@ -143,7 +143,7 @@ class ChartMancer {
      * 
      * @var array
      */
-    protected $overrideColors=array();
+    protected $overrideColors = array();
 
     /**
      * Transparent background transparency flag
@@ -174,6 +174,20 @@ class ChartMancer {
     protected $xLabelLen = 5;
 
     /**
+     * Contains X-axis labels count
+     *
+     * @var int
+     */
+    protected $xAxisLabelCount = 20;
+
+    /**
+     * Contains cutted string suffix
+     *
+     * @var string
+     */
+    protected $cutSuffix = '...';
+
+    /**
      * Render maximum dataset value on chart?
      * 
      * @var bool
@@ -201,6 +215,20 @@ class ChartMancer {
      */
     protected $barAutoWidth = true;
 
+    /**
+     * Contains y-max ratio offset from max dataset value to upper grid limit
+     *
+     * @var float
+     */
+    protected $yMaxValueRatio = 0.1;
+
+    /**
+     * Prevents first (totals) data column from marking as already drawn
+     *
+     * @var bool
+     */
+    protected $drawFirstColumnAlways = true;
+
     public function __construct() {
         //what are you expecting to see here?
     }
@@ -219,7 +247,7 @@ class ChartMancer {
         $result['r'] = hexdec(substr($hash, 0, 2));
         $result['g'] = hexdec(substr($hash, 2, 2));
         $result['b'] = hexdec(substr($hash, 4, 2));
-        return($result);
+        return ($result);
     }
 
     /**
@@ -229,12 +257,12 @@ class ChartMancer {
      */
     protected function checkColor($colorArray) {
         $result = false;
-        if (isset($colorArray['r']) AND isset($colorArray['g']) AND isset($colorArray['b'])) {
-            if (is_numeric($colorArray['r']) AND is_numeric($colorArray['g']) AND is_numeric($colorArray['b'])) {
+        if (isset($colorArray['r']) and isset($colorArray['g']) and isset($colorArray['b'])) {
+            if (is_numeric($colorArray['r']) and is_numeric($colorArray['g']) and is_numeric($colorArray['b'])) {
                 $result = true;
             }
         }
-        return($result);
+        return ($result);
     }
 
     /**
@@ -345,6 +373,39 @@ class ChartMancer {
     }
 
     /**
+     * Sets X-axis labels length in bytes
+     *
+     * @param int $len
+     * 
+     * @return void
+     */
+    public function setXLabelLen($len = 5) {
+        $this->xLabelLen = $len;
+    }
+
+    /**
+     * Sets X-axis labels count
+     *
+     * @param int $count
+     * 
+     * @return void
+     */
+    public function setXLabelsCount($count = 20) {
+        $this->xAxisLabelCount = $count;
+    }
+
+    /**
+     * Sets cutted labels suffix value
+     *
+     * @param string $value
+     * 
+     * @return void
+     */
+    public function setCutSuffix($value = '...') {
+        $this->cutSuffix = $value;
+    }
+
+    /**
      * Set transparent background transparency flag
      *
      * @param  bool  $backgroundTransparent  Transparent background transparency flag
@@ -378,7 +439,7 @@ class ChartMancer {
     }
 
     /**
-     * Set rendering debug flag
+     * Sets rendering debug flag
      *
      * @param  bool  $debug  Rendering debug flag
      *
@@ -402,7 +463,7 @@ class ChartMancer {
     }
 
     /**
-     * Set chart chartTitle
+     * Sets chart chartTitle
      *
      * @param  string  $chartTitle  Chart chartTitle
      *
@@ -413,7 +474,7 @@ class ChartMancer {
     }
 
     /**
-     * Set maximum dataset value rendering on chart flag
+     * Sets maximum dataset value rendering on chart flag
      *
      * @return  void
      */
@@ -451,15 +512,43 @@ class ChartMancer {
      * @return void
      */
     public function setOverrideColors($customColors) {
-        $this->overrideColors=$customColors;
+        $this->overrideColors = $customColors;
+    }
+
+
+    /**
+     * Sets the maximum value ratio for the y-axis.
+     *
+     * This method allows you to set the maximum value ratio for the y-axis in the chart.
+     * The ratio determines the maximum value displayed on the y-axis as a additional percentage of the actual maximum dataset value.
+     *
+     * @param float $ratio The maximum value ratio for the y-axis like 0.1 for 10% or 0.2 for 20%.
+     * 
+     * @return void
+     */
+    public function setYMaxValueRatio($ratio) {
+        $this->yMaxValueRatio = $ratio;
+    }
+
+    /**
+     * Sets the state of drawing the explict first (totals) column flag.
+     *
+     * @param bool $state The state to set for drawing the first column.
+     * @return void
+     */
+    public function setDrawFirstColumn($state) {
+        $this->drawFirstColumnAlways = $state;
     }
 
     /**
      * Renders chart as PNG image into browser or into specified file
      * 
-     * @param array $data
+     * @param array $data chart dataset
+     * @param string $filename filename to export chart. May be empty for rendering to browser
+     *                         may contain name of .png file to save as file on FS, or be like 
+     *                         base64 or base64html to return chart as base64 encoded string
      * 
-     * @return bool
+     * @return bool|string
      */
     public function renderChart($data, $fileName = '') {
         if ($this->debug) {
@@ -474,17 +563,17 @@ class ChartMancer {
         $dataSize = ($dataSize == 0) ? 1 : $dataSize;
         $result = false;
 
-        $xAxisLabelCount = 20;
+        $xAxisLabelCount = $this->xAxisLabelCount;
         if ($dataSize < 10) {
             $xAxisLabelCount = 10;
         }
 
-// Avoid non array input data usage
+        // Avoid non array input data usage
         if (!is_array($data)) {
             $data = array();
         }
 
-// Basic data preprocessing
+        // Basic data preprocessing
         if (!empty($data)) {
             foreach ($data as $key => $value) {
                 if (is_array($value)) {
@@ -505,39 +594,39 @@ class ChartMancer {
 
 
 
-// Calculating grid dimensions and placement within image
+        // Calculating grid dimensions and placement within image
         $gridBottom = $this->imageHeight - $this->gridTop;
         $gridRight = $this->imageWidth - $this->gridLeft;
         $gridHeight = $gridBottom - $this->gridTop;
         $gridWidth = $gridRight - $this->gridLeft;
 
-// Max value on y-axis
+        // Max value on y-axis
         $yMaxValue = 200;
-// Setting yMaxValue depend of data values
+        // Setting yMaxValue depend of data values
         if ($dataMax) {
-            $yMaxValue = round($dataMax + ($dataMax * 0.3));
+            $yMaxValue = round($dataMax + ($dataMax * $this->yMaxValueRatio));
             $yMaxValue = ($yMaxValue != 0) ? $yMaxValue : 2; //preventing division by zero
         }
 
-// Distance between grid lines on y-axis
+        // Distance between grid lines on y-axis
         $yLabelSpan = 20;
         if ($dataMax) {
             if ($dataMax <= 20) {
                 $yLabelSpan = 1;
             } else {
-                if ($dataMax<=100) {
-                    $yLabelSpan=5;
+                if ($dataMax <= 100) {
+                    $yLabelSpan = 5;
                 } else {
-                    $yLabelSpan=10;
+                    $yLabelSpan = 10;
                 }
             }
-            
+
             if ($dataMax >= 200) {
                 $yLabelSpan = round($dataMax / 10);
             }
         }
 
-// Bar width based on data set size?
+        // Bar width based on data set size?
         if ($this->barAutoWidth) {
             if ($dataSize <= 50) {
                 $this->barWidth = round(($this->imageWidth - $this->gridLeft) / ($dataSize * 1.2));
@@ -545,10 +634,10 @@ class ChartMancer {
         }
 
 
-// Init image
+        // Init image
         $chart = imagecreate($this->imageWidth, $this->imageHeight);
 
-// Chart backgroun color setup
+        // Chart backgroun color setup
         if ($this->backgroundTransparent) {
             imagealphablending($chart, false);
             $backgroundColor = imagecolorallocatealpha($chart, 255, 255, 255, 127);
@@ -556,19 +645,19 @@ class ChartMancer {
         } else {
             $backgroundColor = imagecolorallocate($chart, $this->backGroundColor['r'], $this->backGroundColor['g'], $this->backGroundColor['b']);
         }
-// Chart base, axis, labels and grid colors setup        
+        // Chart base, axis, labels and grid colors setup        
         $baseColor = imagecolorallocate($chart, $this->baseColor['r'], $this->baseColor['g'], $this->baseColor['b']);
         $axisColor = imagecolorallocate($chart, $this->axisColor['r'], $this->axisColor['g'], $this->axisColor['b']);
         $labelColor = imagecolorallocate($chart, $this->textColor['r'], $this->textColor['g'], $this->textColor['b']);
         $gridColor = imagecolorallocate($chart, $this->gridColor['r'], $this->gridColor['g'], $this->gridColor['b']);
         $customColors = array();
         $customColors[0] = $baseColor;
-// Nested colors palette generation here
+        // Nested colors palette generation here
         if ($nestedData) {
             for ($i = 1; $i <= $nestedDepth; $i++) {
                 if (isset($this->overrideColors[$i])) {
                     //use color override
-                    $randomColor=$this->overrideColors[$i];
+                    $randomColor = $this->overrideColors[$i];
                 } else {
                     //or generating new
                     $randomColor = $this->getColorFromText($i);
@@ -586,10 +675,10 @@ class ChartMancer {
 
         for ($i = 0; $i <= $yMaxValue; $i += $yLabelSpan) {
             $y = $gridBottom - $i * $gridHeight / $yMaxValue;
-// Draw the line
+            // Draw the line
             imageline($chart, $this->gridLeft, (int) $y, $gridRight, (int) $y, $gridColor);
 
-// Draw right aligned label
+            // Draw right aligned label
             $labelBox = imagettfbbox($this->fontSize, 0, $this->font, strval($i));
             $labelWidth = $labelBox[4] - $labelBox[0];
 
@@ -613,16 +702,21 @@ class ChartMancer {
          */
 
         $barSpacing = $gridWidth / $dataSize;
-
-        $itemX = $this->gridLeft + $barSpacing / 2;
+        //that 4px avoids round overflow issues with grid on large datasets
+        $itemX = $this->gridLeft + $barSpacing / 2 + 4;
         $index = 0;
+
+        //invisible bars control
+        $renderedBars = array();
+        $drawCalls = 0;
+        $drawSkip = 0;
 
         foreach ($data as $key => $value) {
             /**
              *  Draw the bars
              */
             if (is_array($value)) {
-//nested data rendering here
+                //nested data rendering here
                 $i = 0;
                 $zBuffer = array();
                 foreach ($value as $io => $subVal) {
@@ -635,16 +729,30 @@ class ChartMancer {
                     $y1 = (int) $y1;
                     $x2 = (int) $x2;
                     $y2 = (int) $y2;
-                    @$rValue =(isset($zBuffer[$subVal])) ? ($subVal-1).'_' : $subVal;
-                    @$zBuffer[$rValue] = array(
-                        'value' => $subVal,
-                        'x1' => $x1,
-                        'y1' => $y1,
-                        'x2' => $x2,
-                        'y2' => $y2,
-                        'colorIdx' => $i
-                    );
-                    $i++;
+                    if (!isset($renderedBars[$x1 . '|' . $y1 . '|' . $x2 . '|' . $y2])) {
+                        @$rValue = (isset($zBuffer[$subVal])) ? ($subVal - 1) . '_' : $subVal;
+                        @$zBuffer[$rValue] = array(
+                            'value' => $subVal,
+                            'x1' => $x1,
+                            'y1' => $y1,
+                            'x2' => $x2,
+                            'y2' => $y2,
+                            'colorIdx' => $i
+                        );
+
+                        //thats prevents overdraw folloving values with first (totals) column
+                        if ($this->drawFirstColumnAlways) {
+                            if ($i != 0) {
+                                $renderedBars[$x1 . '|' . $y1 . '|' . $x2 . '|' . $y2] = '1';
+                            }
+                        } else {
+                            //just set bar as rendered in some area
+                            $renderedBars[$x1 . '|' . $y1 . '|' . $x2 . '|' . $y2] = '1';
+                        }
+                    } else {
+                        $drawSkip++;
+                    }
+                    $i++; //color index changes anyway
                 }
 
                 if (!empty($zBuffer)) {
@@ -652,78 +760,92 @@ class ChartMancer {
                     foreach ($zBuffer as $subValue => $rParams) {
                         if ($rParams['value'] > 0) {
                             imagefilledrectangle($chart, $rParams['x1'], $rParams['y1'], $rParams['x2'], $rParams['y2'], $customColors[$rParams['colorIdx']]);
+                            $drawCalls++;
                         }
                     }
                 }
             } else {
-// raw key=>val dataset
+                // raw key=>val dataset
                 $x1 = $itemX - $this->barWidth / 2;
                 $y1 = $gridBottom - $value / $yMaxValue * $gridHeight;
                 $x2 = $itemX + $this->barWidth / 2;
                 $y2 = $gridBottom - 1;
 
-//explict conversion to avoid implict precision warnings
+                //explict conversion to avoid implict precision warnings
                 $x1 = (int) $x1;
                 $y1 = (int) $y1;
                 $x2 = (int) $x2;
                 $y2 = (int) $y2;
+
                 if ($value > 0) {
-                    imagefilledrectangle($chart, $x1, $y1, $x2, $y2, $customColors[0]);
+                    if (!isset($renderedBars[$x1 . '|' . $y1 . '|' . $x2 . '|' . $y2])) {
+                        imagefilledrectangle($chart, $x1, $y1, $x2, $y2, $customColors[0]);
+                        $renderedBars[$x1 . '|' . $y1 . '|' . $x2 . '|' . $y2] = '1';
+                        $drawCalls++;
+                    } else {
+                        $drawSkip++;
+                    }
                 }
             }
 
-// Draw the label
-            $labelBox = imagettfbbox($this->fontSize, 0, $this->font, $key);
-            $labelWidth = $labelBox[4] - $labelBox[0];
-
-            $labelX = $itemX - $labelWidth / 2;
-            $labelY = $gridBottom + $this->labelMargin + $this->fontSize;
-
-            $labelX = (int) $labelX;
-            $labelY = (int) $labelY;
-
-// Skipping some labels display?
+            // Skipping some labels display?
             $index++;
             if ($dataSize > 10) {
                 $labelIterator = (int) ($dataSize / $xAxisLabelCount);
                 $labelIterator = ($labelIterator == 0) ? 1 : $labelIterator; //prevents mod by zero
                 if (($index) % $labelIterator == 0) {
-                    $labelText = (((mb_strlen($key, 'UTF-8') > $this->xLabelLen)) ) ? mb_substr($key, 0, $this->xLabelLen, 'utf-8') . '...' : $key;
+                    // Draw the label if its renderable
+                    $labelBox = imagettfbbox($this->fontSize, 0, $this->font, $key);
+                    $labelWidth = $labelBox[4] - $labelBox[0];
+                    $labelX = $itemX - $labelWidth / 2;
+                    $labelY = $gridBottom + $this->labelMargin + $this->fontSize;
+                    $labelX = (int) $labelX;
+                    $labelY = (int) $labelY;
+
+                    $labelText = (((mb_strlen($key, 'UTF-8') > $this->xLabelLen))) ? mb_substr($key, 0, $this->xLabelLen, 'utf-8') . $this->cutSuffix : $key;
                     imagettftext($chart, $this->fontSize, 0, $labelX, $labelY, $labelColor, $this->font, $labelText);
                 }
             } else {
-                $labelText = (((mb_strlen($key, 'UTF-8') > $this->xLabelLen)) ) ? mb_substr($key, 0, $this->xLabelLen, 'utf-8') . '...' : $key;
+                // or just draw each column label
+                $labelBox = imagettfbbox($this->fontSize, 0, $this->font, $key);
+                $labelWidth = $labelBox[4] - $labelBox[0];
+                $labelX = $itemX - $labelWidth / 2;
+                $labelY = $gridBottom + $this->labelMargin + $this->fontSize;
+                $labelX = (int) $labelX;
+                $labelY = (int) $labelY;
+                $labelText = (((mb_strlen($key, 'UTF-8') > $this->xLabelLen))) ? mb_substr($key, 0, $this->xLabelLen, 'utf-8') . $this->cutSuffix : $key;
                 imagettftext($chart, $this->fontSize, 0, $labelX, $labelY, $labelColor, $this->font, $labelText);
             }
 
             $itemX += $barSpacing;
         }
 
-// Optional chart chartTitle?
+        // Optional chart chartTitle?
         if ($this->chartTitle) {
             $titleX = ($this->imageWidth - $this->gridLeft) / 2.3;
             imagettftext($chart, $this->fontSize + 8, 0, (int) $titleX, 24, $labelColor, $this->font, $this->chartTitle);
         }
-// Rendering custom Y-axis label
+        // Rendering custom Y-axis label
         if ($this->yAxisName) {
             $yAxisX = $this->gridLeft - 40;
             $yAxisY = (int) $this->gridTop - 10;
             imagettftext($chart, $this->fontSize, 0, $yAxisX, $yAxisY, $labelColor, $this->font, $this->yAxisName);
         }
-// Rendering of data set peak value?
+        // Rendering of data set peak value?
         if ($this->displayPeakValue) {
             $peakX = (int) ($this->imageWidth - $this->gridLeft) - 150;
             $peakY = (int) $this->imageHeight - ($this->fontSize * 0.5);
             $peakLabel = ($this->yAxisName) ? round($dataMax, 3) . ' ' . $this->yAxisName : round($dataMax, 3);
             imagettftext($chart, $this->fontSize, 0, $peakX, $peakY, $labelColor, $this->font, 'Max: ' . $peakLabel);
         }
-// Rendering chart legend
+
+        // Rendering chart legend
         if (!empty($this->chartLegend)) {
             $lWidth = 20;
             foreach ($customColors as $colorIndex => $customColor) {
                 if (isset($this->chartLegend[$colorIndex])) {
                     $rawLabel = $this->chartLegend[$colorIndex];
-                    $legendText = (((mb_strlen($rawLabel, 'UTF-8') > $this->xLabelLen + 3)) ) ? mb_substr($rawLabel, 0, $this->xLabelLen + 3, 'utf-8') . '...' : $rawLabel;
+                    $legendText = (((mb_strlen($rawLabel, 'UTF-8') > $this->xLabelLen + 3))) ? mb_substr($rawLabel, 0, $this->xLabelLen + 3, 'utf-8') . '...' : $rawLabel;
                     $offset = $colorIndex * 10;
                     $y1 = $this->imageHeight - 5;
                     $y2 = $this->imageHeight - 20;
@@ -749,20 +871,65 @@ class ChartMancer {
             $mtime = explode(' ', microtime());
             $totaltime = $mtime[0] + $mtime[1] - $starttime;
             $debugX = $this->imageWidth - 150;
-            imagettftext($chart, 10, 0, $debugX, 18, $labelColor, $this->font, 'DS: ' . $dataSize . ' items');
-            imagettftext($chart, 10, 0, $debugX, 38, $labelColor, $this->font, 'GT: ' . round($totaltime, 5) . ' sec.');
+            $totalBars = $drawCalls + $drawSkip;
+            $totalBars = ($totalBars != 0) ? $totalBars : 1;
+            $skipPercent = round((($drawCalls / $totalBars) * 100), 2);
+            imagettftext($chart, 8, 0, $debugX, 10, $labelColor, $this->font, 'DS: ' . $dataSize . ' items');
+            imagettftext($chart, 8, 0, $debugX, 22, $labelColor, $this->font, 'DC: ' . $drawCalls . ' bars (' . $skipPercent . '%)');
+            imagettftext($chart, 8, 0, $debugX, 34, $labelColor, $this->font, 'GT: ' . round($totaltime, 5) . ' sec.');
         }
 
         if (empty($fileName)) {
+            //browser output
             header('Content-Type: image/png');
             $result = imagepng($chart);
             imagedestroy($chart);
             die();
         } else {
-            $result = imagepng($chart, $fileName);
-            imagedestroy($chart);
+            if (strpos($fileName, 'base64') !== false) {
+                //encode image as base64 data
+                $htmlOutput = (strpos($fileName, 'base64html') !== false) ? true : false;
+                $result = $this->getChartBase($chart, $htmlOutput);
+            } else {
+                //just save as PNG file
+                $result = imagepng($chart, $fileName);
+                imagedestroy($chart);
+            }
         }
 
-        return($result);
+        return ($result);
+    }
+
+    /**
+     * Returns current chart as base64 encoded text
+     *
+     * @param GdImage $image chart image instance to export
+     * @param bool $htmlData data ready to embed as img src HTML base64 data (data URI scheme)
+     * 
+     * @return void
+     */
+    public function getChartBase($image, $htmlData = false) {
+        $result = '';
+        $type = 'png';
+        $quality = -1;
+        if ($image) {
+            ob_start();
+            imagesavealpha($image, true);
+            $result = imagepng($image, null, $quality);
+            imagedestroy($image);
+            $imageBody = ob_get_contents();
+            ob_end_clean();
+            if (!empty($imageBody)) {
+                $result = base64_encode($imageBody);
+            }
+
+            //optional html embed data
+            if ($htmlData) {
+                $result = 'data:image/' . $type . ';charset=utf-8;base64,' . $result;
+            }
+        } else {
+            throw new Exception('EX_VOID_CHART');
+        }
+        return ($result);
     }
 }

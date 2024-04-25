@@ -3,7 +3,7 @@
 /*
  * friendship processing
  */
-if ($_GET['action'] == 'friendshipdaily') {
+if (ubRouting::get('action') == 'friendshipdaily') {
     if ($alterconf['FRIENDSHIP_ENABLED']) {
         $friends = new FriendshipIsMagic();
         $friends->friendsDailyProcessing();

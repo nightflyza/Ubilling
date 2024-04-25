@@ -949,6 +949,9 @@ function zb_UserRegister($user_data, $goprofile = true) {
                     $contractDigitBlock = zb_ExtractContractDigitPart($max_contract, $digitBlockLength, true);
                     $contract_proposal = $startContractTplPart . $contractDigitBlock . $endContractTplPart;
                 } else {
+                    if (!is_int($contract_proposal)) {
+                        $contract_proposal=0;
+                    }
                     $contract_proposal = $max_contract + 1;
                 }
             }

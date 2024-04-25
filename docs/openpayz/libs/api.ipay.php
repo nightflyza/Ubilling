@@ -264,7 +264,7 @@ class IpayMasterPass {
             "user_id": "' . $user_id . '",
             "pmt_desc": "Internet service for:' . $user_id . '",
             "pmt_info": {
-                "acc": ' . $user_id . '
+                "acc": "' . $user_id . '"
                 }
                 }
                 }
@@ -382,7 +382,7 @@ class IpayZ {
                         <amount>' . $summ . '</amount>
                         <currency>' . $this->currency . '</currency>
                         <desc>' . $this->payDesc . '</desc>
-                        <info>{"acc":' . $paymentId . '}</info>
+                        <info>{"acc": "' . $paymentId . '"}</info>
                     </transaction>
                 </transactions>
                 <lifetime>' . $this->lifeTime . '</lifetime>

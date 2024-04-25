@@ -161,12 +161,13 @@ class NyanORM {
      * @param string $joinExpression LEFT or RIGHT or whatever you need type of JOIN
      * @param string $tableName table name (for example switches)
      * @param string $using field to use for USING expression
-     * 
+     * @param bool $noTabNameEnclosure do not enclose table name with ``
+     *
      * @throws MEOW_JOIN_WRONG_TYPE 
      * 
      * @return void
      */
-    public function join($joinExpression = '', $tableName = '', $using = '') {
+    public function join($joinExpression = '', $tableName = '', $using = '', $noTabNameEnclosure = false) {
         if (!empty($joinExpression) and ! empty($tableName) and ! empty($using)) {
             $joinExpression = trim($joinExpression);
             switch ($joinExpression) {
@@ -180,7 +181,11 @@ class NyanORM {
                     throw new Exception('MEOW_JOIN_WRONG_TYPE');
             }
             if (is_string($joinExpression) and is_string($tableName) and is_string($using)) {
-                $this->join[] = $joinExpression . " JOIN `" . $tableName . "` USING (" . $using . ")";
+                if ($noTabNameEnclosure) {
+                    $this->join[] = $joinExpression . " JOIN " . $tableName . " USING (" . $using . ")";
+                } else {
+                    $this->join[] = $joinExpression . " JOIN `" . $tableName . "` USING (" . $using . ")";
+                }
             }
         } else {
             $this->flushJoin();
@@ -193,12 +198,13 @@ class NyanORM {
      * @param string $joinExpression
      * @param string $tableName
      * @param string $on
-     * 
+     * @param bool $noTabNameEnclosure
+     *
      * @throws MEOW_JOIN_WRONG_TYPE
      * 
      * @return void
      */
-    public function joinOn($joinExpression = '', $tableName = '', $on = '') {
+    public function joinOn($joinExpression = '', $tableName = '', $on = '', $noTabNameEnclosure = false) {
         if (!empty($joinExpression) and ! empty($tableName) and ! empty($on)) {
             $joinExpression = trim($joinExpression);
             switch ($joinExpression) {
@@ -212,7 +218,11 @@ class NyanORM {
                     throw new Exception('MEOW_JOIN_WRONG_TYPE');
             }
             if (is_string($joinExpression) and is_string($tableName) and is_string($on)) {
-                $this->join[] = $joinExpression . " JOIN `" . $tableName . "` ON (" . $on . ")";
+                if ($noTabNameEnclosure) {
+                    $this->join[] = $joinExpression . " JOIN " . $tableName . " ON (" . $on . ")";
+                } else {
+                    $this->join[] = $joinExpression . " JOIN `" . $tableName . "` ON (" . $on . ")";
+                }
             }
         } else {
             $this->flushJoin();
@@ -499,20 +509,22 @@ class NyanORM {
 
     /**
      * Returns all records of current database object instance
-     * 
+     *
      * @param string $assocByField field name to automatically make it as index key in results array
      * @param bool $flushParams flush all query parameters like where, order, limit and other after execution?
-     * 
+     * @param bool $distinctON add "DISTINCT" keyword for a "SELECT" clause
+     *
      * @return array
      */
-    public function getAll($assocByField = '', $flushParams = true) {
+    public function getAll($assocByField = '', $flushParams = true, $distinctON = false) {
         $joinString = $this->buildJoinString();
         $whereString = $this->buildWhereString();
         $orderString = $this->buildOrderString();
         $limitString = $this->buildLimitString();
         $selectableString = $this->buildSelectableString();
+        $distinct = ($distinctON ? ' DISTINCT ' : '');
         //building some dummy query
-        $query = "SELECT " . $selectableString . " from `" . $this->tableName . "` "; //base query
+        $query = "SELECT " . $distinct . $selectableString . " from `" . $this->tableName . "` "; //base query
         $query .= $joinString . $whereString . $orderString . $limitString; //optional parameters
         $this->debugLog($query);
         $result = simple_queryall($query);
@@ -799,4 +811,107 @@ class NyanORM {
         return ($field);
     }
 
+    /**
+     * Returns true if record with such fields values already exists in current table
+     *
+     * @param array $dbFilterArr    represents structure, like:
+     *        array($fieldname => array('operator' => $opStr,
+     *                                  'fieldval' => $fldVal,
+     *                                  'cmprlogic' => 'OR'
+     *                                 ))
+     *        where:
+     *              $opStr - is one of the permitted in MYSQL WHERE clause, like:
+     *              >, =, <, IS NOT, LIKE, IN, etc
+     *              $fldVal - represents the field value to compare against
+     *              'cmprlogic' - is optional and can contain 'OR' keyword to point
+     *              the need to use NyanORM's orWhere(). No need to use it for 'AND' logical clause
+     *              as it is used by DEFAULT and will be ignored
+     * @param int $excludeRecID record ID to make exclusion on (e.g. for finding possible duplicates). For record editing purposes generally.
+     * @param bool $flushSelectable
+     * @param string $primaryKey name of the table's primary key field
+     *
+     * @return mixed|string returns the primary key value(ID usually) if rec found or empty string
+     */
+    public function checkRecExists($dbFilterArr, $excludeRecID = 0, $flushSelectable = true, $primaryKey = '') {
+        $result = '';
+        $primaryKey = (empty($primaryKey)) ? $this->defaultPk : $primaryKey;
+        $this->selectable($primaryKey);
+
+        foreach ($dbFilterArr as $dbFieldName => $fieldData) {
+            if (!empty($fieldData['operator'])) {
+                if (!empty($fieldData['cmprlogic']) and strtoupper($fieldData['cmprlogic']) == 'OR') {
+                    $this->orWhere($dbFieldName, $fieldData['operator'], $fieldData['fieldval']);
+                } else {
+                    $this->where($dbFieldName, $fieldData['operator'], $fieldData['fieldval']);
+                }
+            }
+        }
+
+        if (!empty($excludeRecID)) {
+            $this->where($primaryKey, '!=', $excludeRecID);
+        }
+
+        $result = $this->getAll();
+        $result = empty($result) ? '' : $result[0][$primaryKey];
+
+        if ($flushSelectable) {
+            $this->flushSelectable();
+        }
+
+        return ($result);
+    }
+
+    /**
+     * Simple getter for tableName property
+     *
+     * @param $trimQuotes
+     *
+     * @return string
+     */
+    public function getTableName($trimQuotes = false) {
+        if ($trimQuotes) {
+            return (trim($this->tableName, '"`\''));
+        } else {
+            return ($this->tableName);
+        }
+    }
+
+    /**
+     * Returns model's base table structure
+     *
+     * @param bool $fieldNamesOnly
+     * @param bool $excludeIDField
+     * @param bool $addLeadingTabName
+     * @param bool $makeFieldAliases
+     * @param string $fieldAliasSeparator
+     *
+     * @return array
+     */
+    public function getTableStructure($fieldNamesOnly = false, $excludeIDField = false, $addLeadingTabName = false,
+                                      $makeFieldAliases = false, $fieldAliasSeparator = '') {
+        $result = array();
+        $query = 'DESCRIBE ' . $this->tableName;
+        $tableStructure = simple_queryall($query);
+
+        if (!empty($tableStructure)) {
+            if ($fieldNamesOnly) {
+                foreach ($tableStructure as $io => $eachField) {
+                    if ($excludeIDField and $eachField['Field'] == $this->defaultPk) {
+                        continue;
+                    }
+
+                    // create field alias using combination of  $this->tableName + $fieldAliasSeparator + $eachField['Field']?
+                    $fieldName = ($makeFieldAliases) ? $eachField['Field'] . ' AS ' . $this->tableName . $fieldAliasSeparator . $eachField['Field']
+                        : $eachField['Field'];
+
+                    // append leading table name with dot to the field name to explicitly distinguish fields in a query?
+                    $result[] = ($addLeadingTabName) ? $this->tableName . '.' . $fieldName : $fieldName;
+                }
+            } else {
+                $result = $tableStructure;
+            }
+        }
+
+        return ($result);
+    }
 }

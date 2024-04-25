@@ -348,7 +348,8 @@ if ($us_config['SC_ENABLED']) {
                                                 $scAgentResult[] = array('creditintro' => $wmess);
                                                 //XMLAgent callback after success
                                                 if (ubRouting::checkGet('agentcredit')) {
-                                                    zbs_XMLAgentRender($scAgentResult, 'data', '', $agentOutputFormat, false);
+                                                    //zbs_XMLAgentRender($scAgentResult, 'data', '', $agentOutputFormat, false);
+                                                    XMLAgent::renderResponse($scAgentResult, 'data', '', $agentOutputFormat, false);
                                                 }
                                                 rcms_redirect("index.php");
                                             } else {
@@ -375,7 +376,8 @@ if ($us_config['SC_ENABLED']) {
                                             $scAgentResult[] = array('creditintro' => $wmess);
                                             //XMLAgent callback after success
                                             if (ubRouting::checkGet('agentcredit')) {
-                                                zbs_XMLAgentRender($scAgentResult, 'data', '', $agentOutputFormat, false);
+                                                //zbs_XMLAgentRender($scAgentResult, 'data', '', $agentOutputFormat, false);
+                                                XMLAgent::renderResponse($scAgentResult, 'data', '', $agentOutputFormat, false);
                                             }
                                             rcms_redirect("index.php");
                                         }
@@ -463,6 +465,7 @@ if ($us_config['SC_ENABLED']) {
 
 //XMLAgent callback
 if (ubRouting::checkGet('agentcredit')) {
-    zbs_XMLAgentRender($scAgentResult, 'data', '', $agentOutputFormat, false);
+    //zbs_XMLAgentRender($scAgentResult, 'data', '', $agentOutputFormat, false);
+    XMLAgent::renderResponse($scAgentResult, 'data', '', $agentOutputFormat, false);
 }
 ?>

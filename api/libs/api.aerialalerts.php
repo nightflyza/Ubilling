@@ -109,7 +109,7 @@ class AerialAlerts {
         $result .= wf_Link(self::URL_ME, wf_img('skins/admannouncements.png') . ' ' . __('Alarm now'), false, 'ubButton');
         $result .= wf_Link(self::URL_ME . '&' . self::ROUTE_ALL . '=true', wf_img('skins/zbsannouncements.png') . ' ' . __('All'), false, 'ubButton');
         $result .= wf_Link(self::URL_ME . '&' . self::ROUTE_MAP . '=true', wf_img('skins/icon_map_small.png') . ' ' . __('Alerts map'), false, 'ubButton');
-        return($result);
+        return ($result);
     }
 
     /**
@@ -143,7 +143,7 @@ class AerialAlerts {
         } else {
             $result .= $this->messages->getStyledMessage(__('Something went wrong') . ': ' . __('Empty reply received'), 'error');
         }
-        return($result);
+        return ($result);
     }
 
     /**
@@ -155,12 +155,17 @@ class AerialAlerts {
         $result = '';
         $nowTime = time();
         $fileName = 'exports/alertsmap_' . date("Y-m-d_H_i", $nowTime) . '.dat';
+
         if (!file_exists($fileName)) {
             $mapApi = new OmaeUrl(self::MAP_SOURCE);
             $mapApi->setUserAgent('Ubilling AerialAlertsMap');
             $rawMap = $mapApi->response();
-            $rawMap = base64_encode($rawMap);
-            file_put_contents($fileName, $rawMap);
+            if ($mapApi->httpCode() == 200) {
+                $rawMap = base64_encode($rawMap);
+                file_put_contents($fileName, $rawMap);
+            } else {
+                $rawMap = '';
+            }
         } else {
             $rawMap = file_get_contents($fileName);
         }
@@ -172,7 +177,7 @@ class AerialAlerts {
             $result .= $this->messages->getStyledMessage(__('Something went wrong') . ': ' . __('Unable to load data'), 'error');
         }
 
-        return($result);
+        return ($result);
     }
 
     /**
@@ -199,7 +204,7 @@ class AerialAlerts {
                 }
             }
         }
-        return($result);
+        return ($result);
     }
 
     /**
@@ -224,7 +229,6 @@ class AerialAlerts {
             }
         }
 
-        return($result);
+        return ($result);
     }
-
 }

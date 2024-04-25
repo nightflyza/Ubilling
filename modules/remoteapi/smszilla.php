@@ -1,14 +1,14 @@
 <?php
 
 //SMSZilla background automated sending
-if ($_GET['action'] == 'smszilla') {
+if (ubRouting::get('action') == 'smszilla') {
     if ($alterconf['SMSZILLA_ENABLED']) {
-        if (wf_CheckGet(array('templateid', 'filterid'))) {
+        if (ubRouting::checkGet(array('templateid', 'filterid'))) {
             $smszilla = new SMSZilla();
-            $smszilla->filtersPreprocessing($_GET['filterid'], $_GET['templateid']);
+            $smszilla->filtersPreprocessing(ubRouting::get('filterid'), ubRouting::get('templateid'));
             die('OK:SMSZILLA');
         } else {
-            die('ERROR:NO_FILTER&TEMPLATE_ID');
+            die('ERROR:NO_FILTER_OR_TEMPLATE_ID');
         }
     } else {
         die('ERROR:SMSZILLA_DISABLED');

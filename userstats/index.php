@@ -13,6 +13,8 @@ $pageGenStartTime = $pageGenStartTime[1] + $pageGenStartTime[0];
 require_once('modules/engine/api.mysql.php');
 require_once('modules/engine/api.compat.php');
 require_once('modules/engine/api.lightastral.php');
+require_once('modules/engine/api.usconfig.php');
+require_once('modules/engine/api.xmlagent.php');
 require_once('modules/engine/api.userstats.php');
 require_once('modules/engine/api.agents.php');
 require_once('modules/engine/api.megogo.php');
@@ -41,22 +43,24 @@ if ($user_ip) {
     if (!isset($_GET['module'])) {
         if ($us_config['UBA_ENABLED']) {
             // UBAgent SUPPORT:
-            if (isset($_GET['ubagent'])) {
+            if (ubRouting::checkGet('ubagent')) {
                 zbs_UserShowAgentData($user_login);
             }
 
             // XMLAgent SUPPORT:
-            if (isset($_GET['xmlagent'])) {
-                zbs_UserShowXmlAgentData($user_login);
+            if (ubRouting::checkGet('xmlagent')) {
+                //zbs_UserShowXmlAgentData($user_login);
+                new XMLAgent($user_login);
             }
         } else {
             //REST API disabled by configuration
-            if (isset($_GET['xmlagent'])) {
+            if (ubRouting::checkGet('xmlagent')) {
                 $errorOutputFormat = 'xml';
                 if (ubRouting::checkGet('json')) {
                     $errorOutputFormat = 'json';
                 }
-                zbs_XMLAgentRender(array(array('reason' => 'disabled')), 'error', '', $errorOutputFormat, false);
+                //zbs_XMLAgentRender(array(array('reason' => 'disabled')), 'error', '', $errorOutputFormat, false);
+                XMLAgent::renderResponse(array(array('reason' => 'disabled')), 'error', '', $errorOutputFormat);
             }
         }
 

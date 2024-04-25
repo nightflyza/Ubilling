@@ -3,7 +3,7 @@
 /*
  * Switches coverage map
  */
-if ($_GET['action'] == 'switchescoverage') {
+if (ubRouting::get('action')  == 'switchescoverage') {
     $ymconf = rcms_parse_ini_file(CONFIG_PATH . "ymaps.ini");
     $ym_center = $ymconf['CENTER'];
     $ym_zoom = $ymconf['ZOOM'];

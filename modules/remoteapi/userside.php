@@ -3,7 +3,7 @@
 /**
  * UserSide get API handling
  */
-if ($_GET['action'] == 'userside') {
+if (ubRouting::get('action')  == 'userside') {
     if ($alterconf['USERSIDE_API']) {
         $usersideapi = new UserSideApi();
         $usersideapi->catchRequest();

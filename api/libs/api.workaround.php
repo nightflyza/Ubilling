@@ -23,12 +23,12 @@ function web_UserControls($login) {
             $controls .= wf_Link($urlProfile . $login, wf_img_sized('skins/backprofile.png', __('Back to user profile'), '16') . ' ' . __('Back to user profile'), false, 'ubbackprofile') . ' ';
         }
 
-        if ((cfr('USEREDIT')) AND ( @$_GET['module'] != 'useredit')) {
+        if ((cfr('USEREDIT')) and (@$_GET['module'] != 'useredit')) {
             $controls .= wf_Link($urlUserEdit . $login, wf_img_sized('skins/backedit.png', __('Back to user edit'), '16') . ' ' . __('Back to user edit'), false, 'ubbackedit');
         }
     }
     $controls .= wf_tag('div', true);
-    return($controls);
+    return ($controls);
 }
 
 /**
@@ -107,7 +107,7 @@ function web_trigger($value) {
     } else {
         $result = __('No');
     }
-    return($result);
+    return ($result);
 }
 
 /**
@@ -141,7 +141,7 @@ function web_EditorStringDataForm($fieldnames, $fieldkey, $useraddress, $olddata
     $form = wf_Form("", 'POST', $form, '');
     $form .= wf_delimiter();
 
-    return($form);
+    return ($form);
 }
 
 /**
@@ -204,7 +204,7 @@ function web_EditorStringDataFormPassword($fieldnames, $fieldkey, $useraddress, 
         case 3:
             $password_proposal = zb_PasswordGenerateTH($passwordsLenght);
             break;
-        default :
+        default:
             $password_proposal = zb_rand_string(8);
             break;
     }
@@ -227,7 +227,7 @@ function web_EditorStringDataFormPassword($fieldnames, $fieldkey, $useraddress, 
     $form = wf_Form("", 'POST', $form, '');
     $form .= wf_delimiter();
 
-    return($form);
+    return ($form);
 }
 
 /**
@@ -247,7 +247,7 @@ function web_EditorStringDataFormContract($fieldnames, $fieldkey, $useraddress, 
     if (empty($olddata)) {
         $allcontracts = zb_UserGetAllContracts();
         $top_offset = 100000;
-//contract generation mode default
+        //contract generation mode default
         if ($altcfg['CONTRACT_GENERATION_DEFAULT']) {
             for ($i = 1; $i < $top_offset; $i++) {
                 if (!isset($allcontracts[$i])) {
@@ -256,7 +256,7 @@ function web_EditorStringDataFormContract($fieldnames, $fieldkey, $useraddress, 
                 }
             }
         } else {
-//alternate generation method
+            //alternate generation method
             $max_contract = max(array_keys($allcontracts));
             $contract_proposal = $max_contract + 1;
         }
@@ -280,7 +280,7 @@ function web_EditorStringDataFormContract($fieldnames, $fieldkey, $useraddress, 
     $inputs .= wf_delimiter();
     $form = wf_Form("", 'POST', $inputs, '');
 
-    return($form);
+    return ($form);
 }
 
 /**
@@ -329,20 +329,20 @@ function zb_NewMacSelect($name = 'newmac') {
                     $resultArr[$newmac] = $newmac;
                 }
             }
-//revert array due usability reasons (i hope).
+            //revert array due usability reasons (i hope).
             if (@$alter_conf['NMREVERSE']) {
                 $resultArr = array_reverse($resultArr);
             }
         }
     }
-//searchable MAC selector?
+    //searchable MAC selector?
     if (@$alter_conf['MACSEL_SEARCHBL']) {
         $result = wf_SelectorSearchable($name, $resultArr, '', '', false);
     } else {
         $result = wf_Selector($name, $resultArr, '', '', false);
     }
 
-    return($result);
+    return ($result);
 }
 
 /**
@@ -421,7 +421,7 @@ function web_MacEditForm($userAddress = '', $manualInput = false, $currentMac = 
     $inputs .= wf_delimiter();
     $result .= wf_Form('', 'POST', $inputs, '');
 
-    return($result);
+    return ($result);
 }
 
 /**
@@ -453,7 +453,7 @@ function web_EditorDateDataForm($fieldnames, $fieldkey, $useraddress, $olddata =
     $inputs .= wf_delimiter();
     $form = wf_Form("", 'POST', $inputs, '');
 
-    return($form);
+    return ($form);
 }
 
 /**
@@ -470,7 +470,7 @@ function web_CashTypeSelector($CashType = '') {
         }
 
         $defaultCashtype = zb_StorageGet('DEF_CT');
-//if no default cashtype selected
+        //if no default cashtype selected
         if (empty($defaultCashtype)) {
             $defaultCashtype = 'NOP';
         }
@@ -480,7 +480,7 @@ function web_CashTypeSelector($CashType = '') {
         $selector = wf_Selector('cashtype', $cashtypes, '', $selectCashType, false);
     }
 
-    return($selector);
+    return ($selector);
 }
 
 /**
@@ -512,9 +512,9 @@ function web_EditorCashDataForm($fieldnames, $fieldkey, $useraddress, $olddata =
     $field2 = $fieldnames['fieldname2'];
     $me = whoami();
 
-//cash suspect checking 
+    //cash suspect checking 
     $alterconf = $ubillingConfig->getAlter();
-//balance editing limiting
+    //balance editing limiting
     $limitedFinance = false;
     if (@$alterconf['CAN_TOUCH_MONEY']) {
         if (!empty($alterconf['CAN_TOUCH_MONEY'])) {
@@ -543,7 +543,7 @@ function web_EditorCashDataForm($fieldnames, $fieldkey, $useraddress, $olddata =
 
     $radio = '';
     $radio .= wf_RadioInput('operation', __('Add cash'), 'add', false, true);
-//additional controls
+    //additional controls
     $extRadio = '';
     $extRadio .= wf_RadioInput('operation', __('Correct saldo'), 'correct', false, false);
     $extRadio .= wf_RadioInput('operation', __('Mock payment'), 'mock', false, false);
@@ -556,7 +556,7 @@ function web_EditorCashDataForm($fieldnames, $fieldkey, $useraddress, $olddata =
     } else {
         $radio .= $extRadio;
     }
-//cash input widget
+    //cash input widget
     $cashInputControl = wf_tag('input', false, '', ' type="text" name="' . $fieldkey . '" size="5" id="cashfield" ' . $cashfieldanchor . ' autofocus');
     $cashInputControl .= ' ' . __('The expected payment') . ': ' . $tariff_price;
 
@@ -612,7 +612,7 @@ function web_EditorCashDataForm($fieldnames, $fieldkey, $useraddress, $olddata =
     $form .= wf_Form('', 'POST', $table, '');
     $form .= wf_delimiter();
 
-    return($form);
+    return ($form);
 }
 
 /**
@@ -666,7 +666,7 @@ function web_EditorTrigerDataForm($fieldname, $fieldkey, $useraddress, $olddata 
     $inputs .= wf_delimiter();
     $form = wf_Form("", 'POST', $inputs, '');
 
-    return($form);
+    return ($form);
 }
 
 /**
@@ -731,7 +731,7 @@ function web_tariffselector($fieldname = 'tariffsel', $skipLousy = false) {
 
     $selector = wf_Selector($fieldname, $options, '', '', false);
 
-    return($selector);
+    return ($selector);
 }
 
 /**
@@ -750,14 +750,14 @@ function web_EditorTariffForm($fieldname, $fieldkey, $useraddress, $olddata = ''
     global $ubillingConfig;
     $alter = $ubillingConfig->getAlter();
 
-    $login = ( isset($_GET['username']) ) ? vf($_GET['username']) : null;
+    $login = (isset($_GET['username'])) ? vf($_GET['username']) : null;
 
-    $nm_flag = ( $olddata == '*_NO_TARIFF_*' ) ? 'DISABLED' : null;
+    $nm_flag = ($olddata == '*_NO_TARIFF_*') ? 'DISABLED' : null;
     $charge_signup_price_checkbox = '';
-    if (isset($alter['SIGNUP_PAYMENTS']) AND !empty($alter['SIGNUP_PAYMENTS'])) {
+    if (isset($alter['SIGNUP_PAYMENTS']) and !empty($alter['SIGNUP_PAYMENTS'])) {
         $payment = zb_UserGetSignupPrice($login);
         $paid = zb_UserGetSignupPricePaid($login);
-        $disabled = ( $payment == $paid AND $payment > 0 ) ? 'disabled' : '';
+        $disabled = ($payment == $paid and $payment > 0) ? 'disabled' : '';
         $charge_signup_price_checkbox = ' ' . wf_tag('label', false, '', 'for="charge_signup_price_checkbox"');
         $charge_signup_price_checkbox .= __('Charge signup price') . ' ';
         $charge_signup_price_checkbox .= wf_tag('input', false, '', 'type="checkbox" name="charge_signup_price" id="charge_signup_price_checkbox" ' . $disabled);
@@ -789,7 +789,7 @@ function web_EditorTariffForm($fieldname, $fieldkey, $useraddress, $olddata = ''
     $inputs .= wf_delimiter();
     $form = wf_Form('', 'POST', $inputs, '');
 
-    return($form);
+    return ($form);
 }
 
 /**
@@ -821,7 +821,7 @@ function web_EditorTwoStringDataForm($fieldnames, $fieldkeys, $olddata) {
     $inputs .= wf_delimiter();
     $form = wf_Form("", 'POST', $inputs, '');
 
-    return($form);
+    return ($form);
 }
 
 /**
@@ -877,7 +877,7 @@ function web_EditorSixStringDataForm($fieldnames, $fieldkeys, $olddata) {
     $inputs .= wf_delimiter();
     $form = wf_Form("", 'POST', $inputs, '');
 
-    return($form);
+    return ($form);
 }
 
 /**
@@ -1050,7 +1050,7 @@ function web_TariffSpeedLister() {
         }
     }
 
-    return($result);
+    return ($result);
 }
 
 /**
@@ -1063,7 +1063,7 @@ function zb_ProfileGetStgData($login) {
     $login = vf($login);
     $query = "SELECT * from `users` WHERE `login`='" . $login . "'";
     $userdata = simple_query($query);
-    return($userdata);
+    return ($userdata);
 }
 
 /**
@@ -1107,7 +1107,7 @@ function web_PaymentEditForm($paymentData) {
         $cells .= wf_TableCell(wf_DatePickerPreset('newpaymentdate', $paymentDate), '', 'row3');
         $rows = wf_TableRow($cells);
 
-        if ($paymentData['admin'] != 'external' AND $paymentData['admin'] != 'openpayz' AND $paymentData['admin'] != 'guest') {
+        if ($paymentData['admin'] != 'external' and $paymentData['admin'] != 'openpayz' and $paymentData['admin'] != 'guest') {
             $cells = wf_TableCell(__('Payment type'), '', 'row2');
             $cells .= wf_TableCell(web_CashTypeSelector($paymentData['cashtypeid']), '', 'row3');
             $rows .= wf_TableRow($cells);
@@ -1152,19 +1152,19 @@ function web_PaymentsByUser($login) {
     $currentAdminLogin = whoami();
     $idencEnabled = (@$alter_conf['IDENC_ENABLED']) ? true : false;
 
-//extract admin logins with payments delete rights
+    //extract admin logins with payments delete rights
     if (!empty($alter_conf['CAN_DELETE_PAYMENTS'])) {
         $deletingAdmins = explode(',', $alter_conf['CAN_DELETE_PAYMENTS']);
         $deletingAdmins = array_flip($deletingAdmins);
     }
 
-//extract admin logins with date edit rights
+    //extract admin logins with date edit rights
     if (!empty($alter_conf['CAN_EDIT_PAYMENTS'])) {
         $editingAdmins = explode(',', $alter_conf['CAN_EDIT_PAYMENTS']);
         $editingAdmins = array_flip($editingAdmins);
     }
 
-//setting editing/deleting flags
+    //setting editing/deleting flags
     $iCanDeletePayments = (isset($deletingAdmins[$currentAdminLogin])) ? true : false;
     $iCanEditPayments = (isset($editingAdmins[$currentAdminLogin])) ? true : false;
 
@@ -1183,7 +1183,7 @@ function web_PaymentsByUser($login) {
 
     if (!empty($allpayments)) {
         foreach ($allpayments as $eachpayment) {
-//hightlight of today payments
+            //hightlight of today payments
             if ($alter_conf['HIGHLIGHT_TODAY_PAYMENTS']) {
                 if (ispos($eachpayment['date'], $curdate)) {
                     $hlight = 'paytoday';
@@ -1202,14 +1202,14 @@ function web_PaymentsByUser($login) {
                 $printcheck .= wf_tag('a', true);
             }
 
-//payments deleting controls
+            //payments deleting controls
             if ($iCanDeletePayments) {
                 $deleteControls = wf_JSAlert('?module=addcash&username=' . $login . '&paymentdelete=' . $eachpayment['id'], wf_img('skins/delete_small.png', __('Delete')), __('Removing this may lead to irreparable results')) . ' &nbsp; ';
             } else {
                 $deleteControls = '';
             }
 
-//payments editing form
+            //payments editing form
             if ($iCanEditPayments) {
                 $editControls = wf_modalAuto(wf_img_sized('skins/icon_edit.gif', __('Edit'), '10'), __('Edit'), web_PaymentEditForm($eachpayment), '') . ' &nbsp; ';
             } else {
@@ -1234,7 +1234,9 @@ function web_PaymentsByUser($login) {
             $rows .= wf_TableRow($cells, $hlight);
 
             if (is_numeric($eachpayment['summ'])) {
-                $total_payments = $total_payments + $eachpayment['summ'];
+                if ($eachpayment['summ'] > 0) {
+                    $total_payments = $total_payments + $eachpayment['summ'];
+                }
             }
         }
     }
@@ -1242,7 +1244,7 @@ function web_PaymentsByUser($login) {
     $result = wf_TableBody($rows, '100%', '0', 'sortable');
     $result .= __('Total payments') . ': ' . wf_tag('b') . abs($total_payments) . wf_tag('b') . wf_tag('br');
 
-    return($result);
+    return ($result);
 }
 
 /**
@@ -1276,7 +1278,7 @@ function web_GrepLogByUser($login, $strict = false) {
         }
     }
     $result = wf_TableBody($rows, '100%', 0, 'sortable');
-    return($result);
+    return ($result);
 }
 
 /**
@@ -1311,7 +1313,7 @@ function web_EditorTableDataFormOneField($fieldname, $fieldkey, $formurl, $oldda
     $inputs .= wf_Submit(__('Create'));
     $form = wf_Form('', 'POST', $inputs, 'glamour');
 
-    return($table . $form);
+    return ($table . $form);
 }
 
 /**
@@ -1322,7 +1324,7 @@ function web_EditorTableDataFormOneField($fieldname, $fieldkey, $formurl, $oldda
  */
 function web_year_selector() {
     $selector = wf_YearSelector('yearsel');
-    return($selector);
+    return ($selector);
 }
 
 /**
@@ -1420,7 +1422,7 @@ function web_FinRepControls($title = '', $content) {
     $result .= wf_tag('br');
     $result .= $content;
     $result .= wf_tag('div', true);
-    return($result);
+    return ($result);
 }
 
 /**
@@ -1438,13 +1440,13 @@ function web_PaymentsShow($query) {
     $allapayments = simple_queryall($query);
     $allservicenames = zb_VservicesGetAllNamesLabeled();
     $idencEnabled = (@$alter_conf['IDENC_ENABLED']) ? true : false;
-//getting full contract list
+    //getting full contract list
     if ($alter_conf['FINREP_CONTRACT']) {
         $allcontracts = zb_UserGetAllContracts();
         $allcontracts = array_flip($allcontracts);
     }
 
-//getting all users tariffs
+    //getting all users tariffs
     if ($alter_conf['FINREP_TARIFF']) {
         $alltariffs = zb_TariffsGetAllUsers();
     }
@@ -1458,14 +1460,14 @@ function web_PaymentsShow($query) {
     }
     $cells .= wf_TableCell(__('Date'));
     $cells .= wf_TableCell(__('Cash'));
-//optional contract display
+    //optional contract display
     if ($alter_conf['FINREP_CONTRACT']) {
         $cells .= wf_TableCell(__('Contract'));
     }
     $cells .= wf_TableCell(__('Login'));
     $cells .= wf_TableCell(__('Full address'));
     $cells .= wf_TableCell(__('Real Name'));
-//optional tariff display
+    //optional tariff display
     if ($alter_conf['FINREP_TARIFF']) {
         $cells .= wf_TableCell(__('Tariff'));
     }
@@ -1487,14 +1489,14 @@ function web_PaymentsShow($query) {
             }
             $cells .= wf_TableCell($eachpayment['date']);
             $cells .= wf_TableCell($eachpayment['summ']);
-//optional contract display
+            //optional contract display
             if ($alter_conf['FINREP_CONTRACT']) {
                 $cells .= wf_TableCell(@$allcontracts[$eachpayment['login']]);
             }
             $cells .= wf_TableCell(wf_Link('?module=userprofile&username=' . $eachpayment['login'], (web_profile_icon() . ' ' . $eachpayment['login']), false, ''));
             $cells .= wf_TableCell(@$alladrs[$eachpayment['login']]);
             $cells .= wf_TableCell(@$allrealnames[$eachpayment['login']]);
-//optional tariff display
+            //optional tariff display
             if ($alter_conf['FINREP_TARIFF']) {
                 $cells .= wf_TableCell(@$alltariffs[$eachpayment['login']]);
             }
@@ -1513,7 +1515,7 @@ function web_PaymentsShow($query) {
     $result = wf_TableBody($rows, '100%', '0', 'sortable');
     $result .= wf_tag('strong') . __('Cash') . ': ' . $total . wf_tag('strong', true) . wf_tag('br');
     $result .= wf_tag('strong') . __('Count') . ': ' . $totalPaycount . wf_tag('strong', true);
-    return($result);
+    return ($result);
 }
 
 /**
@@ -1532,7 +1534,7 @@ function web_bar($count, $total) {
     }
 
     $code = wf_img_sized($barurl, '', $width . '%', '14');
-    return($code);
+    return ($code);
 }
 
 /**
@@ -1582,7 +1584,7 @@ function daysOfWeek($any = false) {
     $result[5] = rcms_date_localise('Friday');
     $result[6] = rcms_date_localise('Saturday');
     $result[7] = rcms_date_localise('Sunday');
-    return($result);
+    return ($result);
 }
 
 /**
@@ -1603,8 +1605,9 @@ function months_array_wz() {
         '9' => 'September',
         '10' => 'October',
         '11' => 'November',
-        '12' => 'December');
-    return($months);
+        '12' => 'December'
+    );
+    return ($months);
 }
 
 /**
@@ -1638,7 +1641,7 @@ function allocDayTimeline() {
             $result[$timeLabel] = 0;
         }
     }
-    return($result);
+    return ($result);
 }
 
 /**
@@ -1664,41 +1667,41 @@ function web_PaymentsShowGraph($year) {
     $cells .= wf_TableCell(__('Visual'), '50%');
     $rows = wf_TableRow($cells, 'row1');
 
-//caching subroutine
+    //caching subroutine
 
     $renewTime = $cache->get('YPD_LAST', $cacheTime);
     if (empty($renewTime)) {
-//first usage
+        //first usage
         $renewTime = $curtime;
         $cache->set('YPD_LAST', $renewTime, $cacheTime);
         $updateCache = true;
     } else {
-//cache time already set
+        //cache time already set
         $timeShift = $curtime - $renewTime;
         if ($timeShift > $cacheTime) {
-//cache update needed
+            //cache update needed
             $updateCache = true;
         } else {
-//load data from cache or init new cache
+            //load data from cache or init new cache
             $yearPayData_raw = $cache->get('YPD_CACHE', $cacheTime);
             if (empty($yearPayData_raw)) {
-//first usage
+                //first usage
                 $emptyCache = array();
                 $emptyCache = serialize($emptyCache);
                 $emptyCache = base64_encode($emptyCache);
                 $cache->set('YPD_CACHE', $emptyCache, $cacheTime);
                 $updateCache = true;
             } else {
-// data loaded from cache
+                // data loaded from cache
                 $yearPayData = base64_decode($yearPayData_raw);
                 $yearPayData = unserialize($yearPayData);
                 $updateCache = false;
-//check is current year already cached?
+                //check is current year already cached?
                 if (!isset($yearPayData[$year]['graphs'])) {
                     $updateCache = true;
                 }
 
-//check is manual cache refresh is needed?
+                //check is manual cache refresh is needed?
                 if (wf_CheckGet(array('forcecache'))) {
                     $updateCache = true;
                     rcms_redirect("?module=report_finance");
@@ -1712,16 +1715,16 @@ function web_PaymentsShowGraph($year) {
         if ($ubillingConfig->getAlterParam('REPORT_FINANCE_IGNORE_ID')) {
             $exIdArr = array_map('trim', explode(',', $ubillingConfig->getAlterParam('REPORT_FINANCE_IGNORE_ID')));
             $exIdArr = array_filter($exIdArr);
-// Create and WHERE to query
+            // Create and WHERE to query
             if (!empty($exIdArr)) {
                 $dopWhere = ' AND ';
                 $dopWhere .= ' `cashtypeid` != ' . implode(' AND `cashtypeid` != ', $exIdArr);
             }
         }
-//extracting all of needed payments in one query
+        //extracting all of needed payments in one query
         if ($ubillingConfig->getAlterParam('REPORT_FINANCE_CONSIDER_NEGATIVE')) {
-// ugly way to get payments with negative sums
-// performance degradation is kinda twice
+            // ugly way to get payments with negative sums
+            // performance degradation is kinda twice
             $allYearPayments_q = "(SELECT * FROM `payments` 
                                         WHERE `date` LIKE '" . $year . "-%' AND `summ` < '0' 
                                             AND note NOT LIKE 'Service:%' 
@@ -1738,8 +1741,8 @@ function web_PaymentsShowGraph($year) {
         $allYearPayments = simple_queryall($allYearPayments_q);
         if (!empty($allYearPayments)) {
             foreach ($allYearPayments as $idx => $eachYearPayment) {
-//Here we can get up to 50% of CPU time on month extraction, but this hacks is to ugly :(
-//Benchmark results: http://pastebin.com/i7kadpN7
+                //Here we can get up to 50% of CPU time on month extraction, but this hacks is to ugly :(
+                //Benchmark results: http://pastebin.com/i7kadpN7
                 $statsMonth = date("m", strtotime($eachYearPayment['date']));
                 if (isset($yearStats[$statsMonth])) {
                     $yearStats[$statsMonth]['count']++;
@@ -1773,13 +1776,13 @@ function web_PaymentsShowGraph($year) {
         }
         $result = wf_TableBody($rows, '100%', '0', 'sortable');
         $yearPayData[$year]['graphs'] = $result;
-//write to cache
+        //write to cache
         $cache->set('YPD_LAST', $curtime, $cacheTime);
         $newCache = serialize($yearPayData);
         $newCache = base64_encode($newCache);
         $cache->set('YPD_CACHE', $newCache, $cacheTime);
     } else {
-//take data from cache
+        //take data from cache
         if (isset($yearPayData[$year]['graphs'])) {
             $result = $yearPayData[$year]['graphs'];
             $result .= __('Cache state at time') . ': ' . date("Y-m-d H:i:s", ($renewTime)) . ' ';
@@ -1817,16 +1820,16 @@ function web_PaymentsShowGraphPerBranch($year) {
     if ($ubillingConfig->getAlterParam('REPORT_FINANCE_IGNORE_ID')) {
         $exIdArr = array_map('trim', explode(',', $ubillingConfig->getAlterParam('REPORT_FINANCE_IGNORE_ID')));
         $exIdArr = array_filter($exIdArr);
-// Create and WHERE to query
+        // Create and WHERE to query
         if (!empty($exIdArr)) {
             $dopWhere = ' AND ';
             $dopWhere .= ' `cashtypeid` != ' . implode(' AND `cashtypeid` != ', $exIdArr);
         }
     }
-//extracting all of needed payments in one query
+    //extracting all of needed payments in one query
     if ($ubillingConfig->getAlterParam('REPORT_FINANCE_CONSIDER_NEGATIVE')) {
-// ugly way to get payments with negative sums
-// performance degradation is kinda twice
+        // ugly way to get payments with negative sums
+        // performance degradation is kinda twice
         $allYearPayments_q = "(SELECT * FROM `payments` 
                                         WHERE `date` LIKE '" . $year . "-%' AND `summ` < '0' 
                                             AND note NOT LIKE 'Service:%' 
@@ -1920,14 +1923,14 @@ function web_PaymentsShowGraphPerBranch($year) {
  */
 function web_GridEditor($titles, $keys, $alldata, $module, $delete = true, $edit = false, $prefix = '', $extaction = '', $extbutton = '', $emptyWarning = false) {
     $result = '';
-//headers
+    //headers
     $cells = '';
     foreach ($titles as $eachtitle) {
         $cells .= wf_TableCell(__($eachtitle));
     }
     $cells .= wf_TableCell(__('Actions'));
     $rows = wf_TableRow($cells, 'row1');
-//headers end
+    //headers end
 
     $cells = '';
     if (!empty($alldata)) {
@@ -1970,7 +1973,7 @@ function web_GridEditor($titles, $keys, $alldata, $module, $delete = true, $edit
         }
     }
 
-    return($result);
+    return ($result);
 }
 
 /**
@@ -2013,7 +2016,7 @@ function web_NasList() {
             $deleteDialogTitle = __('Delete') . ' ' . __('NAS') . ' ' . $eachNasData['nasip'] . '?';
             $actions .= wf_ConfirmDialog($deleteUrl, web_delete_icon(), $messages->getDeleteAlert(), '', $cancelUrl, $deleteDialogTitle);
             $actions .= wf_Link('?module=nas&edit=' . $eachNasData['id'], web_edit_icon());
-            if ($eachNasData['nastype'] == 'mikrotik' AND $altCfg['MIKROTIK_SUPPORT']) {
+            if ($eachNasData['nastype'] == 'mikrotik' and $altCfg['MIKROTIK_SUPPORT']) {
                 $actions .= wf_Link('?module=mikrotikextconf&nasid=' . $eachNasData['id'], web_icon_extended('MikroTik extended configuration'));
             }
             if ($altCfg['MULTIGEN_ENABLED']) {
@@ -2037,7 +2040,7 @@ function web_NasList() {
         $result .= $messages->getStyledMessage(__('Nothing to show'), 'warning');
     }
 
-    return($result);
+    return ($result);
 }
 
 /**
@@ -2052,7 +2055,7 @@ function zb_NasGetTypes() {
         'mikrotik' => 'MikroTik',
         'radius' => 'RADIUS'
     );
-    return($nastypes);
+    return ($nastypes);
 }
 
 /**
@@ -2071,7 +2074,7 @@ function web_NasAddForm() {
 
     $form = wf_Form('', 'POST', $inputs, 'glamour');
 
-    return($form);
+    return ($form);
 }
 
 /**
@@ -2101,7 +2104,7 @@ function web_NasEditForm($nasId) {
     $result = wf_Form('', 'POST', $editinputs, 'glamour');
     $result .= wf_delimiter();
     $result .= wf_BackLink('?module=nas');
-    return($result);
+    return ($result);
 }
 
 /**
@@ -2157,25 +2160,25 @@ function web_AddressAptForm($login) {
         $extenTown = (empty($extenAddrData['town_district'])) ? '' : $extenAddrData['town_district'];
         $extenAddr = (empty($extenAddrData['address_exten'])) ? '' : $extenAddrData['address_exten'];
 
-// empty row divider
+        // empty row divider
         $cells = wf_TableCell(wf_nbsp());
         $cells .= wf_TableCell(wf_nbsp());
         $cells .= wf_TableCell(wf_HiddenInput('change_extended_address', 'true'));
         $rows .= wf_TableRow($cells, 'row2');
 
-// postal code
+        // postal code
         $cells = wf_TableCell(__('Postal code'));
         $cells .= wf_TableCell($postCode);
         $cells .= wf_TableCell(wf_TextInput('changepostcode', '', $postCode, false, '10'));
         $rows .= wf_TableRow($cells, 'row3');
 
-// town/district/region
+        // town/district/region
         $cells = wf_TableCell(__('Town/District/Region'));
         $cells .= wf_TableCell($extenTown);
         $cells .= wf_TableCell(wf_TextInput('changetowndistr', '', $extenTown, false, '47'));
         $rows .= wf_TableRow($cells, 'row3');
 
-// extended address info
+        // extended address info
         $cells = wf_TableCell(__('Extended address info'));
         $cells .= wf_TableCell($extenAddr);
         $cells .= wf_TableCell(wf_TextArea('changeaddrexten', '', $extenAddr, false, '48x4'));
@@ -2188,7 +2191,7 @@ function web_AddressAptForm($login) {
     $form = wf_Form("", 'POST', $table, '');
     $form .= web_AddressBuildShowAptsCheck($aptdata['buildid'], $aptdata['apt'], $login);
 
-    return($form);
+    return ($form);
 }
 
 /**
@@ -2259,7 +2262,7 @@ function web_AddressOccupancyForm() {
     $form = wf_TableBody($form, '100%', 0, 'glamour');
     $form .= wf_CleanDiv();
 
-    return($form);
+    return ($form);
 }
 
 /**
@@ -2281,226 +2284,9 @@ function zb_BandwidthdImgLink($url) {
         $result = $url;
     }
 
-    return($result);
+    return ($result);
 }
 
-/**
- * Generates user's traffic statistic module content
- * 
- * @param   str     $login  User's login, for whitch generate module content
- * @return  str             Module content
- */
-function web_UserTraffStats($login) {
-    global $ubillingConfig;
-    $altCfg = $ubillingConfig->getAlter();
-    $ishimuraOption = MultiGen::OPTION_ISHIMURA;
-    $ishimuraTable = MultiGen::NAS_ISHIMURA;
-    $login = vf($login);
-    $dirs = zb_DirectionsGetAll();
-
-// Current month traffic stats:
-    $cells = wf_TableCell(__('Traffic classes'));
-    $cells .= wf_TableCell(__('Downloaded'));
-    $cells .= wf_TableCell(__('Uploaded'));
-    $cells .= wf_TableCell(__('Total'));
-    $rows = wf_TableRow($cells, 'row1');
-
-    if (!empty($dirs)) {
-        foreach ($dirs as $dir) {
-            $query_downup = "SELECT `D" . $dir['rulenumber'] . "`,`U" . $dir['rulenumber'] . "` FROM `users` WHERE `login` = '" . $login . "'";
-            $downup = simple_query($query_downup);
-//yeah, no classes at all
-            if ($dir['rulenumber'] == 0) {
-                //ishimura enabled?
-                if ($altCfg[$ishimuraOption]) {
-                    $query_hideki = "SELECT `D0`,`U0` from `" . $ishimuraTable . "` WHERE `login`='" . $login . "' AND `month`='" . date("n") . "' AND `year`='" . curyear() . "'";
-                    $dataHideki = simple_query($query_hideki);
-                    if (isset($downup['D0'])) {
-                        @$downup['D0'] += $dataHideki['D0'];
-                        @$downup['U0'] += $dataHideki['U0'];
-                    } else {
-                        $downup['D0'] = $dataHideki['D0'];
-                        $downup['U0'] = $dataHideki['U0'];
-                    }
-                }
-                //or ophanim flow may be?
-                if ($altCfg[OphanimFlow::OPTION_ENABLED]) {
-                    $ophahnimFlow = new OphanimFlow();
-                    $ophanimCmonth = $ophahnimFlow->getUserCurMonthTraff($login);
-                    if (isset($downup['D0'])) {
-                        $downup['D0'] += $ophanimCmonth['D0'];
-                        $downup['U0'] += $ophanimCmonth['U0'];
-                    } else {
-                        $downup['D0'] = $ophanimCmonth['D0'];
-                        $downup['U0'] = $ophanimCmonth['U0'];
-                    }
-                }
-            }
-
-            $cells = wf_TableCell($dir['rulename']);
-            $cells .= wf_TableCell(stg_convert_size($downup['D' . $dir['rulenumber']]), '', '', 'sorttable_customkey="' . $downup['D' . $dir['rulenumber']] . '"');
-            $cells .= wf_TableCell(stg_convert_size($downup['U' . $dir['rulenumber']]), '', '', 'sorttable_customkey="' . $downup['U' . $dir['rulenumber']] . '"');
-            $cells .= wf_TableCell(stg_convert_size(($downup['U' . $dir['rulenumber']] + $downup['D' . $dir['rulenumber']])), '', '', 'sorttable_customkey="' . ($downup['U' . $dir['rulenumber']] + $downup['D' . $dir['rulenumber']]) . '"');
-            $rows .= wf_TableRow($cells, 'row3');
-        }
-    }
-
-    $result = wf_tag('h3') . __('Current month traffic stats') . wf_tag('h3', true);
-    $result .= wf_TableBody($rows, '100%', '0', 'sortable');
-// End of current month traffic stats
-// Per-user graphs buttons:
-    $ip = zb_UserGetIP($login);
-    $bandwidthd = zb_BandwidthdGetUrl($ip);
-
-    if (!empty($bandwidthd)) {
-        $bwd = zb_BandwidthdGenLinks($ip);
-
-// Dayly graph button:
-        $daybw = wf_img(zb_BandwidthdImgLink($bwd['dayr']), __('Downloaded'));
-        if (!empty($bwd['days'])) {
-            $daybw .= wf_delimiter() . wf_img(zb_BandwidthdImgLink($bwd['days']), __('Uploaded'));
-        }
-
-// Weekly graph button:
-        $weekbw = wf_img(zb_BandwidthdImgLink($bwd['weekr']), __('Downloaded'));
-        if (!empty($bwd['weeks'])) {
-            $weekbw .= wf_delimiter() . wf_img(zb_BandwidthdImgLink($bwd['weeks']), __('Uploaded'));
-        }
-
-// Monthly graph button:
-        $monthbw = wf_img(zb_BandwidthdImgLink($bwd['monthr']), __('Downloaded'));
-        if (!empty($bwd['months'])) {
-            $monthbw .= wf_delimiter() . wf_img(zb_BandwidthdImgLink($bwd['months']), __('Uploaded'));
-        }
-
-// Yearly graph button:
-        $yearbw = wf_img(zb_BandwidthdImgLink($bwd['yearr']), __('Downloaded'));
-        if (!empty($bwd['years'])) {
-            $yearbw .= wf_delimiter() . wf_img(zb_BandwidthdImgLink($bwd['years']), __('Uploaded'));
-        }
-
-// Modal window sizes:
-        if (!empty($bwd['days'])) {
-//bandwidthd legend
-            if (!ispos($bandwidthd, 'OphanimFlow') AND !ispos($bandwidthd, 'of/')) {
-                $graphLegend = wf_tag('br') . wf_img('skins/bwdlegend.gif');
-            } else {
-                $graphLegend = '';
-            }
-        } else {
-//mikrotik
-            $graphLegend = '';
-        }
-
-        $result .= wf_delimiter();
-        $result .= wf_tag('h3') . __('Graphs') . wf_tag('h3', true);
-
-        $bwcells = '';
-        $zbxExtended = (isset($bwd['zbxexten']) and $bwd['zbxexten'] == true);
-
-        if ($zbxExtended) {
-            $fiveminsbw = wf_img($bwd['5mins'], __('Downloaded'));
-            $zbxLink = $bwd['zbxlink'];
-
-            $bwcells .= wf_TableCell(wf_link($zbxLink, wf_img_sized('skins/zabbix_ico.png', '', '16', '16') . ' ' . __('Go to graph on Zabbix server'), false, 'ubButton', 'target="__blank"'));
-            $bwcells .= wf_TableCell(wf_modalAuto(wf_img_sized('skins/icon_stats.gif', '', '16', '16') . ' ' . __('Graph by 5 minutes'), __('Graph by 5 minutes'), $fiveminsbw, 'ubButton'));
-        }
-
-        $bwcells .= wf_TableCell(wf_modalAuto(wf_img_sized('skins/icon_stats.gif', '', '16', '16') . ' ' . __('Graph by day'), __('Graph by day'), $daybw . $graphLegend, 'ubButton'));
-        $bwcells .= wf_TableCell(wf_modalAuto(wf_img_sized('skins/icon_stats.gif', '', '16', '16') . ' ' . __('Graph by week'), __('Graph by week'), $weekbw . $graphLegend, 'ubButton'));
-        $bwcells .= wf_TableCell(wf_modalAuto(wf_img_sized('skins/icon_stats.gif', '', '16', '16') . ' ' . __('Graph by month'), __('Graph by month'), $monthbw . $graphLegend, 'ubButton'));
-        $bwcells .= wf_TableCell(wf_modalAuto(wf_img_sized('skins/icon_stats.gif', '', '16', '16') . ' ' . __('Graph by year'), __('Graph by year'), $yearbw . $graphLegend, 'ubButton'));
-        $bwrows = wf_TableRow($bwcells);
-
-// Adding graphs buttons to result:
-        $result .= wf_TableBody($bwrows, '', '0', '');
-        $result .= wf_delimiter();
-    } else {
-// Commented to save useful space for normal data. TODO: take a decision about this notification in future.
-//$messages = new UbillingMessageHelper();
-//$result .= $messages->getStyledMessage(__('No user graphs because no NAS with bandwidthd for his network'), 'info');
-    }
-// End of per-user graphs buttons
-// Traffic statistic by previous months:
-    $monthNames = months_array_wz();
-    $result .= wf_tag('h3') . __('Previous month traffic stats') . wf_tag('h3', true);
-
-    $cells = wf_TableCell(__('Year'));
-    $cells .= wf_TableCell(__('Month'));
-    $cells .= wf_TableCell(__('Traffic classes'));
-    $cells .= wf_TableCell(__('Downloaded'));
-    $cells .= wf_TableCell(__('Uploaded'));
-    $cells .= wf_TableCell(__('Total'));
-    $cells .= wf_TableCell(__('Cash'));
-    $rows = wf_TableRow($cells, 'row1');
-
-    if (!empty($dirs)) {
-        foreach ($dirs as $dir) {
-            $query_prev = "SELECT `D" . $dir['rulenumber'] . "`, `U" . $dir['rulenumber'] . "`, `month`, `year`, `cash` FROM `stat` WHERE `login` = '" . $login . "' ORDER BY `year`,`month`;";
-            $prevmonths = simple_queryall($query_prev);
-
-//and again no classes
-            if ($dir['rulenumber'] == 0) {
-                //ishimura traffic accounting?
-                if ($altCfg[$ishimuraOption]) {
-                    $query_hideki = "SELECT `D0`,`U0`,`month`,`year`,`cash` from `" . $ishimuraTable . "` WHERE `login`='" . $login . "' ORDER BY `year`,`month`;";
-                    $dataHideki = simple_queryall($query_hideki);
-                    if (!empty($dataHideki)) {
-                        foreach ($dataHideki as $io => $each) {
-                            foreach ($prevmonths as $ia => $stgEach) {
-                                if ($stgEach['year'] == $each['year'] AND $stgEach['month'] == $each['month']) {
-                                    $prevmonths[$ia]['D0'] += $each['D0'];
-                                    $prevmonths[$ia]['U0'] += $each['U0'];
-                                    //$prevmonths[$ia]['cash'] += $each['cash'];
-                                }
-                            }
-                        }
-                    }
-                }
-
-                //or just OphanimFlow integration?
-                if ($altCfg[OphanimFlow::OPTION_ENABLED]) {
-                    $ophahnimFlow = new OphanimFlow();
-                    $ophRaw = $ophahnimFlow->getUserAllTraff($login);
-                    if (!empty($ophRaw)) {
-                        foreach ($ophRaw as $io => $each) {
-                            foreach ($prevmonths as $ia => $stgEach) {
-                                if ($stgEach['year'] == $each['year'] AND $stgEach['month'] == $each['month']) {
-                                    $prevmonths[$ia]['D0'] += $each['D0'];
-                                    $prevmonths[$ia]['U0'] += $each['U0'];
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            if (!empty($prevmonths)) {
-                $prevmonths = array_reverse($prevmonths);
-            }
-
-
-            if (!empty($prevmonths)) {
-                foreach ($prevmonths as $prevmonth) {
-                    $cells = wf_TableCell($prevmonth['year']);
-                    $cells .= wf_TableCell(rcms_date_localise($monthNames[$prevmonth['month']]));
-                    $cells .= wf_TableCell($dir['rulename']);
-                    $cells .= wf_TableCell(stg_convert_size($prevmonth['D' . $dir['rulenumber']]), '', '', 'sorttable_customkey="' . $prevmonth['D' . $dir['rulenumber']] . '"');
-                    $cells .= wf_TableCell(stg_convert_size($prevmonth['U' . $dir['rulenumber']]), '', '', 'sorttable_customkey="' . $prevmonth['U' . $dir['rulenumber']] . '"');
-                    $cells .= wf_TableCell(stg_convert_size(($prevmonth['U' . $dir['rulenumber']] + $prevmonth['D' . $dir['rulenumber']])), '', '', 'sorttable_customkey="' . ($prevmonth['U' . $dir['rulenumber']] + $prevmonth['D' . $dir['rulenumber']]) . '"');
-                    $cells .= wf_TableCell(round($prevmonth['cash'], 2));
-                    $rows .= wf_TableRow($cells, 'row3');
-                }
-            }
-        }
-    }
-// End of traffic statistic by previous months
-// Generate table:
-    $result .= wf_TableBody($rows, '100%', '0', 'sortable');
-
-// Return result:
-    return $result;
-}
 
 /**
  * Returns array of users count on each available tariff plan (deprecated?)
@@ -2521,7 +2307,7 @@ function zb_TariffGetCount() {
     } else {
         show_error(__('No tariffs found'));
     }
-    return($result);
+    return ($result);
 }
 
 /**
@@ -2534,18 +2320,18 @@ function zb_TariffGetLiveCount() {
     $alltariffs = zb_TariffsGetAll();
 
     $result = array();
-//fill array with some tariff entries
+    //fill array with some tariff entries
     if (!empty($alltariffs)) {
         foreach ($alltariffs as $io => $eachtariff) {
             $result[$eachtariff['name']]['alive'] = 0;
             $result[$eachtariff['name']]['dead'] = 0;
         }
     }
-//count users  for each tariff
+    //count users  for each tariff
     if (!empty($allusers)) {
         foreach ($allusers as $ia => $eachlogin) {
             if (isset($result[$eachlogin['Tariff']])) {
-                if ($eachlogin['Cash'] >= ('-' . $eachlogin['Credit']) AND $eachlogin['Passive'] == 0 AND $eachlogin['Down'] == 0 AND $eachlogin['Passive'] == 0) {
+                if ($eachlogin['Cash'] >= ('-' . $eachlogin['Credit']) and $eachlogin['Passive'] == 0 and $eachlogin['Down'] == 0 and $eachlogin['Passive'] == 0) {
                     $result[$eachlogin['Tariff']]['alive'] = $result[$eachlogin['Tariff']]['alive'] + 1;
                 } else {
                     $result[$eachlogin['Tariff']]['dead'] = $result[$eachlogin['Tariff']]['dead'] + 1;
@@ -2554,7 +2340,7 @@ function zb_TariffGetLiveCount() {
         }
     }
 
-    return($result);
+    return ($result);
 }
 
 /**
@@ -2579,7 +2365,7 @@ function web_barTariffs($alive, $dead) {
     $code = wf_img_sized($barurl, __('Active users') . ': ' . $alive, $widthAlive . '%', '14');
     $code .= wf_img_sized($barblackurl, __('Inactive users') . ': ' . $dead, $widthDead . '%', '14');
 
-    return($code);
+    return ($code);
 }
 
 /**
@@ -2662,7 +2448,7 @@ function web_TariffShowReport() {
     $result .= __('Active users') . ': ' . $liveusersCounter;
     $result .= wf_tag('br');
     $result .= __('Inactive users') . ': ' . $deadusersCounter;
-    return($result);
+    return ($result);
 }
 
 /**
@@ -2677,7 +2463,7 @@ function web_TariffShowMoveReport() {
     $billing_conf = $ubillingConfig->getBilling();
     $chartData = array();
     $nmchange = '#!/bin/sh' . "\n";
-//is nmchange enabled?
+    //is nmchange enabled?
     if ($alter_conf['NMCHANGE']) {
         $sgconf = $billing_conf['SGCONF'];
         $stg_host = $billing_conf['STG_HOST'];
@@ -2705,7 +2491,7 @@ function web_TariffShowMoveReport() {
     if (!empty($allmoves)) {
         foreach ($allmoves as $io => $eachmove) {
 
-//generate NMCHANGE option
+            //generate NMCHANGE option
             if ($alter_conf['NMCHANGE']) {
                 $nmchange .= $sgconf . ' set -s ' . $stg_host . ' -p ' . $stg_port . ' -a' . $stg_login . ' -w' . $stg_passwd . ' -u' . $eachmove['login'] . ' --always-online 0' . "\n";
                 $nmchange .= $sgconf . ' set -s ' . $stg_host . ' -p ' . $stg_port . ' -a' . $stg_login . ' -w' . $stg_passwd . ' -u' . $eachmove['login'] . ' --always-online 1' . "\n";
@@ -2714,7 +2500,7 @@ function web_TariffShowMoveReport() {
             @$current_price = $alltariffprices[$eachmove['Tariff']];
             @$next_price = $alltariffprices[$eachmove['TariffChange']];
             @$difference = $next_price - $current_price;
-//coloring movements
+            //coloring movements
             if ($difference < 0) {
                 $cashcolor = '#a90000';
             } else {
@@ -2735,7 +2521,7 @@ function web_TariffShowMoveReport() {
 
     $result = wf_TableBody($tablerows, '100%', 0, 'sortable');
 
-//coloring profit
+    //coloring profit
     if ($totaldiff < 0) {
         $profitcolor = '#a90000';
     } else {
@@ -2747,15 +2533,15 @@ function web_TariffShowMoveReport() {
     $result .= __('PROFIT') . ': ' . $totaldiff;
     $result .= wf_tag('font', true);
 
-//yep, lets write nmchange
+    //yep, lets write nmchange
     if ($alter_conf['NMCHANGE']) {
         if (date("d") != 1) {
-// protect of override on 1st day
+            // protect of override on 1st day
             file_put_contents(CONFIG_PATH . 'nmchange.sh', $nmchange);
         }
     }
 
-    return($result);
+    return ($result);
 }
 
 /**
@@ -2847,7 +2633,8 @@ function translit_string($var) {
     $NpjBiLetters = array(
         "й" => "jj", "ё" => "jo", "ж" => "zh", "х" => "kh", "ч" => "ch",
         "ш" => "sh", "щ" => "shh", "э" => "je", "ю" => "ju", "я" => "ja",
-        "ъ" => "", "ь" => "");
+        "ъ" => "", "ь" => ""
+    );
 
     $NpjCaps = "АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЬЪЫЭЮЯІЇЄ ";
     $NpjSmall = "абвгдеёжзийклмнопрстуфхцчшщьъыэюяіїє ";
@@ -2872,9 +2659,9 @@ function translit_string($var) {
  */
 function ispos($string, $search) {
     if (strpos($string, $search) === false) {
-        return(false);
+        return (false);
     } else {
-        return(true);
+        return (true);
     }
 }
 
@@ -2894,12 +2681,12 @@ function ispos_array($string, $search) {
             }
         }
 
-        return(false);
+        return (false);
     } else {
         if (strpos($string, $search) === false) {
-            return(false);
+            return (false);
         } else {
-            return(true);
+            return (true);
         }
     }
 }
@@ -2915,7 +2702,7 @@ function zb_NumEncode($data) {
     $letters = array('A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J');
     $letters = array_reverse($letters);
     $result = str_replace($numbers, $letters, $data);
-    return($result);
+    return ($result);
 }
 
 /**
@@ -2929,7 +2716,7 @@ function zb_NumUnEncode($data) {
     $letters = array('A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J');
     $letters = array_reverse($letters);
     $result = str_replace($letters, $numbers, $data);
-    return($result);
+    return ($result);
 }
 
 /**
@@ -2963,7 +2750,7 @@ function web_UserArrayShower($usersarr) {
         }
 
 
-//additional finance links
+        //additional finance links
         if ($alterconf['FAST_CASH_LINK']) {
             $fastcash = true;
         } else {
@@ -2975,12 +2762,12 @@ function web_UserArrayShower($usersarr) {
         $tablecells .= wf_TableCell(__('Real Name'));
         $tablecells .= wf_TableCell(__('IP'));
         $tablecells .= wf_TableCell(__('Tariff'));
-// last activity time
+        // last activity time
         if ($alterconf['ONLINE_LAT']) {
             $tablecells .= wf_TableCell(__('LAT'));
         }
         $tablecells .= wf_TableCell(__('Active'));
-//online detect
+        //online detect
         if ($alterconf['DN_ONLINE_DETECT']) {
             $tablecells .= wf_TableCell(__('Users online'));
         }
@@ -2994,7 +2781,7 @@ function web_UserArrayShower($usersarr) {
 
             $usercash = @$thisUserData['Cash'];
             $usercredit = @$thisUserData['Credit'];
-//finance check
+            //finance check
             $activity = web_green_led();
             $activity_flag = 1;
             if ($usercash < '-' . $usercredit) {
@@ -3002,7 +2789,7 @@ function web_UserArrayShower($usersarr) {
                 $activity_flag = 0;
             }
 
-//fast cash link
+            //fast cash link
             if ($fastcash) {
                 $financelink = wf_Link('?module=addcash&username=' . $eachlogin, wf_img('skins/icon_dollar.gif', __('Finance operations')), false, '');
             } else {
@@ -3093,7 +2880,7 @@ function web_UserCorpsArrayShower($usersarr, $callBack = '') {
             $alluserlat = zb_LatGetAllUsers();
         }
 
-//additional finance links
+        //additional finance links
         if ($alterconf['FAST_CASH_LINK']) {
             $fastcash = true;
         } else {
@@ -3110,7 +2897,7 @@ function web_UserCorpsArrayShower($usersarr, $callBack = '') {
             $corpsFlag = false;
         }
 
-//filestorage support for corporate users contracts
+        //filestorage support for corporate users contracts
         if (@$alterconf['FILESTORAGE_ENABLED']) {
             $filestorageFlag = true;
             $filestorage = new FileStorage('USERCONTRACT');
@@ -3128,12 +2915,12 @@ function web_UserCorpsArrayShower($usersarr, $callBack = '') {
         }
         $tablecells .= wf_TableCell(__('IP'));
         $tablecells .= wf_TableCell(__('Tariff'));
-// last activity time
+        // last activity time
         if ($alterconf['ONLINE_LAT']) {
             $tablecells .= wf_TableCell(__('LAT'));
         }
         $tablecells .= wf_TableCell(__('Active'));
-//online detect
+        //online detect
         if ($alterconf['DN_ONLINE_DETECT']) {
             $tablecells .= wf_TableCell(__('Users online'));
         }
@@ -3145,7 +2932,7 @@ function web_UserCorpsArrayShower($usersarr, $callBack = '') {
         foreach ($usersarr as $eachlogin) {
             @$usercash = $allusercash[$eachlogin];
             @$usercredit = $allusercredits[$eachlogin];
-//finance check
+            //finance check
             $activity = web_green_led();
             $activity_flag = 1;
             if ($usercash < '-' . $usercredit) {
@@ -3153,7 +2940,7 @@ function web_UserCorpsArrayShower($usersarr, $callBack = '') {
                 $activity_flag = 0;
             }
 
-//fast cash link
+            //fast cash link
             if ($fastcash) {
                 $financelink = wf_Link('?module=addcash&username=' . $eachlogin, wf_img('skins/icon_dollar.gif', __('Finance operations')), false, '');
             } else {
@@ -3257,7 +3044,7 @@ function zb_BillingCheckUpdates($return = false) {
     }
 
     if ($return) {
-        return($result);
+        return ($result);
     } else {
         die($result);
     }
@@ -3272,7 +3059,7 @@ function zb_InstallBillingSerial() {
     $randomid = 'UB' . md5(curdatetime() . zb_rand_string(8));
     $newhostid_q = "INSERT INTO `ubstats` (`id` ,`key` ,`value`) VALUES (NULL , 'ubid', '" . $randomid . "');";
     nr_query($newhostid_q);
-    return($randomid);
+    return ($randomid);
 }
 
 /**
@@ -3302,17 +3089,17 @@ function zb_BillingStats($quiet = true, $modOverride = '') {
     }
 
     if (empty($hostid)) {
-//register new Ubilling serial
+        //register new Ubilling serial
         $thisubid = zb_InstallBillingSerial();
     } else {
         $thisubid = $hostid;
         //updating cache if required
-        if (empty($cachedHostId) AND !empty($hostid)) {
+        if (empty($cachedHostId) and !empty($hostid)) {
             $cache->set('UBHID', $hostid, $cacheTime);
         }
     }
 
-//modules callbacks
+    //modules callbacks
     $moduleStats = 'xnone';
     if ($modOverride) {
         $moduleStats = 'x' . $modOverride;
@@ -3321,14 +3108,13 @@ function zb_BillingStats($quiet = true, $modOverride = '') {
             $moduleClean = str_replace('x', '', ubRouting::get('module'));
             $moduleStats = 'x' . $moduleClean;
         } else {
-            
         }
     }
 
-//detect stats collection feature
+    //detect stats collection feature
     $thiscollect = (file_exists($statsflag)) ? 0 : 1;
 
-//disabling collect subroutine
+    //disabling collect subroutine
     if (ubRouting::checkPost('editcollect')) {
         if (!ubRouting::checkPost('collectflag')) {
             file_put_contents($statsflag, 'Im greedy bastard');
@@ -3339,36 +3125,36 @@ function zb_BillingStats($quiet = true, $modOverride = '') {
         }
         ubRouting::nav('?module=report_sysload');
     }
-//detect ubilling version
+    //detect ubilling version
     $releaseinfo = file_get_contents("RELEASE");
     $ubversion = explode(' ', $releaseinfo);
     $ubversion = vf($ubversion[0], 3);
 
     $ubillingInstanceStats = $cache->get('UBINSTANCE', $cacheTime);
     if (empty($ubillingInstanceStats)) {
-//detect total user count
+        //detect total user count
         $usercount_q = "SELECT COUNT(`login`) from `users`";
         $usercount = simple_query($usercount_q);
         $usercount = $usercount['COUNT(`login`)'];
 
-//detect tariffs count
+        //detect tariffs count
         $tariffcount_q = "SELECT COUNT(`name`) from `tariffs`";
         $tariffcount = simple_query($tariffcount_q);
         $tariffcount = $tariffcount['COUNT(`name`)'];
 
-//detect nas count
+        //detect nas count
         $nascount_q = "SELECT COUNT(`id`) from `nas`";
         $nascount = simple_query($nascount_q);
         $nascount = $nascount['COUNT(`id`)'];
 
-//detect payments count
+        //detect payments count
         $paycount_q = "SELECT COUNT(`id`) from `payments`";
         $paycount = simple_query($paycount_q);
         $paycount = $paycount['COUNT(`id`)'];
         $paycount = $paycount / 100;
         $paycount = round($paycount);
 
-//detect ubilling actions count
+        //detect ubilling actions count
         $eventcount_q = "SELECT COUNT(`id`) from `weblogs`";
         $eventcount = simple_query($eventcount_q);
         $eventcount = $eventcount['COUNT(`id`)'];
@@ -3415,7 +3201,7 @@ function zb_BillingStats($quiet = true, $modOverride = '') {
             $httpCode = curl_getinfo($curlStats, CURLINFO_HTTP_CODE);
             curl_close($curlStats);
 
-            if ($output !== false AND $httpCode == 200) {
+            if ($output !== false and $httpCode == 200) {
                 $output = trim($output);
                 if (ispos($output, $deployMark)) {
                     $output = str_replace($deployMark, '', $output);
@@ -3460,7 +3246,7 @@ function crc16($string) {
  * @return string
  */
 function zb_MacVendorSearchmac($mac) {
-// searchmac.com API request
+    // searchmac.com API request
     $url = 'http://searchmac.com/api/v2/' . $mac;
     $ubVer = file_get_contents('RELEASE');
     $agent = 'MacVenUbilling/' . trim($ubVer);
@@ -3486,7 +3272,7 @@ function zb_MacVendorLookup($mac) {
     global $ubillingConfig;
     $altcfg = $ubillingConfig->getALter();
     $result = '';
-//use old macvendorlookup.com API
+    //use old macvendorlookup.com API
     if (isset($altcfg['MACVEN_OLD'])) {
         if ($altcfg['MACVEN_OLD']) {
             $url = 'http://www.macvendorlookup.com/api/v2/';
@@ -3522,16 +3308,16 @@ function web_ConfigEditorShow($prefix, $configdata, $optsdata) {
     global $configOptionsMissed;
     $messages = new UbillingMessageHelper();
     $result = '';
-    if ((!empty($configdata)) AND (!empty($optsdata))) {
+    if ((!empty($configdata)) and (!empty($optsdata))) {
         foreach ($optsdata as $option => $handlers) {
 
-            if ((isset($configdata[$option])) OR ( ispos($option, 'CHAPTER'))) {
+            if ((isset($configdata[$option])) or (ispos($option, 'CHAPTER'))) {
                 if (!ispos($option, 'CHAPTER')) {
                     $currentdata = $configdata[$option];
                     $handlers = explode('|', $handlers);
                     $type = $handlers[0];
 
-//option description
+                    //option description
                     if (!empty($handlers[1])) {
                         $description = trim($handlers[1]);
                         $description = __($description);
@@ -3539,7 +3325,7 @@ function web_ConfigEditorShow($prefix, $configdata, $optsdata) {
                         $description = $option;
                     }
 
-//option controls
+                    //option controls
                     if ($type == 'TRIGGER') {
                         $control = web_bool_led($configdata[$option]);
                     }
@@ -3750,7 +3536,7 @@ function zb_JSHider() {
 }
 
 /**
- * Gets list of ubilling database tables with stats
+ * Gets list of ubilling database tables with some stats
  * 
  * @return array
  */
@@ -3765,6 +3551,10 @@ function zb_DBGetStats() {
             $stats[$filtered[0]]['name'] = $each['Name'];
             $stats[$filtered[0]]['rows'] = $each['Rows'];
             $stats[$filtered[0]]['size'] = $each['Data_length'];
+            $stats[$filtered[0]]['engine'] = $each['Engine'];
+            $stats[$filtered[0]]['collation'] = $each['Collation'];
+            $stats[$filtered[0]]['comment'] = $each['Comment'];
+            $stats[$filtered[0]]['raw'] = $each;
         }
     }
 
@@ -3785,6 +3575,8 @@ function zb_DBStatsRender() {
     $totalCount = 0;
     if (!empty($all)) {
         $cells = wf_TableCell(__('Table name'));
+        $cells .= wf_TableCell(__('Engine'));
+        $cells .= wf_TableCell(__('Encoding'));
         $cells .= wf_TableCell(__('Rows'));
         $cells .= wf_TableCell(__('Size'));
         $rows = wf_TableRow($cells, 'row1');
@@ -3792,12 +3584,18 @@ function zb_DBStatsRender() {
             $cells = wf_TableCell($each['name']);
             if (!empty($each['rows'])) {
                 $dbrows = $each['rows'];
-                $totalRows = $totalRows + $each['rows'];
-                ;
+                $totalRows = $totalRows + $each['rows'];;
             } else {
                 $dbrows = 0;
             }
 
+            if (!empty($each['engine'])) {
+                $tableEngine = $each['engine'];
+            } else {
+                $tableEngine = $each['comment'];
+            }
+            $cells .= wf_TableCell($tableEngine);
+            $cells .= wf_TableCell($each['collation']);
             $cells .= wf_TableCell($dbrows);
             if (!empty($each['size'])) {
                 @$size = stg_convert_size($each['size']);
@@ -3905,7 +3703,7 @@ function zb_DBCheckRender() {
             $rows .= wf_TableRow($cells, 'row3');
         }
     }
-    return($rows);
+    return ($rows);
 }
 
 /**
@@ -4025,7 +3823,7 @@ function zb_TranslitString($string, $caseSensetive = false) {
  * 
  */
 function web_roundValue($value, $precision = 2) {
-    $precision = ( $precision < 0 ) ? 0 : $precision;
+    $precision = ($precision < 0) ? 0 : $precision;
     $multiplier = pow(10, $precision);
     $rounded = (($value >= 0) ? ceil($value * $multiplier) : floor($value * $multiplier)) / $multiplier;
     return $rounded;
@@ -4039,7 +3837,7 @@ function web_roundValue($value, $precision = 2) {
  * @return string
  */
 function zb_CashBigValueFormat($cashValue) {
-    return(number_format($cashValue, 0, '.', ' '));
+    return (number_format($cashValue, 0, '.', ' '));
 }
 
 /**
@@ -4073,7 +3871,7 @@ function zb_AnalyticsSignupsGetCountYear($year) {
     foreach ($months as $eachmonth => $monthname) {
         $result[$eachmonth] = (isset($tmpArr[$eachmonth])) ? $tmpArr[$eachmonth]['count'] : 0;
     }
-    return($result);
+    return ($result);
 }
 
 /**
@@ -4106,7 +3904,7 @@ function zb_AnalyticsSigReqGetCountYear($year) {
         $monthcount = (isset($tmpArr[$eachmonth])) ? $tmpArr[$eachmonth]['count'] : 0;
         $result[$eachmonth] = $monthcount;
     }
-    return($result);
+    return ($result);
 }
 
 /**
@@ -4141,7 +3939,7 @@ function zb_AnalyticsTicketingGetCountYear($datefilter) {
         $monthcount = (isset($tmpArr[$eachmonth])) ? $tmpArr[$eachmonth]['count'] : 0;
         $result[$eachmonth] = $monthcount;
     }
-    return($result);
+    return ($result);
 }
 
 /**
@@ -4175,7 +3973,7 @@ function zb_AnalyticsTaskmanGetCountYear($year) {
         $monthcount = (isset($tmpArr[$eachmonth])) ? $tmpArr[$eachmonth]['count'] : 0;
         $result[$eachmonth] = $monthcount;
     }
-    return($result);
+    return ($result);
 }
 
 /**
@@ -4190,10 +3988,10 @@ function zb_DownloadFile($filePath, $contentType = '') {
         if (file_exists($filePath)) {
             log_register("DOWNLOAD FILE `" . $filePath . "`");
 
-            if (($contentType == '') OR ( $contentType == 'default')) {
+            if (($contentType == '') or ($contentType == 'default')) {
                 $contentType = 'application/octet-stream';
             } else {
-//additional content types
+                //additional content types
                 if ($contentType == 'docx') {
                     $contentType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
                 }
@@ -4279,7 +4077,7 @@ function web_SnmpSwitchControlForm($login, $allswitches, $allportassigndata, $su
             $switcharr[$eachswitch['id']] = $eachswitch['ip'] . ' - ' . $eachswitch['location'];
         }
     }
-//getting current data
+    //getting current data
     $assignData = array();
     if (isset($allportassigndata[$login])) {
         $assignData = $allportassigndata[$login];
@@ -4295,14 +4093,14 @@ function web_SnmpSwitchControlForm($login, $allswitches, $allportassigndata, $su
     }
 
 
-//control form construct
+    //control form construct
     $inputs = wf_HiddenInput('swassignlogin', $login);
     $inputs .= wf_Selector('swassignswid', $switcharr, __('Switch'), $suggestswitchid, true);
     $inputs .= wf_TextInput('swassignswport', __('Port'), $suggestswitchport, false, '2');
     $inputs .= wf_CheckInput('swassigndelete', __('Delete'), true, false);
     $inputs .= wf_Submit('Save');
     $controlForm = wf_Form('', "POST", $inputs, 'glamour');
-//form end
+    //form end
 
     $switchAssignController = wf_modal(web_edit_icon(), __('Switch port assign'), $controlForm, '', '450', '200');
 
@@ -4318,7 +4116,7 @@ function web_SnmpSwitchControlForm($login, $allswitches, $allportassigndata, $su
 
     $result = wf_TableBody($rows, '100%', '0');
 
-//update subroutine
+    //update subroutine
     if (wf_CheckPost(array('swassignlogin', 'swassignswid', 'swassignswport'))) {
         $newswid = vf($_POST['swassignswid'], 3);
         $newport = vf($_POST['swassignswport'], 3);
@@ -4327,7 +4125,7 @@ function web_SnmpSwitchControlForm($login, $allswitches, $allportassigndata, $su
         log_register("CHANGE SWITCHPORT (" . $login . ") ON SWITCHID [" . $newswid . "] PORT [" . $newport . "]");
         rcms_redirect('?module=switchpoller&switchid=' . $suggestswitchid);
     }
-//delete subroutine
+    //delete subroutine
     if (isset($_POST['swassigndelete'])) {
         nr_query("DELETE from `switchportassign` WHERE `login`='" . $_POST['swassignlogin'] . "'");
         log_register("DELETE SWITCHPORT (" . $login . ")");
@@ -4345,7 +4143,7 @@ function zb_TariffGetPeriodsAll() {
     $result = array();
     $dbSchema = zb_CheckDbSchema();
     if ($dbSchema > 0) {
-//stargazer >= 2.409
+        //stargazer >= 2.409
         $query = "SELECT `name`,`period` from `tariffs`";
         $all = simple_queryall($query);
         if (!empty($all)) {
@@ -4354,7 +4152,7 @@ function zb_TariffGetPeriodsAll() {
             }
         }
     } else {
-//stargazer 2.408
+        //stargazer 2.408
         $query = "SELECT `name` from `tariffs`";
         $all = simple_queryall($query);
         if (!empty($all)) {
@@ -4395,7 +4193,7 @@ function zb_CreditLogCheckHack($login) {
     $data = simple_query($query);
     if (empty($data)) {
         return (true);
-    } elseif (!empty($data) AND $data['note'] != 'SCFEE') {
+    } elseif (!empty($data) and $data['note'] != 'SCFEE') {
         return (true);
     } else {
         return (false);
@@ -4471,7 +4269,7 @@ function zb_CreditLogGetAll() {
  * @return string
  */
 function web_EasyCreditForm($login, $cash, $credit, $userTariff, $easycreditoption) {
-/////////////////internal controller
+    /////////////////internal controller
     if (wf_CheckPost(array('easycreditlogin', 'easycreditlimit', 'easycreditexpire'))) {
         global $billing;
         $setCredit = vf($_POST['easycreditlimit']);
@@ -4479,10 +4277,10 @@ function web_EasyCreditForm($login, $cash, $credit, $userTariff, $easycreditopti
         $setExpire = mysql_real_escape_string($_POST['easycreditexpire']);
         if (zb_checkDate($setExpire)) {
             if (zb_checkMoney($setCredit)) {
-//set credit
+                //set credit
                 $billing->setcredit($setLogin, $setCredit);
                 log_register('CHANGE Credit (' . $setLogin . ') ON ' . $setCredit);
-//set credit expire date
+                //set credit expire date
                 $billing->setcreditexpire($setLogin, $setExpire);
                 log_register('CHANGE CreditExpire (' . $setLogin . ') ON ' . $setExpire);
                 rcms_redirect('?module=userprofile&username=' . $setLogin);
@@ -4502,7 +4300,7 @@ function web_EasyCreditForm($login, $cash, $credit, $userTariff, $easycreditopti
     @$tariffPrice = (isset($allTariffsData[$userTariff])) ? $allTariffsData[$userTariff]['Fee'] : 0;
     $tariffPeriod = 'month';
     if ($tariffPrice) {
-//some valid tariff
+        //some valid tariff
         if (isset($allTariffsData[$userTariff]['period'])) {
             $tariffPeriod = $allTariffsData[$userTariff]['period'];
         }
@@ -4511,7 +4309,7 @@ function web_EasyCreditForm($login, $cash, $credit, $userTariff, $easycreditopti
     if ($cash >= '-' . $credit) {
         $creditProposal = $tariffPrice;
         $creditNote = __('The amount of money in the account at the moment is sufficient to provide the service. It is therefore proposed to set a credit limit on the fee of the tariff.');
-//daily tariffs fix for active users
+        //daily tariffs fix for active users
         if ($tariffPeriod == 'day') {
             $creditProposal = $tariffPrice * $easycreditoption;
             $creditNote = __('The amount of money in the account at the moment is sufficient to provide the service. It is therefore proposed to set a credit limit on the fee of the tariff.');
@@ -4520,27 +4318,27 @@ function web_EasyCreditForm($login, $cash, $credit, $userTariff, $easycreditopti
     } else {
         $creditProposal = abs($cash);
         $creditNote = __('At the moment the account have debt. It is proposed to establish credit in its size.');
-//daily tariffs fix for debtors
+        //daily tariffs fix for debtors
         if ($tariffPeriod == 'day') {
             $creditProposal = abs($cash) + ($tariffPrice * $easycreditoption);
             $creditNote = __('At the moment the account have debt. It is proposed to establish credit in its size.');
             $creditNote .= ' + ' . $easycreditoption . ' ' . __('days') . '.';
         }
 
-//small and ugly hack to avoid precision issues with floating point values
+        //small and ugly hack to avoid precision issues with floating point values
         if (ispos($creditProposal, '.')) {
             $creditProposal = $creditProposal + 1;
             $creditProposal = round($creditProposal);
         }
     }
 
-//calculate credit expire date
+    //calculate credit expire date
     $nowTimestamp = time();
     $creditSeconds = ($easycreditoption * 86400); //days*secs
     $creditOffset = $nowTimestamp + $creditSeconds;
     $creditExpireDate = date("Y-m-d", $creditOffset);
 
-//construct form
+    //construct form
     $controlIcon = wf_tag('img', false, '', 'src="skins/icon_calendar.gif" height="10"');
     $inputs = '';
     $inputs .= wf_HiddenInput('easycreditlogin', $login);
@@ -4566,7 +4364,7 @@ function web_EasyCreditForm($login, $cash, $credit, $userTariff, $easycreditopti
  */
 function web_ReportSysloadCustomScripts($scriptoption) {
     $result = '';
-//internal script ajax handling
+    //internal script ajax handling
     if (wf_CheckGet(array('ajxcscrun'))) {
         $runpath = base64_decode($_GET['ajxcscrun']);
         if (!empty($runpath)) {
@@ -4608,7 +4406,7 @@ function zb_xml2array($contents, $get_attributes = 1, $priority = 'tag') {
         return array();
     }
 
-//Get the XML parser of PHP - PHP must have this module for the parser to work
+    //Get the XML parser of PHP - PHP must have this module for the parser to work
     $parser = xml_parser_create('');
     xml_parser_set_option($parser, XML_OPTION_TARGET_ENCODING, "UTF-8");
     xml_parser_set_option($parser, XML_OPTION_CASE_FOLDING, 0);
@@ -4618,19 +4416,19 @@ function zb_xml2array($contents, $get_attributes = 1, $priority = 'tag') {
 
     if (!$xml_values)
         return; //Hmm...
-//Initializations
+    //Initializations
     $xml_array = array();
     $parents = array();
     $opened_tags = array();
     $arr = array();
 
     $current = &$xml_array; //Refference
-//Go through the tags.
+    //Go through the tags.
     $repeated_tag_index = array(); //Multiple tags with same name will be turned into an array
     foreach ($xml_values as $data) {
         unset($attributes, $value); //Remove existing values, or there will be trouble
-//This command will extract these variables into the foreach scope
-// tag(string), type(string), level(int), attributes(array).
+        //This command will extract these variables into the foreach scope
+        // tag(string), type(string), level(int), attributes(array).
         extract($data); //We could use the array by itself, but this cooler.
 
         $result = array();
@@ -4643,7 +4441,7 @@ function zb_xml2array($contents, $get_attributes = 1, $priority = 'tag') {
                 $result['value'] = $value; //Put the value in a assoc array if we are in the 'Attribute' mode
         }
 
-//Set the attributes too.
+        //Set the attributes too.
         if (isset($attributes) and $get_attributes) {
             foreach ($attributes as $attr => $val) {
                 if ($priority == 'tag')
@@ -4653,8 +4451,8 @@ function zb_xml2array($contents, $get_attributes = 1, $priority = 'tag') {
             }
         }
 
-//See tag status and do the needed.
-        if ($type == "open") {//The starting of the tag '<tag>'
+        //See tag status and do the needed.
+        if ($type == "open") { //The starting of the tag '<tag>'
             $parent[$level - 1] = &$current;
             if (!is_array($current) or (!in_array($tag, array_keys($current)))) { //Insert New tag
                 $current[$tag] = $result;
@@ -4664,10 +4462,10 @@ function zb_xml2array($contents, $get_attributes = 1, $priority = 'tag') {
 
                 $current = &$current[$tag];
             } else { //There was another element with the same tag name
-                if (isset($current[$tag][0])) {//If there is a 0th element it is already an array
+                if (isset($current[$tag][0])) { //If there is a 0th element it is already an array
                     $current[$tag][$repeated_tag_index[$tag . '_' . $level]] = $result;
                     $repeated_tag_index[$tag . '_' . $level]++;
-                } else {//This section will make the value an array if multiple tags with the same name appear together
+                } else { //This section will make the value an array if multiple tags with the same name appear together
                     $current[$tag] = array($current[$tag], $result); //This will combine the existing item and the new item together to make an array
                     $repeated_tag_index[$tag . '_' . $level] = 2;
 
@@ -4680,15 +4478,15 @@ function zb_xml2array($contents, $get_attributes = 1, $priority = 'tag') {
                 $current = &$current[$tag][$last_item_index];
             }
         } elseif ($type == "complete") { //Tags that ends in 1 line '<tag />'
-//See if the key is already taken.
+            //See if the key is already taken.
             if (!isset($current[$tag])) { //New Key
                 $current[$tag] = $result;
                 $repeated_tag_index[$tag . '_' . $level] = 1;
                 if ($priority == 'tag' and $attributes_data)
                     $current[$tag . '_attr'] = $attributes_data;
             } else { //If taken, put all things inside a list(array)
-                if (isset($current[$tag][0]) and is_array($current[$tag])) {//If it is already an array...
-// ...push the new element into that array.
+                if (isset($current[$tag][0]) and is_array($current[$tag])) { //If it is already an array...
+                    // ...push the new element into that array.
                     $current[$tag][$repeated_tag_index[$tag . '_' . $level]] = $result;
 
                     if ($priority == 'tag' and $get_attributes and $attributes_data) {
@@ -4716,7 +4514,7 @@ function zb_xml2array($contents, $get_attributes = 1, $priority = 'tag') {
         }
     }
 
-    return($xml_array);
+    return ($xml_array);
 }
 
 /**
@@ -4852,8 +4650,8 @@ function web_MemCachedRenderStats() {
             }
 
 
-//cache efficiency calc
-            if ((isset($rawStats[$memcachedHost . ':' . $memcachedPort]['get_hits'])) AND ( isset($rawStats[$memcachedHost . ':' . $memcachedPort]['get_misses']))) {
+            //cache efficiency calc
+            if ((isset($rawStats[$memcachedHost . ':' . $memcachedPort]['get_hits'])) and (isset($rawStats[$memcachedHost . ':' . $memcachedPort]['get_misses']))) {
                 $cacheHits = $rawStats[$memcachedHost . ':' . $memcachedPort]['get_hits'];
                 $cacheMisses = $rawStats[$memcachedHost . ':' . $memcachedPort]['get_misses'];
                 $cacheTotal = $cacheHits + $cacheMisses;
@@ -4900,8 +4698,8 @@ function web_RedisRenderStats() {
             $rows .= wf_TableRow($cells, 'row3');
         }
 
-//cache efficiency calc
-        if ((isset($rawStats['keyspace_hits'])) AND ( isset($rawStats['keyspace_misses']))) {
+        //cache efficiency calc
+        if ((isset($rawStats['keyspace_hits'])) and (isset($rawStats['keyspace_misses']))) {
             $cacheHits = $rawStats['keyspace_hits'];
             $cacheMisses = $rawStats['keyspace_misses'];
             $cacheTotal = $cacheHits + $cacheMisses;
@@ -4923,7 +4721,7 @@ function web_RedisRenderStats() {
  * @return float
  */
 function zb_Percent($sum, $percent) {
-// и не надо ржать, я реально не могу запомнить чего куда делить и умножать
+    // и не надо ржать, я реально не могу запомнить чего куда делить и умножать
     $result = $percent / 100 * $sum;
     return ($result);
 }
@@ -4988,10 +4786,10 @@ function zb_isDateBetween($fromDate, $toDate, $checkDate) {
     $checkDate = strtotime($checkDate);
     $checkDate = date("Y-m-d", $checkDate);
     $checkDate = strtotime($checkDate);
-    if ($checkDate >= $fromDate AND $checkDate <= $toDate) {
+    if ($checkDate >= $fromDate and $checkDate <= $toDate) {
         $result = true;
     }
-    return($result);
+    return ($result);
 }
 
 /**
@@ -5009,17 +4807,17 @@ function zb_formatTime($seconds) {
     $seconds = $seconds % 60;
 
     if ($init < 3600) {
-//less than 1 hour
+        //less than 1 hour
         if ($init < 60) {
-//less than minute
+            //less than minute
             $result = $seconds . ' ' . __('sec.');
         } else {
-//more than one minute
+            //more than one minute
             $result = $minutes . ' ' . __('minutes') . ' ' . $seconds . ' ' . __('seconds');
         }
     } else {
         if ($init < 86400) {
-//more than hour
+            //more than hour
             $result = $hours . ' ' . __('hour') . ' ' . $minutes . ' ' . __('minutes') . ' ' . $seconds . ' ' . __('seconds');
         } else {
             $hoursLeft = $hours - ($days * 24);
@@ -5118,7 +4916,7 @@ function zb_CacheInformKeyView($dataKey) {
             }
         }
     }
-    return($result);
+    return ($result);
 }
 
 /**
@@ -5369,10 +5167,10 @@ function zb_InitGhostMode($adminLogin) {
         if (!empty($userData)) {
             $myLogin = whoami();
             $myData = $system->getUserData($myLogin);
-//current login data is used for ghost mode identification
+            //current login data is used for ghost mode identification
             setcookie('ghost_user', $myLogin . ':' . $myData['password'], null);
             $_COOKIE['ghost_user'] = $myLogin . ':' . $myData['password'];
-//login of another admin
+            //login of another admin
             rcms_log_put('Notification', $myLogin, 'Ghost logged in as ' . $adminLogin);
             log_register('GHOSTMODE {' . $myLogin . '} LOGIN AS {' . $adminLogin . '}');
             setcookie('ubilling_user', $adminLogin . ':' . $userData['password'], null);
@@ -5401,7 +5199,7 @@ function zb_BackupsRotate($maxAge) {
             $allBackups = rcms_scandir($backupsDirectory, '*' . $backupsExtension);
             if (!empty($allBackups)) {
                 foreach ($allBackups as $io => $eachDump) {
-//trying to extract date from filename
+                    //trying to extract date from filename
                     $cleanName = $eachDump;
                     $cleanName = str_replace($backupsPrefix, '', $cleanName);
                     $cleanName = str_replace($backupsExtension, '', $cleanName);
@@ -5434,7 +5232,7 @@ function zb_TariffNameFilter($tariffname) {
     $tariffname = trim($tariffname);
     $tariffname = preg_replace("#[^a-z0-9A-Z\-_\.]#Uis", '', $tariffname);
     if (strlen($tariffname) > 32) {
-//stargazer dramatically fails on long tariff names
+        //stargazer dramatically fails on long tariff names
         $tariffname = substr($tariffname, 0, 32);
     }
     return ($tariffname);
@@ -5464,7 +5262,7 @@ function zb_TariffTimeSelector($t, $selected = false) {
         }
         $result .= wf_tag('option', false, '', $b) . $a . $i . wf_tag('option', true);
     }
-    return($result);
+    return ($result);
 }
 
 /**
@@ -5511,7 +5309,7 @@ function web_TariffLister() {
             $actions = wf_JSAlert("?module=tariffs&action=delete&tariffname=" . $eachtariff['name'], web_delete_icon(), __('Delete') . ' ' . $eachtariff['name'] . '? ' . __('Removing this may lead to irreparable results'));
             $actions .= wf_JSAlert("?module=tariffs&action=edit&tariffname=" . $eachtariff['name'], web_edit_icon(), __('Edit') . ' ' . $eachtariff['name'] . '? ' . __('Are you serious'));
             $actions .= wf_Link('?module=tariffspeeds&tariff=' . $eachtariff['name'], wf_img('skins/icon_speed.gif', __('Edit speed')), false, '');
-            $actions .= ( isset($alter['SIGNUP_PAYMENTS']) && !empty($alter['SIGNUP_PAYMENTS']) ) ? wf_Link('?module=signupprices&tariff=' . $eachtariff['name'], wf_img('skins/icons/register.png', __('Edit signup price')), false, '') : null;
+            $actions .= (isset($alter['SIGNUP_PAYMENTS']) && !empty($alter['SIGNUP_PAYMENTS'])) ? wf_Link('?module=signupprices&tariff=' . $eachtariff['name'], wf_img('skins/icons/register.png', __('Edit signup price')), false, '') : null;
             $cells .= wf_TableCell($actions);
             $rows .= wf_TableRow($cells, 'row5');
         }
@@ -5519,7 +5317,7 @@ function web_TariffLister() {
 
     $result .= wf_TableBody($rows, '100%', 0, 'sortable');
 
-    return($result);
+    return ($result);
 }
 
 /**
@@ -5621,7 +5419,7 @@ function web_TariffCreateForm() {
     $allInputs = $inputs . $inputsDirs;
     $allInputs .= wf_Submit(__('Create new tariff'));
     $result .= wf_Form('', 'POST', $allInputs, '', '', 'tariff_add');
-    return($result);
+    return ($result);
 }
 
 /**
@@ -5678,40 +5476,40 @@ function web_TariffEditForm($tariffname) {
             $inputsDirs .= wf_tag('legend', true);
 
             $rulenumber = $dir['rulenumber'];
-            $arrTime = explode('-', $tariffdata ["Time" . $rulenumber]);
-            $day = explode(':', $arrTime [0]);
-            $night = explode(':', $arrTime [1]);
+            $arrTime = explode('-', $tariffdata["Time" . $rulenumber]);
+            $day = explode(':', $arrTime[0]);
+            $night = explode(':', $arrTime[1]);
 
-            $tariffdata ['Time'] [$rulenumber] ['Dmin'] = $day [1];
-            $tariffdata ['Time'] [$rulenumber] ['Dhour'] = $day [0];
-            $tariffdata ['Time'] [$rulenumber] ['Nmin'] = $night [1];
-            $tariffdata ['Time'] [$rulenumber] ['Nhour'] = $night [0];
+            $tariffdata['Time'][$rulenumber]['Dmin'] = $day[1];
+            $tariffdata['Time'][$rulenumber]['Dhour'] = $day[0];
+            $tariffdata['Time'][$rulenumber]['Nmin'] = $night[1];
+            $tariffdata['Time'][$rulenumber]['Nhour'] = $night[0];
 
             $inputsDirs .= wf_tag('select', false, '', 'id="dhour' . $dir['rulenumber'] . '"  name="options[dhour][' . $dir['rulenumber'] . ']"');
             $inputsDirs .= wf_tag('option', false, '', '') . '00' . wf_tag('option', true);
-            $inputsDirs .= zb_TariffTimeSelector(24, $tariffdata['Time'][$dir['rulenumber']] ['Dhour']);
+            $inputsDirs .= zb_TariffTimeSelector(24, $tariffdata['Time'][$dir['rulenumber']]['Dhour']);
             $inputsDirs .= wf_tag('select', true);
 
             $inputsDirs .= wf_tag('select', false, '', 'id="dmin' . $dir['rulenumber'] . '"  name="options[dmin][' . $dir['rulenumber'] . ']"');
             $inputsDirs .= wf_tag('option', false, '', '') . '00' . wf_tag('option', true);
-            $inputsDirs .= zb_TariffTimeSelector(60, $tariffdata['Time'][$dir['rulenumber']] ['Dmin']);
+            $inputsDirs .= zb_TariffTimeSelector(60, $tariffdata['Time'][$dir['rulenumber']]['Dmin']);
             $inputsDirs .= wf_tag('select', true);
             $inputsDirs .= ' (' . __('hours') . '/' . __('minutes') . ') ' . __('Day');
 
-            $inputsDirs .= wf_TextInput('options[PriceDay][' . $dir['rulenumber'] . ']', __('Price day'), zb_tariff_yoba_price($tariffdata ["PriceDayA" . $dir['rulenumber']], $tariffdata ["PriceDayB" . $dir['rulenumber']]), false, 3);
-            $inputsDirs .= wf_TextInput('options[Threshold][' . $dir['rulenumber'] . ']', __('Threshold') . ' (' . __('Mb') . ')', $tariffdata ["Threshold$dir[rulenumber]"], true, 3, 'digits');
+            $inputsDirs .= wf_TextInput('options[PriceDay][' . $dir['rulenumber'] . ']', __('Price day'), zb_tariff_yoba_price($tariffdata["PriceDayA" . $dir['rulenumber']], $tariffdata["PriceDayB" . $dir['rulenumber']]), false, 3);
+            $inputsDirs .= wf_TextInput('options[Threshold][' . $dir['rulenumber'] . ']', __('Threshold') . ' (' . __('Mb') . ')', $tariffdata["Threshold$dir[rulenumber]"], true, 3, 'digits');
 
             $inputsDirs .= wf_tag('select', false, '', 'id="nhour' . $dir['rulenumber'] . '"  name="options[nhour][' . $dir['rulenumber'] . ']"');
             $inputsDirs .= wf_tag('option', false, '', '') . '00' . wf_tag('option', true);
-            $inputsDirs .= zb_TariffTimeSelector(24, $tariffdata['Time'][$dir['rulenumber']] ['Nhour']);
+            $inputsDirs .= zb_TariffTimeSelector(24, $tariffdata['Time'][$dir['rulenumber']]['Nhour']);
             $inputsDirs .= wf_tag('select', true);
 
             $inputsDirs .= wf_tag('select', false, '', 'id="nmin' . $dir['rulenumber'] . '"  name="options[nmin][' . $dir['rulenumber'] . ']"');
             $inputsDirs .= wf_tag('option', false, '', '') . '00' . wf_tag('option', true);
-            $inputsDirs .= zb_TariffTimeSelector(60, $tariffdata['Time'][$dir['rulenumber']] ['Nmin']);
+            $inputsDirs .= zb_TariffTimeSelector(60, $tariffdata['Time'][$dir['rulenumber']]['Nmin']);
             $inputsDirs .= wf_tag('select', true);
             $inputsDirs .= ' (' . __('hours') . '/' . __('minutes') . ') ' . __('Night');
-            $inputsDirs .= wf_TextInput('options[PriceNight][' . $dir['rulenumber'] . ']', __('Price night'), zb_tariff_yoba_price($tariffdata ["PriceNightA$dir[rulenumber]"], $tariffdata ["PriceNightB$dir[rulenumber]"]), false, 3);
+            $inputsDirs .= wf_TextInput('options[PriceNight][' . $dir['rulenumber'] . ']', __('Price night'), zb_tariff_yoba_price($tariffdata["PriceNightA$dir[rulenumber]"], $tariffdata["PriceNightB$dir[rulenumber]"]), false, 3);
 
             $inputsDirs .= wf_CheckInput('options[NoDiscount][' . $dir['rulenumber'] . ']', __('Without threshold'), true, $tariffdata["NoDiscount" . $rulenumber]);
             $inputsDirs .= wf_CheckInput('options[SinglePrice][' . $dir['rulenumber'] . ']', __('Price does not depend on time'), true, $tariffdata["SinglePrice" . $rulenumber]);
@@ -5729,7 +5527,7 @@ function web_TariffEditForm($tariffname) {
         $result .= $messages->getStyledMessage(__('Something went wrong') . ': FATAL_TARIFF_NOT_EXISTS', 'error');
     }
 
-    return($result);
+    return ($result);
 }
 
 /**
@@ -5743,7 +5541,7 @@ function web_ProfileSwitchZabbixProblem($login) {
     $login = mysql_real_escape_string($login);
     $query = "SELECT `ip` FROM `switchportassign` LEFT JOIN `switches` ON (switchid=`switches`.`id`) WHERE login = '" . $login . "' LIMIT 1";
 
-//getting switch IP
+    //getting switch IP
     $swIP = simple_query($query);
 
     if (!empty($swIP)) {
@@ -5755,7 +5553,7 @@ function web_ProfileSwitchZabbixProblem($login) {
             $rows = wf_TableRow($cells, 'row3');
 
             foreach ($allProblems as $io => $problemData) {
-// Colorized problem
+                // Colorized problem
                 if ($problemData['severity'] == 5) {
                     $problemColor = wf_tag('font', false, '', 'color="#8B0000"') . wf_tag('b', false);
                     $problemColorEnd = wf_tag('b', true) . wf_tag('font', true);
@@ -5803,7 +5601,9 @@ function zb_array_insert(&$array, $position, $insert) {
     } else {
         $pos = array_search($position, array_keys($array));
         $array = array_merge(
-                array_slice($array, 0, $pos), $insert, array_slice($array, $pos)
+            array_slice($array, 0, $pos),
+            $insert,
+            array_slice($array, $pos)
         );
     }
 }
@@ -5863,7 +5663,7 @@ function web_EasyFreezeForm($login) {
     $inputs .= wf_Submit(__('Freeze user'));
 
     $result = wf_Form('', 'POST', $inputs, 'glamour');
-    return($result);
+    return ($result);
 }
 
 /**
@@ -5885,7 +5685,7 @@ function zb_EasyFreezeController() {
         $dateFrom = ubRouting::post('easyfreezedatefrom');
         $dateTo = ubRouting::post('easyfreezedateto');
 
-        if (zb_checkDate($dateFrom) AND zb_checkDate($dateTo)) {
+        if (zb_checkDate($dateFrom) and zb_checkDate($dateTo)) {
             //freezing
             if (ubRouting::checkPost('easyfreezerightnow')) {
                 //just freeze user right now
@@ -5908,7 +5708,7 @@ function zb_EasyFreezeController() {
             $result .= __('Wrong date format');
         }
     }
-    return($result);
+    return ($result);
 }
 
 /**
@@ -6006,7 +5806,7 @@ function web_ReportSysloadRenderLA() {
     $laGauges .= wf_renderGauge(round($loadAvg[1], 2), '5' . ' ' . __('minutes'), 'LA', $laOpts, 300);
     $laGauges .= wf_renderGauge(round($loadAvg[2], 2), '15' . ' ' . __('minutes'), 'LA', $laOpts, 300);
     $laGauges .= wf_CleanDiv();
-    return($laGauges);
+    return ($laGauges);
 }
 
 /**
@@ -6050,7 +5850,7 @@ function web_ReportSysloadRenderDisksCapacity() {
         }
     }
     $result .= wf_CleanDiv();
-    return($result);
+    return ($result);
 }
 
 /**
@@ -6070,7 +5870,7 @@ function web_ReportSysloadRenderTop() {
         $messages = new UbillingMessageHelper();
         $result .= $messages->getStyledMessage(__('batch top path') . ' ' . __('is empty'), 'error');
     }
-    return($result);
+    return ($result);
 }
 
 /**
@@ -6090,7 +5890,7 @@ function web_ReportSysloadRenderUptime() {
         $messages = new UbillingMessageHelper();
         $result .= $messages->getStyledMessage(__('uptime path') . ' ' . __('is empty'), 'error');
     }
-    return($result);
+    return ($result);
 }
 
 /**
@@ -6102,7 +5902,7 @@ function web_ReportSysloadRenderUptime() {
 function web_ReportSysloadRenderDF() {
     $result = '';
     $result .= wf_tag('pre') . shell_exec('df -h') . wf_tag('pre', true);
-    return($result);
+    return ($result);
 }
 
 /**
@@ -6124,7 +5924,7 @@ function web_AdministratorRegForm() {
     $inputs .= wf_Submit(__('Administrators registration'));
 
     $result .= wf_Form('', 'POST', $inputs, 'floatpanels', '', '', '', 'autocomplete="off"');
-    return($result);
+    return ($result);
 }
 
 /**
@@ -6156,13 +5956,12 @@ function web_AdministratorEditForm($adminLogin) {
         $messages = new UbillingMessageHelper();
         $result .= $messages->getStyledMessage(__('User') . ' ' . $adminLogin, 256 . ' ' . __('Not exists'), 'error');
     }
-    return($result);
+    return ($result);
 }
 
 /**
  * Returns bank statements file upload form.
  * Backported from old banksta API as HotFix. 
- * TODO: need to be replaced where it used with normal forms.
  * 
  * @param string $action
  * @param string $method
@@ -6226,7 +6025,7 @@ function zb_ReadLastLines($filePath, $linesCount) {
         $command = $tailPath . ' -n ' . $linesCount . ' ' . $filePath;
         $result = shell_exec($command);
     }
-    return($result);
+    return ($result);
 }
 
 /**
@@ -6264,7 +6063,7 @@ function zb_rightControl($right, $controlString) {
         //no specific right required to output control
         $result .= $controlString;
     }
-    return($result);
+    return ($result);
 }
 
 /**
@@ -6284,7 +6083,7 @@ function ub_SanitizeData($data, $mres = true) {
     }
     $result = str_replace('"', '``', $result);
     $result = str_replace("'", '`', $result);
-    return($result);
+    return ($result);
 }
 
 /**
@@ -6299,7 +6098,7 @@ function ub_SanitizeData($data, $mres = true) {
  */
 function zb_ParseTagData($openTag, $closeTag, $stringToParse = '', $mutipleResults = false) {
     $result = '';
-    if (!empty($openTag) AND !empty($closeTag) AND !empty($stringToParse)) {
+    if (!empty($openTag) and !empty($closeTag) and !empty($stringToParse)) {
         $replacements = array(
             '(' => '\(',
             ')' => '\)',
@@ -6333,7 +6132,7 @@ function zb_ParseTagData($openTag, $closeTag, $stringToParse = '', $mutipleResul
             }
         }
     }
-    return($result);
+    return ($result);
 }
 
 /**
@@ -6376,7 +6175,7 @@ function zb_isHttpsRequest() {
             $result = true;
         }
     }
-    return($result);
+    return ($result);
 }
 
 /**
@@ -6405,7 +6204,7 @@ function web_GPSLocationFillInputControl($inputId) {
     $result .= wf_tag('script', true);
     $result .= wf_tag('div', false, '', 'id="gpswaitcontainer" style="float:left;"') . wf_tag('div', true);
     $result .= wf_tag('button', false, '', 'type="button" onclick="getGeoPosition();"') . 'GPS ' . __('Location') . wf_tag('button', true);
-    return($result);
+    return ($result);
 }
 
 /**
@@ -6421,4 +6220,147 @@ function zb_cutString($string, $size) {
         $string = mb_substr($string, 0, $size, 'utf-8') . '...';
     }
     return ($string);
+}
+
+/**
+ * Converts a $delimited_string, delimited with $delimiter, like 'abc, defg, abracadabra' or '1, 4,5, 11,'
+ * into a one-dimensional array, like [abc, defg, abracadabra] or [1, 4, 5, 11]
+ * or a two-dimensional associative array, like [abc => abc, defg => defg, abracadabra => abracadabra]
+ *                                           or [1 => 1, 4 => 4, 5 => 5, 11 => 11]
+ * with or without any DUPLICATES
+ *
+ * It supposed that one using this function understands that $assocValuesAsKeys and $allowDuplicates
+ * are two SELF-EXCLUSIONAL parameters
+ *
+ * @param $delimited_string
+ * @param $delimiter
+ * @param $assocValuesAsKeys
+ * @param $allowDuplicates
+ *
+ * @return array
+ */
+function zb_DelimitedStringToArray($delimited_string, $delimiter = ',', $assocValuesAsKeys = false, $allowDuplicates = false) {
+    $result = array();
+    //$allowDuplicates = ($assocValuesAsKeys) ? false : $allowDuplicates;
+
+    if (!empty($delimited_string)) {
+        $tmp_arr = explode($delimiter, trim($delimited_string, $delimiter . ' '));
+
+        foreach ($tmp_arr as $eachElem) {
+            if (!$allowDuplicates and in_array(trim($eachElem), array_values($result))) {
+                continue;
+            }
+
+            if ($assocValuesAsKeys) {
+                $result[trim($eachElem)] = trim($eachElem);
+            } else {
+                $result[] = trim($eachElem);
+            }
+        }
+    }
+
+    return ($result);
+}
+
+/**
+ * Intended to create string suitable for an SQL WHERE IN clause usage from a $delimited_string, delimited with $delimiter
+ *
+ * @param $delimited_string
+ * @param $delimiter
+ * @param $stringINClause
+ *
+ * @return string
+ */
+function zb_DelimitedStringToSQLWHEREIN($delimited_string, $delimiter = ',', $stringINClause = false) {
+    $whereStr  = '';
+    $valuesArr = zb_DelimitedStringToArray($delimited_string, $delimiter);
+
+    if (!empty($valuesArr)) {
+        foreach ($valuesArr as $eachElem) {
+            if (!empty($eachElem)) {
+                $whereStr .= ($stringINClause) ? " '" . $eachElem . "', " : " " . $eachElem . ", ";
+            }
+        }
+
+        $whereStr = trim($whereStr, ', ');
+    }
+
+    return ($whereStr);
+}
+
+/**
+ * Intended to create string suitable for an SQL WHERE IN clause usage from an one-dimensional array of values
+ *
+ * @param $valuesArr
+ * @param $stringINClause
+ *
+ * @return string
+ */
+function zb_ArrayToSQLWHEREIN($valuesArr, $stringINClause = false) {
+    $whereStr  = '';
+
+    if (!empty($valuesArr)) {
+        foreach ($valuesArr as $eachElem) {
+            if (!empty($eachElem)) {
+                $whereStr .= ($stringINClause) ? " '" . $eachElem . "', " : " " . $eachElem . ", ";
+            }
+        }
+
+        $whereStr = trim($whereStr, ', ');
+    }
+
+    return ($whereStr);
+}
+
+/**
+ * Returns game icon and link as standard panel
+ * 
+ * @return string
+ */
+function zb_buildGameIcon($link, $icon, $text) {
+    $icon_path = '';
+    if (!ispos($icon, 'http')) {
+        $icon_path = 'modules/jsc/procrastdata/icons/'; //local icon?
+    }
+
+    $task_link = $link;
+    $task_icon = $icon_path . $icon;
+    $task_text = $text;
+
+    $tbiconsize = '128';
+    $template = wf_tag('div', false, 'dashtask', 'style="height:' . ($tbiconsize + 30) . 'px; width:' . ($tbiconsize + 30) . 'px;"');
+    $template .= wf_tag('a', false, '', 'href="' . $task_link . '"');
+    $template .= wf_tag('img', false, '', 'src="' . $task_icon . '" border="0" width="' . $tbiconsize . '"  height="' . $tbiconsize . '" alt="' . $task_text . '" title="' . $task_text . '"');
+    $template .= wf_tag('a', true);
+    $template .= wf_tag('br');
+    $template .= wf_tag('br');
+    $template .= $task_text;
+    $template .= wf_tag('div', true);
+    return ($template);
+}
+
+/**
+ * Generates a random name based on the current language.
+ *
+ * @return string The generated random name.
+ */
+function zb_GenerateRandomName() {
+    $curLang = curlang();
+    $result = '';
+    switch ($curLang) {
+        case 'uk':
+            $surnames = array("Мельник", "Шевченко", "Коваленко", "Бондаренко", "Бойко", "Ткаченко", "Кравченко", "Ковальчук", "Коваль", "Олійник", "Шевчук", "Поліщук", "Іванова", "Ткачук", "Савченко", "Бондар", "Марченко", "Руденко", "Мороз", "Лисенко", "Петренко", "Клименко", "Павленко", "Кравчук", "Іванов", "Кузьменко", "Пономаренко", "Савчук", "Василенко", "Левченко", "Харченко", "Сидоренко", "Карпенко", "Гаврилюк", "Швець", "Мельничук", "Попова", "Романюк", "Панченко", "Юрченко", "Мазур", "Хоменко", "Попович", "Павлюк", "Кушнір", "Литвиненко", "Мартинюк", "Гончаренко", "Приходько", "Костенко", "Кулик", "Романенко", "Костюк", "Семенюк", "Назаренко", "Ткач", "Кравець", "Коломієць", "Козак", "Яковенко", "Федоренко", "Ковтун", "Білоус", "Нестеренко", "Терещенко", "Колесник", "Попов", "Зінченко", "Тарасенко", "Міщенко", "Вовк", "Демченко", "Дяченко", "Ковальова", "Пилипенко", "Іщенко", "Макаренко", "Бабенко", "Кириченко", "Тищенко", "Тимошенко", "Жук", "Москаленко", "Крюгер", "Вурхіз", "Хьюіт", "Маєрс", "Марчук", "Власенко", "Гуменюк", "Яценко", "Радченко", "Герасименко", "Сергієнко", "Корнієнко", "Гончар", "Мартиненко", "Гордієнко", "Степаненко", "Прокопенко", "Шульга", "Волошин", "Величко", "Денисенко");
+            $names = array("Ніка", "Адріана", "Адріан", "Тіна", "Аліна", "Ангеліна", "Алінка", "Ліна", "Аліса", "Алла", "Альберт", "Альбіна", "Альбінка", "Альфред", "Анастасія", "Настя", "Настася", "Настечка", "Настуня", "Настуся", "Ната", "Стася", "Анатолій", "Толя", "Анжела", "Анжеліка", "Анна", "Ганна", "Аня", "Аннуся", "Анюта", "Нюта", "Антін", "Антон", "Тоня", "Антоніна", "Тося", "Ніна", "Анфіса", "Поліна", "Аркадія", "Аркадій", "Арсен", "Арсеній", "Арсенія", "Сеня", "Артемій", "Аурика", "Афанасія", "Афанасій", "Барбара", "Богдана", "Богдан", "Богданка", "Даня", "Богуслава", "Богуслав", "Богуся", "Слава", "Божена", "Борислав", "Броніслава", "Броніслав", "Валентина", "Валентин", "Валерія", "Валерій", "Варвара", "Варонька", "Василина", "Василь", "Вася", "Вероніка", "Віра", "Віка", "Віта", "Вікторія", "Лена", "Іна", "Інна", "Оля", "Віолетта", "Віолета", "Вірослава", "Вірослав", "Віталій", "Віталія", "Влада", "Владислава", "Влад", "Лада", "Владилена", "Владилен", "Влада", "Лада", "Владислав", "Владлина", "Владлин", "Владлен", "Владлєн", "Володимир", "Володя", "В'ячеслава", "В'ячеслав", "Вячеслава", "Вячеслав", "Галина", "Галя", "Галка", "Олена", "Георгій", "Іна", "Гертруда", "Горислава", "Дарина", "Даша", "Дарія", "Даринка", "Дарка", "Діана", "Діна", "Елеонора", "Єлизавета", "Ерік", "Євгенія", "Євген", "Женя", "Дуня", "Єкатерина", "Катерина", "Ліза", "Жанна", "Іванна", "Зіна", "Зоряна", "Зоря", "Іван", "Іванка", "Ігор", "Ілона", "Інга", "Інна", "Ірина", "Іра", "Ірма", "Йосип", "Карина", "Катя", "Кіра", "Лара", "Лєра", "Костя", "Корнелія", "Корнелій", "Ксенія", "Оксана", "Ксеня", "Лариса", "Лев", "Леся", "Олеся", "Олександра", "Лідія", "Лілія", "Ліля", "Любов", "Люба", "Любомира", "Людмила", "Люся", "Люда", "Любослава", "Ляна", "Маргарита", "Маруся", "Марта", "Марія", "Марійка", "Марічка", "Маша", "Марина", "Міла", "Мирослава", "Мирослав", "Міра", "Михайло", "Надія", "Надя", "Наталка", "Наташа", "Саня", "Єлена", "Оленка", "Олівія", "Ольга", "Олег", "Орест", "Павло", "Паша", "Параска", "Регіна", "Римма", "Ярина", "Роза", "Роксана", "Роксолана", "Роман", "Ростислава", "Ростислав", "Руслана", "Руслан", "Лана", "Сара", "Світлана", "Свєта", "Святослав", "Серафима", "Серафим", "Семен", "Сніжана", "Соломія", "Соня", "Софія", "Софійка", "Софа", "Станіслав", "Сюзанна", "Таїсія", "Тася", "Тая", "Тамара", "Тома", "Тетяна", "Таня", "Христина", "Юлія", "Уляна", "Тіна", "Христя", "Юля", "Яна", "Ян", "Ярослава", "Ярослав", "Адам", "Адріян", "Адріан", "Анатолій", "Андрій", "Антон", "Аркадій", "Арсен", "Арсеній", "Артем", "Артур", "Богдан", "Богуслав", "Борис", "Валентин", "Валерій", "Василь", "Вадим", "Вадім", "Вадік", "Вадик", "Віктор", "Віталій", "Влад", "Владислав", "Володимир", "Всеволод", "В'ячеслав", "Вячеслав", "Гаврило", "Геннадій", "Генадій", "Георгій", "Герасим", "Гліб", "Глеб", "Гнат", "Григорій", "Данило", "Денис", "Дмитро", "Євген", "Євгеній", "Зорян", "Іван", "Ігор", "Ілля", "Кирило", "Костянтин", "Лев", "Левко", "Леонід", "Лук'ян", "Лукян", "Любомир", "Маркіян", "Макар", "Максим", "Макс", "Марко", "Матвій", "Микита", "Микола", "Мирон", "Мирослав", "Михайло", "Нестор", "Олег", "Олександр", "Олексій", "Омелян", "Орест", "Остап", "Павло", "Пантелеймон", "Панас", "Петро", "Пилип", "Потап", "Родіон", "Роман", "Ростислав", "Руслан", "Святослав", "Семен", "Сергій", "Слава", "Станислав", "Станіслав", "Степан", "Тарас", "Федір", "Яків", "Ян", "Ярослав");
+            break;
+        case 'ru':
+            $surnames = array("Смирнов", "Иванов", "Кузнецов", "Соколов", "Попов", "Лебедев", "Козлов", "Новиков", "Морозов", "Петров", "Волков", "Соловьёв", "Васильев", "Зайцев", "Павлов", "Семёнов", "Голубев", "Виноградов", "Богданов", "Воробьёв", "Фёдоров", "Михайлов", "Беляев", "Тарасов", "Белов", "Комаров", "Орлов", "Киселёв", "Макаров", "Андреев", "Ковалёв", "Ильин", "Гусев", "Титов", "Кузьмин", "Кудрявцев", "Баранов", "Куликов", "Алексеев", "Степанов", "Яковлев", "Сорокин", "Сергеев", "Романов", "Захаров", "Борисов", "Королёв", "Герасимов", "Пономарёв", "Григорьев", "Лазарев", "Медведев", "Ершов", "Никитин", "Соболев", "Рябов", "Поляков", "Цветков", "Данилов", "Жуков", "Фролов", "Журавлёв", "Николаев", "Крылов", "Максимов", "Сидоров", "Осипов", "Белоусов", "Федотов", "Дорофеев", "Егоров", "Матвеев", "Бобров", "Дмитриев", "Калинин", "Анисимов", "Петухов", "Антонов", "Тимофеев", "Никифоров", "Веселов", "Филиппов", "Марков", "Большаков", "Суханов", "Миронов", "Ширяев", "Александров", "Коновалов", "Шестаков", "Казаков", "Ефимов", "Денисов", "Громов", "Фомин", "Давыдов", "Мельников", "Щербаков", "Блинов", "Колесников", "Карпов", "Афанасьев", "Власов", "Маслов", "Исаков", "Тихонов", "Аксёнов", "Гаврилов", "Родионов", "Котов", "Горбунов", "Кудряшов", "Быков", "Зуев", "Третьяков", "Савельев", "Панов", "Рыбаков", "Суворов", "Абрамов", "Воронов", "Мухин", "Архипов", "Трофимов", "Мартынов", "Емельянов", "Горшков", "Чернов", "Овчинников", "Селезнёв", "Панфилов", "Копылов", "Михеев", "Галкин", "Назаров", "Лобанов", "Лукин", "Беляков", "Потапов", "Некрасов", "Жданов", "Наумов", "Шилов", "Воронцов", "Ермаков", "Дроздов", "Игнатьев", "Савин", "Логинов", "Сафонов", "Капустин", "Кириллов", "Моисеев", "Елисеев", "Кошелев", "Костин", "Горбачёв", "Орехов", "Ефремов", "Исаев", "Евдокимов", "Калашников", "Кабанов", "Носков", "Юдин", "Кулагин", "Лапин", "Прохоров", "Нестеров", "Харитонов", "Агафонов", "Муравьёв", "Ларионов", "Федосеев", "Зимин", "Пахомов", "Шубин", "Игнатов", "Филатов", "Крюков", "Рогов", "Кулаков", "Терентьев", "Молчанов", "Владимиров", "Артемьев", "Гурьев", "Зиновьев", "Гришин", "Кононов", "Дементьев", "Ситников", "Симонов", "Мишин", "Фадеев", "Комиссаров", "Мамонтов", "Носов", "Гуляев", "Шаров", "Устинов", "Вишняков", "Евсеев", "Лаврентьев", "Брагин", "Константинов", "Корнилов", "Авдеев", "Зыков", "Бирюков", "Шарапов", "Никонов", "Щукин", "Дьячков", "Одинцов", "Сазонов", "Якушев", "Красильников", "Гордеев", "Самойлов", "Князев", "Беспалов", "Уваров", "Шашков", "Бобылёв", "Доронин", "Белозёров", "Рожков", "Самсонов", "Мясников", "Лихачёв", "Буров", "Сысоев", "Фомичёв", "Русаков", "Стрелков", "Гущин", "Тетерин", "Колобов", "Субботин", "Фокин", "Блохин", "Селиверстов", "Пестов", "Кондратьев", "Силин", "Меркушев", "Лыткин", "Туров");
+            $names = array("Аарон", "Абрам", "Аваз", "Аввакум", "Август", "Авдей", "Авраам", "Автандил", "Агап", "Агафон", "Аггей", "Адам", "Адис", "Адольф", "Адриан", "Азарий", "Азат", "Айрат", "Акакий", "Аким", "Алан", "Александр", "Алексей", "Али", "Алихан", "Алоиз", "Альберт", "Альфред", "Амадей", "Амадеус", "Амаяк", "Амвросий", "Анатолий", "Анвар", "Ангел", "Андоим", "Андре", "Андрей", "Аникита", "Антон", "Ануфрий", "Аполлинарий", "Арам", "Арий", "Аристарх", "Аркадий", "Арман", "Армен", "Арно", "Арнольд", "Арсений", "Арслан", "Артем", "Артемий", "Артур", "Архип", "Аскольд", "Афанасий", "Ахмет", "Ашот", "Бежен", "Бенедикт", "Берек", "Бернар", "Богдан", "Боголюб", "Болеслав", "Бонифаций", "Борис", "Борислав", "Боян", "Бруно", "Булат", "Вадим", "Валентин", "Валерий", "Вальтер", "Вардан", "Варлаам", "Варфоломей", "Василий", "Вацлав", "Велизар", "Велор", "Венедикт", "Вениамин", "Викентий", "Виктор", "Вилен", "Вилли", "Вильгельм", "Виссарион", "Виталий", "Витаутас", "Витольд", "Владимир", "Владислав", "Владлен", "Влас", "Володар", "Вольдемар", "Всеволод", "Вячеслав", "Гавриил", "Галактион", "Гарри", "Гастон", "Гаяс", "Гевор", "Геворг", "Геннадий", "Генрих", "Георгий", "Геральд", "Герасим", "Герман", "Глеб", "Гордей", "Гордон", "Горислав", "Градимир", "Григорий", "Гурий", "Густав", "Давид", "Дамир", "Даниил", "Данияр", "Демид", "Демьян", "Денис", "Джамал", "Джереми", "Джордан", "Динасий", "Дмитрий", "Добрыня", "Дональд", "Донат", "Донатос", "Дорофей", "Евгений", "Евграф", "Евдоким", "Евсей", "Евстафий", "Егор", "Елизар", "Елисей", "Емельян", "Еремей", "Ермолай", "Ерофей", "Ефим", "Ефимий", "Ефрем", "Жан", "Ждан", "Жорж", "Заур", "Захар", "Зигмунд", "Зиновий", "Ибрагим", "Иван", "Игнат", "Игорь", "Иероним", "Измаил", "Израиль", "Илиан", "Илларион", "Ильхам", "Илья", "Ильяс", "Иннокентий", "Ион", "Ионос", "Иосиф", "Ипполит", "Ираклий", "Иржи", "Исаак", "Исай", "Исидор", "Искандер", "Казимир", "Камиль", "Карен", "Карим", "Карл", "Ким", "Кирилл", "Клавдий", "Клаус", "Клемент", "Клим", "Клод", "Кондрат", "Конкордий", "Конрад", "Константин", "Корней", "Корнилий", "Ксанф", "Кузьма", "Лаврентий", "Лазарь", "Лев", "Леван", "Левон", "Ленар", "Леон", "Леонард", "Леонид", "Леонтий", "Леопольд", "Лука", "Лукьян", "Любим", "Любомир", "Людвиг", "Люсьен", "Мадлен", "Май", "Макар", "Максим", "Максимилиан", "Максуд", "Мансур", "Мануил", "Марат", "Мариан", "Марк", "Марсель", "Мартин", "Матвей", "Махмуд", "Мераб", "Мефодий", "Мечеслав", "Милан", "Мирон", "Мирослав", "Митрофан", "Михаил", "Мичлов", "Модест", "Моисей", "Мстислав", "Мурат", "Муслим", "Назар", "Назарий", "Наиль", "Натан", "Наум", "Нестор", "Никанор", "Никита", "Никифор", "Никодим", "Николай", "Никон", "Нильс", "Нисон", "Нифонт", "Норманн", "Овидий", "Олан", "Олег", "Олесь", "Онисим", "Орест", "Осип", "Оскар", "Остап", "Павел", "Панкрат", "Парамон", "Петр", "Пимен", "Платон", "Порфирий", "Потап", "Прокофий", "Прохор", "Равиль", "Радий", "Раймонд", "Раис", "Рамиз", "Рамиль", "Расим", "Ратибор", "Ратмир", "Рафаил", "Рафик", "Рашид", "Рем", "Ренольд", "Ринат", "Рифат", "Рихард", "Ричард", "Роберт", "Родион", "Ролан", "Роман", "Ростислав", "Рубен", "Рудольф", "Руслан", "Рустам", "Рушан", "Сабир", "Савва", "Савелий", "Самсон", "Самуил", "Святослав", "Севастьян", "Северин", "Семен", "Серафим", "Сергей", "Сократ", "Соломон", "Спартак", "Стакрат", "Станимир", "Станислав", "Степан", "Стивен", "Стоян", "Султан", "Таис", "Талик", "Тамаз", "Тарас", "Тельман", "Теодор", "Терентий", "Тибор", "Тигран", "Тигрий", "Тимофей", "Тимур", "Тит", "Тихон", "Томас", "Трифон", "Трофим", "Ульманас", "Устин", "Фаддей", "Фанис", "Фарид", "Фархад", "Федор", "Федот", "Феликс", "Феодосий", "Фердинанд", "Фидель", "Филимон", "Филипп", "Флорентий", "Фома", "Франц", "Фридрих", "Фуад", "Харитон", "Христиан", "Христос", "Христофор", "Цезарь", "Чеслав", "Чингиз", "Шамиль", "Шерлок", "Эдвард", "Эдгар", "Эдмунд", "Эдуард", "Эльдар", "Эмиль", "Эмин", "Эммануил", "Эраст", "Эрик", "Эрнест", "Юлиан", "Юлий", "Юрий", "Юхим", "Яким", "Яков", "Ян", "Януарий", "Яромир", "Ярослав", "Ясон");
+            break;
+        default:
+            $surnames = array("Smith", "Johnson", "Williams", "Brown", "Jones", "Garcia", "Miller", "Davis", "Rodriguez", "Martinez", "Hernandez", "Lopez", "Gonzalez", "Wilson", "Anderson", "Thomas", "Taylor", "Moore", "Jackson", "Martin", "Lee", "Perez", "Thompson", "White", "Harris", "Sanchez", "Clark", "Ramirez", "Lewis", "Robinson", "Walker", "Young", "Allen", "King", "Wright", "Scott", "Torres", "Nguyen", "Hill", "Flores", "Green", "Adams", "Nelson", "Baker", "Hall", "Rivera", "Campbell", "Mitchell", "Carter", "Roberts", "Gomez", "Phillips", "Evans", "Turner", "Diaz", "Parker", "Cruz", "Edwards", "Collins", "Reyes", "Stewart", "Morris", "Morales", "Murphy", "Cook", "Rogers", "Gutierrez", "Ortiz", "Morgan", "Cooper", "Peterson", "Bailey", "Reed", "Kelly", "Howard", "Ramos", "Kim", "Cox", "Ward", "Richardson", "Watson", "Brooks", "Chavez", "Wood", "James", "Bennett", "Gray", "Mendoza", "Ruiz", "Hughes", "Price", "Alvarez", "Castillo", "Sanders", "Patel", "Myers", "Long", "Ross", "Foster", "Jimenez", "Powell", "Jenkins", "Perry", "Russell", "Sullivan", "Bell", "Coleman", "Butler", "Henderson", "Barnes", "Gonzales", "Fisher", "Vasquez", "Simmons", "Romero", "Jordan", "Patterson", "Alexander", "Hamilton", "Graham", "Reynolds", "Griffin", "Wallace", "Moreno", "West", "Cole", "Hayes", "Bryant", "Herrera", "Gibson", "Ellis", "Tran", "Medina", "Aguilar", "Stevens", "Murray", "Ford", "Castro", "Marshall", "Owens", "Harrison", "Fernandez", "Mcdonald", "Woods", "Washington", "Kennedy", "Wells", "Vargas", "Henry", "Chen", "Freeman", "Webb", "Tucker", "Guzman", "Burns", "Crawford", "Olson", "Simpson", "Porter", "Hunter", "Gordon", "Mendez", "Silva", "Shaw", "Snyder", "Mason", "Dixon", "Munoz", "Hunt", "Hicks", "Holmes", "Palmer", "Wagner", "Black", "Robertson", "Boyd", "Rose", "Stone", "Salazar", "Fox", "Warren", "Mills", "Meyer", "Rice", "Schmidt", "Garza", "Daniels", "Ferguson", "Nichols", "Stephens", "Soto", "Weaver", "Ryan", "Gardner", "Payne", "Grant", "Dunn", "Kelley", "Spencer", "Hawkins", "Arnold", "Pierce", "Vazquez", "Hansen", "Peters", "Santos", "Hart", "Bradley", "Knight", "Elliott", "Cunningham", "Duncan", "Armstrong", "Hudson", "Carroll", "Lane", "Riley", "Andrews", "Alvarado", "Ray", "Delgado", "Berry", "Perkins", "Hoffman", "Johnston", "Matthews", "Pena", "Richards", "Contreras", "Willis", "Carpenter", "Lawrence", "Sandoval", "Guerrero", "George", "Chapman", "Rios", "Estrada", "Ortega", "Watkins", "Greene", "Nunez", "Wheeler", "Valdez", "Harper", "Burke", "Larson", "Santiago", "Maldonado", "Morrison", "Franklin", "Carlson", "Austin", "Dominguez", "Carr", "Lawson", "Jacobs", "Obrien", "Lynch", "Singh", "Vega", "Bishop", "Montgomery", "Oliver", "Jensen", "Harvey", "Williamson", "Gilbert", "Dean", "Sims", "Espinoza", "Howell", "Li", "Wong", "Reid", "Hanson", "Le", "Mccoy", "Garrett", "Burton", "Fuller", "Wang", "Weber", "Welch", "Rojas", "Lucas", "Marquez", "Fields", "Park", "Yang", "Little", "Banks", "Padilla", "Day", "Walsh", "Bowman", "Schultz", "Luna", "Fowler", "Mejia", "Davidson", "Acosta", "Brewer", "May", "Holland", "Juarez", "Newman", "Pearson", "Curtis", "Cortez", "Douglas", "Schneider", "Joseph", "Barrett", "Navarro", "Figueroa", "Keller", "Avila", "Wade", "Molina", "Stanley", "Hopkins", "Campos", "Barnett", "Bates", "Chambers", "Caldwell", "Beck", "Lambert", "Miranda", "Byrd", "Craig", "Ayala", "Lowe", "Frazier", "Powers", "Neal", "Leonard", "Gregory", "Carrillo", "Sutton", "Fleming", "Rhodes", "Shelton", "Schwartz", "Norris", "Jennings", "Watts", "Duran", "Walters", "Cohen", "Mcdaniel", "Moran", "Parks", "Steele", "Vaughn", "Becker", "Holt", "Deleon", "Barker", "Terry", "Hale", "Leon", "Hail", "Benson", "Haynes", "Horton", "Miles", "Lyons", "Pham", "Graves", "Bush", "Thornton", "Wolfe", "Warner", "Cabrera", "Mckinney", "Mann", "Zimmerman", "Dawson", "Lara", "Fletcher", "Page", "Mccarthy", "Love", "Robles", "Cervantes", "Solis", "Erickson", "Reeves", "Chang", "Klein", "Salinas", "Fuentes", "Baldwin", "Daniel", "Simon", "Velasquez", "Hardy", "Higgins", "Aguirre", "Lin", "Cummings", "Chandler", "Sharp", "Barber", "Bowen", "Ochoa", "Dennis", "Robbins", "Liu", "Ramsey", "Francis", "Griffith", "Paul", "Blair", "Oconnor", "Cardenas", "Pacheco", "Cross", "Calderon", "Quinn", "Moss", "Swanson", "Chan", "Rivas", "Khan", "Rodgers", "Serrano", "Fitzgerald", "Rosales", "Stevenson", "Christensen", "Manning", "Gill", "Curry", "Mclaughlin", "Harmon", "Mcgee", "Gross", "Doyle", "Garner", "Newton", "Burgess", "Reese", "Walton", "Blake", "Trujillo", "Adkins", "Brady", "Goodman", "Roman", "Webster", "Goodwin", "Fischer", "Huang", "Potter", "Delacruz", "Montoya", "Todd", "Wu", "Hines", "Mullins", "Castaneda", "Malone", "Cannon", "Tate", "Mack", "Sherman", "Hubbard", "Hodges", "Zhang", "Guerra", "Wolf", "Valencia", "Franco", "Saunders", "Rowe", "Gallagher", "Farmer", "Hammond", "Hampton", "Townsend", "Ingram", "Wise", "Gallegos", "Clarke", "Barton", "Schroeder", "Maxwell", "Waters", "Logan", "Camacho", "Strickland", "Norman", "Person", "Colon", "Parsons", "Frank", "Harrington", "Glover", "Osborne", "Buchanan", "Casey", "Floyd", "Patton", "Ibarra", "Ball", "Tyler", "Suarez", "Bowers", "Orozco", "Salas", "Cobb", "Gibbs", "Andrade", "Bauer", "Conner", "Moody", "Escobar", "Mcguire", "Lloyd", "Mueller", "Hartman", "French", "Kramer", "Mcbride", "Pope", "Lindsey", "Velazquez", "Norton", "Mccormick", "Sparks", "Flynn", "Yates", "Hogan", "Marsh", "Macias", "Villanueva", "Zamora", "Pratt", "Stokes", "Owen", "Ballard", "Lang", "Brock", "Villarreal", "Charles", "Drake", "Barrera", "Cain", "Patrick", "Pineda", "Burnett", "Mercado", "Santana", "Shepherd", "Bautista", "Ali", "Shaffer", "Lamb", "Trevino", "Mckenzie", "Hess", "Beil", "Olsen", "Cochran", "Morton", "Nash", "Wilkins", "Petersen", "Briggs", "Shah", "Roth", "Nicholson", "Holloway", "Lozano", "Flowers", "Rangel", "Hoover", "Arias", "Short", "Mora", "Valenzuela", "Bryan", "Meyers", "Weiss", "Underwood", "Bass", "Greer", "Summers", "Houston", "Carson", "Morrow", "Clayton", "Whitaker", "Decker", "Yoder", "Collier", "Zuniga", "Carey", "Wilcox", "Melendez", "Poole", "Roberson", "Larsen", "Conley", "Davenport", "Copeland", "Massey", "Lam", "Huff", "Rocha", "Cameron", "Jefferson", "Hood", "Monroe", "Anthony", "Pittman", "Huynh", "Randall", "Singleton", "Kirk", "Combs", "Mathis", "Christian", "Skinner", "Bradford", "Richard", "Galvan", "Wall", "Boone", "Kirby", "Wilkinson", "Bridges", "Bruce", "Atkinson", "Velez", "Meza", "Roy", "Vincent", "York", "Hodge", "Villa", "Abbott", "Allison", "Tapia", "Gates", "Chase", "Sosa", "Sweeney", "Farrell", "Wyatt", "Dalton", "Horn", "Barron", "Phelps", "Yu", "Dickerson", "Heath", "Foley", "Atkins", "Mathews", "Bonilla", "Acevedo", "Benitez", "Zavala", "Hensley", "Glenn", "Cisneros", "Harrell", "Shields", "Rubio", "Choi", "Huffman", "Boyer", "Garrison", "Arroyo", "Bond", "Kane", "Hancock", "Callahan", "Dillon", "Cline", "Wiggins", "Grimes", "Arellano", "Melton", "Oneill", "Savage", "Ho", "Beltran", "Pitts", "Parrish", "Ponce", "Rich", "Booth", "Koch", "Golden", "Ware", "Brennan", "Mcdowell", "Marks", "Cantu", "Humphrey", "Baxter", "Sawyer", "Clay", "Tanner", "Hutchinson", "Kaur", "Berg", "Wiley", "Gilmore", "Russo", "Villegas", "Hobbs", "Keith", "Wilkerson", "Ahmed", "Beard", "Mcclain", "Montes", "Mata", "Rosario", "Vang", "S", "S", "Walter", "Henson", "Oneal", "Mosley", "Mcclure", "Beasley", "Stephenson", "Snow", "Huerta", "Preston", "Vance", "Barry", "Johns", "Eaton", "Blackwell", "Dyer", "Prince", "Macdonald", "Solomon", "Guevara", "Stafford", "English", "Hurst", "Woodard", "Cortes", "Shannon", "Kemp", "Nolan", "Mccullough", "Merritt", "Murillo", "Moon", "Salgado", "Strong", "Kline", "Cordova", "Barajas", "Roach", "Rosas", "Winters", "Jacobson", "Lester", "Knox", "Bullock", "Kerr", "Leach", "Meadows", "Davila", "Orr", "Whitehead", "Pruitt", "Kent", "Conway", "Mckee", "Barr", "David", "Dejesus", "Marin", "Berger", "Mcintyre", "Blankenship", "Gaines", "Palacios", "Cuevas", "Bartlett", "Durham", "Dorsey", "Mccall", "Odonnell", "Stein", "Browning", "Stout", "Lowery", "Sloan", "Mclean", "Hendricks", "Calhoun", "Sexton", "Chung", "Gentry", "Hull", "Duarte", "Ellison", "Nielsen", "Gillespie", "Buck", "Middleton", "Sellers", "Leblanc", "Esparza", "Hardin", "Bradshaw", "Mcintosh", "Howe", "Livingston", "Frost", "Glass", "Morse", "Knapp", "Herman", "Stark", "Bravo", "Noble", "Spears", "Weeks", "Corona", "Frederick", "Buckley", "Mcfarland", "Hebert", "Enriquez", "Hickman", "Quintero", "Randolph", "Schaefer", "Walls", "Trejo", "House", "Reilly", "Pennington", "Michael", "Conrad", "Giles", "Benjamin", "Crosby", "Fitzpatrick", "Donovan", "Mays", "Mahoney", "Valentine", "Raymond", "Medrano", "Hahn", "Mcmillan", "Small", "Bentley", "Felix", "Peck", "Lucero", "Boyle", "Hanna", "Pace", "Rush", "Hurley", "Harding", "Mcconnell", "Bernal", "Nava", "Ayers", "Everett", "Ventura", "Avery", "Pugh", "Mayer", "Bender", "Shepard", "Mcmahon", "Landry", "Case", "Sampson", "Moses", "Magana", "Blackburn", "Dunlap", "Gould", "Duffy", "Vaughan", "Herring", "Mckay", "Espinosa", "Rivers", "Farley", "Bernard", "Ashley", "Friedman", "Potts", "Truong", "Costa", "Correa", "Blevins", "Nixon", "Clements", "Fry", "Delarosa", "Best", "Benton", "Lugo", "Portillo", "Dougherty", "Crane", "Haley", "Phan", "Villalobos", "Blanchard", "Horne", "Finley", "Quintana", "Lynn", "Esquivel", "Bean", "Dodson", "Mullen", "Xiong", "Hayden", "Cano", "Levy", "Huber", "Richmond", "Moyer", "Lim", "Frye", "Sheppard", "Mccarty", "Avalos", "Booker", "Waller", "Parra", "Woodward", "Jaramillo", "Krueger", "Rasmussen", "Brandt", "Peralta", "Donaldson", "Stuart", "Faulkner", "Maynard", "Galindo", "Coffey", "Estes", "Sanford", "Burch", "Maddox", "Vo", "Oconnell", "Vu", "Andersen", "Spence", "Mcpherson", "Church", "Schmitt", "Stanton", "Leal", "Cherry", "Compton", "Dudley", "Sierra", "Pollard", "Alfaro", "Hester", "Proctor", "Lu", "Hinton", "Novak", "Good", "Madden", "Mccann", "Terrell", "Jarvis", "Dickson", "Reyna", "Cantrell", "Mayo", "Branch", "Hendrix", "Rollins", "Rowland", "Whitney", "Duke", "Odom", "Daugherty", "Travis", "Tang");
+            $names = array("Aaren", "Aarika", "Abagael", "Abagail", "Abbe", "Abbey", "Abbi", "Abbie", "Abby", "Abbye", "Abigael", "Abigail", "Abigale", "Abra", "Ada", "Adah", "Adaline", "Adan", "Adara", "Adda", "Addi", "Addia", "Addie", "Addy", "Adel", "Adela", "Adelaida", "Adelaide", "Adele", "Adelheid", "Adelice", "Adelina", "Adelind", "Adeline", "Adella", "Adelle", "Adena", "Adey", "Adi", "Adiana", "Adina", "Adora", "Adore", "Adoree", "Adorne", "Adrea", "Adria", "Adriaens", "Adrian", "Adriana", "Adriane", "Adrianna", "Adrianne", "Adriena", "Adrienne", "Aeriel", "Aeriela", "Aeriell", "Afton", "Ag", "Agace", "Agata", "Agatha", "Agathe", "Aggi", "Aggie", "Aggy", "Agna", "Agnella", "Agnes", "Agnese", "Agnesse", "Agneta", "Agnola", "Agretha", "Aida", "Aidan", "Aigneis", "Aila", "Aile", "Ailee", "Aileen", "Ailene", "Ailey", "Aili", "Ailina", "Ailis", "Ailsun", "Ailyn", "Aime", "Aimee", "Aimil", "Aindrea", "Ainslee", "Ainsley", "Ainslie", "Ajay", "Alaine", "Alameda", "Alana", "Alanah", "Alane", "Alanna", "Alayne", "Alberta", "Albertina", "Albertine", "Albina", "Alecia", "Aleda", "Aleece", "Aleen", "Alejandra", "Alejandrina", "Alena", "Alene", "Alessandra", "Aleta", "Alethea", "Alex", "Alexa", "Alexandra", "Alexandrina", "Alexi", "Alexia", "Alexina", "Alexine", "Alexis", "Alfi", "Alfie", "Alfreda", "Alfy", "Ali", "Alia", "Alica", "Alice", "Alicea", "Alicia", "Alida", "Alidia", "Alie", "Alika", "Alikee", "Alina", "Aline", "Alis", "Alisa", "Alisha", "Alison", "Alissa", "Alisun", "Alix", "Aliza", "Alla", "Alleen", "Allegra", "Allene", "Alli", "Allianora", "Allie", "Allina", "Allis", "Allison", "Allissa", "Allix", "Allsun", "Allx", "Ally", "Allyce", "Allyn", "Allys", "Allyson", "Alma", "Almeda", "Almeria", "Almeta", "Almira", "Almire", "Aloise", "Aloisia", "Aloysia", "Alta", "Althea", "Alvera", "Alverta", "Alvina", "Alvinia", "Alvira", "Alyce", "Alyda", "Alys", "Alysa", "Alyse", "Alysia", "Alyson", "Alyss", "Alyssa", "Amabel", "Amabelle", "Amalea", "Amalee", "Amaleta", "Amalia", "Amalie", "Amalita", "Amalle", "Amanda", "Amandi", "Amandie", "Amandy", "Amara", "Amargo", "Amata", "Amber", "Amberly", "Ambur", "Ame", "Amelia", "Amelie", "Amelina", "Ameline", "Amelita", "Ami", "Amie", "Amii", "Amil", "Amitie", "Amity", "Ammamaria", "Amy", "Amye", "Ana", "Anabal", "Anabel", "Anabella", "Anabelle", "Analiese", "Analise", "Anallese", "Anallise", "Anastasia", "Anastasie", "Anastassia", "Anatola", "Andee", "Andeee", "Anderea", "Andi", "Andie", "Andra", "Andrea", "Andreana", "Andree", "Andrei", "Andria", "Andriana", "Andriette", "Andromache", "Andy", "Anestassia", "Anet", "Anett", "Anetta", "Anette", "Ange", "Angel", "Angela", "Angele", "Angelia", "Angelica", "Angelika", "Angelina", "Angeline", "Angelique", "Angelita", "Angelle", "Angie", "Angil", "Angy", "Ania", "Anica", "Anissa", "Anita", "Anitra", "Anjanette", "Anjela", "Ann", "Ann-Marie", "Anna", "Anna-Diana", "Anna-Diane", "Anna-Maria", "Annabal", "Annabel", "Annabela", "Annabell", "Annabella", "Annabelle", "Annadiana", "Annadiane", "Annalee", "Annaliese", "Annalise", "Annamaria", "Annamarie", "Anne", "Anne-Corinne", "Anne-Marie", "Annecorinne", "Anneliese", "Annelise", "Annemarie", "Annetta", "Annette", "Anni", "Annice", "Annie", "Annis", "Annissa", "Annmaria", "Annmarie", "Annnora", "Annora", "Anny", "Anselma", "Ansley", "Anstice", "Anthe", "Anthea", "Anthia", "Anthiathia", "Antoinette", "Antonella", "Antonetta", "Antonia", "Antonie", "Antonietta", "Antonina", "Anya", "Appolonia", "April", "Aprilette", "Ara", "Arabel", "Arabela", "Arabele", "Arabella", "Arabelle", "Arda", "Ardath", "Ardeen", "Ardelia", "Ardelis", "Ardella", "Ardelle", "Arden", "Ardene", "Ardenia", "Ardine", "Ardis", "Ardisj", "Ardith", "Ardra", "Ardyce", "Ardys", "Ardyth", "Aretha", "Ariadne", "Ariana", "Aridatha", "Ariel", "Ariela", "Ariella", "Arielle", "Arlana", "Arlee", "Arleen", "Arlen", "Arlena", "Arlene", "Arleta", "Arlette", "Arleyne", "Arlie", "Arliene", "Arlina", "Arlinda", "Arline", "Arluene", "Arly", "Arlyn", "Arlyne", "Aryn", "Ashely", "Ashia", "Ashien", "Ashil", "Ashla", "Ashlan", "Ashlee", "Ashleigh", "Ashlen", "Ashley", "Ashli", "Ashlie", "Ashly", "Asia", "Astra", "Astrid", "Astrix", "Atalanta", "Athena", "Athene", "Atlanta", "Atlante", "Auberta", "Aubine", "Aubree", "Aubrette", "Aubrey", "Aubrie", "Aubry", "Audi", "Audie", "Audra", "Audre", "Audrey", "Audrie", "Audry", "Audrye", "Audy", "Augusta", "Auguste", "Augustina", "Augustine", "Aundrea", "Aura", "Aurea", "Aurel", "Aurelea", "Aurelia", "Aurelie", "Auria", "Aurie", "Aurilia", "Aurlie", "Auroora", "Aurora", "Aurore", "Austin", "Austina", "Austine", "Ava", "Aveline", "Averil", "Averyl", "Avie", "Avis", "Aviva", "Avivah", "Avril", "Avrit", "Ayn", "Bab", "Babara", "Babb", "Babbette", "Babbie", "Babette", "Babita", "Babs", "Bambi", "Bambie", "Bamby", "Barb", "Barbabra", "Barbara", "Barbara-Anne", "Barbaraanne", "Barbe", "Barbee", "Barbette", "Barbey", "Barbi", "Barbie", "Barbra", "Barby", "Bari", "Barrie", "Barry", "Basia", "Bathsheba", "Batsheva", "Bea", "Beatrice", "Beatrisa", "Beatrix", "Beatriz", "Bebe", "Becca", "Becka", "Becki", "Beckie", "Becky", "Bee", "Beilul", "Beitris", "Bekki", "Bel", "Belia", "Belicia", "Belinda", "Belita", "Bell", "Bella", "Bellanca", "Belle", "Bellina", "Belva", "Belvia", "Bendite", "Benedetta", "Benedicta", "Benedikta", "Benetta", "Benita", "Benni", "Bennie", "Benny", "Benoite", "Berenice", "Beret", "Berget", "Berna", "Bernadene", "Bernadette", "Bernadina", "Bernadine", "Bernardina", "Bernardine", "Bernelle", "Bernete", "Bernetta", "Bernette", "Berni", "Bernice", "Bernie", "Bernita", "Berny", "Berri", "Berrie", "Berry", "Bert", "Berta", "Berte", "Bertha", "Berthe", "Berti", "Bertie", "Bertina", "Bertine", "Berty", "Beryl", "Beryle", "Bess", "Bessie", "Bessy", "Beth", "Bethanne", "Bethany", "Bethena", "Bethina", "Betsey", "Betsy", "Betta", "Bette", "Bette-Ann", "Betteann", "Betteanne", "Betti", "Bettina", "Bettine", "Betty", "Bettye", "Beulah", "Bev", "Beverie", "Beverlee", "Beverley", "Beverlie", "Beverly", "Bevvy", "Bianca", "Bianka", "Bibbie", "Bibby", "Bibbye", "Bibi", "Biddie", "Biddy", "Bidget", "Bili", "Bill", "Billi", "Billie", "Billy", "Billye", "Binni", "Binnie", "Binny", "Bird", "Birdie", "Birgit", "Birgitta", "Blair", "Blaire", "Blake", "Blakelee", "Blakeley", "Blanca", "Blanch", "Blancha", "Blanche", "Blinni", "Blinnie", "Blinny", "Bliss", "Blisse", "Blithe", "Blondell", "Blondelle", "Blondie", "Blondy", "Blythe", "Bobbe", "Bobbee", "Bobbette", "Bobbi", "Bobbie", "Bobby", "Bobbye", "Bobette", "Bobina", "Bobine", "Bobinette", "Bonita", "Bonnee", "Bonni", "Bonnibelle", "Bonnie", "Bonny", "Brana", "Brandais", "Brande", "Brandea", "Brandi", "Brandice", "Brandie", "Brandise", "Brandy", "Breanne", "Brear", "Bree", "Breena", "Bren", "Brena", "Brenda", "Brenn", "Brenna", "Brett", "Bria", "Briana", "Brianna", "Brianne", "Bride", "Bridget", "Bridgette", "Bridie", "Brier", "Brietta", "Brigid", "Brigida", "Brigit", "Brigitta", "Brigitte", "Brina", "Briney", "Brinn", "Brinna", "Briny", "Brit", "Brita", "Britney", "Britni", "Britt", "Britta", "Brittan", "Brittaney", "Brittani", "Brittany", "Britte", "Britteny", "Brittne", "Brittney", "Brittni", "Brook", "Brooke", "Brooks", "Brunhilda", "Brunhilde", "Bryana", "Bryn", "Bryna", "Brynn", "Brynna", "Brynne", "Buffy", "Bunni", "Bunnie", "Bunny", "Cacilia", "Cacilie", "Cahra", "Cairistiona", "Caitlin", "Caitrin", "Cal", "Calida", "Calla", "Calley", "Calli", "Callida", "Callie", "Cally", "Calypso", "Cam", "Camala", "Camel", "Camella", "Camellia", "Cami", "Camila", "Camile", "Camilla", "Camille", "Cammi", "Cammie", "Cammy", "Candace", "Candi", "Candice", "Candida", "Candide", "Candie", "Candis", "Candra", "Candy", "Caprice", "Cara", "Caralie", "Caren", "Carena", "Caresa", "Caressa", "Caresse", "Carey", "Cari", "Caria", "Carie", "Caril", "Carilyn", "Carin", "Carina", "Carine", "Cariotta", "Carissa", "Carita", "Caritta", "Carla", "Carlee", "Carleen", "Carlen", "Carlene", "Carley", "Carlie", "Carlin", "Carlina", "Carline", "Carlita", "Carlota", "Carlotta", "Carly", "Carlye", "Carlyn", "Carlynn", "Carlynne", "Carma", "Carmel", "Carmela", "Carmelia", "Carmelina", "Carmelita", "Carmella", "Carmelle", "Carmen", "Carmencita", "Carmina", "Carmine", "Carmita", "Carmon", "Caro", "Carol", "Carol-Jean", "Carola", "Carolan", "Carolann", "Carole", "Carolee", "Carolin", "Carolina", "Caroline", "Caroljean", "Carolyn", "Carolyne", "Carolynn", "Caron", "Carree", "Carri", "Carrie", "Carrissa", "Carroll", "Carry", "Cary", "Caryl", "Caryn", "Casandra", "Casey", "Casi", "Casie", "Cass", "Cassandra", "Cassandre", "Cassandry", "Cassaundra", "Cassey", "Cassi", "Cassie", "Cassondra", "Cassy", "Catarina", "Cate", "Caterina", "Catha", "Catharina", "Catharine", "Cathe", "Cathee", "Catherin", "Catherina", "Catherine", "Cathi", "Cathie", "Cathleen", "Cathlene", "Cathrin", "Cathrine", "Cathryn", "Cathy", "Cathyleen", "Cati", "Catie", "Catina", "Catlaina", "Catlee", "Catlin", "Catrina", "Catriona", "Caty", "Caye", "Cayla", "Cecelia", "Cecil", "Cecile", "Ceciley", "Cecilia", "Cecilla", "Cecily", "Ceil", "Cele", "Celene", "Celesta", "Celeste", "Celestia", "Celestina", "Celestine", "Celestyn", "Celestyna", "Celia", "Celie", "Celina", "Celinda", "Celine", "Celinka", "Celisse", "Celka", "Celle", "Cesya", "Chad", "Chanda", "Chandal", "Chandra", "Channa", "Chantal", "Chantalle", "Charil", "Charin", "Charis", "Charissa", "Charisse", "Charita", "Charity", "Charla", "Charlean", "Charleen", "Charlena", "Charlene", "Charline", "Charlot", "Charlotta", "Charlotte", "Charmain", "Charmaine", "Charmane", "Charmian", "Charmine", "Charmion", "Charo", "Charyl", "Chastity", "Chelsae", "Chelsea", "Chelsey", "Chelsie", "Chelsy", "Cher", "Chere", "Cherey", "Cheri", "Cherianne", "Cherice", "Cherida", "Cherie", "Cherilyn", "Cherilynn", "Cherin", "Cherise", "Cherish", "Cherlyn", "Cherri", "Cherrita", "Cherry", "Chery", "Cherye", "Cheryl", "Cheslie", "Chiarra", "Chickie", "Chicky", "Chiquia", "Chiquita", "Chlo", "Chloe", "Chloette", "Chloris", "Chris", "Chrissie", "Chrissy", "Christa", "Christabel", "Christabella", "Christal", "Christalle", "Christan", "Christean", "Christel", "Christen", "Christi", "Christian", "Christiana", "Christiane", "Christie", "Christin", "Christina", "Christine", "Christy", "Christye", "Christyna", "Chrysa", "Chrysler", "Chrystal", "Chryste", "Chrystel", "Cicely", "Cicily", "Ciel", "Cilka", "Cinda", "Cindee", "Cindelyn", "Cinderella", "Cindi", "Cindie", "Cindra", "Cindy", "Cinnamon", "Cissiee", "Cissy", "Clair", "Claire", "Clara", "Clarabelle", "Clare", "Claresta", "Clareta", "Claretta", "Clarette", "Clarey", "Clari", "Claribel", "Clarice", "Clarie", "Clarinda", "Clarine", "Clarissa", "Clarisse", "Clarita", "Clary", "Claude", "Claudelle", "Claudetta", "Claudette", "Claudia", "Claudie", "Claudina", "Claudine", "Clea", "Clem", "Clemence", "Clementia", "Clementina", "Clementine", "Clemmie", "Clemmy", "Cleo", "Cleopatra", "Clerissa", "Clio", "Clo", "Cloe", "Cloris", "Clotilda", "Clovis", "Codee", "Codi", "Codie", "Cody", "Coleen", "Colene", "Coletta", "Colette", "Colleen", "Collen", "Collete", "Collette", "Collie", "Colline", "Colly", "Con", "Concettina", "Conchita", "Concordia", "Conni", "Connie", "Conny", "Consolata", "Constance", "Constancia", "Constancy", "Constanta", "Constantia", "Constantina", "Constantine", "Consuela", "Consuelo", "Cookie", "Cora", "Corabel", "Corabella", "Corabelle", "Coral", "Coralie", "Coraline", "Coralyn", "Cordelia", "Cordelie", "Cordey", "Cordi", "Cordie", "Cordula", "Cordy", "Coreen", "Corella", "Corenda", "Corene", "Coretta", "Corette", "Corey", "Cori", "Corie", "Corilla", "Corina", "Corine", "Corinna", "Corinne", "Coriss", "Corissa", "Corliss", "Corly", "Cornela", "Cornelia", "Cornelle", "Cornie", "Corny", "Correna", "Correy", "Corri", "Corrianne", "Corrie", "Corrina", "Corrine", "Corrinne", "Corry", "Cortney", "Cory", "Cosetta", "Cosette", "Costanza", "Courtenay", "Courtnay", "Courtney", "Crin", "Cris", "Crissie", "Crissy", "Crista", "Cristabel", "Cristal", "Cristen", "Cristi", "Cristie", "Cristin", "Cristina", "Cristine", "Cristionna", "Cristy", "Crysta", "Crystal", "Crystie", "Cthrine", "Cyb", "Cybil", "Cybill", "Cymbre", "Cynde", "Cyndi", "Cyndia", "Cyndie", "Cyndy", "Cynthea", "Cynthia", "Cynthie", "Cynthy", "Dacey", "Dacia", "Dacie", "Dacy", "Dael", "Daffi", "Daffie", "Daffy", "Dagmar", "Dahlia", "Daile", "Daisey", "Daisi", "Daisie", "Daisy", "Dale", "Dalenna", "Dalia", "Dalila", "Dallas", "Daloris", "Damara", "Damaris", "Damita", "Dana", "Danell", "Danella", "Danette", "Dani", "Dania", "Danica", "Danice", "Daniela", "Daniele", "Daniella", "Danielle", "Danika", "Danila", "Danit", "Danita", "Danna", "Danni", "Dannie", "Danny", "Dannye", "Danya", "Danyelle", "Danyette", "Daphene", "Daphna", "Daphne", "Dara", "Darb", "Darbie", "Darby", "Darcee", "Darcey", "Darci", "Darcie", "Darcy", "Darda", "Dareen", "Darell", "Darelle", "Dari", "Daria", "Darice", "Darla", "Darleen", "Darlene", "Darline", "Darlleen", "Daron", "Darrelle", "Darryl", "Darsey", "Darsie", "Darya", "Daryl", "Daryn", "Dasha", "Dasi", "Dasie", "Dasya", "Datha", "Daune", "Daveen", "Daveta", "Davida", "Davina", "Davine", "Davita", "Dawn", "Dawna", "Dayle", "Dayna", "Ddene", "De", "Deana", "Deane", "Deanna", "Deanne", "Deb", "Debbi", "Debbie", "Debby", "Debee", "Debera", "Debi", "Debor", "Debora", "Deborah", "Debra", "Dede", "Dedie", "Dedra", "Dee", "Dee Dee", "Deeann", "Deeanne", "Deedee", "Deena", "Deerdre", "Deeyn", "Dehlia", "Deidre", "Deina", "Deirdre", "Del", "Dela", "Delcina", "Delcine", "Delia", "Delila", "Delilah", "Delinda", "Dell", "Della", "Delly", "Delora", "Delores", "Deloria", "Deloris", "Delphine", "Delphinia", "Demeter", "Demetra", "Demetria", "Demetris", "Dena", "Deni", "Denice", "Denise", "Denna", "Denni", "Dennie", "Denny", "Deny", "Denys", "Denyse", "Deonne", "Desdemona", "Desirae", "Desiree", "Desiri", "Deva", "Devan", "Devi", "Devin", "Devina", "Devinne", "Devon", "Devondra", "Devonna", "Devonne", "Devora", "Di", "Diahann", "Dian", "Diana", "Diandra", "Diane", "Diane-Marie", "Dianemarie", "Diann", "Dianna", "Dianne", "Diannne", "Didi", "Dido", "Diena", "Dierdre", "Dina", "Dinah", "Dinnie", "Dinny", "Dion", "Dione", "Dionis", "Dionne", "Dita", "Dix", "Dixie", "Dniren", "Dode", "Dodi", "Dodie", "Dody", "Doe", "Doll", "Dolley", "Dolli", "Dollie", "Dolly", "Dolores", "Dolorita", "Doloritas", "Domeniga", "Dominga", "Domini", "Dominica", "Dominique", "Dona", "Donella", "Donelle", "Donetta", "Donia", "Donica", "Donielle", "Donna", "Donnamarie", "Donni", "Donnie", "Donny", "Dora", "Doralia", "Doralin", "Doralyn", "Doralynn", "Doralynne", "Dore", "Doreen", "Dorelia", "Dorella", "Dorelle", "Dorena", "Dorene", "Doretta", "Dorette", "Dorey", "Dori", "Doria", "Dorian", "Dorice", "Dorie", "Dorine", "Doris", "Dorisa", "Dorise", "Dorita", "Doro", "Dorolice", "Dorolisa", "Dorotea", "Doroteya", "Dorothea", "Dorothee", "Dorothy", "Dorree", "Dorri", "Dorrie", "Dorris", "Dorry", "Dorthea", "Dorthy", "Dory", "Dosi", "Dot", "Doti", "Dotti", "Dottie", "Dotty", "Dre", "Dreddy", "Dredi", "Drona", "Dru", "Druci", "Drucie", "Drucill", "Drucy", "Drusi", "Drusie", "Drusilla", "Drusy", "Dulce", "Dulcea", "Dulci", "Dulcia", "Dulciana", "Dulcie", "Dulcine", "Dulcinea", "Dulcy", "Dulsea", "Dusty", "Dyan", "Dyana", "Dyane", "Dyann", "Dyanna", "Dyanne", "Dyna", "Dynah", "Eachelle", "Eada", "Eadie", "Eadith", "Ealasaid", "Eartha", "Easter", "Eba", "Ebba", "Ebonee", "Ebony", "Eda", "Eddi", "Eddie", "Eddy", "Ede", "Edee", "Edeline", "Eden", "Edi", "Edie", "Edin", "Edita", "Edith", "Editha", "Edithe", "Ediva", "Edna", "Edwina", "Edy", "Edyth", "Edythe", "Effie", "Eileen", "Eilis", "Eimile", "Eirena", "Ekaterina", "Elaina", "Elaine", "Elana", "Elane", "Elayne", "Elberta", "Elbertina", "Elbertine", "Eleanor", "Eleanora", "Eleanore", "Electra", "Eleen", "Elena", "Elene", "Eleni", "Elenore", "Eleonora", "Eleonore", "Elfie", "Elfreda", "Elfrida", "Elfrieda", "Elga", "Elianora", "Elianore", "Elicia", "Elie", "Elinor", "Elinore", "Elisa", "Elisabet", "Elisabeth", "Elisabetta", "Elise", "Elisha", "Elissa", "Elita", "Eliza", "Elizabet", "Elizabeth", "Elka", "Elke", "Ella", "Elladine", "Elle", "Ellen", "Ellene", "Ellette", "Elli", "Ellie", "Ellissa", "Elly", "Ellyn", "Ellynn", "Elmira", "Elna", "Elnora", "Elnore", "Eloisa", "Eloise", "Elonore", "Elora", "Elsa", "Elsbeth", "Else", "Elset", "Elsey", "Elsi", "Elsie", "Elsinore", "Elspeth", "Elsy", "Elva", "Elvera", "Elvina", "Elvira", "Elwira", "Elyn", "Elyse", "Elysee", "Elysha", "Elysia", "Elyssa", "Em", "Ema", "Emalee", "Emalia", "Emelda", "Emelia", "Emelina", "Emeline", "Emelita", "Emelyne", "Emera", "Emilee", "Emili", "Emilia", "Emilie", "Emiline", "Emily", "Emlyn", "Emlynn", "Emlynne", "Emma", "Emmalee", "Emmaline", "Emmalyn", "Emmalynn", "Emmalynne", "Emmeline", "Emmey", "Emmi", "Emmie", "Emmy", "Emmye", "Emogene", "Emyle", "Emylee", "Engracia", "Enid", "Enrica", "Enrichetta", "Enrika", "Enriqueta", "Eolanda", "Eolande", "Eran", "Erda", "Erena", "Erica", "Ericha", "Ericka", "Erika", "Erin", "Erina", "Erinn", "Erinna", "Erma", "Ermengarde", "Ermentrude", "Ermina", "Erminia", "Erminie", "Erna", "Ernaline", "Ernesta", "Ernestine", "Ertha", "Eryn", "Esma", "Esmaria", "Esme", "Esmeralda", "Essa", "Essie", "Essy", "Esta", "Estel", "Estele", "Estell", "Estella", "Estelle", "Ester", "Esther", "Estrella", "Estrellita", "Ethel", "Ethelda", "Ethelin", "Ethelind", "Etheline", "Ethelyn", "Ethyl", "Etta", "Etti", "Ettie", "Etty", "Eudora", "Eugenia", "Eugenie", "Eugine", "Eula", "Eulalie", "Eunice", "Euphemia", "Eustacia", "Eva", "Evaleen", "Evangelia", "Evangelin", "Evangelina", "Evangeline", "Evania", "Evanne", "Eve", "Eveleen", "Evelina", "Eveline", "Evelyn", "Evey", "Evie", "Evita", "Evonne", "Evvie", "Evvy", "Evy", "Eyde", "Eydie", "Ezmeralda", "Fae", "Faina", "Faith", "Fallon", "Fan", "Fanchette", "Fanchon", "Fancie", "Fancy", "Fanechka", "Fania", "Fanni", "Fannie", "Fanny", "Fanya", "Fara", "Farah", "Farand", "Farica", "Farra", "Farrah", "Farrand", "Faun", "Faunie", "Faustina", "Faustine", "Fawn", "Fawne", "Fawnia", "Fay", "Faydra", "Faye", "Fayette", "Fayina", "Fayre", "Fayth", "Faythe", "Federica", "Fedora", "Felecia", "Felicdad", "Felice", "Felicia", "Felicity", "Felicle", "Felipa", "Felisha", "Felita", "Feliza", "Fenelia", "Feodora", "Ferdinanda", "Ferdinande", "Fern", "Fernanda", "Fernande", "Fernandina", "Ferne", "Fey", "Fiann", "Fianna", "Fidela", "Fidelia", "Fidelity", "Fifi", "Fifine", "Filia", "Filide", "Filippa", "Fina", "Fiona", "Fionna", "Fionnula", "Fiorenze", "Fleur", "Fleurette", "Flo", "Flor", "Flora", "Florance", "Flore", "Florella", "Florence", "Florencia", "Florentia", "Florenza", "Florette", "Flori", "Floria", "Florida", "Florie", "Florina", "Florinda", "Floris", "Florri", "Florrie", "Florry", "Flory", "Flossi", "Flossie", "Flossy", "Flss", "Fran", "Francene", "Frances", "Francesca", "Francine", "Francisca", "Franciska", "Francoise", "Francyne", "Frank", "Frankie", "Franky", "Franni", "Frannie", "Franny", "Frayda", "Fred", "Freda", "Freddi", "Freddie", "Freddy", "Fredelia", "Frederica", "Fredericka", "Frederique", "Fredi", "Fredia", "Fredra", "Fredrika", "Freida", "Frieda", "Friederike", "Fulvia", "Gabbey", "Gabbi", "Gabbie", "Gabey", "Gabi", "Gabie", "Gabriel", "Gabriela", "Gabriell", "Gabriella", "Gabrielle", "Gabriellia", "Gabrila", "Gaby", "Gae", "Gael", "Gail", "Gale", "Galina", "Garland", "Garnet", "Garnette", "Gates", "Gavra", "Gavrielle", "Gay", "Gaye", "Gayel", "Gayla", "Gayle", "Gayleen", "Gaylene", "Gaynor", "Gelya", "Gena", "Gene", "Geneva", "Genevieve", "Genevra", "Genia", "Genna", "Genni", "Gennie", "Gennifer", "Genny", "Genovera", "Genvieve", "George", "Georgeanna", "Georgeanne", "Georgena", "Georgeta", "Georgetta", "Georgette", "Georgia", "Georgiana", "Georgianna", "Georgianne", "Georgie", "Georgina", "Georgine", "Geralda", "Geraldine", "Gerda", "Gerhardine", "Geri", "Gerianna", "Gerianne", "Gerladina", "Germain", "Germaine", "Germana", "Gerri", "Gerrie", "Gerrilee", "Gerry", "Gert", "Gerta", "Gerti", "Gertie", "Gertrud", "Gertruda", "Gertrude", "Gertrudis", "Gerty", "Giacinta", "Giana", "Gianina", "Gianna", "Gigi", "Gilberta", "Gilberte", "Gilbertina", "Gilbertine", "Gilda", "Gilemette", "Gill", "Gillan", "Gilli", "Gillian", "Gillie", "Gilligan", "Gilly", "Gina", "Ginelle", "Ginevra", "Ginger", "Ginni", "Ginnie", "Ginnifer", "Ginny", "Giorgia", "Giovanna", "Gipsy", "Giralda", "Gisela", "Gisele", "Gisella", "Giselle", "Giuditta", "Giulia", "Giulietta", "Giustina", "Gizela", "Glad", "Gladi", "Gladys", "Gleda", "Glen", "Glenda", "Glenine", "Glenn", "Glenna", "Glennie", "Glennis", "Glori", "Gloria", "Gloriana", "Gloriane", "Glory", "Glyn", "Glynda", "Glynis", "Glynnis", "Gnni", "Godiva", "Golda", "Goldarina", "Goldi", "Goldia", "Goldie", "Goldina", "Goldy", "Grace", "Gracia", "Gracie", "Grata", "Gratia", "Gratiana", "Gray", "Grayce", "Grazia", "Greer", "Greta", "Gretal", "Gretchen", "Grete", "Gretel", "Grethel", "Gretna", "Gretta", "Grier", "Griselda", "Grissel", "Guendolen", "Guenevere", "Guenna", "Guglielma", "Gui", "Guillema", "Guillemette", "Guinevere", "Guinna", "Gunilla", "Gus", "Gusella", "Gussi", "Gussie", "Gussy", "Gusta", "Gusti", "Gustie", "Gusty", "Gwen", "Gwendolen", "Gwendolin", "Gwendolyn", "Gweneth", "Gwenette", "Gwenneth", "Gwenni", "Gwennie", "Gwenny", "Gwenora", "Gwenore", "Gwyn", "Gwyneth", "Gwynne", "Gypsy", "Hadria", "Hailee", "Haily", "Haleigh", "Halette", "Haley", "Hali", "Halie", "Halimeda", "Halley", "Halli", "Hallie", "Hally", "Hana", "Hanna", "Hannah", "Hanni", "Hannie", "Hannis", "Hanny", "Happy", "Harlene", "Harley", "Harli", "Harlie", "Harmonia", "Harmonie", "Harmony", "Harri", "Harrie", "Harriet", "Harriett", "Harrietta", "Harriette", "Harriot", "Harriott", "Hatti", "Hattie", "Hatty", "Hayley", "Hazel", "Heath", "Heather", "Heda", "Hedda", "Heddi", "Heddie", "Hedi", "Hedvig", "Hedvige", "Hedwig", "Hedwiga", "Hedy", "Heida", "Heidi", "Heidie", "Helaina", "Helaine", "Helen", "Helen-Elizabeth", "Helena", "Helene", "Helenka", "Helga", "Helge", "Helli", "Heloise", "Helsa", "Helyn", "Hendrika", "Henka", "Henrie", "Henrieta", "Henrietta", "Henriette", "Henryetta", "Hephzibah", "Hermia", "Hermina", "Hermine", "Herminia", "Hermione", "Herta", "Hertha", "Hester", "Hesther", "Hestia", "Hetti", "Hettie", "Hetty", "Hilary", "Hilda", "Hildagard", "Hildagarde", "Hilde", "Hildegaard", "Hildegarde", "Hildy", "Hillary", "Hilliary", "Hinda", "Holli", "Hollie", "Holly", "Holly-Anne", "Hollyanne", "Honey", "Honor", "Honoria", "Hope", "Horatia", "Hortense", "Hortensia", "Hulda", "Hyacinth", "Hyacintha", "Hyacinthe", "Hyacinthia", "Hyacinthie", "Hynda", "Ianthe", "Ibbie", "Ibby", "Ida", "Idalia", "Idalina", "Idaline", "Idell", "Idelle", "Idette", "Ileana", "Ileane", "Ilene", "Ilise", "Ilka", "Illa", "Ilsa", "Ilse", "Ilysa", "Ilyse", "Ilyssa", "Imelda", "Imogen", "Imogene", "Imojean", "Ina", "Indira", "Ines", "Inesita", "Inessa", "Inez", "Inga", "Ingaberg", "Ingaborg", "Inge", "Ingeberg", "Ingeborg", "Inger", "Ingrid", "Ingunna", "Inna", "Iolande", "Iolanthe", "Iona", "Iormina", "Ira", "Irena", "Irene", "Irina", "Iris", "Irita", "Irma", "Isa", "Isabel", "Isabelita", "Isabella", "Isabelle", "Isadora", "Isahella", "Iseabal", "Isidora", "Isis", "Isobel", "Issi", "Issie", "Issy", "Ivett", "Ivette", "Ivie", "Ivonne", "Ivory", "Ivy", "Izabel", "Jacenta", "Jacinda", "Jacinta", "Jacintha", "Jacinthe", "Jackelyn", "Jacki", "Jackie", "Jacklin", "Jacklyn", "Jackquelin", "Jackqueline", "Jacky", "Jaclin", "Jaclyn", "Jacquelin", "Jacqueline", "Jacquelyn", "Jacquelynn", "Jacquenetta", "Jacquenette", "Jacquetta", "Jacquette", "Jacqui", "Jacquie", "Jacynth", "Jada", "Jade", "Jaime", "Jaimie", "Jaine", "Jami", "Jamie", "Jamima", "Jammie", "Jan", "Jana", "Janaya", "Janaye", "Jandy", "Jane", "Janean", "Janeczka", "Janeen", "Janel", "Janela", "Janella", "Janelle", "Janene", "Janenna", "Janessa", "Janet", "Janeta", "Janetta", "Janette", "Janeva", "Janey", "Jania", "Janice", "Janie", "Janifer", "Janina", "Janine", "Janis", "Janith", "Janka", "Janna", "Jannel", "Jannelle", "Janot", "Jany", "Jaquelin", "Jaquelyn", "Jaquenetta", "Jaquenette", "Jaquith", "Jasmin", "Jasmina", "Jasmine", "Jayme", "Jaymee", "Jayne", "Jaynell", "Jazmin", "Jean", "Jeana", "Jeane", "Jeanelle", "Jeanette", "Jeanie", "Jeanine", "Jeanna", "Jeanne", "Jeannette", "Jeannie", "Jeannine", "Jehanna", "Jelene", "Jemie", "Jemima", "Jemimah", "Jemmie", "Jemmy", "Jen", "Jena", "Jenda", "Jenelle", "Jeni", "Jenica", "Jeniece", "Jenifer", "Jeniffer", "Jenilee", "Jenine", "Jenn", "Jenna", "Jennee", "Jennette", "Jenni", "Jennica", "Jennie", "Jennifer", "Jennilee", "Jennine", "Jenny", "Jeralee", "Jere", "Jeri", "Jermaine", "Jerrie", "Jerrilee", "Jerrilyn", "Jerrine", "Jerry", "Jerrylee", "Jess", "Jessa", "Jessalin", "Jessalyn", "Jessamine", "Jessamyn", "Jesse", "Jesselyn", "Jessi", "Jessica", "Jessie", "Jessika", "Jessy", "Jewel", "Jewell", "Jewelle", "Jill", "Jillana", "Jillane", "Jillayne", "Jilleen", "Jillene", "Jilli", "Jillian", "Jillie", "Jilly", "Jinny", "Jo", "Jo Ann", "Jo-Ann", "Jo-Anne", "Joan", "Joana", "Joane", "Joanie", "Joann", "Joanna", "Joanne", "Joannes", "Jobey", "Jobi", "Jobie", "Jobina", "Joby", "Jobye", "Jobyna", "Jocelin", "Joceline", "Jocelyn", "Jocelyne", "Jodee", "Jodi", "Jodie", "Jody", "Joeann", "Joela", "Joelie", "Joell", "Joella", "Joelle", "Joellen", "Joelly", "Joellyn", "Joelynn", "Joete", "Joey", "Johanna", "Johannah", "Johna", "Johnath", "Johnette", "Johnna", "Joice", "Jojo", "Jolee", "Joleen", "Jolene", "Joletta", "Joli", "Jolie", "Joline", "Joly", "Jolyn", "Jolynn", "Jonell", "Joni", "Jonie", "Jonis", "Jordain", "Jordan", "Jordana", "Jordanna", "Jorey", "Jori", "Jorie", "Jorrie", "Jorry", "Joscelin", "Josee", "Josefa", "Josefina", "Josepha", "Josephina", "Josephine", "Josey", "Josi", "Josie", "Josselyn", "Josy", "Jourdan", "Joy", "Joya", "Joyan", "Joyann", "Joyce", "Joycelin", "Joye", "Jsandye", "Juana", "Juanita", "Judi", "Judie", "Judith", "Juditha", "Judy", "Judye", "Juieta", "Julee", "Juli", "Julia", "Juliana", "Juliane", "Juliann", "Julianna", "Julianne", "Julie", "Julienne", "Juliet", "Julieta", "Julietta", "Juliette", "Julina", "Juline", "Julissa", "Julita", "June", "Junette", "Junia", "Junie", "Junina", "Justina", "Justine", "Justinn", "Jyoti", "Kacey", "Kacie", "Kacy", "Kaela", "Kai", "Kaia", "Kaila", "Kaile", "Kailey", "Kaitlin", "Kaitlyn", "Kaitlynn", "Kaja", "Kakalina", "Kala", "Kaleena", "Kali", "Kalie", "Kalila", "Kalina", "Kalinda", "Kalindi", "Kalli", "Kally", "Kameko", "Kamila", "Kamilah", "Kamillah", "Kandace", "Kandy", "Kania", "Kanya", "Kara", "Kara-Lynn", "Karalee", "Karalynn", "Kare", "Karee", "Karel", "Karen", "Karena", "Kari", "Karia", "Karie", "Karil", "Karilynn", "Karin", "Karina", "Karine", "Kariotta", "Karisa", "Karissa", "Karita", "Karla", "Karlee", "Karleen", "Karlen", "Karlene", "Karlie", "Karlotta", "Karlotte", "Karly", "Karlyn", "Karmen", "Karna", "Karol", "Karola", "Karole", "Karolina", "Karoline", "Karoly", "Karon", "Karrah", "Karrie", "Karry", "Kary", "Karyl", "Karylin", "Karyn", "Kasey", "Kass", "Kassandra", "Kassey", "Kassi", "Kassia", "Kassie", "Kat", "Kata", "Katalin", "Kate", "Katee", "Katerina", "Katerine", "Katey", "Kath", "Katha", "Katharina", "Katharine", "Katharyn", "Kathe", "Katherina", "Katherine", "Katheryn", "Kathi", "Kathie", "Kathleen", "Kathlin", "Kathrine", "Kathryn", "Kathryne", "Kathy", "Kathye", "Kati", "Katie", "Katina", "Katine", "Katinka", "Katleen", "Katlin", "Katrina", "Katrine", "Katrinka", "Katti", "Kattie", "Katuscha", "Katusha", "Katy", "Katya", "Kay", "Kaycee", "Kaye", "Kayla", "Kayle", "Kaylee", "Kayley", "Kaylil", "Kaylyn", "Keeley", "Keelia", "Keely", "Kelcey", "Kelci", "Kelcie", "Kelcy", "Kelila", "Kellen", "Kelley", "Kelli", "Kellia", "Kellie", "Kellina", "Kellsie", "Kelly", "Kellyann", "Kelsey", "Kelsi", "Kelsy", "Kendra", "Kendre", "Kenna", "Keri", "Keriann", "Kerianne", "Kerri", "Kerrie", "Kerrill", "Kerrin", "Kerry", "Kerstin", "Kesley", "Keslie", "Kessia", "Kessiah", "Ketti", "Kettie", "Ketty", "Kevina", "Kevyn", "Ki", "Kiah", "Kial", "Kiele", "Kiersten", "Kikelia", "Kiley", "Kim", "Kimberlee", "Kimberley", "Kimberli", "Kimberly", "Kimberlyn", "Kimbra", "Kimmi", "Kimmie", "Kimmy", "Kinna", "Kip", "Kipp", "Kippie", "Kippy", "Kira", "Kirbee", "Kirbie", "Kirby", "Kiri", "Kirsten", "Kirsteni", "Kirsti", "Kirstin", "Kirstyn", "Kissee", "Kissiah", "Kissie", "Kit", "Kitti", "Kittie", "Kitty", "Kizzee", "Kizzie", "Klara", "Klarika", "Klarrisa", "Konstance", "Konstanze", "Koo", "Kora", "Koral", "Koralle", "Kordula", "Kore", "Korella", "Koren", "Koressa", "Kori", "Korie", "Korney", "Korrie", "Korry", "Kris", "Krissie", "Krissy", "Krista", "Kristal", "Kristan", "Kriste", "Kristel", "Kristen", "Kristi", "Kristien", "Kristin", "Kristina", "Kristine", "Kristy", "Kristyn", "Krysta", "Krystal", "Krystalle", "Krystle", "Krystyna", "Kyla", "Kyle", "Kylen", "Kylie", "Kylila", "Kylynn", "Kym", "Kynthia", "Kyrstin", "La Verne", "Lacee", "Lacey", "Lacie", "Lacy", "Ladonna", "Laetitia", "Laina", "Lainey", "Lana", "Lanae", "Lane", "Lanette", "Laney", "Lani", "Lanie", "Lanita", "Lanna", "Lanni", "Lanny", "Lara", "Laraine", "Lari", "Larina", "Larine", "Larisa", "Larissa", "Lark", "Laryssa", "Latashia", "Latia", "Latisha", "Latrena", "Latrina", "Laura", "Lauraine", "Laural", "Lauralee", "Laure", "Lauree", "Laureen", "Laurel", "Laurella", "Lauren", "Laurena", "Laurene", "Lauretta", "Laurette", "Lauri", "Laurianne", "Laurice", "Laurie", "Lauryn", "Lavena", "Laverna", "Laverne", "Lavina", "Lavinia", "Lavinie", "Layla", "Layne", "Layney", "Lea", "Leah", "Leandra", "Leann", "Leanna", "Leanor", "Leanora", "Lebbie", "Leda", "Lee", "Leeann", "Leeanne", "Leela", "Leelah", "Leena", "Leesa", "Leese", "Legra", "Leia", "Leigh", "Leigha", "Leila", "Leilah", "Leisha", "Lela", "Lelah", "Leland", "Lelia", "Lena", "Lenee", "Lenette", "Lenka", "Lenna", "Lenora", "Lenore", "Leodora", "Leoine", "Leola", "Leoline", "Leona", "Leonanie", "Leone", "Leonelle", "Leonie", "Leonora", "Leonore", "Leontine", "Leontyne", "Leora", "Leshia", "Lesley", "Lesli", "Leslie", "Lesly", "Lesya", "Leta", "Lethia", "Leticia", "Letisha", "Letitia", "Letizia", "Letta", "Letti", "Lettie", "Letty", "Lexi", "Lexie", "Lexine", "Lexis", "Lexy", "Leyla", "Lezlie", "Lia", "Lian", "Liana", "Liane", "Lianna", "Lianne", "Lib", "Libbey", "Libbi", "Libbie", "Libby", "Licha", "Lida", "Lidia", "Liesa", "Lil", "Lila", "Lilah", "Lilas", "Lilia", "Lilian", "Liliane", "Lilias", "Lilith", "Lilla", "Lilli", "Lillian", "Lillis", "Lilllie", "Lilly", "Lily", "Lilyan", "Lin", "Lina", "Lind", "Linda", "Lindi", "Lindie", "Lindsay", "Lindsey", "Lindsy", "Lindy", "Linea", "Linell", "Linet", "Linette", "Linn", "Linnea", "Linnell", "Linnet", "Linnie", "Linzy", "Lira", "Lisa", "Lisabeth", "Lisbeth", "Lise", "Lisetta", "Lisette", "Lisha", "Lishe", "Lissa", "Lissi", "Lissie", "Lissy", "Lita", "Liuka", "Liv", "Liva", "Livia", "Livvie", "Livvy", "Livvyy", "Livy", "Liz", "Liza", "Lizabeth", "Lizbeth", "Lizette", "Lizzie", "Lizzy", "Loella", "Lois", "Loise", "Lola", "Loleta", "Lolita", "Lolly", "Lona", "Lonee", "Loni", "Lonna", "Lonni", "Lonnie", "Lora", "Lorain", "Loraine", "Loralee", "Loralie", "Loralyn", "Loree", "Loreen", "Lorelei", "Lorelle", "Loren", "Lorena", "Lorene", "Lorenza", "Loretta", "Lorette", "Lori", "Loria", "Lorianna", "Lorianne", "Lorie", "Lorilee", "Lorilyn", "Lorinda", "Lorine", "Lorita", "Lorna", "Lorne", "Lorraine", "Lorrayne", "Lorri", "Lorrie", "Lorrin", "Lorry", "Lory", "Lotta", "Lotte", "Lotti", "Lottie", "Lotty", "Lou", "Louella", "Louisa", "Louise", "Louisette", "Loutitia", "Lu", "Luce", "Luci", "Lucia", "Luciana", "Lucie", "Lucienne", "Lucila", "Lucilia", "Lucille", "Lucina", "Lucinda", "Lucine", "Lucita", "Lucky", "Lucretia", "Lucy", "Ludovika", "Luella", "Luelle", "Luisa", "Luise", "Lula", "Lulita", "Lulu", "Lura", "Lurette", "Lurleen", "Lurlene", "Lurline", "Lusa", "Luz", "Lyda", "Lydia", "Lydie", "Lyn", "Lynda", "Lynde", "Lyndel", "Lyndell", "Lyndsay", "Lyndsey", "Lyndsie", "Lyndy", "Lynea", "Lynelle", "Lynett", "Lynette", "Lynn", "Lynna", "Lynne", "Lynnea", "Lynnell", "Lynnelle", "Lynnet", "Lynnett", "Lynnette", "Lynsey", "Lyssa", "Mab", "Mabel", "Mabelle", "Mable", "Mada", "Madalena", "Madalyn", "Maddalena", "Maddi", "Maddie", "Maddy", "Madel", "Madelaine", "Madeleine", "Madelena", "Madelene", "Madelin", "Madelina", "Madeline", "Madella", "Madelle", "Madelon", "Madelyn", "Madge", "Madlen", "Madlin", "Madonna", "Mady", "Mae", "Maegan", "Mag", "Magda", "Magdaia", "Magdalen", "Magdalena", "Magdalene", "Maggee", "Maggi", "Maggie", "Maggy", "Mahala", "Mahalia", "Maia", "Maible", "Maiga", "Maighdiln", "Mair", "Maire", "Maisey", "Maisie", "Maitilde", "Mala", "Malanie", "Malena", "Malia", "Malina", "Malinda", "Malinde", "Malissa", "Malissia", "Mallissa", "Mallorie", "Mallory", "Malorie", "Malory", "Malva", "Malvina", "Malynda", "Mame", "Mamie", "Manda", "Mandi", "Mandie", "Mandy", "Manon", "Manya", "Mara", "Marabel", "Marcela", "Marcelia", "Marcella", "Marcelle", "Marcellina", "Marcelline", "Marchelle", "Marci", "Marcia", "Marcie", "Marcile", "Marcille", "Marcy", "Mareah", "Maren", "Marena", "Maressa", "Marga", "Margalit", "Margalo", "Margaret", "Margareta", "Margarete", "Margaretha", "Margarethe", "Margaretta", "Margarette", "Margarita", "Margaux", "Marge", "Margeaux", "Margery", "Marget", "Margette", "Margi", "Margie", "Margit", "Margo", "Margot", "Margret", "Marguerite", "Margy", "Mari", "Maria", "Mariam", "Marian", "Mariana", "Mariann", "Marianna", "Marianne", "Maribel", "Maribelle", "Maribeth", "Marice", "Maridel", "Marie", "Marie-Ann", "Marie-Jeanne", "Marieann", "Mariejeanne", "Mariel", "Mariele", "Marielle", "Mariellen", "Marietta", "Mariette", "Marigold", "Marijo", "Marika", "Marilee", "Marilin", "Marillin", "Marilyn", "Marin", "Marina", "Marinna", "Marion", "Mariquilla", "Maris", "Marisa", "Mariska", "Marissa", "Marita", "Maritsa", "Mariya", "Marj", "Marja", "Marje", "Marji", "Marjie", "Marjorie", "Marjory", "Marjy", "Marketa", "Marla", "Marlane", "Marleah", "Marlee", "Marleen", "Marlena", "Marlene", "Marley", "Marlie", "Marline", "Marlo", "Marlyn", "Marna", "Marne", "Marney", "Marni", "Marnia", "Marnie", "Marquita", "Marrilee", "Marris", "Marrissa", "Marsha", "Marsiella", "Marta", "Martelle", "Martguerita", "Martha", "Marthe", "Marthena", "Marti", "Martica", "Martie", "Martina", "Martita", "Marty", "Martynne", "Mary", "Marya", "Maryann", "Maryanna", "Maryanne", "Marybelle", "Marybeth", "Maryellen", "Maryjane", "Maryjo", "Maryl", "Marylee", "Marylin", "Marylinda", "Marylou", "Marylynne", "Maryrose", "Marys", "Marysa", "Masha", "Matelda", "Mathilda", "Mathilde", "Matilda", "Matilde", "Matti", "Mattie", "Matty", "Maud", "Maude", "Maudie", "Maura", "Maure", "Maureen", "Maureene", "Maurene", "Maurine", "Maurise", "Maurita", "Maurizia", "Mavis", "Mavra", "Max", "Maxi", "Maxie", "Maxine", "Maxy", "May", "Maybelle", "Maye", "Mead", "Meade", "Meagan", "Meaghan", "Meara", "Mechelle", "Meg", "Megan", "Megen", "Meggi", "Meggie", "Meggy", "Meghan", "Meghann", "Mehetabel", "Mei", "Mel", "Mela", "Melamie", "Melania", "Melanie", "Melantha", "Melany", "Melba", "Melesa", "Melessa", "Melicent", "Melina", "Melinda", "Melinde", "Melisa", "Melisande", "Melisandra", "Melisenda", "Melisent", "Melissa", "Melisse", "Melita", "Melitta", "Mella", "Melli", "Mellicent", "Mellie", "Mellisa", "Mellisent", "Melloney", "Melly", "Melodee", "Melodie", "Melody", "Melonie", "Melony", "Melosa", "Melva", "Mercedes", "Merci", "Mercie", "Mercy", "Meredith", "Meredithe", "Meridel", "Meridith", "Meriel", "Merilee", "Merilyn", "Meris", "Merissa", "Merl", "Merla", "Merle", "Merlina", "Merline", "Merna", "Merola", "Merralee", "Merridie", "Merrie", "Merrielle", "Merrile", "Merrilee", "Merrili", "Merrill", "Merrily", "Merry", "Mersey", "Meryl", "Meta", "Mia", "Micaela", "Michaela", "Michaelina", "Michaeline", "Michaella", "Michal", "Michel", "Michele", "Michelina", "Micheline", "Michell", "Michelle", "Micki", "Mickie", "Micky", "Midge", "Mignon", "Mignonne", "Miguela", "Miguelita", "Mikaela", "Mil", "Mildred", "Mildrid", "Milena", "Milicent", "Milissent", "Milka", "Milli", "Millicent", "Millie", "Millisent", "Milly", "Milzie", "Mimi", "Min", "Mina", "Minda", "Mindy", "Minerva", "Minetta", "Minette", "Minna", "Minnaminnie", "Minne", "Minni", "Minnie", "Minnnie", "Minny", "Minta", "Miof Mela", "Miquela", "Mira", "Mirabel", "Mirabella", "Mirabelle", "Miran", "Miranda", "Mireielle", "Mireille", "Mirella", "Mirelle", "Miriam", "Mirilla", "Mirna", "Misha", "Missie", "Missy", "Misti", "Misty", "Mitzi", "Modesta", "Modestia", "Modestine", "Modesty", "Moina", "Moira", "Moll", "Mollee", "Molli", "Mollie", "Molly", "Mommy", "Mona", "Monah", "Monica", "Monika", "Monique", "Mora", "Moreen", "Morena", "Morgan", "Morgana", "Morganica", "Morganne", "Morgen", "Moria", "Morissa", "Morna", "Moselle", "Moyna", "Moyra", "Mozelle", "Muffin", "Mufi", "Mufinella", "Muire", "Mureil", "Murial", "Muriel", "Murielle", "Myra", "Myrah", "Myranda", "Myriam", "Myrilla", "Myrle", "Myrlene", "Myrna", "Myrta", "Myrtia", "Myrtice", "Myrtie", "Myrtle", "Nada", "Nadean", "Nadeen", "Nadia", "Nadine", "Nadiya", "Nady", "Nadya", "Nalani", "Nan", "Nana", "Nananne", "Nance", "Nancee", "Nancey", "Nanci", "Nancie", "Nancy", "Nanete", "Nanette", "Nani", "Nanice", "Nanine", "Nannette", "Nanni", "Nannie", "Nanny", "Nanon", "Naoma", "Naomi", "Nara", "Nari", "Nariko", "Nat", "Nata", "Natala", "Natalee", "Natalie", "Natalina", "Nataline", "Natalya", "Natasha", "Natassia", "Nathalia", "Nathalie", "Natividad", "Natka", "Natty", "Neala", "Neda", "Nedda", "Nedi", "Neely", "Neila", "Neile", "Neilla", "Neille", "Nelia", "Nelie", "Nell", "Nelle", "Nelli", "Nellie", "Nelly", "Nerissa", "Nerita", "Nert", "Nerta", "Nerte", "Nerti", "Nertie", "Nerty", "Nessa", "Nessi", "Nessie", "Nessy", "Nesta", "Netta", "Netti", "Nettie", "Nettle", "Netty", "Nevsa", "Neysa", "Nichol", "Nichole", "Nicholle", "Nicki", "Nickie", "Nicky", "Nicol", "Nicola", "Nicole", "Nicolea", "Nicolette", "Nicoli", "Nicolina", "Nicoline", "Nicolle", "Nikaniki", "Nike", "Niki", "Nikki", "Nikkie", "Nikoletta", "Nikolia", "Nina", "Ninetta", "Ninette", "Ninnetta", "Ninnette", "Ninon", "Nissa", "Nisse", "Nissie", "Nissy", "Nita", "Nixie", "Noami", "Noel", "Noelani", "Noell", "Noella", "Noelle", "Noellyn", "Noelyn", "Noemi", "Nola", "Nolana", "Nolie", "Nollie", "Nomi", "Nona", "Nonah", "Noni", "Nonie", "Nonna", "Nonnah", "Nora", "Norah", "Norean", "Noreen", "Norene", "Norina", "Norine", "Norma", "Norri", "Norrie", "Norry", "Novelia", "Nydia", "Nyssa", "Octavia", "Odele", "Odelia", "Odelinda", "Odella", "Odelle", "Odessa", "Odetta", "Odette", "Odilia", "Odille", "Ofelia", "Ofella", "Ofilia", "Ola", "Olenka", "Olga", "Olia", "Olimpia", "Olive", "Olivette", "Olivia", "Olivie", "Oliy", "Ollie", "Olly", "Olva", "Olwen", "Olympe", "Olympia", "Olympie", "Ondrea", "Oneida", "Onida", "Oona", "Opal", "Opalina", "Opaline", "Ophelia", "Ophelie", "Ora", "Oralee", "Oralia", "Oralie", "Oralla", "Oralle", "Orel", "Orelee", "Orelia", "Orelie", "Orella", "Orelle", "Oriana", "Orly", "Orsa", "Orsola", "Ortensia", "Otha", "Othelia", "Othella", "Othilia", "Othilie", "Ottilie", "Page", "Paige", "Paloma", "Pam", "Pamela", "Pamelina", "Pamella", "Pammi", "Pammie", "Pammy", "Pandora", "Pansie", "Pansy", "Paola", "Paolina", "Papagena", "Pat", "Patience", "Patrica", "Patrice", "Patricia", "Patrizia", "Patsy", "Patti", "Pattie", "Patty", "Paula", "Paule", "Pauletta", "Paulette", "Pauli", "Paulie", "Paulina", "Pauline", "Paulita", "Pauly", "Pavia", "Pavla", "Pearl", "Pearla", "Pearle", "Pearline", "Peg", "Pegeen", "Peggi", "Peggie", "Peggy", "Pen", "Penelopa", "Penelope", "Penni", "Pennie", "Penny", "Pepi", "Pepita", "Peri", "Peria", "Perl", "Perla", "Perle", "Perri", "Perrine", "Perry", "Persis", "Pet", "Peta", "Petra", "Petrina", "Petronella", "Petronia", "Petronilla", "Petronille", "Petunia", "Phaedra", "Phaidra", "Phebe", "Phedra", "Phelia", "Phil", "Philipa", "Philippa", "Philippe", "Philippine", "Philis", "Phillida", "Phillie", "Phillis", "Philly", "Philomena", "Phoebe", "Phylis", "Phyllida", "Phyllis", "Phyllys", "Phylys", "Pia", "Pier", "Pierette", "Pierrette", "Pietra", "Piper", "Pippa", "Pippy", "Polly", "Pollyanna", "Pooh", "Poppy", "Portia", "Pris", "Prisca", "Priscella", "Priscilla", "Prissie", "Pru", "Prudence", "Prudi", "Prudy", "Prue", "Queenie", "Quentin", "Querida", "Quinn", "Quinta", "Quintana", "Quintilla", "Quintina", "Rachael", "Rachel", "Rachele", "Rachelle", "Rae", "Raeann", "Raf", "Rafa", "Rafaela", "Rafaelia", "Rafaelita", "Rahal", "Rahel", "Raina", "Raine", "Rakel", "Ralina", "Ramona", "Ramonda", "Rana", "Randa", "Randee", "Randene", "Randi", "Randie", "Randy", "Ranee", "Rani", "Rania", "Ranice", "Ranique", "Ranna", "Raphaela", "Raquel", "Raquela", "Rasia", "Rasla", "Raven", "Ray", "Raychel", "Raye", "Rayna", "Raynell", "Rayshell", "Rea", "Reba", "Rebbecca", "Rebe", "Rebeca", "Rebecca", "Rebecka", "Rebeka", "Rebekah", "Rebekkah", "Ree", "Reeba", "Reena", "Reeta", "Reeva", "Regan", "Reggi", "Reggie", "Regina", "Regine", "Reiko", "Reina", "Reine", "Remy", "Rena", "Renae", "Renata", "Renate", "Rene", "Renee", "Renell", "Renelle", "Renie", "Rennie", "Reta", "Retha", "Revkah", "Rey", "Reyna", "Rhea", "Rheba", "Rheta", "Rhetta", "Rhiamon", "Rhianna", "Rhianon", "Rhoda", "Rhodia", "Rhodie", "Rhody", "Rhona", "Rhonda", "Riane", "Riannon", "Rianon", "Rica", "Ricca", "Rici", "Ricki", "Rickie", "Ricky", "Riki", "Rikki", "Rina", "Risa", "Rita", "Riva", "Rivalee", "Rivi", "Rivkah", "Rivy", "Roana", "Roanna", "Roanne", "Robbi", "Robbie", "Robbin", "Robby", "Robbyn", "Robena", "Robenia", "Roberta", "Robin", "Robina", "Robinet", "Robinett", "Robinetta", "Robinette", "Robinia", "Roby", "Robyn", "Roch", "Rochell", "Rochella", "Rochelle", "Rochette", "Roda", "Rodi", "Rodie", "Rodina", "Rois", "Romola", "Romona", "Romonda", "Romy", "Rona", "Ronalda", "Ronda", "Ronica", "Ronna", "Ronni", "Ronnica", "Ronnie", "Ronny", "Roobbie", "Rora", "Rori", "Rorie", "Rory", "Ros", "Rosa", "Rosabel", "Rosabella", "Rosabelle", "Rosaleen", "Rosalia", "Rosalie", "Rosalind", "Rosalinda", "Rosalinde", "Rosaline", "Rosalyn", "Rosalynd", "Rosamond", "Rosamund", "Rosana", "Rosanna", "Rosanne", "Rose", "Roseann", "Roseanna", "Roseanne", "Roselia", "Roselin", "Roseline", "Rosella", "Roselle", "Rosemaria", "Rosemarie", "Rosemary", "Rosemonde", "Rosene", "Rosetta", "Rosette", "Roshelle", "Rosie", "Rosina", "Rosita", "Roslyn", "Rosmunda", "Rosy", "Row", "Rowe", "Rowena", "Roxana", "Roxane", "Roxanna", "Roxanne", "Roxi", "Roxie", "Roxine", "Roxy", "Roz", "Rozalie", "Rozalin", "Rozamond", "Rozanna", "Rozanne", "Roze", "Rozele", "Rozella", "Rozelle", "Rozina", "Rubetta", "Rubi", "Rubia", "Rubie", "Rubina", "Ruby", "Ruperta", "Ruth", "Ruthann", "Ruthanne", "Ruthe", "Ruthi", "Ruthie", "Ruthy", "Ryann", "Rycca", "Saba", "Sabina", "Sabine", "Sabra", "Sabrina", "Sacha", "Sada", "Sadella", "Sadie", "Sadye", "Saidee", "Sal", "Salaidh", "Sallee", "Salli", "Sallie", "Sally", "Sallyann", "Sallyanne", "Saloma", "Salome", "Salomi", "Sam", "Samantha", "Samara", "Samaria", "Sammy", "Sande", "Sandi", "Sandie", "Sandra", "Sandy", "Sandye", "Sapphira", "Sapphire", "Sara", "Sara-Ann", "Saraann", "Sarah", "Sarajane", "Saree", "Sarena", "Sarene", "Sarette", "Sari", "Sarina", "Sarine", "Sarita", "Sascha", "Sasha", "Sashenka", "Saudra", "Saundra", "Savina", "Sayre", "Scarlet", "Scarlett", "Sean", "Seana", "Seka", "Sela", "Selena", "Selene", "Selestina", "Selia", "Selie", "Selina", "Selinda", "Seline", "Sella", "Selle", "Selma", "Sena", "Sephira", "Serena", "Serene", "Shae", "Shaina", "Shaine", "Shalna", "Shalne", "Shana", "Shanda", "Shandee", "Shandeigh", "Shandie", "Shandra", "Shandy", "Shane", "Shani", "Shanie", "Shanna", "Shannah", "Shannen", "Shannon", "Shanon", "Shanta", "Shantee", "Shara", "Sharai", "Shari", "Sharia", "Sharity", "Sharl", "Sharla", "Sharleen", "Sharlene", "Sharline", "Sharon", "Sharona", "Sharron", "Sharyl", "Shaun", "Shauna", "Shawn", "Shawna", "Shawnee", "Shay", "Shayla", "Shaylah", "Shaylyn", "Shaylynn", "Shayna", "Shayne", "Shea", "Sheba", "Sheela", "Sheelagh", "Sheelah", "Sheena", "Sheeree", "Sheila", "Sheila-Kathryn", "Sheilah", "Shel", "Shela", "Shelagh", "Shelba", "Shelbi", "Shelby", "Shelia", "Shell", "Shelley", "Shelli", "Shellie", "Shelly", "Shena", "Sher", "Sheree", "Sheri", "Sherie", "Sherill", "Sherilyn", "Sherline", "Sherri", "Sherrie", "Sherry", "Sherye", "Sheryl", "Shina", "Shir", "Shirl", "Shirlee", "Shirleen", "Shirlene", "Shirley", "Shirline", "Shoshana", "Shoshanna", "Siana", "Sianna", "Sib", "Sibbie", "Sibby", "Sibeal", "Sibel", "Sibella", "Sibelle", "Sibilla", "Sibley", "Sibyl", "Sibylla", "Sibylle", "Sidoney", "Sidonia", "Sidonnie", "Sigrid", "Sile", "Sileas", "Silva", "Silvana", "Silvia", "Silvie", "Simona", "Simone", "Simonette", "Simonne", "Sindee", "Siobhan", "Sioux", "Siouxie", "Sisely", "Sisile", "Sissie", "Sissy", "Siusan", "Sofia", "Sofie", "Sondra", "Sonia", "Sonja", "Sonni", "Sonnie", "Sonnnie", "Sonny", "Sonya", "Sophey", "Sophi", "Sophia", "Sophie", "Sophronia", "Sorcha", "Sosanna", "Stace", "Stacee", "Stacey", "Staci", "Stacia", "Stacie", "Stacy", "Stafani", "Star", "Starla", "Starlene", "Starlin", "Starr", "Stefa", "Stefania", "Stefanie", "Steffane", "Steffi", "Steffie", "Stella", "Stepha", "Stephana", "Stephani", "Stephanie", "Stephannie", "Stephenie", "Stephi", "Stephie", "Stephine", "Stesha", "Stevana", "Stevena", "Stoddard", "Storm", "Stormi", "Stormie", "Stormy", "Sue", "Suellen", "Sukey", "Suki", "Sula", "Sunny", "Sunshine", "Susan", "Susana", "Susanetta", "Susann", "Susanna", "Susannah", "Susanne", "Susette", "Susi", "Susie", "Susy", "Suzann", "Suzanna", "Suzanne", "Suzette", "Suzi", "Suzie", "Suzy", "Sybil", "Sybila", "Sybilla", "Sybille", "Sybyl", "Sydel", "Sydelle", "Sydney", "Sylvia", "Tabatha", "Tabbatha", "Tabbi", "Tabbie", "Tabbitha", "Tabby", "Tabina", "Tabitha", "Taffy", "Talia", "Tallia", "Tallie", "Tallou", "Tallulah", "Tally", "Talya", "Talyah", "Tamar", "Tamara", "Tamarah", "Tamarra", "Tamera", "Tami", "Tamiko", "Tamma", "Tammara", "Tammi", "Tammie", "Tammy", "Tamqrah", "Tamra", "Tana", "Tandi", "Tandie", "Tandy", "Tanhya", "Tani", "Tania", "Tanitansy", "Tansy", "Tanya", "Tara", "Tarah", "Tarra", "Tarrah", "Taryn", "Tasha", "Tasia", "Tate", "Tatiana", "Tatiania", "Tatum", "Tawnya", "Tawsha", "Ted", "Tedda", "Teddi", "Teddie", "Teddy", "Tedi", "Tedra", "Teena", "TEirtza", "Teodora", "Tera", "Teresa", "Terese", "Teresina", "Teresita", "Teressa", "Teri", "Teriann", "Terra", "Terri", "Terrie", "Terrijo", "Terry", "Terrye", "Tersina", "Terza", "Tess", "Tessa", "Tessi", "Tessie", "Tessy", "Thalia", "Thea", "Theadora", "Theda", "Thekla", "Thelma", "Theo", "Theodora", "Theodosia", "Theresa", "Therese", "Theresina", "Theresita", "Theressa", "Therine", "Thia", "Thomasa", "Thomasin", "Thomasina", "Thomasine", "Tiena", "Tierney", "Tiertza", "Tiff", "Tiffani", "Tiffanie", "Tiffany", "Tiffi", "Tiffie", "Tiffy", "Tilda", "Tildi", "Tildie", "Tildy", "Tillie", "Tilly", "Tim", "Timi", "Timmi", "Timmie", "Timmy", "Timothea", "Tina", "Tine", "Tiphani", "Tiphanie", "Tiphany", "Tish", "Tisha", "Tobe", "Tobey", "Tobi", "Toby", "Tobye", "Toinette", "Toma", "Tomasina", "Tomasine", "Tomi", "Tommi", "Tommie", "Tommy", "Toni", "Tonia", "Tonie", "Tony", "Tonya", "Tonye", "Tootsie", "Torey", "Tori", "Torie", "Torrie", "Tory", "Tova", "Tove", "Tracee", "Tracey", "Traci", "Tracie", "Tracy", "Trenna", "Tresa", "Trescha", "Tressa", "Tricia", "Trina", "Trish", "Trisha", "Trista", "Trix", "Trixi", "Trixie", "Trixy", "Truda", "Trude", "Trudey", "Trudi", "Trudie", "Trudy", "Trula", "Tuesday", "Twila", "Twyla", "Tybi", "Tybie", "Tyne", "Ula", "Ulla", "Ulrica", "Ulrika", "Ulrikaumeko", "Ulrike", "Umeko", "Una", "Ursa", "Ursala", "Ursola", "Ursula", "Ursulina", "Ursuline", "Uta", "Val", "Valaree", "Valaria", "Vale", "Valeda", "Valencia", "Valene", "Valenka", "Valentia", "Valentina", "Valentine", "Valera", "Valeria", "Valerie", "Valery", "Valerye", "Valida", "Valina", "Valli", "Vallie", "Vally", "Valma", "Valry", "Van", "Vanda", "Vanessa", "Vania", "Vanna", "Vanni", "Vannie", "Vanny", "Vanya", "Veda", "Velma", "Velvet", "Venita", "Venus", "Vera", "Veradis", "Vere", "Verena", "Verene", "Veriee", "Verile", "Verina", "Verine", "Verla", "Verna", "Vernice", "Veronica", "Veronika", "Veronike", "Veronique", "Vevay", "Vi", "Vicki", "Vickie", "Vicky", "Victoria", "Vida", "Viki", "Vikki", "Vikky", "Vilhelmina", "Vilma", "Vin", "Vina", "Vinita", "Vinni", "Vinnie", "Vinny", "Viola", "Violante", "Viole", "Violet", "Violetta", "Violette", "Virgie", "Virgina", "Virginia", "Virginie", "Vita", "Vitia", "Vitoria", "Vittoria", "Viv", "Viva", "Vivi", "Vivia", "Vivian", "Viviana", "Vivianna", "Vivianne", "Vivie", "Vivien", "Viviene", "Vivienne", "Viviyan", "Vivyan", "Vivyanne", "Vonni", "Vonnie", "Vonny", "Vyky", "Wallie", "Wallis", "Walliw", "Wally", "Waly", "Wanda", "Wandie", "Wandis", "Waneta", "Wanids", "Wenda", "Wendeline", "Wendi", "Wendie", "Wendy", "Wendye", "Wenona", "Wenonah", "Whitney", "Wileen", "Wilhelmina", "Wilhelmine", "Wilie", "Willa", "Willabella", "Willamina", "Willetta", "Willette", "Willi", "Willie", "Willow", "Willy", "Willyt", "Wilma", "Wilmette", "Wilona", "Wilone", "Wilow", "Windy", "Wini", "Winifred", "Winna", "Winnah", "Winne", "Winni", "Winnie", "Winnifred", "Winny", "Winona", "Winonah", "Wren", "Wrennie", "Wylma", "Wynn", "Wynne", "Wynnie", "Wynny", "Xaviera", "Xena", "Xenia", "Xylia", "Xylina", "Yalonda", "Yasmeen", "Yasmin", "Yelena", "Yetta", "Yettie", "Yetty", "Yevette", "Ynes", "Ynez", "Yoko", "Yolanda", "Yolande", "Yolane", "Yolanthe", "Yoshi", "Yoshiko", "Yovonnda", "Ysabel", "Yvette", "Yvonne", "Zabrina", "Zahara", "Zandra", "Zaneta", "Zara", "Zarah", "Zaria", "Zarla", "Zea", "Zelda", "Zelma", "Zena", "Zenia", "Zia", "Zilvia", "Zita", "Zitella", "Zoe", "Zola", "Zonda", "Zondra", "Zonnya", "Zora", "Zorah", "Zorana", "Zorina", "Zorine", "Zsa Zsa", "Zsazsa", "Zulema", "Zuzana");
+            break;
+    }
+    $result .= $names[array_rand($names)] . ' ' . $surnames[array_rand($surnames)];
+    return ($result);
 }

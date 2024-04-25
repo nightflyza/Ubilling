@@ -143,7 +143,7 @@ class rcms_system extends rcms_user {
         $this->initialiseLanguage(basename($language_select_form));
         $this->logging_gz = extension_loaded('zlib');
         if (!empty($this->config['allowchskin'])) {
-            if (!empty($_COOKIE[$this->cookie_skin]) && is_file(SKIN_PATH . basename($_COOKIE[$this->cookie_skin]) . '/skin.general.php'))
+            if (!empty($_COOKIE[$this->cookie_skin]) && is_string($_COOKIE[$this->cookie_skin]) && is_file(SKIN_PATH . basename($_COOKIE[$this->cookie_skin]) . '/skin.general.php'))
                 $this->skin = basename($_COOKIE[$this->cookie_skin]);
             if (!empty($skin_select_form) && is_file(SKIN_PATH . basename($skin_select_form) . '/skin.general.php')) {
                 $this->skin = $skin_select_form;
@@ -182,7 +182,7 @@ class rcms_system extends rcms_user {
                 $this->language = $language;
                 setcookie($this->cookie_lang, $language, FOREVER_COOKIE);
                 $_COOKIE[$this->cookie_lang] = $language;
-            } elseif (!empty($_COOKIE[$this->cookie_lang]) && !empty($this->data['languages'][basename($_COOKIE[$this->cookie_lang])])) {
+            } elseif (!empty($_COOKIE[$this->cookie_lang]) && is_string($_COOKIE[$this->cookie_lang]) && !empty($this->data['languages'][basename($_COOKIE[$this->cookie_lang])])) {
                 $this->language = basename($_COOKIE[$this->cookie_lang]);
             } else {
                 if (!empty($this->config['detect_lang']) && !empty($_SERVER['HTTP_ACCEPT_LANGUAGE'])) {
@@ -430,7 +430,6 @@ class rcms_system extends rcms_user {
         $this->navmodifiers[$base] = array('m' => $mod_handler, 'h' => $help_handler);
         return true;
     }
-
 }
 
 /**
@@ -477,5 +476,3 @@ function cut_text($str, $lenght = 25) {
     $str = substr($str, 0, $lenght) . ((strlen($str) > $lenght) ? '...' : '');
     return ($str);
 }
-
-?>

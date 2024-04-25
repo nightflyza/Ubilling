@@ -3,7 +3,7 @@
 /*
  * Cumulatiove discounts processing
  */
-if ($_GET['action'] == 'cudiscounts') {
+if (ubRouting::get('action') == 'cudiscounts') {
     if ($alterconf['CUD_ENABLED']) {
         $discounts = new CumulativeDiscounts();
         $discounts->processDiscounts();

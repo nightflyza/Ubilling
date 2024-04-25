@@ -42,7 +42,7 @@ if (cfr('ROOT')) {
     //show available license keys
     zb_LicenseLister();
 
-    zb_BillingStats(true);
+    zb_BillingStats();
 } else {
     show_error(__('Access denied'));
 }

@@ -1,5 +1,5 @@
 <?php
-$altcfg = rcms_parse_ini_file(CONFIG_PATH . 'alter.ini');
+$altcfg = $ubillingConfig->getAlter();
 
 if ($altcfg['ONU_MASTER_ENABLED']) {
     if (cfr('ONUMASTER')) {
@@ -16,6 +16,30 @@ if ($altcfg['ONU_MASTER_ENABLED']) {
                 } else {
                     show_error($onuMaster->reboot->displayMessage);
                     log_register('ONUMASTER ONU reboot failed for login (' . $userLogin . '). Message: ' . $onuMaster->reboot->displayMessage);
+                }
+            }
+
+            if (ubRouting::checkPost('DlpOnu')) {
+                $dlpResult = $onuMaster->dlp->dlpOnu();
+
+                if ($dlpResult) {
+                    show_success('Disabled lan port  DONE');
+                    log_register('ONUMASTER ONU DLP for login (' . $userLogin . ')');
+                } else {
+                    show_error($onuMaster->dlp->displayMessage);
+                    log_register('ONUMASTER ONU DLP failed for login (' . $userLogin . '). Message: ' . $onuMaster->dlp->displayMessage);
+                }
+            }
+
+            if (ubRouting::checkPost('ElpOnu')) {
+                $elpResult = $onuMaster->elp->elpOnu();
+
+                if ($elpResult) {
+                    show_success('Enabled lan port  DONE');
+                    log_register('ONUMASTER ONU DLP for login (' . $userLogin . ')');
+                } else {
+                    show_error($onuMaster->elp->displayMessage);
+                    log_register('ONUMASTER ONU ELP failed for login (' . $userLogin . '). Message: ' . $onuMaster->elp->displayMessage);
                 }
             }
 
@@ -58,6 +82,13 @@ if ($altcfg['ONU_MASTER_ENABLED']) {
             }
 
             $onuMaster->renderMain($userLogin);
+            zb_BillingStats();
+        } else {
+            show_error(__('Strange exception').': '.__('Empty login'));
         }
+    } else {
+        show_error(__('Access denied'));
     }
+} else {
+    show_error(__('This module is disabled'));
 }

@@ -57,9 +57,9 @@ class OpenPayz {
     /**
      * Placeholder for UbillingConfig object
      *
-     * @var null
+     * @var object
      */
-    protected $ubConfig = null;
+    protected $ubConfig = '';
 
     /**
      * Placeholder for OP_SMS_NOTIFY_PAYMENTS_PULL_INTERVAL alter.ini option
@@ -319,7 +319,7 @@ class OpenPayz {
     protected function loadTransactions($year = '', $transactionId = 0) {
         $year = ubRouting::filters($year, 'int');
         $transactionId = ubRouting::filters($transactionId, 'int');
-        if (!empty($year) AND $year != '1488') {
+        if (!empty($year) and $year != '1488') {
             $this->transactionsDb->where('date', 'LIKE', $year . '-%');
         }
 
@@ -358,6 +358,33 @@ class OpenPayz {
         }
         if (!empty($this->allCustomers)) {
             $result = array_flip($this->allCustomers);
+        }
+        return ($result);
+    }
+
+    /**
+     * Returns some specified user paymentId
+     *
+     * @param string $userLogin
+     * 
+     * @return string
+     */
+    public function getCustomerPaymentId($userLogin) {
+        $result = '';
+        $userLogin = ubRouting::filters($userLogin, 'mres');
+        if (!empty($this->allCustomers)) {
+            //already preloaded from database
+            $tmp = array_flip($this->allCustomers);
+            if (isset($tmp[$userLogin])) {
+                $result = $tmp[$userLogin];
+            }
+        } else {
+            //not loaded at start, performing database query
+            $this->customersDb->where('realid', '=', $userLogin);
+            $rawData = $this->customersDb->getAll();
+            if (!empty($rawData)) {
+                $result = $rawData[0]['virtualid'];
+            }
         }
         return ($result);
     }
@@ -404,7 +431,7 @@ class OpenPayz {
                 $result = $this->payIdStaticPrefix . zb_rand_digits($this->payidStaticLen);
             }
         }
-        return($result);
+        return ($result);
     }
 
     /**
@@ -442,7 +469,7 @@ class OpenPayz {
                 log_register('OPENPAYZ STATIC REGISTER FAIL (' . $userLogin . ') ALREADY `' . $existingPayId . '`');
             }
         }
-        return($result);
+        return ($result);
     }
 
     /**
@@ -521,7 +548,7 @@ class OpenPayz {
             $csvdata = __('ID') . ';' . __('Date') . ';' . __('Cash') . ';' . __('Payment ID') . ';' . __('Real Name') . ';' . __('Full address') . ';' . __('Payment system') . "\n";
             foreach ($this->allTransactions as $io => $eachtransaction) {
                 if (ispos($eachtransaction['date'], $year . '-' . $month)) {
-                    if (( $eachtransaction['paysys'] == $paysys) OR ( ( $paysys == 'ANY'))) {
+                    if (($eachtransaction['paysys'] == $paysys) or (($paysys == 'ANY'))) {
                         @$user_login = $this->allCustomers[$eachtransaction['customerid']];
                         @$user_realname = $this->allRealnames[$user_login];
                         @$user_address = $this->allAddress[$user_login];
@@ -617,7 +644,7 @@ class OpenPayz {
         $inputs .= wf_Submit(__('Show'));
 
         $result .= wf_Form('', 'POST', $inputs, 'glamour');
-        return($result);
+        return ($result);
     }
 
     /**
@@ -981,7 +1008,8 @@ class OpenPayz {
                         }
                     }
 
-                    $tmpRec = array('payment_id' => $eachID,
+                    $tmpRec = array(
+                        'payment_id' => $eachID,
                         'date' => $eachRec['date'],
                         'login' => $tmpLogin,
                         'balance' => $eachRec['balance'] + $eachRec['summ'],

@@ -68,9 +68,9 @@ function zb_UserGetAllTagsUnique($login = '', $whereTagID = '') {
  * @param int $max
  * @return string
  */
-function web_priority_selector($max = 6) {
+function web_priority_selector($max = 6, $noWebControlReturn = false) {
     $params = array_combine(range($max, 1), range($max, 1));
-    $result = wf_Selector('newpriority', $params, __('Priority'), '', false);
+    $result = $noWebControlReturn ? $params : wf_Selector('newpriority', $params, __('Priority'), '', false);
     return ($result);
 }
 
@@ -167,6 +167,32 @@ function stg_get_alltagnames() {
             $result[$eachtype['id']] = $eachtype['tagname'];
         }
     }
+    return($result);
+}
+
+/**
+ * Returns array of available tagtypes as id => name, filtered by $tagIDs
+ * or just empty array
+ *
+ * @param $tagIDs
+ *
+ * @return array
+ */
+function stg_get_alltagnames_filtered($tagIDs = array()) {
+    $result = array();
+    $whereStr = zb_ArrayToSQLWHEREIN($tagIDs);
+
+    if (!empty($whereStr)) {
+        $query = "SELECT * FROM `tagtypes` WHERE `id` IN (" . $whereStr . ")";
+        $alltagtypes = simple_queryall($query);
+
+        if (!empty($alltagtypes)) {
+            foreach ($alltagtypes as $io => $eachtype) {
+                $result[$eachtype['id']] = $eachtype['tagname'];
+            }
+        }
+    }
+
     return($result);
 }
 
@@ -292,7 +318,7 @@ function stg_tagadd_selector() {
  * 
  * @return string
  */
-function stg_tagid_selector() {
+function stg_tagid_selector($noWebControlReturn = false) {
     $query = "SELECT * from `tagtypes`";
     $alltypes = simple_queryall($query);
     $tmpArr = array();
@@ -302,7 +328,7 @@ function stg_tagid_selector() {
         }
     }
 
-    $result = wf_Selector('newtagid', $tmpArr, __('Tag'), '', false);
+    $result = $noWebControlReturn ? $tmpArr : wf_Selector('newtagid', $tmpArr, __('Tag'), '', false);
     return ($result);
 }
 
@@ -411,14 +437,19 @@ function stg_get_tag_body_deleter($id, $login, $tagid) {
     $messages = new UbillingMessageHelper();
     $query = "SELECT * from `tagtypes` where `id`='" . $id . "'";
     $tagbody = simple_query($query);
+    $tagNotExists = empty($tagbody);
     $result = '';
 
-    $result .= wf_tag('font', false, '', 'color="' . $tagbody['tagcolor'] . '" size="' . $tagbody['tagsize'] . '"');
-    $result .= $tagbody['tagname'];
+    $tagColor = ($tagNotExists) ? '#FF0000' : $tagbody['tagcolor'];
+    $tagSize  = ($tagNotExists) ? '6' : $tagbody['tagsize'];
+    $tagName  = ($tagNotExists) ? __('Non-existent tag with ID') . ': ' . $id : $tagbody['tagname'];
+
+    $result .= wf_tag('font', false, '', 'color="' . $tagColor . '" size="' . $tagSize . '"');
+    $result .= $tagName;
     $result .= wf_tag('sup');
     $deleteUrl = '?module=usertags&username=' . $login . '&deletetag=' . $tagid;
     $cancelUrl = '?module=usertags&username=' . $login;
-    $dialogTitle = __('Delete tag') . ' ' . $tagbody['tagname'] . '?';
+    $dialogTitle = __('Delete tag') . ' ' . $tagName . '?';
     $deleteDialog = wf_ConfirmDialog($deleteUrl, web_delete_icon(), $messages->getDeleteAlert(), '', $cancelUrl, $dialogTitle);
     $result .= $deleteDialog;
     $result .= wf_tag('sup', true);

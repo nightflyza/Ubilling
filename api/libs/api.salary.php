@@ -2491,7 +2491,7 @@ class Salary {
         $inputs = wf_YearSelector('tsheetprintyear', __('Year') . ' ', false);
         $inputs .= wf_MonthSelector('tsheetprintmonth', __('Month') . ' ', date('m'), false);
         $inputs .= wf_Submit(__('Show'));
-        $result = wf_Form('', 'POST', $inputs, 'glamour');
+        $result = wf_Form('', 'POST', $inputs, 'glamour','','','_BLANK');
         return ($result);
     }
 

@@ -97,7 +97,6 @@ class rcms_access {
         user_change_field($username, 'accesslevel', $level);
         return true;
     }
-
 }
 
 class rcms_user_cache {
@@ -148,7 +147,6 @@ class rcms_user_cache {
             return true;
         return !in_array_i($value, $this->cache[$field]);
     }
-
 }
 
 define('USERS_ALLOW_CHANGE', 0);
@@ -243,7 +241,12 @@ class rcms_user extends rcms_access {
         }
 
         // So we have a cookie, let's extract data from it
-        $cookie_data = explode(':', $_COOKIE[$this->cookie_user], 2);
+        if (is_string($_COOKIE[$this->cookie_user])) {
+            $cookie_data = explode(':', $_COOKIE[$this->cookie_user], 2);
+        } else {
+            $cookie_data=array();
+        }
+
         if (!$skipcheck) {
             // If this cookie is invalid - we exiting destroying cookie and exiting with error
             if (sizeof($cookie_data) != 2) {
@@ -640,7 +643,4 @@ class rcms_user extends rcms_access {
             return __('Guest');
         }
     }
-
 }
-
-?>

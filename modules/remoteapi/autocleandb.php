@@ -3,7 +3,7 @@
 /*
  * database cleanup
  */
-if ($_GET['action'] == 'autocleandb') {
+if (ubRouting::get('action') == 'autocleandb') {
     $cleancount = zb_DBCleanupAutoClean();
     die('OK:AUTOCLEANDB ' . $cleancount);
 }

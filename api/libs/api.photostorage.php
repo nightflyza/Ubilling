@@ -98,6 +98,7 @@ class PhotoStorage {
     const ROUTE_PROXY = 'getimg';
     const EX_NOSCOPE = 'NO_OBJECT_SCOPE_SET';
     const EX_WRONG_EXT = 'WRONG_FILE_EXTENSION';
+    const WATRERMARK_PATH = 'content/documents/watermark.png';
 
     /**
      * Initializes photostorage engine for some scope/item id
@@ -192,7 +193,7 @@ class PhotoStorage {
      * @return void
      */
     protected function loadAllImages() {
-        if ((!empty($this->scope)) AND (!empty($this->itemId))) {
+        if ((!empty($this->scope)) and (!empty($this->itemId))) {
             $query = "SELECT * from `photostorage` ORDER by `id` ASC;";
             $all = simple_queryall($query);
             $this->imagesLoadedFlag = true;
@@ -216,11 +217,11 @@ class PhotoStorage {
      * @param string $filename
      */
     protected function registerImage($filename) {
-        if ((!empty($this->scope)) AND (!empty($this->itemId))) {
+        if ((!empty($this->scope)) and (!empty($this->itemId))) {
             $filename = mysql_real_escape_string($filename);
             $date = curdatetime();
             $query = "INSERT INTO `photostorage` (`id`, `scope`, `item`, `date`, `admin`, `filename`) "
-                    . "VALUES (NULL, '" . $this->scope . "', '" . $this->itemId . "', '" . $date . "', '" . $this->myLogin . "', '" . $filename . "'); ";
+                . "VALUES (NULL, '" . $this->scope . "', '" . $this->itemId . "', '" . $date . "', '" . $this->myLogin . "', '" . $filename . "'); ";
             nr_query($query);
             log_register('PHOTOSTORAGE CREATE SCOPE `' . $this->scope . '` ITEM [' . $this->itemId . ']');
         }
@@ -232,7 +233,7 @@ class PhotoStorage {
      * @param int $imageid
      */
     protected function unregisterImage($imageid) {
-        if ((!empty($this->scope)) AND (!empty($this->itemId))) {
+        if ((!empty($this->scope)) and (!empty($this->itemId))) {
             $imageid = vf($imageid, 3);
             $date = curdatetime();
             $query = "DELETE from `photostorage` WHERE `id`='" . $imageid . "';";
@@ -265,7 +266,7 @@ class PhotoStorage {
      */
     public function uploadControlsPanel() {
         $result = '';
-        if ((!empty($this->scope)) AND (!empty($this->itemId))) {
+        if ((!empty($this->scope)) and (!empty($this->itemId))) {
             $result .= wf_Link(self::MODULE_URL . '&scope=' . $this->scope . '&itemid=' . $this->itemId . '&mode=cam', wf_img('skins/photostorage.png') . ' ' . __('Webcamera snapshot'), false, 'ubButton');
             $result .= wf_Link(self::MODULE_URL . '&scope=' . $this->scope . '&itemid=' . $this->itemId . '&mode=loader', wf_img('skins/photostorage_upload.png') . ' ' . __('Upload file from HDD'), false, 'ubButton');
         }
@@ -325,7 +326,7 @@ class PhotoStorage {
         if (isset($this->imagesCount[$this->scope][$itemId])) {
             $result = $this->imagesCount[$this->scope][$itemId];
         }
-        return($result);
+        return ($result);
     }
 
     /**
@@ -353,7 +354,7 @@ class PhotoStorage {
             }
         }
 
-        return($result);
+        return ($result);
     }
 
     /**
@@ -376,7 +377,7 @@ class PhotoStorage {
                 }
             }
         }
-        return($result);
+        return ($result);
     }
 
     /**
@@ -401,7 +402,7 @@ class PhotoStorage {
             //Access to images in storage via proxy-engine
             $result = self::MODULE_URL . '&' . self::ROUTE_PROXY . '=' . $filename;
         }
-        return($result);
+        return ($result);
     }
 
     /**
@@ -449,7 +450,7 @@ class PhotoStorage {
                 $upperLimit = $lowLimit + $perPage;
                 $i = 0;
                 foreach ($imgTmp as $io => $each) {
-                    if ($i >= $lowLimit AND $i < $upperLimit) {
+                    if ($i >= $lowLimit and $i < $upperLimit) {
                         $renderImages[$io] = $each;
                     }
                     $i++;
@@ -519,12 +520,12 @@ class PhotoStorage {
 
         if (!empty($this->allimages)) {
             foreach ($this->allimages as $io => $eachimage) {
-                if (($eachimage['scope'] == $this->scope) AND ( $eachimage['item'] == $this->itemId)) {
+                if (($eachimage['scope'] == $this->scope) and ($eachimage['item'] == $this->itemId)) {
                     $imgPreview = wf_img_sized($this->getImageUrl($eachimage['filename']), __('Show'), $this->photoCfg['IMGLIST_PREV_W'], $this->photoCfg['IMGLIST_PREV_H']);
                     $imgFull = wf_img_sized($this->getImageUrl($eachimage['filename']), '', '100%');
                     $imgFull .= wf_tag('br');
                     $imgFull .= __('Date') . ': ' . $eachimage['date'] . ' / ';
-                    $imgFull .= __('Admin') . ': ' . $eachimage['admin'];
+                    $imgFull .= __('Admin') . ': ' . $eachimage['admin'] . ' ';
 
                     $dimensions = 'width:' . ($this->photoCfg['IMGLIST_PREV_W'] + 10) . 'px;';
                     $dimensions .= 'height:' . ($this->photoCfg['IMGLIST_PREV_H'] + 10) . 'px;';
@@ -564,7 +565,7 @@ class PhotoStorage {
             $result .= wf_tag('script', false, '', 'src="modules/jsc/image-gallery-lightjs/src/jquery.light.js"') . wf_tag('script', true);
 
             foreach ($this->allimages as $io => $eachimage) {
-                if (($eachimage['scope'] == $this->scope) AND ( $eachimage['item'] == $this->itemId)) {
+                if (($eachimage['scope'] == $this->scope) and ($eachimage['item'] == $this->itemId)) {
                     $imgPreview = wf_img_sized($this->getImageUrl($eachimage['filename']), __('Show'), $this->photoCfg['IMGLIST_PREV_W'], $this->photoCfg['IMGLIST_PREV_H']);
                     $imgFull = wf_img_sized($this->getImageUrl($eachimage['filename']), '', '100%');
                     $imgCaption = __('Date') . ': ' . $eachimage['date'] . ' ' . __('Admin') . ': ' . $eachimage['admin'];
@@ -701,6 +702,95 @@ class PhotoStorage {
     }
 
     /**
+     * Performs some image postprocessing on images uploads
+     * 
+     * @param string $filePath
+     * 
+     * @return void
+     */
+    public function imagePostProcessing($filePath) {
+        $result = '';
+        $pixelCraft = new PixelCraft();
+
+        $pixelCraft->loadImage($filePath);
+        $imageWidth = $pixelCraft->getImageWidth();
+        $imageHeight = $pixelCraft->getImageHeight();
+        $originalType = $pixelCraft->getImageType();
+
+        $result .= wf_tag('span', false, 'alert_info') . __('Original image dimensions') . ' :' . $imageWidth . 'x' . $imageHeight . wf_tag('span', true);
+        $fileSizeOrig = filesize($filePath);
+        $result .= wf_tag('span', false, 'alert_info') . __('Uploaded file size') . ': ' . zb_convertSize($fileSizeOrig) . wf_tag('span', true);
+
+        $imgInfo = '';
+        $imgInfo .= whoami() . ' Date: ' . date("Y-m-d H:i:s") . ' ';
+        $imgInfo .= 'Orig: ' . $imageWidth . 'x' . $imageHeight . ' ' . $originalType . ', ' . zb_convertSize($fileSizeOrig) . ' ';
+
+        //recompressing image
+        if ($this->altCfg['PHOTOSTORAGE_RECOMPRESS']) {
+            $quality = -1;
+            if ($originalType == 'jpeg') {
+                $quality = 70;
+                $pixelCraft->setQuality($quality);
+            }
+
+            if ($originalType == 'png') {
+                $quality = 9;
+                $pixelCraft->setQuality($quality);
+            }
+            $result .= wf_tag('span', false, 'alert_info') . __('Image compression') . ': ' . $quality . wf_tag('span', true);
+            $imgInfo .= 'Recompress: ' . $quality . ' ';
+        }
+
+
+        //appending watermark
+        if ($this->altCfg['PHOTOSTORAGE_WATERMARK']) {
+            $pixelCraft->loadWatermark(self::WATRERMARK_PATH);
+            $pixelCraft->drawWatermark(false, $imageWidth - 120, 20);
+            $result .= wf_tag('span', false, 'alert_info') . __('Watermark applied') . wf_tag('span', true);
+        }
+
+        //automatic downscale of huge images
+        if ($this->altCfg['PHOTOSTORAGE_AUTORESIZE']) {
+            $scale = 1;
+            if ($imageWidth >= 4000 or $imageHeight >= 4000) {
+                $scale = 0.5;
+                $pixelCraft->scale($scale);
+                $imageWidth = $pixelCraft->getImageWidth();
+                $imageHeight = $pixelCraft->getImageHeight();
+            } else {
+                if ($imageWidth >= 2000 or $imageHeight >= 2000) {
+                    $scale = 0.8;
+                    $pixelCraft->scale($scale);
+                    $imageWidth = $pixelCraft->getImageWidth();
+                    $imageHeight = $pixelCraft->getImageHeight();
+                }
+            }
+
+            if ($scale != 1) {
+                $result .= wf_tag('span', false, 'alert_info') . __('New image dimensions') . ' :' . $imageWidth . 'x' . $imageHeight . wf_tag('span', true);
+                $imgInfo .= 'Rescale x' . $scale . ': ' . $imageWidth . 'x' . $imageHeight . ' ';
+            }
+            $result .= wf_tag('span', false, 'alert_info') . __('Image scale') . ': ' . $scale . wf_tag('span', true);
+        }
+
+        if ($this->altCfg['PHOTOSTORAGE_DRAWIMGINFO']) {
+            $infoX = 5;
+            $infoY = $imageHeight - 10;
+            $pixelCraft->drawString($infoX, $infoY, $imgInfo, 'yellow', 1, false);
+        }
+
+        //saving post-processed image
+        $pixelCraft->saveImage($filePath, $originalType);
+
+        //updating filesize
+        clearstatcache(true, $filePath);
+        $fileSizeProcessed = filesize($filePath);
+        $result .= wf_tag('span', false, 'alert_info') . __('Saved file size') . ': ' . zb_convertSize($fileSizeProcessed) . wf_tag('span', true);
+
+        return ($result);
+    }
+
+    /**
      * Catches file upload in background
      *
      * @param string $customBackLink
@@ -722,23 +812,40 @@ class PhotoStorage {
                 }
 
                 if ($fileAccepted) {
-                    $newFilename = date("Y_m_d_His") . '_' . zb_rand_string(8) . '_upload.jpg';
-                    $newSavePath = $this->storagePath . $newFilename;
-                    @move_uploaded_file($_FILES['photostorageFileUpload']['tmp_name'], $newSavePath);
-                    if (file_exists($newSavePath)) {
-                        $uploadResult = wf_tag('span', false, 'alert_success') . __('Photo upload complete') . wf_tag('span', true);
-                        $this->registerImage($newFilename);
+                    //upload successful?
+                    if (file_exists(@$_FILES['photostorageFileUpload']['tmp_name'])) {
+                        //checking image validity
+                        $pixelCraft = new PixelCraft();
+                        if ($pixelCraft->isImageValid($_FILES['photostorageFileUpload']['tmp_name'])) {
+                            $newFilename = date("Y_m_d_His") . '_' . zb_rand_string(8) . '_upload.jpg';
+                            $newSavePath = $this->storagePath . $newFilename;
+                            @move_uploaded_file($_FILES['photostorageFileUpload']['tmp_name'], $newSavePath);
+                            if (file_exists($newSavePath)) {
+                                $uploadResult = wf_tag('span', false, 'alert_success') . __('Photo upload complete') . wf_tag('span', true);
 
-                        // forwarding $customBackLink back to renderUploadForm() routine
-                        if (empty($customBackLink)) {
-                            $customBackLink = '';
+                                //image postprocessing 
+                                if (@$this->altCfg['PHOTOSTORAGE_POSTPROCESSING']) {
+                                    $uploadResult .= $this->imagePostProcessing($newSavePath);
+                                }
+
+                                $this->registerImage($newFilename);
+
+                                // forwarding $customBackLink back to renderUploadForm() routine
+                                if (empty($customBackLink)) {
+                                    $customBackLink = '';
+                                } else {
+                                    $customBackLink = '&custombacklink=' . $customBackLink;
+                                }
+
+                                ubRouting::nav(self::MODULE_URL . '&scope=' . $this->scope . '&itemid=' . $this->itemId . '&mode=loader&preview=' . $newFilename . $customBackLink);
+                            } else {
+                                $uploadResult = wf_tag('span', false, 'alert_error') . __('Photo upload failed') . wf_tag('span', true);
+                            }
                         } else {
-                            $customBackLink = '&custombacklink=' . $customBackLink;
+                            $uploadResult = wf_tag('span', false, 'alert_error') . __('Photo upload failed') . ': ' . __('File') . ' ' . __('is corrupted') . wf_tag('span', true);
                         }
-
-                        rcms_redirect(self::MODULE_URL . '&scope=' . $this->scope . '&itemid=' . $this->itemId . '&mode=loader&preview=' . $newFilename . $customBackLink);
                     } else {
-                        $uploadResult = wf_tag('span', false, 'alert_error') . __('Photo upload failed') . wf_tag('span', true);
+                        $uploadResult = wf_tag('span', false, 'alert_error') . __('Photo upload failed') . ': ' . __('File not found') . wf_tag('span', true);
                     }
                 } else {
                     $uploadResult = wf_tag('span', false, 'alert_error') . __('Photo upload failed') . ': ' . self::EX_WRONG_EXT . wf_tag('span', true);

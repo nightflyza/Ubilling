@@ -1,9 +1,9 @@
 <?php
 
 //associated agent data
-if ($_GET['action'] == 'getagentdata') {
-    if (isset($_GET['param'])) {
-        $userLogin = $_GET['param'];
+if (ubRouting::get('action') == 'getagentdata') {
+    if (ubRouting::checkGet('param')) {
+        $userLogin = ubRouting::get('param');
         $allUserData = zb_UserGetAllDataCache();
         if (isset($allUserData[$userLogin])) {
             $userData = $allUserData[$userLogin];

@@ -64,6 +64,7 @@ if (cfr('AGENTS')) {
 
     // show or manipulate extended agent info
     if (ubRouting::checkGet('extinfo')) {
+        if ($ubillingConfig->getAlterParam('AGENTS_EXTINFO_ON')) {
         // edit extended agent info
         if (ubRouting::checkPost('extinfeditmode') and ubRouting::checkPost('extinfrecid') and ubRouting::checkPost('extinfagentid')) {
             zb_EditAgentExtInfoRec(ubRouting::post('extinfrecid'), ubRouting::post('extinfagentid'),
@@ -87,6 +88,9 @@ if (cfr('AGENTS')) {
                 wf_delimiter() .
                 (ubRouting::checkGet('edit') ? wf_BackLink('?module=contrahens&extinfo=' . ubRouting::get('extinfo')) : wf_BackLink('?module=contrahens'))
                 );
+            } else {
+                show_error(__('This module is disabled'));
+            }
     }
 
     //list ahents if not editing

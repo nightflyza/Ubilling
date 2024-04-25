@@ -26,7 +26,8 @@ $statsconfig = zbs_LoadConfig();
 // set default lang
 $lang = $statsconfig['lang'];
 
-if ($statsconfig['allowclang']) { // if language change is allowed
+// if language change is allowed
+if ($statsconfig['allowclang']) {
     if (isset($_GET['changelang'])) {
         $lang = $_GET['changelang'];
     } else {
@@ -34,20 +35,29 @@ if ($statsconfig['allowclang']) { // if language change is allowed
             $lang = $_COOKIE['zbs_lang'];
         }
     }
+
+    if (is_string($lang)) {
+        $lang = vf($lang);
+    } else {
+        $lang = $statsconfig['lang'];
+    }
 }
 
 setcookie("zbs_lang", $lang, time() + 2592000);
 $langglobal = zbs_LoadLang($lang);
 
-//setting auth cookies subroutine
-if ($statsconfig['auth'] == 'login' OR $statsconfig['auth'] == 'both') { //if enabled login based auth
-    if ((isset($_POST['ulogin'])) AND isset($_POST['upassword'])) {
-        $ulogin = trim(vf($_POST['ulogin']));
-        $upassword = trim(vf($_POST['upassword']));
-        $upassword = md5($upassword);
-        setcookie("ulogin", $ulogin, time() + 2592000);
-        setcookie("upassword", $upassword, time() + 2592000);
-        rcms_redirect("index.php");
+//if enabled login based auth
+if ($statsconfig['auth'] == 'login' or $statsconfig['auth'] == 'both') {
+    if ((isset($_POST['ulogin'])) and isset($_POST['upassword'])) {
+        if (is_string($_POST['ulogin']) and is_string($_POST['upassword'])) {
+            //setting auth cookies subroutine
+            $ulogin = trim(vf($_POST['ulogin']));
+            $upassword = trim(vf($_POST['upassword']));
+            $upassword = md5($upassword);
+            setcookie("ulogin", $ulogin, time() + 2592000);
+            setcookie("upassword", $upassword, time() + 2592000);
+            rcms_redirect("index.php");
+        }
     }
 
     if (isset($_POST['ulogout'])) {
@@ -63,7 +73,7 @@ if ($statsconfig['auth'] == 'login' OR $statsconfig['auth'] == 'both') { //if en
  */
 function zbs_LoadConfig() {
     $config = parse_ini_file('config/userstats.ini');
-    return($config);
+    return ($config);
 }
 
 /**
@@ -84,7 +94,7 @@ function zbs_LoadLang($language) {
     } else {
         include('languages/english/lang.php');
     }
-    return($lang);
+    return ($lang);
 }
 
 /**
@@ -96,10 +106,10 @@ function zbs_LoadLang($language) {
  */
 function __($str) {
     global $langglobal;
-    if ((isset($langglobal['def'][$str])) AND ( !empty($langglobal['def'][$str]))) {
+    if ((isset($langglobal['def'][$str])) and (!empty($langglobal['def'][$str]))) {
         return ($langglobal['def'][$str]);
     } else {
-        return($str);
+        return ($str);
     }
 }
 
@@ -132,7 +142,7 @@ function zbs_ShowTemplate() {
     global $ContentContainer;
     $skinPath = zbs_GetCurrentSkinPath();
     if (file_exists($skinPath)) {
-        include ($skinPath . 'template.html');
+        include($skinPath . 'template.html');
     } else {
         print('Skin path not exists: ' . $skinPath);
     }
@@ -235,7 +245,7 @@ function zbs_LoadModule($modulename) {
  */
 function curdatetime() {
     $currenttime = date("Y-m-d H:i:s");
-    return($currenttime);
+    return ($currenttime);
 }
 
 /**
@@ -267,7 +277,7 @@ function zbs_DownloadFile($filePath, $contentType = '') {
             $fileContent = file_get_contents($filePath);
             log_register("DOWNLOAD FILE `" . $filePath . "`");
 
-            if (($contentType == '') OR ( $contentType == 'default')) {
+            if (($contentType == '') or ($contentType == 'default')) {
                 $contentType = 'application/octet-stream';
             } else {
                 //additional content types
@@ -320,4 +330,19 @@ function int2ip($src) {
     return sprintf('%d.%d.%d.%d', $s1, $src - 256 * $s1, $i2, $i1);
 }
 
+/**
+ * Checks for substring in string
+ *
+ * @param string $string
+ * @param string $search
+ *
+ * @return bool
+ */
+function ispos($string, $search) {
+    if (strpos($string, $search) === false) {
+        return (false);
+    } else {
+        return (true);
+    }
+}
 ?>

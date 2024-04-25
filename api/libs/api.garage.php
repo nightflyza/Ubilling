@@ -534,7 +534,7 @@ class Garage {
         $inputs .= wf_TextInput(self::PROUTE_CARVIN, __('VIN'), '', true, 20, 'alphanumeric');
         $inputs .= wf_TextInput(self::PROUTE_CARYEAR, __('Year'), '', true, 5, 'digits');
         $inputs .= wf_TextInput(self::PROUTE_CARPOWER, __('Power') . ' (' . __('hp') . ')', '', true, 5, 'digits');
-        $inputs .= wf_TextInput(self::PROUTE_CARENGINE, __('Engine') . ' (' . __('cc') . ')', '', true, 5, 'digits');
+        $inputs .= wf_TextInput(self::PROUTE_CARENGINE, __('Vehicle engine') . ' (' . __('cc') . ')', '', true, 5, 'digits');
         $inputs .= wf_TextInput(self::PROUTE_CARCONSUMPTION, __('Fuel consumption') . ' (' . __('litre') . '/100' . __('km') . ')', '', true, 5);
         $inputs .= wf_Selector(self::PROUTE_CARFUELTYPE, $this->fuelTypes, __('Fuel type'), '', true);
         $inputs .= wf_TextInput(self::PROUTE_CARGASTANK, __('Gas tank') . ' (' . __('litre') . ')', '', true, 4, 'digits');

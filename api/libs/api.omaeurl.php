@@ -118,6 +118,36 @@ class OmaeUrl {
     protected $referrer = '';
 
     /**
+     * Enable CURL verbose logging
+     *
+     * @var bool
+     */
+    protected $verboseLogON = false;
+
+    /**
+     * Placeholder for CURL verbose logging stream
+     *
+     * @var string
+     */
+    protected $verboseLogStream = '';
+
+    /**
+     * Placeholder for CURL verbose log file
+     *
+     * @var string
+     */
+    protected $verboseLogFilePath = '';
+
+    /**
+     * Contains CURL version as a 3-digits integer
+     *
+     * @var int
+     */
+    protected $curlVersion = 0;
+
+    const DEFAULT_VERBOSE_LOG_PATH = 'exports/OMAE_VERBOSE_LOG';
+
+    /**
      * Creates new omae wa mou shindeiru instance
      * 
      * @param string $url
@@ -128,6 +158,9 @@ class OmaeUrl {
         if ($this->checkModCurl()) {
             $this->setUrl($url);
             $this->loadOpts();
+
+            $this->curlVersion = curl_version();
+            $this->curlVersion = intval(str_replace('.', '', substr($this->curlVersion['version'], 0, 5)));
         } else {
             throw new Exception('SHINDEIRU_NO_CURL_EXTENSION');
         }
@@ -346,6 +379,16 @@ class OmaeUrl {
         }
 
         if (!empty($this->url)) {
+            if ($this->verboseLogON) {
+                $this->verboseLogStream = fopen('php://temp', 'w+');
+                $this->setOpt(CURLOPT_VERBOSE, true);
+                $this->setOpt(CURLOPT_STDERR, $this->verboseLogStream);
+
+                if ($this->curlVersion >= 719) {
+                    $this->setOpt(CURLOPT_CERTINFO, true);
+                }
+            }
+
             $remoteUrl = $this->url;
             //appending GET vars to URL
             if (!empty($this->getData)) {
@@ -407,6 +450,13 @@ class OmaeUrl {
                 $this->error = true;
             }
             curl_close($ch);
+
+            if ($this->verboseLogON) {
+                rewind($this->verboseLogStream);
+                file_put_contents($this->verboseLogFilePath, stream_get_contents($this->verboseLogStream), 8);
+                file_put_contents($this->verboseLogFilePath, print_r($this->lastRequestInfo(), true), 8);
+                fclose($this->verboseLogStream);
+            }
         } else {
             throw new Exception('SHINDEIRU_URL_EMPTY');
         }
@@ -487,4 +537,15 @@ class OmaeUrl {
         $this->setOpt(CURLOPT_USERPWD, $login . ':' . $password);
     }
 
+    /**
+     * $verboseLogON setter
+     *
+     * @param $state
+     *
+     * @return void
+     */
+    public function setVerboseLog($state, $logFilePath = '') {
+        $this->verboseLogON = $state;
+        $this->verboseLogFilePath = empty($logFilePath) ? self::DEFAULT_VERBOSE_LOG_PATH : $logFilePath;
+    }
 }

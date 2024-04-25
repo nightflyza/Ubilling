@@ -2,33 +2,23 @@
 
 if (cfr('TRAFFSTATS')) {
 
-    if ($ubillingConfig->getAlterParam('BANDWIDTHD_PROXY')) {
-        if (ubRouting::checkGet('loadimg')) {
-            $remoteImageUrl = base64_decode(ubRouting::get('loadimg'));
-            $remoteImageUrl = trim($remoteImageUrl);
-            if (!empty($remoteImageUrl)) {
-                $remoteImg = new OmaeUrl($remoteImageUrl);
-                $remoteImg->setTimeout(1);
-                $rawImg = $remoteImg->response();
-                $recvErr = $remoteImg->error();
-                if (empty($recvErr) AND !ispos($rawImg, '404')) {
-                    die($rawImg);
-                } else {
-                    $noImage = file_get_contents('skins/noimage.jpg');
-                    die($noImage);
-                }
-            } else {
-                $noImage = file_get_contents('skins/noimage.jpg');
-                die($noImage);
-            }
-        }
+    if (ubRouting::checkGet(TraffStats::ROUTE_PROX_IMG)) {
+        $traffStats = new TraffStats();
+        $traffStats->catchImgProxyRequest();
     }
 
+    if (ubRouting::checkGet(array(TraffStats::ROUTE_AJUSER, TraffStats::ROUTE_AJCAT))) {
+        $traffStats = new TraffStats();
+        $traffStats->catchDefferedCallback();
+    }
 
-    if (ubRouting::checkGet('username')) {
-        $login = ubRouting::get('username');
+    if (ubRouting::checkGet(TraffStats::ROUTE_LOGIN)) {
+        $login = ubRouting::get(TraffStats::ROUTE_LOGIN);
+        $traffStats = new TraffStats($login);
         $useraddress = zb_UserGetFullAddress($login);
-        show_window(__('Traffic stats') . ' ' . $useraddress . ' (' . $login . ')', web_UserTraffStats($login) . web_UserControls($login));
+        $trafficReport = $traffStats->renderUserTraffStats();
+        show_window(__('Traffic stats') . ' ' . $useraddress . ' (' . $login . ')', $trafficReport);
+        zb_BillingStats();
     }
 } else {
     show_error(__('Access denied'));

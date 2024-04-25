@@ -32,20 +32,33 @@ function web_HelpChapterGet($chapter) {
  *  @return  string
  */
 function web_HelpIconShow() {
+    global $ubillingConfig;
     $result = '';
     if (cfr('HELP')) {
         $lang = curlang();
+        $normalMode = ($ubillingConfig->getAlterParam('IM_GREEDY_PIDAR')) ? false : true;
+
         $currentModuleName = (ubRouting::checkGet('module')) ? ubRouting::get('module') : 'taskbar';
+
         if (file_exists(DATA_PATH . "help/" . $lang . "/" . $currentModuleName)) {
             $helpChapterContent = web_HelpChapterGet($currentModuleName);
             $helpChapterContent .= wf_delimiter(1);
             if (cfr('PROCRAST')) {
                 $helpChapterContent .= wf_Link('?module=procrast', wf_img('skins/gamepad.png', __('Procrastination helper'))) . ' ';
             }
-            $helpChapterContent .= wf_Link('https://ubilling.net.ua/?module=fnpages&pid=donate', wf_img('skins/donate.png', __('Support project'))) . ' ';
+
+            if (!$normalMode) {
+                $helpChapterContent .= wf_Link('https://ubilling.net.ua/?module=fnpages&pid=donate', wf_img('skins/heart16.png', __('Support project'))) . ' ';
+            }
+
             $containerStyle = 'style="min-width:400px; max-width:800px; min-height:200px; max-height:500px;"';
             $helpChapterContent = wf_AjaxContainer('contexthelpchapter', $containerStyle, $helpChapterContent);
-            $result = wf_modalAuto(wf_img_sized("skins/help.gif", __('Context help'), 20), __('Context help'), $helpChapterContent, '');
+
+            $result .= wf_modalAuto(wf_img_sized("skins/help.gif", __('Context help'), 20), __('Context help'), $helpChapterContent, '');
+        }
+
+        if ($normalMode) {
+            $result .= ' ' . wf_Link('https://ubilling.net.ua/?module=fnpages&pid=donate', wf_img_sized('skins/heart32.png', __('Support project'), '20'), false, '', 'target="_blank"') . '';
         }
     }
     return ($result);

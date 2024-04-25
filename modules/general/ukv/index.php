@@ -161,7 +161,7 @@ if ($ubillingConfig->getAlterParam('UKV_ENABLED')) {
 
                     $lastDKErrorParam = '';
 
-                    if (isset($voracity_i) and ! empty($voracity_i)) {
+                    if (isset($voracity_i) and !empty($voracity_i)) {
                         $lastDKErrorParam = '&lastdkerror=' . urlencode($voracity_i);
                     }
 
@@ -199,26 +199,33 @@ if ($ubillingConfig->getAlterParam('UKV_ENABLED')) {
         if (wf_CheckGet(array('banksta'))) {
             //banksta upload 
             if (wf_CheckPost(array('uploadukvbanksta'))) {
-                $bankstaUploaded = $ukv->bankstaDoUpload();
-                if (!empty($bankstaUploaded)) {
-                    if (wf_CheckPost(array('ukvbankstatype'))) {
-                        if ($_POST['ukvbankstatype'] == 'oschad') {
-                            $processedBanksta = $ukv->bankstaPreprocessing($bankstaUploaded);
-                            rcms_redirect(UkvSystem::URL_BANKSTA_PROCESSING . $processedBanksta);
-                        }
+                $processMan = new StarDust('UKV_BSUPL');
+                if ($processMan->notRunning()) {
+                    $processMan->start();
+                    $bankstaUploaded = $ukv->bankstaDoUpload();
+                    if (!empty($bankstaUploaded)) {
+                        if (wf_CheckPost(array('ukvbankstatype'))) {
+                            if ($_POST['ukvbankstatype'] == 'oschad') {
+                                $processedBanksta = $ukv->bankstaPreprocessing($bankstaUploaded);
+                                rcms_redirect(UkvSystem::URL_BANKSTA_PROCESSING . $processedBanksta);
+                            }
 
-                        if ($_POST['ukvbankstatype'] == 'oschadterm') {
-                            $processedBanksta = $ukv->bankstaPreprocessingTerminal($bankstaUploaded);
-                            rcms_redirect(UkvSystem::URL_BANKSTA_PROCESSING . $processedBanksta);
-                        }
+                            if ($_POST['ukvbankstatype'] == 'oschadterm') {
+                                $processedBanksta = $ukv->bankstaPreprocessingTerminal($bankstaUploaded);
+                                rcms_redirect(UkvSystem::URL_BANKSTA_PROCESSING . $processedBanksta);
+                            }
 
-                        if ($_POST['ukvbankstatype'] == 'privatbankdbf') {
-                            $processedBanksta = $ukv->bankstaPreprocessingPrivatDbf($bankstaUploaded);
-                            rcms_redirect(UkvSystem::URL_BANKSTA_PROCESSING . $processedBanksta);
+                            if ($_POST['ukvbankstatype'] == 'privatbankdbf') {
+                                $processedBanksta = $ukv->bankstaPreprocessingPrivatDbf($bankstaUploaded);
+                                rcms_redirect(UkvSystem::URL_BANKSTA_PROCESSING . $processedBanksta);
+                            }
+                        } else {
+                            show_error(__('Strange exeption') . ' NO_BANKSTA_TYPE');
                         }
-                    } else {
-                        show_error(__('Strange exeption') . ' NO_BANKSTA_TYPE');
                     }
+                    $processMan->stop();
+                } else {
+                    show_error(__('Upload') . ': ' . __('Already running'));
                 }
             } else {
 
@@ -236,8 +243,15 @@ if ($ubillingConfig->getAlterParam('UKV_ENABLED')) {
 
                     //push cash to users if is needed
                     if (wf_CheckPost(array('bankstaneedpaymentspush'))) {
-                        $ukv->bankstaPushPayments();
-                        rcms_redirect(UkvSystem::URL_BANKSTA_MGMT);
+                        $processMan = new StarDust('UKV_BSPROCSNG');
+                        if ($processMan->notRunning()) {
+                            $processMan->start();
+                            $ukv->bankstaPushPayments();
+                            $processMan->stop();
+                            rcms_redirect(UkvSystem::URL_BANKSTA_MGMT);
+                        } else {
+                            show_error(__('Bank statements') . ': ' . __('Already running'));
+                        }
                     }
 
                     show_window(__('Bank statement processing'), $ukv->bankstaProcessingForm($_GET['showhash']));
@@ -283,4 +297,3 @@ if ($ubillingConfig->getAlterParam('UKV_ENABLED')) {
 } else {
     show_error(__('This module is disabled'));
 }
-?>
