@@ -637,6 +637,10 @@ class OnuRegister {
                 'H805G' => 16,
                 'GVGH' => 16,
                 'GFGL' => 16,
+                'GFGN' => 16,
+                'GFCH' => 16,
+                'GFBT' => 16,
+                'A01GFBT' => 16,
                 'GVGO' => 8
             )
         );
@@ -898,7 +902,13 @@ class OnuRegister {
             if (isset($this->allZteOlt[$this->currentOltSwId])) {
                 $inherit = @$this->avidity['Z']['LSD'];
                 foreach ($cards as $index => $value) {
-                    if ($value['description'] == 'GVGH' or $value['description'] == 'GFGL' or $value['description'] == 'GVGO') {
+                    if ($value['description'] == 'GVGH' 
+                    or $value['description'] == 'GFGL' 
+                    or $value['description'] == 'GFGN' 
+                    or $value['description'] == 'GFCH' 
+                    or $value['description'] == 'GFBT' 
+                    or $value['description'] == 'A01GFBT' 
+                    or $value['description'] == 'GVGO') {
                         $oltInterface = @snmp2_real_walk($this->currentOltIp, $this->currentSnmpCommunity, $this->currentSnmpTemplate[self::SNMP_TEMPLATE_SECTION]['INTERFACENAME']);
                         if (!empty($oltInterface)) {
                             foreach ($oltInterface as $eachOid => $name) {
