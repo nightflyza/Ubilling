@@ -3305,3 +3305,6 @@ CREATE TABLE IF NOT EXISTS `ophtraff` (
 
 ALTER TABLE `vservices` ADD `exclude_tags` VARCHAR(255) NOT NULL DEFAULT '';
 ALTER TABLE `vservices` ADD `archived` TINYINT(1) NOT NULL DEFAULT 0;
+
+-- 1.4.6 update
+ALTER TABLE zte_cards MODIFY COLUMN `card_name` varchar(7) NOT NULL;

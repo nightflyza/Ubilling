@@ -1,0 +1,1 @@
+ALTER TABLE zte_cards MODIFY COLUMN card_name varchar(7) NOT NULL;
