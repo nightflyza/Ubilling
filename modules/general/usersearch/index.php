@@ -2,17 +2,15 @@
 
 if (cfr('USERSEARCH')) {
     //catch ajax backend callback
-    if (wf_CheckGet(array('glosearch'))) {
+    if (ubRouting::checkGet('glosearch')) {
         $globalSearch = new GlobalSearch();
         $globalSearch->ajaxCallback();
     }
 
-    if (wf_CheckGet(array('sphinxsearch'))) {
+    if (ubRouting::checkGet('sphinxsearch')) {
         $fallback = json_encode(array());
-        if (isset($_POST['search'])) {
-            if (!empty($_POST['search'])) {
-                $sphinxSearch = new SphinxSearch($_POST['search']);
-            }
+        if (ubRouting::checkPost('search')) {
+            $sphinxSearch = new SphinxSearch(ubRouting::post('search'));
             return $fallback;
         }
         return $fallback;
@@ -33,23 +31,23 @@ if (cfr('USERSEARCH')) {
 
 
     // default fields search
-    if (isset($_POST['searchquery'])) {
-        $query = $_POST['searchquery'];
-        $searchtype = $_POST['searchtype'];
+    if (ubRouting::checkPost('searchquery')) {
+        $query = ubRouting::post('searchquery');
+        $searchtype = ubRouting::post('searchtype');
         if (!empty($query)) {
             show_window(__('Search results') . ' - ' . zb_UserSearchTypeLocalize($searchtype, $query), ($searchtype == 'full') ? zb_UserSearchAllFields($query) : zb_UserSearchFields($query, $searchtype));
         }
     }
 
     //full address search
-    if (isset($_POST['aptsearch'])) {
-        $aptquery = $_POST['aptsearch'];
+    if (ubRouting::checkPost('aptsearch')) {
+        $aptquery = ubRouting::post('aptsearch');
         show_window(__('Search results'), zb_UserSearchFields($aptquery, 'apt'));
     }
 
     //partial address search
-    if (isset($_POST['partialaddr'])) {
-        $search_query = trim($_POST['partialaddr']);
+    if (ubRouting::checkPost('partialaddr')) {
+        $search_query = ubRouting::post('partialaddr', 'callback', 'trim');
         if (!empty($search_query)) {
             $found_users = zb_UserSearchAddressPartial($search_query);
             show_window(__('Search results') . ' - ' . zb_UserSearchTypeLocalize('partialaddr', $search_query), web_UserArrayShower($found_users));
@@ -57,19 +55,19 @@ if (cfr('USERSEARCH')) {
     }
 
     //CF search
-    if (isset($_POST['cfquery'])) {
-        $search_query = $_POST['cfquery'];
+    if (ubRouting::checkPost('cfquery')) {
+        $search_query = ubRouting::post('cfquery');
         if (strlen($search_query) > 0) {
-            $found_users = zb_UserSearchCF($_POST['cftypeid'], $search_query);
+            $found_users = zb_UserSearchCF(ubRouting::post('cftypeid'), $search_query);
             show_window(__('Search results') . ' - ' . __('Additional profile fields'), web_UserArrayShower($found_users));
         }
     }
 
     //do the global search
-    if (wf_CheckPost(array('globalsearchquery'))) {
-        $globalSearchQuery = $_POST['globalsearchquery'];
-        if (wf_CheckPost(array('globalsearch_type'))) {
-            $globalSearchType = $_POST['globalsearch_type'];
+    if (ubRouting::checkPost('globalsearchquery')) {
+        $globalSearchQuery = ubRouting::post('globalsearchquery');
+        if (ubRouting::checkPost('globalsearch_type')) {
+            $globalSearchType = ubRouting::post('globalsearch_type');
         } else {
             $globalSearch = new GlobalSearch();
             $globalSearchType = $globalSearch->detectSearchType($globalSearchQuery);
@@ -106,4 +104,3 @@ if (cfr('USERSEARCH')) {
 } else {
     show_error(__('Access denied'));
 }
-?>

