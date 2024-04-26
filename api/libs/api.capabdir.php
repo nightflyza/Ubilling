@@ -59,17 +59,17 @@ class CapabilitiesDirectory {
      */
     public function __construct($noloaders = false) {
         if (!$noloaders) {
-//load existing capabilities
+            //load existing capabilities
             $this->loadCapabilities();
-//load they ids
+            //load they ids
             $this->loadAllIds();
-//load existing states
+            //load existing states
             $this->loadCapabStates();
-//loads capabs history
+            //loads capabs history
             $this->loadHistory();
-//load employees
+            //load employees
             $this->loadEmployees();
-//init telepathy
+            //init telepathy
             $this->initTelepathy();
         }
     }
@@ -323,7 +323,7 @@ class CapabilitiesDirectory {
 
 
         $result = array("aaData" => $jsonAAData);
-        return(json_encode($result));
+        return (json_encode($result));
 
         return ($result);
     }
@@ -361,7 +361,7 @@ class CapabilitiesDirectory {
         $admin = whoami();
         $date = curdatetime();
         $query = "INSERT INTO `capabhist` (`id`,`capabid`,`admin`,`date`,`type`,`event`) VALUES "
-                . "(NULL, '" . $capabId . "','" . $admin . "','" . $date . "','" . $type . "','" . $eventF . "');";
+            . "(NULL, '" . $capabId . "','" . $admin . "','" . $date . "','" . $type . "','" . $eventF . "');";
 
         nr_query($query);
     }
@@ -413,7 +413,7 @@ class CapabilitiesDirectory {
         $sup = wf_tag('sup') . '*' . wf_tag('sup', true);
         $allAddress = zb_AddressGetFulladdresslistCached();
         natsort($allAddress);
-        $inputs = wf_AutocompleteTextInput('newaddress', $allAddress, __('Address') . $sup, '', false);
+        $inputs = wf_AutocompleteTextInput('newaddress', $allAddress, __('Address') . $sup, $address, false);
         $inputs .= wf_TextInput('newphone', __('Phone') . $sup, $phone, true);
         $inputs .= __('Notes') . wf_tag('br');
         $inputs .= wf_TextArea('newnotes', '', $notes, true, '40x5');
@@ -684,7 +684,7 @@ class CapabilitiesDirectory {
         $result = '';
         $capabSources = new Stigma('CAPABSOURCE');
         $result .= $capabSources->renderBasicReport();
-        return($result);
+        return ($result);
     }
 
     /**
@@ -699,7 +699,7 @@ class CapabilitiesDirectory {
             $total = sizeof($this->allcapab);
             foreach ($this->allcapab as $io => $each) {
                 if (isset($statsTmp[$each['stateid']])) {
-                    $statsTmp[$each['stateid']] ++;
+                    $statsTmp[$each['stateid']]++;
                 } else {
                     $statsTmp[$each['stateid']] = 1;
                 }
@@ -749,5 +749,4 @@ class CapabilitiesDirectory {
 
         return ($result);
     }
-
 }

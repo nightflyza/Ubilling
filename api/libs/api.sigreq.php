@@ -245,7 +245,7 @@ class SignupRequests {
         $rows.= wf_TableRow($cells, 'row3');
 
         $reqAddress = $reqdata['street'] . ' ' . $reqdata['build'] . '/' . $apt;
-
+        
         //Construct capability create form if enabled
         if ($this->altcfg['CAPABDIR_ENABLED']) {
             $capabDir = new CapabilitiesDirectory(true);
