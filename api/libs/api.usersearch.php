@@ -36,7 +36,7 @@ function web_UserSearchFieldsForm() {
     $fieldinputs .= wf_Submit('Search');
     $form = wf_Form('', 'POST', $fieldinputs);
 
-    return($form);
+    return ($form);
 }
 
 /**
@@ -126,11 +126,11 @@ function zb_UserSearchFields($query, $searchtype) {
             WHERE `switches`.`" . $whereType . "` LIKE '" . $mask . $query . $mask . "'";
         }
     }
-    if ($altercfg['PON_ENABLED'] AND $searchtype == 'onumac') {
+    if ($altercfg['PON_ENABLED'] and $searchtype == 'onumac') {
         $mask = (isset($strictsearch[$searchtype]) ? '' : '%');
         $query = "SELECT `login` from `pononu` WHERE `mac` LIKE '" . $mask . $query . $mask . "'";
     }
-    if ($altercfg['PON_ENABLED'] AND $searchtype == 'onuserial') {
+    if ($altercfg['PON_ENABLED'] and $searchtype == 'onuserial') {
         $mask = (isset($strictsearch[$searchtype]) ? '' : '%');
         $query = "SELECT `login` from `pononu` WHERE `serial` LIKE '" . $mask . $query . $mask . "'";
     }
@@ -181,7 +181,7 @@ function zb_UserSearchFields($query, $searchtype) {
     }
 
     $result = web_UserArrayShower($allfoundlogins);
-    return($result);
+    return ($result);
 }
 
 /**
@@ -223,7 +223,7 @@ function zb_UserSearchAllFields($query, $render = true) {
         $messages = new UbillingMessageHelper();
         $result = $messages->getStyledMessage(__('At least 3 characters are required for search'), 'info');
     }
-    return($result);
+    return ($result);
 }
 
 /**
@@ -246,7 +246,7 @@ function web_UserSearchCFForm() {
     } else {
         $cfsearchform = '';
     }
-    return($cfsearchform);
+    return ($cfsearchform);
 }
 
 /**
@@ -394,7 +394,7 @@ function web_UserSearchAddressForm() {
     $form .= wf_tag('table', true);
     $form .= wf_tag('form', true);
 
-    return($form);
+    return ($form);
 }
 
 /**
@@ -538,5 +538,47 @@ function zb_UserSearchTypeLocalize($searchtype, $query = '') {
         $result .= ' "' . $query . '"';
     }
 
+    return ($result);
+}
+
+/**
+ * Generates a user search elements with optional title and content.
+ *
+ * @param string $title The title of the user search grid.
+ * @param string $content The content of the user search grid.
+ * 
+ * @return string
+ */
+function web_UserSearchElement($title = '', $content = '') {
+    $result = '';
+    if (!empty($content)) {
+        $style = 'style="flex: 500px; padding: 5px; margin: 5px; border: 1px solid #d4d4d4;"';
+        $result .= wf_tag('div', false, '', $style);
+        if (!empty($title)) {
+            $result .= wf_tag('h3', false, 'row3') . $title . wf_tag('h3', true);
+        }
+        $result .= $content;
+        $result .= wf_tag('div', true);
+    }
+    return ($result);
+}
+
+/**
+ * Generates the User Search Grid.
+ *
+ * This function generates the HTML markup for the User Search Grid,
+ *  which includes various search forms for different search criteria.
+ *
+ * @return string
+ */
+function web_UserSearchGrid() {
+    $result = '';
+    $result = wf_tag('div', false, '', 'style="display: flex; flex-direction: row; flex-wrap: wrap;"');
+    $result .= web_UserSearchElement(__('Full address'), web_UserSearchAddressForm());
+    $result .= web_UserSearchElement(__('Partial address'), web_UserSearchAddressPartialForm());
+    $result .= web_UserSearchElement(__('Profile fields search'), web_UserSearchFieldsForm());
+    $result .= web_UserSearchElement(__('Other'), web_CorpsSearchForm() . web_UserSearchContractForm() . web_UserSearchCFForm());
+    $result .= wf_tag('div', true);
+    $result .= wf_CleanDiv();
     return ($result);
 }

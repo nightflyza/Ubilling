@@ -16,19 +16,8 @@ if (cfr('USERSEARCH')) {
         return $fallback;
     }
 
-    // show search forms
-    $gridRows = wf_tag('tr', false, '', 'valign="top"');
-    $gridRows .= wf_TableCell(wf_tag('h3', false, 'row3') . __('Full address') . wf_tag('h3', true) . web_UserSearchAddressForm(), '60%', '');
-    $gridRows .= wf_TableCell(wf_tag('h3', false, 'row3') . __('Partial address') . wf_tag('h3', true) . web_UserSearchAddressPartialForm(), '', '');
-    $gridRows .= wf_tag('tr', true);
-    $gridRows .= wf_tag('tr', false, '', 'valign="top"');
-    $gridRows .= wf_TableCell(wf_tag('h3', false) . __('Profile fields search') . wf_tag('h3', true) . web_UserSearchFieldsForm(), '', 'row3');
-    $gridRows .= wf_TableCell(web_CorpsSearchForm() . web_UserSearchContractForm() . web_UserSearchCFForm(), '', 'row3');
-    $gridRows .= wf_tag('tr', true);
-
-    $search_forms_grid = wf_TableBody($gridRows, '100%', 0, '');
-    show_window(__('User search'), $search_forms_grid);
-
+    // rendering some search forms
+    show_window(__('User search'), web_UserSearchGrid());
 
     // default fields search
     if (ubRouting::checkPost('searchquery')) {
