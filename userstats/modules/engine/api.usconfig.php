@@ -18,8 +18,16 @@ class UserStatsConfig {
      */
     protected $opayzCfg = array();
 
+    /**
+     * Stores TARIFF_MATRIX config "tariffmatrix.ini"
+     *
+     * @var array
+     */
+    protected $tariffmatrixCfg = array();
+
     const US_CONFIG_PATH = 'config/userstats.ini';
     const OPAYZ_CONFIG_PATH = 'config/opayz.ini';
+    const TARIFF_MATRIX_CONFIG_PATH = 'config/tariffmatrix.ini';
 
     public function __construct() {
         $this->loadUstas();
@@ -81,5 +89,23 @@ class UserStatsConfig {
      */
     public function getOpayzCfg() {
         return ($this->opayzCfg);
+    }
+
+    /**
+     * Loads UserStats TARIFF_MATRIX config "tariffmatrix.ini" to private tariffmatrixCfg prop
+     *
+     * @return void
+     */
+    protected function loadTariffMatrixCfg() {
+        $this->tariffmatrixCfg = parse_ini_file(self::TARIFF_MATRIX_CONFIG_PATH);
+    }
+
+    /**
+     * Getter for private tariffmatrixCfg prop
+     *
+     * @return array
+     */
+    public function getTariffMatrixCfg() {
+        return ($this->tariffmatrixCfg);
     }
 }
