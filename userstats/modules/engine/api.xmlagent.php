@@ -90,11 +90,44 @@ class XMLAgent {
     protected $uscfgCurrency = 'UAH';
 
     /**
+     * Placeholder for TC_ENABLED "userstats.ini" option
+     *
+     * @var int
+     */
+    protected $uscfgTariffCahngeEnabled = 0;
+
+    /**
+     * Placeholder for TC_EXTENDED_MATRIX "userstats.ini" option
+     *
+     * @var int
+     */
+    protected $uscfgTariffCahngeMatrix = 0;
+
+    /**
+     * Placeholder for TC_TARIFFSALLOWED "userstats.ini" option
+     *
+     * @var int
+     */
+    protected $uscfgTariffCahngeAllowedTo = '';
+
+    /**
+     * Placeholder for TC_TARIFFENABLEDFROM "userstats.ini" option
+     *
+     * @var int
+     */
+    protected $uscfgTariffCahngeAllowedFrom = '';
+
+    /**
      * Placeholder for the whole "opayz.ini" config contents
      *
      * @var int
      */
     protected $usOpayzCfg = array();
+
+    /**
+     * Placeholder for the whole "tariffmatrix.ini" config contents
+     */
+    protected $usTariffMatrixCfg = array();
 
     /**
      * Placeholder for XMLAGENT_DEBUG_ON "userstats.ini" option
@@ -114,6 +147,7 @@ class XMLAgent {
     const TICKET_TYPE_SUPPORT   = 'support_request';
     const TICKET_TYPE_SIGNUP    = 'signup_request';
     const DEBUG_FILE_PATH       = 'exports/xmlagent.debug';
+    const TARIFF_MATRIX_CONFIG_PATH = 'config/tariffmatrix.ini';
 
 
     public function __construct($user_login = '') {
@@ -140,19 +174,25 @@ class XMLAgent {
      * @return void
      */
     protected function loadOptions() {
-        $this->usOpayzCfg               = $this->usConfig->getOpayzCfg();
-        $this->uscfgPaymentsON          = $this->usConfig->getUstasParam('PAYMENTS_ENABLED', 0);
-        $this->uscfgAnnouncementsON     = $this->usConfig->getUstasParam('AN_ENABLED', 0);
-        $this->uscfgTicketingON         = $this->usConfig->getUstasParam('TICKETING_ENABLED', 0);
-        $this->uscfgAddressStructON     = $this->usConfig->getUstasParam('UBA_XML_ADDRESS_STRUCT', 0);
-        $this->uscfgOnlineLeftCountON   = $this->usConfig->getUstasParam('ONLINELEFT_COUNT', 0);
-        $this->uscfgOpenPayzON          = $this->usConfig->getUstasParam('OPENPAYZ_ENABLED', 0);
-        $this->uscfgOpenPayzRealIDON    = $this->usConfig->getUstasParam('OPENPAYZ_REALID', 0);
-        $this->uscfgOpenPayzURL         = $this->usConfig->getUstasParam('OPENPAYZ_URL', '../openpayz/backend/');
-        $this->uscfgOpenPayzPaySys      = $this->usConfig->getUstasParam('OPENPAYZ_PAYSYS', 0);
-        $this->uscfgCurrency            = $this->usConfig->getUstasParam('currency', 'UAH');
-        $this->debug                    = $this->usConfig->getUstasParam('XMLAGENT_DEBUG_ON', false);
-        $this->debugDeep                = $this->usConfig->getUstasParam('XMLAGENT_DEBUG_DEEP_ON', false);
+        $this->usOpayzCfg                   = $this->usConfig->getOpayzCfg();
+        $this->usTariffMatrixCfg            = $this->usConfig->getTariffMatrixCfg();
+
+        $this->uscfgPaymentsON              = $this->usConfig->getUstasParam('PAYMENTS_ENABLED', 0);
+        $this->uscfgAnnouncementsON         = $this->usConfig->getUstasParam('AN_ENABLED', 0);
+        $this->uscfgTicketingON             = $this->usConfig->getUstasParam('TICKETING_ENABLED', 0);
+        $this->uscfgAddressStructON         = $this->usConfig->getUstasParam('UBA_XML_ADDRESS_STRUCT', 0);
+        $this->uscfgOnlineLeftCountON       = $this->usConfig->getUstasParam('ONLINELEFT_COUNT', 0);
+        $this->uscfgOpenPayzON              = $this->usConfig->getUstasParam('OPENPAYZ_ENABLED', 0);
+        $this->uscfgOpenPayzRealIDON        = $this->usConfig->getUstasParam('OPENPAYZ_REALID', 0);
+        $this->uscfgOpenPayzURL             = $this->usConfig->getUstasParam('OPENPAYZ_URL', '../openpayz/backend/');
+        $this->uscfgOpenPayzPaySys          = $this->usConfig->getUstasParam('OPENPAYZ_PAYSYS', 0);
+        $this->uscfgCurrency                = $this->usConfig->getUstasParam('currency', 'UAH');
+        $this->uscfgTariffCahngeEnabled     = $this->usConfig->getUstasParam('TC_ENABLED', 0);
+        $this->uscfgTariffCahngeMatrix      = $this->usConfig->getUstasParam('TC_EXTENDED_MATRIX', 0);
+        $this->uscfgTariffCahngeAllowedTo   = $this->usConfig->getUstasParam('TC_TARIFFSALLOWED', '');
+        $this->uscfgTariffCahngeAllowedFrom = $this->usConfig->getUstasParam('TC_TARIFFENABLEDFROM', '');
+        $this->debug                        = $this->usConfig->getUstasParam('XMLAGENT_DEBUG_ON', false);
+        $this->debugDeep                    = $this->usConfig->getUstasParam('XMLAGENT_DEBUG_DEEP_ON', false);
     }
 
 
@@ -179,6 +219,7 @@ class XMLAgent {
                                     'agentassigned',
                                     'tariffvservices',
                                     'activetariffsvservices',
+                                    'tarifftoswitchallowed',
                                     'feecharges',
                                     'ticketcreate'
                                     ),
@@ -216,6 +257,11 @@ class XMLAgent {
                     $resultToRender = $this->getUserTariffAndVservices($user_login);
                 }
 
+                if (ubRouting::checkGet('tarifftoswitchallowed')) {
+                    $subSection     = 'tarifftoswitchallowed';
+                    $resultToRender = $this->getTariffsToSwitchAllowed($user_login);
+                }
+
                 if (ubRouting::checkGet('feecharges')) {
                     $subSection     = 'feecharge';
                     $date_from      = ubRouting::checkGet('datefrom') ? ubRouting::get('datefrom') : '';
@@ -227,9 +273,10 @@ class XMLAgent {
                     and ubRouting::get('tickettype') == self::TICKET_TYPE_SUPPORT
                 ) {
                     $text           = base64_decode(ubRouting::get('tickettext'));
-                    $debugData      = $text;
+                    $replyID        = ubRouting::checkGet('reply_id') ? ubRouting::get('reply_id') : 0;
+                    $debugData      = empty($replyID) ? 'replyID: ' . $replyID . '  ' . $text : $text;
                     $restapiMethod  = 'supportticketcreate';
-                    $resultToRender = $this->createSupportTicket($user_login, $text);
+                    $resultToRender = $this->createSupportTicket($user_login, $text, $replyID);
                 }
             }
         }
@@ -289,7 +336,10 @@ class XMLAgent {
 
                     //normal data output
                     if (!$messages) {
+file_put_contents('zxcv', print_r($record, true) . "\n", 8);
                         foreach ($record as $tag => $value) {
+file_put_contents('zxcv', $tag . "\n", 8);
+file_put_contents('zxcv', $value . "\n", 8);
                             $result .= "\t" . '<' . $tag . '>' . $value . '</' . $tag . '>' . PHP_EOL;
                         }
                     } else {
@@ -702,6 +752,43 @@ class XMLAgent {
 
 
     /**
+     * Returns tariff list the user is allowed to switch to
+     *
+     * @param $login
+     *
+     * @return array
+     */
+    protected function getTariffsToSwitchAllowed($login) {
+        $userTariff       = zbs_UserGetTariff($login);
+        $tariffsAllowedTo = array();
+        $result           = array();
+file_put_contents('zxcv', $userTariff . "\n");
+file_put_contents('zxcv', $this->uscfgTariffCahngeMatrix . "\n", 8);
+file_put_contents('zxcv', $this->uscfgTariffCahngeAllowedFrom . "\n", 8);
+file_put_contents('zxcv', $this->uscfgTariffCahngeAllowedTo . "\n", 8);
+        if (!empty($userTariff)) {
+            if ($this->uscfgTariffCahngeMatrix) {
+                $tariffsAllowedTo = $this->getTariffMatrixAllowedTo($userTariff);
+            } else {
+                $tariffsAllowedFrom = explode(',', $this->uscfgTariffCahngeAllowedFrom);
+
+                if (!empty($tariffsAllowedFrom) and in_array($userTariff, $tariffsAllowedFrom)) {
+                    $tariffsAllowedTo = explode(',', $this->uscfgTariffCahngeAllowedTo);
+                }
+            }
+        }
+
+        if (!empty($tariffsAllowedTo)) {
+            foreach ($tariffsAllowedTo as $io => $item) {
+                $result[$io]['tariff'] = $item;
+            }
+        }
+file_put_contents('zxcv', print_r($result, true) . "\n", 8);
+        return ($result);
+    }
+
+
+    /**
      * Data collector for "feecharges" request
      *
      * @param $login
@@ -750,8 +837,9 @@ class XMLAgent {
      * @return array[]
      * @throws Exception
      */
-    protected function createSupportTicket($login, $tickettext) {
+    protected function createSupportTicket($login, $tickettext, $replyID) {
         $ticketID = 0;
+        $replyID  = empty($replyID) ? 'NULL' : $replyID;
         $result   = array();
 
         if (!empty($login) and !empty($tickettext)) {
@@ -761,10 +849,11 @@ class XMLAgent {
 
             $ticketDB = new NyanORM('ticketing');
             $ticketDB->dataArr(array(
-                                'date'   => $date,
-                                'status' => '0',
-                                'from'   => $from,
-                                'text'   => $text
+                                'date'    => $date,
+                                'replyid' => $replyID,
+                                'status'  => '0',
+                                'from'    => $from,
+                                'text'    => $text
                                ));
             $ticketDB->create();
             $ticketID = $ticketDB->getLastId();
@@ -774,7 +863,13 @@ class XMLAgent {
             $result = array('ticket' => array('created' => 'error', 'id' => 0));
         } else {
             $result = array('ticket' => array('created' => 'success', 'id' => $ticketID));
-            $logEvent = 'TICKET CREATE (' . $from . ') NEW [' . $ticketID . ']';
+
+            if (empty($replyID) or $replyID == 'NULL') {
+                $logEvent = 'TICKET CREATE (' . $from . ') NEW [' . $ticketID . ']';
+            } else {
+                $logEvent = 'TICKET CREATE (' . $from . ') REPLY TO [' . $replyID . ']';
+            }
+
             log_register($logEvent);
         }
 
@@ -827,6 +922,39 @@ class XMLAgent {
 
         return ($result);
     }
+
+
+    /**
+     * Returns the tariffs list which current user tariff might be switched to
+     * according to the current TariffMatrix settings
+     *
+     * Yep, this one, probably, should be somewhere in "tariffchanger" module
+     * Well, it probably will, when "tariffchanger" will get a separate Class definition
+     *
+     * @param $userTariff
+     *
+     * @return false|string[]
+     */
+    public static function getTariffMatrixAllowedTo($userTariff) {
+        $matrix = parse_ini_file(self::TARIFF_MATRIX_CONFIG_PATH);
+        $result = false;
+
+        if (!empty($matrix)) {
+            if (isset($matrix[$userTariff])) {
+                //extract tariff movement rules
+                $result = explode(',', $matrix[$userTariff]);
+            } else {
+                //no tariff match
+                $result = false;
+            }
+        } else {
+            //no matrix entries
+            $result = false;
+        }
+
+        return ($result);
+    }
+
 
     /**
      * Writes some debbuggins to log or/and to a local file

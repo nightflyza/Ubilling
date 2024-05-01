@@ -5,6 +5,7 @@
 $user_ip = zbs_UserDetectIp('debug');
 $user_login = zbs_UserGetLoginByIp($user_ip);
 $us_config = zbs_LoadConfig();
+$usConfig = new UserStatsConfig();
 
 if ($us_config['REMINDER_ENABLED']) {
 
@@ -89,6 +90,18 @@ if ($us_config['REMINDER_ENABLED']) {
     }
 
     /**
+     * Change user email
+     * @param type $login string
+     * @param type $mobile int
+     */
+    function zbs_UserChangeEmail($login, $email) {
+        $login = vf($login);
+        $query = "UPDATE `emails` SET `email` = '" . $email . "' WHERE `login`= '" . $login . "' ;";
+        nr_query($query);
+        log_register('CHANGE UserEmail (' . $login . ') `' . $email . '`');
+    }
+
+    /**
      * 
      * add sms tag for user to remind him about apropos payment
      * @param type $login string
@@ -165,6 +178,25 @@ if ($us_config['REMINDER_ENABLED']) {
         return($form);
     }
 
+    /**
+     *
+     * @return type form for changin mobile
+     */
+    function zbs_ShowChangeEmailForm($user_login) {
+        $email  = zbs_UserGetEmail($user_login);
+        $email  = empty($email) ? '' : $email;
+
+        $inputs = la_tag('center');
+        $inputs.= la_HiddenInput('changemail', 'true');
+        $inputs.= la_TextInput('email', '', $email);
+        $inputs.= la_delimiter();
+        $inputs.= la_Submit(__('Change E-mail'));
+        $inputs.= la_tag('center', true);
+        $form = la_Form("", 'POST', $inputs, '');
+
+        return($form);
+    }
+
     //main part of module
 
     $check = stg_check_user_tag($user_login, $tagid);
@@ -181,9 +213,16 @@ if ($us_config['REMINDER_ENABLED']) {
 
     show_window(__("Mobile"), $m_text);
 
-    if ($us_config['REMINDER_CHANGE_NUMBER']) {
+    if ($usConfig->getUstasParam('REMINDER_CHANGE_NUMBER', 0)) {
         show_window('', zbs_ShowChangeMobileForm());
     }
+
+    if ($usConfig->getUstasParam('REMINDER_EMAIL_ENABLED', 0) and
+        $usConfig->getUstasParam('REMINDER_EMAIL_CHANGE_ALLOWED', 0)) {
+
+        show_window('Your E-mail', zbs_ShowChangeEmailForm($user_login));
+    }
+
     if ($check) {
         $license_text = __("You already enabled payments sms reminder") . ". ";
 
@@ -269,7 +308,7 @@ if ($us_config['REMINDER_ENABLED']) {
 
     if (isset($_POST['changemobile'])) {
         if (isset($_POST['mobile'])) {
-            $set_mobile = $_POST['mobile'];
+            $set_mail = $_POST['mobile'];
             if (!empty($_POST['mobile'])) {
                 $set_mobile = preg_replace('/\0/s', '', $set_mobile);
                 $set_mobile = strip_tags($set_mobile);
@@ -286,6 +325,23 @@ if ($us_config['REMINDER_ENABLED']) {
                 }
             }
         }
+    }
+
+    if (ubRouting::checkPost(array('changemail', 'email'))) {
+            $set_mail = ubRouting::post('email');
+
+            if (!empty($set_mail)) {
+                $set_mail = preg_replace('/\0/s', '', $set_mail);
+                $set_mail = strip_tags($set_mail);
+                $set_mail = mysql_real_escape_string($set_mail);
+                $set_mail = trim($set_mail);
+                if (empty($set_mail)) {
+                    show_window(__('Sorry'), __('Wrong e-mail format'));
+                } else {
+                    zbs_UserChangeEmail($user_login, $set_mail);
+                    rcms_redirect("?module=reminder");
+                }
+            }
     }
 } else {
     show_window(__('Sorry'), __('This module is disabled'));
