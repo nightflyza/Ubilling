@@ -13,7 +13,7 @@ if ($ubillingConfig->getAlterParam('UKV_ENABLED')) {
          */
 
         //fast ajax render
-        if (wf_CheckGet(array('ajax'))) {
+        if (ubRouting::checkGet('ajax')) {
             $ukv->ajaxUsers();
         }
 
@@ -25,24 +25,24 @@ if ($ubillingConfig->getAlterParam('UKV_ENABLED')) {
         show_window('', $ukv->panel());
 
         //renders tariffs list with controls
-        if (wf_CheckGet(array('tariffs'))) {
+        if (ubRouting::checkGet('tariffs')) {
 
             //tariffs editing
-            if (wf_CheckPost(array('edittariff'))) {
-                $ukv->tariffSave($_POST['edittariff'], $_POST['edittariffname'], $_POST['edittariffprice']);
-                rcms_redirect(UkvSystem::URL_TARIFFS_MGMT);
+            if (ubRouting::checkPost('edittariff')) {
+                $ukv->tariffSave(ubRouting::post('edittariff'), ubRouting::post('edittariffname'), ubRouting::post('edittariffprice'));
+                ubRouting::nav(UkvSystem::URL_TARIFFS_MGMT);
             }
 
             //tariffs creation
-            if (wf_CheckPost(array('createtariff'))) {
-                $ukv->tariffCreate($_POST['createtariffname'], $_POST['createtariffprice']);
-                rcms_redirect(UkvSystem::URL_TARIFFS_MGMT);
+            if (ubRouting::checkPost('createtariff')) {
+                $ukv->tariffCreate(ubRouting::post('createtariffname'), ubRouting::post('createtariffprice'));
+                ubRouting::nav(UkvSystem::URL_TARIFFS_MGMT);
             }
 
             //tariffs deletion
-            if (wf_CheckGet(array('tariffdelete'))) {
-                $ukv->tariffDelete($_GET['tariffdelete']);
-                rcms_redirect(UkvSystem::URL_TARIFFS_MGMT);
+            if (ubRouting::checkGet('tariffdelete')) {
+                $ukv->tariffDelete(ubRouting::get('tariffdelete'));
+                ubRouting::nav(UkvSystem::URL_TARIFFS_MGMT);
             }
 
             //show tariffs lister
@@ -50,18 +50,18 @@ if ($ubillingConfig->getAlterParam('UKV_ENABLED')) {
         }
 
         //full users listing
-        if (wf_CheckGet(array('users', 'userslist'))) {
+        if (ubRouting::checkGet(array('users', 'userslist'))) {
             show_window(__('Available users'), $ukv->renderUsers());
             zb_BillingStats(true);
         }
 
         //users registration
-        if (wf_CheckGet(array('users', 'register'))) {
-            if (wf_CheckPost(array('userregisterprocessing'))) {
-                if (wf_CheckPost(array('citysel', 'streetsel', 'buildsel'))) {
+        if (ubRouting::checkGet(array('users', 'register'))) {
+            if (ubRouting::checkPost('userregisterprocessing')) {
+                if (ubRouting::checkPost(array('citysel', 'streetsel', 'buildsel'))) {
                     //all needed fields is filled - processin registration
                     $createdUserId = $ukv->userCreate();
-                    rcms_redirect(UkvSystem::URL_USERS_PROFILE . $createdUserId);
+                    ubRouting::nav(UkvSystem::URL_USERS_PROFILE . $createdUserId);
                 } else {
                     show_window(__('Error'), __('All fields marked with an asterisk are mandatory'));
                 }
@@ -71,56 +71,56 @@ if ($ubillingConfig->getAlterParam('UKV_ENABLED')) {
         }
 
         //user profile show
-        if (wf_CheckGet(array('users', 'showuser'))) {
+        if (ubRouting::checkGet(array('users', 'showuser'))) {
 
             //user editing processing
-            if (wf_CheckPost(array('usereditprocessing'))) {
+            if (ubRouting::checkPost('usereditprocessing')) {
                 $ukv->userSave();
-                rcms_redirect(UkvSystem::URL_USERS_PROFILE . $_POST['usereditprocessing']);
+                ubRouting::nav(UkvSystem::URL_USERS_PROFILE . ubRouting::post('usereditprocessing'));
             }
 
             //user cable seal editing processing
-            if (wf_CheckPost(array('usercablesealprocessing'))) {
+            if (ubRouting::checkPost('usercablesealprocessing')) {
                 $ukv->userCableSealSave();
-                rcms_redirect(UkvSystem::URL_USERS_PROFILE . $_POST['usercablesealprocessing']);
+                ubRouting::nav(UkvSystem::URL_USERS_PROFILE . ubRouting::post('usercablesealprocessing'));
             }
 
             //user deletion processing
-            if (wf_CheckPost(array('userdeleteprocessing', 'deleteconfirmation'))) {
-                if ($_POST['deleteconfirmation'] == 'confirm') {
-                    $ukv->userDelete($_POST['userdeleteprocessing']);
-                    rcms_redirect(UkvSystem::URL_USERS_LIST);
+            if (ubRouting::checkPost(array('userdeleteprocessing', 'deleteconfirmation'))) {
+                if (ubRouting::post('deleteconfirmation') == 'confirm') {
+                    $ukv->userDelete(ubRouting::post('userdeleteprocessing'));
+                    ubRouting::nav(UkvSystem::URL_USERS_LIST);
                 } else {
-                    log_register('UKV USER DELETE TRY ((' . $_POST['userdeleteprocessing'] . '))');
+                    log_register('UKV USER DELETE TRY ((' . ubRouting::post('userdeleteprocessing') . '))');
                 }
             }
 
             //manual payments processing
-            if (wf_CheckPost(array('manualpaymentprocessing', 'paymentsumm', 'paymenttype'))) {
+            if (ubRouting::checkPost(array('manualpaymentprocessing', 'paymentsumm', 'paymenttype'))) {
                 $paymentNotes = '';
                 //normal payment
-                if ($_POST['paymenttype'] == 'add') {
+                if (ubRouting::post('paymenttype') == 'add') {
                     $paymentVisibility = 1;
                 }
                 //balance correcting
-                if ($_POST['paymenttype'] == 'correct') {
+                if (ubRouting::post('paymenttype') == 'correct') {
                     $paymentVisibility = 0;
                 }
                 //mock payment
-                if ($_POST['paymenttype'] == 'mock') {
+                if (ubRouting::post('paymenttype') == 'mock') {
                     $paymentVisibility = 1;
                     $paymentNotes .= 'MOCK:';
                 }
                 //set payment notes
-                if (wf_CheckPost(array('paymentnotes'))) {
-                    $paymentNotes .= $_POST['paymentnotes'];
+                if (ubRouting::checkPost('paymentnotes')) {
+                    $paymentNotes .= ubRouting::post('paymentnotes');
                 }
 
-                if ($ukv->isMoney($_POST['paymentsumm'])) {
-                    if ($_POST['paymenttype'] != 'mock') {
-                        $ukv->userAddCash($_POST['manualpaymentprocessing'], $_POST['paymentsumm'], $paymentVisibility, $_POST['paymentcashtype'], $paymentNotes);
+                if ($ukv->isMoney(ubRouting::post('paymentsumm'))) {
+                    if (ubRouting::post('paymenttype') != 'mock') {
+                        $ukv->userAddCash(ubRouting::post('manualpaymentprocessing'), ubRouting::post('paymentsumm'), $paymentVisibility, ubRouting::post('paymentcashtype'), $paymentNotes);
 
-                        if ($ubillingConfig->getAlterParam('DREAMKAS_ENABLED') and wf_CheckPost(array('dofiscalizepayment'))) {
+                        if ($ubillingConfig->getAlterParam('DREAMKAS_ENABLED') and ubRouting::checkPost(array('dofiscalizepayment'))) {
                             $greed = new Avarice();
                             $insatiability = $greed->runtime('DREAMKAS');
 
@@ -132,15 +132,15 @@ if ($ubillingConfig->getAlterParam('UKV_ENABLED')) {
                                 $rapacity_c = $insatiability['M']['PUSHCASHLO'];
                                 $rapacity_d = $insatiability['M']['ONONOKI'];
 
-                                $voracity_a = $_POST[$insatiability['PG']['SHINOBU']];
-                                $voracity_b = $_POST[$insatiability['PG']['KOYOMI']];
-                                $voracity_c = $_POST[$insatiability['PG']['HITAGI']];
-                                $voracity_d = $DreamKas->$rapacity_d($_POST['manualpaymentprocessing'], $ukv);
+                                $voracity_a = ubRouting::post($insatiability['PG']['SHINOBU']);
+                                $voracity_b = ubRouting::post($insatiability['PG']['KOYOMI']);
+                                $voracity_c = ubRouting::post($insatiability['PG']['HITAGI']);
+                                $voracity_d = $DreamKas->$rapacity_d(ubRouting::post('manualpaymentprocessing'), $ukv);
 
                                 $voracity_d = (empty($voracity_d)) ? '' : $voracity_d[$insatiability['AK']['ARARAGI']];
                                 $voracity_e = '';
 
-                                $voracity_f = array($_POST[$insatiability['PG']['NADEKO']] => array($insatiability['AK']['TSUKIHI'] => ($_POST['paymentsumm'] * 100)));
+                                $voracity_f = array(ubRouting::post($insatiability['PG']['NADEKO']) => array($insatiability['AK']['TSUKIHI'] => (ubRouting::post('paymentsumm') * 100)));
                                 $voracity_g = array($insatiability['AK']['MAYOI'] => $voracity_e, $insatiability['AK']['OUGI'] => $voracity_d);
 
                                 $voracity_h = $DreamKas->$rapacity_a($voracity_a, $voracity_b, $voracity_c, $voracity_f, $voracity_g);
@@ -156,7 +156,7 @@ if ($ubillingConfig->getAlterParam('UKV_ENABLED')) {
                             }
                         }
                     } else {
-                        $ukv->logPayment($_POST['manualpaymentprocessing'], $_POST['paymentsumm'], $paymentVisibility, $_POST['paymentcashtype'], $paymentNotes);
+                        $ukv->logPayment(ubRouting::post('manualpaymentprocessing'), ubRouting::post('paymentsumm'), $paymentVisibility, ubRouting::post('paymentcashtype'), $paymentNotes);
                     }
 
                     $lastDKErrorParam = '';
@@ -165,24 +165,24 @@ if ($ubillingConfig->getAlterParam('UKV_ENABLED')) {
                         $lastDKErrorParam = '&lastdkerror=' . urlencode($voracity_i);
                     }
 
-                    rcms_redirect(UkvSystem::URL_USERS_PROFILE . $_POST['manualpaymentprocessing'] . $lastDKErrorParam);
+                    ubRouting::nav(UkvSystem::URL_USERS_PROFILE . ubRouting::post('manualpaymentprocessing') . $lastDKErrorParam);
                 } else {
                     show_window('', wf_modalOpened(__('Error'), __('Wrong format of a sum of money to pay'), '400', '200'));
-                    log_register('UKV BALANCEADDFAIL ((' . $_POST['manualpaymentprocessing'] . ')) WRONG SUMM `' . $_POST['paymentsumm'] . '`');
+                    log_register('UKV BALANCEADDFAIL ((' . ubRouting::post('manualpaymentprocessing') . ')) WRONG SUMM `' . ubRouting::post('paymentsumm') . '`');
                 }
             }
 
             $errorWindow = '';
 
-            if (wf_CheckGet(array('lastdkerror'))) {
-                $errorMessage = $ukv->getUbMessagesInstance()->getStyledMessage(urldecode($_GET['lastdkerror']), 'error');
+            if (ubRouting::checkGet('lastdkerror')) {
+                $errorMessage = $ukv->getUbMessagesInstance()->getStyledMessage(urldecode(ubRouting::get('lastdkerror')), 'error');
                 $errorWindow = wf_modalAutoForm(__('Fiscalization error'), $errorMessage, '', '', true, 'true', '700');
             }
 
             //payments deletion
-            if (wf_CheckGet(array('deletepaymentid'))) {
+            if (ubRouting::checkGet(array('deletepaymentid'))) {
                 $ukv->paymentDelete(ubRouting::get('deletepaymentid'), ubRouting::get('showuser'));
-                rcms_redirect(UkvSystem::URL_USERS_PROFILE . ubRouting::get('showuser'));
+                ubRouting::nav(UkvSystem::URL_USERS_PROFILE . ubRouting::get('showuser'));
             }
 
             //user profile rendering
@@ -196,28 +196,28 @@ if ($ubillingConfig->getAlterParam('UKV_ENABLED')) {
         }
 
         // bank statements processing
-        if (wf_CheckGet(array('banksta'))) {
+        if (ubRouting::checkGet('banksta')) {
             //banksta upload 
-            if (wf_CheckPost(array('uploadukvbanksta'))) {
+            if (ubRouting::checkPost('uploadukvbanksta')) {
                 $processMan = new StarDust('UKV_BSUPL');
                 if ($processMan->notRunning()) {
                     $processMan->start();
                     $bankstaUploaded = $ukv->bankstaDoUpload();
                     if (!empty($bankstaUploaded)) {
-                        if (wf_CheckPost(array('ukvbankstatype'))) {
-                            if ($_POST['ukvbankstatype'] == 'oschad') {
+                        if (ubRouting::checkPost(array('ukvbankstatype'))) {
+                            if (ubRouting::post('ukvbankstatype') == 'oschad') {
                                 $processedBanksta = $ukv->bankstaPreprocessing($bankstaUploaded);
-                                rcms_redirect(UkvSystem::URL_BANKSTA_PROCESSING . $processedBanksta);
+                                ubRouting::nav(UkvSystem::URL_BANKSTA_PROCESSING . $processedBanksta);
                             }
 
-                            if ($_POST['ukvbankstatype'] == 'oschadterm') {
+                            if (ubRouting::post('ukvbankstatype') == 'oschadterm') {
                                 $processedBanksta = $ukv->bankstaPreprocessingTerminal($bankstaUploaded);
-                                rcms_redirect(UkvSystem::URL_BANKSTA_PROCESSING . $processedBanksta);
+                                ubRouting::nav(UkvSystem::URL_BANKSTA_PROCESSING . $processedBanksta);
                             }
 
-                            if ($_POST['ukvbankstatype'] == 'privatbankdbf') {
+                            if (ubRouting::post('ukvbankstatype') == 'privatbankdbf') {
                                 $processedBanksta = $ukv->bankstaPreprocessingPrivatDbf($bankstaUploaded);
-                                rcms_redirect(UkvSystem::URL_BANKSTA_PROCESSING . $processedBanksta);
+                                ubRouting::nav(UkvSystem::URL_BANKSTA_PROCESSING . $processedBanksta);
                             }
                         } else {
                             show_error(__('Strange exeption') . ' NO_BANKSTA_TYPE');
@@ -229,45 +229,44 @@ if ($ubillingConfig->getAlterParam('UKV_ENABLED')) {
                 }
             } else {
 
-                if (wf_CheckGet(array('showhash'))) {
+                if (ubRouting::checkGet('showhash')) {
                     //changing some contract into the banksta
-                    if (wf_CheckPost(array('bankstacontractedit', 'newbankcontr'))) {
-                        $ukv->bankstaSetContract($_POST['bankstacontractedit'], $_POST['newbankcontr']);
-                        if (isset($_POST['lockbankstarow'])) {
+                    if (ubRouting::checkPost(array('bankstacontractedit', 'newbankcontr'))) {
+                        $ukv->bankstaSetContract(ubRouting::post('bankstacontractedit'), ubRouting::post('newbankcontr'));
+                        if (ubRouting::checkPost('lockbankstarow', false)) {
                             //locking some row if needed
-                            $ukv->bankstaSetProcessed($_POST['bankstacontractedit']);
-                            log_register('UKV BANKSTA [' . $_POST['bankstacontractedit'] . '] LOCKED');
+                            $ukv->bankstaSetProcessed(ubRouting::post('bankstacontractedit'));
+                            log_register('UKV BANKSTA [' . ubRouting::post('bankstacontractedit') . '] LOCKED');
                         }
-                        rcms_redirect(UkvSystem::URL_BANKSTA_PROCESSING . $_GET['showhash']);
+                        ubRouting::nav(UkvSystem::URL_BANKSTA_PROCESSING . ubRouting::get('showhash'));
                     }
 
                     //push cash to users if is needed
-                    if (wf_CheckPost(array('bankstaneedpaymentspush'))) {
+                    if (ubRouting::checkPost('bankstaneedpaymentspush')) {
                         $processMan = new StarDust('UKV_BSPROCSNG');
                         if ($processMan->notRunning()) {
                             $processMan->start();
                             $ukv->bankstaPushPayments();
                             $processMan->stop();
-                            rcms_redirect(UkvSystem::URL_BANKSTA_MGMT);
+                            ubRouting::nav(UkvSystem::URL_BANKSTA_MGMT);
                         } else {
                             show_error(__('Bank statements') . ': ' . __('Already running'));
                         }
                     }
 
-                    show_window(__('Bank statement processing'), $ukv->bankstaProcessingForm($_GET['showhash']));
+                    show_window(__('Bank statement processing'), $ukv->bankstaProcessingForm(ubRouting::get('showhash')));
                 } else {
-                    if (wf_CheckGet(array('showdetailed'))) {
+                    if (ubRouting::checkGet(array('showdetailed'))) {
                         //show banksta row detailed info
-                        show_window(__('Bank statement'), $ukv->bankstaGetDetailedRowInfo($_GET['showdetailed']));
+                        show_window(__('Bank statement'), $ukv->bankstaGetDetailedRowInfo(ubRouting::get('showdetailed')));
                     } else {
                         //show upload form
                         show_window(__('Import bank statement'), $ukv->bankstaLoadForm());
                         //ajax data source list 
-                        if (wf_CheckGet(array('ajbslist'))) {
+                        if (ubRouting::checkGet(array('ajbslist'))) {
                             $ukv->bankstaRenderAjaxList();
                         }
                         //and available bank statements
-
                         show_window(__('Previously loaded bank statements'), $ukv->bankstaRenderList());
                     }
                 }
@@ -275,10 +274,9 @@ if ($ubillingConfig->getAlterParam('UKV_ENABLED')) {
         }
 
         //reports processing
-        if (wf_CheckGet(array('reports'))) {
-
-            if (wf_CheckGet(array('showreport'))) {
-                $reportName = vf($_GET['showreport']);
+        if (ubRouting::checkGet('reports')) {
+            if (ubRouting::checkGet('showreport')) {
+                $reportName = ubRouting::get('showreport', 'callback', 'vf');
                 if (ispos($reportName, 'report')) {
                     if (method_exists($ukv, $reportName)) {
                         //call method
