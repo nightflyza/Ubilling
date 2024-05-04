@@ -44,7 +44,7 @@ if (cfr('USERSEARCH')) {
     }
 
     //CF search
-    if (ubRouting::checkPost('cfquery')) {
+    if (ubRouting::checkPost('cfquery', false)) {
         $search_query = ubRouting::post('cfquery');
         if (strlen($search_query) > 0) {
             $found_users = zb_UserSearchCF(ubRouting::post('cftypeid'), $search_query);
