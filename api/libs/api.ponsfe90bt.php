@@ -166,7 +166,8 @@ class PONSFE90BT extends PONProto {
                     $tmpONUPortLLID = trim($line[0]);
 
                     if (empty($line[1])) {
-                        $SignalRaw = 'Offline';
+                        $ONUsSignals[$tmpONUPortLLID]['SignalRXRaw'] = '';
+                        $ONUsSignals[$tmpONUPortLLID]['SignalRXdBm'] = '';
                     } else {
                         $SignalRaw = trim($line[1]);
                         $ONUsSignals[$tmpONUPortLLID]['SignalRXRaw'] = $SignalRaw;
