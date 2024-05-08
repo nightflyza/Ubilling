@@ -164,11 +164,16 @@ class PONSFE90BT extends PONProto {
 //signal is present
                 if (isset($line[0])) {
                     $tmpONUPortLLID = trim($line[0]);
-                    $SignalRaw = trim($line[1]);
-                    $ONUsSignals[$tmpONUPortLLID]['SignalRXRaw'] = $SignalRaw;
-                    $ONUsSignals[$tmpONUPortLLID]['SignalRXdBm'] = trim(substr(stristr(stristr(stristr($SignalRaw, '('), ')', true), 'dBm', true), 1));
+
+                    if (empty($line[1])) {
+                        $SignalRaw = 'Offline';
+                    } else {
+                        $SignalRaw = trim($line[1]);
+                        $ONUsSignals[$tmpONUPortLLID]['SignalRXRaw'] = $SignalRaw;
+                        $ONUsSignals[$tmpONUPortLLID]['SignalRXdBm'] = trim(substr(stristr(stristr(stristr($SignalRaw, '('), ')', true), 'dBm', true), 1));
                     }
                 }
+            }
 
 //storing results
             foreach ($macIndexProcessed as $devId => $eachMac) {
