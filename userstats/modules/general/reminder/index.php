@@ -1,4 +1,5 @@
 <?php
+$usRemider = new USReminder();
 
 //functions and variables
 

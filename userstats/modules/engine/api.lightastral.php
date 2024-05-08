@@ -204,17 +204,22 @@ function la_RadioInput($name, $label = '', $value = '', $br = false, $checked = 
 }
 
 /**
- * Return check box Web From element 
+ * Return check box Web From element
  *
- * @param string   $name name of element
- * @param string   $label text label for input
- * @param bool  $br append new line - bool
- * @param bool  $checked is checked? - bool
- * 
+ * @param string  $name name of element
+ * @param string  $label text label for input
+ * @param bool    $br append new line
+ * @param bool    $checked is checked?
+ * @param string  $CtrlID
+ * @param string  $CtrlClass
+ *
  * @return  string
+ *
  */
-function la_CheckInput($name, $label = '', $br = false, $checked = false) {
-    $inputid = la_InputId();
+function la_CheckInput($name, $label = '', $br = false, $checked = false, $CtrlID = '', $CtrlClass = '', $options = '', $labelOptions = '') {
+    $inputid = ((empty($CtrlID)) ? 'ChkBox_' . la_InputId() : $CtrlID);
+    $inputClass = ((empty($CtrlClass)) ? '' : ' class="' . $CtrlClass . '" ');
+
     if ($br) {
         $newline = '<br>';
     } else {
@@ -225,9 +230,9 @@ function la_CheckInput($name, $label = '', $br = false, $checked = false) {
     } else {
         $check = '';
     }
-    $result = '<input type="checkbox" id="' . $inputid . '" name="' . $name . '" ' . $check . ' />';
+    $result = '<input type="checkbox" id="' . $inputid . '" ' . $inputClass . 'name="' . $name . '" ' . $check . ' ' . $options . ' />';
     if ($label != '') {
-        $result .= ' <label for="' . $inputid . '">' . __($label) . '</label>' . "\n";
+        $result .= ' <label for="' . $inputid . '" ' . $labelOptions . '>' . __($label) . '</label>' . "\n";
     }
     $result .= $newline . "\n";
     return ($result);
@@ -287,8 +292,8 @@ function la_HiddenInput($name, $value = '') {
  * 
  * @return  string
  */
-function la_Submit($value) {
-    $result = '<input type="submit" value="' . __($value) . '">';
+function la_Submit($value, $class = '') {
+    $result = '<input type="submit" class= "' . $class . '" value="' . __($value) . '">';
     return ($result);
 }
 
