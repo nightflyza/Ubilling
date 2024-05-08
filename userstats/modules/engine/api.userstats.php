@@ -620,7 +620,7 @@ function zbs_UserGetMobile($login) {
 }
 
 /**
- * Returns mobile number by user login
+ * Returns ext mobile numbers by user login
  *
  * @param string $login
  * @return string
@@ -632,7 +632,7 @@ function zbs_UserGetMobileExt($login) {
 
     if (!empty($phone_arr)) {
         foreach ($phone_arr as $io => $eachExtMobile) {
-            $result[] = $eachExtMobile;
+            $result[] = $eachExtMobile['mobile'];
         }
     }
 
@@ -3062,49 +3062,45 @@ function zbs_GetTariffsDataAll($excludeLousy = false) {
 
     return ($allTariffs);
 }
-//
-///**
-// * Check if user already has tag
-// * @param type $login string
-// * @param type $tagid int
-// * @return type boolean
-// */
-//function stg_check_user_tag($login, $tagid) {
-//    $login = mysql_real_escape_string($login);
-//    $tagid = vf($tagid, 3);
-//    $query = "SELECT `id` FROM `tags` WHERE `login`= '" . $login . "' AND `tagid`= '" . $tagid . "'";
-//    $check = simple_queryall($query);
-//
-//    if (!empty($check)) {
-//        return (true);
-//    } else {
-//        return (false);
-//    }
-//}
-//
-///**
-// *
-// * add sms tag for user to remind him about apropos payment
-// * @param type $login string
-// * @param type $tagid integer
-// */
-//function stg_add_user_tag($login, $tagid) {
-//    $login = mysql_real_escape_string($login);
-//    $tagid = vf($tagid, 3);
-//    $query = "INSERT INTO `tags` (`id` ,`login` ,`tagid`) VALUES (NULL , '" . $login . "', '" . $tagid . "'); ";
-//    nr_query($query);
-//    log_register('TAGADD (' . $login . ') TAGID [' . $tagid . ']');
-//}
-//
-///**
-// * delete sms tag
-// * @param type $login
-// * @param type $tagid
-// */
-//function stg_del_user_tagid($login, $tagid) {
-//    $login = mysql_real_escape_string($login);
-//    $tagid = vf($tagid, 3);
-//    $query = "DELETE from `tags` WHERE `login`='" . $login . "' AND`tagid`='" . $tagid . "'";
-//    nr_query($query);
-//    log_register('TAGDEL LOGIN (' . $login . ') TAGID [' . $tagid . ']');
-//}
+
+/**
+ * Check if user already has tag
+ * @param type $login string
+ * @param type $tagid int
+ * @return type boolean
+ */
+function stg_check_user_tag($login, $tagid) {
+    $login = mysql_real_escape_string($login);
+    $tagid = vf($tagid, 3);
+    $query = "SELECT `id` FROM `tags` WHERE `login`= '" . $login . "' AND `tagid`= '" . $tagid . "'";
+    $check = simple_queryall($query);
+
+    return (!empty($check));
+}
+
+/**
+ *
+ * add sms tag for user to remind him about apropos payment
+ * @param type $login string
+ * @param type $tagid integer
+ */
+function stg_add_user_tag($login, $tagid) {
+    $login = mysql_real_escape_string($login);
+    $tagid = vf($tagid, 3);
+    $query = "INSERT INTO `tags` (`id` ,`login` ,`tagid`) VALUES (NULL , '" . $login . "', '" . $tagid . "'); ";
+    nr_query($query);
+    log_register('TAGADD (' . $login . ') TAGID [' . $tagid . ']');
+}
+
+/**
+ * delete sms tag
+ * @param type $login
+ * @param type $tagid
+ */
+function stg_del_user_tagid($login, $tagid) {
+    $login = mysql_real_escape_string($login);
+    $tagid = vf($tagid, 3);
+    $query = "DELETE from `tags` WHERE `login`='" . $login . "' AND`tagid`='" . $tagid . "'";
+    nr_query($query);
+    log_register('TAGDEL LOGIN (' . $login . ') TAGID [' . $tagid . ']');
+}

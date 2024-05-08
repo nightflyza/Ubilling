@@ -24,6 +24,7 @@ require_once('modules/engine/api.ubrouting.php');
 require_once('modules/engine/api.nyanorm.php');
 require_once('modules/engine/api.omegatv.php');
 require_once('modules/engine/api.trinitytv.php');
+require_once('modules/engine/api.usreminder.php');
 
 
 // ACTIONS HANDLING:
