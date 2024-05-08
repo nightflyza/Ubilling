@@ -542,54 +542,63 @@ class FundsFlow {
 
             //here per-line file read to avoid memory overheads
             $handle = fopen($stgLog, "r");
-            while (!feof($handle)) {
-                $eachline = fgets($handle);
-                if (!empty($eachline)) {
-                    $requiredDateOffset = false;
-                    if ($customDateMask) {
-                        if (ispos($eachline, $dateMaskFilter)) {
+
+            // checking for "handle" to be non-empty, e.g. the "fopen()" didn't return "false"
+            // or we might find ourselves in an infinite loop
+            if (empty($handle)) {
+                log_register('FEES HARVESTER FAILED TO OPEN "'. $stgLog . '"');
+            } else {
+                while (!feof($handle)) {
+                    $eachline = fgets($handle);
+                    if (!empty($eachline)) {
+                        $requiredDateOffset = false;
+                        if ($customDateMask) {
+                            if (ispos($eachline, $dateMaskFilter)) {
+                                $requiredDateOffset = true;
+                            }
+                        }
+                        else {
                             $requiredDateOffset = true;
                         }
-                    } else {
-                        $requiredDateOffset = true;
-                    }
 
-                    if ($requiredDateOffset) {
-                        if (ispos($eachline, self::MASK_FEE)) {
-                            $eachfee = explode(' ', $eachline);
-                            if (isset($eachfee[self::OFFSET_TIME])) {
-                                $feefrom = str_replace("'.", '', $eachfee[self::OFFSET_FROM]);
-                                $feeto = str_replace("'.", '', $eachfee[self::OFFSET_TO]);
-                                $feefrom = str_replace("'", '', $feefrom);
-                                $feeto = str_replace("'", '', $feeto);
-                                $login = $eachfee[self::OFFSET_LOGIN];
-                                $login = str_replace("'", '', $login);
-                                $login = str_replace(':', '', $login);
-                                $login = ubRouting::filters($login, 'mres');
-                                $date = $eachfee[self::OFFSET_DATE] . ' ' . $eachfee[self::OFFSET_TIME];
-                                $summ = $feeto - $feefrom;
-                                $hash = md5($date . $login . $summ . $feefrom . $feeto);
-                                if (!isset($alreadyHarvested[$hash])) {
-                                    $this->feesDb->data('hash', $hash);
-                                    $this->feesDb->data('login', $login);
-                                    $this->feesDb->data('date', $date);
-                                    $this->feesDb->data('admin', $feeadmin);
-                                    $this->feesDb->data('from', $feefrom);
-                                    $this->feesDb->data('to', $feeto);
-                                    $this->feesDb->data('summ', $summ);
-                                    $this->feesDb->data('note', $feenote);
-                                    $this->feesDb->data('cashtype', $feecashtype);
-                                    $this->feesDb->create();
-                                    $alreadyHarvested[$hash] = array('harvested');
-                                    $result++;
+                        if ($requiredDateOffset) {
+                            if (ispos($eachline, self::MASK_FEE)) {
+                                $eachfee = explode(' ', $eachline);
+                                if (isset($eachfee[self::OFFSET_TIME])) {
+                                    $feefrom = str_replace("'.", '', $eachfee[self::OFFSET_FROM]);
+                                    $feeto   = str_replace("'.", '', $eachfee[self::OFFSET_TO]);
+                                    $feefrom = str_replace("'", '', $feefrom);
+                                    $feeto   = str_replace("'", '', $feeto);
+                                    $login   = $eachfee[self::OFFSET_LOGIN];
+                                    $login   = str_replace("'", '', $login);
+                                    $login   = str_replace(':', '', $login);
+                                    $login   = ubRouting::filters($login, 'mres');
+                                    $date    = $eachfee[self::OFFSET_DATE] . ' ' . $eachfee[self::OFFSET_TIME];
+                                    $summ    = $feeto - $feefrom;
+                                    $hash    = md5($date . $login . $summ . $feefrom . $feeto);
+                                    if (!isset($alreadyHarvested[$hash])) {
+                                        $this->feesDb->data('hash', $hash);
+                                        $this->feesDb->data('login', $login);
+                                        $this->feesDb->data('date', $date);
+                                        $this->feesDb->data('admin', $feeadmin);
+                                        $this->feesDb->data('from', $feefrom);
+                                        $this->feesDb->data('to', $feeto);
+                                        $this->feesDb->data('summ', $summ);
+                                        $this->feesDb->data('note', $feenote);
+                                        $this->feesDb->data('cashtype', $feecashtype);
+                                        $this->feesDb->create();
+                                        $alreadyHarvested[$hash] = array('harvested');
+                                        $result++;
+                                    }
                                 }
+                                $lineCount++;
                             }
-                            $lineCount++;
                         }
                     }
                 }
+
+                fclose($handle);
             }
-            fclose($handle);
         }
 
         $timeRange = (!empty($customDateMask)) ? $customDateMask : 'ALL_TIME';
