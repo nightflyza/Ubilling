@@ -62,7 +62,7 @@ class USReminder {
      *
      * @var int
      */
-    protected $uscfgReminderFee = 0;
+    protected $uscfgReminderInstantFeeON = 0;
 
     /**
      * Placeholder for REMINDER_CASHTYPEID "userstats.ini" option
@@ -276,7 +276,7 @@ class USReminder {
         $this->uscfgReminderNumberLen           = $this->usConfig->getUstasParam('REMINDER_NUMBER_LENGTH', 0);
         $this->uscfgReminderDaysTreshold        = $this->usConfig->getUstasParam('REMINDER_DAYS_THRESHOLD', 0);
         $this->uscfgReminderPrefix              = $this->usConfig->getUstasParam('REMINDER_PREFIX', '');
-        $this->uscfgReminderFee                 = $this->usConfig->getUstasParam('REMINDER_FEE', 0);
+        $this->uscfgReminderInstantFeeON                 = $this->usConfig->getUstasParam('REMINDER_FEE', 0);
         $this->uscfgReminderCashTypeID          = $this->usConfig->getUstasParam('REMINDER_CASHTYPEID', 0);
         $this->uscfgReminderTurnONOFFAble         = $this->usConfig->getUstasParam('REMINDER_TURNOFF', 0);
         $this->uscfgReminderNumberChangeAllowed = $this->usConfig->getUstasParam('REMINDER_CHANGE_NUMBER', 0);
@@ -297,6 +297,38 @@ class USReminder {
         if ($this->uscfgReminderPBIEnabled and !empty($this->uscfgReminderTagID) and !empty($this->uscfgReminderPBIOnlyTagID)) {
             $this->pbionlyFeeExcluded = self::getPBIOnlyExcludedStatus($this->uscfgReminderTagID, $this->uscfgReminderPBIOnlyTagID);
         }
+    }
+
+    /**
+     * Checks the essential Reminder options set and returns error message or empty string if all is ok
+     *
+     * @return string
+     */
+    public function checkEssentialOptions() {
+        $result = '';
+        $uscfg = $this->usConfig->getUstas();
+
+        if (empty($this->uscfgReminderEnabled)) {
+            $result = 'REMINDER_DISABLED';
+        } elseif (!isset($uscfg['REMINDER_PRICE'])) {
+            $result = 'REMINDER: PRICE not set';
+        } elseif (!isset($uscfg['REMINDER_TAGID'])) {
+            $result = 'REMINDER: TAGID not set';
+        } elseif (!isset($uscfg['REMINDER_NUMBER_LENGTH'])) {
+            $result = 'REMINDER: NUMBER_LENGTH not set';
+        } elseif (!isset($uscfg['REMINDER_DAYS_THRESHOLD'])) {
+            $result = 'REMINDER: DAYS_TRESHOLD not set';
+        } elseif (!isset($uscfg['REMINDER_PREFIX'])) {
+            $result = 'REMINDER: PREFIX not set';
+        } elseif (!isset($uscfg['REMINDER_FEE'])) {
+            $result = 'REMINDER: FEE not set';
+        } elseif (!isset($uscfg['REMINDER_CASHTYPEID'])) {
+            $result = 'REMINDER: CASHTYPEID not set';
+        } elseif (!isset($uscfg['REMINDER_TURNOFF'])) {
+            $result = 'REMINDER: TURNOFF not set';
+        }
+
+        return ($result);
     }
 
     /**
@@ -387,6 +419,13 @@ class USReminder {
         return ($result);
     }
 
+    /**
+     * Retrieves essential user data and tags assignment
+     *
+     * @param $userLogin
+     *
+     * @return void
+     */
     protected function getUserReminderConfig($userLogin = '') {
         $userLogin                 = (empty($userLogin)) ? $this->userLogin : $userLogin;
         $this->userReminderON      = self::checkUserReminderEnabled($userLogin, $this->uscfgReminderTagID);
@@ -400,8 +439,11 @@ class USReminder {
 
     /**
      * Change user mobile
-     * @param type $login string
+     *
+     * @param type $userLogin string
      * @param type $mobile int
+     *
+     * @return void
      */
     protected function changeUserMobile($userLogin, $mobile) {
         $login    = ubRouting::filters($userLogin, 'vf');
@@ -409,13 +451,15 @@ class USReminder {
         $phonesDB->data('mobile', $mobile);
         $phonesDB->where('login', '=', $login);
         $phonesDB->save();
-        log_register('CHANGE UserMobile (' . $login . ') `' . $mobile . '`');
     }
 
     /**
      * Change user email
-     * @param type $login string
-     * @param type $mobile int
+     *
+     * @param type $userLogin string
+     * @param type $email int
+     *
+     * @return void
      */
     protected function changeUserEmail($userLogin, $email) {
         $login    = ubRouting::filters($userLogin, 'vf');
@@ -423,7 +467,6 @@ class USReminder {
         $phonesDB->data('email', $email);
         $phonesDB->where('login', '=', $login);
         $phonesDB->save();
-        log_register('CHANGE UserEmail (' . $login . ') `' . $email . '`');
     }
 
     /**
@@ -444,7 +487,7 @@ class USReminder {
 
         if ($this->uscfgReminderUseExtMobiles and !empty($mobileExt)) {
             $mobileText.= la_delimiter();
-            $mobileText.= __('You provider also enabled notifications to additional cell phone numbers specified in your profile.
+            $mobileText.= __('You provider has also enabled notifications to additional cell phone numbers specified in your profile.
                              You may find those below (however - you can\'t modify them directly from here, only via request to your provider support)') . ':';
             $mobileText.= la_delimiter(0);
             $extMobiles = '';
@@ -471,7 +514,7 @@ class USReminder {
      */
     protected function renderEmailForm($email = '') {
         $emailText = (empty($email))
-                      ? __("You have empty E-mail") . "." . " "
+                      ? __("You E-mail is empty") . "." . " "
                       : __("Your current E-mail is") . ": " . la_nbsp(4) . la_tag('b') . $email . la_tag('b', true);
 
         if ($this->uscfgReminderEmailChangeAllowed) {
@@ -485,7 +528,7 @@ class USReminder {
     /**
      * Returns main mobile editing from
      *
-     * @return type form for changin mobile
+     * @return string
      */
     protected function renderChangeMobileForm() {
         $inputs = la_HiddenInput('changemobile', 'true');
@@ -502,7 +545,7 @@ class USReminder {
     /**
      * Returns E-mail editing from
      *
-     * @return type form for changin mobile
+     * @return string
      */
     protected function renderChangeEmailForm() {
         $inputs = la_HiddenInput('changemail', 'true');
@@ -630,6 +673,7 @@ class USReminder {
                 $formContents.= __("You can't enable payments cell phone numbers reminder - your main cell phone number is empty") . ".";
             } elseif ($this->uscfgReminderTurnONOFFAble) {
                 if ($this->checkUserMobileIsCorrect($this->userMobile)) {
+                    $formContents.= la_delimiter(0);
                     $formContents.= __("You can enable payments reminder") . '. ';
                     $formContents.= __("It costs") . " " . $this->uscfgReminderPrice . ' ' . $this->uscfgCurrency . " " .
                                      __("per month") . "." . la_delimiter(0);
@@ -637,10 +681,10 @@ class USReminder {
                     if ($this->uscfgReminderPBIEnabled and $this->pbionlyFeeExcluded) {
                         $formContents.= la_tag('sup') . la_tag('b') . '*' . la_tag('b', true) . la_tag('sup', true);
                         $formContents.= __('But if you will enable PrivatBank invoices only - reminder service will be free of charge,
-                                    although activation cost still will be charged.');
+                                    although activation cost will still be charged.');
                     }
 
-                    if ($this->uscfgReminderFee) {
+                    if ($this->uscfgReminderInstantFeeON) {
                         $formContents.= la_delimiter();
                         $formContents.= la_tag('b') . __("Attention") . la_tag('b', true) . "," . " " . __("activation cost is") .
                                          " " . $this->uscfgReminderPrice . " " . $this->uscfgCurrency . " " .
@@ -649,12 +693,12 @@ class USReminder {
 
                     $formContents.= $this->renderONOFFReminderForm();
 
-                    if ($this->uscfgReminderPBIEnabled) {
+                    /*if ($this->uscfgReminderPBIEnabled) {
                         $formContents.= la_tag('hr');
                         $formContents.= __('You may change your cell phone numbers reminder type using the form below.
                                             But keep in mind this action will not affect the reminder ON/OFF state itself.');
                         $formContents .= $this->renderChangeReminderTypeForm();
-                    }
+                    }*/
                 } else {
                     $formContents.= la_delimiter(0);
                     $formContents.= la_tag('b') . __('Wrong mobile format') . la_tag('b', true);
@@ -704,53 +748,99 @@ class USReminder {
     }
 
     /**
-     * Deleting user tag form
-     * @return type for for tag delete
+     * Router method to process the changes
+     *
+     * @return void
+     * @throws Exception
      */
-    protected function renderDisableReminderForm() {
-        $inputs = la_tag('center');
-        $inputs.= la_HiddenInput('deleteremind', 'true');
-        $inputs.= la_CheckInput('agree', __('I am sure that I am an adult and have read everything that is written above'), false, false);
-        $inputs.= la_delimiter();
-        $inputs.= la_Submit(__('Don\'t remind me'));
-        $inputs.= la_tag('center', true);
-        $form = la_Form("", 'POST', $inputs, '');
+    public function router() {
+        $userLogin          = $this->userLogin;
+        $policyNotAccepted  = false;
+        $logMessage         = '';
 
-        return($form);
+        // user cell phone number change
+        if (ubRouting::checkPost(array('changemobile', 'mobile'))) {
+            $this->changeUserMobile($userLogin, ubRouting::post('mobile'));
+            $logMessage = 'US_REMINDER: user (' . $userLogin . ') changed his cell phone number to: ' . ubRouting::post('mobile');
+        }
+
+        // user email change
+        if (ubRouting::checkPost(array('changemail', 'email'))) {
+            $this->changeUserEmail($userLogin, ubRouting::post('email'));
+            $logMessage = 'US_REMINDER: user (' . $userLogin . ') changed his E-mail to: ' . ubRouting::post('mobile');
+        }
+
+        // user change service state
+        if (ubRouting::checkPost(array('setremind',
+                                       'deleteremind',
+                                       'setremindemail',
+                                       'deleteremindemail'
+                                 ), true, true)) {
+
+            if (ubRouting::checkPost('agree')) {
+                if ($this->uscfgReminderTurnONOFFAble) {
+                    if (ubRouting::checkPost('setremind')) {
+                        stg_add_user_tag($userLogin, $this->uscfgReminderTagID);
+
+                        if ($this->uscfgReminderInstantFeeON) {
+                            billing_addcash($userLogin, '-' . $this->uscfgReminderPrice);
+                            zbs_PaymentLog($userLogin, '-' . $this->uscfgReminderPrice, $this->uscfgReminderCashTypeID, "REMINDER");
+                        }
+
+                        $logMessage = 'US_REMINDER: user (' . $userLogin . ') has enabled Reminder service';
+                    } elseif (ubRouting::checkPost('deleteremind')) {
+                        stg_del_user_tagid($userLogin, $this->uscfgReminderTagID);
+                        $logMessage = 'US_REMINDER: user (' . $userLogin . ') has disabled Reminder service';
+                    } elseif (ubRouting::checkPost('setremindemail')) {
+                        stg_add_user_tag($userLogin, $this->uscfgReminderEmailTagID);
+                        $logMessage = 'US_REMINDER: user (' . $userLogin . ') has enabled E-mail Reminder service';
+                    } elseif (ubRouting::checkPost('deleteremindemail')) {
+                        stg_del_user_tagid($userLogin, $this->uscfgReminderEmailTagID);
+                        $logMessage = 'US_REMINDER: user (' . $userLogin . ') has disabled E-mail Reminder service';
+                    }
+                }
+            } else {
+                $policyNotAccepted = true;
+            }
+        }
+
+        // user change service type
+        if (ubRouting::checkPost('pbiopts')) {
+            $pbiopts = ubRouting::post('pbiopts');
+
+            if ($this->uscfgReminderTurnONOFFAble) {
+                if ($pbiopts == 'pbismsonly') {
+                    stg_del_user_tagid($userLogin, $this->uscfgReminderPBIOnlyTagID);
+                    stg_del_user_tagid($userLogin, $this->uscfgReminderPBISMSTagID);
+                    $logMessage = 'US_REMINDER: user (' . $userLogin . ') has enabled "PBI SMS only" Reminder service type';
+                } elseif ($pbiopts == 'pbiinvonly') {
+                    stg_add_user_tag($userLogin, $this->uscfgReminderPBIOnlyTagID);
+                    stg_del_user_tagid($userLogin, $this->uscfgReminderPBISMSTagID);
+                    $logMessage = 'US_REMINDER: user (' . $userLogin . ') has enabled "PBI only" Reminder service type';
+                } elseif ($pbiopts == 'pbiinvsms') {
+                    stg_del_user_tagid($userLogin, $this->uscfgReminderPBIOnlyTagID);
+                    stg_add_user_tag($userLogin, $this->uscfgReminderPBISMSTagID);
+                    $logMessage = 'US_REMINDER: user (' . $userLogin . ') has enabled "PBI and SMS" Reminder service type';
+                }
+            }
+        }
+
+        if (!empty($logMessage)) { log_register($logMessage); }
+
+        if ($policyNotAccepted) {
+            show_window(__('Sorry'), la_tag('span', false, '', 'style="color: orangered; font-weight: 600;"') . __('You must accept our policy') . la_tag('span', true));
+        } elseif (!$this->uscfgReminderTurnONOFFAble) {
+            show_window(__('Sorry'), __('You\'re not allowed to change reminder service state'));
+        } else {
+            rcms_redirect("?module=reminder");
+        }
     }
 
     /**
-     * Checks the essential Reminder options set and returns error message or empty string if all is ok
+     * Renders main module frontend
      *
-     * @return string
+     * @return void
      */
-    public function checkEssentialOptions() {
-        $result = '';
-        $uscfg = $this->usConfig->getUstas();
-
-        if (empty($this->uscfgReminderEnabled)) {
-            $result = 'REMINDER_DISABLED';
-        } elseif (!isset($uscfg['REMINDER_PRICE'])) {
-            $result = 'REMINDER: PRICE not set';
-        } elseif (!isset($uscfg['REMINDER_TAGID'])) {
-            $result = 'REMINDER: TAGID not set';
-        } elseif (!isset($uscfg['REMINDER_NUMBER_LENGTH'])) {
-            $result = 'REMINDER: NUMBER_LENGTH not set';
-        } elseif (!isset($uscfg['REMINDER_DAYS_THRESHOLD'])) {
-            $result = 'REMINDER: DAYS_TRESHOLD not set';
-        } elseif (!isset($uscfg['REMINDER_PREFIX'])) {
-            $result = 'REMINDER: PREFIX not set';
-        } elseif (!isset($uscfg['REMINDER_FEE'])) {
-            $result = 'REMINDER: FEE not set';
-        } elseif (!isset($uscfg['REMINDER_CASHTYPEID'])) {
-            $result = 'REMINDER: CASHTYPEID not set';
-        } elseif (!isset($uscfg['REMINDER_TURNOFF'])) {
-            $result = 'REMINDER: TURNOFF not set';
-        }
-
-        return ($result);
-    }
-
     public function showMainWindow() {
         $checkResult = $this->checkEssentialOptions();
 
@@ -759,7 +849,7 @@ class USReminder {
 
             show_window(__('Your cell phones'), $this->renderMobilesForm($this->userMobile, $this->userMobileExt));
 
-            if ($this->userEmailReminderON) {
+            if ($this->uscfgReminderEmailEnabled) {
                 show_window(__('Your E-mail'), $this->renderEmailForm($this->userEmail));
             }
 

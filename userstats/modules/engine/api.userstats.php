@@ -3100,7 +3100,7 @@ function stg_add_user_tag($login, $tagid) {
 function stg_del_user_tagid($login, $tagid) {
     $login = mysql_real_escape_string($login);
     $tagid = vf($tagid, 3);
-    $query = "DELETE from `tags` WHERE `login`='" . $login . "' AND`tagid`='" . $tagid . "'";
+    $query = "DELETE from `tags` WHERE `login`='" . $login . "' AND `tagid`='" . $tagid . "'";
     nr_query($query);
     log_register('TAGDEL LOGIN (' . $login . ') TAGID [' . $tagid . ']');
 }
