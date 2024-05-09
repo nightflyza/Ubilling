@@ -142,7 +142,7 @@ class NyanORM {
     }
 
     /**
-     * Setter of filels list which will be optional used in getAll
+     * Setter of fields list which will be optionally used in getAll
      *
      * @param array/string $fieldSet $fieldSet fields names to be selectable from model in array or as comma separated string
      * @param bool $escapeFields determines if there's a need to escape fields with backticks or not
@@ -387,7 +387,7 @@ class NyanORM {
     }
 
     /**
-     * Setter of filels list which will be optional used in getAll
+     * Setter of GROUP BY clause fields list which will be optionally used in getAll
      *
      * @param array/string $fieldSet $fieldSet fields names to be selectable from model in array or as comma separated string
      * @param bool $escapeFields determines if there's a need to escape fields with backticks or not
@@ -539,7 +539,7 @@ class NyanORM {
     }
 
     /**
-     * Retruns order expressions as string
+     * Retruns groupby expressions as string
      *
      * @return string
      */
