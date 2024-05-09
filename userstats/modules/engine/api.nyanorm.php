@@ -345,7 +345,7 @@ class NyanORM {
      * @param string $order SQL order direction like ASC/DESC
      * @param bool $escapeFields determines if there's a need to escape fields with backticks or not
      * @param bool $orderWithinFields allows to put individual sort direction(ASC/DESC) for each field specified.
-     *                                $fieldSet must be a RAW STRING value if using this parameter, as it's not processed in any way
+     *                                $fieldSet must be a RAW COMA-DELIMITED STRING value if using this parameter, as it's not processed in any way
      *                                Keep in mind that this option ignores $order and $escapeFields params and fields should be escaped manually, if needed
      *
      * @return void
@@ -369,13 +369,13 @@ class NyanORM {
 
                     foreach ($tmpArr as $eachField) {
                         if ($escapeFields) {
-                            $tmpStr = $this->escapeField($fieldSet) . ", ";
+                            $tmpStr.= $this->escapeField($eachField) . ", ";
                         } else {
-                            $tmpStr = $fieldSet . ", ";
+                            $tmpStr.= $eachField . ", ";
                         }
                     }
 
-                    $tmpStr = trim(", ", $tmpStr);
+                    $tmpStr = trim($tmpStr, ", ");
                     $tmpStr.= " " . $order;
                 }
             }
