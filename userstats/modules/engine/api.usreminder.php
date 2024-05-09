@@ -487,8 +487,7 @@ class USReminder {
 
         if ($this->uscfgReminderUseExtMobiles and !empty($mobileExt)) {
             $mobileText.= la_delimiter();
-            $mobileText.= __('You provider has also enabled notifications to additional cell phone numbers specified in your profile.
-                             You may find those below (however - you can\'t modify them directly from here, only via request to your provider support)') . ':';
+            $mobileText.= __('You provider has also enabled notifications to additional cell phone numbers specified in your profile. You may find those below (however - you can\'t modify them directly from here, only via request to your provider support)') . ':';
             $mobileText.= la_delimiter(0);
             $extMobiles = '';
 
@@ -518,7 +517,7 @@ class USReminder {
                       : __("Your current E-mail is") . ": " . la_nbsp(4) . la_tag('b') . $email . la_tag('b', true);
 
         if ($this->uscfgReminderEmailChangeAllowed) {
-            $emailText.= (empty($email)) ? __("Please enter it in the form below") . "." : '';
+            $emailText.= (empty($email)) ? __("You may add it using the form below") . "." : '';
             $emailText.= $this->renderChangeEmailForm();
         }
 
@@ -629,7 +628,7 @@ class USReminder {
 
             if ($this->uscfgReminderPBIEnabled) {
                 $formContents.= la_delimiter(0) . la_tag('sup') . la_tag('b') . '*' . la_tag('b', true) . la_tag('sup', true);
-                $formContents.= __('Pay attention that PrivatBank invoices are designed to remind about Internet service balance only.');
+                $formContents.= __('Pay attention that PrivatBank invoices are designed to remind about Internet service balance only') . '. ';
             }
 
             if ($this->uscfgReminderEnabled != 2) {
@@ -654,18 +653,17 @@ class USReminder {
 
             if ($this->uscfgReminderTurnONOFFAble) {
                 $formContents.= la_tag('hr');
-                $formContents.= __("Disable payments reminder for your cell phones permanently?");
+                $formContents.= __("Disable payments reminder to your cell phones") . '?';
                 $formContents.= $this->renderONOFFReminderForm();
 
                 if ($this->uscfgReminderPBIEnabled) {
                     $formContents.= la_tag('hr');
-                    $formContents.= __('You may change your cell phones reminder type using the form below.
-                               But keep in mind this action will not affect the reminder ON/OFF state itself.');
+                    $formContents.= __('You may change your cell phones reminder type using the form below. But keep in mind this action will not affect the reminder ON/OFF state itself.');
                     $formContents.= $this->renderChangeReminderTypeForm();
                 }
             }
         } else {
-            $formContents.= __('Reminder service to your cell phone numbers is disabled for you.');
+            $formContents.= __('Reminder service to your cell phone numbers is disabled for you') . '.';
 
             // check user's cell phone availability and show appropriate form/message
             if (empty($this->userMobile)) {
@@ -680,15 +678,14 @@ class USReminder {
 
                     if ($this->uscfgReminderPBIEnabled and $this->pbionlyFeeExcluded) {
                         $formContents.= la_tag('sup') . la_tag('b') . '*' . la_tag('b', true) . la_tag('sup', true);
-                        $formContents.= __('But if you will enable PrivatBank invoices only - reminder service will be free of charge,
-                                    although activation cost will still be charged.');
+                        $formContents.= __('But if you will enable PrivatBank invoices only - reminder service will be free of charge, although activation cost will still be charged') . '.';
                     }
 
                     if ($this->uscfgReminderInstantFeeON) {
                         $formContents.= la_delimiter();
                         $formContents.= la_tag('b') . __("Attention") . la_tag('b', true) . "," . " " . __("activation cost is") .
                                          " " . $this->uscfgReminderPrice . " " . $this->uscfgCurrency . " " .
-                                         __("at once") . ".";
+                                         __("and will be charged at once") . ".";
                     }
 
                     $formContents.= $this->renderONOFFReminderForm();
@@ -710,23 +707,23 @@ class USReminder {
         if ($this->uscfgReminderEmailEnabled) {
             if ($this->userEmailReminderON) {
                 $formContents.= la_tag('hr');
-                $formContents.= __("Payments reminder is currently enabled for your E-mail.");
+                $formContents.= __("Payments reminder is currently enabled for your E-mail") . '.';
 
                 if ($this->uscfgReminderTurnONOFFAble) {
                     $formContents.= la_delimiter();
-                    $formContents.= __("Disable payments reminder to your E-mail permanently?");
+                    $formContents.= __("Disable payments reminder to your E-mail") . '?';
                     $formContents.= $this->renderONOFFReminderForm(true);
                 }
             } else {
                 $formContents.= la_tag('hr');
-                $formContents.= __('Reminder service to your E-mail is disabled for you.');
+                $formContents.= __('Reminder service to your E-mail is disabled for you') . '.';
 
                 if (empty($this->userEmail)) {
                     $formContents.= la_delimiter(0);
-                    $formContents.= __("You can't enable payments E-mail reminder - your E-mail is empty.");
+                    $formContents.= __("You can't enable payments E-mail reminder - your E-mail is empty") . '.';
                 } elseif ($this->uscfgReminderTurnONOFFAble) {
                     $formContents.= la_tag('hr');
-                    $formContents.= __("Enable payments reminder to my E-mail.");
+                    $formContents.= __("Enable payments reminder to my E-mail") . '.';
                     $formContents.= $this->renderONOFFReminderForm(true);
                 }
             }
@@ -734,14 +731,14 @@ class USReminder {
 
         if (!$this->uscfgReminderEnabled and !$this->uscfgReminderEmailEnabled) {
             $formContents.= la_tag('hr');
-            $formContents.= __('Reminder service is disabled.');
+            $formContents.= __('Reminder service is disabled') . '.';
         }
 
         if (!$this->uscfgReminderTurnONOFFAble and ($this->uscfgReminderEnabled or $this->uscfgReminderEmailEnabled)) {
             $formContents.= la_tag('hr');
-            $formContents.= __('You\'re not allowed to change the state of the reminder service by yourself.');
+            $formContents.= __('You\'re not allowed to change the state of the reminder service by yourself') . '.';
             $formContents.= la_delimiter(0);
-            $formContents.= __('If you want to enable reminder service - please contact provider support.');
+            $formContents.= __('If you want to enable reminder service - please contact provider support') . '.';
         }
 
         return ($formContents);
