@@ -64,11 +64,18 @@ class NyanORM {
     protected $orWhere = array();
 
     /**
-     * Contains ORDER by expressions for some queries
+     * Contains ORDER BY expressions for some queries
      *
      * @var array
      */
     protected $order = array();
+
+    /**
+     * Contains GROUP BY expressions for some queries
+     *
+     * @var array
+     */
+    protected $groupby = array();
 
     /**
      * Contains JOIN expression.
@@ -137,11 +144,12 @@ class NyanORM {
     /**
      * Setter of filels list which will be optional used in getAll
      * 
-     * @param  array/string $fieldSet fields names to be selectable from model in array or as comma separated string
+     * @param array/string $fieldSet $fieldSet fields names to be selectable from model in array or as comma separated string
+     * @param bool $escapeFields determines if there's a need to escape fields with backticks or not
      * 
      * @return void
      */
-    public function selectable($fieldSet = '') {
+    public function selectable($fieldSet = '', $escapeFields = false) {
         if (!empty($fieldSet)) {
             if (is_array($fieldSet)) {
                 $this->selectable = $fieldSet;
@@ -149,6 +157,16 @@ class NyanORM {
                 if (is_string($fieldSet)) {
                     $this->selectable = explode(',', $fieldSet);
                 }
+            }
+
+            if ($escapeFields) {
+                $tmpArr = array();
+
+                foreach ($this->selectable as $eachField) {
+                    $tmpArr[] = $this->escapeField(trim($eachField));
+                }
+
+                $this->selectable = empty($tmpArr) ? $this->selectable : $tmpArr;
             }
         } else {
             $this->flushSelectable();
@@ -270,6 +288,7 @@ class NyanORM {
     protected function destroyAllStructs() {
         $this->flushData();
         $this->flushWhere();
+        $this->flushGroupBy();
         $this->flushOrder();
         $this->flushLimit();
         $this->flushJoin();
@@ -320,17 +339,82 @@ class NyanORM {
 
     /**
      * Appends some order by expression to protected prop
+     * Can be either a one-field name string, a string of fields separated by coma or an array of field names
      * 
-     * @param string $field field for ordering
+     * @param string/array $fieldSet fields for ordering
      * @param string $order SQL order direction like ASC/DESC
+     * @param bool $escapeFields determines if there's a need to escape fields with backticks or not
+     * @param bool $orderWithinFields allows to put individual sort direction(ASC/DESC) for each field specified.
+     *                                $fieldSet must be a RAW STRING value if using this parameter, as it's not processed in any way
+     *                                Keep in mind that this option ignores $order and $escapeFields params and fields should be escaped manually, if needed
      * 
      * @return void
      */
-    public function orderBy($field = '', $order = '') {
-        if (!empty($field) AND ! empty($order)) {
-            $this->order[] = $this->escapeField($field) . " " . $order;
+    public function orderBy($fieldSet = '', $order = '', $escapeFields = true, $orderWithinFields = false) {
+        if (!empty($fieldSet)) {
+            $tmpArr = array();
+            $tmpStr = '';
+
+            if ($orderWithinFields) {
+                $tmpStr = $fieldSet;
+            } else {
+                if (!empty($order)) {
+                    if (is_array($fieldSet)) {
+                        $tmpArr = $fieldSet;
+                    } else {
+                        if (is_string($fieldSet)) {
+                            $tmpArr = explode(',', $fieldSet);
+                        }
+                    }
+
+                    foreach ($tmpArr as $eachField) {
+                        if ($escapeFields) {
+                            $tmpStr = $this->escapeField($fieldSet) . ", ";
+                        } else {
+                            $tmpStr = $fieldSet . ", ";
+                        }
+                    }
+
+                    $tmpStr = trim(", ", $tmpStr);
+                    $tmpStr.= " " . $order;
+                }
+            }
+
+            $this->order[] = $tmpStr;
         } else {
             $this->flushOrder();
+        }
+    }
+
+    /**
+     * Setter of filels list which will be optional used in getAll
+     *
+     * @param array/string $fieldSet $fieldSet fields names to be selectable from model in array or as comma separated string
+     * @param bool $escapeFields determines if there's a need to escape fields with backticks or not
+     *
+     * @return void
+     */
+    public function groupBy($fieldSet = '', $escapeFields = false) {
+        if (!empty($fieldSet)) {
+            if (is_array($fieldSet)) {
+                $this->groupby = $fieldSet;
+            } else {
+                if (is_string($fieldSet)) {
+                    $this->groupby = explode(',', $fieldSet);
+                }
+            }
+
+            if ($escapeFields) {
+                $tmpArr = array();
+
+                foreach ($this->groupby as $eachField) {
+                    $tmpArr[] = $this->escapeField(trim($eachField));
+                }
+
+                $this->groupby = empty($tmpArr) ? $this->groupby : $tmpArr;
+            }
+        } else {
+            $this->flushGroupBy();
         }
     }
 
@@ -341,6 +425,15 @@ class NyanORM {
      */
     protected function flushOrder() {
         $this->order = array();
+    }
+
+    /**
+     * Flushes groupby cumullative array
+     *
+     * @return void
+     */
+    protected function flushGroupBy() {
+        $this->groupby = array();
     }
 
     /**
@@ -446,6 +539,22 @@ class NyanORM {
     }
 
     /**
+     * Retruns order expressions as string
+     *
+     * @return string
+     */
+    protected function buildGroupByString() {
+        $result = '';
+        if (!empty($this->groupby)) {
+            if (is_array($this->groupby)) {
+                $result .= " GROUP BY ";
+                $result .= implode(',', $this->groupby);
+            }
+        }
+        return($result);
+    }
+
+    /**
      * Sets query limits with optional offset
      * 
      * @param int $limit results limit count 
@@ -500,9 +609,9 @@ class NyanORM {
     protected function buildSelectableString() {
         $result = '';
         if (!empty($this->selectable)) {
-            $result .= implode(',', $this->selectable);
+            $result.= implode(',', $this->selectable);
         } else {
-            $result .= '*';
+            $result.= '*';
         }
         return($result);
     }
@@ -519,13 +628,14 @@ class NyanORM {
     public function getAll($assocByField = '', $flushParams = true, $distinctON = false) {
         $joinString = $this->buildJoinString();
         $whereString = $this->buildWhereString();
+        $groupbyString = $this->buildGroupByString();
         $orderString = $this->buildOrderString();
         $limitString = $this->buildLimitString();
         $selectableString = $this->buildSelectableString();
         $distinct = ($distinctON ? ' DISTINCT ' : '');
         //building some dummy query
         $query = "SELECT " . $distinct . $selectableString . " from `" . $this->tableName . "` "; //base query
-        $query .= $joinString . $whereString . $orderString . $limitString; //optional parameters
+        $query .= $joinString . $whereString . $groupbyString . $orderString . $limitString; //optional parameters
         $this->debugLog($query);
         $result = simple_queryall($query);
 

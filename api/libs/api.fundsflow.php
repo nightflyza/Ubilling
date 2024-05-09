@@ -607,6 +607,23 @@ class FundsFlow {
     }
 
     /**
+     * Stores last fee charge data to system cache
+     *
+     * @return void
+     */
+    public static function getLastFeeChargesAll() {
+        $feesDb = new NyanORM(self::TABLE_FEES);
+        $feesDb->selectable('login, summ, MAX(`date`) as `max_date`');
+        $feesDb->groupBy('login');
+        $lastFeeChargeData = $feesDb->getAll('login');
+
+        if (!empty($lastFeeChargeData)) {
+            $ubCache = new UbillingCache();
+            $ubCache->set('STG_LAST_FEE_CHARGE', $lastFeeChargeData);
+        }
+    }
+
+    /**
      * Returns array of all payments by some user 
      * 
      * @param string $login existing user login

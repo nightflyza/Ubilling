@@ -483,7 +483,12 @@ if ($system->checkForRight('ONLINE')) {
             $showLastFeeCharge = false;
             if (isset($alter_conf['ONLINE_SHOW_LAST_FEECHARGE']) && $alter_conf['ONLINE_SHOW_LAST_FEECHARGE']) {
                 $showLastFeeCharge = true;
-                $allFees = $ubCache->get('STG_FEE_CHARGE');
+                $allFees = $ubCache->get('STG_LAST_FEE_CHARGE');
+
+                // yep, just trying to sustain legacy
+                if (empty($allFees)) {
+                    $allFees = $ubCache->get('STG_FEE_CHARGE');
+                }
             }
 
             $showUserPhones = false;
@@ -593,7 +598,12 @@ if ($system->checkForRight('ONLINE')) {
                     }
 
                     if ($showLastFeeCharge and isset($allFees[$eachuser['login']])) {
-                        $feeCharge = $allFees[$eachuser['login']]['max_date'] . '<br />' . ($allFees[$eachuser['login']]['balance_to'] - $allFees[$eachuser['login']]['balance_from']);
+                        // legacy, legacy, legacy, legacy...
+                        if (isset($allFees[$eachuser['login']]['balance_to']) and isset($allFees[$eachuser['login']]['balance_from'])) {
+                            $feeCharge = $allFees[$eachuser['login']]['max_date'] . '<br />' . ($allFees[$eachuser['login']]['balance_to'] - $allFees[$eachuser['login']]['balance_from']);
+                        } else {
+                            $feeCharge = $allFees[$eachuser['login']]['max_date'] . '<br />' . $allFees[$eachuser['login']]['summ'];
+                        }
                     }
 
                     if ($showUserPhones and isset($allUserPhones[$eachuser['login']])) {
