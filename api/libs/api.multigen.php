@@ -2387,22 +2387,25 @@ class MultiGen {
                                                 $template = $eachAttributeData['content'];
                                                 if ($userRealState) {
                                                     $value = $this->getAttributeValue($userLogin, $userName, $eachNasId, $template);
-                                                    $attributeCheck = $this->checkScenarioAttribute($scenario, $userLogin, $userName, $attribute, $op, $value);
-                                                    if ($attributeCheck == -2) {
-                                                        //dropping already changed attribute from this scenario
-                                                        $this->deleteScenarioAttribute($scenario, $userLogin, $userName, $attribute);
-                                                        //setting current user state as changed
-                                                        $this->userStates[$userLogin]['changed'] = -2;
-                                                    }
-                                                    if (($attributeCheck == 0) OR ( $attributeCheck == -2)) {
-                                                        //creating new attribute with actual data
-                                                        $this->createScenarioAttribute($scenario, $userLogin, $userName, $attribute, $op, $value);
-                                                        $this->writeScenarioStats($eachNasId, $scenario, 'generated');
-                                                    }
+                                                    // Check if is $value {MACROS} ?)
+                                                    if (!preg_match('/(^{\w+}$)/', $value)) {
+                                                        $attributeCheck = $this->checkScenarioAttribute($scenario, $userLogin, $userName, $attribute, $op, $value);
+                                                        if ($attributeCheck == -2) {
+                                                            //dropping already changed attribute from this scenario
+                                                            $this->deleteScenarioAttribute($scenario, $userLogin, $userName, $attribute);
+                                                            //setting current user state as changed
+                                                            $this->userStates[$userLogin]['changed'] = -2;
+                                                        }
+                                                        if (($attributeCheck == 0) OR ( $attributeCheck == -2)) {
+                                                            //creating new attribute with actual data
+                                                            $this->createScenarioAttribute($scenario, $userLogin, $userName, $attribute, $op, $value);
+                                                            $this->writeScenarioStats($eachNasId, $scenario, 'generated');
+                                                        }
 
-                                                    if ($attributeCheck == 1) {
-                                                        //attribute exists and not changed
-                                                        $this->writeScenarioStats($eachNasId, $scenario, 'skipped');
+                                                        if ($attributeCheck == 1) {
+                                                            //attribute exists and not changed
+                                                            $this->writeScenarioStats($eachNasId, $scenario, 'skipped');
+                                                        }
                                                     }
                                                 } else {
                                                     //flush some not-active user attributes if required
@@ -2423,28 +2426,8 @@ class MultiGen {
                                                 //this attribute template is actual for all users
                                                 if ($modifier == 'all') {
                                                     $value = $this->getAttributeValue($userLogin, $userName, $eachNasId, $template);
-                                                    $attributeCheck = $this->checkScenarioAttribute($scenario, $userLogin, $userName, $attribute, $op, $value);
-                                                    if ($attributeCheck == -2) {
-                                                        //dropping already changed attribute from this scenario
-                                                        $this->deleteScenarioAttribute($scenario, $userLogin, $userName, $attribute);
-                                                        //setting current user state as changed
-                                                        $this->userStates[$userLogin]['changed'] = -2;
-                                                    }
-                                                    if (($attributeCheck == 0) OR ( $attributeCheck == -2)) {
-                                                        //creating new attribute with actual data
-                                                        $this->createScenarioAttribute($scenario, $userLogin, $userName, $attribute, $op, $value);
-                                                        $this->writeScenarioStats($eachNasId, $scenario, 'generated');
-                                                    }
-
-                                                    if ($attributeCheck == 1) {
-                                                        //attribute exists and not changed
-                                                        $this->writeScenarioStats($eachNasId, $scenario, 'skipped');
-                                                    }
-                                                }
-                                                //this attribute is actual only for active users
-                                                if ($modifier == 'active') {
-                                                    if ($userRealState) {
-                                                        $value = $this->getAttributeValue($userLogin, $userName, $eachNasId, $template);
+                                                    // Check if is $value {MACROS} ?)
+                                                    if (!preg_match('/(^{\w+}$)/', $value)) {
                                                         $attributeCheck = $this->checkScenarioAttribute($scenario, $userLogin, $userName, $attribute, $op, $value);
                                                         if ($attributeCheck == -2) {
                                                             //dropping already changed attribute from this scenario
@@ -2461,6 +2444,32 @@ class MultiGen {
                                                         if ($attributeCheck == 1) {
                                                             //attribute exists and not changed
                                                             $this->writeScenarioStats($eachNasId, $scenario, 'skipped');
+                                                        }
+                                                    }
+                                                }
+                                                //this attribute is actual only for active users
+                                                if ($modifier == 'active') {
+                                                    if ($userRealState) {
+                                                        $value = $this->getAttributeValue($userLogin, $userName, $eachNasId, $template);
+                                                        // Check if is $value {MACROS} ?)
+                                                        if (!preg_match('/(^{\w+}$)/', $value)) {
+                                                            $attributeCheck = $this->checkScenarioAttribute($scenario, $userLogin, $userName, $attribute, $op, $value);
+                                                            if ($attributeCheck == -2) {
+                                                                //dropping already changed attribute from this scenario
+                                                                $this->deleteScenarioAttribute($scenario, $userLogin, $userName, $attribute);
+                                                                //setting current user state as changed
+                                                                $this->userStates[$userLogin]['changed'] = -2;
+                                                            }
+                                                            if (($attributeCheck == 0) OR ( $attributeCheck == -2)) {
+                                                                //creating new attribute with actual data
+                                                                $this->createScenarioAttribute($scenario, $userLogin, $userName, $attribute, $op, $value);
+                                                                $this->writeScenarioStats($eachNasId, $scenario, 'generated');
+                                                            }
+
+                                                            if ($attributeCheck == 1) {
+                                                                //attribute exists and not changed
+                                                                $this->writeScenarioStats($eachNasId, $scenario, 'skipped');
+                                                            }
                                                         }
                                                     } else {
                                                         //flush some not-active user attribute if required
