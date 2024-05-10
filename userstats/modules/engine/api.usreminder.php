@@ -758,7 +758,7 @@ class USReminder {
         // user cell phone number change
         if (ubRouting::checkPost(array('changemobile', 'mobile'))) {
             $this->changeUserMobile($userLogin, $this->uscfgReminderPrefix . ubRouting::post('mobile'));
-            $logMessage = 'US_REMINDER: user (' . $userLogin . ') changed his cell phone number to: ' . ubRouting::post('mobile');
+            $logMessage = 'US_REMINDER: user (' . $userLogin . ') changed his cell phone number to: ' . $this->uscfgReminderPrefix . ubRouting::post('mobile');
         }
 
         // user email change
