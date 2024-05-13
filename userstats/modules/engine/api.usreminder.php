@@ -16,6 +16,13 @@ class USReminder {
     protected $uscfgCurrency = 'UAH';
 
     /**
+     * Placeholder for TICKETING_ENABLED "userstats.ini" option
+     *
+     * @var int
+     */
+    protected $uscfgTicketingEnabled = 0;
+
+    /**
      * Placeholder for REMINDER_ENABLED "userstats.ini" option
      *
      * @var int
@@ -240,6 +247,9 @@ class USReminder {
     protected $pbionlyFeeExcluded = false;
 
 
+    const URL_TICKETING = '?module=ticketing';
+
+
     public function __construct($userLogin = '') {
         if (empty($userLogin)) {
             $userIP          = zbs_UserDetectIp('debug');
@@ -270,6 +280,7 @@ class USReminder {
      */
     protected function loadOptions() {
         $this->uscfgCurrency                    = $this->usConfig->getUstasParam('currency', 'UAH');
+        $this->uscfgTicketingEnabled            = $this->usConfig->getUstasParam('TICKETING_ENABLED', 0);
         $this->uscfgReminderEnabled             = $this->usConfig->getUstasParam('REMINDER_ENABLED', 0);
         $this->uscfgReminderPrice               = $this->usConfig->getUstasParam('REMINDER_PRICE', 0);
         $this->uscfgReminderTagID               = $this->usConfig->getUstasParam('REMINDER_TAGID', 0);
@@ -729,16 +740,14 @@ class USReminder {
             }
         }
 
-        if (!$this->uscfgReminderEnabled and !$this->uscfgReminderEmailEnabled) {
-            $formContents.= la_tag('hr');
-            $formContents.= __('Reminder service is disabled') . '.';
-        }
-
-        if (!$this->uscfgReminderTurnONOFFAble and ($this->uscfgReminderEnabled or $this->uscfgReminderEmailEnabled)) {
+        if (!$this->uscfgReminderTurnONOFFAble) {
+            $ticketingStr = ($this->uscfgTicketingEnabled
+                            ? '( ' . la_Link(self::URL_TICKETING, __('for example - using "Ticketing service"')) . ')'
+                            : '');
             $formContents.= la_tag('hr');
             $formContents.= __('You\'re not allowed to change the state of the reminder service by yourself') . '.';
             $formContents.= la_delimiter(0);
-            $formContents.= __('If you want to enable reminder service - please contact provider support') . '.';
+            $formContents.= __('If you want to enable/disable reminder service - please contact provider support') . '. ' . $ticketingStr;
         }
 
         return ($formContents);
