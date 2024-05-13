@@ -104,6 +104,13 @@ class FundsFlow {
     protected $allBuriedUsers = array();
 
     /**
+     * Placeholder for ONLINE_SHOW_LAST_FEECHARGE alter.ini option
+     *
+     * @var string
+     */
+    protected $onlineShowLastFeeChargeON = 0;
+
+    /**
      * Rendering coloring settings
      */
     protected $colorPayment = '005304';
@@ -161,6 +168,7 @@ class FundsFlow {
         $this->billingConf = $ubillingConfig->getBilling();
         $this->avoidDTKeysDuplicates = $ubillingConfig->getAlterParam('FF_REP_AVOID_DUPLICATE_DT_KEYS');
         $this->feesHarvesterFlag = $ubillingConfig->getAlterParam('FEES_HARVESTER');
+        $this->onlineShowLastFeeChargeON = $ubillingConfig->getAlterParam('ONLINE_SHOW_LAST_FEECHARGE', 0);
     }
 
     /**
@@ -546,7 +554,7 @@ class FundsFlow {
             // checking for "handle" to be non-empty, e.g. the "fopen()" didn't return "false"
             // or we might find ourselves in an infinite loop
             if (empty($handle)) {
-                log_register('FEES HARVESTER FAILED TO OPEN "'. $stgLog . '"');
+                log_register('FEES HARVESTER: FAILED TO OPEN "'. $stgLog . '"');
             } else {
                 while (!feof($handle)) {
                     $eachline = fgets($handle);
@@ -603,6 +611,11 @@ class FundsFlow {
 
         $timeRange = (!empty($customDateMask)) ? $customDateMask : 'ALL_TIME';
         log_register('FEES HARVESTED `' . $result . '` OF `' . $lineCount . '` RECORDS PARSED BY `' . $timeRange . '`');
+
+        if ($this->onlineShowLastFeeChargeON) {
+            $this->getLastFeeChargesAll();
+        }
+
         return($result);
     }
 
@@ -620,6 +633,7 @@ class FundsFlow {
         if (!empty($lastFeeChargeData)) {
             $ubCache = new UbillingCache();
             $ubCache->set('STG_LAST_FEE_CHARGE', $lastFeeChargeData);
+            log_register('FEES HARVESTER: ONLINE_SHOW_LAST_FEECHARGE data cache have been updated');
         }
     }
 
