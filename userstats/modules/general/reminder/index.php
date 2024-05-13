@@ -1,7 +1,6 @@
 <?php
 $usRemider = new USReminder();
 
-//file_put_contents('wxcv', print_r($_POST, true));
 if (ubRouting::checkPost(array('setremind',
                                'deleteremind',
                                'setremindemail',

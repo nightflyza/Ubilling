@@ -336,10 +336,7 @@ class XMLAgent {
 
                     //normal data output
                     if (!$messages) {
-file_put_contents('zxcv', print_r($record, true) . "\n", 8);
                         foreach ($record as $tag => $value) {
-file_put_contents('zxcv', $tag . "\n", 8);
-file_put_contents('zxcv', $value . "\n", 8);
                             $result .= "\t" . '<' . $tag . '>' . $value . '</' . $tag . '>' . PHP_EOL;
                         }
                     } else {
@@ -762,10 +759,7 @@ file_put_contents('zxcv', $value . "\n", 8);
         $userTariff       = zbs_UserGetTariff($login);
         $tariffsAllowedTo = array();
         $result           = array();
-file_put_contents('zxcv', $userTariff . "\n");
-file_put_contents('zxcv', $this->uscfgTariffCahngeMatrix . "\n", 8);
-file_put_contents('zxcv', $this->uscfgTariffCahngeAllowedFrom . "\n", 8);
-file_put_contents('zxcv', $this->uscfgTariffCahngeAllowedTo . "\n", 8);
+
         if (!empty($userTariff)) {
             if ($this->uscfgTariffCahngeMatrix) {
                 $tariffsAllowedTo = $this->getTariffMatrixAllowedTo($userTariff);
@@ -783,7 +777,7 @@ file_put_contents('zxcv', $this->uscfgTariffCahngeAllowedTo . "\n", 8);
                 $result[$io]['tariff'] = $item;
             }
         }
-file_put_contents('zxcv', print_r($result, true) . "\n", 8);
+
         return ($result);
     }
 
