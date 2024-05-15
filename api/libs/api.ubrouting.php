@@ -213,9 +213,9 @@ class ubRouting {
      * 
      * @param string $name name of variable to extract
      * @param string $filtering filtering options. Possible values: raw, int, mres, callback
-     * @param string/array $callback callback function name or names array to filter variable value
+     * @param string|array $callback callback function name or names array to filter variable value
      * 
-     * @return mixed/false
+     * @return mixed|false
      */
     public static function get($name, $filtering = 'raw', $callback = '') {
         $result = false;
@@ -232,7 +232,7 @@ class ubRouting {
      * @param string $filtering filtering options. Possible values: raw, int, mres, callback
      * @param string $callback callback function name to filter variable value
      * 
-     * @return mixed/false
+     * @return mixed|false
      */
     public static function post($name, $filtering = 'raw', $callback = '') {
         $result = false;
@@ -279,7 +279,7 @@ class ubRouting {
      * 
      * @global array $argv
      * 
-     * @param array/string $params array of variable names to check or single variable name as string
+     * @param array|string $params array of variable names to check or single variable name as string
      * @param bool  $ignoreEmpty ignore or not existing variables with empty values 
      * 
      * @return bool
@@ -334,7 +334,7 @@ class ubRouting {
      * @param string $filtering filtering options. Possible values: raw, int, mres, callback
      * @param string $callback callback function name to filter variable value
      * 
-     * @return mixed/false
+     * @return mixed|false
      */
     public static function optionCli($name, $filtering = 'raw', $callback = '') {
         global $argv;
@@ -356,7 +356,7 @@ class ubRouting {
      * 
      * @global array $argv
      * 
-     * @return string/false
+     * @return string|false
      */
     public static function optionCliMe() {
         global $argv;
