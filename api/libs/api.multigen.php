@@ -2394,7 +2394,7 @@ class MultiGen {
                                                         //setting current user state as changed
                                                         $this->userStates[$userLogin]['changed'] = -2;
                                                     }
-                                                    if (($attributeCheck == 0) OR ( $attributeCheck == -2)) {
+                                                    if ((($attributeCheck == 0) OR ( $attributeCheck == -2)) AND (!preg_match('/(^{\w+})/', $value))) {
                                                         //creating new attribute with actual data
                                                         $this->createScenarioAttribute($scenario, $userLogin, $userName, $attribute, $op, $value);
                                                         $this->writeScenarioStats($eachNasId, $scenario, 'generated');
@@ -2430,7 +2430,7 @@ class MultiGen {
                                                         //setting current user state as changed
                                                         $this->userStates[$userLogin]['changed'] = -2;
                                                     }
-                                                    if (($attributeCheck == 0) OR ( $attributeCheck == -2)) {
+                                                    if ((($attributeCheck == 0) OR ( $attributeCheck == -2)) AND (!preg_match('/(^{\w+})/', $value))) {
                                                         //creating new attribute with actual data
                                                         $this->createScenarioAttribute($scenario, $userLogin, $userName, $attribute, $op, $value);
                                                         $this->writeScenarioStats($eachNasId, $scenario, 'generated');
@@ -2452,7 +2452,7 @@ class MultiGen {
                                                             //setting current user state as changed
                                                             $this->userStates[$userLogin]['changed'] = -2;
                                                         }
-                                                        if (($attributeCheck == 0) OR ( $attributeCheck == -2)) {
+                                                        if ((($attributeCheck == 0) OR ( $attributeCheck == -2)) AND (!preg_match('/(^{\w+})/', $value))) {
                                                             //creating new attribute with actual data
                                                             $this->createScenarioAttribute($scenario, $userLogin, $userName, $attribute, $op, $value);
                                                             $this->writeScenarioStats($eachNasId, $scenario, 'generated');
@@ -2478,7 +2478,7 @@ class MultiGen {
                                                             //setting current user state as changed
                                                             $this->userStates[$userLogin]['changed'] = -2;
                                                         }
-                                                        if (($attributeCheck == 0) OR ( $attributeCheck == -2)) {
+                                                        if ((($attributeCheck == 0) OR ( $attributeCheck == -2)) AND (!preg_match('/(^{\w+})/', $value))) {
                                                             //creating new attribute with actual data
                                                             $this->createScenarioAttribute($scenario, $userLogin, $userName, $attribute, $op, $value);
                                                             $this->writeScenarioStats($eachNasId, $scenario, 'generated');
