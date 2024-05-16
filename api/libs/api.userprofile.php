@@ -293,23 +293,25 @@ class UserProfile {
     protected function getSearchmacControl() {
         $result = '';
         if ($this->alterCfg['MACVEN_ENABLED']) {
-            $optionState = $this->alterCfg['MACVEN_ENABLED'];
-            switch ($optionState) {
-                case 1:
-                    $lookupUrl = '?module=macvendor&modalpopup=true&mac=' . $this->mac . '&username=' . $this->login;
-                    $result .= wf_AjaxLink($lookupUrl, wf_img('skins/macven.gif', __('Device vendor')), 'macvendorcontainer', false);
-                    $result .= wf_AjaxContainerSpan('macvendorcontainer', '', '');
-                    break;
-                case 2:
-                    $vendorframe = wf_tag('iframe', false, '', 'src="?module=macvendor&mac=' . $this->mac . '&username=' . $this->login . '" width="360" height="160" frameborder="0"');
-                    $vendorframe .= wf_tag('iframe', true);
-                    $result = wf_modalAuto(wf_img('skins/macven.gif', __('Device vendor')), __('Device vendor'), $vendorframe, '');
-                    break;
-                case 3:
-                    $lookupUrl = '?module=macvendor&raw=true&mac=' . $this->mac . '&username=' . $this->login;
-                    $result .= wf_AjaxLink($lookupUrl, wf_img('skins/macven.gif', __('Device vendor')), 'macvendorcontainer', false);
-                    $result .= wf_AjaxContainerSpan('macvendorcontainer', '', '');
-                    break;
+            if (cfr('MACVEN')) {
+                $optionState = $this->alterCfg['MACVEN_ENABLED'];
+                switch ($optionState) {
+                    case 1:
+                        $lookupUrl = '?module=macvendor&modalpopup=true&mac=' . $this->mac . '&username=' . $this->login;
+                        $result .= wf_AjaxLink($lookupUrl, wf_img('skins/macven.gif', __('Device vendor')), 'macvendorcontainer', false);
+                        $result .= wf_AjaxContainerSpan('macvendorcontainer', '', '');
+                        break;
+                    case 2:
+                        $vendorframe = wf_tag('iframe', false, '', 'src="?module=macvendor&mac=' . $this->mac . '&username=' . $this->login . '" width="360" height="160" frameborder="0"');
+                        $vendorframe .= wf_tag('iframe', true);
+                        $result = wf_modalAuto(wf_img('skins/macven.gif', __('Device vendor')), __('Device vendor'), $vendorframe, '');
+                        break;
+                    case 3:
+                        $lookupUrl = '?module=macvendor&raw=true&mac=' . $this->mac . '&username=' . $this->login;
+                        $result .= wf_AjaxLink($lookupUrl, wf_img('skins/macven.gif', __('Device vendor')), 'macvendorcontainer', false);
+                        $result .= wf_AjaxContainerSpan('macvendorcontainer', '', '');
+                        break;
+                }
             }
         }
         return ($result);
@@ -356,7 +358,7 @@ class UserProfile {
                 }
             }
         }
-        return($result);
+        return ($result);
     }
 
     /**
@@ -428,7 +430,7 @@ class UserProfile {
             foreach ($plugins as $modulename => $eachplugin) {
                 $renderable = true;
                 //checks for required pluging rights
-                if (isset($eachplugin['need_right']) AND !empty($eachplugin['need_right'])) {
+                if (isset($eachplugin['need_right']) and !empty($eachplugin['need_right'])) {
                     if (cfr($eachplugin['need_right'])) {
                         $renderable = true;
                     } else {
@@ -468,7 +470,7 @@ class UserProfile {
         }
 
 
-        return($result);
+        return ($result);
     }
 
     /**
@@ -484,7 +486,7 @@ class UserProfile {
                 foreach ($rawPlugins as $modulename => $eachplugin) {
                     $renderable = true;
                     //checks for required pluging rights
-                    if (isset($eachplugin['need_right']) AND !empty($eachplugin['need_right'])) {
+                    if (isset($eachplugin['need_right']) and !empty($eachplugin['need_right'])) {
                         if (cfr($eachplugin['need_right'])) {
                             $renderable = true;
                         } else {
@@ -705,7 +707,7 @@ class UserProfile {
         $result .= wf_tag('tbody', true);
         $result .= wf_tag('table', true);
 
-        return($result);
+        return ($result);
     }
 
     /**
@@ -738,11 +740,11 @@ class UserProfile {
             }
         }
 
-//check is user corporate parent?
+        //check is user corporate parent?
         if ($this->alterCfg['USER_LINKING_ENABLED']) {
             $allparentusers = cu_GetAllParentUsers();
             if (isset($allparentusers[$this->login])) {
-                if (($_GET['module'] != 'corporate') AND ( $_GET['module'] != 'addcash')) {
+                if (($_GET['module'] != 'corporate') and ($_GET['module'] != 'addcash')) {
                     rcms_redirect("?module=corporate&userlink=" . $allparentusers[$this->login]);
                 }
             }
@@ -757,7 +759,7 @@ class UserProfile {
      */
     protected function getTaskCreateControl() {
         $result = '';
-//profile task creation icon
+        //profile task creation icon
         if ($this->alterCfg['CREATETASK_IN_PROFILE']) {
             if (!ts_isMeBranchCursed()) {
                 @$shortAddress = $this->useraddress;
@@ -809,7 +811,7 @@ class UserProfile {
         }
         $locContent .= wf_Link('?module=usersmap&locfinder=true&placebld=' . $userBuildId, wf_img_sized('skins/ymaps/target.png', __('Place on map'), '10') . ' ' . __('Place on map'), false, 'ubButton');
         $result .= wf_modalAuto(wf_img_sized('skins/ymaps/target.png', __('Place on map') . ': ' . $this->useraddress, '10'), __('Place on map') . ': ' . $this->useraddress, $locContent);
-        return($result);
+        return ($result);
     }
 
     /**
@@ -820,7 +822,7 @@ class UserProfile {
     protected function getBuildControls() {
         $buildLocator = '';
         if ($this->alterCfg['SWYMAP_ENABLED']) {
-//getting build locator
+            //getting build locator
             if (isset($this->aptdata['buildid'])) {
                 $thisUserBuildGeo = $this->buildgeo;
                 if (!empty($thisUserBuildGeo)) {
@@ -837,7 +839,7 @@ class UserProfile {
                         $buildLocator .= ' ' . wf_Link('?module=usersmap&locfinder=true&placebld=' . $userBuildId, wf_img_sized('skins/ymaps/target.png', __('Place on map'), '10'), false, '');
                     }
                 }
-//and neighbors state cache
+                //and neighbors state cache
                 if (!empty($this->aptdata['buildid'])) {
                     $cache = new UbillingCache();
                     $inbuildNeigbors_raw = $cache->get('INBUILDUSERS', 3600);
@@ -892,14 +894,14 @@ class UserProfile {
      * @return string
      */
     protected function getUserCash() {
-//rounding cash if needed
+        //rounding cash if needed
         if ($this->alterCfg['ROUND_PROFILE_CASH']) {
             $Cash = web_roundValue($this->userdata['Cash'], 2);
         } else {
             $Cash = $this->userdata['Cash'];
         }
 
-//optional cash colorizing
+        //optional cash colorizing
         if (isset($this->alterCfg['COLORIZE_PROFILE_CASH'])) {
             if ($this->alterCfg['COLORIZE_PROFILE_CASH']) {
                 if ($this->userdata['Cash'] >= 0) {
@@ -919,7 +921,7 @@ class UserProfile {
      * @retun string
      */
     protected function getUserCreditExpire() {
-//user credit expiration date
+        //user credit expiration date
         if ($this->userdata['CreditExpire'] != 0) {
             $result = date("Y-m-d", $this->userdata['CreditExpire']);
         } else {
@@ -1003,7 +1005,7 @@ class UserProfile {
                 );
 
                 foreach ($all as $io => $each) {
-                    if ((isset($actionNames[$each['action']])) AND ( isset($actionIcons[$each['action']]))) {
+                    if ((isset($actionNames[$each['action']])) and (isset($actionIcons[$each['action']]))) {
                         $icon = wf_img_sized($actionIcons[$each['action']], $actionNames[$each['action']], '10', '10');
                         $notification .= wf_Link('?module=pl_dealwithit&username=' . $this->login, $icon, false) . ' ';
                     } else {
@@ -1064,7 +1066,7 @@ class UserProfile {
      * @return string
      */
     protected function getSwitchAssignControls() {
-//switchport section
+        //switchport section
         if ($this->alterCfg['SWITCHPORT_IN_PROFILE']) {
             $switchPortAssign = new SwitchPortAssign();
             $switchPortAssign->catchChangeRequest(self::URL_PROFILE . $this->login);
@@ -1081,7 +1083,7 @@ class UserProfile {
      * @return string
      */
     protected function getZabbixProblemControls() {
-//zabbix section
+        //zabbix section
         if ($this->ubConfig->getAlterParam('ZABBIX_PROBLEM_IN_PROFILE')) {
             $result = web_ProfileSwitchZabbixProblem($this->login);
         } else {
@@ -1096,7 +1098,7 @@ class UserProfile {
      * @return string
      */
     protected function getVlanAssignControls() {
-        if ($this->alterCfg['VLAN_IN_PROFILE'] AND $this->alterCfg['VLANGEN_SUPPORT']) {
+        if ($this->alterCfg['VLAN_IN_PROFILE'] and $this->alterCfg['VLANGEN_SUPPORT']) {
             $result = web_ProfileVlanControlForm($this->login);
         } else {
             $result = '';
@@ -1106,11 +1108,11 @@ class UserProfile {
 
     protected function getQinqPairControls() {
         $result = '';
-        if ($this->alterCfg['QINQ_IN_PROFILE'] AND $this->alterCfg['VLAN_MANAGEMENT_ENABLED']) {
+        if ($this->alterCfg['QINQ_IN_PROFILE'] and $this->alterCfg['VLAN_MANAGEMENT_ENABLED']) {
             $vlanManagement = new VlanManagement();
             $result .= $vlanManagement->showUsersVlanPair($this->login);
         }
-        return($result);
+        return ($result);
     }
 
     /**
@@ -1166,8 +1168,8 @@ class UserProfile {
 
             if (!empty($onu_data)) {
                 $pon = ($this->ubConfig->getAlterParam('PON_OLT_UPTIME_IN_PROFILE')
-                        or $this->ubConfig->getAlterParam('PON_REALTIME_SIGNAL_IN_PROFILE')
-                        or $this->ubConfig->getAlterParam('PON_REALTIME_EXTEN_INFO_IN_PROFILE')) ? new PONizer() : null;
+                    or $this->ubConfig->getAlterParam('PON_REALTIME_SIGNAL_IN_PROFILE')
+                    or $this->ubConfig->getAlterParam('PON_REALTIME_EXTEN_INFO_IN_PROFILE')) ? new PONizer() : null;
 
                 $curOLTID = (empty($onu_data['oltid']) ? 0 : $onu_data['oltid']);
                 $curOLTAliveCheck = $this->ubConfig->getAlterParam('PON_OLT_ALIVE_PING_CHECK', false);
@@ -1280,9 +1282,9 @@ class UserProfile {
                     $signal = $raw[$onu_data['serial']];
                 }
                 if (!empty($signal)) {
-                    if (($signal > 0) OR ( $signal < -27)) {
+                    if (($signal > 0) or ($signal < -27)) {
                         $sigColor = '#ab0000';
-                    } elseif ($signal > -27 AND $signal < -25) {
+                    } elseif ($signal > -27 and $signal < -25) {
                         $sigColor = '#FF5500';
                     } else {
                         $sigColor = '#005502';
@@ -1297,7 +1299,7 @@ class UserProfile {
 
                 $cells = wf_TableCell(__('ONU Signal') . $realtimeStr, '30%', 'row2');
                 $cells .= wf_TableCell(wf_tag('strong') . wf_tag('font color=' . $sigColor, false) . $searched . wf_tag('font', true) . wf_tag('strong', true)
-                        . wf_nbsp(2) . wf_Link('?module=ponizer&editonu=' . $onu_data['id'], web_edit_icon()));
+                    . wf_nbsp(2) . wf_Link('?module=ponizer&editonu=' . $onu_data['id'], web_edit_icon()));
                 $rows .= wf_TableRow($cells, 'row3');
 
                 if ($curOLTAlive and $this->ubConfig->getAlterParam('PON_REALTIME_EXTEN_INFO_IN_PROFILE')) {
@@ -1353,7 +1355,7 @@ class UserProfile {
                 $result = wf_TableBody($rows, '100%', '0');
             }
         }
-        return($result);
+        return ($result);
     }
 
     /**
@@ -1389,7 +1391,7 @@ class UserProfile {
             $karmaState = $userKarma->getKarmaIndicator($this->login, $this->userdata, '12');
             $result = $this->addRow(__('Karma'), $karmaState);
         }
-        return($result);
+        return ($result);
     }
 
     /**
@@ -1430,7 +1432,7 @@ class UserProfile {
                         $targetNumber = $_POST['neweasysmsnumber'];
                         $targetText = $_POST['neweasysmstext'];
                         $translitFlag = (wf_CheckPost(array('neweasysmstranslit'))) ? true : false;
-                        $smsServiceId = ( wf_CheckPost(array('preferredsmssrvid')) ) ? $_POST['preferredsmssrvid'] : '';
+                        $smsServiceId = (wf_CheckPost(array('preferredsmssrvid'))) ? $_POST['preferredsmssrvid'] : '';
                         log_register('EASYSMS SEND SMS `' . $targetNumber . '` FOR (' . $this->login . ')');
                         $queueFile = $sms->sendSMS($targetNumber, $targetText, $translitFlag, 'EASYSMS');
                         $sms->setDirection($queueFile, '', '', $smsServiceId);
@@ -1557,7 +1559,7 @@ class UserProfile {
                 $result = $this->addRow(__('Discount'), $renderDiscountPerncent, true);
             }
         }
-        return($result);
+        return ($result);
     }
 
     /**
@@ -1568,7 +1570,7 @@ class UserProfile {
     protected function getEasyCreditController() {
         $result = '';
         if ($this->alterCfg['EASY_CREDIT']) {
-            if ((cfr('CREDIT')) AND ( cfr('CREDITEXPIRE'))) {
+            if ((cfr('CREDIT')) and (cfr('CREDITEXPIRE'))) {
                 $result = web_EasyCreditForm($this->login, $this->userdata['Cash'], $this->userdata['Credit'], $this->userdata['Tariff'], $this->alterCfg['EASY_CREDIT']);
             } else {
                 $result = '';
@@ -1621,7 +1623,7 @@ class UserProfile {
                 $result = wf_modalAuto($controlIcon, __('Freeze user'), $form);
             }
         }
-        return($result);
+        return ($result);
     }
 
     /**
@@ -1633,7 +1635,7 @@ class UserProfile {
         $result = '';
         if ($this->alterCfg['NETWORKS_EXT']) {
             $extNets = new ExtNets();
-//pool linking controller
+            //pool linking controller
             if (wf_CheckPost(array('extnetspoollinkid', 'extnetspoollinklogin'))) {
                 $extNets->poolLinkLogin($_POST['extnetspoollinkid'], $_POST['extnetspoollinklogin']);
                 rcms_redirect('?module=userprofile&username=' . $_POST['extnetspoollinklogin']);
@@ -1683,7 +1685,7 @@ class UserProfile {
         if (isset($this->alterCfg['CEMETERY_ENABLED'])) {
             if ($this->alterCfg['CEMETERY_ENABLED']) {
                 $cemetery = new Cemetery();
-//integrated controller
+                //integrated controller
                 if (wf_CheckPost(array('cemeterysetasundead'))) {
                     $cemetery->setUndead($_POST['cemeterysetasundead']);
                     rcms_redirect(self::URL_PROFILE . $this->login);
@@ -1694,7 +1696,7 @@ class UserProfile {
                     rcms_redirect(self::URL_PROFILE . $this->login);
                 }
 
-//activity view
+                //activity view
                 if ($cemetery->isUserDead($this->login)) {
                     $log = wf_modalAuto(wf_img_sized('skins/dead_icon.png', '', '12', '12'), __('User lifestory'), $cemetery->renderCemeteryLog($this->login));
                     $result = ' / ' . __('Subscriber is not connected') . ' ' . $log;
@@ -1832,8 +1834,8 @@ class UserProfile {
      */
     protected function getDistrictControls() {
         $result = '';
-        if ((isset($this->alterCfg['DISTRICTS_ENABLED'])) AND ( $this->alterCfg['DISTRICTS_ENABLED'])) {
-            if ((isset($this->alterCfg['DISRTICTS_IN_PROFILE'])) AND ( $this->alterCfg['DISRTICTS_IN_PROFILE'])) {
+        if ((isset($this->alterCfg['DISTRICTS_ENABLED'])) and ($this->alterCfg['DISTRICTS_ENABLED'])) {
+            if ((isset($this->alterCfg['DISRTICTS_IN_PROFILE'])) and ($this->alterCfg['DISRTICTS_IN_PROFILE'])) {
                 $districts = new Districts(false);
                 $result .= $this->addRow(__('Districts'), $districts->getUserDistrictsListFast($this->login), false);
             }
@@ -1847,7 +1849,7 @@ class UserProfile {
      * @return string
      */
     protected function getContractControls() {
-        if (isset($this->alterCfg['CONTRACT_PROFILE_HIDE']) AND $this->alterCfg['CONTRACT_PROFILE_HIDE']) {
+        if (isset($this->alterCfg['CONTRACT_PROFILE_HIDE']) and $this->alterCfg['CONTRACT_PROFILE_HIDE']) {
             $result = '';
         } else {
             $result = $this->addRow(__('Contract'), $this->contract, false);
@@ -1878,7 +1880,7 @@ class UserProfile {
     protected function getSMSHistoryControls() {
         $result = '';
 
-        if (isset($this->alterCfg['SMS_HISTORY_ON']) AND $this->alterCfg['SMS_HISTORY_ON'] AND cfr('SMSHIST')) {
+        if (isset($this->alterCfg['SMS_HISTORY_ON']) and $this->alterCfg['SMS_HISTORY_ON'] and cfr('SMSHIST')) {
             $SMSHist = new SMSHistory();
             $JQDT = $SMSHist->renderJQDT($this->login);
 
@@ -1909,9 +1911,11 @@ class UserProfile {
                 $oldSMSSrvID = ubRouting::post('oldsmssrvid');
 
                 if (ubRouting::checkPost('createrec')) {
-                    $tabSMSSrvRelations->dataArr(array('sms_srv_id' => $newSMSSrvID,
-                        'user_login' => $usrLogin
-                            )
+                    $tabSMSSrvRelations->dataArr(
+                        array(
+                            'sms_srv_id' => $newSMSSrvID,
+                            'user_login' => $usrLogin
+                        )
                     );
                     $tabSMSSrvRelations->create();
                 } else {
@@ -1926,7 +1930,9 @@ class UserProfile {
             $preferredSMSSrv = zb_getUsersPreferredSMSService($usrLogin);
             $preferredSMSSrvId = $preferredSMSSrv[0];
 
-            $row .= $this->addRow(__('Preferred SMS service'), wf_Selector('sms_srv', zb_getSMSServicesList(), '', $preferredSMSSrvId, false, false, 'related_sms_srv') .
+            $row .= $this->addRow(
+                __('Preferred SMS service'),
+                wf_Selector('sms_srv', zb_getSMSServicesList(), '', $preferredSMSSrvId, false, false, 'related_sms_srv') .
                     wf_HiddenInput('sms_srv_create', empty($preferredSMSSrvId), 'related_sms_srv_create') .
                     wf_tag('span', false, '', 'id="sms_srv_change_flag" style="color: darkred"') .
                     wf_tag('span', true)
@@ -1942,7 +1948,7 @@ class UserProfile {
                                 data: { action: "BindSMSSrv",
                                         ajax: true,                                            
                                         smssrvid: SMSSrvID,                                                                                                                 
-                                        ' . (( empty($preferredSMSSrvId) ) ? 'createrec: CreateRec, ' : '') . '
+                                        ' . ((empty($preferredSMSSrvId)) ? 'createrec: CreateRec, ' : '') . '
                                         oldsmssrvid: "' . $preferredSMSSrvId . '"
                                        },
                                 success: function() {
@@ -1989,9 +1995,11 @@ class UserProfile {
                 $oldTriggerVal = ubRouting::post('oldtriggerval');
 
                 if (ubRouting::checkPost('createrec')) {
-                    $tabDataExportAllowed->dataArr(array('login' => $usrLogin,
-                        'export_allowed' => $newTriggerVal
-                            )
+                    $tabDataExportAllowed->dataArr(
+                        array(
+                            'login' => $usrLogin,
+                            'export_allowed' => $newTriggerVal
+                        )
                     );
                     $tabDataExportAllowed->create();
                 } else {
@@ -2008,7 +2016,9 @@ class UserProfile {
             $queryResult = $tabDataExportAllowed->getAll();
             $triggerVal = (isset($queryResult[0])) ? $queryResult[0]['export_allowed'] : '';
 
-            $row .= $this->addRow(__('Data export allowed'), wf_tag('span', false, '', 'id="data_export_off"') .
+            $row .= $this->addRow(
+                __('Data export allowed'),
+                wf_tag('span', false, '', 'id="data_export_off"') .
                     web_red_led() .
                     wf_tag('span', true) .
                     wf_tag('span', false, '', 'id="data_export_on"') .
@@ -2183,7 +2193,7 @@ class UserProfile {
                 $result .= $deferredSale->catchRequest();
             }
         }
-        return($result);
+        return ($result);
     }
 
     /**
@@ -2201,7 +2211,7 @@ class UserProfile {
             $result .= __('Print receipt');
             $result .= wf_tag('div', true);
 
-            return($result);
+            return ($result);
         }
     }
 
@@ -2221,7 +2231,7 @@ class UserProfile {
                 $result .= wf_AjaxLink('?module=nasinfo&ip=' . $userIp, wf_img('skins/nasinfo.gif', __('Network Access Servers')), $containerId, false, '');
             }
         }
-        return($result);
+        return ($result);
     }
 
     /**
@@ -2266,15 +2276,15 @@ class UserProfile {
      * @return string
      */
     public function render() {
-//all configurable features must be received via getters
+        //all configurable features must be received via getters
         $profile = '';
 
-//activity and other flags
+        //activity and other flags
         $passiveicon = ($this->userdata['Passive']) ? wf_img_sized('skins/icon_passive.gif', '', '', '12') . ' ' : '';
         $downicon = ($this->userdata['Down']) ? wf_img_sized('skins/icon_down.gif', '', '', '12') . ' ' : '';
         $activity = ($this->userdata['Cash'] < '-' . $this->userdata['Credit']) ? wf_img_sized('skins/icon_inactive.gif', '', '', '12') . ' ' . __('No') : wf_img_sized('skins/icon_active.gif', '', '', '12') . ' ' . __('Yes');
 
-// user linking controller
+        // user linking controller
         $profile .= $this->getUserLinking();
 
         $profile .= wf_tag('table', false, '', self::MAIN_TABLE_STYLE); //external profile container
@@ -2286,90 +2296,90 @@ class UserProfile {
         $profile .= wf_tag('table', false, '', self::MAIN_TABLE_STYLE); //main profile data
         $profile .= wf_tag('tbody', false);
 
-//address row and controls
+        //address row and controls
         if (!$this->alterCfg['CITY_DISPLAY']) {
             $renderAddress = $this->AllUserData[$this->login]['cityname'] . ' ' . $this->useraddress;
         } else {
             $renderAddress = $this->useraddress;
         }
         $profile .= $this->addRow(__('Full address') . $this->getTaskCreateControl(), $renderAddress . $this->getBuildControls());
-//user extended address info rows
+        //user extended address info rows
         $profile .= $this->getAddressExtenControls();
-//apt data like floor and entrance row
+        //apt data like floor and entrance row
         $profile .= $this->addRow(__('Entrance') . ', ' . __('Floor'), @$this->aptdata['entrance'] . ' ' . @$this->aptdata['floor']);
-//user districts row
+        //user districts row
         $profile .= $this->getDistrictControls();
-//realname row
+        //realname row
         $profile .= $this->addRow(__('Real name') . $this->getPhotostorageControls() . $this->getPassportDataControl(), $this->realname, true);
-//contract row
+        //contract row
         $profile .= $this->getContractControls();
-//contract date row
+        //contract date row
         $profile .= $this->getContractDate();
-//assigned agents row
+        //assigned agents row
         $profile .= $this->getAgentsControls();
-//current user branch
+        //current user branch
         $profile .= $this->getUserBranchName();
-//old corporate users aka userlinking
+        //old corporate users aka userlinking
         $profile .= $this->getCorporateControls();
-//phone     
+        //phone     
         $profile .= $this->addRow(__('Phone'), $this->phone);
-//and mobile data rows
+        //and mobile data rows
         $profile .= $this->addRow(__('Mobile') . $this->getMobileControls(), $this->mobile);
-//additional mobile data
+        //additional mobile data
         $profile .= $this->getMobilesExtControl();
-//Email data row
+        //Email data row
         if (!@$this->alterCfg['EMAILHIDE']) {
             $profile .= $this->addRow(__('Email'), $this->mail);
         }
-//payment ID data
+        //payment ID data
         if ($this->alterCfg['OPENPAYZ_SUPPORT']) {
             $profile .= $this->addRow(__('Payment ID'), $this->paymentid, true);
         }
-//LAT data row
+        //LAT data row
         $profile .= $this->getUserLat();
-//Login row
+        //Login row
         $profile .= $this->addRow(__('Login'), $this->userdata['login'], true);
-//Password row
+        //Password row
         $profile .= $this->getUserPassword();
-//User IP data and extended networks controls if available
+        //User IP data and extended networks controls if available
         $profile .= $this->addRow(__('IP') . ' ' . $this->getNasInfoControls($this->userdata['IP']), $this->userdata['IP'] . $this->getExtNetsControls() . $this->getNasInfoContrainer(), true);
-//MAC address row
+        //MAC address row
         $profile .= $this->addRow(__('MAC') . ' ' . $this->getSearchmacControl() . ' ' . $this->getProfileFdbSearchControl(), $this->mac);
-//User tariff row
+        //User tariff row
         $profile .= $this->addRow(__('Tariff') . $this->getTariffInfoControls($this->userdata['Tariff']), $this->userdata['Tariff'] . $this->getTariffInfoContrainer(), true);
-//Tariff change row
+        //Tariff change row
         $profile .= $this->addRow(__('Planned tariff change') . $this->getTariffInfoControls($this->userdata['TariffChange'], true), $this->userdata['TariffChange'] . $this->getTariffInfoContrainer(true));
-//CaTv backlink if needed
+        //CaTv backlink if needed
         $profile .= $this->getCatvBacklinks();
-//Visor user backlink if user is primary
+        //Visor user backlink if user is primary
         $profile .= $this->getVisorBacklinks();
-//Speed override row
+        //Speed override row
         $profile .= $this->addRow(__('Speed override'), $this->speedoverride);
-//Signup pricing row
+        //Signup pricing row
         $profile .= $this->getSignupPricing();
-//User current cash row
+        //User current cash row
         $profile .= $this->addRow(__('Balance') . $this->getEasyChargeController() . $this->getDeferredSaleController(), $this->getUserCash(), true);
-//User discount row
+        //User discount row
         $profile .= $this->getDiscountController();
-//User credit row & easycredit control if needed
+        //User credit row & easycredit control if needed
         $profile .= $this->addRow(__('Credit') . ' ' . $this->getEasyCreditController(), $this->userdata['Credit'], true);
-//credit expire row
+        //credit expire row
         $profile .= $this->addRow(__('Credit expire'), $this->getUserCreditExpire());
-//Prepayed traffic
+        //Prepayed traffic
         $profile .= $this->getFreeMbControls();
-//finance activity row
+        //finance activity row
         $profile .= $this->addRow(__('Active') . $this->getCemeteryControls(), $activity);
-//DN online detection row
+        //DN online detection row
         $profile .= $this->getUserOnlineDN();
-//Karma controls here        
+        //Karma controls here        
         $profile .= $this->getUserKarma();
-//Always online flag row
+        //Always online flag row
         $profile .= $this->addRow(__('Always Online'), web_trigger($this->userdata['AlwaysOnline']));
-//Detail stats flag row
+        //Detail stats flag row
         if (@$this->alterCfg['DSTAT_ENABLED']) {
             $profile .= $this->addRow(__('Disable detailed stats'), web_trigger($this->userdata['DisabledDetailStat']));
         }
-//Frozen aka passive flag row
+        //Frozen aka passive flag row
         //passive time detection
         $passiveTimeLabel = '';
         if ($this->userdata['Passive']) {
@@ -2397,17 +2407,17 @@ class UserProfile {
             }
         }
 
-//Disable aka Down flag row
+        //Disable aka Down flag row
         $profile .= $this->addRow(__('Disabled'), $downicon . web_trigger($this->userdata['Down']), true);
 
         $profile .= $this->getSMSserviceSelectorControls();
         $profile .= $this->getDataExportPermissionTrigger();
 
-//Deal with it available tasks notification
+        //Deal with it available tasks notification
         $profile .= $this->getUserDealWithItNotification();
-//Connection details  row
+        //Connection details  row
         $profile .= $this->getUserConnectionDetails();
-//User notes row
+        //User notes row
         $profile .= $this->addRow(__('Notes'), zb_UserGetNotes($this->login) . $this->getAdcommentsIndicator());
 
         $profile .= wf_tag('tbody', true);
@@ -2423,26 +2433,26 @@ class UserProfile {
 
         $profile .= wf_tag('tbody', true);
         $profile .= wf_tag('table', true); //end of all profile container
-//profile switch port controls
+        //profile switch port controls
         $profile .= $this->getSwitchAssignControls();
-//profile zabbix problen controls
+        //profile zabbix problen controls
         $profile .= $this->getZabbixProblemControls();
-//profile onu signal controls
+        //profile onu signal controls
         $profile .= $this->getPonSignalControl();
-//profile vlan controls
+        //profile vlan controls
         $profile .= $this->getVlanAssignControls();
-//profile vlan online
+        //profile vlan online
         $profile .= $this->getVlanOnline();
-//profile qinq controls        
+        //profile qinq controls        
         $profile .= $this->getQinqPairControls();
-// profile RoS PPPoE session info
+        // profile RoS PPPoE session info
         $profile .= $this->getROSPPPoESessionData();
-//profile CPE controls
+        //profile CPE controls
         $profile .= $this->getUserCpeControls();
 
-//Custom filelds display
+        //Custom filelds display
         $profile .= $this->customFields->renderUserFields();
-//Tags add control and exiting tags listing
+        //Tags add control and exiting tags listing
         if ($this->ubConfig->getAlterParam('USERPROFILE_TAG_SECTION_HIGHLIGHT')) {
             if (cfr('TAGS')) {
                 $profile .= wf_tag('h2', false) . __('Tags');
@@ -2465,10 +2475,10 @@ class UserProfile {
             $profile .= stg_show_user_tags($this->login, true);
         }
 
-//main profile controls here
+        //main profile controls here
         $profile .= $this->getMainControls();
 
-//Profile ending anchor for addcash links scroll
+        //Profile ending anchor for addcash links scroll
         $profile .= wf_tag('a', false, '', 'id="profileending"') . wf_tag('a', true);
         /**
          * Dinosaurs are my best friends
@@ -2480,6 +2490,6 @@ class UserProfile {
          * I wished all the world could see
          * The dinosaurs are a part of me
          */
-        return($profile);
+        return ($profile);
     }
 }

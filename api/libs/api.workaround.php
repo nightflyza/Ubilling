@@ -363,23 +363,25 @@ function web_MacEditForm($userAddress = '', $manualInput = false, $currentMac = 
     $result = '';
     //mac vendor search
     if ($altCfg['MACVEN_ENABLED']) {
-        $optionState = $altCfg['MACVEN_ENABLED'];
-        switch ($optionState) {
-            case 1:
-                $lookupUrl = '?module=macvendor&modalpopup=true&mac=' . $currentMac . '&username=';
-                $lookuplink = wf_AjaxLink($lookupUrl, wf_img('skins/macven.gif', __('Device vendor')), 'macvendorcontainer', false);
-                $lookuplink .= wf_AjaxContainerSpan('macvendorcontainer', '', '');
-                break;
-            case 2:
-                $vendorframe = wf_tag('iframe', false, '', 'src="?module=macvendor&mac=' . $currentMac . '" width="360" height="160" frameborder="0"');
-                $vendorframe .= wf_tag('iframe', true);
-                $lookuplink = wf_modalAuto(wf_img('skins/macven.gif', __('Device vendor')), __('Device vendor'), $vendorframe, '');
-                break;
-            case 3:
-                $lookupUrl = '?module=macvendor&raw=true&mac=' . $currentMac;
-                $lookuplink = wf_AjaxLink($lookupUrl, wf_img('skins/macven.gif', __('Device vendor')), 'macvendorcontainer', false);
-                $lookuplink .= wf_AjaxContainerSpan('macvendorcontainer', '', '');
-                break;
+        if (cfr('MACVEN')) {
+            $optionState = $altCfg['MACVEN_ENABLED'];
+            switch ($optionState) {
+                case 1:
+                    $lookupUrl = '?module=macvendor&modalpopup=true&mac=' . $currentMac . '&username=';
+                    $lookuplink = wf_AjaxLink($lookupUrl, wf_img('skins/macven.gif', __('Device vendor')), 'macvendorcontainer', false);
+                    $lookuplink .= wf_AjaxContainerSpan('macvendorcontainer', '', '');
+                    break;
+                case 2:
+                    $vendorframe = wf_tag('iframe', false, '', 'src="?module=macvendor&mac=' . $currentMac . '" width="360" height="160" frameborder="0"');
+                    $vendorframe .= wf_tag('iframe', true);
+                    $lookuplink = wf_modalAuto(wf_img('skins/macven.gif', __('Device vendor')), __('Device vendor'), $vendorframe, '');
+                    break;
+                case 3:
+                    $lookupUrl = '?module=macvendor&raw=true&mac=' . $currentMac;
+                    $lookuplink = wf_AjaxLink($lookupUrl, wf_img('skins/macven.gif', __('Device vendor')), 'macvendorcontainer', false);
+                    $lookuplink .= wf_AjaxContainerSpan('macvendorcontainer', '', '');
+                    break;
+            }
         }
     }
 

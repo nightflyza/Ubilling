@@ -3518,6 +3518,8 @@ $lang['def']['Non-existent tag with ID'] = 'Неіснуючий тег з ID';
 $lang['def']['Mark the service as "Archived"'] = 'Позначити сервіс як "Архівний"';
 $lang['def']['Archived'] = 'Архівний';
 $lang['def']['Engine'] = 'Рушій';
+$lang['def']['right to MAC vendor lookup'] = 'Право визначати виробника обладнання за MAC';
+$lang['def'][''] = '';
 $lang['def'][''] = '';
 
 

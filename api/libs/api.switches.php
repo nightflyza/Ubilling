@@ -306,7 +306,7 @@ function ub_SwitchModelDelete($modelId) {
         $ponOnus->selectable('id');
         $onuUsingThisModel = $ponOnus->getAll();
         //is this model used by some devices?
-        if (empty($switchesUsingThisModel) AND empty($onuUsingThisModel)) {
+        if (empty($switchesUsingThisModel) and empty($onuUsingThisModel)) {
             $switchModels = new NyanORM('switchmodels');
             $switchModels->where('id', '=', $modelId);
             $switchModels->delete();
@@ -318,7 +318,7 @@ function ub_SwitchModelDelete($modelId) {
     } else {
         $result .= __('Model') . ' ' . __('is empty');
     }
-    return($result);
+    return ($result);
 }
 
 /**
@@ -369,7 +369,7 @@ function web_SwitchUplinkSelector($name, $label = '', $selected = '', $currentSw
         }
 
         foreach ($allswitchesRaw as $io => $each) {
-            if ((sm_CheckLoop($alllinks, $currentSwitchId, $each['id'])) AND ( $each['id'] != $currentSwitchId)) {
+            if ((sm_CheckLoop($alllinks, $currentSwitchId, $each['id'])) and ($each['id'] != $currentSwitchId)) {
                 if (isset($validSwitches[$each['id']])) {
                     $tmpArr[$each['id']] = $each['location'] . ' - ' . $each['ip'];
                 }
@@ -423,7 +423,7 @@ function web_SwitchFormAdd() {
         $errorNotice = __('Equipment models') . ': ' . __('Not exists');
         $addform = $messages->getStyledMessage($errorNotice, 'error');
     }
-    return($addform);
+    return ($addform);
 }
 
 /**
@@ -576,12 +576,13 @@ function web_SwitchEditForm($switchid) {
     $editinputs .= wf_TextInput('editsnmp', 'SNMP community', $switchdata['snmp'], true, 20);
     $editinputs .= wf_TextInput('editsnmpwrite', 'SNMP write community', $switchdata['snmpwrite'], true, 20);
     if ($altCfg['SWITCHES_EXTENDED']) {
-        if ((!empty($switchdata['swid'])) AND ( $altCfg['MACVEN_ENABLED'])) {
-            $macVenControl = wf_AjaxLink('?module=macvendor&mac=' . $switchdata['swid'] . '&raw=true', wf_img('skins/macven.gif', __('Device vendor')), 'swvendorcontainer', false, '');
-            $swvendorStyle = 'style="text-align: left; font-size:150%;  font-weight: bold;"';
-            $rightContainer .= wf_tag('div', false, '', 'id="swvendorcontainer"' . $swvendorStyle) . '' . wf_tag('div', true);
-        } else {
-            $macVenControl = '';
+        $macVenControl = '';
+        if ((!empty($switchdata['swid'])) and ($altCfg['MACVEN_ENABLED'])) {
+            if (cfr('MACVEN')) {
+                $macVenControl = wf_AjaxLink('?module=macvendor&mac=' . $switchdata['swid'] . '&raw=true', wf_img('skins/macven.gif', __('Device vendor')), 'swvendorcontainer', false, '');
+                $swvendorStyle = 'style="text-align: left; font-size:150%;  font-weight: bold;"';
+                $rightContainer .= wf_tag('div', false, '', 'id="swvendorcontainer"' . $swvendorStyle) . '' . wf_tag('div', true);
+            }
         }
         $editinputs .= wf_TextInput('editswid', __('Switch ID') . ' (MAC) ' . $macVenControl, $switchdata['swid'], true, 20, 'mac');
     }
@@ -593,7 +594,7 @@ function web_SwitchEditForm($switchid) {
     }
     $editinputs .= web_SwitchUplinkSelector('editparentid', $uplinkSwitchLabel, $switchdata['parentid'], $switchid);
 
-//switch uplink detailed data here
+    //switch uplink detailed data here
     if ($ubillingConfig->getAlterParam('SWITCHES_EXTENDED')) {
         $swUplink = new SwitchUplinks($switchid);
         //saving changes if required
@@ -648,7 +649,7 @@ function web_SwitchEditForm($switchid) {
             $result .= wf_modalAuto(wf_img('skins/menuicons/switchpoller.png') . ' ' . __('FDB'), __('FDB'), $fdbControls, 'ubButton');
         }
 
-        if ((!empty($switchdata['snmp'])) AND ( ispos($switchdata['desc'], 'SWPOLL'))) {
+        if ((!empty($switchdata['snmp'])) and (ispos($switchdata['desc'], 'SWPOLL'))) {
             $result .= wf_Link('?module=switchpoller&switchid=' . $switchid, wf_img('skins/snmp.png') . ' ' . __('SNMP data'), false, 'ubButton');
         }
     }
@@ -713,9 +714,9 @@ function web_SwitchEditForm($switchid) {
 
     //SWPOLL proposal
     if (!empty($switchdata['ip'])) {
-        if (!ispos($switchdata['desc'], 'SWPOLL') AND (!ispos($switchdata['desc'], 'NP')) AND (!ispos($switchdata['desc'], 'OLT'))) {
+        if (!ispos($switchdata['desc'], 'SWPOLL') and (!ispos($switchdata['desc'], 'NP')) and (!ispos($switchdata['desc'], 'OLT'))) {
             //this is not OLT
-            if (!ispos($switchdata['desc'], 'AP') AND (!ispos($switchdata['desc'], 'MTSIGMON'))) {
+            if (!ispos($switchdata['desc'], 'AP') and (!ispos($switchdata['desc'], 'MTSIGMON'))) {
                 //Or some wireless access point
                 if (!empty($switchdata['snmp'])) {
                     //with some non empty snmp read comunity
@@ -866,7 +867,7 @@ function zb_PingICMP($ip) {
     if (strpos($ping_result, 'ttl')) {
         return (true);
     } else {
-        return(false);
+        return (false);
     }
 }
 
@@ -894,7 +895,7 @@ function zb_PingICMPTimeout($ip, $timeout = 0) {
     if (strpos($ping_result, 'ttl')) {
         return (true);
     } else {
-        return(false);
+        return (false);
     }
 }
 
@@ -958,7 +959,7 @@ function zb_SwitchesRepingAll() {
         $allswitches = zb_SwitchesGetAllLocationOrder();
         if (!empty($allswitches)) {
             foreach ($allswitches as $io => $eachswitch) {
-                if (!empty($eachswitch['ip']) AND !ispos($eachswitch['desc'], 'NP')) {
+                if (!empty($eachswitch['ip']) and !ispos($eachswitch['desc'], 'NP')) {
                     if (!$fastPingFlag) {
                         //regular per-device ICMP polling
                         if (!zb_PingICMP($eachswitch['ip'])) {
@@ -1292,7 +1293,7 @@ function web_SwitchesShow() {
             }
 
             if (cfr('SWITCHPOLL')) {
-                if ((!empty($eachswitch['snmp'])) AND ( ispos($eachswitch['desc'], 'SWPOLL'))) {
+                if ((!empty($eachswitch['snmp'])) and (ispos($eachswitch['desc'], 'SWPOLL'))) {
                     $switchcontrols .= '&nbsp;' . wf_Link('?module=switchpoller&switchid=' . $eachswitch['id'], wf_img('skins/snmp.png', __('SNMP query')));
                     $countSwpoll++;
                 }
@@ -1519,7 +1520,7 @@ function zb_SwitchesRenderAjaxList() {
             }
 
             if (cfr('SWITCHPOLL')) {
-                if ((!empty($eachswitch['snmp'])) AND ( ispos($eachswitch['desc'], 'SWPOLL'))) {
+                if ((!empty($eachswitch['snmp'])) and (ispos($eachswitch['desc'], 'SWPOLL'))) {
                     $switchcontrols .= '&nbsp;' . wf_Link('?module=switchpoller&switchid=' . $eachswitch['id'], wf_img('skins/snmp.png', __('SNMP query')));
                     $countSwpoll++;
                 }
@@ -1540,8 +1541,8 @@ function zb_SwitchesRenderAjaxList() {
                     $countLinked++;
                 }
 
-                if ((empty($eachswitch['geo'])) AND (!ispos($eachswitch['desc'], 'NP'))) {
-                    if ((cfr('SWITCHESEDIT')) AND ( cfr('SWITCHMAP'))) {
+                if ((empty($eachswitch['geo'])) and (!ispos($eachswitch['desc'], 'NP'))) {
+                    if ((cfr('SWITCHESEDIT')) and (cfr('SWITCHMAP'))) {
                         $switchcontrols .= wf_Link('?module=switchmap&locfinder=true&placesw=' . $eachswitch['id'], wf_img('skins/ymaps/target.png', __('Place on map')), false, '');
                     }
                 }
@@ -1597,7 +1598,7 @@ function zb_SwitchesRenderAjaxList() {
 
     $jsonList = array("aaData" => $jsonAAData);
 
-    return(json_encode($jsonList));
+    return (json_encode($jsonList));
 }
 
 /**
@@ -1692,7 +1693,7 @@ function ub_SwitchAdd($modelid, $ip, $desc, $location, $snmp, $swid, $geo, $pare
         $parentid = 'NULL';
     }
     $query = "INSERT INTO `switches` (`id` ,`modelid` ,`ip` ,`desc` ,`location` ,`snmp`,`swid`,`geo`,`parentid`,`snmpwrite`) "
-            . "VALUES ('', '" . $modelid . "', '" . $ip . "', '" . $desc . "', '" . $location . "', '" . $snmp . "', '" . $swid . "','" . $geo . "', " . $parentid . ",'" . $snmpwrite . "' );";
+        . "VALUES ('', '" . $modelid . "', '" . $ip . "', '" . $desc . "', '" . $location . "', '" . $snmp . "', '" . $swid . "','" . $geo . "', " . $parentid . ",'" . $snmpwrite . "' );";
     nr_query($query);
 
     $lastid = simple_get_lastid('switches');
@@ -1971,7 +1972,7 @@ function ub_SwitchesTimeMachineGetByIp($switchIp) {
             }
         }
     }
-    return($result);
+    return ($result);
 }
 
 /**
@@ -1994,7 +1995,7 @@ function ub_SwitchesTimeMachineSearch($request) {
                 $switchData = unserialize($each['swdead']);
                 foreach ($switchData as $switchIp => $switchLocation) {
 
-                    if ((ispos(strtolower_utf8($switchIp), $request)) OR ( ispos(strtolower_utf8($switchLocation), $request))) {
+                    if ((ispos(strtolower_utf8($switchIp), $request)) or (ispos(strtolower_utf8($switchLocation), $request))) {
                         $searchId = zb_rand_string(8);
                         $tmpArr[$searchId]['date'] = $each['date'];
                         $tmpArr[$searchId]['ip'] = $switchIp;

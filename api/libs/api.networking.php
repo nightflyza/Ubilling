@@ -73,7 +73,7 @@ function multinet_totalips_count($first_ip, $last_ip) {
             $result++;
         }
     }
-    return($result);
+    return ($result);
 }
 
 /**
@@ -275,7 +275,7 @@ function multinet_network_selector($currentnetid = '') {
 function multinet_get_all_networks() {
     $query = "SELECT * from `networks`";
     $result = simple_queryall($query);
-    return($result);
+    return ($result);
 }
 
 /**
@@ -292,7 +292,7 @@ function multinet_get_all_networks_assoc() {
             $result[$each['id']] = $each;
         }
     }
-    return($result);
+    return ($result);
 }
 
 /**
@@ -430,7 +430,7 @@ function multinet_service_selector() {
     }
 
     $freeIpStatsFlag = $ubillingConfig->getAlterParam('USERREG_FREEIP_STATS');
-    if ($freeIpStatsFlag == 2 OR $freeIpStatsFlag == 3) {
+    if ($freeIpStatsFlag == 2 or $freeIpStatsFlag == 3) {
         $allNetsStats = multinet_getFreeIpStats();
     }
 
@@ -557,7 +557,7 @@ function multinet_get_network_params($network_id) {
     if (empty($result)) {
         $result = array();
     }
-    return($result);
+    return ($result);
 }
 
 /**
@@ -575,7 +575,7 @@ function multinet_get_network_params_by_login($login) {
             WHERE `login`="' . $login . '"';
     $result = simple_query($query);
 
-    return($result);
+    return ($result);
 }
 
 /**
@@ -589,7 +589,7 @@ function multinet_get_service_params($serviceid) {
     $serviceid = vf($serviceid, 3);
     $query = 'SELECT * from `services` WHERE `id`="' . $serviceid . '"';
     $result = simple_query($query);
-    return($result);
+    return ($result);
 }
 
 /**
@@ -614,7 +614,7 @@ function multinet_delete_service($service_id) {
 function multinet_get_dhcp_networks() {
     $query = "SELECT * from `networks` where `nettype` LIKE 'dhcp%'";
     $alldhcps = simple_queryall($query);
-    return($alldhcps);
+    return ($alldhcps);
 }
 
 /**
@@ -628,7 +628,7 @@ function dhcp_get_data_by_netid($netid) {
     $netid = vf($netid, 3);
     $query = "SELECT * from `dhcp` where `netid`='" . $netid . "'";
     $result = simple_query($query);
-    return($result);
+    return ($result);
 }
 
 /**
@@ -645,7 +645,7 @@ function dhcp_get_all_data_assoc() {
             $result[$each['netid']] = $each;
         }
     }
-    return($result);
+    return ($result);
 }
 
 /**
@@ -848,7 +848,7 @@ allow members of "{HOSTNAME}";
             foreach ($allhosts as $io => $eachhost) {
                 $login = $allIps[$eachhost['ip']];
                 $mac = '';
-                if (isset($allOnu[$login]) AND !empty($allOnu[$login])) {
+                if (isset($allOnu[$login]) and !empty($allOnu[$login])) {
                     $macFull = explode(":", $allOnu[$login]['mac']);
                     foreach ($macFull as $eachOctet) {
                         $validOctet = preg_replace('/^0/', '', $eachOctet);
@@ -904,7 +904,7 @@ allow members of "{HOSTNAME}";
                 $login = $allIps[$eachhost['ip']];
                 $onuId = '';
                 $onuIdentifier = '';
-                if (isset($allOnu[$login]) AND !empty($allOnu[$login])) {
+                if (isset($allOnu[$login]) and !empty($allOnu[$login])) {
                     $oltId = $allOnu[$login]['oltid'];
 
                     if (isset($allOltSnmpTemplates[$oltId])) {
@@ -994,7 +994,7 @@ function multinet_ParseTemplate($templatebody, $templatedata) {
     foreach ($templatedata as $field => $data) {
         $templatebody = str_ireplace($field, $data, $templatebody);
     }
-    return($templatebody);
+    return ($templatebody);
 }
 
 /**
@@ -1006,7 +1006,7 @@ function multinet_ParseTemplate($templatebody, $templatedata) {
  */
 function multinet_cidr2mask($mask_bits) {
     if ($mask_bits > 31 || $mask_bits < 0)
-        return("0.0.0.0");
+        return ("0.0.0.0");
     $host_bits = 32 - $mask_bits;
     $num_hosts = pow(2, $host_bits) - 1;
     $netmask = ip2int("255.255.255.255") - $num_hosts;
@@ -1037,8 +1037,7 @@ function multinet_rebuild_globalconf() {
 
     if (!empty($allMembers)) {
         foreach ($allMembers as $ix => $eachMember) {
-            $memberClass = 'm' . str_replace('.', 'x', $eachMember['ip']);
-            ;
+            $memberClass = 'm' . str_replace('.', 'x', $eachMember['ip']);;
             $membersMacroContent .= 'deny members of "' . $memberClass . '";' . "\n";
         }
     }
@@ -1113,7 +1112,7 @@ function multinet_nethosts_get_all() {
             $result[$each['id']] = $each;
         }
     }
-    return($result);
+    return ($result);
 }
 
 /**
@@ -1271,7 +1270,7 @@ function multinet_expand_network($first_ip, $last_ip) {
             }
         }
     }
-    return($filterednet);
+    return ($filterednet);
 }
 
 /**
@@ -1302,7 +1301,7 @@ function multinet_get_all_free_ip($table, $field, $network_id) {
             $free_ip_pool = $full_network_pool;
         }
     }
-    return($free_ip_pool);
+    return ($free_ip_pool);
 }
 
 /**
@@ -1331,7 +1330,7 @@ function multinet_get_free_count($network_id) {
     $count_result = simple_query($query);
     $count_used = $count_result['used'];
     $free_count = $count_all - $count_used;
-    return($free_count);
+    return ($free_count);
 }
 
 /**
@@ -1346,7 +1345,7 @@ function multinet_get_free_count($network_id) {
 function multinet_get_next_freeip($table, $field, $network_id) {
     $all_free_ips = multinet_get_all_free_ip($table, $field, $network_id);
     $temp = array_keys($all_free_ips);
-    return(@$all_free_ips[$temp[0]]);
+    return (@$all_free_ips[$temp[0]]);
 }
 
 /**
@@ -1365,7 +1364,7 @@ function multinet_get_service_networkid($service_id) {
     } else {
         $service_network = 0;
     }
-    return($service_network);
+    return ($service_network);
 }
 
 /**
@@ -1442,7 +1441,7 @@ function stg_convert_size($fs) {
     global $ubillingConfig;
     $alter_conf = $ubillingConfig->getAlter();
     $traffsize = trim($alter_conf['TRAFFSIZE']);
-    return(zb_convertSize($fs, $traffsize));
+    return (zb_convertSize($fs, $traffsize));
 }
 
 /**
@@ -1479,7 +1478,7 @@ function zb_TariffGetAllSpeeds() {
             }
         }
     }
-    return($result);
+    return ($result);
 }
 
 /**
@@ -1584,7 +1583,7 @@ function zb_MultinetGetMAC($ip) {
     $query = "SELECT `mac` from `nethosts` WHERE `ip`='" . $ip . "'";
     $result = simple_query($query);
     $result = $result['mac'];
-    return($result);
+    return ($result);
 }
 
 /**
@@ -1597,7 +1596,7 @@ function zb_MultinetGetMAC($ip) {
 function zb_MultinetGetNethostData($ip) {
     $query = "SELECT * from `nethosts` WHERE `ip`='" . $ip . "'";
     $result = simple_queryall($query);
-    return($result);
+    return ($result);
 }
 
 /**
@@ -1672,7 +1671,7 @@ function zb_DirectionGetData($directionid) {
     $directionid = vf($directionid, 3);
     $query = "SELECT * from `directions` WHERE `id`='" . $directionid . "'";
     $data = simple_query($query);
-    return($data);
+    return ($data);
 }
 
 /**
@@ -1756,7 +1755,7 @@ function zb_NasUpdateParams($nasid, $nastype, $nasip, $nasname, $nasbwdurl, $net
 function zb_NasGetAllData() {
     $query = "SELECT * from `nas`";
     $allnas = simple_queryall($query);
-    return($allnas);
+    return ($allnas);
 }
 
 /**
@@ -1770,7 +1769,7 @@ function zb_NasGetData($nasid) {
     $nasid = vf($nasid, 3);
     $query = "SELECT * from `nas` WHERE `id`='" . $nasid . "'";
     $result = simple_query($query);
-    return($result);
+    return ($result);
 }
 
 /**
@@ -1880,7 +1879,7 @@ function zb_NasGetByNet($netid) {
     $query = "SELECT `id` from `nas` WHERE `netid`='" . $netid . "'";
     $nasid = simple_query($query);
     $nasid = @$nasid['id'];
-    return($nasid);
+    return ($nasid);
 }
 
 /**
@@ -1904,7 +1903,7 @@ function zb_NetworkGetByIp($ip) {
         }
     }
 
-    return($result);
+    return ($result);
 }
 
 /**
@@ -1964,7 +1963,7 @@ function zb_NewMacShow() {
     $result = '';
     $unknownMacCount = 0;
 
-//fdb cache preprocessing  
+    //fdb cache preprocessing  
     $fdbData_raw = rcms_scandir('./exports/', '*_fdb');
     if (!empty($fdbData_raw)) {
         $fdbArr = sn_SnmpParseFdbCacheArray($fdbData_raw);
@@ -1979,7 +1978,9 @@ function zb_NewMacShow() {
         $cells .= wf_TableCell(__('Switch'));
     }
     if ($ubillingConfig->getAlterParam('MACVEN_ENABLED')) {
-        $cells .= wf_TableCell(__('Manufacturer'));
+        if (cfr('MACVEN')) {
+            $cells .= wf_TableCell(__('Manufacturer'));
+        }
     }
     $rows = wf_TableRow($cells, 'row1');
 
@@ -2006,8 +2007,10 @@ function zb_NewMacShow() {
                 $un_arr = array_reverse($un_arr);
             }
             if ($ubillingConfig->getAlterParam('MACVEN_ENABLED')) {
-                //adding ajax loader
-                $result .= wf_AjaxLoader();
+                if (cfr('MACVEN')) {
+                    //adding ajax loader
+                    $result .= wf_AjaxLoader();
+                }
             }
 
             foreach ($un_arr as $io => $eachmac) {
@@ -2018,10 +2021,12 @@ function zb_NewMacShow() {
                     }
 
                     if ($ubillingConfig->getAlterParam('MACVEN_ENABLED')) {
-                        $containerName = 'NMRSMCNT_' . zb_rand_string(8);
-                        $lookupVendorLink = wf_AjaxLink('?module=macvendor&mac=' . @$eachmac . '&raw=true', wf_img('skins/macven.gif', __('Device vendor')), $containerName, false, '');
-                        $lookupVendorLink .= wf_tag('span', false, '', 'id="' . $containerName . '"') . '' . wf_tag('span', true);
-                        $cells .= wf_TableCell($lookupVendorLink, '350');
+                        if (cfr('MACVEN')) {
+                            $containerName = 'NMRSMCNT_' . zb_rand_string(8);
+                            $lookupVendorLink = wf_AjaxLink('?module=macvendor&mac=' . @$eachmac . '&raw=true', wf_img('skins/macven.gif', __('Device vendor')), $containerName, false, '');
+                            $lookupVendorLink .= wf_tag('span', false, '', 'id="' . $containerName . '"') . '' . wf_tag('span', true);
+                            $cells .= wf_TableCell($lookupVendorLink, '350');
+                        }
                     }
                     $rows .= wf_TableRow($cells, 'row3');
                     $unknownMacCount++;
@@ -2038,7 +2043,7 @@ function zb_NewMacShow() {
     }
 
 
-    return($result);
+    return ($result);
 }
 
 /**
@@ -2052,9 +2057,9 @@ function multinet_mac_free($mac) {
     $query = "SELECT `id` from `nethosts` WHERE `mac`='" . $mac . "'";
     $res = simple_query($query);
     if (!empty($res)) {
-        return(false);
+        return (false);
     } else {
-        return(true);
+        return (true);
     }
 }
 
@@ -2101,7 +2106,7 @@ function zb_checkMacFree($mac, $allused) {
  */
 function check_mac_format($mac) {
     $mask = '/^[a-f0-9]{2}:[a-f0-9]{2}:[a-f0-9]{2}:[a-f0-9]{2}:[a-f0-9]{2}:[a-f0-9]{2}$/i';
-//really shitty mac
+    //really shitty mac
     if ($mac == '00:00:00:00:00:00') {
         return (false);
     }
@@ -2262,9 +2267,12 @@ function getCachedZabbixNASGraphIDs() {
     $result = '';
     $cache = new UbillingCache();
     $cacheTime = ($ubillingConfig->getAlterParam('ZABBIX_GRAPHSIDS_CACHE_LIFETIME')) ? $ubillingConfig->getAlterParam('ZABBIX_GRAPHSIDS_CACHE_LIFETIME') : 1800;
-    $result = $cache->getCallback('ZABBIX_GRAPHS_IDS', function () {
-        return (getZabbixNASGraphIDs());
-    }, $cacheTime
+    $result = $cache->getCallback(
+        'ZABBIX_GRAPHS_IDS',
+        function () {
+            return (getZabbixNASGraphIDs());
+        },
+        $cacheTime
     );
 
     return ($result);
@@ -2365,7 +2373,7 @@ function getZabbixProblems($switchIP) {
     $problemActions = array();
     $switchIP = trim($switchIP);
 
-    if (!empty($switchIP) AND !empty($zbxAuthToken)) {
+    if (!empty($switchIP) and !empty($zbxAuthToken)) {
         /* Selectd problem level severities
           Possible values:
           0 - not classified;
@@ -2447,7 +2455,7 @@ function multinet_get_network_cidr_from_descr($netID) {
     $networkData = multinet_get_network_params($netID);
     $networkCIDR = (!empty($networkData['desc']) and ispos($networkData['desc'], '/')) ? substr($networkData['desc'], -2) : '';
 
-    return($networkCIDR);
+    return ($networkCIDR);
 }
 
 /**
@@ -2503,7 +2511,7 @@ function convertMACDec2Hex($decMAC, $inSeparator = '.', $outSeparator = ':', $re
         $hexMAC = strtolower_utf8(AddMacSeparator($hexMAC, $outSeparator));
     }
 
-    return($hexMAC);
+    return ($hexMAC);
 }
 
 /**
@@ -2522,18 +2530,24 @@ function convertMACDec2Hex($decMAC, $inSeparator = '.', $outSeparator = ':', $re
  *
  * @return array|string
  */
-function trimSNMPOutput($snmpData, $oid, $removeValue = '', $rowsExplode = false, $returnAsStr = false, $oidValue = array(
-            'Counter32:',
-            'Counter64:',
-            'Gauge32:',
-            'Gauge64:',
-            'INTEGER:',
-            'Hex-STRING:',
-            'OID:',
-            'Timeticks:',
-            'STRING:',
-            'Network Address:'
-        )
+function trimSNMPOutput(
+    $snmpData,
+    $oid,
+    $removeValue = '',
+    $rowsExplode = false,
+    $returnAsStr = false,
+    $oidValue = array(
+        'Counter32:',
+        'Counter64:',
+        'Gauge32:',
+        'Gauge64:',
+        'INTEGER:',
+        'Hex-STRING:',
+        'OID:',
+        'Timeticks:',
+        'STRING:',
+        'Network Address:'
+    )
 ) {
     $result = ($returnAsStr) ? '' : array('', '');
 
@@ -2601,7 +2615,7 @@ function ipcidrToStartEndIP($ipcidr, $excludeNetworkAddr = false, $excludeBroadc
  */
 function zb_MacGetRandom() {
     $result = '14:' . '88' . ':' . rand(10, 99) . ':' . rand(10, 99) . ':' . rand(10, 99) . ':' . rand(10, 99);
-    return($result);
+    return ($result);
 }
 
 /**
@@ -2616,5 +2630,5 @@ function zb_isIPValid($ip) {
     if (filter_var($ip, FILTER_VALIDATE_IP)) {
         $result = true;
     }
-    return($result);
+    return ($result);
 }

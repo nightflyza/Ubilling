@@ -1,16 +1,14 @@
 <?php
 
-if (cfr('MAC')) {
+if (cfr('MACVEN')) {
     $altercfg = $ubillingConfig->getAlter();
-
     if ($altercfg['MACVEN_ENABLED']) {
-        if (wf_CheckGet(array('mac'))) {
-            $mac = $_GET['mac'];
+        if (ubRouting::checkGet('mac')) {
+            $mac = ubRouting::get('mac');
             if (@$altercfg['MACVEN_CACHE']) {
                 $cache = new UbillingCache();
                 $cacheTime = 2592000; //something about month
                 $vendorCache = $cache->get('MACVENDB', $cacheTime);
-                debarr($vendorCache);
                 if (!empty($vendorCache) and is_array($vendorCache)) {
                     if (isset($vendorCache[$mac])) {
                         //from cache
@@ -32,10 +30,9 @@ if (cfr('MAC')) {
                 $vendor = zb_MacVendorLookup($mac);
             }
 
-            if (!wf_CheckGet(array('raw'))) {
+            if (!ubRouting::checkGet('raw')) {
                 $vendor = wf_tag('h3') . wf_tag('center') . $vendor . wf_tag('center', true) . wf_tag('h3', true);
-
-                if (wf_CheckGet(array('modalpopup'))) {
+                if (ubRouting::checkGet('modalpopup')) {
                     $vendor = wf_modalOpened(__('Device vendor'), $vendor, '400', '200');
                 }
             }
@@ -49,4 +46,3 @@ if (cfr('MAC')) {
 }
 
 die();
-?>

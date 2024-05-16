@@ -3510,3 +3510,4 @@ $lang['def']['notes or reminders for today'] = 'персональных зам�
 $lang['def']['undone tasks for today'] = 'невыполненных задач на сегодня';
 $lang['def']['Hide'] = 'Скрыть';
 $lang['def']['Engine'] = 'Движок';
+$lang['def']['right to MAC vendor lookup'] = 'Право определять производителя по MAC';
