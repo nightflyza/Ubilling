@@ -2096,7 +2096,7 @@ function zbs_UserTraffStats($login) {
                     $ophDb = new NyanORM($ophanimTable);
                     $ophDb->selectable(array('login', 'D0', 'U0', 'month', 'year'));
                     $ophDb->where('login', '=', $login);
-                    $ophDb->orderBy('year`,`month', 'DESC');
+                    $ophDb->orderBy('year,month', 'DESC');
                     $allOphTraff = $ophDb->getAll();
                     if (!empty($allOphTraff)) {
                         foreach ($allOphTraff as $io => $each) {

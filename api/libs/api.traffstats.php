@@ -305,7 +305,7 @@ class TraffStats {
     protected function loadTraffStats() {
         if (!empty($this->login)) {
             $this->statsDb->where('login', '=', $this->login);
-            $this->statsDb->orderBy('year`,`month', 'ASC');
+            $this->statsDb->orderBy('year,month', 'ASC');
             $this->trafStats = $this->statsDb->getAll();
         }
     }
