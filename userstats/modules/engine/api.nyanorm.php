@@ -369,13 +369,13 @@ class NyanORM {
 
                     foreach ($tmpArr as $eachField) {
                         if ($escapeFields) {
-                            $tmpStr.= $this->escapeField($eachField) . ", ";
+                            $tmpStr.= $this->escapeField(trim($eachField)) . ", ";
                         } else {
                             $tmpStr.= $eachField . ", ";
                         }
                     }
 
-                    $tmpStr = trim($tmpStr, ", ");
+                    $tmpStr = trim(trim($tmpStr, ", "));
                     $tmpStr.= " " . $order;
                 }
             }
@@ -910,6 +910,8 @@ class NyanORM {
      * @return string
      */
     protected function escapeField($field) {
+        $field = str_ireplace('`', '', $field);
+
         if (strpos($field, '.') !== false) {
             $parts = explode(".", $field);
             $field = "`" . $parts[0] . "`.`" . $parts[1] . "`";
