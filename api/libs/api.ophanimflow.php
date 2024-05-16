@@ -242,7 +242,7 @@ class OphanimFlow {
         $userLogin = ubRouting::filters($userLogin, 'mres');
         $result = array();
         $this->traffDb->where('login', '=', $userLogin);
-        $this->traffDb->orderBy('year`,`month', 'DESC');
+        $this->traffDb->orderBy('year,month', 'DESC');
         $result = $this->traffDb->getAll();
         return($result);
     }
