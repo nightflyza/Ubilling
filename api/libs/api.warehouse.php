@@ -3930,40 +3930,40 @@ class Warehouse {
     public function qrCodeDraw($type, $id) {
         $type = vf($type);
         $id = vf($id, 3);
-        $qr = new BarcodeQR();
+        
         switch ($type) {
             case 'in':
                 if (isset($this->allIncoming[$id])) {
                     $itemName = $this->allItemTypeNames[$this->allIncoming[$id]['itemtypeid']];
-                    $qr->text($itemName . ' ' . __('Incoming operation') . '# ' . $id);
+                    $qrText=$itemName . ' ' . __('Incoming operation') . '# ' . $id;
                 } else {
-                    $qr->text('Wrong ID');
+                    $qrText=('Wrong ID');
                 }
                 break;
 
             case 'out':
                 if (isset($this->allOutcoming[$id])) {
                     $itemName = $this->allItemTypeNames[$this->allOutcoming[$id]['itemtypeid']];
-                    $qr->text($itemName . ' ' . __('Outcoming operation') . '# ' . $id);
+                    $qrText=$itemName . ' ' . __('Outcoming operation') . '# ' . $id;
                 } else {
-                    $qr->text('Wrong ID');
+                    $qrText='Wrong ID';
                 }
                 break;
 
             case 'itemtype':
                 if (isset($this->allItemTypeNames[$id])) {
-                    $qr->text($this->allItemTypeNames[$id]);
+                    $qrText=($this->allItemTypeNames[$id]);
                 } else {
-                    $qr->text('Wrong ID');
+                    $qrText='Wrong ID';
                 }
                 break;
 
             default:
-                $qr->text('Wrong type');
+                $qrText='Wrong type';
                 break;
         }
-
-        $qr->draw();
+        $qr = new QRCode($qrText);
+        $qr->output_image();
     }
 
     /**

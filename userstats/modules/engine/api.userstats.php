@@ -1752,7 +1752,7 @@ function zbs_UserShowProfile($login) {
     $paymentidqr = '';
     if (isset($us_config['PAYMENTID_QR'])) {
         if ($us_config['PAYMENTID_QR']) {
-            $paymentidqr = la_modal(la_img($iconsPath . 'qrcode.png', 'QR-code'), __('Payment ID'), la_tag('center') . la_img('modules/jsc/qrgen.php?data=' . $paymentid) . la_tag('center', true), '', '300', '250');
+            $paymentidqr = la_modalAuto(la_img($iconsPath . 'qrcode.png', 'QR-code'), __('Payment ID'), la_tag('center') . la_img('modules/jsc/qrgen.php?data=' . $paymentid) . la_tag('center', true), '', '300', '250');
         }
     }
 

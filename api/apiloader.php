@@ -11,7 +11,6 @@ require_once('api/libs/api.morph.php');
 require_once('api/libs/api.ubconfig.php');
 require_once('api/libs/api.ubcache.php');
 require_once('api/libs/api.astral.php');
-require_once('api/libs/api.barcodeqr.php');
 require_once('api/libs/api.dbconnect.php');
 require_once('api/libs/api.userdata.php');
 require_once('api/libs/api.usersearch.php');
