@@ -172,7 +172,7 @@ class AerialAlerts {
 
         if (!empty($rawMap)) {
             $encodedImage = 'data:image/png;base64,' . $rawMap;
-            $result = wf_tag('center') . wf_img($encodedImage, date("Y-m-d H:i", $nowTime)) . wf_tag('center', true);
+            $result = wf_tag('center') . wf_img_sized($encodedImage, date("Y-m-d H:i", $nowTime),'70%') . wf_tag('center', true);
         } else {
             $result .= $this->messages->getStyledMessage(__('Something went wrong') . ': ' . __('Unable to load data'), 'error');
         }
