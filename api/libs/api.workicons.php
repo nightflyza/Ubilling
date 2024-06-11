@@ -8,7 +8,7 @@
  */
 function web_delete_icon($title = 'Delete') {
     $icon = wf_img('skins/icon_del.gif', __($title));
-    return($icon);
+    return ($icon);
 }
 
 /**
@@ -19,7 +19,7 @@ function web_delete_icon($title = 'Delete') {
  */
 function web_add_icon($title = 'Add') {
     $icon = wf_img('skins/icon_add.gif', __($title));
-    return($icon);
+    return ($icon);
 }
 
 /**
@@ -30,7 +30,7 @@ function web_add_icon($title = 'Add') {
  */
 function web_edit_icon($title = 'Edit') {
     $icon = wf_img('skins/icon_edit.gif', __($title));
-    return($icon);
+    return ($icon);
 }
 
 /**
@@ -41,7 +41,7 @@ function web_edit_icon($title = 'Edit') {
  */
 function web_key_icon($title = 'Password') {
     $icon = wf_img('skins/icon_key.gif', __($title));
-    return($icon);
+    return ($icon);
 }
 
 /**
@@ -52,7 +52,7 @@ function web_key_icon($title = 'Password') {
  */
 function web_street_icon($title = 'Street') {
     $icon = wf_img('skins/icon_street.gif', __($title));
-    return($icon);
+    return ($icon);
 }
 
 /**
@@ -63,7 +63,7 @@ function web_street_icon($title = 'Street') {
  */
 function web_city_icon($title = 'City') {
     $icon = wf_img('skins/icon_city.gif', __($title));
-    return($icon);
+    return ($icon);
 }
 
 /**
@@ -74,7 +74,7 @@ function web_city_icon($title = 'City') {
  */
 function web_build_icon($title = 'Builds') {
     $icon = wf_img('skins/icon_build.gif', __($title));
-    return($icon);
+    return ($icon);
 }
 
 /**
@@ -85,7 +85,7 @@ function web_build_icon($title = 'Builds') {
  */
 function web_ok_icon($title = 'Ok') {
     $icon = wf_img('skins/icon_ok.gif', __($title));
-    return($icon);
+    return ($icon);
 }
 
 /**
@@ -96,7 +96,7 @@ function web_ok_icon($title = 'Ok') {
  */
 function web_profile_icon($title = 'Profile') {
     $icon = wf_img('skins/icon_user.gif', __($title));
-    return($icon);
+    return ($icon);
 }
 
 /**
@@ -107,7 +107,7 @@ function web_profile_icon($title = 'Profile') {
  */
 function web_stats_icon($title = 'Stats') {
     $icon = wf_img('skins/icon_stats.gif', __($title));
-    return($icon);
+    return ($icon);
 }
 
 /**
@@ -118,7 +118,7 @@ function web_stats_icon($title = 'Stats') {
  */
 function web_icon_charts($title = 'Stats') {
     $icon = wf_img('skins/icon_charts.png', __($title));
-    return($icon);
+    return ($icon);
 }
 
 /**
@@ -129,7 +129,7 @@ function web_icon_charts($title = 'Stats') {
  */
 function web_corporate_icon($title = 'Corporate') {
     $icon = wf_img('skins/corporate_small.gif', __($title));
-    return($icon);
+    return ($icon);
 }
 
 /**
@@ -140,7 +140,7 @@ function web_corporate_icon($title = 'Corporate') {
  */
 function web_green_led($title = '') {
     $icon = wf_img('skins/icon_active.gif', __($title));
-    return($icon);
+    return ($icon);
 }
 
 /**
@@ -151,7 +151,7 @@ function web_green_led($title = '') {
  */
 function web_yellow_led($title = '') {
     $icon = wf_img('skins/yellow_led.png', __($title));
-    return($icon);
+    return ($icon);
 }
 
 /**
@@ -163,7 +163,7 @@ function web_yellow_led($title = '') {
 function web_red_led($title = '') {
 
     $icon = wf_img('skins/icon_inactive.gif', __($title));
-    return($icon);
+    return ($icon);
 }
 
 /**
@@ -174,7 +174,7 @@ function web_red_led($title = '') {
  */
 function web_star($title = NULL) {
     $icon = wf_img('skins/icon_star.gif', __($title));
-    return($icon);
+    return ($icon);
 }
 
 /**
@@ -185,7 +185,7 @@ function web_star($title = NULL) {
  */
 function web_star_black() {
     $icon = wf_img('skins/icon_nostar.gif');
-    return($icon);
+    return ($icon);
 }
 
 /**
@@ -297,7 +297,7 @@ function web_bool_led($flag, $text = false) {
         $led = $yes . web_green_led();
     }
 
-    return($led);
+    return ($led);
 }
 
 /**
@@ -321,7 +321,7 @@ function web_bool_star($flag, $text = false) {
         $led = $yes . web_star();
     }
 
-    return($led);
+    return ($led);
 }
 
 /**
@@ -332,7 +332,16 @@ function web_bool_star($flag, $text = false) {
  */
 function web_clone_icon($title = 'Clone') {
     $icon = wf_img('skins/duplicate_icon.gif', __($title));
-    return($icon);
+    return ($icon);
 }
 
-?>
+/**
+ * Returns standard calendar icon
+ *
+ * @param string $title
+ * @return string
+ */
+function web_icon_calendar($title = 'Calendar') {
+    $icon = wf_img('skins/icon_calendar.gif', __($title));
+    return ($icon);
+}

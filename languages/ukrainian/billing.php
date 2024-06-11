@@ -3519,7 +3519,7 @@ $lang['def']['Mark the service as "Archived"'] = 'Позначити серві�
 $lang['def']['Archived'] = 'Архівний';
 $lang['def']['Engine'] = 'Рушій';
 $lang['def']['right to MAC vendor lookup'] = 'Право визначати виробника обладнання за MAC';
-$lang['def'][''] = '';
+$lang['def']['Explict interval'] = 'Явний інтервал';
 $lang['def'][''] = '';
 
 

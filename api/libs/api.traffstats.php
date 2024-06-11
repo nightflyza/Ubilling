@@ -122,6 +122,11 @@ class TraffStats {
     const ROUTE_LOGIN = 'username';
     const ROUTE_AJUSER = 'defferedgraph';
     const ROUTE_AJCAT = 'grcat';
+    const ROUTE_EXPLICT = 'explict';
+    const PROUTE_DATE_FROM = 'datefrom';
+    const PROUTE_DATE_TO = 'dateto';
+    const PROUTE_TIME_FROM = 'timefrom';
+    const PROUTE_TIME_TO = 'timeto';
     const KEY_GRAPH = 'DEFFEREDGRAPH';
     const AJ_CONTAINER = 'ajdefferedcontainer';
 
@@ -527,6 +532,7 @@ class TraffStats {
                             $urls['months'] = $bwdUrl . '/?module=graph&dir=S&period=month&ip=' . $ip . $customDimensions;
                             $urls['yearr'] = $bwdUrl . '/?module=graph&dir=R&period=year&ip=' . $ip . $customDimensions;
                             $urls['years'] = $bwdUrl . '/?module=graph&dir=S&period=year&ip=' . $ip . $customDimensions;
+                            $urls['explict'] = $bwdUrl . '/?module=graph&period=explict&ip=' . $ip . $customDimensions;
                         }
                     }
                     //MikroTik Multigen Hotspot users
@@ -596,6 +602,60 @@ class TraffStats {
         return ($urls);
     }
 
+
+    /**
+     * Returns explict time interval selection form and results
+     *
+     * @param string $explictUrl base64 encoded base charts URL
+     * 
+     * @return void
+     */
+    public function renderExplictChartsForm($explictUrl) {
+        $result = '';
+        if (!empty($explictUrl)) {
+            $baseUrl = base64_decode($explictUrl);
+
+            $dateFrom = (ubRouting::checkPost(self::PROUTE_DATE_FROM)) ? ubRouting::post(self::PROUTE_DATE_FROM) : curdate();
+            $dateTo = (ubRouting::checkPost(self::PROUTE_DATE_TO)) ? ubRouting::post(self::PROUTE_DATE_TO) : curdate();
+            $timeFrom = (ubRouting::checkPost(self::PROUTE_TIME_FROM)) ? ubRouting::post(self::PROUTE_TIME_FROM) : '00:00';
+            $timeTo = (ubRouting::checkPost(self::PROUTE_TIME_TO)) ? ubRouting::post(self::PROUTE_TIME_TO) : '23:59';
+            $timestampFrom = strtotime($dateFrom . ' ' . $timeFrom . ':00');
+            $timestampTo = strtotime($dateTo . ' ' . $timeTo . ':59');
+
+            //interval selection form here
+            $inputs = '';
+            $inputs .= __('From') . ': ';
+            $inputs .= wf_DatePickerPreset(self::PROUTE_DATE_FROM, $dateFrom, true);
+            $inputs .= wf_TimePickerPreset(self::PROUTE_TIME_FROM, $timeFrom);
+            $inputs .= __('To') . ': ';
+            $inputs .= wf_DatePickerPreset(self::PROUTE_DATE_TO, $dateTo, true);
+            $inputs .= wf_TimePickerPreset(self::PROUTE_TIME_TO, $timeTo) . ' ';
+            $inputs .= wf_Submit(__('Show'));
+            $result .= wf_Form('', 'POST', $inputs, 'glamour');
+
+            //charts rendering
+            if ($timestampFrom <= $timestampTo) {
+                $completeUrl = $baseUrl . '&from=' . $timestampFrom . '&to=' . $timestampTo;
+                $downloadUrl = zb_BandwidthdImgLink(($completeUrl . '&dir=R'));
+                $uploadUrl = zb_BandwidthdImgLink(($completeUrl . '&dir=S'));
+
+                $result .= wf_delimiter();
+                $result .= wf_img_sized($downloadUrl, __('Downloaded'), '100%');
+                $result .= wf_delimiter(0);
+                $result .= wf_img_sized($uploadUrl, __('Uploaded'), '100%');
+            } else {
+                $result .= $this->messages->getStyledMessage(__('Wrong date format'), 'error');
+                $result .= wf_delimiter(0);
+                $result .= wf_tag('center') . wf_img('skins/unicornwrong.png') . wf_tag('center', true);
+                $result .= wf_delimiter();
+            }
+        }
+
+        $result .= wf_delimiter();
+        $result .= wf_BackLink(self::URL_ME . '&' . self::ROUTE_LOGIN . '=' . $this->login);
+        return ($result);
+    }
+
     /**
      * Renders user traffic charts
      * 
@@ -630,8 +690,8 @@ class TraffStats {
                 $zbxLink = $bwd['zbxlink'];
                 $zbxIcon = wf_img_sized('skins/zabbix_ico.png', '', '16', '16');
 
-                $bwcells .= wf_TableCell(wf_link($zbxLink,  $zbxIcon . ' ' . __('Go to graph on Zabbix server'), false, 'ubButton', 'target="__blank"'));
-                $bwcells .= wf_TableCell(wf_modalAuto($icon . ' ' . __('Graph by 5 minutes'), __('Graph by 5 minutes'), $fiveminsbw, 'ubButton'));
+                $bwcells .= wf_link($zbxLink,  $zbxIcon . ' ' . __('Go to graph on Zabbix server'), false, 'ubButton', 'target="__blank"');
+                $bwcells .= wf_modalAuto($icon . ' ' . __('Graph by 5 minutes'), __('Graph by 5 minutes'), $fiveminsbw, 'ubButton');
             }
 
 
@@ -678,10 +738,10 @@ class TraffStats {
                         if ($this->ondemandFlag) {
                             $cachedCharts[$this->login][$categoryId] = array('title' => $chartTitle, 'body' => $chartBody);
                             $defLink = $this->getAjChartLink($categoryId, $chartTitle);
-                            $bwcells .= wf_TableCell($defLink);
+                            $bwcells .= $defLink;
                         } else {
                             $chartBody = wf_tag('div', false, '', 'style="width:100%;"') . $chartBody . wf_tag('div', true);
-                            $bwcells .= wf_TableCell(wf_modalAuto($icon . ' ' . $chartTitle, $chartTitle, $chartBody, 'ubButton'));
+                            $bwcells .= wf_modalAuto($icon . ' ' . $chartTitle, $chartTitle, $chartBody, 'ubButton');
                         }
                     }
                 }
@@ -700,13 +760,20 @@ class TraffStats {
                 }
             }
 
+            // Explict ophanim charts controls here
+            if (isset($bwd['explict'])) {
+                $encUrl = base64_encode($bwd['explict']);
+                $explictUrl = self::URL_ME . '&' . self::ROUTE_LOGIN . '=' . $this->login . '&' . self::ROUTE_EXPLICT . '=' . $encUrl;
+                $bwcells .= wf_Link($explictUrl, web_icon_calendar() . ' ' . __('Explict interval'), false, 'ubButton');
+            }
+
             // Adding graphs buttons to result:
-            $bwrows = wf_TableRow($bwcells);
-            $result .= wf_TableBody($bwrows, '', '0', '');
+            $result .= $bwcells;
             if ($this->ondemandFlag) {
                 $result .= wf_AjaxLoader();
                 $result .= wf_AjaxContainer(self::AJ_CONTAINER);
             }
+
             $result .= wf_delimiter();
         }
 

@@ -3511,3 +3511,4 @@ $lang['def']['undone tasks for today'] = 'невыполненных задач 
 $lang['def']['Hide'] = 'Скрыть';
 $lang['def']['Engine'] = 'Движок';
 $lang['def']['right to MAC vendor lookup'] = 'Право определять производителя по MAC';
+$lang['def']['Explict interval'] = 'Явный интервал';

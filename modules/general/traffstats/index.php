@@ -16,8 +16,12 @@ if (cfr('TRAFFSTATS')) {
         $login = ubRouting::get(TraffStats::ROUTE_LOGIN);
         $traffStats = new TraffStats($login);
         $useraddress = zb_UserGetFullAddress($login);
-        $trafficReport = $traffStats->renderUserTraffStats();
-        show_window(__('Traffic stats') . ' ' . $useraddress . ' (' . $login . ')', $trafficReport);
+        if (ubRouting::checkGet($traffStats::ROUTE_EXPLICT)) {
+            $reportBody = $traffStats->renderExplictChartsForm(ubRouting::get($traffStats::ROUTE_EXPLICT));
+        } else {
+            $reportBody = $traffStats->renderUserTraffStats();
+        }
+        show_window(__('Traffic stats') . ' ' . $useraddress . ' (' . $login . ')', $reportBody);
         zb_BillingStats();
     }
 } else {
