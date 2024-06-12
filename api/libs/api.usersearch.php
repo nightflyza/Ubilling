@@ -552,7 +552,7 @@ function zb_UserSearchTypeLocalize($searchtype, $query = '') {
 function web_UserSearchElement($title = '', $content = '') {
     $result = '';
     if (!empty($content)) {
-        $style = 'style="flex: 500px; padding: 5px; margin: 5px; border: 1px solid #d4d4d4;"';
+        $style = 'style="flex: 500px; padding: 5px; margin: 5px; border: 1px solid #d4d4d4; background-color: #fafafa;"';
         $result .= wf_tag('div', false, '', $style);
         if (!empty($title)) {
             $result .= wf_tag('h3', false, 'row3') . $title . wf_tag('h3', true);
