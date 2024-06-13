@@ -10,7 +10,7 @@
 	<div id="header" class="container">
 		<div id="logo">
 			<h1><a href="http://ubilling.net.ua"><img src="skins/logo.png" height="64" border="0"></a><a href="?module=taskbar">Ubilling</a> </h1>
-			   <p><?=file_get_contents('RELEASE')?></p>
+			   <p><?=web_ReleaseInfo();?></p>
                         <div class="notificationArea">
                  <?php 
                     if (LOGGED_IN) {

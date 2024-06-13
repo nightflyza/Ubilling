@@ -33,13 +33,12 @@ function web_HelpChapterGet($chapter) {
  */
 function web_HelpIconShow() {
     global $ubillingConfig;
+    $normalMode = ($ubillingConfig->getAlterParam('IM_GREEDY_PIDAR')) ? false : true;
     $result = '';
     if (cfr('HELP')) {
         $lang = curlang();
-        $normalMode = ($ubillingConfig->getAlterParam('IM_GREEDY_PIDAR')) ? false : true;
-
         $currentModuleName = (ubRouting::checkGet('module')) ? ubRouting::get('module') : 'taskbar';
-
+        $donationUrl = 'https://ubilling.net.ua/rds/donate/';
         if (file_exists(DATA_PATH . "help/" . $lang . "/" . $currentModuleName)) {
             $helpChapterContent = web_HelpChapterGet($currentModuleName);
             $helpChapterContent .= wf_delimiter(1);
@@ -48,7 +47,7 @@ function web_HelpIconShow() {
             }
 
             if (!$normalMode) {
-                $helpChapterContent .= wf_Link('https://ubilling.net.ua/?module=fnpages&pid=donate', wf_img('skins/heart16.png', __('Support project'))) . ' ';
+                $helpChapterContent .= wf_Link($donationUrl, wf_img('skins/heart16.png', __('Support project'))) . ' ';
             }
 
             $containerStyle = 'style="min-width:400px; max-width:800px; min-height:200px; max-height:500px;"';
@@ -58,7 +57,36 @@ function web_HelpIconShow() {
         }
 
         if ($normalMode) {
-            $result .= ' ' . wf_Link('https://ubilling.net.ua/?module=fnpages&pid=donate', wf_img_sized('skins/heart32.png', __('Support project'), '20'), false, '', 'target="_blank"') . '';
+            $result .= ' ' . wf_Link($donationUrl, wf_img_sized('skins/heart32.png', __('Support project'), '20'), false, '', 'target="_blank"') . '';
+        }
+    } else {
+        if (!$normalMode) {
+            $result .= '<!-- pidar detected -->';
+        }
+    }
+    return ($result);
+}
+
+/**
+ * Returns Ubilling release info
+ *
+ * @param bool $raw
+ * 
+ * @return string
+ */
+function web_ReleaseInfo($raw = false) {
+    $result = '';
+    $releaseInfoBaseUrl = 'https://ubilling.net.ua/rds/release/';
+    @$releaseDataRaw = file_get_contents('RELEASE');
+    if (!empty($releaseDataRaw)) {
+        if ($raw) {
+            $result .= $releaseDataRaw;
+        } else {
+            $infoParts = explode(' ', $releaseDataRaw);
+            if (sizeof($infoParts) >= 3) {
+                $codenameLink = $releaseInfoBaseUrl . vf($infoParts[0], 3);
+                $result .= wf_Link($codenameLink, $releaseDataRaw, false, '', 'target="_BLANK"');
+            }
         }
     }
     return ($result);

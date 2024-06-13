@@ -1,26 +1,28 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
-        <title><?rcms_show_element('title')?></title>
-        <meta content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0, shrink-to-fit=no' name='viewport' />
-        <?rcms_show_element('meta')?> 
-        <link rel="stylesheet" href="<?= CUR_SKIN_PATH ?>assets/css/bootstrap.min.css">
-        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i">
-        <link rel="stylesheet" href="<?= CUR_SKIN_PATH ?>assets/css/ready.css">
-        <link rel="stylesheet" href="<?= CUR_SKIN_PATH ?>assets/css/ubilling.css">
-        <link href="<?= CUR_SKIN_PATH ?>assets/css/stickynotes.css" rel="stylesheet" type="text/css">
-    </head>
-    <body>
-        <div class="wrapper">
-            <? if (LOGGED_IN) {  ?> 
+
+<head>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+    <title><? rcms_show_element('title') ?></title>
+    <meta content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0, shrink-to-fit=no' name='viewport' />
+    <? rcms_show_element('meta') ?>
+    <link rel="stylesheet" href="<?= CUR_SKIN_PATH ?>assets/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i">
+    <link rel="stylesheet" href="<?= CUR_SKIN_PATH ?>assets/css/ready.css">
+    <link rel="stylesheet" href="<?= CUR_SKIN_PATH ?>assets/css/ubilling.css">
+    <link href="<?= CUR_SKIN_PATH ?>assets/css/stickynotes.css" rel="stylesheet" type="text/css">
+</head>
+
+<body>
+    <div class="wrapper">
+        <? if (LOGGED_IN) {  ?>
             <div class="main-header">
                 <div class="logo-header">
                     <a href="?module=taskbar" class="logo">
                         <img src="<?= CUR_SKIN_PATH ?>assets/img/logo.png" height="32" border="0">
-                    </a> 
+                    </a>
                     <span class="ubproductname"><a href="https://ubilling.net.ua/" target="blank" class="logo">Ubilling</a></span>
-                    <small><sup class="ubverinfo"><?= file_get_contents('RELEASE') ?></sup></small>
+                    <small><sup class="ubverinfo"><?= web_ReleaseInfo(); ?></sup></small>
                     <button class="navbar-toggler sidenav-toggler ml-auto" type="button" data-toggle="collapse" data-target="collapse" aria-controls="sidebar" aria-expanded="false" aria-label="Toggle navigation">
                         <span class="navbar-toggler-icon"></span>
                     </button>
@@ -58,13 +60,15 @@
                                 print($notifyArea->render());
                             }
                             ?>
-                            <?= web_HelpIconShow(); ?> <?= web_SqlDebugIconShow(); ?> <? if (XHPROF) { print($xhprof_link); } ?> <?= zb_IdleAutologoutRun(); ?> 
+                            <?= web_HelpIconShow(); ?> <?= web_SqlDebugIconShow(); ?> <? if (XHPROF) {
+                                                                                            print($xhprof_link);
+                                                                                        } ?> <?= zb_IdleAutologoutRun(); ?>
                         </div>
 
 
 
                         <li class="nav-item dropdown">
-                            <a class="dropdown-toggle profile-pic" data-toggle="dropdown" href="#" aria-expanded="false"> 
+                            <a class="dropdown-toggle profile-pic" data-toggle="dropdown" href="#" aria-expanded="false">
                                 <?php
                                 $adminMail = gravatar_GetUserEmail(whoami());
                                 $admAva36 = gravatar_GetAvatar($adminMail, 36, 'img-circle');
@@ -72,7 +76,7 @@
                                 ?>
 
 
-                                <span >
+                                <span>
                                     <?php
                                     if (@$_COOKIE['ghost_user']) {
                                         print(' <img src="skins/ghost.png" width="10" title="' . __('in ghost mode') . '">');
@@ -99,7 +103,8 @@
                                                 ?>
                                                 <?= whoami(); ?>
                                             </h4>
-                                            <a href="?forceLogout=true" class="btn btn-rounded btn-danger btn-sm"><?= __('Log out'); ?></a></div>
+                                            <a href="?forceLogout=true" class="btn btn-rounded btn-danger btn-sm"><?= __('Log out'); ?></a>
+                                        </div>
                                     </div>
                                     <?php
                                     $globalMenu = new GlobalMenu();
@@ -117,7 +122,7 @@
                         </li>
                     </ul>
             </div>
-        </nav>
+            </nav>
     </div>
     <div class="sidebar">
         <div class="scrollbar-inner sidebar-wrapper">
@@ -146,8 +151,8 @@
         <div class="content">
             <div class="container-fluid">
                 <div class="row">
-                    <?rcms_show_element('menu_point', 'up_center@window')?>
-                    <?rcms_show_element('main_point', $module . '@window')?>
+                    <? rcms_show_element('menu_point', 'up_center@window') ?>
+                    <? rcms_show_element('main_point', $module . '@window') ?>
 
                 </div>
             </div>
@@ -173,30 +178,30 @@
                     print(' QC: ' . $query_counter);
                     ?>
 
-                </div>				
+                </div>
             </div>
         </footer>
     </div>
-    <? } else { 
-    $ubLoginForm=new LoginForm();
-    print($ubLoginForm->render());
-    }
-    ?>	
+<? } else {
+            $ubLoginForm = new LoginForm();
+            print($ubLoginForm->render());
+        }
+?>
 
-    <?php
-    if (!LOGGED_IN) {
-        ?>
-        <div class="nologinforms">
-            <form name="lang_select" method="post" action=""><?= user_lang_select('lang_form', $system->language, 'font-size: 90%; width: 100px;', 'onchange="document.forms[\'lang_select\'].submit()" title="' . __('Lang') . '"') ?></form>
-            <form name="skin_select" method="post" action=""><?= user_skin_select(SKIN_PATH, 'user_selected_skin', $system->skin, 'font-size: 90%; width: 100px;', 'onchange="document.forms[\'skin_select\'].submit()" title="' . __('Skin') . '"') ?></form>
-        </div>
-        <?php
-    }
-    ?>
+<?php
+if (!LOGGED_IN) {
+?>
+    <div class="nologinforms">
+        <form name="lang_select" method="post" action=""><?= user_lang_select('lang_form', $system->language, 'font-size: 90%; width: 100px;', 'onchange="document.forms[\'lang_select\'].submit()" title="' . __('Lang') . '"') ?></form>
+        <form name="skin_select" method="post" action=""><?= user_skin_select(SKIN_PATH, 'user_selected_skin', $system->skin, 'font-size: 90%; width: 100px;', 'onchange="document.forms[\'skin_select\'].submit()" title="' . __('Skin') . '"') ?></form>
+    </div>
+<?php
+}
+?>
 </div>
 </div>
 <?php
-if ((LOGGED_IN) AND ( !file_exists('I_HATE_NEW_YEAR'))) {
+if ((LOGGED_IN) and (!file_exists('I_HATE_NEW_YEAR'))) {
     $dateny = time();
     $monthny = date('m');
 
@@ -238,4 +243,5 @@ if ((LOGGED_IN) AND ( !file_exists('I_HATE_NEW_YEAR'))) {
     var bootstrapButton = $.fn.button.noConflict();
     $.fn.bootstrapBtn = bootstrapButton;
 </script>
+
 </html>

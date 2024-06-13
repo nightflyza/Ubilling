@@ -38,7 +38,7 @@
                         <img src="<?= CUR_SKIN_PATH ?>/images/logo.png" height="32" border="0">
                     </a> 
                     <span class="ubproductname">Ubilling</span>
-                    <sup class="ubverinfo"><?= file_get_contents('RELEASE') ?></sup>
+                    <sup class="ubverinfo"><?= web_ReleaseInfo(); ?></sup>
                 </h1>
 
                 <div class="notificationArea">
