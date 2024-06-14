@@ -43,10 +43,10 @@ if (!empty($us_access)) {
 
 //web app manifest rendering
 zbs_ManifestCatchRequest();
-   
+
 
 if ($user_ip) {
-    if (!isset($_GET['module'])) {
+    if (!ubRouting::checkGet('module')) {
         if ($us_config['UBA_ENABLED']) {
             // UBAgent SUPPORT:
             if (ubRouting::checkGet('ubagent')) {
@@ -93,8 +93,8 @@ if ($user_ip) {
         // load poll form
         if ($us_config['POLLS_ENABLED']) {
             $poll = new Polls($user_login);
-            if (la_CheckPost(array('vote', 'poll_id'))) {
-                $poll->createUserVoteOnDB(vf($_POST['vote'], 3), vf($_POST['poll_id'], 3));
+            if (ubRouting::checkPost(array('vote', 'poll_id'))) {
+                $poll->createUserVoteOnDB(ubRouting::post('vote','int'), ubRouting::post('poll_id','int'));
             }
             show_window('', $poll->renderVotingForm());
         }
@@ -105,7 +105,7 @@ if ($user_ip) {
             }
         }
     } else {
-        zbs_LoadModule($_GET['module']);
+        zbs_LoadModule(ubRouting::get('module'));
     }
     //render logout form if user already signed in
     if (isset($us_config['INLINE_LOGOUT']) and $us_config['INLINE_LOGOUT']) {
