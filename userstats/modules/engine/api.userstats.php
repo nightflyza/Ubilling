@@ -2924,7 +2924,7 @@ function zbs_GetUserDBFees($login, $date_from = '', $date_to = '') {
         }
     }
 
-    return($result);
+    return ($result);
 }
 
 
@@ -2976,8 +2976,8 @@ function zbs_GetUserAdditionalFees($login, $date_from = '', $date_to = '', $wher
                 $cashto = $eachFee['summ'];
             }
 
-            if ((!ispos($eachFee['note'], 'MOCK:')) AND (!ispos($eachFee['note'], 'BALANCESET:'))) {
-                if (is_numeric($eachFee['summ']) AND is_numeric($eachFee['balance'])) {
+            if ((!ispos($eachFee['note'], 'MOCK:')) and (!ispos($eachFee['note'], 'BALANCESET:'))) {
+                if (is_numeric($eachFee['summ']) and is_numeric($eachFee['balance'])) {
                     $cashto = $eachFee['summ'] + $eachFee['balance'];
                 } else {
                     $cashto = __('Corrupted');
@@ -2996,7 +2996,7 @@ function zbs_GetUserAdditionalFees($login, $date_from = '', $date_to = '', $wher
         }
     }
 
-    return($result);
+    return ($result);
 }
 
 
@@ -3021,8 +3021,9 @@ function zbs_concatArraysAvoidDuplicateKeys($arr1, $arr2) {
                 $tmpVal = $arr2[$key];
                 $tmpKey = $key + 1;
 
-                while (array_key_exists($tmpKey, $arr1) or
-                       array_key_exists($tmpKey, $arr2)
+                while (
+                    array_key_exists($tmpKey, $arr1) or
+                    array_key_exists($tmpKey, $arr2)
                 ) {
 
                     $tmpKey++;
@@ -3038,7 +3039,7 @@ function zbs_concatArraysAvoidDuplicateKeys($arr1, $arr2) {
     }
 
     $resultArray = $arr1 + $arr2;
-    return($resultArray);
+    return ($resultArray);
 }
 
 
@@ -3103,4 +3104,44 @@ function stg_del_user_tagid($login, $tagid) {
     $query = "DELETE from `tags` WHERE `login`='" . $login . "' AND `tagid`='" . $tagid . "'";
     nr_query($query);
     log_register('TAGDEL LOGIN (' . $login . ') TAGID [' . $tagid . ']');
+}
+
+
+/**
+ * Catches PWA manifest request and renders it
+ *
+ * @return void
+ */
+function zbs_ManifestCatchRequest() {
+    if (ubRouting::checkGet('manifest')) {
+        $us_config = zbs_LoadConfig();
+        $customAppIcons = array();
+        $ispName = ($us_config['ISP_NAME']) ? $us_config['ISP_NAME'] : '';
+        $applicationName = ($ispName) ? $ispName . ' ' . __('User stats') : __('User stats');
+        $shortName = ($ispName) ? $ispName : __('User stats');
+
+        if (isset($us_config['WA_NAME'])) {
+            if (!empty($us_config['WA_NAME'])) {
+                $applicationName = $us_config['WA_NAME'];
+                $shortName = $us_config['WA_NAME'];
+            }
+        }
+
+        if (isset($us_config['WA_ICON_192']) and isset($us_config['WA_ICON_512'])) {
+            if (!empty($us_config['WA_ICON_192']) and !empty($us_config['WA_ICON_512'])) {
+                $customAppIcons = array(
+                    0 => array('src' => $us_config['WA_ICON_192'], 'sizes' => '192x192', 'type' => 'image/png'),
+                    1 => array('src' => $us_config['WA_ICON_512'], 'sizes' => '512x512', 'type' => 'image/png')
+                );
+            }
+        }
+
+        $manifestor = new Manifestator();
+        $manifestor->setName($applicationName);
+        $manifestor->setShortName($shortName);
+        if ($customAppIcons) {
+            $manifestor->setIcons($customAppIcons);
+        }
+        $manifestor->render();
+    }
 }

@@ -25,6 +25,7 @@ require_once('modules/engine/api.nyanorm.php');
 require_once('modules/engine/api.omegatv.php');
 require_once('modules/engine/api.trinitytv.php');
 require_once('modules/engine/api.usreminder.php');
+require_once('modules/engine/api.manifestator.php');
 
 
 // ACTIONS HANDLING:
@@ -39,6 +40,10 @@ if (!empty($us_access)) {
         die($accDeniedBody);
     }
 }
+
+//web app manifest rendering
+zbs_ManifestCatchRequest();
+   
 
 if ($user_ip) {
     if (!isset($_GET['module'])) {
@@ -103,13 +108,13 @@ if ($user_ip) {
         zbs_LoadModule($_GET['module']);
     }
     //render logout form if user already signed in
-    if (isset($us_config['INLINE_LOGOUT']) AND $us_config['INLINE_LOGOUT']) {
-        if ($us_config['auth'] == 'login' OR $us_config['auth'] == 'both') {
+    if (isset($us_config['INLINE_LOGOUT']) and $us_config['INLINE_LOGOUT']) {
+        if ($us_config['auth'] == 'login' or $us_config['auth'] == 'both') {
             zbs_LogoutForm();
         }
     }
 } else {
-    if ($us_config['auth'] == 'login' OR $us_config['auth'] == 'both') {
+    if ($us_config['auth'] == 'login' or $us_config['auth'] == 'both') {
         zbs_LoginForm();
         //bottom auth intro
         if (isset($us_config['INTRO_MODE'])) {
@@ -131,4 +136,3 @@ if (isset($us_config['DEBUG_COUNTERS'])) {
 
 // LOAD TEMPLATE:
 zbs_ShowTemplate();
-?>
