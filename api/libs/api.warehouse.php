@@ -3642,7 +3642,7 @@ class Warehouse {
         $result = '';
         if (!empty($this->allIncoming)) {
             $columns = array('Category', 'Warehouse item types', 'At storage', 'Reserved', 'Total', 'Actions');
-            $options=' "dom": \'<"F"lfB>rti<"F"ps>\',  buttons: [\'csv\', \'excel\', \'pdf\', \'print\']';
+            $options = ' "dom": \'<"F"lfB>rti<"F"ps>\',  buttons: [\'csv\', \'excel\', \'pdf\', \'print\']';
             $result = wf_JqDtLoader($columns, self::URL_ME . '&' . self::URL_REPORTS . '&' . self::URL_REAJTREM, true, 'Warehouse item types', 50, $options);
         } else {
             $result = $this->messages->getStyledMessage(__('Nothing found'), 'warning');
@@ -3930,36 +3930,36 @@ class Warehouse {
     public function qrCodeDraw($type, $id) {
         $type = vf($type);
         $id = vf($id, 3);
-        
+
         switch ($type) {
             case 'in':
                 if (isset($this->allIncoming[$id])) {
                     $itemName = $this->allItemTypeNames[$this->allIncoming[$id]['itemtypeid']];
-                    $qrText=$itemName . ' ' . __('Incoming operation') . '# ' . $id;
+                    $qrText = $itemName . ' ' . __('Incoming operation') . '# ' . $id;
                 } else {
-                    $qrText=('Wrong ID');
+                    $qrText = ('Wrong ID');
                 }
                 break;
 
             case 'out':
                 if (isset($this->allOutcoming[$id])) {
                     $itemName = $this->allItemTypeNames[$this->allOutcoming[$id]['itemtypeid']];
-                    $qrText=$itemName . ' ' . __('Outcoming operation') . '# ' . $id;
+                    $qrText = $itemName . ' ' . __('Outcoming operation') . '# ' . $id;
                 } else {
-                    $qrText='Wrong ID';
+                    $qrText = 'Wrong ID';
                 }
                 break;
 
             case 'itemtype':
                 if (isset($this->allItemTypeNames[$id])) {
-                    $qrText=($this->allItemTypeNames[$id]);
+                    $qrText = ($this->allItemTypeNames[$id]);
                 } else {
-                    $qrText='Wrong ID';
+                    $qrText = 'Wrong ID';
                 }
                 break;
 
             default:
-                $qrText='Wrong type';
+                $qrText = 'Wrong type';
                 break;
         }
         $qr = new QRCode($qrText);
@@ -4550,21 +4550,44 @@ class Warehouse {
         $curyear = (ubRouting::checkPost('yearsel')) ? ubRouting::post('yearsel', 'int') : date("Y");
         $curmonth = (ubRouting::checkPost('monthsel')) ? ubRouting::post('monthsel', 'int') : date("m");
         $hideNoMoveFlag = (ubRouting::checkPost('ignorenotmoving')) ? true : false;
+        $storageIdFilter = (ubRouting::checkPost('storageidfilter')) ? ubRouting::post('storageidfilter') : 0;
 
         //report form inputs
         $inputs = wf_YearSelector('yearsel', __('Year')) . ' ';
         $inputs .= wf_MonthSelector('monthsel', __('Month'), $curmonth) . ' ';
-        $inputs .= wf_CheckInput('ignorenotmoving', __('Hide without movement'), false, $hideNoMoveFlag);
-        $inputs .= wf_CheckInput('printmode', __('Print'), false, false);
+        $storageFilters = array('0' => __('Any'));
+        $storageFilters += $this->allStorages;
+        $inputs .= wf_Selector('storageidfilter', $storageFilters, __('Warehouse storage'), $storageIdFilter, false);
+        $inputs .= wf_CheckInput('ignorenotmoving', __('Hide without movement'), false, $hideNoMoveFlag) . ' ';
+        $inputs .= wf_CheckInput('printmode', __('Print'), false, false) . ' ';
+
         $inputs .= wf_Submit(__('Show'));
         $searchForm = wf_Form('', 'POST', $inputs, 'glamour');
         $searchForm .= wf_CleanDiv();
 
         //append form to result
-        if (!wf_CheckPost(array('printmode'))) {
+        if (!ubRouting::checkPost('printmode')) {
             $result .= $searchForm;
         }
 
+        //in-out properties copies for further report generation
+        $allIncoming = $this->allIncoming;
+        $allOutcoming = $this->allOutcoming;
+
+        //optional storage-id filter here
+        if ($storageIdFilter) {
+            foreach ($allIncoming as $io => $each) {
+                if ($each['storageid'] != $storageIdFilter) {
+                    unset($allIncoming[$io]);
+                }
+            }
+
+            foreach ($allOutcoming as $io => $each) {
+                if ($each['storageid'] != $storageIdFilter) {
+                    unset($allOutcoming[$io]);
+                }
+            }
+        }
 
         $lowerOffset = strtotime($curyear . '-' . $curmonth . '-01');
         $upperOffset = strtotime($curyear . '-' . $curmonth . '-01');
@@ -4573,8 +4596,8 @@ class Warehouse {
         $incomingLower = array();
         $outcomingLower = array();
 
-        if (!empty($this->allIncoming)) {
-            foreach ($this->allIncoming as $io => $each) {
+        if (!empty($allIncoming)) {
+            foreach ($allIncoming as $io => $each) {
                 $incomingDate = strtotime($each['date']);
                 if ($incomingDate < $lowerOffset) {
                     if ($each['contractorid'] != 0) { //ignoring move ops
@@ -4585,8 +4608,8 @@ class Warehouse {
         }
 
 
-        if (!empty($this->allOutcoming)) {
-            foreach ($this->allOutcoming as $io => $each) {
+        if (!empty($allOutcoming)) {
+            foreach ($allOutcoming as $io => $each) {
                 $outcomingDate = strtotime($each['date']);
                 if ($outcomingDate < $lowerOffset) {
                     if ($each['desttype'] != 'storage') { // ignoring move ops
@@ -4646,8 +4669,8 @@ class Warehouse {
 
         //second column
         $upperIncome = array();
-        if (!empty($this->allIncoming)) {
-            foreach ($this->allIncoming as $io => $each) {
+        if (!empty($allIncoming)) {
+            foreach ($allIncoming as $io => $each) {
                 $incomeDate = strtotime($each['date']);
                 if (($incomeDate >= $lowerOffset) and ($incomeDate) <= $upperOffset) {
                     if ($each['contractorid'] != 0) { //ignoring move ops
@@ -4665,8 +4688,8 @@ class Warehouse {
 
         //third column
         $upperOutcome = array();
-        if (!empty($this->allOutcoming)) {
-            foreach ($this->allOutcoming as $io => $each) {
+        if (!empty($allOutcoming)) {
+            foreach ($allOutcoming as $io => $each) {
                 $outcomeDate = strtotime($each['date']);
                 if (($outcomeDate >= $lowerOffset) and ($outcomeDate) <= $upperOffset) {
                     if ($each['desttype'] != 'storage') { //ignoring move ops
