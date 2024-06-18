@@ -3308,3 +3308,6 @@ ALTER TABLE `vservices` ADD `archived` TINYINT(1) NOT NULL DEFAULT 0;
 
 -- 1.4.6 update
 ALTER TABLE zte_cards MODIFY COLUMN `card_name` varchar(7) NOT NULL;
+
+-- 1.4.7 update
+ALTER TABLE `callmeback` ADD `userlogin` VARCHAR(64) NULL DEFAULT NULL AFTER `admin`;

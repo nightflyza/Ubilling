@@ -131,6 +131,24 @@ class CallMeBack {
     }
 
     /**
+     * Sets call record user login in database
+     * 
+     * @param int $callId
+     * @param string $userLogin
+     * 
+     * @return void
+     */
+    public function setCallUserLogin($callId, $userLogin) {
+        $callId = ubRouting::filters($callId, 'int');
+        $loginF = ubRouting::filters($userLogin, 'mres');
+        if ($loginF) {
+            $this->calls->where('id', '=', $callId);
+            $this->calls->data('userlogin', $loginF);
+            $this->calls->save();
+        }
+    }
+
+    /**
      * Returns unprocessed calls count
      * 
      * @return int
@@ -152,17 +170,30 @@ class CallMeBack {
     }
 
     /**
-     * Try to detect user by its mobile and returns its navigation control
+     * Try to detect user by its mobile and returns its login
      * 
      * @param string $number
      * 
      * @return string
      */
-    protected function getUserLinkByPhone($number) {
+    protected function getUserLoginByPhone($number) {
+        $result = $this->telepathy->getByPhoneFast($number, true, true);
+        return ($result);
+    }
+
+    /**
+     * Just returns user profile link by its login
+     * 
+     * @param string $login
+     * 
+     * @return string
+     */
+    protected function getUserLinkByLogin($login = '') {
         $result = '';
-        $detectedLogin = $this->telepathy->getByPhoneFast($number, true, true);
-        if (!empty($detectedLogin)) {
-            $result .= wf_Link(self::URL_USERPROFILE . $detectedLogin, web_profile_icon() . ' ' . @$this->allAddress[$detectedLogin]);
+        if (!empty($login)) {
+            $result .= wf_Link(self::URL_USERPROFILE . $login, web_profile_icon() . ' ' . @$this->allAddress[$login]);
+        } else {
+            $result .= '-';
         }
         return ($result);
     }
@@ -183,10 +214,21 @@ class CallMeBack {
             $cells .= wf_TableCell(__('Actions'), '50%');
             $rows = wf_TableRow($cells, 'row1');
             foreach ($undoneCalls as $io => $each) {
-                $callTimestamp = strtotime($each['date']);
+                $userLink = '';
+                if (empty($each['userlogin'])) {
+                    $userLogin = $this->getUserLoginByPhone($each['number']);
+                    if (!empty($userLogin)) {
+                        //guessed!
+                        $userLink = $this->getUserLinkByLogin($userLogin);
+                        //updating database call record
+                        $this->setCallUserLogin($each['id'],$userLogin);
+                    }
+                } else {
+                    $userLink = $this->getUserLinkByLogin($each['userlogin']);
+                }
                 $cells = wf_TableCell($each['date']);
                 $cells .= wf_TableCell($each['number']);
-                $cells .= wf_TableCell($this->getUserLinkByPhone($each['number']));
+                $cells .= wf_TableCell($userLink);
                 $callControls = wf_Link(self::URL_ME . '&setcall=' . $each['id'] . '&state=done', wf_img('skins/calls/phone_green.png') . ' ' . __('Recalled'), false, 'ubButton') . ' ';
                 $callControls .= wf_Link(self::URL_ME . '&setcall=' . $each['id'] . '&state=noanswer', wf_img('skins/calls/phone_red.png') . ' ' . __('No answer'), false, 'ubButton') . ' ';
                 $callControls .= wf_Link(self::URL_ME . '&setcall=' . $each['id'] . '&state=wrongnum', wf_img('skins/calls/phone_fail.png') . ' ' . __('Wrong number'), false, 'ubButton') . ' ';
@@ -271,10 +313,18 @@ class CallMeBack {
             $this->initTelepathy();
             $json = new wf_JqDtHelper();
             foreach ($allCalls as $io => $each) {
+                //TODO: take decision about following part that impacts performance
+                // if (empty($each['userlogin'])) {
+                //     $guessedLogin=$this->getUserLoginByPhone($each['number']);
+                //     if ($guessedLogin) {
+                //         $this->setCallUserLogin($each['id'],$guessedLogin);
+                //     }
+                // }
+
                 $data[] = $each['id'];
                 $data[] = $each['date'];
                 $data[] = $each['number'];
-                $data[] = $this->getUserLinkByPhone($each['number']);
+                $data[] = $this->getUserLinkByLogin($each['userlogin']);
                 $data[] = $each['statedate'];
                 $employeeLabel = '';
                 if (!empty($each['admin'])) {
