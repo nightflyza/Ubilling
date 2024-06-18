@@ -4519,12 +4519,13 @@ class Warehouse {
     /**
      * Returns list of all signup typed tasks as id=>id
      * 
+     * @param int $year
+     * 
      * @return array
      */
-    protected function getAllSignupTasks() {
+    protected function getAllSignupTasks($year='') {
         $result = array();
         $signupJobTypes = array();
-
         $signupJobTypesTmp = $this->altCfg['TASKREPORT_SIGNUPJOBTYPES'];
         if (!empty($signupJobTypesTmp)) {
             $signupJobTypesTmp = explode(',', $signupJobTypesTmp);
@@ -4535,7 +4536,7 @@ class Warehouse {
             }
         }
 
-        $allTasks = ts_GetAllTasks();
+        $allTasks = ts_GetAllTasks($year);
         if (!empty($allTasks)) {
             foreach ($allTasks as $io => $each) {
                 if (isset($signupJobTypes[$each['jobtype']])) {
@@ -4565,16 +4566,15 @@ class Warehouse {
     public function reportDateRemains() {
         $result = '';
 
-        $taskReportFlag = (@$this->altCfg['TASKREPORT_ENABLED']) ? true : false;
-        $allSignupTasks = array();
-        if ($taskReportFlag) {
-            $allSignupTasks = $this->getAllSignupTasks();
-        }
-
         $curyear = (ubRouting::checkPost('yearsel')) ? ubRouting::post('yearsel', 'int') : date("Y");
         $curmonth = (ubRouting::checkPost('monthsel')) ? ubRouting::post('monthsel', 'int') : date("m");
         $hideNoMoveFlag = (ubRouting::checkPost('ignorenotmoving')) ? true : false;
         $storageIdFilter = (ubRouting::checkPost('storageidfilter')) ? ubRouting::post('storageidfilter') : 0;
+        $taskReportFlag = (@$this->altCfg['TASKREPORT_ENABLED']) ? true : false;
+        $allSignupTasks = array();
+        if ($taskReportFlag) {
+            $allSignupTasks = $this->getAllSignupTasks($curyear);
+        }
 
         //report form inputs
         $inputs = wf_YearSelector('yearsel', __('Year')) . ' ';

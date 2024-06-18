@@ -72,7 +72,7 @@ function em_EmployeeRenderList() {
             $cells .= wf_TableCell($actions);
             $rows .= wf_TableRow($cells, 'row5');
         }
-//existing employee list
+        //existing employee list
         $result = wf_TableBody($rows, '100%', '0', 'sortable');
     } else {
         $result .= $messages->getStyledMessage(__('Nothing to show'), 'warning');
@@ -103,7 +103,7 @@ function em_EmployeeCreateForm() {
     $inputs .= wf_Submit(__('Create new employee'));
 
     $result .= wf_Form('', 'POST', $inputs, 'glamour');
-    return($result);
+    return ($result);
 }
 
 /**
@@ -158,7 +158,7 @@ function em_employeeEditForm($editemployee) {
     $editinputs .= wf_Submit('Save');
     $result .= wf_Form('', 'POST', $editinputs, 'glamour');
 
-    return($result);
+    return ($result);
 }
 
 /**
@@ -177,7 +177,7 @@ function em_JobTypeEditForm($editjobId) {
     $jobinputs .= wf_ColPicker('editjobcolor', __('Color'), $jobcolor, true, 10);
     $jobinputs .= wf_Submit('Save');
     $result .= wf_Form('', 'POST', $jobinputs, 'glamour');
-    return($result);
+    return ($result);
 }
 
 /**
@@ -255,7 +255,7 @@ function em_JobTypeCreateForm() {
 
     $result .= wf_Form('', 'POST', $inputs, 'glamour');
 
-    return($result);
+    return ($result);
 }
 
 /**
@@ -340,7 +340,7 @@ function stg_get_employee_name($id) {
     $id = vf($id, 3);
     $query = 'SELECT `name` from `employee` WHERE `id`="' . $id . '"';
     $employee = simple_query($query);
-    return($employee['name']);
+    return ($employee['name']);
 }
 
 /**
@@ -353,7 +353,7 @@ function stg_get_employee_data($id) {
     $id = vf($id, 3);
     $query = 'SELECT *  from `employee` WHERE `id`="' . $id . '"';
     $employee = simple_query($query);
-    return($employee);
+    return ($employee);
 }
 
 /**
@@ -365,7 +365,7 @@ function stg_get_employee_data($id) {
 function stg_get_jobtype_name($id) {
     $query = 'SELECT `jobname` from `jobtypes` WHERE `id`="' . $id . '"';
     $jobtype = simple_query($query);
-    return($jobtype['jobname']);
+    return ($jobtype['jobname']);
 }
 
 /**
@@ -377,7 +377,7 @@ function stg_get_jobtype_name($id) {
 function stg_get_jobtype_color($id) {
     $query = 'SELECT `jobcolor` from `jobtypes` WHERE `id`="' . $id . '"';
     $jobcolor = simple_query($query);
-    return($jobcolor['jobcolor']);
+    return ($jobcolor['jobcolor']);
 }
 
 /**
@@ -406,7 +406,7 @@ function web_showPreviousJobs($username) {
 
     if (!empty($alljobs)) {
         foreach ($alljobs as $ion => $eachjob) {
-//backlink to taskman if some TASKID inside
+            //backlink to taskman if some TASKID inside
             if (ispos($eachjob['note'], 'TASKID:[')) {
                 $taskid = vf($eachjob['note'], 3);
                 $jobnote = wf_Link("?module=taskman&&edittask=" . $taskid, __('Task is done') . ' #' . $taskid, false, '');
@@ -427,7 +427,7 @@ function web_showPreviousJobs($username) {
     }
 
     if (cfr('JOBSMGMT')) {
-//onstruct job create form
+        //onstruct job create form
         $curdatetime = curdatetime();
         $inputs = wf_HiddenInput('addjob', 'true');
         $inputs .= wf_HiddenInput('jobdate', $curdatetime);
@@ -441,7 +441,7 @@ function web_showPreviousJobs($username) {
 
         $addform = wf_Form("", 'POST', $inputs, '');
 
-        if ((!empty($activeemployee)) AND (!empty($alljobtypes))) {
+        if ((!empty($activeemployee)) and (!empty($alljobtypes))) {
             $rows .= $addform;
         } else {
             show_error(__('No job types and employee available'));
@@ -499,7 +499,7 @@ function stg_add_new_job($login, $date, $worker_id, $jobtype_id, $job_notes) {
  */
 function ts_DetectUserByAddress($address) {
     $telepathy = new Telepathy(false, true);
-    return($telepathy->getLogin($address));
+    return ($telepathy->getLogin($address));
 }
 
 /**
@@ -610,7 +610,7 @@ function ts_GetAllJobtypesColorStyles() {
             }
         }
     }
-//anyone optional coloring
+    //anyone optional coloring
 
     $customJobColorStyle .= '.jobcoloranyone,
                                                    .jobcoloranyone div,
@@ -719,11 +719,11 @@ function ts_JGetUndoneTasks() {
     $showAllYearsTasks = $ubillingConfig->getAlterParam('TASKMAN_SHOW_ALL_YEARS_TASKS');
     $advFiltersEnabled = $ubillingConfig->getAlterParam('TASKMAN_ADV_FILTERS');
     $branchConsider = ($ubillingConfig->getAlterParam('BRANCHES_ENABLED')
-            and $ubillingConfig->getAlterParam('TASKMAN_BRANCHES_CONSIDER_ON'));
+        and $ubillingConfig->getAlterParam('TASKMAN_BRANCHES_CONSIDER_ON'));
     $depthMonthLimit = $ubillingConfig->getAlterParam('TASKMAN_DEPTH_LIMIT', 0);
     $depthMonthLimit = ubRouting::filters($depthMonthLimit, 'int');
 
-//ADcomments init
+    //ADcomments init
     if ($altCfg['ADCOMMENTS_ENABLED']) {
         $adcomments = new ADcomments('TASKMAN');
         $adcFlag = true;
@@ -740,8 +740,8 @@ function ts_JGetUndoneTasks() {
     $appendQueryJOIN = '';
     $appendQuerySelect = '';
 
-//date filters
-    if (!$showAllYearsTasks AND ( $curmonth != 1 AND $curmonth != 12)) {
+    //date filters
+    if (!$showAllYearsTasks and ($curmonth != 1 and $curmonth != 12)) {
         $dateFilter = "AND `startdate` LIKE '" . $curyear . "-%'";
     }
 
@@ -752,9 +752,9 @@ function ts_JGetUndoneTasks() {
 
     $appendQuery .= $dateFilter;
 
-//per employee filtering
+    //per employee filtering
     $displaytype = (isset($_POST['displaytype'])) ? $_POST['displaytype'] : 'all';
-//administrator is cursed of some branch
+    //administrator is cursed of some branch
     if (ts_isMeBranchCursed()) {
         $displaytype = 'onlyme';
     }
@@ -808,7 +808,7 @@ function ts_JGetUndoneTasks() {
                 $enddate = $startdate;
             }
 
-//custom task color preprocessing
+            //custom task color preprocessing
             if (isset($alljobdata[$eachtask['jobtype']])) {
                 if (!empty($alljobdata[$eachtask['jobtype']]['jobcolor'])) {
                     $jobColorClass = 'jobcolorcustom_' . $eachtask['jobtype'];
@@ -819,14 +819,14 @@ function ts_JGetUndoneTasks() {
                 $jobColorClass = 'undone';
             }
 
-//anyone employee coloring
+            //anyone employee coloring
             if ($anyoneId) {
                 if ($eachtask['employee'] == $anyoneId) {
                     $jobColorClass = 'jobcoloranyone';
                 }
             }
 
-//time ordering
+            //time ordering
             if (!empty($eachtask['starttime'])) {
                 $startTime = $eachtask['starttime'];
                 $startTime = substr($startTime, 0, 5) . ' ';
@@ -836,7 +836,7 @@ function ts_JGetUndoneTasks() {
                 $startTimeTimestamp = '';
             }
 
-//adcomments detect
+            //adcomments detect
             if ($adcFlag) {
                 $adcommentsCount = $adcomments->getCommentsCount($eachtask['id']);
             } else {
@@ -849,7 +849,7 @@ function ts_JGetUndoneTasks() {
                 $adcText = '';
             }
 
-// get users's branch
+            // get users's branch
             $branchName = ($branchConsider) ? ' ' . $eachtask['branch_name'] . ' ' : '';
 
             $result .= "
@@ -882,11 +882,11 @@ function ts_JGetDoneTasks() {
     $extendedDoneAlterStyling = $ubillingConfig->getAlterParam('TASKMAN_DONE_EXTENDED_ALTERSTYLING');
     $advFiltersEnabled = $ubillingConfig->getAlterParam('TASKMAN_ADV_FILTERS');
     $branchConsider = ($ubillingConfig->getAlterParam('BRANCHES_ENABLED')
-            and $ubillingConfig->getAlterParam('TASKMAN_BRANCHES_CONSIDER_ON'));
+        and $ubillingConfig->getAlterParam('TASKMAN_BRANCHES_CONSIDER_ON'));
     $depthMonthLimit = $ubillingConfig->getAlterParam('TASKMAN_DEPTH_LIMIT', 0);
     $depthMonthLimit = ubRouting::filters($depthMonthLimit, 'int');
 
-//ADcomments init
+    //ADcomments init
     if ($altCfg['ADCOMMENTS_ENABLED']) {
         $adcomments = new ADcomments('TASKMAN');
         $adcFlag = true;
@@ -902,8 +902,8 @@ function ts_JGetDoneTasks() {
     $appendQueryJOIN = '';
     $appendQuerySelect = '';
 
-//date filters
-    if (!$showAllYearsTasks AND ( $curmonth != 1 AND $curmonth != 12)) {
+    //date filters
+    if (!$showAllYearsTasks and ($curmonth != 1 and $curmonth != 12)) {
         $dateFilter = "AND `startdate` LIKE '" . $curyear . "-%'";
     }
 
@@ -914,9 +914,9 @@ function ts_JGetDoneTasks() {
 
     $appendQuery .= $dateFilter;
 
-//per employee filtering
+    //per employee filtering
     $displaytype = (isset($_POST['displaytype'])) ? $_POST['displaytype'] : 'all';
-//administrator is cursed of some branch
+    //administrator is cursed of some branch
     if (ts_isMeBranchCursed()) {
         $displaytype = 'onlyme';
     }
@@ -971,7 +971,7 @@ function ts_JGetDoneTasks() {
             }
 
 
-//adcomments detect
+            //adcomments detect
             if ($adcFlag) {
                 $adcommentsCount = $adcomments->getCommentsCount($eachtask['id']);
             } else {
@@ -1005,7 +1005,7 @@ function ts_JGetDoneTasks() {
                 $extendInfo = '';
             }
 
-// get users's branch
+            // get users's branch
             $branchName = ($branchConsider) ? ' ' . $eachtask['branch_name'] . ' ' : '';
 
             $result .= "
@@ -1036,11 +1036,11 @@ function ts_JGetAllTasks() {
     $showAllYearsTasks = $ubillingConfig->getAlterParam('TASKMAN_SHOW_ALL_YEARS_TASKS');
     $advFiltersEnabled = $ubillingConfig->getAlterParam('TASKMAN_ADV_FILTERS');
     $branchConsider = ($ubillingConfig->getAlterParam('BRANCHES_ENABLED')
-            and $ubillingConfig->getAlterParam('TASKMAN_BRANCHES_CONSIDER_ON'));
+        and $ubillingConfig->getAlterParam('TASKMAN_BRANCHES_CONSIDER_ON'));
     $depthMonthLimit = $ubillingConfig->getAlterParam('TASKMAN_DEPTH_LIMIT', 0);
     $depthMonthLimit = ubRouting::filters($depthMonthLimit, 'int');
 
-//ADcomments init
+    //ADcomments init
     if ($altCfg['ADCOMMENTS_ENABLED']) {
         $adcomments = new ADcomments('TASKMAN');
         $adcFlag = true;
@@ -1057,8 +1057,8 @@ function ts_JGetAllTasks() {
     $appendQueryJOIN = '';
     $appendQuerySelect = '';
 
-//date filters
-    if (!$showAllYearsTasks AND ( $curmonth != 1 AND $curmonth != 12)) {
+    //date filters
+    if (!$showAllYearsTasks and ($curmonth != 1 and $curmonth != 12)) {
         $dateFilter = "AND `startdate` LIKE '" . $curyear . "-%'";
     }
 
@@ -1069,9 +1069,9 @@ function ts_JGetAllTasks() {
 
     $appendQuery .= $dateFilter;
 
-//per employee filtering
+    //per employee filtering
     $displaytype = (isset($_POST['displaytype'])) ? $_POST['displaytype'] : 'all';
-//administrator is cursed of some branch
+    //administrator is cursed of some branch
     if (ts_isMeBranchCursed()) {
         $displaytype = 'onlyme';
     }
@@ -1122,7 +1122,7 @@ function ts_JGetAllTasks() {
             $startdate = strtotime($eachtask['startdate']);
             $startdate = date("Y, n-1, j", $startdate);
 
-//time ordering
+            //time ordering
             if (!empty($eachtask['starttime'])) {
                 $startTime = $eachtask['starttime'];
                 $startTime = substr($startTime, 0, 5) . ' ';
@@ -1154,7 +1154,7 @@ function ts_JGetAllTasks() {
                 $coloring = '';
             }
 
-//adcomments detect
+            //adcomments detect
             if ($adcFlag) {
                 $adcommentsCount = $adcomments->getCommentsCount($eachtask['id']);
             } else {
@@ -1167,7 +1167,7 @@ function ts_JGetAllTasks() {
                 $adcText = '';
             }
 
-// get users's branch
+            // get users's branch
             $branchName = ($branchConsider) ? ' ' . $eachtask['branch_name'] . ' ' : '';
 
             $result .= "
@@ -1245,14 +1245,14 @@ function ts_TaskCreateForm() {
 
     $alljobtypes = ts_GetAllJobtypes();
     $allemployee = ts_GetActiveEmployee();
-    $preselectedEmployee=$ubillingConfig->getAlterParam('TASKMAN_ANYONE_EMPLOYEEID','');
+    $preselectedEmployee = $ubillingConfig->getAlterParam('TASKMAN_ANYONE_EMPLOYEEID', '');
 
-    if (!empty($alljobtypes) AND !empty($allemployee)) {
-//construct sms sending inputs
+    if (!empty($alljobtypes) and !empty($allemployee)) {
+        //construct sms sending inputs
         if ($altercfg['SENDDOG_ENABLED']) {
             $smsCheckBox = (@$altercfg['TASKMAN_SMS_PROFILE_CHECK']) ? true : false;
             $smsInputs = wf_CheckInput('newtasksendsms', __('Send SMS'), false, $smsCheckBox);
-// SET checkbed TELEGRAM for creating task from Userprofile if TASKMAN_TELEGRAM_PROFILE_CHECK == 1
+            // SET checkbed TELEGRAM for creating task from Userprofile if TASKMAN_TELEGRAM_PROFILE_CHECK == 1
             $telegramInputsCheck = (isset($altercfg['TASKMAN_TELEGRAM_PROFILE_CHECK']) && $altercfg['TASKMAN_TELEGRAM_PROFILE_CHECK']) ? TRUE : FALSE;
             $telegramInputs = wf_CheckInput('newtasksendtelegram', __('Telegram'), false, $telegramInputsCheck);
         } else {
@@ -1278,7 +1278,7 @@ function ts_TaskCreateForm() {
             $inputs .= wf_AutocompleteTextInput('newtaskaddress', $allAddress, __('Address') . '<sup>*</sup>', '', true, '30');
         }
         $inputs .= wf_tag('br');
-//hidden for new task login input
+        //hidden for new task login input
         $inputs .= wf_HiddenInput('newtasklogin', '');
         $inputs .= wf_TextInput('newtaskphone', __('Phone') . '<sup>*</sup>', '', true, '30');
         $inputs .= wf_tag('br');
@@ -1317,18 +1317,18 @@ function ts_TaskCreateFormProfile($address, $mobile, $phone, $login) {
 
     $alljobtypes = ts_GetAllJobtypes();
     $allemployee = ts_GetActiveEmployee();
-    $preselectedEmployee=$ubillingConfig->getAlterParam('TASKMAN_ANYONE_EMPLOYEEID','');
+    $preselectedEmployee = $ubillingConfig->getAlterParam('TASKMAN_ANYONE_EMPLOYEEID', '');
 
-    if (!empty($alljobtypes) AND !empty($allemployee)) {
-// telepaticheskoe ugadivanie po tegu, kto dolzhen vipolnit rabotu
+    if (!empty($alljobtypes) and !empty($allemployee)) {
+        // telepaticheskoe ugadivanie po tegu, kto dolzhen vipolnit rabotu
         $query = "SELECT `employee`.`id` FROM `tags` INNER JOIN employee USING (tagid) WHERE `login` = '" . $login . "'";
         $telepat_who_should_do = simple_query($query);
 
-//construct sms sending inputs
+        //construct sms sending inputs
         if ($ubillingConfig->getAlterParam('SENDDOG_ENABLED')) {
             $smsCheckBox = ($ubillingConfig->getAlterParam('TASKMAN_SMS_PROFILE_CHECK')) ? true : false;
             $smsInputs = wf_CheckInput('newtasksendsms', __('Send SMS'), false, $smsCheckBox);
-// SET checkbed TELEGRAM for creating task from Userprofile if TASKMAN_TELEGRAM_PROFILE_CHECK == 1
+            // SET checkbed TELEGRAM for creating task from Userprofile if TASKMAN_TELEGRAM_PROFILE_CHECK == 1
             $telegramInputsCheck = ($ubillingConfig->getAlterParam('TASKMAN_TELEGRAM_PROFILE_CHECK')) ? TRUE : FALSE;
             $telegramInputs = wf_CheckInput('newtasksendtelegram', __('Telegram'), false, $telegramInputsCheck);
         } else {
@@ -1336,7 +1336,7 @@ function ts_TaskCreateFormProfile($address, $mobile, $phone, $login) {
             $telegramInputs = '';
         }
 
-//new task creation data/time generation
+        //new task creation data/time generation
         if ($ubillingConfig->getAlterParam('TASKMAN_NEWTASK_AUTOTIME') == 1) {
             $TaskDate = new DateTime();
             $TaskDate->add(new DateInterval('PT1H'));
@@ -1346,7 +1346,7 @@ function ts_TaskCreateFormProfile($address, $mobile, $phone, $login) {
             $TaskDate = new DateTime();
             $TaskDate->add(new DateInterval('P1D'));
             $TaskDate->setTime(8, 00);
-// В воскресенье работать не хочу
+            // В воскресенье работать не хочу
             if ($newTaskDate = $TaskDate->format('w') == 0) {
                 $TaskDate->add(new DateInterval('P1D'));
             }
@@ -1374,7 +1374,7 @@ function ts_TaskCreateFormProfile($address, $mobile, $phone, $login) {
         $inputs .= wf_tag('label') . __('Target date') . $sup . wf_tag('label', true);
         $inputs .= wf_delimiter();
         $inputs .= wf_TextInput('newtaskaddress', __('Address') . $sup, $address, true, '30');
-//hidden for new task login input
+        //hidden for new task login input
         $inputs .= wf_HiddenInput('newtasklogin', $login);
         $inputs .= wf_tag('br');
         $inputs .= wf_TextInput('newtaskphone', __('Phone') . $sup, $mobile . ' ' . $phone, true, '30');
@@ -1382,9 +1382,9 @@ function ts_TaskCreateFormProfile($address, $mobile, $phone, $login) {
         $inputs .= wf_Selector('newtaskjobtype', $alljobtypes, __('Job type'), '', true);
         $inputs .= wf_tag('br');
         if (!empty($telepat_who_should_do)) {
-            $telepat_who_should_do=$telepat_who_should_do['id'];
+            $telepat_who_should_do = $telepat_who_should_do['id'];
         } else {
-            $telepat_who_should_do=$preselectedEmployee;
+            $telepat_who_should_do = $preselectedEmployee;
         }
         $inputs .= wf_Selector('newtaskemployee', $allemployee, __('Who should do'), $telepat_who_should_do, true, $employeeSorting);
         $inputs .= wf_tag('br');
@@ -1444,7 +1444,7 @@ function ts_PreviousUserTasksRender($login, $address = '', $noFixedWidth = false
                     $userTasks[$each['id']] = $each;
                 }
 
-//address guessing
+                //address guessing
                 if (isset($addressLoginsCache[$each['address']])) {
                     $guessedLogin = $addressLoginsCache[$each['address']];
                 } else {
@@ -1461,7 +1461,7 @@ function ts_PreviousUserTasksRender($login, $address = '', $noFixedWidth = false
                     }
                 }
             } else {
-//just address guessing
+                //just address guessing
                 if (!empty($address)) {
                     if ($address == $each['address']) {
                         $userTasks[$each['id']] = $each;
@@ -1470,7 +1470,7 @@ function ts_PreviousUserTasksRender($login, $address = '', $noFixedWidth = false
                 }
             }
         }
-//cache update
+        //cache update
         $cache->set('ADDRESSTELEPATHY', $addressLoginsCache, 2592000);
 
         if (!$arrayResult) {
@@ -1542,11 +1542,11 @@ function ts_PreviousBuildTasksRender($buildId, $noFixedWidth = false, $arrayResu
                     $taskColor = ($each['status']) ? 'donetask' : 'undone';
                     $divStyle = ($noFixedWidth) ? 'style="padding: 2px; margin: 2px;"' : 'style="width:400px;"';
                     $taskdata = $each['startdate'] . ' ' . $each['address'] . ' - ' . @$allJobTypes[$each['jobtype']] . ', ' . @$allEmployee[$each['employee']];
-//this month?
+                    //this month?
                     if (ispos($each['startdate'], $curMonth)) {
                         $resultScope = 'month';
                     }
-//or today?
+                    //or today?
                     if (ispos($each['startdate'], $curDay)) {
                         $resultScope = 'today';
                     }
@@ -1554,20 +1554,20 @@ function ts_PreviousBuildTasksRender($buildId, $noFixedWidth = false, $arrayResu
                     $tmpResult[$resultScope] .= wf_link('?module=taskman&edittask=' . $each['id'], wf_img('skins/icon_edit.gif')) . ' ' . $taskdata;
                     $tmpResult[$resultScope] .= wf_tag('div', true);
                 }
-//build result body
+                //build result body
                 if (!empty($tmpResult['today'])) {
                     $result .= wf_tag('fieldset') . wf_tag('legend') . __('Today') . wf_tag('legend', true)
-                            . $tmpResult['today'] . wf_tag('fieldset', true);
+                        . $tmpResult['today'] . wf_tag('fieldset', true);
                 }
 
                 if (!empty($tmpResult['month'])) {
                     $result .= wf_tag('fieldset') . wf_tag('legend') . __('Month') . wf_tag('legend', true)
-                            . $tmpResult['month'] . wf_tag('fieldset', true);
+                        . $tmpResult['month'] . wf_tag('fieldset', true);
                 }
 
                 if (!empty($tmpResult['year'])) {
                     $result .= wf_tag('fieldset') . wf_tag('legend') . __('Year') . ' ' . $curYear . wf_tag('legend', true)
-                            . $tmpResult['year'] . wf_tag('fieldset', true);
+                        . $tmpResult['year'] . wf_tag('fieldset', true);
                 }
             }
         } else {
@@ -1595,15 +1595,15 @@ function ts_TaskCreateFormUnified($address, $mobile, $phone, $login = '', $custo
     $altercfg = $ubillingConfig->getAlter();
     $alljobtypes = ts_GetAllJobtypes();
     $allemployee = ts_GetActiveEmployee();
-    $preselectedEmployee=$ubillingConfig->getAlterParam('TASKMAN_ANYONE_EMPLOYEEID','');
+    $preselectedEmployee = $ubillingConfig->getAlterParam('TASKMAN_ANYONE_EMPLOYEEID', '');
 
-    if (!empty($alljobtypes) AND !empty($allemployee)) {
+    if (!empty($alljobtypes) and !empty($allemployee)) {
 
-//construct sms sending inputs
+        //construct sms sending inputs
         if ($altercfg['SENDDOG_ENABLED']) {
             $smsCheckBox = ($ubillingConfig->getAlterParam('TASKMAN_SMS_PROFILE_CHECK')) ? true : false;
             $smsInputs = wf_CheckInput('newtasksendsms', __('Send SMS'), false, $smsCheckBox);
-// SET checkbed TELEGRAM for creating task from Userprofile if TASKMAN_TELEGRAM_PROFILE_CHECK == 1
+            // SET checkbed TELEGRAM for creating task from Userprofile if TASKMAN_TELEGRAM_PROFILE_CHECK == 1
             $telegramInputsCheck = (isset($altercfg['TASKMAN_TELEGRAM_PROFILE_CHECK']) && $altercfg['TASKMAN_TELEGRAM_PROFILE_CHECK']) ? TRUE : FALSE;
             $telegramInputs = wf_CheckInput('newtasksendtelegram', __('Telegram'), false, $telegramInputsCheck);
         } else {
@@ -1662,14 +1662,14 @@ function ts_TaskCreateFormSigreq($address, $phone) {
     $altercfg = $ubillingConfig->getAlter();
     $alljobtypes = ts_GetAllJobtypes();
     $allemployee = ts_GetActiveEmployee();
-    $preselectedEmployee=$ubillingConfig->getAlterParam('TASKMAN_ANYONE_EMPLOYEEID','');
+    $preselectedEmployee = $ubillingConfig->getAlterParam('TASKMAN_ANYONE_EMPLOYEEID', '');
 
-    if (!empty($alljobtypes) AND !empty($allemployee)) {
-//construct sms sending inputs
+    if (!empty($alljobtypes) and !empty($allemployee)) {
+        //construct sms sending inputs
         if ($altercfg['SENDDOG_ENABLED']) {
             $smsCheckBox = ($ubillingConfig->getAlterParam('TASKMAN_SMS_PROFILE_CHECK')) ? true : false;
             $smsInputs = wf_CheckInput('newtasksendsms', __('Send SMS'), false, $smsCheckBox);
-// SET checkbed TELEGRAM for creating task from Userprofile if TASKMAN_TELEGRAM_PROFILE_CHECK == 1
+            // SET checkbed TELEGRAM for creating task from Userprofile if TASKMAN_TELEGRAM_PROFILE_CHECK == 1
             $telegramInputsCheck = (isset($altercfg['TASKMAN_TELEGRAM_PROFILE_CHECK']) && $altercfg['TASKMAN_TELEGRAM_PROFILE_CHECK']) ? TRUE : FALSE;
             $telegramInputs = wf_CheckInput('newtasksendtelegram', __('Telegram'), false, $telegramInputsCheck);
         } else {
@@ -1684,7 +1684,7 @@ function ts_TaskCreateFormSigreq($address, $phone) {
         $inputs .= wf_tag('label') . __('Target date') . wf_tag('sup') . '*' . wf_tag('sup', true) . wf_tag('label', true);
         $inputs .= wf_delimiter();
         $inputs .= wf_TextInput('newtaskaddress', __('Address') . '<sup>*</sup>', $address, true, '30');
-//hidden for new task login input
+        //hidden for new task login input
         $inputs .= wf_HiddenInput('newtasklogin', '');
         $inputs .= wf_tag('br');
         $inputs .= wf_TextInput('newtaskphone', __('Phone') . '<sup>*</sup>', $phone, true, '30');
@@ -1768,14 +1768,14 @@ function ts_ShowPanel() {
         $result .= wf_modalAuto(web_icon_extended() . ' ' . __('Tools'), __('Tools'), $tools, 'ubButton');
     }
 
-//calendar filters panel
+    //calendar filters panel
     if (!ubRouting::checkGet('edittask')) {
-//show type selector
+        //show type selector
         $whoami = whoami();
         $employeeid = ts_GetEmployeeByLogin($whoami);
         $advFiltersEnabled = $ubillingConfig->getAlterParam('TASKMAN_ADV_FILTERS');
 
-        if ($employeeid OR $advFiltersEnabled) {
+        if ($employeeid or $advFiltersEnabled) {
             $result .= wf_delimiter();
             $inputs = '';
 
@@ -1785,7 +1785,7 @@ function ts_ShowPanel() {
                     'all' => __('Show tasks for all users'),
                     'onlyme' => __('Show only mine tasks')
                 );
-//some other employee
+                //some other employee
                 $activeEmployeeTmp = ts_GetActiveEmployee();
                 if (!empty($activeEmployeeTmp)) {
                     foreach ($activeEmployeeTmp as $actId => $empName) {
@@ -1915,7 +1915,7 @@ function ts_SendTelegram($employeeid, $message, $taskdata = array()) {
         $telegram->sendMessage($chatId, $message, false, 'TASKMAN');
         $result['chatid'] = $chatId;
         $result['message'] = $message;
-//optional geo sending
+        //optional geo sending
         if (!empty($taskdata)) {
             if (isset($taskdata['geo'])) {
                 ts_SendTelegramVenue($chatId, @$taskdata['jobtype'], @$taskdata['address'], $taskdata['geo']);
@@ -2003,10 +2003,10 @@ function ts_CreateTask($startdate, $starttime, $address, $login, $phone, $jobtyp
     $jobnote = mysql_real_escape_string($jobnote);
 
     $smsData = 'NULL';
-//store messages for backround processing via senddog for SMS
+    //store messages for backround processing via senddog for SMS
     if ($ubillingConfig->getAlterParam('SENDDOG_ENABLED')) {
         $jobtype = ts_GetAllJobtypes();
-//SMS sending
+        //SMS sending
         if (isset($_POST['newtasksendsms'])) {
             $newSmsText = $address . ' ' . $phone . ' ' . @$jobtype[$jobtypeid] . ' ' . $jobnote . $starttimeRaw;
             $smsDataRaw = ts_SendSMS($employeeid, $newSmsText);
@@ -2024,12 +2024,12 @@ function ts_CreateTask($startdate, $starttime, $address, $login, $phone, $jobtyp
     $taskid = simple_query("SELECT LAST_INSERT_ID() as id");
     $taskid = $taskid['id'];
 
-//store messages for backround processing via senddog for Telegramm
+    //store messages for backround processing via senddog for Telegramm
     if ($ubillingConfig->getAlterParam('SENDDOG_ENABLED')) {
         if (!empty($login)) {
             $userData = zb_UserGetAllData($login);
         }
-//Telegram sending
+        //Telegram sending
         if (isset($_POST['newtasksendtelegram'])) {
             $newTelegramText = __('ID') . ': ' . $taskid . '\r\n';
             $newTelegramText .= __('Address') . ': ' . $address . '\r\n';
@@ -2059,7 +2059,7 @@ function ts_CreateTask($startdate, $starttime, $address, $login, $phone, $jobtyp
                 $newTelegramText .= __('MAC') . ': ' . @$userData[$login]['mac'] . '\r\n';
                 $newTelegramText .= __('Tariff') . ': ' . @$userData[$login]['Tariff'] . '\r\n';
 
-//data preprocessing for geo sending
+                //data preprocessing for geo sending
                 if (@isset($userData[$login]['geo'])) {
                     if (!empty($userData[$login]['geo'])) {
                         $taskDataGeo['jobtype'] = @$jobtype[$jobtypeid];
@@ -2080,25 +2080,25 @@ function ts_CreateTask($startdate, $starttime, $address, $login, $phone, $jobtyp
                 }
             }
 
-//some hack to append UKV users cable seals and maybe something else
+            //some hack to append UKV users cable seals and maybe something else
             if (wf_CheckPost(array('unifiedformtelegramappend'))) {
                 $newTelegramText .= $_POST['unifiedformtelegramappend'];
             }
 
-//appending task direct URL to task
+            //appending task direct URL to task
             $fullBillingUrl = $ubillingConfig->getAlterParam('FULL_BILLING_URL');
             $appendTaskLinkFlag = $ubillingConfig->getAlterParam('TASKMAN_SEND_TASKURL');
-            if (!empty($fullBillingUrl) AND $appendTaskLinkFlag) {
+            if (!empty($fullBillingUrl) and $appendTaskLinkFlag) {
                 $newTelegramText .= '<a href="' . $fullBillingUrl . '/?module=taskman&edittask=' . $taskid . '">🔍 ' . __('View task') . '</a> parseMode:{html}';
             }
 
 
-//telegram messages sending
+            //telegram messages sending
             ts_SendTelegram($employeeid, $newTelegramText, $taskDataGeo);
         }
     }
 
-//flushing darkvoid
+    //flushing darkvoid
     $darkVoid = new DarkVoid();
     $darkVoid->flushCache();
 
@@ -2140,11 +2140,11 @@ function ts_TaskModifyForm($taskid) {
     $allemployee = ts_GetAllEmployee();
     $activeemployee = ts_GetActiveEmployee();
     $alljobtypes = ts_GetAllJobtypes();
-//construct sms sending inputs
+    //construct sms sending inputs
     if ($altercfg['SENDDOG_ENABLED']) {
         $smsCheckBox = ($ubillingConfig->getAlterParam('TASKMAN_SMS_PROFILE_CHECK')) ? true : false;
         $smsInputs = wf_CheckInput('changetasksendsms', __('Send SMS'), false, $smsCheckBox);
-// SET checkbed TELEGRAM for creating task from Userprofile if TASKMAN_TELEGRAM_PROFILE_CHECK == 1
+        // SET checkbed TELEGRAM for creating task from Userprofile if TASKMAN_TELEGRAM_PROFILE_CHECK == 1
         $telegramInputsCheck = (isset($altercfg['TASKMAN_TELEGRAM_PROFILE_CHECK']) && $altercfg['TASKMAN_TELEGRAM_PROFILE_CHECK']) ? TRUE : FALSE;
         $telegramInputs = wf_CheckInput('changetasksendtelegram', __('Telegram'), false, $telegramInputsCheck);
     } else {
@@ -2165,14 +2165,14 @@ function ts_TaskModifyForm($taskid) {
         $inputs .= wf_tag('br');
         if ($altercfg['SEARCHADDR_AUTOCOMPLETE']) {
             $alladdress = zb_AddressGetFulladdresslistCached();
-//Commented because significantly reduces performance. Waiting for feedback.
-//natsort($alladdress);
+            //Commented because significantly reduces performance. Waiting for feedback.
+            //natsort($alladdress);
             $inputs .= wf_AutocompleteTextInput('modifytaskaddress', $alladdress, __('Address') . '<sup>*</sup>', $taskdata['address'], true, '30');
         } else {
             $inputs .= wf_TextInput('modifytaskaddress', __('Address') . '<sup>*</sup>', $taskdata['address'], true, '30');
         }
         $inputs .= wf_tag('br');
-//custom login text input
+        //custom login text input
         $inputs .= wf_TextInput('modifytasklogin', __('Login'), $taskdata['login'], true, 30);
         $inputs .= wf_tag('br');
         $inputs .= wf_TextInput('modifytaskphone', __('Phone') . '<sup>*</sup>', $taskdata['phone'], true, '30');
@@ -2234,7 +2234,7 @@ function ts_ModifyTask($taskid, $startdate, $starttime, $address, $login, $phone
     simple_update_field('taskman', 'jobnote', $jobnote, "WHERE `id`='" . $taskid . "'");
 
     $smsData = 'NULL';
-//SMS sending
+    //SMS sending
     if (isset($_POST['changetasksendsms'])) {
         $newSmsText = $address . ' ' . $phone . ' ' . @$jobtype[$jobtypeid] . ' ' . $jobnote . $starttimeRaw;
         $smsDataRaw = ts_SendSMS($employeeid, $newSmsText);
@@ -2244,7 +2244,7 @@ function ts_ModifyTask($taskid, $startdate, $starttime, $address, $login, $phone
         }
     }
 
-//Telegram sending
+    //Telegram sending
     if (isset($_POST['changetasksendtelegram'])) {
         if (!empty($login)) {
             $userData = zb_UserGetAllData($login);
@@ -2287,17 +2287,17 @@ function ts_ModifyTask($taskid, $startdate, $starttime, $address, $login, $phone
             }
         }
 
-//appending task direct URL to task
+        //appending task direct URL to task
         $fullBillingUrl = $ubillingConfig->getAlterParam('FULL_BILLING_URL');
         $appendTaskLinkFlag = $ubillingConfig->getAlterParam('TASKMAN_SEND_TASKURL');
-        if (!empty($fullBillingUrl) AND $appendTaskLinkFlag) {
+        if (!empty($fullBillingUrl) and $appendTaskLinkFlag) {
             $newTelegramText .= '<a href="' . $fullBillingUrl . '/?module=taskman&edittask=' . $taskid . '">🔍 ' . __('View task') . '</a> parseMode:{html}';
         }
 
         ts_SendTelegram($employeeid, $newTelegramText);
     }
 
-// Unset parametr, that we dont diff
+    // Unset parametr, that we dont diff
     unset($org_taskdata['date'], $org_taskdata['employeedone'], $org_taskdata['donenote'], $org_taskdata['enddate'], $org_taskdata['admin'], $org_taskdata['status'], $org_taskdata['change_admin'], $org_taskdata['smsdata']);
     $new_taskdata = array(
         'id' => $taskid,
@@ -2401,11 +2401,11 @@ function ts_CheckDailyDuplicates($taskData, $optionValue = 1) {
             $tasksDb = new NyanORM('taskman');
             if (!empty($taskData['login'])) {
                 $tasksDb->where('id', '!=', $taskData['id']);
-//just the same date
+                //just the same date
                 if ($optionValue == 1) {
                     $tasksDb->where('startdate', 'LIKE', $taskData['startdate'] . '%');
                 } else {
-//configurable days count interval
+                    //configurable days count interval
                     $startDateTimestamp = strtotime($taskData['startdate']);
                     $daysOffset = round($optionValue * 86400); //int
                     $dayBegin = date("Y-m-d", ($startDateTimestamp - $daysOffset)); // -X days
@@ -2421,11 +2421,11 @@ function ts_CheckDailyDuplicates($taskData, $optionValue = 1) {
 
             if (!empty($taskData['address'])) {
                 $tasksDb->where('id', '!=', $taskData['id']);
-//just the same date
+                //just the same date
                 if ($optionValue == 1) {
                     $tasksDb->where('startdate', 'LIKE', $taskData['startdate'] . '%');
                 } else {
-//configurable days count interval
+                    //configurable days count interval
                     $startDateTimestamp = strtotime($taskData['startdate']);
                     $daysOffset = round($optionValue * 86400); //int
                     $dayBegin = date("Y-m-d", ($startDateTimestamp - $daysOffset)); // -X days
@@ -2474,7 +2474,7 @@ function ts_EmployeeFilterTagId($allEmployeeData, $tagId) {
             }
         }
     }
-    return($result);
+    return ($result);
 }
 
 /**
@@ -2494,7 +2494,7 @@ function ts_EmployeeFilterAppointment($allEmployeeData, $appointment) {
             }
         }
     }
-    return($result);
+    return ($result);
 }
 
 /**
@@ -2521,7 +2521,7 @@ function ts_TaskChangeForm($taskid) {
     $branchName = '';
 
     if (!empty($taskdata)) {
-//not done task
+        //not done task
         if (empty($taskdata['login'])) {
             $login_detected = ts_DetectUserByAddress($taskdata['address']);
             if ($login_detected) {
@@ -2539,7 +2539,7 @@ function ts_TaskChangeForm($taskid) {
             $loginType = '';
         }
 
-//job generation form
+        //job generation form
         if ($taskLogin) {
             $jobgencheckbox = wf_CheckInput('generatejob', __('Generate job performed for this task'), true, true);
             $jobgencheckbox .= wf_HiddenInput('generatelogin', $taskLogin);
@@ -2549,13 +2549,13 @@ function ts_TaskChangeForm($taskid) {
             $jobgencheckbox = '';
         }
 
-//modify form handlers
+        //modify form handlers
         $modform = '';
         if (cfr('TASKMANTRACK')) {
             $modform .= wf_Link('?module=taskmantrack&trackid=' . $taskid, wf_img('skins/track_icon.png', __('Track this task'))) . ' ';
         }
-//warehouse mass-outcome helper
-        if (cfr('WAREHOUSEOUTRESERVE') OR cfr('WAREHOUSEOUT')) {
+        //warehouse mass-outcome helper
+        if (cfr('WAREHOUSEOUTRESERVE') or cfr('WAREHOUSEOUT')) {
             if ($altCfg['WAREHOUSE_ENABLED']) {
                 if ($altCfg['TASKMAN_WAREHOUSE_HLPR']) {
                     if ($taskdata['status'] == 0) {
@@ -2565,13 +2565,13 @@ function ts_TaskChangeForm($taskid) {
                 }
             }
         }
-//task editing limitations
+        //task editing limitations
         if (cfr('TASKMANEDITTASK')) {
             $modform .= wf_modal(web_edit_icon(), __('Edit'), ts_TaskModifyForm($taskid), '', '450', '550') . ' ';
         }
 
-//modform end
-//extracting sms data
+        //modform end
+        //extracting sms data
         if (!empty($taskdata['smsdata'])) {
             $rawSmsData = $taskdata['smsdata'];
             $rawSmsData = base64_decode($rawSmsData);
@@ -2589,7 +2589,7 @@ function ts_TaskChangeForm($taskid) {
 
             $smsData = wf_modal(wf_img('skins/icon_sms_micro.gif', __('SMS sent to employees')), __('SMS sent to employees'), $smsDataTable . $smsDataFlushControl, '', '400', '200');
         } else {
-//post sending form
+            //post sending form
             if ($altCfg['SENDDOG_ENABLED']) {
                 $smsAddress = str_replace('\'', '`', $taskdata['address']);
                 $smsAddress = mysql_real_escape_string($smsAddress);
@@ -2634,7 +2634,7 @@ function ts_TaskChangeForm($taskid) {
         $tablecells .= wf_TableCell(wf_tag('strong') . $taskdata['startdate'] . ' ' . $taskdata['starttime'] . wf_tag('strong', true));
         $tablerows .= wf_TableRow($tablecells, 'row3');
 
-//here some build passport data
+        //here some build passport data
         $bpData = '';
         if ($altCfg['BUILD_EXTENDED']) {
             if (!empty($taskLogin)) {
@@ -2660,10 +2660,10 @@ function ts_TaskChangeForm($taskid) {
         $tablecells .= wf_TableCell($addresslink);
         $tablerows .= wf_TableRow($tablecells, 'row3');
 
-// getting user's branch name
+        // getting user's branch name
         $branchConsider = (!empty($taskLogin)
-                and $ubillingConfig->getAlterParam('BRANCHES_ENABLED')
-                and $ubillingConfig->getAlterParam('TASKMAN_BRANCHES_CONSIDER_ON'));
+            and $ubillingConfig->getAlterParam('BRANCHES_ENABLED')
+            and $ubillingConfig->getAlterParam('TASKMAN_BRANCHES_CONSIDER_ON'));
         if ($branchConsider) {
             $branches = new UbillingBranches();
             $branchName = $branches->userGetBranchName($taskLogin);
@@ -2773,20 +2773,20 @@ function ts_TaskChangeForm($taskid) {
 
         $result .= wf_TableBody($tablerows, '100%', '0', 'glamour');
         $result .= wf_CleanDiv();
-// show task preview
+        // show task preview
         show_window(__('View task') . ' ' . $modform, $result);
 
-// Task logs
+        // Task logs
         if (cfr('TASKMANNWATCHLOG')) {
             show_window(__('View log'), ts_renderLogsListAjax($taskid));
         }
 
-//Task duplicates check
+        //Task duplicates check
         if (@$altCfg['TASKMAN_DUPLICATE_CHECK']) {
             ts_CheckDailyDuplicates($taskdata, $altCfg['TASKMAN_DUPLICATE_CHECK']);
         }
 
-//Salary accounting
+        //Salary accounting
         if ($altCfg['SALARY_ENABLED']) {
             if (cfr('SALARYTASKSVIEW')) {
                 $salary = new Salary($taskid);
@@ -2794,15 +2794,15 @@ function ts_TaskChangeForm($taskid) {
             }
         }
 
-//warehouse integration
+        //warehouse integration
         if ($altCfg['WAREHOUSE_ENABLED']) {
-            if (cfr('WAREHOUSE') OR cfr('WAREVIEW')) {
+            if (cfr('WAREHOUSE') or cfr('WAREVIEW')) {
                 $warehouse = new Warehouse($taskid);
                 show_window(__('Additionally spent materials'), $warehouse->taskMaterialsReport($taskid));
             }
         }
 
-//if task undone
+        //if task undone
         if ($taskdata['status'] == 0) {
             $empTagidFilter = @$altCfg['TASKMAN_EMPLOYEE_TAGID_FILTER'];
             $empAppointFilter = @$altCfg['TASKMAN_EMPLOYEE_APPOINTMENT_FILTER'];
@@ -2829,8 +2829,8 @@ function ts_TaskChangeForm($taskid) {
             $sup = wf_tag('sup') . '*' . wf_tag('sup', false);
             $inputs = wf_HiddenInput('changetask', $taskid);
             $inputs .= wf_HiddenInput('change_admin', whoami());
-            if ((cfr('TASKMANNODONDATE')) AND (!cfr('ROOT'))) {
-//manual done date selection forbidden
+            if ((cfr('TASKMANNODONDATE')) and (!cfr('ROOT'))) {
+                //manual done date selection forbidden
                 $inputs .= wf_HiddenInput('editenddate', curdate());
             } else {
                 $inputs .= wf_DatePicker('editenddate') . wf_tag('label', false) . __('Finish date') . $sup . wf_tag('label', true) . wf_tag('br');
@@ -2843,7 +2843,7 @@ function ts_TaskChangeForm($taskid) {
                 $inputs .= wf_Selector('editemployeedone', $doneEmployeeList, __('Worker done'), $taskdata['employee'], true);
             }
             //custom employee filters enabled?
-            if ($empTagidFilter OR $empAppointFilter) {
+            if ($empTagidFilter or $empAppointFilter) {
                 $inputs .= wf_tag('br');
                 if ($empFilteredFlag) {
                     $empNoFlUrl = '?module=taskman&edittask=' . $taskid;
@@ -2872,7 +2872,7 @@ function ts_TaskChangeForm($taskid) {
                 show_window('', wf_JSAlertStyled('?module=taskman&deletetask=' . $taskid, web_delete_icon() . ' ' . __('Remove this task - it is an mistake'), $messages->getDeleteAlert(), 'ubButton'));
             }
 
-//show editing form
+            //show editing form
             if (cfr('TASKMANDONE')) {
                 show_window(__('If task is done'), $form);
             }
@@ -2920,7 +2920,7 @@ function ts_TaskChangeForm($taskid) {
  */
 function ts_DeleteTask($taskid) {
     $taskid = vf($taskid, 3);
-// Before delete task - write task data to log
+    // Before delete task - write task data to log
     $task_data = ts_GetTaskData($taskid);
     $queryLogTask = ("
         INSERT INTO `taskmanlogs` (`id`, `taskid`, `date`, `admin`, `ip`, `event`, `logs`) 
@@ -2947,7 +2947,7 @@ function ts_GetLogTask($taskid) {
     } else {
         $renderYear = (ubRouting::checkGet('renderyear')) ? ubRouting::get('renderyear', 'int') : curyear();
         if ($renderYear == '1488') {
-//all time tasks
+            //all time tasks
             $renderYear = '%';
         }
         $query = "SELECT * FROM `taskmanlogs` WHERE `date` LIKE '" . $renderYear . "-%' ORDER BY `id` DESC";
@@ -2956,7 +2956,7 @@ function ts_GetLogTask($taskid) {
     if (!empty($resultLog)) {
         $result = $resultLog;
     }
-    return($result);
+    return ($result);
 }
 
 /**
@@ -2968,7 +2968,7 @@ function ts_GetLogTask($taskid) {
  */
 function ts_renderLogsListAjax($taskid = '') {
     $result = '';
-// Task logs
+    // Task logs
     if (cfr('TASKMANNWATCHLOG')) {
         $resultLogAjax = '';
 
@@ -2991,7 +2991,7 @@ function ts_renderLogsListAjax($taskid = '') {
         }
         $result = wf_JqDtLoader($columns, $module_link, false, 'Logs', 100, $opts);
         if (empty($taskid)) {
-//appending year selector form
+            //appending year selector form
             $inputs = wf_YearSelectorPreset('renderyear', __('Year'), false, $renderYear, true) . ' ';
             $inputs .= wf_Submit(__('Show'));
             $result .= wf_delimiter(0);
@@ -3255,7 +3255,7 @@ function ts_logTaskChange($taskId, $parameter, $oldValue, $newValue, $weblog = f
 function ts_TaskProblemsEditForm() {
     $rawNotes = zb_StorageGet('PROBLEMS');
 
-//extract old or create new typical problems array
+    //extract old or create new typical problems array
     if (!empty($rawNotes)) {
         $rawNotes = base64_decode($rawNotes);
         $rawNotes = unserialize($rawNotes);
@@ -3267,7 +3267,7 @@ function ts_TaskProblemsEditForm() {
         $rawNotes = $emptyArray;
     }
 
-//adding and deletion subroutines
+    //adding and deletion subroutines
     if (wf_CheckPost(array('createtypicalnote'))) {
         $toPush = strip_tags($_POST['createtypicalnote']);
         array_push($rawNotes, $toPush);
@@ -3328,11 +3328,11 @@ function ts_TaskProblemsEditForm() {
 function ts_isMeBranchCursed() {
     global $ubillingConfig;
     $result = false;
-    if ($ubillingConfig->getAlterParam('BRANCHES_ENABLED') OR $ubillingConfig->getAlterParam('TASKMAN_GULAG')) {
+    if ($ubillingConfig->getAlterParam('BRANCHES_ENABLED') or $ubillingConfig->getAlterParam('TASKMAN_GULAG')) {
         if (cfr('ROOT')) {
             $result = false;
         } else {
-            if (cfr('BRANCHES') OR cfr('TASKMANGULAG')) {
+            if (cfr('BRANCHES') or cfr('TASKMANGULAG')) {
                 if (cfr('TSUNCURSED')) {
                     //gulag and branches curse excluding right
                     $result = false;
@@ -3344,7 +3344,7 @@ function ts_isMeBranchCursed() {
     } else {
         $result = false;
     }
-    return($result);
+    return ($result);
 }
 
 /**
@@ -3409,7 +3409,7 @@ function ts_PrintTasks($datefrom, $dateto) {
     global $ubillingConfig;
     $advFiltersEnabled = $ubillingConfig->getAlterParam('TASKMAN_ADV_FILTERS');
     $branchConsider = ($ubillingConfig->getAlterParam('BRANCHES_ENABLED')
-            and $ubillingConfig->getAlterParam('TASKMAN_BRANCHES_CONSIDER_ON'));
+        and $ubillingConfig->getAlterParam('TASKMAN_BRANCHES_CONSIDER_ON'));
 
     $datefrom = mysql_real_escape_string($datefrom);
     $dateto = mysql_real_escape_string($dateto);
@@ -3464,7 +3464,7 @@ function ts_PrintTasks($datefrom, $dateto) {
                     LEFT JOIN `jobtypes` ON `taskman`.`jobtype` = `jobtypes`.`id`
                     " . $appendQueryJOIN . " 
                 WHERE `startdate` BETWEEN '" . $datefrom . " 00:00:00' AND '" . $dateto . " 23:59:59' AND `status`='0'"
-            . " " . $advFilter . " " . $appendQuery;
+        . " " . $advFilter . " " . $appendQuery;
     $alltasks = simple_queryall($query);
 
     if (!empty($alltasks)) {
@@ -3487,7 +3487,7 @@ function ts_PrintTasks($datefrom, $dateto) {
             $rows .= wf_TableRow($cells);
 
             $cells = wf_TableCell(__('Job type'));
-//$cells.= wf_TableCell(@$alljobtypes[$each['jobtype']]);
+            //$cells.= wf_TableCell(@$alljobtypes[$each['jobtype']]);
             $cells .= wf_TableCell($each['jobname']);
             $rows .= wf_TableRow($cells);
 
@@ -3507,7 +3507,7 @@ function ts_PrintTasks($datefrom, $dateto) {
         $result .= 'window.print();';
         $result .= wf_tag('script', true);
     } else {
-//$_POST['showemptyqueryerror'] = 'true';
+        //$_POST['showemptyqueryerror'] = 'true';
 
         $messages = new UbillingMessageHelper();
         $result = '<link rel="stylesheet" href="./skins/ubng/css/ubilling.css" type="text/css">';
@@ -3529,7 +3529,7 @@ function ts_PrintTasksTable($datefrom, $dateto, $nopagebreaks = false) {
     global $ubillingConfig;
     $advFiltersEnabled = $ubillingConfig->getAlterParam('TASKMAN_ADV_FILTERS');
     $branchConsider = ($ubillingConfig->getAlterParam('BRANCHES_ENABLED')
-            and $ubillingConfig->getAlterParam('TASKMAN_BRANCHES_CONSIDER_ON'));
+        and $ubillingConfig->getAlterParam('TASKMAN_BRANCHES_CONSIDER_ON'));
 
     $datefrom = mysql_real_escape_string($datefrom);
     $dateto = mysql_real_escape_string($dateto);
@@ -3593,7 +3593,7 @@ function ts_PrintTasksTable($datefrom, $dateto, $nopagebreaks = false) {
                     LEFT JOIN `jobtypes` ON `taskman`.`jobtype` = `jobtypes`.`id`
                     " . $appendQueryJOIN . "  
                 WHERE `startdate` BETWEEN '" . $datefrom . " 00:00:00' AND '" . $dateto . " 23:59:59' AND `status`='0'"
-            . $advFilter . " " . $appendQuery . " " . "ORDER BY `taskman`.`" . $orderFilter . "`";
+        . $advFilter . " " . $appendQuery . " " . "ORDER BY `taskman`.`" . $orderFilter . "`";
 
     $alltasks = simple_queryall($query);
 
@@ -3618,7 +3618,7 @@ function ts_PrintTasksTable($datefrom, $dateto, $nopagebreaks = false) {
                             $cells = wf_TableCell($each['startdate'] . ' ' . wf_tag('b') . @$each['starttime'] . wf_tag('b', true));
                             $cells .= wf_TableCell($each['address']);
                             $cells .= wf_TableCell($each['phone']);
-//$cells.= wf_TableCell(@$alljobtypes[$each['jobtype']]);
+                            //$cells.= wf_TableCell(@$alljobtypes[$each['jobtype']]);
                             $cells .= wf_TableCell($each['jobname']);
                             $cells .= wf_TableCell(nl2br($each['jobnote']));
                             $cells .= wf_TableCell('');
@@ -3634,7 +3634,7 @@ function ts_PrintTasksTable($datefrom, $dateto, $nopagebreaks = false) {
         $result .= 'window.print();';
         $result .= wf_tag('script', true);
     } else {
-//$_POST['showemptyqueryerror'] = 'true';
+        //$_POST['showemptyqueryerror'] = 'true';
 
         $messages = new UbillingMessageHelper();
         $result = '<link rel="stylesheet" href="./skins/ubng/css/ubilling.css" type="text/css">';
@@ -3693,7 +3693,7 @@ function ts_GetAllTasksAddress() {
             $result[$each['id']] = $each['address'];
         }
     }
-    return($result);
+    return ($result);
 }
 
 /**
@@ -3750,11 +3750,17 @@ function ts_GetUndoneCountersMy() {
 /**
  * Returns all of available tasks as id=>data
  * 
+ * @param int $year
+ * 
  * @return array
  */
-function ts_GetAllTasks() {
+function ts_GetAllTasks($year = '') {
     $result = array();
+    $year = vf($year, 3);
     $query = "SELECT * from `taskman`";
+    if (!empty($year)) {
+        $query .= " WHERE `startdate` LIKE '" . $year . "-%'";
+    }
     $all = simple_queryall($query);
     if (!empty($all)) {
         foreach ($all as $io => $each) {
@@ -3786,7 +3792,7 @@ function ts_GetAllTasksQuickData() {
 function ts_AdvFiltersControls() {
     global $ubillingConfig;
     $branchConsider = ($ubillingConfig->getAlterParam('BRANCHES_ENABLED')
-            and $ubillingConfig->getAlterParam('TASKMAN_BRANCHES_CONSIDER_ON'));
+        and $ubillingConfig->getAlterParam('TASKMAN_BRANCHES_CONSIDER_ON'));
     $branchAdvFltON = $ubillingConfig->getAlterParam('TASKMAN_ADV_FILTERS_BRANCHES_ON');
 
     $alljobtypes = ts_GetAllJobtypes();
@@ -3831,13 +3837,13 @@ function ts_AdvFiltersControls() {
     $inputs .= wf_tag('h3', true);
     $inputs .= wf_TextInput('filtertaskphone', '', $phonecontains);
 
-    return($inputs);
+    return ($inputs);
 }
 
 function ts_AdvFiltersQuery() {
     global $ubillingConfig;
     $branchConsider = ($ubillingConfig->getAlterParam('BRANCHES_ENABLED')
-            and $ubillingConfig->getAlterParam('TASKMAN_BRANCHES_CONSIDER_ON'));
+        and $ubillingConfig->getAlterParam('TASKMAN_BRANCHES_CONSIDER_ON'));
     $branchAdvFltON = $ubillingConfig->getAlterParam('TASKMAN_ADV_FILTERS_BRANCHES_ON');
 
     $appendQuery = '';
@@ -3878,5 +3884,5 @@ function ts_getAllTasksByDate($date) {
     $date = ubRouting::filters($date, 'mres');
     $query = "SELECT * from `taskman` WHERE `startdate` LIKE '" . $date . "%'";
     $result = simple_queryall($query);
-    return($result);
+    return ($result);
 }
