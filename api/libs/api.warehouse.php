@@ -188,6 +188,13 @@ class Warehouse {
     protected $recPriceFlag = false;
 
     /**
+     * Contains array of cached middle itemtype prices as itemtypeId=>price
+     *
+     * @var array
+     */
+    protected $cachedPrices=array();
+
+    /**
      * Default constants/routes/URLS etc..
      */
     const URL_ME = '?module=warehouse';
@@ -4454,40 +4461,57 @@ class Warehouse {
      * @return float
      */
     public function getIncomeMiddlePrice($itemtypeId) {
-        $itemsCount = 0;
-        $totalSumm = 0;
-        if (!empty($this->allIncoming)) {
-            foreach ($this->allIncoming as $io => $each) {
-                if ($each['itemtypeid'] == $itemtypeId) {
-                    if ($each['price'] != 0) {
-                        if ($each['contractorid'] != 0) { //ignoring move ops
-                            $totalSumm += ($each['price'] * $each['count']);
-                            $itemsCount += $each['count'];
-                        }
-                    }
-                }
+        $cacheTimeout = 2592000;
+        if (empty($this->cachedPrices)) {
+            $this->cachedPrices = $this->cache->get('WH_ITMPRICES', $cacheTimeout);
+            if (empty($this->cachedPrices)) {
+                $this->cachedPrices = array();
             }
         }
 
-        if ($this->recPriceFlag) {
-            if (!empty($this->allOutcoming)) {
-                foreach ($this->allOutcoming as $io => $each) {
+        if (isset($this->cachedPrices[$itemtypeId])) {
+            //just return from cached data
+            $result = $this->cachedPrices[$itemtypeId];
+        } else {
+            //cache update is required
+            $itemsCount = 0;
+            $totalSumm = 0;
+            if (!empty($this->allIncoming)) {
+                foreach ($this->allIncoming as $io => $each) {
                     if ($each['itemtypeid'] == $itemtypeId) {
                         if ($each['price'] != 0) {
-                            $totalSumm -= (abs($each['price']) * $each['count']);
-                            $itemsCount -= $each['count'];
+                            if ($each['contractorid'] != 0) { //ignoring move ops
+                                $totalSumm += ($each['price'] * $each['count']);
+                                $itemsCount += $each['count'];
+                            }
                         }
                     }
                 }
             }
-        }
 
-        if ($itemsCount != 0) {
-            $result = round($totalSumm / $itemsCount, 2);
-        } else {
-            $result = round($totalSumm, 2);
-        }
+            if ($this->recPriceFlag) {
+                if (!empty($this->allOutcoming)) {
+                    foreach ($this->allOutcoming as $io => $each) {
+                        if ($each['itemtypeid'] == $itemtypeId) {
+                            if ($each['price'] != 0) {
+                                $totalSumm -= (abs($each['price']) * $each['count']);
+                                $itemsCount -= $each['count'];
+                            }
+                        }
+                    }
+                }
+            }
 
+            if ($itemsCount != 0) {
+                $result = round($totalSumm / $itemsCount, 2);
+            } else {
+                $result = round($totalSumm, 2);
+            }
+
+            $this->cachedPrices[$itemtypeId] = $result;
+            //cache update
+            $this->cache->set('WH_ITMPRICES', $this->cachedPrices, $cacheTimeout);
+        }
 
         return ($result);
     }
