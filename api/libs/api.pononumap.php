@@ -56,6 +56,13 @@ class PONONUMap {
     protected $onuDeregFilter = '';
 
     /**
+     * Contains optional onu signal filter substring
+     *
+     * @var string
+     */
+    protected $onuSignalFilter = '';
+
+    /**
      * Concatenate builds with similar geo coordinates?
      * 
      * @var bool
@@ -68,6 +75,7 @@ class PONONUMap {
     const URL_ME = '?module=ponmap';
     const ROUTE_FILTER_OLT = 'oltidfilter';
     const ROUTE_FILTER_DEREG = 'deregfilter';
+    const ROUTE_FILTER_SIGNAL = 'signalfilter';
     const PROUTE_OLTSELECTOR = 'renderoltidonus';
     const ROUTE_BACKLINK = 'bl';
     const ROUTE_CLUSTER_BUILDS = 'showbuilds';
@@ -82,6 +90,7 @@ class PONONUMap {
         $this->setBuildsClusterer();
         $this->setOltIdFilter($oltId);
         $this->setOnuDeregFilter();
+        $this->setOnuSignalFilter();
         $this->initMessages();
         $this->initPonizer();
         $this->loadUsers();
@@ -101,6 +110,17 @@ class PONONUMap {
     }
 
     /**
+     * Sets optional ONU signal filter.
+     * 
+     * @return void
+     */
+    protected function setOnuSignalFilter() {
+        if (ubRouting::checkGet(self::ROUTE_FILTER_SIGNAL)) {
+            $this->onuSignalFilter = ubRouting::get(self::ROUTE_FILTER_SIGNAL);
+        }
+    }
+
+    /**
      * Sets optional ONU dereg reason filter.
      * 
      * @return void
@@ -110,6 +130,7 @@ class PONONUMap {
             $this->onuDeregFilter = ubRouting::get(self::ROUTE_FILTER_DEREG);
         }
     }
+
 
     /**
      * Sets optional builds clustering
@@ -224,6 +245,7 @@ class PONONUMap {
             $result .= wf_Link(self::URL_ME, wf_img('skins/ponmap_icon.png') . ' ' . __('All') . ' ' . __('ONU'), false, 'ubButton');
             $result .= wf_Link(self::URL_ME . '&' . self::ROUTE_FILTER_DEREG . '=Power', wf_img('skins/icon_poweroutage.png') . ' ' . __('Power outages') . '?', false, 'ubButton');
             $result .= wf_Link(self::URL_ME . '&' . self::ROUTE_FILTER_DEREG . '=Wire', wf_img('skins/icon_cable.png') . ' ' . __('Wire issues') . '?', false, 'ubButton');
+            $result .= wf_Link(self::URL_ME . '&' . self::ROUTE_FILTER_SIGNAL . '=Bad', wf_img('skins/icon_signallow.png') . ' ' . __('Bad signal'), false, 'ubButton');
             if ($this->clusterBuilds) {
                 $result .= wf_Link(self::URL_ME, wf_img('skins/switch_models.png') . ' ' . __('ONU'), false, 'ubButton');
             } else {
@@ -240,7 +262,7 @@ class PONONUMap {
         } else {
             $inputs = wf_SelectorAC(self::PROUTE_OLTSELECTOR, $allOlts, __('OLT'), $this->filterOltId, false);
         }
-        
+
         $result .= wf_Form('', 'POST', $inputs, 'glamour', '', '', '', $opts);
         $result .= wf_delimiter(0);
         return ($result);
@@ -375,7 +397,7 @@ class PONONUMap {
                     if (isset($this->allUserData[$eachOnu['login']])) {
                         $userData = $this->allUserData[$eachOnu['login']];
                         if (!empty($userData['geo'])) {
-                            if ($this->onuDeregFilter) {
+                            if ($this->onuDeregFilter or $this->onuSignalFilter) {
                                 $renderAllowedFlag = false;
                             } else {
                                 $renderAllowedFlag = true;
@@ -400,6 +422,14 @@ class PONONUMap {
                                 }
                             } else {
                                 $signalLabel = $onuSignal;
+                                if ($this->onuSignalFilter) {
+                                    $renderAllowedFlag = false;
+                                    if ($onuSignal != 'NO') {
+                                        if ($onuSignal < -27) {
+                                            $renderAllowedFlag = true;
+                                        }
+                                    }
+                                }
                             }
 
                             //48.470554, 24.422853
@@ -437,7 +467,6 @@ class PONONUMap {
         }
 
         //rendering map
-
         $result .= generic_MapInit($this->mapsCfg['CENTER'], $this->mapsCfg['ZOOM'], $this->mapsCfg['TYPE'], $placemarks, '', $this->mapsCfg['LANG'], 'ponmap');
         //some stats here
         $result .= $this->messages->getStyledMessage(__('Total') . ' ' . __('ONU') . ': ' . $totalOnuCount, 'info');
@@ -460,6 +489,7 @@ class PONONUMap {
      */
     public function getFilteredOLTLabel() {
         $result = '';
+        $onuFilterLabel = '';
         if ($this->filterOltId) {
             $allOltDevices = $this->ponizer->getAllOltDevices();
             if (isset($allOltDevices[$this->filterOltId])) {
@@ -468,13 +498,22 @@ class PONONUMap {
         }
 
         if ($this->onuDeregFilter) {
-            $onuFilterLabel = '';
+
             switch ($this->onuDeregFilter) {
                 case 'Power':
                     $onuFilterLabel .= __('Power outages') . '?';
                     break;
                 case 'Wire':
                     $onuFilterLabel .= __('Wire issues') . '?';
+                    break;
+            }
+            $result .= ' : ' . $onuFilterLabel;
+        }
+
+        if ($this->onuSignalFilter) {
+            switch ($this->onuSignalFilter) {
+                case 'Bad':
+                    $onuFilterLabel .= __('Bad signal');
                     break;
             }
             $result .= ' : ' . $onuFilterLabel;
