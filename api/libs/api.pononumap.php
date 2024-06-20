@@ -13,6 +13,13 @@ class PONONUMap {
     protected $mapsCfg = array();
 
     /**
+     * Contains alter config as key=>value
+     *
+     * @var array
+     */
+    protected $altCfg = array();
+
+    /**
      * Contains all available users data as login=>userdata
      *
      * @var array
@@ -125,6 +132,7 @@ class PONONUMap {
     protected function loadConfigs() {
         global $ubillingConfig;
         $this->mapsCfg = $ubillingConfig->getYmaps();
+        $this->altCfg = $ubillingConfig->getAlter();
     }
 
     /**
@@ -163,16 +171,16 @@ class PONONUMap {
      */
     protected function getIcon($onuSignal) {
         $result = 'twirl#greenIcon';
-        if ((($onuSignal > -27) AND ( $onuSignal < -25))) {
+        if ((($onuSignal > -27) and ($onuSignal < -25))) {
             $result = 'twirl#orangeIcon';
         }
-        if ((($onuSignal > 0) OR ( $onuSignal < -27))) {
+        if ((($onuSignal > 0) or ($onuSignal < -27))) {
             $result = 'twirl#redIcon';
         }
-        if ($onuSignal == 'NO' OR $onuSignal == 'Offline' OR $onuSignal == '-9000') {
+        if ($onuSignal == 'NO' or $onuSignal == 'Offline' or $onuSignal == '-9000') {
             $result = 'twirl#greyIcon';
         }
-        return($result);
+        return ($result);
     }
 
     /**
@@ -194,7 +202,7 @@ class PONONUMap {
             $result .= wf_Link('?module=usersmap&findbuild=' . $buildGeo, wf_img('skins/icon_build.gif', __('Build')));
             $result = trim($result) . wf_nbsp();
         }
-        return($result);
+        return ($result);
     }
 
     /**
@@ -225,67 +233,72 @@ class PONONUMap {
 
         $allOlts = array('' => __('All') . ' ' . __('OLT'));
         $allOlts += $this->ponizer->getAllOltDevices();
-        $inputs = wf_SelectorAC(self::PROUTE_OLTSELECTOR, $allOlts, __('OLT'), $this->filterOltId, false);
-        $opts = 'style="float:right;"';
+        $result .= wf_delimiter();
+        $opts = 'style="float:left;"';
+        if ($this->altCfg['OLTSEL_SEARCHBL']) {
+            $inputs = wf_SelectorSearchableAC(self::PROUTE_OLTSELECTOR, $allOlts, __('OLT'), $this->filterOltId, false);
+        } else {
+            $inputs = wf_SelectorAC(self::PROUTE_OLTSELECTOR, $allOlts, __('OLT'), $this->filterOltId, false);
+        }
+        
         $result .= wf_Form('', 'POST', $inputs, 'glamour', '', '', '', $opts);
-
         $result .= wf_delimiter(0);
-        return($result);
+        return ($result);
     }
 
-//
-//       .,,.                                                                   
-//       ,KMKkkkkkkkklll. ..                             ..       .,,,.         
-//    .lkKKl,,,,,,,lkkKMKkKkll. ..                 ..,l,lKKkkkkkkkKMMKl.        
-//   .lKKl.           .,,lkkKMKkKk,. ,l.  ,l. ,l. .kKKKkkl,,,,,,,,,lkKMKkl.     
-// .,kMk.   .,,,,,.         .,,lkKMKkKMKkkKMklKMKkKKl,.       .,,,.  .,kMKl.    
-// .kMk.    .,lkKMKkkl.        ...,lKMMk,llkMMklKKl.  .... .lkKKl,.    .kMl     
-// .kMl         .,,lKMKkl.  .. lKl. .ll.   .ll. ..  ,lkKKklKMKl.        lmk.    
-//.kMk.             .lKMMKllKKkKKKl                .kMKKMMMMMl..        lmk.    
-// ,KK,              .KMKKKKklkKl..                 ,l..,lKKKKKx,l,    ,KKl.    
-//.lKK,          ..,,lMK,....  ..                         ..lKkKMMl .. lMKl.    
-// lMl         ..lKKKKMK,                                   .. lKKKlkl .kMk.    
-//.kMl         lKKKKMk,.                                       ...lKMK, lMk.    
-// lMk.      ,lkMk.,l.                                             ,lkl,KK,     
-// ,KMl     .kkll,                     .,.                ..         ..,Kk,.    
-// .kMk.    lMl      .lkkkkkkkl,,.    ,KMl                lk,     .lkkkkKMMK,   
-//  ,KMl    ,l.     .lklkMk,,,lKMKkl,lKMMl                lMKl,,lkkkl,,kMMMMk.  
-//   lMK.               lMl    .,lkkKMKl,.                .lKMMKkl.   .kMKKMK,  
-//   ,KMKl.             lMk.       .kMl                     ,KMk.  .,lKKl.,KMk. 
-// .,lKKkl.             ,KMKl,,,,,lKKl.      .lkkkkkkkkkl.   ,KMKkkKKkl.  lMK,  
-// ,KMKk,.               .lkkkkkkkkl.        lMMMMMMMMMMMl    .,,,,,.     ,KMk. 
-// .lKMMK,                                   .kMMMMMMMMMMl                 lMMl 
-//  .lkKMk..l,                .ll,.           .lKMMMMMMkl.       .,ll.     lMK. 
-// .,,lKKl.lMKkl.            ,KK,               .,lKMKl.           ,KK,    lMK, 
-// .lKMMk,..,,,,.            lMl                  .kMl              lMl   ,KMMK,
-//   ,KMMK.   ,Kl            lMl          .,,,,,lkKMMKkl,,.         lMl   lMKkl.
-//  .kMkl.   ,KK,            lMl          .kMMMMKKMMMMKKMMKl.      ,KMl   lMKl. 
-//  .lkKKkkl.lMKkkl.         ,KKl.         .lkKMkkMKKMkkMk,.     .lKMk.   .kMMl 
-//     .lKMMl.,,,,. ..        ,KMKkl.         .lKKl..lKKl.      .kKkl.   ,kKMK, 
-//      .kMMKk,    .kl.,,.     .,,lkl.   ..     ..    ..  ..   .ll.   .,,kMMk.  
-//     .lKMMMKl,,,.lMKKKl.               lKl.           .lKl          lMKKMK,   
-//    .kMMKkkkkkKMl.lkk,                 .kMKl,.     .,lKKl.       .lkKMl.,.    
-//   .lKMMk.    lMKkKMMKk.,,              .lkKMKkkkkkKMKl.      ,k,lKKMK,       
-//     ,KKl. .. .,,,,kMKl.lK, .,,.           .,,,,,,,,,.   ,;,lkKMKk,.,.        
-//   .lKMk. .kl.l,   .,.  lMKkKKKklkk,.,,,,.             .,kMMKKMk,.            
-//   .lKMK,.kMKkk,        ,kl,,.lMKlkKKKkKMK,.,,lllllkkkkkKKll,lMl              
-//   .lKMk..,,,.                .,. lKl. .ll.lKKMKkl,lKKl...  .kMKl.            
-//  .lKMk.                   ,l. .. ..       ...l,    ..     ,KMKl,.            
-//  ,KMKl.  ..               lMklKl                          lMMk.              
-// .lKMkl.  lk.,l.  .lx,     ,kMKl.                                             
-// .lKk.    lMKKMl lKKl     
-//
-//
-//
-//
-//                    ,d                            ,d     
-//                    88                            88     
-//        ,adPPYba, MM88MMM ,adPPYba,  ,adPPYYba, MM88MMM  
-//        I8[    ""   88   a8"     "8a ""     `Y8   88     
-//         `"Y8ba,    88   8b       d8 ,adPPPPP88   88     
-//        aa    ]8I   88,  "8a,   ,a8" 88,    ,88   88,    
-//        `"YbbdP"'   "Y888 `"YbbdP"'  `"8bbdP"Y8   "Y888  
-//    
+    //
+    //       .,,.                                                                   
+    //       ,KMKkkkkkkkklll. ..                             ..       .,,,.         
+    //    .lkKKl,,,,,,,lkkKMKkKkll. ..                 ..,l,lKKkkkkkkkKMMKl.        
+    //   .lKKl.           .,,lkkKMKkKk,. ,l.  ,l. ,l. .kKKKkkl,,,,,,,,,lkKMKkl.     
+    // .,kMk.   .,,,,,.         .,,lkKMKkKMKkkKMklKMKkKKl,.       .,,,.  .,kMKl.    
+    // .kMk.    .,lkKMKkkl.        ...,lKMMk,llkMMklKKl.  .... .lkKKl,.    .kMl     
+    // .kMl         .,,lKMKkl.  .. lKl. .ll.   .ll. ..  ,lkKKklKMKl.        lmk.    
+    //.kMk.             .lKMMKllKKkKKKl                .kMKKMMMMMl..        lmk.    
+    // ,KK,              .KMKKKKklkKl..                 ,l..,lKKKKKx,l,    ,KKl.    
+    //.lKK,          ..,,lMK,....  ..                         ..lKkKMMl .. lMKl.    
+    // lMl         ..lKKKKMK,                                   .. lKKKlkl .kMk.    
+    //.kMl         lKKKKMk,.                                       ...lKMK, lMk.    
+    // lMk.      ,lkMk.,l.                                             ,lkl,KK,     
+    // ,KMl     .kkll,                     .,.                ..         ..,Kk,.    
+    // .kMk.    lMl      .lkkkkkkkl,,.    ,KMl                lk,     .lkkkkKMMK,   
+    //  ,KMl    ,l.     .lklkMk,,,lKMKkl,lKMMl                lMKl,,lkkkl,,kMMMMk.  
+    //   lMK.               lMl    .,lkkKMKl,.                .lKMMKkl.   .kMKKMK,  
+    //   ,KMKl.             lMk.       .kMl                     ,KMk.  .,lKKl.,KMk. 
+    // .,lKKkl.             ,KMKl,,,,,lKKl.      .lkkkkkkkkkl.   ,KMKkkKKkl.  lMK,  
+    // ,KMKk,.               .lkkkkkkkkl.        lMMMMMMMMMMMl    .,,,,,.     ,KMk. 
+    // .lKMMK,                                   .kMMMMMMMMMMl                 lMMl 
+    //  .lkKMk..l,                .ll,.           .lKMMMMMMkl.       .,ll.     lMK. 
+    // .,,lKKl.lMKkl.            ,KK,               .,lKMKl.           ,KK,    lMK, 
+    // .lKMMk,..,,,,.            lMl                  .kMl              lMl   ,KMMK,
+    //   ,KMMK.   ,Kl            lMl          .,,,,,lkKMMKkl,,.         lMl   lMKkl.
+    //  .kMkl.   ,KK,            lMl          .kMMMMKKMMMMKKMMKl.      ,KMl   lMKl. 
+    //  .lkKKkkl.lMKkkl.         ,KKl.         .lkKMkkMKKMkkMk,.     .lKMk.   .kMMl 
+    //     .lKMMl.,,,,. ..        ,KMKkl.         .lKKl..lKKl.      .kKkl.   ,kKMK, 
+    //      .kMMKk,    .kl.,,.     .,,lkl.   ..     ..    ..  ..   .ll.   .,,kMMk.  
+    //     .lKMMMKl,,,.lMKKKl.               lKl.           .lKl          lMKKMK,   
+    //    .kMMKkkkkkKMl.lkk,                 .kMKl,.     .,lKKl.       .lkKMl.,.    
+    //   .lKMMk.    lMKkKMMKk.,,              .lkKMKkkkkkKMKl.      ,k,lKKMK,       
+    //     ,KKl. .. .,,,,kMKl.lK, .,,.           .,,,,,,,,,.   ,;,lkKMKk,.,.        
+    //   .lKMk. .kl.l,   .,.  lMKkKKKklkk,.,,,,.             .,kMMKKMk,.            
+    //   .lKMK,.kMKkk,        ,kl,,.lMKlkKKKkKMK,.,,lllllkkkkkKKll,lMl              
+    //   .lKMk..,,,.                .,. lKl. .ll.lKKMKkl,lKKl...  .kMKl.            
+    //  .lKMk.                   ,l. .. ..       ...l,    ..     ,KMKl,.            
+    //  ,KMKl.  ..               lMklKl                          lMMk.              
+    // .lKMkl.  lk.,l.  .lx,     ,kMKl.                                             
+    // .lKk.    lMKKMl lKKl     
+    //
+    //
+    //
+    //
+    //                    ,d                            ,d     
+    //                    88                            88     
+    //        ,adPPYba, MM88MMM ,adPPYba,  ,adPPYYba, MM88MMM  
+    //        I8[    ""   88   a8"     "8a ""     `Y8   88     
+    //         `"Y8ba,    88   8b       d8 ,adPPPPP88   88     
+    //        aa    ]8I   88,  "8a,   ,a8" 88,    ,88   88,    
+    //        `"YbbdP"'   "Y888 `"YbbdP"'  `"8bbdP"Y8   "Y888  
+    //    
 
     /**
      * Returns a list of placemarks to render
@@ -333,7 +346,7 @@ class PONONUMap {
                 }
             }
         }
-        return($result);
+        return ($result);
     }
 
     /**
@@ -373,7 +386,7 @@ class PONONUMap {
                             $onuControls = $this->getONUControls($eachOnu['id'], $eachOnu['login'], $userData['geo']);
                             $onuTitle = $userData['fulladress'];
                             $deregState = '';
-                            if ($onuSignal == 'NO' OR $onuSignal == 'Offline' OR $onuSignal == '-9000') {
+                            if ($onuSignal == 'NO' or $onuSignal == 'Offline' or $onuSignal == '-9000') {
                                 $signalLabel = __('No signal');
                                 if (isset($allDeregReasons[$eachOnu['login']])) {
                                     $deregLabel = $allDeregReasons[$eachOnu['login']]['styled'];
@@ -437,7 +450,7 @@ class PONONUMap {
             $result .= $this->messages->getStyledMessage(__('ONU without assigned user') . ': ' . $marksNoUser, 'warning');
         }
 
-        return($result);
+        return ($result);
     }
 
     /**
@@ -466,6 +479,6 @@ class PONONUMap {
             }
             $result .= ' : ' . $onuFilterLabel;
         }
-        return($result);
+        return ($result);
     }
 }

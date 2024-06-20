@@ -2357,7 +2357,12 @@ class PONizer {
             $onuCurrentExtUsers = sizeof($onuExtUsers);
 
             $inputs = wf_HiddenInput('editonu', $onuId);
-            $inputs .= wf_Selector('editoltid', $this->allOltDevices, __('OLT device') . $this->sup, $this->allOnu[$onuId]['oltid'], true, false);
+            if ($this->altCfg['OLTSEL_SEARCHBL']) {
+                $inputs .= wf_SelectorSearchable('editoltid', $this->allOltDevices, __('OLT device') . $this->sup, $this->allOnu[$onuId]['oltid'], true, false);
+            } else {
+                $inputs .= wf_Selector('editoltid', $this->allOltDevices, __('OLT device') . $this->sup, $this->allOnu[$onuId]['oltid'], true, false);
+            }
+
             $inputs .= wf_Selector('editonumodelid', $models, __('ONU model') . $this->sup, $this->allOnu[$onuId]['onumodelid'], true);
             if (@$this->altCfg['PON_ONUIPASIF']) {
                 $ipFieldLabel = __('Interface');
@@ -2943,10 +2948,10 @@ class PONizer {
             if ($this->EnableQuickOLTLinks and !empty($this->allOltDevices)) {
                 $QuickOLTDDLName = 'QuickOLTDDL_100500';
                 $QickOLTsArray = $this->allOltDevices;
-
+                $oltSelectorBody = wf_Selector($QuickOLTDDLName, $QickOLTsArray, '', '', true, false, 'someid');
                 $QuickOLTLinkInput = wf_tag('div', false, '', 'style="margin-top: 15px;text-align: right;"') .
                     wf_tag('font', false, '', 'style="font-weight: 600"') . __('Go to OLT') . wf_tag('font', true) .
-                    wf_nbsp(2) . wf_Selector($QuickOLTDDLName, $QickOLTsArray, '', '', true) .
+                    wf_nbsp(2) . $oltSelectorBody .
                     wf_tag('script', false, '', 'type="text/javascript"') .
                     '$(\'[name="' . $QuickOLTDDLName . '"]\').change(function(evt) {
                                                     $(\'a[href="#QuickOLTLinkID_\'+$(this).val()+\'"]\').click();
@@ -2957,9 +2962,14 @@ class PONizer {
                 $QuickOLTLinkInput = '';
             }
 
-            show_window('', $QuickOLTLinkInput . wf_delimiter(0) . wf_TabsCarouselInitLinking() .
-                wf_TabsGen('ui-tabs', $tabsList, $tabsData, $tabsDivOpts, $tabsLstOpts, true) .
-                $QuickOLTLinkInput);
+            //interface grid construction
+            $ponizerGrid = '';
+            $ponizerGrid .= $QuickOLTLinkInput . wf_delimiter(0);
+            $ponizerGrid .= wf_TabsCarouselInitLinking();
+            $ponizerGrid .= wf_TabsGen('ui-tabs', $tabsList, $tabsData, $tabsDivOpts, $tabsLstOpts, true);
+            $ponizerGrid .= $QuickOLTLinkInput;
+            //rendering it
+            show_window('', $ponizerGrid);
         } else {
             return ($result);
         }
