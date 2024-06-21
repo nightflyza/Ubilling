@@ -3302,7 +3302,6 @@ CREATE TABLE IF NOT EXISTS `ophtraff` (
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 ;
 
 -- 1.4.4 update
-
 ALTER TABLE `vservices` ADD `exclude_tags` VARCHAR(255) NOT NULL DEFAULT '';
 ALTER TABLE `vservices` ADD `archived` TINYINT(1) NOT NULL DEFAULT 0;
 
@@ -3311,3 +3310,4 @@ ALTER TABLE zte_cards MODIFY COLUMN `card_name` varchar(7) NOT NULL;
 
 -- 1.4.7 update
 ALTER TABLE `callmeback` ADD `userlogin` VARCHAR(64) NULL DEFAULT NULL AFTER `admin`;
+ALTER TABLE `contrahens_extinfo` ADD `paysys_callback_url` VARCHAR(255) NOT NULL DEFAULT '';
