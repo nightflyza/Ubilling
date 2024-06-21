@@ -71,13 +71,14 @@ if (cfr('AGENTS')) {
                                    ubRouting::post('extinfsrvtype'), ubRouting::post('extinfintpaysysname'),
                                    ubRouting::post('extinfintpaysysid'), ubRouting::post('extinfintpaysyssrvid'),
                                    ubRouting::post('extinfintpaysystoken'), ubRouting::post('extinfintpaysyskey'),
-                                   ubRouting::post('extinfintpaysyspasswd'));
+                                   ubRouting::post('extinfintpaysyspasswd'), ubRouting::post('extinfintpaysyscallbackurl'));
         //  add extended agent info
         } elseif (ubRouting::checkPost('extinfeditmode', false) and ubRouting::checkPost('extinfagentid')) {
             zb_CreateAgentExtInfoRec(ubRouting::post('extinfagentid'), ubRouting::post('extinfsrvtype'),
                                      ubRouting::post('extinfintpaysysname'), ubRouting::post('extinfintpaysysid'),
                                      ubRouting::post('extinfintpaysyssrvid'), ubRouting::post('extinfintpaysystoken'),
-                                     ubRouting::post('extinfintpaysyskey'), ubRouting::post('extinfintpaysyspasswd'));
+                                     ubRouting::post('extinfintpaysyskey'), ubRouting::post('extinfintpaysyspasswd'),
+                                     ubRouting::post('extinfintpaysyscallbackurl'));
         } elseif (ubRouting::checkGet('delete')) {
             zb_DeleteAgentExtInfoRec(ubRouting::get('delete'));
         }

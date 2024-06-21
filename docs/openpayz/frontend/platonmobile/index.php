@@ -3,22 +3,22 @@
 // including API OpenPayz
 include ("../../libs/api.openpayz.php");
 
-class Providex extends PaySysProto {
+class PlatonMobile extends PaySysProto {
     /**
      * Predefined stuff
      */
-    const PATH_CONFIG     = 'config/providex.ini';
+    const PATH_CONFIG     = 'config/platonmobile.ini';
 
     /**
      * Paysys specific predefines
      * If you need multiple instances of this paysys for somehow -
      * just add a numeric index to HASH_PREFIX and PAYSYS constants, like:
-     * PROVIDEX1_, PROVIDEX2_, PROVIDEXn_
-     * PROVIDEX1, PROVIDEX2, PROVIDEXn
+     * PLATONMOBILE1_, PLATONMOBILE2_, PLATONMOBILEn_
+     * PLATONMOBILE1, PLATONMOBILE2, PLATONMOBILEn
      * or distinguish it in any other way, suitable for you
      */
-    const HASH_PREFIX = 'PROVIDEX_';
-    const PAYSYS      = 'PROVIDEX';
+    const HASH_PREFIX = 'PLATONMOBILE_';
+    const PAYSYS      = 'PLATONMOBILE_';
 
 
     /**
@@ -43,18 +43,11 @@ class Providex extends PaySysProto {
     protected $subscriberVirtualID = '';
 
     /**
-     * Subscriber's login from Providex
+     * Subscriber's login from PlatonMobile
      *
      * @var string
      */
     protected $subscriberLogin = '';
-
-    /**
-     * Paysys merchant credentials from CONTRAGENT EXT INFO module
-     *
-     * @var string
-     */
-    protected $merchantCreds = '';
 
     /**
      * Contains received by listener preprocessed request data
@@ -75,19 +68,18 @@ class Providex extends PaySysProto {
     }
 
     /**
-     * Validates gets Providex merchant ID and password from contragents ext info by Ubilling agent ID
+     * Validates gets PlatonMobile merchant ID and password from contragents ext info by Ubilling agent ID
      *
      * @param $userLogin
      *
      * @return bool
      */
     protected function getMerchantCredsByAgentID($userLogin) {
-        $agentID             = $this->getUBAgentAssignedID($userLogin);
-        $providexData        = $this->getUBAgentDataExten($agentID, self::PAYSYS);
-        $providexData        = (empty($providexData) ? array() : $providexData[0]);
-        $this->merchantCreds = $providexData;
+        $agentID        = $this->getUBAgentAssignedID($userLogin);
+        $platonData   = $this->getUBAgentDataExten($agentID, self::PAYSYS);
+        $platonData   = (empty($platonData) ? array() : $platonData[0]);
 
-        return ($providexData);
+        return ($platonData);
     }
 
     /**
@@ -121,12 +113,21 @@ class Providex extends PaySysProto {
      *
      * @return string
      */
-    protected function createSign() {
-        $paymentData        = $this->receivedJSON['data'];
-        $providexAPISecret  = $this->merchantCreds['paysys_secret_key'];
-        //$sign               = PaySysProto::urlSafeBase64Encode(sha1($providexAPISecret . $paymentData . $providexAPISecret, true));
-        $sign               = base64_encode(sha1($providexAPISecret . $paymentData . $providexAPISecret, true));
-file_put_contents('wxcv', sha1($providexAPISecret . $paymentData . $providexAPISecret, true) . "\n\n" . $sign);
+    protected function createSign($merchantPasswd) {
+        $email      = empty($this->receivedJSON['email']) ? '' : $this->receivedJSON['email'];
+        $orderID    = $this->receivedJSON['order'];
+        $cardNum    = $this->receivedJSON['card'];
+
+        $sign       = md5(
+                        strtoupper(
+                    strrev($email) . $merchantPasswd . $orderID .
+                          strrev(
+                      substr($cardNum,0,6) .
+                            substr($cardNum,-4)
+                            )
+                        )
+                    );
+
         return($sign);
     }
 
@@ -135,12 +136,10 @@ file_put_contents('wxcv', sha1($providexAPISecret . $paymentData . $providexAPIS
      *
      * @return bool
      */
-    protected function validateSign() {
-        $this->getMerchantCredsByAgentID($this->subscriberLogin);
-
-        $providexSign   = $this->receivedJSON['signature'];
-        $billingSign    = $this->createSign();
-        $result         = ($providexSign == $billingSign);
+    protected function validateSign($merchantPasswd) {
+        $platonSign   = $this->receivedJSON['sign'];
+        $billingSign    = $this->createSign($merchantPasswd);
+        $result         = ($platonSign == $billingSign);
 
         return($result);
     }
@@ -176,12 +175,13 @@ file_put_contents('wxcv', sha1($providexAPISecret . $paymentData . $providexAPIS
         } else {
             $merchantData = $this->getMerchantCredsByAgentID($this->subscriberLogin);
 
-            if (empty($merchantData['paysys_secret_key'])) {
+            if (empty($merchantData['internal_paysys_id']) or empty($merchantData['paysys_password'])) {
                 $this->replyError(400, 'MERCHANT_NOT_FOUND');
             } else {
                 $transactData = array(
                                         'subscriberLogin'   => $this->subscriberLogin,
-                                        'merchantSecretKey' => $merchantData['paysys_secret_key'],
+                                        'merchantID'        => $merchantData['internal_paysys_id'],
+                                        'merchantPassword'  => $merchantData['paysys_password'],
                                         'paymentSum'        => $moneyAmount
                                     );
                 $this->saveTransactFile($billingTransactID, $transactData);
@@ -197,25 +197,25 @@ file_put_contents('wxcv', sha1($providexAPISecret . $paymentData . $providexAPIS
      */
     protected function replyConfirmOrder() {
         $reply              = '';
-        $pvdxTransactData   = json_decode(PaySysProto::urlSafeBase64Decode($this->receivedJSON['data']), true);
-        $billingTransactID  = $pvdxTransactData['order_id'];
+        $billingTransactID  = $this->receivedJSON['order'];
 
         if ($this->checkTransactFileExists($billingTransactID)) {
             $transactData   = $this->getTransactFileData($billingTransactID);
             $transactSumm   = $transactData['paymentSum'];
+            $merchantPasswd = $transactData['merchantPassword'];
 
-            $pvdxTransactID = $pvdxTransactData['transaction_id'];
-            $pvdxPaymentSum = $pvdxTransactData['amount'];
+            $pvdxTransactID = $this->receivedJSON['id'];
+            $pvdxPaymentSum = $this->receivedJSON['amount'];
 
             if ($pvdxPaymentSum == $transactSumm) {
-                if ($this->validateSign()) {
+                if ($this->validateSign($merchantPasswd)) {
                     $opHash     = self::HASH_PREFIX . $billingTransactID;
                     $opHashData = $this->getOPTransactDataByHash($opHash);
 
                     if (empty($opHashData)) {
                         //push transaction to database
                         op_TransactionAdd($opHash, $pvdxPaymentSum, $this->subscriberVirtualID,
-                                  self::PAYSYS, 'Providex payment ID: ' . $pvdxTransactID);
+                                  self::PAYSYS, 'PlatonMobile payment ID: ' . $pvdxTransactID);
                         op_ProcessHandlers();
 
                         $reply = array(
@@ -302,13 +302,16 @@ file_put_contents('wxcv', sha1($providexAPISecret . $paymentData . $providexAPIS
      */
     public function listen() {
         $rawRequest = file_get_contents('php://input');
-        parse_str(urldecode($rawRequest), $this->receivedJSON);
+        //parse_str($rawRequest, $this->receivedJSON);
+        $this->receivedJSON = json_decode($rawRequest, true);
         $this->setHTTPHeaders();
 
-        if (empty($this->receivedJSON) or empty($this->receivedJSON['data'])) {
+        if (empty($this->receivedJSON)) {
             $this->replyError(400, 'PAYLOAD_EMPTY');
         } else {
-            if (empty($this->receivedJSON['providex'])) {
+            $this->receivedJSON = (isset($this->receivedJSON['data']) ? $this->receivedJSON['data'] : $this->receivedJSON);
+
+            if (empty($this->receivedJSON['platonmobile'])) {
                 $this->replyError(422, 'UNPROCESSABLE ENTITY');
             } else {
                 $this->paymentMethod = (empty($this->receivedJSON['method']) ? '' : trim($this->receivedJSON['method']));
@@ -327,5 +330,5 @@ file_put_contents('wxcv', sha1($providexAPISecret . $paymentData . $providexAPIS
     }
 }
 
-$frontend = new Providex();
+$frontend = new PlatonMobile();
 $frontend->listen();

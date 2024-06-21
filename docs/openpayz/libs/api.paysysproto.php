@@ -498,7 +498,7 @@ class PaySysProto {
      *
      * @return int
      */
-    protected function getUnixTimestampMillisec() {
+    public static function getUnixTimestampMillisec() {
         $now    = DateTime::createFromFormat('U.u', number_format(microtime(true), 6, '.', ''));
         $now_ms = (int)$now->format('Uv');
         return ($now_ms);
@@ -512,7 +512,8 @@ class PaySysProto {
      *
      * @return bool
      */
-    protected function checkPaySumCorrect($paysum, $maxDecimals = 2) {
+    public static function checkPaySumCorrect($paysum, $maxDecimals = 2) {
+        $paysum = str_ireplace(array('"', "'"), '', trim($paysum));
         $regex = '/^\d+(\.[0-9]{1,' . $maxDecimals . '}(0*))?$/';
         return (preg_match($regex, $paysum) != 1);
     }
@@ -524,7 +525,7 @@ class PaySysProto {
      *
      * @return string
      */
-    protected function genRandNumString($size = 12) {
+    public static function genRandNumString($size = 12) {
         $characters = '0123456789';
         $string = "";
 
@@ -535,6 +536,34 @@ class PaySysProto {
         return ($string);
     }
 
+    /**
+     * Encode a string with URL-safe Base64.
+     *
+     * @param string $input The string you want encoded
+     *
+     * @return string The base64 encode of what you passed in
+     */
+    public static function urlSafeBase64Encode($input) {
+        return (str_replace('=', '', strtr(base64_encode($input), '+/', '-_')));
+    }
+
+    /**
+     * Decode a string with URL-safe Base64.
+     *
+     * @param string $input A Base64 encoded string
+     *
+     * @return string A decoded string
+     */
+    public static function urlSafeBase64Decode($input) {
+        $remainder = strlen($input) % 4;
+
+        if ($remainder) {
+            $padlen = 4 - $remainder;
+            $input.= str_repeat('=', $padlen);
+        }
+
+        return (base64_decode(strtr($input, '-_', '+/')));
+    }
 
     /**
      * Intended to spit out erroneous replies
