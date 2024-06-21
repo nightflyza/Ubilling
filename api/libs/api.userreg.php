@@ -752,6 +752,25 @@ function zb_mac_unique($mac) {
 }
 
 /**
+ * Assigns some user tags to the $login from the default tags list
+ *
+ * @param $login
+ * @param $defaultTagsList
+ *
+ * @return void
+ */
+function assignDefaultTags($login, $defaultTagsList) {
+    if (!empty($login) and !empty($defaultTagsList)) {
+        $defaultTagsList = explode(',', $defaultTagsList);
+
+        foreach ($defaultTagsList as $io => $eachTagID) {
+            $tmpTagID = trim($eachTagID);
+            stg_add_user_tag($login, $tmpTagID);
+        }
+    }
+}
+
+/**
  * Performs an user registration
  * 
  * @global object $billing
@@ -765,6 +784,7 @@ function zb_UserRegister($user_data, $goprofile = true) {
     $addressExtendedOn = $ubillingConfig->getAlterParam('ADDRESS_EXTENDED_ENABLED');
     $registerUserONU = $ubillingConfig->getAlterParam('ONUAUTO_USERREG');
     $contractTemplateStr = $ubillingConfig->getAlterParam('CONTRACT_GEN_TEMPLATE', '');
+    $defaultTagsList = $ubillingConfig->getAlterParam('USERREG_DEFAULT_TAGS_LIST', '');
     $needONUAssignment = false;
 
 // Init all of needed user data
@@ -1000,6 +1020,11 @@ function zb_UserRegister($user_data, $goprofile = true) {
             $openPayz = new OpenPayz(false, true);
             $openPayz->registerStaticPaymentId($login);
         }
+    }
+
+    // default user tags list processing
+    if (!empty($defaultTagsList)) {
+        assignDefaultTags($login, $defaultTagsList);
     }
 
 ///////////////////////////////////
