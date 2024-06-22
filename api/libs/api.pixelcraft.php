@@ -639,7 +639,7 @@ class PixelCraft {
      * 
      * @return void
      */
-    public function drawTextAutoSize($y, $padding = 10, $text, $colorName = '', $outlineColor = '') {
+    public function drawTextAutoSize($y, $padding = 10, $text = '', $colorName = '', $outlineColor = '') {
         if (!empty($text)) {
             $defaultFontSize = 40;
             $border = 1;
