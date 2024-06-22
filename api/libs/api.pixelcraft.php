@@ -346,7 +346,7 @@ class PixelCraft {
      * 
      * @return bool
      */
-    public function saveImage($fileName = null, $type) {
+    public function saveImage($fileName = null, $type = 'png') {
         $result = false;
         if ($this->image) {
             $saveFunctionName = 'image' . $type;
@@ -639,11 +639,14 @@ class PixelCraft {
      * 
      * @return void
      */
-    public function drawTextAutoSize($y, $padding = 10, $text, $colorName, $outlineColor = '') {
+    public function drawTextAutoSize($y, $padding = 10, $text, $colorName = '', $outlineColor = '') {
         if (!empty($text)) {
             $defaultFontSize = 40;
             $border = 1;
             $x = $padding;
+            $colorName = (empty($colorName)) ? 'white' : $colorName;
+            $outlineColor = (empty($outlineColor)) ? 'black' : $outlineColor;
+
             //guessing font size
             $fontSize = $this->guessFontSize($defaultFontSize, $text, $padding);
 
