@@ -7,7 +7,7 @@ class Providex extends PaySysProto {
     /**
      * Predefined stuff
      */
-    const PATH_CONFIG     = 'config/providex.ini';
+    const PATH_CONFIG = 'config/providex.ini';
 
     /**
      * Paysys specific predefines
@@ -124,9 +124,10 @@ class Providex extends PaySysProto {
     protected function createSign() {
         $paymentData        = $this->receivedJSON['data'];
         $providexAPISecret  = $this->merchantCreds['paysys_secret_key'];
-        //$sign               = PaySysProto::urlSafeBase64Encode(sha1($providexAPISecret . $paymentData . $providexAPISecret, true));
-        $sign               = base64_encode(sha1($providexAPISecret . $paymentData . $providexAPISecret, true));
-file_put_contents('wxcv', sha1($providexAPISecret . $paymentData . $providexAPISecret, true) . "\n\n" . $sign);
+        $sign               = PaySysProto::urlSafeBase64Encode(sha1($providexAPISecret . $paymentData . $providexAPISecret, true), false);
+file_put_contents('wxcv', sha1($providexAPISecret . $paymentData . $providexAPISecret, true) . "\n\n" . $sign . "\n\n\n\n");
+//        $sign               = base64_encode(sha1($providexAPISecret . $paymentData . $providexAPISecret, true));
+//file_put_contents('wxcv', sha1($providexAPISecret . $paymentData . $providexAPISecret, true) . "\n\n" . $sign, 8);
         return($sign);
     }
 
@@ -266,14 +267,14 @@ file_put_contents('wxcv', sha1($providexAPISecret . $paymentData . $providexAPIS
      * Processes requests
      */
     protected function processRequests() {
-        $this->opCustomersAll  = array_flip(op_CustomersGetAll());
+        $opCustomersAll  = array_flip(op_CustomersGetAll());
         $this->subscriberLogin = $this->receivedJSON['login'];
 
-        if (!empty($this->opCustomersAll[$this->subscriberLogin])) {
-            $this->subscriberVirtualID = $this->opCustomersAll[$this->subscriberLogin];
+        if (!empty($opCustomersAll[$this->subscriberLogin])) {
+            $this->subscriberVirtualID = $opCustomersAll[$this->subscriberLogin];
 
             if ($this->getUBAgentAssignedID($this->subscriberLogin) == 0) {
-                $this->replyError(400, 'SUBSCRIBER_NOT_FOUND');
+                $this->replyError(404, 'SUBSCRIBER_NOT_FOUND');
             }
 
             switch ($this->paymentMethod) {
@@ -290,7 +291,7 @@ file_put_contents('wxcv', sha1($providexAPISecret . $paymentData . $providexAPIS
             }
 
         } else {
-            $this->replyError(400, 'SUBSCRIBER_NOT_FOUND');
+            $this->replyError(404, 'SUBSCRIBER_NOT_FOUND');
         }
     }
 
@@ -302,10 +303,17 @@ file_put_contents('wxcv', sha1($providexAPISecret . $paymentData . $providexAPIS
      */
     public function listen() {
         $rawRequest = file_get_contents('php://input');
-        parse_str(urldecode($rawRequest), $this->receivedJSON);
+        $isFormURLEncoded = ($_SERVER['CONTENT_TYPE'] == 'application/x-www-form-urlencoded');
+
+        if ($isFormURLEncoded) {
+            parse_str(urldecode($rawRequest), $this->receivedJSON);
+        } else {
+            $this->receivedJSON = json_decode($rawRequest, true);
+        }
+
         $this->setHTTPHeaders();
 
-        if (empty($this->receivedJSON) or empty($this->receivedJSON['data'])) {
+        if (empty($this->receivedJSON)) {
             $this->replyError(400, 'PAYLOAD_EMPTY');
         } else {
             if (empty($this->receivedJSON['providex'])) {

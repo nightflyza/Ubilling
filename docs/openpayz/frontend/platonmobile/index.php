@@ -7,7 +7,7 @@ class PlatonMobile extends PaySysProto {
     /**
      * Predefined stuff
      */
-    const PATH_CONFIG     = 'config/platonmobile.ini';
+    const PATH_CONFIG = 'config/platonmobile.ini';
 
     /**
      * Paysys specific predefines
@@ -18,7 +18,7 @@ class PlatonMobile extends PaySysProto {
      * or distinguish it in any other way, suitable for you
      */
     const HASH_PREFIX = 'PLATONMOBILE_';
-    const PAYSYS      = 'PLATONMOBILE_';
+    const PAYSYS      = 'PLATONMOBILE';
 
 
     /**
@@ -266,14 +266,14 @@ class PlatonMobile extends PaySysProto {
      * Processes requests
      */
     protected function processRequests() {
-        $this->opCustomersAll  = array_flip(op_CustomersGetAll());
+        $opCustomersAll  = array_flip(op_CustomersGetAll());
         $this->subscriberLogin = $this->receivedJSON['login'];
 
-        if (!empty($this->opCustomersAll[$this->subscriberLogin])) {
-            $this->subscriberVirtualID = $this->opCustomersAll[$this->subscriberLogin];
+        if (!empty($opCustomersAll[$this->subscriberLogin])) {
+            $this->subscriberVirtualID = $opCustomersAll[$this->subscriberLogin];
 
             if ($this->getUBAgentAssignedID($this->subscriberLogin) == 0) {
-                $this->replyError(400, 'SUBSCRIBER_NOT_FOUND');
+                $this->replyError(404, 'SUBSCRIBER_NOT_FOUND');
             }
 
             switch ($this->paymentMethod) {
@@ -290,7 +290,7 @@ class PlatonMobile extends PaySysProto {
             }
 
         } else {
-            $this->replyError(400, 'SUBSCRIBER_NOT_FOUND');
+            $this->replyError(404, 'SUBSCRIBER_NOT_FOUND');
         }
     }
 
