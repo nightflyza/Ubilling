@@ -9,6 +9,22 @@ class PaySysProto {
      * Predefined stuff
      * Just as an example - override this in your paysys class, if needed
      */
+
+    /**
+     * One may use special 'NO_INI_CONFIG' keyword for 'PATH_CONFIG' constant
+     * to avoid the demanded usage of some 'config.ini' file.
+     * BUT KEEP IN MIND
+     * That in that case not even one 'Contragent-related' method will work.
+     * Because there should be at least 'ubAPI' creds to use contragent-related stuff.
+     * But one may implement that in own way.
+     * And of course one may just override the value of the $INIConfigIsON flag.
+     * Anyway - this methods will not work properly without 'config.ini' file usage:
+     *      loadAgentCodesMapping()
+     *      getUBAgentData()
+     *      getUBAgentAssignedID()
+     *      checkUserAgentAssignment()
+     *      getPaySysIDToAgentAssigned()
+     */
     const PATH_CONFIG       = 'config/config.ini';
     const PATH_AGENTCODES   = 'config/agentcodes_mapping.ini';
     const PATH_TRANSACTS    = 'tmp/';
@@ -27,6 +43,13 @@ class PaySysProto {
      * @var array
      */
     protected $config = array();
+
+    /**
+     * Just a flag indicating the 'config.ini' usage
+     *
+     * @var bool
+     */
+    protected $INIConfigIsON = true;
 
     /**
      * Agent codes using flag
@@ -98,6 +121,12 @@ class PaySysProto {
      */
     protected $addressCityDisplay = false;
 
+    /**
+     * Placeholder for SUBSCRIBER_BALANCE_DECIMALS config option
+     *
+     * @var bool
+     */
+    protected $subscriberBalanceDecimals = -1;
 
     /**
      * Preloads all required configurations, sets needed object properties
@@ -105,6 +134,7 @@ class PaySysProto {
      * @return void
      */
     public function __construct($config_path = self::PATH_CONFIG) {
+        $this->INIConfigIsON = ($config_path !== 'NO_INI_CONFIG');
         $this->loadConfig($config_path);
     }
 
@@ -114,10 +144,13 @@ class PaySysProto {
      * @return void
      */
     protected function loadConfig($config_path = self::PATH_CONFIG) {
-        if (file_exists($config_path)) {
-            $this->config = parse_ini_file($config_path);
-        } else {
-            $this->replyError(500, 'Fatal error: config file ' . $config_path . ' not found!');
+        if ($this->INIConfigIsON) {
+            if (file_exists($config_path)) {
+                $this->config = parse_ini_file($config_path);
+            }
+            else {
+                $this->replyError(500, 'Fatal error: config file ' . $config_path . ' not found!');
+            }
         }
     }
 
@@ -127,16 +160,19 @@ class PaySysProto {
      * @return void
      */
     protected function setOptions() {
-        if (!empty($this->config)) {
-            $this->agentcodesON             = isset($this->config['USE_AGENTCODES']) ? $this->config['USE_AGENTCODES'] : false;
-            $this->agentcodesMappingDisable = isset($this->config['DISABLE_AGENTCODES_MAPPING_FILE']) ? $this->config['DISABLE_AGENTCODES_MAPPING_FILE'] : false;
-            $this->agentcodesNonStrict      = isset($this->config['NON_STRICT_AGENTCODES']) ? $this->config['NON_STRICT_AGENTCODES'] : false;
-            $this->agentcodeDefault         = isset($this->config['DEFAULT_AGENT_CODE']) ? $this->config['DEFAULT_AGENT_CODE'] : 1;
-            $this->ubapiURL                 = isset($this->config['UBAPI_URL']) ? $this->config['UBAPI_URL'] : '';
-            $this->ubapiKey                 = isset($this->config['UBAPI_KEY']) ? $this->config['UBAPI_KEY'] : '';
-            $this->addressCityDisplay       = isset($this->config['CITY_DISPLAY_IN_ADDRESS']) ? $this->config['CITY_DISPLAY_IN_ADDRESS'] : false;
-        } else {
-            $this->replyError(500, 'Fatal: config is empty!');
+        if ($this->INIConfigIsON) {
+            if (!empty($this->config)) {
+                $this->agentcodesON              = isset($this->config['USE_AGENTCODES']) ? $this->config['USE_AGENTCODES'] : false;
+                $this->agentcodesMappingDisable  = isset($this->config['DISABLE_AGENTCODES_MAPPING_FILE']) ? $this->config['DISABLE_AGENTCODES_MAPPING_FILE'] : false;
+                $this->agentcodesNonStrict       = isset($this->config['NON_STRICT_AGENTCODES']) ? $this->config['NON_STRICT_AGENTCODES'] : false;
+                $this->agentcodeDefault          = isset($this->config['DEFAULT_AGENT_CODE']) ? $this->config['DEFAULT_AGENT_CODE'] : 1;
+                $this->ubapiURL                  = isset($this->config['UBAPI_URL']) ? $this->config['UBAPI_URL'] : '';
+                $this->ubapiKey                  = isset($this->config['UBAPI_KEY']) ? $this->config['UBAPI_KEY'] : '';
+                $this->addressCityDisplay        = isset($this->config['CITY_DISPLAY_IN_ADDRESS']) ? $this->config['CITY_DISPLAY_IN_ADDRESS'] : false;
+                $this->subscriberBalanceDecimals = isset($this->config['SUBSCRIBER_BALANCE_DECIMALS']) ? $this->config['SUBSCRIBER_BALANCE_DECIMALS'] : -1;
+            } else {
+                $this->replyError(500, 'Fatal: config is empty!');
+            }
         }
     }
 
@@ -163,8 +199,10 @@ class PaySysProto {
      * @return string
      */
     protected function getUBAgentData($userLogin) {
-        $action = $this->ubapiURL . '?module=remoteapi&key=' . $this->ubapiKey . '&action=getagentdata&param=' . $userLogin;
-        @$result = file_get_contents($action);
+        if ($this->INIConfigIsON) {
+            $action = $this->ubapiURL . '?module=remoteapi&key=' . $this->ubapiKey . '&action=getagentdata&param=' . $userLogin;
+            @$result = file_get_contents($action);
+        }
 
         if (empty($result)) {
             $result = array();
@@ -183,16 +221,20 @@ class PaySysProto {
      *
      * @return array|empty
      */
-    protected function getUBAgentDataExten($agentID, $paysysName = '') {
-        $result     = array();
-        $whereStr   = (empty($paysysName) ? '' : ' and `internal_paysys_name` = "' . $paysysName . '"');
+    protected function getUBAgentDataExten($agentID = '', $paysysName = '') {
+        $result   = array();
+        $whereStr = '';
 
-        if (!empty($agentID)) {
-            $query       = 'select * from `contrahens_extinfo` where `agentid` = ' . $agentID . $whereStr;
-            $queryResult = simple_queryall($query);
-
-            $result = (empty($queryResult) ? array() : $queryResult);
+        if (!empty($agentID)) { $whereStr.= ' `agentid` = ' . $agentID; }
+        if (!empty($paysysName)) {
+            if (!empty($whereStr)) { $whereStr.= ' and '; }
+            $whereStr.= ' `internal_paysys_name` = "' . $paysysName . '"';
         }
+
+        $query       = 'select * from `contrahens_extinfo` where ' . $whereStr;
+        $queryResult = simple_queryall($query);
+
+        $result = (empty($queryResult) ? array() : $queryResult);
 
         return ($result);
     }
@@ -205,12 +247,14 @@ class PaySysProto {
      * @return int|mixed|string
      */
     protected function getUBAgentAssignedID($userLogin) {
-        if (empty($this->agentID)) {
-            $agentData      = (empty($this->agentData) ? $this->getUBAgentData($userLogin) : $this->agentData);
-            $this->agentID  = (empty($agentData['id'])
-                                ? (empty($this->agentcodeDefault)
-                                    ? 0 : (empty($this->agentcodesNonStrict)
-                                        ? 0 : $this->agentcodeDefault)) : $agentData['id']);
+        if ($this->INIConfigIsON) {
+            if (empty($this->agentID)) {
+                $agentData      = (empty($this->agentData) ? $this->getUBAgentData($userLogin) : $this->agentData);
+                $this->agentID  = (empty($agentData['id'])
+                                    ? (empty($this->agentcodeDefault)
+                                        ? 0 : (empty($this->agentcodesNonStrict)
+                                            ? 0 : $this->agentcodeDefault)) : $agentData['id']);
+            }
         }
 
         return ($this->agentID);
@@ -225,18 +269,23 @@ class PaySysProto {
      */
     protected function checkUserAgentAssignment($userLogin, $paysysIDToCheck) {
         $result  = false;
-        // get current subscriber agent ID
-        $agentID = $this->getUBAgentAssignedID($userLogin);
 
-        if (!empty($agentID)) {
-            // get Service ID to Ubilling agent code mapping, if exists
-            $mappedAgentBySrvID = (empty($this->agentcodesMapping[$paysysIDToCheck]) ? 'n0ne' : $this->agentcodesMapping[$paysysIDToCheck]);
-            // compare the IDs
-            $result  = ($agentID == $mappedAgentBySrvID);
+        if ($this->INIConfigIsON) {
+            // get current subscriber agent ID
+            $agentID = $this->getUBAgentAssignedID($userLogin);
+
+            if (!empty($agentID)) {
+                // get Service ID to Ubilling agent code mapping, if exists
+                $mappedAgentBySrvID = (empty($this->agentcodesMapping[$paysysIDToCheck]) ? 'n0ne'
+                    : $this->agentcodesMapping[$paysysIDToCheck]);
+                // compare the IDs
+                $result = ($agentID == $mappedAgentBySrvID);
+            }
+
+            // if $result is false and $this->agentcodesNonStrict is ON - make $result true
+            $result = ((!$result and $this->agentcodesNonStrict) ? true : $result);
         }
 
-        // if $result is false and $this->agentcodesNonStrict is ON - make $result true
-        $result = ((!$result and $this->agentcodesNonStrict) ? true : $result);
         return ($result);
     }
 
@@ -249,20 +298,25 @@ class PaySysProto {
      */
     protected function getPaySysIDToAgentAssigned($userLogin) {
         $paysysIDToGet = '';
-        $agentcodesMappingReversed = array_flip($this->agentcodesMapping);
-        $agentID = $this->getUBAgentAssignedID($userLogin);
 
-        if (!empty($agentID)) {
-            // get Ubilling agent code to Cashbox mapping, if exists
-            $paysysIDToGet = (empty($agentcodesMappingReversed[$agentID]) ? '' : $agentcodesMappingReversed[$agentID]);
-        }
+        if ($this->INIConfigIsON) {
+            $agentcodesMappingReversed = array_flip($this->agentcodesMapping);
+            $agentID                   = $this->getUBAgentAssignedID($userLogin);
 
-        // if no mapped Service/Merchant/Cashbox/etc ID found or user does not have UB agent assigned
-        // and $this->agentcodesNonStrict is ON - proceed with default UB agent ID
-        // and a Service/Merchant/Cashbox/etc ID mapped to it
-        // if no default UB agent ID is set - user not found error should be returned.
-        if (empty($paysysIDToGet) and $this->agentcodesNonStrict and !empty($this->agentcodeDefault)) {
-            $paysysIDToGet = (empty($agentcodesMappingReversed[$this->agentcodeDefault]) ? '' : $agentcodesMappingReversed[$this->agentcodeDefault]);
+            if (!empty($agentID)) {
+                // get Ubilling agent code to Cashbox mapping, if exists
+                $paysysIDToGet = (empty($agentcodesMappingReversed[$agentID]) ? '' : $agentcodesMappingReversed[$agentID]);
+            }
+
+            // if no mapped Service/Merchant/Cashbox/etc ID found or user does not have UB agent assigned
+            // and $this->agentcodesNonStrict is ON - proceed with default UB agent ID
+            // and a Service/Merchant/Cashbox/etc ID mapped to it
+            // if no default UB agent ID is set - user not found error should be returned.
+            if (empty($paysysIDToGet) and $this->agentcodesNonStrict and !empty($this->agentcodeDefault)) {
+                $paysysIDToGet = (empty($agentcodesMappingReversed[$this->agentcodeDefault])
+                                 ? ''
+                                 : $agentcodesMappingReversed[$this->agentcodeDefault]);
+            }
         }
 
         return ($paysysIDToGet);
@@ -543,8 +597,13 @@ class PaySysProto {
      *
      * @return string The base64 encode of what you passed in
      */
-    public static function urlSafeBase64Encode($input) {
-        return (str_replace('=', '', strtr(base64_encode($input), '+/', '-_')));
+    public static function urlSafeBase64Encode($input, $EqualSignRemove = true) {
+file_put_contents('vxcv', $input . "\n\n");
+        $result = ($EqualSignRemove)
+                  ? str_replace('=', '', strtr(base64_encode($input), '+/', '-_'))
+                  : strtr(base64_encode($input), '+/', '-_');
+file_put_contents('vxcv', $result . "\n\n", 8);
+        return ($result);
     }
 
     /**

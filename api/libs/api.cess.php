@@ -227,25 +227,25 @@ function zb_ContrAhentAddForm() {
     $sup = wf_tag('sup') . '*' . wf_tag('sup', true);
 
     $inputs = '';
-    $inputs .= wf_TextInput('newcontrname', __('Contrahent name') . $sup, '', true, 20);
-    $inputs .= wf_TextInput('newbankacc', __('Bank account'), '', true, 20);
-    $inputs .= wf_TextInput('newbankname', __('Bank name'), '', true, 20);
-    $inputs .= wf_TextInput('newbankcode', __('Bank code'), '', true, 20);
-    $inputs .= wf_TextInput('newedrpo', __('EDRPOU'), '', true, 20);
-    $inputs .= wf_TextInput('newipn', __('IPN'), '', true, 20);
-    $inputs .= wf_TextInput('newlicensenum', __('License number'), '', true, 20);
-    $inputs .= wf_TextInput('newjuraddr', __('Juridical address'), '', true, 20);
-    $inputs .= wf_TextInput('newphisaddr', __('Phisical address'), '', true, 20);
-    $inputs .= wf_TextInput('newphone', __('Phone'), '', true, 20);
-    $inputs .= wf_TextInput('newagnameabbr', __('Short name'), '', true, 20);
-    $inputs .= wf_TextInput('newagsignatory', __('Signatory'), '', true, 20);
-    $inputs .= wf_TextInput('newagsignatory2', __('Signatory') . ' 2', '', true, 20);
-    $inputs .= wf_TextInput('newagbasis', __('Basis'), '', true, 20);
-    $inputs .= wf_TextInput('newagmail', __('Mail'), '', true, 20, 'email');
-    $inputs .= wf_TextInput('newsiteurl', __('Site URL'), '', true, 20, 'url');
-    $inputs .= wf_Submit(__('Create'));
+    $inputs .= wf_TextInput('newcontrname', __('Contrahent name') . $sup, '', false, '', '', '', '', '', true);
+    $inputs .= wf_TextInput('newbankacc', __('Bank account'), '', false, '40', '', '', '', '', true);
+    $inputs .= wf_TextInput('newbankname', __('Bank name'), '', false, '', '', '', '', '', true);
+    $inputs .= wf_TextInput('newbankcode', __('Bank code'), '', false, '', '', '', '', '', true);
+    $inputs .= wf_TextInput('newedrpo', __('EDRPOU'), '', false, '', '', '', '', '', true);
+    $inputs .= wf_TextInput('newipn', __('IPN'), '', false, '', '', '', '', '', true);
+    $inputs .= wf_TextInput('newlicensenum', __('License number'), '', false, '', '', '', '', '', true);
+    $inputs .= wf_TextInput('newjuraddr', __('Juridical address'), '', false, '', '', '', '', '', true);
+    $inputs .= wf_TextInput('newphisaddr', __('Phisical address'), '', false, '', '', '', '', '', true);
+    $inputs .= wf_TextInput('newphone', __('Phone'), '', false, '', '', '', '', '', true);
+    $inputs .= wf_TextInput('newagnameabbr', __('Short name'), '', false, '', '', '', '', '', true);
+    $inputs .= wf_TextInput('newagsignatory', __('Signatory'), '', false, '', '', '', '', '', true);
+    $inputs .= wf_TextInput('newagsignatory2', __('Signatory') . ' 2', '', false, '', '', '', '', '', true);
+    $inputs .= wf_TextInput('newagbasis', __('Basis'), '', false, '', '', '', '', '', true);
+    $inputs .= wf_TextInput('newagmail', __('Mail'), '', false, '', '', '', '', '', true, 'email');
+    $inputs .= wf_TextInput('newsiteurl', __('Site URL'), '', false, '', '', '', '', '', true, 'url');
+    $inputs.= wf_SubmitClassed(true, 'ubButton', '', __('Create'));
 
-    $result = wf_Form("", 'POST', $inputs, 'glamour');
+    $result = wf_Form("", 'POST', $inputs, 'glamour form-grid-2cols form-grid-2cols-label-right labels-top');
 
     return($result);
 }
@@ -263,25 +263,25 @@ function zb_ContrAhentEditForm($ahentid) {
     $sup = wf_tag('sup') . '*' . wf_tag('sup', true);
 
     $inputs = '';
-    $inputs .= wf_TextInput('changecontrname', __('Contrahent name') . $sup, $cdata['contrname'], true);
-    $inputs .= wf_TextInput('changebankacc', __('Bank account'), $cdata['bankacc'], true);
-    $inputs .= wf_TextInput('changebankname', __('Bank name'), $cdata['bankname'], true);
-    $inputs .= wf_TextInput('changebankcode', __('Bank code'), $cdata['bankcode'], true);
-    $inputs .= wf_TextInput('changeedrpo', __('EDRPOU'), $cdata['edrpo'], true);
-    $inputs .= wf_TextInput('changeipn', __('IPN'), $cdata['ipn'], true);
-    $inputs .= wf_TextInput('changelicensenum', __('License number'), $cdata['licensenum'], true);
-    $inputs .= wf_TextInput('changejuraddr', __('Juridical address'), $cdata['juraddr'], true);
-    $inputs .= wf_TextInput('changephisaddr', __('Phisical address'), $cdata['phisaddr'], true);
-    $inputs .= wf_TextInput('changephone', __('Phone'), $cdata['phone'], true);
-    $inputs .= wf_TextInput('changeagnameabbr', __('Short name'), $cdata['agnameabbr'], true, 20);
-    $inputs .= wf_TextInput('changeagsignatory', __('Signatory'), $cdata['agsignatory'], true, 20);
-    $inputs .= wf_TextInput('changeagsignatory2', __('Signatory') . ' 2', $cdata['agsignatory2'], true, 20);
-    $inputs .= wf_TextInput('changeagbasis', __('Basis'), $cdata['agbasis'], true, 20);
-    $inputs .= wf_TextInput('changeagmail', __('Mail'), $cdata['agmail'], true, 20, 'email');
-    $inputs .= wf_TextInput('changesiteurl', __('Site URL'), $cdata['siteurl'], true, 20, 'url');
+    $inputs .= wf_TextInput('changecontrname', __('Contrahent name') . $sup, $cdata['contrname'], false, '', '', '', '', '', true);
+    $inputs .= wf_TextInput('changebankacc', __('Bank account'), $cdata['bankacc'], false, '40', '', '', '', '', true);
+    $inputs .= wf_TextInput('changebankname', __('Bank name'), $cdata['bankname'], false, '', '', '', '', '', true);
+    $inputs .= wf_TextInput('changebankcode', __('Bank code'), $cdata['bankcode'], false, '', '', '', '', '', true);
+    $inputs .= wf_TextInput('changeedrpo', __('EDRPOU'), $cdata['edrpo'], false, '', '', '', '', '', true);
+    $inputs .= wf_TextInput('changeipn', __('IPN'), $cdata['ipn'], false, '', '', '', '', '', true);
+    $inputs .= wf_TextInput('changelicensenum', __('License number'), $cdata['licensenum'], false, '', '', '', '', '', true);
+    $inputs .= wf_TextInput('changejuraddr', __('Juridical address'), $cdata['juraddr'], false, '', '', '', '', '', true);
+    $inputs .= wf_TextInput('changephisaddr', __('Phisical address'), $cdata['phisaddr'], false, '', '', '', '', '', true);
+    $inputs .= wf_TextInput('changephone', __('Phone'), $cdata['phone'], false, '', '', '', '', '', true);
+    $inputs .= wf_TextInput('changeagnameabbr', __('Short name'), $cdata['agnameabbr'], false, '', '', '', '', '', true);
+    $inputs .= wf_TextInput('changeagsignatory', __('Signatory'), $cdata['agsignatory'], false, '', '', '', '', '', true);
+    $inputs .= wf_TextInput('changeagsignatory2', __('Signatory') . ' 2', $cdata['agsignatory2'], false, '', '', '', '', '', true);
+    $inputs .= wf_TextInput('changeagbasis', __('Basis'), $cdata['agbasis'], false, '', '', '', '', '', true);
+    $inputs .= wf_TextInput('changeagmail', __('Mail'), $cdata['agmail'], false, '', 'email', '', '', '', true);
+    $inputs .= wf_TextInput('changesiteurl', __('Site URL'), $cdata['siteurl'], false, '', 'url', '', '', '', true);
 
-    $inputs .= wf_Submit(__('Save'));
-    $result = wf_Form("", 'POST', $inputs, 'glamour');
+    $inputs.= wf_SubmitClassed(true, 'ubButton', '', __('Save'));
+    $result = wf_Form("", 'POST', $inputs, 'glamour form-grid-2cols form-grid-2cols-label-right labels-top');
 
     return ($result);
 }
@@ -300,7 +300,7 @@ function zb_ContrAhentSelect() {
         }
     }
 
-    $result = wf_Selector('ahentsel', $params, __('Contrahent name'), false, false);
+    $result = wf_Selector('ahentsel', $params, __('Contrahent name'), false, false, false, '', '', '', true);
     return ($result);
 }
 
@@ -390,10 +390,10 @@ function zb_AgentAssignAdd($ahenid, $streetname) {
 function web_AgentAssignForm() {
     $sup = wf_tag('sup') . '*' . wf_tag('sup', true);
     $inputs = zb_ContrAhentSelect();
-    $inputs .= wf_tag('br');
-    $inputs .= wf_TextInput('newassign', __('Street name') . $sup, '', true);
-    $inputs .= wf_Submit(__('Save'));
-    $result = wf_Form("", 'POST', $inputs, 'glamour');
+    //$inputs .= wf_tag('br');
+    $inputs .= wf_TextInput('newassign', __('Street name') . $sup, '', false, '', '', '', '', '', true);
+    $inputs.= wf_SubmitClassed(true, 'ubButton', '', __('Save'));
+    $result = wf_Form("", 'POST', $inputs, 'glamour form-grid-2cols form-grid-2cols-label-right labels-top');
 
     return($result);
 }
@@ -1342,7 +1342,7 @@ function zb_AgentEditExtInfoForm($recID = '') {
     $inputs.= wf_TextInput('extinfintpaysystoken', __('Service token'), $extinfoPaySysToken, false, '', '', '', '', '', true);
     $inputs.= wf_TextInput('extinfintpaysyskey', __('Service secret key'), $extinfoPaySysSecretKey, false, '', '', '', '', '', true);
     $inputs.= wf_TextInput('extinfintpaysyspasswd', __('Service password'), $extinfoPaySysPassword, false, '50', '', '', '', '', true);
-    $inputs.= wf_TextInput('extinfintpaysyscallbackurl', __('Service callback URL'), $extinfoPaySysCallbackURL, false, '', '', '', '', '', true);
+    $inputs.= wf_TextInput('extinfintpaysyscallbackurl', __('Service callback URL'), $extinfoPaySysCallbackURL, false, '', 'url', '', '', '', true);
     $inputs.= wf_HiddenInput('extinfrecid', $extinfoRecID);
     $inputs.= wf_HiddenInput('extinfagentid', $extinfoAgentID);
     $inputs.= wf_HiddenInput('extinfeditmode', $extinfoEditMode);
