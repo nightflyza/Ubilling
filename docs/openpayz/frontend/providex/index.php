@@ -36,6 +36,13 @@ class Providex extends PaySysProto {
     protected $paymentMethodsAvailable = array('preorder', 'confirmorder');
 
     /**
+     * Successful status codes to check for on payment confirmation
+     *
+     * @var array
+     */
+    protected $successfulStatusCodes = array('1000', '1002', '1004', '1009');
+
+    /**
      * Subscriber's virtual payment ID
      *
      * @var string
@@ -197,48 +204,57 @@ file_put_contents('wxcv', sha1($providexAPISecret . $paymentData . $providexAPIS
      * [confirmorder] request reply implementation
      */
     protected function replyConfirmOrder() {
-        $reply              = '';
-        $pvdxTransactData   = json_decode(PaySysProto::urlSafeBase64Decode($this->receivedJSON['data']), true);
-        $billingTransactID  = $pvdxTransactData['order_id'];
+        $reply                  = '';
+        $pvdxTransactData       = json_decode(PaySysProto::urlSafeBase64Decode($this->receivedJSON['data']), true);
+        $billingTransactID      = $pvdxTransactData['order_id'];
+        $pvdxTransactStatusCode = $pvdxTransactData['status_code'];
 
-        if ($this->checkTransactFileExists($billingTransactID)) {
-            $transactData   = $this->getTransactFileData($billingTransactID);
-            $transactSumm   = $transactData['paymentSum'];
+        if (!empty($pvdxTransactStatusCode) and in_array($pvdxTransactStatusCode, $this->successfulStatusCodes)) {
+            if ($this->checkTransactFileExists($billingTransactID)) {
+                $transactData = $this->getTransactFileData($billingTransactID);
+                $transactSumm = $transactData['paymentSum'];
 
-            $pvdxTransactID = $pvdxTransactData['transaction_id'];
-            $pvdxPaymentSum = $pvdxTransactData['amount'];
+                $pvdxTransactID = $pvdxTransactData['transaction_id'];
+                $pvdxPaymentSum = $pvdxTransactData['amount'];
 
-            if ($pvdxPaymentSum == $transactSumm) {
-                if ($this->validateSign()) {
-                    $opHash     = self::HASH_PREFIX . $billingTransactID;
-                    $opHashData = $this->getOPTransactDataByHash($opHash);
+                if ($pvdxPaymentSum == $transactSumm) {
+                    if ($this->validateSign()) {
+                        $opHash     = self::HASH_PREFIX . $billingTransactID;
+                        $opHashData = $this->getOPTransactDataByHash($opHash);
 
-                    if (empty($opHashData)) {
-                        //push transaction to database
-                        op_TransactionAdd($opHash, $pvdxPaymentSum, $this->subscriberVirtualID,
-                                  self::PAYSYS, 'Providex payment ID: ' . $pvdxTransactID);
-                        op_ProcessHandlers();
+                        if (empty($opHashData)) {
+                            //push transaction to database
+                            op_TransactionAdd($opHash, $pvdxPaymentSum, $this->subscriberVirtualID,
+                                              self::PAYSYS, 'Providex payment ID: ' . $pvdxTransactID);
+                            op_ProcessHandlers();
 
-                        $reply = array(
-                                    'transact_id' => $pvdxTransactID,
-                                    'order'       => $billingTransactID,
-                                    'amount'      => $pvdxPaymentSum,
-                                    'login'       => $this->subscriberLogin,
-                                    'state'       => 'SUCCESS'
-                                    );
+                            $reply = array(
+                                'transact_id' => $pvdxTransactID,
+                                'order'       => $billingTransactID,
+                                'amount'      => $pvdxPaymentSum,
+                                'login'       => $this->subscriberLogin,
+                                'state'       => 'SUCCESS'
+                            );
 
-                        $reply = json_encode($reply);
-                    } else {
-                        $this->replyError(400, 'TRANSACTION_ALREADY_EXISTS');
+                            $reply = json_encode($reply);
+                        }
+                        else {
+                            $this->replyError(400, 'TRANSACTION_ALREADY_EXISTS');
+                        }
                     }
-                } else {
-                    $this->replyError(422, 'TRANSACTION_INCORRECT_SIGN');
+                    else {
+                        $this->replyError(422, 'TRANSACTION_INCORRECT_SIGN');
+                    }
                 }
-            } else {
-                $this->replyError(400, 'TRANSACTION_AMOUNT_VALUE_MISMATCH');
+                else {
+                    $this->replyError(400, 'TRANSACTION_AMOUNT_VALUE_MISMATCH');
+                }
+            }
+            else {
+                $this->replyError(404, 'TRANSACTION_PREORDER_NOT_FOUND');
             }
         } else {
-            $this->replyError(404, 'TRANSACTION_PREORDER_NOT_FOUND');
+            $this->replyError(422, 'PROVIDEX_TRANSACTION_STATUS_CODE_UNSUCCESSFUL');
         }
 
         die($reply);
