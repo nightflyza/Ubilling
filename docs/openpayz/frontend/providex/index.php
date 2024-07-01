@@ -1,6 +1,7 @@
 <?php
 
 // including API OpenPayz
+// change the path according to your realities
 include ("../../libs/api.openpayz.php");
 
 class Providex extends PaySysProto {

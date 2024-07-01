@@ -341,7 +341,7 @@ class PaySysProto {
      *
      * @param string $userLogin
      *
-     * @return array
+     * @return array|string
      */
     protected function getUserRealnames($userLogin = '') {
         $result = array();
