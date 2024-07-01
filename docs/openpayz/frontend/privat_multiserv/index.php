@@ -141,22 +141,24 @@ class PrivatStrictMultiserv extends PaySysProto {
      */
     protected function getXMLResponseHead() {
         if ($this->paymentMethod == 'Search') {
-            $transfer   = '';
-            $xsitype    = self::PB_XML_XSITYPE_DEBTPACK;
-            $attribute  = 'billPeriod="' . date("Ym") . '"';
+            $transferTagClose   = '';
+            $inlineDataTagClose = '';
+            $xsitype            = self::PB_XML_XSITYPE_DEBTPACK;
+            $attribute          = 'billPeriod="' . date("Ym") . '"';
         } else {
-            $transfer   = '</Transfer>';
-            $xsitype    = self::PB_XML_XSITYPE_GATEWAY;
-            $attribute  = 'reference="' . ($this->paymentMethod == 'Check'
-                                           ? PaySysProto::genRandNumString()
-                                           : $this->pbTransactReference);
+            $transferTagClose   = "\n </Transfer>";
+            $inlineDataTagClose = ' /';
+            $xsitype            = self::PB_XML_XSITYPE_GATEWAY;
+            $attribute          = 'reference="' . ($this->paymentMethod == 'Check'
+                                                ? PaySysProto::genRandNumString()
+                                                : $this->pbTransactReference) . '"';
         }
 
         $xmlHead = '
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <Transfer xmlns="http://debt.privatbank.ua/Transfer" interface="Debt" action="' . $this->paymentMethod . '">
-    <Data xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="' . $xsitype . '" ' . $attribute . ' />'
-. $transfer;
+    <Data xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="' . $xsitype . '" ' . $attribute . $inlineDataTagClose . '>'
+. $transferTagClose;
 
         return ($xmlHead);
     }
@@ -172,6 +174,7 @@ class PrivatStrictMultiserv extends PaySysProto {
         $realname   = $this->getUserRealnames($this->subscriberLogin);
         $address    = $this->getUserAddresses($this->subscriberLogin);
         $mobile     = $this->getUserCellPhone($this->subscriberLogin);
+        $mobile     = (empty($mobile) ? '' : $mobile[$this->subscriberLogin][0]);
         $lsAttr     = ($lsAttrAdd ? ' ls="' . $this->subscriberVirtualID . '"' : '');
 
         $xmlPayerBlock = '
@@ -246,9 +249,9 @@ class PrivatStrictMultiserv extends PaySysProto {
                     $tmpArr = $this->receivedXML['Transfer']['Data']['Unit'];
                     foreach ($tmpArr as $io => $eachAttr) {
                         if (!empty($eachAttr['name']) and !empty($eachAttr['value'])) {
-                            if ($eachAttr['name'] = 'bill_identifier') {
+                            if ($eachAttr['name'] == 'bill_identifier') {
                                 $this->subscriberVirtualID = $eachAttr['value'];
-                            } elseif ($eachAttr['name'] = 'summ') {
+                            } elseif ($eachAttr['name'] == 'summ') {
                                 $this->paymentSum = $eachAttr['value'];
                             }
                         }
@@ -392,6 +395,7 @@ class PrivatStrictMultiserv extends PaySysProto {
         switch ($this->paymentMethod) {
             case 'Search':
                 $this->getMerchantCredsByPaySysName();
+file_put_contents('zxcv', print_r($this->merchantCreds, true));
 
                 if (empty($this->merchantCreds)) {
                     $this->replyError(422, 'MERCHANT_EXTINFO_ABSENT');
