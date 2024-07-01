@@ -1,13 +1,14 @@
 <?php
 
 // including API OpenPayz
+// change the path according to your realities
 include ("../../libs/api.openpayz.php");
 
-class PrivatStrictMultiserv extends PaySysProto {
+class PrivatMultiserv extends PaySysProto {
     /**
      * Predefined stuff
      */
-    const PATH_CONFIG = 'config/privatmultiserv.ini';
+    const PATH_CONFIG = 'config/privat_multiserv.ini';
 
     /**
      * Paysys specific predefines
@@ -442,6 +443,6 @@ file_put_contents('zxcv', print_r($this->merchantCreds, true));
     }
 }
 
-$frontend = new PrivatStrictMultiserv();
+$frontend = new PrivatMultiserv();
 $frontend->listen();
 
