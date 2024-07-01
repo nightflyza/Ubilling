@@ -143,6 +143,20 @@ class XMLAgent {
      */
     protected $debugDeep = false;
 
+    /**
+     * Placeholder for XMLAGENT_EXTENDED_AUTH_ON "userstats.ini" option
+     *
+     * @var bool
+     */
+    protected $extendedAuthON = false;
+
+    /**
+     * Contains auth key (MD5 hash of the current UB instance serial) from the incoming request
+     *
+     * @var string
+     */
+    protected $extendedAuthKey = '';
+
 
     const TICKET_TYPE_SUPPORT   = 'support_request';
     const TICKET_TYPE_SIGNUP    = 'signup_request';
@@ -154,6 +168,7 @@ class XMLAgent {
         $this->loadConfig();
         $this->loadOptions();
         $this->outputFormat = (ubRouting::checkGet('json') ? 'json' : 'xml');
+        $this->extendedAuthKey = (ubRouting::checkGet('uberkey') ? ubRouting::get('uberkey') : '');
         $this->router($user_login);
     }
 
@@ -193,8 +208,23 @@ class XMLAgent {
         $this->uscfgTariffCahngeAllowedFrom = $this->usConfig->getUstasParam('TC_TARIFFENABLEDFROM', '');
         $this->debug                        = $this->usConfig->getUstasParam('XMLAGENT_DEBUG_ON', false);
         $this->debugDeep                    = $this->usConfig->getUstasParam('XMLAGENT_DEBUG_DEEP_ON', false);
+        $this->extendedAuthON               = $this->usConfig->getUstasParam('XMLAGENT_EXTENDED_AUTH_ON', false);
     }
 
+    /**
+     * Retrieves the UB serial from DB
+     *
+     * @return mixed|string
+     */
+    protected function getUBSerial() {
+        $result = '';
+        $dbUbstats = new NyanORM('ubstats');
+        $dbUbstats->where('key', '=', 'ubid');
+        $result = $dbUbstats->getAll('key');
+        $result = empty($result) ? '' : $result['ubid']['value'];
+
+        return($result);
+    }
 
     /**
      * Chooses the destination according to GET params
@@ -204,7 +234,22 @@ class XMLAgent {
      * @return void
      */
     public function router($user_login) {
-        $outputFormat   = $this->outputFormat;
+        $extenAuthSuccessful = true;
+        $outputFormat        = $this->outputFormat;
+
+        if ($this->extendedAuthON) {
+            if (empty($this->extendedAuthKey)) {
+                $extenAuthSuccessful = false;
+            } else {
+                $ubKey               = $this->getUBSerial();
+                $extenAuthSuccessful = (md5($ubKey) === $this->extendedAuthKey);
+            }
+        }
+
+        if (!$extenAuthSuccessful) {
+            $this->renderResponse(array(array('reason' => 'wrong_uberauth')), 'error', '', $outputFormat);
+        }
+
         $resultToRender = array();
         $mainSection    = 'data';
         $subSection     = '';
