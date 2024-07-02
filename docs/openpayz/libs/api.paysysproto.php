@@ -356,7 +356,14 @@ class PaySysProto {
             }
         }
 
-        $result = (empty($userLogin) ? $result : $result[$userLogin]);
+        if (!empty($userLogin)) {
+            if (empty($result[$userLogin])) {
+                $result = '';
+            } else {
+                $result = $result[$userLogin];
+            }
+        }
+
         return($result);
     }
 
@@ -395,7 +402,14 @@ class PaySysProto {
             }
         }
 
-        $result = (empty($userLogin) ? $result : $result[$userLogin]);
+        if (!empty($userLogin)) {
+            if (empty($result[$userLogin])) {
+                $result = '';
+            } else {
+                $result = $result[$userLogin];
+            }
+        }
+
         return($result);
     }
 
