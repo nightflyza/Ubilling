@@ -180,9 +180,9 @@ class PrivatMultiserv extends PaySysProto {
 
         $xmlPayerBlock = '
         <PayerInfo billIdentifier="' . $this->subscriberVirtualID . '"' . $lsAttr . '>
-            <Fio>' . $realname . '</Fio>
-            <Phone>' . $mobile . '</Phone>
-            <Address>' . $address . '</Address>
+            <Fio>' . (empty($realname) ? 'unspecified' : $realname) . '</Fio>
+            <Phone>' . (empty($mobile) ? 'unspecified' : $mobile) . '</Phone>
+            <Address>' . (empty($address) ? 'unspecified' : $address) . '</Address>
         </PayerInfo>        
         ';
 
@@ -396,7 +396,6 @@ class PrivatMultiserv extends PaySysProto {
         switch ($this->paymentMethod) {
             case 'Search':
                 $this->getMerchantCredsByPaySysName();
-file_put_contents('zxcv', print_r($this->merchantCreds, true));
 
                 if (empty($this->merchantCreds)) {
                     $this->replyError(422, 'MERCHANT_EXTINFO_ABSENT');
