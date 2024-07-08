@@ -486,7 +486,7 @@ class PonZte {
     protected function gponOltInterfaceDecode($dec) {
         $result = '';
         $match = array();
-        $binary = decbin($dec);
+        $binary = decbin((int) $dec);
         if (strlen($binary) == 29) {
             preg_match("/(\d{4})(\d{6})(\d{3})(\d{8})(\d{8})/", $binary, $match);
             foreach ($match as &$each) {
@@ -682,7 +682,7 @@ class PonZte {
      * @return string
      */
     protected function interfaceDecode($uuid) {
-        $binary = decbin($uuid);
+        $binary = decbin((int) $uuid);
         $match = $this->getDecodeType($binary);
 
         if (!empty($match) and isset($match[self::DESC_PONTYPE])) {
@@ -967,12 +967,12 @@ class PonZte {
                         // c025.2fac.ff3c   3701   Dynamic   vport-1/3/1.5:1
                         $interfaceVport =  str_replace('gpon-onu_', 'vport-', $this->gponOltInterfaceDecode($vportIndex));
                         $interfaceVport =  str_replace(':', '.', $interfaceVport);
-                        $interfaceVportDecode = $this->getDecodeTypeC6XX(decbin($devIndex));
+                        $interfaceVportDecode = $this->getDecodeTypeC6XX(decbin((int) $devIndex));
                         $interfaceName = $interfaceVport . $interfaceVportDecode[3] . ':' . $interfaceVportDecode[4];
-                        $interfaceVportDecode = $this->getDecodeTypeC6XX(decbin($devIndex));
+                        $interfaceVportDecode = $this->getDecodeTypeC6XX(decbin((int) $devIndex));
                         $interfaceName = $interfaceVport . $interfaceVportDecode[3] . ':' . $interfaceVportDecode[4];
                         */
-                        $interfaceVportDecode = $this->getDecodeTypeC6XX(decbin($devIndex));
+                        $interfaceVportDecode = $this->getDecodeTypeC6XX(decbin((int) $devIndex));
                         $interfaceName = $interfaceVport . $interfaceVportDecode[2];
                         if ($interfaceName) {
                             if (isset($decParts[0])) {
