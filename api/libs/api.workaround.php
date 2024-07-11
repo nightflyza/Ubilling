@@ -4259,7 +4259,7 @@ function zb_CreditLogGetAll() {
 }
 
 /**
- * returns one-click credit set form for profile
+ * Returns one-click credit set form for profile
  * 
  * 
  * @param string $login existing callback user login
@@ -4271,21 +4271,31 @@ function zb_CreditLogGetAll() {
  * @return string
  */
 function web_EasyCreditForm($login, $cash, $credit, $userTariff, $easycreditoption) {
-    /////////////////internal controller
-    if (wf_CheckPost(array('easycreditlogin', 'easycreditlimit', 'easycreditexpire'))) {
+    if (ubRouting::checkPost(array('easycreditlogin', 'easycreditlimit', 'easycreditexpire'))) {
         global $billing;
-        $setCredit = vf($_POST['easycreditlimit']);
-        $setLogin = mysql_real_escape_string($_POST['easycreditlogin']);
-        $setExpire = mysql_real_escape_string($_POST['easycreditexpire']);
+        global $ubillingConfig;
+        $altCfg = $ubillingConfig->getAlter();
+        $setCredit = ubRouting::post('easycreditlimit', 'vf');
+        $setLogin = ubRouting::post('easycreditlogin', 'mres');
+        $setExpire = ubRouting::post('easycreditexpire', 'mres');
+        $creditLimitOpt = $altCfg['STRICT_CREDIT_LIMIT'];
+        $creditAllowedFlag = false;
+
         if (zb_checkDate($setExpire)) {
             if (zb_checkMoney($setCredit)) {
-                //set credit
-                $billing->setcredit($setLogin, $setCredit);
-                log_register('CHANGE Credit (' . $setLogin . ') ON ' . $setCredit);
-                //set credit expire date
-                $billing->setcreditexpire($setLogin, $setExpire);
-                log_register('CHANGE CreditExpire (' . $setLogin . ') ON ' . $setExpire);
-                rcms_redirect('?module=userprofile&username=' . $setLogin);
+                if ($creditLimitOpt != 'DISABLED') {
+                    if ($setCredit <= $creditLimitOpt) {
+                        $creditAllowedFlag = true;
+                    } else {
+                        log_register('FAIL Credit (' . $login . ') LIMIT `' . $setCredit . '` HAWK TUAH `' . $creditLimitOpt . '`');
+                        show_error(__('The amount of allowed credit limit has been exceeded'));
+                        // Ooh, baby, do you know what that's worth?
+                        // Ooh, heaven is a place on earth
+                    }
+                } else {
+                    //strict credit disabled
+                    $creditAllowedFlag = true;
+                }
             } else {
                 show_error(__('Wrong format of money sum'));
                 log_register('EASYCREDIT FAIL WRONG SUMM `' . $setCredit . '`');
@@ -4293,6 +4303,16 @@ function web_EasyCreditForm($login, $cash, $credit, $userTariff, $easycreditopti
         } else {
             show_error(__('Wrong date format'));
             log_register('EASYCREDIT FAIL DATEFORMAT `' . $setExpire . '`');
+        }
+
+        if ($creditAllowedFlag) {
+            //set credit
+            $billing->setcredit($setLogin, $setCredit);
+            log_register('CHANGE Credit (' . $setLogin . ') ON ' . $setCredit);
+            //set credit expire date
+            $billing->setcreditexpire($setLogin, $setExpire);
+            log_register('CHANGE CreditExpire (' . $setLogin . ') ON ' . $setExpire);
+            ubRouting::nav('?module=userprofile&username=' . $setLogin);
         }
     }
 
