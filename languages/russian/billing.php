@@ -3512,3 +3512,4 @@ $lang['def']['Hide'] = 'Скрыть';
 $lang['def']['Engine'] = 'Движок';
 $lang['def']['right to MAC vendor lookup'] = 'Право определять производителя по MAC';
 $lang['def']['Explict interval'] = 'Явный интервал';
+$lang['def']['The amount of allowed credit limit has been exceeded'] = 'Допустимая сумма кредита превышена';

@@ -3520,6 +3520,7 @@ $lang['def']['Archived'] = 'Архівний';
 $lang['def']['Engine'] = 'Рушій';
 $lang['def']['right to MAC vendor lookup'] = 'Право визначати виробника обладнання за MAC';
 $lang['def']['Explict interval'] = 'Явний інтервал';
+$lang['def']['The amount of allowed credit limit has been exceeded'] = 'Суму можливого кредиту перевищено';
 $lang['def'][''] = '';
 
 
