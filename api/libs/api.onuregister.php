@@ -2120,6 +2120,8 @@ class OnuRegister {
                                         $cardType = 'GPON';
                                     }
                                     $eachCard = $cardParts[0];
+                                } else {
+                                    continue;
                                 }
                             } else {
                                 if (isset($snmpTemplate[self::SNMP_TEMPLATE_SECTION]['VERSION']) and $snmpTemplate[self::SNMP_TEMPLATE_SECTION]['VERSION'] == "C6XX") {
