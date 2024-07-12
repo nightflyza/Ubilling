@@ -2113,15 +2113,17 @@ class OnuRegister {
                             $eachCard = trim(str_replace(array('STRING:', '"', 'H901', 'H905'), '', $eachCard));
 
                             if (isset($snmpTemplate[self::SNMP_TEMPLATE_SECTION]['VERSION']) and $snmpTemplate[self::SNMP_TEMPLATE_SECTION]['VERSION'] == "MA58xx") {
-                                $cardParts = explode("_", $eachCard);
-                                if (isset($cardParts[2])) {
-                                    $tablecells = wf_TableCell($cardParts[2]);
-                                    if (isset($this->gponCardsHuawei[$cardParts[0]])) {
-                                        $cardType = 'GPON';
+                                if (!empty($eachCard)) {
+                                    $cardParts = explode("_", $eachCard);
+                                    if (isset($cardParts[2])) {
+                                        $tablecells = wf_TableCell($cardParts[2]);
+                                        if (isset($this->gponCardsHuawei[$cardParts[0]])) {
+                                            $cardType = 'GPON';
+                                        }
+                                        $eachCard = $cardParts[0];
+                                    } else {
+                                        continue;
                                     }
-                                    $eachCard = $cardParts[0];
-                                } else {
-                                    continue;
                                 }
                             } else {
                                 if (isset($snmpTemplate[self::SNMP_TEMPLATE_SECTION]['VERSION']) and $snmpTemplate[self::SNMP_TEMPLATE_SECTION]['VERSION'] == "C6XX") {
