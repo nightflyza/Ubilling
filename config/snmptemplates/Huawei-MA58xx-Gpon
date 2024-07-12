@@ -1,5 +1,5 @@
 [define]
-DEVICE="Huawei OLT GPON"
+DEVICE="Huawei OLT GPON MA58"
 
 [signal]
 SIGNALMODE="HAL"
