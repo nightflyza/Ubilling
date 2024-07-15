@@ -417,9 +417,9 @@ class PonZte {
     protected function getDecodeTypeC6XX($binary) {
         $match = array();
         switch (strlen($binary)) {
-        case 29:
-            preg_match("/(\d{4})(\d{9})(\d{8})(\d{8})/", $binary, $match);
-            break;
+            case 29:
+                preg_match("/(\d{4})(\d{9})(\d{8})(\d{8})/", $binary, $match);
+                break;
         }
         foreach ($match as &$each) {
             $each = bindec($each);
@@ -932,7 +932,7 @@ class PonZte {
         $result = array();
 
 //distance index preprocessing
-        if (!empty($this->distanceIndex) AND!empty($this->snIndex)) {
+        if (!empty($this->distanceIndex) AND !empty($this->snIndex)) {
             $realData = array_intersect_key($this->snIndex, $this->distanceIndex);
             foreach ($realData as $io => $eachsn) {
                 $result[$this->snIndex[$io]] = $this->distanceIndex[$io];
@@ -961,17 +961,17 @@ class PonZte {
                     if (trim($decParts[2]) != 0) {
                         $vportIndex = trim($decParts[1]);
                         $devIndex = trim($decParts[2]);
-                        $interfaceVport =  $this->gponOltInterfaceDecode($vportIndex);
+                        $interfaceVport = $this->gponOltInterfaceDecode($vportIndex);
                         /*
-                        // It's real data from OLT
-                        // c025.2fac.ff3c   3701   Dynamic   vport-1/3/1.5:1
-                        $interfaceVport =  str_replace('gpon-onu_', 'vport-', $this->gponOltInterfaceDecode($vportIndex));
-                        $interfaceVport =  str_replace(':', '.', $interfaceVport);
-                        $interfaceVportDecode = $this->getDecodeTypeC6XX(decbin((int) $devIndex));
-                        $interfaceName = $interfaceVport . $interfaceVportDecode[3] . ':' . $interfaceVportDecode[4];
-                        $interfaceVportDecode = $this->getDecodeTypeC6XX(decbin((int) $devIndex));
-                        $interfaceName = $interfaceVport . $interfaceVportDecode[3] . ':' . $interfaceVportDecode[4];
-                        */
+                          // It's real data from OLT
+                          // c025.2fac.ff3c   3701   Dynamic   vport-1/3/1.5:1
+                          $interfaceVport =  str_replace('gpon-onu_', 'vport-', $this->gponOltInterfaceDecode($vportIndex));
+                          $interfaceVport =  str_replace(':', '.', $interfaceVport);
+                          $interfaceVportDecode = $this->getDecodeTypeC6XX(decbin((int) $devIndex));
+                          $interfaceName = $interfaceVport . $interfaceVportDecode[3] . ':' . $interfaceVportDecode[4];
+                          $interfaceVportDecode = $this->getDecodeTypeC6XX(decbin((int) $devIndex));
+                          $interfaceName = $interfaceVport . $interfaceVportDecode[3] . ':' . $interfaceVportDecode[4];
+                         */
                         $interfaceVportDecode = $this->getDecodeTypeC6XX(decbin((int) $devIndex));
                         $interfaceName = $interfaceVport . $interfaceVportDecode[2];
                         if ($interfaceName) {
@@ -1037,6 +1037,35 @@ class PonZte {
     }
 
     /**
+     * Parses & stores in cache ZTE OLT ONU interfaces
+     *
+     * @return void
+     */
+    protected function interfaceParseHuaweiGpon() {
+        $result = array();
+        $interfaces = array();
+
+        $data = $this->snmpwalk($this->currentSnmpTemplate['misc']['INTERFACENAME']);
+        if (!empty($data)) {
+            foreach ($data as $io => $value) {
+                $split = explode("=", $value);
+                $eachOid = trim($this->strRemoveOidWithDot($this->currentSnmpTemplate['misc']['INTERFACENAME'], $split[0]));
+                $interfaces[$eachOid] = trim(str_replace('STRING:','',$split[1]));
+            }
+        }
+
+//storing results
+
+        foreach ($this->snIndex as $ioIndex => $eachSn) {
+            $ioIndexSplit = explode(".", $ioIndex);
+            if (isset($interfaces[$ioIndexSplit[0]])) {
+                $result[$eachSn] = $interfaces[$ioIndexSplit[0]] . ':' . $ioIndexSplit[1];
+            }
+        }
+        $this->olt->writeInterfaces($result);
+    }
+
+    /**
      * Parses & stores in cache ZTE OLT ONU ID
      *
      * @return void
@@ -1050,6 +1079,21 @@ class PonZte {
                 $snTmp[$this->interfaceDecode($ioIndex)] = $eachSn;
             }
         }
+        $this->olt->writeOnuCache($snTmp);
+    }
+
+    /**
+     * Parses & stores in cache ZTE OLT ONU ID
+     *
+     * @return void
+     */
+    protected function onuidParseHuaweiGpon() {
+        $snTmp = array();
+
+        foreach ($this->snIndex as $ioIndex => $eachSn) {
+            $snTmp[$this->interfaceDecode($ioIndex)] = $eachSn;
+        }
+
         $this->olt->writeOnuCache($snTmp);
     }
 
@@ -1157,7 +1201,7 @@ class PonZte {
     protected function uptimeParse() {
         $uptimeIndexOid = $this->currentSnmpTemplate['system']['UPTIME'];
         $uptimeRaw = $this->snmp->walk($this->oltFullAddress, $this->oltCommunity, $uptimeIndexOid, PONizer::SNMPCACHE);
-        if (!empty($this->oltid) and!empty($uptimeRaw)) {
+        if (!empty($this->oltid) and !empty($uptimeRaw)) {
             $uptimeRaw = explode(')', $uptimeRaw);
             $uptimeRaw = $uptimeRaw[1];
             $uptimeRaw = trim($uptimeRaw);
@@ -1176,7 +1220,7 @@ class PonZte {
     protected function temperatureParse() {
         $temperatureIndexOid = $this->currentSnmpTemplate['system']['TEMPERATURE'];
         $tempRaw = $this->snmp->walk($this->oltFullAddress, $this->oltCommunity, $temperatureIndexOid, PONizer::SNMPCACHE);
-        if (!empty($this->oltid) and!empty($tempRaw)) {
+        if (!empty($this->oltid) and !empty($tempRaw)) {
             $tempRaw = explode(':', $tempRaw);
             $tempRaw = $tempRaw[1];
             $tempRaw = trim($tempRaw);
@@ -1262,6 +1306,11 @@ class PonZte {
         if (isset($this->currentSnmpTemplate['signal']['DISTANCE'])) {
             $this->distanceIndexProcess();
             $this->distanceParseGpon();
+        }
+
+        if (isset($this->currentSnmpTemplate['misc']['INTERFACENAME'])) {
+            $this->interfaceParseHuaweiGpon();
+            //$this->onuidParseHuaweiGpon();
         }
     }
 
