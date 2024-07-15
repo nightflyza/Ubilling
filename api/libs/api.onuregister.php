@@ -2124,6 +2124,8 @@ class OnuRegister {
                                     } else {
                                         continue;
                                     }
+                                } else {
+                                    continue;
                                 }
                             } else {
                                 if (isset($snmpTemplate[self::SNMP_TEMPLATE_SECTION]['VERSION']) and $snmpTemplate[self::SNMP_TEMPLATE_SECTION]['VERSION'] == "C6XX") {
