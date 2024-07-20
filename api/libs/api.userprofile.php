@@ -1187,8 +1187,8 @@ class UserProfile {
                     $onuId = $onuData['id'];
                     $oltId = $onuData['oltid'];
                     $oltAttractor = new OLTAttractor($oltId);
-
                     $allSignals = $oltAttractor->getSignalsAll();
+
                     if (!empty($allSignals)) {
                         foreach ($allSignals as $onuIdent => $onuSignal) {
                             if ($onuData['mac'] == $onuIdent or $onuData['serial'] == $onuIdent) {
@@ -1197,7 +1197,9 @@ class UserProfile {
                         }
                     }
 
-                    if ($onuId and $signal != 'ETAOIN SHRDLU') {
+                    if ($onuId) {
+                        //is ONU signal found in signals cache?
+                        $signal = ($signal == 'ETAOIN SHRDLU') ? PONizer::NO_SIGNAL : $signal;
                         $signalLabel = $this->renderPonSignalColored($signal);
                         if (cfr('PON')) {
                             $signalLabel = wf_Link(PONizer::URL_ONU . $onuId, $signalLabel);
