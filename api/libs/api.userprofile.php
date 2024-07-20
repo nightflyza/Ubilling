@@ -1136,6 +1136,82 @@ class UserProfile {
         return ($result);
     }
 
+
+    /**
+     * Renders the PonSignal colored based on the signal strength.
+     *
+     * @param float $signal The signal strength value.
+     * 
+     * @return string
+     */
+    protected function renderPonSignalColored($signal) {
+        $result = '';
+        if (($signal > 0) or ($signal < -27)) {
+            $sigColor = PONizer::COLOR_BAD;
+            $sigLabel = 'Bad signal';
+        } elseif ($signal > -27 and $signal < -25) {
+            $sigColor = PONizer::COLOR_AVG;
+            $sigLabel = 'Mediocre signal';
+        } else {
+            $sigColor = PONizer::COLOR_OK;
+            $sigLabel = 'Normal';
+        }
+
+        if ($signal == PONizer::NO_SIGNAL) {
+            $signal = __('No');
+            $sigColor = PONizer::COLOR_NOSIG;
+            $sigLabel = 'No signal';
+        }
+
+        $result .= wf_tag('font', false, '', 'color="' . $sigColor . '" title="' . __($sigLabel) . '"');
+        $result .= $signal;
+        $result .= wf_tag('font', true);
+        return ($result);
+    }
+
+    /**
+     * Returns compact 
+     *
+     * @return string
+     */
+    protected function getPonSignalControlCompact() {
+        $result = '';
+        if (isset($this->alterCfg['SIGNAL_IN_PROFILE_COMPACT'])) {
+            if ($this->alterCfg['SIGNAL_IN_PROFILE_COMPACT']) {
+                $signal = 'ETAOIN SHRDLU';
+                $ponizerDb = new NyanORM(PONizer::TABLE_ONUS);
+                $ponizerDb->where('login', '=', $this->login);
+                $onuData = $ponizerDb->getAll();
+                if (!empty($onuData)) {
+                    $onuData = $onuData[0];
+                    $onuId = $onuData['id'];
+                    $oltId = $onuData['oltid'];
+                    $oltAttractor = new OLTAttractor($oltId);
+
+                    $allSignals = $oltAttractor->getSignalsAll();
+                    if (!empty($allSignals)) {
+                        foreach ($allSignals as $onuIdent => $onuSignal) {
+                            if ($onuData['mac'] == $onuIdent or $onuData['serial'] == $onuIdent) {
+                                $signal = $onuSignal;
+                            }
+                        }
+                    }
+
+                    if ($onuId and $signal != 'ETAOIN SHRDLU') {
+                        $signalLabel = $this->renderPonSignalColored($signal);
+                        if (cfr('PON')) {
+                            $signalLabel = wf_Link(PONizer::URL_ONU . $onuId, $signalLabel);
+                        }
+
+                        //profile row here
+                        $result .= $this->addRow(__('ONU Signal'), $signalLabel);
+                    }
+                }
+            }
+        }
+        return ($result);
+    }
+
     /**
      * Renders PON signal from cache
      * 
@@ -1145,7 +1221,7 @@ class UserProfile {
         $result = '';
         $rows = '';
         $searched = __('No');
-        $sigColor = '#000000';
+        $sigColor = PONizer::COLOR_NOSIG;
         $signal = '';
 
         if ($this->alterCfg['SIGNAL_IN_PROFILE']) {
@@ -1283,16 +1359,16 @@ class UserProfile {
                 }
                 if (!empty($signal)) {
                     if (($signal > 0) or ($signal < -27)) {
-                        $sigColor = '#ab0000';
+                        $sigColor = PONizer::COLOR_BAD;
                     } elseif ($signal > -27 and $signal < -25) {
-                        $sigColor = '#FF5500';
+                        $sigColor = PONizer::COLOR_AVG;
                     } else {
-                        $sigColor = '#005502';
+                        $sigColor = PONizer::COLOR_OK;
                     }
                     $searched = $signal;
 
                     if ($signal == 'Offline') {
-                        $sigColor = '#000000';
+                        $sigColor = PONizer::COLOR_NOSIG;
                         $searched = __('No');
                     }
                 }
@@ -2409,6 +2485,9 @@ class UserProfile {
 
         //Disable aka Down flag row
         $profile .= $this->addRow(__('Disabled'), $downicon . web_trigger($this->userdata['Down']), true);
+
+        //Compact ONU signal here
+        $profile .= $this->getPonSignalControlCompact();
 
         $profile .= $this->getSMSserviceSelectorControls();
         $profile .= $this->getDataExportPermissionTrigger();
