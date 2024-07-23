@@ -481,7 +481,7 @@ class UbillingTaskbar {
             if (!ubRouting::checkGet(self::ROUTE_DISABLE_WS)) {
                 if (file_exists($newInstallFlag) OR ubRouting::checkGet(self::ROUTE_WS)) {
                     $urlsList = array(
-                        'https://ubilling.net.ua/?module=fnpages&pid=armukrainenow' => __('Donate to Armed Forces of Ukraine'),
+                        'https://ubilling.net.ua/rds/defense/' => __('Donate to Armed Forces of Ukraine'),
                         'https://wiki.ubilling.net.ua/' => __('Read documentation'),
                         '?module=adminreg&editadministrator=admin' => __('Change admin user password'),
                         'https://t.me/ubilling' => __('Join our community chat'),
