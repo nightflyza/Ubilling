@@ -1190,15 +1190,10 @@ class UserProfile {
                     $oltAttractor = new OLTAttractor($oltId);
                     $allSignals = $oltAttractor->getSignalsAll();
 
-                    //lookup latest signal by MAC or Serial
-                    if (!empty($allSignals)) {
-                        if (isset($allSignals[$onuData['mac']])) {
-                            $signal = $allSignals[$onuData['mac']];
-                        }
-
-                        if (isset($allSignals[$onuData['serial']])) {
-                            $signal = $allSignals[$onuData['serial']];
-                        }
+                    //lookup latest ONU signal
+                    $signalLookup = $oltAttractor->lookupOnuIdxValue($onuData, $allSignals);
+                    if ($signalLookup != false) {
+                        $signal = $signalLookup;
                     }
 
                     if ($onuId) {
@@ -1208,13 +1203,11 @@ class UserProfile {
 
                         //ONU is offline?
                         if ($signal == PONizer::NO_SIGNAL) {
-                            //lookup last dereg reason by MAC or Serial
+                            //lookup last dereg reason
                             $allDeregReasons = $oltAttractor->getDeregsAll();
-                            if (isset($allDeregReasons[$onuData['mac']])) {
-                                $deregReason = $allDeregReasons[$onuData['mac']];
-                            }
-                            if (isset($allDeregReasons[$onuData['serial']])) {
-                                $deregReason = $allDeregReasons[$onuData['serial']];
+                            $deregLookup = $oltAttractor->lookupOnuIdxValue($onuData, $allDeregReasons);
+                            if ($deregLookup != false) {
+                                $deregReason = $deregLookup;
                             }
 
                             if (!empty($deregReason)) {

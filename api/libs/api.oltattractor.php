@@ -108,7 +108,7 @@ class OLTAttractor {
         } else {
             throw new Exception('EX_OLTID_EMPTY');
         }
-        return($result);
+        return ($result);
     }
 
     /**
@@ -138,7 +138,7 @@ class OLTAttractor {
      * @return array
      */
     public function loadContainerData($dataContainer) {
-        return($this->getData($dataContainer));
+        return ($this->getData($dataContainer));
     }
 
     /**
@@ -156,7 +156,7 @@ class OLTAttractor {
                 $result = $anyDigits;
             }
         }
-        return($result);
+        return ($result);
     }
 
     /**
@@ -178,7 +178,7 @@ class OLTAttractor {
                 }
             }
         }
-        return($result);
+        return ($result);
     }
 
     /**
@@ -202,7 +202,7 @@ class OLTAttractor {
                 }
             }
         }
-        return($result);
+        return ($result);
     }
 
     /**
@@ -219,7 +219,7 @@ class OLTAttractor {
         if (!empty($availContainers)) {
             $result = true;
         }
-        return($result);
+        return ($result);
     }
 
     /**
@@ -249,7 +249,7 @@ class OLTAttractor {
     public function readTemperature() {
         $dataContainer = self::TEMPERATURE_PATH . $this->oltId . '_' . self::TEMPERATURE_EXT;
         $result = $this->getData($dataContainer, false);
-        return($result);
+        return ($result);
     }
 
     /**
@@ -275,7 +275,7 @@ class OLTAttractor {
     public function readUptime() {
         $dataContainer = self::UPTIME_PATH . $this->oltId . '_' . self::UPTIME_EXT;
         $result = $this->getData($dataContainer, false);
-        return($result);
+        return ($result);
     }
 
     /**
@@ -299,7 +299,7 @@ class OLTAttractor {
     public function readSignals() {
         $dataContainer = self::SIGCACHE_PATH . $this->oltId . '_' . self::SIGCACHE_EXT;
         $result = $this->getData($dataContainer);
-        return($result);
+        return ($result);
     }
 
     /**
@@ -323,7 +323,7 @@ class OLTAttractor {
     public function readMacIndex() {
         $dataContainer = self::MACDEVIDCACHE_PATH . $this->oltId . '_' . self::MACDEVIDCACHE_EXT;
         $result = $this->getData($dataContainer);
-        return($result);
+        return ($result);
     }
 
     /**
@@ -362,7 +362,7 @@ class OLTAttractor {
     public function readDistances() {
         $dataContainer = self::DISTCACHE_PATH . $this->oltId . '_' . self::DISTCACHE_EXT;
         $result = $this->getData($dataContainer);
-        return($result);
+        return ($result);
     }
 
     /**
@@ -386,7 +386,7 @@ class OLTAttractor {
     public function readOnuCache() {
         $dataContainer = self::ONUCACHE_PATH . $this->oltId . '_' . self::ONUCACHE_EXT;
         $result = $this->getData($dataContainer);
-        return($result);
+        return ($result);
     }
 
     /**
@@ -410,7 +410,7 @@ class OLTAttractor {
     public function readInterfaces() {
         $dataContainer = self::INTCACHE_PATH . $this->oltId . '_' . self::INTCACHE_EXT;
         $result = $this->getData($dataContainer);
-        return($result);
+        return ($result);
     }
 
     /**
@@ -434,7 +434,7 @@ class OLTAttractor {
     public function readInterfacesDescriptions() {
         $dataContainer = self::INTCACHE_PATH . $this->oltId . '_' . self::INTDESCRCACHE_EXT;
         $result = $this->getData($dataContainer);
-        return($result);
+        return ($result);
     }
 
     /**
@@ -492,7 +492,7 @@ class OLTAttractor {
          *                [vlan] => 1
          *            )
          * */
-        return($result);
+        return ($result);
     }
 
     /**
@@ -559,7 +559,7 @@ class OLTAttractor {
     public function getDistancesAll() {
         $containerPath = self::DISTCACHE_PATH;
         $containerMark = self::DISTCACHE_EXT;
-        return($this->getContainersContent($containerPath, $containerMark));
+        return ($this->getContainersContent($containerPath, $containerMark));
     }
 
     /**
@@ -570,7 +570,7 @@ class OLTAttractor {
     public function getDeregsAll() {
         $containerPath = self::DEREGCACHE_PATH;
         $containerMark = self::DEREGCACHE_EXT;
-        return($this->getContainersContent($containerPath, $containerMark));
+        return ($this->getContainersContent($containerPath, $containerMark));
     }
 
     /**
@@ -581,7 +581,7 @@ class OLTAttractor {
     public function getSignalsAll() {
         $containerPath = self::SIGCACHE_PATH;
         $containerMark = self::SIGCACHE_EXT;
-        return($this->getContainersContent($containerPath, $containerMark));
+        return ($this->getContainersContent($containerPath, $containerMark));
     }
 
     /**
@@ -592,7 +592,7 @@ class OLTAttractor {
     public function getInterfacesAll() {
         $containerPath = self::INTCACHE_PATH;
         $containerMark = self::INTCACHE_EXT;
-        return($this->getContainersContent($containerPath, $containerMark));
+        return ($this->getContainersContent($containerPath, $containerMark));
     }
 
     /**
@@ -603,7 +603,7 @@ class OLTAttractor {
     public function getFdbAll() {
         $containerPath = self::FDBCACHE_PATH;
         $containerMark = self::FDBCACHE_EXT;
-        return($this->getContainersContent($containerPath, $containerMark));
+        return ($this->getContainersContent($containerPath, $containerMark));
     }
 
     /**
@@ -614,7 +614,7 @@ class OLTAttractor {
     public function getUniOperStatsAll() {
         $containerPath = self::UNIOPERSTATS_PATH;
         $containerMark = self::UNIOPERSTATS_EXT;
-        return($this->getContainersContent($containerPath, $containerMark));
+        return ($this->getContainersContent($containerPath, $containerMark));
     }
 
     /**
@@ -634,7 +634,7 @@ class OLTAttractor {
                 $result[$eachOltId] = $oltData->readInterfacesDescriptions();
             }
         }
-        return($result);
+        return ($result);
     }
 
     /**
@@ -645,7 +645,7 @@ class OLTAttractor {
     public function getMacIndexAll() {
         $containerPath = self::MACDEVIDCACHE_PATH;
         $containerMark = self::MACDEVIDCACHE_EXT;
-        return($this->getContainersContent($containerPath, $containerMark));
+        return ($this->getContainersContent($containerPath, $containerMark));
     }
 
     /**
@@ -670,7 +670,7 @@ class OLTAttractor {
                 }
             }
         }
-        return($result);
+        return ($result);
     }
 
     /**
@@ -691,7 +691,7 @@ class OLTAttractor {
                 $result[$eachOltId] = $eachOltSignals;
             }
         }
-        return($result);
+        return ($result);
     }
 
     /**
@@ -712,7 +712,7 @@ class OLTAttractor {
                 $result[$eachOltId] = $eachOltFdb;
             }
         }
-        return($result);
+        return ($result);
     }
 
     /**
@@ -727,7 +727,7 @@ class OLTAttractor {
     public function isDistancesAvailable() {
         $containerPath = self::DISTCACHE_PATH;
         $containerMark = self::DISTCACHE_EXT;
-        return($this->checkContainersAvailable($containerPath, $containerMark));
+        return ($this->checkContainersAvailable($containerPath, $containerMark));
     }
 
     /**
@@ -738,7 +738,7 @@ class OLTAttractor {
     public function isInterfacesAvailable() {
         $containerPath = self::INTCACHE_PATH;
         $containerMark = self::INTCACHE_EXT;
-        return($this->checkContainersAvailable($containerPath, $containerMark));
+        return ($this->checkContainersAvailable($containerPath, $containerMark));
     }
 
     /**
@@ -749,7 +749,7 @@ class OLTAttractor {
     public function isDeregsAvailable() {
         $containerPath = self::DEREGCACHE_PATH;
         $containerMark = self::DEREGCACHE_EXT;
-        return($this->checkContainersAvailable($containerPath, $containerMark));
+        return ($this->checkContainersAvailable($containerPath, $containerMark));
     }
 
     /**
@@ -760,7 +760,7 @@ class OLTAttractor {
     public function isInterfacesDescriptionsAvailable() {
         $containerPath = self::INTCACHE_PATH;
         $containerMark = self::INTDESCRCACHE_EXT;
-        return($this->checkContainersAvailable($containerPath, $containerMark));
+        return ($this->checkContainersAvailable($containerPath, $containerMark));
     }
 
     /**
@@ -771,7 +771,7 @@ class OLTAttractor {
     public function isFdbAvailable() {
         $containerPath = self::FDBCACHE_PATH;
         $containerMark = self::FDBCACHE_EXT;
-        return($this->checkContainersAvailable($containerPath, $containerMark));
+        return ($this->checkContainersAvailable($containerPath, $containerMark));
     }
 
     /**
@@ -782,7 +782,7 @@ class OLTAttractor {
     public function isOnusAvailable() {
         $containerPath = self::ONUCACHE_PATH;
         $containerMark = self::ONUCACHE_EXT;
-        return($this->checkContainersAvailable($containerPath, $containerMark));
+        return ($this->checkContainersAvailable($containerPath, $containerMark));
     }
 
     /**
@@ -793,7 +793,7 @@ class OLTAttractor {
     public function isSignalsAvailable() {
         $containerPath = self::SIGCACHE_PATH;
         $containerMark = self::SIGCACHE_EXT;
-        return($this->checkContainersAvailable($containerPath, $containerMark));
+        return ($this->checkContainersAvailable($containerPath, $containerMark));
     }
 
     /**
@@ -817,7 +817,36 @@ class OLTAttractor {
                 }
             }
         }
-        return($result);
+        return ($result);
     }
 
+    /**
+     * Performs idx lookup in container data array by ONU MAC or Serial and returns value if its exist
+     *
+     * @param array $onuData ONU data array with mac/serial keys
+     * @param array $containerArr Container content array like with signals or dereg reasons
+     * 
+     * @return mixed
+     */
+    public function lookupOnuIdxValue($onuData, $containerArr) {
+        $result = false;
+        if (is_array($onuData)) {
+            if (isset($onuData['mac']) and isset($onuData['serial'])) {
+                if (!empty($containerArr)) {
+                    if (!empty($onuData['mac'])) {
+                        if (isset($containerArr[$onuData['mac']])) {
+                            $result = $containerArr[$onuData['mac']];
+                        }
+                    }
+
+                    if (!empty($onuData['serial'])) {
+                        if (isset($containerArr[$onuData['serial']])) {
+                            $result = $containerArr[$onuData['serial']];
+                        }
+                    }
+                }
+            }
+        }
+        return ($result);
+    }
 }
