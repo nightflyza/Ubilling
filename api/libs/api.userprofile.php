@@ -1179,6 +1179,7 @@ class UserProfile {
         if (isset($this->alterCfg['SIGNAL_IN_PROFILE_COMPACT'])) {
             if ($this->alterCfg['SIGNAL_IN_PROFILE_COMPACT']) {
                 $signal = 'ETAOIN SHRDLU';
+                $deregReason = '';
                 $ponizerDb = new NyanORM(PONizer::TABLE_ONUS);
                 $ponizerDb->where('login', '=', $this->login);
                 $onuData = $ponizerDb->getAll();
@@ -1189,11 +1190,14 @@ class UserProfile {
                     $oltAttractor = new OLTAttractor($oltId);
                     $allSignals = $oltAttractor->getSignalsAll();
 
+                    //lookup latest signal by MAC or Serial
                     if (!empty($allSignals)) {
-                        foreach ($allSignals as $onuIdent => $onuSignal) {
-                            if ($onuData['mac'] == $onuIdent or $onuData['serial'] == $onuIdent) {
-                                $signal = $onuSignal;
-                            }
+                        if (isset($allSignals[$onuData['mac']])) {
+                            $signal = $allSignals[$onuData['mac']];
+                        }
+
+                        if (isset($allSignals[$onuData['serial']])) {
+                            $signal = $allSignals[$onuData['serial']];
                         }
                     }
 
@@ -1201,6 +1205,23 @@ class UserProfile {
                         //is ONU signal found in signals cache?
                         $signal = ($signal == 'ETAOIN SHRDLU') ? PONizer::NO_SIGNAL : $signal;
                         $signalLabel = $this->renderPonSignalColored($signal);
+
+                        //ONU is offline?
+                        if ($signal == PONizer::NO_SIGNAL) {
+                            //lookup last dereg reason by MAC or Serial
+                            $allDeregReasons = $oltAttractor->getDeregsAll();
+                            if (isset($allDeregReasons[$onuData['mac']])) {
+                                $deregReason = $allDeregReasons[$onuData['mac']];
+                            }
+                            if (isset($allDeregReasons[$onuData['serial']])) {
+                                $deregReason = $allDeregReasons[$onuData['serial']];
+                            }
+
+                            if (!empty($deregReason)) {
+                                $signalLabel .= ' - ' . $deregReason;
+                            }
+                        }
+
                         if (cfr('PON')) {
                             $signalLabel = wf_Link(PONizer::URL_ONU . $onuId, $signalLabel);
                         }

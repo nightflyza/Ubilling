@@ -10,7 +10,7 @@ if (cfr('USERPROFILE')) {
 
     try {
         if (ubRouting::checkGet('username', false)) {
-            $login = ubRouting::get('username', 'mres');
+            $login = ubRouting::get('username', 'vf');
             $login = trim($login);
             try {
                 $profile = new UserProfile($login);
@@ -54,4 +54,3 @@ if (cfr('USERPROFILE')) {
 } else {
     show_error(__('Access denied'));
 }
-

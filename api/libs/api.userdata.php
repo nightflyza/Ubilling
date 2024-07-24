@@ -40,7 +40,7 @@ function zb_UserGetRealName($login) {
     $login = vf($login);
     $query = "SELECT `realname` from `realname` WHERE `login`='" . $login . "'";
     $realname_arr = simple_query($query);
-    return($realname_arr['realname']);
+    return ($realname_arr['realname']);
 }
 
 /**
@@ -76,7 +76,7 @@ function zb_UserGetAllRealnames() {
             $fioz[$eachfio['login']] = $eachfio['realname'];
         }
     }
-    return($fioz);
+    return ($fioz);
 }
 
 /**
@@ -110,7 +110,7 @@ function zb_UserGetAllIpMACs() {
             $result[$each['ip']] = $each['mac'];
         }
     }
-    return($result);
+    return ($result);
 }
 
 /**
@@ -190,7 +190,7 @@ function zb_UserGetAllData($login = '') {
 
     if ($altCfg['ZERO_TOLERANCE'] and $altCfg['CITY_DISPLAY']) {
         $query .= "concat(`cityname`, ' ', `streetname`, ' ', `buildnum`, IF(`apt`, concat('/',`apt`), '')) AS `fulladress`,";
-    } elseif ($altCfg['ZERO_TOLERANCE'] and ! $altCfg['CITY_DISPLAY']) {
+    } elseif ($altCfg['ZERO_TOLERANCE'] and !$altCfg['CITY_DISPLAY']) {
         $query .= "concat(`streetname`, ' ', `buildnum`, IF(`apt`, concat('/',`apt`), '')) AS `fulladress`,";
     } elseif (!$altCfg['ZERO_TOLERANCE'] and $altCfg['CITY_DISPLAY']) {
         $query .= "concat(`cityname`, ' ', `streetname`, ' ', `buildnum`, '/', `apt`) AS `fulladress`,";
@@ -214,14 +214,14 @@ function zb_UserGetAllData($login = '') {
 
     $Alldata = (!empty($login)) ? simple_query($query) : simple_queryall($query);
 
-    if (empty($login) and ! empty($Alldata)) {
+    if (empty($login) and !empty($Alldata)) {
         foreach ($Alldata as $data) {
             $result[$data['login']] = $data;
         }
     } else {
         $result[$login] = $Alldata;
     }
-    return($result);
+    return ($result);
 }
 
 /**
@@ -288,7 +288,7 @@ function zb_UserDeletePhone($login) {
 function zb_UserGetPhone($login) {
     $query = "SELECT `phone` from `phones` WHERE `login`='" . $login . "'";
     $phone_arr = simple_query($query);
-    return($phone_arr['phone']);
+    return ($phone_arr['phone']);
 }
 
 /**
@@ -300,7 +300,7 @@ function zb_UserGetPhone($login) {
 function zb_UserGetMobile($login) {
     $query = "SELECT `mobile` from `phones` WHERE `login`='" . $login . "'";
     $phone_arr = simple_query($query);
-    return($phone_arr['mobile']);
+    return ($phone_arr['mobile']);
 }
 
 /**
@@ -389,7 +389,7 @@ function zb_UserGetEmail($login) {
     $login = vf($login);
     $query = "SELECT `email` from `emails` WHERE `login`='" . $login . "'";
     $email_arr = simple_query($query);
-    return($email_arr['email']);
+    return ($email_arr['email']);
 }
 
 /**
@@ -445,7 +445,7 @@ function zb_UserGetContract($login) {
     $login = vf($login);
     $query = "SELECT `contract` from `contracts` WHERE `login`='" . $login . "'";
     $contract_arr = simple_query($query);
-    return($contract_arr['contract']);
+    return ($contract_arr['contract']);
 }
 
 /**
@@ -521,10 +521,10 @@ function zb_UserGetAllEmails() {
  * @return array
  */
 function zb_UserGetStargazerData($login) {
-    $login = vf($login);
+    $login = vf($login, 4);
     $query = "SELECT * from `users` where `login`='" . $login . "'";
     $userdata = simple_query($query);
-    return($userdata);
+    return ($userdata);
 }
 
 /**
@@ -535,7 +535,7 @@ function zb_UserGetStargazerData($login) {
 function zb_UserGetAllStargazerData() {
     $query = "SELECT * from `users`";
     $userdata = simple_queryall($query);
-    return($userdata);
+    return ($userdata);
 }
 
 /**
@@ -586,7 +586,7 @@ function zb_UserGetAllBalance() {
             $result[$each['login']] = $each['Cash'];
         }
     }
-    return($result);
+    return ($result);
 }
 
 /**
@@ -604,7 +604,7 @@ function zb_UserGetSpeedOverride($login) {
     } else {
         $speed = 0;
     }
-    return($speed);
+    return ($speed);
 }
 
 /**
@@ -670,7 +670,7 @@ function zb_UserGetNotes($login) {
     $query = "SELECT `note` from `notes` WHERE `login`='" . $login . "'";
     $result = simple_query($query);
     $result = @$result['note'];
-    return($result);
+    return ($result);
 }
 
 /**
@@ -755,7 +755,7 @@ function zb_TariffGetPrice($tariff) {
     if (isset($res['Fee'])) {
         $result = $res['Fee'];
     }
-    return($result);
+    return ($result);
 }
 
 /**
@@ -897,9 +897,12 @@ function zb_GetAllAllPhonesCache() {
     $result = '';
     $cache = new UbillingCache();
     $cacheTime = ($ubillingConfig->getAlterParam('ALL_PHONES_CACHE_TIMEOUT')) ? $ubillingConfig->getAlterParam('ALL_PHONES_CACHE_TIMEOUT') : 1800;
-    $result = $cache->getCallback('USER_ALL_PHONES_DATA', function () {
-        return (zb_GetAllAllPhones());
-    }, $cacheTime
+    $result = $cache->getCallback(
+        'USER_ALL_PHONES_DATA',
+        function () {
+            return (zb_GetAllAllPhones());
+        },
+        $cacheTime
     );
 
     return ($result);
@@ -1012,7 +1015,8 @@ function zb_GetOnlineTabPhonesStr($phone = '', $mobile = '', $extMobiles = array
  */
 function zb_GetROSPPPoESessionInfo($login, $returnHTML = false, $returnInSpoiler = false, $spoilerClosed = false) {
     $nasInfo = getNASInfoByLogin($login);
-    $pppoeInfo = array('errorcode' => 0,
+    $pppoeInfo = array(
+        'errorcode' => 0,
         'lastloggedout' => __('Current user login was not found on NAS') . ': ' . $nasInfo['nasip'],
         'sessionuptime' => __('No active session was found for current user on NAS') . ': ' . $nasInfo['nasip'],
         'lastlinkup' => __('No data'),
@@ -1027,27 +1031,36 @@ function zb_GetROSPPPoESessionInfo($login, $returnHTML = false, $returnInSpoiler
         $useNewConnType = (isset($nasOpts['use_new_conn_mode']) && $nasOpts['use_new_conn_mode']);
 
         if ($rosAPI->connect($nasInfo['nasip'], $nasOpts['username'], $nasOpts['password'], $useNewConnType)) {
-            $pppoeSecret = $rosAPI->command('/ppp/secret/print', array('.proplist' => '.id,last-logged-out',
-                '?name' => trim($login)
-                    )
+            $pppoeSecret = $rosAPI->command(
+                '/ppp/secret/print',
+                array(
+                    '.proplist' => '.id,last-logged-out',
+                    '?name' => trim($login)
+                )
             );
 
             // if such pppoe user even exists
             if (!empty($pppoeSecret[0]['.id'])) {
                 $pppoeInfo['lastloggedout'] = date('Y-m-d H:i:s', strtotime(str_ireplace('/', ' ', $pppoeSecret[0]['last-logged-out'])));
 
-                $activeSession = $rosAPI->command('/ppp/active/print', array('.proplist' => '.id,uptime',
-                    '?name' => trim($login)
-                        )
+                $activeSession = $rosAPI->command(
+                    '/ppp/active/print',
+                    array(
+                        '.proplist' => '.id,uptime',
+                        '?name' => trim($login)
+                    )
                 );
 
                 // if an active pppoe session exists for this user
                 if (!empty($activeSession[0]['.id'])) {
                     $pppoeInfo['sessionuptime'] = $activeSession[0]['uptime'];
 
-                    $ifaceData = $rosAPI->command('/interface/print', array('.proplist' => '.id,last-link-up-time,tx-byte,rx-byte',
-                        '?name' => '<pppoe-' . trim($login) . '>'
-                            )
+                    $ifaceData = $rosAPI->command(
+                        '/interface/print',
+                        array(
+                            '.proplist' => '.id,last-link-up-time,tx-byte,rx-byte',
+                            '?name' => '<pppoe-' . trim($login) . '>'
+                        )
                     );
 
                     if (!empty($ifaceData[0]['.id'])) {
@@ -1058,10 +1071,13 @@ function zb_GetROSPPPoESessionInfo($login, $returnHTML = false, $returnInSpoiler
                 }
 
                 // getting user's address lists and their status
-                $addrList = $rosAPI->command('/ip/firewall/address-list/print', array('.proplist' => '.id,list,disabled',
-                    '?comment' => trim($login),
-                    '?address' => $nasInfo['ip']
-                        )
+                $addrList = $rosAPI->command(
+                    '/ip/firewall/address-list/print',
+                    array(
+                        '.proplist' => '.id,list,disabled',
+                        '?comment' => trim($login),
+                        '?address' => $nasInfo['ip']
+                    )
                 );
                 if (!empty($addrList)) {
                     $pppoeInfo['addrlist'] = array();
@@ -1228,7 +1244,7 @@ function zb_GenContractDigitBlock($digitsBlockLength, $contractNumber, $makeIncr
     $contractLeadingZeroes = $ubillingConfig->getAlterParam('CONTRACT_GEN_TEMPLATE_LEADING_ZEROES', 1);
     $contractDigits = '';
 
-    if (!empty($digitsBlockLength) and ! empty($contractNumber)) {
+    if (!empty($digitsBlockLength) and !empty($contractNumber)) {
         $contractNumber = ($makeIncrement) ? ++$contractNumber : $contractNumber;
         $contractDigits = ($contractLeadingZeroes ? sprintf('%0' . $digitsBlockLength . 's', $contractNumber) : sprintf('%-0' . $digitsBlockLength . 's', $contractNumber));
     }
@@ -1327,7 +1343,7 @@ function zb_GenBaseContractFromTemplate($templateSplitted = array()) {
 function zb_UserIsActive($userData) {
     $result = false;
     if (!empty($userData)) {
-        if (($userData['Cash'] >= '-' . $userData['Credit']) AND ( $userData['AlwaysOnline'] == 1) AND ( $userData['Passive'] == 0) AND ( $userData['Down'] == 0)) {
+        if (($userData['Cash'] >= '-' . $userData['Credit']) and ($userData['AlwaysOnline'] == 1) and ($userData['Passive'] == 0) and ($userData['Down'] == 0)) {
             $result = true;
         }
     }
@@ -1344,7 +1360,7 @@ function zb_UserIsActive($userData) {
 function zb_UserIsAlive($userData) {
     $result = 0;
     if (!empty($userData)) {
-        if (($userData['Cash'] >= '-' . $userData['Credit']) AND ( $userData['AlwaysOnline'] == 1) AND ( $userData['Passive'] == 0) AND ( $userData['Down'] == 0)) {
+        if (($userData['Cash'] >= '-' . $userData['Credit']) and ($userData['AlwaysOnline'] == 1) and ($userData['Passive'] == 0) and ($userData['Down'] == 0)) {
             $result = 1;
         }
         //just frozen
