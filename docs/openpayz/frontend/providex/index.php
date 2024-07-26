@@ -133,9 +133,7 @@ class Providex extends PaySysProto {
         $paymentData        = $this->receivedJSON['data'];
         $providexAPISecret  = $this->merchantCreds['paysys_secret_key'];
         $sign               = PaySysProto::urlSafeBase64Encode(sha1($providexAPISecret . $paymentData . $providexAPISecret, true), false);
-file_put_contents('wxcv', sha1($providexAPISecret . $paymentData . $providexAPISecret, true) . "\n\n" . $sign . "\n\n\n\n");
-//        $sign               = base64_encode(sha1($providexAPISecret . $paymentData . $providexAPISecret, true));
-//file_put_contents('wxcv', sha1($providexAPISecret . $paymentData . $providexAPISecret, true) . "\n\n" . $sign, 8);
+
         return($sign);
     }
 
