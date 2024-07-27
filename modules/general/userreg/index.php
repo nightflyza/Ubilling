@@ -1,13 +1,13 @@
 <?php
 
 if (cfr('USERREG')) {
-    $alter_conf = $ubillingConfig->getAlter();
+    $altCfg = $ubillingConfig->getAlter();
     $registerUserONU = $ubillingConfig->getAlterParam('ONUAUTO_USERREG');
 
     //check if exclusive database locking is enabled
     $dbLockEnabled = false;
-    if (isset($alter_conf['DB_LOCK_ENABLED'])) {
-        if ($alter_conf['DB_LOCK_ENABLED']) {
+    if (isset($altCfg['DB_LOCK_ENABLED'])) {
+        if ($altCfg['DB_LOCK_ENABLED']) {
             $dbLockEnabled = true;
         }
     }
@@ -21,38 +21,38 @@ if (cfr('USERREG')) {
     );
 
     //getting UnknonwsSelector for userreg
-    if (wf_CheckGet(array('getunknownlist', 'oltid'))) {
+    if (ubRouting::checkGet(array('getunknownlist', 'oltid'))) {
         $Pon = new PONizer();
-        die($Pon->getUnknownONUMACList(vf($_GET['oltid'], 3), true, true, $_GET['selectorid'], $_GET['selectorname']));
+        die($Pon->getUnknownONUMACList(ubRouting::get('oltid', 'int'), true, true, ubRouting::get('selectorid'), ubRouting::get('selectorname')));
     }
 
-    if ((!isset($_POST['apt'])) AND ( !isset($_POST['IP']))) {
+    if (!ubRouting::checkPost('apt', false) and !ubRouting::checkPost('IP')) {
         show_window(__('User registration part 1 (location)'), web_UserRegFormLocation());
     } else {
 
         if (isset($_POST['apt'])) {
-            $newuser_data['city'] = ubRouting::post('citysel');
-            $newuser_data['street'] = ubRouting::post('streetsel');
-            $newuser_data['build'] = ubRouting::post('buildsel');
-            @$newuser_data['entrance'] = ubRouting::post('entrance');
-            @$newuser_data['floor'] = ubRouting::post('floor');
-            $newuser_data['apt'] = ubRouting::post('apt');
-            $newuser_data['service'] = ubRouting::post('serviceselect');
+            $newUserData['city'] = ubRouting::post('citysel');
+            $newUserData['street'] = ubRouting::post('streetsel');
+            $newUserData['build'] = ubRouting::post('buildsel');
+            $newUserData['entrance'] = ubRouting::post('entrance');
+            $newUserData['floor'] = ubRouting::post('floor');
+            $newUserData['apt'] = ubRouting::post('apt');
+            $newUserData['service'] = ubRouting::post('serviceselect');
             //pack contrahent data
-            if (isset($alter_conf['LOGIN_GENERATION'])) {
-                if ($alter_conf['LOGIN_GENERATION'] == 'DEREBAN') {
-                    $newuser_data['contrahent'] = $_POST['regagent'];
+            if (isset($altCfg['LOGIN_GENERATION'])) {
+                if ($altCfg['LOGIN_GENERATION'] == 'DEREBAN') {
+                    $newUserData['contrahent'] = ubRouting::post('regagent');
                 }
             }
 
             //pack extended address info data
-            if (isset($alter_conf['ADDRESS_EXTENDED_ENABLED']) and $alter_conf['ADDRESS_EXTENDED_ENABLED']) {
-                $newuser_data['postalcode'] = (isset($_POST['postalcode'])) ? $_POST['postalcode'] : '';
-                $newuser_data['towndistr'] = (isset($_POST['towndistr'])) ? $_POST['towndistr'] : '';
-                $newuser_data['addressexten'] = (isset($_POST['addressexten'])) ? $_POST['addressexten'] : '';
+            if (isset($altCfg['ADDRESS_EXTENDED_ENABLED']) and $altCfg['ADDRESS_EXTENDED_ENABLED']) {
+                $newUserData['postalcode'] = (ubRouting::checkPost('postalcode')) ? ubRouting::post('postalcode') : '';
+                $newUserData['towndistr'] = (ubRouting::checkPost('towndistr')) ? ubRouting::post('towndistr') : '';
+                $newUserData['addressexten'] = (ubRouting::checkPost('addressexten')) ? ubRouting::post('addressexten') : '';
             }
         } else {
-            $newuser_data = unserialize(base64_decode($_POST['repostdata']));
+            $newUserData = unserialize(base64_decode(ubRouting::post('repostdata')));
         }
 
         //create exclusive lock or wait until previous lock will be released
@@ -65,36 +65,36 @@ if (cfr('USERREG')) {
                 $dbLock = $dbLockCheck['result'];
             }
         }
-        show_window(__('User registration part 2 (Services)'), web_UserRegFormNetData($newuser_data));
+        show_window(__('User registration part 2 (Services)'), web_UserRegFormNetData($newUserData));
         zb_BillingStats(true);
 
-        if (isset($_POST['IP'])) {
-            $newuser_data['IP'] = $_POST['IP'];
-            $newuser_data['login'] = $_POST['login'];
-            $newuser_data['password'] = $_POST['password'];
+        if (ubRouting::checkPost('IP')) {
+            $newUserData['IP'] = ubRouting::post('IP');
+            $newUserData['login'] = ubRouting::post('login');
+            $newUserData['password'] = ubRouting::post('password');
 
             //ONU auto assign additional options
             if ($registerUserONU) {
-                if (wf_CheckPost(array('nooltsfound'))) {
-                    $newuser_data['oltid'] = '';
-                    $newuser_data['onumodelid'] = '';
-                    $newuser_data['onuip'] = '';
-                    $newuser_data['onumac'] = '';
-                    $newuser_data['onuserial'] = '';
+                if (ubRouting::checkPost('nooltsfound')) {
+                    $newUserData['oltid'] = '';
+                    $newUserData['onumodelid'] = '';
+                    $newUserData['onuip'] = '';
+                    $newUserData['onumac'] = '';
+                    $newUserData['onuserial'] = '';
                 } else {
-                    $newuser_data['oltid'] = @$_POST['oltid'];
-                    $newuser_data['onumodelid'] = @$_POST['onumodelid'];
-                    $newuser_data['onuip'] = wf_CheckPost(array('onuipproposal')) ? $_POST['IP'] : @$_POST['onuip'];
-                    $newuser_data['onumac'] = @$_POST['onumac'];
-                    $newuser_data['onuserial'] = @$_POST['onuserial'];
+                    $newUserData['oltid'] = ubRouting::checkPost('oltid') ? ubRouting::post('oltid') : '';
+                    $newUserData['onumodelid'] = ubRouting::checkPost('onumodelid') ? ubRouting::post('onumodelid') : '';
+                    $newUserData['onuip'] = ubRouting::checkPost('onuipproposal') ? ubRouting::post('IP') : ubRouting::post('onuip');
+                    $newUserData['onumac'] = (ubRouting::checkPost('onumac')) ? ubRouting::post('onumac') : '';
+                    $newUserData['onuserial'] = (ubRouting::checkPost('onuserial')) ? ubRouting::post('onuserial') : '';
                 }
             }
 
-            if (isset($alter_conf['USERREG_MAC_INPUT_ENABLED']) and $alter_conf['USERREG_MAC_INPUT_ENABLED']) {
+            if (isset($altCfg['USERREG_MAC_INPUT_ENABLED']) and $altCfg['USERREG_MAC_INPUT_ENABLED']) {
                 $newMac = '';
 
-                if (isset($_POST['userMAC']) and ! empty($_POST['userMAC'])) {
-                    $newMac = $_POST['userMAC'];
+                if (ubRouting::checkPost('userMAC')) {
+                    $newMac = ubRouting::post('userMAC');
                     $newMac = trim($newMac);
                     $newMac = strtolower($newMac);
                     //check mac for free
@@ -104,7 +104,7 @@ if (cfr('USERREG')) {
                         $alert .= 'alert("' . __('Error') . ': ' . __('This MAC is currently used') . '");';
                         $alert .= wf_tag('script', true);
                         print($alert);
-                        rcms_redirect("?module=userreg");
+                        ubRouting::nav("?module=userreg");
                         die();
                     }
 
@@ -114,15 +114,15 @@ if (cfr('USERREG')) {
                         $alert .= 'alert("' . __('Error') . ': ' . __('This MAC have wrong format') . '");';
                         $alert .= wf_tag('script', true);
                         print($alert);
-                        rcms_redirect("?module=userreg");
+                        ubRouting::nav("?module=userreg");
                         die();
                     }
                 }
 
-                $newuser_data['userMAC'] = $newMac;
+                $newUserData['userMAC'] = $newMac;
             }
-
-            zb_UserRegister($newuser_data);
+            //registering user, hell yeah!
+            zb_UserRegister($newUserData);
             //release db lock
             if ($dbLockEnabled) {
                 $dbUnlockQuery = 'SELECT RELEASE_LOCK("ipBind")';
@@ -133,7 +133,7 @@ if (cfr('USERREG')) {
 
 
 
-    if (wf_CheckGet(array('branchesback'))) {
+    if (ubRouting::checkGet('branchesback')) {
         show_window('', wf_BackLink('?module=branches&userlist=true'));
     }
 
@@ -141,4 +141,3 @@ if (cfr('USERREG')) {
 } else {
     show_error(__('Access denied'));
 }
-?>

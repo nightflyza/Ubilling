@@ -29,7 +29,7 @@ class ubRouting {
      * @param array/string $params array of variable names to check or single variable name as string
      * @param bool  $ignoreEmpty ignore or not existing variables with empty values (like wf_Check)
      * @param bool $atleastOneExists returns "true" when encounters the very first existent GET param. Respects the $ignoreEmpty parameter.
-     *
+     * 
      * @return bool
      */
     public static function checkGet($params, $ignoreEmpty = true, $atleastOneExists = false) {
@@ -79,11 +79,11 @@ class ubRouting {
 
     /**
      * Checks is all of variables array present in POST scope
-     * 
+     *
      * @param array/string $params array of variable names to check or single variable name as string
      * @param bool  $ignoreEmpty ignore or not existing variables with empty values (like wf_Check)
      * @param bool $atleastOneExists returns "true" when encounters the very first existent GET param. Respects the $ignoreEmpty parameter.
-     * 
+     *
      * @return bool
      */
     public static function checkPost($params, $ignoreEmpty = true, $atleastOneExists = false) {
@@ -135,7 +135,7 @@ class ubRouting {
      * Returns filtered data
      * 
      * @param mixed $rawData data to be filtered
-     * @param string $filtering filtering options. Possible values: raw, int, mres, callback, fi, vf, nb, float
+     * @param string $filtering filtering options. Possible values: raw, int, mres, callback, fi, vf, nb, float, login, safe, gigasafe
      * @param string|array/filter name $callback callback function name or names array to filter variable value. Or const filter name of php.net/filter
      * 
      * @return mixed|false
@@ -146,31 +146,52 @@ class ubRouting {
         $result = false;
         switch ($filtering) {
             case 'raw':
-                return($rawData);
+                return ($rawData);
                 break;
             case 'int':
-                return(preg_replace("#[^0-9]#Uis", '', $rawData));
+                return (preg_replace("#[^0-9]#Uis", '', $rawData));
                 break;
             case 'mres':
-                return(mysql_real_escape_string($rawData));
+                return (mysql_real_escape_string($rawData));
                 break;
             case 'vf':
-                return(preg_replace("#[~@\+\?\%\/\;=\*\>\<\"\'\-]#Uis", '', $rawData));
+                return (preg_replace("#[~@\+\?\%\/\;=\*\>\<\"\'\-]#Uis", '', $rawData));
                 break;
             case 'nb':
-                return(preg_replace('/\0/s', '', $rawData));
+                return (preg_replace('/\0/s', '', $rawData));
                 break;
             case 'float':
                 $filteredResult = preg_replace("#[^0-9.]#Uis", '', $rawData);
                 if (is_numeric($filteredResult)) {
-                    return($filteredResult);
+                    return ($filteredResult);
                 } else {
-                    return(false);
+                    return (false);
                 }
                 break;
+            case 'login':
+                $filteredResult = str_replace(' ', '_', $rawData);
+                return (preg_replace("#[^a-z0-9A-Z_]#Uis", '', $filteredResult));
+                break;
+            case 'safe':
+                $rawData = preg_replace('/\0/s', '', $rawData);
+                if (strpos($callback, 'HTML') !== false) {
+                    $callback = str_replace('HTML', '', $rawData);
+                } else {
+                    $rawData = self::replaceQuotes($rawData);
+                    $rawData = strip_tags($rawData);
+                }
+
+                $allowedChars = 'a-zA-Z0-9А-Яа-яЁёЇїІіЄєҐґ+«»_\ ,\.\-:;!?\(\){}\/\r\n\x{200d}\x{2600}-\x{1FAFF}' . $callback;
+                $regex = '#[^' . $allowedChars . ']#u';
+                return (preg_replace($regex, '', $rawData));
+            case 'gigasafe':
+                $rawData = preg_replace('/\0/s', '', $rawData);
+                $allowedChars = 'a-zA-Z0-9' . $callback;
+                $regex = '#[^' . $allowedChars . ']#u';
+                return (preg_replace($regex, '', $rawData));
             case 'fi':
                 if (!empty($callback)) {
-                    return(filter_var($rawData, $callback));
+                    return (filter_var($rawData, $callback));
                 } else {
                     throw new Exception('EX_FILTER_EMPTY');
                 }
@@ -180,7 +201,7 @@ class ubRouting {
                     //single callback function
                     if (!is_array($callback)) {
                         if (function_exists($callback)) {
-                            return($callback($rawData));
+                            return ($callback($rawData));
                         } else {
                             throw new Exception('EX_CALLBACK_NOT_DEFINED');
                         }
@@ -194,18 +215,30 @@ class ubRouting {
                                 throw new Exception('EX_CALLBACK_NOT_DEFINED');
                             }
                         }
-                        return($filteredResult);
+                        return ($filteredResult);
                     }
                 } else {
                     throw new Exception('EX_CALLBACK_EMPTY');
                 }
                 break;
 
-            default :
+            default:
                 throw new Exception('EX_WRONG_FILTERING_MODE');
                 break;
         }
-        return($result);
+        return ($result);
+    }
+    /**
+     * Replaces double quotes in a string with special characters.
+     *
+     * This method takes a string as input and replaces all occurrences of double quotes with special characters.
+     *
+     * @param string $string The input string to be processed.
+     * @return string The processed string with double quotes replaced by special characters.
+     */
+
+    public static function replaceQuotes($string) {
+        return (preg_replace('/"([^"]*)"/', '«$1»', $string));
     }
 
     /**
@@ -213,45 +246,46 @@ class ubRouting {
      * 
      * @param string $name name of variable to extract
      * @param string $filtering filtering options. Possible values: raw, int, mres, callback
-     * @param string/array $callback callback function name or names array to filter variable value
+     * @param string|array $callback callback function name or names array to filter variable value
      * 
-     * @return mixed/false
+     * @return mixed|false
      */
     public static function get($name, $filtering = 'raw', $callback = '') {
         $result = false;
         if (isset($_GET[$name])) {
-            return(self::filters($_GET[$name], $filtering, $callback));
+            return (self::filters($_GET[$name], $filtering, $callback));
         }
-        return($result);
+        return ($result);
     }
 
     /**
      * Returns some variable value with optional filtering from POST scope
      * 
      * @param string $name name of variable to extract
-     * @param string $filtering filtering options. Possible values: raw, int, mres, callback
+     * @param string $filtering filtering options. Possible values: raw, int, mres, callback, fi, vf, nb, float, login, safe, gigasafe
      * @param string $callback callback function name to filter variable value
      * 
-     * @return mixed/false
+     * @return mixed|false
      */
     public static function post($name, $filtering = 'raw', $callback = '') {
         $result = false;
         if (isset($_POST[$name])) {
-            return(self::filters($_POST[$name], $filtering, $callback));
+            return (self::filters($_POST[$name], $filtering, $callback));
         }
-        return($result);
+        return ($result);
     }
 
     /**
      * Short rcms_redirect replacement
      * 
      * @param string $url URL to perform redirect
+     * @param bool $header Use header redirect instead of JS document.location
      * 
      * @return void
      */
-    public static function nav($url) {
+    public static function nav($url, $header = false) {
         if (!empty($url)) {
-            rcms_redirect($url);
+            rcms_redirect($url, $header);
         }
     }
 
@@ -261,7 +295,7 @@ class ubRouting {
      * @return array
      */
     public static function rawGet() {
-        return($_GET);
+        return ($_GET);
     }
 
     /**
@@ -270,7 +304,7 @@ class ubRouting {
      * @return array
      */
     public static function rawPost() {
-        return($_POST);
+        return ($_POST);
     }
 
     /**
@@ -278,7 +312,7 @@ class ubRouting {
      * 
      * @global array $argv
      * 
-     * @param array/string $params array of variable names to check or single variable name as string
+     * @param array|string $params array of variable names to check or single variable name as string
      * @param bool  $ignoreEmpty ignore or not existing variables with empty values 
      * 
      * @return bool
@@ -312,7 +346,7 @@ class ubRouting {
                                 }
                             } else {
                                 $result = true;
-                                return($result);
+                                return ($result);
                             }
                         }
                     }
@@ -333,7 +367,7 @@ class ubRouting {
      * @param string $filtering filtering options. Possible values: raw, int, mres, callback
      * @param string $callback callback function name to filter variable value
      * 
-     * @return mixed/false
+     * @return mixed|false
      */
     public static function optionCli($name, $filtering = 'raw', $callback = '') {
         global $argv;
@@ -343,11 +377,11 @@ class ubRouting {
                 $fullOptMask = '--' . $name . '=';
                 if (ispos($eachArg, $fullOptMask)) {
                     $optValue = str_replace($fullOptMask, '', $eachArg);
-                    return(self::filters($optValue, $filtering, $callback));
+                    return (self::filters($optValue, $filtering, $callback));
                 }
             }
         }
-        return($result);
+        return ($result);
     }
 
     /**
@@ -355,7 +389,7 @@ class ubRouting {
      * 
      * @global array $argv
      * 
-     * @return string/false
+     * @return string|false
      */
     public static function optionCliMe() {
         global $argv;
@@ -365,7 +399,7 @@ class ubRouting {
                 $result = $argv[0];
             }
         }
-        return($result);
+        return ($result);
     }
 
     /**
@@ -377,7 +411,6 @@ class ubRouting {
      */
     public static function optionCliCount() {
         global $argc;
-        return($argc);
+        return ($argc);
     }
-
 }

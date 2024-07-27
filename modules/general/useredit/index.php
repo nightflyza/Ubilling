@@ -2,7 +2,7 @@
 
 if (cfr('USEREDIT')) {
     if (ubRouting::checkGet('username')) {
-        $login = ubRouting::get('username', 'mres');
+        $login = ubRouting::get('username', 'login');
 
         /**
          * Renders basic user params editing interface

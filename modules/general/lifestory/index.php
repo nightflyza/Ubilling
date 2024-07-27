@@ -2,7 +2,7 @@
 
 if (cfr('LIFESTORY')) {
     if (ubRouting::checkGet('username')) {
-        $login = ubRouting::get('username', 'mres');
+        $login = ubRouting::get('username', 'login');
 
 //weblogs user parsing    
         $searchType = (ubRouting::checkGet('strict')) ? true : false;

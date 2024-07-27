@@ -10,7 +10,7 @@ if (cfr('USERPROFILE')) {
 
     try {
         if (ubRouting::checkGet('username', false)) {
-            $login = ubRouting::get('username', 'vf');
+            $login = ubRouting::get('username', 'login');
             $login = trim($login);
             try {
                 $profile = new UserProfile($login);
