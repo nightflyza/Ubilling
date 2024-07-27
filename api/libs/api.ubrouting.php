@@ -135,7 +135,7 @@ class ubRouting {
      * Returns filtered data
      * 
      * @param mixed $rawData data to be filtered
-     * @param string $filtering filtering options. Possible values: raw, int, mres, callback, fi, vf, nb, float,login,safe,gigasafe
+     * @param string $filtering filtering options. Possible values: raw, int, mres, callback, fi, vf, nb, float, login, safe, gigasafe
      * @param string|array/filter name $callback callback function name or names array to filter variable value. Or const filter name of php.net/filter
      * 
      * @return mixed|false
@@ -173,10 +173,19 @@ class ubRouting {
                 return (preg_replace("#[^a-z0-9A-Z_]#Uis", '', $filteredResult));
                 break;
             case 'safe':
-                $allowedChars = 'a-zA-Z0-9А-Яа-яЁёЇїІіЄєҐґ_\ ,\.\-:;!?\(\){}\/\r\n+\x{200d}\x{2600}-\x{1FAFF}' . $callback;
+                $rawData = preg_replace('/\0/s', '', $rawData);
+                if (strpos($callback, 'HTML') !== false) {
+                    $callback = str_replace('HTML', '', $rawData);
+                } else {
+                    $rawData = self::replaceQuotes($rawData);
+                    $rawData = strip_tags($rawData);
+                }
+
+                $allowedChars = 'a-zA-Z0-9А-Яа-яЁёЇїІіЄєҐґ+«»_\ ,\.\-:;!?\(\){}\/\r\n\x{200d}\x{2600}-\x{1FAFF}' . $callback;
                 $regex = '#[^' . $allowedChars . ']#u';
                 return (preg_replace($regex, '', $rawData));
             case 'gigasafe':
+                $rawData = preg_replace('/\0/s', '', $rawData);
                 $allowedChars = 'a-zA-Z0-9' . $callback;
                 $regex = '#[^' . $allowedChars . ']#u';
                 return (preg_replace($regex, '', $rawData));
@@ -219,6 +228,18 @@ class ubRouting {
         }
         return ($result);
     }
+    /**
+     * Replaces double quotes in a string with special characters.
+     *
+     * This method takes a string as input and replaces all occurrences of double quotes with special characters.
+     *
+     * @param string $string The input string to be processed.
+     * @return string The processed string with double quotes replaced by special characters.
+     */
+
+    public static function replaceQuotes($string) {
+        return (preg_replace('/"([^"]*)"/', '«$1»', $string));
+    }
 
     /**
      * Returns some variable value with optional filtering from GET scope
@@ -241,7 +262,7 @@ class ubRouting {
      * Returns some variable value with optional filtering from POST scope
      * 
      * @param string $name name of variable to extract
-     * @param string $filtering filtering options. Possible values: raw, int, mres, callback
+     * @param string $filtering filtering options. Possible values: raw, int, mres, callback, fi, vf, nb, float, login, safe, gigasafe
      * @param string $callback callback function name to filter variable value
      * 
      * @return mixed|false
