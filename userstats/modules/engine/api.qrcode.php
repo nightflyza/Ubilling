@@ -70,9 +70,9 @@ class QRCode {
     private $options;
 
     public function __construct($data, $options = array()) {
-        $defaults = [
+        $defaults = array(
             's' => 'qrl'
-        ];
+        );
 
         if (!is_array($options)) $options = array();
 
