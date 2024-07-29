@@ -192,7 +192,7 @@ class Warehouse {
      *
      * @var array
      */
-    protected $cachedPrices=array();
+    protected $cachedPrices = array();
 
     /**
      * Default constants/routes/URLS etc..
@@ -2319,6 +2319,7 @@ class Warehouse {
      */
     public function contractorCreate($name) {
         $nameF = mysql_real_escape_string($name);
+        $nameF = ubRouting::filters($nameF, 'safe');
         $query = "INSERT INTO `wh_contractors` (`id`,`name`) VALUES (NULL,'" . $nameF . "');";
         nr_query($query);
         $newId = simple_get_lastid('wh_contractors');
@@ -2395,8 +2396,8 @@ class Warehouse {
         if (wf_CheckPost(array('editcontractorname', 'editcontractorid'))) {
             $contractorId = vf($_POST['editcontractorid'], 3);
             if (isset($this->allContractors[$contractorId])) {
-                simple_update_field('wh_contractors', 'name', $_POST['editcontractorname'], "WHERE `id`='" . $contractorId . "'");
-                log_register('WAREHOUSE CONTRACTORS EDIT [' . $contractorId . '] `' . $_POST['editcontractorname'] . '`');
+                simple_update_field('wh_contractors', 'name', ubRouting::post('editcontractorname', 'safe'), "WHERE `id`='" . $contractorId . "'");
+                log_register('WAREHOUSE CONTRACTORS EDIT [' . $contractorId . '] `' . ubRouting::post('editcontractorname') . '`');
             } else {
                 log_register('WAREHOUSE CONTRACTORS EDIT FAIL [' . $contractorId . '] NO_EXISTING');
             }
@@ -4523,7 +4524,7 @@ class Warehouse {
      * 
      * @return array
      */
-    protected function getAllSignupTasks($year='') {
+    protected function getAllSignupTasks($year = '') {
         $result = array();
         $signupJobTypes = array();
         $signupJobTypesTmp = $this->altCfg['TASKREPORT_SIGNUPJOBTYPES'];
@@ -4603,6 +4604,7 @@ class Warehouse {
             foreach ($allIncoming as $io => $each) {
                 if ($each['storageid'] != $storageIdFilter) {
                     unset($allIncoming[$io]);
+                  
                 }
             }
 
@@ -4612,6 +4614,7 @@ class Warehouse {
                 }
             }
         }
+
 
         $lowerOffset = strtotime($curyear . '-' . $curmonth . '-01');
         $upperOffset = strtotime($curyear . '-' . $curmonth . '-01');
@@ -4623,7 +4626,7 @@ class Warehouse {
         if (!empty($allIncoming)) {
             foreach ($allIncoming as $io => $each) {
                 $incomingDate = strtotime($each['date']);
-                if ($incomingDate < $lowerOffset) {
+                if ($incomingDate <= $lowerOffset) {
                     if ($each['contractorid'] != 0) { //ignoring move ops
                         $incomingLower[$each['id']] = $each;
                     }
@@ -4635,7 +4638,7 @@ class Warehouse {
         if (!empty($allOutcoming)) {
             foreach ($allOutcoming as $io => $each) {
                 $outcomingDate = strtotime($each['date']);
-                if ($outcomingDate < $lowerOffset) {
+                if ($outcomingDate <= $lowerOffset) {
                     if ($each['desttype'] != 'storage') { // ignoring move ops
                         $outcomingLower[$each['id']] = $each;
                     }
@@ -4687,9 +4690,6 @@ class Warehouse {
                 $lowerRemains[$each['itemtypeid']]['price'] = $lowerIncome[$each['itemtypeid']]['price'] - $outcomePrice;
             }
         }
-
-
-
 
         //second column
         $upperIncome = array();
