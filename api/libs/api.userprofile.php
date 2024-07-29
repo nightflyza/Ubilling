@@ -1170,7 +1170,7 @@ class UserProfile {
     }
 
     /**
-     * Returns compact 
+     * Returns compact assigned ONU signal/dereg reason
      *
      * @return string
      */
@@ -1183,6 +1183,17 @@ class UserProfile {
                 $ponizerDb = new NyanORM(PONizer::TABLE_ONUS);
                 $ponizerDb->where('login', '=', $this->login);
                 $onuData = $ponizerDb->getAll();
+                if (empty($onuData)) {
+                    //no primary assign found?
+                    $ponizerOnuExtDb = new NyanORM(PONizer::TABLE_ONUEXTUSERS);
+                    $ponizerOnuExtDb->where('login', '=', $this->login);
+                    $assignedOnuExt = $ponizerOnuExtDb->getAll();
+                    if (!empty($assignedOnuExt)) {
+                        $ponizerDb->where('id', '=', $assignedOnuExt[0]['onuid']);
+                        $onuData = $ponizerDb->getAll();
+                    }
+                }
+
                 if (!empty($onuData)) {
                     $onuData = $onuData[0];
                     $onuId = $onuData['id'];
