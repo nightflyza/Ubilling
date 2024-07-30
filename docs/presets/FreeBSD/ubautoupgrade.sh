@@ -167,7 +167,7 @@ rm -rf ./content/documents/photostorage
 mv ${TEMP_PATH}photostorage_bak ./content/documents/photostorage
 rm -rf ./content/backups/sql
 mv ${TEMP_PATH}sql_bak ./content/backups/sql
-cp -R ${TEMP_PATH}us_htaccess ./userstats/.htaccess
+cp -R ${TEMP_PATH}us_htaccess ./userstats/.htaccess 2> /dev/null
 rm -fr ${UBILLING_RELEASE_NAME}
 echo "deny from all" > ${RESTORE_POINT}/.htaccess
 
