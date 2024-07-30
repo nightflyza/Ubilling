@@ -1,5 +1,11 @@
 #!/bin/sh
 
+#
+# WARNING!
+# backup manually whole directory billing at first time before running this updater
+# something like cp -R billing /safe/path/billing_helpp
+#
+
 ######################## CONFIG SECTION ########################
 
 #dialog
