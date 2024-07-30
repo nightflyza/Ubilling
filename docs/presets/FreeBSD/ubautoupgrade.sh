@@ -110,6 +110,7 @@ mkdir ${RESTORE_POINT} 2> /dev/null
 rm -fr ${RESTORE_POINT}/*
 rm -rf ${TEMP_PATH}onusig_bak
 rm -rf ${TEMP_PATH}photostorage_bak
+rm -rf ${TEMP_PATH}sql_bak
 
 echo "=== Move new release to safe place ==="
 cp -R ${UBILLING_RELEASE_NAME} ${RESTORE_POINT}/
@@ -127,6 +128,8 @@ mkdir ${RESTORE_POINT}/customs
 # backup of actual configs and administrators
 mv ./content/documents/onusig ${TEMP_PATH}onusig_bak
 mv ./content/documents/photostorage ${TEMP_PATH}photostorage_bak
+mv ./content/backups/sql ${TEMP_PATH}sql_bak
+
 cp .htaccess ${RESTORE_POINT}/ 2> /dev/null
 cp favicon.ico ${RESTORE_POINT}/ 2> /dev/null
 cp remote_nas.conf ${RESTORE_POINT}/
@@ -162,6 +165,8 @@ rm -rf ./content/documents/onusig
 mv ${TEMP_PATH}onusig_bak ./content/documents/onusig
 rm -rf ./content/documents/photostorage
 mv ${TEMP_PATH}photostorage_bak ./content/documents/photostorage
+rm -rf ./content/backups/sql
+mv ${TEMP_PATH}sql_bak ./content/backups/sql
 rm -fr ${UBILLING_RELEASE_NAME}
 echo "deny from all" > ${RESTORE_POINT}/.htaccess
 
@@ -190,9 +195,15 @@ chmod 777 /etc/stargazer/dn ${APACHE_DATA_PATH}${UBILLING_PATH}/content/dn
 echo "=== Linking True Online ===";;
 esac
 
+# Setting up autoupdate script
+if [ -f ./docs/presets/FreeBSD/ubautoupgrade.sh ];
+then
 echo "=== Updating autoupdater ==="
 cp -R ./docs/presets/FreeBSD/ubautoupgrade.sh /bin/
 chmod a+x /bin/ubautoupgrade.sh
+else
+echo "Looks like this Ubilling release does not containing automatic upgrade preset"
+fi
 
 echo "=== Executing post-install API callback ==="
 /bin/ubapi "autoupdatehook" 2>> ${LOG_FILE}
@@ -201,6 +212,7 @@ echo "=== Deleting restore poing ==="
 rm -fr ${RESTORE_POINT}
 rm -rf ${TEMP_PATH}onusig_bak
 rm -rf ${TEMP_PATH}photostorage_bak
+rm -rf ${TEMP_PATH}sql_bak
 
 NEW_RELEASE=`cat RELEASE`
 echo "SUCCESS: Ubilling update successfully completed. Now your installation release is: ${NEW_RELEASE}"
