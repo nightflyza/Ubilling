@@ -3521,3 +3521,5 @@ $lang['def']['System update'] = 'Обновление системы';
 $lang['def']['This will update your Ubilling'] = 'Это обновит ваш Ubilling';
 $lang['def']['Your software version is already up to date'] = 'Ваше програмное обеспечение уже обновлено';
 $lang['def']['Current system version'] = 'Текущая версия системы';
+$lang['def']['The automatic upgrade script is not installed on your system'] = 'Скрипт автоматического обновления не установлен в вашей системе';
+$lang['def']['Read the documentation to learn what to do about it'] = 'Ознакомьтесть с документацией, чтобы узнать что с этим делать';

@@ -31,6 +31,10 @@ if (cfr('ROOT')) {
 
             $remoteReleasesInfo .= wf_delimiter(0);
             $remoteReleasesInfo .= $upgradeControls;
+        } else {
+            $remoteReleasesInfo .= $messages->getStyledMessage(__('The automatic upgrade script is not installed on your system'), 'error');
+            $remoteReleasesInfo .= wf_delimiter(0);
+            $remoteReleasesInfo .= wf_Link('https://wiki.ubilling.net.ua/doku.php?id=autoubupdate', wf_img('skins/icon_wiki_small.png') . ' ' . __('Read the documentation to learn what to do about it'), false, 'ubButton');
         }
 
         die($remoteReleasesInfo);
