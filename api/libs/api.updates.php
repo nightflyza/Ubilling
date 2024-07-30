@@ -61,10 +61,22 @@ class UbillingUpdateManager {
      */
     protected $sudoPath = '/usr/local/bin/sudo';
 
+    /**
+     * Automatic updater full path
+     *
+     * @var string
+     */
+    protected $atoupdaterPath = '/bin/ubautoupgrade.sh';
+
+    const URL_RELEASE_STABLE = 'http://ubilling.net.ua/RELEASE';
+    const URL_RELEASE_CURRENT = 'http://snaps.ubilling.net.ua/RELEASE';
     const DUMPS_PATH = 'content/updates/sql/';
     const CONFIGS_PATH = 'content/updates/configs/';
     const URL_ME = '?module=updatemanager';
     const URL_RELNOTES = 'wiki.ubilling.net.ua/doku.php?id=relnotes#section';
+    const ROUTE_AUTOSYSUPGRADE = 'autosystemupgrade';
+    const PROUTE_UPGRADEAGREE = 'runsystemupgrade';
+    const PID_AUTOSYSUPGRADE = 'UPDMGRAUTOUPGRADE';
 
     /**
      * Creates new update manager instance
@@ -192,6 +204,19 @@ class UbillingUpdateManager {
                 }
             }
         }
+        return ($result);
+    }
+
+    /**
+     * Checks is CLI batch updater available or not?
+     *
+     * @return bool
+     */
+    public function isUpdaterAvailable() {
+        $result=false;
+        if (file_exists($this->atoupdaterPath)) {
+            $result=true;
+        }
         return($result);
     }
 
@@ -228,7 +253,7 @@ class UbillingUpdateManager {
             }
             $this->DBConnection->close();
         }
-        return($result);
+        return ($result);
     }
 
     /**
@@ -313,7 +338,7 @@ class UbillingUpdateManager {
                 $result .= $this->DoSqlDump($release);
                 $result .= wf_BackLink(self::URL_ME);
             } else {
-                if ((!wf_CheckPost(array('applyconfirm'))) AND ( wf_CheckPost(array('applysqldump')))) {
+                if ((!wf_CheckPost(array('applyconfirm'))) and (wf_CheckPost(array('applysqldump')))) {
                     $result .= $this->messages->getStyledMessage(__('You are not mentally prepared for this'), 'error');
                     $result .= wf_delimiter();
                     $result .= wf_BackLink(self::URL_ME . '&applysql=' . $release);
@@ -431,7 +456,7 @@ class UbillingUpdateManager {
                     }
                 }
                 //confirmation checkbox notice
-                if ((wf_CheckPost(array('applyconfigoptions'))) AND ( !wf_CheckPost(array('applyconfirm')))) {
+                if ((wf_CheckPost(array('applyconfigoptions'))) and (!wf_CheckPost(array('applyconfirm')))) {
                     $result .= $this->messages->getStyledMessage(__('You are not mentally prepared for this'), 'error');
                 }
 
@@ -483,6 +508,38 @@ class UbillingUpdateManager {
         return ($releaseInfo);
     }
 
+        /**
+     * Performs automatic system upgrade 
+     * 
+     * @param string $branch
+     * 
+     * @return void/string on error
+     */
+    public function performAutoUpgrade($branch) {
+        $result = '';
+        $updateProcess = new StarDust(self::PID_AUTOSYSUPGRADE);
+        if ($updateProcess->notRunning()) {
+            $updateProcess->start();
+            log_register('UPDMGR AUTOUPGRADE `' . $branch . '` STARTED');
+            if ($this->sudoPath AND $this->atoupdaterPath) {
+                if (file_exists($this->atoupdaterPath)) {
+                    $command = $this->sudoPath . ' ' . $this->atoupdaterPath . ' ' . $branch;
+                    $autoUpdaterResult = shell_exec($command);
+                    if (!ispos($autoUpdaterResult, 'SUCCESS')) {
+                        $result .= __('Something went wrong') . ': ' . $autoUpdaterResult;
+                        log_register('UPDMGR AUTOUPGRADE `' . $branch . '` FAILED');
+                    }
+                } else {
+                    $result .= $this->atoupdaterPath . ' ' . __('not exists');
+                }
+            }
+            log_register('UPDMGR AUTOUPGRADE `' . $branch . '` FINISHED');
+            $updateProcess->stop();
+        } else {
+            $result .= __('System update') . ' ' . __('already running');
+        }
+        return($result);
+    }
 }
 
 /**
@@ -628,7 +685,4 @@ class UbillingUpdateStuff {
             }
         }
     }
-
 }
-
-?>

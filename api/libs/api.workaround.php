@@ -3029,30 +3029,6 @@ function strtolower_utf8($string) {
 }
 
 /**
- * Ajax backend for checking Ubilling updates
- * 
- * @param bool $return
- * 
- * @return void
- */
-function zb_BillingCheckUpdates($return = false) {
-    $release_url = 'http://ubilling.net.ua/RELEASE';
-
-    @$last_release = file_get_contents($release_url);
-    if ($last_release) {
-        $result = __('Last stable release is') . ': ' . $last_release;
-    } else {
-        $result = __('Error checking updates');
-    }
-
-    if ($return) {
-        return ($result);
-    } else {
-        die($result);
-    }
-}
-
-/**
  * Installs newly generated Ubilling serial into database
  * 
  * @return string
@@ -3175,7 +3151,7 @@ function zb_BillingStats($quiet = true, $modOverride = '') {
     $ubstatsinputs = zb_AjaxLoader();
     $ubstatsinputs .= wf_tag('b') . __('Serial key') . ': ' . wf_tag('b', true) . $thisubid . wf_tag('br');
     $ubstatsinputs .= wf_tag('b') . __('Use this to request technical support') . ': ' . wf_tag('b', true) . wf_tag('font', false, '', 'color="#076800"') . substr($thisubid, -4) . wf_tag('font', true) . wf_tag('br');
-    $ubstatsinputs .= wf_tag('b') . __('Ubilling version') . ': ' . wf_tag('b', true) . $updatechecker . wf_tag('br');
+    $ubstatsinputs .= wf_tag('b') . __('Current Ubilling version') . ': ' . wf_tag('b', true) . $updatechecker . wf_tag('br');
     $ubstatsinputs .= $releasebox;
     $ubstatsinputs .= wf_HiddenInput('editcollect', 'true');
     $ubstatsinputs .= wf_CheckInput('collectflag', 'I want to help make Ubilling better', false, $thiscollect);
@@ -6384,5 +6360,59 @@ function zb_GenerateRandomName() {
             break;
     }
     $result .= $names[array_rand($names)] . ' ' . $surnames[array_rand($surnames)];
+    return ($result);
+}
+
+/**
+ * Returns current system version
+ * 
+ * @return string
+ */
+function zb_getLocalSystemVersion() {
+    $result = file_get_contents('RELEASE');
+    return ($result);
+}
+
+/**
+ * Returns remote release version
+ * 
+ * @param string $branch
+ * 
+ * @return string/bool
+ */
+function zb_GetReleaseInfo($branch) {
+    $result = false;
+    $release_url = UbillingUpdateManager::URL_RELEASE_STABLE;
+    if ($branch == 'CURRENT') {
+        $release_url = UbillingUpdateManager::URL_RELEASE_CURRENT;
+    }
+    $remoteCallback = new OmaeUrl($release_url);
+    $releaseInfo = $remoteCallback->response();
+    if ($releaseInfo) {
+        $result = $releaseInfo;
+    }
+    return ($result);
+}
+
+/**
+ * Ajax backend for rendering WolfRecorder updates release info
+ * 
+ * @param bool $version
+ * @param bool $branch
+ * 
+ * @return string/bool
+ */
+function zb_RenderUpdateInfo($version = '', $branch = 'STABLE') {
+    $result = '';
+    $latestRelease = $version;
+    if ($latestRelease) {
+        if ($branch == 'CURRENT') {
+            $result = __('Latest nightly Ubilling build is') . ': ' . $latestRelease;
+        } else {
+            $result = __('Latest stable Ubilling release is') . ': ' . $latestRelease;
+        }
+    } else {
+        $result = __('Error checking updates');
+    }
     return ($result);
 }

@@ -3,7 +3,8 @@
 if (cfr('SYSLOAD')) {
 
     if (ubRouting::checkGet('checkupdates')) {
-        zb_BillingCheckUpdates();
+        $latestStableRelease = zb_GetReleaseInfo('STABLE');
+        die(zb_RenderUpdateInfo($latestStableRelease,'STABLE'));
     }
 
     if (ubRouting::checkGet('phpinfo')) {

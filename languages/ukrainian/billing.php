@@ -3521,7 +3521,14 @@ $lang['def']['Engine'] = 'Рушій';
 $lang['def']['right to MAC vendor lookup'] = 'Право визначати виробника обладнання за MAC';
 $lang['def']['Explict interval'] = 'Явний інтервал';
 $lang['def']['The amount of allowed credit limit has been exceeded'] = 'Суму можливого кредиту перевищено';
+$lang['def']['Latest stable Ubilling release is'] = 'Останній стабільний реліз Ubilling';
+$lang['def']['Latest nightly Ubilling build is'] = 'Остання нічна збірка Ubilling';
+$lang['def']['Upgrade to stable release'] = 'Оновитись до стабільного релізу';
+$lang['def']['Upgrade to nightly build'] = 'Оновитись до нічної збірки';
+$lang['def']['System update'] = 'Оновлення системи';
+$lang['def']['This will update your Ubilling'] = 'Це оновить ваш Ubilling';
+$lang['def']['Your software version is already up to date'] = 'Ваше програмне забезпечення вже оновлено';
+$lang['def']['Current system version'] = 'Поточна версія системи';
 $lang['def'][''] = '';
-
 
 
