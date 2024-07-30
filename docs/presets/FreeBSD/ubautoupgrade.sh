@@ -60,7 +60,7 @@ BRANCH=`cat /tmp/auprelease`
 rm -fr /tmp/auprelease
 
 #last chance to exit
-$DIALOG --title "Check settings"   --yesno "Are all of these settings correct? \n \n Ubilling release: ${BRANCH}\n Installation full path: ${APACHE_DATA_PATH}${UBILLING_PATH}\n" 9 70
+$DIALOG --title "Check settings"   --yesno "Are all of these settings correct? \n \n Ubilling release: ${BRANCH}\n Kill default admin: ${DEFADM_KILL} \n Installation full path: ${APACHE_DATA_PATH}${UBILLING_PATH}\n" 9 70
 AGREE=$?
 clear
 
@@ -111,6 +111,7 @@ rm -fr ${RESTORE_POINT}/*
 rm -rf ${TEMP_PATH}onusig_bak
 rm -rf ${TEMP_PATH}photostorage_bak
 rm -rf ${TEMP_PATH}sql_bak
+rm -fr ${TEMP_PATH}us_htaccess
 
 echo "=== Move new release to safe place ==="
 cp -R ${UBILLING_RELEASE_NAME} ${RESTORE_POINT}/
@@ -122,13 +123,13 @@ mkdir ${RESTORE_POINT}/content
 mkdir ${RESTORE_POINT}/multinet
 mkdir ${RESTORE_POINT}/userstats
 mkdir ${RESTORE_POINT}/userstats/config
-mkdir ${RESTORE_POINT}/customs
 
 
 # backup of actual configs and administrators
 mv ./content/documents/onusig ${TEMP_PATH}onusig_bak
 mv ./content/documents/photostorage ${TEMP_PATH}photostorage_bak
 mv ./content/backups/sql ${TEMP_PATH}sql_bak
+cp ./userstats/.htaccess ${TEMP_PATH}us_htaccess 2> /dev/null
 
 cp .htaccess ${RESTORE_POINT}/ 2> /dev/null
 cp favicon.ico ${RESTORE_POINT}/ 2> /dev/null
@@ -148,7 +149,6 @@ cp ./userstats/config/mysql.ini ${RESTORE_POINT}/userstats/config/
 cp ./userstats/config/userstats.ini ${RESTORE_POINT}/userstats/config/
 cp ./userstats/config/tariffmatrix.ini ${RESTORE_POINT}/userstats/config/
 
-
 echo "=== Billing directory cleanup ==="
 rm -fr ${APACHE_DATA_PATH}${UBILLING_PATH}/*
 
@@ -167,6 +167,7 @@ rm -rf ./content/documents/photostorage
 mv ${TEMP_PATH}photostorage_bak ./content/documents/photostorage
 rm -rf ./content/backups/sql
 mv ${TEMP_PATH}sql_bak ./content/backups/sql
+cp -R ${TEMP_PATH}us_htaccess ./userstats/.htaccess
 rm -fr ${UBILLING_RELEASE_NAME}
 echo "deny from all" > ${RESTORE_POINT}/.htaccess
 
@@ -178,9 +179,6 @@ YES)
 rm -fr ./content/users/admin
 echo "=== Default admin account removed ===";;
 esac
-
-#clean customs
-rm -fr ./customs
 
 echo "=== Setting FS permissions ==="
 chmod -R 777 content/ config/ multinet/ exports/ remote_nas.conf
