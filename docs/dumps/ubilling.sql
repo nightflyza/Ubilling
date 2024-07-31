@@ -989,13 +989,13 @@ CREATE TABLE IF NOT EXISTS `signup_prices_tariffs` (
   `tariff` varchar(40) NOT NULL,
   `price` double NOT NULL,
   PRIMARY KEY (`tariff`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS `signup_prices_users` (
   `login` varchar(50) NOT NULL,
   `price` double NOT NULL,
   PRIMARY KEY (`login`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
 -- 0.5.3 update
 ALTER TABLE `employee` ADD `admlogin` VARCHAR( 255 ) NULL DEFAULT NULL AFTER `mobile`;
@@ -1028,7 +1028,7 @@ CREATE TABLE IF NOT EXISTS `vols_docs` (
   `mark_id` int(11) DEFAULT NULL,
   `path` varchar(128) NOT NULL DEFAULT '/',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
+) ENGINE=MyISAM  DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
 
 CREATE TABLE IF NOT EXISTS `vols_lines` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -1042,7 +1042,7 @@ CREATE TABLE IF NOT EXISTS `vols_lines` (
   `param_width` int(11) NOT NULL,
   `geo` text,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
+) ENGINE=MyISAM  DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
 
 CREATE TABLE IF NOT EXISTS `vols_marks` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -1052,7 +1052,7 @@ CREATE TABLE IF NOT EXISTS `vols_marks` (
   `description` varchar(255) DEFAULT NULL,
   `geo` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
+) ENGINE=MyISAM  DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
 
 CREATE TABLE IF NOT EXISTS `vols_marks_types` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -1062,7 +1062,7 @@ CREATE TABLE IF NOT EXISTS `vols_marks_types` (
   `icon_color` varchar(255) NOT NULL DEFAULT 'blue',
   `icon_style` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
+) ENGINE=MyISAM  DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
 
 
 CREATE TABLE IF NOT EXISTS `corp_data` (

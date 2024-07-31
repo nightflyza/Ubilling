@@ -34,7 +34,7 @@ CREATE TABLE IF NOT EXISTS `mlg_acct` (
   KEY `acctstarttime` (`acctstarttime`),
   KEY `acctstoptime` (`acctstoptime`),
   KEY `nasipaddress` (`nasipaddress`)
-) ENGINE=InnoDB;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8
 
 CREATE TABLE  IF NOT EXISTS `mlg_postauth` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -43,7 +43,7 @@ CREATE TABLE  IF NOT EXISTS `mlg_postauth` (
   `reply` varchar(32) NOT NULL default '',
   `authdate` timestamp NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE = INNODB;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8
 
 CREATE TABLE IF NOT EXISTS `mlg_nascustom` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
