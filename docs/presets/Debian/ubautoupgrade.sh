@@ -194,10 +194,10 @@ echo "=== Linking True Online ===";;
 esac
 
 # Setting up autoupdate script
-if [ -f ./docs/presets/FreeBSD/ubautoupgrade.sh ];
+if [ -f ./docs/presets/Debian/ubautoupgrade.sh ];
 then
 echo "=== Updating autoupdater ==="
-cp -R ./docs/presets/FreeBSD/ubautoupgrade.sh /bin/
+cp -R ./docs/presets/Debian/ubautoupgrade.sh /bin/
 chmod a+x /bin/ubautoupgrade.sh
 else
 echo "Looks like this Ubilling release does not containing automatic upgrade preset"
