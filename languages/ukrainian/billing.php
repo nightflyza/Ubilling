@@ -3531,6 +3531,8 @@ $lang['def']['Your software version is already up to date'] = 'Ваше прог
 $lang['def']['Current system version'] = 'Поточна версія системи';
 $lang['def']['The automatic upgrade script is not installed on your system'] = 'Скрипт автоматичного оновлення не встановлено у вашій системі';
 $lang['def']['Read the documentation to learn what to do about it'] = 'Ознайомтесь з документацією, щоб дізнатись що з цим робити';
+$lang['def']['For administrator'] = 'Для адміністратора';
+$lang['def']['a very fucked up password is used'] = 'використовується дуже хуйовий пароль';
 $lang['def'][''] = '';
 
 
