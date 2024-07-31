@@ -479,10 +479,12 @@ class UbillingTaskbar {
                             if (!empty($adminData)) {
                                 $adminHash = trim($adminData['password']);
                                 foreach ($badPasswords as $passIdx => $eachHash) {
+                                    if (!empty($eachHash)) {
                                     $eachHash = trim($eachHash);
                                     if (strpos($adminHash, $eachHash) !== false) {
                                         $this->currentAlerts .= $this->messages->getStyledMessage(__('For administrator') . ' «' . $controlLogin . '» ' . __('a very fucked up password is used') . '. ' . __('Dont do this') . '.', 'error');
                                     }
+                                }
                                 }
                             }
                         }
