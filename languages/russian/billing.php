@@ -3524,4 +3524,4 @@ $lang['def']['Current system version'] = 'Текущая версия систе
 $lang['def']['The automatic upgrade script is not installed on your system'] = 'Скрипт автоматического обновления не установлен в вашей системе';
 $lang['def']['Read the documentation to learn what to do about it'] = 'Ознакомьтесть с документацией, чтобы узнать что с этим делать';
 $lang['def']['For administrator'] = 'Для администратора';
-$lang['def']['a very fucked up password is used'] = 'используется очень хуевый пароль';
+$lang['def']['a very fucked up password is used'] = 'используется отличный пароль';
