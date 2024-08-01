@@ -1,5 +1,5 @@
-За допомогою цього модулю, ви можете автоматизовано виконати рекомендації до оновлень, після того як оновили сам біллінг за допомогою автообновлятора.
+За допомогою цього модулю, ви можете перевірити наявність оновлень білінгу, оновити його до потрібної вам гілки та автоматизовано виконати рекомендації до оновлень, після того як оновили сам біллінг.
 
-<a href="https://wiki.ubilling.net.ua/doku.php?id=autoubupdate" class="ubButton" target="_blank"><img src="skins/icon_wiki_small.png">Автообновлятор</a><br>
+<a href="https://wiki.ubilling.net.ua/doku.php?id=autoubupdate" class="ubButton" target="_blank"><img src="skins/icon_wiki_small.png">Оновлення білінгу</a><br>
 <a href="https://wiki.ubilling.net.ua/doku.php?id=changelog" class="ubButton" target="_blank"><img src="skins/icon_wiki_small.png">Останні зміни в Ubilling</a><br>
 <a href="https://wiki.ubilling.net.ua/doku.php?id=relnotes" class="ubButton" target="_blank"><img src="skins/icon_wiki_small.png">Рекомендації що до оновлення</a><br>
