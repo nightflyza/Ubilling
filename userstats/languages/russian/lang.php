@@ -467,3 +467,4 @@ $lang['def']['Empty reply received'] = 'Получен пустой ответ';
 $lang['def']['Wrong reply received'] = 'Получен неверный ответ';
 $lang['def']['Aerial alert'] = 'Воздушная тревога';
 $lang['def']['since'] = 'с';
+$lang['def']['Support AFU'] = 'Поддержка ВСУ';

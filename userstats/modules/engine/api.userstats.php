@@ -2192,6 +2192,23 @@ function zbs_ModulesMenuShow($icons = false) {
     } else {
         $result .= '<li><a href="index.php"> ' . __('Home') . '</a></li>';
     }
+
+    //AFU help
+    if (!@$globconf['IM_JUST_PIDAR']) {
+        $afuUrl = 'https://ubilling.net.ua/rds/defense/';
+        $afuIcon = la_img($skinPath . 'iconz/afu.png');
+        if (@$globconf['AFU_URL']) {
+            $afuUrl = $globconf['AFU_URL'];
+        }
+        if ($icons) {
+            $result .= la_tag('li') . la_Link($afuUrl, $afuIcon . ' ' . __('Support AFU')) . la_tag('li', true);
+        } else {
+            $result .= la_tag('li') . la_Link($afuUrl, __('Support AFU')) . la_tag('li', true);
+        }
+    } else {
+        $result .= '<!-- pidar detected -->';
+    }
+
     if (!empty($all_modules)) {
         foreach ($all_modules as $eachmodule) {
             $linkClass = ($currentModule == $eachmodule) ? 'active' : 'menublock';
