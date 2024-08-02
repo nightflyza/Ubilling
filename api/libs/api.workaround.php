@@ -6388,8 +6388,10 @@ function zb_GetReleaseInfo($branch) {
     }
     $remoteCallback = new OmaeUrl($release_url);
     $releaseInfo = $remoteCallback->response();
-    if ($releaseInfo) {
-        $result = $releaseInfo;
+    if ($remoteCallback->httpCode() == 200) {
+        if ($releaseInfo) {
+            $result = $releaseInfo;
+        }
     }
     return ($result);
 }
@@ -6412,7 +6414,7 @@ function zb_RenderUpdateInfo($version = '', $branch = 'STABLE') {
             $result = __('Latest stable Ubilling release is') . ': ' . $latestRelease;
         }
     } else {
-        $result = __('Error checking updates');
+        $result = __('Error checking updates') . ' ' . $branch;
     }
     return ($result);
 }

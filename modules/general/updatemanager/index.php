@@ -7,15 +7,29 @@ if (cfr('ROOT')) {
 
     //checking updates
     if (ubRouting::checkGet('checkupdates')) {
+        $stableUpbradable = false;
+        $nightlyUpgradable = false;
+        $styleStable = 'error';
+        $styleNightly = 'error';
+
         $localSystemVersion = zb_getLocalSystemVersion();
         $latestRelease = zb_GetReleaseInfo('STABLE');
         $latestNightlyBuild = zb_GetReleaseInfo('CURRENT');
         $latestReleaseLabel = zb_RenderUpdateInfo($latestRelease, 'STABLE');
         $latestNightlyBuildLabel = zb_RenderUpdateInfo($latestNightlyBuild, 'CURRENT');
-        $styleStable = ($localSystemVersion == $latestRelease) ? 'success' : 'warning';
-        $styleNightly = ($localSystemVersion == $latestNightlyBuild) ? 'success' : 'warning';
-        $stableUpbradable = ($localSystemVersion == $latestRelease) ? false : true;
-        $nightlyUpgradable = ($localSystemVersion == $latestNightlyBuild) ? false : true;
+
+
+
+        if ($latestRelease) {
+            $stableUpbradable = ($localSystemVersion == $latestRelease) ? false : true;
+            $styleStable = ($localSystemVersion == $latestRelease) ? 'success' : 'warning';
+        }
+
+        if ($latestNightlyBuild) {
+            $nightlyUpgradable = ($localSystemVersion == $latestNightlyBuild) ? false : true;
+            $styleNightly = ($localSystemVersion == $latestNightlyBuild) ? 'success' : 'warning';
+        }
+
         $remoteReleasesInfo = $messages->getStyledMessage($latestReleaseLabel, $styleStable);
         $remoteReleasesInfo .= $messages->getStyledMessage($latestNightlyBuildLabel, $styleNightly);
         //upgrade controls here
