@@ -64,6 +64,7 @@ if (cfr('ROOT')) {
                     $confirmationInputs .= wf_CheckInput($updateManager::PROUTE_UPGRADEAGREE, __('I`m ready'), true, false);
                     $confirmationInputs .= wf_Submit(__('System update'));
                     $confirmationForm = wf_Form('', 'POST', $confirmationInputs, 'glamour');
+                    $confirmationForm .= wf_FormDisabler();
                     show_window(__('System update'), $confirmationForm);
                 }
             } else {
