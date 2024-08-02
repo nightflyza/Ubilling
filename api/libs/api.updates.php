@@ -213,11 +213,11 @@ class UbillingUpdateManager {
      * @return bool
      */
     public function isUpdaterAvailable() {
-        $result=false;
+        $result = false;
         if (file_exists($this->atoupdaterPath)) {
-            $result=true;
+            $result = true;
         }
-        return($result);
+        return ($result);
     }
 
     /**
@@ -508,7 +508,7 @@ class UbillingUpdateManager {
         return ($releaseInfo);
     }
 
-        /**
+    /**
      * Performs automatic system upgrade 
      * 
      * @param string $branch
@@ -521,7 +521,7 @@ class UbillingUpdateManager {
         if ($updateProcess->notRunning()) {
             $updateProcess->start();
             log_register('UPDMGR AUTOUPGRADE `' . $branch . '` STARTED');
-            if ($this->sudoPath AND $this->atoupdaterPath) {
+            if ($this->sudoPath and $this->atoupdaterPath) {
                 if (file_exists($this->atoupdaterPath)) {
                     $command = $this->sudoPath . ' ' . $this->atoupdaterPath . ' ' . $branch;
                     $autoUpdaterResult = shell_exec($command);
@@ -537,8 +537,9 @@ class UbillingUpdateManager {
             $updateProcess->stop();
         } else {
             $result .= __('System update') . ' ' . __('already running');
+            log_register('UPDMGR AUTOUPGRADE `' . $branch . '` SKIPPED');
         }
-        return($result);
+        return ($result);
     }
 }
 
