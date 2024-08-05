@@ -1724,6 +1724,10 @@ class UbillingVisor {
                 } else {
                     $cameraState = wf_img_sized('skins/icon_inactive.gif', '', '12', '12') . ' ' . __('No');
                 }
+
+                $camPass=($cameraData['campassword']) ? wf_img_sized('skins/icon_active.gif', '', '12', '12') : wf_img_sized('skins/icon_inactive.gif', '', '12', '12');
+                $dvrPass=($cameraData['dvrpassword']) ? wf_img_sized('skins/icon_active.gif', '', '12', '12') : wf_img_sized('skins/icon_inactive.gif', '', '12', '12');
+
                 $cells = wf_TableCell(__('Active'), '30%', 'row2');
                 $cells .= wf_TableCell($cameraState);
                 $rows .= wf_TableRow($cells, 'row3');
@@ -1741,7 +1745,7 @@ class UbillingVisor {
                 $rows .= wf_TableRow($cells, 'row3');
 
                 $cells = wf_TableCell(__('Camera password'), '30%', 'row2');
-                $cells .= wf_TableCell($cameraData['campassword']);
+                $cells .= wf_TableCell($camPass);
                 $rows .= wf_TableRow($cells, 'row3');
 
                 $cells = wf_TableCell(__('Port'), '30%', 'row2');
@@ -1762,7 +1766,7 @@ class UbillingVisor {
                 $rows .= wf_TableRow($cells, 'row3');
 
                 $cells = wf_TableCell(__('DVR password'), '30%', 'row2');
-                $cells .= wf_TableCell($cameraData['dvrpassword']);
+                $cells .= wf_TableCell($dvrPass);
                 $rows .= wf_TableRow($cells, 'row3');
 
                 $result .= wf_TableBody($rows, '100%', 0);
@@ -1773,13 +1777,13 @@ class UbillingVisor {
                 $inputs .= wf_Selector('editvisorid', $usersTmp, __('User'), $cameraData['visorid'], true);
                 $loginPreset = (!empty($cameraData['camlogin'])) ? $cameraData['camlogin'] : 'admin';
                 $inputs .= wf_TextInput('editcamlogin', __('Camera login'), $loginPreset, true, 15);
-                $inputs .= wf_TextInput('editcampassword', __('Camera password'), $cameraData['campassword'], true, 15);
+                $inputs .= wf_PasswordInput('editcampassword', __('Camera password'), $cameraData['campassword'], true, 15);
                 $portPreset = ($cameraData['port'] != 0) ? $cameraData['port'] : 80;
                 $inputs .= wf_TextInput('editport', __('Port'), $portPreset, true, 5);
                 $inputs .= wf_tag('br');
                 $inputs .= wf_Selector('editdvrid', $dvrTmp, __('DVR'), $cameraData['dvrid'], true);
                 $inputs .= wf_TextInput('editdvrlogin', __('DVR login'), $cameraData['dvrlogin'], true, 15);
-                $inputs .= wf_TextInput('editdvrpassword', __('DVR password'), $cameraData['dvrpassword'], true, 15);
+                $inputs .= wf_PasswordInput('editdvrpassword', __('DVR password'), $cameraData['dvrpassword'], true, 15);
                 $inputs .= wf_tag('br');
                 $inputs .= wf_Submit(__('Save'));
 
@@ -2247,9 +2251,9 @@ class UbillingVisor {
         $inputs .= wf_TextInput('newdvrip', __('IP') . $sup, '', true, 15, 'ip');
         $inputs .= wf_TextInput('newdvrport', __('Port'), '', true, 5, 'digits');
         $inputs .= wf_TextInput('newdvrlogin', __('Login'), '', true, 20);
-        $inputs .= wf_TextInput('newdvrpassword', __('Password'), '', true, 20);
+        $inputs .= wf_PasswordInput('newdvrpassword', __('Password'), '', true, 20);
         $inputs .= wf_TextInput('newdvrapiurl', __('API URL'), '', true, 20, 'url');
-        $inputs .= wf_TextInput('newdvrapikey', __('API key'), '', true, 20);
+        $inputs .= wf_PasswordInput('newdvrapikey', __('API key'), '', true, 20);
         $inputs .= wf_TextInput('newdvrcamlimit', __('Cameras limit'), '0', true, 3, 'digits');
         $inputs .= wf_TextInput('newdvrcustomurl', __('Custom preview URL'), '', true, 20);
         $inputs .= wf_Submit(__('Create'));
@@ -2315,9 +2319,9 @@ class UbillingVisor {
             $inputs .= wf_TextInput('editdvrip', __('IP') . $sup, $dvrData['ip'], true, 15, 'ip');
             $inputs .= wf_TextInput('editdvrport', __('Port'), $dvrData['port'], true, 5, 'digits');
             $inputs .= wf_TextInput('editdvrlogin', __('Login'), $dvrData['login'], true, 12);
-            $inputs .= wf_TextInput('editdvrpassword', __('Password'), $dvrData['password'], true, 12);
+            $inputs .= wf_PasswordInput('editdvrpassword', __('Password'), $dvrData['password'], true, 12);
             $inputs .= wf_TextInput('editdvrapiurl', __('API URL'), $dvrData['apiurl'], true, 20, 'url');
-            $inputs .= wf_TextInput('editdvrapikey', __('API key'), $dvrData['apikey'], true, 20);
+            $inputs .= wf_PasswordInput('editdvrapikey', __('API key'), $dvrData['apikey'], true, 20);
             $inputs .= wf_TextInput('editdvrcamlimit', __('Cameras limit'), $dvrData['camlimit'], true, 20);
             $inputs .= wf_TextInput('editdvrcustomurl', __('Custom preview URL'), $dvrData['customurl'], true, 20);
             $inputs .= wf_tag('br');
@@ -3211,6 +3215,7 @@ class UbillingVisor {
                         $allChanData = $this->allChannels[$visorId];
                         foreach ($allChanData as $io => $each) {
                             if (isset($this->allDvrs[$each['dvrid']])) {
+                                $prefill = '';
                                 $dvrData = $this->allDvrs[$each['dvrid']];
                                 $result[$each['dvrid']]['dvrid'] = $dvrData['id'];
                                 $result[$each['dvrid']]['ip'] = $dvrData['ip'];
@@ -3222,7 +3227,7 @@ class UbillingVisor {
                                 }
 
                                 if ($dvrData['type'] == 'wolfrecorder') {
-                                    $prefill = '';
+                             
                                     if (!empty($secretsData['login']) and !empty($secretsData['password'])) {
                                         $prefill = '?authprefill=' . $secretsData['login'] . '_' . $secretsData['password'];
                                     }
@@ -3231,6 +3236,14 @@ class UbillingVisor {
                                     } else {
                                         $result[$each['dvrid']]['weburl'] = $dvrData['apiurl'] . $prefill;
                                     }
+                                }
+
+                                //custom weburl handling
+                                if (!empty($dvrData['customurl'])) {
+                                    $result[$each['dvrid']]['weburl'] = $dvrData['customurl'] . $prefill;
+                                    $result[$each['dvrid']]['customlink']=1;
+                                } else {
+                                    $result[$each['dvrid']]['customlink']=0;
                                 }
                             }
                         }

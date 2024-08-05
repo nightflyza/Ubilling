@@ -166,7 +166,7 @@ if (@$us_config['VISOR_ENABLED']) {
                 }
             }
 
-            return($result);
+            return ($result);
         }
 
         /**
@@ -212,7 +212,7 @@ if (@$us_config['VISOR_ENABLED']) {
                 $result .= 'var player = new Playerjs({id:"' . $uniqId . '", file:"' . $streamUrl . '", autoplay:' . $autoPlayMode . '});';
                 $result .= la_tag('script', true);
             }
-            return($result);
+            return ($result);
         }
 
         /**
@@ -232,7 +232,7 @@ if (@$us_config['VISOR_ENABLED']) {
                 $result .= la_Link('?module=visor&previewchannels=true', __('Back'), true, 'anunreadbutton');
             }
 
-            if (@$this->userstatsCfg['API_URL'] AND @ $this->userstatsCfg['API_KEY']) {
+            if (@$this->userstatsCfg['API_URL'] and @$this->userstatsCfg['API_KEY']) {
                 if (!empty($this->myUserData)) {
                     if (isset($this->myUserData['id'])) {
                         $myVisorId = $this->myUserData['id'];
@@ -280,7 +280,7 @@ if (@$us_config['VISOR_ENABLED']) {
                 die(__('ERROR: API_KEY/API_URL not set or empty!'));
             }
 
-            return($result);
+            return ($result);
         }
 
         /**
@@ -297,7 +297,7 @@ if (@$us_config['VISOR_ENABLED']) {
                     $result = $count['COUNT(`id`)'];
                 }
             }
-            return($result);
+            return ($result);
         }
 
         /**
@@ -367,7 +367,7 @@ if (@$us_config['VISOR_ENABLED']) {
                                     $backUrl = '?module=visor&previewchannels=true';
                                 }
                                 $result .= la_Link($backUrl, __('Back'), false, 'anunreadbutton') . ' ';
-                                $result .= la_Link('?module=visor&software=true', __('Downloads'), false, 'anreadbutton');
+                                $result .= la_Link('?module=visor&software=true', __('Settings'), false, 'anreadbutton');
                             }
                         }
                     } else {
@@ -379,7 +379,7 @@ if (@$us_config['VISOR_ENABLED']) {
             } else {
                 show_window(__('Sorry'), __('Something went wrong'));
             }
-            return($result);
+            return ($result);
         }
 
         /**
@@ -390,34 +390,42 @@ if (@$us_config['VISOR_ENABLED']) {
         public function renderDvrAuthData() {
             $result = '';
             if (!empty($this->myUserData)) {
-            $myVisorId = $this->myUserData['id'];
-            $requestUrl = '&action=visorchans&userid=' . $myVisorId . '&param=authdata';
-            $rawData = zbs_remoteApiRequest($requestUrl);
-            if (!empty($rawData)) {
-                $authData = json_decode($rawData, true);
-                if (!empty($authData)) {
-                    $cells = la_TableCell(__('Host'));
-                    $cells .= la_TableCell(__('Port'));
-                    $cells .= la_TableCell(__('Login'));
-                    $cells .= la_TableCell(__('Password'));
-                    $cells .= la_TableCell(__('Actions'));
-                    $rows = la_TableRow($cells, 'row1');
+                $myVisorId = $this->myUserData['id'];
+                $requestUrl = '&action=visorchans&userid=' . $myVisorId . '&param=authdata';
+                $rawData = zbs_remoteApiRequest($requestUrl);
+                $dvrFullFlag = (@$this->userstatsCfg['VISOR_DVR_FULL']) ? true : false;
+                if (!empty($rawData)) {
+                    $authData = json_decode($rawData, true);
+                    if (!empty($authData)) {
+                        $cells = '';
+                        if ($dvrFullFlag) {
+                            $cells .= la_TableCell(__('Host'));
+                            $cells .= la_TableCell(__('Port'));
+                        }
+                        $cells .= la_TableCell(__('Login'));
+                        $cells .= la_TableCell(__('Password'));
+                        $cells .= la_TableCell(__('Actions'));
+                        $rows = la_TableRow($cells, 'row1');
 
-                    foreach ($authData as $io => $each) {
-                        $cells = la_TableCell($each['ip']);
-                        $cells .= la_TableCell($each['port']);
-                        $cells .= la_TableCell($each['login']);
-                        $cells .= la_TableCell($each['password']);
-                        $actLink = (!empty($each['weburl'])) ? la_Link($each['weburl'], __('Go to'), false, '', 'target="_BLANK"') : '';
-                        $cells .= la_TableCell($actLink);
-                        $rows .= la_TableRow($cells, 'row3');
+                        foreach ($authData as $io => $each) {
+                            $cells = '';
+                            if ($dvrFullFlag) {
+                                $cells .= la_TableCell($each['ip']);
+                                $cells .= la_TableCell($each['port']);
+                            }
+                            $cells .= la_TableCell($each['login']);
+                            $cells .= la_TableCell($each['password']);
+                            
+                            $actLink = (!empty($each['weburl'])) ? la_Link($each['weburl'], __('Go to'), false, 'anreadbutton', 'target="_BLANK"') : '';
+                            $cells .= la_TableCell($actLink);
+                            $rows .= la_TableRow($cells, 'row3');
+                        }
+
+                        $result .= la_TableBody($rows, '100%', 0, 'resp-table');
                     }
-
-                    $result .= la_TableBody($rows, '100%', 0, 'resp-table');
                 }
             }
-        }
-            return($result);
+            return ($result);
         }
 
         /**
@@ -437,14 +445,13 @@ if (@$us_config['VISOR_ENABLED']) {
                     }
                 }
             }
-            return($result);
+            return ($result);
         }
-
     }
 
     $visor = new ZBSVisorInterface($user_login);
     //Surveillance user profile
-    if (!la_CheckGet(array('fullpreview')) AND ! la_CheckGet(array('software'))) {
+    if (!la_CheckGet(array('fullpreview')) and !la_CheckGet(array('software'))) {
         show_window(__('Surveillance'), $visor->renderProfile());
     }
 
