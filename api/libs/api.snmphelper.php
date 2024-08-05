@@ -214,7 +214,7 @@ class SNMPHelper {
                 file_put_contents(self::LOG_COMMANDS, $commandLog, FILE_APPEND);
             }
             if (!$this->background) {
-                file_put_contents($cacheFile, $result);
+                @file_put_contents($cacheFile, $result);
             }
         } else {
             //getting data from cache

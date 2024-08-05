@@ -1607,7 +1607,7 @@ function sp_SnmpPollDevice($ip, $community, $alltemplates, $deviceTemplate, $all
                         }
 
                         $fdbCache = serialize($portData);
-                        file_put_contents('exports/' . $ip . '_fdb', $fdbCache);
+                        @file_put_contents('exports/' . $ip . '_fdb', $fdbCache);
 
                         if (!empty($vlanData)) {
                             $fdbVLANCache = serialize($vlanData);
@@ -1796,7 +1796,7 @@ function sp_SnmpPollDevice($ip, $community, $alltemplates, $deviceTemplate, $all
     $cachedStats['start'] = $pollingStart;
     $cachedStats['end'] = $pollingEnd;
     $cachedStats = serialize($cachedStats);
-    file_put_contents($statsPath, $cachedStats);
+    @file_put_contents($statsPath, $cachedStats);
 }
 
 /**

@@ -46,7 +46,7 @@ if (ubRouting::get('action') == 'swpoll') {
                     }
 
                     //put some log data about polling
-                    file_put_contents($swpollLogPath, $swpollLogData, FILE_APPEND);
+                    @file_put_contents($swpollLogPath, $swpollLogData, FILE_APPEND);
                 } else {
                     //For the horde!
                     $switchPollingProcess->runBackgroundProcess('/bin/ubapi "horde&devid=' . $eachDevice['id'] . '"', $hordeTimeout);
