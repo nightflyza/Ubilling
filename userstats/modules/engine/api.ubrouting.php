@@ -181,9 +181,11 @@ class ubRouting {
                     $rawData = strip_tags($rawData);
                 }
 
-                $allowedChars = 'a-zA-Z0-9А-Яа-яЁёЇїІіЄєҐґ+«»_\ ,\.\-:;!?\(\){}\/\r\n\x{200d}\x{2600}-\x{1FAFF}' . $callback;
+                $allowedChars = 'a-zA-Z0-9А-Яа-яЁёЇїІіЄєҐґ\w++«»№=_\ ,\.\-:;!?\(\){}\/\r\n\x{200d}\x{2600}-\x{1FAFF}' . $callback;
                 $regex = '#[^' . $allowedChars . ']#u';
-                return (preg_replace($regex, '', $rawData));
+                $filteredData = preg_replace($regex, '', $rawData);
+                $filteredData = str_replace('--', '', $filteredData);
+                return ($filteredData);
             case 'gigasafe':
                 $rawData = preg_replace('/\0/s', '', $rawData);
                 $allowedChars = 'a-zA-Z0-9' . $callback;
