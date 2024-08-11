@@ -57,10 +57,14 @@ function zb_SwitchesGetAllDeathTime() {
  * @return void
  */
 function zb_SwitchDeathTimeSet($ip) {
-    $ip = mysql_real_escape_string($ip);
-    $curdatetime = curdatetime();
-    $query = "INSERT INTO `deathtime` (`id` ,`ip` ,`date`) VALUES (NULL , '" . $ip . "', '" . $curdatetime . "');";
-    nr_query($query);
+     $ip = mysql_real_escape_string($ip);
+     $curdatetime = curdatetime();
+     $query = "SELECT `date` from `deathtime` WHERE `ip`='" . $ip ."';";
+     $last_date = simple_query($query);
+     if (empty($last_date)) {
+          $query = "INSERT INTO `deathtime` (`id` ,`ip` ,`date`) VALUES (NULL , '" . $ip . "', '" . $curdatetime . "');";
+          nr_query($query);
+     }
 }
 
 /**
