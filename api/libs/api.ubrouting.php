@@ -170,7 +170,9 @@ class ubRouting {
                 break;
             case 'login':
                 $filteredResult = str_replace(' ', '_', $rawData);
-                return (preg_replace("#[^a-z0-9A-Z_]#Uis", '', $filteredResult));
+                $loginAllowedChars = 'a-z0-9A-Z_\.\-' . $callback;
+                $filteredLogin = preg_replace("#[^" . $loginAllowedChars . "]#Uis", '', $filteredResult);
+                return ($filteredLogin);
                 break;
             case 'safe':
                 $rawData = preg_replace('/\0/s', '', $rawData);
