@@ -48,12 +48,27 @@ class DealWithIt {
     protected $adminsName = array();
 
     /**
+     * Discounts enable flag
+     *
+     * @var bool
+     */
+    protected $discountsFlag = false;
+
+    /**
+     * Discounts instance placeholder
+     *
+     * @var object
+     */
+    protected $discounts = '';
+
+    /**
      * Base module URL
      */
     const URL_ME = '?module=pl_dealwithit';
 
     public function __construct() {
         $this->loadAlter();
+        $this->initDiscounts();
         $this->setActionNames();
         $this->setActionIcons();
         $this->setActionsURL();
@@ -71,6 +86,18 @@ class DealWithIt {
     protected function loadAlter() {
         global $ubillingConfig;
         $this->altCfg = $ubillingConfig->getAlter();
+    }
+
+    /**
+     * Inits discounts instance if enabled
+     *
+     * @return void
+     */
+    protected function initDiscounts() {
+        if (@$this->altCfg[Discounts::OPTION_ENABLE]) {
+            $this->discountsFlag = true;
+            $this->discounts = new Discounts();
+        }
     }
 
     /**
@@ -113,6 +140,10 @@ class DealWithIt {
             'ao' => __('Enable AlwaysOnline'),
             'unao' => __('Disable AlwaysOnline')
         );
+
+        if ($this->discountsFlag) {
+            $this->actionNames['setdiscount'] = __('Change discount');
+        }
     }
 
     /**
@@ -148,6 +179,10 @@ class DealWithIt {
             'ao' => 'skins/icon_online.gif',
             'unao' => 'skins/icon_online.gif'
         );
+
+        if ($this->discountsFlag) {
+            $this->actionIcons['setdiscount'] = 'skins/icon_discount_16.png';
+        }
     }
 
     /**
@@ -175,6 +210,10 @@ class DealWithIt {
             self::URL_ME . '&ajinput=ao' => $this->actionNames['ao'],
             self::URL_ME . '&ajinput=unao' => $this->actionNames['unao']
         );
+
+        if ($this->discountsFlag) {
+            $this->actions[self::URL_ME . '&ajinput=setdiscount'] = $this->actionNames['setdiscount'];
+        }
     }
 
     /**
@@ -381,6 +420,10 @@ class DealWithIt {
                     $result .= wf_HiddenInput('newschedaction', 'unao');
                     $result .= wf_HiddenInput('newschedparam', '');
                     break;
+                case 'setdiscount':
+                    $result .= wf_HiddenInput('newschedaction', 'setdiscount');
+                    $result .= wf_TextInput('newschedparam', __('New discount'), '', true, 5, 'digits');
+                    break;
             }
 
             $result .= wf_TextInput('newschednote', __('Notes'), '', true, 30);
@@ -408,7 +451,7 @@ class DealWithIt {
             $login = $_POST['newschedlogin'];
             if (zb_checkDate($date)) {
                 switch ($action) {
-                    //this action types requires non empty parameter
+                        //this action types requires non empty parameter
                     case 'addcash':
                         if ($param) {
                             if (zb_checkMoney($param)) {
@@ -489,7 +532,7 @@ class DealWithIt {
                             $result = __('No all of required fields is filled');
                         }
                         break;
-                    //for this task types parameter may be empty
+                        //for this task types parameter may be empty
                     case 'freeze':
                         $this->createTask($date, $login, $action, $param, $note);
                         break;
@@ -512,6 +555,9 @@ class DealWithIt {
                         $this->createTask($date, $login, $action, $param, $note);
                         break;
                     case 'unao':
+                        $this->createTask($date, $login, $action, $param, $note);
+                        break;
+                    case 'setdiscount':
                         $this->createTask($date, $login, $action, $param, $note);
                         break;
                 }
@@ -539,7 +585,7 @@ class DealWithIt {
                 $logins = array_keys($_POST['_logins']);
                 if (zb_checkDate($date)) {
                     switch ($action) {
-                        //this action types requires non empty parameter
+                            //this action types requires non empty parameter
                         case 'addcash':
                             if ($param) {
                                 if (zb_checkMoney($param)) {
@@ -636,7 +682,7 @@ class DealWithIt {
                                 $result = __('No all of required fields is filled');
                             }
                             break;
-                        //for this task types parameter may be empty
+                            //for this task types parameter may be empty
                         case 'freeze':
                             foreach ($logins as $login) {
                                 $this->createTask($date, $login, $action, $param, $note);
@@ -673,6 +719,11 @@ class DealWithIt {
                             }
                             break;
                         case 'unao':
+                            foreach ($logins as $login) {
+                                $this->createTask($date, $login, $action, $param, $note);
+                            }
+                            break;
+                        case 'setdiscount':
                             foreach ($logins as $login) {
                                 $this->createTask($date, $login, $action, $param, $note);
                             }
@@ -766,7 +817,7 @@ class DealWithIt {
         if ($date < $curDate) {
             $result = wf_tag('font', false, '', 'color="#b71e00"') . $string . wf_tag('font', true);
         }
-        return($result);
+        return ($result);
     }
 
     /**
@@ -818,7 +869,7 @@ class DealWithIt {
                 $data[] = $profileLink;
                 $data[] = @$allAddress[$each['login']];
                 $data[] = @$allRealNames[$each['login']];
-                $data[] = $actionIcon . $this->actionNames[$each['action']];
+                $data[] = $actionIcon . @$this->actionNames[$each['action']];
                 $data[] = $paramFiltered;
                 $data[] = $each['note'];
                 $data[] = web_bool_led($each['done']);
@@ -964,6 +1015,10 @@ class DealWithIt {
                                 $billing->setao($login, 0);
                                 log_register('CHANGE AlwaysOnline (' . $login . ') ON 0');
                                 break;
+                            case 'setdiscount':
+                                $this->discounts->setDiscount($login, $param);
+                                log_register('CHANGE Discount (' . $login . ') PERCENT `' . $param . '`');
+                                break;
                         }
 
                         //flush task from database
@@ -1003,7 +1058,7 @@ class DealWithIt {
             show_error(__('No request parameters set'));
         }
 
-        return($result);
+        return ($result);
     }
 
     /**
@@ -1537,7 +1592,4 @@ class DealWithIt {
 
         return ($result);
     }
-
 }
-
-?>

@@ -982,7 +982,8 @@ class UserProfile {
                     'down' => __('Set user down'),
                     'undown' => __('Enable user'),
                     'ao' => __('Enable AlwaysOnline'),
-                    'unao' => __('Disable AlwaysOnline')
+                    'unao' => __('Disable AlwaysOnline'),
+                    'setdiscount' => __('Change discount')
                 );
 
                 $actionIcons = array(
@@ -1001,7 +1002,8 @@ class UserProfile {
                     'down' => 'skins/icon_down.gif',
                     'undown' => 'skins/icon_down.gif',
                     'ao' => 'skins/icon_online.gif',
-                    'unao' => 'skins/icon_online.gif'
+                    'unao' => 'skins/icon_online.gif',
+                    'setdiscount' => 'skins/icon_discount_16.png'
                 );
 
                 foreach ($all as $io => $each) {
@@ -1650,8 +1652,8 @@ class UserProfile {
      */
     protected function getDiscountController() {
         $result = '';
-        if (isset($this->alterCfg['DISCOUNTS_ENABLED'])) {
-            if ($this->alterCfg['DISCOUNTS_ENABLED']) {
+        if (isset($this->alterCfg[Discounts::OPTION_ENABLE])) {
+            if ($this->alterCfg[Discounts::OPTION_ENABLE]) {
                 $discounts = new Discounts();
                 $userDiscountPercent = $discounts->getUserDiscount($this->login);
                 if ($userDiscountPercent) {

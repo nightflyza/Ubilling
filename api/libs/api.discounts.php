@@ -42,6 +42,7 @@ class Discounts {
     const PROUTE_LOGIN = 'setdiscountlogin';
     const CACHE_KEY = 'DISCOUNTS';
     const CACHE_TIMEOUT = 86400;
+    const OPTION_ENABLE = 'DISCOUNTS_ENABLED';
 
     public function __construct() {
         $this->initMessages();
@@ -114,7 +115,7 @@ class Discounts {
         if (isset($this->allDiscounts[$login])) {
             $result = $this->allDiscounts[$login]['percent'];
         }
-        return($result);
+        return ($result);
     }
 
     /**
@@ -131,7 +132,7 @@ class Discounts {
         $inputs .= wf_TextInput(self::PROUTE_PERCENT, __('Discount') . ' (%)', $currentDiscountPercent, false, 4, 'digits');
         $inputs .= wf_Submit(__('Save'));
         $result .= wf_Form('', 'POST', $inputs, 'glamour');
-        return($result);
+        return ($result);
     }
 
     /**
@@ -148,7 +149,7 @@ class Discounts {
         $inputs .= wf_TextInput(self::PROUTE_PERCENT, __('Discount') . ' (%)', $currentDiscountPercent, false, 4, 'digits');
         $inputs .= wf_Submit(__('Save'));
         $result .= wf_Form('', 'POST', $inputs, 'glamour');
-        return($result);
+        return ($result);
     }
 
     /**
@@ -166,9 +167,42 @@ class Discounts {
         } else {
             $userLogin = ubRouting::post(self::PROUTE_LOGIN);
         }
-        if ($userLogin AND ubRouting::checkPost(self::PROUTE_PERCENT, false)) {
+        if ($userLogin and ubRouting::checkPost(self::PROUTE_PERCENT, false)) {
             $userLoginF = ubRouting::filters($userLogin, 'mres');
             $newDiscountPercent = ubRouting::post(self::PROUTE_PERCENT, 'int');
+
+            if (!empty($userLogin)) {
+                //already have discount?
+                if (isset($this->allDiscounts[$userLogin])) {
+                    $recordId = $this->allDiscounts[$userLogin]['id'];
+                    $this->discountsDb->data('percent', $newDiscountPercent);
+                    $this->discountsDb->where('id', '=', $recordId);
+                    $this->discountsDb->save();
+                } else {
+                    //creating new discount record
+                    $this->discountsDb->data('login', $userLoginF);
+                    $this->discountsDb->data('percent', $newDiscountPercent);
+                    $this->discountsDb->create();
+                }
+                //load some new data for current instance
+                $this->flushCache();
+                log_register('DISCOUNT SET (' . $userLogin . ') PERCENT `' . $newDiscountPercent . '`');
+            }
+        }
+    }
+
+    /**
+     * Sets user discount in database
+     * 
+     * @param string $userLogin
+     * @param int $discount
+     * 
+     * @return void
+     */
+    public function setDiscount($userLogin, $discount = 0) {
+        if ($userLogin and $discount) {
+            $userLoginF = ubRouting::filters($userLogin, 'mres');
+            $newDiscountPercent = ubRouting::filters($discount, 'int');
 
             if (!empty($userLogin)) {
                 //already have discount?
@@ -252,7 +286,7 @@ class Discounts {
         $allUserDiscounts = $this->getAllUsersDiscounts();
         $allMonthPayments = $this->getAllPeriodPayments();
 
-        if ((!empty($allUserDiscounts) AND ( !empty($allMonthPayments)))) {
+        if ((!empty($allUserDiscounts) and (!empty($allMonthPayments)))) {
             foreach ($allMonthPayments as $login => $eachPayment) {
                 //have this user any discount?
                 if (isset($allUserDiscounts[$login])) {
@@ -264,5 +298,4 @@ class Discounts {
             }
         }
     }
-
 }
