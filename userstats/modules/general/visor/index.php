@@ -400,6 +400,7 @@ if (@$us_config['VISOR_ENABLED']) {
                         $cells = '';
                         $cells .= la_TableCell(__('Host'));
                         if ($dvrFullFlag) {
+                            $cells .= la_TableCell(__('IP'));
                             $cells .= la_TableCell(__('Port'));
                         }
                         $cells .= la_TableCell(__('Login'));
@@ -409,15 +410,12 @@ if (@$us_config['VISOR_ENABLED']) {
 
                         foreach ($authData as $io => $each) {
                             $cells = '';
+                            $cells= la_TableCell($each['dvrname']);
                             if ($dvrFullFlag) {
                                 $cells .= la_TableCell($each['ip']);
-                            } else {
-                                $cells= la_TableCell($each['dvrname']);
-                            }
-                            
-                            if ($dvrFullFlag) {
                                 $cells .= la_TableCell($each['port']);
-                            }
+                            } 
+                            
                             $cells .= la_TableCell($each['login']);
                             $cells .= la_TableCell($each['password']);
                             
