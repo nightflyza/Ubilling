@@ -3218,6 +3218,7 @@ class UbillingVisor {
                                 $prefill = '';
                                 $dvrData = $this->allDvrs[$each['dvrid']];
                                 $result[$each['dvrid']]['dvrid'] = $dvrData['id'];
+                                $result[$each['dvrid']]['dvrname'] = $dvrData['name'];
                                 $result[$each['dvrid']]['ip'] = $dvrData['ip'];
                                 $result[$each['dvrid']]['port'] = $dvrData['port'];
                                 $result[$each['dvrid']]['login'] = $secretsData['login'];

@@ -398,8 +398,8 @@ if (@$us_config['VISOR_ENABLED']) {
                     $authData = json_decode($rawData, true);
                     if (!empty($authData)) {
                         $cells = '';
+                        $cells .= la_TableCell(__('Host'));
                         if ($dvrFullFlag) {
-                            $cells .= la_TableCell(__('Host'));
                             $cells .= la_TableCell(__('Port'));
                         }
                         $cells .= la_TableCell(__('Login'));
@@ -411,6 +411,11 @@ if (@$us_config['VISOR_ENABLED']) {
                             $cells = '';
                             if ($dvrFullFlag) {
                                 $cells .= la_TableCell($each['ip']);
+                            } else {
+                                $cells= la_TableCell($each['dvrname']);
+                            }
+                            
+                            if ($dvrFullFlag) {
                                 $cells .= la_TableCell($each['port']);
                             }
                             $cells .= la_TableCell($each['login']);
