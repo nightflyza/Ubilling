@@ -541,7 +541,7 @@ class UbillingVisor {
                             $tariffingLabel = wf_img_sized('skins/icon_passive.gif', __('Main account is frozen') . '. ' . __('All cameras live by themselves'), 16);
                         }
                     } else {
-                        $primAccLink = __('User').' '.__('Not exists');
+                        $primAccLink = __('User') . ' ' . __('Not exists');
                     }
                 } else {
                     $primAccLink = '';
@@ -1725,8 +1725,8 @@ class UbillingVisor {
                     $cameraState = wf_img_sized('skins/icon_inactive.gif', '', '12', '12') . ' ' . __('No');
                 }
 
-                $camPass=($cameraData['campassword']) ? wf_img_sized('skins/icon_active.gif', '', '12', '12') : wf_img_sized('skins/icon_inactive.gif', '', '12', '12');
-                $dvrPass=($cameraData['dvrpassword']) ? wf_img_sized('skins/icon_active.gif', '', '12', '12') : wf_img_sized('skins/icon_inactive.gif', '', '12', '12');
+                $camPass = ($cameraData['campassword']) ? wf_img_sized('skins/icon_active.gif', '', '12', '12') : wf_img_sized('skins/icon_inactive.gif', '', '12', '12');
+                $dvrPass = ($cameraData['dvrpassword']) ? wf_img_sized('skins/icon_active.gif', '', '12', '12') : wf_img_sized('skins/icon_inactive.gif', '', '12', '12');
 
                 $cells = wf_TableCell(__('Active'), '30%', 'row2');
                 $cells .= wf_TableCell($cameraState);
@@ -3222,12 +3222,14 @@ class UbillingVisor {
                                 $result[$each['dvrid']]['port'] = $dvrData['port'];
                                 $result[$each['dvrid']]['login'] = $secretsData['login'];
                                 $result[$each['dvrid']]['password'] = $secretsData['password'];
+                                $result[$each['dvrid']]['customlink'] = 0;
+                                //trassir nvr
                                 if ($dvrData['type'] == 'trassir') {
                                     $result[$each['dvrid']]['weburl'] = 'https://' . $dvrData['ip'] . ':' . $dvrData['port'] . '/webgui/';
                                 }
 
+                                //wolfrecorder nvr
                                 if ($dvrData['type'] == 'wolfrecorder') {
-                             
                                     if (!empty($secretsData['login']) and !empty($secretsData['password'])) {
                                         $prefill = '?authprefill=' . $secretsData['login'] . '_' . $secretsData['password'];
                                     }
@@ -3236,14 +3238,12 @@ class UbillingVisor {
                                     } else {
                                         $result[$each['dvrid']]['weburl'] = $dvrData['apiurl'] . $prefill;
                                     }
-                                }
 
-                                //custom weburl handling
-                                if (!empty($dvrData['customurl'])) {
-                                    $result[$each['dvrid']]['weburl'] = $dvrData['customurl'] . $prefill;
-                                    $result[$each['dvrid']]['customlink']=1;
-                                } else {
-                                    $result[$each['dvrid']]['customlink']=0;
+                                    //custom weburl handling
+                                    if (!empty($dvrData['customurl'])) {
+                                        $result[$each['dvrid']]['weburl'] = $dvrData['customurl'] . $prefill;
+                                        $result[$each['dvrid']]['customlink'] = 1;
+                                    } 
                                 }
                             }
                         }
