@@ -365,7 +365,7 @@ $lang['def']['Current month user signups'] = 'Підключення цього 
 $lang['def']['Popularity of tariffs among users'] = 'Популярність тарифів серед користувачів';
 $lang['def']['Users with speed overrides'] = 'Перепризначені швидкості';
 $lang['def']['Signup report'] = 'Звіт по підключеннях';
-$lang['def']['right to view signup report'] = 'Право переглязати звіт по підключеннях';
+$lang['def']['right to view signup report'] = 'Право переглядати звіт по підключеннях';
 $lang['def']['right to view speedcontrol'] = 'Право переглядати звіт по швидкостях';
 $lang['def']['Users speed control'] = 'Контроль швидкості';
 
