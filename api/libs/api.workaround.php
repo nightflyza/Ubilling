@@ -1196,8 +1196,11 @@ function web_PaymentsByUser($login) {
                 $hlight = 'row3';
             }
 
-            if (!empty($alter_conf['DOCX_SUPPORT']) && !empty($alter_conf['DOCX_CHECK'])) {
+            if (!empty($alter_conf['DOCX_SUPPORT']) AND !empty($alter_conf['DOCX_CHECK'])) {
                 $printcheck = wf_Link('?module=printcheck&paymentid=' . $eachpayment['id'], wf_img('skins/printer_small.gif', __('Print')), false);
+                if (@$alter_conf['DOCX_CHECK_TH']) {
+                    $printcheck .= wf_Link('?module=printcheck&th=true&paymentid=' . $eachpayment['id'], wf_img('skins/printer_small_blue.gif', __('Print')), false);
+                }
             } else {
                 $printcheck = wf_tag('a', false, '', 'href="#" onClick="window.open(\'?module=printcheck&paymentid=' . $eachpayment['id'] . '\',\'checkwindow\',\'width=800,height=600\')"');
                 $printcheck .= wf_img('skins/printer_small.gif', __('Print'));
