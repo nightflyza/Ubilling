@@ -1184,7 +1184,7 @@ class UkvSystem {
      */
     public function userSave() {
         if (wf_CheckPost(array('usereditprocessing'))) {
-            $userId = ubRouting::post('usereditprocessing','int');
+            $userId = ubRouting::post('usereditprocessing', 'int');
             $where = "WHERE `id`='" . $userId . "';";
             $tablename = 'ukv_users';
 
@@ -1522,6 +1522,25 @@ class UkvSystem {
     }
 
     /**
+     * Renders profile plugin container
+     *
+     * @param string $right
+     * @param string $data
+     * 
+     * @return string
+     */
+    protected function renderPluginContainer($right, $data) {
+        $result = '';
+        if (cfr($right)) {
+            $result .= wf_tag('div', false, 'dashtask', 'style="height:75px; width:75px;"');
+            $result .= $data;
+            $result .= wf_tag('div', true);
+        }
+        return ($result);
+    }
+
+
+    /**
      * returns some existing user profile
      * 
      * @param int $userid existing user`s ID
@@ -1635,28 +1654,15 @@ class UkvSystem {
             } else {
                 $tagsArea = '';
             }
-
+            $lifeStoryUrl = self::URL_USERS_LIFESTORY . $userid;
 
             $profilePlugins = '';
-            if (cfr('UKV')) {
-                $lifeStoryUrl = self::URL_USERS_LIFESTORY . $userid;
-                $profilePlugins .= wf_tag('div', false, 'dashtask', 'style="height:75px; width:75px;"') . wf_Link($lifeStoryUrl, wf_img('skins/icon_orb_big.gif', __('User lifestory'))) . __('Details') . wf_tag('div', true);
-            }
-            if (cfr('UKVCASH')) {
-                $profilePlugins .= wf_tag('div', false, 'dashtask', 'style="height:75px; width:75px;"') . wf_modalAuto(wf_img('skins/ukv/money.png', __('Cash')), __('Finance operations'), $this->userManualPaymentsForm($userid), '', '600', '250') . __('Cash') . wf_tag('div', true);
-            }
-            if (cfr('UKVREG')) {
-                $profilePlugins .= wf_tag('div', false, 'dashtask', 'style="height:75px; width:75px;"') . wf_modalAuto(wf_img('skins/ukv/useredit.png', __('Edit user')), __('Edit user'), $this->userEditForm($userid), '') . __('Edit') . wf_tag('div', true);
-            }
-            if (cfr('UKVSEAL')) {
-                $profilePlugins .= wf_tag('div', false, 'dashtask', 'style="height:75px; width:75px;"') . wf_modalAuto(wf_img('skins/ukv/cableseal.png', __('Cable seal')), __('Cable seal'), $this->userCableSealForm($userid), '') . __('Cable seal') . wf_tag('div', true);
-            }
-            if (cfr('EMPLOYEE')) {
-                $profilePlugins .= wf_tag('div', false, 'dashtask', 'style="height:75px; width:75px;"') . wf_Link('?module=prevtasks&address=' . $shortAddress . '&ukvuserid=' . $userid, wf_img('skins/worker.png', __('Jobs'))) . __('Jobs') . wf_tag('div', true);
-            }
-            if (cfr('UKVDEL')) {
-                $profilePlugins .= wf_tag('div', false, 'dashtask', 'style="height:75px; width:75px;"') . wf_modal(wf_img('skins/annihilation.gif', __('Deleting user')), __('Deleting user'), $this->userDeletionForm($userid), '', '800', '300') . __('Delete') . wf_tag('div', true);
-            }
+            $profilePlugins .= $this->renderPluginContainer('UKV', wf_Link($lifeStoryUrl, wf_img('skins/icon_orb_big.gif', __('User lifestory'))) . __('Details'));
+            $profilePlugins .= $this->renderPluginContainer('UKVCASH', wf_modalAuto(wf_img('skins/ukv/money.png', __('Cash')), __('Finance operations'), $this->userManualPaymentsForm($userid), '', '600', '250') . __('Cash'));
+            $profilePlugins .= $this->renderPluginContainer('UKVUED', wf_modalAuto(wf_img('skins/ukv/useredit.png', __('Edit user')), __('Edit user'), $this->userEditForm($userid), '') . __('Edit'));
+            $profilePlugins .= $this->renderPluginContainer('UKVSEAL', wf_modalAuto(wf_img('skins/ukv/cableseal.png', __('Cable seal')), __('Cable seal'), $this->userCableSealForm($userid), '') . __('Cable seal'));
+            $profilePlugins .= $this->renderPluginContainer('EMPLOYEE', wf_Link('?module=prevtasks&address=' . $shortAddress . '&ukvuserid=' . $userid, wf_img('skins/worker.png', __('Jobs'))) . __('Jobs'));
+            $profilePlugins .= $this->renderPluginContainer('UKVDEL', wf_modal(wf_img('skins/annihilation.gif', __('Deleting user')), __('Deleting user'), $this->userDeletionForm($userid), '', '800', '300') . __('Delete'));
 
             if ($ubillingConfig->getAlterParam('PRINT_RECEIPTS_ENABLED') and $ubillingConfig->getAlterParam('PRINT_RECEIPTS_IN_PROFILE') and cfr('PRINTRECEIPTS')) {
                 $receiptsPrinter = new PrintReceipt();

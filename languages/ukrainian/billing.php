@@ -3533,6 +3533,8 @@ $lang['def']['The automatic upgrade script is not installed on your system'] = '
 $lang['def']['Read the documentation to learn what to do about it'] = 'Ознайомтесь з документацією, щоб дізнатись що з цим робити';
 $lang['def']['For administrator'] = 'Для адміністратора';
 $lang['def']['a very fucked up password is used'] = 'використовується дуже хуйовий пароль';
+$lang['def']['right to edit existing UKV users'] = 'Право редагувати існуючих користувачів УКВ';
+$lang['def'][''] = '';
 $lang['def'][''] = '';
 
 

@@ -32,35 +32,39 @@ function zb_SwitchesGetAllDead() {
 }
 
 /**
- * Returns array of each curently dead switches death time
+ * Returns array of each curently dead switches death time as ip=>datetime
  * 
  * @return array
  */
 function zb_SwitchesGetAllDeathTime() {
     $result = array();
-    $query = "SELECT `ip`,`date` from `deathtime`";
-    $all = simple_queryall($query);
+    $deathTimeDb = new NyanORM('deathtime');
+    $all = $deathTimeDb->getAll();
     if (!empty($all)) {
         foreach ($all as $io => $each) {
             $result[$each['ip']] = $each['date'];
         }
     }
 
+
+
     return ($result);
 }
 
 /**
- * Function than sets dead switch time
+ * Sets dead switch death time
  * 
  * @param $ip Switch IP
  * 
  * @return void
  */
 function zb_SwitchDeathTimeSet($ip) {
-    $ip = mysql_real_escape_string($ip);
+    $ip = ubRouting::filters($ip, 'mres');
     $curdatetime = curdatetime();
-    $query = "INSERT INTO `deathtime` (`id` ,`ip` ,`date`) VALUES (NULL , '" . $ip . "', '" . $curdatetime . "');";
-    nr_query($query);
+    $deathTimeDb = new NyanORM('deathtime');
+    $deathTimeDb->data('ip', $ip);
+    $deathTimeDb->data('date', $curdatetime);
+    $deathTimeDb->create();
 }
 
 /**
