@@ -1,22 +1,6 @@
 <?php
 
 /**
- * Returns background switch ICMP ping
- * 
- * @global object $ubillingConfig
- * 
- * @return void
- */
-function zb_SwitchBackgroundIcmpPing($ip) {
-    global $ubillingConfig;
-    $billingConf = $ubillingConfig->getBilling();
-    $command = $billingConf['SUDO'] . ' ' . $billingConf['PING'] . ' -i 0.01 -c 10  ' . $ip;
-    $icmpPingResult = shell_exec($command);
-
-    die(wf_tag('pre') . $icmpPingResult . wf_tag('pre', true));
-}
-
-/**
  * Returns array of all currently dead devices
  * 
  * @return array
@@ -45,9 +29,6 @@ function zb_SwitchesGetAllDeathTime() {
             $result[$each['ip']] = $each['date'];
         }
     }
-
-
-
     return ($result);
 }
 
@@ -75,9 +56,10 @@ function zb_SwitchDeathTimeSet($ip) {
  * @return void
  */
 function zb_SwitchDeathTimeResurrection($ip) {
-    $ip = mysql_real_escape_string($ip);
-    $query = "DELETE from `deathtime` WHERE `ip`='" . $ip . "'";
-    nr_query($query);
+    $ip = ubRouting::filters($ip,'mres');
+    $deathTimeDb = new NyanORM('deathtime');
+    $deathTimeDb->where('ip','=',$ip);
+    $deathTimeDb->delete();
 }
 
 /**
@@ -2207,4 +2189,20 @@ function zb_SwitchesGetAssignsAll() {
     }
 
     return ($result);
+}
+
+/**
+ * Returns background switch ICMP ping
+ * 
+ * @global object $ubillingConfig
+ * 
+ * @return void
+ */
+function zb_SwitchBackgroundIcmpPing($ip) {
+    global $ubillingConfig;
+    $billingConf = $ubillingConfig->getBilling();
+    $command = $billingConf['SUDO'] . ' ' . $billingConf['PING'] . ' -i 0.01 -c 10  ' . $ip;
+    $icmpPingResult = shell_exec($command);
+
+    die(wf_tag('pre') . $icmpPingResult . wf_tag('pre', true));
 }
