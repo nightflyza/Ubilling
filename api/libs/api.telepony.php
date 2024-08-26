@@ -463,7 +463,7 @@ class TelePony {
             'recalled' => array()
         );
 
-        $minNumLen = 5;
+        $minNumLen = 9;
         $countryCode = '380';
         $codeCutNum = 2; //number of leading digits to cut from country code
         $unansweredCalls = array();
