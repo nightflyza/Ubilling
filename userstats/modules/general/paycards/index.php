@@ -36,10 +36,13 @@ function zbs_PaycardBruteLog($cardnumber) {
     global $user_ip;
     $cardnumber = vf($cardnumber);
     $ctime = curdatetime();
-    $query = "INSERT INTO `cardbrute` (`id` , `serial` , `date` , `login` , `ip` )
-        VALUES (
-        NULL , '" . $cardnumber . "', '" . $ctime . "', '" . $user_login . "', '" . $user_ip . "');";
-    nr_query($query);
+
+    $bruteDb = new NyanORM('cardbrute');
+    $bruteDb->data('serial', $cardnumber);
+    $bruteDb->data('date', $ctime);
+    $bruteDb->data('login', $user_login);
+    $bruteDb->data('ip', $user_ip);
+    $bruteDb->create();
 }
 
 /**
@@ -61,7 +64,7 @@ function zbs_PaycardCheck($cardnumber, $series = false) {
         return (true);
     } else {
         zbs_PaycardBruteLog($cardnumber);
-        return(false);
+        return (false);
     }
 }
 
@@ -163,7 +166,7 @@ function zbs_PayCardCheckBrute($user_ip, $pc_brute) {
         $attempts = $brutecount['COUNT(`id`)'];
     }
     if ($attempts >= $pc_brute) {
-        return(true);
+        return (true);
     } else {
         return (false);
     }
@@ -252,6 +255,5 @@ if ($pc_enabled) {
 }
 
 if ($pcAgentCall) {
-    //zbs_XMLAgentRender($pcAgentResult, 'data', '', $pcAgentOutputFormat, false);
     XMLAgent::renderResponse($pcAgentResult, 'data', '', $pcAgentOutputFormat, false);
 }

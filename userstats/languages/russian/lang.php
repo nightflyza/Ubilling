@@ -468,3 +468,5 @@ $lang['def']['Wrong reply received'] = 'Получен неверный отве
 $lang['def']['Aerial alert'] = 'Воздушная тревога';
 $lang['def']['since'] = 'с';
 $lang['def']['Support AFU'] = 'Поддержка ВСУ';
+$lang['def']['Use the promo code'] = 'Использовать промокод';
+$lang['def']['Promo code'] = 'Промокод';
