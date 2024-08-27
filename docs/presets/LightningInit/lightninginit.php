@@ -141,6 +141,9 @@ class Lightning {
     protected function detectMassRun() {
         $currentMinute = date("H:i");
         $this->startsCount = $this->getCache(self::MASS_KEY . $currentMinute, $this->cachingTimeout);
+        if (empty($this->startsCount)) {
+            $this->startsCount=0;
+        }
         $this->startsCount++;
 
         if ($this->startsCount >= $this->massThreshold) {
