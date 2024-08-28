@@ -18,6 +18,7 @@ header("Pragma: no-cache");
 define('USERSTATS_LIBS_PATH', 'modules/engine/');
 require_once('modules/engine/api.mysql.php');
 require_once('modules/engine/api.compat.php');
+require_once('modules/engine/api.userstatsinit.php');
 
 $userstatsEngineLibs = rcms_scandir(USERSTATS_LIBS_PATH, '*.php');
 if (!empty($userstatsEngineLibs)) {
@@ -124,14 +125,6 @@ if ($user_ip) {
     }
 }
 
-//Page generation timings and query count output
-if (isset($us_config['DEBUG_COUNTERS'])) {
-    if ($us_config['DEBUG_COUNTERS']) {
-        $mtNowTime = explode(' ', microtime());
-        $totalPageGenTime = $mtNowTime[0] + $mtNowTime[1] - $pageGenStartTime;
-        show_window('', __('GT:') . round($totalPageGenTime, 3) . ' QC: ' . $query_counter);
-    }
-}
 
 // LOAD TEMPLATE:
 zbs_ShowTemplate();

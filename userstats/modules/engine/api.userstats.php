@@ -2268,6 +2268,10 @@ function zbs_ModulesMenuShow($icons = false) {
  * @return string
  */
 function zbs_CopyrightsShow() {
+    global $pageGenStartTime;
+    global $query_counter;
+    $fullGenTime = '';
+
     $usConf = zbs_LoadConfig();
     $baseFooter = 'Powered by <a href="https://ubilling.net.ua">Ubilling</a>';
     if ((isset($usConf['ISP_NAME'])) and (isset($usConf['ISP_URL']))) {
@@ -2285,7 +2289,17 @@ function zbs_CopyrightsShow() {
     } else {
         $addFooter = '';
     }
-    $result = $addFooter . $baseFooter;
+
+    //Page generation timings and query count output
+    if (isset($usConf['DEBUG_COUNTERS'])) {
+        if ($usConf['DEBUG_COUNTERS']) {
+            $mtNowTime = explode(' ', microtime());
+            $totalPageGenTime = $mtNowTime[0] + $mtNowTime[1] - $pageGenStartTime;
+            $fullGenTime .= ' | ' . __('GT:') . round($totalPageGenTime, 3) . ' QC: ' . $query_counter;
+        }
+    }
+
+    $result = $addFooter . $baseFooter . $fullGenTime;
     return ($result);
 }
 
