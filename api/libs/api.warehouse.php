@@ -3166,6 +3166,8 @@ class Warehouse {
                 $allUndoneTasks = ts_GetUndoneTasksArray();
                 $taskOutDateFlag = (@$this->altCfg['WAREHOUSE_TASKOUTDATE']) ? true : false;
                 $taskOutEmpFlag = (@$this->altCfg['WAREHOUSE_TASKOUTEMPLOYEE']) ? true : false;
+                $anyOneEmployeeId = (@$this->altCfg['TASKMAN_ANYONE_EMPLOYEEID']) ? $this->altCfg['TASKMAN_ANYONE_EMPLOYEEID'] : 0;
+                $taskHideAnyoneFlag = ($anyOneEmployeeId) ? true : false;
 
                 if (!empty($allUndoneTasks)) {
                     foreach ($allUndoneTasks as $io => $each) {
@@ -3178,7 +3180,14 @@ class Warehouse {
                         if ($taskOutEmpFlag) {
                             $jobLabel .= ', ' . $this->allEmployee[$each['employee']];
                         }
-                        $tasksTmp[$io] = $jobLabel;
+
+                        if ($taskHideAnyoneFlag) {
+                            if ($each['employee']!=$anyOneEmployeeId) {
+                                $tasksTmp[$io] = $jobLabel;
+                            }
+                        } else {
+                            $tasksTmp[$io] = $jobLabel;
+                        }
                     }
                 }
                 $taskIdPreset = (ubRouting::checkGet('taskidpreset')) ? ubRouting::get('taskidpreset', 'int') : '';
@@ -4604,7 +4613,6 @@ class Warehouse {
             foreach ($allIncoming as $io => $each) {
                 if ($each['storageid'] != $storageIdFilter) {
                     unset($allIncoming[$io]);
-                  
                 }
             }
 
