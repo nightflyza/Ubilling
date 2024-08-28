@@ -1,10 +1,5 @@
 <?php
 
-// Send main headers
-header('Last-Modified: ' . date('r'));
-header("Cache-Control: no-store, no-cache, must-revalidate");
-header("Pragma: no-cache");
-
 /**
  * Pushes native redirect
  * 

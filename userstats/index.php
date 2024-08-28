@@ -8,6 +8,12 @@ error_reporting(E_ALL);
 $pageGenStartTime = explode(' ', microtime());
 $pageGenStartTime = $pageGenStartTime[1] + $pageGenStartTime[0];
 
+// Send main headers
+header('Last-Modified: ' . date('r'));
+header("Cache-Control: no-store, no-cache, must-revalidate");
+header("Pragma: no-cache");
+
+
 // LOAD LIBS:
 define('USERSTATS_LIBS_PATH', 'modules/engine/');
 require_once('modules/engine/api.mysql.php');
