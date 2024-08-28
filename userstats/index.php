@@ -16,9 +16,9 @@ header("Pragma: no-cache");
 
 // LOAD LIBS:
 define('USERSTATS_LIBS_PATH', 'modules/engine/');
-require_once('modules/engine/api.mysql.php');
-require_once('modules/engine/api.compat.php');
-require_once('modules/engine/api.userstatsinit.php');
+require_once(USERSTATS_LIBS_PATH . 'api.mysql.php');
+require_once(USERSTATS_LIBS_PATH . 'api.compat.php');
+require_once(USERSTATS_LIBS_PATH . 'api.userstatsinit.php');
 
 $userstatsEngineLibs = rcms_scandir(USERSTATS_LIBS_PATH, '*.php');
 if (!empty($userstatsEngineLibs)) {
