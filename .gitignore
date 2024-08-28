@@ -5,7 +5,7 @@
 !/content/users/admin
 !/phpsysinfo/placeholder
 /content/documents/card_print/*.jpg
-/content/documents/card_print/tmp/
+/content/documents/card_print/tmp/*
 /content/documents/photostorage/
 /content/documents/vols/
 /content/documents/pod_queue
