@@ -6,7 +6,6 @@ $us_config = zbs_LoadConfig();
 if (@$us_config['OLLTV_ENABLED']) {
     $userData = zbs_UserGetStargazerData($userLogin);
     if (($userData['Passive'] == 0) AND ( $userData['Down'] == 0 )) {
-        require_once('modules/engine/api.olltv.php');
 
         $ollTvIf = new OllTvInterface($userLogin);
 

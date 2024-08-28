@@ -8,24 +8,17 @@ error_reporting(E_ALL);
 $pageGenStartTime = explode(' ', microtime());
 $pageGenStartTime = $pageGenStartTime[1] + $pageGenStartTime[0];
 
-
 // LOAD LIBS:
+define('USERSTATS_LIBS_PATH', 'modules/engine/');
 require_once('modules/engine/api.mysql.php');
 require_once('modules/engine/api.compat.php');
-require_once('modules/engine/api.lightastral.php');
-require_once('modules/engine/api.usconfig.php');
-require_once('modules/engine/api.xmlagent.php');
-require_once('modules/engine/api.userstats.php');
-require_once('modules/engine/api.agents.php');
-require_once('modules/engine/api.megogo.php');
-require_once('modules/engine/api.polls.php');
-require_once('modules/engine/api.extmobiles.php');
-require_once('modules/engine/api.ubrouting.php');
-require_once('modules/engine/api.nyanorm.php');
-require_once('modules/engine/api.omegatv.php');
-require_once('modules/engine/api.trinitytv.php');
-require_once('modules/engine/api.usreminder.php');
-require_once('modules/engine/api.manifestator.php');
+
+$userstatsEngineLibs = rcms_scandir(USERSTATS_LIBS_PATH, '*.php');
+if (!empty($userstatsEngineLibs)) {
+    foreach ($userstatsEngineLibs as $io => $eachUserstatLib) {
+        require_once(USERSTATS_LIBS_PATH . $eachUserstatLib);
+    }
+}
 
 
 // ACTIONS HANDLING:
@@ -94,7 +87,7 @@ if ($user_ip) {
         if ($us_config['POLLS_ENABLED']) {
             $poll = new Polls($user_login);
             if (ubRouting::checkPost(array('vote', 'poll_id'))) {
-                $poll->createUserVoteOnDB(ubRouting::post('vote','int'), ubRouting::post('poll_id','int'));
+                $poll->createUserVoteOnDB(ubRouting::post('vote', 'int'), ubRouting::post('poll_id', 'int'));
             }
             show_window('', $poll->renderVotingForm());
         }

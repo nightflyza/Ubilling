@@ -5,7 +5,6 @@ $userLogin = zbs_UserGetLoginByIp($user_ip);
 $us_config = zbs_LoadConfig();
 
 if (@$us_config['PROSTOTV_ENABLED']) {
-    require_once('modules/engine/api.prostotv.php');
     $userData = zbs_UserGetStargazerData($userLogin);
     //Check for user active state
     if (($userData['Passive'] == 0) AND ( $userData['Down'] == 0 )) {

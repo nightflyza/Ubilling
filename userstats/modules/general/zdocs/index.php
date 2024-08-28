@@ -7,10 +7,6 @@ $user_login = zbs_UserGetLoginByIp($user_ip);
 $us_config = zbs_LoadConfig();
 
 if ($us_config['DOCX_SUPPORT']) {
-    //load needed APIs
-    include('modules/engine/api.morph.php');
-    include('modules/engine/api.documents.php');
-    include('modules/engine/api.docx.php');
 
     $documents = new UsProfileDocuments();
     $documents->setLogin($user_login);
