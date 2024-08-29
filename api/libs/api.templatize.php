@@ -192,10 +192,11 @@ function zb_TemplateGetAllUserData() {
             @$userdata[$eachuser['login']]['papt'] = $allpdata[$eachuser['login']]['papt'];
 
             // {LACK} parameter support
+            $uservserviceprice = zb_VservicesGetUserPrice($eachuser['login'])
             if (@empty($eachuser['TariffChange'])) {
-                $userdata[$eachuser['login']]['moneylack'] = @$tariffprices[$eachuser['Tariff']] - $eachuser['Cash'];
+                $userdata[$eachuser['login']]['moneylack'] = @$tariffprices[$eachuser['Tariff']] + $uservserviceprice - $eachuser['Cash'];
             } else {
-                $userdata[$eachuser['login']]['moneylack'] = @$tariffprices[$eachuser['TariffChange']] - $eachuser['Cash'];
+                $userdata[$eachuser['login']]['moneylack'] = @$tariffprices[$eachuser['TariffChange']] + $uservserviceprice - $eachuser['Cash'];
             }
         }
     }
