@@ -192,7 +192,7 @@ function zb_TemplateGetAllUserData() {
             @$userdata[$eachuser['login']]['papt'] = $allpdata[$eachuser['login']]['papt'];
 
             // {LACK} parameter support
-            $uservserviceprice = zb_VservicesGetUserPrice($eachuser['login'])
+            $uservserviceprice = zb_VservicesGetUserPrice($eachuser['login']);
             if (@empty($eachuser['TariffChange'])) {
                 $userdata[$eachuser['login']]['moneylack'] = @$tariffprices[$eachuser['Tariff']] + $uservserviceprice - $eachuser['Cash'];
             } else {
