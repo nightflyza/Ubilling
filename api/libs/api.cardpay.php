@@ -671,4 +671,3 @@ function zb_CardsQueueProcessing() {
     return ($count);
 }
 
-?>
