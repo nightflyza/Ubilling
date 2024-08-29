@@ -470,3 +470,5 @@ $lang['def']['since'] = 'с';
 $lang['def']['Support AFU'] = 'Поддержка ВСУ';
 $lang['def']['Use the promo code'] = 'Использовать промокод';
 $lang['def']['Promo code'] = 'Промокод';
+$lang['def']['Invalid promo code'] = 'Неверный промокод';
+$lang['def']['I have promo code'] = 'У меня есть промокод';

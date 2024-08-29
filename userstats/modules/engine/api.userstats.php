@@ -1619,6 +1619,84 @@ function zbs_CUDShow($login, $us_config) {
 }
 
 /**
+ * Renders payment cards promocodes form
+ *  
+ * @param string $login
+ * 
+ * @return string
+ */
+function zbs_PCPromoCodesForm($login) {
+    $result = '';
+    $inputs = la_tag('br');
+    $inputs .= la_TextInput('promocard', '', '', false, 25, 'alphanumeric');
+    $inputs .= la_Submit(__('Use the promo code'),'anreadbutton');
+    $inputs .= la_delimiter();
+    $result .= la_Form('', 'POST', $inputs, '');
+    return ($result);
+}
+
+/**
+ * Renders payment cards promocodes controller if PC_AS_PROMO option enabled
+ * 
+ * @param string $login
+ * 
+ * @return string
+ */
+function zbs_PCPromoCodesController($login) {
+    global $us_config;
+    global $user_ip;
+    $result = '';
+    $payCardInput = '';
+    $login = ubRouting::filters($login, 'mres');
+    if (isset($us_config['PC_AS_PROMO'])) {
+        if ($us_config['PC_AS_PROMO']) {
+            $pc_brute = $us_config['PC_BRUTE'];
+            $bruteCheck = zbs_PayCardCheckBrute($user_ip, $pc_brute);
+            //promocode request processing
+            if (ubRouting::checkPost('promocard')) {
+                $payCardInput = ubRouting::post('promocard', 'vf');
+            }
+
+            if (!empty($payCardInput)) {
+                if (!$bruteCheck) {
+                    $series = false;
+                    if ($us_config['PC_SERIES_AND_SN']) {
+                        $serialNumber = substr($payCardInput, $us_config['PC_SERIES_LENGTH']);
+                        $series = str_replace($serialNumber, '', $payCardInput);
+                        $payCardInput = $serialNumber;
+                    }
+
+                    //use this card
+                    if (zbs_PaycardCheck($payCardInput, $series)) {
+                        if (!@$us_config['PC_QUEUED']) {
+                            zbs_PaycardUse($payCardInput);
+                        } else {
+                            //or mark it for queue processing
+                            zbs_PaycardQueue($payCardInput);
+                        }
+                    } else {
+                        show_window(__('Error'), __('Invalid promo code'));
+                    }
+                }
+            }
+
+            //input form rendering
+            if ($bruteCheck) {
+                $form = __('Sorry, but you have a limit number of attempts');
+            } else {
+                $form = zbs_PCPromoCodesForm($login);
+            }
+
+            $control = la_modalAuto(__('I have promo code'), __('Use the promo code'), $form,'');
+            $cells = la_TableCell(__('Promo code'), '', 'row1');
+            $cells .= la_TableCell($control);
+            $result .= la_TableRow($cells);
+        }
+    }
+    return ($result);
+}
+
+/**
  * Renders form for change user password
  * 
  * @param string $login
@@ -1945,6 +2023,7 @@ function zbs_UserShowProfile($login) {
     }
 
     $profile .= zbs_CUDShow($login, $us_config);
+    $profile .= zbs_PCPromoCodesController($login);
 
     $profile .= la_tag('table', true);
 

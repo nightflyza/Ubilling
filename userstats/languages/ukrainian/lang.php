@@ -524,4 +524,6 @@ $lang['def']['since'] = 'з';
 $lang['def']['Support AFU'] = 'Підтримка ЗСУ';
 $lang['def']['Use the promo code'] = 'Використати промокод';
 $lang['def']['Promo code'] = 'Промокод';
+$lang['def']['Invalid promo code'] = 'Невірний промокод';
+$lang['def']['I have promo code'] = 'У мене є промокод';
 
