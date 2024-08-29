@@ -1674,6 +1674,7 @@ function zbs_PCPromoCodesController($login) {
                             //or mark it for queue processing
                             zbs_PaycardQueue($payCardInput);
                         }
+                        //TODO: place here some beautiful notification about success
                     } else {
                         show_window(__('Error'), __('Invalid promo code'));
                     }
