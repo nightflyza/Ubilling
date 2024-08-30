@@ -223,6 +223,20 @@ class ChartMancer {
     protected $yMaxValueRatio = 0.1;
 
     /**
+     * X-Axis text labels rendering flag
+     *
+     * @var bool
+     */
+    protected $xLabelRender = true;
+
+    /**
+     * Y-Axis text labels rendering flag
+     *
+     * @var bool
+     */
+    protected $yLabelRender = true;
+
+    /**
      * Prevents first (totals) data column from marking as already drawn
      *
      * @var bool
@@ -540,6 +554,29 @@ class ChartMancer {
         $this->drawFirstColumnAlways = $state;
     }
 
+
+    /**
+     * Sets X-Axis text labels rendering flag
+     *
+     * @param  bool  $state  X-Axis text labels rendering state
+     *
+     * @return  void
+     */
+    public function setXLabelRender($state) {
+        $this->xLabelRender = $state;
+    }
+
+    /**
+     * Sets Y-Axis text labels rendering flag
+     *
+     * @param  bool  $state  Y-Axis text labels rendering state
+     *
+     * @return  void
+     */
+    public function setYLabelRender($state) {
+        $this->yLabelRender = $state;
+    }
+
     /**
      * Renders chart as PNG image into browser or into specified file
      * 
@@ -682,12 +719,15 @@ class ChartMancer {
             $labelBox = imagettfbbox($this->fontSize, 0, $this->font, strval($i));
             $labelWidth = $labelBox[4] - $labelBox[0];
 
-            $labelX = $this->gridLeft - $labelWidth - $this->labelMargin;
-            $labelY = $y + $this->fontSize / 2;
-            $labelX = (int) $labelX;
-            $labelY = (int) $labelY;
+            //drawing Y axis labels
+            if ($this->yLabelRender) {
+                $labelX = $this->gridLeft - $labelWidth - $this->labelMargin;
+                $labelY = $y + $this->fontSize / 2;
+                $labelX = (int) $labelX;
+                $labelY = (int) $labelY;
 
-            imagettftext($chart, $this->fontSize, 0, $labelX, $labelY, $labelColor, $this->font, strval($i));
+                imagettftext($chart, $this->fontSize, 0, $labelX, $labelY, $labelColor, $this->font, strval($i));
+            }
         }
 
         /*
@@ -788,35 +828,37 @@ class ChartMancer {
                 }
             }
 
-            // Skipping some labels display?
+
             $index++;
-            if ($dataSize > 10) {
-                $labelIterator = (int) ($dataSize / $xAxisLabelCount);
-                $labelIterator = ($labelIterator == 0) ? 1 : $labelIterator; //prevents mod by zero
-                if (($index) % $labelIterator == 0) {
-                    // Draw the label if its renderable
+            if ($this->xLabelRender) {
+                // Skipping some labels display?
+                if ($dataSize > 10) {
+                    $labelIterator = (int) ($dataSize / $xAxisLabelCount);
+                    $labelIterator = ($labelIterator == 0) ? 1 : $labelIterator; //prevents mod by zero
+                    if (($index) % $labelIterator == 0) {
+                        // Draw the label if its renderable
+                        $labelBox = imagettfbbox($this->fontSize, 0, $this->font, $key);
+                        $labelWidth = $labelBox[4] - $labelBox[0];
+                        $labelX = $itemX - $labelWidth / 2;
+                        $labelY = $gridBottom + $this->labelMargin + $this->fontSize;
+                        $labelX = (int) $labelX;
+                        $labelY = (int) $labelY;
+
+                        $labelText = (((mb_strlen($key, 'UTF-8') > $this->xLabelLen))) ? mb_substr($key, 0, $this->xLabelLen, 'utf-8') . $this->cutSuffix : $key;
+                        imagettftext($chart, $this->fontSize, 0, $labelX, $labelY, $labelColor, $this->font, $labelText);
+                    }
+                } else {
+                    // or just draw each column label
                     $labelBox = imagettfbbox($this->fontSize, 0, $this->font, $key);
                     $labelWidth = $labelBox[4] - $labelBox[0];
                     $labelX = $itemX - $labelWidth / 2;
                     $labelY = $gridBottom + $this->labelMargin + $this->fontSize;
                     $labelX = (int) $labelX;
                     $labelY = (int) $labelY;
-
                     $labelText = (((mb_strlen($key, 'UTF-8') > $this->xLabelLen))) ? mb_substr($key, 0, $this->xLabelLen, 'utf-8') . $this->cutSuffix : $key;
                     imagettftext($chart, $this->fontSize, 0, $labelX, $labelY, $labelColor, $this->font, $labelText);
                 }
-            } else {
-                // or just draw each column label
-                $labelBox = imagettfbbox($this->fontSize, 0, $this->font, $key);
-                $labelWidth = $labelBox[4] - $labelBox[0];
-                $labelX = $itemX - $labelWidth / 2;
-                $labelY = $gridBottom + $this->labelMargin + $this->fontSize;
-                $labelX = (int) $labelX;
-                $labelY = (int) $labelY;
-                $labelText = (((mb_strlen($key, 'UTF-8') > $this->xLabelLen))) ? mb_substr($key, 0, $this->xLabelLen, 'utf-8') . $this->cutSuffix : $key;
-                imagettftext($chart, $this->fontSize, 0, $labelX, $labelY, $labelColor, $this->font, $labelText);
             }
-
             $itemX += $barSpacing;
         }
 
