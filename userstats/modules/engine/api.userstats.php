@@ -1629,7 +1629,7 @@ function zbs_PCPromoCodesForm($login) {
     $result = '';
     $inputs = la_tag('br');
     $inputs .= la_TextInput('promocard', '', '', false, 25, 'alphanumeric');
-    $inputs .= la_Submit(__('Use the promo code'),'anreadbutton');
+    $inputs .= la_Submit(__('Use the promo code'), 'anreadbutton');
     $inputs .= la_delimiter();
     $result .= la_Form('', 'POST', $inputs, '');
     return ($result);
@@ -1688,7 +1688,7 @@ function zbs_PCPromoCodesController($login) {
                 $form = zbs_PCPromoCodesForm($login);
             }
 
-            $control = la_modalAuto(__('I have promo code'), __('Use the promo code'), $form,'');
+            $control = la_modalAuto(__('I have promo code'), __('Use the promo code'), $form, '');
             $cells = la_TableCell(__('Promo code'), '', 'row1');
             $cells .= la_TableCell($control);
             $result .= la_TableRow($cells);
@@ -1758,12 +1758,18 @@ function zbs_UserChangePassword($login) {
  */
 function zbs_UserShowProfile($login) {
     $us_config = zbs_LoadConfig();
+    $renderEmailFlag = true;
     $us_currency = $us_config['currency'];
+    if (isset($us_config['HIDE_EMAIL'])) {
+        $renderEmailFlag = ($us_config['HIDE_EMAIL']) ? false : true;
+    }
     $userdata = zbs_UserGetStargazerData($login);
     $alladdress = zbs_AddressGetFulladdresslist();
     $allrealnames = zbs_UserGetAllRealnames();
     $contract = zbs_UserGetContract($login);
-    $email = zbs_UserGetEmail($login);
+    if ($renderEmailFlag) {
+        $email = zbs_UserGetEmail($login);
+    }
     $mobile = zbs_UserGetMobile($login);
     $phone = zbs_UserGetPhone($login);
     $passive = $userdata['Passive'];
@@ -1925,17 +1931,19 @@ function zbs_UserShowProfile($login) {
         $profile .= la_tag('tr', true);
     }
 
-    $profile .= la_tag('tr');
-    $profile .= la_TableCell(__('Email'), '', 'row1');
-    $profile .= la_TableCell($email);
-    $profile .= la_tag('tr', true);
-
-    $profile .= la_tag('tr');
-    $payIdAbbr = la_tag('abbr', false, '', 'title="' . __('Payment ID is used to make online payments using a variety of payment systems as well as the funding of accounts using the terminals') . '"');
-    $payIdAbbr .= __('Payment ID');
-    $payIdAbbr .= la_tag('abbr', true);
+    if ($renderEmailFlag) {
+        $profile .= la_tag('tr');
+        $profile .= la_TableCell(__('Email'), '', 'row1');
+        $profile .= la_TableCell($email);
+        $profile .= la_tag('tr', true);
+    }
 
     if ($us_config['OPENPAYZ_ENABLED']) {
+        $profile .= la_tag('tr');
+        $payIdAbbr = la_tag('abbr', false, '', 'title="' . __('Payment ID is used to make online payments using a variety of payment systems as well as the funding of accounts using the terminals') . '"');
+        $payIdAbbr .= __('Payment ID');
+        $payIdAbbr .= la_tag('abbr', true);
+
         $profile .= la_TableCell($payIdAbbr, '', 'row1');
         $profile .= la_TableCell($paymentid . ' ' . $paymentidqr);
         $profile .= la_tag('tr', true);
