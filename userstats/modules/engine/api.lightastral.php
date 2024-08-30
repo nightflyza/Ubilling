@@ -416,7 +416,7 @@ function la_YearSelector($name, $label = '', $br = false) {
 /**
  * Check for POST have needed variables
  *
- * @param string $params array of POST variables to check
+ * @param array $params array of POST variables to check
  * @return  bool
  *
  */

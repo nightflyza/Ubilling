@@ -526,4 +526,8 @@ $lang['def']['Use the promo code'] = 'Використати промокод';
 $lang['def']['Promo code'] = 'Промокод';
 $lang['def']['Invalid promo code'] = 'Невірний промокод';
 $lang['def']['I have promo code'] = 'У мене є промокод';
-
+$lang['def']['Congratulations! You have successfully used a promo code'] = 'Вітаємо! Ви успішно використали промокод';
+$lang['def']['The funds are already in your account'] = 'Кошти вже на вашому рахунку';
+$lang['def']['The funds are already on the way and will be on your account in a minute or two'] = 'Кошти вже в дорозі і будуть зараховані на ваш рахунок через хвилинку чи дві';
+$lang['def']['Good'] = 'Добре';
+$lang['def']['I see'] = 'Зрозуміло';

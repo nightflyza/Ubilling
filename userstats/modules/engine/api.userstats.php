@@ -1628,10 +1628,48 @@ function zbs_CUDShow($login, $us_config) {
 function zbs_PCPromoCodesForm($login) {
     $result = '';
     $inputs = la_tag('br');
-    $inputs .= la_TextInput('promocard', '', '', false, 25, 'alphanumeric');
+    $inputs .= la_TextInput('promocard', '', '', false, 25, '');
     $inputs .= la_Submit(__('Use the promo code'), 'anreadbutton');
     $inputs .= la_delimiter();
     $result .= la_Form('', 'POST', $inputs, '');
+    return ($result);
+}
+
+/**
+ * Returns promocode success notification
+ *
+ * @param string $promoCode
+ * 
+ * @return string
+ */
+function zbs_getPromoAwesomeness($promoCode = '') {
+    global $us_config;
+    $result = '';
+    $promoCode = ubRouting::filters($promoCode, 'vf');
+    @$awesomeness = rcms_scandir('skins/awesomeness/');
+    if (!empty($awesomeness)) {
+        $awesomenessRnd = array_rand($awesomeness);
+        $awesomeness = $awesomeness[$awesomenessRnd];
+        //ugly hack to prevent elements autofocusing
+        $result .= la_TextInput('dontfocusonlinks', '', '', false, '', '', '', '', 'style="width: 0; height: 0; top: -100px; position: absolute;"');
+        $result .= la_tag('center');
+        $result .= la_img_sized('skins/awesomeness/' . $awesomeness, '', '256');
+        $result .= la_delimiter();
+        $result .= __('Congratulations! You have successfully used a promo code');
+        if (!empty($promoCode)) {
+            $result .= ' ' . $promoCode;
+        }
+        $result .= '. ' . la_tag('br');
+        if (@$us_config['PC_QUEUED']) {
+            $result .= __('The funds are already on the way and will be on your account in a minute or two') . '.';
+        } else {
+            $result .= __('The funds are already in your account') . '.';
+        }
+        $result .= la_delimiter();
+        $result .= la_Link('index.php', __('I see'), false, 'anreadbutton');
+        $result .= la_tag('center', true);
+    }
+
     return ($result);
 }
 
@@ -1652,6 +1690,11 @@ function zbs_PCPromoCodesController($login) {
         if ($us_config['PC_AS_PROMO']) {
             $pc_brute = $us_config['PC_BRUTE'];
             $bruteCheck = zbs_PayCardCheckBrute($user_ip, $pc_brute);
+            //success notification
+            if (ubRouting::checkGet('successcode')) {
+                $result .= la_modalOpened(__('Success') . '!', zbs_getPromoAwesomeness(ubRouting::get('successcode')));
+            }
+
             //promocode request processing
             if (ubRouting::checkPost('promocard')) {
                 $payCardInput = ubRouting::post('promocard', 'vf');
@@ -1669,12 +1712,13 @@ function zbs_PCPromoCodesController($login) {
                     //use this card
                     if (zbs_PaycardCheck($payCardInput, $series)) {
                         if (!@$us_config['PC_QUEUED']) {
-                            zbs_PaycardUse($payCardInput);
+                            zbs_PaycardUse($payCardInput, true);
                         } else {
                             //or mark it for queue processing
-                            zbs_PaycardQueue($payCardInput);
+                            zbs_PaycardQueue($payCardInput, true);
                         }
-                        //TODO: place here some beautiful notification about success
+                        //redirect to succes notification
+                        ubRouting::nav('?successcode=' . $payCardInput);
                     } else {
                         show_window(__('Error'), __('Invalid promo code'));
                     }
