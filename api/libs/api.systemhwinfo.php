@@ -10,6 +10,14 @@ class SystemHwInfo {
      * @var string
      */
     protected $os = '';
+
+    /**
+     * This variable represents the operating system release of the system.
+     *
+     * @var string
+     */
+    protected $osRelease = '';
+
     /**
      * Represents the full system OS information.
      *
@@ -187,6 +195,7 @@ class SystemHwInfo {
      */
     protected function setOS() {
         $this->os = trim(php_uname('s'));
+        $this->osRelease = trim(php_uname('r'));
         $this->osFullRelease = trim(php_uname('a'));
         $this->hostname = trim(php_uname('n'));
     }
@@ -452,6 +461,15 @@ class SystemHwInfo {
      */
     public function getOs() {
         return ($this->os);
+    }
+
+    /**
+     * Gets the release of the operating system.
+     *
+     * @return string
+     */
+    public function getOsRelease() {
+        return ($this->osRelease);
     }
 
     /**
