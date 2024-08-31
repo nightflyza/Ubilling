@@ -2576,6 +2576,16 @@ class UbillingVisor {
                         $dvrGate = new WolfRecorder($apiUrl, $each['apikey']);
                         if ($dvrGate->connectionOk()) {
                             $health = $dvrGate->systemGetHealth();
+                            //>= 0.1.0
+                            if (isset($health['cpuload'])) {
+                                $uptime = zb_formatTime($health['uptime']);
+                                $cpuLoad = $health['cpuload'] . ' %';
+                            } else {
+                                //0.0.9 legacy 
+                                $uptime = $health['uptime'];
+                                $cpuLoad = $health['loadavg'] . ' LA';
+                            }
+
                             $cells = wf_TableCell($each['id']);
                             $cells .= wf_TableCell($each['ip']);
                             $cells .= wf_TableCell($each['name']);
@@ -2583,8 +2593,8 @@ class UbillingVisor {
                             $cells .= wf_TableCell(web_bool_led($health['database']));
                             $cells .= wf_TableCell(web_bool_led($health['network']));
                             $cells .= wf_TableCell($health['channels_total'] . ' / ' . $health['channels_online']);
-                            $cells .= wf_TableCell($health['uptime']);
-                            $cells .= wf_TableCell($health['loadavg'] . ' LA');
+                            $cells .= wf_TableCell($uptime);
+                            $cells .= wf_TableCell($cpuLoad);
                             $cells .= wf_TableCell('-');
                             $rows .= wf_TableRow($cells, 'row5');
                         } else {
@@ -3244,7 +3254,7 @@ class UbillingVisor {
                                     if (!empty($dvrData['customurl'])) {
                                         $result[$each['dvrid']]['weburl'] = $dvrData['customurl'] . $prefill;
                                         $result[$each['dvrid']]['customlink'] = 1;
-                                    } 
+                                    }
                                 }
                             }
                         }

@@ -3526,3 +3526,6 @@ $lang['def']['Read the documentation to learn what to do about it'] = 'Озна�
 $lang['def']['For administrator'] = 'Для администратора';
 $lang['def']['a very fucked up password is used'] = 'используется отличный пароль';
 $lang['def']['right to edit existing UKV users'] = 'Право редактировать существующих пользователей УКВ';
+$lang['def']['Cores'] = 'Ядер';
+$lang['def']['System load'] = 'Нагрузка на систему';
+$lang['def']['on average'] = 'в среднем';
