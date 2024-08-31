@@ -1196,7 +1196,7 @@ function web_PaymentsByUser($login) {
                 $hlight = 'row3';
             }
 
-            if (!empty($alter_conf['DOCX_SUPPORT']) AND !empty($alter_conf['DOCX_CHECK'])) {
+            if (!empty($alter_conf['DOCX_SUPPORT']) and !empty($alter_conf['DOCX_CHECK'])) {
                 $printcheck = wf_Link('?module=printcheck&paymentid=' . $eachpayment['id'], wf_img('skins/printer_small.gif', __('Print')), false);
                 if (@$alter_conf['DOCX_CHECK_TH']) {
                     $printcheck .= wf_Link('?module=printcheck&th=true&paymentid=' . $eachpayment['id'], wf_img('skins/printer_small_blue.gif', __('Print')), false);
@@ -2636,9 +2636,18 @@ function translit_string($var) {
     $NpjLettersFrom = "абвгдезиклмнопрстуфцыіїє ";
     $NpjLettersTo = "abvgdeziklmnoprstufcyiie_";
     $NpjBiLetters = array(
-        "й" => "jj", "ё" => "jo", "ж" => "zh", "х" => "kh", "ч" => "ch",
-        "ш" => "sh", "щ" => "shh", "э" => "je", "ю" => "ju", "я" => "ja",
-        "ъ" => "", "ь" => ""
+        "й" => "jj",
+        "ё" => "jo",
+        "ж" => "zh",
+        "х" => "kh",
+        "ч" => "ch",
+        "ш" => "sh",
+        "щ" => "shh",
+        "э" => "je",
+        "ю" => "ju",
+        "я" => "ja",
+        "ъ" => "",
+        "ь" => ""
     );
 
     $NpjCaps = "АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЬЪЫЭЮЯІЇЄ ";
@@ -3014,18 +3023,188 @@ function web_UserCorpsArrayShower($usersarr, $callBack = '') {
  */
 function strtolower_utf8($string) {
     $convert_to = array(
-        "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u",
-        "v", "w", "x", "y", "z", "à", "á", "â", "ã", "ä", "å", "æ", "ç", "è", "é", "ê", "ë", "ì", "í", "î", "ï",
-        "ð", "ñ", "ò", "ó", "ô", "õ", "ö", "ø", "ù", "ú", "û", "ü", "ý", "а", "б", "в", "г", "д", "е", "ё", "ж",
-        "з", "и", "й", "к", "л", "м", "н", "о", "п", "р", "с", "т", "у", "ф", "х", "ц", "ч", "ш", "щ", "ъ", "ы",
-        "ь", "э", "ю", "я", "ы", "і"
+        "a",
+        "b",
+        "c",
+        "d",
+        "e",
+        "f",
+        "g",
+        "h",
+        "i",
+        "j",
+        "k",
+        "l",
+        "m",
+        "n",
+        "o",
+        "p",
+        "q",
+        "r",
+        "s",
+        "t",
+        "u",
+        "v",
+        "w",
+        "x",
+        "y",
+        "z",
+        "à",
+        "á",
+        "â",
+        "ã",
+        "ä",
+        "å",
+        "æ",
+        "ç",
+        "è",
+        "é",
+        "ê",
+        "ë",
+        "ì",
+        "í",
+        "î",
+        "ï",
+        "ð",
+        "ñ",
+        "ò",
+        "ó",
+        "ô",
+        "õ",
+        "ö",
+        "ø",
+        "ù",
+        "ú",
+        "û",
+        "ü",
+        "ý",
+        "а",
+        "б",
+        "в",
+        "г",
+        "д",
+        "е",
+        "ё",
+        "ж",
+        "з",
+        "и",
+        "й",
+        "к",
+        "л",
+        "м",
+        "н",
+        "о",
+        "п",
+        "р",
+        "с",
+        "т",
+        "у",
+        "ф",
+        "х",
+        "ц",
+        "ч",
+        "ш",
+        "щ",
+        "ъ",
+        "ы",
+        "ь",
+        "э",
+        "ю",
+        "я",
+        "ы",
+        "і"
     );
     $convert_from = array(
-        "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U",
-        "V", "W", "X", "Y", "Z", "À", "Á", "Â", "Ã", "Ä", "Å", "Æ", "Ç", "È", "É", "Ê", "Ë", "Ì", "Í", "Î", "Ï",
-        "Ð", "Ñ", "Ò", "Ó", "Ô", "Õ", "Ö", "Ø", "Ù", "Ú", "Û", "Ü", "Ý", "А", "Б", "В", "Г", "Д", "Е", "Ё", "Ж",
-        "З", "И", "Й", "К", "Л", "М", "Н", "О", "П", "Р", "С", "Т", "У", "Ф", "Х", "Ц", "Ч", "Ш", "Щ", "Ъ", "Ъ",
-        "Ь", "Э", "Ю", "Я", "Ы", "І"
+        "A",
+        "B",
+        "C",
+        "D",
+        "E",
+        "F",
+        "G",
+        "H",
+        "I",
+        "J",
+        "K",
+        "L",
+        "M",
+        "N",
+        "O",
+        "P",
+        "Q",
+        "R",
+        "S",
+        "T",
+        "U",
+        "V",
+        "W",
+        "X",
+        "Y",
+        "Z",
+        "À",
+        "Á",
+        "Â",
+        "Ã",
+        "Ä",
+        "Å",
+        "Æ",
+        "Ç",
+        "È",
+        "É",
+        "Ê",
+        "Ë",
+        "Ì",
+        "Í",
+        "Î",
+        "Ï",
+        "Ð",
+        "Ñ",
+        "Ò",
+        "Ó",
+        "Ô",
+        "Õ",
+        "Ö",
+        "Ø",
+        "Ù",
+        "Ú",
+        "Û",
+        "Ü",
+        "Ý",
+        "А",
+        "Б",
+        "В",
+        "Г",
+        "Д",
+        "Е",
+        "Ё",
+        "Ж",
+        "З",
+        "И",
+        "Й",
+        "К",
+        "Л",
+        "М",
+        "Н",
+        "О",
+        "П",
+        "Р",
+        "С",
+        "Т",
+        "У",
+        "Ф",
+        "Х",
+        "Ц",
+        "Ч",
+        "Ш",
+        "Щ",
+        "Ъ",
+        "Ъ",
+        "Ь",
+        "Э",
+        "Ю",
+        "Я",
+        "Ы",
+        "І"
     );
 
     return str_replace($convert_from, $convert_to, $string);
@@ -3701,43 +3880,80 @@ function zb_TranslitString($string, $caseSensetive = false) {
         $replace = array(
             "'" => "",
             "`" => "",
-            "а" => "a", "А" => "A",
-            "б" => "b", "Б" => "B",
-            "в" => "v", "В" => "V",
-            "г" => "g", "Г" => "G",
-            "д" => "d", "Д" => "D",
-            "е" => "e", "Е" => "E",
-            "ё" => "e", "Ё" => "E",
-            "ж" => "zh", "Ж" => "Zh",
-            "з" => "z", "З" => "Z",
-            "и" => "y", "И" => "Y",
-            "й" => "y", "Й" => "Y",
-            "к" => "k", "К" => "K",
-            "л" => "l", "Л" => "L",
-            "м" => "m", "М" => "M",
-            "н" => "n", "Н" => "N",
-            "о" => "o", "О" => "O",
-            "п" => "p", "П" => "P",
-            "р" => "r", "Р" => "R",
-            "с" => "s", "С" => "S",
-            "т" => "t", "Т" => "T",
-            "у" => "u", "У" => "U",
-            "ф" => "f", "Ф" => "F",
-            "х" => "h", "Х" => "H",
-            "ц" => "c", "Ц" => "C",
-            "ч" => "ch", "Ч" => "Ch",
-            "ш" => "sh", "Ш" => "Sh",
-            "щ" => "sch", "Щ" => "Sch",
-            "ъ" => "", "Ъ" => "",
-            "ы" => "y", "Ы" => "Y",
-            "ь" => "", "Ь" => "",
-            "э" => "e", "Э" => "E",
-            "ю" => "yu", "Ю" => "Yu",
-            "я" => "ya", "Я" => "Ya",
-            "і" => "i", "І" => "I",
-            "ї" => "yi", "Ї" => "Yi",
-            "є" => "e", "Є" => "E",
-            "ґ" => "g", "Ґ" => "G"
+            "а" => "a",
+            "А" => "A",
+            "б" => "b",
+            "Б" => "B",
+            "в" => "v",
+            "В" => "V",
+            "г" => "g",
+            "Г" => "G",
+            "д" => "d",
+            "Д" => "D",
+            "е" => "e",
+            "Е" => "E",
+            "ё" => "e",
+            "Ё" => "E",
+            "ж" => "zh",
+            "Ж" => "Zh",
+            "з" => "z",
+            "З" => "Z",
+            "и" => "y",
+            "И" => "Y",
+            "й" => "y",
+            "Й" => "Y",
+            "к" => "k",
+            "К" => "K",
+            "л" => "l",
+            "Л" => "L",
+            "м" => "m",
+            "М" => "M",
+            "н" => "n",
+            "Н" => "N",
+            "о" => "o",
+            "О" => "O",
+            "п" => "p",
+            "П" => "P",
+            "р" => "r",
+            "Р" => "R",
+            "с" => "s",
+            "С" => "S",
+            "т" => "t",
+            "Т" => "T",
+            "у" => "u",
+            "У" => "U",
+            "ф" => "f",
+            "Ф" => "F",
+            "х" => "h",
+            "Х" => "H",
+            "ц" => "c",
+            "Ц" => "C",
+            "ч" => "ch",
+            "Ч" => "Ch",
+            "ш" => "sh",
+            "Ш" => "Sh",
+            "щ" => "sch",
+            "Щ" => "Sch",
+            "ъ" => "",
+            "Ъ" => "",
+            "ы" => "y",
+            "Ы" => "Y",
+            "ь" => "",
+            "Ь" => "",
+            "э" => "e",
+            "Э" => "E",
+            "ю" => "yu",
+            "Ю" => "Yu",
+            "я" => "ya",
+            "Я" => "Ya",
+            "і" => "i",
+            "І" => "I",
+            "ї" => "yi",
+            "Ї" => "Yi",
+            "є" => "e",
+            "Є" => "E",
+            "ґ" => "g",
+            "Ґ" => "G"
         );
 
         if (curlang() == 'ru') {
@@ -3748,43 +3964,80 @@ function zb_TranslitString($string, $caseSensetive = false) {
         $replace = array(
             "'" => "",
             "`" => "",
-            "а" => "a", "А" => "a",
-            "б" => "b", "Б" => "b",
-            "в" => "v", "В" => "v",
-            "г" => "g", "Г" => "g",
-            "д" => "d", "Д" => "d",
-            "е" => "e", "Е" => "e",
-            "ё" => "e", "Ё" => "e",
-            "ж" => "zh", "Ж" => "zh",
-            "з" => "z", "З" => "z",
-            "и" => "y", "И" => "y",
-            "й" => "y", "Й" => "y",
-            "к" => "k", "К" => "k",
-            "л" => "l", "Л" => "l",
-            "м" => "m", "М" => "m",
-            "н" => "n", "Н" => "n",
-            "о" => "o", "О" => "o",
-            "п" => "p", "П" => "p",
-            "р" => "r", "Р" => "r",
-            "с" => "s", "С" => "s",
-            "т" => "t", "Т" => "t",
-            "у" => "u", "У" => "u",
-            "ф" => "f", "Ф" => "f",
-            "х" => "h", "Х" => "h",
-            "ц" => "c", "Ц" => "c",
-            "ч" => "ch", "Ч" => "ch",
-            "ш" => "sh", "Ш" => "sh",
-            "щ" => "sch", "Щ" => "sch",
-            "ъ" => "", "Ъ" => "",
-            "ы" => "y", "Ы" => "y",
-            "ь" => "", "Ь" => "",
-            "э" => "e", "Э" => "e",
-            "ю" => "yu", "Ю" => "yu",
-            "я" => "ya", "Я" => "ya",
-            "і" => "i", "І" => "i",
-            "ї" => "yi", "Ї" => "yi",
-            "є" => "e", "Є" => "e",
-            "ґ" => "g", "Ґ" => "g"
+            "а" => "a",
+            "А" => "a",
+            "б" => "b",
+            "Б" => "b",
+            "в" => "v",
+            "В" => "v",
+            "г" => "g",
+            "Г" => "g",
+            "д" => "d",
+            "Д" => "d",
+            "е" => "e",
+            "Е" => "e",
+            "ё" => "e",
+            "Ё" => "e",
+            "ж" => "zh",
+            "Ж" => "zh",
+            "з" => "z",
+            "З" => "z",
+            "и" => "y",
+            "И" => "y",
+            "й" => "y",
+            "Й" => "y",
+            "к" => "k",
+            "К" => "k",
+            "л" => "l",
+            "Л" => "l",
+            "м" => "m",
+            "М" => "m",
+            "н" => "n",
+            "Н" => "n",
+            "о" => "o",
+            "О" => "o",
+            "п" => "p",
+            "П" => "p",
+            "р" => "r",
+            "Р" => "r",
+            "с" => "s",
+            "С" => "s",
+            "т" => "t",
+            "Т" => "t",
+            "у" => "u",
+            "У" => "u",
+            "ф" => "f",
+            "Ф" => "f",
+            "х" => "h",
+            "Х" => "h",
+            "ц" => "c",
+            "Ц" => "c",
+            "ч" => "ch",
+            "Ч" => "ch",
+            "ш" => "sh",
+            "Ш" => "sh",
+            "щ" => "sch",
+            "Щ" => "sch",
+            "ъ" => "",
+            "Ъ" => "",
+            "ы" => "y",
+            "Ы" => "y",
+            "ь" => "",
+            "Ь" => "",
+            "э" => "e",
+            "Э" => "e",
+            "ю" => "yu",
+            "Ю" => "yu",
+            "я" => "ya",
+            "Я" => "ya",
+            "і" => "i",
+            "І" => "i",
+            "ї" => "yi",
+            "Ї" => "yi",
+            "є" => "e",
+            "Є" => "e",
+            "ґ" => "g",
+            "Ґ" => "g"
         );
 
         if (curlang() == 'ru') {
@@ -5791,23 +6044,53 @@ function web_MultigenListClients() {
  * @return string
  */
 function web_ReportSysloadRenderLA() {
-    $loadAvg = sys_getloadavg();
-    $laGauges = '';
-    $laGauges .= wf_tag('h3') . __('Load Average') . wf_tag('h3', true);
-    $laOpts = '
-             max: 10,
-             min: 0,
-             width: ' . 280 . ', height: ' . 280 . ',
-             greenFrom: 0, greenTo: 2,
-             yellowFrom:2, yellowTo: 5,
-             redFrom: 5, redTo: 10,
-             minorTicks: 5
-                      ';
-    $laGauges .= wf_renderGauge(round($loadAvg[0], 2), '1' . ' ' . __('minutes'), 'LA', $laOpts, 300);
-    $laGauges .= wf_renderGauge(round($loadAvg[1], 2), '5' . ' ' . __('minutes'), 'LA', $laOpts, 300);
-    $laGauges .= wf_renderGauge(round($loadAvg[2], 2), '15' . ' ' . __('minutes'), 'LA', $laOpts, 300);
-    $laGauges .= wf_CleanDiv();
-    return ($laGauges);
+    $hwInfo = new SystemHwInfo();
+    $cpuName = $hwInfo->getCpuName();
+    $cpuCoresCount = $hwInfo->getCpuCores();
+    $memTotal = $hwInfo->getMemTotal();
+    $memTotalLabel = zb_convertSize($memTotal) . ' ' . __('RAM');
+    $cpuLabel = __('CPU') . ': ' . $cpuName;
+    $coreLabel = $cpuCoresCount . ' ' . __('Cores');
+    $result = '';
+
+    $result .= wf_tag('h3') . __('System load') . ' ('  . $cpuLabel . ', ' . $coreLabel . ', ' . $memTotalLabel . ')' . wf_tag('h3', true);
+
+    $gL = 40;
+    $yL = 70;
+    $percOpts = ' max: 100,
+               min: 0,
+               width: ' . 280 . ', height: ' . 280 . ',
+               greenFrom: 0, greenTo: ' . $gL . ',
+               yellowFrom:' . $gL . ', yellowTo: ' . $yL . ',
+               redFrom: ' . $yL . ', redTo: 100,
+               minorTicks: 5
+                ';
+
+
+    $result .= wf_renderGauge($hwInfo->getLoadAvgPercent(),  __('on average'), '%', $percOpts, 300);
+    $result .= wf_renderGauge($hwInfo->getloadPercent1(), '1' . ' ' . __('minutes'), '%', $percOpts, 300);
+    $result .= wf_renderGauge($hwInfo->getLoadPercent5(), '5' . ' ' . __('minutes'), '%', $percOpts, 300);
+    $result .= wf_renderGauge($hwInfo->getLoadPercent15(), '15' . ' ' . __('minutes'), '%', $percOpts, 300);
+    $result .= wf_CleanDiv();
+
+    $gL = $cpuCoresCount / 4;
+    $yL = $cpuCoresCount / 2;
+    $laOpts = 'max: ' . $cpuCoresCount . ',
+               min: 0,
+               width: ' . 280 . ', height: ' . 280 . ',
+               greenFrom: 0, greenTo: ' . $gL . ',
+               yellowFrom:' . $gL . ', yellowTo: ' . $yL . ',
+               redFrom: ' . $yL . ', redTo: ' . $cpuCoresCount . ',
+               minorTicks: 5
+                ';
+
+    $result .= wf_tag('h3') . __('Load Average') . wf_tag('h3', true);
+    $result .= wf_renderGauge($hwInfo->getLa1(), '1' . ' ' . __('minutes'), 'LA', $laOpts, 300);
+    $result .= wf_renderGauge($hwInfo->getLa5(), '5' . ' ' . __('minutes'), 'LA', $laOpts, 300);
+    $result .= wf_renderGauge($hwInfo->getLa15(), '15' . ' ' . __('minutes'), 'LA', $laOpts, 300);
+    $result .= wf_CleanDiv();
+
+    return ($result);
 }
 
 /**
@@ -5818,20 +6101,17 @@ function web_ReportSysloadRenderLA() {
 function web_ReportSysloadRenderDisksCapacity() {
     global $ubillingConfig;
     $altCfg = $ubillingConfig->getAlter();
+
     $usedSpaceArr = array();
     $mountPoints = array('/');
     if (@$altCfg['SYSLOAD_DISKS']) {
         $mountPoints = explode(',', $altCfg['SYSLOAD_DISKS']);
     }
-    if (!empty($mountPoints)) {
-        foreach ($mountPoints as $io => $each) {
-            $totalSpace = disk_total_space($each);
-            $freeSpace = disk_free_space($each);
-            $usedSpaceArr[$each]['percent'] = zb_PercentValue($totalSpace, ($totalSpace - $freeSpace));
-            $usedSpaceArr[$each]['total'] = $totalSpace;
-            $usedSpaceArr[$each]['free'] = $freeSpace;
-        }
-    }
+    $hwInfo = new SystemHwInfo();
+    $hwInfo->setMountPoints($mountPoints);
+    $usedSpaceArr = $hwInfo->getAllDiskStats();
+
+
 
     $result = '';
     $result .= wf_tag('h3') . __('Disks capacity') . wf_tag('h3', true);
@@ -5846,8 +6126,10 @@ function web_ReportSysloadRenderDisksCapacity() {
                       ';
     if (!empty($usedSpaceArr)) {
         foreach ($usedSpaceArr as $mountPoint => $spaceStats) {
-            $partitionLabel = $mountPoint . ' - ' . stg_convert_size($spaceStats['free']) . ' ' . __('Free');
-            $result .= wf_renderGauge(round($spaceStats['percent']), $partitionLabel, '%', $opts, 300);
+            $total = zb_convertSize($spaceStats['total']);
+            $free = zb_convertSize($spaceStats['free']);
+            $partitionLabel = $mountPoint . ' - ' . $free . ' ' . __('of') . ' ' . $total . ' ' . __('Free');
+            $result .= wf_renderGauge(round($spaceStats['usedpercent']), $partitionLabel, '%', $opts, 300);
         }
     }
     $result .= wf_CleanDiv();
@@ -5882,15 +6164,11 @@ function web_ReportSysloadRenderTop() {
  * @return string
  */
 function web_ReportSysloadRenderUptime() {
-    global $ubillingConfig;
-    $billCfg = $ubillingConfig->getBilling();
     $result = '';
-    if (!empty($billCfg['UPTIME'])) {
-        $result .= wf_tag('pre') . shell_exec($billCfg['UPTIME']) . wf_tag('pre', true);
-    } else {
-        $messages = new UbillingMessageHelper();
-        $result .= $messages->getStyledMessage(__('uptime path') . ' ' . __('is empty'), 'error');
-    }
+    $messages = new UbillingMessageHelper();
+    $hwInfo = new SystemHwInfo();
+    $uptime = $hwInfo->getUptime();
+    $result .= $messages->getStyledMessage(__('Uptime') . ': ' . zb_formatTime($uptime), 'info');
     return ($result);
 }
 
