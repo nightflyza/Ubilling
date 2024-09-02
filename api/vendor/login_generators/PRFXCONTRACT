@@ -1,0 +1,19 @@
+    $contractProposal ='';
+    if (empty($olddata)) {
+         $allcontracts = zb_UserGetAllContracts();
+         $top_offset = 100000;
+         //contract generation mode default
+         if ($this->altCfg['CONTRACT_GENERATION_DEFAULT']) {
+             for ($i = 1; $i < $top_offset; $i++) {
+                 if (!isset($allcontracts[$i])) {
+                     $contractProposal = $i;
+                     break;
+                 }
+             }
+         } else {
+             //alternate generation method
+             $max_contract = max(array_keys($allcontracts));
+             $contractProposal = $max_contract + 1;
+         }
+     }
+ $this->loginProposal = $this->sharedPrefix.$contractProposal;
