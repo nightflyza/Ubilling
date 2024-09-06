@@ -83,6 +83,13 @@ class PONizer {
     protected $allOltSnmp = array();
 
     /**
+     * OLT devices IPs as id=>ip
+     *
+     * @var array
+     */
+    protected $allOltIps = array();
+
+    /**
      * Available OLT models as id=>modelname + snmptemplate + ports
      *
      * @var array
@@ -608,6 +615,7 @@ class PONizer {
                     $this->allOltDevices[$each['id']] = $each['ip'] . ' - ' . $each['location'];
                     $this->allOltNames[$each['id']] = $each['location'];
                     $this->allOltModelIds[$each['id']] = $each['modelid'];
+                    $this->allOltIps[$each['id']] = $each['ip'];
 
                     $this->allOltSnmp[$each['id']]['community'] = $each['snmp'];
                     $this->allOltSnmp[$each['id']]['modelid'] = $each['modelid'];
@@ -2136,14 +2144,24 @@ class PONizer {
     protected function renderOnuSignalBig($onuId) {
         $result = '';
         if (isset($this->allOnu[$onuId])) {
+            $allDeadSwitches = zb_SwitchesGetAllDead();
+            $oltId = $this->allOnu[$onuId]['oltid'];
+            $oltIp = $this->allOltIps[$oltId];
+            $deadOltFlag = (isset($allDeadSwitches[$oltIp])) ? true : false;
             $onuSignal = $this->getOnuSignalLevelData($onuId);
             if (!empty($onuSignal)) {
+                $sigTypeLabel=($deadOltFlag) ? __('Latest') :  __('Current');
                 $result .= wf_tag('div', false, 'onusignalbig');
-                $result .= __('Current') . ' ' . __('Signal') . ' ' . __('ONU');
+                $result .= $sigTypeLabel . ' ' . __('Signal') . ' ' . __('ONU');
                 $result .= wf_delimiter();
                 $result .= wf_tag('font', false, '', 'color="' . $onuSignal['color'] . '" size="16pt"') . $onuSignal['raw'] . wf_tag('font', true);
                 $result .= wf_delimiter();
-                $result .= __($onuSignal['type']);
+                if ($deadOltFlag) {
+                    $result .= wf_img('skins/skull.png') . ' ' . __('OLT is dead now');
+                } else {
+                    $result .= __($onuSignal['type']);
+                }
+
                 $result .= $this->renderOnuMiscStats($onuId, $onuSignal);
                 $result .= ($this->onuUniStatusEnabled) ? $this->renderONUUniStats($onuId, $onuSignal) : '';
                 $result .= wf_tag('div', true);

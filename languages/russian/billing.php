@@ -3529,3 +3529,5 @@ $lang['def']['right to edit existing UKV users'] = 'Право редактир�
 $lang['def']['Cores'] = 'Ядер';
 $lang['def']['System load'] = 'Нагрузка на систему';
 $lang['def']['on average'] = 'в среднем';
+$lang['def']['OLT is dead now'] = 'OLT сейчас мертва';
+$lang['def']['Latest'] = 'Последний';
