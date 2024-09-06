@@ -6667,7 +6667,10 @@ function zb_GetReleaseInfo($branch) {
     if ($branch == 'CURRENT') {
         $release_url = UbillingUpdateManager::URL_RELEASE_CURRENT;
     }
+    $ubVer = file_get_contents('RELEASE');
+    $agent = 'UbillingUpdMgr/' . trim($ubVer);
     $remoteCallback = new OmaeUrl($release_url);
+    $remoteCallback->setUserAgent($agent);
     $releaseInfo = $remoteCallback->response();
     if ($remoteCallback->httpCode() == 200) {
         if ($releaseInfo) {
