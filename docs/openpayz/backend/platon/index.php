@@ -33,12 +33,12 @@ function platonSumm($customer_id, $avail_prices, $merchant_currency) {
     $form .= '<br> <input type="submit">';
     $form .= '</form> </p>';
 
-    return($form);
+    return ($form);
 }
 
 $payment_form = '';
-if (!isset($_POST['amount']) AND ! isset($_POST['paymentid'])) {
-    if (isset($_GET['customer_id']) AND ! empty($_GET['customer_id'])) {
+if (!isset($_POST['amount']) and ! isset($_POST['paymentid'])) {
+    if (isset($_GET['customer_id']) and ! empty($_GET['customer_id'])) {
         $customer_id = $_GET['customer_id'];
         $payment_form = platonSumm($customer_id, $avail_prices, $merchant_currency);
     } else {
@@ -47,35 +47,68 @@ if (!isset($_POST['amount']) AND ! isset($_POST['paymentid'])) {
 } else {
     //push form
     $customerId = $_POST['paymentid'];
-    $amount = $_POST['amount'];
-    $amount = $amount . '.00'; //required with two finishing zeroes
-    if (!empty($customerId) AND ! empty($amount)) {
+    $amountRaw = $_POST['amount'];
+    $amount = $amountRaw . '.00'; //required with two finishing zeroes
+    if (!empty($customerId) and ! empty($amountRaw)) {
         $key = $cfgPltn['KEY'];
         $pass = $cfgPltn['PASSWORD'];
         $payment = 'CC';
         $req_token = 'Y';
         $url = $cfgPltn['URL_OK'];
         $apiUrl = $cfgPltn['API_URL'];
-        $data = base64_encode(
-                json_encode(
-                        array(
-                            'amount' => $amount,
-                            'description' => $customerId,
-                            'currency' => 'UAH',
-                            'recurring' => 'Y'
-                        )
-                )
+        $splitProp = array();
+        $splitRulesArr = array();
+        $splitRules = '';
+
+        //proportional static split
+        if (isset($cfgPltn['SPLIT_STATIC'])) {
+            if (!empty($cfgPltn['SPLIT_STATIC'])) {
+                $splitProp = explode(',', $cfgPltn['SPLIT_STATIC']);
+            }
+
+
+            foreach ($splitProp as $io => $eachSplit) {
+                if (!empty($eachSplit)) {
+                    $cleanSplit = trim($eachSplit);
+                    $splitRulesArr[$cleanSplit] = 0;
+                }
+            }
+            $splitAmountRatio = sizeof($splitRulesArr);
+            $splittedAmount = round(($amountRaw / $splitAmountRatio), 2);
+            if (strpos($splittedAmount, '.') === false) {
+                $splittedAmount = $splittedAmount . '.00';
+            }
+
+            foreach ($splitRulesArr as $eachSplit => $eachAmount) {
+                if (!empty($eachSplit)) {
+                    $splitRulesArr[$eachSplit] = $splittedAmount;
+                }
+            }
+        }
+
+        $rawData = array(
+            'amount' => $amount,
+            'description' => $customerId,
+            'currency' => 'UAH',
+            'recurring' => 'Y'
         );
+  
+        $data = base64_encode(json_encode($rawData));
 
         $sign = md5(
-                strtoupper(
-                        strrev($key) .
-                        strrev($payment) .
-                        strrev($data) .
-                        strrev($url) .
-                        strrev($pass)
-                )
+            strtoupper(
+                strrev($key) .
+                    strrev($payment) .
+                    strrev($data) .
+                    strrev($url) .
+                    strrev($pass)
+            )
         );
+
+        //optional split rules append
+        if (!empty($splitRulesArr)) {
+            $splitRules .= '<input type="hidden" name="split_rules" value="' . htmlspecialchars(json_encode($splitRulesArr)) . '" />';
+        }
 
         $form = '
             <form action="' . $apiUrl . '" method="POST">
@@ -87,15 +120,16 @@ if (!isset($_POST['amount']) AND ! isset($_POST['paymentid'])) {
                 <input type="hidden" name="req_token" value="' . $req_token . '" />
                 <input type="hidden" name="sign" value="' . $sign . '" />
                 <input type="hidden" name="lang" value="UK" />
+                ' . $splitRules . '
               </form>   
-              
-              <script type="text/javascript">
-                document.forms[0].submit();
-              </script>
               ';
+
+        //auto form submit
+        $form .= '<script type="text/javascript">
+                  document.forms[0].submit();
+                </script>';
         print($form);
     }
 }
 
 include('template.html');
-
