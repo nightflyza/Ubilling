@@ -1,5 +1,9 @@
 <?php
 
+require_once('../../libs/api.compat.php');
+require_once('../../libs/api.astral.php');
+require_once('../../libs/api.ubrouting.php');
+
 $cfgPltn = parse_ini_file('config/platon.ini');
 
 $merchant_name = $cfgPltn['MERCHANT_NAME'];
@@ -10,44 +14,43 @@ $merchant_currency = $cfgPltn['MERCHANT_CURRENCY'];
 $avail_prices = $cfgPltn['AVAIL_PRICES'];
 
 function platonSumm($customer_id, $avail_prices, $merchant_currency) {
-    $form = '<p> <form action="" method="POST">';
+    $inputs = '';
+    $result = '';
+
     if (!empty($avail_prices)) {
         $avail_prices = explode(',', $avail_prices);
         $i = 0;
         foreach ($avail_prices as $eachprice) {
+            $selected = false;
             if ($i == 0) {
-                $selected = 'CHECKED';
-            } else {
-                $selected = '';
+                $selected = true;
             }
-            $label = '<label for="rbin' . $i . '">' . $eachprice . ' ' . $merchant_currency . '</label>';
-            $form .= '<input id="rbin' . $i . '" type="radio" name="amount" value="' . $eachprice . '" ' . $selected . '> ' . $label . '<br>';
+            $inputs .= wf_RadioInput('amount', $eachprice . ' ' . $merchant_currency, $eachprice, true, $selected);
             $i++;
         }
     } else {
-        $form .= '<input type="text" name="amount" pattern="^\d+$" placeholder="0" > ' . $merchant_currency . '<br>';
+        $inputs .= wf_TextInput('amount', $merchant_currency, '', true, 5, 'finance');
     }
 
-
-    $form .= '<input type="hidden" name="paymentid" value="' . $customer_id . '">';
-    $form .= '<br> <input type="submit">';
-    $form .= '</form> </p>';
-
-    return ($form);
+    $inputs .= wf_HiddenInput('paymentid', $customer_id);
+    $inputs .= wf_delimiter(0);
+    $inputs .= wf_Submit('Оплатити');
+    $result .= wf_Form('', 'POST', $inputs, '');
+    return ($result);
 }
 
 $payment_form = '';
-if (!isset($_POST['amount']) and ! isset($_POST['paymentid'])) {
-    if (isset($_GET['customer_id']) and ! empty($_GET['customer_id'])) {
-        $customer_id = $_GET['customer_id'];
+if (!ubRouting::checkPost('amount') and ! ubRouting::checkPost('paymentid')) {
+    if (ubRouting::checkGet('customer_id')) {
+        $customer_id = ubRouting::get('customer_id', 'vf');
         $payment_form = platonSumm($customer_id, $avail_prices, $merchant_currency);
     } else {
         $payment_form = 'FAIL: no customer ID set';
     }
 } else {
     //push form
-    $customerId = $_POST['paymentid'];
-    $amountRaw = $_POST['amount'];
+    $customerId = ubRouting::post('paymentid', 'vf');
+    $amountRaw = ubRouting::post('amount', 'float');
     $amount = $amountRaw . '.00'; //required with two finishing zeroes
     if (!empty($customerId) and ! empty($amountRaw)) {
         $key = $cfgPltn['KEY'];
@@ -92,7 +95,7 @@ if (!isset($_POST['amount']) and ! isset($_POST['paymentid'])) {
             'currency' => 'UAH',
             'recurring' => 'Y'
         );
-  
+
         $data = base64_encode(json_encode($rawData));
 
         $sign = md5(
@@ -107,27 +110,25 @@ if (!isset($_POST['amount']) and ! isset($_POST['paymentid'])) {
 
         //optional split rules append
         if (!empty($splitRulesArr)) {
-            $splitRules .= '<input type="hidden" name="split_rules" value="' . htmlspecialchars(json_encode($splitRulesArr)) . '" />';
+            $splitRules .= wf_HiddenInput('split_rules', htmlspecialchars(json_encode($splitRulesArr)));
         }
 
-        $form = '
-            <form action="' . $apiUrl . '" method="POST">
-                <input type="hidden" name="payment" value="' . $payment . '" />
-                <input type="hidden" name="key" value="' . $key . '" />
-                <input type="hidden" name="url" value="' . $url . '" />
-                <input type="hidden" name="error_url" value="' . $cfgPltn['URL_FAIL'] . '" />
-                <input type="hidden" name="data" value="' . $data . '" />
-                <input type="hidden" name="req_token" value="' . $req_token . '" />
-                <input type="hidden" name="sign" value="' . $sign . '" />
-                <input type="hidden" name="lang" value="UK" />
-                ' . $splitRules . '
-              </form>   
-              ';
+        $inputs = '';
+        $inputs .= wf_HiddenInput('payment', $payment);
+        $inputs .= wf_HiddenInput('key', $key);
+        $inputs .= wf_HiddenInput('url', $url);
+        $inputs .= wf_HiddenInput('error_url', $cfgPltn['URL_FAIL']);
+        $inputs .= wf_HiddenInput('data', $data);
+        $inputs .= wf_HiddenInput('req_token', $req_token);
+        $inputs .= wf_HiddenInput('sign', $sign);
+        $inputs .= wf_HiddenInput('lang', 'UK');
+        $inputs .= $splitRules;
+        $form = wf_Form($apiUrl, 'POST', $inputs);
 
         //auto form submit
-        $form .= '<script type="text/javascript">
-                  document.forms[0].submit();
-                </script>';
+        $form .= wf_tag('script', false, '', 'type="text/javascript"');
+        $form .= '  document.forms[0].submit();';
+        $form .= wf_tag('script', true);
         print($form);
     }
 }
