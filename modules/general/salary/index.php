@@ -13,7 +13,7 @@ if (cfr('SALARY')) {
                 show_window('', $salary->$beggar_m());
             }
 
-// jobtype pricing creation
+            // jobtype pricing creation
             if (wf_CheckPost(array('newjobtypepriceid', 'newjobtypepriceunit'))) {
                 if (isset($beggar['M']['JPADD']) and method_exists($salary, $beggar['M']['JPADD'])) {
                     $beggar_m = $beggar['M']['JPADD'];
@@ -24,7 +24,7 @@ if (cfr('SALARY')) {
                 }
             }
 
-//jobtype price deletion
+            //jobtype price deletion
             if (wf_CheckGet(array('deletejobprice'))) {
                 if (isset($beggar['M']['JPFLUSH']) and method_exists($salary, $beggar['M']['JPFLUSH'])) {
                     $beggar_m = $beggar['M']['JPFLUSH'];
@@ -34,7 +34,7 @@ if (cfr('SALARY')) {
                     rcms_redirect($beggar['U']['JPL']);
                 }
             }
-//saving jobprices into database
+            //saving jobprices into database
             if (isset($beggar['U']['JPCPE']) and wf_CheckPost(array($beggar['U']['JPCPE']))) {
                 if (isset($beggar['M']['JPSAVE']) and method_exists($salary, $beggar['M']['JPSAVE'])) {
                     $beggar_m = $beggar['M']['JPSAVE'];
@@ -45,7 +45,7 @@ if (cfr('SALARY')) {
                 }
             }
 
-//listing avalable job pricings            
+            //listing avalable job pricings            
             if (isset($beggar['U']['JPCG']) and wf_CheckGet(array($beggar['U']['JPCG']))) {
                 if (isset($beggar['VP']['JPAF']) and method_exists($salary, $beggar['VP']['JPAF'])) {
                     $beggar_vp = $beggar['VP']['JPAF'];
@@ -88,7 +88,7 @@ if (cfr('SALARY')) {
                 rcms_redirect($salary::URL_ME . '&' . $salary::URL_WAGES);
             }
 
-//listing available employee wages
+            //listing available employee wages
             if (isset($beggar['U']['EWCG']) and wf_CheckGet(array($beggar['U']['EWCG']))) {
                 $beggar_m = $beggar['VP']['EWAF'];
                 $ewCf = $salary->$beggar_m();
@@ -100,13 +100,21 @@ if (cfr('SALARY')) {
                 show_window(__('Available employee wages'), $salary->employeeWagesRender());
                 show_window('', wf_BackLink($salary::URL_ME));
             }
-//rendering payroll report
-            if (wf_CheckGet(array('payroll'))) {
+            //rendering payroll report
+            if (ubRouting::checkGet('payroll')) {
                 //printable per-employee report
-                if (wf_CheckGet(array('print', 'e', 'df', 'dt'))) {
-                    $reportPrintTitle = __('Payroll') . ': ' . $salary->getEmployeeName($_GET['e']) . ' ' . __('from') . ' ' . $_GET['df'] . ' ' . __('to') . ' ' . $_GET['dt'];
-                    $salary->reportPrintable($reportPrintTitle, $salary->payrollRenderSearch($_GET['df'], $_GET['dt'], $_GET['e']));
+                if (ubRouting::checkGet(array('print', 'e', 'df', 'dt'))) {
+                    $reportPrintTitle = __('Payroll') . ': ' . $salary->getEmployeeName(ubRouting::get('e')) . ' ' . __('from') . ' ' . ubRouting::get('df') . ' ' . __('to') . ' ' . ubRouting::get('dt');
+                    $salary->reportPrintable($reportPrintTitle, $salary->payrollRenderSearch(ubRouting::get('df'), ubRouting::get('dt'), ubRouting::get('e'), '', false));
+                } else {
+                        //printable all employee report
+                        if (ubRouting::checkGet(array('print', 'df', 'dt'))) {
+                            $reportPrintTitle = __('Payroll') . ': ' . __('All') . ' ' . __('Employee')  . ' ' . __('from') . ' ' . ubRouting::get('df') . ' ' . __('to') . ' ' . ubRouting::get('dt');
+                            $salary->reportPrintable($reportPrintTitle, $salary->payrollRenderSearchDate(ubRouting::get('df'), ubRouting::get('dt'), ''));
+                        }
                 }
+
+                
 
 
                 show_window(__('Search'), $salary->payrollRenderSearchForm());
@@ -120,26 +128,31 @@ if (cfr('SALARY')) {
                 }
 
 
-                if (wf_CheckPost(array('prdatefrom', 'prdateto'))) {
-                    if (wf_CheckPost(array('premployeeid'))) {
+                if (ubRouting::checkPost(array('prdatefrom', 'prdateto'))) {
+                    if (ubRouting::checkPost('premployeeid')) {
                         //single employee report
-                        $reportTitle = __('Payroll') . ': ' . $salary->getEmployeeName($_POST['premployeeid']) . ' ' . __('from') . ' ' . $_POST['prdatefrom'] . ' ' . __('to') . ' ' . $_POST['prdateto'] . ' ';
-                        $extraParams = (wf_CheckPost(array('prnocharts'))) ? '&nc=1' : '';
-                        $printLink = wf_tag('a', false, '', 'href="' . $salary::URL_ME . '&' . salary::URL_PAYROLL . '&print=true&e=' . $_POST['premployeeid'] . '&df=' . $_POST['prdatefrom'] . '&dt=' . $_POST['prdateto'] . $extraParams . '" TARGET="_BLANK"');
-                        $printLink.= web_icon_print();
-                        $printLink.= wf_tag('a', true);
-                        $reportTitle.=$printLink;
-                        show_window($reportTitle, $salary->payrollRenderSearch($_POST['prdatefrom'], $_POST['prdateto'], $_POST['premployeeid'], $_POST['prjobtypeid']));
+                        $reportTitle = __('Payroll') . ': ' . $salary->getEmployeeName(ubRouting::post('premployeeid')) . ' ' . __('from') . ' ' . ubRouting::post('prdatefrom') . ' ' . __('to') . ' ' . ubRouting::post('prdateto') . ' ';
+                        $extraParams = (ubRouting::checkPost('prnocharts')) ? '&nc=1' : '';
+                        $printLink = wf_tag('a', false, '', 'href="' . $salary::URL_ME . '&' . salary::URL_PAYROLL . '&print=true&e=' . ubRouting::post('premployeeid') . '&df=' . ubRouting::post('prdatefrom') . '&dt=' . ubRouting::post('prdateto') . $extraParams . '" TARGET="_BLANK"');
+                        $printLink .= web_icon_print();
+                        $printLink .= wf_tag('a', true);
+                        $reportTitle .= $printLink;
+                        show_window($reportTitle, $salary->payrollRenderSearch(ubRouting::post('prdatefrom'), ubRouting::post('prdateto'), ubRouting::post('premployeeid'), ubRouting::post('prjobtypeid')));
                     } else {
                         //multiple employee report
-                        $reportTitle = __('Payroll') . ': ' . __('All') . ' ' . __('Employee') . ' ' . __('from') . ' ' . $_POST['prdatefrom'] . ' ' . __('to') . ' ' . $_POST['prdateto'];
-                        show_window($reportTitle, $salary->payrollRenderSearchDate($_POST['prdatefrom'], $_POST['prdateto'], $_POST['prjobtypeid']));
+                        $reportTitle = __('Payroll') . ': ' . __('All') . ' ' . __('Employee') . ' ' . __('from') . ' ' . ubRouting::post('prdatefrom') . ' ' . __('to') . ' ' . ubRouting::post('prdateto') . ' ';
+                        $extraParams = (ubRouting::checkPost('prnocharts')) ? '&nc=1' : '';
+                        $printLink = wf_tag('a', false, '', 'href="' . $salary::URL_ME . '&' . salary::URL_PAYROLL . '&print=true&df=' . ubRouting::post('prdatefrom') . '&dt=' . ubRouting::post('prdateto') . $extraParams . '" TARGET="_BLANK"');
+                        $printLink .= web_icon_print();
+                        $printLink .= wf_tag('a', true);
+                        $reportTitle .= $printLink;
+                        show_window($reportTitle, $salary->payrollRenderSearchDate(ubRouting::post('prdatefrom'), ubRouting::post('prdateto'), ubRouting::post('prjobtypeid')));
                     }
                 }
                 show_window('', wf_BackLink($salary::URL_ME));
             }
 
-//rendering factor control report 
+            //rendering factor control report 
             if (wf_CheckGet(array('factorcontrol'))) {
                 show_window(__('Search'), $salary->facontrolRenderSearchForm());
                 if (wf_CheckPost(array('facontroljobtypeid', 'facontrolmaxfactor'))) {
@@ -149,7 +162,7 @@ if (cfr('SALARY')) {
             }
 
 
-// tasks without assinged jobs report
+            // tasks without assinged jobs report
             if (wf_CheckGet(array('twjreport'))) {
                 show_window(__('Search'), $salary->twjReportSearchForm());
                 if (wf_CheckPost(array('twfdatefrom', 'twfdateto'))) {
@@ -157,7 +170,7 @@ if (cfr('SALARY')) {
                 }
                 show_window('', wf_BackLink($salary::URL_ME));
             }
-//timesheets reports
+            //timesheets reports
             if (wf_CheckGet(array('timesheets'))) {
                 //creating of new timesheet
                 if (wf_CheckPost(array('newtimesheet', 'newtimesheetdate', '_employeehours'))) {
@@ -176,7 +189,7 @@ if (cfr('SALARY')) {
                 $tsCf = $salary->timesheetCreateForm();
                 if ($tsCf) {
                     $timesheetsControls = wf_modal(web_add_icon() . ' ' . __('Create'), __('Create') . ' ' . __('Timesheet'), $tsCf, 'ubButton', '800', '600');
-                    $timesheetsControls.= wf_Link($salary::URL_ME . '&' . $salary::URL_TSHEETS . '&print=true', web_icon_print() . ' ' . __('Print'), false, 'ubButton');
+                    $timesheetsControls .= wf_Link($salary::URL_ME . '&' . $salary::URL_TSHEETS . '&print=true', web_icon_print() . ' ' . __('Print'), false, 'ubButton');
                     show_window('', $timesheetsControls);
                     if (!wf_CheckGet(array('showdate'))) {
                         if (wf_CheckGet(array('print'))) {
@@ -230,4 +243,3 @@ if (cfr('SALARY')) {
 } else {
     show_error(__('Permission denied'));
 }
-?>
