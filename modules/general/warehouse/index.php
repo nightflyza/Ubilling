@@ -10,7 +10,7 @@ if (cfr('WAREHOUSE')) {
             $warehouse = new Warehouse();
             $avidity_m = $avidity['M']['WARLOCK'];
             show_window('', $warehouse->$avidity_m());
-//categories    
+            //categories    
             if (wf_CheckGet(array($avidity['S']['C']))) {
                 if (wf_CheckPost(array($avidity['S']['CC']))) {
                     $avidity_m = $avidity['M']['CC'];
@@ -38,7 +38,7 @@ if (cfr('WAREHOUSE')) {
                 $avidity_m = $avidity['M']['FALL'];
                 $warehouse->$avidity_m();
             }
-//itemtypes
+            //itemtypes
             if (wf_CheckGet(array('itemtypes'))) {
                 if (wf_CheckPost(array('newitemtypecetegoryid', 'newitemtypename', 'newitemtypeunit'))) {
                     $avidity_m = $avidity['M']['XC'];
@@ -75,7 +75,7 @@ if (cfr('WAREHOUSE')) {
                 }
             }
 
-//storages
+            //storages
             if (wf_CheckGet(array('storages'))) {
                 if (wf_CheckPost(array('newstorage'))) {
                     $warehouse->storagesCreate($_POST['newstorage']);
@@ -103,7 +103,7 @@ if (cfr('WAREHOUSE')) {
             }
 
 
-//contractors
+            //contractors
             if (wf_CheckGet(array('contractors'))) {
                 if (wf_CheckPost(array('newcontractor'))) {
                     $warehouse->contractorCreate($_POST['newcontractor']);
@@ -148,7 +148,7 @@ if (cfr('WAREHOUSE')) {
             }
 
 
-//outcoming
+            //outcoming
             if (wf_CheckGet(array('out'))) {
                 if (wf_CheckGet(array('ajods'))) {
                     $avidity_a = $avidity['A']['CHAINSAW'];
@@ -161,7 +161,7 @@ if (cfr('WAREHOUSE')) {
                 }
 
                 if (wf_CheckPost(array('newoutdate', 'newoutdesttype', 'newoutdestparam', 'newoutitemtypeid', 'newoutstorageid', 'newoutcount'))) {
-                    $outCreateResult = $warehouse->outcomingCreate($_POST['newoutdate'], $_POST['newoutdesttype'], $_POST['newoutdestparam'], $_POST['newoutstorageid'], $_POST['newoutitemtypeid'], $_POST['newoutcount'], @$_POST['newoutprice'], @$_POST['newoutnotes'], @$_POST['newoutfromreserve']);
+                    $outCreateResult = $warehouse->outcomingCreate($_POST['newoutdate'], $_POST['newoutdesttype'], $_POST['newoutdestparam'], $_POST['newoutstorageid'], $_POST['newoutitemtypeid'], $_POST['newoutcount'], @$_POST['newoutprice'], @$_POST['newoutnotes'], @$_POST['newoutfromreserve'], @$_POST['newoutnetw']);
                     if (!empty($outCreateResult)) {
                         show_window(__('Something went wrong'), $outCreateResult);
                     } else {
@@ -198,7 +198,7 @@ if (cfr('WAREHOUSE')) {
                 }
             }
 
-//reservation
+            //reservation
             if (wf_CheckGet(array('reserve'))) {
                 if (wf_CheckGet(array('itemtypeid', 'storageid'))) {
                     if (wf_CheckPost(array('newreserveitemtypeid', 'newreservestorageid', 'newreserveemployeeid', 'newreservecount'))) {
@@ -254,14 +254,14 @@ if (cfr('WAREHOUSE')) {
 
                     $reserveControls .= wf_Link($warehouse::URL_ME . '&' . $warehouse::URL_RESERVE . '&reshistory=true', wf_img('skins/time_machine.png', __('History')), false) . ' ';
                     if (ubRouting::checkGet('empidfilter')) {
-                        if (cfr('WAREHOUSEOUTRESERVE') OR cfr('WAREHOUSEOUT')) {
+                        if (cfr('WAREHOUSEOUTRESERVE') or cfr('WAREHOUSEOUT')) {
                             $massOutUrl = $warehouse::URL_ME . '&' . $warehouse::URL_RESERVE . '&massoutemployee=' . ubRouting::get('empidfilter');
                             $reserveControls .= wf_Link($massOutUrl, wf_img('skins/drain_icon.png', __('Mass outcome')), false) . ' ';
                         }
                     }
                     $reserveControls .= wf_Link($warehouse::URL_ME . '&' . $warehouse::URL_RESERVE . '&mass=true', web_icon_create(__('Mass reservation')), false) . ' ';
 
-                    if (!ubRouting::checkGet('mass') AND !ubRouting::checkGet('massoutemployee')) {
+                    if (!ubRouting::checkGet('mass') and !ubRouting::checkGet('massoutemployee')) {
                         if (wf_CheckGet(array('reshistory'))) {
                             show_window(__('Reserve') . ': ' . __('History'), $warehouse->reserveRenderHistory());
                         } else {
@@ -299,7 +299,7 @@ if (cfr('WAREHOUSE')) {
                 }
             }
 
-//viewers
+            //viewers
             if (ubRouting::checkGet('viewers')) {
                 if (ubRouting::checkGet('showinid')) {
                     //editing subroutine
@@ -364,7 +364,7 @@ if (cfr('WAREHOUSE')) {
                 }
             }
 
-//reports
+            //reports
             if (wf_CheckGet(array('reports'))) {
                 if (wf_CheckGet(array('ajaxtremains'))) {
                     $avidity_a = $avidity['A']['SEENOEVIL'];

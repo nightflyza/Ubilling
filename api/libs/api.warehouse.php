@@ -217,6 +217,7 @@ class Warehouse {
     const ROUTE_DELIN = 'incomedelete';
     const PROUTE_MASSRESERVEOUT = 'massoutreserves';
     const PROUTE_MASSAGREEOUT = 'massoutagreement';
+    const PROUTE_MASSNETWOUT = 'massoutnetwcb';
     const PROUTE_DOMASSRESOUT = 'runmassoutreserve';
     const PROUTE_RETURNOUTID = 'newreturnoutcomeid';
     const PROUTE_RETURNSTORAGE = 'newreturnstorageid';
@@ -1335,6 +1336,7 @@ class Warehouse {
                     }
 
                     $form .= wf_TableBody($rows, '100%', 0, 'sortable');
+                    $form .= wf_CheckInput(self::PROUTE_MASSNETWOUT, __('Network'), true, false);
                     $form .= wf_delimiter(0);
                     $massOutAgreement = __('I`m ready') . '. ';
                     $massOutAgreement .= __('I also understand well that no one will correct my mistakes for me and only I bear full financial responsibility for my mistakes') . '.';
@@ -1369,6 +1371,7 @@ class Warehouse {
                     $outDestType = ubRouting::post('newoutdesttype');
                     $outDestParam = ubRouting::post('newoutdestparam');
                     $outResArr = ubRouting::post(self::PROUTE_MASSRESERVEOUT);
+                    $netwFlag = ubRouting::checkPost(self::PROUTE_MASSNETWOUT) ? true : false;
                     $curDate = curdate();
                     if (!empty($outResArr)) {
                         if (is_array($outResArr)) {
@@ -1382,7 +1385,7 @@ class Warehouse {
                                         $price = $eachReserveData['price'];
                                         $defaultNote = ' ' . __('from reserved on') . ' ' . @$this->allEmployee[$employeeId];
                                         $outcomeNote = (!empty($eachReserveData['note'])) ? $defaultNote . ' ' . $eachReserveData['note'] : $defaultNote;
-                                        $eachOutcomeResult = $this->outcomingCreate($curDate, $outDestType, $outDestParam, $storageId, $itemtypeId, $count, $price, $outcomeNote, $eachReserveId);
+                                        $eachOutcomeResult = $this->outcomingCreate($curDate, $outDestType, $outDestParam, $storageId, $itemtypeId, $count, $price, $outcomeNote, $eachReserveId, $netwFlag);
                                         if (!empty($eachOutcomeResult)) {
                                             $itemtypeIssueLabel = __('Problem') . ': ' . $this->allItemTypeNames[$itemtypeId];
                                             $result .= $this->messages->getStyledMessage($itemtypeIssueLabel, 'warning');
@@ -1849,6 +1852,29 @@ class Warehouse {
     }
 
     /**
+     * returns report icon and link
+     * 
+     * @return string
+     */
+    protected function buildReportTask($link, $icon, $text) {
+        $task_link = $link;
+        $task_icon = $icon;
+        $task_text = $text;
+        $tbiconsize = 128;
+
+        $template = wf_tag('div', false, 'dashtask', 'style="height:' . ($tbiconsize + 30) . 'px; width:' . ($tbiconsize + 30) . 'px;"');
+        $template .= wf_tag('a', false, '', 'href="' . $task_link . '"');
+        $template .= wf_img_sized($task_icon, $task_text, $tbiconsize, $tbiconsize);
+        $template .= wf_tag('a', true);
+        $template .= wf_tag('br');
+        $template .= wf_tag('br');
+        $template .= $task_text;
+        $template .= wf_tag('div', true);
+        return ($template);
+    }
+
+
+    /**
      * Renders control panel for whole module
      * 
      * @return string
@@ -1876,16 +1902,19 @@ class Warehouse {
         }
 
         if (cfr('WAREHOUSEREPORTS')) {
-            $reportControls = wf_Link(self::URL_ME . '&' . self::URL_REPORTS . '&calendarops=true', wf_img_sized('skins/icon_calendar.gif') . ' ' . __('Operations in the context of time'), false, 'ubButton');
-            $reportControls .= wf_Link(self::URL_ME . '&' . self::URL_REPORTS . '&dateremains=true', wf_img_sized('skins/icon_batman.png') . ' ' . __('Date remains'), false, 'ubButton');
-            $reportControls .= wf_Link(self::URL_ME . '&' . self::URL_REPORTS . '&storagesremains=true', wf_img_sized('skins/icon_print.png') . ' ' . __('The remains in the warehouse storage'), false, 'ubButton');
-            $reportControls .= wf_Link(self::URL_ME . '&' . self::URL_REPORTS . '&itemtypeoutcomes=true', wf_img_sized('skins/sales.png') . ' ' . __('Sales'), false, 'ubButton');
-            $reportControls .= wf_Link(self::URL_ME . '&' . self::URL_REPORTS . '&purchases=true', wf_img_sized('skins/shopping_cart_small.png') . ' ' . __('Purchases'), false, 'ubButton');
-            $reportControls .= wf_Link(self::URL_ME . '&' . self::URL_REPORTS . '&contractorincomes=true', wf_img_sized('skins/whcontractor_icon.png') . ' ' . __('Contractor'), false, 'ubButton');
-            $reportControls .= wf_Link(WHSales::URL_ME, wf_img_sized('skins/salesreportsmall.png') . ' ' . __('Sales report'), false, 'ubButton');
+            $reportControls = '';
             if (@$this->altCfg['WAREHOUSE_RETURNS_ENABLED']) {
-                $reportControls .= wf_Link(self::URL_ME . '&' . self::URL_REPORTS . '&returns=true', wf_img_sized('skins/return.png') . ' ' . __('Returns'), false, 'ubButton');
+                $reportControls .= $this->buildReportTask(self::URL_ME . '&' . self::URL_REPORTS . '&returns=true', 'skins/taskbar/whreturns.png', __('Returns'));
             }
+
+            $reportControls .= $this->buildReportTask(self::URL_ME . '&' . self::URL_REPORTS . '&calendarops=true', 'skins/taskbar/whcalendar.png', __('Operations in the context of time'));
+            $reportControls .= $this->buildReportTask(self::URL_ME . '&' . self::URL_REPORTS . '&dateremains=true', 'skins/taskbar/whbat.png', __('Date remains'));
+            $reportControls .= $this->buildReportTask(self::URL_ME . '&' . self::URL_REPORTS . '&storagesremains=true', 'skins/taskbar/whremains.png',  __('The remains in the warehouse storage'));
+            $reportControls .= $this->buildReportTask(self::URL_ME . '&' . self::URL_REPORTS . '&itemtypeoutcomes=true', 'skins/taskbar/whsaleold.png', __('Sales'));
+            $reportControls .= $this->buildReportTask(self::URL_ME . '&' . self::URL_REPORTS . '&purchases=true', 'skins/shopping_cart.png', __('Purchases'));
+            $reportControls .= $this->buildReportTask(self::URL_ME . '&' . self::URL_REPORTS . '&contractorincomes=true', 'skins/taskbar/whcontractors.png', __('Contractor'));
+            $reportControls .= $this->buildReportTask(WHSales::URL_ME, 'skins/taskbar/sales.png',  __('Sales report'));
+            $reportControls .= $this->buildReportTask(self::URL_ME . '&' . self::URL_REPORTS . '&netwupgrade=true', 'skins/taskbar/whnetw.png', __('Network upgrade'));
 
             $result .= wf_modalAuto(wf_img('skins/ukv/report.png') . ' ' . __('Reports'), __('Reports'), $reportControls, 'ubButton');
         }
@@ -3182,7 +3211,7 @@ class Warehouse {
                         }
 
                         if ($taskHideAnyoneFlag) {
-                            if ($each['employee']!=$anyOneEmployeeId) {
+                            if ($each['employee'] != $anyOneEmployeeId) {
                                 $tasksTmp[$io] = $jobLabel;
                             }
                         } else {
@@ -3307,6 +3336,7 @@ class Warehouse {
                 $notesPreset = '';
             }
             $inputs .= wf_TextInput('newoutnotes', __('Notes'), $notesPreset, true, 45);
+            $inputs .= wf_CheckInput('newoutnetw', __('Network'), true, false);
 
             $inputs .= wf_tag('br');
             $inputs .= wf_Submit(__('Create'));
@@ -3398,6 +3428,10 @@ class Warehouse {
             $rows .= wf_TableRow($cells, 'row3');
             $cells = wf_TableCell(__('Warehouse storage'), '30%', 'row2');
             $cells .= wf_TableCell($this->allStorages[$operationData['storageid']]);
+            $rows .= wf_TableRow($cells, 'row3');
+            $cells = wf_TableCell(__('Network'), '30%', 'row2');
+            $netLabel = ($operationData['netw']) ? wf_img_sized('skins/icon_active.gif', '', 12) . ' ' . __('Yes') : wf_img_sized('skins/icon_inactive.gif', '', 12) . ' ' . __('No');
+            $cells .= wf_TableCell($netLabel);
             $rows .= wf_TableRow($cells, 'row3');
             $cells = wf_TableCell(__('Worker'), '30%', 'row2');
             $cells .= wf_TableCell($administratorName);
@@ -3569,10 +3603,11 @@ class Warehouse {
      * @param float $price
      * @param string $notes
      * @param int $reserveid
+     * @param bool $netw
      * 
      * @return string not emplty if something went wrong
      */
-    public function outcomingCreate($date, $desttype, $destparam, $storageid, $itemtypeid, $count, $price = '', $notes = '', $reserveid = '') {
+    public function outcomingCreate($date, $desttype, $destparam, $storageid, $itemtypeid, $count, $price = '', $notes = '', $reserveid = '', $netw = false) {
         $result = '';
         $date = mysql_real_escape_string($date);
         $desttype = mysql_real_escape_string($desttype);
@@ -3597,6 +3632,7 @@ class Warehouse {
         if ($fromReserve) {
             $reserveData = $this->reserveGetData($reserveid);
         }
+        $netwF = ($netw) ? 1 : 0;
 
         if (isset($this->allStorages[$storageid])) {
             if (isset($this->allItemTypes[$itemtypeid])) {
@@ -3620,11 +3656,11 @@ class Warehouse {
                         $this->reserveDrain($reserveid, $count);
                     }
                     //creating new outcome
-                    $query = "INSERT INTO `wh_out` (`id`,`date`,`desttype`,`destparam`,`storageid`,`itemtypeid`,`count`,`price`,`notes`,`admin`) VALUES "
-                        . "(NULL,'" . $date . "','" . $desttype . "','" . $destparam . "','" . $storageid . "','" . $itemtypeid . "','" . $countF . "','" . $priceF . "','" . $notes . "','" . $admin . "')";
+                    $query = "INSERT INTO `wh_out` (`id`,`date`,`desttype`,`destparam`,`storageid`,`itemtypeid`,`count`,`price`,`notes`,`netw`,`admin`) VALUES "
+                        . "(NULL,'" . $date . "','" . $desttype . "','" . $destparam . "','" . $storageid . "','" . $itemtypeid . "','" . $countF . "','" . $priceF . "','" . $notes . "','" . $netwF . "','" . $admin . "')";
                     nr_query($query);
                     $newId = simple_get_lastid('wh_out');
-                    log_register('WAREHOUSE OUTCOME CREATE [' . $newId . '] ITEM [' . $itemtypeid . '] COUNT `' . $count . '` PRICE `' . $price . '`');
+                    log_register('WAREHOUSE OUTCOME CREATE [' . $newId . '] ITEM [' . $itemtypeid . '] COUNT `' . $count . '` PRICE `' . $price . '` NET `' . $netwF . '`');
                     //movement of items between different storages
                     if ($desttype == 'storage') {
                         $this->incomingCreate($date, $itemtypeid, 0, $destparam, $count, $price, '', __('from') . ' ' . __('Warehouse storage') . ' `' . $this->allStorages[$storageid] . '`');
