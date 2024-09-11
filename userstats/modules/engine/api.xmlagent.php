@@ -602,6 +602,7 @@ class XMLAgent {
 
         $allrealnames = zbs_UserGetAllRealnames();
         $contract = zbs_UserGetContract($login);
+        $contractDate = zbs_UserGetContractDate($login);
         $email = zbs_UserGetEmail($login);
         $mobile = zbs_UserGetMobile($login);
         $phone = zbs_UserGetPhone($login);
@@ -711,6 +712,7 @@ class XMLAgent {
         $reqResult[] = array('creditexpire' => $credexpire);
         $reqResult[] = array('payid' => strval($paymentid));
         $reqResult[] = array('contract' => $contract);
+        $reqResult[] = array('contractdate' => $contractDate);
         $reqResult[] = array('tariff' => $userdata['Tariff']);
         $reqResult[] = array('tariffalias' => __($userdata['Tariff']));
         $reqResult[] = array('tariffnm' => $tariffNm);
