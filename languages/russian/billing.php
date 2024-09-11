@@ -3531,3 +3531,5 @@ $lang['def']['System load'] = 'Нагрузка на систему';
 $lang['def']['on average'] = 'в среднем';
 $lang['def']['OLT is dead now'] = 'OLT сейчас мертва';
 $lang['def']['Latest'] = 'Последний';
+$lang['def']['Network upgrade report'] = 'Отчет по модернизации сети';
+$lang['def']['Item types spent on network upgrade'] = 'ТМЦ использованные для модернизации сети';

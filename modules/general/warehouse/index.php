@@ -448,6 +448,16 @@ if (cfr('WAREHOUSE')) {
                         show_error(__('Access denied'));
                     }
                 }
+
+                if (ubRouting::checkGet('netwupgrade')) {
+                    if (cfr('WAREHOUSEREPORTS')) {
+                        show_window(__('Item types spent on network upgrade'), $warehouse->renderNetwUpgradeReport());
+                        $avidity_m = $avidity['M']['FALL'];
+                        $warehouse->$avidity_m($warehouse::URL_ME);
+                    } else {
+                        show_error(__('Access denied'));
+                    }
+                }
             }
 
 

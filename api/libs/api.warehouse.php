@@ -1894,10 +1894,11 @@ class Warehouse {
         }
 
         if (cfr('WAREHOUSEDIR')) {
-            $dirControls = wf_Link(self::URL_ME . '&' . self::URL_CATEGORIES, wf_img_sized('skins/categories_icon.png') . ' ' . __('Warehouse categories'), false, 'ubButton');
-            $dirControls .= wf_Link(self::URL_ME . '&' . self::URL_ITEMTYPES, wf_img_sized('skins/folder_icon.png') . ' ' . __('Warehouse item types'), false, 'ubButton');
-            $dirControls .= wf_Link(self::URL_ME . '&' . self::URL_STORAGES, wf_img_sized('skins/whstorage_icon.png') . ' ' . __('Warehouse storages'), false, 'ubButton');
-            $dirControls .= wf_Link(self::URL_ME . '&' . self::URL_CONTRACTORS, wf_img_sized('skins/whcontractor_icon.png') . ' ' . __('Contractors'), false, 'ubButton');
+            $dirControls = '';
+            $dirControls .= $this->buildReportTask(self::URL_ME . '&' . self::URL_CATEGORIES, 'skins/taskbar/whcategories.png', __('Warehouse categories'));
+            $dirControls .= $this->buildReportTask(self::URL_ME . '&' . self::URL_ITEMTYPES, 'skins/taskbar/whitemtypes.png', __('Warehouse item types'));
+            $dirControls .= $this->buildReportTask(self::URL_ME . '&' . self::URL_STORAGES, 'skins/taskbar/whstorage.png', __('Warehouse storages'));
+            $dirControls .= $this->buildReportTask(self::URL_ME . '&' . self::URL_CONTRACTORS, 'skins/taskbar/whcontractors.png', __('Contractors'));
             $result .= wf_modalAuto(web_icon_extended() . ' ' . __('Directories'), __('Directories'), $dirControls, 'ubButton');
         }
 
@@ -1913,8 +1914,8 @@ class Warehouse {
             $reportControls .= $this->buildReportTask(self::URL_ME . '&' . self::URL_REPORTS . '&itemtypeoutcomes=true', 'skins/taskbar/whsaleold.png', __('Sales'));
             $reportControls .= $this->buildReportTask(self::URL_ME . '&' . self::URL_REPORTS . '&purchases=true', 'skins/shopping_cart.png', __('Purchases'));
             $reportControls .= $this->buildReportTask(self::URL_ME . '&' . self::URL_REPORTS . '&contractorincomes=true', 'skins/taskbar/whcontractors.png', __('Contractor'));
+            $reportControls .= $this->buildReportTask(self::URL_ME . '&' . self::URL_REPORTS . '&netwupgrade=true', 'skins/taskbar/whnetw.png', __('Network upgrade report'));
             $reportControls .= $this->buildReportTask(WHSales::URL_ME, 'skins/taskbar/sales.png',  __('Sales report'));
-            $reportControls .= $this->buildReportTask(self::URL_ME . '&' . self::URL_REPORTS . '&netwupgrade=true', 'skins/taskbar/whnetw.png', __('Network upgrade'));
 
             $result .= wf_modalAuto(wf_img('skins/ukv/report.png') . ' ' . __('Reports'), __('Reports'), $reportControls, 'ubButton');
         }
@@ -5013,6 +5014,63 @@ class Warehouse {
         } else {
             show_error(__('Something went wrong'));
         }
+    }
+
+    /**
+     * Renders itemtypes report spent on network upgrades
+     * 
+     * @return string
+     */
+    public function renderNetwUpgradeReport() {
+        $result = '';
+        $reportDataTmp = array();
+        $dateFrom = (ubRouting::checkPost('datefrom')) ? ubRouting::post('datefrom', 'mres') : date("Y-m") . '-01';
+        $dateTo = (ubRouting::checkPost('dateto')) ? ubRouting::post('dateto', 'mres') : date("Y-m-d");
+        $inputs = wf_DatePickerPreset('datefrom', $dateFrom, true) . ' ' . __('From') . ' ';
+        $inputs .= wf_DatePickerPreset('dateto', $dateTo, true) . ' ' . __('To') . ' ';
+        $inputs .= wf_Submit(__('Show'));
+        $result .= wf_Form('', 'POST', $inputs, 'glamour');
+        $result .= wf_delimiter();
+        if ($dateFrom and $dateTo) {
+            if (!empty($this->allOutcoming)) {
+                foreach ($this->allOutcoming as $io => $each) {
+                    if ($each['netw'] and zb_isDateBetween($dateFrom, $dateTo, $each['date'])) {
+                        $itemtypeName = $this->allItemTypeNames[$each['itemtypeid']];
+                        if (isset($reportDataTmp[$itemtypeName])) {
+                            $reportDataTmp[$itemtypeName]['count'] += $each['count'];
+                            $reportDataTmp[$itemtypeName]['price'] += $each['price'];
+                        } else {
+                            $reportDataTmp[$itemtypeName]['count'] = $each['count'];
+                            $reportDataTmp[$itemtypeName]['price'] = $each['price'];
+                        }
+                    }
+                }
+
+                if (!empty($reportDataTmp)) {
+                    $cells = wf_TableCell(__('Category'));
+                    $cells .= wf_TableCell(__('Warehouse item types'));
+                    $cells .= wf_TableCell(__('Count'));
+                    $cells .= wf_TableCell(__('Price'));
+                    $rows = wf_TableRow($cells, 'row1');
+                    foreach ($reportDataTmp as $eachItemType => $eachOutData) {
+                        $cells = wf_TableCell($eachItemType);
+                        $cells .= wf_TableCell($eachItemType);
+                        $cells .= wf_TableCell($eachOutData['count']);
+                        $cells .= wf_TableCell($eachOutData['price']);
+                        $rows .= wf_TableRow($cells, 'row5');
+                    }
+                    $result .= wf_TableBody($rows, '100%', 0, 'sortable');
+                } else {
+                    $result .= $this->messages->getStyledMessage(__('Nothing found'), 'warning');
+                }
+            } else {
+                $result .= $this->messages->getStyledMessage(__('No outcoming operations yet'), 'error');
+            }
+        } else {
+            $result .= $this->messages->getStyledMessage(__('Something went wrong'), 'error');
+        }
+
+        return ($result);
     }
 
     /**
