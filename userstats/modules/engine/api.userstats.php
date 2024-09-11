@@ -595,6 +595,29 @@ function zbs_UserGetContract($login) {
 }
 
 /**
+ * Returns contract date by user login or contract value
+ *
+ * @param string $login
+ * @param string $contract
+ *
+ * @return string
+ */
+function zbs_UserGetContractDate($login, $contract = '') {
+    if (!empty($contract)) {
+        $contract = ubRouting::filters($contract, 'mres');
+        $query = "SELECT `date` FROM `contractdates` WHERE `contract` = '" . $contract . "'";
+    } elseif (!empty($login)) {
+        $login = ubRouting::filters($login, 'login');
+        $query = "SELECT `contractdates`.`date` FROM `contracts`
+                    LEFT JOIN `contractdates` ON `contracts`.`contract` = `contractdates`.`contract` 
+                  WHERE `contracts`.`login` = '" . $login . "'";
+    }
+
+    $contract_date_arr = simple_query($query);
+    return ($contract_date_arr['date']);
+}
+
+/**
  * Returns email address by user login
  * 
  * @param string $login
