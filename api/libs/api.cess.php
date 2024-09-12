@@ -153,20 +153,36 @@ function zb_ContrAhentDelete($id) {
  * @return array
  */
 function zb_ContrAhentGetData($id) {
-    $id = vf($id);
-    $query = "SELECT * from `contrahens` WHERE `id`='" . $id . "'";
-    $result = simple_query($query);
-    return($result);
+    $id = ubRouting::filters($id, 'int');
+    $result = array();
+    $agentsDb = new NyanORM('contrahens');
+    $agentsDb->where('id', '=', $id);
+    $raw = $agentsDb->getAll();
+    if (!empty($raw)) {
+        $result = $raw[0];
+    }
+    return ($result);
 }
 
 /**
- * Returns full contrahent data array
+ * Returns full contrahent data as raw array or assoc array
  * 
  * @return array
  */
 function zb_ContrAhentGetAllData() {
-    $query = "SELECT * from `contrahens`";
-    $result = simple_queryall($query);
+    $agentsDb = new NyanORM('contrahens');
+    $result = $agentsDb->getAll();
+    return ($result);
+}
+
+/**
+ * Returns full contrahent data array as id=>agentData
+ * 
+ * @return array
+ */
+function zb_ContrAhentGetAllDataAssoc() {
+    $agentsDb = new NyanORM('contrahens');
+    $result = $agentsDb->getAll('id');
     return ($result);
 }
 
@@ -215,7 +231,7 @@ function zb_ContrAhentShow() {
         $result = web_GridEditor($titles, $keys, $allcontr, 'contrahens', true, true, '', '', '', true);
     }
 
-    return($result);
+    return ($result);
 }
 
 /**
@@ -243,11 +259,11 @@ function zb_ContrAhentAddForm() {
     $inputs .= wf_TextInput('newagbasis', __('Basis'), '', false, '', '', '', '', '', true);
     $inputs .= wf_TextInput('newagmail', __('Mail'), '', false, '', '', '', '', '', true, 'email');
     $inputs .= wf_TextInput('newsiteurl', __('Site URL'), '', false, '', '', '', '', '', true, 'url');
-    $inputs.= wf_SubmitClassed(true, 'ubButton', '', __('Create'));
+    $inputs .= wf_SubmitClassed(true, 'ubButton', '', __('Create'));
 
     $result = wf_Form("", 'POST', $inputs, 'glamour form-grid-2cols form-grid-2cols-label-right labels-top');
 
-    return($result);
+    return ($result);
 }
 
 /**
@@ -280,7 +296,7 @@ function zb_ContrAhentEditForm($ahentid) {
     $inputs .= wf_TextInput('changeagmail', __('Mail'), $cdata['agmail'], false, '', 'email', '', '', '', true);
     $inputs .= wf_TextInput('changesiteurl', __('Site URL'), $cdata['siteurl'], false, '', 'url', '', '', '', true);
 
-    $inputs.= wf_SubmitClassed(true, 'ubButton', '', __('Save'));
+    $inputs .= wf_SubmitClassed(true, 'ubButton', '', __('Save'));
     $result = wf_Form("", 'POST', $inputs, 'glamour form-grid-2cols form-grid-2cols-label-right labels-top');
 
     return ($result);
@@ -319,7 +335,7 @@ function zb_ContrAhentSelectPreset($currentId = '') {
         }
     }
     $select = wf_Selector('ahentsel', $tmpArr, '', $currentId, false);
-    return($select);
+    return ($select);
 }
 
 /**
@@ -332,7 +348,7 @@ function zb_ContrAhentSelectPreset($currentId = '') {
 function zb_AgentAssignGetAllData($order = '') {
     $query = "SELECT * from `ahenassign` " . $order;
     $allassigns = simple_queryall($query);
-    return($allassigns);
+    return ($allassigns);
 }
 
 /**
@@ -392,10 +408,10 @@ function web_AgentAssignForm() {
     $inputs = zb_ContrAhentSelect();
     //$inputs .= wf_tag('br');
     $inputs .= wf_TextInput('newassign', __('Street name') . $sup, '', false, '', '', '', '', '', true);
-    $inputs.= wf_SubmitClassed(true, 'ubButton', '', __('Save'));
+    $inputs .= wf_SubmitClassed(true, 'ubButton', '', __('Save'));
     $result = wf_Form("", 'POST', $inputs, 'glamour form-grid-2cols form-grid-2cols-label-right labels-top');
 
-    return($result);
+    return ($result);
 }
 
 /**
@@ -433,7 +449,7 @@ function web_AgentAssignShow() {
         }
     }
     $result = wf_TableBody($rows, '100%', '0', 'sortable');
-    return($result);
+    return ($result);
 }
 
 /**
@@ -480,7 +496,7 @@ function web_AgentAssignStrictShow() {
     }
     $result = wf_TableBody($rows, '100%', '0', 'sortable');
     $result .= __('Total') . ': ' . $countTotal;
-    return($result);
+    return ($result);
 }
 
 /**
@@ -517,7 +533,7 @@ function zb_AgentAssignCheckLogin($login, $allassigns, $alladdress) {
     if (!$alter_cfg['AGENTS_ASSIGN']) {
         $result = $alter_cfg['DEFAULT_ASSIGN_AGENT'];
     }
-    return($result);
+    return ($result);
 }
 
 /**
@@ -570,7 +586,7 @@ function zb_AgentAssignCheckLoginFast($login, $allassigns, $address, $allassigns
         $result = $alter_cfg['DEFAULT_ASSIGN_AGENT'];
     }
 
-    return($result);
+    return ($result);
 }
 
 /**
@@ -581,7 +597,7 @@ function zb_AgentAssignCheckLoginFast($login, $allassigns, $address, $allassigns
  */
 function zb_ExportLoadTemplate($filename) {
     $template = file_get_contents($filename);
-    return($template);
+    return ($template);
 }
 
 /**
@@ -597,7 +613,7 @@ function zb_ExportTariffsLoadAll() {
             $result[$eachuser['login']] = $eachuser['Tariff'];
         }
     }
-    return($result);
+    return ($result);
 }
 
 /**
@@ -632,7 +648,7 @@ function zb_ExportContractsLoadAll() {
         }
     }
 
-    return($result);
+    return ($result);
 }
 
 /**
@@ -647,7 +663,7 @@ function zb_ExportParseTemplate($templatebody, $templatedata) {
     foreach ($templatedata as $field => $data) {
         $templatebody = str_ireplace($field, $data, $templatebody);
     }
-    return($templatebody);
+    return ($templatebody);
 }
 
 /**
@@ -664,7 +680,7 @@ function zb_ExportAgentsLoadAll() {
             @$result[$eachagent['id']]['edrpo'] = $eachagent['edrpo'];
             @$result[$eachagent['id']]['bankacc'] = $eachagent['bankacc'];
         }
-        return($result);
+        return ($result);
     }
 }
 
@@ -683,7 +699,7 @@ function zb_ExportForm() {
     $inputs .= wf_DatePickerPreset('todate', $curdate);
     $inputs .= wf_Submit('Export');
     $form = wf_Form("", 'POST', $inputs, 'glamour');
-    return($form);
+    return ($form);
 }
 
 /**
@@ -805,7 +821,7 @@ function zb_ExportPayments($from_date, $to_date) {
     if ($import_encoding != $export_encoding) {
         $export_result = iconv($import_encoding, $export_encoding, $export_result);
     }
-    return($export_result);
+    return ($export_result);
 }
 
 /**
@@ -820,7 +836,7 @@ function zb_AgentAssignedGetData($login) {
     $alladdress = zb_AddressGetFulladdresslist();
     $assigned_agent = zb_AgentAssignCheckLogin($login, $allassigns, $alladdress);
     $result = zb_ContrAhentGetData($assigned_agent);
-    return($result);
+    return ($result);
 }
 
 /**
@@ -835,7 +851,7 @@ function zb_AgentAssignedGetDataFast($login, $address) {
     $allassignsStrict = zb_AgentAssignStrictGetAllData();
     $assigned_agent = zb_AgentAssignCheckLoginFast($login, $allassigns, $address, $allassignsStrict);
     $result = zb_ContrAhentGetData($assigned_agent);
-    return($result);
+    return ($result);
 }
 
 /**
@@ -849,7 +865,7 @@ function zb_PaymentGetData($paymentid) {
     $result = array();
     $query = "SELECT * from `payments` WHERE `id`='" . $paymentid . "'";
     $result = simple_query($query);
-    return($result);
+    return ($result);
 }
 
 /**
@@ -859,7 +875,7 @@ function zb_PaymentGetData($paymentid) {
  */
 function zb_PrintCheckLoadTemplate() {
     $template = file_get_contents(CONFIG_PATH . 'printcheck.tpl');
-    return($template);
+    return ($template);
 }
 
 /**
@@ -966,7 +982,7 @@ function zb_PrintCheck($paymentid, $realpaymentId = false) {
 
     //parsing result
     $result = zb_ExportParseTemplate($templatebody, $templatedata);
-    return($result);
+    return ($result);
 }
 
 /**
@@ -985,7 +1001,7 @@ function zb_RegContrAhentSelect($name, $selected = '') {
         }
     }
     $select = wf_Selector($name, $agentArr, '', $selected, false);
-    return($select);
+    return ($select);
 }
 
 /**
@@ -1091,14 +1107,14 @@ function zb_AgentStatsRender($mask = '') {
         if (!empty($tmpArr)) {
             foreach ($tmpArr as $eachUser => $eachAgentId) {
                 $userData = $allUsers[$eachUser];
-                if (($userData['Cash'] >= '-' . $userData['Credit']) AND ( $userData['AlwaysOnline'] == 1) AND ( $userData['Passive'] == 0) AND ( $userData['Down'] == 0)) {
+                if (($userData['Cash'] >= '-' . $userData['Credit']) and ($userData['AlwaysOnline'] == 1) and ($userData['Passive'] == 0) and ($userData['Down'] == 0)) {
                     $active = 1;
                 } else {
                     $active = 0;
                 }
 
                 if (isset($agentCounters[$eachAgentId])) {
-                    $agentCounters[$eachAgentId]['total'] ++;
+                    $agentCounters[$eachAgentId]['total']++;
                     $agentCounters[$eachAgentId]['active'] += $active;
                 } else {
                     $agentCounters[$eachAgentId]['total'] = 1;
@@ -1108,7 +1124,7 @@ function zb_AgentStatsRender($mask = '') {
                 if (!empty($mask)) {
                     if (ispos($userData['Tariff'], $mask)) {
                         if (isset($maskCounters[$eachAgentId][$mask])) {
-                            $maskCounters[$eachAgentId][$mask]['all'] ++;
+                            $maskCounters[$eachAgentId][$mask]['all']++;
                             $maskCounters[$eachAgentId][$mask]['active'] += $active;
                         } else {
                             $maskCounters[$eachAgentId][$mask]['all'] = 1;
@@ -1143,7 +1159,7 @@ function zb_AgentStatsRender($mask = '') {
             $result .= $messages->getStyledMessage(__('Nothing to show'), 'warning');
         }
     }
-    return($result);
+    return ($result);
 }
 
 /**
@@ -1160,13 +1176,25 @@ function zb_GetAgentExtInfo($recID = '', $agentID = '', $getBaseAgentInfo = fals
     $tabAgentExtInfo = new NyanORM('contrahens_extinfo');
 
     if ($getBaseAgentInfo) {
-        $tabAgentExtInfo->selectable(array('`contrahens_extinfo`.*',
-                                           '`contrahens`.`bankacc`', '`contrahens`.`bankname`', '`contrahens`.`bankcode`',
-                                           '`contrahens`.`edrpo`', '`contrahens`.`ipn`', '`contrahens`.`licensenum`',
-                                           '`contrahens`.`juraddr`', '`contrahens`.`phisaddr`', '`contrahens`.`phone`',
-                                           '`contrahens`.`contrname`', '`contrahens`.`agnameabbr`', '`contrahens`.`agsignatory`',
-                                           '`contrahens`.`agsignatory2`', '`contrahens`.`agbasis`', '`contrahens`.`agmail`', '`contrahens`.`siteurl`'
-                                    ));
+        $tabAgentExtInfo->selectable(array(
+            '`contrahens_extinfo`.*',
+            '`contrahens`.`bankacc`',
+            '`contrahens`.`bankname`',
+            '`contrahens`.`bankcode`',
+            '`contrahens`.`edrpo`',
+            '`contrahens`.`ipn`',
+            '`contrahens`.`licensenum`',
+            '`contrahens`.`juraddr`',
+            '`contrahens`.`phisaddr`',
+            '`contrahens`.`phone`',
+            '`contrahens`.`contrname`',
+            '`contrahens`.`agnameabbr`',
+            '`contrahens`.`agsignatory`',
+            '`contrahens`.`agsignatory2`',
+            '`contrahens`.`agbasis`',
+            '`contrahens`.`agmail`',
+            '`contrahens`.`siteurl`'
+        ));
         $tabAgentExtInfo->joinOn('LEFT', 'contrahens', " `contrahens_extinfo`.`agentid` = `contrahens`.`id` ");
     }
 
@@ -1202,21 +1230,31 @@ function zb_GetAgentExtInfo($recID = '', $agentID = '', $getBaseAgentInfo = fals
  * @return void
  * @throws Exception
  */
-function zb_CreateAgentExtInfoRec($extinfoAgentID, $extinfoSrvType = '', $extinfoPaySysName = '', $extinfoPaySysID = '', $extinfoPaySysSrvID = '',
-                                  $extinfoPaySysToken = '', $extinfoPaySysSecretKey = '', $extinfoPaySysPassword  = '', $extinfoPaySysCallbackURL  = '') {
+function zb_CreateAgentExtInfoRec(
+    $extinfoAgentID,
+    $extinfoSrvType = '',
+    $extinfoPaySysName = '',
+    $extinfoPaySysID = '',
+    $extinfoPaySysSrvID = '',
+    $extinfoPaySysToken = '',
+    $extinfoPaySysSecretKey = '',
+    $extinfoPaySysPassword  = '',
+    $extinfoPaySysCallbackURL  = ''
+) {
     $tabAgentExtInfo = new NyanORM('contrahens_extinfo');
-    $tabAgentExtInfo->dataArr(array(
-                                    'agentid'                   => $extinfoAgentID,
-                                    'service_type'              => $extinfoSrvType,
-                                    'internal_paysys_name'      => $extinfoPaySysName,
-                                    'internal_paysys_id'        => $extinfoPaySysID,
-                                    'internal_paysys_srv_id'    => $extinfoPaySysSrvID,
-                                    'paysys_token'              => $extinfoPaySysToken,
-                                    'paysys_secret_key'         => $extinfoPaySysSecretKey,
-                                    'paysys_password'           => $extinfoPaySysPassword,
-                                    'paysys_callback_url'       => $extinfoPaySysCallbackURL
-                                    )
-                            );
+    $tabAgentExtInfo->dataArr(
+        array(
+            'agentid'                   => $extinfoAgentID,
+            'service_type'              => $extinfoSrvType,
+            'internal_paysys_name'      => $extinfoPaySysName,
+            'internal_paysys_id'        => $extinfoPaySysID,
+            'internal_paysys_srv_id'    => $extinfoPaySysSrvID,
+            'paysys_token'              => $extinfoPaySysToken,
+            'paysys_secret_key'         => $extinfoPaySysSecretKey,
+            'paysys_password'           => $extinfoPaySysPassword,
+            'paysys_callback_url'       => $extinfoPaySysCallbackURL
+        )
+    );
 
     $tabAgentExtInfo->create();
     $recID = $tabAgentExtInfo->getLastId();
@@ -1240,22 +1278,33 @@ function zb_CreateAgentExtInfoRec($extinfoAgentID, $extinfoSrvType = '', $extinf
  * @return void
  * @throws Exception
  */
-function zb_EditAgentExtInfoRec($recID, $extinfoAgentID, $extinfoSrvType = '', $extinfoPaySysName = '', $extinfoPaySysID = '', $extinfoPaySysSrvID = '',
-                                $extinfoPaySysToken = '', $extinfoPaySysSecretKey = '', $extinfoPaySysPassword  = '', $extinfoPaySysCallbackURL  = '') {
+function zb_EditAgentExtInfoRec(
+    $recID,
+    $extinfoAgentID,
+    $extinfoSrvType = '',
+    $extinfoPaySysName = '',
+    $extinfoPaySysID = '',
+    $extinfoPaySysSrvID = '',
+    $extinfoPaySysToken = '',
+    $extinfoPaySysSecretKey = '',
+    $extinfoPaySysPassword  = '',
+    $extinfoPaySysCallbackURL  = ''
+) {
     $tabAgentExtInfo = new NyanORM('contrahens_extinfo');
-    $tabAgentExtInfo->dataArr(array(
-                                    'id'                        => $recID,
-                                    'agentid'                   => $extinfoAgentID,
-                                    'service_type'              => $extinfoSrvType,
-                                    'internal_paysys_name'      => $extinfoPaySysName,
-                                    'internal_paysys_id'        => $extinfoPaySysID,
-                                    'internal_paysys_srv_id'    => $extinfoPaySysSrvID,
-                                    'paysys_token'              => $extinfoPaySysToken,
-                                    'paysys_secret_key'         => $extinfoPaySysSecretKey,
-                                    'paysys_password'           => $extinfoPaySysPassword,
-                                    'paysys_callback_url'       => $extinfoPaySysCallbackURL
-                                    )
-                            );
+    $tabAgentExtInfo->dataArr(
+        array(
+            'id'                        => $recID,
+            'agentid'                   => $extinfoAgentID,
+            'service_type'              => $extinfoSrvType,
+            'internal_paysys_name'      => $extinfoPaySysName,
+            'internal_paysys_id'        => $extinfoPaySysID,
+            'internal_paysys_srv_id'    => $extinfoPaySysSrvID,
+            'paysys_token'              => $extinfoPaySysToken,
+            'paysys_secret_key'         => $extinfoPaySysSecretKey,
+            'paysys_password'           => $extinfoPaySysPassword,
+            'paysys_callback_url'       => $extinfoPaySysCallbackURL
+        )
+    );
     $tabAgentExtInfo->where('id', '=', $recID);
     $tabAgentExtInfo->save(true, true);
 
@@ -1335,18 +1384,18 @@ function zb_AgentEditExtInfoForm($recID = '') {
     }
 
     $inputs = wf_Selector('extinfsrvtype', array('Internet' => __('Internet'), 'UKV' => __('UKV')), __('Choose service type'), $extinfoSrvType, false, false, $srvtypeSelectorID, '', '', true);
-    $inputs.= ($extinfoEditMode) ? '' : wf_Selector('extinfoppaysys', $allPaySys, __('You may select OpenPayz payment system name'), '', false, false, $openpayzSelectorID, '', '', true);
-    $inputs.= wf_TextInput('extinfintpaysysname', __('Payment system name'), $extinfoPaySysName, false, '', '', '', $paysysControlID, '', true);
-    $inputs.= wf_TextInput('extinfintpaysysid', __('Contragent code within payment system'), $extinfoPaySysID, false, '', '', '', '', '', true);
-    $inputs.= wf_TextInput('extinfintpaysyssrvid', __('Service code within payment system'), $extinfoPaySysSrvID, false, '', '', '', '', '', true);
-    $inputs.= wf_TextInput('extinfintpaysystoken', __('Service token'), $extinfoPaySysToken, false, '', '', '', '', '', true);
-    $inputs.= wf_TextInput('extinfintpaysyskey', __('Service secret key'), $extinfoPaySysSecretKey, false, '', '', '', '', '', true);
-    $inputs.= wf_TextInput('extinfintpaysyspasswd', __('Service password'), $extinfoPaySysPassword, false, '50', '', '', '', '', true);
-    $inputs.= wf_TextInput('extinfintpaysyscallbackurl', __('Service callback URL'), $extinfoPaySysCallbackURL, false, '', 'url', '', '', '', true);
-    $inputs.= wf_HiddenInput('extinfrecid', $extinfoRecID);
-    $inputs.= wf_HiddenInput('extinfagentid', $extinfoAgentID);
-    $inputs.= wf_HiddenInput('extinfeditmode', $extinfoEditMode);
-    $inputs.= wf_SubmitClassed(true, 'ubButton', '', ($extinfoEditMode) ? __('Edit') : __('Create'));
+    $inputs .= ($extinfoEditMode) ? '' : wf_Selector('extinfoppaysys', $allPaySys, __('You may select OpenPayz payment system name'), '', false, false, $openpayzSelectorID, '', '', true);
+    $inputs .= wf_TextInput('extinfintpaysysname', __('Payment system name'), $extinfoPaySysName, false, '', '', '', $paysysControlID, '', true);
+    $inputs .= wf_TextInput('extinfintpaysysid', __('Contragent code within payment system'), $extinfoPaySysID, false, '', '', '', '', '', true);
+    $inputs .= wf_TextInput('extinfintpaysyssrvid', __('Service code within payment system'), $extinfoPaySysSrvID, false, '', '', '', '', '', true);
+    $inputs .= wf_TextInput('extinfintpaysystoken', __('Service token'), $extinfoPaySysToken, false, '', '', '', '', '', true);
+    $inputs .= wf_TextInput('extinfintpaysyskey', __('Service secret key'), $extinfoPaySysSecretKey, false, '', '', '', '', '', true);
+    $inputs .= wf_TextInput('extinfintpaysyspasswd', __('Service password'), $extinfoPaySysPassword, false, '50', '', '', '', '', true);
+    $inputs .= wf_TextInput('extinfintpaysyscallbackurl', __('Service callback URL'), $extinfoPaySysCallbackURL, false, '', 'url', '', '', '', true);
+    $inputs .= wf_HiddenInput('extinfrecid', $extinfoRecID);
+    $inputs .= wf_HiddenInput('extinfagentid', $extinfoAgentID);
+    $inputs .= wf_HiddenInput('extinfeditmode', $extinfoEditMode);
+    $inputs .= wf_SubmitClassed(true, 'ubButton', '', ($extinfoEditMode) ? __('Edit') : __('Create'));
 
     if (!$extinfoEditMode) {
         $tmpJS = "
@@ -1373,7 +1422,7 @@ function zb_AgentEditExtInfoForm($recID = '') {
 
     $result = wf_Form("", 'POST', $inputs, 'glamour form-grid-2cols form-grid-2cols-label-right labels-top');
 
-    return($result);
+    return ($result);
 }
 
 /**
@@ -1414,7 +1463,5 @@ function zb_RenderAgentExtInfoTable($agentID) {
 
     $result = web_GridEditor($titles, $keys, $extinfoData, 'contrahens&extinfo=' . $agentID, true, true);
 
-    return($result);
+    return ($result);
 }
-
-?>
