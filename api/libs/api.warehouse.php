@@ -5042,6 +5042,7 @@ class Warehouse {
                         } else {
                             $reportDataTmp[$itemtypeName]['count'] = $each['count'];
                             $reportDataTmp[$itemtypeName]['price'] = $each['price'];
+                            $reportDataTmp[$itemtypeName]['itemtypeid'] = $each['itemtypeid'];
                         }
                     }
                 }
@@ -5053,7 +5054,8 @@ class Warehouse {
                     $cells .= wf_TableCell(__('Price'));
                     $rows = wf_TableRow($cells, 'row1');
                     foreach ($reportDataTmp as $eachItemType => $eachOutData) {
-                        $cells = wf_TableCell($eachItemType);
+                        $eachItemCatetogy=$this->allCategories[$this->allItemTypes[$eachOutData['itemtypeid']]['categoryid']];
+                        $cells = wf_TableCell($eachItemCatetogy);
                         $cells .= wf_TableCell($eachItemType);
                         $cells .= wf_TableCell($eachOutData['count']);
                         $cells .= wf_TableCell($eachOutData['price']);
