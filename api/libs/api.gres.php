@@ -39,7 +39,17 @@ class GRes {
      */
     protected $fullAgentData = array();
 
+    /**
+     * Contains all address based assigns as agentId=>street
+     *
+     * @var array
+     */
     protected $allAssigns = array();
+    /**
+     * Contains all available strict assigns as login=>agentId
+     *
+     * @var array
+     */
     protected $allAssignsStrict = array();
 
     /**
@@ -48,6 +58,13 @@ class GRes {
      * @var object
      */
     protected $messages = '';
+
+    /**
+     * Avarice instance placeholder
+     *
+     * @var object
+     */
+    protected $avarice='';
 
     // ⠸⣿⣦⣄⡀⠀⠀⠀⠀⠀⠀⠀⠀⡠⠔⠒⠒⠒⢤⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
     // ⠀⠙⠻⣿⣷⣦⣀⠀⠀⠀⢀⣾⣷⠀⠘⠀⠀⠀⠙⢆⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
@@ -157,7 +174,6 @@ class GRes {
                 }
             }
         }
-        debarr($this->fullAgentData);
     }
 
     /**
@@ -179,6 +195,22 @@ class GRes {
         if (isset($this->allAgents[$assignedAgentId])) {
             $result = $this->allAgents[$assignedAgentId];
         }
+        return ($result);
+    }
+
+
+    /**
+     * Returns some runtime array
+     *
+     * @param string $name
+     * 
+     * @return array
+     */
+    public function getRuntime($name) {
+        if (empty($this->avarice)) {
+            $this->avarice=new Avarice();
+        }
+        $result=$this->avarice->runtime($name);
         return ($result);
     }
 }
