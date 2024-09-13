@@ -157,6 +157,7 @@ class GRes {
                 }
             }
         }
+        debarr($this->fullAgentData);
     }
 
     /**
