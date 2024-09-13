@@ -5024,6 +5024,7 @@ class Warehouse {
     public function renderNetwUpgradeReport() {
         $result = '';
         $reportDataTmp = array();
+        $totalPrice = 0;
         $dateFrom = (ubRouting::checkPost('datefrom')) ? ubRouting::post('datefrom', 'mres') : date("Y-m") . '-01';
         $dateTo = (ubRouting::checkPost('dateto')) ? ubRouting::post('dateto', 'mres') : date("Y-m-d");
         $inputs = wf_DatePickerPreset('datefrom', $dateFrom, true) . ' ' . __('From') . ' ';
@@ -5054,14 +5055,16 @@ class Warehouse {
                     $cells .= wf_TableCell(__('Price'));
                     $rows = wf_TableRow($cells, 'row1');
                     foreach ($reportDataTmp as $eachItemType => $eachOutData) {
-                        $eachItemCatetogy=$this->allCategories[$this->allItemTypes[$eachOutData['itemtypeid']]['categoryid']];
+                        $eachItemCatetogy = $this->allCategories[$this->allItemTypes[$eachOutData['itemtypeid']]['categoryid']];
                         $cells = wf_TableCell($eachItemCatetogy);
                         $cells .= wf_TableCell($eachItemType);
                         $cells .= wf_TableCell($eachOutData['count']);
                         $cells .= wf_TableCell($eachOutData['price']);
                         $rows .= wf_TableRow($cells, 'row5');
+                        $totalPrice += $eachOutData['price'];
                     }
                     $result .= wf_TableBody($rows, '100%', 0, 'sortable');
+                    $result .= __('Total cost') . ': ' . round($totalPrice, 2);
                 } else {
                     $result .= $this->messages->getStyledMessage(__('Nothing found'), 'warning');
                 }
