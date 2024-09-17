@@ -354,7 +354,18 @@ class UserSideApi {
      * @return void
      */
     protected function loadBuilds() {
-        $query = "SELECT * from `build`";
+        if (@$this->altCfg['DEAD_HIDE'] AND @ $this->altCfg['DEAD_HIDE_USERSIDE'] AND @ $this->altCfg['DEAD_HIDE_BUILDS_USERSIDE']) {
+            $query = "SELECT `build`.* from `address`
+            LEFT JOIN `apt` ON (`address`.`aptid`=`apt`.`id`)
+            LEFT JOIN `build` ON (`apt`.`buildid` = `build`.`id`)
+            WHERE `apt`.`id` IS NOT NULL
+            AND `address`.`login` NOT IN (SELECT login FROM `tags` WHERE `tagid` = '" . vf($this->altCfg['DEAD_TAGID'], 3) . "')
+            GROUP BY `build`.`id`
+            ";
+        } else {
+            $query = "SELECT * from `build`";
+        }
+
         $all = simple_queryall($query);
         if (!empty($all)) {
             foreach ($all as $io => $each) {
