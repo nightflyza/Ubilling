@@ -479,9 +479,9 @@ class CustomFields {
     /**
      * Returns user custom field content depends on its type
      * 
-     * @param int $typeId
+     * @param int $typeId existing CF type ID
      * 
-     * @return string
+     * @return string|void
      */
     public function getUserFieldContent($typeId) {
         $result = '';
