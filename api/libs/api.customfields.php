@@ -483,7 +483,7 @@ class CustomFields {
      * 
      * @return string
      */
-    protected function getUserFieldContent($typeId) {
+    public function getUserFieldContent($typeId) {
         $result = '';
         if (isset($this->userFieldsData[$typeId])) {
             $result .= $this->userFieldsData[$typeId]['content'];
