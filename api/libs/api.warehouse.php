@@ -2817,7 +2817,7 @@ class Warehouse {
      */
     public function incomingSaveChanges() {
         $result = '';
-        if (ubRouting::checkPost(array('editincomeid', 'newindate', 'edincontractorid', 'edinstorageid', 'edincount'))) {
+        if (ubRouting::checkPost(array('editincomeid', 'newindate', 'edinstorageid', 'edincount'))) {
             $id = ubRouting::post('editincomeid', 'int');
             if ($this->isIncomeEditable($id)) {
                 if ($this->altCfg['WAREHOUSE_INEDT_ENABLED']) {
