@@ -2785,12 +2785,16 @@ class Warehouse {
             if ($inData['contractorid'] != 0) {
                 //normal income
                 $inputs .= wf_Selector('edincontractorid', $this->allContractors, __('Contractor'), $inData['contractorid'], false);
+                $inputs .= wf_tag('br');
+                $inputs .= wf_Selector('edinstorageid', $this->allStorages, __('Warehouse storage'), $inData['storageid'], false);
             } else {
                 //storage move operation
                 $inputs .= wf_HiddenInput('edincontractorid', $inData['contractorid']) . ' ' . __('Contractor') . ': ' . $inData['notes'];
+                $inputs .= wf_tag('br');
+                $inputs .= wf_HiddenInput('edinstorageid',  $inData['storageid']) . ' ' . __('Storage') . ': ' . $this->allStorages[$inData['storageid']];
             }
-            $inputs .= wf_tag('br');
-            $inputs .= wf_Selector('edinstorageid', $this->allStorages, __('Warehouse storage'), $inData['storageid'], false);
+
+
             $inputs .= wf_tag('br');
             $inputs .= wf_TextInput('edincount', __('Count'), $inData['count'], false, 5, 'float');
             $inputs .= wf_tag('br');
