@@ -2782,7 +2782,13 @@ class Warehouse {
             $inputs .= wf_DatePickerPreset('newindate', $inData['date']);
             $inputs .= wf_tag('br');
             $inputs .= wf_HiddenInput('editincomeid', $id);
-            $inputs .= wf_Selector('edincontractorid', $this->allContractors, __('Contractor'), $inData['contractorid'], false);
+            if ($inData['contractorid'] != 0) {
+                //normal income
+                $inputs .= wf_Selector('edincontractorid', $this->allContractors, __('Contractor'), $inData['contractorid'], false);
+            } else {
+                //storage move operation
+                $inputs .= wf_HiddenInput('edincontractorid', $inData['contractorid']) . ' ' . __('Contractor') . ': ' . $inData['notes'];
+            }
             $inputs .= wf_tag('br');
             $inputs .= wf_Selector('edinstorageid', $this->allStorages, __('Warehouse storage'), $inData['storageid'], false);
             $inputs .= wf_tag('br');
@@ -2862,7 +2868,7 @@ class Warehouse {
         $id = ubRouting::filters($id, 'int');
         if ($this->isIncomeEditable($id)) {
             if (@$this->altCfg['WAREHOUSE_INEDT_ENABLED']) {
-                $incomeData = $this->allOutcoming[$id];
+                $incomeData = $this->allIncoming[$id];
                 $itemtypeId = $incomeData['itemtypeid'];
                 $count = $incomeData['count'];
                 $price = $incomeData['price'];
