@@ -64,12 +64,41 @@ class GRes {
      *
      * @var object
      */
-    protected $avarice='';
+    protected $avarice = '';
+
+    /**
+     * Strategy database abstraction layer
+     *
+     * @var object
+     */
+    protected $strategyDb = '';
+
+    /**
+     * Strategy specs database abstraction layer
+     *
+     * @var object
+     */
+    protected $specsDb = '';
+
+    /**
+     * Contains existing strategies full data as stratId=>data/specs
+     *
+     * @var array
+     */
+    protected $allStrategies=array();
+
+    /**
+     * some predefined stuff here
+     */
+    const TABLE_STRATEGY = 'gr_strat';
+    const TABLE_SPECS = 'gr_spec';
+    const URL_ME = '?module=gooseresistance';
+
 
     // ⠸⣿⣦⣄⡀⠀⠀⠀⠀⠀⠀⠀⠀⡠⠔⠒⠒⠒⢤⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
     // ⠀⠙⠻⣿⣷⣦⣀⠀⠀⠀⢀⣾⣷⠀⠘⠀⠀⠀⠙⢆⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
     // ⠀⠀⠀⠀⠉⠛⠙⢏⢩⣶⣿⣿⠿⠖⠒⠤⣄⠀⠀⠈⡆⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-    // ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠉⠋⢅⡈⠐⠠⢀⠀⠈⢆⠀⠀⣷⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+    // ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠉⠋⢅⡈⠐⠠⢀⠈⢆⠀⠀⣷⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
     // ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠐⠠⢀⠩⠀⢸⠀⠀⢸⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
     // ⣿⣹⠆⣿⣉⢀⡟⡄⣰⠉⠂⢸⣏⠁⠀⠀⠀⡌⠀⠀⠸⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
     // ⠛⠀⠀⠓⠒⠘⠉⠛⠘⠒⠃⠘⠒⠂⠀⠀⢰⠁⠀⠀⠀⠑⢤⣀⣀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
@@ -89,6 +118,7 @@ class GRes {
 
     public function __construct() {
         $this->loadConfigs();
+        $this->initDb();
         $this->loadUserData();
         $this->loadAgents();
         $this->loadAssigns();
@@ -98,6 +128,8 @@ class GRes {
 
     /**
      * Inits system message helper for further usage
+     * 
+     *  @return void
      */
     protected function initMessages() {
         $this->messages = new UbillingMessageHelper();
@@ -111,6 +143,21 @@ class GRes {
     protected function loadConfigs() {
         global $ubillingConfig;
         $this->altCfg = $ubillingConfig->getAlter();
+    }
+
+    /**
+     * Inits required database layers
+     *
+     * @return void
+     */
+    protected function initDb() {
+        $this->strategyDb = new NyanORM(self::TABLE_STRATEGY);
+        $this->specsDb = new NyanORM(self::TABLE_SPECS);
+    }
+
+    protected function loadStrategies() {
+        $this->allStrategies=$this->strategyDb->getAll('id');
+        
     }
 
     /**
@@ -208,11 +255,11 @@ class GRes {
      */
     public function getRuntime($name) {
         if (empty($this->avarice)) {
-            $this->avarice=new Avarice();
+            $this->avarice = new Avarice();
         }
-        $result=$this->avarice->runtime($name);
+        $result = $this->avarice->runtime($name);
         return ($result);
     }
 
-    
+
 }
