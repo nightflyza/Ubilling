@@ -104,7 +104,7 @@ class TaskStates {
         $this->stateTypes['STATE_DONE'] = ' ' . __('Done');
         $this->stateTypes['STATE_UNDONE'] = ' ' . __('Undone');
         $this->stateTypes['STATE_MOVED'] = ' ' . __('Moved');
-        $this->stateTypes['STATE_CALLFAIL'] = '️ ' . __('Missed a phone call');
+        $this->stateTypes['STATE_CALLFAIL'] = ' '. __('Missed a phone call');
         $this->stateTypes['STATE_CANCELLED'] = ' ' . __('Canceled');
         $this->stateTypes['STATE_LATE'] = ' ' . __('Didnt have time');
         if (!empty($this->princessList)) {

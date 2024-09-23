@@ -213,4 +213,6 @@ class GRes {
         $result=$this->avarice->runtime($name);
         return ($result);
     }
+
+    
 }
