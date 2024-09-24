@@ -25,7 +25,7 @@ if (ubRouting::checkGet('action') and ubRouting::get('action') == 'freezedayscha
         $tabUsers->where('users.Passive', '=', '1');
         $tabUsers->where('frozen_charge_days.login', 'IS', 'NULL');
         $tabUsers->selectable('users.login');
-        $tabUsers->orderBy('id');
+        $tabUsers->orderBy('id', 'ASC');
         $allFrozenNotInCountTab = $tabUsers->getAll();
 
         if (!empty($allFrozenNotInCountTab)) {
@@ -52,7 +52,7 @@ if (ubRouting::checkGet('action') and ubRouting::get('action') == 'freezedayscha
 
         $tabFrozenChargeDays->join('LEFT', 'users', 'login');
         $tabFrozenChargeDays->selectable(array('`frozen_charge_days`.*', '`users`.`Passive`', '`users`.`Down`', '`users`.`Credit`', '`users`.`Cash`'));
-        $tabFrozenChargeDays->orderBy('id');
+        $tabFrozenChargeDays->orderBy('id', 'ASC');
         $frozenAll = $tabFrozenChargeDays->getAll();
 
         if (!empty($frozenAll)) {
