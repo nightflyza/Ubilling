@@ -1,0 +1,10 @@
+<?php
+
+$lang['def']['Goose resistance'] = 'Опір Гусака';
+$lang['def']['Available strategies'] = 'Наявні стратегії';
+$lang['def']['Use address based assigns'] = 'Використовувати адресні прив`язки';
+$lang['def']['Primary agent'] = 'Основний контрагент';
+$lang['def']['Use assigns'] = 'Використання прив`язок';
+$lang['def']['Strategy'] = 'Стратегія';
+$lang['def'][''] = '';
+
