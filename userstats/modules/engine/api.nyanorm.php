@@ -379,8 +379,10 @@ class NyanORM {
                     $tmpStr.= " " . $order;
                 }
             }
-
-            $this->order[] = $tmpStr;
+            // can't use ternary here 'cause we need to avoid the array element creation
+            if (!empty($tmpStr)) {
+                $this->order[] = $tmpStr;
+            }
         } else {
             $this->flushOrder();
         }
@@ -531,10 +533,11 @@ class NyanORM {
         $result = '';
         if (!empty($this->order)) {
             if (is_array($this->order)) {
-                $result .= " ORDER BY ";
-                $result .= implode(' , ', $this->order);
+                $result = implode(' , ', $this->order);
             }
         }
+        // trying to avoid possible empty-string elements arrays(particularly - an array with one empty-string element)
+        $result = empty($result) ? '' : " ORDER BY " . $result;
         return($result);
     }
 
@@ -547,10 +550,11 @@ class NyanORM {
         $result = '';
         if (!empty($this->groupby)) {
             if (is_array($this->groupby)) {
-                $result .= " GROUP BY ";
                 $result .= implode(',', $this->groupby);
             }
         }
+        // trying to avoid possible empty-string elements arrays(particularly - an array with one empty-string element)
+        $result = empty($result) ? '' : " GROUP BY " . $result;
         return($result);
     }
 
