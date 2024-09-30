@@ -116,6 +116,34 @@ class GRes {
     protected $amount = 0;
 
     /**
+     * Contains current instance user login
+     *
+     * @var string
+     */
+    protected $userLogin = '';
+
+    /**
+     * OpenPayz object placeholder
+     *
+     * @var object
+     */
+    protected $openPayz = '';
+
+    /**
+     * Contains all PaymentIds as paymentId=>userLogin
+     *
+     * @var array
+     */
+    protected $allPaymentIds = array();
+
+    /**
+     * Contains all users paymentIds as userLogin=>paymentId
+     *
+     * @var array
+     */
+    protected $allCustomerPaymentIds = array();
+
+    /**
      * some predefined stuff here
      */
     const TABLE_STRATEGY = 'gr_strat';
@@ -169,6 +197,7 @@ class GRes {
         $this->initDb();
         $this->loadStrategies();
         $this->loadUserData();
+        $this->initOpayz();
         $this->loadAgents();
         $this->loadAssigns();
         $this->loadAgentsExtInfo();
@@ -202,7 +231,8 @@ class GRes {
     protected function setSpecTypes() {
         $this->specTypes = array(
             'none' => __('None'),
-            'percent' => __('Percent'),
+            'percent' => __('Percent of sum'),
+            'percentleft' => __('Percent of remains'),
             'absolute' => __('Absolute'),
             'leftovers' => __('Leftovers')
         );
@@ -285,6 +315,17 @@ class GRes {
     }
 
     /**
+     * Inits OpenPayz instance and preloads some paymentId=>login mappings
+     *
+     * @return void
+     */
+    protected function initOpayz() {
+        $this->openPayz = new OpenPayz(false, true);
+        $this->allPaymentIds = $this->openPayz->getCustomers();
+        $this->allCustomerPaymentIds = $this->openPayz->getCustomersPaymentIds();
+    }
+
+    /**
      * Preprocesses all existing agents and extinfo data in some protected prop
      *
      * @return void
@@ -313,6 +354,17 @@ class GRes {
      */
     public function setAmount($amount = 0) {
         $this->amount = $amount;
+    }
+
+    /**
+     * Sets the user login after applying necessary filters.
+     *
+     * @param string $userLogin The user login to be set. Default is an empty string.
+     * 
+     * @return void
+     */
+    public function setUserLogin($userLogin = '') {
+        $this->userLogin = ubRouting::filters($userLogin, 'login');
     }
 
     /**
@@ -706,6 +758,125 @@ class GRes {
         $result .= wf_BackLink(self::URL_ME) . ' ';
         $result .= wf_modalAuto(web_icon_create() . ' ' . __('Append'), __('Append'), $this->renderSpecCreateForm($stratId), 'ubButton');
 
+        return ($result);
+    }
+
+    /**
+     * Preprocess some agents data depend on strategy specs
+     *
+     * @param array $specs
+     * @param float $amount
+     * 
+     * @return array
+     */
+    protected function calcAgents($specs, $amount = 0) {
+        $result = array();
+        $origAmount = $amount;
+        $specAmount = $amount;
+        $leftoversCount = 0;
+        if (!empty($specs)) {
+            //specs processing
+            foreach ($specs as $io => $each) {
+                $agentId = $each['agentid'];
+                if (isset($this->allAgents[$agentId])) {
+                    $result[$agentId] = $this->allAgents[$agentId];
+                    $result[$agentId]['splitamount'] = 0;
+                    $result[$agentId]['splittype'] = $each['type'];
+                    $result[$agentId]['splitvalue'] = $each['value'];
+                    if ($each['type'] == 'leftovers') {
+                        $leftoversCount++;
+                    }
+                    if (isset($this->allAgentsExtInfo[$agentId])) {
+                        $result[$agentId]['extinfo'] = $this->allAgentsExtInfo[$agentId];
+                    } else {
+                        $result[$agentId]['extinfo'] = array();
+                    }
+                }
+            }
+
+            if ($specAmount > 0) {
+                //agents post-processing
+                if (!empty($result)) {
+                    //absolute values
+                    foreach ($result as $io => $each) {
+                        if ($each['splittype'] == 'absolute') {
+                            if ($each['splitvalue'] > 0) {
+                                $splitAmount = $each['splitvalue'];
+                                $specAmount = $specAmount - $splitAmount;
+                                $result[$each['id']]['splitamount'] = $splitAmount;
+                            }
+                        }
+                    }
+
+                    //percent of sum values
+                    foreach ($result as $io => $each) {
+                        if ($each['splittype'] == 'percent') {
+                            if ($each['splitvalue'] > 0) {
+                                $splitAmount = zb_Percent($origAmount, $each['splitvalue']);
+                                $specAmount = $specAmount - $splitAmount;
+                                $result[$each['id']]['splitamount'] = $splitAmount;
+                            }
+                        }
+                    }
+                    //percent of remains values
+                    foreach ($result as $io => $each) {
+                        if ($each['splittype'] == 'percentleft') {
+                            if ($each['splitvalue'] > 0) {
+                                $splitAmount = zb_Percent($specAmount, $each['splitvalue']);
+                                $specAmount = $specAmount - $splitAmount;
+                                $result[$each['id']]['splitamount'] = $splitAmount;
+                            }
+                        }
+                    }
+
+                    //leftovers at end
+                    foreach ($result as $io => $each) {
+                        if ($each['splittype'] == 'leftovers') {
+                            if ($leftoversCount > 1) {
+                                $splitAmount = $specAmount / $leftoversCount;
+                            } else {
+                                $splitAmount = $specAmount;
+                            }
+                            $result[$each['id']]['splitamount'] = $splitAmount;
+                        }
+                    }
+                }
+            }
+        }
+
+        return ($result);
+    }
+
+    /**
+     * Returns strategy data by its ID
+     *
+     * @param int $stratId
+     * 
+     * @return void
+     */
+    public function getStrategyData($stratId) {
+        $stratId = ubRouting::filters($stratId, 'int');
+        $result = array();
+        if (isset($this->allStrategies[$stratId])) {
+            $stratData = $this->allStrategies[$stratId];
+            $result['amount'] = $this->amount;
+            $result += $stratData;
+            $result['agents'] = array();
+            $result['user'] = array();
+
+            if (!empty($stratData['specs'])) {
+                $result['agents'] = $this->calcAgents($stratData['specs'], $this->amount);
+            }
+
+            if (!empty($this->userLogin)) {
+                if (isset($this->allUserData[$this->userLogin])) {
+                    $result['user'] = $this->allUserData[$this->userLogin];
+                    if (isset($this->allCustomerPaymentIds[$this->userLogin])) {
+                        $result['user']['paymentid'] = $this->allCustomerPaymentIds[$this->userLogin];
+                    }
+                }
+            }
+        }
         return ($result);
     }
 }

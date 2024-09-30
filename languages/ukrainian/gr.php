@@ -11,5 +11,7 @@ $lang['def']['Agent'] = 'Агент';
 $lang['def']['Custom data'] = 'Користувацькі дані';
 $lang['def']['Absolute'] = 'Абсолютне';
 $lang['def']['Leftovers'] = 'Залишки';
+$lang['def']['Percent of sum'] = 'Відсоток від суми';
+$lang['def']['Percent of remains'] = 'Відсоток від залишку';
 $lang['def'][''] = '';
 
