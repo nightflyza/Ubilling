@@ -102,6 +102,13 @@ class GRes {
     protected $allSpecs = array();
 
     /**
+     * Contains all strategies with enabled use assigns flag and theis primary agents as stratId=>agentId
+     *
+     * @var array
+     */
+    protected $allPrimaryAgents = array();
+
+    /**
      * Contains available strategy spec types
      *
      * @var array
@@ -142,6 +149,13 @@ class GRes {
      * @var array
      */
     protected $allCustomerPaymentIds = array();
+
+    /**
+     * Contains current instance runtime which will be returned with every reply
+     *
+     * @var string
+     */
+    protected $runtime = '';
 
     /**
      * some predefined stuff here
@@ -258,8 +272,12 @@ class GRes {
         if (!empty($this->allStrategies)) {
             foreach ($this->allStrategies  as $io => $each) {
                 $this->allStrategies[$each['id']]['specs'] = array();
+                if ($each['useassigns'] and $each['primaryagentid']) {
+                    $this->allPrimaryAgents[$each['id']] = $each['primaryagentid'];
+                }
             }
         }
+
         $this->allSpecs = $this->specsDb->getAll('id');
         if (!empty($this->allSpecs)) {
             foreach ($this->allSpecs as $io => $each) {
@@ -368,13 +386,24 @@ class GRes {
     }
 
     /**
+     * Sets current instance runtime ID
+     *
+     * @param string $runtime
+     * 
+     * @return void
+     */
+    public function setRuntime($runtime = '') {
+        $this->runtime = ubRouting::filters($runtime, 'vf');
+    }
+
+    /**
      * Returns some runtime array
      *
      * @param string $name
      * 
      * @return array
      */
-    public function getRuntime($name) {
+    protected function getRuntime($name) {
         if (empty($this->avarice)) {
             $this->avarice = new Avarice();
         }
@@ -786,11 +815,14 @@ class GRes {
                     if ($each['type'] == 'leftovers') {
                         $leftoversCount++;
                     }
+                    //appending legacy extinfo
                     if (isset($this->allAgentsExtInfo[$agentId])) {
                         $result[$agentId]['extinfo'] = $this->allAgentsExtInfo[$agentId];
                     } else {
                         $result[$agentId]['extinfo'] = array();
                     }
+                    //appending custom data section
+                    $result[$agentId]['customdata'] = $each['customdata'];
                 }
             }
 
@@ -846,34 +878,89 @@ class GRes {
 
         return ($result);
     }
+    /**
+     * Detects the strategy ID assigned to a user based on their login.
+     *
+     * This method checks if the user has an assigned agent and then matches that agent
+     * to a strategy ID from the list of all primary agents.
+     *
+     * @param string $userLogin The login identifier of the user.
+     * 
+     * @return int
+     **/
+    protected function detectUserStrategyId($userLogin) {
+        $result = 0;
+        if (!empty($userLogin)) {
+            if (!empty($this->allStrategies)) {
+                $assignedAgentData = $this->getUserAssignedAgentData($userLogin);
+                if (!empty($assignedAgentData)) {
+                    $assignedAgentId = $assignedAgentData['id'];
+                    if ($assignedAgentId) {
+                        //based on default address based assigns
+                        if (!empty($this->allPrimaryAgents)) {
+                            foreach ($this->allPrimaryAgents as $eachStratId => $eachAgentId) {
+                                if ($eachAgentId == $assignedAgentId) {
+                                    $result = $eachStratId;
+                                    break;
+                                }
+                            }
+                        }
+
+                        //use first available strategy if still not detected
+                        if ($result == 0) {
+                            $firstStratData = reset($this->allStrategies);
+                            $result = $firstStratData['id'];
+                        }
+                    }
+                }
+            }
+        }
+        return ($result);
+    }
 
     /**
      * Returns strategy data by its ID
      *
-     * @param int $stratId
+     * @param int $stratId implict strategy Id or 0 for auto detect
      * 
-     * @return void
+     * @return array
      */
-    public function getStrategyData($stratId) {
+    public function getStrategyData($stratId = 0) {
         $stratId = ubRouting::filters($stratId, 'int');
         $result = array();
-        if (isset($this->allStrategies[$stratId])) {
-            $stratData = $this->allStrategies[$stratId];
-            $result['amount'] = $this->amount;
-            $result += $stratData;
-            $result['agents'] = array();
-            $result['user'] = array();
+        //automatic strategy detection
+        if ($stratId == 0) {
+            $stratId = $this->detectUserStrategyId($this->userLogin);
+        }
 
-            if (!empty($stratData['specs'])) {
-                $result['agents'] = $this->calcAgents($stratData['specs'], $this->amount);
-            }
+        if (!empty($stratId)) {
+            if (isset($this->allStrategies[$stratId])) {
+                $stratData = $this->allStrategies[$stratId];
+                $result['amount'] = $this->amount;
+                $result += $stratData;
+                $result['agents'] = array();
+                $result['user'] = array();
+                $result['runtime'] = array();
 
-            if (!empty($this->userLogin)) {
-                if (isset($this->allUserData[$this->userLogin])) {
-                    $result['user'] = $this->allUserData[$this->userLogin];
-                    if (isset($this->allCustomerPaymentIds[$this->userLogin])) {
-                        $result['user']['paymentid'] = $this->allCustomerPaymentIds[$this->userLogin];
+                if (!empty($stratData['specs'])) {
+                    $result['agents'] = $this->calcAgents($stratData['specs'], $this->amount);
+                    //cleanup spec raw data
+                    unset($result['specs']);
+                }
+
+                //appending user data
+                if (!empty($this->userLogin)) {
+                    if (isset($this->allUserData[$this->userLogin])) {
+                        $result['user'] = $this->allUserData[$this->userLogin];
+                        if (isset($this->allCustomerPaymentIds[$this->userLogin])) {
+                            $result['user']['paymentid'] = $this->allCustomerPaymentIds[$this->userLogin];
+                        }
                     }
+                }
+
+                //appending runtime if required
+                if (!empty($this->runtime)) {
+                    $result['runtime'] = $this->getRuntime($this->runtime);
                 }
             }
         }
