@@ -165,6 +165,20 @@ class GRes {
     protected $runtime = '';
 
     /**
+     * Contains all available tariffs data
+     *
+     * @var array
+     */
+    protected $allTariffs = array();
+
+    /**
+     * Contains all tariff names as tariffname=>tariffname
+     *
+     * @var array
+     */
+    protected $allTariffNames = array();
+
+    /**
      * some predefined stuff here
      */
     const TABLE_STRATEGY = 'gr_strat';
@@ -177,6 +191,7 @@ class GRes {
     const PROUTE_ST_NAME = 'strategyname';
     const PROUTE_ST_ASSIGNS = 'strategyassignsflag';
     const PROUTE_ST_AGENTID = 'strategyprimaryagentid';
+    const PROUTE_ST_TARIFF = 'strategytariffname';
 
     const ROUTE_SP_DELETE = 'deletespecid';
     const ROUTE_SP_EDIT = 'editstrateryspecs';
@@ -225,6 +240,7 @@ class GRes {
         $this->setSpecTypes();
         $this->initDb();
         $this->loadStrategies();
+        $this->loadTariffs();
         $this->loadUserData();
         $this->initOpayz();
         $this->loadAgents();
@@ -275,6 +291,15 @@ class GRes {
     protected function initDb() {
         $this->strategyDb = new NyanORM(self::TABLE_STRATEGY);
         $this->specsDb = new NyanORM(self::TABLE_SPECS);
+    }
+
+    protected function loadTariffs() {
+        $this->allTariffs = zb_TariffGetAllData();
+        if (!empty($this->allTariffs)) {
+            foreach ($this->allTariffs as $io => $each) {
+                $this->allTariffNames[$each['name']] = $each['name'];
+            }
+        }
     }
 
     /**
@@ -477,11 +502,14 @@ class GRes {
         $result = '';
         $agentParams = array(0 => __('No'));
         $agentParams += $this->allAgentNames;
+        $tariffParams = array(0 => __('No'));
+        $tariffParams += $this->allTariffNames;
         $sup = wf_tag('sup') . '*' . wf_tag('sup', true);
         $inputs = wf_HiddenInput(self::PROUTE_ST_CREATE, 'true');
         $inputs .= wf_TextInput(self::PROUTE_ST_NAME, __('Name') . $sup, '', true, 20);
         $inputs .= wf_CheckInput(self::PROUTE_ST_ASSIGNS, __('Use address based assigns'), true, false);
         $inputs .= wf_Selector(self::PROUTE_ST_AGENTID, $agentParams, __('Primary agent'), '', true);
+        $inputs .= wf_Selector(self::PROUTE_ST_TARIFF, $tariffParams, __('Tariff'), '', true);
         $inputs .= wf_delimiter(0);
         $inputs .= wf_Submit(__('Create'));
         $result .= wf_Form('', 'POST', $inputs, 'glamour');
@@ -494,16 +522,20 @@ class GRes {
      * @param string $name
      * @param bool $assigns
      * @param int $primaryAgentId
+     * @param string $tariffName
      * 
      * @return void
      */
-    public function createStrategy($name, $assigns = false, $primaryAgentId = 0) {
+    public function createStrategy($name, $assigns = false, $primaryAgentId = 0, $tariffName = 0) {
         $nameF = ubRouting::filters($name, 'safe');
         $assigns = ($assigns) ? 1 : 0;
         $primaryAgentId = ubRouting::filters($primaryAgentId, 'int');
+        $tariffName = ubRouting::filters($tariffName, 'mres');
+
         $this->strategyDb->data('name', $nameF);
         $this->strategyDb->data('useassigns', $assigns);
         $this->strategyDb->data('primaryagentid', $primaryAgentId);
+        $this->strategyDb->data('tariff', $tariffName);
         $this->strategyDb->create();
         $newId = $this->strategyDb->getLastId();
         log_register('GOOSE STRAT CREATE [' . $newId . '] `' . $name . '`');
@@ -516,19 +548,22 @@ class GRes {
      * @param string $name The name of the strategy.
      * @param bool $assigns Whether the strategy uses address assignments. Defaults to false.
      * @param int $primaryAgentId The ID of the primary agent. Defaults to 0.
-     * 
+     * @param string $tariffName
      * @return void
      */
-    public function saveStrategy($stratId, $name, $assigns = false, $primaryAgentId = 0) {
+    public function saveStrategy($stratId, $name, $assigns = false, $primaryAgentId = 0, $tariffName = 0) {
         $stratId = ubRouting::filters($stratId, 'int');
         $nameF = ubRouting::filters($name, 'safe');
         $assigns = ($assigns) ? 1 : 0;
         $primaryAgentId = ubRouting::filters($primaryAgentId, 'int');
+        $tariffName = ubRouting::filters($tariffName, 'mres');
+
         if (isset($this->allStrategies[$stratId])) {
             $this->strategyDb->where('id', '=', $stratId);
             $this->strategyDb->data('name', $nameF);
             $this->strategyDb->data('useassigns', $assigns);
             $this->strategyDb->data('primaryagentid', $primaryAgentId);
+            $this->strategyDb->data('tariff', $tariffName);
             $this->strategyDb->save();
             log_register('GOOSE STRAT EDIT [' . $stratId . '] `' . $name . '`');
         }
@@ -576,6 +611,8 @@ class GRes {
         $stratId = ubRouting::filters($stratId, 'int');
         $agentParams = array(0 => __('No'));
         $agentParams += $this->allAgentNames;
+        $tariffParams = array(0 => __('No'));
+        $tariffParams += $this->allTariffNames;
 
         if (isset($this->allStrategies[$stratId])) {
             $sup = wf_tag('sup') . '*' . wf_tag('sup', true);
@@ -585,6 +622,7 @@ class GRes {
             $inputs .= wf_TextInput(self::PROUTE_ST_NAME, __('Name') . $sup, $stratData['name'], true, 20);
             $inputs .= wf_CheckInput(self::PROUTE_ST_ASSIGNS, __('Use address based assigns'), true, $assignsFlag);
             $inputs .= wf_Selector(self::PROUTE_ST_AGENTID, $agentParams, __('Primary agent'), $stratData['primaryagentid'], true);
+            $inputs .= wf_Selector(self::PROUTE_ST_TARIFF, $tariffParams, __('Tariff'), $stratData['tariff'], true);
             $inputs .= wf_delimiter(0);
             $inputs .= wf_Submit(__('Save'));
             $result .= wf_Form('', 'POST', $inputs, 'glamour');
@@ -621,6 +659,7 @@ class GRes {
             $cells .= wf_TableCell(__('Name'));
             $cells .= wf_TableCell(__('Use assigns'));
             $cells .= wf_TableCell(__('Primary agent'));
+            $cells .= wf_TableCell(__('Tariff'));
             $cells .= wf_TableCell(__('Actions'));
             $rows = wf_TableRow($cells, 'row1');
             foreach ($this->allStrategies as $io => $each) {
@@ -628,7 +667,9 @@ class GRes {
                 $cells .= wf_TableCell($each['name']);
                 $cells .= wf_TableCell(web_bool_led($each['useassigns']));
                 $agentName = (isset($this->allAgentNames[$each['primaryagentid']])) ? $this->allAgentNames[$each['primaryagentid']] : __('No');
+                $tariffName = (isset($this->allTariffNames[$each['tariff']])) ? $this->allTariffNames[$each['tariff']] : __('No');
                 $cells .= wf_TableCell($agentName);
+                $cells .= wf_TableCell($tariffName);
                 $actControls = '';
                 $deletionUrl = self::URL_ME . '&' . self::ROUTE_ST_DELETE . '=' . $each['id'];
                 $delTitle = __('Delete') . ' ' . $each['name'] . '?';
@@ -959,6 +1000,7 @@ class GRes {
             if ($stratData['user']) {
                 $result .= $this->messages->getStyledMessage(__('User') . ' `' . $stratData['user']['login'] . '` ' . __('exists'), 'success');
                 $result .= $this->messages->getStyledMessage(__('Address') . ': ' . $stratData['user']['fulladress'], 'success');
+                $result .= $this->messages->getStyledMessage(__('Tariff') . ': ' . $stratData['user']['Tariff'], 'success');
             } else {
                 $result .= $this->messages->getStyledMessage(__('User') . ' `' . $stratData['userlogin'] . '` ' . __('not exists'), 'error');
             }
@@ -1130,6 +1172,19 @@ class GRes {
                                 if ($eachAgentId == $assignedAgentId) {
                                     $result = $eachStratId;
                                     break;
+                                }
+                            }
+                        }
+
+                        //tariff based lookup
+                        if (isset($this->allUserData[$userLogin])) {
+                            $userTariff = $this->allUserData[$userLogin]['Tariff'];
+                            foreach ($this->allStrategies as $io => $each) {
+                                if ($each['tariff']) {
+                                    if ($each['tariff'] == $userTariff) {
+                                        $result = $each['id'];
+                                        break;
+                                    }
                                 }
                             }
                         }

@@ -3333,3 +3333,5 @@ CREATE TABLE IF NOT EXISTS `gr_spec` (
   `customdata` text,
   PRIMARY KEY (`id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
+
+ALTER TABLE `gr_strat` ADD `tariff` VARCHAR(64) NULL AFTER `maxamount`; 

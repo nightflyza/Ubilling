@@ -8,7 +8,8 @@ if (cfr('GOOSE')) {
             $gr->createStrategy(
                 ubRouting::post($gr::PROUTE_ST_NAME),
                 ubRouting::post($gr::PROUTE_ST_ASSIGNS),
-                ubRouting::post($gr::PROUTE_ST_AGENTID)
+                ubRouting::post($gr::PROUTE_ST_AGENTID),
+                ubRouting::post($gr::PROUTE_ST_TARIFF)
             );
             ubRouting::nav($gr::URL_ME);
         }
@@ -19,7 +20,8 @@ if (cfr('GOOSE')) {
                 ubRouting::post($gr::PROUTE_ST_EDIT),
                 ubRouting::post($gr::PROUTE_ST_NAME),
                 ubRouting::post($gr::PROUTE_ST_ASSIGNS),
-                ubRouting::post($gr::PROUTE_ST_AGENTID)
+                ubRouting::post($gr::PROUTE_ST_AGENTID),
+                ubRouting::post($gr::PROUTE_ST_TARIFF)
             );
             ubRouting::nav($gr::URL_ME);
         }
