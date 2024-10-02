@@ -173,14 +173,18 @@ class GRes {
 
     const ROUTE_SP_DELETE = 'deletespecid';
     const ROUTE_SP_EDIT = 'editstrateryspecs';
+    const ROUTE_SP_CUSTDATA = 'speccustdataedit';
     const PROUTE_SP_CREATE = 'createnewspec';
     const PROUTE_SP_EDIT = 'editspecid';
     const PROUTE_SP_STRAT = 'specstratid';
     const PROUTE_SP_AGENT = 'specagentid';
     const PROUTE_SP_TYPE = 'spectype';
     const PROUTE_SP_VALUE = 'specvalue';
-    const PROUTE_SP_CUSTDATA = 'speccustomdata';
 
+    const ROUTE_CD_DELKEY = 'delcustdatakey';
+    const PROUTE_CD_SPEC = 'newcustomdataspecid';
+    const PROUTE_CD_KEY = 'newcustomdatakey';
+    const PROUTE_CD_VAL = 'newcustomdatavalue';
 
 
     // ⠸⣿⣦⣄⡀⠀⠀⠀⠀⠀⠀⠀⠀⡠⠔⠒⠒⠒⢤⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
@@ -282,6 +286,12 @@ class GRes {
         if (!empty($this->allSpecs)) {
             foreach ($this->allSpecs as $io => $each) {
                 if (isset($this->allStrategies[$each['stratid']])) {
+                    $customData = array();
+                    if (!empty($each['customdata'])) {
+                        $customData = json_decode($each['customdata'], true);
+                    }
+                    $each['customdata'] = $customData;
+                    $this->allSpecs[$each['id']]['customdata'] = $customData;
                     $this->allStrategies[$each['stratid']]['specs'][$each['id']] = $each;
                 }
             }
@@ -620,17 +630,16 @@ class GRes {
      * @param int $agentId The agent ID to associate with the specification.
      * @param string $type The type of the specification.
      * @param int $value The value of the specification.
-     * @param string $customData Optional. Additional custom data for the specification.
      *
      * @return void
      */
 
-    public function createSpec($stratId, $agentId, $type, $value, $customData = '') {
+    public function createSpec($stratId, $agentId, $type, $value) {
         $stratId = ubRouting::filters($stratId, 'int');
         $agentId = ubRouting::filters($agentId, 'int');
         $type = ubRouting::filters($type, 'mres');
         $value = ubRouting::filters($value, 'int');
-        $customData = ubRouting::filters($customData, 'mres');
+        $customData = json_encode(array());
 
         $this->specsDb->data('stratid', $stratId);
         $this->specsDb->data('agentid', $agentId);
@@ -649,16 +658,14 @@ class GRes {
      * @param int $agentId The ID of the agent.
      * @param string $type The type of the specification.
      * @param int $value The value of the specification.
-     * @param string $customData Optional custom data for the specification.
      *
      * @return void
      */
-    public function saveSpec($specId, $agentId, $type, $value, $customData = '') {
+    public function saveSpec($specId, $agentId, $type, $value) {
         $specId = ubRouting::filters($specId, 'int');
         $agentId = ubRouting::filters($agentId, 'int');
         $type = ubRouting::filters($type, 'mres');
         $value = ubRouting::filters($value, 'int');
-        $customData = ubRouting::filters($customData, 'mres');
         if (isset($this->allSpecs[$specId])) {
             $specData = $this->allSpecs[$specId];
             $stratId = $specData['stratid'];
@@ -666,7 +673,6 @@ class GRes {
             $this->specsDb->data('agentid', $agentId);
             $this->specsDb->data('type', $type);
             $this->specsDb->data('value', $value);
-            $this->specsDb->data('customdata', $customData);
             $this->specsDb->save();
             $newId = $this->specsDb->getLastId();
             log_register('GOOSE STRAT [' . $stratId . '] EDIT SPEC [' . $specId . '] AGENT [' . $agentId . '] `' . $type . '` VALUE `' . $value . '`');
@@ -704,9 +710,8 @@ class GRes {
             $inputs = wf_HiddenInput(self::PROUTE_SP_CREATE, 'true');
             $inputs .= wf_HiddenInput(self::PROUTE_SP_STRAT, $stratId);
             $inputs .= wf_Selector(self::PROUTE_SP_AGENT, $this->allAgentNames, __('Agent'), '', false);
-            $inputs .= wf_Selector(self::PROUTE_SP_TYPE, $this->specTypes, __('Type'), '', false);
+            $inputs .= wf_Selector(self::PROUTE_SP_TYPE, $this->specTypes, __('Distribution'), '', false);
             $inputs .= wf_TextInput(self::PROUTE_SP_VALUE, __('Value'), '', true, 5, 'digits');
-            $inputs .= wf_TextArea(self::PROUTE_SP_CUSTDATA, '', '', true, '55x5');
             $inputs .= wf_delimiter(0);
             $inputs .= wf_Submit(__('Create'));
             $result .= wf_Form('', 'POST', $inputs, 'glamour');
@@ -730,9 +735,8 @@ class GRes {
             $inputs = wf_HiddenInput(self::PROUTE_SP_EDIT, $specId);
             $inputs .= wf_HiddenInput(self::PROUTE_SP_STRAT, $specData['stratid']);
             $inputs .= wf_Selector(self::PROUTE_SP_AGENT, $this->allAgentNames, __('Agent'), $specData['agentid'], false);
-            $inputs .= wf_Selector(self::PROUTE_SP_TYPE, $this->specTypes, __('Type'), $specData['type'], false);
+            $inputs .= wf_Selector(self::PROUTE_SP_TYPE, $this->specTypes, __('Distribution'), $specData['type'], false);
             $inputs .= wf_TextInput(self::PROUTE_SP_VALUE, __('Value'), $specData['value'], true, 5, 'digits');
-            $inputs .= wf_TextArea(self::PROUTE_SP_CUSTDATA, '', $specData['customdata'], true, '55x5');
             $inputs .= wf_delimiter(0);
             $inputs .= wf_Submit(__('Save'));
             $result .= wf_Form('', 'POST', $inputs, 'glamour');
@@ -770,9 +774,11 @@ class GRes {
                     $actControls = '';
                     $deletionUrl = self::URL_ME . '&' . self::ROUTE_SP_DELETE . '=' . $each['id'] . '&' . self::ROUTE_SP_EDIT . '=' . $stratId;
                     $cancelUrl = self::URL_ME . '&' . self::ROUTE_SP_EDIT . '=' . $stratId;
-                    $delTitle = __('Delete') . '?';
+                    $agentName = (isset($this->allAgentNames[$each['agentid']])) ? $this->allAgentNames[$each['agentid']] : __('Deleted');
+                    $delTitle = __('Delete') . ' ' . $agentName . '?';
                     $actControls .= wf_ConfirmDialog($deletionUrl, web_delete_icon(), $this->messages->getDeleteAlert(), '', $cancelUrl, $delTitle) . ' ';
                     $actControls .= wf_modalAuto(web_edit_icon(), __('Edit'), $this->renderSpecEditForm($each['id']), '');
+                    $actControls .= wf_Link(self::URL_ME . '&' . self::ROUTE_SP_CUSTDATA . '=' . $each['id'], wf_img('skins/grcustdata.png', __('Custom data')));
                     $cells .= wf_TableCell($actControls);
                     $rows .= wf_TableRow($cells, 'row5');
                 }
@@ -789,6 +795,116 @@ class GRes {
 
         return ($result);
     }
+
+    /**
+     * Creates new or replaces custom data field record for some spec
+     *
+     * @param int $specId
+     * @param string $key
+     * @param string $value
+     * 
+     * @return void
+     */
+    public function setCustDataField($specId, $key, $value = '') {
+        $specId = ubRouting::filters($specId, 'int');
+        $keyF = ubRouting::filters($key, 'mres');
+        $valueF = ubRouting::filters($value, 'mres');
+        if (isset($this->allSpecs[$specId])) {
+            $currentCustomData = $this->allSpecs[$specId]['customdata'];
+            $dataToSave = $currentCustomData;
+            $dataToSave[$keyF] = $valueF;
+            $dataToSave = json_encode($dataToSave);
+            $this->specsDb->where('id', '=', $specId);
+            $this->specsDb->data('customdata', $dataToSave);
+            $this->specsDb->save();
+            log_register('GOOSE SPEC [' . $specId . '] CUSTDATA SET `' . $key . '` ON `' . $value . '`');
+        }
+    }
+
+    /**
+     * Deletes custom data field record for some spec
+     *
+     * @param int $specId
+     * @param string $key
+     * 
+     * @return void
+     */
+    public function deleteCustDataField($specId, $key) {
+        $specId = ubRouting::filters($specId, 'int');
+        $keyF = ubRouting::filters($key, 'mres');
+        if (isset($this->allSpecs[$specId])) {
+            $currentCustomData = $this->allSpecs[$specId]['customdata'];
+            $dataToSave = $currentCustomData;
+            unset($dataToSave[$key]);
+            $dataToSave = json_encode($dataToSave);
+            $this->specsDb->where('id', '=', $specId);
+            $this->specsDb->data('customdata', $dataToSave);
+            $this->specsDb->save();
+            log_register('GOOSE SPEC [' . $specId . '] CUSTDATA DELETE `' . $key . '`');
+        }
+    }
+
+    /**
+     * Renders a custom data fields creation form based on the provided specification ID.
+     *
+     * @param int $specId 
+     * 
+     * @return string
+     */
+    protected function renderCustomDataCreateForm($specId) {
+        $result = '';
+        $specId = ubRouting::filters($specId, 'int');
+        if (isset($this->allSpecs[$specId])) {
+            $inputs = wf_HiddenInput(self::PROUTE_CD_SPEC, $specId);
+            $inputs .= wf_TextInput(self::PROUTE_CD_KEY, __('Key'), '', false, 10);
+            $inputs .= wf_TextInput(self::PROUTE_CD_VAL, __('Value'), '', false, 20);
+            $inputs .= wf_Submit(__('Set'));
+            $result .= wf_Form('', 'POST', $inputs, 'glamour');
+        }
+        return ($result);
+    }
+
+    /**
+     * Renders spec custom data list and editors
+     *
+     * @param int $specId
+     * 
+     * @return string
+     */
+    public function renderCustomDataEditor($specId) {
+        $specId = ubRouting::filters($specId, 'int');
+        $result = '';
+        if (isset($this->allSpecs[$specId])) {
+            $specData = $this->allSpecs[$specId];
+            if (!empty($specData['customdata'])) {
+                $cells = wf_TableCell(__('Key'));
+                $cells .= wf_TableCell(__('Value'));
+                $cells .= wf_TableCell(__('Actions'));
+                $rows = wf_TableRow($cells, 'row1');
+                foreach ($specData['customdata'] as $key => $value) {
+                    $cells = wf_TableCell($key);
+                    $cells .= wf_TableCell($value);
+                    $delUrl = self::URL_ME . '&' . self::ROUTE_SP_CUSTDATA . '=' . $specId . '&' . self::ROUTE_CD_DELKEY . '=' . $key;
+                    $cancelUrl = self::URL_ME . '&' . self::ROUTE_SP_CUSTDATA . '=' . $specId;
+                    $actLinks = wf_ConfirmDialog($delUrl, web_delete_icon(), $this->messages->getDeleteAlert(), '', $cancelUrl, __('Delete') . '?');
+                    $cells .= wf_TableCell($actLinks);
+                    $rows .= wf_TableRow($cells, 'row5');
+                }
+                $result .= wf_TableBody($rows, '100%', 0, 'sortable');
+            } else {
+                $result .= $this->messages->getStyledMessage(__('Nothing to show'), 'info');
+            }
+
+            $result .= wf_delimiter();
+            $result .= $this->renderCustomDataCreateForm($specId);
+            $result .= wf_delimiter();
+            $result .= wf_BackLink(self::URL_ME . '&' . self::ROUTE_SP_EDIT . '=' . $specData['stratid']);
+        } else {
+            $result .= $this->messages->getStyledMessage(__('Something went wrong') . ': [' . $specId . '] ' . __('Not exists'), 'error');
+        }
+        return ($result);
+    }
+
 
     /**
      * Preprocess some agents data depend on strategy specs
@@ -878,6 +994,8 @@ class GRes {
 
         return ($result);
     }
+
+
     /**
      * Detects the strategy ID assigned to a user based on their login.
      *

@@ -36,8 +36,7 @@ if (cfr('GOOSE')) {
                 ubRouting::post($gr::PROUTE_SP_STRAT),
                 ubRouting::post($gr::PROUTE_SP_AGENT),
                 ubRouting::post($gr::PROUTE_SP_TYPE),
-                ubRouting::post($gr::PROUTE_SP_VALUE),
-                ubRouting::post($gr::PROUTE_SP_CUSTDATA)
+                ubRouting::post($gr::PROUTE_SP_VALUE)
             );
             ubRouting::nav($gr::URL_ME . '&' . $gr::ROUTE_SP_EDIT . '=' . ubRouting::post($gr::PROUTE_SP_STRAT));
         }
@@ -48,8 +47,7 @@ if (cfr('GOOSE')) {
                 ubRouting::post($gr::PROUTE_SP_EDIT),
                 ubRouting::post($gr::PROUTE_SP_AGENT),
                 ubRouting::post($gr::PROUTE_SP_TYPE),
-                ubRouting::post($gr::PROUTE_SP_VALUE),
-                ubRouting::post($gr::PROUTE_SP_CUSTDATA)
+                ubRouting::post($gr::PROUTE_SP_VALUE)
             );
             ubRouting::nav($gr::URL_ME . '&' . $gr::ROUTE_SP_EDIT . '=' . ubRouting::post($gr::PROUTE_SP_STRAT));
         }
@@ -64,12 +62,35 @@ if (cfr('GOOSE')) {
             }
         }
 
+        //spec custom data field creation or replace
+        if (ubRouting::checkPost(array($gr::PROUTE_CD_SPEC, $gr::PROUTE_CD_KEY))) {
+            $gr->setCustDataField(
+                ubRouting::post($gr::PROUTE_CD_SPEC),
+                ubRouting::post($gr::PROUTE_CD_KEY),
+                ubRouting::post($gr::PROUTE_CD_VAL)
+            );
+            ubRouting::nav($gr::URL_ME . '&' . $gr::ROUTE_SP_CUSTDATA . '=' . ubRouting::post($gr::PROUTE_CD_SPEC));
+        }
+
+         //spec custom data field deletion
+         if (ubRouting::checkGet(array($gr::ROUTE_CD_DELKEY,$gr::ROUTE_SP_CUSTDATA))) {
+            $gr->deleteCustDataField(
+                ubRouting::get($gr::ROUTE_SP_CUSTDATA),
+                ubRouting::get($gr::ROUTE_CD_DELKEY),
+            );
+            ubRouting::nav($gr::URL_ME . '&' . $gr::ROUTE_SP_CUSTDATA . '=' . ubRouting::get($gr::ROUTE_SP_CUSTDATA));
+        }
+
 
         if (ubRouting::checkGet($gr::ROUTE_SP_EDIT)) {
             $stratId = ubRouting::get($gr::ROUTE_SP_EDIT, 'int');
             show_window(__('Strategy configuration') . ': ' . $gr->getStrategyName($stratId), $gr->renderStratSpecsList($stratId));
         } else {
-            show_window(__('Available strategies'), $gr->renderStrategiesList());
+            if (ubRouting::checkGet($gr::ROUTE_SP_CUSTDATA)) {
+                show_window(__('Custom data'), $gr->renderCustomDataEditor(ubRouting::get($gr::ROUTE_SP_CUSTDATA, 'int')));
+            } else {
+                show_window(__('Available strategies'), $gr->renderStrategiesList());
+            }
         }
     } else {
         show_error(__('This module is disabled'));

@@ -13,5 +13,8 @@ $lang['def']['Absolute'] = 'Абсолютне';
 $lang['def']['Leftovers'] = 'Залишки';
 $lang['def']['Percent of sum'] = 'Відсоток від суми';
 $lang['def']['Percent of remains'] = 'Відсоток від залишку';
+$lang['def']['right to manage goose resistance'] = 'Право керувати опором гусака';
+$lang['def']['Distribution'] = 'Розподіл';
+$lang['def']['Set'] = 'Встановити';
 $lang['def'][''] = '';
 
