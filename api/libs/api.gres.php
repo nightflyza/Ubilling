@@ -186,6 +186,10 @@ class GRes {
     const PROUTE_CD_KEY = 'newcustomdatakey';
     const PROUTE_CD_VAL = 'newcustomdatavalue';
 
+    const PROUTE_CH_USER = 'runcheckuser';
+    const PROUTE_CH_AMOUNT = 'runcheckamount';
+    const PROUTE_CH_STRAT = 'runcheckstratid';
+
 
     // ⠸⣿⣦⣄⡀⠀⠀⠀⠀⠀⠀⠀⠀⡠⠔⠒⠒⠒⢤⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
     // ⠀⠙⠻⣿⣷⣦⣀⠀⠀⠀⢀⣾⣷⠀⠘⠀⠀⠀⠙⢆⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
@@ -569,7 +573,20 @@ class GRes {
         return ($result);
     }
 
-
+    /**
+     * Renders strategies dry-run testing form
+     *
+     * @return string
+     */
+    protected function renderStratTestingForm() {
+        $result = '';
+        $inputs = wf_TextInput(self::PROUTE_CH_USER, __('Login'), ubRouting::post(self::PROUTE_CH_USER), false, 10, 'login') . ' ';
+        $inputs .= wf_TextInput(self::PROUTE_CH_AMOUNT, __('Payment sum'), ubRouting::post(self::PROUTE_CH_AMOUNT), false, 5, 'finance') . ' ';
+        $inputs .= wf_TextInput(self::PROUTE_CH_STRAT, __('Strategy'), ubRouting::post(self::PROUTE_CH_STRAT), false, 2, 'digits') . ' ';
+        $inputs .= wf_Submit(__('Testing'));
+        $result .= wf_Form('', 'POST', $inputs, 'glamour');
+        return ($result);
+    }
 
     /**
      * Renders a list of available strategies in a table format.
@@ -605,7 +622,10 @@ class GRes {
             $result .= $this->messages->getStyledMessage(__('Nothing to show'), 'warning');
         }
         $result .= wf_delimiter();
-        $result .= wf_modalAuto(web_icon_create() . ' ' . __('Create'), __('Create'), $this->renderStrategyCreateForm(), 'ubButton');
+        $result .= wf_modalAuto(web_icon_create() . ' ' . __('Create'), __('Create'), $this->renderStrategyCreateForm(), 'ubButton') . ' ';
+        if (!empty($this->allStrategies)) {
+            $result .= wf_modalAuto(wf_img('skins/icon_testing.png') . ' ' . __('Testing'), __('Testing'), $this->renderStratTestingForm(), 'ubButton');
+        }
         return ($result);
     }
 
@@ -905,6 +925,75 @@ class GRes {
         return ($result);
     }
 
+    /**
+     * Renders strategy-run testing results
+     *
+     * @param array $stratData
+     * 
+     * @return string
+     */
+    public function renderStratTestingResults($stratData) {
+        $result = '';
+        if (!empty($stratData)) {
+            if ($stratData['user']) {
+                $result .= $this->messages->getStyledMessage(__('User') . ' `' . $stratData['user']['login'] . '` ' . __('exists'), 'success');
+                $result .= $this->messages->getStyledMessage(__('Address') . ': ' . $stratData['user']['fulladress'], 'success');
+            } else {
+                $result .= $this->messages->getStyledMessage(__('User') . ' `' . $stratData['userlogin'] . '` ' . __('not exists'), 'error');
+            }
+
+            if ($stratData['amount'] > 0) {
+                $result .= $this->messages->getStyledMessage(__('Payment sum') . ': ' . $stratData['amount'], 'success');
+            } else {
+                $result .= $this->messages->getStyledMessage(__('Payment sum') . ': ' . $stratData['amount'], 'warning');
+            }
+
+            $result .= $this->messages->getStyledMessage(__('Strategy used') . ': ' . '[' . $stratData['id'] . '] ' . $stratData['name'], 'info');
+
+            if (!empty($stratData['agents'])) {
+                $cells = wf_TableCell(__('ID'));
+                $cells .= wf_TableCell(__('Contrahent name'));
+                $cells .= wf_TableCell(__('Bank account'));
+                $cells .= wf_TableCell(__('EDRPOU'));
+                $cells .= wf_TableCell(__('Distribution'));
+                $cells .= wf_TableCell(__('Value'));
+                $cells .= wf_TableCell(__('Cash'));
+                $rows = wf_TableRow($cells, 'row1');
+                foreach ($stratData['agents'] as $eachAgentId => $eachAgentData) {
+                    $cells = wf_TableCell($eachAgentData['id']);
+                    $cells .= wf_TableCell($eachAgentData['contrname']);
+                    $cells .= wf_TableCell($eachAgentData['bankacc']);
+                    $cells .= wf_TableCell($eachAgentData['edrpo']);
+                    $cells .= wf_TableCell($this->specTypes[$eachAgentData['splittype']]);
+                    $cells .= wf_TableCell($eachAgentData['splitvalue']);
+                    $cells .= wf_TableCell($eachAgentData['splitamount']);
+
+                    $rows .= wf_TableRow($cells, 'row5');
+                }
+                $result .= wf_delimiter(0);
+                $result .= wf_tag('b') . __('Money distribution') . ':' . wf_tag('b', true);
+                $result .= wf_TableBody($rows, '100%', 0, 'sortable');
+            } else {
+                $result .= $this->messages->getStyledMessage(__('Contrahens') . ' ' . __('is empty') . '!', 'error');
+            }
+
+            //raw json preview
+            $inputs = wf_tag('textarea', false, 'fileeditorarea', 'name="editfilecontent" cols="145" rows="30" spellcheck="false"');
+            $inputs .= print_r($stratData, true);
+            $inputs .= wf_tag('textarea', true);
+            $inputs .= wf_tag('br');
+            $rawData= wf_Form('', 'POST', $inputs, 'glamour');
+
+            $result .= wf_Spoiler($rawData, __('Preview').' '.__('JSON'), true);
+        } else {
+            $result .= $this->messages->getStyledMessage(__('Something went wrong') . ': ' . __('Data') . ' ' . __('is empty'), 'error');
+        }
+
+        $result .= wf_delimiter();
+        $result .= wf_BackLink(self::URL_ME);
+        return ($result);
+    }
+
 
     /**
      * Preprocess some agents data depend on strategy specs
@@ -1055,6 +1144,7 @@ class GRes {
             if (isset($this->allStrategies[$stratId])) {
                 $stratData = $this->allStrategies[$stratId];
                 $result['amount'] = $this->amount;
+                $result['userlogin'] = $this->userLogin;
                 $result += $stratData;
                 $result['agents'] = array();
                 $result['user'] = array();

@@ -72,15 +72,14 @@ if (cfr('GOOSE')) {
             ubRouting::nav($gr::URL_ME . '&' . $gr::ROUTE_SP_CUSTDATA . '=' . ubRouting::post($gr::PROUTE_CD_SPEC));
         }
 
-         //spec custom data field deletion
-         if (ubRouting::checkGet(array($gr::ROUTE_CD_DELKEY,$gr::ROUTE_SP_CUSTDATA))) {
+        //spec custom data field deletion
+        if (ubRouting::checkGet(array($gr::ROUTE_CD_DELKEY, $gr::ROUTE_SP_CUSTDATA))) {
             $gr->deleteCustDataField(
                 ubRouting::get($gr::ROUTE_SP_CUSTDATA),
                 ubRouting::get($gr::ROUTE_CD_DELKEY),
             );
             ubRouting::nav($gr::URL_ME . '&' . $gr::ROUTE_SP_CUSTDATA . '=' . ubRouting::get($gr::ROUTE_SP_CUSTDATA));
         }
-
 
         if (ubRouting::checkGet($gr::ROUTE_SP_EDIT)) {
             $stratId = ubRouting::get($gr::ROUTE_SP_EDIT, 'int');
@@ -90,6 +89,16 @@ if (cfr('GOOSE')) {
                 show_window(__('Custom data'), $gr->renderCustomDataEditor(ubRouting::get($gr::ROUTE_SP_CUSTDATA, 'int')));
             } else {
                 show_window(__('Available strategies'), $gr->renderStrategiesList());
+                //strategies testing here
+                if (ubRouting::checkPost($gr::PROUTE_CH_USER)) {
+                    $checkUserLogin = ubRouting::post($gr::PROUTE_CH_USER, 'login');
+                    $checkIncomeAmount = (ubRouting::checkPost($gr::PROUTE_CH_AMOUNT)) ? ubRouting::post($gr::PROUTE_CH_AMOUNT) : 0;
+                    $checkExplictStratId = (ubRouting::checkPost($gr::PROUTE_CH_STRAT)) ? ubRouting::post($gr::PROUTE_CH_STRAT) : 0;
+                    $gr->setUserLogin($checkUserLogin);
+                    $gr->setAmount($checkIncomeAmount);
+                    $checkStrategyData = $gr->getStrategyData($checkExplictStratId);
+                    show_window(__('Result'), $gr->renderStratTestingResults($checkStrategyData));
+                }
             }
         }
     } else {

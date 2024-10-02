@@ -16,5 +16,10 @@ $lang['def']['Percent of remains'] = 'Відсоток від залишку';
 $lang['def']['right to manage goose resistance'] = 'Право керувати опором гусака';
 $lang['def']['Distribution'] = 'Розподіл';
 $lang['def']['Set'] = 'Встановити';
+$lang['def']['Testing'] = 'Тестування';
+$lang['def']['exists'] = 'існує';
+$lang['def']['not exists'] = 'не існує';
+$lang['def']['Strategy used'] = 'Використано стратегію';
+$lang['def']['Money distribution'] = 'Розподіл коштів';
 $lang['def'][''] = '';
 
