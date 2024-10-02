@@ -21,5 +21,5 @@ $lang['def']['exists'] = 'існує';
 $lang['def']['not exists'] = 'не існує';
 $lang['def']['Strategy used'] = 'Використано стратегію';
 $lang['def']['Money distribution'] = 'Розподіл коштів';
-$lang['def'][''] = '';
+
 
