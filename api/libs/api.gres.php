@@ -130,6 +130,13 @@ class GRes {
     protected $userLogin = '';
 
     /**
+     * Contains current instance user paymentId
+     *
+     * @var string
+     */
+    protected $userPaymentId = '';
+
+    /**
      * OpenPayz object placeholder
      *
      * @var object
@@ -397,6 +404,20 @@ class GRes {
      */
     public function setUserLogin($userLogin = '') {
         $this->userLogin = ubRouting::filters($userLogin, 'login');
+    }
+
+    /**
+     * Sets the user payment Id property and tries to set valid userLogin based on it
+     *
+     * @param string $paymentId
+     * 
+     * @return void
+     */
+    public function setPaymentId($paymentId = '') {
+        $this->userPaymentId = ubRouting::filters($paymentId, 'mres');
+        if (isset($this->allPaymentIds[$this->userPaymentId])) {
+            $this->userLogin = $this->allPaymentIds[$this->userPaymentId];
+        }
     }
 
     /**
@@ -982,9 +1003,9 @@ class GRes {
             $inputs .= print_r($stratData, true);
             $inputs .= wf_tag('textarea', true);
             $inputs .= wf_tag('br');
-            $rawData= wf_Form('', 'POST', $inputs, 'glamour');
+            $rawData = wf_Form('', 'POST', $inputs, 'glamour');
 
-            $result .= wf_Spoiler($rawData, __('Preview').' '.__('JSON'), true);
+            $result .= wf_Spoiler($rawData, __('Preview') . ' ' . __('JSON'), true);
         } else {
             $result .= $this->messages->getStyledMessage(__('Something went wrong') . ': ' . __('Data') . ' ' . __('is empty'), 'error');
         }

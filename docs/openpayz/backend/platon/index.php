@@ -51,7 +51,7 @@ if (!ubRouting::checkPost('amount') and ! ubRouting::checkPost('paymentid')) {
     //push form
     $customerId = ubRouting::post('paymentid', 'vf');
     $amountRaw = ubRouting::post('amount', 'float');
-    $amount = $amountRaw . '.00'; //required with two finishing zeroes
+    $amount = number_format($amountRaw, 2); //required with two finishing zeroes
     if (!empty($customerId) and ! empty($amountRaw)) {
         $key = $cfgPltn['KEY'];
         $pass = $cfgPltn['PASSWORD'];
@@ -69,7 +69,6 @@ if (!ubRouting::checkPost('amount') and ! ubRouting::checkPost('paymentid')) {
                 $splitProp = explode(',', $cfgPltn['SPLIT_STATIC']);
             }
 
-
             foreach ($splitProp as $io => $eachSplit) {
                 if (!empty($eachSplit)) {
                     $cleanSplit = trim($eachSplit);
@@ -78,9 +77,7 @@ if (!ubRouting::checkPost('amount') and ! ubRouting::checkPost('paymentid')) {
             }
             $splitAmountRatio = sizeof($splitRulesArr);
             $splittedAmount = round(($amountRaw / $splitAmountRatio), 2);
-            if (strpos($splittedAmount, '.') === false) {
-                $splittedAmount = $splittedAmount . '.00';
-            }
+            $splittedAmount = number_format($splittedAmount, 2);
 
             foreach ($splitRulesArr as $eachSplit => $eachAmount) {
                 if (!empty($eachSplit)) {
@@ -88,6 +85,32 @@ if (!ubRouting::checkPost('amount') and ! ubRouting::checkPost('paymentid')) {
                 }
             }
         }
+
+        //goose resistance is here
+        if (isset($cfgPltn['GOOSE_RESISTANCE'])) {
+            $baseUrl = $cfgPltn['BILLING_URL'] . '/?module=remoteapi&key=' . $cfgPltn['BILLING_KEY'] . '&action=goose';
+            $callbackUrl = $baseUrl . '&amount=' . $amountRaw . '&paymentid=' . $customerId;
+            $gooseResult = @file_get_contents($callbackUrl);
+            if (!empty($gooseResult)) {
+                $gooseResult = @json_decode($gooseResult, true);
+                if (!empty($gooseResult)) {
+                    if ($gooseResult['agents']) {
+                        foreach ($gooseResult['agents'] as $io => $each) {
+                            $splittedAmount = round(($each['splitamount']), 2);
+                            $splittedAmount = number_format($splittedAmount, 2);
+                            $splitRulesArr[$each['edrpo']] = $splittedAmount;
+                        }
+                    } else {
+                        die('Empty agents received');
+                    }
+                } else {
+                    die('Something went wrong - decode error');
+                }
+            } else {
+                die('Something went wrong - empty reply');
+            }
+        }
+
 
         $rawData = array(
             'amount' => $amount,
