@@ -1011,6 +1011,10 @@ class GRes {
                 $result .= $this->messages->getStyledMessage(__('Payment sum') . ': ' . $stratData['amount'], 'warning');
             }
 
+            $agentLookupData=@$this->getUserAssignedAgentData($stratData['user']['login']);
+            $agentLookupName=(isset($this->allAgentNames[$agentLookupData['id']])) ? $this->allAgentNames[$agentLookupData['id']] : __('No');
+            $result.=$this->messages->getStyledMessage(__('Contrahent name') . ': ' . '[' . $agentLookupData['id'] . '] ' . $agentLookupName, 'info');
+
             $result .= $this->messages->getStyledMessage(__('Strategy used') . ': ' . '[' . $stratData['id'] . '] ' . $stratData['name'], 'info');
 
             if (!empty($stratData['agents'])) {
