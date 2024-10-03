@@ -179,6 +179,26 @@ class GRes {
     protected $allTariffNames = array();
 
     /**
+     * Contains maximum valid amount for payment depend on selected strategy
+     *
+     * @var float
+     */
+    protected $maxAmount = 0;
+    /**
+     * Contains minimum valid amount for payment depend on selected strategy
+     *
+     * @var float
+     */
+    protected $minAmount = 0;
+
+    /**
+     * Contains payment validity flag depends if current amount>=minAmount
+     *
+     * @var bool
+     */
+    protected $paymentIsValid = false;
+
+    /**
      * some predefined stuff here
      */
     const TABLE_STRATEGY = 'gr_strat';
@@ -895,7 +915,7 @@ class GRes {
             $currentCustomData = $this->allSpecs[$specId]['customdata'];
             $dataToSave = $currentCustomData;
             $dataToSave[$keyF] = $valueF;
-            $dataToSave = json_encode($dataToSave);
+            $dataToSave = json_encode($dataToSave, JSON_UNESCAPED_UNICODE);
             $this->specsDb->where('id', '=', $specId);
             $this->specsDb->data('customdata', $dataToSave);
             $this->specsDb->save();
@@ -918,7 +938,7 @@ class GRes {
             $currentCustomData = $this->allSpecs[$specId]['customdata'];
             $dataToSave = $currentCustomData;
             unset($dataToSave[$key]);
-            $dataToSave = json_encode($dataToSave);
+            $dataToSave = json_encode($dataToSave, JSON_UNESCAPED_UNICODE);
             $this->specsDb->where('id', '=', $specId);
             $this->specsDb->data('customdata', $dataToSave);
             $this->specsDb->save();
@@ -1011,9 +1031,9 @@ class GRes {
                 $result .= $this->messages->getStyledMessage(__('Payment sum') . ': ' . $stratData['amount'], 'warning');
             }
 
-            $agentLookupData=@$this->getUserAssignedAgentData($stratData['user']['login']);
-            $agentLookupName=(isset($this->allAgentNames[$agentLookupData['id']])) ? $this->allAgentNames[$agentLookupData['id']] : __('No');
-            $result.=$this->messages->getStyledMessage(__('Contrahent name') . ': ' . '[' . $agentLookupData['id'] . '] ' . $agentLookupName, 'info');
+            $agentLookupData = @$this->getUserAssignedAgentData($stratData['user']['login']);
+            $agentLookupName = (isset($this->allAgentNames[$agentLookupData['id']])) ? $this->allAgentNames[$agentLookupData['id']] : __('No');
+            $result .= $this->messages->getStyledMessage(__('Contrahent name') . ': ' . '[' . $agentLookupData['id'] . '] ' . $agentLookupName, 'info');
 
             $result .= $this->messages->getStyledMessage(__('Strategy used') . ': ' . '[' . $stratData['id'] . '] ' . $stratData['name'], 'info');
 
@@ -1105,6 +1125,7 @@ class GRes {
                     foreach ($result as $io => $each) {
                         if ($each['splittype'] == 'absolute') {
                             if ($each['splitvalue'] > 0) {
+                                $this->minAmount += $each['splitvalue'];
                                 $splitAmount = $each['splitvalue'];
                                 $specAmount = $specAmount - $splitAmount;
                                 $result[$each['id']]['splitamount'] = $splitAmount;
@@ -1225,6 +1246,12 @@ class GRes {
                 $stratData = $this->allStrategies[$stratId];
                 $result['amount'] = $this->amount;
                 $result['userlogin'] = $this->userLogin;
+                $result['paymentid'] = $this->userPaymentId;
+                $result['payopts'] = array();
+                $result['payopts']['minamount'] = $this->minAmount;
+                $result['payopts']['maxamount'] = $this->maxAmount;
+                $result['payopts']['isvalid'] = $this->paymentIsValid;
+                $result['payopts']['amount'] = $this->amount;
                 $result += $stratData;
                 $result['agents'] = array();
                 $result['user'] = array();
@@ -1234,6 +1261,19 @@ class GRes {
                     $result['agents'] = $this->calcAgents($stratData['specs'], $this->amount);
                     //cleanup spec raw data
                     unset($result['specs']);
+                    //set payment opts
+                    if ($this->amount >= $this->minAmount) {
+                        $this->paymentIsValid = true;
+                    } else {
+                        $this->paymentIsValid = false;
+                    }
+                    $result['payopts']['isvalid'] = $this->paymentIsValid;
+                    $result['payopts']['minamount'] = $this->minAmount;
+                    $result['payopts']['maxamount'] = $this->maxAmount;
+                    //reset flags
+                    $this->minAmount = 0;
+                    $this->maxAmount = 0;
+                    $this->paymentIsValid = false;
                 }
 
                 //appending user data
@@ -1242,6 +1282,7 @@ class GRes {
                         $result['user'] = $this->allUserData[$this->userLogin];
                         if (isset($this->allCustomerPaymentIds[$this->userLogin])) {
                             $result['user']['paymentid'] = $this->allCustomerPaymentIds[$this->userLogin];
+                            $result['paymentid'] = $result['user']['paymentid'];
                         }
                     }
                 }
