@@ -6051,9 +6051,13 @@ function web_ReportSysloadRenderLA() {
     $memTotalLabel = zb_convertSize($memTotal) . ' ' . __('RAM');
     $cpuLabel = __('CPU') . ': ' . $cpuName;
     $coreLabel = $cpuCoresCount . ' ' . __('Cores');
+    $osLabel = $hwInfo->getOs() . ' ' . $hwInfo->getOsRelease() . ', ';
+    $phpLabel = __('PHP') . ': ' . $hwInfo->getPhpVersion();
     $result = '';
 
-    $result .= wf_tag('h3') . __('System load') . ' ('  . $cpuLabel . ', ' . $coreLabel . ', ' . $memTotalLabel . ')' . wf_tag('h3', true);
+    $result .= wf_tag('h3') . __('System load');
+    $result .= ' ('  . $cpuLabel . ', ' . $coreLabel . ', ' . $memTotalLabel . '. ' . $osLabel . $phpLabel . ')';
+    $result .=  wf_tag('h3', true);
 
     $gL = 40;
     $yL = 70;
