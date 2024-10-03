@@ -243,7 +243,7 @@ class ConnectionDetails {
      * @return string
      */
     public function renderReportBody() {
-        $columns = array('Address', 'Real Name', 'IP', 'Tariff', 'Active', 'Cash', 'Credit', 'Seal', 'Cost', 'Cable');
+        $columns = array('ID', 'Address', 'Real Name', 'IP', 'Tariff', 'Active', 'Cash', 'Credit', 'Seal', 'Cost', 'Cable');
         $result = wf_JqDtLoader($columns, '?module=report_condet&ajax=true', true, 'users');
 
         return ($result);
@@ -255,7 +255,7 @@ class ConnectionDetails {
      * @return string
      */
     public function renderReportBodyUkv() {
-        $columns = array('Address', 'Real Name', 'Tariff', 'Connected', 'Cash', 'Seal');
+        $columns = array('ID', 'Address', 'Real Name', 'Tariff', 'Connected', 'Cash', 'Seal');
         $result = wf_JqDtLoader($columns, '?module=report_condet&ajaxukv=true', true, 'users');
 
         return ($result);
@@ -287,6 +287,7 @@ class ConnectionDetails {
                         $act = wf_img('skins/icon_inactive.gif') . __('No');
                     }
 
+                    $rowData[] = $each['id'];
                     $rowData[] = $profileLink . $userData['fulladress'];
                     $rowData[] = $userData['realname'];
                     $rowData[] = $userData['ip'];
@@ -334,7 +335,7 @@ class ConnectionDetails {
                 }
 
 
-
+                $rowData[] = $each['id'];
                 $rowData[] = $profileLink . $userAddress;
                 $rowData[] = $userRealname;
                 $rowData[] = $ukv->tariffGetName($each['tariffid']);
@@ -348,5 +349,4 @@ class ConnectionDetails {
 
         $jsonData->getJson();
     }
-
 }
