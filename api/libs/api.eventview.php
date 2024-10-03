@@ -41,6 +41,13 @@ class EventView {
     protected $filterDate = '';
 
     /**
+     * Contains current instance ip filter
+     *
+     * @var string
+     */
+    protected $filterIp = '';
+
+    /**
      * weblogs table database abstraction layer
      *
      * @var object
@@ -90,30 +97,31 @@ class EventView {
     const PROUTE_FILTERADMIN = 'eventadmin';
     const PROUTE_FILTEREVENTTEXT = 'eventsearch';
     const PROUTE_FILTERDATE = 'eventdate';
+    const PROUTE_FILTERIP = 'eventip';
     const PROUTE_PROFILELINKS = 'profilelinks';
 
-//                       .-.
-//                      |_:_|
-//                     /(_Y_)\
-//.                   ( \/M\/ )
-// '.               _.'-/'-'\-'._
-//   ':           _/.--'[[[[]'--.\_
-//     ':        /_'  : |::"| :  '.\
-//       ':     //   ./ |oUU| \.'  :\
-//         ':  _:'..' \_|___|_/ :   :|
-//           ':.  .'  |_[___]_|  :.':\
-//            [::\ |  :  | |  :   ; : \
-//             '-'   \/'.| |.' \  .;.' |
-//             |\_    \  '-'   :       |
-//             |  \    \ .:    :   |   |
-//             |   \    | '.   :    \  |
-//             /       \   :. .;       |
-//            /     |   |  :__/     :  \\
-//           |  |   |    \:   | \   |   ||
-//          /    \  : :  |:   /  |__|   /|
-//          |     : : :_/_|  /'._\  '--|_\
-//          /___.-/_|-'   \  \
-//                         '-'
+    //                       .-.
+    //                      |_:_|
+    //                     /(_Y_)\
+    //.                   ( \/M\/ )
+    // '.               _.'-/'-'\-'._
+    //   ':           _/.--'[[[[]'--.\_
+    //     ':        /_'  : |::"| :  '.\
+    //       ':     //   ./ |oUU| \.'  :\
+    //         ':  _:'..' \_|___|_/ :   :|
+    //           ':.  .'  |_[___]_|  :.':\
+    //            [::\ |  :  | |  :   ; : \
+    //             '-'   \/'.| |.' \  .;.' |
+    //             |\_    \  '-'   :       |
+    //             |  \    \ .:    :   |   |
+    //             |   \    | '.   :    \  |
+    //             /       \   :. .;       |
+    //            /     |   |  :__/     :  \\
+    //           |  |   |    \:   | \   |   ||
+    //          /    \  : :  |:   /  |__|   /|
+    //          |     : : :_/_|  /'._\  '--|_\
+    //          /___.-/_|-'   \  \
+    //                         '-'
 
     /**
      * Creates new EventView instance
@@ -125,6 +133,7 @@ class EventView {
         $this->setLimit();
         $this->setFilterDate();
         $this->setFilterAdmin();
+        $this->setFilterIp();
         $this->setFilterEventText();
         $this->setProfileLinks();
         $this->initDatabase();
@@ -193,6 +202,16 @@ class EventView {
         }
     }
 
+
+    /**
+     * Sets current instance ip filter if required
+     * 
+     * @return void
+     */
+    protected function setFilterIp() {
+        $this->filterIp = ubRouting::post(self::PROUTE_FILTERIP, 'mres') ? ubRouting::post(self::PROUTE_FILTERIP, 'mres') : '';
+    }
+
     /**
      * Sets possible render limits values
      * 
@@ -205,7 +224,8 @@ class EventView {
             200 => 200,
             500 => 500,
             800 => 800,
-            1000 => 1000);
+            1000 => 1000
+        );
     }
 
     /**
@@ -247,7 +267,7 @@ class EventView {
                 $result .= $hs . wf_Link(self::URL_ME . '&' . self::ROUTE_LIMIT . '=' . $each, $each, false) . $he . ' ';
             }
         }
-        return($result);
+        return ($result);
     }
 
     /**
@@ -269,6 +289,11 @@ class EventView {
             $this->weblogsDb->where('admin', '=', $this->filterAdmin);
         }
 
+        //apply ip filter
+        if (!empty($this->filterIp)) {
+            $this->weblogsDb->where('ip', 'LIKE', '%' . $this->filterIp . '%');
+        }
+
         //apply event-text filter
         if (!empty($this->filterEventText)) {
             $this->weblogsDb->where('event', 'LIKE', '%' . $this->filterEventText . '%');
@@ -282,7 +307,7 @@ class EventView {
         //getting events from database
         $result = $this->weblogsDb->getAll();
 
-        return($result);
+        return ($result);
     }
 
     /**
@@ -316,12 +341,13 @@ class EventView {
         $inputs = __('By date') . ': ';
         $inputs .= wf_DatePickerPreset(self::PROUTE_FILTERDATE, $this->filterDate, true) . ' '; //date filter
         $inputs .= $this->adminSelector() . ' '; //administrator filter
+        $inputs .= wf_TextInput(self::PROUTE_FILTERIP, __('IP'), $this->filterIp, false, '15', 'ip') . ' ';
         $inputs .= wf_CheckInput(self::PROUTE_PROFILELINKS, __('Highlight profiles'), false, $this->profileLinksFlag) . ' '; // profile links checkbox
         $inputs .= wf_TextInput(self::PROUTE_FILTEREVENTTEXT, __('Event'), $this->filterEventText, false, 30) . ' '; //event text mask
         $inputs .= wf_Submit(__('Search'));
 
         $result = wf_Form('', 'POST', $inputs, 'glamour');
-        return($result);
+        return ($result);
     }
 
     /**
@@ -357,7 +383,7 @@ class EventView {
                     if (preg_match('!\((.*?)\)!si', $event, $tmpLoginMatches)) {
                         @$loginExtracted = $tmpLoginMatches[1];
                         if (!empty($loginExtracted)) {
-                            if (!ispos($event, '((') AND !ispos($event, 'SWITCH')) { // ignore UKV user id-s and switch locations
+                            if (!ispos($event, '((') and !ispos($event, 'SWITCH')) { // ignore UKV user id-s and switch locations
                                 $userProfileLink = wf_Link('?module=userprofile&username=' . $loginExtracted, web_profile_icon() . ' ' . $loginExtracted);
                                 $event = str_replace($loginExtracted, $userProfileLink, $event);
                             }
@@ -377,7 +403,7 @@ class EventView {
             $result .= $this->messages->getStyledMessage(__('Nothing found'), 'info');
         }
 
-        return($result);
+        return ($result);
     }
 
     /**
@@ -390,7 +416,7 @@ class EventView {
         $result .= wf_Link(self::URL_ME, wf_img('skins/log_icon_small.png', __('Events')) . ' ' . __('Events'), false, 'ubButton') . ' ';
         $result .= wf_Link(self::URL_ME . '&' . self::ROUTE_STATS . '=true', web_icon_charts() . ' ' . __('Stats'), false, 'ubButton') . ' ';
         $result .= wf_Link(self::URL_ME . '&' . self::ROUTE_ZEN . '=true', wf_img('skins/zen.png', __('Zen')) . ' ' . __('Zen'), false, 'ubButton') . ' ';
-        return($result);
+        return ($result);
     }
 
     /**
@@ -484,7 +510,7 @@ class EventView {
         }
 
 
-        return($result);
+        return ($result);
     }
 
     /**
@@ -570,6 +596,6 @@ class EventView {
             $result .= $this->messages->getStyledMessage(__('Something went wrong'), 'error');
         }
 
-        return($result);
+        return ($result);
     }
 }
