@@ -81,6 +81,48 @@ class DoomsDayTariffs {
     protected $prevDaysOffset = 0;
 
     /**
+     * Users/history database abstraction layer
+     *
+     * @var object
+     */
+    protected $usersDb = '';
+
+    /**
+     * Tariff options database abstraction layer
+     *
+     * @var object
+     */
+    protected $optionsDb = '';
+
+    /**
+     * Charge tariffs database abstraction layer
+     *
+     * @var object
+     */
+    protected $chargeOptsDb = '';
+
+    /**
+     * Charges history database absctraction layer
+     *
+     * @var string
+     */
+    protected $chargeHistDb = '';
+
+    /**
+     * Registered users log database abstraction layer
+     *
+     * @var string
+     */
+    protected $userRegDb = '';
+
+    /**
+     * Contains all charge opts as id=>data
+     *
+     * @var array
+     */
+    protected $allChargeOpts = array();
+
+    /**
      * Default control module URL
      */
     const URL_ME = '?module=ddt';
@@ -101,6 +143,15 @@ class DoomsDayTariffs {
     const URL_DWI = '?module=pl_dealwithit&username=';
 
     /**
+     * Other predefined stuff
+     */
+    const TABLE_USERS = 'ddt_users';
+    const TABLE_OPTIONS = 'ddt_options';
+    const TABLE_CHARGESHIST = 'ddt_charges';
+    const TABLE_CHARGEOPTS = 'ddt_chargeopts';
+    const TABLE_USERREG = 'userreg';
+
+    /**
      * Creates new DoomsDay instance
      * 
      * @param bool $fast
@@ -108,7 +159,9 @@ class DoomsDayTariffs {
     public function __construct($fast = false) {
         $this->initMessages();
         $this->loadConfigs();
+        $this->initDbs();
         $this->loadOptionsDDT();
+        $this->loadChargeOptions();
         $this->setOptions();
         $this->initDealWithIt();
         if (!$fast) {
@@ -139,10 +192,23 @@ class DoomsDayTariffs {
         global $ubillingConfig;
         $this->altCfg = $ubillingConfig->getAlter();
         if (isset($this->altCfg['DDT_ENDPREVDAYS'])) {
-            if (!empty($this->altCfg['DDT_ENDPREVDAYS']) AND is_numeric($this->altCfg['DDT_ENDPREVDAYS'])) {
+            if (!empty($this->altCfg['DDT_ENDPREVDAYS']) and is_numeric($this->altCfg['DDT_ENDPREVDAYS'])) {
                 $this->prevDaysOffset = $this->altCfg['DDT_ENDPREVDAYS'];
             }
         }
+    }
+
+    /**
+     * Inits all requuired database abstraction layers
+     *
+     * @return void
+     */
+    protected function initDbs() {
+        $this->usersDb = new NyanORM(self::TABLE_USERS);
+        $this->optionsDb = new NyanORM(self::TABLE_OPTIONS);
+        $this->chargeHistDb = new NyanORM(self::TABLE_CHARGESHIST);
+        $this->chargeOptsDb = new NyanORM(self::TABLE_CHARGEOPTS);
+        $this->userRegDb = new NyanORM(self::TABLE_USERREG);
     }
 
     /**
@@ -168,13 +234,16 @@ class DoomsDayTariffs {
      * @return void
      */
     protected function loadOptionsDDT() {
-        $query = "SELECT * from `ddt_options`";
-        $all = simple_queryall($query);
-        if (!empty($all)) {
-            foreach ($all as $io => $each) {
-                $this->allOptions[$each['id']] = $each;
-            }
-        }
+        $this->allOptions = $this->optionsDb->getAll('id');
+    }
+
+    /**
+     * Loads direct charge options
+     *
+     * @return void
+     */
+    protected function loadChargeOptions() {
+        $this->allChargeOpts = $this->chargeOptsDb->getAll('id');
     }
 
     /**
@@ -202,13 +271,7 @@ class DoomsDayTariffs {
      * @return void
      */
     protected function loadUsersDDT() {
-        $query = "SELECT * from `ddt_users`";
-        $all = simple_queryall($query);
-        if (!empty($all)) {
-            foreach ($all as $io => $each) {
-                $this->allDDTUsers[$each['id']] = $each;
-            }
-        }
+        $this->allDDTUsers = $this->usersDb->getAll('id');
     }
 
     /**
@@ -273,25 +336,32 @@ class DoomsDayTariffs {
      */
     public function createTariffDDT() {
         $result = '';
-        if (wf_CheckPost(array('createnewddtsignal', 'createnewddttariff', 'createnewddtperiod', 'createnewddtduration', 'createnewddttariffmove'))) {
-            $newTariff = $_POST['createnewddttariff'];
-            $newTariff_f = mysql_real_escape_string($newTariff);
-            $newTariffMove = $_POST['createnewddttariffmove'];
-            $newTariffMove_f = mysql_real_escape_string($_POST['createnewddttariffmove']);
-            $newPeriod = vf($_POST['createnewddtperiod']);
-            $newDuration = vf($_POST['createnewddtduration'], 3);
-            $newStartNow = (wf_CheckPost(array('createnewddtstartnow'))) ? 1 : 0;
-            $newChargeFee = (wf_CheckPost(array('createnewddtchargefee'))) ? 1 : 0;
-            $newChargeDay = vf($_POST['createnewddtchargeuntilday'], 3);
-            $newSetCredit = (wf_CheckPost(array('createnewddtsetcredit'))) ? 1 : 0;
+        if (ubRouting::checkPost(array('createnewddtsignal', 'createnewddttariff', 'createnewddtperiod', 'createnewddtduration', 'createnewddttariffmove'))) {
+            $newTariff = ubRouting::post('createnewddttariff');
+            $newTariff_f = ubRouting::filters($newTariff, 'mres');
+            $newTariffMove = ubRouting::post('createnewddttariffmove');
+            $newTariffMove_f = ubRouting::filters($newTariffMove, 'mres');
+            $newPeriod = ubRouting::post('createnewddtperiod', 'vf');
+            $newDuration = ubRouting::post('createnewddtduration', 'int');
+            $newStartNow = (ubRouting::checkPost('createnewddtstartnow')) ? 1 : 0;
+            $newChargeFee = (ubRouting::checkPost('createnewddtchargefee')) ? 1 : 0;
+            $newChargeDay = ubRouting::post('createnewddtchargeuntilday', 'int');
+            $newSetCredit = (ubRouting::checkPost('createnewddtsetcredit')) ? 1 : 0;
             $currentTariffsDDT = $this->getCurrentTariffsDDT();
             if ($newTariff != $newTariffMove) {
                 if (!empty($newDuration)) {
                     if (!isset($currentTariffsDDT[$newTariff])) {
-                        $query = "INSERT INTO `ddt_options` (`id`,`tariffname`,`period`,`startnow`,`duration`,`chargefee`,`chargeuntilday`,`setcredit`,`tariffmove`)"
-                                . " VALUES (NULL,'" . $newTariff_f . "','" . $newPeriod . "','" . $newStartNow . "','" . $newDuration . "','" . $newChargeFee . "','" . $newChargeDay . "','" . $newSetCredit . "','" . $newTariffMove_f . "'); ";
-                        nr_query($query);
-                        $newId = simple_get_lastid('ddt_options');
+                        $this->optionsDb->data('tariffname', $newTariff_f);
+                        $this->optionsDb->data('period', $newPeriod);
+                        $this->optionsDb->data('startnow', $newStartNow);
+                        $this->optionsDb->data('duration', $newDuration);
+                        $this->optionsDb->data('chargefee', $newChargeFee);
+                        $this->optionsDb->data('chargeuntilday', $newChargeDay);
+                        $this->optionsDb->data('setcredit', $newSetCredit);
+                        $this->optionsDb->data('tariffmove', $newTariffMove_f);
+                        $this->optionsDb->create();
+
+                        $newId = $this->optionsDb->getLastId();
                         log_register('DDT CREATE [' . $newId . '] TARIFF `' . $newTariff . '` MOVE ON `' . $newTariffMove . '` IN ' . $newDuration . ' `' . $newPeriod . '`');
                     } else {
                         $result = __('You already have doomsday assigned for tariff') . ' ' . $newTariff;
@@ -318,11 +388,11 @@ class DoomsDayTariffs {
      */
     public function deleteTariffDDT($tariffId) {
         $result = '';
-        $tariffId = vf($tariffId, 3);
+        $tariffId = ubRouting::filters($tariffId, 'int');
         if (isset($this->allOptions[$tariffId])) {
             $tariffData = $this->allOptions[$tariffId];
-            $query = "DELETE from `ddt_options` WHERE `id`='" . $tariffId . "';";
-            nr_query($query);
+            $this->optionsDb->where('id', '=', $tariffId);
+            $this->optionsDb->delete();
             log_register('DDT DELETE [' . $tariffId . '] TARIFF `' . $tariffData['tariffname'] . '`');
         } else {
             $result .= __('Tariff') . ' ' . $tariffId . ' ' . __('Not exists');
@@ -358,7 +428,7 @@ class DoomsDayTariffs {
         if (isset($this->allTariffs[$tariffName])) {
             $result = $this->allTariffs[$tariffName]['Fee'];
         }
-        return($result);
+        return ($result);
     }
 
     /**
@@ -408,6 +478,9 @@ class DoomsDayTariffs {
         } else {
             $result .= $this->messages->getStyledMessage(__('There is nothing to watch') . '.', 'info');
         }
+
+        $result .= wf_delimiter();
+        $result .= wf_modalAuto(web_icon_create() . ' ' . __('Create new doomsday tariff'), __('Create new doomsday tariff'), $this->renderCreateForm(), 'ubButton');
         return ($result);
     }
 
@@ -422,7 +495,7 @@ class DoomsDayTariffs {
         $result = false;
         if (!empty($this->allTasks)) {
             foreach ($this->allTasks as $io => $each) {
-                if ($each['login'] == $userLogin AND $each['action'] == 'tariffchange') {
+                if ($each['login'] == $userLogin and $each['action'] == 'tariffchange') {
                     $result = true;
                 }
             }
@@ -441,7 +514,7 @@ class DoomsDayTariffs {
         $result = array();
         if (!empty($this->allTasks)) {
             foreach ($this->allTasks as $io => $each) {
-                if ($each['login'] == $userLogin AND $each['action'] == 'tariffchange') {
+                if ($each['login'] == $userLogin and $each['action'] == 'tariffchange') {
                     $result = $each;
                 }
             }
@@ -462,9 +535,14 @@ class DoomsDayTariffs {
      */
     protected function logSchedule($login, $userTariff, $targetDate, $nextTariff, $dwiid) {
         $curDateTime = curdatetime();
-        $query = "INSERT INTO `ddt_users` (`id`,`login`,`active`,`startdate`,`curtariff`,`enddate`,`nexttariff`,`dwiid`) VALUES "
-                . "(NULL,'" . $login . "','1','" . $curDateTime . "', '" . $userTariff . "','" . $targetDate . "','" . $nextTariff . "','" . $dwiid . "');";
-        nr_query($query);
+        $this->usersDb->data('login', $login);
+        $this->usersDb->data('active', '1');
+        $this->usersDb->data('startdate', $curDateTime);
+        $this->usersDb->data('curtariff', $userTariff);
+        $this->usersDb->data('enddate', $targetDate);
+        $this->usersDb->data('nexttariff', $nextTariff);
+        $this->usersDb->data('dwiid', $dwiid);
+        $this->usersDb->create();
     }
 
     /**
@@ -614,7 +692,7 @@ class DoomsDayTariffs {
      */
     public function getHistoryAjax() {
         $json = new wf_JqDtHelper();
-        $loginFilter = wf_CheckGet(array('username')) ? $_GET['username'] : '';
+        $loginFilter = ubRouting::get('username');
         if (!empty($this->allDDTUsers)) {
             $userFullData = zb_UserGetAllDataCache();
             foreach ($this->allDDTUsers as $io => $each) {
@@ -640,4 +718,14 @@ class DoomsDayTariffs {
         $json->getJson();
     }
 
+
+    public function renderChargeOpsList() {
+        $result='';
+        if (!empty($this->allChargeOpts)) {
+            
+        } else {
+            $result .= $this->messages->getStyledMessage(__('Nothing to show'), 'info');
+        }
+        return($result);
+    }
 }

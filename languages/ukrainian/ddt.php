@@ -30,3 +30,6 @@ $lang['def']['right to manage doomsday tariffs'] = 'Право керувати 
 $lang['def']['right to view doomsday tariffs history'] = 'Право переглядати історію тарифів судного дня';
 $lang['def']['This user uses one of doomsday tariffs'] = 'Цей користувач використовує один з тарифів судного дня';
 $lang['def']['Freezing denied'] = 'Заморожування заборонено';
+$lang['def']['Forced tariffs charge'] = 'Примусове нарахування тарифів';
+$lang['def'][''] = '';
+$lang['def'][''] = '';
