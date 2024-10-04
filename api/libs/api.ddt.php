@@ -123,6 +123,13 @@ class DoomsDayTariffs {
     protected $allChargeOpts = array();
 
     /**
+     * Contains full charges history as id=>data
+     *
+     * @var array
+     */
+    protected $fullChargeHist = array();
+
+    /**
      * Default control module URL
      */
     const URL_ME = '?module=ddt';
@@ -145,11 +152,20 @@ class DoomsDayTariffs {
     /**
      * Other predefined stuff
      */
+    const PID = 'DDT';
     const TABLE_USERS = 'ddt_users';
     const TABLE_OPTIONS = 'ddt_options';
     const TABLE_CHARGESHIST = 'ddt_charges';
     const TABLE_CHARGEOPTS = 'ddt_chargeopts';
     const TABLE_USERREG = 'userreg';
+
+    const ROUTE_CH_DELETE = 'deletechargeruleid';
+    const PROUTE_CH_CREATE = 'newchargetariffcreation';
+    const PROUTE_CH_TARIFF = 'newchargetariff';
+    const PROUTE_CH_UDAY = 'newchargeuntilday';
+    const PROUTE_CH_FEE = 'newchargefeeflag';
+    const PROUTE_CH_ABS = 'newchargeabsolute';
+    const PROUTE_CH_CREDITDAYS = 'newchargecreditdays';
 
     /**
      * Creates new DoomsDay instance
@@ -299,8 +315,16 @@ class DoomsDayTariffs {
         if (!empty($this->allTariffNames)) {
             $tariffsNewAvail = $this->allTariffNames;
             $currentTariffsDDT = $this->getCurrentTariffsDDT();
+            $currentTariffsCharge = $this->getCurrentChargeTariffs();
+
             if (!empty($currentTariffsDDT)) {
                 foreach ($currentTariffsDDT as $io => $each) {
+                    unset($tariffsNewAvail[$io]);
+                }
+            }
+
+            if (!empty($currentTariffsCharge)) {
+                foreach ($currentTariffsCharge as $io => $each) {
                     unset($tariffsNewAvail[$io]);
                 }
             }
@@ -348,9 +372,10 @@ class DoomsDayTariffs {
             $newChargeDay = ubRouting::post('createnewddtchargeuntilday', 'int');
             $newSetCredit = (ubRouting::checkPost('createnewddtsetcredit')) ? 1 : 0;
             $currentTariffsDDT = $this->getCurrentTariffsDDT();
+            $currentTariffsCharge = $this->getCurrentChargeTariffs();
             if ($newTariff != $newTariffMove) {
                 if (!empty($newDuration)) {
-                    if (!isset($currentTariffsDDT[$newTariff])) {
+                    if (!isset($currentTariffsDDT[$newTariff]) and !isset($currentTariffsCharge[$newTariff])) {
                         $this->optionsDb->data('tariffname', $newTariff_f);
                         $this->optionsDb->data('period', $newPeriod);
                         $this->optionsDb->data('startnow', $newStartNow);
@@ -411,6 +436,21 @@ class DoomsDayTariffs {
         if (!empty($this->allOptions)) {
             foreach ($this->allOptions as $io => $each) {
                 $result[$each['tariffname']] = $each;
+            }
+        }
+        return ($result);
+    }
+
+    /**
+     * Returns list of available charge tariffs as tariffname=>options
+     *
+     * @return array
+     */
+    public function getCurrentChargeTariffs() {
+        $result = array();
+        if (!empty($this->allChargeOpts)) {
+            foreach ($this->allChargeOpts as $io => $each) {
+                $result[$each['tariff']] = $each;
             }
         }
         return ($result);
@@ -719,13 +759,150 @@ class DoomsDayTariffs {
     }
 
 
+    /**
+     * Render available tariffs charge opts here
+     *
+     * @return void
+     */
     public function renderChargeOpsList() {
-        $result='';
+        $result = '';
         if (!empty($this->allChargeOpts)) {
-            
+            $cells = wf_TableCell(__('ID'));
+            $cells .= wf_TableCell(__('Tariff'));
+            $cells .= wf_TableCell(__('Fee'));
+            $cells .= wf_TableCell(__('Charge until day'));
+            $cells .= wf_TableCell(__('Charge fee'));
+            $cells .= wf_TableCell(__('Additional amount'));
+            $cells .= wf_TableCell(__('Credit days'));
+            $cells .= wf_TableCell(__('Actions'));
+            $rows = wf_TableRow($cells, 'row1');
+            foreach ($this->allChargeOpts as $io => $each) {
+                $tariffFee = $this->getTariffFee($each['tariff']);
+                $cells = wf_TableCell($each['id']);
+                $cells .= wf_TableCell($each['tariff']);
+                $cells .= wf_TableCell($tariffFee);
+                $udayLabel = ($each['untilday']) ? $each['untilday'] : __('Any');
+                $cells .= wf_TableCell($udayLabel);
+                $cells .= wf_TableCell(web_bool_led($each['chargefee']));
+                $absLabel = ($each['absolute']) ? $each['absolute'] : __('No');
+                $cells .= wf_TableCell($absLabel);
+                $credLabel = ($each['creditdays']) ? $each['creditdays'] : __('No');
+                $cells .= wf_TableCell($credLabel);
+
+                $deleteUrl = self::URL_ME . '&' . self::ROUTE_CH_DELETE . '=' . $each['id'];
+                $cancelUrl = self::URL_ME;
+                $alertLabel = __('Delete') . ' ' . __('rule for') . ' ' . $each['tariff'] . '? ' . $this->messages->getDeleteAlert();
+                $actLinks = wf_ConfirmDialog($deleteUrl, web_delete_icon(), $alertLabel, '', $cancelUrl, __('Delete'));
+                $cells .= wf_TableCell($actLinks);
+                $rows .= wf_TableRow($cells, 'row5');
+            }
+            $result .= wf_TableBody($rows, '100%', 0, 'sortable');
         } else {
             $result .= $this->messages->getStyledMessage(__('Nothing to show'), 'info');
         }
-        return($result);
+
+        $result .= wf_delimiter(0);
+        $result .= wf_modalAuto(wf_img('skins/icon_dollar_16.gif') . ' ' . __('Create new forced charge rule'), __('Create new forced charge rule'), $this->renderChargeOptsCreateForm(), 'ubButton');
+        return ($result);
+    }
+
+    /**
+     * Renders charge opts rule creation form
+     *
+     * @return void
+     */
+    public function renderChargeOptsCreateForm() {
+        $result = '';
+        $tariffParams = array();
+        $dayParams = array();
+        $currentTariffsDDT = $this->getCurrentTariffsDDT();
+        $currentTariffsCharge = $this->getCurrentChargeTariffs();
+
+        if (!empty($this->allTariffNames)) {
+            foreach ($this->allTariffNames as $io => $each) {
+                if (!isset($currentTariffsDDT[$each]) and !isset($currentTariffsCharge[$each])) {
+                    $tariffParams[$each] = $each;
+                }
+            }
+        }
+
+        $dayParams[0] = __('Any');
+        for ($i = 1; $i <= 31; $i++) {
+            $dayParams[$i] = $i;
+        }
+
+        if (!empty($tariffParams)) {
+            $inputs = wf_HiddenInput(self::PROUTE_CH_CREATE, 'true');
+            $inputs .= wf_Selector(self::PROUTE_CH_TARIFF, $tariffParams, __('Tariff'), '', true);
+            $inputs .= wf_Selector(self::PROUTE_CH_UDAY, $dayParams, __('Charge current tariff fee if day less then'), '', true);
+            $inputs .= wf_CheckInput(self::PROUTE_CH_FEE, __('Charge current tariff fee'), true, true);
+            $inputs .= wf_TextInput(self::PROUTE_CH_ABS, __('Also additionally withdraw the following amount'), '', true, 4, 'digits');
+            $inputs .= wf_TextInput(self::PROUTE_CH_CREDITDAYS, __('Set a credit, for so many days'), '', true, 4, 'digits');
+            $inputs .= wf_delimiter(0);
+            $inputs .= wf_Submit(__('Create'));
+            $result .= wf_Form('', 'POST', $inputs, 'glamour');
+        } else {
+            $result .= $this->messages->getStyledMessage(__('Something went wrong'), 'error');
+        }
+
+        return ($result);
+    }
+
+    /**
+     * Creates new forsed charge rule database record
+     *
+     * @return void|string on error
+     */
+    public function createChargeRule() {
+        $result = '';
+        if (ubRouting::checkPost(array(self::PROUTE_CH_CREATE, self::PROUTE_CH_TARIFF))) {
+            $newTariff = ubRouting::post(self::PROUTE_CH_TARIFF);
+            $newTariff_f = ubRouting::filters($newTariff, 'mres');
+            $uDay = ubRouting::post(self::PROUTE_CH_UDAY, 'int');
+            $feeFlag = (ubRouting::checkPost(self::PROUTE_CH_FEE)) ? 1 : 0;
+            $absValue = (ubRouting::checkPost(self::PROUTE_CH_ABS)) ? ubRouting::post(self::PROUTE_CH_ABS, 'int') : 0;
+            $creditDays = (ubRouting::checkPost(self::PROUTE_CH_CREDITDAYS)) ? ubRouting::post(self::PROUTE_CH_CREDITDAYS, 'int') : 0;
+
+            $currentTariffsDDT = $this->getCurrentTariffsDDT();
+            $currentTariffsCharge = $this->getCurrentChargeTariffs();
+            if (!isset($currentTariffsDDT[$newTariff]) and !isset($currentTariffsCharge[$newTariff])) {
+                $this->chargeOptsDb->data('tariff', $newTariff_f);
+                $this->chargeOptsDb->data('untilday', $uDay);
+                $this->chargeOptsDb->data('chargefee', $feeFlag);
+                $this->chargeOptsDb->data('absolute', $absValue);
+                $this->chargeOptsDb->data('creditdays', $creditDays);
+                $this->chargeOptsDb->create();
+
+                $newId = $this->chargeOptsDb->getLastId();
+                log_register('DDT CHARGE CREATE [' . $newId . '] TARIFF `' . $newTariff . '`');
+            } else {
+                $result = __('You already have doomsday assigned for tariff') . ' ' . $newTariff;
+                log_register('DDT CHARGE CREATE FAIL DUPLICATE TARIFF `' . $newTariff . '`');
+            }
+
+            return ($result);
+        }
+    }
+
+    /**
+     * Deletes some tariff charge rule by its ID
+     * 
+     * @param int $tariffId
+     * 
+     * @return void/string on error
+     */
+    public function deleteChargeRule($ruleId) {
+        $result = '';
+        $ruleId = ubRouting::filters($ruleId, 'int');
+        if (isset($this->allChargeOpts[$ruleId])) {
+            $ruleData = $this->allChargeOpts[$ruleId];
+            $this->chargeOptsDb->where('id', '=', $ruleId);
+            $this->chargeOptsDb->delete();
+            log_register('DDT DELETE [' . $ruleId . '] TARIFF `' . $ruleData['tariff'] . '`');
+        } else {
+            $result .= __('Forced tariffs charge') . ' [' . $ruleId . '] ' . __('Not exists');
+            log_register('DDT CHARGE DELETE FAIL [' . $ruleId . '] NOT_EXISTS');
+        }
+        return ($result);
     }
 }

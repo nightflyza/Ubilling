@@ -30,4 +30,12 @@ $lang['def']['right to manage doomsday tariffs'] = 'Право управлят�
 $lang['def']['right to view doomsday tariffs history'] = 'Право просматривать историю тарифов судного дня';
 $lang['def']['This user uses one of doomsday tariffs'] = 'Этот пользователь использует один из тарифов судного дня';
 $lang['def']['Freezing denied'] = 'Замораживание запрещено';
+$lang['def']['Forced tariffs charge'] = 'Принудительное начисление тарифов';
+$lang['def']['Also additionally withdraw the following amount'] = 'Также дополнительно снять суму со счета';
+$lang['def']['Set a credit, for so many days'] = 'Установить кредит на столько дней';
+$lang['def']['Create new forced charge rule'] = 'Создать новое правило начисления';
+$lang['def']['Additional amount'] = 'Дополнительная сума';
+$lang['def']['Credit days'] = 'Дней кредита';
+$lang['def']['rule for'] = 'правило для';
+
 

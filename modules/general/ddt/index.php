@@ -31,6 +31,26 @@ if (cfr('DDT')) {
                     }
                 }
 
+                if (ubRouting::checkPost($ddt::PROUTE_CH_CREATE)) {
+                    $chRcR = $ddt->createChargeRule();
+                    if (empty($chRcR)) {
+                        ubRouting::nav($ddt::URL_ME);
+                    } else {
+                        show_error($chRcR);
+                        show_window('', wf_BackLink($ddt::URL_ME));
+                    }
+                }
+
+                if (ubRouting::checkGet($ddt::ROUTE_CH_DELETE)) {
+                    $chRdR = $ddt->deleteChargeRule(ubRouting::get($ddt::ROUTE_CH_DELETE));
+                    if (empty($chRdR)) {
+                        ubRouting::nav($ddt::URL_ME);
+                    } else {
+                        show_error($chRdR);
+                        show_window('', wf_BackLink($ddt::URL_ME));
+                    }
+                }
+
                 $avidity_m = $avidity['M']['ASAKO'];
                 show_window('', $ddt->$avidity_m());
 
