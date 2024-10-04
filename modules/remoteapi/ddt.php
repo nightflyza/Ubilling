@@ -11,6 +11,7 @@ if (ubRouting::get('action') == 'ddt') {
             if ($ddtProcess->notRunning()) {
                 $ddtProcess->start();
                 $ddtApiRun->runProcessing();
+                $ddtApiRun->runChargeRules();
                 $ddtProcess->stop();
                 die('OK:DDTPROCESSING');
             } else {

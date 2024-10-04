@@ -104,14 +104,14 @@ class DoomsDayTariffs {
     /**
      * Charges history database absctraction layer
      *
-     * @var string
+     * @var object
      */
     protected $chargeHistDb = '';
 
     /**
      * Registered users log database abstraction layer
      *
-     * @var string
+     * @var object
      */
     protected $userRegDb = '';
 
@@ -121,6 +121,13 @@ class DoomsDayTariffs {
      * @var array
      */
     protected $allChargeOpts = array();
+
+    /**
+     * Contains all tariff charge rules as tariff=>ruleData
+     *
+     * @var array
+     */
+    protected $allTariffChargeRules = array();
 
     /**
      * Contains full charges history as id=>data
@@ -260,6 +267,11 @@ class DoomsDayTariffs {
      */
     protected function loadChargeOptions() {
         $this->allChargeOpts = $this->chargeOptsDb->getAll('id');
+        if (!empty($this->allChargeOpts)) {
+            foreach ($this->allChargeOpts as $io => $each) {
+                $this->allTariffChargeRules[$each['tariff']] = $each;
+            }
+        }
     }
 
     /**
@@ -448,11 +460,7 @@ class DoomsDayTariffs {
      */
     public function getCurrentChargeTariffs() {
         $result = array();
-        if (!empty($this->allChargeOpts)) {
-            foreach ($this->allChargeOpts as $io => $each) {
-                $result[$each['tariff']] = $each;
-            }
-        }
+        $result = $this->allTariffChargeRules;
         return ($result);
     }
 
@@ -904,5 +912,140 @@ class DoomsDayTariffs {
             log_register('DDT CHARGE DELETE FAIL [' . $ruleId . '] NOT_EXISTS');
         }
         return ($result);
+    }
+
+    /**
+     * Returns array of users charged today as login=>histData
+     *
+     * @return array
+     */
+    protected function getTodayChargedUsers() {
+        $result = array();
+        $curDay = curdate();
+        $this->chargeHistDb->where('chargedate', '=', $curDay);
+        $result = $this->chargeHistDb->getAll('login');
+        return ($result);
+    }
+
+    /**
+     * Returns array of users registered today as login=>regData
+     *
+     * @return array
+     */
+    protected function getUsersRegisteredToday() {
+        $result = array();
+        $curDay = curdate();
+        $this->userRegDb->where('date', 'LIKE', $curDay . '%');
+        $result = $this->userRegDb->getAll('login');
+        return ($result);
+    }
+
+    /**
+     * Creates new history record for some user forsed tariff charge
+     *
+     * @param string $login
+     * @param string $chargeDate
+     * @param string $tariff
+     * @param foat $summ
+     * 
+     * @return void
+     */
+    protected function logCharge($login, $chargeDate, $tariff, $summ) {
+        $login = ubRouting::filters($login, 'login');
+        $chargeDate = ubRouting::filters($chargeDate, 'mres');
+        $tariff = ubRouting::filters($tariff, 'mres');
+        $summ = ubRouting::filters($summ, 'mres');
+
+        $this->chargeHistDb->data('login', $login);
+        $this->chargeHistDb->data('chargedate', $chargeDate);
+        $this->chargeHistDb->data('tariff', $tariff);
+        $this->chargeHistDb->data('summ', $summ);
+        $this->chargeHistDb->create();
+    }
+
+    /**
+     * Performs forced tariffs charge ruleset processing
+     *
+     * @return void
+     */
+    public function runChargeRules() {
+        global $billing;
+        if (!empty($this->allTariffChargeRules)) {
+            $todayUsers = $this->getUsersRegisteredToday();
+            if (!empty($todayUsers)) {
+                $chargedUsers = $this->getTodayChargedUsers();
+                $chargeTariffs = $this->getCurrentChargeTariffs();
+                foreach ($todayUsers as $eachUserLogin => $regData) {
+                    $eachUserData = $this->allUserData[$eachUserLogin];
+                    $currentUserTariff = $eachUserData['Tariff'];
+
+                    if (isset($chargeTariffs[$currentUserTariff])) {
+                        //yep, this this tariff have charge rule
+                        if (!isset($chargedUsers[$eachUserLogin])) {
+                            //not charged today yet
+                            $chargeRuleData = $chargeTariffs[$currentUserTariff];
+                            $chargeUntilDay = $chargeRuleData['untilday'] ? $chargeRuleData['untilday'] : 0;
+                            $chargeAllowed = ($chargeUntilDay == 0) ? true : false;
+                            $absValue = $chargeRuleData['absolute'];
+                            $feeFlag = ($chargeRuleData['chargefee']) ? true : false;
+                            $creditDays = ($chargeRuleData['creditdays']) ? $chargeRuleData['creditdays'] : 0;
+
+                            $currentDate = curdate();
+                            $currentDayNum = date("j");
+                            if (!$chargeAllowed) {
+                                if ($currentDayNum <= $chargeUntilDay) {
+                                    $chargeAllowed = true;
+                                }
+                            }
+
+                            $nativeTariffData = $this->allTariffs[$currentUserTariff];
+                            $nativeTariffFee = $nativeTariffData['Fee'];
+                            $nativeTariffPeriod = (isset($nativeTariffData['period'])) ? $nativeTariffData['period'] : 'month';
+                            $currentUserBalance = $eachUserData['Cash'];
+                            $expectedUserBalance = $currentUserBalance;
+                            $chargeFeeAmount = 0;
+
+                            //is nowdays valid for charging this tariff?
+                            if ($chargeAllowed) {
+                                //native tariff fee charge?
+                                if ($feeFlag) {
+                                    $expectedUserBalance = $expectedUserBalance - $nativeTariffFee;
+                                    $chargeFeeAmount += $nativeTariffFee;
+                                }
+
+                                //charge absolute value
+                                if ($absValue) {
+                                    $expectedUserBalance = $expectedUserBalance - $absValue;
+                                    $chargeFeeAmount += $absValue;
+                                }
+
+                                //is any credit required?
+                                if ($expectedUserBalance < 0) {
+                                    if ($creditDays) {
+                                        $newUserCredit = abs($expectedUserBalance);
+                                        //set some credit
+                                        $billing->setcredit($eachUserLogin, $newUserCredit);
+                                        log_register('DDT CHANGE Credit (' . $eachUserLogin . ') ON ' . $newUserCredit);
+
+                                        //and expire date
+                                        $tariffExpireDate = date('Y-m-d', strtotime("+3 days", strtotime($currentDate)));
+                                        $billing->setcreditexpire($eachUserLogin, $tariffExpireDate);
+                                        log_register('DDT CHANGE CreditExpire (' . $eachUserLogin . ') ON ' . $tariffExpireDate);
+                                    }
+                                }
+
+                                //charging from user
+                                log_register('DDT CHARGE (' . $eachUserLogin . ') TARIFF `' . $currentUserTariff . '` ON -' . $chargeFeeAmount);
+                                $chargeComment = 'DDT: ' . $currentUserTariff;
+                                zb_CashAdd($eachUserLogin, '-' . $chargeFeeAmount, 'correct', 1, $chargeComment);
+                                $this->logCharge($eachUserLogin, $currentDate, $currentUserTariff, $chargeFeeAmount);
+                                $chargedUsers[$eachUserLogin] = array(); //preventing multiple charge this user
+
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 }
