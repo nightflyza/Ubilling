@@ -147,6 +147,11 @@ class DoomsDayTariffs {
     const URL_HIST = '?module=ddt&history=true';
 
     /**
+     * Forced charges history URL
+     */
+    const URL_CH_HIST = '&mode=fch';
+
+    /**
      * Default user profile link URL
      */
     const URL_PROFILE = '?module=userprofile&username=';
@@ -167,6 +172,7 @@ class DoomsDayTariffs {
     const TABLE_USERREG = 'userreg';
 
     const ROUTE_CH_DELETE = 'deletechargeruleid';
+    const ROUTE_CH_HISTAJX = 'forcedchargehistoryajax';
     const PROUTE_CH_CREATE = 'newchargetariffcreation';
     const PROUTE_CH_TARIFF = 'newchargetariff';
     const PROUTE_CH_UDAY = 'newchargeuntilday';
@@ -652,6 +658,7 @@ class DoomsDayTariffs {
                                             $nativeTariffData = $this->allTariffs[$currentUserTariff];
                                             $nativeTariffFee = $nativeTariffData['Fee'];
                                             $nativeTariffPeriod = (isset($nativeTariffData['period'])) ? $nativeTariffData['period'] : 'month';
+                                            log_register('DDT FEE CHARGE (' . $eachUserLogin . ') TARIFF `' . $currentUserTariff . '` ON -' . $nativeTariffFee);
                                             zb_CashAdd($eachUserLogin, '-' . $nativeTariffFee, 'correct', 1, 'DDT: ' . $currentUserTariff);
 
                                             //setting credit if required
@@ -703,7 +710,9 @@ class DoomsDayTariffs {
         if (cfr('DDTCONF')) {
             $result .= wf_Link(self::URL_ME, web_icon_extended() . ' ' . __('Configuration'), false, 'ubButton');
         }
-        $result .= wf_Link(self::URL_HIST, wf_img('skins/icon_calendar.gif') . ' ' . __('History'), false, 'ubButton');
+        $result .= wf_Link(self::URL_HIST, wf_img('skins/icon_calendar.gif') . ' ' . __('Doomsday tariffs history'), false, 'ubButton');
+        $result .=  wf_Link(self::URL_HIST . self::URL_CH_HIST, wf_img('skins/icon_dollar_16.gif') . ' ' . __('Forced charges history'), false, 'ubButton');
+
         return ($result);
     }
 
@@ -1035,7 +1044,7 @@ class DoomsDayTariffs {
                                 }
 
                                 //charging from user
-                                log_register('DDT CHARGE (' . $eachUserLogin . ') TARIFF `' . $currentUserTariff . '` ON -' . $chargeFeeAmount);
+                                log_register('DDT FORCED CHARGE (' . $eachUserLogin . ') TARIFF `' . $currentUserTariff . '` ON -' . $chargeFeeAmount);
                                 $chargeComment = 'DDT: ' . $currentUserTariff;
                                 zb_CashAdd($eachUserLogin, '-' . $chargeFeeAmount, 'correct', 1, $chargeComment);
                                 $this->logCharge($eachUserLogin, $currentDate, $currentUserTariff, $chargeFeeAmount);
@@ -1047,5 +1056,48 @@ class DoomsDayTariffs {
                 }
             }
         }
+    }
+
+    /**
+     * Renders forced charges history report container
+     * 
+     * @return string
+     */
+    public function renderChargesHistoryContainer() {
+        $result = '';
+        if (!empty($this->allDDTUsers)) {
+            $opts = '"order": [[ 1, "desc" ]]';
+            $ajaxUrl = self::URL_ME . '&' . self::ROUTE_CH_HISTAJX . '=true';
+
+            $columns = array('User', 'Date', 'Tariff', 'Sum');
+            $result .= wf_JqDtLoader($columns, $ajaxUrl, false, __('Users'), 100, $opts);
+        } else {
+            $result .= $this->messages->getStyledMessage(__('There is nothing to watch'), 'warning');
+        }
+        return ($result);
+    }
+
+    /**
+     * Renders DDT history report json data
+     * 
+     * @return void
+     */
+    public function getChargesHistoryAjax() {
+        $json = new wf_JqDtHelper();
+        $allChargesHistory = $this->chargeHistDb->getAll();
+
+        if (!empty($allChargesHistory)) {
+            $userFullData = zb_UserGetAllDataCache();
+            foreach ($allChargesHistory as $io => $each) {
+                $userLink = isset($userFullData[$each['login']]) ? wf_Link(self::URL_PROFILE . $each['login'], web_profile_icon() . ' ' . $userFullData[$each['login']]['fulladress']) : $each['login'];
+                $data[] = $userLink;
+                $data[] = $each['chargedate'];
+                $data[] = $each['tariff'];
+                $data[] = $each['summ'];
+                $json->addRow($data);
+                unset($data);
+            }
+        }
+        $json->getJson();
     }
 }

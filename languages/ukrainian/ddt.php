@@ -37,3 +37,5 @@ $lang['def']['Create new forced charge rule'] = 'Створити нове пр�
 $lang['def']['Additional amount'] = 'Додаткова сума';
 $lang['def']['Credit days'] = 'Днів кредиту';
 $lang['def']['rule for'] = 'правило для';
+$lang['def']['Doomsday tariffs history'] = 'Історія тарифів судного дня';
+$lang['def']['Forced charges history'] = 'Історія примусових нарахувань';

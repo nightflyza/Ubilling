@@ -51,23 +51,35 @@ if (cfr('DDT')) {
                     }
                 }
 
+                if (ubRouting::checkGet($ddt::ROUTE_CH_HISTAJX)) {
+                    $ddt->getChargesHistoryAjax();
+                }
+
                 $avidity_m = $avidity['M']['ASAKO'];
                 show_window('', $ddt->$avidity_m());
 
                 if (!ubRouting::checkGet($avidity['Y']['TWELVE'])) {
-                    // $avidity_m = $avidity['M']['JB'];
-                    // show_window(__($avidity['L']['REM']), $ddt->$avidity_m());
                     $avidity_m = $avidity['M']['MEGUMIN'];
                     show_window(__($avidity['L']['RAM']), $ddt->$avidity_m());
                     show_window(__('Forced tariffs charge'), $ddt->renderChargeOpsList());
                 } else {
-                    if (ubRouting::checkGet($avidity['V']['SAD'])) {
-                        $avidity_m = $avidity['M']['BUTTRUE'];
-                        $ddt->$avidity_m();
-                    }
+                    if (!ubRouting::checkGet('mode')) {
+                        if (ubRouting::checkGet($avidity['V']['SAD'])) {
+                            $avidity_m = $avidity['M']['BUTTRUE'];
+                            $ddt->$avidity_m();
+                        }
 
-                    $avidity_m = $avidity['M']['SUBARU'];
-                    show_window(__($avidity['L']['LYAK']), $ddt->$avidity_m(ubRouting::get($avidity['V']['ZHEKA'])));
+                        $avidity_m = $avidity['M']['SUBARU'];
+                        show_window(__($avidity['L']['LYAK']), $ddt->$avidity_m(ubRouting::get($avidity['V']['ZHEKA'])));
+                    } else {
+                        $hMode=ubRouting::get('mode','gigasafe');
+                        switch ($hMode) {
+                            case 'fch':
+                                show_window(__('Forced charges history'),$ddt->renderChargesHistoryContainer());
+                                break;
+                        }
+                        
+                    }
                 }
                 zb_BillingStats(true);
             } else {
