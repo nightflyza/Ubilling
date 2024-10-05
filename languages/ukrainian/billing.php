@@ -3541,6 +3541,6 @@ $lang['def']['OLT is dead now'] = 'OLT зараз мертва';
 $lang['def']['Latest'] = 'Останній';
 $lang['def']['Network upgrade report'] = 'Звіт по модернізації мережі';
 $lang['def']['Item types spent on network upgrade'] = 'ТМЦ витрачені на модернізацію мережі';
-$lang['def'][''] = '';
+$lang['def']['Visible'] = 'Видимий';
 $lang['def'][''] = '';
 

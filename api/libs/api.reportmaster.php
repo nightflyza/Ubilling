@@ -110,7 +110,7 @@ class ReportMaster {
      * @return string
      */
     public function getReports() {
-        return($this->allReports);
+        return ($this->allReports);
     }
 
     /**
@@ -142,7 +142,7 @@ class ReportMaster {
                 $result = false;
             }
         }
-        return($result);
+        return ($result);
     }
 
     /**
@@ -199,6 +199,7 @@ class ReportMaster {
             $rows = wf_TableRow($cells, 'row1');
 
             foreach ($this->allReports as $eachReport => $reportData) {
+
                 if ($this->isMeAllowed($eachReport)) {
                     $cells = wf_TableCell(wf_Link(self::URL_ME . '&' . self::ROUTE_VIEW . '=' . $eachReport, __($reportData['REPORT_NAME'])));
                     if (cfr('REPORTMASTERADM')) {
@@ -209,6 +210,13 @@ class ReportMaster {
                             $reportAccessLabel = wf_img('skins/icon_key.gif', __('Access restricted')) . ' ';
                         }
 
+                        if (empty($reportData['REPORT_ONTB'])) {
+                            $reportTblabel = wf_img('skins/icon_hidden.png', __('Taskbar') . ': ' . __('Hidden')) . ' ';;
+                        } else {
+                            $reportTblabel = wf_img('skins/icon_visible.png', __('Taskbar') . ': ' . __('Visible')) . ' ';;
+                        }
+
+                        $actControls .= $reportTblabel;
                         $actControls .= $reportAccessLabel;
                         $actControls .= wf_JSAlert(self::URL_ME . '&' . self::ROUTE_DELETE . '=' . $eachReport, web_delete_icon(), $this->messages->getDeleteAlert()) . ' ';
                         $actControls .= wf_JSAlert(self::URL_ME . '&' . self::ROUTE_EDIT . '=' . $eachReport, web_edit_icon(), $this->messages->getEditAlert()) . ' ';
@@ -315,7 +323,7 @@ class ReportMaster {
             $backUrl = self::URL_TASKBAR;
         }
         $result .= wf_BackLink($backUrl);
-        return($result);
+        return ($result);
     }
 
     /**
@@ -337,7 +345,7 @@ class ReportMaster {
         $pathToSave = self::PATH_REPORTS . $fileName;
         $isOk = false;
 
-        if (!empty($type) AND ! empty($name) AND ! empty($query)) {
+        if (!empty($type) and ! empty($name) and ! empty($query)) {
             //base params here?
             $isOk = true;
         }
@@ -426,7 +434,7 @@ class ReportMaster {
 
         $result .= wf_Form('', 'POST', $inputs, 'glamour');
 
-        return($result);
+        return ($result);
     }
 
     /**
@@ -612,7 +620,7 @@ class ReportMaster {
         if ($rowcount) {
             $result .= wf_tag('strong') . __('Total') . ': ' . $i . wf_tag('strong', true);
         }
-        return($result);
+        return ($result);
     }
 
     /**
@@ -675,7 +683,7 @@ class ReportMaster {
         } else {
             show_error(__('Unknown report'));
         }
-        return($result);
+        return ($result);
     }
 
     /**
@@ -691,7 +699,7 @@ class ReportMaster {
                 $result[$each] = pathinfo($each, PATHINFO_FILENAME);
             }
         }
-        return($result);
+        return ($result);
     }
 
     /**
@@ -760,7 +768,7 @@ class ReportMaster {
 
         $result .= wf_delimiter(1);
         $result .= $this->renderBackControl();
-        return($result);
+        return ($result);
     }
 
     /**
@@ -780,7 +788,7 @@ class ReportMaster {
                 $icon = $reportData['REPORT_ICON'];
                 $reportLabel = __($reportData['REPORT_NAME']);
                 $availableIcons = $this->getAvailableIcons();
-                if (!isset($availableIcons[$icon]) OR empty($icon)) {
+                if (!isset($availableIcons[$icon]) or empty($icon)) {
                     $icon = self::ICON_DEFAULT;
                 }
 
@@ -793,7 +801,7 @@ class ReportMaster {
                 $result .= wf_tag('div', true);
             }
         }
-        return($result);
+        return ($result);
     }
 
     /**
@@ -857,7 +865,7 @@ class ReportMaster {
                 $result .= $this->messages->getStyledMessage(__('Something went wrong') . ': ' . __('Report') . ' ' . __('is corrupted'), 'error');
             }
         }
-        return($result);
+        return ($result);
     }
 
     /**
@@ -875,8 +883,8 @@ class ReportMaster {
             $unpackedData = base64_decode($packedData);
             if (!empty($unpackedData)) {
                 @$unpackedData = json_decode($unpackedData, true);
-                if (!empty($unpackedData) AND is_array($unpackedData)) {
-                    if (isset($unpackedData['SOURCE']) AND isset($unpackedData['REPORTID']) AND isset($unpackedData['REPORTCODE']) AND isset($unpackedData['OPSCRIPT'])) {
+                if (!empty($unpackedData) and is_array($unpackedData)) {
+                    if (isset($unpackedData['SOURCE']) and isset($unpackedData['REPORTID']) and isset($unpackedData['REPORTCODE']) and isset($unpackedData['OPSCRIPT'])) {
                         $reportSource = trim($unpackedData['SOURCE']);
                         $reportId = $unpackedData['REPORTID'];
                         $reportCode = $unpackedData['REPORTCODE'];
@@ -924,7 +932,7 @@ class ReportMaster {
             $result .= __('Report') . ' ' . __('is corrupted');
         }
 
-        return($result);
+        return ($result);
     }
 
     /**
@@ -958,7 +966,7 @@ class ReportMaster {
                 $newReportOnTb = ubRouting::post(self::PROUTE_EDONTB);
                 $newReportAotd = ubRouting::post(self::PROUTE_EDAOTD);
 
-                if (!empty($newReportType) AND ! empty($newReportName) AND ! empty($newReportQuery)) {
+                if (!empty($newReportType) and ! empty($newReportName) and ! empty($newReportQuery)) {
                     //base params here?
                     $isOk = true;
                 } else {
@@ -1002,7 +1010,7 @@ class ReportMaster {
                 }
             }
         }
-        return($result);
+        return ($result);
     }
 
     /**
@@ -1032,7 +1040,6 @@ class ReportMaster {
                 }
             }
         }
-        return($result);
+        return ($result);
     }
-
 }
