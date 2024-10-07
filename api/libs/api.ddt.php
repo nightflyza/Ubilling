@@ -1037,7 +1037,7 @@ class DoomsDayTariffs {
                                         log_register('DDT CHANGE Credit (' . $eachUserLogin . ') ON ' . $newUserCredit);
 
                                         //and expire date
-                                        $tariffExpireDate = date('Y-m-d', strtotime("+3 days", strtotime($currentDate)));
+                                        $tariffExpireDate = date('Y-m-d', strtotime("+" . $creditDays . " days", strtotime($currentDate)));
                                         $billing->setcreditexpire($eachUserLogin, $tariffExpireDate);
                                         log_register('DDT CHANGE CreditExpire (' . $eachUserLogin . ') ON ' . $tariffExpireDate);
                                     }
