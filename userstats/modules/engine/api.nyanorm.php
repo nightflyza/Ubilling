@@ -5,20 +5,20 @@
  */
 class NyanORM {
     /**
-    ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
-    ░░░░░░░░░░▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄░░░░░░░░░
-    ░░░░░░░░▄▀░░░░░░░░░░░░▄░░░░░░░▀▄░░░░░░░
-    ░░░░░░░░█░░▄░░░░▄░░░░░░░░░░░░░░█░░░░░░░
-    ░░░░░░░░█░░░░░░░░░░░░▄█▄▄░░▄░░░█░▄▄▄░░░
-    ░▄▄▄▄▄░░█░░░░░░▀░░░░▀█░░▀▄░░░░░█▀▀░██░░
-    ░██▄▀██▄█░░░▄░░░░░░░██░░░░▀▀▀▀▀░░░░██░░
-    ░░▀██▄▀██░░░░░░░░▀░██▀░░░░░░░░░░░░░▀██░
-    ░░░░▀████░▀░░░░▄░░░██░░░▄█░░░░▄░▄█░░██░
-    ░░░░░░░▀█░░░░▄░░░░░██░░░░▄░░░▄░░▄░░░██░
-    ░░░░░░░▄█▄░░░░░░░░░░░▀▄░░▀▀▀▀▀▀▀▀░░▄▀░░
-    ░░░░░░█▀▀█████████▀▀▀▀████████████▀░░░░
-    ░░░░░░████▀░░███▀░░░░░░▀███░░▀██▀░░░░░░
-    ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
+      ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
+      ░░░░░░░░░░▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄░░░░░░░░░
+      ░░░░░░░░▄▀░░░░░░░░░░░░▄░░░░░░░▀▄░░░░░░░
+      ░░░░░░░░█░░▄░░░░▄░░░░░░░░░░░░░░█░░░░░░░
+      ░░░░░░░░█░░░░░░░░░░░░▄█▄▄░░▄░░░█░▄▄▄░░░
+      ░▄▄▄▄▄░░█░░░░░░▀░░░░▀█░░▀▄░░░░░█▀▀░██░░
+      ░██▄▀██▄█░░░▄░░░░░░░██░░░░▀▀▀▀▀░░░░██░░
+      ░░▀██▄▀██░░░░░░░░▀░██▀░░░░░░░░░░░░░▀██░
+      ░░░░▀████░▀░░░░▄░░░██░░░▄█░░░░▄░▄█░░██░
+      ░░░░░░░▀█░░░░▄░░░░░██░░░░▄░░░▄░░▄░░░██░
+      ░░░░░░░▄█▄░░░░░░░░░░░▀▄░░▀▀▀▀▀▀▀▀░░▄▀░░
+      ░░░░░░█▀▀█████████▀▀▀▀████████████▀░░░░
+      ░░░░░░████▀░░███▀░░░░░░▀███░░▀██▀░░░░░░
+      ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
      */
 
     /**
@@ -195,7 +195,7 @@ class NyanORM {
                     break;
                 case 'RIGHT':
                     break;
-                default :
+                default:
                     throw new Exception('MEOW_JOIN_WRONG_TYPE');
             }
             if (is_string($joinExpression) and is_string($tableName) and is_string($using)) {
@@ -232,7 +232,7 @@ class NyanORM {
                     break;
                 case 'RIGHT':
                     break;
-                default :
+                default:
                     throw new Exception('MEOW_JOIN_WRONG_TYPE');
             }
             if (is_string($joinExpression) and is_string($tableName) and is_string($on)) {
@@ -257,8 +257,8 @@ class NyanORM {
      * @return void
      */
     public function where($field = '', $expression = '', $value = '') {
-        if (!empty($field) AND ! empty($expression)) {
-            $value = ($value == 'NULL' OR $value == 'null') ? $value : "'" . $value . "'";
+        if (!empty($field) and ! empty($expression)) {
+            $value = ($value == 'NULL' or $value == 'null') ? $value : "'" . $value . "'";
             $this->where[] = $this->escapeField($field) . " " . $expression . " " . $value;
         } else {
             $this->flushWhere();
@@ -304,8 +304,8 @@ class NyanORM {
      * @return void
      */
     public function orWhere($field = '', $expression = '', $value = '') {
-        if (!empty($field) AND ! empty($expression)) {
-            $value = ($value == 'NULL' OR $value == 'null') ? $value : "'" . $value . "'";
+        if (!empty($field) and ! empty($expression)) {
+            $value = ($value == 'NULL' or $value == 'null') ? $value : "'" . $value . "'";
             $this->orWhere[] = $this->escapeField($field) . " " . $expression . " " . $value;
         } else {
             $this->flushWhere();
@@ -369,14 +369,14 @@ class NyanORM {
 
                     foreach ($tmpArr as $eachField) {
                         if ($escapeFields) {
-                            $tmpStr.= $this->escapeField(trim($eachField)) . ", ";
+                            $tmpStr .= $this->escapeField(trim($eachField)) . ", ";
                         } else {
-                            $tmpStr.= $eachField . ", ";
+                            $tmpStr .= $eachField . ", ";
                         }
                     }
 
                     $tmpStr = trim(trim($tmpStr, ", "));
-                    $tmpStr.= " " . $order;
+                    $tmpStr .= " " . $order;
                 }
             }
             // can't use ternary here 'cause we need to avoid the array element creation
@@ -521,7 +521,7 @@ class NyanORM {
                 $result .= implode(' OR ', $this->orWhere);
             }
         }
-        return($result);
+        return ($result);
     }
 
     /**
@@ -538,7 +538,7 @@ class NyanORM {
         }
         // trying to avoid possible empty-string elements arrays(particularly - an array with one empty-string element)
         $result = empty($result) ? '' : " ORDER BY " . $result;
-        return($result);
+        return ($result);
     }
 
     /**
@@ -555,7 +555,7 @@ class NyanORM {
         }
         // trying to avoid possible empty-string elements arrays(particularly - an array with one empty-string element)
         $result = empty($result) ? '' : " GROUP BY " . $result;
-        return($result);
+        return ($result);
     }
 
     /**
@@ -602,7 +602,7 @@ class NyanORM {
                 $result .= ' ' . $this->limit;
             }
         }
-        return($result);
+        return ($result);
     }
 
     /**
@@ -613,11 +613,11 @@ class NyanORM {
     protected function buildSelectableString() {
         $result = '';
         if (!empty($this->selectable)) {
-            $result.= implode(',', $this->selectable);
+            $result .= implode(',', $this->selectable);
         } else {
-            $result.= '*';
+            $result .= '*';
         }
-        return($result);
+        return ($result);
     }
 
     /**
@@ -661,7 +661,7 @@ class NyanORM {
             //flush instance parameters for further queries
             $this->destroyAllStructs();
         }
-        return($result);
+        return ($result);
     }
 
     /**
@@ -672,7 +672,7 @@ class NyanORM {
      * @return void
      */
     public function delete($flushParams = true) {
-        if (!empty($this->where) OR ! empty($this->orWhere)) {
+        if (!empty($this->where) or ! empty($this->orWhere)) {
             $whereString = $this->buildWhereString();
             $limitString = $this->buildLimitString();
             if (!empty($whereString)) {
@@ -855,7 +855,7 @@ class NyanORM {
             //flush instance parameters for further queries
             $this->destroyAllStructs();
         }
-        return($raw['result']);
+        return ($raw['result']);
     }
 
     /**
@@ -874,7 +874,7 @@ class NyanORM {
                 //flush instance parameters for further queries
                 $this->destroyAllStructs();
             }
-            return($raw['result']);
+            return ($raw['result']);
         } else {
             throw new Exception('MEOW_NO_FIELD_NAME');
         }
@@ -1003,8 +1003,13 @@ class NyanORM {
      *
      * @return array
      */
-    public function getTableStructure($fieldNamesOnly = false, $excludeIDField = false, $addLeadingTabName = false,
-                                      $makeFieldAliases = false, $fieldAliasSeparator = '') {
+    public function getTableStructure(
+        $fieldNamesOnly = false,
+        $excludeIDField = false,
+        $addLeadingTabName = false,
+        $makeFieldAliases = false,
+        $fieldAliasSeparator = ''
+    ) {
         $result = array();
         $query = 'DESCRIBE ' . $this->tableName;
         $tableStructure = simple_queryall($query);
