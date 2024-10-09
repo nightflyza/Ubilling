@@ -4,8 +4,12 @@
  * Draft implementation of https://platon.atlassian.net/wiki/spaces/docs/pages/1315733632/Client+-+Server#Callback
  */
 error_reporting(E_ALL);
+
+//external service payment percent: (float for external payment, 0 - disabled)
+const SERVICE_PAYMENT_PERCENT = 1.7;
+
 //including required libs
-include ("../../libs/api.openpayz.php");
+include("../../libs/api.openpayz.php");
 
 // Send main headers
 header('Last-Modified: ' . gmdate('r'));
@@ -79,14 +83,18 @@ function platon_CheckTransaction($hash) {
 $requestData = platon_RequestGet();
 if (!empty($requestData)) {
     if (is_array($requestData)) {
-        if (isset($requestData['id']) AND isset($requestData['order']) AND isset($requestData['description'])) {
+        if (isset($requestData['id']) and isset($requestData['order']) and isset($requestData['description'])) {
             $allCustomers = op_CustomersGetAll();
             $customerId = $requestData['description'];
             if (isset($allCustomers[$customerId])) {
-                $summ = $requestData['amount'];
+                $summRaw = $requestData['amount'];
+                $summ = $summRaw;
+                if (SERVICE_PAYMENT_PERCENT) {
+                    $summ = $summ / (1 + (SERVICE_PAYMENT_PERCENT / 100));
+                }
                 $paysys = 'PLATON';
                 $hash = $paysys . '_' . $requestData['id'];
-                $note = $requestData['ip'] . ' ' . $requestData['date'] . ' ' . $requestData['description'];
+                $note = $requestData['ip'] . ' (' . $requestData['date'] . ') [rawsumm: ' . $summRaw . ' | paysumm:' . $summ . ' ] ' . $requestData['description'];
                 if (platon_CheckTransaction($hash)) {
                     if ($requestData['status'] == 'SALE') {
                         op_TransactionAdd($hash, $summ, $customerId, $paysys, $note);

@@ -51,8 +51,16 @@ if (!ubRouting::checkPost('amount') and ! ubRouting::checkPost('paymentid')) {
     //push form
     $customerId = ubRouting::post('paymentid', 'vf');
     $amountRaw = ubRouting::post('amount', 'float');
-    $amount = number_format($amountRaw, 2); //required with two finishing zeroes
+    //optional external service payment
+    if (isset($cfgPltn['SERVICE_PAYMENT_PERCENT'])) {
+        if ($cfgPltn['SERVICE_PAYMENT_PERCENT']) {
+            $externalPercent=ubRouting::filters($cfgPltn['SERVICE_PAYMENT_PERCENT'],'float');
+            $amountRaw=$amountRaw+($amountRaw*($externalPercent/100));
+        }
+    }
+    
     if (!empty($customerId) and ! empty($amountRaw)) {
+        $amount = number_format($amountRaw, 2); //required with two finishing zeroes
         $key = $cfgPltn['KEY'];
         $pass = $cfgPltn['PASSWORD'];
         $payment = 'CC';
