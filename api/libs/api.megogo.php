@@ -114,7 +114,7 @@ class MegogoApi {
     /**
      * Performs registering user for web auth
      * 
-     * @param login $login
+     * @param string $login
      * @param string $password
      * 
      * @return void/string on error
