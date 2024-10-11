@@ -522,7 +522,7 @@ function wf_Selector($name, $params, $label, $selected = '', $br = false, $sort 
  * Return select Web From element 
  * 
  * @param string $name
- * @param string $params
+ * @param array $params
  * @param string $label
  * @param string $selected
  * @param bool $br
