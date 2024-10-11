@@ -443,6 +443,7 @@ class TraffStats {
         $zbxGraphsSearchField = ($ubillingConfig->getAlterParam('ZABBIX_GRAPHS_SEARCHFIELD')) ? $ubillingConfig->getAlterParam('ZABBIX_GRAPHS_SEARCHFIELD') : 'name';
         $zbxGraphsExtended = wf_getBoolFromVar($ubillingConfig->getAlterParam('ZABBIX_GRAPHS_EXTENDED'));
         $mlgUseMikrotikGraphs = wf_getBoolFromVar($ubillingConfig->getAlterParam('MULTIGEN_USE_ROS_TRAFFIC_GRAPHS'));
+        $ofUseMikrotikGraphs = wf_getBoolFromVar($ubillingConfig->getAlterParam('OPHANIM_USE_ROS_TRAFFIC_GRAPHS'));
 
         $ip = $this->getUserIp();
         $bwdUrl = zb_BandwidthdGetUrl($ip);
@@ -476,7 +477,7 @@ class TraffStats {
             } else {
                 if (!empty($bwdUrl)) {
                     // RouterOS graph model:
-                    if ($nastype == 'mikrotik') {
+                    if ($nastype == 'mikrotik' and !$ofUseMikrotikGraphs) {
                         // Get user's IP array:
                         $alluserips = zb_UserGetAllIPs();
                         $alluserips = array_flip($alluserips);
