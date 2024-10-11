@@ -48,7 +48,7 @@ class WolfRecorder {
         if (!empty($url)) {
             $this->url = $url;
         } else {
-            throw Exception('EX_EMPTY_URL');
+            throw new Exception('EX_EMPTY_URL');
         }
     }
 
@@ -63,7 +63,7 @@ class WolfRecorder {
         if (!empty($apiKey)) {
             $this->apiKey = $apiKey;
         } else {
-            throw Exception('EX_EMPTY_APIKEY');
+            throw new Exception('EX_EMPTY_APIKEY');
         }
     }
 
@@ -84,7 +84,7 @@ class WolfRecorder {
             $apiHandle->dataPost('data', json_encode($requestData));
         }
         $rawReply = $apiHandle->response();
-        if (!$apiHandle->error() AND $apiHandle->httpCode() == 200) {
+        if (!$apiHandle->error() and $apiHandle->httpCode() == 200) {
             @$replyDecode = json_decode($rawReply, true);
             if (is_array($replyDecode)) {
                 $result = $replyDecode;
@@ -92,7 +92,7 @@ class WolfRecorder {
                 $result = array('error' => 666, 'message' => __('Something went wrong') . ': ' . __('API') . ' ' . __('Failed'));
             }
         }
-        return($result);
+        return ($result);
     }
 
     /**
@@ -111,7 +111,7 @@ class WolfRecorder {
                 }
             }
         }
-        return($result);
+        return ($result);
     }
 
     /**
@@ -131,7 +131,7 @@ class WolfRecorder {
                 }
             }
         }
-        return($result);
+        return ($result);
     }
 
     /**
@@ -140,7 +140,7 @@ class WolfRecorder {
      * @return array
      */
     public function modelsGetAll() {
-        return($this->executeRequest('models', 'getall'));
+        return ($this->executeRequest('models', 'getall'));
     }
 
     /**
@@ -149,7 +149,7 @@ class WolfRecorder {
      * @return array
      */
     public function storagesGetAll() {
-        return($this->executeRequest('storages', 'getall'));
+        return ($this->executeRequest('storages', 'getall'));
     }
 
     /**
@@ -158,7 +158,7 @@ class WolfRecorder {
      * @return array
      */
     public function storagesGetStates() {
-        return($this->executeRequest('storages', 'getstates'));
+        return ($this->executeRequest('storages', 'getstates'));
     }
 
     /**
@@ -171,7 +171,7 @@ class WolfRecorder {
      * @return array
      */
     public function camerasGetAll() {
-        return($this->executeRequest('cameras', 'getall'));
+        return ($this->executeRequest('cameras', 'getall'));
     }
 
     /**
@@ -197,7 +197,7 @@ class WolfRecorder {
             'storageid' => $storage,
             'description' => $description
         );
-        return($this->executeRequest('cameras', 'create', $requestData));
+        return ($this->executeRequest('cameras', 'create', $requestData));
     }
 
     /**
@@ -211,7 +211,7 @@ class WolfRecorder {
         $requestData = array(
             'cameraid' => $cameraId
         );
-        return($this->executeRequest('cameras', 'activate', $requestData));
+        return ($this->executeRequest('cameras', 'activate', $requestData));
     }
 
     /**
@@ -225,7 +225,7 @@ class WolfRecorder {
         $requestData = array(
             'cameraid' => $cameraId
         );
-        return($this->executeRequest('cameras', 'deactivate', $requestData));
+        return ($this->executeRequest('cameras', 'deactivate', $requestData));
     }
 
     /**
@@ -241,7 +241,7 @@ class WolfRecorder {
             'cameraid' => $cameraId,
             'description' => $description
         );
-        return($this->executeRequest('cameras', 'setdescription', $requestData));
+        return ($this->executeRequest('cameras', 'setdescription', $requestData));
     }
 
     /**
@@ -255,7 +255,7 @@ class WolfRecorder {
         $requestData = array(
             'cameraid' => $cameraId
         );
-        return($this->executeRequest('cameras', 'delete', $requestData));
+        return ($this->executeRequest('cameras', 'delete', $requestData));
     }
 
     /**
@@ -269,7 +269,23 @@ class WolfRecorder {
         $requestData = array(
             'ip' => $ip
         );
-        return($this->executeRequest('cameras', 'isregistered', $requestData));
+        return ($this->executeRequest('cameras', 'isregistered', $requestData));
+    }
+
+    /**
+     * Checks is camera IP=PORT pair free or not
+     * 
+     * @param string $ip
+     * @param int $port
+     * 
+     * @return array
+     */
+    public function camerasIsIpPortFree($ip, $port) {
+        $requestData = array(
+            'ip' => $ip,
+            'port' => $port
+        );
+        return ($this->executeRequest('cameras', 'isipportfree', $requestData));
     }
 
     /**
@@ -278,7 +294,7 @@ class WolfRecorder {
      * @return array
      */
     public function systemGetHealth() {
-        return($this->executeRequest('system', 'gethealth'));
+        return ($this->executeRequest('system', 'gethealth'));
     }
 
     /**
@@ -287,7 +303,7 @@ class WolfRecorder {
      * @return array
      */
     public function systemCheckConnection() {
-        return($this->executeRequest('system', 'checkconnection'));
+        return ($this->executeRequest('system', 'checkconnection'));
     }
 
     /**
@@ -296,7 +312,7 @@ class WolfRecorder {
      * @return array
      */
     public function usersGetAll() {
-        return($this->executeRequest('users', 'getall'));
+        return ($this->executeRequest('users', 'getall'));
     }
 
     /**
@@ -312,7 +328,7 @@ class WolfRecorder {
             'login' => $login,
             'password' => $password
         );
-        return($this->executeRequest('users', 'create', $requestData));
+        return ($this->executeRequest('users', 'create', $requestData));
     }
 
     /**
@@ -328,7 +344,7 @@ class WolfRecorder {
             'login' => $login,
             'password' => $password
         );
-        return($this->executeRequest('users', 'changepassword', $requestData));
+        return ($this->executeRequest('users', 'changepassword', $requestData));
     }
 
     /**
@@ -342,7 +358,7 @@ class WolfRecorder {
         $requestData = array(
             'login' => $login
         );
-        return($this->executeRequest('users', 'isregistered', $requestData));
+        return ($this->executeRequest('users', 'isregistered', $requestData));
     }
 
     /**
@@ -356,7 +372,7 @@ class WolfRecorder {
         $requestData = array(
             'login' => $login
         );
-        return($this->executeRequest('users', 'delete', $requestData));
+        return ($this->executeRequest('users', 'delete', $requestData));
     }
 
     /**
@@ -372,7 +388,7 @@ class WolfRecorder {
             'login' => $login,
             'password' => $password
         );
-        return($this->executeRequest('users', 'checkauth', $requestData));
+        return ($this->executeRequest('users', 'checkauth', $requestData));
     }
 
     /**
@@ -381,7 +397,7 @@ class WolfRecorder {
      * @return array
      */
     public function aclsGetAll() {
-        return($this->executeRequest('acls', 'getall'));
+        return ($this->executeRequest('acls', 'getall'));
     }
 
     /**
@@ -390,7 +406,7 @@ class WolfRecorder {
      * @return array
      */
     public function aclsGetAllCameras() {
-        return($this->executeRequest('acls', 'getallcameras'));
+        return ($this->executeRequest('acls', 'getallcameras'));
     }
 
     /**
@@ -399,7 +415,7 @@ class WolfRecorder {
      * @return array
      */
     public function aclsGetAllChannels() {
-        return($this->executeRequest('acls', 'getallchannels'));
+        return ($this->executeRequest('acls', 'getallchannels'));
     }
 
     /**
@@ -413,7 +429,7 @@ class WolfRecorder {
         $requestData = array(
             'login' => $login
         );
-        return($this->executeRequest('acls', 'getchannels', $requestData));
+        return ($this->executeRequest('acls', 'getchannels', $requestData));
     }
 
     /**
@@ -427,7 +443,7 @@ class WolfRecorder {
         $requestData = array(
             'login' => $login
         );
-        return($this->executeRequest('acls', 'getcameras', $requestData));
+        return ($this->executeRequest('acls', 'getcameras', $requestData));
     }
 
     /**
@@ -443,7 +459,7 @@ class WolfRecorder {
             'login' => $login,
             'cameraid' => $cameraId
         );
-        return($this->executeRequest('acls', 'assigncamera', $requestData));
+        return ($this->executeRequest('acls', 'assigncamera', $requestData));
     }
 
     /**
@@ -459,7 +475,7 @@ class WolfRecorder {
             'login' => $login,
             'channelid' => $channelId
         );
-        return($this->executeRequest('acls', 'assignchannel', $requestData));
+        return ($this->executeRequest('acls', 'assignchannel', $requestData));
     }
 
     /**
@@ -475,7 +491,7 @@ class WolfRecorder {
             'login' => $login,
             'cameraid' => $cameraId
         );
-        return($this->executeRequest('acls', 'deassigncamera', $requestData));
+        return ($this->executeRequest('acls', 'deassigncamera', $requestData));
     }
 
     /**
@@ -491,7 +507,7 @@ class WolfRecorder {
             'login' => $login,
             'channelid' => $channelId
         );
-        return($this->executeRequest('acls', 'deassignchannel', $requestData));
+        return ($this->executeRequest('acls', 'deassignchannel', $requestData));
     }
 
     /**
@@ -500,7 +516,7 @@ class WolfRecorder {
      * @return array
      */
     public function channelsGetAll() {
-        return($this->executeRequest('channels', 'getall'));
+        return ($this->executeRequest('channels', 'getall'));
     }
 
     /**
@@ -512,7 +528,7 @@ class WolfRecorder {
         $requestData = array(
             'channelid' => $channelId
         );
-        return($this->executeRequest('channels', 'getscreenshot', $requestData));
+        return ($this->executeRequest('channels', 'getscreenshot', $requestData));
     }
 
     /**
@@ -521,7 +537,7 @@ class WolfRecorder {
      * @return array
      */
     public function channelsGetScreenshotsAll() {
-        return($this->executeRequest('channels', 'getscreenshotsall'));
+        return ($this->executeRequest('channels', 'getscreenshotsall'));
     }
 
     /**
@@ -533,7 +549,7 @@ class WolfRecorder {
         $requestData = array(
             'channelid' => $channelId
         );
-        return($this->executeRequest('channels', 'getlivestream', $requestData));
+        return ($this->executeRequest('channels', 'getlivestream', $requestData));
     }
 
     /**
@@ -542,7 +558,7 @@ class WolfRecorder {
      * @return array
      */
     public function recordersGetAll() {
-        return($this->executeRequest('recorders', 'getall'));
+        return ($this->executeRequest('recorders', 'getall'));
     }
 
     /**
@@ -556,7 +572,6 @@ class WolfRecorder {
         $requestData = array(
             'cameraid' => $cameraId
         );
-        return($this->executeRequest('recorders', 'isrunning', $requestData));
+        return ($this->executeRequest('recorders', 'isrunning', $requestData));
     }
-
 }
