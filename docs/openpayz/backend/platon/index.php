@@ -14,6 +14,7 @@ $merchant_currency = $cfgPltn['MERCHANT_CURRENCY'];
 $avail_prices = $cfgPltn['AVAIL_PRICES'];
 
 function platonSumm($customer_id, $avail_prices, $merchant_currency) {
+    global $cfgPltn;
     $inputs = '';
     $result = '';
 
@@ -27,6 +28,23 @@ function platonSumm($customer_id, $avail_prices, $merchant_currency) {
             }
             $inputs .= wf_RadioInput('amount', $eachprice . ' ' . $merchant_currency, $eachprice, true, $selected);
             $i++;
+        }
+
+        if (isset($cfgPltn['CUSTOM_PRICE']) and ! empty($cfgPltn['CUSTOM_PRICE'])) {
+            $jsCode = 'function change_custom_amount(){
+                            var custom_amount = document.getElementById("radio_custom_amount");
+                            custom_amount.value = document.getElementById("input_custom_amount").value;
+                            custom_amount.value = (custom_amount.value).toFixed(2);
+                        }
+                        
+                         document.addEventListener(\'DOMContentLoaded\', function() {
+                            change_custom_amount();
+                         }, false);';
+
+            $inputs .= wf_tag('script') . $jsCode . wf_tag('script', true);
+            $inputs .= wf_tag('input', false, '', 'type="radio" name="amount" value="' . $cfgPltn['CUSTOM_PRICE'] . '" id="radio_custom_amount" onClick="change_custom_amount()"');
+            $inputs .= wf_tag('input', false, '', 'onchange="change_custom_amount()" id="input_custom_amount" type="number" style="width: 4em;" value="' . $cfgPltn['CUSTOM_PRICE'] . '" min="' . $cfgPltn['CUSTOM_PRICE'] . '" step="any"') . ' ';
+            $inputs .= wf_tag('label', false, '', 'for="radio_custom_amount"') . $cfgPltn['MERCHANT_CURRENCY'] . wf_tag('label', true) . wf_delimiter(0);
         }
     } else {
         $inputs .= wf_TextInput('amount', $merchant_currency, '', true, 5, 'finance');
@@ -54,11 +72,11 @@ if (!ubRouting::checkPost('amount') and ! ubRouting::checkPost('paymentid')) {
     //optional external service payment
     if (isset($cfgPltn['SERVICE_PAYMENT_PERCENT'])) {
         if ($cfgPltn['SERVICE_PAYMENT_PERCENT']) {
-            $externalPercent=ubRouting::filters($cfgPltn['SERVICE_PAYMENT_PERCENT'],'float');
-            $amountRaw=$amountRaw+($amountRaw*($externalPercent/100));
+            $externalPercent = ubRouting::filters($cfgPltn['SERVICE_PAYMENT_PERCENT'], 'float');
+            $amountRaw = $amountRaw + ($amountRaw * ($externalPercent / 100));
         }
     }
-    
+
     if (!empty($customerId) and ! empty($amountRaw)) {
         $amount = number_format($amountRaw, 2); //required with two finishing zeroes
         $key = $cfgPltn['KEY'];
