@@ -116,6 +116,7 @@ require_once('api/libs/api.ubrouting.php');
 require_once('api/libs/api.nyanorm.php');
 require_once('api/libs/api.zabbix.php');
 require_once('api/libs/api.backups.php');
+require_once('api/libs/api.ic.php');
 
 /**
  * Initial class creation
