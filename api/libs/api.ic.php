@@ -1,8 +1,17 @@
 <?php
 
 /**
- * IceCream - Never use print() to debug again
+ * IceCream - Produces fast and clear debug output.
+ * 
+ * ic() is like print(), but better:
  *
+ *  - It prints both expressions/variable/methods/functions names and their values.
+ *  - It's 60% faster to type.
+ *  - Data structures are pretty printed.
+ *  - It optionally includes program context: filename, line number, and parent function.
+ * 
+ * More details: https://github.com/gruns/icecream
+ * 
  * @param mixed ...$values
  * 
  * @return mixed
@@ -16,8 +25,6 @@ function ic(...$values) {
     $titlePrefix = 'ic | ';
     $outputFunction = (function_exists('show_window'))  ? 'show_window' : '';
 
-
-
     if ($values === array()) {
         $string = basename($caller['file']) . ":{$caller['line']}";
         if (isset($inside['class'])) {
@@ -30,7 +37,7 @@ function ic(...$values) {
         if ($outputFunction) {
             $outputFunction($titlePrefix . $fileName . ' line ' . $fileLine, $string);
         } else {
-            print($titlePrefix . $fileName . ' line ' . $fileLine . PHP_EOL . $string);
+            print($titlePrefix . $fileName . ' line ' . $fileLine . PHP_EOL . $string . PHP_EOL);
         }
         return (null);
     }
@@ -133,7 +140,7 @@ function ic(...$values) {
     if ($outputFunction) {
         $outputFunction($titlePrefix . $fileName . ' line ' . $fileLine, '<pre>' . print_r(implode(', ', $strings), true) . '</pre>');
     } else {
-        print($titlePrefix . $fileName . ' line ' . $fileLine . PHP_EOL . print_r(implode(', ', $strings), true));
+        print($titlePrefix . $fileName . ' line ' . $fileLine . PHP_EOL . print_r(implode(', ', $strings), true) . PHP_EOL);
     }
     $result = (count($values) === 1) ? $values[0] : $values;
     return ($result);
