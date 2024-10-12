@@ -116,7 +116,11 @@ require_once('api/libs/api.ubrouting.php');
 require_once('api/libs/api.nyanorm.php');
 require_once('api/libs/api.zabbix.php');
 require_once('api/libs/api.backups.php');
-require_once('api/libs/api.ic.php');
+
+//preventing loading of icecream on PHP < 5.6
+if (PHP_VERSION_ID >= 50638) {
+    require_once('api/libs/api.ic.php');
+}
 
 /**
  * Initial class creation
@@ -134,4 +138,3 @@ if (@$globalAlter['BRANCHES_ENABLED']) {
     $branchControl = new UbillingBranches();
     $branchControl->accessControl();
 }
-
