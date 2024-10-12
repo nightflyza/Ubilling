@@ -36,7 +36,7 @@ function ic(...$values) {
 
         $microtime = microtime();
         $microtime = explode(' ', $microtime);
-        $string .= ' at ' . date("H:i:s", $microtime[1]) . '.' . round($microtime[0] * 1000);
+        $string .= ' at ' . date("H:i:s") . '.' . round($microtime[0] * 1000);
 
         if ($outputFunction) {
             $outputFunction($titlePrefix . $fileName . ' line ' . $fileLine, $string);
