@@ -3542,5 +3542,10 @@ $lang['def']['Latest'] = 'Останній';
 $lang['def']['Network upgrade report'] = 'Звіт по модернізації мережі';
 $lang['def']['Item types spent on network upgrade'] = 'ТМЦ витрачені на модернізацію мережі';
 $lang['def']['Visible'] = 'Видимий';
+$lang['def']['Choose who pays fee'] = 'Вкажіть, хто оплачує комісію';
+$lang['def']['Service callback URL'] = 'Коллбек URL сервісу';
+$lang['def']['Who pays fee'] = 'Хто оплачує комісію';
+$lang['def']['Provider'] = 'Провайдер';
+$lang['def']['Subscriber'] = 'Абонент';
 $lang['def'][''] = '';
 

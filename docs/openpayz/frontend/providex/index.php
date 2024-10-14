@@ -167,8 +167,15 @@ class Providex extends PaySysProto {
      * [preorder] request reply implementation
      */
     protected function replyPreOrder() {
-        $reply = '';
-        $moneyAmount = $this->receivedJSON['amount'];
+        $reply        = '';
+        $merchantData = $this->getMerchantCredsByAgentID($this->subscriberLogin);
+
+        if ($merchantData['payment_fee_info'] == 'subscriber' and !empty($this->receivedJSON['fee']['amount'])) {
+            $moneyAmount = $this->receivedJSON['processed_amount'] - $this->receivedJSON['fee']['amount'];
+        } else {
+            $moneyAmount = $this->receivedJSON['processed_amount'];
+        }
+
     //  check $moneyAmount is a correct integer
     //  or float which has no more than 2 decimals
     //  or 2 decimals and unlimited trailing zeros
@@ -181,8 +188,6 @@ class Providex extends PaySysProto {
         if ($this->checkTransactFileExists($billingTransactID)) {
             $this->replyError(400, 'TRANSACTION_ALREADY_EXISTS');
         } else {
-            $merchantData = $this->getMerchantCredsByAgentID($this->subscriberLogin);
-
             if (empty($merchantData['paysys_secret_key'])) {
                 $this->replyError(400, 'MERCHANT_NOT_FOUND');
             } else {

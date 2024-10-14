@@ -3354,3 +3354,6 @@ CREATE TABLE IF NOT EXISTS `ddt_charges` (
   `summ` DOUBLE NOT NULL DEFAULT 0,
   PRIMARY KEY (`id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
+
+-- 1.5.0 update
+ALTER TABLE `contrahens_extinfo` ADD `payment_fee_info` VARCHAR(100) NOT NULL DEFAULT '' AFTER `paysys_password`;

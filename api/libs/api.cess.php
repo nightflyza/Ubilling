@@ -1239,6 +1239,7 @@ function zb_CreateAgentExtInfoRec(
     $extinfoPaySysToken = '',
     $extinfoPaySysSecretKey = '',
     $extinfoPaySysPassword  = '',
+    $extinfoPaymentFeeInfo = '',
     $extinfoPaySysCallbackURL  = ''
 ) {
     $tabAgentExtInfo = new NyanORM('contrahens_extinfo');
@@ -1252,6 +1253,7 @@ function zb_CreateAgentExtInfoRec(
             'paysys_token'              => $extinfoPaySysToken,
             'paysys_secret_key'         => $extinfoPaySysSecretKey,
             'paysys_password'           => $extinfoPaySysPassword,
+            'payment_fee_info'          => $extinfoPaymentFeeInfo,
             'paysys_callback_url'       => $extinfoPaySysCallbackURL
         )
     );
@@ -1288,6 +1290,7 @@ function zb_EditAgentExtInfoRec(
     $extinfoPaySysToken = '',
     $extinfoPaySysSecretKey = '',
     $extinfoPaySysPassword  = '',
+    $extinfoPaymentFeeInfo = '',
     $extinfoPaySysCallbackURL  = ''
 ) {
     $tabAgentExtInfo = new NyanORM('contrahens_extinfo');
@@ -1302,6 +1305,7 @@ function zb_EditAgentExtInfoRec(
             'paysys_token'              => $extinfoPaySysToken,
             'paysys_secret_key'         => $extinfoPaySysSecretKey,
             'paysys_password'           => $extinfoPaySysPassword,
+            'payment_fee_info'          => $extinfoPaymentFeeInfo,
             'paysys_callback_url'       => $extinfoPaySysCallbackURL
         )
     );
@@ -1346,10 +1350,12 @@ function zb_AgentEditExtInfoForm($recID = '') {
     $extinfoPaySysToken         = '';
     $extinfoPaySysSecretKey     = '';
     $extinfoPaySysPassword      = '';
+    $extinfoPaymentFeeInfo      = '';
     $extinfoPaySysCallbackURL   = '';
     $allPaySys                  = array();
     $srvtypeSelectorID          = wf_InputId();
     $openpayzSelectorID         = wf_InputId();
+    $payfeeinfoSelectorID       = wf_InputId();
     $paysysControlID            = wf_InputId();
 
     if ($extinfoEditMode) {
@@ -1362,6 +1368,7 @@ function zb_AgentEditExtInfoForm($recID = '') {
         $extinfoPaySysToken         = $extinfoData[0]['paysys_token'];
         $extinfoPaySysSecretKey     = $extinfoData[0]['paysys_secret_key'];
         $extinfoPaySysPassword      = $extinfoData[0]['paysys_password'];
+        $extinfoPaymentFeeInfo      = $extinfoData[0]['payment_fee_info'];
         $extinfoPaySysCallbackURL   = $extinfoData[0]['paysys_callback_url'];
     } else {
         // load existing OpenPayz payment systems
@@ -1391,6 +1398,7 @@ function zb_AgentEditExtInfoForm($recID = '') {
     $inputs .= wf_TextInput('extinfintpaysystoken', __('Service token'), $extinfoPaySysToken, false, '', '', '', '', '', true);
     $inputs .= wf_TextInput('extinfintpaysyskey', __('Service secret key'), $extinfoPaySysSecretKey, false, '', '', '', '', '', true);
     $inputs .= wf_TextInput('extinfintpaysyspasswd', __('Service password'), $extinfoPaySysPassword, false, '50', '', '', '', '', true);
+    $inputs .= wf_Selector('extinfintpayfeeinfo', array('provider' => __('Provider'), 'subscriber' => __('Subscriber')), __('Choose who pays fee'), $extinfoPaymentFeeInfo, false, false, $payfeeinfoSelectorID, '', '', true);
     $inputs .= wf_TextInput('extinfintpaysyscallbackurl', __('Service callback URL'), $extinfoPaySysCallbackURL, false, '', 'url', '', '', '', true);
     $inputs .= wf_HiddenInput('extinfrecid', $extinfoRecID);
     $inputs .= wf_HiddenInput('extinfagentid', $extinfoAgentID);
@@ -1446,6 +1454,7 @@ function zb_RenderAgentExtInfoTable($agentID) {
         'Service token',
         'Service secret key',
         'Service password',
+        'Who pays fee',
         'Service callback URL'
     );
     $keys = array(
@@ -1458,6 +1467,7 @@ function zb_RenderAgentExtInfoTable($agentID) {
         'paysys_token',
         'paysys_secret_key',
         'paysys_password',
+        'payment_fee_info',
         'paysys_callback_url'
     );
 

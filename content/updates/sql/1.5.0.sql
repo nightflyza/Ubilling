@@ -1,0 +1,1 @@
+ALTER TABLE `contrahens_extinfo` ADD `payment_fee_info` VARCHAR(100) NOT NULL DEFAULT '' AFTER `paysys_password`;
