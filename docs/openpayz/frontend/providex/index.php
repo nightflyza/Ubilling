@@ -167,14 +167,8 @@ class Providex extends PaySysProto {
      * [preorder] request reply implementation
      */
     protected function replyPreOrder() {
-        $reply        = '';
-        $merchantData = $this->getMerchantCredsByAgentID($this->subscriberLogin);
-
-        if ($merchantData['payment_fee_info'] == 'subscriber' and !empty($this->receivedJSON['fee']['amount'])) {
-            $moneyAmount = $this->receivedJSON['processed_amount'] - $this->receivedJSON['fee']['amount'];
-        } else {
-            $moneyAmount = $this->receivedJSON['processed_amount'];
-        }
+        $reply = '';
+        $moneyAmount = $this->receivedJSON['amount'];
 
     //  check $moneyAmount is a correct integer
     //  or float which has no more than 2 decimals
@@ -188,6 +182,8 @@ class Providex extends PaySysProto {
         if ($this->checkTransactFileExists($billingTransactID)) {
             $this->replyError(400, 'TRANSACTION_ALREADY_EXISTS');
         } else {
+            $merchantData = $this->getMerchantCredsByAgentID($this->subscriberLogin);
+
             if (empty($merchantData['paysys_secret_key'])) {
                 $this->replyError(400, 'MERCHANT_NOT_FOUND');
             } else {
@@ -215,11 +211,18 @@ class Providex extends PaySysProto {
 
         if (!empty($pvdxTransactStatusCode) and in_array($pvdxTransactStatusCode, $this->successfulStatusCodes)) {
             if ($this->checkTransactFileExists($billingTransactID)) {
-                $transactData = $this->getTransactFileData($billingTransactID);
-                $transactSumm = $transactData['paymentSum'];
-
+                $transactData   = $this->getTransactFileData($billingTransactID);
+                $transactSumm   = $transactData['paymentSum'];
                 $pvdxTransactID = $pvdxTransactData['transaction_id'];
-                $pvdxPaymentSum = $pvdxTransactData['amount'];
+                //$pvdxPaymentSum = $pvdxTransactData['amount'];
+
+                $merchantData = $this->getMerchantCredsByAgentID($this->subscriberLogin);
+                if ($merchantData['payment_fee_info'] == 'subscriber' and !empty($pvdxTransactData['fee']['amount'])) {
+                    $pvdxPaymentSum = $pvdxTransactData['processed_amount'] - $pvdxTransactData['fee']['amount'];
+                } else {
+                    $pvdxPaymentSum = $pvdxTransactData['processed_amount'];
+                }
+file_put_contents('zxcv', print_r($pvdxPaymentSum, true) . $pvdxPaymentSum);
 
                 if ($pvdxPaymentSum == $transactSumm) {
                     if ($this->validateSign()) {
