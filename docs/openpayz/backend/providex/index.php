@@ -4,6 +4,7 @@ require_once('../../libs/api.compat.php');
 require_once('../../libs/api.astral.php');
 require_once('../../libs/api.ubrouting.php');
 require_once('../../libs/api.mysql.php');
+require_once('../../libs/api.omaeurl.php');
 require_once('../../libs/api.paysysproto.php');
 
 $cfgPrvdx = parse_ini_file('config/providex.ini');
@@ -83,7 +84,7 @@ if (!ubRouting::checkPost('amount') and !ubRouting::checkPost('paymentid')) {
     }
 
     if (!empty($customerID) and !empty($amountRaw)) {
-        $amount = number_format($amountRaw, 2); //required with two finishing zeroes
+        $amount = floatval(number_format($amountRaw, 2)); //required with two finishing zeroes
         $userLogin = PaySysProto::getUserLoginByPaymentID($customerID);
         $actionURL = $cfgPrvdx['UBAPI_URL'] . '?module=remoteapi&key=' . $cfgPrvdx['UBAPI_KEY'] . '&action=getagentdata&param=' . $userLogin;
         $agentData = PaySysProto::getUBAgentDataByUBAPIURL($actionURL);
@@ -123,32 +124,53 @@ if (!ubRouting::checkPost('amount') and !ubRouting::checkPost('paymentid')) {
 
         //$jsonData = wf_HiddenInput('data', htmlspecialchars(json_encode($jsonArr)), 'providex_json_data');
         $jsonData = json_encode($jsonArr);
-        $jsCode = wf_tag('script', false, '', 'type="text/javascript"');
-        $jsCode.= '
-function submit() {
-    var settings = {
-        "url": "' . $cfgPrvdx['API_URL'] . '",
-        "method": "POST",
-        "headers": {
-            "Content-type": "application/json",
-            "Cache-control": "no-cache",
-            "Access-Control-Allow-Origin": "*",
-            "X-API-AUTH": "CPAY ' . $prvdxAPIKEy . ':' . $prvdxAPISecret . '",
-            "X-API-KEY": "' . $prvdxEndpointKey . '"
-        },
-        "processData": false,
-        "data": ' . $jsonData . '
+file_put_contents('qxcv', print_r($jsonArr, true) . "\n\n" . $jsonData);
+        $omaeURL = new OmaeUrl($cfgPrvdx['API_URL']);
+        $omaeURL->setVerboseLog(true, 'curl_debug');
+        $omaeURL->setOpt(CURLOPT_POST, true);
+        $omaeURL->setOpt(CURLOPT_FOLLOWLOCATION, true);
+        $omaeURL->setOpt(CURLOPT_MAXREDIRS, 0);
+        $omaeURL->dataHeader('Content-type', 'application/json;charset=utf-8');
+        $omaeURL->dataHeader('X-API-AUTH', 'CPAY ' . $prvdxAPIKEy . ':' . $prvdxAPISecret);
+        $omaeURL->dataHeader('X-API-KEY', $prvdxEndpointKey);
+        $omaeURL->dataHeader('Cache-control', 'no-cache');
+        $omaeURL->dataPostRaw($jsonData);
+        $sendResult = $omaeURL->response();
+        $lastResult = $omaeURL->lastRequestInfo();
+        $redirectURL = empty($lastResult['redirect_url']) ? 'empty_redir_url' : $lastResult['redirect_url'];
+file_put_contents('zxcv', print_r($sendResult, true));
+file_put_contents('vxcv', print_r($lastResult, true));
+
+        if (empty($redirectURL)) {
+            $jsCode = '';
+        } else {
+            $jsCode = wf_tag('script', false, '', 'type="text/javascript"');
+            //$jsCode .= 'this.parent.location.href = "' . $redirectURL . '";';
+            $jsCode .= 'window.location.replace("'. $redirectURL . '");';
+            /*$jsCode.= '
+    function submit() {
+        var settings = {
+            "url": "' . $cfgPrvdx['API_URL'] . '",
+            "method": "POST",
+            "headers": {
+                "Content-type": "application/json",
+                "Cache-control": "no-cache",
+                "X-API-AUTH": "CPAY ' . $prvdxAPIKEy . ':' . $prvdxAPISecret . '",
+                "X-API-KEY": "' . $prvdxEndpointKey . '"
+            },
+            "processData": false,
+            "data": ' . $jsonData . '
+        }
+
+        $.ajax(settings)
+            .done(function(data, status, req) { console.log("done", data, status, req); })
+            .fail(function(req, status, err) { console.log("fail", req, status, err); });
     }
-    
-    $.ajax(settings)
-        .done(function(data, status, req) { console.log("done", data, status, req); })
-        .fail(function(req, status, err) { console.log("fail", req, status, err); });
-}
 
-submit();
-';
-        $jsCode.= wf_tag('script', true);
-
+    submit();
+    ';*/
+            $jsCode .= wf_tag('script', true);
+        }
 
         /*$rawData = array(
             'amount' => $amount,
