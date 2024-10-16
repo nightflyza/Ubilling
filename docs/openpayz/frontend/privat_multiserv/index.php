@@ -173,7 +173,7 @@ class PrivatMultiserv extends PaySysProto {
      */
     protected function getXMLPayerInfoBlock($lsAttrAdd = true) {
         $realname   = $this->getUserRealnames($this->subscriberLogin);
-        $address    = $this->getUserAddresses($this->subscriberLogin);
+        $address    = $this->getUserAddresses($this->subscriberLogin, $this->addressCityDisplay);
         $mobile     = $this->getUserCellPhone($this->subscriberLogin);
         $mobile     = (empty($mobile) ? '' : $mobile[$this->subscriberLogin][0]);
         $lsAttr     = ($lsAttrAdd ? ' ls="' . $this->subscriberVirtualID . '"' : '');
