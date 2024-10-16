@@ -200,8 +200,8 @@ class PaySysProto {
      */
     protected function getUBAgentData($userLogin) {
         if ($this->INIConfigIsON) {
-            $action = $this->ubapiURL . '?module=remoteapi&key=' . $this->ubapiKey . '&action=getagentdata&param=' . $userLogin;
-            @$result = file_get_contents($action);
+            $actionURL = $this->ubapiURL . '?module=remoteapi&key=' . $this->ubapiKey . '&action=getagentdata&param=' . $userLogin;
+            @$result = file_get_contents($actionURL);
         }
 
         if (empty($result)) {
@@ -215,13 +215,34 @@ class PaySysProto {
     }
 
     /**
+     * Gets user associated agent data JSON
+     *
+     * @param string $userLogin
+     *
+     * @return string
+     */
+    public static function getUBAgentDataByUBAPIURL($actionURL) {
+        if (!empty($actionURL)) {
+            @$result = file_get_contents($actionURL);
+        }
+
+        if (empty($result)) {
+            $result = array();
+        } else {
+            $result = json_decode($result, true);
+        }
+
+        return ($result);
+    }
+
+    /**
      * Returns user's assigned agent extended data, if available
      *
      * @param $gentID
      *
      * @return array|empty
      */
-    protected function getUBAgentDataExten($agentID = '', $paysysName = '') {
+    public static function getUBAgentDataExten($agentID = '', $paysysName = '') {
         $result   = array();
         $whereStr = '';
 
@@ -323,15 +344,45 @@ class PaySysProto {
     }
 
     /**
+     * Returns user login by its payment ID
+     *
+     * @param $paymentID
+     *
+     * @return mixed|string
+     */
+    public static function getUserLoginByPaymentID($paymentID) {
+        $paymentID = mysql_real_escape_string($paymentID);
+        $query = "SELECT `realid` FROM `op_customers` WHERE `virtualid`='" . $paymentID . "'";
+        $result = simple_query($query);
+        $result = empty($result) ? '' : $result['realid'];
+        return ($result);
+    }
+
+    /**
+     * Returns user payment ID by its login
+     *
+     * @param $userLogin
+     *
+     * @return mixed|string
+     */
+    public static function getUserPaymentIDByLogin($userLogin) {
+        $userLogin = mysql_real_escape_string($userLogin);
+        $query = "SELECT `virtualid` FROM `op_customers` WHERE `realid`='" . $userLogin . "'";
+        $result = simple_query($query);
+        $result = empty($result) ? '' : $result['virtualid'];
+        return ($result);
+    }
+
+    /**
      * Returns user stargazer data by login
      *
      * @param string $userLogin existing stargazer login
      *
      * @return array
      */
-    protected function getUserStargazerData($userLogin) {
+    public static function getUserStargazerData($userLogin) {
         $userLogin = mysql_real_escape_string($userLogin);
-        $query     = "SELECT * from `users` WHERE `login`='" . $userLogin . "';";
+        $query     = "SELECT * FROM `users` WHERE `login`='" . $userLogin . "';";
         $result    = simple_query($query);
         return ($result);
     }
@@ -343,62 +394,16 @@ class PaySysProto {
      *
      * @return array|string
      */
-    protected function getUserRealnames($userLogin = '') {
+    public static function getUserRealnames($userLogin = '') {
         $result = array();
         $whereStr = (empty($userLogin) ? '' : " WHERE `login` = '" . $userLogin . "'");
 
-        $query = "SELECT * from `realname`" . $whereStr;
+        $query = "SELECT * FROM `realname`" . $whereStr;
         $realnames = simple_queryall($query);
 
         if (!empty($realnames)) {
             foreach ($realnames as $io => $each) {
                 $result[$each['login']] = $each['realname'];
-            }
-        }
-
-        if (!empty($userLogin)) {
-            if (empty($result[$userLogin])) {
-                $result = '';
-            } else {
-                $result = $result[$userLogin];
-            }
-        }
-
-        return($result);
-    }
-
-    /**
-     * Returns array of available or filtered by user login addresses as login => address
-     *
-     * @param string $userLogin
-     *
-     * @return array|string
-     */
-    protected function getUserAddresses($userLogin = '') {
-        $result = array();
-        $whereStr = (empty($userLogin) ? '' : " WHERE `address`.`login` = '" . $userLogin . "'");
-
-        $query = "
-            SELECT `address`.`login`,`city`.`cityname`,`street`.`streetname`,`build`.`buildnum`,`apt`.`apt` 
-                FROM `address`
-                    INNER JOIN `apt` ON `address`.`aptid`= `apt`.`id`
-                    INNER JOIN `build` ON `apt`.`buildid`=`build`.`id`
-                    INNER JOIN `street` ON `build`.`streetid`=`street`.`id`
-                    INNER JOIN `city` ON `street`.`cityid`=`city`.`id`"
-                 . $whereStr;
-
-        $addresses = simple_queryall($query);
-
-        if (!empty($addresses)) {
-            foreach ($addresses as $eachAddress) {
-                // zero apt handle
-                $apartment_filtered = ($eachAddress['apt'] == 0) ? '' : '/' . $eachAddress['apt'];
-
-                if ($this->addressCityDisplay) {
-                    $result[$eachAddress['login']] = $eachAddress['cityname'] . ' ' . $eachAddress['streetname'] . ' ' . $eachAddress['buildnum'] . $apartment_filtered;
-                } else {
-                    $result[$eachAddress['login']] = $eachAddress['streetname'] . ' ' . $eachAddress['buildnum'] . $apartment_filtered;
-                }
             }
         }
 
@@ -421,15 +426,15 @@ class PaySysProto {
      *
      * @return array
      */
-    protected function getUserCellPhone($userLogin = '', $includeExtMobiles = false) {
+    public static function getUserCellPhone($userLogin = '', $includeExtMobiles = false) {
         $result = array();
         $query = 'select `login`, `mobile` from `phones`';
         $whereStr = (empty($userLogin) ? '' : ' where `login` = "' . $userLogin . '"');
 
         if ($includeExtMobiles) {
             $query = 'select `phones`.`login`, `phones`.`mobile`, `mobileext`.`mobile` as `extmobile` ' .
-                     'from `phones` ' .
-                     'left join `mobileext` on `phones`.`login` = `mobileext`.`login` ';
+                'from `phones` ' .
+                'left join `mobileext` on `phones`.`login` = `mobileext`.`login` ';
         }
 
         $query.= $whereStr;
@@ -451,11 +456,58 @@ class PaySysProto {
     }
 
     /**
+     * Returns array of available or filtered by user login addresses as login => address
+     *
+     * @param string $userLogin
+     * @param bool $addressCityDisplay
+     *
+     * @return array|string
+     */
+    public static function getUserAddresses($userLogin = '', $addressCityDisplay = false) {
+        $result = array();
+        $whereStr = (empty($userLogin) ? '' : " WHERE `address`.`login` = '" . $userLogin . "'");
+
+        $query = "
+            SELECT `address`.`login`,`city`.`cityname`,`street`.`streetname`,`build`.`buildnum`,`apt`.`apt` 
+                FROM `address`
+                    INNER JOIN `apt` ON `address`.`aptid`= `apt`.`id`
+                    INNER JOIN `build` ON `apt`.`buildid`=`build`.`id`
+                    INNER JOIN `street` ON `build`.`streetid`=`street`.`id`
+                    INNER JOIN `city` ON `street`.`cityid`=`city`.`id`"
+                 . $whereStr;
+
+        $addresses = simple_queryall($query);
+
+        if (!empty($addresses)) {
+            foreach ($addresses as $eachAddress) {
+                // zero apt handle
+                $apartment_filtered = ($eachAddress['apt'] == 0) ? '' : '/' . $eachAddress['apt'];
+
+                if ($addressCityDisplay) {
+                    $result[$eachAddress['login']] = $eachAddress['cityname'] . ' ' . $eachAddress['streetname'] . ' ' . $eachAddress['buildnum'] . $apartment_filtered;
+                } else {
+                    $result[$eachAddress['login']] = $eachAddress['streetname'] . ' ' . $eachAddress['buildnum'] . $apartment_filtered;
+                }
+            }
+        }
+
+        if (!empty($userLogin)) {
+            if (empty($result[$userLogin])) {
+                $result = '';
+            } else {
+                $result = $result[$userLogin];
+            }
+        }
+
+        return($result);
+    }
+
+    /**
      * Returns all tariff prices array
      *
      * @return array
      */
-    protected function getTariffPriceAll($userTariffName = '') {
+    public static function getTariffPriceAll($userTariffName = '') {
         $whereStr = (empty($userTariffName) ? '' : ' where `name` = "' . $userTariffName .'"');
         $query = 'select `name`, `Fee` from `tariffs`' . $whereStr;
         $queryResult = simple_queryall($query);
@@ -478,7 +530,7 @@ class PaySysProto {
      *
      * @return array
      */
-    protected function getOPTransactDataByHash($transactHash) {
+    public static function getOPTransactDataByHash($transactHash) {
         $result = array();
 
         if (!empty($transactHash)) {
@@ -499,7 +551,7 @@ class PaySysProto {
      *
      * @return bool
      */
-    protected function checkTransactFileExists($transactID, $transactDirectory = self::PATH_TRANSACTS) {
+    public static function checkTransactFileExists($transactID, $transactDirectory = self::PATH_TRANSACTS) {
         $result = (!empty($transactID) and file_exists(rtrim($transactDirectory, '/') . '/' . $transactID));
         return($result);
     }
@@ -511,10 +563,10 @@ class PaySysProto {
      *
      * @return mixed|string
      */
-    protected function getTransactFileData($transactID, $transactDirectory = self::PATH_TRANSACTS) {
+    public static function getTransactFileData($transactID, $transactDirectory = self::PATH_TRANSACTS) {
         $result = '';
 
-        if ($this->checkTransactFileExists($transactID, $transactDirectory = self::PATH_TRANSACTS)) {
+        if (self::checkTransactFileExists($transactID, $transactDirectory = self::PATH_TRANSACTS)) {
             $result = unserialize(file_get_contents(rtrim($transactDirectory, '/') . '/' . $transactID));
         }
 
@@ -542,7 +594,7 @@ class PaySysProto {
      *
      * @return mixed|string
      */
-    protected function getTransactDataDB($transactID, $tableName, $searchFieldName) {
+    public static function getTransactDataDB($transactID, $tableName, $searchFieldName) {
         $result = '';
         $tQuery = "SELECT * FROM `' . $tableName . '` WHERE `' . $searchFieldName . '` = '" . $transactID . "' ";
         $result = simple_query($tQuery);
@@ -612,11 +664,9 @@ class PaySysProto {
      * @return string The base64 encode of what you passed in
      */
     public static function urlSafeBase64Encode($input, $EqualSignRemove = true) {
-file_put_contents('vxcv', $input . "\n\n");
         $result = ($EqualSignRemove)
                   ? str_replace('=', '', strtr(base64_encode($input), '+/', '-_'))
                   : strtr(base64_encode($input), '+/', '-_');
-file_put_contents('vxcv', $result . "\n\n", 8);
         return ($result);
     }
 
