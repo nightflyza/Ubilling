@@ -364,25 +364,27 @@ file_put_contents('zxxcv', print_r($this->receivedJSON, true) . "\n\n\n\n", 8);
         if (empty($this->receivedJSON)) {
             $this->replyError(400, 'PAYLOAD_EMPTY');
         } else {
-            if (empty($this->receivedJSON['data'])) {
-                $this->replyError(422, 'UNPROCESSABLE ENTITY');
-            }
+            if ($this->receivedJSON['method'] != 'preorder') {
+                if (empty($this->receivedJSON['data'])) {
+                    $this->replyError(422, 'UNPROCESSABLE ENTITY');
+                }
 
-            $this->tranzzoTransactData = json_decode(PaySysProto::urlSafeBase64Decode($this->receivedJSON['data']), true);
+                $this->tranzzoTransactData = json_decode(PaySysProto::urlSafeBase64Decode($this->receivedJSON['data']), true);
 
-            if (empty($this->tranzzoTransactData)) {
-                $this->replyError(422, 'UNPROCESSABLE ENTITY');
-            }
+                if (empty($this->tranzzoTransactData)) {
+                    $this->replyError(422, 'UNPROCESSABLE ENTITY');
+                }
 file_put_contents('qxxcv', print_r($this->tranzzoTransactData, true) . "\n\n\n\n", 8);
-            if (!empty($this->tranzzoTransactData['payload'])) {
-                $customPayload = json_decode($this->tranzzoTransactData['payload'], true);
+                if (!empty($this->tranzzoTransactData['payload'])) {
+                    $customPayload = json_decode($this->tranzzoTransactData['payload'], true);
 
-                if (!empty($customPayload['source']) and $customPayload['source'] == self::BACKEND_SRC_FLD_VAL) {
-                    $this->receivedJSON['login'] = $customPayload['L'];
-                    $this->receivedJSON['password'] = $customPayload['P'];
-                    $this->receivedJSON['method'] = $this->tranzzoTransactData['method'];
-                    $this->receivedJSON['order'] = $this->tranzzoTransactData['order_id'];
-                    $this->receivedJSON['amount'] = $this->tranzzoTransactData['amount'];
+                    if (!empty($customPayload['source']) and $customPayload['source'] == self::BACKEND_SRC_FLD_VAL) {
+                        $this->receivedJSON['login'] = $customPayload['L'];
+                        $this->receivedJSON['password'] = $customPayload['P'];
+                        $this->receivedJSON['method'] = $this->tranzzoTransactData['method'];
+                        $this->receivedJSON['order'] = $this->tranzzoTransactData['order_id'];
+                        $this->receivedJSON['amount'] = $this->tranzzoTransactData['amount'];
+                    }
                 }
             }
         }
