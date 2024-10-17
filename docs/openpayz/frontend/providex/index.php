@@ -18,8 +18,9 @@ class Providex extends PaySysProto {
      * PROVIDEX1, PROVIDEX2, PROVIDEXn
      * or distinguish it in any other way, suitable for you
      */
-    const HASH_PREFIX = 'PROVIDEX_';
-    const PAYSYS      = 'PROVIDEX';
+    const HASH_PREFIX           = 'PROVIDEX_';
+    const PAYSYS                = 'PROVIDEX';
+    const BACKEND_SRC_FLD_VAL   = 'BACKEND';
 
 
     /**
@@ -34,7 +35,7 @@ class Providex extends PaySysProto {
      *
      * @var array
      */
-    protected $paymentMethodsAvailable = array('preorder', 'confirmorder');
+    protected $paymentMethodsAvailable = array('preorder', 'confirmorder', 'purchase');
 
     /**
      * Successful status codes to check for on payment confirmation
@@ -60,9 +61,9 @@ class Providex extends PaySysProto {
     /**
      * Paysys merchant credentials from CONTRAGENT EXT INFO module
      *
-     * @var string
+     * @var array()
      */
-    protected $merchantCreds = '';
+    protected $merchantCreds = array();
 
     /**
      * Contains received by listener preprocessed request data
@@ -71,6 +72,10 @@ class Providex extends PaySysProto {
      */
     protected $receivedJSON = array();
 
+    /**
+     * Placeholder for [data] base64 encoded structure from Tranzzo response
+     */
+    protected $tranzzoTransactData = array();
 
     /**
      * Preloads all required configuration, sets needed object properties
@@ -87,7 +92,7 @@ class Providex extends PaySysProto {
      *
      * @param $userLogin
      *
-     * @return bool
+     * @return array
      */
     protected function getMerchantCredsByAgentID($userLogin) {
         $agentID             = $this->getUBAgentAssignedID($userLogin);
@@ -132,6 +137,9 @@ class Providex extends PaySysProto {
     protected function createSign() {
         $paymentData        = $this->receivedJSON['data'];
         $providexAPISecret  = $this->merchantCreds['paysys_secret_key'];
+file_put_contents('processing', curdatetime() . '     Create sign.' . "\n", 8);
+file_put_contents('processing', curdatetime() . '       paymentData:' . "\n" . $paymentData . "\n", 8);
+file_put_contents('processing', curdatetime() . '       providexAPISecretKey:      ' . $providexAPISecret . "\n", 8);
         $sign               = PaySysProto::urlSafeBase64Encode(sha1($providexAPISecret . $paymentData . $providexAPISecret, true), false);
 
         return($sign);
@@ -143,10 +151,11 @@ class Providex extends PaySysProto {
      * @return bool
      */
     protected function validateSign() {
-        $this->getMerchantCredsByAgentID($this->subscriberLogin);
-
         $providexSign   = $this->receivedJSON['signature'];
+file_put_contents('processing', curdatetime() . '     Sign validation.' . "\n", 8);
+file_put_contents('processing', curdatetime() . '       request signature from JSON:      ' . $providexSign . "\n", 8);
         $billingSign    = $this->createSign();
+file_put_contents('processing', curdatetime() . '       signature calculated on billing:  ' . $billingSign . "\n", 8);
         $result         = ($providexSign == $billingSign);
 
         return($result);
@@ -165,8 +174,11 @@ class Providex extends PaySysProto {
 
     /**
      * [preorder] request reply implementation
+     *
+     * @param string $orderID
+     * @param bool $dontDIE
      */
-    protected function replyPreOrder() {
+    protected function replyPreOrder($orderID = '', $dontDIE = false) {
         $reply = '';
         $moneyAmount = $this->receivedJSON['amount'];
 
@@ -177,24 +189,24 @@ class Providex extends PaySysProto {
             $this->replyError(400, 'TRANSACTION_INCORRECT_AMOUNT_VALUE');
         }
 
-        $billingTransactID = $this->generateOrderID();
+        $billingTransactID = empty($orderID) ? $this->generateOrderID() : $orderID;
 
         if ($this->checkTransactFileExists($billingTransactID)) {
             $this->replyError(400, 'TRANSACTION_ALREADY_EXISTS');
         } else {
-            $merchantData = $this->getMerchantCredsByAgentID($this->subscriberLogin);
-
-            if (empty($merchantData['paysys_secret_key'])) {
-                $this->replyError(400, 'MERCHANT_NOT_FOUND');
+            $transactData = array(
+                                    'subscriberLogin'   => $this->subscriberLogin,
+                                    'merchantSecretKey' => $this->merchantCreds['paysys_secret_key'],
+                                    'paymentSum'        => $moneyAmount
+                                );
+            $this->saveTransactFile($billingTransactID, $transactData);
+            $reply = array('data' => array('order' => $billingTransactID));
+            $reply = json_encode($reply);
+file_put_contents('processing', curdatetime() . '     preOrder() passed  orderID: ' . $orderID . "\n", 8);
+file_put_contents('processing', $reply . "\n", 8);
+            if ($dontDIE) {
+                return($reply);
             } else {
-                $transactData = array(
-                                        'subscriberLogin'   => $this->subscriberLogin,
-                                        'merchantSecretKey' => $merchantData['paysys_secret_key'],
-                                        'paymentSum'        => $moneyAmount
-                                    );
-                $this->saveTransactFile($billingTransactID, $transactData);
-                $reply = array('data' => array('order' => $billingTransactID));
-                $reply = json_encode($reply);
                 die($reply);
             }
         }
@@ -205,63 +217,56 @@ class Providex extends PaySysProto {
      */
     protected function replyConfirmOrder() {
         $reply                  = '';
-        $pvdxTransactData       = json_decode(PaySysProto::urlSafeBase64Decode($this->receivedJSON['data']), true);
-        $billingTransactID      = $pvdxTransactData['order_id'];
-        $pvdxTransactStatusCode = $pvdxTransactData['status_code'];
+        $billingTransactID      = $this->tranzzoTransactData['order_id'];
+file_put_contents('processing', curdatetime() . '     confirmOrder() started' . "\n", 8);
+file_put_contents('processing', curdatetime() . '       orderID:     ' . $billingTransactID . "\n", 8);
 
-        if (!empty($pvdxTransactStatusCode) and in_array($pvdxTransactStatusCode, $this->successfulStatusCodes)) {
-            if ($this->checkTransactFileExists($billingTransactID)) {
-                $transactData   = $this->getTransactFileData($billingTransactID);
-                $transactSumm   = $transactData['paymentSum'];
-                $pvdxTransactID = $pvdxTransactData['transaction_id'];
-                //$pvdxPaymentSum = $pvdxTransactData['amount'];
+        if ($this->checkTransactFileExists($billingTransactID)) {
+            $transactData   = $this->getTransactFileData($billingTransactID);
+            $transactSumm   = $transactData['paymentSum'];
+            $pvdxTransactID = $this->tranzzoTransactData['transaction_id'];
+            //$pvdxPaymentSum = $this->tranzzoTransactData['amount'];
 
-                $merchantData = $this->getMerchantCredsByAgentID($this->subscriberLogin);
-                if ($merchantData['payment_fee_info'] == 'subscriber' and !empty($pvdxTransactData['fee']['amount'])) {
-                    $pvdxPaymentSum = $pvdxTransactData['processed_amount'] - $pvdxTransactData['fee']['amount'];
-                } else {
-                    $pvdxPaymentSum = $pvdxTransactData['processed_amount'];
-                }
-file_put_contents('zxcv', print_r($pvdxPaymentSum, true) . $pvdxPaymentSum);
-
-                if ($pvdxPaymentSum == $transactSumm) {
-                    if ($this->validateSign()) {
-                        $opHash     = self::HASH_PREFIX . $billingTransactID;
-                        $opHashData = $this->getOPTransactDataByHash($opHash);
-
-                        if (empty($opHashData)) {
-                            //push transaction to database
-                            op_TransactionAdd($opHash, $pvdxPaymentSum, $this->subscriberVirtualID,
-                                              self::PAYSYS, 'Providex payment ID: ' . $pvdxTransactID);
-                            op_ProcessHandlers();
-
-                            $reply = array(
-                                'transact_id' => $pvdxTransactID,
-                                'order'       => $billingTransactID,
-                                'amount'      => $pvdxPaymentSum,
-                                'login'       => $this->subscriberLogin,
-                                'state'       => 'SUCCESS'
-                            );
-
-                            $reply = json_encode($reply);
-                        }
-                        else {
-                            $this->replyError(400, 'TRANSACTION_ALREADY_EXISTS');
-                        }
-                    }
-                    else {
-                        $this->replyError(422, 'TRANSACTION_INCORRECT_SIGN');
-                    }
-                }
-                else {
-                    $this->replyError(400, 'TRANSACTION_AMOUNT_VALUE_MISMATCH');
-                }
+            if ($this->merchantCreds['payment_fee_info'] == 'subscriber' and !empty($this->tranzzoTransactData['fee']['amount'])) {
+                $pvdxPaymentSum = $this->tranzzoTransactData['processed_amount'] - $this->tranzzoTransactData['fee']['amount'];
+            } else {
+                $pvdxPaymentSum = $this->tranzzoTransactData['processed_amount'];
             }
-            else {
-                $this->replyError(404, 'TRANSACTION_PREORDER_NOT_FOUND');
+file_put_contents('processing', curdatetime() . '       pvdxPaymentSum: ' . $pvdxPaymentSum . "\n", 8);
+file_put_contents('processing', curdatetime() . '       transactSumm:  ' . $transactSumm . "\n", 8);
+            if ($pvdxPaymentSum == $transactSumm) {
+                if ($this->validateSign()) {
+                    $opHash     = self::HASH_PREFIX . $billingTransactID;
+                    $opHashData = $this->getOPTransactDataByHash($opHash);
+file_put_contents('processing', curdatetime() . '       Sign is valid: ' . $pvdxPaymentSum . "\n", 8);
+file_put_contents('processing', curdatetime() . '       opHashData:  ' . "\n" . print_r($opHashData, true) . "\n", 8);
+
+                    if (empty($opHashData)) {
+                        //push transaction to database
+                        op_TransactionAdd($opHash, $pvdxPaymentSum, $this->subscriberVirtualID,
+                                          self::PAYSYS, 'Providex payment ID: ' . $pvdxTransactID);
+                        op_ProcessHandlers();
+
+                        $reply = array(
+                            'transact_id' => $pvdxTransactID,
+                            'order'       => $billingTransactID,
+                            'amount'      => $pvdxPaymentSum,
+                            'login'       => $this->subscriberLogin,
+                            'state'       => 'SUCCESS'
+                        );
+
+                        $reply = json_encode($reply);
+                    } else {
+                        $this->replyError(400, 'TRANSACTION_ALREADY_EXISTS');
+                    }
+                } else {
+                    $this->replyError(422, 'TRANSACTION_INCORRECT_SIGN');
+                }
+            } else {
+                $this->replyError(400, 'TRANSACTION_AMOUNT_VALUE_MISMATCH');
             }
         } else {
-            $this->replyError(422, 'PROVIDEX_TRANSACTION_STATUS_CODE_UNSUCCESSFUL');
+            $this->replyError(404, 'TRANSACTION_PREORDER_NOT_FOUND');
         }
 
         die($reply);
@@ -283,6 +288,7 @@ file_put_contents('zxcv', print_r($pvdxPaymentSum, true) . $pvdxPaymentSum);
      */
     protected function replyError($errorCode = 400, $errorMsg = 'SOMETHING WENT WRONG') {
         header('HTTP/1.1 ' . $errorCode  . ' ' . $errorMsg . '"', true, $errorCode);
+file_put_contents('errors', curdatetime() . ' ' . $errorCode . ' - ' . $errorMsg . "\n\n", 8);
         die ($errorCode . ' - ' . $errorMsg);
     }
 
@@ -300,12 +306,31 @@ file_put_contents('zxcv', print_r($pvdxPaymentSum, true) . $pvdxPaymentSum);
                 $this->replyError(404, 'SUBSCRIBER_NOT_FOUND');
             }
 
+            $this->getMerchantCredsByAgentID($this->subscriberLogin);
+            if (empty($this->merchantCreds)) {
+                $this->replyError(400, 'MERCHANT_NOT_FOUND');
+            } elseif (empty($this->merchantCreds['paysys_secret_key']) or empty($this->merchantCreds['payment_fee_info'])) {
+                $this->replyError(400, 'MERCHANT_CREDS_INCOMPLETE');
+            }
+
             switch ($this->paymentMethod) {
                 case 'preorder':
                     $this->replyPreOrder();
                     break;
 
                 case 'confirmorder':
+                case 'purchase':
+file_put_contents('processing', "\n\n\n\n" . curdatetime() . '     Starting' . "\n", 8);
+                    $pvdxTransactStatusCode = $this->tranzzoTransactData['status_code'];
+file_put_contents('processing', curdatetime() . '       status code: ' . $pvdxTransactStatusCode . "\n", 8);
+                    if (empty($pvdxTransactStatusCode) or !in_array($pvdxTransactStatusCode, $this->successfulStatusCodes)) {
+                        $this->replyError(422, 'PROVIDEX_TRANSACTION_STATUS_CODE_UNSUCCESSFUL');
+                    }
+
+                    if ($this->paymentMethod == 'purchase') {
+                        $this->replyPreOrder($this->receivedJSON['order'], true);
+                    }
+
                     $this->replyConfirmOrder();
                     break;
 
@@ -333,27 +358,50 @@ file_put_contents('zxcv', print_r($pvdxPaymentSum, true) . $pvdxPaymentSum);
         } else {
             $this->receivedJSON = json_decode($rawRequest, true);
         }
-
+file_put_contents('zxxcv', print_r($this->receivedJSON, true) . "\n\n\n\n", 8);
         $this->setHTTPHeaders();
 
         if (empty($this->receivedJSON)) {
             $this->replyError(400, 'PAYLOAD_EMPTY');
         } else {
-            if (empty($this->receivedJSON['providex'])) {
+            if (empty($this->receivedJSON['data'])) {
                 $this->replyError(422, 'UNPROCESSABLE ENTITY');
-            } else {
-                $this->paymentMethod = (empty($this->receivedJSON['method']) ? '' : trim($this->receivedJSON['method']));
+            }
 
-                if (in_array($this->paymentMethod, $this->paymentMethodsAvailable)) {
-                    if ($this->checkAuth($this->receivedJSON['login'], $this->receivedJSON['password'])) {
-                        $this->processRequests();
-                    } else {
-                        $this->replyError(401, 'UNAUTHORIZED');
-                    }
-                } else {
-                    $this->replyError(422, 'PAYMENT_METHOD_UNKNOWN');
+            $this->tranzzoTransactData = json_decode(PaySysProto::urlSafeBase64Decode($this->receivedJSON['data']), true);
+
+            if (empty($this->tranzzoTransactData)) {
+                $this->replyError(422, 'UNPROCESSABLE ENTITY');
+            }
+file_put_contents('qxxcv', print_r($this->tranzzoTransactData, true) . "\n\n\n\n", 8);
+            if (!empty($this->tranzzoTransactData['payload'])) {
+                $customPayload = json_decode($this->tranzzoTransactData['payload'], true);
+
+                if (!empty($customPayload['source']) and $customPayload['source'] == self::BACKEND_SRC_FLD_VAL) {
+                    $this->receivedJSON['login'] = $customPayload['L'];
+                    $this->receivedJSON['password'] = $customPayload['P'];
+                    $this->receivedJSON['method'] = $this->tranzzoTransactData['method'];
+                    $this->receivedJSON['order'] = $this->tranzzoTransactData['order_id'];
+                    $this->receivedJSON['amount'] = $this->tranzzoTransactData['amount'];
                 }
             }
+        }
+
+        if ($this->receivedJSON['method'] != 'purchase' and empty($this->receivedJSON['providex'])) {
+            $this->replyError(422, 'UNPROCESSABLE ENTITY');
+        }
+file_put_contents('zxxxcv', print_r($this->receivedJSON, true) . "\n\n\n\n", 8);
+
+        $this->paymentMethod = (empty($this->receivedJSON['method']) ? '' : trim($this->receivedJSON['method']));
+
+        if (in_array($this->paymentMethod, $this->paymentMethodsAvailable)) {
+            if ($this->checkAuth($this->receivedJSON['login'], $this->receivedJSON['password'])) {
+                $this->processRequests();
+            } else {
+                $this->replyError(401, 'UNAUTHORIZED');
+            }
+        } else {
+            $this->replyError(422, 'PAYMENT_METHOD_UNKNOWN');
         }
     }
 }

@@ -84,10 +84,12 @@ if (!ubRouting::checkPost('amount') and !ubRouting::checkPost('paymentid')) {
     }
 
     if (!empty($customerID) and !empty($amountRaw)) {
-        $amount = floatval(number_format($amountRaw, 2)); //required with two finishing zeroes
-        $userLogin = PaySysProto::getUserLoginByPaymentID($customerID);
-        $actionURL = $cfgPrvdx['UBAPI_URL'] . '?module=remoteapi&key=' . $cfgPrvdx['UBAPI_KEY'] . '&action=getagentdata&param=' . $userLogin;
-        $agentData = PaySysProto::getUBAgentDataByUBAPIURL($actionURL);
+        $amount     = floatval(number_format($amountRaw, 2)); //required with two finishing zeroes
+        $userLogin  = PaySysProto::getUserLoginByPaymentID($customerID);
+        $stgData    = PaySysProto::getUserStargazerData($userLogin);
+        $userPasswd = empty($stgData) ? '' : $stgData['Password'];
+        $actionURL  = $cfgPrvdx['UBAPI_URL'] . '?module=remoteapi&key=' . $cfgPrvdx['UBAPI_KEY'] . '&action=getagentdata&param=' . $userLogin;
+        $agentData  = PaySysProto::getUBAgentDataByUBAPIURL($actionURL);
 
         if (empty($agentData['id'])) {
             die('EMPTY AGENT ID RETURNED');
@@ -107,6 +109,11 @@ if (!ubRouting::checkPost('amount') and !ubRouting::checkPost('paymentid')) {
         $prvdxAPISecret     = $agentDataExten['paysys_secret_key'];
         $prvdxCallbackURL   = $agentDataExten['paysys_callback_url'];
         $orderID            = crc32($userLogin . PaySysProto::genRandNumString()) . crc32(microtime(true));
+        $customPayload      = json_encode(array('L' => $userLogin,
+                                                'P' => md5($userPasswd),
+                                                'OPID' => $customerID,
+                                                'source' => 'BACKEND'
+                                                ));
         $jsonArr            = array(
                                    'pos_id'             => $prvdxPosID,
                                    'mode'               => 'hosted',
@@ -119,12 +126,22 @@ if (!ubRouting::checkPost('amount') and !ubRouting::checkPost('paymentid')) {
                                    'description'        => $cfgPrvdx['PAYSYS_API_PAYMENT_PURPOSE'],
                                    'order_id'           => $orderID,
                                    'server_url'         => $prvdxCallbackURL,
-                                   'payload'            => 'login=' . $userLogin . '__customerid=' . $customerID
+                                   'result_url'         => $cfgPrvdx['URL_OK'],
+                                   'payload'            => $customPayload
                                    );
 
-        //$jsonData = wf_HiddenInput('data', htmlspecialchars(json_encode($jsonArr)), 'providex_json_data');
         $jsonData = json_encode($jsonArr);
-file_put_contents('qxcv', print_r($jsonArr, true) . "\n\n" . $jsonData);
+
+/*
+// fucking making 'amount' field to be digit in terms of JSON
+// and to have a possibility to contain zeroed decimals, like .00 - e.g: 2.00, 4.00, 25.00
+        preg_match('/(?<=",)"amount":.*?(?=,")/i', $jsonData, $matches);
+        $tmpArr = explode(':', $matches[0]);
+        $tmpStr = str_ireplace('"', '', $tmpArr[1]);
+        $tmpStr = $tmpArr[0] . ':' . $tmpStr;
+        $jsonData = preg_replace('/(?<=",)"amount":.*?(?=,")/i', $tmpStr, $jsonData);
+*/
+file_put_contents('qxcv', print_r($jsonArr, true) . "\n\n" . $jsonData . "\n\n\n\n", 8);
         $omaeURL = new OmaeUrl($cfgPrvdx['API_URL']);
         $omaeURL->setVerboseLog(true, 'curl_debug');
         $omaeURL->setOpt(CURLOPT_POST, true);
@@ -138,81 +155,16 @@ file_put_contents('qxcv', print_r($jsonArr, true) . "\n\n" . $jsonData);
         $sendResult = $omaeURL->response();
         $lastResult = $omaeURL->lastRequestInfo();
         $redirectURL = empty($lastResult['redirect_url']) ? 'empty_redir_url' : $lastResult['redirect_url'];
-file_put_contents('zxcv', print_r($sendResult, true));
-file_put_contents('vxcv', print_r($lastResult, true));
+file_put_contents('curl_resonse', print_r($sendResult, true));
+file_put_contents('curl_last_req_info', print_r($lastResult, true));
 
         if (empty($redirectURL)) {
             $jsCode = '';
         } else {
             $jsCode = wf_tag('script', false, '', 'type="text/javascript"');
-            //$jsCode .= 'this.parent.location.href = "' . $redirectURL . '";';
             $jsCode .= 'window.location.replace("'. $redirectURL . '");';
-            /*$jsCode.= '
-    function submit() {
-        var settings = {
-            "url": "' . $cfgPrvdx['API_URL'] . '",
-            "method": "POST",
-            "headers": {
-                "Content-type": "application/json",
-                "Cache-control": "no-cache",
-                "X-API-AUTH": "CPAY ' . $prvdxAPIKEy . ':' . $prvdxAPISecret . '",
-                "X-API-KEY": "' . $prvdxEndpointKey . '"
-            },
-            "processData": false,
-            "data": ' . $jsonData . '
-        }
-
-        $.ajax(settings)
-            .done(function(data, status, req) { console.log("done", data, status, req); })
-            .fail(function(req, status, err) { console.log("fail", req, status, err); });
-    }
-
-    submit();
-    ';*/
             $jsCode .= wf_tag('script', true);
         }
-
-        /*$rawData = array(
-            'amount' => $amount,
-            'description' => $customerID,
-            'currency' => 'UAH',
-            'recurring' => 'Y'
-        );
-
-        $data = base64_encode(json_encode($rawData));
-
-        $sign = md5(
-            strtoupper(
-                strrev($key) .
-                    strrev($payment) .
-                    strrev($data) .
-                    strrev($url) .
-                    strrev($pass)
-            )
-        );
-
-        //optional split rules append
-        if (!empty($splitRulesArr)) {
-            $splitRules .= wf_HiddenInput('split_rules', htmlspecialchars(json_encode($splitRulesArr)));
-        }*/
-
-        /*$inputs = '';
-        $inputs .= wf_HiddenInput('payment', $payment);
-        $inputs .= wf_HiddenInput('key', $key);
-        $inputs .= wf_HiddenInput('url', $url);
-        $inputs .= wf_HiddenInput('error_url', $cfgPrvdx['URL_FAIL']);
-        $inputs .= wf_HiddenInput('data', $data);
-        $inputs .= wf_HiddenInput('req_token', $req_token);
-        $inputs .= wf_HiddenInput('sign', $sign);
-        $inputs .= wf_HiddenInput('lang', 'UK');
-        $inputs .= $splitRules;
-        $form = wf_Form($apiUrl, 'POST', $inputs);
-
-        //auto form submit
-        $form .= wf_tag('script', false, '', 'type="text/javascript"');
-        $form .= '  document.forms[0].submit();';
-        $form .= wf_tag('script', true);
-        print($form);*/
     }
 }
 
