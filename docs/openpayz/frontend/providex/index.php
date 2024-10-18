@@ -22,6 +22,9 @@ class Providex extends PaySysProto {
     const PAYSYS                = 'PROVIDEX';
     const BACKEND_SRC_FLD_VAL   = 'BACKEND';
 
+    const DEBUG_IDENT4          = '    ';       // 4 SPACES
+    const DEBUG_IDENT6          = '      ';     // 6 SPACES
+    const DEBUG_IDENT8          = '        ';   // 8 SPACES
 
     /**
      * Placeholder for a "payment_method" GET parameter
@@ -137,10 +140,12 @@ class Providex extends PaySysProto {
     protected function createSign() {
         $paymentData        = $this->receivedJSON['data'];
         $providexAPISecret  = $this->merchantCreds['paysys_secret_key'];
-file_put_contents('processing', curdatetime() . '     Create sign.' . "\n", 8);
-file_put_contents('processing', curdatetime() . '       paymentData:' . "\n" . $paymentData . "\n", 8);
-file_put_contents('processing', curdatetime() . '       providexAPISecretKey:      ' . $providexAPISecret . "\n", 8);
         $sign               = PaySysProto::urlSafeBase64Encode(sha1($providexAPISecret . $paymentData . $providexAPISecret, true), false);
+
+        $this->writeDebugLog(self::DEBUG_IDENT6 . 'Created sign:', $this->debugModeON);
+        $this->writeDebugLog(self::DEBUG_IDENT8 . 'paymentData:' . "\n" . $paymentData, $this->debugModeON);
+        $this->writeDebugLog(self::DEBUG_IDENT8 . 'providexAPISecretKey:             ' . $providexAPISecret, $this->debugModeON);
+        $this->writeDebugLog(self::DEBUG_IDENT8 . 'signature calculated on billing:  ' . $sign, $this->debugModeON);
 
         return($sign);
     }
@@ -151,12 +156,13 @@ file_put_contents('processing', curdatetime() . '       providexAPISecretKey:   
      * @return bool
      */
     protected function validateSign() {
+        $this->writeDebugLog(self::DEBUG_IDENT6 . 'Sign validation:', $this->debugModeON, 1);
+
         $providexSign   = $this->receivedJSON['signature'];
-file_put_contents('processing', curdatetime() . '     Sign validation.' . "\n", 8);
-file_put_contents('processing', curdatetime() . '       request signature from JSON:      ' . $providexSign . "\n", 8);
         $billingSign    = $this->createSign();
-file_put_contents('processing', curdatetime() . '       signature calculated on billing:  ' . $billingSign . "\n", 8);
         $result         = ($providexSign == $billingSign);
+
+        $this->writeDebugLog(self::DEBUG_IDENT8 . 'signature from request JSON:      ' . $providexSign, $this->debugModeON);
 
         return($result);
     }
@@ -202,8 +208,11 @@ file_put_contents('processing', curdatetime() . '       signature calculated on 
             $this->saveTransactFile($billingTransactID, $transactData);
             $reply = array('data' => array('order' => $billingTransactID));
             $reply = json_encode($reply);
-file_put_contents('processing', curdatetime() . '     preOrder() passed  orderID: ' . $orderID . "\n", 8);
-file_put_contents('processing', $reply . "\n", 8);
+
+            $this->writeDebugLog(self::DEBUG_IDENT6 . 'preOrder() passed', $this->debugModeON, 1);
+            $this->writeDebugLog(self::DEBUG_IDENT8 . 'orderID:  ' . $orderID, $this->debugModeON);
+            $this->writeDebugLog(self::DEBUG_IDENT8 . 'paymentSum:  ' . $moneyAmount, $this->debugModeON);
+
             if ($dontDIE) {
                 return($reply);
             } else {
@@ -218,8 +227,9 @@ file_put_contents('processing', $reply . "\n", 8);
     protected function replyConfirmOrder() {
         $reply                  = '';
         $billingTransactID      = $this->tranzzoTransactData['order_id'];
-file_put_contents('processing', curdatetime() . '     confirmOrder() started' . "\n", 8);
-file_put_contents('processing', curdatetime() . '       orderID:     ' . $billingTransactID . "\n", 8);
+
+        $this->writeDebugLog(self::DEBUG_IDENT6 . 'confirmOrder() started', $this->debugModeON, 1);
+        $this->writeDebugLog(self::DEBUG_IDENT8 . 'orderID:  ' . $billingTransactID, $this->debugModeON);
 
         if ($this->checkTransactFileExists($billingTransactID)) {
             $transactData   = $this->getTransactFileData($billingTransactID);
@@ -232,14 +242,17 @@ file_put_contents('processing', curdatetime() . '       orderID:     ' . $billin
             } else {
                 $pvdxPaymentSum = $this->tranzzoTransactData['processed_amount'];
             }
-file_put_contents('processing', curdatetime() . '       pvdxPaymentSum: ' . $pvdxPaymentSum . "\n", 8);
-file_put_contents('processing', curdatetime() . '       transactSumm:  ' . $transactSumm . "\n", 8);
+
+            $this->writeDebugLog(self::DEBUG_IDENT8 . 'pvdxPaymentSum:  ' . $pvdxPaymentSum, $this->debugModeON);
+            $this->writeDebugLog(self::DEBUG_IDENT8 . 'transactSumm:    ' . $transactSumm, $this->debugModeON);
+
             if ($pvdxPaymentSum == $transactSumm) {
                 if ($this->validateSign()) {
                     $opHash     = self::HASH_PREFIX . $billingTransactID;
                     $opHashData = $this->getOPTransactDataByHash($opHash);
-file_put_contents('processing', curdatetime() . '       Sign is valid: ' . $pvdxPaymentSum . "\n", 8);
-file_put_contents('processing', curdatetime() . '       opHashData:  ' . "\n" . print_r($opHashData, true) . "\n", 8);
+
+                    $this->writeDebugLog(self::DEBUG_IDENT8 . 'Sign is valid:  TRUE', $this->debugModeON);
+                    $this->writeDebugLog(self::DEBUG_IDENT8 . 'opHashData:  ' . "\n" . print_r($opHashData, true), $this->debugModeON);
 
                     if (empty($opHashData)) {
                         //push transaction to database
@@ -256,6 +269,11 @@ file_put_contents('processing', curdatetime() . '       opHashData:  ' . "\n" . 
                         );
 
                         $reply = json_encode($reply);
+
+                        $this->writeDebugLog(self::DEBUG_IDENT8 . 'processed transaction reply JSON:', $this->debugModeON);
+                        $this->writeDebugLog(self::DEBUG_IDENT8 . $reply, $this->debugModeON);
+                        $this->writeDebugLog(self::DEBUG_IDENT4 . 'FINISHED request processing', $this->debugModeON);
+                        $this->writeDebugLog(str_repeat('*', 80), $this->debugModeON);
                     } else {
                         $this->replyError(400, 'TRANSACTION_ALREADY_EXISTS');
                     }
@@ -288,7 +306,7 @@ file_put_contents('processing', curdatetime() . '       opHashData:  ' . "\n" . 
      */
     protected function replyError($errorCode = 400, $errorMsg = 'SOMETHING WENT WRONG') {
         header('HTTP/1.1 ' . $errorCode  . ' ' . $errorMsg . '"', true, $errorCode);
-file_put_contents('errors', curdatetime() . ' ' . $errorCode . ' - ' . $errorMsg . "\n\n", 8);
+        $this->writeDebugLog(self::DEBUG_IDENT4 . 'ERORR REPLY:  ' . $errorCode . ' - ' . $errorMsg . "\n\n", $this->debugModeON, 1);
         die ($errorCode . ' - ' . $errorMsg);
     }
 
@@ -298,9 +316,11 @@ file_put_contents('errors', curdatetime() . ' ' . $errorCode . ' - ' . $errorMsg
     protected function processRequests() {
         $opCustomersAll  = array_flip(op_CustomersGetAll());
         $this->subscriberLogin = $this->receivedJSON['login'];
+        $this->writeDebugLog(self::DEBUG_IDENT8 . 'user login:  '  . $this->subscriberLogin, $this->debugModeON);
 
         if (!empty($opCustomersAll[$this->subscriberLogin])) {
             $this->subscriberVirtualID = $opCustomersAll[$this->subscriberLogin];
+            $this->writeDebugLog(self::DEBUG_IDENT8 . 'user OPAZYZ ID:  '  . $this->subscriberVirtualID, $this->debugModeON);
 
             if ($this->getUBAgentAssignedID($this->subscriberLogin) == 0) {
                 $this->replyError(404, 'SUBSCRIBER_NOT_FOUND');
@@ -313,6 +333,9 @@ file_put_contents('errors', curdatetime() . ' ' . $errorCode . ' - ' . $errorMsg
                 $this->replyError(400, 'MERCHANT_CREDS_INCOMPLETE');
             }
 
+            $this->writeDebugLog(self::DEBUG_IDENT8 . 'merchant creds:  ', $this->debugModeON);
+            $this->writeDebugLog(self::DEBUG_IDENT8 . print_r($this->merchantCreds, true), $this->debugModeON);
+
             switch ($this->paymentMethod) {
                 case 'preorder':
                     $this->replyPreOrder();
@@ -320,9 +343,9 @@ file_put_contents('errors', curdatetime() . ' ' . $errorCode . ' - ' . $errorMsg
 
                 case 'confirmorder':
                 case 'purchase':
-file_put_contents('processing', "\n\n\n\n" . curdatetime() . '     Starting' . "\n", 8);
                     $pvdxTransactStatusCode = $this->tranzzoTransactData['status_code'];
-file_put_contents('processing', curdatetime() . '       status code: ' . $pvdxTransactStatusCode . "\n", 8);
+                    $this->writeDebugLog(self::DEBUG_IDENT8 . 'received transaction status code:  '  . $pvdxTransactStatusCode, $this->debugModeON);
+
                     if (empty($pvdxTransactStatusCode) or !in_array($pvdxTransactStatusCode, $this->successfulStatusCodes)) {
                         $this->replyError(422, 'PROVIDEX_TRANSACTION_STATUS_CODE_UNSUCCESSFUL');
                     }
@@ -350,6 +373,9 @@ file_put_contents('processing', curdatetime() . '       status code: ' . $pvdxTr
      * @return void
      */
     public function listen() {
+        $this->writeDebugLog(str_repeat('=', 80), $this->debugModeON, 4);
+        $this->writeDebugLog( 'STARTING request processing', $this->debugModeON);
+
         $rawRequest = file_get_contents('php://input');
         $isFormURLEncoded = ($_SERVER['CONTENT_TYPE'] == 'application/x-www-form-urlencoded');
 
@@ -358,7 +384,10 @@ file_put_contents('processing', curdatetime() . '       status code: ' . $pvdxTr
         } else {
             $this->receivedJSON = json_decode($rawRequest, true);
         }
-file_put_contents('zxxcv', print_r($this->receivedJSON, true) . "\n\n\n\n", 8);
+
+        $this->writeDebugLog('receivedJSON:', $this->debugModeON);
+        $this->writeDebugLog(print_r($this->receivedJSON, true), $this->debugModeON);
+
         $this->setHTTPHeaders();
 
         if (empty($this->receivedJSON)) {
@@ -374,7 +403,10 @@ file_put_contents('zxxcv', print_r($this->receivedJSON, true) . "\n\n\n\n", 8);
                 if (empty($this->tranzzoTransactData)) {
                     $this->replyError(422, 'UNPROCESSABLE ENTITY');
                 }
-file_put_contents('qxxcv', print_r($this->tranzzoTransactData, true) . "\n\n\n\n", 8);
+
+                $this->writeDebugLog('tranzzoTransactData:', $this->debugModeON);
+                $this->writeDebugLog(print_r($this->tranzzoTransactData, true), $this->debugModeON);
+
                 if (!empty($this->tranzzoTransactData['payload'])) {
                     $customPayload = json_decode($this->tranzzoTransactData['payload'], true);
 
@@ -392,7 +424,9 @@ file_put_contents('qxxcv', print_r($this->tranzzoTransactData, true) . "\n\n\n\n
         if ($this->receivedJSON['method'] != 'purchase' and empty($this->receivedJSON['providex'])) {
             $this->replyError(422, 'UNPROCESSABLE ENTITY');
         }
-file_put_contents('zxxxcv', print_r($this->receivedJSON, true) . "\n\n\n\n", 8);
+
+        $this->writeDebugLog('receivedJSON after change:', $this->debugModeON);
+        $this->writeDebugLog(print_r($this->receivedJSON, true), $this->debugModeON);
 
         $this->paymentMethod = (empty($this->receivedJSON['method']) ? '' : trim($this->receivedJSON['method']));
 

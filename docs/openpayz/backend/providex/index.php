@@ -41,12 +41,14 @@ function providexSumm($customerID, $avail_prices, $merchant_currency) {
             $jsCode = 'function change_custom_amount(){
                             var custom_amount = document.getElementById("radio_custom_amount");
                             custom_amount.value = document.getElementById("input_custom_amount").value;
-                            custom_amount.value = (custom_amount.value).toFixed(2);
-                        }
+                            custom_amount.value = parseFloat(custom_amount.value).toFixed(2);
+                       }
                         
-                         document.addEventListener(\'DOMContentLoaded\', function() {
-                            change_custom_amount();
-                         }, false);';
+                       window.addEventListener(\'pageshow\', 
+                                               function() {                                                  
+                                                   change_custom_amount();
+                                               },
+                                               false);';
 
             $inputs .= wf_tag('script') . $jsCode . wf_tag('script', true);
             $inputs .= wf_delimiter(0);
@@ -145,9 +147,11 @@ if (!ubRouting::checkPost('amount') and !ubRouting::checkPost('paymentid')) {
         $tmpStr = $tmpArr[0] . ':' . $tmpStr;
         $jsonData = preg_replace('/(?<=",)"amount":.*?(?=,")/i', $tmpStr, $jsonData);
 */
-file_put_contents('qxcv', print_r($jsonArr, true) . "\n\n" . $jsonData . "\n\n\n\n", 8);
+
+        PaySysProto::writeDebugLog('sending JSON:' . "\n" . $jsonData, $cfgPrvdx['DEBUG_MODE_ON'], 4);
+
         $omaeURL = new OmaeUrl($cfgPrvdx['API_URL']);
-        $omaeURL->setVerboseLog(true, 'curl_debug');
+        $omaeURL->setVerboseLog($cfgPrvdx['DEBUG_MODE_ON'], 'curl_debug');
         $omaeURL->setOpt(CURLOPT_POST, true);
         $omaeURL->setOpt(CURLOPT_FOLLOWLOCATION, true);
         $omaeURL->setOpt(CURLOPT_MAXREDIRS, 0);
@@ -156,11 +160,13 @@ file_put_contents('qxcv', print_r($jsonArr, true) . "\n\n" . $jsonData . "\n\n\n
         $omaeURL->dataHeader('X-API-KEY', $prvdxEndpointKey);
         $omaeURL->dataHeader('Cache-control', 'no-cache');
         $omaeURL->dataPostRaw($jsonData);
+
         $sendResult = $omaeURL->response();
         $lastResult = $omaeURL->lastRequestInfo();
         $redirectURL = empty($lastResult['redirect_url']) ? 'empty_redir_url' : $lastResult['redirect_url'];
-file_put_contents('curl_resonse', print_r($sendResult, true));
-file_put_contents('curl_last_req_info', print_r($lastResult, true));
+
+        PaySysProto::writeDebugLog('CURL resonse:' . "\n" . print_r($sendResult, true), $cfgPrvdx['DEBUG_MODE_ON']);
+        PaySysProto::writeDebugLog('CURL last request info:' . "\n" . print_r($lastResult, true), $cfgPrvdx['DEBUG_MODE_ON']);
 
         if (empty($redirectURL) or $redirectURL == 'empty_redir_url') {
             $payment_form = wf_tag('h2', false, '', 'style="color: #FF4411;"') . FAIL_SOMETHING_WENT_WRONG . wf_tag('h2', true);
