@@ -890,7 +890,7 @@ function zb_UserResurrect($login) {
 /**
  * Returns all users phones data from cache
  *
- * @return string
+ * @return array
  */
 function zb_GetAllAllPhonesCache() {
     global $ubillingConfig;
