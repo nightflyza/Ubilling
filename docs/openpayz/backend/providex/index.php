@@ -16,6 +16,10 @@ $merchant_logo = $cfgPrvdx['MERCHANT_LOGO'];
 $merchant_currency = $cfgPrvdx['MERCHANT_CURRENCY'];
 $avail_prices = $cfgPrvdx['AVAIL_PRICES'];
 
+const REDIRECT_MESSAGE = 'Перенаправлення...';
+const FAIL_NO_CUSTOMER_ID = 'ПОМИЛКА: не вказано платіжний ID';
+const FAIL_SOMETHING_WENT_WRONG = 'ПОМИЛКА: щось пішло не так - будь ласка, спробуйте ще раз';
+
 function providexSumm($customerID, $avail_prices, $merchant_currency) {
     global $cfgPrvdx;
     $inputs = '';
@@ -69,7 +73,7 @@ if (!ubRouting::checkPost('amount') and !ubRouting::checkPost('paymentid')) {
         $customerID = ubRouting::get('customer_id', 'vf');
         $payment_form = providexSumm($customerID, $avail_prices, $merchant_currency);
     } else {
-        $payment_form = 'FAIL: no customer ID set';
+        $payment_form = wf_tag('h2', false, '', 'style="color: #FF4411;"') . FAIL_NO_CUSTOMER_ID . wf_tag('h2', true);
     }
 } else {
     //push form
@@ -158,9 +162,10 @@ file_put_contents('qxcv', print_r($jsonArr, true) . "\n\n" . $jsonData . "\n\n\n
 file_put_contents('curl_resonse', print_r($sendResult, true));
 file_put_contents('curl_last_req_info', print_r($lastResult, true));
 
-        if (empty($redirectURL)) {
-            $jsCode = '';
+        if (empty($redirectURL) or $redirectURL == 'empty_redir_url') {
+            $payment_form = wf_tag('h2', false, '', 'style="color: #FF4411;"') . FAIL_SOMETHING_WENT_WRONG . wf_tag('h2', true);
         } else {
+            $payment_form = wf_tag('h2', false, '', 'style="color: #0EB400;"') . REDIRECT_MESSAGE . wf_tag('h2', true);
             $jsCode = wf_tag('script', false, '', 'type="text/javascript"');
             $jsCode .= 'window.location.replace("'. $redirectURL . '");';
             $jsCode .= wf_tag('script', true);
