@@ -27,6 +27,7 @@ class PaySysProto {
      */
     const PATH_CONFIG       = 'config/config.ini';
     const PATH_AGENTCODES   = 'config/agentcodes_mapping.ini';
+    const PATH_DEBUGLOG     = 'processing_debug.log';
     const PATH_TRANSACTS    = 'tmp/';
     const OP_TRANSACT_TABLE = 'op_transactions';
 
@@ -129,6 +130,13 @@ class PaySysProto {
     protected $subscriberBalanceDecimals = -1;
 
     /**
+     * Contains value of DEBUG_MODE_ON INI option
+     *
+     * @var bool
+     */
+    protected $debugModeON = false;
+
+    /**
      * Preloads all required configurations, sets needed object properties
      *
      * @return void
@@ -170,6 +178,7 @@ class PaySysProto {
                 $this->ubapiKey                  = isset($this->config['UBAPI_KEY']) ? $this->config['UBAPI_KEY'] : '';
                 $this->addressCityDisplay        = isset($this->config['CITY_DISPLAY_IN_ADDRESS']) ? $this->config['CITY_DISPLAY_IN_ADDRESS'] : false;
                 $this->subscriberBalanceDecimals = isset($this->config['SUBSCRIBER_BALANCE_DECIMALS']) ? $this->config['SUBSCRIBER_BALANCE_DECIMALS'] : -1;
+                $this->debugModeON               = isset($this->config['DEBUG_MODE_ON']) ? $this->config['DEBUG_MODE_ON'] : false;
             } else {
                 $this->replyError(500, 'Fatal: config is empty!');
             }
@@ -686,6 +695,24 @@ class PaySysProto {
         }
 
         return (base64_decode(strtr($input, '-_', '+/')));
+    }
+
+    /**
+     * Writes some debugging to a file with a timestamp for each line and an "\n" after each line
+     *
+     * @param string $logmsg
+     * @param bool $debugModeON
+     * @param string $filePath
+     *
+     * @return void
+     */
+    public static function writeDebugLog($logmsg, $debugModeON = true, $newlinesPrependCnt = 0, $filePath = '') {
+        if ($debugModeON) {
+            $filePath        = empty($filePath) ? self::PATH_DEBUGLOG : $filePath;
+            $ident4spcs      = str_repeat(' ', 4);
+            $newlinesPrepend = str_repeat("\n", $newlinesPrependCnt);
+            file_put_contents($filePath, $newlinesPrepend . curdatetime() . $ident4spcs . $logmsg . "\n", FILE_APPEND);
+        }
     }
 
     /**
