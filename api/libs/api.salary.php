@@ -456,11 +456,21 @@ class Salary {
      */
     public function jobPricesCreateForm() {
         $result = '';
+
         if (!empty($this->allJobtypes)) {
-            $inputs = wf_Selector('newjobtypepriceid', $this->allJobtypes, __('Job type'), '', true) . ' ';
+            $jobTypeParams = array();
+            if (!empty($this->allJobtypes)) {
+                foreach ($this->allJobtypes as $io => $each) {
+                    if (!isset($this->allJobPrices[$io])) {
+                        $jobTypeParams[$io] = $each;
+                    }
+                }
+            }
+
+            $inputs = wf_Selector('newjobtypepriceid', $jobTypeParams, __('Job type'), '', true) . ' ';
             $inputs .= wf_Selector('newjobtypepriceunit', $this->unitTypes, __('Units'), '', true) . ' ';
-            $inputs .= wf_TextInput('newjobtypeprice', __('Price'), '', true, 5) . ' ';
-            $inputs .= wf_TextInput('newjobtypepricetime', __('Typical execution time') . ' (' . __('minutes') . ')', '', true, 5) . ' ';
+            $inputs .= wf_TextInput('newjobtypeprice', __('Price'), '', true, 5, 'float') . ' ';
+            $inputs .= wf_TextInput('newjobtypepricetime', __('Typical execution time') . ' (' . __('minutes') . ')', '', true, 5, 'float') . ' ';
             $inputs .= wf_Submit(__('Create'));
             $result = wf_Form('', 'POST', $inputs, 'glamour');
             $result .= wf_CleanDiv();
@@ -512,8 +522,8 @@ class Salary {
         if (isset($this->allJobPrices[$jobtypeid])) {
             $inputs = wf_HiddenInput('editjobtypepriceid', $jobtypeid);
             $inputs .= wf_Selector('editjobtypepriceunit', $this->unitTypes, __('Units'), $this->allJobUnits[$jobtypeid], true);
-            $inputs .= wf_TextInput('editjobtypeprice', __('Price'), $this->allJobPrices[$jobtypeid], true, 5);
-            $inputs .= wf_TextInput('editjobtypepricetime', __('Minutes'), $this->allJobTimes[$jobtypeid], true, 5) . ' ';
+            $inputs .= wf_TextInput('editjobtypeprice', __('Price'), $this->allJobPrices[$jobtypeid], true, 5, 'float');
+            $inputs .= wf_TextInput('editjobtypepricetime', __('Minutes'), $this->allJobTimes[$jobtypeid], true, 5, 'float') . ' ';
             $inputs .= wf_Submit(__('Save'));
             $result = wf_Form('', 'POST', $inputs, 'glamour');
         }
@@ -807,6 +817,7 @@ class Salary {
         $result = '';
         $jobtypes = array();
         $employeeTmp = array();
+        $noPriceHideFlag = (@$this->altCfg['SALARY_HIDE_NOPRICE']) ? true : false;
 
         if (cfr('SALARYTASKSVIEW')) {
             $result .= $this->renderTaskJobs($taskid);
@@ -818,10 +829,13 @@ class Salary {
                     foreach ($this->allJobtypes as $io => $each) {
                         if (isset($this->allJobUnits[$io])) {
                             $jobUnit = __($this->allJobUnits[$io]);
+                            $jobtypes[$io] = $each . ' (' . $jobUnit . ')';
                         } else {
-                            $jobUnit = '?';
+                            if (!$noPriceHideFlag) {
+                                $jobtypes[$io] = $each . ' (' . $jobUnit . ')';
+                                $jobUnit = '?';
+                            }
                         }
-                        $jobtypes[$io] = $each . ' (' . $jobUnit . ')';
                     }
                 }
 
