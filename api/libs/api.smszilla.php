@@ -707,6 +707,7 @@ class SMSZilla {
             'filterlogin' => 'Login contains',
             'filterip' => 'IP contains',
             'filternotariff' => 'User have no tariff assigned',
+            'filtertariffnm' => 'Planned tariff change',
             'filterpassive' => 'User is frozen',
             'filternotpassive' => 'User is not frozen',
             'filteractive' => 'User is active',
@@ -738,6 +739,8 @@ class SMSZilla {
             '{TARIFF}' => __('Tariff'),
             '{TARIFFPRICE}' => __('Tariff fee'),
             '{TARIFFPERIOD}' => __('Tariff period'),
+            '{TARIFFNM}' => __('Tariff').' '.__('Next month'),
+            '{TARIFFNMPRICE}' => __('Tariff fee').' '.__('Next month'),
             '{PAYMENTID}' => __('Payment ID'),
             '{CREDIT}' => __('Credit'),
             '{CASH}' => __('Balance'),
@@ -756,14 +759,14 @@ class SMSZilla {
             '{USERONLINETODATE}' => __('Tariff period'),
         );
 
-        if ((isset($this->altCfg['SMSZILLA_MOBILE_LEN'])) AND ( $this->altCfg['SMSZILLA_COUNTRY_CODE'])) {
+        if ((isset($this->altCfg['SMSZILLA_MOBILE_LEN'])) and ($this->altCfg['SMSZILLA_COUNTRY_CODE'])) {
             //custom countries number settings
             $this->countryCode = vf($this->altCfg['SMSZILLA_COUNTRY_CODE'], 3);
             $this->mobileLen = $this->altCfg['SMSZILLA_MOBILE_LEN'];
         }
 
         //cahing disabling
-        if ((isset($this->altCfg['SMSZILLA_NOCACHE'])) AND ( $this->altCfg['SMSZILLA_NOCACHE'])) {
+        if ((isset($this->altCfg['SMSZILLA_NOCACHE'])) and ($this->altCfg['SMSZILLA_NOCACHE'])) {
             $this->useCache = false;
         }
     }
@@ -1223,7 +1226,7 @@ class SMSZilla {
                 }
             }
 
-            if ((!empty($cleanupUserMobiles)) AND ( !empty($this->allNumListsNumbers))) {
+            if ((!empty($cleanupUserMobiles)) and (!empty($this->allNumListsNumbers))) {
                 foreach ($this->allNumListsNumbers as $io => $each) {
                     if ($each['numid'] == $numlistId) {
                         $numlistNumber = $each['mobile'];
@@ -1548,12 +1551,12 @@ class SMSZilla {
             $inputs .= wf_HiddenInput('newfilterdirection', $direction);
             $inputs .= wf_TextInput('newfiltername', __('Filter name') . wf_tag('sup') . '*' . wf_tag('sup', true), '', true, '30');
 
-            if (($direction == 'login') OR ( $direction == 'ukv')) {
+            if (($direction == 'login') or ($direction == 'ukv')) {
                 $inputs .= wf_Selector('newfiltercity', $citiesParams, __('City'), '', true, false);
                 $inputs .= wf_TextInput('newfilteraddress', __('Address contains'), '', true, '40');
             }
 
-            if (($direction == 'login') OR ( $direction == 'ukv') OR ( $direction == 'employee')) {
+            if (($direction == 'login') or ($direction == 'ukv') or ($direction == 'employee')) {
                 $inputs .= wf_TextInput('newfilterrealname', __('Real Name') . ' ' . __('contains'), '', true, '30');
             }
 
@@ -1571,7 +1574,7 @@ class SMSZilla {
                 $inputs .= wf_CheckInput('newfilterukvactive', __('User is active'), true, false);
             }
 
-            if (($direction == 'login') OR ( $direction == 'ukv')) {
+            if (($direction == 'login') or ($direction == 'ukv')) {
                 $inputs .= wf_TextInput('newfiltercashgreater', __('Balance is greater than'), '', true, '5');
                 $inputs .= wf_TextInput('newfiltercashlesser', __('Balance is less than'), '', true, '5');
                 $inputs .= wf_CheckInput('newfiltercashlesszero', __('Balance is less than zero'), true, false);
@@ -1590,6 +1593,7 @@ class SMSZilla {
                 $inputs .= wf_Selector('newfiltertariff', $tariffParams, __('User have tariff'), '', true, false);
                 $inputs .= wf_TextInput('newfiltertariffcontain', __('User tariff contains'), '', true, '15');
                 $inputs .= wf_CheckInput('newfilternotariff', __('User have no tariff assigned'), true, false);
+                $inputs .= wf_CheckInput('newfiltertariffnm', __('Planned tariff change'), true, false);
                 $inputs .= wf_CheckInput('newfilterextmobiles', __('Use additional mobiles'), true, false);
                 $inputs .= wf_Selector('newfilterbranch', $branchParams, __('Branch'), '', true, false);
                 $inputs .= wf_CheckInput('newfilternobranch', __('No branch'), true, false);
@@ -1819,13 +1823,13 @@ class SMSZilla {
     public function renderSendingForm() {
         $result = '';
 
-//saving previous selectors state
+        //saving previous selectors state
         $curTemplateId = (wf_CheckPost(array('sendingtemplateid'))) ? $_POST['sendingtemplateid'] : '';
         $curFilterId = (wf_CheckPost(array('sendingfilterid'))) ? $_POST['sendingfilterid'] : '';
         $curVisualFlag = (wf_CheckPost(array('sendingvisualfilters'))) ? true : false;
         $curTranslitFlag = (wf_CheckPost(array('forcetranslit'))) ? true : false;
 
-        if (!(empty($this->templates)) AND ( !empty($this->filters))) {
+        if (!(empty($this->templates)) and (!empty($this->filters))) {
             $templatesParams = array();
             foreach ($this->templates as $io => $each) {
                 $templatesParams[$each['id']] = $each['name'];
@@ -1872,7 +1876,7 @@ class SMSZilla {
             $codeLen = strlen($this->countryCode);
 
             if ($inputLen < $this->mobileLen) {
-//trying to append country code if number is not ok by default or too short
+                //trying to append country code if number is not ok by default or too short
                 $mobileTmp = $mobile;
                 for ($i = 1; $i <= $codeLen; $i++) {
                     $appendedLen = strlen($mobileTmp);
@@ -1902,7 +1906,7 @@ class SMSZilla {
                 }
             }
 
-//checking is number starting from full country code?
+            //checking is number starting from full country code?
             if (strpos($mobile, $this->countryCode) === false) {
                 if ($this->normalizerDebug) {
                     show_error('Number doesnt start with ' . $this->countryCode . ': ' . $mobile);
@@ -1911,7 +1915,7 @@ class SMSZilla {
             }
 
 
-//appending plus symbol due E164 standard
+            //appending plus symbol due E164 standard
             $newLen = strlen($mobile);
             if ($newLen == $this->mobileLen) {
                 $mobile = '+' . $mobile;
@@ -1938,7 +1942,7 @@ class SMSZilla {
                     foreach ($this->filteredEntities as $io => $each) {
                         $userLogin = $each['login'];
                         $primaryMobile = $this->normalizePhoneFormat($each['mobile']);
-                        if ((!empty($primaryMobile) AND ( !isset($this->excludeNumbers[$primaryMobile])))) {
+                        if ((!empty($primaryMobile) and (!isset($this->excludeNumbers[$primaryMobile])))) {
                             $this->filteredNumbers[$userLogin][] = $primaryMobile;
                         }
 
@@ -1947,7 +1951,7 @@ class SMSZilla {
                             if (!empty($userExtMobiles)) {
                                 foreach ($userExtMobiles as $ia => $eachExt) {
                                     $additionalMobile = $this->normalizePhoneFormat($eachExt['mobile']);
-                                    if ((!empty($additionalMobile)) AND ( !isset($this->excludeNumbers[$additionalMobile]))) {
+                                    if ((!empty($additionalMobile)) and (!isset($this->excludeNumbers[$additionalMobile]))) {
                                         $this->filteredNumbers[$userLogin][] = $additionalMobile;
                                         $this->extMobilesCount++;
                                     }
@@ -1960,7 +1964,7 @@ class SMSZilla {
                 case 'ukv':
                     foreach ($this->filteredEntities as $io => $each) {
                         $userPrimaryMobile = $this->normalizePhoneFormat($each['mobile']);
-                        if ((!empty($userPrimaryMobile)) AND ( !isset($this->excludeNumbers[$userPrimaryMobile]))) {
+                        if ((!empty($userPrimaryMobile)) and (!isset($this->excludeNumbers[$userPrimaryMobile]))) {
                             $this->filteredNumbers[$each['id']] = $userPrimaryMobile;
                         }
                     }
@@ -1969,7 +1973,7 @@ class SMSZilla {
                 case 'employee':
                     foreach ($this->filteredEntities as $io => $each) {
                         $employeeMobile = $this->normalizePhoneFormat($each['mobile']);
-                        if ((!empty($employeeMobile) AND ( !isset($this->excludeNumbers[$employeeMobile])))) {
+                        if ((!empty($employeeMobile) and (!isset($this->excludeNumbers[$employeeMobile])))) {
                             $this->filteredNumbers[$each['id']] = $employeeMobile;
                         }
                     }
@@ -1977,7 +1981,7 @@ class SMSZilla {
                 case 'numlist':
                     foreach ($this->filteredEntities as $io => $each) {
                         $numlistMobile = $this->normalizePhoneFormat($each['mobile']);
-                        if ((!empty($numlistMobile) AND ( !isset($this->excludeNumbers[$numlistMobile])))) {
+                        if ((!empty($numlistMobile) and (!isset($this->excludeNumbers[$numlistMobile])))) {
                             $this->filteredNumbers[$each['id']] = $numlistMobile;
                         }
                     }
@@ -2065,7 +2069,7 @@ class SMSZilla {
                         break;
                 }
 
-//setting base entities count
+                //setting base entities count
                 $this->saveFilterStats('atstart', sizeof($this->filteredEntities));
                 /**
                  * Knowing that I pack your things up in lie
@@ -2074,11 +2078,11 @@ class SMSZilla {
                  * Rollin' on, girl without feeling tonight
                  */
                 foreach ($filterData as $eachFilter => $eachFilterParam) {
-                    if ((ispos($eachFilter, 'newfilter')) AND ( $eachFilter != 'newfilterdirection') AND ( $eachFilter != 'newfiltername')) {
+                    if ((ispos($eachFilter, 'newfilter')) and ($eachFilter != 'newfilterdirection') and ($eachFilter != 'newfiltername')) {
                         $filterMethodName = str_replace('new', '', $eachFilter);
                         if (method_exists($this, $filterMethodName)) {
                             $this->$filterMethodName($direction, $eachFilterParam);
-//saving filter stats
+                            //saving filter stats
                             if (!empty($eachFilterParam)) {
                                 $this->saveFilterStats($filterMethodName, sizeof($this->filteredEntities));
                             }
@@ -2090,7 +2094,7 @@ class SMSZilla {
             }
         }
 
-        if ((!empty($this->filteredEntities)) AND ( !empty($this->entitiesType))) {
+        if ((!empty($this->filteredEntities)) and (!empty($this->entitiesType))) {
             if (wf_CheckPost(array('sendingvisualfilters'))) {
                 show_window(__('Filters workflow visualization'), $this->renderFilterStats());
             }
@@ -2168,6 +2172,8 @@ class SMSZilla {
                 $result = str_ireplace('{REALNAME}', $this->filteredEntities[$entity]['realname'], $result);
                 $result = str_ireplace('{TARIFF}', $this->filteredEntities[$entity]['Tariff'], $result);
                 $result = str_ireplace('{TARIFFPRICE}', @$this->allTariffPrices[$this->filteredEntities[$entity]['Tariff']], $result);
+                $result = str_ireplace('{TARIFFNM}', $this->filteredEntities[$entity]['TariffChange'], $result);
+                $result = str_ireplace('{TARIFFNMPRICE}', @$this->allTariffPrices[$this->filteredEntities[$entity]['TariffChange']], $result);
                 $result = str_ireplace('{TARIFFPERIOD}', __(@$this->allTariffs[$this->filteredEntities[$entity]['Tariff']]['period']), $result);
                 $result = str_ireplace('{PAYMENTID}', @$this->opCustomers[$this->filteredEntities[$entity]['login']], $result);
                 $result = str_ireplace('{CREDIT}', $this->filteredEntities[$entity]['Credit'], $result);
@@ -2237,15 +2243,15 @@ class SMSZilla {
         $realSending = (wf_CheckPost(array('sendingperform'))) ? true : false;
         $forceTranslit = (wf_CheckPost(array('forcetranslit'))) ? true : false;
         if (!$realSending) {
-//Remote API background call
+            //Remote API background call
             $realSending = (wf_CheckGet(array('key', 'action', 'filterid', 'templateid'))) ? true : false;
         }
         if (!$forceTranslit) {
-//Remote API translit option instead
+            //Remote API translit option instead
             $forceTranslit = (wf_CheckGet(array('translit'))) ? true : false;
         }
         $sendCounter = 0;
-//changing nearest SMS bytes limit
+        //changing nearest SMS bytes limit
         if ($forceTranslit) {
             $this->smsLenLimit = 160;
         } else {
@@ -2279,7 +2285,7 @@ class SMSZilla {
                                 $json->addRow($data);
                                 unset($data);
 
-//pushing some messages into queue
+                                //pushing some messages into queue
                                 if ($realSending) {
                                     $queueFile = $this->sms->sendSMS($eachNumber, $messageText, false, 'SMSZILLA');
                                     $this->sms->setDirection($queueFile, 'user_login', $userLogin, $messageDirection);
@@ -2311,7 +2317,7 @@ class SMSZilla {
                             $json->addRow($data);
                             unset($data);
 
-//pushing some messages into queue
+                            //pushing some messages into queue
                             if ($realSending) {
                                 $this->sms->sendSMS($number, $messageText, false, 'SMSZILLA');
                                 $sendCounter++;
@@ -2341,7 +2347,7 @@ class SMSZilla {
                             $json->addRow($data);
                             unset($data);
 
-//pushing some messages into queue
+                            //pushing some messages into queue
                             if ($realSending) {
                                 $this->sms->sendSMS($number, $messageText, false, 'SMSZILLA');
                                 $sendCounter++;
@@ -2369,7 +2375,7 @@ class SMSZilla {
                             $json->addRow($data);
                             unset($data);
 
-//pushing some messages into queue
+                            //pushing some messages into queue
                             if ($realSending) {
                                 $this->sms->sendSMS($number, $messageText, false, 'SMSZILLA');
                                 $sendCounter++;
@@ -2378,12 +2384,12 @@ class SMSZilla {
                     }
                     break;
             }
-//logging if SMS really sent
+            //logging if SMS really sent
             if ($realSending) {
                 log_register('SMSZILLA SENDING TEMPLATE [' . $templateId . '] FILTER [' . $filterId . '] COUNT `' . $sendCounter . '`');
             }
         }
-//saving preview data
+        //saving preview data
         file_put_contents(self::POOL_PATH . 'SMZ_PREVIEW_' . $filterId . '_' . $templateId, $json->extractJson());
     }
 
@@ -2513,7 +2519,7 @@ class SMSZilla {
     protected function filtercashmonth($direction, $param) {
         if (!empty($param)) {
             if (!empty($this->filteredEntities)) {
-//init slow funds flow object if required
+                //init slow funds flow object if required
                 if (empty($this->fundsFlow)) {
                     $this->initFundsFlow();
                 }
@@ -2561,7 +2567,7 @@ class SMSZilla {
     protected function filtercashdays($direction, $param) {
         if (!empty($param)) {
             if (!empty($this->filteredEntities)) {
-//init slow funds flow object if required
+                //init slow funds flow object if required
                 if (empty($this->fundsFlow)) {
                     $this->initFundsFlow();
                 }
@@ -3063,6 +3069,30 @@ class SMSZilla {
     }
 
     /**
+     * Users with scheduled tariff change filter
+     * 
+     * @param string $direction
+     * @param string $param
+     * 
+     * @return void
+     */
+    protected function filtertariffnm($direction, $param) {
+        if (!empty($param)) {
+            if (!empty($this->filteredEntities)) {
+                switch ($direction) {
+                    case 'login':
+                        foreach ($this->filteredEntities as $io => $entity) {
+                            if (empty($entity['TariffChange'])) {
+                                unset($this->filteredEntities[$entity['login']]);
+                            }
+                        }
+                        break;
+                }
+            }
+        }
+    }
+
+    /**
      * UKV tariff users filter
      * 
      * @param string $direction
@@ -3177,12 +3207,12 @@ class SMSZilla {
                             $numlistMobile = $this->normalizePhoneFormat($entity['mobile']);
                             if (!empty($this->allUserData)) {
                                 foreach ($this->allUserData as $eachUserLogin => $eachUserData) {
-//base numbers comparison
+                                    //base numbers comparison
                                     if (ispos($this->normalizePhoneFormat($eachUserData['mobile']), $numlistMobile)) {
                                         unset($this->filteredEntities[$entity['id']]);
                                         break;
                                     }
-//check for additional mobile
+                                    //check for additional mobile
                                     $userExtMobiles = $this->extMobiles->getUserMobiles($eachUserLogin);
                                     if (!empty($userExtMobiles)) {
                                         foreach ($userExtMobiles as $ia => $eachExt) {
@@ -3290,7 +3320,7 @@ class SMSZilla {
             if (!empty($this->filteredEntities)) {
                 switch ($direction) {
                     case 'ukv':
-//one time debtors loading on filter run
+                        //one time debtors loading on filter run
                         if (!$this->ukvDebtorsLoaded) {
                             $this->ukvDebtors = $this->ukv->getDebtors();
                             $this->ukvDebtorsLoaded = true;
@@ -3359,7 +3389,4 @@ class SMSZilla {
             }
         }
     }
-
 }
-
-?>
