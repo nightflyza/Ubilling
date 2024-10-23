@@ -1050,3 +1050,7 @@ sub, sup {
 .ubButtonInline:disabled {
     color: rgba(16, 16, 16, 0.3);
 }
+
+.opbackend {
+    box-sizing: initial;
+}

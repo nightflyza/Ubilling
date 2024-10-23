@@ -186,7 +186,15 @@ class Providex extends PaySysProto {
      */
     protected function replyPreOrder($orderID = '', $dontDIE = false) {
         $reply = '';
-        $moneyAmount = $this->receivedJSON['amount'];
+        if ($this->receivedJSON['method'] = 'purchase') {
+            if ($this->merchantCreds['payment_fee_info'] == 'subscriber' and !empty($this->tranzzoTransactData['fee']['amount'])) {
+                $moneyAmount = $this->tranzzoTransactData['processed_amount'] - $this->tranzzoTransactData['fee']['amount'];
+            } else {
+                $moneyAmount = $this->tranzzoTransactData['processed_amount'];
+            }
+        } else {
+            $moneyAmount = $this->receivedJSON['amount'];
+        }
 
     //  check $moneyAmount is a correct integer
     //  or float which has no more than 2 decimals
@@ -415,7 +423,7 @@ class Providex extends PaySysProto {
                         $this->receivedJSON['password'] = $customPayload['P'];
                         $this->receivedJSON['method'] = $this->tranzzoTransactData['method'];
                         $this->receivedJSON['order'] = $this->tranzzoTransactData['order_id'];
-                        $this->receivedJSON['amount'] = $this->tranzzoTransactData['amount'];
+                        $this->receivedJSON['amount'] = $this->tranzzoTransactData['processed_amount'];
                     }
                 }
             }
