@@ -4370,6 +4370,54 @@ function wf_AjaxSelectorSearchableAC($container, $params, $label, $selected = ''
 }
 
 /**
+ * Generates HTML and JavaScript for a show/hide toggle functionality.
+ *
+ * This function creates a clickable element that toggles the visibility of a content section.
+ * It uses jQuery for the toggle effect and updates the clickable element's label based on the visibility state.
+ *
+ * @param string $content The content to be shown or hidden.
+ * @param string $title The title to be displayed on the toggle element. Default is an empty string.
+ * @param string $class Additional CSS class to be applied to the outer span. Default is an empty string.
+ * 
+ * @return string 
+ */
+function wf_ShowHide($content, $title = '', $class = '') {
+    $result = '';
+    $inputId = 'showhide' . wf_InputId();
+    $contentId = 'content' . wf_InputId();
+
+    $labelShow = wf_img_sized('skins/icon_visible.png', $title, 12) . ' ' . __($title) . ' ';
+    $labelHide = wf_img_sized('skins/icon_hidden.png', '', 12) . ' ';
+
+    $result .= wf_tag('span', false, $class);
+    $result .= wf_tag('span', false, '', 'id="' . $inputId . '"');
+    $result .= $labelShow;
+    $result .= wf_tag('span', true);
+
+    $result .= wf_tag('span', false, '', 'id="' . $contentId . '" style="display:none;"');
+    $result .= $content;
+    $result .= wf_tag('span', true);
+    $result .= wf_tag('span', true);
+
+    $result .= wf_tag('script');
+    $result .= '
+        $( "#' . $inputId . '" ).on( "click", function() {
+                    $( "#' . $contentId . '" ).toggle( "fast", function() {
+                        $("#' . $inputId . '").html(\'' . $labelHide . '\');
+                });
+            });
+            
+        $( "#' . $contentId . '" ).on( "click", function() {
+                    $( "#' . $contentId . '" ).toggle( "fast", function() {
+                        $("#' . $inputId . '").html(\'' . $labelShow . '\');
+                });
+            });            
+            ';
+    $result .= wf_tag('script', true);
+    return ($result);
+}
+
+/**
  * JQuery Data Tables JSON formatting class
  */
 class wf_JqDtHelper {
