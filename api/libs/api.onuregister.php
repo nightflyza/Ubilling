@@ -643,6 +643,7 @@ class OnuRegister {
                     'H803G' => 16,
                     'H805G' => 16,
                     'GVGH' => 16,
+		    'GFGH' => 16,
                     'GFGL' => 16,
                     'GFGN' => 16,
                     'GFCH' => 16,
@@ -915,6 +916,7 @@ class OnuRegister {
                 $inherit = @$this->avidity['Z']['LSD'];
                 foreach ($cards as $index => $value) {
                     if ($value['description'] == 'GVGH'
+                            or $value['description'] == 'GFGH'
                             or $value['description'] == 'GFGL'
                             or $value['description'] == 'GFGN'
                             or $value['description'] == 'GFCH'
