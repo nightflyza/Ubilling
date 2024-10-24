@@ -91,7 +91,7 @@ if (cfr('GOOSE')) {
                 show_window(__('Custom data'), $gr->renderCustomDataEditor(ubRouting::get($gr::ROUTE_SP_CUSTDATA, 'int')));
             } else {
                 show_window(__('Available strategies'), $gr->renderStrategiesList());
-                zb_BillingStats();
+                zb_BillingStats(true, 'goose');
                 //strategies testing here
                 if (ubRouting::checkPost($gr::PROUTE_CH_USER)) {
                     $checkUserLogin = ubRouting::post($gr::PROUTE_CH_USER, 'login');

@@ -3331,7 +3331,8 @@ function zb_BillingStats($quiet = true, $modOverride = '') {
     $releasebox .= wf_tag('span', true) . wf_tag('br');
     $updatechecker = wf_AjaxLink('?module=report_sysload&checkupdates=true', $releaseinfo . ' (' . __('Check updates') . '?)', 'lastrelease', false, '');
     $ubstatsinputs = zb_AjaxLoader();
-    $ubstatsinputs .= wf_tag('b') . __('Serial key') . ': ' . wf_tag('b', true) . $thisubid . wf_tag('br');
+    $serialLabel=wf_ShowHide($thisubid,__('Show'));
+    $ubstatsinputs .= wf_tag('b') . __('Serial key') . ': ' . wf_tag('b', true) .  $serialLabel . wf_tag('br');
     $ubstatsinputs .= wf_tag('b') . __('Use this to request technical support') . ': ' . wf_tag('b', true) . wf_tag('font', false, '', 'color="#076800"') . substr($thisubid, -4) . wf_tag('font', true) . wf_tag('br');
     $ubstatsinputs .= wf_tag('b') . __('Current Ubilling version') . ': ' . wf_tag('b', true) . $updatechecker . wf_tag('br');
     $ubstatsinputs .= $releasebox;
