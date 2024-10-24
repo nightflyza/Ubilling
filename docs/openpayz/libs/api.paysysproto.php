@@ -644,7 +644,7 @@ class PaySysProto {
     public static function checkPaySumCorrect($paysum, $maxDecimals = 2) {
         $paysum = str_ireplace(array('"', "'"), '', trim($paysum));
         $regex = '/^\d+(\.[0-9]{1,' . $maxDecimals . '}(0*))?$/';
-        return (preg_match($regex, $paysum) != 1);
+        return (preg_match($regex, $paysum) === 1);
     }
 
     /**
