@@ -222,7 +222,7 @@ class Providex extends PaySysProto {
             $reply = array('data' => array('order' => $billingTransactID));
             $reply = json_encode($reply);
 
-            $this->writeDebugLog(self::DEBUG_IDENT8 . 'orderID:      ' . $billingTransactID, $this->debugModeON);
+            $this->writeDebugLog(self::DEBUG_IDENT8 . 'orderID:          ' . $billingTransactID, $this->debugModeON);
 
             if ($dontDIE) {
                 return($reply);
