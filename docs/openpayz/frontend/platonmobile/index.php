@@ -165,7 +165,7 @@ class PlatonMobile extends PaySysProto {
     //  check $moneyAmount is a correct integer
     //  or float which has no more than 2 decimals
     //  or 2 decimals and unlimited trailing zeros
-        if (PaySysProto::checkPaySumCorrect($moneyAmount)) {
+        if (!PaySysProto::checkPaySumCorrect($moneyAmount)) {
             $this->replyError(400, 'TRANSACTION_INCORRECT_AMOUNT_VALUE');
         }
 

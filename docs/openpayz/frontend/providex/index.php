@@ -186,7 +186,7 @@ class Providex extends PaySysProto {
      */
     protected function replyPreOrder($orderID = '', $dontDIE = false) {
         $reply = '';
-        if ($this->receivedJSON['method'] = 'purchase') {
+        if ($this->receivedJSON['method'] == 'purchase') {
             if ($this->merchantCreds['payment_fee_info'] == 'subscriber' and !empty($this->tranzzoTransactData['fee']['amount'])) {
                 $moneyAmount = $this->tranzzoTransactData['processed_amount'] - $this->tranzzoTransactData['fee']['amount'];
             } else {
@@ -196,10 +196,15 @@ class Providex extends PaySysProto {
             $moneyAmount = $this->receivedJSON['amount'];
         }
 
+        $this->writeDebugLog(self::DEBUG_IDENT6 . 'preOrder()', $this->debugModeON, 1);
+        $this->writeDebugLog(self::DEBUG_IDENT8 . 'method:           ' . $this->receivedJSON['method'], $this->debugModeON);
+        $this->writeDebugLog(self::DEBUG_IDENT8 . 'payment_fee_info: ' . $this->merchantCreds['payment_fee_info'], $this->debugModeON);
+        $this->writeDebugLog(self::DEBUG_IDENT8 . 'paymentSum:       ' . $moneyAmount, $this->debugModeON);
+
     //  check $moneyAmount is a correct integer
     //  or float which has no more than 2 decimals
     //  or 2 decimals and unlimited trailing zeros
-        if (PaySysProto::checkPaySumCorrect($moneyAmount)) {
+        if (!PaySysProto::checkPaySumCorrect($moneyAmount)) {
             $this->replyError(400, 'TRANSACTION_INCORRECT_AMOUNT_VALUE');
         }
 
@@ -217,9 +222,7 @@ class Providex extends PaySysProto {
             $reply = array('data' => array('order' => $billingTransactID));
             $reply = json_encode($reply);
 
-            $this->writeDebugLog(self::DEBUG_IDENT6 . 'preOrder() passed', $this->debugModeON, 1);
-            $this->writeDebugLog(self::DEBUG_IDENT8 . 'orderID:  ' . $orderID, $this->debugModeON);
-            $this->writeDebugLog(self::DEBUG_IDENT8 . 'paymentSum:  ' . $moneyAmount, $this->debugModeON);
+            $this->writeDebugLog(self::DEBUG_IDENT8 . 'orderID:      ' . $billingTransactID, $this->debugModeON);
 
             if ($dontDIE) {
                 return($reply);
