@@ -2558,7 +2558,7 @@ function ts_TaskChangeForm($taskid) {
         if (cfr('WAREHOUSEOUTRESERVE') or cfr('WAREHOUSEOUT')) {
             if ($altCfg['WAREHOUSE_ENABLED']) {
                 if ($altCfg['TASKMAN_WAREHOUSE_HLPR']) {
-                    if ($taskdata['status'] == 0) {
+                    if ($taskdata['status'] == 0 and $taskdata['employee'] != $altCfg['TASKMAN_ANYONE_EMPLOYEEID']) {
                         $massOutUrl = Warehouse::URL_ME . '&' . Warehouse::URL_RESERVE . '&massoutemployee=' . $taskdata['employee'] . '&taskidpreset=' . $taskid;
                         $modform .= wf_Link($massOutUrl, wf_img('skins/drain_icon.png', __('Mass outcome')), false, '', 'target="_BLANK"');
                     }
