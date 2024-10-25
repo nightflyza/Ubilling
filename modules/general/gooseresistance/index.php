@@ -78,7 +78,7 @@ if (cfr('GOOSE')) {
         if (ubRouting::checkGet(array($gr::ROUTE_CD_DELKEY, $gr::ROUTE_SP_CUSTDATA))) {
             $gr->deleteCustDataField(
                 ubRouting::get($gr::ROUTE_SP_CUSTDATA),
-                ubRouting::get($gr::ROUTE_CD_DELKEY),
+                ubRouting::get($gr::ROUTE_CD_DELKEY)
             );
             ubRouting::nav($gr::URL_ME . '&' . $gr::ROUTE_SP_CUSTDATA . '=' . ubRouting::get($gr::ROUTE_SP_CUSTDATA));
         }
