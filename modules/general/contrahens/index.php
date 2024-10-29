@@ -15,6 +15,12 @@ if (cfr('AGENTS')) {
         ubRouting::nav("?module=contrahens");
     }
 
+    //if deleting strict assign for user
+    if (ubRouting::checkGet(array('deleteassignstrict', 'username'))) {
+        zb_AgentAssignStrictDelete(ubRouting::get('username'));
+        ubRouting::nav("?module=contrahens");
+    }
+
     //if adding new agent
     if (wf_CheckPost(array('newcontrname'))) {
         $bankacc = ubRouting::post('newbankacc');

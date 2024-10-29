@@ -491,6 +491,7 @@ function web_AgentAssignStrictShow() {
         foreach ($allassigns as $eachlogin => $eachagent) {
             $loginLink = wf_Link('?module=userprofile&username=' . $eachlogin, web_profile_icon() . ' ' . $eachlogin, false, '');
             $actLinks = wf_JSAlert('?module=contractedit&username=' . $eachlogin, web_edit_icon(), __('Are you serious'));
+            $actLinks.= wf_JSAlert('?module=contrahens&deleteassignstrict=true&username=' . $eachlogin, web_delete_icon(), __('Are you serious'));
 
             $data[] = $loginLink;
             $data[] = @$alladdress[$eachlogin];
