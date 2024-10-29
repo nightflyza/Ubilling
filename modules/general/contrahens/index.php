@@ -5,7 +5,10 @@ if (cfr('AGENTS')) {
     if (ubRouting::checkGet('ajaxagenassign')) {
         web_AgentAssignStrictShow();
     }
-
+    //listing auto agent assign
+    if (ubRouting::checkGet('ajaxagenassignauto')) {
+        web_AgentAssignAutoShow();
+    }
     //mb some custom options?
     $alter_conf = $ubillingConfig->getAlter();
 
@@ -130,9 +133,10 @@ if (cfr('AGENTS')) {
 
         //list assigns if not editing
         if ((!ubRouting::checkGet(array('edit'), false)) and ( !ubRouting::checkGet('agentstats')) and ! ubRouting::checkGet('extinfo')) {
+            $renderAutoAssign = ubRouting::checkPost('renderautoassign') ? ubRouting::post('renderautoassign') : FALSE;
             show_window(__('Contrahent assign'), web_AgentAssignForm());
-            show_window(__('Available assigns'), web_AgentAssignShow());
-            show_window(__('Assign overrides'), web_AgentAssignStrictRender());
+            show_window(__('Available assigns'), web_AgentAssignShow($renderAutoAssign));
+            show_window($renderAutoAssign ? __('Automatic assigns') : __('Assign overrides'), web_AgentAssignRender($renderAutoAssign));
         }
 
         //agent assigned users stats
