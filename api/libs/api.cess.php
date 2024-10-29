@@ -453,17 +453,33 @@ function web_AgentAssignShow() {
 }
 
 /**
- * Renders list of strict login=>agent assigns with some controls
+* Renders list of strict login=>agent assigns with some controls
+*
+* @return string
+*/
+function web_AgentAssignStrictRender() {
+    $ajaxURL = '?module=contrahens&ajaxagenassign=true';
+    $columns = array('Login', 'Full addres', 'Real Name', 'Tariff', 'Contrahent name', 'Actions');
+    $opts = '"order": [[ 0, "desc" ]], "dom": \'<"F"lfB>rti<"F"ps>\', buttons: [\'csv\', \'excel\', \'pdf\']';
+    $result = wf_JqDtLoader($columns, $ajaxURL, false, 'Switch port assign', 100, $opts);
+    return ($result);
+}
+
+/**
+ * Renders data list of strict login=>agent assigns with some controls
  * 
  * @return string
  */
 function web_AgentAssignStrictShow() {
+    $JSONHelper = new wf_JqDtHelper();
+    $data = array();
+
     $allassigns = zb_AgentAssignStrictGetAllData();
     $allahens = zb_ContrAhentGetAllData();
     $allrealnames = zb_UserGetAllRealnames();
     $alladdress = zb_AddressGetFulladdresslistCached();
     $allusertariffs = zb_TariffsGetAllUsers();
-    $countTotal = 0;
+
     $agentnames = array();
     if (!empty($allahens)) {
         foreach ($allahens as $io => $eachahen) {
@@ -471,32 +487,24 @@ function web_AgentAssignStrictShow() {
         }
     }
 
-
-    $cells = wf_TableCell(__('Login'));
-    $cells .= wf_TableCell(__('Full address'));
-    $cells .= wf_TableCell(__('Real Name'));
-    $cells .= wf_TableCell(__('Tariff'));
-    $cells .= wf_TableCell(__('Contrahent name'));
-    $cells .= wf_TableCell(__('Actions'));
-    $rows = wf_TableRow($cells, 'row1');
-
     if (!empty($allassigns)) {
         foreach ($allassigns as $eachlogin => $eachagent) {
             $loginLink = wf_Link('?module=userprofile&username=' . $eachlogin, web_profile_icon() . ' ' . $eachlogin, false, '');
-            $cells = wf_TableCell($loginLink);
-            $cells .= wf_TableCell(@$alladdress[$eachlogin]);
-            $cells .= wf_TableCell(@$allrealnames[$eachlogin]);
-            $cells .= wf_TableCell(@$allusertariffs[$eachlogin]);
-            $cells .= wf_TableCell(@$agentnames[$eachagent]);
             $actLinks = wf_JSAlert('?module=contractedit&username=' . $eachlogin, web_edit_icon(), __('Are you serious'));
-            $cells .= wf_TableCell($actLinks);
-            $rows .= wf_TableRow($cells, 'row5');
-            $countTotal++;
+
+            $data[] = $loginLink;
+            $data[] = @$alladdress[$eachlogin];
+            $data[] = @$allrealnames[$eachlogin];
+            $data[] = @$allusertariffs[$eachlogin];
+            $data[] = @$agentnames[$eachagent];
+            $data[] = $actLinks;
+
+            $JSONHelper->addRow($data);
+            unset($data);
         }
     }
-    $result = wf_TableBody($rows, '100%', '0', 'sortable');
-    $result .= __('Total') . ': ' . $countTotal;
-    return ($result);
+
+    $JSONHelper->getJson();
 }
 
 /**

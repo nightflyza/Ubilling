@@ -1,6 +1,11 @@
 <?php
 
 if (cfr('AGENTS')) {
+    //listing stricts agent assign
+    if (ubRouting::checkGet('ajaxagenassign')) {
+        web_AgentAssignStrictShow();
+    }
+
     //mb some custom options?
     $alter_conf = $ubillingConfig->getAlter();
 
@@ -121,7 +126,7 @@ if (cfr('AGENTS')) {
         if ((!ubRouting::checkGet(array('edit'), false)) and ( !ubRouting::checkGet('agentstats')) and ! ubRouting::checkGet('extinfo')) {
             show_window(__('Contrahent assign'), web_AgentAssignForm());
             show_window(__('Available assigns'), web_AgentAssignShow());
-            show_window(__('Assign overrides'), web_AgentAssignStrictShow());
+            show_window(__('Assign overrides'), web_AgentAssignStrictRender());
         }
 
         //agent assigned users stats
