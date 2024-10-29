@@ -4,10 +4,10 @@ if ($ubillingConfig->getAlterParam('DEALWITHIT_ENABLED')) {
     if (cfr('DEALWITHIT')) {
         $dealWithIt = new DealWithIt();
 
-        if (wf_CheckGet(array('username'))) {
-            $login = $_GET['username'];
+        if (ubRouting::checkGet('username')) {
+            $login = ubRouting::get('username');
             //creating new task
-            if (wf_CheckPost(array('newschedlogin'))) {
+            if (ubRouting::checkPost('newschedlogin')) {
                 $createResult = $dealWithIt->catchCreateRequest();
                 if ($createResult) {
                     show_error($createResult);
@@ -16,20 +16,20 @@ if ($ubillingConfig->getAlterParam('DEALWITHIT_ENABLED')) {
                 }
             }
             //deleting existing task
-            if (wf_CheckGet(array('deletetaskid'))) {
-                $dealWithIt->deleteTask($_GET['deletetaskid']);
+            if (ubRouting::checkGet('deletetaskid')) {
+                $dealWithIt->deleteTask(ubRouting::get('deletetaskid', 'int'));
                 rcms_redirect(DealWithIt::URL_ME . '&username=' . $login);
             }
             //displaying interface parts
-            show_window(__('Create new task'), $dealWithIt->renderCreateForm($login));
+            show_window(__('Create new task'), $dealWithIt->renderCreateForm());
             //json reply
-            if (wf_CheckGet(array('ajax'))) {
-                $dealWithIt->AjaxDataTasksList($login);
+            if (ubRouting::checkGet('ajax')) {
+                $dealWithIt->AjaxDataTasksList();
             }
-            show_window(__('Held jobs for this user'), $dealWithIt->renderTasksListAjax($login));
+            show_window(__('Held jobs for this user'), $dealWithIt->renderTasksListAjax());
 
             show_window('', web_UserControls($login));
-        } elseif (wf_CheckPost(array('newschedloginsarr'))) {
+        } elseif (ubRouting::checkPost('newschedloginsarr')) {
             $createMassResult = $dealWithIt->catchCreateMassRequest();
             if ($createMassResult) {
                 show_error($createMassResult);
@@ -38,7 +38,7 @@ if ($ubillingConfig->getAlterParam('DEALWITHIT_ENABLED')) {
                 rcms_redirect('?module=report_dealwithit');
             }
         } else {
-            if (wf_CheckGet(array('ajinput'))) {
+            if (ubRouting::checkGet('ajinput')) {
                 $dealWithIt->catchAjRequest();
             } else {
                 $dealWithIt->renderDealWithItControl();
