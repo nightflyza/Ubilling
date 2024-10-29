@@ -279,20 +279,20 @@ function zb_ContrAhentEditForm($ahentid) {
     $sup = wf_tag('sup') . '*' . wf_tag('sup', true);
 
     $inputs = '';
-    $inputs .= wf_TextInput('changecontrname', __('Contrahent name') . $sup, $cdata['contrname'], false, '', '', '', '', '', true);
+    $inputs .= wf_TextInput('changecontrname', __('Contrahent name') . $sup, ubRouting::filters($cdata['contrname'], 'callback', 'htmlspecialchars'), false, '', '', '', '', '', true);
     $inputs .= wf_TextInput('changebankacc', __('Bank account'), $cdata['bankacc'], false, '40', '', '', '', '', true);
-    $inputs .= wf_TextInput('changebankname', __('Bank name'), $cdata['bankname'], false, '', '', '', '', '', true);
+    $inputs .= wf_TextInput('changebankname', __('Bank name'), ubRouting::filters($cdata['bankname'], 'callback', 'htmlspecialchars') , false, '', '', '', '', '', true);
     $inputs .= wf_TextInput('changebankcode', __('Bank code'), $cdata['bankcode'], false, '', '', '', '', '', true);
     $inputs .= wf_TextInput('changeedrpo', __('EDRPOU'), $cdata['edrpo'], false, '', '', '', '', '', true);
     $inputs .= wf_TextInput('changeipn', __('IPN'), $cdata['ipn'], false, '', '', '', '', '', true);
-    $inputs .= wf_TextInput('changelicensenum', __('License number'), $cdata['licensenum'], false, '', '', '', '', '', true);
-    $inputs .= wf_TextInput('changejuraddr', __('Juridical address'), $cdata['juraddr'], false, '', '', '', '', '', true);
-    $inputs .= wf_TextInput('changephisaddr', __('Phisical address'), $cdata['phisaddr'], false, '', '', '', '', '', true);
+    $inputs .= wf_TextInput('changelicensenum', __('License number'), ubRouting::filters($cdata['licensenum'], 'callback', 'htmlspecialchars'), false, '', '', '', '', '', true);
+    $inputs .= wf_TextInput('changejuraddr', __('Juridical address'), ubRouting::filters($cdata['juraddr'], 'callback', 'htmlspecialchars'), false, '', '', '', '', '', true);
+    $inputs .= wf_TextInput('changephisaddr', __('Phisical address'), ubRouting::filters($cdata['phisaddr'], 'callback', 'htmlspecialchars'), false, '', '', '', '', '', true);
     $inputs .= wf_TextInput('changephone', __('Phone'), $cdata['phone'], false, '', '', '', '', '', true);
-    $inputs .= wf_TextInput('changeagnameabbr', __('Short name'), $cdata['agnameabbr'], false, '', '', '', '', '', true);
-    $inputs .= wf_TextInput('changeagsignatory', __('Signatory'), $cdata['agsignatory'], false, '', '', '', '', '', true);
-    $inputs .= wf_TextInput('changeagsignatory2', __('Signatory') . ' 2', $cdata['agsignatory2'], false, '', '', '', '', '', true);
-    $inputs .= wf_TextInput('changeagbasis', __('Basis'), $cdata['agbasis'], false, '', '', '', '', '', true);
+    $inputs .= wf_TextInput('changeagnameabbr', __('Short name'), ubRouting::filters($cdata['agnameabbr'], 'callback', 'htmlspecialchars'), false, '', '', '', '', '', true);
+    $inputs .= wf_TextInput('changeagsignatory', __('Signatory'), ubRouting::filters($cdata['agsignatory'], 'callback', 'htmlspecialchars'), false, '', '', '', '', '', true);
+    $inputs .= wf_TextInput('changeagsignatory2', __('Signatory') . ' 2', ubRouting::filters($cdata['agsignatory2'], 'callback', 'htmlspecialchars'), false, '', '', '', '', '', true);
+    $inputs .= wf_TextInput('changeagbasis', __('Basis'), ubRouting::filters($cdata['agbasis'], 'callback', 'htmlspecialchars'), false, '', '', '', '', '', true);
     $inputs .= wf_TextInput('changeagmail', __('Mail'), $cdata['agmail'], false, '', 'email', '', '', '', true);
     $inputs .= wf_TextInput('changesiteurl', __('Site URL'), $cdata['siteurl'], false, '', 'url', '', '', '', true);
 
