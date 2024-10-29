@@ -406,7 +406,6 @@ function zb_AgentAssignAdd($ahenid, $streetname) {
 function web_AgentAssignForm() {
     $sup = wf_tag('sup') . '*' . wf_tag('sup', true);
     $inputs = zb_ContrAhentSelect();
-    //$inputs .= wf_tag('br');
     $inputs .= wf_TextInput('newassign', __('Street name') . $sup, '', false, '', '', '', '', '', true);
     $inputs .= wf_SubmitClassed(true, 'ubButton', '', __('Save'));
     $result = wf_Form("", 'POST', $inputs, 'glamour form-grid-2cols form-grid-2cols-label-right labels-top');
@@ -424,6 +423,7 @@ function web_AgentAssignShow() {
     $allahens = zb_ContrAhentGetAllData();
     $usedStreets = array();
     $agentnames = array();
+    $form = '';
     if (!empty($allahens)) {
         foreach ($allahens as $io => $eachahen) {
             $agentnames[$eachahen['id']] = $eachahen['contrname'];
@@ -447,8 +447,16 @@ function web_AgentAssignShow() {
             $rows .= wf_TableRow($cells, $rowColor);
             $usedStreets[$eachassign['streetname']] = $eachassign['ahenid'];
         }
+
+        // Create button for show automatic assign agetnts
+        $inputs = wf_HiddenInput('renderautoassign', 'true');
+        $inputs .= wf_SubmitClassed(true, 'ubButton', '', __('Contrahent assign'));
+        $form = wf_Form("", 'POST', $inputs, 'glamour form-grid-2cols form-grid-2cols-label-right labels-top');
     }
+
     $result = wf_TableBody($rows, '100%', '0', 'sortable');
+    $result.= $form;
+
     return ($result);
 }
 
@@ -472,7 +480,6 @@ function web_AgentAssignStrictRender() {
  */
 function web_AgentAssignStrictShow() {
     $JSONHelper = new wf_JqDtHelper();
-    $data = array();
 
     $allassigns = zb_AgentAssignStrictGetAllData();
     $allahens = zb_ContrAhentGetAllData();
@@ -509,6 +516,53 @@ function web_AgentAssignStrictShow() {
 }
 
 /**
+* Renders data list of strict login=>agent assigns with some controls
+*
+* @return string
+*/
+function web_AgentAssignAutoShow() {
+    $JSONHelper = new wf_JqDtHelper();
+    $allUsers = new NyanORM('users');
+    $allUsers->selectable('login');
+    $allUsers->where('Down', '=', '0');
+    $users = $allUsers->getAll();
+    if (!empty($users)) {
+        $allassigns = zb_AgentAssignGetAllData();
+        $allahens = zb_ContrAhentGetAllData();
+        $allrealnames = zb_UserGetAllRealnames();
+        $alladdress = zb_AddressGetFulladdresslist();
+        $allusertariffs = zb_TariffsGetAllUsers();
+
+        $agentnames = array();
+        if (!empty($allahens)) {
+            foreach ($allahens as $io => $eachahen) {
+                $agentnames[$eachahen['id']] = $eachahen['contrname'];
+            }
+        }
+
+        foreach ($users as $login) {
+            $login = $login['login'];
+            $loginLink = wf_Link('?module=userprofile&username=' . $login, web_profile_icon() . ' ' . $login, false, '');
+            $actLinks = wf_JSAlert('?module=contractedit&username=' . $login, web_edit_icon(), __('Are you serious'));
+            $eachagent = zb_AgentAssignCheckLogin($login, $allassigns, $alladdress);
+
+            $data[] = $loginLink;
+            $data[] = @$alladdress[$login];
+            $data[] = @$allrealnames[$login];
+            $data[] = @$allusertariffs[$login];
+            $data[] = @$agentnames[$eachagent];
+            $data[] = $actLinks;
+
+            $JSONHelper->addRow($data);
+            unset($data);
+        }
+
+    }
+
+    $JSONHelper->getJson();
+}
+
+/**
  * Returns agent id or false for user ahent assign check
  * 
  * @param string $login
@@ -517,7 +571,8 @@ function web_AgentAssignStrictShow() {
  * @return int/bool
  */
 function zb_AgentAssignCheckLogin($login, $allassigns, $alladdress) {
-    $alter_cfg = rcms_parse_ini_file(CONFIG_PATH . "alter.ini");
+    global $ubillingConfig;
+    $alter_cfg = $ubillingConfig->getAlter();
     $result = false;
     // если пользователь куда-то заселен
     if (isset($alladdress[$login])) {
@@ -527,13 +582,15 @@ function zb_AgentAssignCheckLogin($login, $allassigns, $alladdress) {
         } else {
             //если какие-то присваивалки есть
             $useraddress = $alladdress[$login];
+            // Одразу задаємо дефолтного агента, якщо нічого потім не знайдемо. Не будемо кожен раз переназначати вивід
+            $result = $alter_cfg['DEFAULT_ASSIGN_AGENT'];
             // проверяем для каждой присваивалки попадает ли она под нашего абонента
             foreach ($allassigns as $io => $eachassign) {
                 if (strpos($useraddress, $eachassign['streetname']) !== false) {
                     $result = $eachassign['ahenid'];
-                } else {
-                    // и если не нашли - возвращаем  умолчательного
-                    $result = $alter_cfg['DEFAULT_ASSIGN_AGENT'];
+                    // Знаходимо першего відповідного агента і перериваємо цикл.
+                    // Якщо вказали 2-і і більше адрес, які підпадають під умови - це ваші проблеми. Робіть адреси і міста унікальними
+                    break;
                 }
             }
         }
@@ -564,7 +621,6 @@ function zb_AgentAssignCheckLoginFast($login, $allassigns, $address, $allassigns
         $result = $allassignsstrict[$login];
         return ($result);
     }
-
 
     // если пользователь куда-то заселен
     if (!empty($address)) {
