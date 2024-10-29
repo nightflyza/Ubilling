@@ -16,8 +16,8 @@ if (cfr('GENOCIDE')) {
 
     $cur_day = date("d");
 
-    if (isset($_POST['change_settings'])) {
-        $home_band_p = vf($_POST['home_band_p'], 3);
+    if (ubRouting::checkPost('change_settings')) {
+        $home_band_p = ubRouting::post('home_band_p', 'float');
     }
 
     function gen_create_limit($tariff, $speed) {
@@ -50,18 +50,15 @@ if (cfr('GENOCIDE')) {
     }
 
 //create or delete limits
-    if (isset($_GET['delete'])) {
-        gen_delete_limit($_GET['delete']);
+    if (ubRouting::checkGet('delete')) {
+        gen_delete_limit(ubRouting::get('delete'));
         rcms_redirect("?module=genocide");
     }
 
-    if (isset($_POST['tariffsel'])) {
-        if (isset($_POST['newgenocide'])) {
-            gen_create_limit($_POST['tariffsel'], $_POST['newgenocide']);
-            rcms_redirect("?module=genocide");
-        }
+    if (ubRouting::checkPost(array('tariffsel', 'newgenocide'))) {
+        gen_create_limit(ubRouting::post('tariffsel'), ubRouting::post('newgenocide', 'int'));
+        rcms_redirect("?module=genocide");
     }
-
 
 //normal day band
     $etalon_day_band = (($etalon_speed / 100) * $home_band_p) / 8 * 3600 * 24 / 1024;
@@ -88,8 +85,13 @@ if (cfr('GENOCIDE')) {
         $i = 0;
 
         foreach ($control_tariffs as $eachtariff) {
-            @$cspeed_k = $etalon_speed / $eachtariff;
-            @$cband_k = $etalon_day_band / $cspeed_k;
+            if (!empty($eachtariff)) {
+                @$cspeed_k = $etalon_speed / $eachtariff;
+                @$cband_k = $etalon_day_band / $cspeed_k;
+            } else {
+                @$cband_k = 0;
+            }
+
             $dband_l = $cband_k * $cur_day;
             $band_arr[$i][$tariff_names[$i]] = ($dband_l * 1024) * 1024;
 
@@ -130,8 +132,6 @@ if (cfr('GENOCIDE')) {
             if (!empty($genocide_users)) {
                 $alluseraddress = zb_AddressGetFulladdresslist();
                 $allusernames = zb_UserGetAllRealnames();
-
-
 
                 foreach ($genocide_users as $io => $eachuser) {
                     $profilelink = wf_Link('?module=userprofile&username=' . $eachuser['login'], web_profile_icon() . ' ' . $eachuser['login']);
