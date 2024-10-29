@@ -475,7 +475,7 @@ function web_AgentAssignRender($renderAutoAssign = FALSE) {
     } else {
         $ajaxURL = '?module=contrahens&ajaxagenassign=true';
     }
-    $columns = array('Login', 'Full addres', 'Real Name', 'Tariff', 'Contrahent name', 'Actions');
+    $columns = array('Login', 'Full address', 'Real Name', 'Tariff', 'Contrahent name', 'Actions');
     $opts = '"order": [[ 0, "desc" ]], "dom": \'<"F"lfB>rti<"F"ps>\', buttons: [\'csv\', \'excel\', \'pdf\']';
     $result = wf_JqDtLoader($columns, $ajaxURL, false, 'assignments', 100, $opts);
     return ($result);

@@ -1047,7 +1047,7 @@ class MegogoInterface {
      */
     public function renderSubscribtions() {
         $result = '';
-        $columns = array(__('ID'), __('Full address'), __('Real Name'), __('Cash'), __('Current tariff'), __('Date'), __('Active'), __('Primary'), __('Free period'), __('Actions'));
+        $columns = array(('ID'), ('Login'), ('Full address'), ('Real Name'), ('Cash'), ('Current tariff'), ('Date'), ('Active'), ('Primary'), ('Free period'), ('Actions'));
         $result = wf_JqDtLoader($columns, self::URL_ME . '&' . self::URL_SUBS . '&' . self::URL_AJSUBS, true, __('Subscriptions'), '100');
         return ($result);
     }
@@ -1066,8 +1066,9 @@ class MegogoInterface {
 
         if (!empty($this->allSubscribers)) {
             foreach ($this->allSubscribers as $io => $each) {
-                $userLink = wf_Link('?module=userprofile&username=' . $each['login'], web_profile_icon() . ' ' . @$allAddress[$each['login']], false);
+                $userLink = wf_Link('?module=userprofile&username=' . $each['login'], web_profile_icon() . ' ' . $each['login'], false);
                 $userLink = $this->jqDtFilter($userLink);
+                @$address = $this->jqDtFilter($allAddress[$each['login']]);
                 @$userRealName = $this->jqDtFilter($allRealNames[$each['login']]);
                 $actFlag = ($each['active']) ? web_bool_led(true, false) . ' ' . __('Yes') : web_bool_led(false, false) . ' ' . __('No');
                 $actFlag = $this->jqDtFilter($actFlag);
@@ -1082,6 +1083,7 @@ class MegogoInterface {
 
                 $data[] = $each['id'];
                 $data[] = $userLink;
+                $data[] = $address;
                 $data[] = $userRealName;
                 $data[] = $userCash;
                 $data[] = @$this->allTariffs[$each['tariffid']]['name'];
