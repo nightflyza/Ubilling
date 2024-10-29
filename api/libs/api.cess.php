@@ -418,12 +418,11 @@ function web_AgentAssignForm() {
  * 
  * @return string
  */
-function web_AgentAssignShow() {
+function web_AgentAssignShow($renderAutoAssign = FALSE) {
     $allassigns = zb_AgentAssignGetAllData("ORDER BY `id` DESC");
     $allahens = zb_ContrAhentGetAllData();
     $usedStreets = array();
     $agentnames = array();
-    $form = '';
     if (!empty($allahens)) {
         foreach ($allahens as $io => $eachahen) {
             $agentnames[$eachahen['id']] = $eachahen['contrname'];
@@ -447,11 +446,16 @@ function web_AgentAssignShow() {
             $rows .= wf_TableRow($cells, $rowColor);
             $usedStreets[$eachassign['streetname']] = $eachassign['ahenid'];
         }
+    }
 
+    if (!$renderAutoAssign) {
         // Create button for show automatic assign agetnts
         $inputs = wf_HiddenInput('renderautoassign', 'true');
-        $inputs .= wf_SubmitClassed(true, 'ubButton', '', __('Contrahent assign'));
+        $inputs .= wf_SubmitClassed(true, 'ubButton', '', __('Show automatic agent assignments'));
         $form = wf_Form("", 'POST', $inputs, 'glamour form-grid-2cols form-grid-2cols-label-right labels-top');
+    } else {
+        // Backlink
+        $form = wf_BackLink('?module=contrahens');
     }
 
     $result = wf_TableBody($rows, '100%', '0', 'sortable');
@@ -465,11 +469,15 @@ function web_AgentAssignShow() {
 *
 * @return string
 */
-function web_AgentAssignStrictRender() {
-    $ajaxURL = '?module=contrahens&ajaxagenassign=true';
+function web_AgentAssignRender($renderAutoAssign = FALSE) {
+    if ($renderAutoAssign) {
+        $ajaxURL = '?module=contrahens&ajaxagenassignauto=true';
+    } else {
+        $ajaxURL = '?module=contrahens&ajaxagenassign=true';
+    }
     $columns = array('Login', 'Full addres', 'Real Name', 'Tariff', 'Contrahent name', 'Actions');
     $opts = '"order": [[ 0, "desc" ]], "dom": \'<"F"lfB>rti<"F"ps>\', buttons: [\'csv\', \'excel\', \'pdf\']';
-    $result = wf_JqDtLoader($columns, $ajaxURL, false, 'Switch port assign', 100, $opts);
+    $result = wf_JqDtLoader($columns, $ajaxURL, false, 'assignments', 100, $opts);
     return ($result);
 }
 
@@ -528,6 +536,7 @@ function web_AgentAssignAutoShow() {
     $users = $allUsers->getAll();
     if (!empty($users)) {
         $allassigns = zb_AgentAssignGetAllData();
+        $strictAssigns = zb_AgentAssignStrictGetAllData();
         $allahens = zb_ContrAhentGetAllData();
         $allrealnames = zb_UserGetAllRealnames();
         $alladdress = zb_AddressGetFulladdresslist();
@@ -542,19 +551,21 @@ function web_AgentAssignAutoShow() {
 
         foreach ($users as $login) {
             $login = $login['login'];
-            $loginLink = wf_Link('?module=userprofile&username=' . $login, web_profile_icon() . ' ' . $login, false, '');
-            $actLinks = wf_JSAlert('?module=contractedit&username=' . $login, web_edit_icon(), __('Are you serious'));
-            $eachagent = zb_AgentAssignCheckLogin($login, $allassigns, $alladdress);
+            if (!isset($strictAssigns[$login])) {
+                $loginLink = wf_Link('?module=userprofile&username=' . $login, web_profile_icon() . ' ' . $login, false, '');
+                $actLinks = wf_JSAlert('?module=contractedit&username=' . $login, web_edit_icon(), __('Are you serious'));
+                $agent_assigned = zb_AgentAssignCheckLogin($login, $allassigns, $alladdress);
 
-            $data[] = $loginLink;
-            $data[] = @$alladdress[$login];
-            $data[] = @$allrealnames[$login];
-            $data[] = @$allusertariffs[$login];
-            $data[] = @$agentnames[$eachagent];
-            $data[] = $actLinks;
+                $data[] = $loginLink;
+                $data[] = @$alladdress[$login];
+                $data[] = @$allrealnames[$login];
+                $data[] = @$allusertariffs[$login];
+                $data[] = @$agentnames[$agent_assigned];
+                $data[] = $actLinks;
 
-            $JSONHelper->addRow($data);
-            unset($data);
+                $JSONHelper->addRow($data);
+                unset($data);
+            }
         }
 
     }
