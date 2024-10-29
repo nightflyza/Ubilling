@@ -62,6 +62,13 @@ class DealWithIt {
     protected $discounts = '';
 
     /**
+    * Contains current user login
+    *
+    * @var string
+    */
+    protected $userLogin = '';
+
+    /**
      * Base module URL
      */
     const URL_ME = '?module=pl_dealwithit';
@@ -72,8 +79,22 @@ class DealWithIt {
         $this->setActionNames();
         $this->setActionIcons();
         $this->setActionsURL();
+        $this->setLogin();
         $this->loadTasks();
         $this->loadAdminsName();
+    }
+
+    /**
+    * Sets user login to filter
+    *
+    * @param string $login
+    *
+    * @return void
+    */
+    protected function setLogin() {
+        if (ubRouting::checkGet('username')) {
+            $this->userLogin = ubRouting::get('username', 'mres');
+        }
     }
 
     /**
@@ -107,6 +128,7 @@ class DealWithIt {
      */
     protected function loadTasks() {
         $query = "SELECT * from `dealwithit`";
+        $query.= ($this->userLogin) ? ' WHERE `login` = "' . $this->userLogin . '"' : '';
         $all = simple_queryall($query);
         if (!empty($all)) {
             foreach ($all as $io => $each) {
@@ -318,10 +340,10 @@ class DealWithIt {
      * 
      * @return string
      */
-    public function renderCreateForm($login) {
+    public function renderCreateForm() {
         $result = '';
         $result .= wf_AjaxLoader();
-        $inputs = wf_HiddenInput('newschedlogin', $login);
+        $inputs = wf_HiddenInput('newschedlogin', $this->userLogin);
         $inputs .= wf_DatePickerPreset('newscheddate', date('Y-m-d', strtotime('+1 day')), true) . ' ' . __('Target date') . wf_tag('br');
         $inputs .= wf_AjaxSelectorAC('ajparamcontainer', $this->actions, __('Task'), '', true);
         $inputs .= wf_AjaxContainer('ajparamcontainer');
@@ -749,7 +771,7 @@ class DealWithIt {
      * 
      * @return string
      */
-    public function AjaxDataTasksList($login = '') {
+    public function AjaxDataTasksList() {
         $messages = new UbillingMessageHelper();
         $tmpArr = array();
         $allRealNames = zb_UserGetAllRealnames();
@@ -758,10 +780,10 @@ class DealWithIt {
 
         if (!empty($this->allTasks)) {
             foreach ($this->allTasks as $io => $each) {
-                if (empty($login)) {
+                if (empty($this->userLogin)) {
                     $tmpArr[$io] = $each;
                 } else {
-                    if ($login == $each['login']) {
+                    if ($this->userLogin == $each['login']) {
                         $tmpArr[$io] = $each;
                     }
                 }
@@ -825,11 +847,11 @@ class DealWithIt {
      *
      * @return string
      */
-    public function renderTasksListAjax($login = '') {
+    public function renderTasksListAjax() {
         $result = '';
         $columns = array('ID', 'Target date', 'Login', 'Address', 'Real name', 'Task', 'Parameter', 'Notes', 'Actions');
         $opts = '"order": [[ 0, "desc" ]]';
-        $module_link = (empty($login)) ? '?module=report_dealwithit&ajax=true' : '?module=pl_dealwithit&ajax=true&username=' . $login;
+        $module_link = (empty($this->userLogin)) ? '?module=report_dealwithit&ajax=true' : '?module=pl_dealwithit&ajax=true&username=' . $this->userLogin;
         $result = wf_JqDtLoader($columns, $module_link, false, 'Tasks', 100, $opts);
         return ($result);
     }
