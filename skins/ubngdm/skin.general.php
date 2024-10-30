@@ -6,6 +6,7 @@
         <?rcms_show_element('meta')?> 
         <link rel="stylesheet" href="<?= CUR_SKIN_PATH ?>css/layout.css" type="text/css" media="screen" />
         <link rel="stylesheet" href="<?= CUR_SKIN_PATH ?>css/ubilling.css" type="text/css" media="screen" />
+        <link rel="stylesheet" href="<?= CUR_SKIN_PATH ?>css/ubim.css" type="text/css" media="screen" />
         <!--[if lt IE 9]>
         <link rel="stylesheet" href="css/ie.css" type="text/css" media="screen" />
         <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>

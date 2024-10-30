@@ -5,6 +5,7 @@
         <title><? rcms_show_element('title') ?></title>
         <? rcms_show_element('meta') ?>
         <link href="<?= CUR_SKIN_PATH ?>style.css" rel="stylesheet" type="text/css" media="screen" />
+        <link href="<?= CUR_SKIN_PATH ?>ubim.css" rel="stylesheet" type="text/css" media="screen" />
 </head>
 
 <body>
