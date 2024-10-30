@@ -6707,3 +6707,35 @@ function zb_RenderUpdateInfo($version = '', $branch = 'STABLE') {
     }
     return ($result);
 }
+
+
+/**
+ * Returns avatar control form
+ * 
+ * @param string $backUrl base64 encoded url
+ * 
+ * @return string
+ */
+function web_avatarControlForm($backUrl = '') {
+    $myLogin=whoami();
+    $mail = gravatar_GetUserEmail($myLogin);
+
+    $cells = wf_TableCell(wf_tag('h1') . $myLogin . wf_tag('h1', true), '', '', 'align="center"');
+    $rows = wf_TableRow($cells);
+    $cells = wf_TableCell(gravatar_ShowAdminAvatar($myLogin, '256'), '', '', 'align="center"');
+    $rows .= wf_TableRow($cells);
+    $cells = wf_TableCell(wf_tag('h3') . __('Your email') . ': ' . $mail . wf_tag('h3', true), '', '', 'align="center"');
+    $rows .= wf_TableRow($cells);
+
+    $cells = wf_TableCell(wf_Link("http://gravatar.com/emails/", __('Change my avatar at gravatar.com')), false, '', 'align="center"');
+    $rows .= wf_TableRow($cells);
+    $result = wf_TableBody($rows, '100%', '0', 'glamour');
+    $result.=wf_CleanDiv();
+    if ($backUrl) {
+        $backUrl=base64_decode($backUrl);
+        $result.=wf_delimiter();
+        $result .= wf_BackLink($backUrl, __('Back'), false, 'ubButton');
+    }
+   
+    return ($result);
+}

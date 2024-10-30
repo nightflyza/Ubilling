@@ -3547,5 +3547,6 @@ $lang['def']['Service callback URL'] = 'Коллбек URL сервісу';
 $lang['def']['Who pays fee'] = 'Хто оплачує комісію';
 $lang['def']['Provider'] = 'Провайдер';
 $lang['def']['Subscriber'] = 'Абонент';
-$lang['def'][''] = '';
+$lang['def']['Write message'] = 'Напишіть повідомлення';
+$lang['def']['Select a chat to start a conversation'] = 'Виберіть чат, щоб почати спілкування';
 

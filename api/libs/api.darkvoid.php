@@ -37,7 +37,7 @@ class DarkVoid {
     /**
      * UbillingConfig object placeholder
      *
-     * @var null
+     * @var object
      */
     protected $ubConfig = null;
 
@@ -167,13 +167,12 @@ class DarkVoid {
         //check for unread messages in instant messanger
         if ($this->altCfg['TB_UBIM']) {
             if (cfr('UBIM')) {
-                $unreadMessageCount = im_CheckForUnreadMessages();
+                $ubIm = new UBMessenger();
+                $unreadMessageCount = $ubIm->checkForUnreadMessages();
                 if ($unreadMessageCount) {
-                    //we have new messages
+                    //yes, we have new messages
                     $unreadIMNotify = __('You received') . ' ' . $unreadMessageCount . ' ' . __('new messages');
-                    $urlIM = $unreadIMNotify . wf_delimiter() . wf_Link("?module=ubim&checknew=true", __('Click here to go to the instant messaging service.'), false, 'ubButton');
-                    $this->alerts .= wf_Link("?module=ubim&checknew=true", wf_img("skins/ubim_blink.gif", $unreadMessageCount . ' ' . __('new message received')), false, '');
-                    //$this->alerts.=wf_modalOpened(__('New messages received'), $urlIM, '450', '200');
+                    $this->alerts .= wf_Link($ubIm::URL_ME . '&' . $ubIm::ROUTE_REFRESH . '=true', wf_img("skins/ubim_blink.gif", $unreadMessageCount . ' ' . __('new message received')), false, '');
                 }
             }
         }
@@ -421,5 +420,4 @@ class DarkVoid {
             }
         }
     }
-
 }

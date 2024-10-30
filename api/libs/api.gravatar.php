@@ -28,10 +28,11 @@ function gravatar_GetUrl($email, $secure = false) {
  * @param string $email  user email
  * @param int $size   user avatar size
  * @param string $class custom image class
+ * @param title $title custom image title
  * 
  * @return string
  */
-function gravatar_GetAvatar($email, $size = '64', $class = '') {
+function gravatar_GetAvatar($email, $size = '64', $class = '', $title='') {
     global $ubillingConfig;
     $cachePath = DATA_PATH . 'avatars/';
     $gravatarOption = $ubillingConfig->getAlterParam('GRAVATAR_DEFAULT');
@@ -74,7 +75,7 @@ function gravatar_GetAvatar($email, $size = '64', $class = '') {
         $fullUrl = $fullCachedPath;
     }
 
-    $result = wf_tag('img', false, $class, 'src="' . $fullUrl . '"');
+    $result = wf_tag('img', false, $class, 'src="' . $fullUrl . '" alt="avatar" title="'.$title.'"');
     return ($result);
 }
 
@@ -102,17 +103,17 @@ function gravatar_GetUserEmail($username) {
  * 
  * @param string $username rcms user login
  * @param int    $size - size of returning avatar
+ * @param string $class - class of image body
+ * @param string $title - title of avatar image
  * 
  * @return string
  */
-function gravatar_ShowAdminAvatar($username, $size = '') {
+function gravatar_ShowAdminAvatar($username, $size = '', $class = '', $title='') {
     $adminEmail = gravatar_GetUserEmail($username);
     if ($adminEmail) {
-        $result = gravatar_GetAvatar($adminEmail, $size);
+        $result = gravatar_GetAvatar($adminEmail, $size, $class, $title);
     } else {
         $result = wf_img('skins/admava.png');
     }
     return ($result);
 }
-
-?>

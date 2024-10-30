@@ -3534,3 +3534,5 @@ $lang['def']['Latest'] = 'Последний';
 $lang['def']['Network upgrade report'] = 'Отчет по модернизации сети';
 $lang['def']['Item types spent on network upgrade'] = 'ТМЦ использованные для модернизации сети';
 $lang['def']['Visible'] = 'Видимый';
+$lang['def']['Write message'] = 'Напишите сообщение';
+$lang['def']['Select a chat to start a conversation'] = 'Выберите чат для начала общения';
