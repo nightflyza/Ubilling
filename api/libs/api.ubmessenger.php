@@ -106,7 +106,6 @@ class UBMessenger {
     const PROUTE_MSG_TO = 'im_message_to';
     const PROUTE_MSG_TEXT = 'im_message_text';
 
-
     const SCOPE_THREAD = 'rtubimthread';
     const SCOPE_CONTACTS = 'rtubimcontacts';
 
@@ -114,6 +113,9 @@ class UBMessenger {
     const KEY_MSG_COUNT = 'UBIM_MSGCOUNT_';
     const KEY_MSG_THREADS = 'UBIM_MSG_TH_';
     const KEY_ADMS_LIST = 'UBIM_ADM_LIST';
+
+    const OPT_NOLINKIFY = 'UBIM_NO_LINKIFY';
+    const OPT_NOAJAXSEND = 'UBIM_MSGSEND_NATIVE';
 
     public function __construct() {
         $this->setMyLogin();
@@ -466,8 +468,9 @@ class UBMessenger {
             $result .= wf_tag('span', false, '', 'id="response"') . wf_tag('span', true);
 
             //preventing page refresh on sending message
-            $result .= wf_tag('script');
-            $result .= " 
+            if (!@$this->altCfg[self::OPT_NOAJAXSEND]) {
+                $result .= wf_tag('script');
+                $result .= " 
                         $(document).ready(function() {
                         $('#ubim-converstation').on('submit', function(e) {
                             e.preventDefault();
@@ -483,7 +486,8 @@ class UBMessenger {
                         });
                         });
                     ";
-            $result .= wf_tag('script', true);
+                $result .= wf_tag('script', true);
+            }
         } else {
             $result .= $this->messages->getStyledMessage(__('Administrator') . ' {' . $to . '} ' . __('not exists'), 'error');
             log_register('UBIM FAIL THREAD {' . $to . '} NOT_EXISTS');
@@ -551,7 +555,7 @@ class UBMessenger {
 
 
                 $messageText = nl2br($each['text']);
-                if (@!$this->altCfg['UBIM_NO_LINKIFY']) {
+                if (@!$this->altCfg[self::OPT_NOLINKIFY]) {
                     $messageText = $this->linkify($messageText);
                 }
 
