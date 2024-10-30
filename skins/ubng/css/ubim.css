@@ -180,6 +180,13 @@
     border-bottom-left-radius: 2px;
 }
 
+.ubim-from-user .ubim-message-author {
+    display: none !important;
+}
+
+.ubim-from-other .ubim-message-author {
+    font-size: 7pt;
+}
 
 .ubim-message-content {
     font-size: 16px;

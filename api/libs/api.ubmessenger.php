@@ -572,6 +572,9 @@ class UBMessenger {
                 //      $result .= $fromName;
                 $result .= gravatar_ShowAdminAvatar($each['from'], '64', 'ubim-chat-avatar', $fromName);
                 $result .= wf_tag('div', false, 'ubim-message-bubble');
+                $result.= wf_tag('div',false,'ubim-message-author');
+                $result.=$fromName;
+                $result .= wf_tag('div', true);
                 $result .= wf_tag('div', false, 'ubim-message-content');
                 $result .= $messageText;
                 $result .= wf_tag('div', true);
