@@ -13,7 +13,6 @@ TB_SWITCHMON=TRIGGER|Taskbar notify for dead switches
 TB_LABELED=TRIGGER|Taskbar display labels under icons
 TB_ICONCUSTOMSIZE=TRIGGER|Administrators can set the size of icons on their own
 TB_UBIM=TRIGGER|Taskbar check for unread messages
-TB_UBIM_REFRESH=VARCHAR|Taskbar unread messages check interval
 STICKY_NOTES_ENABLED=TRIGGER|Taskbar personal sticky notes
 CHAPTEREND_TB=true
 
@@ -189,7 +188,6 @@ SWYMAP_ENABLED=TRIGGER|Switch map enabled
 CUSTMAP_ENABLED=TRIGGER|Custom maps enabled
 MULTIGEN_ENABLED=TRIGGER|Multigen support is enabled
 MASSRESET_ENABLED=TRIGGER|Massreset function enabled
-UBIM_REFRESH=VARCHAR|Instant messenger refresh timeout in seconds
 DEVCON_SQL_KEEP=TRIGGER|Query remains in SQL console after exec
 DEVCON_VERBOSE_DEBUG=TRIGGER|Verbose debug data in developers console
 FINREP_CONTRACT=TRIGGER|Show users contract in finance report

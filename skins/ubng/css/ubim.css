@@ -30,12 +30,12 @@
     padding: 10px;
     display: flex;
     flex-direction: column;
-    gap: 15px;
+    gap: 10px;
     background-color: #ffffff;
     border-radius: 10px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     overflow-y: auto;
-    max-height: 80vh;
+    max-height: 75vh;
 }
 
 
@@ -51,15 +51,14 @@
     color: #333;
 }
 
-
 .ubim-contact:hover {
     background-color: #f0f0f5;
 }
 
 
 .ubim-avatar {
-    width: 50px;
-    height: 50px;
+    width: 40px;
+    height: 40px;
     border-radius: 50%;
     object-fit: cover;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
@@ -75,29 +74,28 @@
 
 
 .ubim-online {
+    position: relative;
     background-color: #e8f5e9;
     border-left: 4px solid #4caf50;
 }
 
 .ubim-open {
-    background-color: #eceaea;
-    border-right: 4px solid #d84501;
+   background-color: #eceaea;
+   border-right: 4px solid #d84501;
 }
 
-
-.ubim-online .ubim-avatar::after {
+.ubim-online::after {
     content: "";
     position: absolute;
-    bottom: 4px;
-    right: 4px;
+    bottom: 8px;
+    right: 8px;
     width: 12px;
     height: 12px;
     background-color: #4caf50;
-    border: 2px solid white;
-    border-radius: 20%;
-    z-index: 999 !important;
+    border: 2px solid #FFFFFF;
+    border-radius: 50%;
+    z-index: 2 !important;
 }
-
 
 .ubim-unread {
     background-color: #e3f2fd;

@@ -407,22 +407,6 @@ class UbillingTaskbar {
     }
 
     /**
-     * Renders instant messenger notification
-     * 
-     * @return void
-     */
-    protected function loadUbim() {
-        //refresh IM container with notify
-        if ($this->altCfg['TB_UBIM']) {
-            if ($this->altCfg['TB_UBIM_REFRESH']) {
-                if (cfr('UBIM')) {
-                    im_RefreshContainer(($this->altCfg['TB_UBIM_REFRESH'] * 60));
-                }
-            }
-        }
-    }
-
-    /**
      * Returs available sticky notes if enabled
      * 
      * @return string
@@ -480,11 +464,11 @@ class UbillingTaskbar {
                                 $adminHash = trim($adminData['password']);
                                 foreach ($badPasswords as $passIdx => $eachHash) {
                                     if (!empty($eachHash)) {
-                                    $eachHash = trim($eachHash);
-                                    if (strpos($adminHash, $eachHash) !== false) {
-                                        $this->currentAlerts .= $this->messages->getStyledMessage(__('For administrator') . ' «' . $controlLogin . '» ' . __('a very fucked up password is used') . '. ' . __('Dont do this') . '.', 'error');
+                                        $eachHash = trim($eachHash);
+                                        if (strpos($adminHash, $eachHash) !== false) {
+                                            $this->currentAlerts .= $this->messages->getStyledMessage(__('For administrator') . ' «' . $controlLogin . '» ' . __('a very fucked up password is used') . '. ' . __('Dont do this') . '.', 'error');
+                                        }
                                     }
-                                }
                                 }
                             }
                         }
@@ -618,7 +602,6 @@ class UbillingTaskbar {
         $result .= $this->loadAnnouncements();
         $result .= $this->loadPollVoteAdmin();
         $result .= $this->loadTouchFix();
-        $this->loadUbim();
         return ($result);
     }
 }

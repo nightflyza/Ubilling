@@ -338,46 +338,64 @@ class UBMessenger {
      */
     protected function renderContactList() {
         @$employeeNames = unserialize(ts_GetAllEmployeeLoginsCached());
+        $admListOrdered = array();
 
         $activeAdmins = $this->getActiveAdmins();
         $haveUnread = $this->getAllUnreadMessagesUsers();
         $result = wf_tag('div', false, 'ubim-contacts-container');
 
+        //list reordering
         if (!empty($this->allAdmins)) {
+            $order = sizeof($this->allAdmins);
             foreach ($this->allAdmins as $io => $eachadmin) {
+                $order++;
                 if ($eachadmin != $this->myLogin) {
-                    $unreadLabel = '';
-                    $contactClass = 'ubim-contact';
-
-                    if (isset($activeAdmins[$eachadmin])) {
-                        $contactClass .= ' ubim-online';
+                    if (isset($haveUnread[$eachadmin])) {
+                        $admListOrdered[$order] = $eachadmin;
+                    } else {
+                        $admListOrdered[($order + 9000)] = $eachadmin; // It`s Over 9000!
                     }
-
-                    if (ubRouting::get(self::ROUTE_THREAD) == $eachadmin) {
-                        $contactClass .= ' ubim-open';
-                    }
-
-                    $unreadCounter = (isset($haveUnread[$eachadmin])) ? $haveUnread[$eachadmin] : 0;
-                    if ($unreadCounter != 0) {
-                        $contactClass .= ' ubim-unread';
-                        $unreadLabel .= wf_tag('div', false, 'ubim-unread-label') . $unreadCounter . ' ' . __('Unread message') . wf_tag('div', true);
-                    }
-
-                    $conatactAvatar = gravatar_ShowAdminAvatar($eachadmin, '64', 'ubim-avatar');
-                    $adminName = (isset($employeeNames[$eachadmin])) ? $employeeNames[$eachadmin] : $eachadmin;
-
-                    $contactBody = $conatactAvatar;
-                    $contactBody .= wf_tag('span', false, 'ubim-contact-name');
-                    $contactBody .= $adminName;
-                    $contactBody .= $unreadLabel;
-                    $contactBody .= wf_tag('span', true);
-
-                    $threadLink = wf_Link(self::URL_ME . '&' . self::ROUTE_THREAD . '=' . $eachadmin, $contactBody,  false, $contactClass);
-                    $result .= $threadLink;
                 }
             }
-        } else {
-            $result .= $this->messages->getStyledMessage(__('Administrators') . ' ' . __('not exists'), 'ubim-contact-name');
+
+            if (!empty($admListOrdered)) {
+                ksort($admListOrdered);
+                foreach ($admListOrdered as $io => $eachadmin) {
+                    $unreadCounter = (isset($haveUnread[$eachadmin])) ? $haveUnread[$eachadmin] : 0;
+                    if ($eachadmin != $this->myLogin) {
+                        $unreadLabel = '';
+                        $contactClass = 'ubim-contact';
+
+                        if (isset($activeAdmins[$eachadmin])) {
+                            $contactClass .= ' ubim-online ';
+                        }
+
+                        if (ubRouting::get(self::ROUTE_THREAD) == $eachadmin) {
+                            $contactClass .= ' ubim-open ';
+                        }
+
+
+                        if ($unreadCounter != 0) {
+                            $contactClass .= ' ubim-unread ';
+                            $unreadLabel .= wf_tag('div', false, 'ubim-unread-label') . $unreadCounter . ' ' . __('Unread message') . wf_tag('div', true);
+                        }
+
+                        $conatactAvatar = gravatar_ShowAdminAvatar($eachadmin, '64', 'ubim-avatar');
+                        $adminName = (isset($employeeNames[$eachadmin])) ? $employeeNames[$eachadmin] : $eachadmin;
+
+                        $contactBody = $conatactAvatar;
+                        $contactBody .= wf_tag('span', false, 'ubim-contact-name');
+                        $contactBody .= $adminName;
+                        $contactBody .= $unreadLabel;
+                        $contactBody .= wf_tag('span', true);
+
+                        $threadLink = wf_Link(self::URL_ME . '&' . self::ROUTE_THREAD . '=' . $eachadmin, $contactBody,  false, $contactClass);
+                        $result .= $threadLink;
+                    }
+                }
+            } else {
+                $result .= $this->messages->getStyledMessage(__('Administrators') . ' ' . __('not exists'), 'ubim-contact-name');
+            }
         }
         //TODO: move avatar control somewhere else
         //$myAva = gravatar_ShowAdminAvatar($this->myLogin, '16');
