@@ -6717,8 +6717,14 @@ function zb_RenderUpdateInfo($version = '', $branch = 'STABLE') {
  * @return string
  */
 function web_avatarControlForm($backUrl = '') {
-    $myLogin=whoami();
+    global $ubillingConfig;
+    $myLogin = whoami();
     $mail = gravatar_GetUserEmail($myLogin);
+    $serviceUrl = '';
+    $avatarService=$ubillingConfig->getAlterParam('GRAVATAR_SERVICE');
+    $serviceUrl=gravatar_GetUrl($mail,true,$avatarService);
+    $parsedUrl = parse_url($serviceUrl);
+    $serviceUrl = $parsedUrl['scheme'] . '://' . $parsedUrl['host'] . '/';
 
     $cells = wf_TableCell(wf_tag('h1') . $myLogin . wf_tag('h1', true), '', '', 'align="center"');
     $rows = wf_TableRow($cells);
@@ -6727,15 +6733,16 @@ function web_avatarControlForm($backUrl = '') {
     $cells = wf_TableCell(wf_tag('h3') . __('Your email') . ': ' . $mail . wf_tag('h3', true), '', '', 'align="center"');
     $rows .= wf_TableRow($cells);
 
-    $cells = wf_TableCell(wf_Link("http://gravatar.com/emails/", __('Change my avatar at gravatar.com')), false, '', 'align="center"');
+    $controlLink=wf_Link($serviceUrl, __('Change my avatar at') . ' ' . $serviceUrl, false,'','target="_blank"');
+    $cells = wf_TableCell($controlLink, false, '', 'align="center"');
     $rows .= wf_TableRow($cells);
     $result = wf_TableBody($rows, '100%', '0', 'glamour');
-    $result.=wf_CleanDiv();
+    $result .= wf_CleanDiv();
     if ($backUrl) {
-        $backUrl=base64_decode($backUrl);
-        $result.=wf_delimiter();
+        $backUrl = base64_decode($backUrl);
+        $result .= wf_delimiter();
         $result .= wf_BackLink($backUrl, __('Back'), false, 'ubButton');
     }
-   
+
     return ($result);
 }
