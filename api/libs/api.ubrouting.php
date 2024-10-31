@@ -181,9 +181,10 @@ class ubRouting {
                 } else {
                     $rawData = self::replaceQuotes($rawData);
                     $rawData = strip_tags($rawData);
+                    $rawData = str_replace(array("'", '`'), '’', $rawData);
                 }
 
-                $allowedChars = 'a-zA-Z0-9А-Яа-яЁёЇїІіЄєҐґ\w++«»№=_\ ,\.\-:;!?\(\){}\/\r\n\x{200d}\x{2600}-\x{1FAFF}' . $callback;
+                $allowedChars = 'a-zA-Z0-9А-Яа-яЁёЇїІіЄєҐґ\w++«»№’=_\ ,\.\-:;!?\(\){}\/\r\n\x{200d}\x{2600}-\x{1FAFF}' . $callback;
                 $regex = '#[^' . $allowedChars . ']#u';
                 $filteredData = preg_replace($regex, '', $rawData);
                 $filteredData = str_replace('--', '', $filteredData);
