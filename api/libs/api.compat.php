@@ -13,7 +13,6 @@ if (!function_exists('show_error')) {
     function show_error($data) {
         show_window('Error', $data);
     }
-
 }
 
 /**
@@ -43,7 +42,7 @@ function debarr($data) {
  */
 function curdatetime() {
     $currenttime = date("Y-m-d H:i:s");
-    return($currenttime);
+    return ($currenttime);
 }
 
 /**
@@ -53,7 +52,7 @@ function curdatetime() {
  */
 function curtime() {
     $currenttime = date("H:i:s");
-    return($currenttime);
+    return ($currenttime);
 }
 
 /**
@@ -63,7 +62,7 @@ function curtime() {
  */
 function curdate() {
     $currentdate = date("Y-m-d");
-    return($currentdate);
+    return ($currentdate);
 }
 
 /**
@@ -73,7 +72,7 @@ function curdate() {
  */
 function curmonth() {
     $currentmonth = date("Y-m");
-    return($currentmonth);
+    return ($currentmonth);
 }
 
 /**
@@ -93,7 +92,7 @@ function prevmonth() {
  */
 function curyear() {
     $currentyear = date("Y");
-    return($currentyear);
+    return ($currentyear);
 }
 
 /**
@@ -123,7 +122,6 @@ if (!function_exists('stg_putlogevent')) {
     function stg_putlogevent($event) {
         log_register($event);
     }
-
 }
 
 
@@ -136,9 +134,8 @@ if (!function_exists('__')) {
      * @return string
      */
     function __($str) {
-        return($str);
+        return ($str);
     }
-
 }
 
 if (!function_exists('show_window')) {
@@ -167,7 +164,6 @@ if (!function_exists('show_window')) {
         ';
         print($result);
     }
-
 }
 
 /**
@@ -183,9 +179,9 @@ function cfr($right) {
     // run as: phpunit --bootstrap puboot.php tests
     // if (empty($system)) {@$system = new rcms_system(); }
     if ($system->checkForRight($right)) {
-        return(true);
+        return (true);
     } else {
-        return(false);
+        return (false);
     }
 }
 
@@ -201,7 +197,7 @@ function whoami() {
     if (empty($mylogin)) {
         $mylogin = 'external';
     }
-    return($mylogin);
+    return ($mylogin);
 }
 
 if (!function_exists('rcms_redirect')) {
@@ -219,7 +215,6 @@ if (!function_exists('rcms_redirect')) {
             echo '<script language="javascript">document.location.href="' . $url . '";</script>';
         }
     }
-
 }
 
 
@@ -252,5 +247,57 @@ if (!function_exists('each2')) {
         next($arr);
         return $result;
     }
+}
 
+
+if (!function_exists('ispos_array')) {
+    /**
+     * Checks for substring in a string or array of strings
+     *
+     * @param string $string
+     * @param string|array $search
+     *
+     * @return bool
+     */
+    function ispos_array($string, $search) {
+        if (is_array($search)) {
+            foreach ($search as $eachStr) {
+                if (strpos($string, $eachStr) !== false) {
+                    return (true);
+                }
+            }
+
+            return (false);
+        } else {
+            if (strpos($string, $search) === false) {
+                return (false);
+            } else {
+                return (true);
+            }
+        }
+    }
+}
+
+
+if (!function_exists('json_validate')) {
+    /**
+     * Validates a JSON string. PHP <8.3 replacement.
+     * 
+     * @param string $json The JSON string to validate.
+     * @param int $depth Maximum depth. Must be greater than zero.
+     * @param int $flags Bitmask of JSON decode options.
+     * @return bool Returns true if the string is a valid JSON, otherwise false.
+     */
+    function json_validate($json, $depth = 512, $flags = 0) {
+        if (!is_string($json)) {
+            return false;
+        }
+
+        try {
+            json_decode($json, false, $depth, $flags | JSON_THROW_ON_ERROR);
+            return true;
+        } catch (\JsonException $e) {
+            return false;
+        }
+    }
 }
