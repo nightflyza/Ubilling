@@ -78,7 +78,7 @@ if (!ubRouting::checkPost('amount') and ! ubRouting::checkPost('paymentid')) {
     }
 
     if (!empty($customerId) and ! empty($amountRaw)) {
-        $amount = number_format($amountRaw, 2); //required with two finishing zeroes
+        $amount = number_format($amountRaw, 2, '.', ''); //required with two finishing zeroes
         $key = $cfgPltn['KEY'];
         $pass = $cfgPltn['PASSWORD'];
         $payment = 'CC';
@@ -103,7 +103,7 @@ if (!ubRouting::checkPost('amount') and ! ubRouting::checkPost('paymentid')) {
             }
             $splitAmountRatio = sizeof($splitRulesArr);
             $splittedAmount = round(($amountRaw / $splitAmountRatio), 2);
-            $splittedAmount = number_format($splittedAmount, 2);
+            $splittedAmount = number_format($splittedAmount, 2, '.', '');
 
             foreach ($splitRulesArr as $eachSplit => $eachAmount) {
                 if (!empty($eachSplit)) {
@@ -123,7 +123,7 @@ if (!ubRouting::checkPost('amount') and ! ubRouting::checkPost('paymentid')) {
                     if ($gooseResult['agents']) {
                         foreach ($gooseResult['agents'] as $io => $each) {
                             $splittedAmount = round(($each['splitamount']), 2);
-                            $splittedAmount = number_format($splittedAmount, 2);
+                            $splittedAmount = number_format($splittedAmount, 2, '.', '');
                             $splitRulesArr[$each['edrpo']] = $splittedAmount;
                         }
                     } else {

@@ -199,6 +199,13 @@ class GRes {
     protected $paymentIsValid = false;
 
     /**
+     * Contains splitted values percent precision to avoid 1 cent diff
+     *
+     * @var int
+     */
+    protected $splitPercentPrecision = 0;
+
+    /**
      * some predefined stuff here
      */
     const TABLE_STRATEGY = 'gr_strat';
@@ -279,13 +286,16 @@ class GRes {
     }
 
     /**
-     * Preloads some required configs
+     * Preloads some required configs and sets few options
      *
      * @return void
      */
     protected function loadConfigs() {
         global $ubillingConfig;
         $this->altCfg = $ubillingConfig->getAlter();
+        if (isset($this->altCfg['GOOSE_PERCENT_PRECISION'])) {
+            $this->splitPercentPrecision = ubRouting::filters($this->altCfg['GOOSE_PERCENT_PRECISION'], 'int');
+        }
     }
 
     /**
@@ -313,6 +323,11 @@ class GRes {
         $this->specsDb = new NyanORM(self::TABLE_SPECS);
     }
 
+    /**
+     * Loads existing tariffs data and names into protected properties
+     *
+     * @return void
+     */
     protected function loadTariffs() {
         $this->allTariffs = zb_TariffGetAllData();
         if (!empty($this->allTariffs)) {
@@ -1138,6 +1153,9 @@ class GRes {
                         if ($each['splittype'] == 'percent') {
                             if ($each['splitvalue'] > 0) {
                                 $splitAmount = zb_Percent($origAmount, $each['splitvalue']);
+                                if ($this->splitPercentPrecision) {
+                                    $splitAmount = round($splitAmount, 2);
+                                }
                                 $specAmount = $specAmount - $splitAmount;
                                 $result[$each['id']]['splitamount'] = $splitAmount;
                             }
@@ -1148,6 +1166,9 @@ class GRes {
                         if ($each['splittype'] == 'percentleft') {
                             if ($each['splitvalue'] > 0) {
                                 $splitAmount = zb_Percent($specAmount, $each['splitvalue']);
+                                if ($this->splitPercentPrecision) {
+                                    $splitAmount = round($splitAmount, 2);
+                                }
                                 $specAmount = $specAmount - $splitAmount;
                                 $result[$each['id']]['splitamount'] = $splitAmount;
                             }
