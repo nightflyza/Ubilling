@@ -7,7 +7,7 @@
  */
 function curdatetime() {
     $currenttime = date("Y-m-d H:i:s");
-    return($currenttime);
+    return ($currenttime);
 }
 
 /**
@@ -17,7 +17,7 @@ function curdatetime() {
  */
 function curdate() {
     $currentdate = date("Y-m-d");
-    return($currentdate);
+    return ($currentdate);
 }
 
 /**
@@ -27,7 +27,7 @@ function curdate() {
  */
 function curmonth() {
     $currentmonth = date("Y-m");
-    return($currentmonth);
+    return ($currentmonth);
 }
 
 /**
@@ -37,7 +37,7 @@ function curmonth() {
  */
 function curyear() {
     $currentyear = date("Y");
-    return($currentyear);
+    return ($currentyear);
 }
 
 if (!function_exists('__')) {
@@ -50,9 +50,8 @@ if (!function_exists('__')) {
      * @return string
      */
     function __($str) {
-        return($str);
+        return ($str);
     }
-
 }
 
 if (!function_exists('show_window')) {
@@ -83,7 +82,6 @@ if (!function_exists('show_window')) {
         ';
         print($result);
     }
-
 }
 
 if (!function_exists('show_error')) {
@@ -98,7 +96,6 @@ if (!function_exists('show_error')) {
     function show_error($data) {
         show_window('Error', $data);
     }
-
 }
 
 /**
@@ -142,7 +139,9 @@ if (!function_exists('rcms_redirect')) {
             echo '<script language="javascript">document.location.href="' . $url . '";</script>';
         }
     }
+}
 
+if (!function_exists('ispos_array')) {
     /**
      * Checks for substring in a string or array of strings
      *
@@ -159,14 +158,13 @@ if (!function_exists('rcms_redirect')) {
                 }
             }
 
-            return(false);
+            return (false);
         } else {
             if (strpos($string, $search) === false) {
-                return(false);
+                return (false);
             } else {
-                return(true);
+                return (true);
             }
         }
     }
 }
-?>
