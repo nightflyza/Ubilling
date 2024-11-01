@@ -469,6 +469,7 @@ class UBMessenger {
             if (ubRouting::checkGet(self::ROUTE_REFRESH)) {
                 $threadContent .= $this->messages->getStyledMessage(__('Select a chat to start a conversation'), 'info');
                 $threadContent .= wf_delimiter(1);
+                $threadContent .= wf_tag('center') . wf_img('skins/unicornchat.png') . wf_tag('center', true);
             }
         }
 
