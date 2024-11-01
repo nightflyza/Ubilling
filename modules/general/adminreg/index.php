@@ -2,7 +2,7 @@
 
 if (cfr('PERMISSIONS')) {
 
-    if (!ubRouting::checkPost('registernewadministrator') AND ! ubRouting::checkGet('editadministrator')) {
+    if (!ubRouting::checkPost('registernewadministrator') and ! ubRouting::checkGet('editadministrator')) {
         show_window('', wf_BackLink('?module=permissions'));
         show_window(__('Administrator registration'), web_AdministratorRegForm());
     }
@@ -12,6 +12,11 @@ if (cfr('PERMISSIONS')) {
         $adminForDeletion = ubRouting::get('deleteadministrator');
         user_delete($adminForDeletion);
         log_register('UBADMIN DELETE {' . $adminForDeletion . '}');
+        //flushing IM cache
+        $ubCache = new UbillingCache();
+        $ubCache->delete('UBIM_ADM_LIST');
+        $ubCache->delete('EMPLOYEE_LOGINS');
+        $ubCache->delete('ADM_ONLINE');
         ubRouting::nav('?module=permissions');
     }
 
@@ -32,6 +37,11 @@ if (cfr('PERMISSIONS')) {
                 $permControlLabel = web_edit_icon() . ' ' . __('His permissions you can setup via corresponding module');
                 $permControl = wf_link('?module=permissions&edit=' . $newAdmLogin, $permControlLabel, false, 'ubButton');
                 show_window('', $permControl);
+                //flushing IM cache
+                $ubCache = new UbillingCache();
+                $ubCache->delete('UBIM_ADM_LIST');
+                $ubCache->delete('EMPLOYEE_LOGINS');
+                $ubCache->delete('ADM_ONLINE');
             } else {
                 show_error(__('Something went wrong') . ': ' . $system->results['registration']);
                 log_register('UBADMIN CREATE {' . $newAdmLogin . '} FAILED');
