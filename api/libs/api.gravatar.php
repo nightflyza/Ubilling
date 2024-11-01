@@ -128,7 +128,7 @@ function gravatar_ShowAdminAvatar($username, $size = '', $class = '', $title = '
     if ($adminEmail) {
         $result = gravatar_GetAvatar($adminEmail, $size, $class, $title);
     } else {
-        $result = wf_img('skins/admava.png');
+        $result = wf_img('skins/admava.png', $title);
     }
     return ($result);
 }

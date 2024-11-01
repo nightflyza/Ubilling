@@ -95,14 +95,22 @@ class UBMessenger {
      */
     protected $messages = '';
 
+    /**
+     * Contains current thread ID
+     *
+     * @var string
+     */
+    protected $currentThread = '';
+
     //some predefined stuff like routes and keys here
     const TABLE_MESSAGES = 'ub_im';
     const URL_ME = '?module=ubim';
+    const URL_AVATAR_CONTROL = '?module=avacontrol';
 
     const ROUTE_THREAD = 'showthread';
     const ROUTE_GOTHREAD = 'gothread';
     const ROUTE_REFRESH = 'checknew';
-    const ROUTE_AVATAR = 'avatarcontrol';
+
     const PROUTE_MSG_TO = 'im_message_to';
     const PROUTE_MSG_TEXT = 'im_message_text';
 
@@ -339,9 +347,7 @@ class UBMessenger {
      * @return string
      */
     protected function renderContactList() {
-        @$employeeNames = unserialize(ts_GetAllEmployeeLoginsCached());
         $admListOrdered = array();
-
         $activeAdmins = $this->getActiveAdmins();
         $haveUnread = $this->getAllUnreadMessagesUsers();
         $result = wf_tag('div', false, 'ubim-contacts-container');
@@ -383,7 +389,7 @@ class UBMessenger {
                         }
 
                         $conatactAvatar = gravatar_ShowAdminAvatar($eachadmin, '64', 'ubim-avatar');
-                        $adminName = (isset($employeeNames[$eachadmin])) ? $employeeNames[$eachadmin] : $eachadmin;
+                        $adminName = (isset($this->allEmployeeNames[$eachadmin])) ? $this->allEmployeeNames[$eachadmin] : $eachadmin;
 
                         $contactBody = $conatactAvatar;
                         $contactBody .= wf_tag('span', false, 'ubim-contact-name');
@@ -398,11 +404,9 @@ class UBMessenger {
             } else {
                 $result .= $this->messages->getStyledMessage(__('Administrators') . ' ' . __('not exists'), 'ubim-contact-name');
             }
+        } else {
+            $result .= $this->messages->getStyledMessage(__('Administrators') . ' ' . __('not exists'), 'ubim-contact-name');
         }
-        //TODO: move avatar control somewhere else
-        //$myAva = gravatar_ShowAdminAvatar($this->myLogin, '16');
-        //$result .= wf_CleanDiv();
-        //$result .= wf_delimiter() . wf_Link(self::URL_ME . '&' . self::ROUTE_AVATAR . '=true', $myAva . ' ' . __('Avatar control'), false, 'ubButton');
 
         $result .= wf_tag('div', true);
         return ($result);
@@ -423,7 +427,6 @@ class UBMessenger {
             if (ubRouting::checkGet(self::ROUTE_REFRESH)) {
                 $threadContent .= $this->messages->getStyledMessage(__('Select a chat to start a conversation'), 'info');
                 $threadContent .= wf_delimiter(1);
-                //$threadContent.=wf_img_sized('https://piclod.com/i/1722524183/147.jpg','','50%');
             }
         }
 
@@ -458,8 +461,9 @@ class UBMessenger {
     public function renderConversationForm($to) {
         $result = '';
         if (isset($this->allAdmins[$to])) {
+            $this->currentThread = $to;
             $inputs = wf_HiddenInput(self::PROUTE_MSG_TO, $to);
-            $inputs .= wf_tag('textarea', false, 'ubim-input-message', 'id="ubim-chat-box" name="' . self::PROUTE_MSG_TEXT . '" placeholder="' . __('Write message') . '..." required');
+            $inputs .= wf_tag('textarea', false, 'ubim-input-message', 'id="ubim-chat-box" name="' . self::PROUTE_MSG_TEXT . '" placeholder="' . __('Write message') . '..." required autofocus');
             $inputs .= wf_tag('textarea', true);
             $inputs .= wf_tag('button', false, 'ubim-send-button', 'type="submit"');
             $inputs .= __('Send');
@@ -471,6 +475,12 @@ class UBMessenger {
             if (!@$this->altCfg[self::OPT_NOAJAXSEND]) {
                 $result .= wf_tag('script');
                 $result .= " 
+                        $('form').keydown(function(event) {
+                        if (event.ctrlKey && event.keyCode === 13) {
+                            $(this).trigger('submit');
+                        }
+                        })
+
                         $(document).ready(function() {
                         $('#ubim-converstation').on('submit', function(e) {
                             e.preventDefault();
@@ -481,6 +491,7 @@ class UBMessenger {
                             data: $(this).serialize(),
                             success: function(response) {
                                     $('#ubim-chat-box').val('');
+                                    $('#ubim-chat-box').focus();
                                 },
                             });
                         });
@@ -572,8 +583,8 @@ class UBMessenger {
                 //      $result .= $fromName;
                 $result .= gravatar_ShowAdminAvatar($each['from'], '64', 'ubim-chat-avatar', $fromName);
                 $result .= wf_tag('div', false, 'ubim-message-bubble');
-                $result.= wf_tag('div',false,'ubim-message-author');
-                $result.=$fromName;
+                $result .= wf_tag('div', false, 'ubim-message-author');
+                $result .= $fromName;
                 $result .= wf_tag('div', true);
                 $result .= wf_tag('div', false, 'ubim-message-content');
                 $result .= $messageText;
@@ -654,6 +665,30 @@ class UBMessenger {
             return wf_Link($url, htmlspecialchars($url), false, '', 'target="_blank"');
         }, $text);
 
+        return ($result);
+    }
+
+    /**
+     * Returns primary messenger window title
+     *
+     * @return string
+     */
+    public function renderMainWinTitle() {
+        $result = '';
+        $avaLabel = gravatar_ShowAdminAvatar(whoami(), '16', 'ubim-avacontrol', __('Avatar control'));
+        $returnUrl = self::URL_ME;
+        if ($this->currentThread) {
+            $returnUrl .= '&' . self::ROUTE_THREAD . '=' . $this->currentThread;
+        } else {
+            $returnUrl .= '&' . self::ROUTE_REFRESH . '=true';
+        }
+        $baseTitle = '';
+        $baseTitle .= wf_Link(self::URL_AVATAR_CONTROL . '&back=' . base64_encode($returnUrl), $avaLabel, false);
+        $baseTitle .= ' ' . __('Instant messaging service');
+        if ($this->currentThread) {
+            $baseTitle.=': '.@$this->allEmployeeNames[$this->currentThread];
+        }
+        $result .= $baseTitle;
         return ($result);
     }
 }

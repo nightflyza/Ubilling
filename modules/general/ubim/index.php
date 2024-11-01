@@ -23,7 +23,8 @@ if (cfr('UBIM')) {
         ubRouting::nav($ubIm::URL_ME . '&' . $ubIm::ROUTE_THREAD . '=' . ubRouting::get($ubIm::ROUTE_GOTHREAD));
     }
 
-    show_window(__('Instant messaging service'), $ubIm->renderMainWindow($threadContent));
+    $windowTitle = $ubIm->renderMainWinTitle();
+    show_window($windowTitle, $ubIm->renderMainWindow($threadContent));
 
     if (!ubRouting::checkGet($ubIm::ROUTE_THREAD) and !ubRouting::checkGet($ubIm::ROUTE_GOTHREAD)) {
         //update notification area
