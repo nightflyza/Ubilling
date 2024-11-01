@@ -102,6 +102,13 @@ class UBMessenger {
      */
     protected $currentThread = '';
 
+    /**
+     * Contains message sound notification path
+     *
+     * @var string
+     */
+    protected $messageSound = 'modules/jsc/sounds/message.mp3';
+
     //some predefined stuff like routes and keys here
     const TABLE_MESSAGES = 'ub_im';
     const URL_ME = '?module=ubim';
@@ -134,6 +141,38 @@ class UBMessenger {
         $this->loadAdmins();
         $this->loadEmployeeNames();
     }
+
+    /**
+    ________________                                 ______________
+    /                \                               / /            \-___
+   / /          \ \   \                             |     -    -         \
+   |                  |                             | /         -   \  _  |
+  /                  /                              \    /  /   //    __   \
+ |      ___\ \| | / /                                \/ // // / ///  /      \
+ |      /         \                                  |             //\ __   |
+ |      |           \                                \              ///     \
+/       |      _    |                                 \               //  \ |
+|       |       \   |                                  \   /--          //  |
+|       |       _\ /|                                   / (o-            / \|
+|      __\     <_o)\o-                                 /            __   /\ |
+|     |             \                                 /               )  /  |
+ \    ||             \                               /   __          |/ / \ |
+  |   |__          _  \                             (____ *)         -  |   |
+  |   |           (*___)                                /               |   |
+  |   |       _     |                                   (____            |  |
+  |   |    //_______/                                     ####\           | |
+  |  /       | UUUUU__                                    ____/ )         |_/
+   \|        \_nnnnnn_\-\                                 (___             /
+    |       ____________/                                  \____          |
+    |      /                                                  \           |
+    |_____/                                                    \___________\
+
+   /\/\/\/\/\/\/\/\/\                            /\/\/\/\/\/\/\/\/\/\/\/\/\
+  /                  \                          /                          \
+ <   I AM CORNHOLIO   >                        <        FUCK YOU!           >
+  \                  /                          \                          /
+   \/\/\/\/\/\/\/\/\/                            \/\/\/\/\/\/\/\/\/\/\/\/\/
+     */
 
     /**
      * Sets current instance administrator login
@@ -222,6 +261,9 @@ class UBMessenger {
         if ($threadId) {
             if (isset($this->allAdmins[$threadId])) {
                 $this->threadsFlow = new ZenFlow(self::SCOPE_THREAD . '_' . $threadId, $this->renderThreadContent($threadId), $this->refreshInterval);
+                if (!@$this->altCfg['UBIM_MSG_MUTE']) {
+                    $this->threadsFlow->setSoundOnChange($this->messageSound);
+                }
                 $result .= $this->threadsFlow->render();
             }
         }
