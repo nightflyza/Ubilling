@@ -462,10 +462,14 @@ class UBMessenger {
         $result = '';
         if (isset($this->allAdmins[$to])) {
             $this->currentThread = $to;
+            $sendButtonTitle = '';
+            if (!@$this->altCfg[self::OPT_NOAJAXSEND]) {
+                $sendButtonTitle = 'title="' . __('Ctrl-Enter') . '"';
+            }
             $inputs = wf_HiddenInput(self::PROUTE_MSG_TO, $to);
             $inputs .= wf_tag('textarea', false, 'ubim-input-message', 'id="ubim-chat-box" name="' . self::PROUTE_MSG_TEXT . '" placeholder="' . __('Write message') . '..." required autofocus');
             $inputs .= wf_tag('textarea', true);
-            $inputs .= wf_tag('button', false, 'ubim-send-button', 'type="submit"');
+            $inputs .= wf_tag('button', false, 'ubim-send-button', 'type="submit" ' . $sendButtonTitle . ' ');
             $inputs .= __('Send');
             $inputs .= wf_tag('button', true);
             $result .= wf_Form('', 'POST', $inputs, 'ubim-chat-form', '', 'ubim-converstation');
@@ -474,13 +478,15 @@ class UBMessenger {
             //preventing page refresh on sending message
             if (!@$this->altCfg[self::OPT_NOAJAXSEND]) {
                 $result .= wf_tag('script');
-                $result .= " 
+                $result .= "
+                        //Ctrl-Enter handling
                         $('form').keydown(function(event) {
                         if (event.ctrlKey && event.keyCode === 13) {
                             $(this).trigger('submit');
                         }
                         })
 
+                        //smooth messages sending
                         $(document).ready(function() {
                         $('#ubim-converstation').on('submit', function(e) {
                             e.preventDefault();
@@ -686,7 +692,7 @@ class UBMessenger {
         $baseTitle .= wf_Link(self::URL_AVATAR_CONTROL . '&back=' . base64_encode($returnUrl), $avaLabel, false);
         $baseTitle .= ' ' . __('Instant messaging service');
         if ($this->currentThread) {
-            $baseTitle.=': '.@$this->allEmployeeNames[$this->currentThread];
+            $baseTitle .= ': ' . @$this->allEmployeeNames[$this->currentThread];
         }
         $result .= $baseTitle;
         return ($result);
