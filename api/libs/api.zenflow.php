@@ -27,6 +27,20 @@ class ZenFlow {
     protected $content = '';
 
     /**
+     * Debug flag
+     *
+     * @var bool
+     */
+    protected $debug = false;
+
+    /**
+     * Contains sound path to be played if content updates
+     *
+     * @var string
+     */
+    protected $soundOnChange = '';
+
+    /**
      * Contains some predefined routes
      */
     const ROUTE_ZENFLOW = 'zenflow';
@@ -72,6 +86,28 @@ class ZenFlow {
     protected function setTimeout($timeout) {
         $this->timeout = $timeout;
     }
+    /**
+     * Sets the debug state. Enables debug timestamp output on content update.
+     *
+     * @param bool $state The debug state to set. True to enable debugging, false to disable.
+     * 
+     * @return void
+     */
+    public function setDebug($state) {
+        $this->debug = $state;
+    }
+
+
+    /**
+     * Set sound file path to be played on content updates
+     *
+     * @param string $soundOnChange
+     *
+     * @return void
+     */
+    public function setSoundOnChange(string $soundOnChange) {
+        $this->soundOnChange = $soundOnChange;
+    }
 
     /**
      * Puts content data from constructor into protected property.
@@ -93,24 +129,53 @@ class ZenFlow {
         $result = '';
         if (!empty($this->flowId)) {
             $container = 'zencontainer_' . $this->flowId;
+            $debugArea = 'zendebug_' . $this->flowId;
+            $epoch = 'zen' . $this->flowId . 'epoch';
+            $epochUpd = 'zen' . $this->flowId . 'epochupd';
+            $debugCode = '';
             $requestUrl = $_SERVER['REQUEST_URI'];
+            $soundPlayback = '';
+
             if (!empty($requestUrl)) {
                 $result .= wf_AjaxContainer($container, '', $this->content);
+                if ($this->debug) {
+                    $result .= wf_AjaxContainer($debugArea, '', '');
+                    $debugCode .= '  
+                    var debugTimestamp' . $this->flowId . ' = new Date();
+                    var debutTimeLabel' . $this->flowId . ' = debugTimestamp' . $this->flowId . '.toLocaleTimeString();
+                    $("#' . $debugArea . '").html("' . __('Changed') . ': "+debutTimeLabel' . $this->flowId . '+" ' . __('Iteration') . ': "+' . $epochUpd . '+" of "+' . $epoch . ');
+                    ';
+                }
+
+                if ($this->soundOnChange) {
+                    $soundPlayback = '
+                    if (' . $epochUpd . '>0) {
+                        var audio' . $this->flowId . ' = new Audio("' . $this->soundOnChange . '");
+                        audio' . $this->flowId . '.play();
+                    }
+                    ';
+                }
+
                 $dataUrl = $requestUrl;
                 if (!ubRouting::checkGet(self::ROUTE_ZENFLOW)) {
                     $dataUrl .= '&' . self::ROUTE_ZENFLOW . '=' . $this->flowId;
                 }
                 $result .= wf_tag('script');
                 $result .= '$(document).ready(function() {
-                       var prevData= "";
+                        var ' . $epoch . ' = 0;
+                        var ' . $epochUpd . ' = 0;
+                        var prevData= "";
                         setInterval(function(){ 
+                                ' . $epoch . '++;
                                 $.get("' . $dataUrl . '", function(data) {
                                 //update zen-container only if data is changed
                                 if (prevData!=data) {
                                     $("#' . $container . '").html(data);
                                     prevData=data;
+                                    ' . $soundPlayback . '
+                                    ' . $epochUpd . '++;
                                 }
-                               
+                                ' . $debugCode . '
                         });
                     }, ' . $this->timeout . ');
                 });
@@ -119,7 +184,7 @@ class ZenFlow {
                 $result .= wf_tag('script', true);
             }
         }
-        return($result);
+        return ($result);
     }
 
     /**
@@ -143,7 +208,6 @@ class ZenFlow {
          * The eternal night breaks when
          * The mushroom grows into the sky
          */
-        return($result);
+        return ($result);
     }
-
 }
