@@ -6695,10 +6695,22 @@ function web_avatarControlForm($backUrl = '') {
     $myLogin = whoami();
     $mail = gravatar_GetUserEmail($myLogin);
     $serviceUrl = '';
-    $avatarService=$ubillingConfig->getAlterParam('GRAVATAR_SERVICE');
-    $serviceUrl=gravatar_GetUrl($mail,true,$avatarService);
-    $parsedUrl = parse_url($serviceUrl);
-    $serviceUrl = $parsedUrl['scheme'] . '://' . $parsedUrl['host'] . '/';
+    $serviceName = '';
+    $avatarService = $ubillingConfig->getAlterParam('GRAVATAR_SERVICE');
+    switch ($avatarService) {
+        case 'gravatar':
+            $serviceUrl = 'https://gravatar.com/';
+            $serviceName = 'Gravatar';
+            break;
+        case 'libravatar':
+            $serviceUrl = 'https://libravatar.org/';
+            $serviceName = 'Libravatar';
+            break;
+        default:
+            $serviceUrl = 'https://libravatar.org/';
+            $serviceName = 'Libravatar';
+            break;
+    }
 
     $cells = wf_TableCell(wf_tag('h1') . $myLogin . wf_tag('h1', true), '', '', 'align="center"');
     $rows = wf_TableRow($cells);
@@ -6707,9 +6719,23 @@ function web_avatarControlForm($backUrl = '') {
     $cells = wf_TableCell(wf_tag('h3') . __('Your email') . ': ' . $mail . wf_tag('h3', true), '', '', 'align="center"');
     $rows .= wf_TableRow($cells);
 
-    $controlLink=wf_Link($serviceUrl, __('Change my avatar at') . ' ' . $serviceUrl, false,'','target="_blank"');
+    $controlLink = wf_Link($serviceUrl, __('Change my avatar at') . ' ' . $serviceName, false, 'ubButton', 'target="_blank"');
     $cells = wf_TableCell($controlLink, false, '', 'align="center"');
     $rows .= wf_TableRow($cells);
+
+    if (cfr('ROOT')) {
+        $cacheFlushUrl = UBMessenger::URL_AVATAR_CONTROL . '&flushavacache=true';
+        $cancelUrl = UBMessenger::URL_AVATAR_CONTROL;
+        if (ubRouting::checkGet('back')) {
+            $cacheFlushUrl .= '&back=' . ubRouting::get('back');
+            $cancelUrl .= '&back=' . ubRouting::get('back');
+        }
+
+        $cacheFlushLink = wf_ConfirmDialog($cacheFlushUrl, wf_img('skins/icon_cleanup.png') . ' ' . __('Cache cleanup'), __('Cache cleanup'), 'ubButton', $cancelUrl, __('Are you serious'));
+        $cells = wf_TableCell($cacheFlushLink, false, '', 'align="center"');
+        $rows .= wf_TableRow($cells);
+    }
+
     $result = wf_TableBody($rows, '100%', '0', 'glamour');
     $result .= wf_CleanDiv();
     if ($backUrl) {
@@ -6719,4 +6745,21 @@ function web_avatarControlForm($backUrl = '') {
     }
 
     return ($result);
+}
+
+/**
+ * Flushes cached avatars for all users
+ * 
+ * @return void
+ */
+function zb_avatarFlushCache() {
+    $avaPath = 'content/avatars/';
+    $allAvatars = rcms_scandir($avaPath, '*.jpg');
+    ic($allAvatars);
+    if (!empty($allAvatars)) {
+        foreach ($allAvatars as $io => $each) {
+            unlink($avaPath . $each);
+        }
+    }
+    log_register('AVACONTROL CACHE FLUSH');
 }

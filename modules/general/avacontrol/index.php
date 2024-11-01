@@ -1,6 +1,17 @@
 <?php
 if (cfr('UBIM')) {
-    show_window(__('Avatar control'),web_avatarControlForm(ubRouting::get('back')));
+    if (cfr('ROOT')) {
+        if (ubRouting::checkGet('flushavacache')) {
+            zb_avatarFlushCache();
+            if (ubRouting::checkGet('back')) {
+                ubRouting::nav(UBMessenger::URL_AVATAR_CONTROL . '&back=' . ubRouting::get('back'));
+            } else {
+                ubRouting::nav(UBMessenger::URL_AVATAR_CONTROL);
+            }
+        }
+    }
+
+    show_window(__('Avatar control'), web_avatarControlForm(ubRouting::get('back')));
 } else {
     show_error(__('Access denied'));
 }
