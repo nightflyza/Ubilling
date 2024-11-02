@@ -407,7 +407,7 @@ class GRes {
             $extInfTmp = zb_GetAgentExtInfo('', '', '', '', '');
             if (!empty($extInfTmp)) {
                 foreach ($extInfTmp as $io => $each) {
-                    $this->allAgentsExtInfo[$each['agentid']][] = $each;
+                    $this->allAgentsExtInfo[$each['agentid']][$each['id']] = $each;
                 }
             }
         }
@@ -1107,6 +1107,8 @@ class GRes {
      */
     protected function calcAgents($specs, $amount = 0) {
         $result = array();
+        $result['extinfo'] = array();
+
         $origAmount = $amount;
         $specAmount = $amount;
         $leftoversCount = 0;
@@ -1125,6 +1127,7 @@ class GRes {
                     //appending legacy extinfo
                     if (isset($this->allAgentsExtInfo[$agentId])) {
                         $result[$agentId]['extinfo'] = $this->allAgentsExtInfo[$agentId];
+                        $result['extinfo'] += $this->allAgentsExtInfo[$agentId];
                     } else {
                         $result[$agentId]['extinfo'] = array();
                     }
