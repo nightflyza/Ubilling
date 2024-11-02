@@ -161,6 +161,7 @@ class OphanimFlow {
 
                         $newDl = $eachTraffData['dl'];
                         $newUl = $eachTraffData['ul'];
+
                         //traffic counters changed?
                         if ($newDl != $savedDl OR $newUl != $savedUl) {
                             $this->traffDb->data('D0', $newDl);
@@ -169,12 +170,12 @@ class OphanimFlow {
                             $this->traffDb->save(true, true);
                         }
                     } else {
-                        //new record
+                        //new record always with 0 at start to prevent previous month traffic shift
                         $this->traffDb->data('login', $userLogin);
                         $this->traffDb->data('month', $this->currentMonth);
                         $this->traffDb->data('year', $this->currentYear);
-                        $this->traffDb->data('D0', $eachTraffData['dl']);
-                        $this->traffDb->data('U0', $eachTraffData['ul']);
+                        $this->traffDb->data('D0', 0);
+                        $this->traffDb->data('U0', 0);
                         $this->traffDb->create();
                     }
                 }
