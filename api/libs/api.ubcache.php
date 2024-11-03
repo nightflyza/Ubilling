@@ -299,7 +299,7 @@ class UbillingCache {
         //memcached storage
         if ($this->storage == 'memcached') {
             $result = $this->memcached->get($key);
-            if (!$result) {
+            if ($result===false) {
                 $result = '';
             }
             $this->logEvent('GET KEY: ' . $key, $result);
@@ -309,7 +309,7 @@ class UbillingCache {
         //redis storage
         if ($this->storage == 'redis') {
             $result = $this->redis->get($key);
-            if (!$result) {
+            if ($result===false) {
                 $result = '';
             }
             $this->logEvent('GET KEY: ' . $key, $result);
