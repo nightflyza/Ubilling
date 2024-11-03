@@ -248,8 +248,14 @@ class UbillingCache {
         //redis storage
         if ($this->storage == 'redis') {
             $this->redis->set($key, $data);
-            $this->redis->setTimeout($key, $expiration);
-        }
+            // setTimeout method deprecated: https://github.com/phpredis/phpredis/pull/1572
+            // that check required for paleolithic legacy setups with PHP 5.x etc.
+            if (method_exists($this->redis,'expire2')) {
+                $this->redis->expire($key, $expiration);
+            } else {
+                @$this->redis->setTimeout($key, $expiration);
+            }
+        }   
 
         $this->logEvent('SET KEY: ' . $key, $data);
     }
