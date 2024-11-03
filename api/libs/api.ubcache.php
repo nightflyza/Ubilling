@@ -250,7 +250,7 @@ class UbillingCache {
             $this->redis->set($key, $data);
             // setTimeout method deprecated: https://github.com/phpredis/phpredis/pull/1572
             // that check required for paleolithic legacy setups with PHP 5.x etc.
-            if (method_exists($this->redis,'expire2')) {
+            if (method_exists($this->redis,'expire')) {
                 $this->redis->expire($key, $expiration);
             } else {
                 @$this->redis->setTimeout($key, $expiration);
