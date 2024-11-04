@@ -33,11 +33,11 @@ class GRes {
     protected $allAgentsExtInfo = array();
 
     /**
-    * Contains agents extended data strategy for as agentExtId=>[extDataArr]
+    * Contains agents extended data for strategy as agentExtId=>[extDataArr]
     *
     * @var array
     */
-    protected $agentsExtInfo = array();
+    protected $stategyAgentsExtInfo = array();
 
     /**
      * Contains preprocessed all agents data as agentId=>[data]+[exinfo]+[split]
@@ -1132,7 +1132,7 @@ class GRes {
                     //appending legacy extinfo
                     if (isset($this->allAgentsExtInfo[$agentId])) {
                         $result[$agentId]['extinfo'] = $this->allAgentsExtInfo[$agentId];
-                        $this->agentsExtInfo += $this->allAgentsExtInfo[$agentId];
+                        $this->stategyAgentsExtInfo += $this->allAgentsExtInfo[$agentId];
                     } else {
                         $result[$agentId]['extinfo'] = array();
                     }
@@ -1288,7 +1288,7 @@ class GRes {
 
                 if (!empty($stratData['specs'])) {
                     $result['agents'] = $this->calcAgents($stratData['specs'], $this->amount);
-                    $result['agentsextinfo'] = $this->agentsExtInfo;
+                    $result['agentsextinfo'] = $this->stategyAgentsExtInfo;
                     //cleanup spec raw data
                     unset($result['specs']);
                     //set payment opts
