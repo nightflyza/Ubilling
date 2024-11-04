@@ -21,16 +21,24 @@ function zb_AddressCleanAddressCache() {
  * @param string $cityname
  * @param string $cityalias
  * 
- * @return void
+ * @return void|string
  */
 function zb_AddressCreateCity($cityname, $cityalias) {
-    $cityname = mysql_real_escape_string($cityname);
-    $cityalias = vf($cityalias);
-    $query = "INSERT INTO `city` (`id`,`cityname`,`cityalias`) VALUES (NULL, '" . $cityname . "','" . $cityalias . "'); ";
-    nr_query($query);
-    log_register('CREATE AddressCity `' . $cityname . '` `' . $cityalias . '`');
-    zb_AddressCleanAddressCache();
-    zb_UserGetAllDataCacheClean();
+    $result='';
+    $cityname=trim($cityname);
+    $cityname = ubRouting::filters($cityname,'safe');
+    $citynameF = ubRouting::filters($cityname,'mres');
+    if (!empty($citynameF)) {
+        $cityalias = ubRouting::filters($cityalias,'gigasafe');
+        $query = "INSERT INTO `city` (`id`,`cityname`,`cityalias`) VALUES (NULL, '" . $citynameF . "','" . $cityalias . "'); ";
+        nr_query($query);
+        log_register('CREATE AddressCity `' . $cityname . '` `' . $cityalias . '`');
+        zb_AddressCleanAddressCache();
+        zb_UserGetAllDataCacheClean();
+    } else {
+        $result.=__('All fields marked with an asterisk are mandatory');
+    }
+    return($result);
 }
 
 /**
@@ -55,16 +63,24 @@ function zb_AddressDeleteCity($cityid) {
  * @param int $cityid
  * @param string $cityname
  * 
- * @return void
+ * @return void|string
  */
 function zb_AddressChangeCityName($cityid, $cityname) {
-    $cityid = vf($cityid, 3);
-    $cityname = mysql_real_escape_string($cityname);
-    $query = "UPDATE `city` SET `cityname` = '" . $cityname . "' WHERE `id`= '" . $cityid . "' ;";
-    nr_query($query);
-    log_register('CHANGE AddressCityName [' . $cityid . '] `' . $cityname . '`');
-    zb_AddressCleanAddressCache();
-    zb_UserGetAllDataCacheClean();
+    $result='';
+    $cityid = ubRouting::filters($cityid, 'int');
+    $cityname = trim($cityname);
+    $cityname = ubRouting::filters($cityname,'safe');
+    $citynameF=ubRouting::filters($cityname,'mres');
+    if (!empty($citynameF)) {
+        $query = "UPDATE `city` SET `cityname` = '" . $citynameF . "' WHERE `id`= '" . $cityid . "' ;";
+        nr_query($query);
+        log_register('CHANGE AddressCityName [' . $cityid . '] `' . $cityname . '`');
+        zb_AddressCleanAddressCache();
+        zb_UserGetAllDataCacheClean();
+    } else {
+        $result.=__('All fields marked with an asterisk are mandatory');
+    }
+    return($result);
 }
 
 /**
@@ -76,8 +92,8 @@ function zb_AddressChangeCityName($cityid, $cityname) {
  * @return void
  */
 function zb_AddressChangeCityAlias($cityid, $cityalias) {
-    $cityid = vf($cityid, 3);
-    $cityalias = vf($cityalias);
+    $cityid = ubRouting::filters($cityid, 'int');
+    $cityalias = ubRouting::filters($cityalias,'gigasafe');
     $query = "UPDATE `city` SET `cityalias` = '" . $cityalias . "' WHERE `id`= '" . $cityid . "' ;";
     nr_query($query);
     log_register('CHANGE AddressCityAlias [' . $cityid . '] `' . $cityalias . '`');
@@ -2171,6 +2187,7 @@ function zb_AddressFilterStreet($name) {
  * @return string
  */
 function checkCityExists($CityName, $ExcludeEditedCityID = 0) {
+    $CityName= ubRouting::filters($CityName,'safe');
     $CityName = trim($CityName);
 
     if (empty($ExcludeEditedCityID)) {

@@ -1,64 +1,66 @@
 <?php
 // check for right of current admin on this module
 if (cfr('CITY')) {
+    $messages = new UbillingMessageHelper();
+    $errorStyling='style="margin: auto 0; padding: 10px 3px; width: 100%;"';
 
-
-    if (isset($_POST['newcityname'])) {
-        $newcityname=$_POST['newcityname'];
-
-        if (isset($_POST['newcityalias'])) {
-            $newcityalias=$_POST['newcityalias'];
-        } else {
-            $newcityalias='';
-        }
+    if (ubRouting::checkPost('newcityname')) {
+        $newcityname=ubRouting::post('newcityname','safe');
+        $newcityalias= (ubRouting::checkPost('newcityalias'))  ? ubRouting::post('newcityalias','gigasafe') : '';
         
         if (!empty($newcityname)) {
             $FoundCityID = checkCityExists($newcityname);
-
-            if ( empty($FoundCityID) ) {
-                zb_AddressCreateCity($newcityname, $newcityalias);
-                die();
+            if (empty($FoundCityID) ) {
+                $cityCreationResult=zb_AddressCreateCity($newcityname, $newcityalias);
+                if ($cityCreationResult) {
+                    $errormes = $messages->getStyledMessage($cityCreationResult, 'error', $errorStyling);
+                    die(wf_modalAutoForm(__('Error'), $errormes, ubRouting::post('errfrmid'), '', true));
+                } else {
+                    die();
+                }
+                
             } else {
-                $messages = new UbillingMessageHelper();
-                $errormes = $messages->getStyledMessage(__('City with such name already exists with ID: ') . $FoundCityID, 'error', 'style="margin: auto 0; padding: 10px 3px; width: 100%;"');
-                die(wf_modalAutoForm(__('Error'), $errormes, $_POST['errfrmid'], '', true));
+                $errormes = $messages->getStyledMessage(__('City with such name already exists with ID: ') . $FoundCityID, 'error', $errorStyling);
+                die(wf_modalAutoForm(__('Error'), $errormes, ubRouting::post('errfrmid'), '', true));
             }
         }
     }
 
-    if (isset($_GET['action'])) {
-        if (isset($_GET['cityid'])) {
-            $cityid = $_GET['cityid'];
+    if (ubRouting::checkGet('action')) {
+        if (ubRouting::checkGet('cityid',false)) {
+            $cityid = ubRouting::get('cityid','int');
 
-            if ($_GET['action'] == 'delete') {
+            if (ubRouting::get('action') == 'delete') {
                 if (!zb_AddressCityProtected($cityid)) {
                     zb_AddressDeleteCity($cityid);
                     die();
                 } else {
-                    $messages = new UbillingMessageHelper();
-                    $errormes = $messages->getStyledMessage(__('You can not just remove a city where there are streets and possibly survivors'), 'error', 'style="margin: auto 0; padding: 10px 3px; width: 100%;"');
-                    die(wf_modalAutoForm(__('Error'), $errormes, $_GET['errfrmid'], '', true));
+                    $errormes = $messages->getStyledMessage(__('You can not just remove a city where there are streets and possibly survivors'), 'error', $errorStyling);
+                    die(wf_modalAutoForm(__('Error'), $errormes, ubRouting::get('errfrmid'), '', true));
                 }
             }
 
-            if ($_GET['action'] == 'edit') {
-                if (isset ($_POST['editcityname'])) {
-                    if (!empty($_POST['editcityname'])) {
-                        $FoundCityID = checkCityExists($_POST['editcityname'], $cityid);
+            if (ubRouting::get('action') == 'edit') {
+                if (ubRouting::checkPost('editcityname')) {
+                    if (!empty(ubRouting::post('editcityname','safe'))) {
+                        $FoundCityID = checkCityExists(ubRouting::post('editcityname','safe'), $cityid);
 
                         if ( empty($FoundCityID) ) {
-                            zb_AddressChangeCityName($cityid, $_POST['editcityname']);
+                            $cityRenameResult=zb_AddressChangeCityName($cityid, ubRouting::post('editcityname','safe'));
+                            if (!empty($cityRenameResult)) {
+                                $errormes = $messages->getStyledMessage($cityRenameResult, 'error', $errorStyling);
+                                die(wf_modalAutoForm(__('Error'), $errormes, ubRouting::post('errfrmid'), '', true));                                
+                            }
                         } else {
-                            $messages = new UbillingMessageHelper();
-                            $errormes = $messages->getStyledMessage(__('City with such name already exists with ID: ') . $FoundCityID, 'error', 'style="margin: auto 0; padding: 10px 3px; width: 100%;"');
-                            die(wf_modalAutoForm(__('Error'), $errormes, $_POST['errfrmid'], '', true));
+                            $errormes = $messages->getStyledMessage(__('City with such name already exists with ID: ') . $FoundCityID, 'error', $errorStyling);
+                            die(wf_modalAutoForm(__('Error'), $errormes, ubRouting::post('errfrmid'), '', true));
                         }
                     }
 
-                    zb_AddressChangeCityAlias($cityid, $_POST['editcityalias']);
+                    zb_AddressChangeCityAlias($cityid, ubRouting::post('editcityalias','gigasafe'));
                     die();
                 } else {
-                    die(wf_modalAutoForm(__('Edit City'), web_CityEditForm($cityid, $_GET['ModalWID']), $_GET['ModalWID'], $_GET['ModalWBID'], true));
+                    die(wf_modalAutoForm(__('Edit City'), web_CityEditForm($cityid, ubRouting::get('ModalWID')), ubRouting::get('ModalWID'), ubRouting::get('ModalWBID'), true));
                 }
             }
         }
@@ -72,5 +74,3 @@ if (cfr('CITY')) {
 } else {
       show_error(__('You cant control this module'));
 }
-
-?>
