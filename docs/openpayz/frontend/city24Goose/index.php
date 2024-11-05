@@ -285,7 +285,7 @@ function pltz_Payment($login, $password, $transactionID, $payTimestamp, $payID, 
                     $gooseResult = json_decode($gooseResult);
                     if (!empty($gooseResult->agents)) {
                         if (!empty($gooseResult->agents->{$ProductId}->extinfo)) {
-                            $paysys = preg_grep("/^" . PAYSYS_PREFIX . ".+/", array_column($gooseResult->agents->{$ProductId}->extinfo, 'internal_paysys_name', 'id'));
+                            $paysys = preg_grep("/^" . PAYSYS_PREFIX . ".+/", array_column((array)$gooseResult->agents->{$ProductId}->extinfo, 'internal_paysys_name', 'id'));
                             if (!empty($paysys)) {
                                 $paysys = current($paysys);
                                 $note = 'transactionID:' . $payID . ' terminalId:' . $terminalId;
