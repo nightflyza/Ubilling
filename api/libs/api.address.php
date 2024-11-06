@@ -24,21 +24,21 @@ function zb_AddressCleanAddressCache() {
  * @return void|string
  */
 function zb_AddressCreateCity($cityname, $cityalias) {
-    $result='';
-    $cityname=trim($cityname);
-    $cityname = ubRouting::filters($cityname,'safe');
-    $citynameF = ubRouting::filters($cityname,'mres');
+    $result = '';
+    $cityname = trim($cityname);
+    $cityname = ubRouting::filters($cityname, 'safe');
+    $citynameF = ubRouting::filters($cityname, 'mres');
     if (!empty($citynameF)) {
-        $cityalias = ubRouting::filters($cityalias,'gigasafe');
+        $cityalias = ubRouting::filters($cityalias, 'gigasafe');
         $query = "INSERT INTO `city` (`id`,`cityname`,`cityalias`) VALUES (NULL, '" . $citynameF . "','" . $cityalias . "'); ";
         nr_query($query);
         log_register('CREATE AddressCity `' . $cityname . '` `' . $cityalias . '`');
         zb_AddressCleanAddressCache();
         zb_UserGetAllDataCacheClean();
     } else {
-        $result.=__('All fields marked with an asterisk are mandatory');
+        $result .= __('All fields marked with an asterisk are mandatory');
     }
-    return($result);
+    return ($result);
 }
 
 /**
@@ -66,11 +66,11 @@ function zb_AddressDeleteCity($cityid) {
  * @return void|string
  */
 function zb_AddressChangeCityName($cityid, $cityname) {
-    $result='';
+    $result = '';
     $cityid = ubRouting::filters($cityid, 'int');
     $cityname = trim($cityname);
-    $cityname = ubRouting::filters($cityname,'safe');
-    $citynameF=ubRouting::filters($cityname,'mres');
+    $cityname = ubRouting::filters($cityname, 'safe');
+    $citynameF = ubRouting::filters($cityname, 'mres');
     if (!empty($citynameF)) {
         $query = "UPDATE `city` SET `cityname` = '" . $citynameF . "' WHERE `id`= '" . $cityid . "' ;";
         nr_query($query);
@@ -78,9 +78,9 @@ function zb_AddressChangeCityName($cityid, $cityname) {
         zb_AddressCleanAddressCache();
         zb_UserGetAllDataCacheClean();
     } else {
-        $result.=__('All fields marked with an asterisk are mandatory');
+        $result .= __('All fields marked with an asterisk are mandatory');
     }
-    return($result);
+    return ($result);
 }
 
 /**
@@ -93,7 +93,7 @@ function zb_AddressChangeCityName($cityid, $cityname) {
  */
 function zb_AddressChangeCityAlias($cityid, $cityalias) {
     $cityid = ubRouting::filters($cityid, 'int');
-    $cityalias = ubRouting::filters($cityalias,'gigasafe');
+    $cityalias = ubRouting::filters($cityalias, 'gigasafe');
     $query = "UPDATE `city` SET `cityalias` = '" . $cityalias . "' WHERE `id`= '" . $cityid . "' ;";
     nr_query($query);
     log_register('CHANGE AddressCityAlias [' . $cityid . '] `' . $cityalias . '`');
@@ -121,7 +121,7 @@ function zb_AddressGetCityData($cityid) {
 function zb_AddressListCityAllIds() {
     $query = "SELECT `id` from `city`";
     $all_ids = simple_queryall($query);
-    return($all_ids);
+    return ($all_ids);
 }
 
 /**
@@ -137,7 +137,7 @@ function zb_AddressGetCityAllData($FilterByCityId = 0) {
     $order = (isset($altCfg['CITY_ORDER'])) ? $altCfg['CITY_ORDER'] : 'default';
     $validStates = array('name', 'namerev', 'id', 'idrev', 'alias', 'aliasrev', 'default');
     $validStates = array_flip($validStates);
-    if ((isset($validStates[$order])) AND ( $order != 'default')) {
+    if ((isset($validStates[$order])) and ($order != 'default')) {
         switch ($order) {
             case 'name':
                 $sqlOrder = "ORDER by `cityname` ASC";
@@ -174,7 +174,7 @@ function zb_AddressGetCityAllData($FilterByCityId = 0) {
     $query = "SELECT * from `city` " . $WREREString . $sqlOrder;
 
     $all_data = simple_queryall($query);
-    return($all_data);
+    return ($all_data);
 }
 
 /**
@@ -192,7 +192,7 @@ function zb_AddressGetFullCityNames() {
         }
     }
 
-    return($result);
+    return ($result);
 }
 
 /**
@@ -205,10 +205,13 @@ function zb_AddressGetFullCityNames() {
  * @return void
  */
 function zb_AddressCreateStreet($cityid, $streetname, $streetalias) {
-    $streetname = mysql_real_escape_string($streetname);
-    $streetalias = vf($streetalias);
-    $cityid = vf($cityid, 3);
-    $query = "INSERT INTO `street` (`id`,`cityid`,`streetname`,`streetalias`) VALUES  (NULL, '" . $cityid . "','" . $streetname . "','" . $streetalias . "');";
+    $streetname = trim($streetname);
+    $streetname = ubRouting::filters($streetname, 'safe');
+    $streetnameF = ubRouting::filters($streetname, 'mres');
+    $streetalias = ubRouting::filters($streetalias, 'gigasafe');
+    $cityid = ubRouting::filters($cityid, 'int');
+
+    $query = "INSERT INTO `street` (`id`,`cityid`,`streetname`,`streetalias`) VALUES  (NULL, '" . $cityid . "','" . $streetnameF . "','" . $streetalias . "');";
     nr_query($query);
     log_register('CREATE AddressStreet [' . $cityid . '] `' . $streetname . '` `' . $streetalias . '`');
     zb_AddressCleanAddressCache();
@@ -240,10 +243,12 @@ function zb_AddressDeleteStreet($streetid) {
  * @return void
  */
 function zb_AddressChangeStreetName($streetid, $streetname) {
-    $streetid = vf($streetid, 3);
-    $streetname = zb_AddressFilterStreet($streetname);
-    $streetname = mysql_real_escape_string($streetname);
-    $query = "UPDATE `street` SET `streetname` = '" . $streetname . "' WHERE `id`= '" . $streetid . "' ;";
+    $streetid = ubRouting::filters($streetid, 'int');
+    $streetname = trim($streetname);
+    $streetname = ubRouting::filters($streetname, 'safe');
+    $streetnameF = ubRouting::filters($streetname, 'mres');
+
+    $query = "UPDATE `street` SET `streetname` = '" . $streetnameF . "' WHERE `id`= '" . $streetid . "' ;";
     nr_query($query);
     log_register('CHANGE AddressStreetName [' . $streetid . '] `' . $streetname . '`');
     zb_AddressCleanAddressCache();
@@ -259,9 +264,12 @@ function zb_AddressChangeStreetName($streetid, $streetname) {
  * @return void
  */
 function zb_AddressChangeStreetAlias($streetid, $streetalias) {
-    $streetid = vf($streetid);
-    $streetalias = mysql_real_escape_string($streetalias);
-    $query = "UPDATE `street` SET `streetalias` = '" . $streetalias . "' WHERE `id`= '" . $streetid . "' ;";
+    $streetid = ubRouting::filters($streetid, 'int');
+    $streetalias = trim($streetalias);
+    $streetalias = ubRouting::filters($streetalias, 'gigasafe');
+    $streetaliasF = ubRouting::filters($streetalias, 'mres');
+    
+    $query = "UPDATE `street` SET `streetalias` = '" . $streetaliasF . "' WHERE `id`= '" . $streetid . "' ;";
     nr_query($query);
     log_register('CHANGE AddressStreetAlias [' . $streetid . '] `' . $streetalias . '`');
 }
@@ -288,7 +296,7 @@ function zb_AddressGetStreetData($streetid) {
 function zb_AddressListStreetAllIds() {
     $query = "SELECT `id` from `street`";
     $all_ids = simple_queryall($query);
-    return($all_ids);
+    return ($all_ids);
 }
 
 /**
@@ -299,7 +307,7 @@ function zb_AddressListStreetAllIds() {
 function zb_AddressGetStreetAllData() {
     $query = "SELECT * from `street`";
     $all_data = simple_queryall($query);
-    return($all_data);
+    return ($all_data);
 }
 
 /**
@@ -321,7 +329,7 @@ function zb_AddressGetStreetsDataAssoc($queryParams = '') {
             $result[$each['id']] = $each;
         }
     }
-    return($result);
+    return ($result);
 }
 
 /**
@@ -335,7 +343,7 @@ function zb_AddressGetStreetAllDataByCity($cityid) {
     $cityid = vf($cityid, 3);
     $query = "SELECT * from `street` where `cityid`='" . $cityid . "' ORDER BY `streetname`";
     $all_data = simple_queryall($query);
-    return($all_data);
+    return ($all_data);
 }
 
 /**
@@ -482,7 +490,7 @@ function zb_AddressGetBuildData($buildid) {
 function zb_AddressListBuildAllIds() {
     $query = "SELECT `id` from `build`";
     $all_ids = simple_queryall($query);
-    return($all_ids);
+    return ($all_ids);
 }
 
 /**
@@ -493,7 +501,7 @@ function zb_AddressListBuildAllIds() {
 function zb_AddressGetBuildAllData() {
     $query = "SELECT * from `build`";
     $all_data = simple_queryall($query);
-    return($all_data);
+    return ($all_data);
 }
 
 /**
@@ -510,7 +518,7 @@ function zb_AddressGetBuildAllDataAssoc() {
             $result[$each['id']] = $each;
         }
     }
-    return($result);
+    return ($result);
 }
 
 /**
@@ -541,7 +549,7 @@ function zb_AddressGetBuildAllDataByStreet($streetid) {
     $streetid = vf($streetid, 3);
     $query = "SELECT * from `build` where `streetid`='" . $streetid . "' ORDER by `buildnum`+0 ASC";
     $all_data = simple_queryall($query);
-    return($all_data);
+    return ($all_data);
 }
 
 /**
@@ -552,7 +560,7 @@ function zb_AddressGetBuildAllDataByStreet($streetid) {
 function zb_AddressGetAptAllData() {
     $query = "SELECT * from `apt`";
     $all_data = simple_queryall($query);
-    return($all_data);
+    return ($all_data);
 }
 
 /**
@@ -565,7 +573,7 @@ function zb_AddressGetAptAllDataByBuild($buildid) {
     $buildid = vf($buildid, 3);
     $query = "SELECT * from `apt` where `buildid`='" . $buildid . "' ORDER by `apt`+0 ASC";
     $all_data = simple_queryall($query);
-    return($all_data);
+    return ($all_data);
 }
 
 /**
@@ -664,7 +672,7 @@ function zb_AddressChangeApartment($aptid, $buildid, $entrance, $floor, $apt) {
  * @return void
  */
 function zb_AddressCreateAddress($login, $aptid) {
-// zaebis notacia - da? :) ^^^^
+    // zaebis notacia - da? :) ^^^^
 
     $login = vf($login);
     $aptid = vf($aptid, 3);
@@ -722,7 +730,7 @@ function zb_AddressGetLastid() {
     // We need to do some investigations of it usage by the code. Thats realy strange ><
     $query = "SELECT * FROM `apt` ORDER BY `id` DESC LIMIT 0,1";
     $lastid = simple_query($query);
-    return($lastid['id']);
+    return ($lastid['id']);
 }
 
 /**
@@ -743,7 +751,7 @@ function zb_AddressGetAptData($login) {
         $result = simple_query($query);
         $result['aptid'] = $aptid;
     }
-    return($result);
+    return ($result);
 }
 
 /**
@@ -769,7 +777,7 @@ function zb_AddressGetAptDataById($aptid) {
     $result = array();
     $query = "SELECT * from `apt` where `id`='" . $aptid . "'";
     $result = simple_query($query);
-    return($result);
+    return ($result);
 }
 
 //////////////////////////////////////////// web functions (forms etc)
@@ -1054,7 +1062,7 @@ function web_StreetCreateForm($FilterByCityId = 0) {
         $form = $messages->getStyledMessage(__('No added cities - they will need to create a street'), 'error', 'style="margin: auto 0; padding: 10px 3px; width: 100%;"');
     }
 
-    return($form);
+    return ($form);
 }
 
 /**
@@ -1078,7 +1086,7 @@ function web_StreetEditForm($streetid, $ModalWID) {
     $inputs .= wf_Submit(__('Save'));
     $form = wf_Form('?module=streets&action=edit&streetid=' . $streetid . '&cityid=' . $cityid, 'POST', $inputs, 'glamour __StreetEditForm', '', $FormID);
 
-    return($form);
+    return ($form);
 }
 
 /**
@@ -1171,7 +1179,7 @@ function web_StreetLister($FilterByCityId = 0) {
     $result .= wf_JSEmptyFunc();
     $result .= wf_tag('script', true);
 
-    return($result);
+    return ($result);
 }
 
 /**
@@ -1264,7 +1272,7 @@ function web_StreetListerBuildsEdit() {
 
     $result = wf_JqDtLoader($columns, $AjaxURLStr, false, __('results'), 100, $opts);
 
-    return($result);
+    return ($result);
 }
 
 /**
@@ -1494,7 +1502,7 @@ function renderBuildsListerJSON($streetid, $AutoEditBuildID = 0) {
                 $ownerLabel = (!empty($passportData)) ? $passportData['owner'] . ' ' . $passportData['ownername'] . ' ' . $passportData['ownercontact'] : '';
                 $phoneLabel = (!empty($passportData)) ? $passportData['ownerphone'] : '';
                 $geometryLabel = (!empty($passportData['floors'])) ? $passportData['floors'] . '/' . $passportData['entrances'] . '/' . $passportData['apts'] : '';
-                $keysLabel = (isset($passportData['keys']) AND $passportData['keys']) ? wf_img('skins/icon_key.gif', __('Keys available')) : '';
+                $keysLabel = (isset($passportData['keys']) and $passportData['keys']) ? wf_img('skins/icon_key.gif', __('Keys available')) : '';
 
                 $data[] = ($ownerLabel);
                 $data[] = ($phoneLabel);
@@ -1581,7 +1589,7 @@ function web_BuildAddForm($streetid) {
             ';
     $form .= wf_tag('script', true);
 
-    return($form);
+    return ($form);
 }
 
 /**
@@ -1610,7 +1618,7 @@ function web_BuildEditForm($buildid, $streetid, $ModalWID) {
 
     $form = wf_Form('?module=builds&action=editbuild&streetid=' . $streetid . '&buildid=' . $buildid, 'POST', $inputs, 'glamour __BuildEditForm', '', $FormID);
 
-    return($form);
+    return ($form);
 }
 
 /**
@@ -1623,7 +1631,7 @@ function web_AptCreateForm() {
     $inputs .= wf_TextInput('floor', __('Floor'), '', true);
     $inputs .= wf_tag('input', false, '', 'type="text" id="apt" name="apt" style="margin-right: 8px;" onchange="checkapt();"') . __('Apartment') . wf_tag('br');
 
-    return($inputs);
+    return ($inputs);
 }
 
 /**
@@ -1695,7 +1703,7 @@ function web_CityCreateForm() {
             ';
     $form .= wf_tag('script', true);
 
-    return($form);
+    return ($form);
 }
 
 /**
@@ -1720,7 +1728,7 @@ function web_CityEditForm($cityid, $ModalWID) {
 
     $form = wf_Form('?module=city&action=edit&cityid=' . $cityid, 'POST', $inputs, 'glamour __CityEditForm', '', $FormID);
 
-    return($form);
+    return ($form);
 }
 
 /**
@@ -1800,7 +1808,7 @@ function web_CityLister() {
     $result .= wf_JSEmptyFunc();
     $result .= wf_tag('script', true);
 
-    return($result);
+    return ($result);
 }
 
 /**
@@ -1868,7 +1876,7 @@ function web_AddressExtenCreateForm() {
     $inputs .= wf_TextInput('towndistr', __('Town/District/Region'), '', true);
     $inputs .= wf_TextArea('addressexten', __('Extended address'), '', true, '47x4');
 
-    return($inputs);
+    return ($inputs);
 }
 
 /**
@@ -1985,7 +1993,7 @@ function zb_AddressExtenGetAllCached() {
         return (zb_AddressExtenGetAll());
     }, $cacheTime);
 
-    return($result);
+    return ($result);
 }
 
 /**
@@ -2041,7 +2049,7 @@ function zb_AddressGetFulladdresslist() {
         }
     }
 
-    return($result);
+    return ($result);
 }
 
 /**
@@ -2060,7 +2068,7 @@ function zb_AddressGetFulladdresslistCached() {
         return (zb_AddressGetFulladdresslist());
     }, $cacheTime);
 
-    return($result);
+    return ($result);
 }
 
 /**
@@ -2093,7 +2101,7 @@ function zb_AddressGetFullCityaddresslist() {
         }
     }
 
-    return($result);
+    return ($result);
 }
 
 /**
@@ -2117,7 +2125,7 @@ function zb_AddressGetCityUsers() {
         }
     }
 
-    return($result);
+    return ($result);
 }
 
 /**
@@ -2140,7 +2148,7 @@ function zb_AddressGetStreetUsers() {
         }
     }
 
-    return($result);
+    return ($result);
 }
 
 /**
@@ -2162,7 +2170,7 @@ function zb_AddressGetBuildUsers() {
         }
     }
 
-    return($result);
+    return ($result);
 }
 
 /**
@@ -2187,7 +2195,7 @@ function zb_AddressFilterStreet($name) {
  * @return string
  */
 function checkCityExists($CityName, $ExcludeEditedCityID = 0) {
-    $CityName= ubRouting::filters($CityName,'safe');
+    $CityName = ubRouting::filters($CityName, 'safe');
     $CityName = trim($CityName);
 
     if (empty($ExcludeEditedCityID)) {
@@ -2198,7 +2206,7 @@ function checkCityExists($CityName, $ExcludeEditedCityID = 0) {
 
     $result = simple_queryall($query);
 
-    return ( empty($result) ) ? '' : $result[0]['id'];
+    return (empty($result)) ? '' : $result[0]['id'];
 }
 
 /**
@@ -2211,7 +2219,10 @@ function checkCityExists($CityName, $ExcludeEditedCityID = 0) {
  * @return string
  */
 function checkStreetInCityExists($StreetName, $CityID, $ExcludeEditedStreetID = 0) {
+    $CityID = ubRouting::filters($CityID, 'int');
     $StreetName = trim($StreetName);
+    $StreetName = ubRouting::filters($StreetName, 'safe');
+    $StreetName = ubRouting::filters($StreetName, 'mres');
 
     if (empty($ExcludeEditedStreetID)) {
         $query = "SELECT `id` FROM `street` WHERE `streetname` = '" . $StreetName . "' AND `cityid` = '" . $CityID . "';";
@@ -2221,7 +2232,7 @@ function checkStreetInCityExists($StreetName, $CityID, $ExcludeEditedStreetID = 
 
     $result = simple_queryall($query);
 
-    return ( empty($result) ) ? '' : $result[0]['id'];
+    return (empty($result)) ? '' : $result[0]['id'];
 }
 
 /**
@@ -2244,7 +2255,7 @@ function checkBuildOnStreetExists($BuildNumber, $StreetID, $ExcludeEditedBuildID
 
     $result = simple_queryall($query);
 
-    return ( empty($result) ) ? '' : $result[0]['id'];
+    return (empty($result)) ? '' : $result[0]['id'];
 }
 
 /**
@@ -2268,5 +2279,5 @@ function zb_AddressGetBuildAllAddress() {
             $result[$buildId] = $buildCityName . ' ' . $buildStreetData['streetname'] . ' ' . $buildData['buildnum'];
         }
     }
-    return($result);
+    return ($result);
 }
