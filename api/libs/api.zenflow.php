@@ -105,7 +105,7 @@ class ZenFlow {
      *
      * @return void
      */
-    public function setSoundOnChange(string $soundOnChange) {
+    public function setSoundOnChange($soundOnChange) {
         $this->soundOnChange = $soundOnChange;
     }
 
