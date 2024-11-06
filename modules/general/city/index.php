@@ -41,7 +41,7 @@ if (cfr('CITY')) {
 
             if (ubRouting::get('action') == 'edit') {
                 if (ubRouting::checkPost('editcityname')) {
-                    if (!empty(ubRouting::post('editcityname', 'safe'))) {
+                    if (ubRouting::post('editcityname', 'safe')) {
                         $FoundCityID = checkCityExists(ubRouting::post('editcityname', 'safe'), $cityid);
 
                         if (empty($FoundCityID)) {

@@ -57,7 +57,7 @@ if (cfr('STREETS')) {
 
             if (ubRouting::get('action') == 'edit') {
                 if (ubRouting::post('editstreetname', 'safe')) {
-                    if (!empty(ubRouting::post('editstreetname'))) {
+                    if (ubRouting::post('editstreetname')) {
                         $editstreetname = ubRouting::post('editstreetname', 'safe');
 
                         $FoundStreetID = checkStreetInCityExists($editstreetname, ubRouting::get('cityid'), $streetid);
