@@ -6755,7 +6755,6 @@ function web_avatarControlForm($backUrl = '') {
 function zb_avatarFlushCache() {
     $avaPath = 'content/avatars/';
     $allAvatars = rcms_scandir($avaPath, '*.jpg');
-    ic($allAvatars);
     if (!empty($allAvatars)) {
         foreach ($allAvatars as $io => $each) {
             unlink($avaPath . $each);
