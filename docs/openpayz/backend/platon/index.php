@@ -113,7 +113,7 @@ if (!ubRouting::checkPost('amount') and ! ubRouting::checkPost('paymentid')) {
         }
 
         //goose resistance is here
-        if (isset($cfgPltn['GOOSE_RESISTANCE'])) {
+        if (isset($cfgPltn['GOOSE_RESISTANCE']) and $cfgPltn['GOOSE_RESISTANCE']) {
             $baseUrl = $cfgPltn['BILLING_URL'] . '/?module=remoteapi&key=' . $cfgPltn['BILLING_KEY'] . '&action=goose';
             $callbackUrl = $baseUrl . '&amount=' . $amountRaw . '&paymentid=' . $customerId;
             $gooseResult = @file_get_contents($callbackUrl);
