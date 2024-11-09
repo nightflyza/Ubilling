@@ -3549,4 +3549,5 @@ $lang['def']['Provider'] = 'Провайдер';
 $lang['def']['Subscriber'] = 'Абонент';
 $lang['def']['Write message'] = 'Напишіть повідомлення';
 $lang['def']['Select a chat to start a conversation'] = 'Виберіть чат, щоб почати спілкування';
+$lang['def']['No ONU assigned'] = 'Не призначено ONU';
 

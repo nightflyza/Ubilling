@@ -6762,3 +6762,128 @@ function zb_avatarFlushCache() {
     }
     log_register('AVACONTROL CACHE FLUSH');
 }
+
+/**
+ * Renders the PonSignal colored based on the signal strength.
+ *
+ * @param float $signal The signal strength value.
+ * 
+ * @return string
+ */
+function zb_PonSignalColorize($signal) {
+    $result = '';
+    if (($signal > 0) or ($signal < -27)) {
+        $sigColor = PONizer::COLOR_BAD;
+        $sigLabel = 'Bad signal';
+    } elseif ($signal > -27 and $signal < -25) {
+        $sigColor = PONizer::COLOR_AVG;
+        $sigLabel = 'Mediocre signal';
+    } else {
+        $sigColor = PONizer::COLOR_OK;
+        $sigLabel = 'Normal';
+    }
+
+    if ($signal == PONizer::NO_SIGNAL) {
+        $signal = __('No');
+        $sigColor = PONizer::COLOR_NOSIG;
+        $sigLabel = 'No signal';
+    }
+
+    $result .= wf_tag('font', false, '', 'color="' . $sigColor . '" title="' . __($sigLabel) . '"');
+    $result .= $signal;
+    $result .= wf_tag('font', true);
+    return ($result);
+}
+
+/**
+ * Returns assigned ONU signal/dereg reason
+ * 
+ * @param string $login
+ * @param bool   $colored
+ * @param bool   $label
+ * @param bool   $onuLink
+ *
+ * @return string
+ */
+function zb_getPonSignalData($login = '', $colored = false, $label = false, $onuLink = false) {
+    global $ubillingConfig;
+    $result = '';
+
+    if (!empty($login)) {
+        if ($ubillingConfig->getAlterParam('PON_ENABLED')) {
+            if ($ubillingConfig->getAlterParam('PON_ENABLED')) {
+                $signal = 'ETAOIN SHRDLU';
+                $deregReason = '';
+                $ponizerDb = new NyanORM(PONizer::TABLE_ONUS);
+                $ponizerDb->where('login', '=', $login);
+                $onuData = $ponizerDb->getAll();
+
+                if (empty($onuData)) {
+                    //no primary assign found?
+                    $ponizerOnuExtDb = new NyanORM(PONizer::TABLE_ONUEXTUSERS);
+                    $ponizerOnuExtDb->where('login', '=', $login);
+                    $assignedOnuExt = $ponizerOnuExtDb->getAll();
+                    if (!empty($assignedOnuExt)) {
+                        $ponizerDb->where('id', '=', $assignedOnuExt[0]['onuid']);
+                        $onuData = $ponizerDb->getAll();
+                    }
+                }
+
+                if (!empty($onuData)) {
+                    $onuData = $onuData[0];
+                    $onuId = $onuData['id'];
+                    $oltId = $onuData['oltid'];
+                    $oltAttractor = new OLTAttractor($oltId);
+                    $allSignals = $oltAttractor->getSignalsAll();
+
+                    //lookup latest ONU signal
+                    $signalLookup = $oltAttractor->lookupOnuIdxValue($onuData, $allSignals);
+                    if ($signalLookup != false) {
+                        $signal = $signalLookup;
+                    }
+
+                    if ($onuId) {
+                        //is ONU signal found in signals cache?
+                        $signal = ($signal == 'ETAOIN SHRDLU') ? PONizer::NO_SIGNAL : $signal;
+                        if ($colored) {
+                            $signalLabel = zb_PonSignalColorize($signal);
+                        } else {
+                            $signalLabel = $signal;
+                        }
+
+                        //ONU is offline?
+                        if ($signal == PONizer::NO_SIGNAL) {
+                            //lookup last dereg reason
+                            $allDeregReasons = $oltAttractor->getDeregsAll();
+                            $deregLookup = $oltAttractor->lookupOnuIdxValue($onuData, $allDeregReasons);
+                            if ($deregLookup != false) {
+                                $deregReason = $deregLookup;
+                            }
+
+                            if (!empty($deregReason)) {
+                                if ($colored) {
+                                    $signalLabel .= ' - ' . $deregReason;
+                                } else {
+                                    $signalLabel .= ' - ' . strip_tags($deregReason);
+                                }
+                            }
+                        }
+
+                        if ($onuLink) {
+                            $signalLabel = wf_Link(PONizer::URL_ONU . $onuId, $signalLabel);
+                        }
+
+                        if ($label) {
+                            $result .= __('ONU Signal') . ': ' . $signalLabel;
+                        } else {
+                            $result .= $signalLabel;
+                        }
+                    }
+                } else {
+                    $result .= __('No ONU assigned');
+                }
+            }
+        }
+    }
+    return ($result);
+}

@@ -3536,3 +3536,4 @@ $lang['def']['Item types spent on network upgrade'] = 'ТМЦ использов
 $lang['def']['Visible'] = 'Видимый';
 $lang['def']['Write message'] = 'Напишите сообщение';
 $lang['def']['Select a chat to start a conversation'] = 'Выберите чат для начала общения';
+$lang['def']['No ONU assigned'] = 'Не присвоено ONU';

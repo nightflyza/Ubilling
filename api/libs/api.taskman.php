@@ -2031,16 +2031,17 @@ function ts_CreateTask($startdate, $starttime, $address, $login, $phone, $jobtyp
         }
         //Telegram sending
         if (isset($_POST['newtasksendtelegram'])) {
-            $newTelegramText = __('ID') . ': ' . $taskid . '\r\n';
-            $newTelegramText .= __('Address') . ': ' . $address . '\r\n';
+            $tgEol = '\r\n';
+            $newTelegramText = __('ID') . ': ' . $taskid . $tgEol;
+            $newTelegramText .= __('Address') . ': ' . $address . $tgEol;
             if (!empty($login)) {
-                $newTelegramText .= __('Real Name') . ': ' . @$userData[$login]['realname'] . '\r\n';
+                $newTelegramText .= __('Real Name') . ': ' . @$userData[$login]['realname'] . $tgEol;
             }
-            $newTelegramText .= __('Job type') . ': ' . @$jobtype[$jobtypeid] . '\r\n';
-            $newTelegramText .= __('Phone') . ': ' . $phone . '\r\n';
-            $newTelegramText .= __('Job note') . ': ' . $jobnote . '\r\n';
-            $newTelegramText .= __('Target date') . ': ' . $startdate . ' ' . $starttimeRaw . '\r\n';
-            $newTelegramText .= __('Create date') . ': ' . $jobSendTime . '\r\n';
+            $newTelegramText .= __('Job type') . ': ' . @$jobtype[$jobtypeid] . $tgEol;
+            $newTelegramText .= __('Phone') . ': ' . $phone . $tgEol;
+            $newTelegramText .= __('Job note') . ': ' . $jobnote . $tgEol;
+            $newTelegramText .= __('Target date') . ': ' . $startdate . ' ' . $starttimeRaw . $tgEol;
+            $newTelegramText .= __('Create date') . ': ' . $jobSendTime . $tgEol;
             if (!empty($login)) {
 
                 $userCableSeal = '';
@@ -2048,16 +2049,16 @@ function ts_CreateTask($startdate, $starttime, $address, $login, $phone, $jobtyp
                     $userCondet = new ConnectionDetails();
                     $userCableSeal = $userCondet->getByLogin($login);
                     if (!empty($userCableSeal)) {
-                        $userCableSeal = __('Cable seal') . ': ' . $userCableSeal['seal'] . '\r\n'; // kabelnyi tyulenchik
+                        $userCableSeal = __('Cable seal') . ': ' . $userCableSeal['seal'] . $tgEol; // kabelnyi tyulenchik
                     }
                 }
 
-                $newTelegramText .= __('Login') . ': ' . $login . '\r\n';
-                $newTelegramText .= __('Password') . ': ' . @$userData[$login]['Password'] . '\r\n';
-                $newTelegramText .= __('Contract') . ': ' . @$userData[$login]['contract'] . '\r\n';
-                $newTelegramText .= __('IP') . ': ' . @$userData[$login]['ip'] . '\r\n';
-                $newTelegramText .= __('MAC') . ': ' . @$userData[$login]['mac'] . '\r\n';
-                $newTelegramText .= __('Tariff') . ': ' . @$userData[$login]['Tariff'] . '\r\n';
+                $newTelegramText .= __('Login') . ': ' . $login . $tgEol;
+                $newTelegramText .= __('Password') . ': ' . @$userData[$login]['Password'] . $tgEol;
+                $newTelegramText .= __('Contract') . ': ' . @$userData[$login]['contract'] . $tgEol;
+                $newTelegramText .= __('IP') . ': ' . @$userData[$login]['ip'] . $tgEol;
+                $newTelegramText .= __('MAC') . ': ' . @$userData[$login]['mac'] . $tgEol;
+                $newTelegramText .= __('Tariff') . ': ' . @$userData[$login]['Tariff'] . $tgEol;
 
                 //data preprocessing for geo sending
                 if (@isset($userData[$login]['geo'])) {
@@ -2071,12 +2072,16 @@ function ts_CreateTask($startdate, $starttime, $address, $login, $phone, $jobtyp
                 if ($ubillingConfig->getAlterParam('SWITCHPORT_IN_PROFILE')) {
                     $allAssigns = zb_SwitchesGetAssignsAll();
                     if (isset($allAssigns[$login])) {
-                        $newTelegramText .= __('Switch') . ': ' . @$allAssigns[$login]['label'] . '\r\n';
+                        $newTelegramText .= __('Switch') . ': ' . @$allAssigns[$login]['label'] . $tgEol;
                     }
                 }
 
                 if (!empty($userCableSeal)) {
                     $newTelegramText .= $userCableSeal;
+                }
+
+                if ($ubillingConfig->getAlterParam('TASKMAN_SEND_ONU_SIGNAL')) {
+                    $newTelegramText .= zb_getPonSignalData($login, false, true) . $tgEol;
                 }
             }
 
@@ -2091,7 +2096,6 @@ function ts_CreateTask($startdate, $starttime, $address, $login, $phone, $jobtyp
             if (!empty($fullBillingUrl) and $appendTaskLinkFlag) {
                 $newTelegramText .= '<a href="' . $fullBillingUrl . '/?module=taskman&edittask=' . $taskid . '">🔍 ' . __('View task') . '</a> parseMode:{html}';
             }
-
 
             //telegram messages sending
             ts_SendTelegram($employeeid, $newTelegramText, $taskDataGeo);
@@ -2246,44 +2250,49 @@ function ts_ModifyTask($taskid, $startdate, $starttime, $address, $login, $phone
 
     //Telegram sending
     if (isset($_POST['changetasksendtelegram'])) {
+        $tgEol='\r\n';
         if (!empty($login)) {
             $userData = zb_UserGetAllData($login);
         }
-        $newTelegramText = __('ID') . ': ' . $taskid . '\r\n';
-        $newTelegramText .= __('Address') . ': ' . $address . '\r\n';
+        $newTelegramText = __('ID') . ': ' . $taskid . $tgEol;
+        $newTelegramText .= __('Address') . ': ' . $address . $tgEol;
         if (!empty($login)) {
-            $newTelegramText .= __('Real Name') . ': ' . @$userData[$login]['realname'] . '\r\n';
+            $newTelegramText .= __('Real Name') . ': ' . @$userData[$login]['realname'] . $tgEol;
         }
-        $newTelegramText .= __('Job type') . ': ' . @$jobtype[$jobtypeid] . '\r\n';
-        $newTelegramText .= __('Phone') . ': ' . $phone . '\r\n';
-        $newTelegramText .= __('Job note') . ': ' . $jobnote . '\r\n';
-        $newTelegramText .= __('Target date') . ': ' . $startdate . ' ' . $starttimeRaw . '\r\n';
+        $newTelegramText .= __('Job type') . ': ' . @$jobtype[$jobtypeid] . $tgEol;
+        $newTelegramText .= __('Phone') . ': ' . $phone . $tgEol;
+        $newTelegramText .= __('Job note') . ': ' . $jobnote . $tgEol;
+        $newTelegramText .= __('Target date') . ': ' . $startdate . ' ' . $starttimeRaw . $tgEol;
         if (!empty($login)) {
             $userCableSeal = '';
             if ($ubillingConfig->getAlterParam('CONDET_ENABLED')) {
-                $userCondet = new ConnectionDetails();
-                $userCableSeal = $userCondet->getByLogin($login);
-                if (!empty($userCableSeal)) {
-                    $userCableSeal = __('Cable seal') . ': ' . $userCableSeal['seal'] . '\r\n';
-                }
+            $userCondet = new ConnectionDetails();
+            $userCableSeal = $userCondet->getByLogin($login);
+            if (!empty($userCableSeal)) {
+                $userCableSeal = __('Cable seal') . ': ' . $userCableSeal['seal'] . $tgEol;
+            }
             }
 
-            $newTelegramText .= __('Login') . ': ' . $login . '\r\n';
-            $newTelegramText .= __('Password') . ': ' . @$userData[$login]['Password'] . '\r\n';
-            $newTelegramText .= __('Contract') . ': ' . @$userData[$login]['contract'] . '\r\n';
-            $newTelegramText .= __('IP') . ': ' . @$userData[$login]['ip'] . '\r\n';
-            $newTelegramText .= __('MAC') . ': ' . @$userData[$login]['mac'] . '\r\n';
-            $newTelegramText .= __('Tariff') . ': ' . @$userData[$login]['Tariff'] . '\r\n';
+            $newTelegramText .= __('Login') . ': ' . $login . $tgEol;
+            $newTelegramText .= __('Password') . ': ' . @$userData[$login]['Password'] . $tgEol;
+            $newTelegramText .= __('Contract') . ': ' . @$userData[$login]['contract'] . $tgEol;
+            $newTelegramText .= __('IP') . ': ' . @$userData[$login]['ip'] . $tgEol;
+            $newTelegramText .= __('MAC') . ': ' . @$userData[$login]['mac'] . $tgEol;
+            $newTelegramText .= __('Tariff') . ': ' . @$userData[$login]['Tariff'] . $tgEol;
 
             if ($ubillingConfig->getAlterParam('SWITCHPORT_IN_PROFILE')) {
-                $allAssigns = zb_SwitchesGetAssignsAll();
-                if (isset($allAssigns[$login])) {
-                    $newTelegramText .= __('Switch') . ': ' . @$allAssigns[$login]['label'] . '\r\n';
-                }
+            $allAssigns = zb_SwitchesGetAssignsAll();
+            if (isset($allAssigns[$login])) {
+                $newTelegramText .= __('Switch') . ': ' . @$allAssigns[$login]['label'] . $tgEol;
+            }
             }
 
             if (!empty($userCableSeal)) {
                 $newTelegramText .= $userCableSeal;
+            }
+
+            if ($ubillingConfig->getAlterParam('TASKMAN_SEND_ONU_SIGNAL')) {
+                $newTelegramText .= zb_getPonSignalData($login, false, true) . $tgEol;
             }
         }
 
@@ -2709,6 +2718,13 @@ function ts_TaskChangeForm($taskid) {
                         $tablecells .= wf_TableCell(@$allAssigns[$taskLogin]['label']);
                         $tablerows .= wf_TableRow($tablecells, 'row3');
                     }
+                }
+
+                if ($ubillingConfig->getAlterParam('TASKMAN_RENDER_ONU_SIGNAL')) {
+                    $onuLinkFlag=(cfr('PON')) ? true : false;
+                    $tablecells = wf_TableCell(__('ONU Signal'));
+                    $tablecells .= wf_TableCell(zb_getPonSignalData($taskLogin, true, false, $onuLinkFlag));
+                    $tablerows .= wf_TableRow($tablecells, 'row3');
                 }
             }
         }

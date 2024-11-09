@@ -1140,39 +1140,7 @@ class UserProfile {
 
 
     /**
-     * Renders the PonSignal colored based on the signal strength.
-     *
-     * @param float $signal The signal strength value.
-     * 
-     * @return string
-     */
-    protected function renderPonSignalColored($signal) {
-        $result = '';
-        if (($signal > 0) or ($signal < -27)) {
-            $sigColor = PONizer::COLOR_BAD;
-            $sigLabel = 'Bad signal';
-        } elseif ($signal > -27 and $signal < -25) {
-            $sigColor = PONizer::COLOR_AVG;
-            $sigLabel = 'Mediocre signal';
-        } else {
-            $sigColor = PONizer::COLOR_OK;
-            $sigLabel = 'Normal';
-        }
-
-        if ($signal == PONizer::NO_SIGNAL) {
-            $signal = __('No');
-            $sigColor = PONizer::COLOR_NOSIG;
-            $sigLabel = 'No signal';
-        }
-
-        $result .= wf_tag('font', false, '', 'color="' . $sigColor . '" title="' . __($sigLabel) . '"');
-        $result .= $signal;
-        $result .= wf_tag('font', true);
-        return ($result);
-    }
-
-    /**
-     * Returns compact assigned ONU signal/dereg reason
+     * Returns assigned ONU signal/dereg reason
      *
      * @return string
      */
@@ -1180,6 +1148,7 @@ class UserProfile {
         $result = '';
         if (isset($this->alterCfg['SIGNAL_IN_PROFILE_COMPACT'])) {
             if ($this->alterCfg['SIGNAL_IN_PROFILE_COMPACT']) {
+                
                 $signal = 'ETAOIN SHRDLU';
                 $deregReason = '';
                 $ponizerDb = new NyanORM(PONizer::TABLE_ONUS);
@@ -1212,7 +1181,7 @@ class UserProfile {
                     if ($onuId) {
                         //is ONU signal found in signals cache?
                         $signal = ($signal == 'ETAOIN SHRDLU') ? PONizer::NO_SIGNAL : $signal;
-                        $signalLabel = $this->renderPonSignalColored($signal);
+                        $signalLabel = zb_PonSignalColorize($signal);
 
                         //ONU is offline?
                         if ($signal == PONizer::NO_SIGNAL) {
