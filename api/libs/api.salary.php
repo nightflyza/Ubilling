@@ -832,8 +832,8 @@ class Salary {
                             $jobtypes[$io] = $each . ' (' . $jobUnit . ')';
                         } else {
                             if (!$noPriceHideFlag) {
-                                $jobtypes[$io] = $each . ' (' . $jobUnit . ')';
                                 $jobUnit = '?';
+                                $jobtypes[$io] = $each . ' (' . $jobUnit . ')';
                             }
                         }
                     }
