@@ -39,4 +39,3 @@ if (cfr('UHW')) {
 } else {
     show_error(__('Permission denied'));
 }
-?>

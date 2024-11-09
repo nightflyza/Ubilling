@@ -6,16 +6,70 @@
 class UHW {
 
     /**
+     * log database abstraction layer
+     *
+     * @var object
+     */
+    protected $logDb = '';
+
+    /**
+     * Brute attempts database abstraction layer
+     *
+     * @var object
+     */
+    protected $bruteDb = '';
+
+    /**
+     * System message helper placeholder
+     *
+     * @var object
+     */
+    protected $messages = '';
+
+    //some predefined stuff
+    const TABLE_LOG = 'uhw_log';
+    const TABLE_BRUTE = 'uhw_brute';
+    const URL_ME = '?module=uhw';
+    const ROUTE_BRUTE_SHOW = 'showbrute';
+    const ROUTE_BRUTE_DEL = 'delbrute';
+    const ROUTE_BRUTE_FLUSH = 'cleanallbrute';
+    const ROUTE_LOGIN = 'username';
+    const ROUTE_AJAX_LOG='ajax';
+
+    public function __construct() {
+        $this->initMessages();
+        $this->initDbs();
+    }
+
+    /**
+     * Inits message helper instance
+     *
+     * @return void
+     */
+    protected function initMessages() {
+        $this->messages = new UbillingMessageHelper();
+    }
+
+    /**
+     * Inits some database abstraction layers
+     *
+     * @return void
+     */
+    protected function initDbs() {
+        $this->logDb = new NyanORM(self::TABLE_LOG);
+        $this->bruteDb = new NyanORM(self::TABLE_BRUTE);
+    }
+
+    /**
      * Returns UHW control panel widget
      * 
      * @return string
      */
     public function panel() {
-        if (!wf_CheckGet(array('username'))) {
-            $result = wf_Link('?module=uhw', wf_img('skins/ukv/report.png') . ' ' . __('Usage report'), false, 'ubButton');
-            $result .= wf_Link('?module=uhw&showbrute=true', wf_img('skins/icon_key.gif') . ' ' . __('Brute attempts'), false, 'ubButton');
-        } else {
-            $result = '';
+        $result = '';
+        if (!ubRouting::checkGet(self::ROUTE_LOGIN)) {
+            $result = wf_Link(self::URL_ME, wf_img('skins/ukv/report.png') . ' ' . __('Usage report'), false, 'ubButton');
+            $result .= wf_Link(self::URL_ME . '&' . self::ROUTE_BRUTE_SHOW . '=true', wf_img('skins/icon_key.gif') . ' ' . __('Brute attempts'), false, 'ubButton');
         }
         return ($result);
     }
@@ -28,17 +82,20 @@ class UHW {
      * @return void
      */
     public function ajaxGetData($loginFilter = '') {
-        $loginFilter = mysql_real_escape_string($loginFilter);
-        $where = (!empty($loginFilter)) ? "WHERE `login`='" . $loginFilter . "'" : '';
-        $query = "SELECT * from `uhw_log` " . $where . " ORDER by `id` DESC;";
-        $alluhw = simple_queryall($query);
+        $loginFilter = ubRouting::filters($loginFilter, 'login');
+        if (!empty($loginFilter)) {
+            $this->logDb->where('login', '=', $loginFilter);
+        }
+        $this->logDb->orderBy('id', 'DESC');
+        $all = $this->logDb->getAll();
+
         $alladdress = zb_AddressGetFulladdresslist();
         $allrealnames = zb_UserGetAllRealnames();
         $json = new wf_JqDtHelper();
 
-        if (!empty($alluhw)) {
-            foreach ($alluhw as $io => $each) {
-                $profileLink = wf_Link('?module=userprofile&username=' . $each['login'], web_profile_icon() . ' ' . $each['login'], false);
+        if (!empty($all)) {
+            foreach ($all as $io => $each) {
+                $profileLink = wf_Link(UserProfile::URL_PROFILE . $each['login'], web_profile_icon() . ' ' . $each['login'], false);
                 $userAddress = @$alladdress[$each['login']];
                 $userRealname = @$allrealnames[$each['login']];
 
@@ -61,7 +118,7 @@ class UHW {
     }
 
     /**
-     * Returns container of succefull UHW usages
+     * Returns container of successful UHW usages
      * 
      * @param string $searchLogin
      * 
@@ -71,8 +128,8 @@ class UHW {
         $result = '';
         $columns = array('ID', 'Date', 'Password', 'Login', 'Address', 'Real name', 'IP', 'NHID', 'Old MAC', 'New MAC');
         $opts = '"order": [[ 0, "desc" ]]';
-        $loginFilter = (!empty($searchLogin)) ? '&username=' . $searchLogin : '';
-        $result = wf_JqDtLoader($columns, '?module=uhw&ajax=true' . $loginFilter, false, 'users', 100, $opts);
+        $loginFilter = (!empty($searchLogin)) ? '&'.self::ROUTE_LOGIN.'=' . $searchLogin : '';
+        $result = wf_JqDtLoader($columns, self::URL_ME.'&'.self::ROUTE_AJAX_LOG.'=true' . $loginFilter, false, 'users', 100, $opts);
         return ($result);
     }
 
@@ -134,7 +191,4 @@ class UHW {
         $result = wf_TableBody($tablerows, '100%', 0, 'sortable');
         return ($result);
     }
-
 }
-
-?>
