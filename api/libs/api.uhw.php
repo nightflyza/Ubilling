@@ -141,10 +141,10 @@ class UHW {
      * @return void
      */
     public function deleteBrute($bruteid) {
-        $bruteid = vf($bruteid, 3);
-        $query = "DELETE from `uhw_brute` WHERE `id`='" . $bruteid . "'";
-        nr_query($query);
-        log_register("UHW BRUTE DELETE [" . $bruteid . "]");
+        $bruteid = ubRouting::filters($bruteid, 'int');
+        $this->bruteDb->where('id','=',$bruteid);
+        $this->bruteDb->delete();
+        log_register('UHW BRUTE DELETE [' . $bruteid . ']');
     }
 
     /**
@@ -155,7 +155,7 @@ class UHW {
     public function flushAllBrute() {
         $query = "TRUNCATE TABLE `uhw_brute` ;";
         nr_query($query);
-        log_register("UHW CLEANUP BRUTE");
+        log_register('UHW CLEANUP BRUTE');
     }
 
     /**
@@ -164,8 +164,8 @@ class UHW {
      * @return string
      */
     public function renderBruteAttempts() {
-        $query = "SELECT * from `uhw_brute` ORDER by `id` ASC";
-        $allbrutes = simple_queryall($query);
+        $this->bruteDb->orderBy('id','ASC');
+        $allbrutes=$this->bruteDb->getAll();
 
         $tablecells = wf_TableCell(__('ID'));
         $tablecells .= wf_TableCell(__('Date'));
@@ -182,7 +182,7 @@ class UHW {
                 $tablecells .= wf_TableCell(strip_tags($each['password']));
                 $tablecells .= wf_TableCell(strip_tags($each['login']));
                 $tablecells .= wf_TableCell($each['mac']);
-                $actlinks = wf_JSAlert('?module=uhw&showbrute=true&delbrute=' . $each['id'], web_delete_icon(), 'Are you serious');
+                $actlinks = wf_JSAlert(self::URL_ME.'&'.self::ROUTE_BRUTE_SHOW.'=true&'.self::ROUTE_BRUTE_DEL.'=' . $each['id'], web_delete_icon(), $this->messages->getEditAlert());
                 $tablecells .= wf_TableCell($actlinks);
                 $tablerows .= wf_TableRow($tablecells, 'row3');
             }
