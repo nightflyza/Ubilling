@@ -93,21 +93,21 @@ if (!ubRouting::checkPost('amount') and ! ubRouting::checkPost('paymentid')) {
         if (isset($cfgPltn['SPLIT_STATIC'])) {
             if (!empty($cfgPltn['SPLIT_STATIC'])) {
                 $splitProp = explode(',', $cfgPltn['SPLIT_STATIC']);
-            }
 
-            foreach ($splitProp as $io => $eachSplit) {
-                if (!empty($eachSplit)) {
-                    $cleanSplit = trim($eachSplit);
-                    $splitRulesArr[$cleanSplit] = 0;
+                foreach ($splitProp as $io => $eachSplit) {
+                    if (!empty($eachSplit)) {
+                        $cleanSplit = trim($eachSplit);
+                        $splitRulesArr[$cleanSplit] = 0;
+                    }
                 }
-            }
-            $splitAmountRatio = sizeof($splitRulesArr);
-            $splittedAmount = round(($amountRaw / $splitAmountRatio), 2);
-            $splittedAmount = number_format($splittedAmount, 2, '.', '');
+                $splitAmountRatio = sizeof($splitRulesArr);
+                $splittedAmount = round(($amountRaw / $splitAmountRatio), 2);
+                $splittedAmount = number_format($splittedAmount, 2, '.', '');
 
-            foreach ($splitRulesArr as $eachSplit => $eachAmount) {
-                if (!empty($eachSplit)) {
-                    $splitRulesArr[$eachSplit] = $splittedAmount;
+                foreach ($splitRulesArr as $eachSplit => $eachAmount) {
+                    if (!empty($eachSplit)) {
+                        $splitRulesArr[$eachSplit] = $splittedAmount;
+                    }
                 }
             }
         }
