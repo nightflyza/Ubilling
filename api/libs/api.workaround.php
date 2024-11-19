@@ -292,51 +292,45 @@ function web_EditorStringDataFormContract($fieldnames, $fieldkey, $useraddress, 
  */
 function zb_NewMacSelect($name = 'newmac') {
     global $ubillingConfig;
-    $billing_config = $ubillingConfig->getBilling();
-    $alter_conf = $ubillingConfig->getAlter();
-    $sudo = $billing_config['SUDO'];
-    $cat = $billing_config['CAT'];
-    $grep = $billing_config['GREP'];
-    $tail = $billing_config['TAIL'];
-    $leases = $alter_conf['NMLEASES'];
-    $leasesmark = $alter_conf['NMLEASEMARK'];
-    $command = $sudo . ' ' . $cat . ' ' . $leases . ' | ' . $grep . '  "' . $leasesmark . '" | ' . $tail . ' -n 200';
-    $rawdata = shell_exec($command);
     $allUsedMacs = zb_getAllUsedMac();
-    $resultArr = array();
-    $nmarr = array();
+    $allMacs = array();
+    $resultArr=array();
+    $lineLimit = 200;
+    $leases = $ubillingConfig->getAlterParam('NMLEASES');
+    $additionalSources = $ubillingConfig->getAlterParam('NMSOURCES_ADDITIONAL');
+    $reverseFlag = ($ubillingConfig->getAlterParam('NMREVERSE')) ? true : false;
+    $searchableFlag = ($ubillingConfig->getAlterParam('MACSEL_SEARCHBL')) ? true : false;
 
-    if (!empty($rawdata)) {
-        $cleardata = exploderows($rawdata);
-        foreach ($cleardata as $eachline) {
-            preg_match('/[a-f0-9]{2}:[a-f0-9]{2}:[a-f0-9]{2}:[a-f0-9]{2}:[a-f0-9]{2}:[a-f0-9]{2}/i', $eachline, $matches);
-            if (!empty($matches[0])) {
-                $nmarr[] = $matches[0];
-            }
-            if ($alter_conf['NMLEASES_EXTEND']) {
-                $eachline = preg_replace('/([a-f0-9]{2})(?![\s\]\/])([\.\:\-]?)/', '\1:', $eachline);
-                preg_match('/[a-f0-9]{2}:[a-f0-9]{2}:[a-f0-9]{2}:[a-f0-9]{2}:[a-f0-9]{2}:[a-f0-9]{2}/i', $eachline, $matches);
-                if (!empty($matches[0])) {
-                    $nmarr[] = $matches[0];
-                }
-            }
-        }
+    //parsing new MAC sources
+    if (!empty($leases)) {
+        $allMacs += zb_MacParseSource($leases, $lineLimit);
+    }
 
-        $unique_nmarr = array_unique($nmarr);
-        if (!empty($unique_nmarr)) {
-            foreach ($unique_nmarr as $newmac) {
-                if (zb_checkMacFree($newmac, $allUsedMacs)) {
-                    $resultArr[$newmac] = $newmac;
-                }
-            }
-            //revert array due usability reasons (i hope).
-            if (@$alter_conf['NMREVERSE']) {
-                $resultArr = array_reverse($resultArr);
+    //and optional additional sources
+    if (!empty($additionalSources)) {
+        $additionalSources = explode(',', $additionalSources);
+        if (!empty($additionalSources)) {
+            foreach ($additionalSources as $io => $eachAdditionalSource) {
+                $allMacs += zb_MacParseSource($eachAdditionalSource, $lineLimit);
             }
         }
     }
+
+    if (!empty($allMacs)) {
+
+        foreach ($allMacs as $io => $newmac) {
+            if (zb_checkMacFree($newmac, $allUsedMacs)) {
+                $resultArr[$newmac] = $newmac;
+            }
+        }
+        //revert array due usability reasons (i hope).
+        if ($reverseFlag) {
+            $resultArr = array_reverse($resultArr);
+        }
+    }
+
     //searchable MAC selector?
-    if (@$alter_conf['MACSEL_SEARCHBL']) {
+    if ($searchableFlag) {
         $result = wf_SelectorSearchable($name, $resultArr, '', '', false);
     } else {
         $result = wf_Selector($name, $resultArr, '', '', false);

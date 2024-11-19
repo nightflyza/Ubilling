@@ -1925,8 +1925,6 @@ function zb_BandwidthdGetUrl($ip) {
         return false;
 }
 
-
-
 /**
  * Returns exploded array of some multi-lined strings
  * 
@@ -1940,7 +1938,65 @@ function explodeRows($data) {
 }
 
 /**
- * Returns new unknown MAC addresses parsed from NMLEASES in some table-view
+ * Parses MAC addresses from a given source path and returns they as unique MAC array idx=>MAC
+ *
+ * @param string $source The path to the source file to read from.
+ * @param int $lines The number of lines to read from the source file.
+ * @param string $customLeaseMark An optional custom lease mark to use for filtering lines.
+ * 
+ * @return array
+ */
+function zb_MacParseSource($source, $lines = 200, $customLeaseMark = '') {
+    global $ubillingConfig;
+    $result = array();
+    $allMacs = array();
+    $source = trim($source);
+    $extendFlag = ($ubillingConfig->getAlterParam('NMLEASES_EXTEND')) ? true : false;
+    $leasemark = $ubillingConfig->getAlterParam('NMLEASEMARK');
+
+    if ($customLeaseMark) {
+        $leasemark = $customLeaseMark;
+    }
+
+    $billCfg = $ubillingConfig->getBilling();
+    $sudo = $billCfg['SUDO'];
+    $cat = $billCfg['CAT'];
+    $grep = $billCfg['GREP'];
+    $tail = $billCfg['TAIL'];
+
+    $filter = '';
+    if (!empty($leasemark)) {
+        $filter .= ' | ' . $grep . ' "' . $leasemark . '" ';
+    }
+
+    $command = $sudo . ' ' . $cat . ' ' . $source . $filter . ' | ' . $tail . ' -n ' . $lines;
+    $rawdata = shell_exec($command);
+
+    if (!empty($source)) {
+        if (!empty($rawdata)) {
+            $cleardata = exploderows($rawdata);
+            foreach ($cleardata as $eachline) {
+                preg_match('/[a-f0-9]{2}:[a-f0-9]{2}:[a-f0-9]{2}:[a-f0-9]{2}:[a-f0-9]{2}:[a-f0-9]{2}/i', $eachline, $matches);
+                if (!empty($matches)) {
+                    $allMacs[] = $matches[0];
+                }
+                if ($extendFlag) {
+                    $eachline = preg_replace('/([a-f0-9]{2})(?![\s\]\/])([\.\:\-]?)/', '\1:', $eachline);
+                    preg_match('/[a-f0-9]{2}:[a-f0-9]{2}:[a-f0-9]{2}:[a-f0-9]{2}:[a-f0-9]{2}:[a-f0-9]{2}/i', $eachline, $matches);
+                    if (!empty($matches[0])) {
+                        $allMacs[] = $matches[0];
+                    }
+                }
+            }
+
+            $result = array_unique($allMacs);
+        }
+    }
+    return ($result);
+}
+
+/**
+ * Returns new unknown MAC addresses list parsed from NMLEASES and NMSOURCES_ADDITIONAL sources.
  * 
  * @global object $ubillingConfig
  * 
@@ -1948,20 +2004,37 @@ function explodeRows($data) {
  */
 function zb_NewMacShow() {
     global $ubillingConfig;
-    $billing_config = $ubillingConfig->getBilling();
-    $alter_config = $ubillingConfig->getAlter();
-    $allarp = array();
-    $sudo = $billing_config['SUDO'];
-    $cat = $billing_config['CAT'];
-    $grep = $billing_config['GREP'];
-    $tail = $billing_config['TAIL'];
-    $leases = $alter_config['NMLEASES'];
-    $leasemark = $alter_config['NMLEASEMARK'];
-    $command = $sudo . ' ' . $cat . ' ' . $leases . ' | ' . $grep . ' "' . $leasemark . '" | ' . $tail . ' -n 200';
-    $rawdata = shell_exec($command);
-    $allusedMacs = zb_getAllUsedMac();
     $result = '';
+    $allUsedMacs = zb_getAllUsedMac();
+    $allMacs = array();
     $unknownMacCount = 0;
+    $lineLimit = 200;
+    $leases = $ubillingConfig->getAlterParam('NMLEASES');
+    $additionalSources = $ubillingConfig->getAlterParam('NMSOURCES_ADDITIONAL');
+    $reverseFlag = ($ubillingConfig->getAlterParam('NMREVERSE')) ? true : false;
+    $macvenFlag = ($ubillingConfig->getAlterParam('MACVEN_ENABLED')) ? true : false;
+    if ($macvenFlag) {
+        $result .= wf_AjaxLoader();
+        //additional macven rights check
+        if (!cfr('MACVEN')) {
+            $macvenFlag = false;
+        }
+    }
+
+    //parsing new MAC sources
+    if (!empty($leases)) {
+        $allMacs += zb_MacParseSource($leases, $lineLimit);
+    }
+
+    //and optional additional sources
+    if (!empty($additionalSources)) {
+        $additionalSources = explode(',', $additionalSources);
+        if (!empty($additionalSources)) {
+            foreach ($additionalSources as $io => $eachAdditionalSource) {
+                $allMacs += zb_MacParseSource($eachAdditionalSource, $lineLimit);
+            }
+        }
+    }
 
     //fdb cache preprocessing  
     $fdbData_raw = rcms_scandir('./exports/', '*_fdb');
@@ -1974,66 +2047,41 @@ function zb_NewMacShow() {
     }
 
     $cells = wf_TableCell(__('MAC'));
-    if (!empty($fdbColumn)) {
+    if ($fdbColumn) {
         $cells .= wf_TableCell(__('Switch'));
     }
-    if ($ubillingConfig->getAlterParam('MACVEN_ENABLED')) {
-        if (cfr('MACVEN')) {
-            $cells .= wf_TableCell(__('Manufacturer'));
-        }
+
+    if ($macvenFlag) {
+        $cells .= wf_TableCell(__('Manufacturer'));
     }
+
     $rows = wf_TableRow($cells, 'row1');
 
-    if (!empty($rawdata)) {
-        $cleardata = exploderows($rawdata);
-        foreach ($cleardata as $eachline) {
-            preg_match('/[a-f0-9]{2}:[a-f0-9]{2}:[a-f0-9]{2}:[a-f0-9]{2}:[a-f0-9]{2}:[a-f0-9]{2}/i', $eachline, $matches);
-            if (!empty($matches)) {
-                $allarp[] = $matches[0];
-            }
-            if ($alter_config['NMLEASES_EXTEND']) {
-                $eachline = preg_replace('/([a-f0-9]{2})(?![\s\]\/])([\.\:\-]?)/', '\1:', $eachline);
-                preg_match('/[a-f0-9]{2}:[a-f0-9]{2}:[a-f0-9]{2}:[a-f0-9]{2}:[a-f0-9]{2}:[a-f0-9]{2}/i', $eachline, $matches);
-                if (!empty($matches[0])) {
-                    $allarp[] = $matches[0];
-                }
-            }
+    if (!empty($allMacs)) {
+        if ($reverseFlag) {
+            //revert array due usability reasons 
+            $allMacs = array_reverse($allMacs);
         }
-        $un_arr = array_unique($allarp);
 
-        if (!empty($un_arr)) {
-            if (@$alter_config['NMREVERSE']) {
-                //revert array due usability reasons 
-                $un_arr = array_reverse($un_arr);
-            }
-            if ($ubillingConfig->getAlterParam('MACVEN_ENABLED')) {
-                if (cfr('MACVEN')) {
-                    //adding ajax loader
-                    $result .= wf_AjaxLoader();
+        foreach ($allMacs as $io => $eachmac) {
+            if (zb_checkMacFree($eachmac, $allUsedMacs)) {
+                $cells = wf_TableCell(@$eachmac);
+                if (!empty($fdbColumn)) {
+                    $cells .= wf_TableCell(sn_SnmpParseFdbExtract(@$fdbArr[$eachmac]));
                 }
-            }
 
-            foreach ($un_arr as $io => $eachmac) {
-                if (zb_checkMacFree($eachmac, $allusedMacs)) {
-                    $cells = wf_TableCell(@$eachmac);
-                    if (!empty($fdbColumn)) {
-                        $cells .= wf_TableCell(sn_SnmpParseFdbExtract(@$fdbArr[$eachmac]));
-                    }
-
-                    if ($ubillingConfig->getAlterParam('MACVEN_ENABLED')) {
-                        if (cfr('MACVEN')) {
-                            $containerName = 'NMRSMCNT_' . zb_rand_string(8);
-                            $lookupVendorLink = wf_AjaxLink('?module=macvendor&mac=' . @$eachmac . '&raw=true', wf_img('skins/macven.gif', __('Device vendor')), $containerName, false, '');
-                            $lookupVendorLink .= wf_tag('span', false, '', 'id="' . $containerName . '"') . '' . wf_tag('span', true);
-                            $cells .= wf_TableCell($lookupVendorLink, '350');
-                        }
-                    }
-                    $rows .= wf_TableRow($cells, 'row3');
-                    $unknownMacCount++;
+                if ($macvenFlag) {
+                    $containerName = 'NMRSMCNT_' . zb_rand_string(8);
+                    $lookupVendorLink = wf_AjaxLink('?module=macvendor&mac=' . @$eachmac . '&raw=true', wf_img('skins/macven.gif', __('Device vendor')), $containerName, false, '');
+                    $lookupVendorLink .= wf_tag('span', false, '', 'id="' . $containerName . '"') . '' . wf_tag('span', true);
+                    $cells .= wf_TableCell($lookupVendorLink, '350');
                 }
+                $rows .= wf_TableRow($cells, 'row3');
+                $unknownMacCount++;
             }
         }
     }
+
     if ($unknownMacCount > 0) {
         $result .= wf_TableBody($rows, '100%', '0', 'sortable');
     } else {
@@ -2041,7 +2089,6 @@ function zb_NewMacShow() {
         $result .= $messages->getStyledMessage(__('Nothing to show'), 'info');
         $result .= wf_delimiter();
     }
-
 
     return ($result);
 }
