@@ -295,7 +295,7 @@ function zb_NewMacSelect($name = 'newmac') {
     $allUsedMacs = zb_getAllUsedMac();
     $allMacs = array();
     $resultArr=array();
-    $lineLimit = 200;
+    $lineLimit = ($ubillingConfig->getAlterParam('NMLOOKUP_DEPTH')) ? $ubillingConfig->getAlterParam('NMLOOKUP_DEPTH') : 200;
     $leases = $ubillingConfig->getAlterParam('NMLEASES');
     $additionalSources = $ubillingConfig->getAlterParam('NMSOURCES_ADDITIONAL');
     $reverseFlag = ($ubillingConfig->getAlterParam('NMREVERSE')) ? true : false;
@@ -317,7 +317,6 @@ function zb_NewMacSelect($name = 'newmac') {
     }
 
     if (!empty($allMacs)) {
-
         foreach ($allMacs as $io => $newmac) {
             if (zb_checkMacFree($newmac, $allUsedMacs)) {
                 $resultArr[$newmac] = $newmac;

@@ -1972,6 +1972,11 @@ function zb_MacParseSource($source, $lines = 200, $customLeaseMark = '') {
     $command = $sudo . ' ' . $cat . ' ' . $source . $filter . ' | ' . $tail . ' -n ' . $lines;
     $rawdata = shell_exec($command);
 
+    // Aandene har begynt aa vise seg for meg
+    // Stryk katten mot haarene
+    // Salt i saaret
+    // Svette
+
     if (!empty($source)) {
         if (!empty($rawdata)) {
             $cleardata = exploderows($rawdata);
@@ -1988,7 +1993,6 @@ function zb_MacParseSource($source, $lines = 200, $customLeaseMark = '') {
                     }
                 }
             }
-
             $result = array_unique($allMacs);
         }
     }
@@ -2008,7 +2012,7 @@ function zb_NewMacShow() {
     $allUsedMacs = zb_getAllUsedMac();
     $allMacs = array();
     $unknownMacCount = 0;
-    $lineLimit = 200;
+    $lineLimit = ($ubillingConfig->getAlterParam('NMLOOKUP_DEPTH')) ? $ubillingConfig->getAlterParam('NMLOOKUP_DEPTH') : 200;
     $leases = $ubillingConfig->getAlterParam('NMLEASES');
     $additionalSources = $ubillingConfig->getAlterParam('NMSOURCES_ADDITIONAL');
     $reverseFlag = ($ubillingConfig->getAlterParam('NMREVERSE')) ? true : false;
