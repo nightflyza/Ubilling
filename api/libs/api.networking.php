@@ -2017,6 +2017,7 @@ function zb_NewMacShow() {
     $additionalSources = $ubillingConfig->getAlterParam('NMSOURCES_ADDITIONAL');
     $reverseFlag = ($ubillingConfig->getAlterParam('NMREVERSE')) ? true : false;
     $macvenFlag = ($ubillingConfig->getAlterParam('MACVEN_ENABLED')) ? true : false;
+    $additionalMark = ($ubillingConfig->getAlterParam('NMLEASEMARK_ADDITIONAL')) ? $ubillingConfig->getAlterParam('NMLEASEMARK_ADDITIONAL') : '';
     if ($macvenFlag) {
         $result .= wf_AjaxLoader();
         //additional macven rights check
@@ -2035,7 +2036,8 @@ function zb_NewMacShow() {
         $additionalSources = explode(',', $additionalSources);
         if (!empty($additionalSources)) {
             foreach ($additionalSources as $io => $eachAdditionalSource) {
-                $allMacs += zb_MacParseSource($eachAdditionalSource, $lineLimit);
+                $supSourceMacs = zb_MacParseSource($eachAdditionalSource, $lineLimit, $additionalMark);
+                $allMacs = array_merge($allMacs, $supSourceMacs);
             }
         }
     }
@@ -2080,7 +2082,7 @@ function zb_NewMacShow() {
                     $lookupVendorLink .= wf_tag('span', false, '', 'id="' . $containerName . '"') . '' . wf_tag('span', true);
                     $cells .= wf_TableCell($lookupVendorLink, '350');
                 }
-                $rows .= wf_TableRow($cells, 'row3');
+                $rows .= wf_TableRow($cells, 'row5');
                 $unknownMacCount++;
             }
         }

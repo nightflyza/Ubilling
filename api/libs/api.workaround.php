@@ -294,24 +294,25 @@ function zb_NewMacSelect($name = 'newmac') {
     global $ubillingConfig;
     $allUsedMacs = zb_getAllUsedMac();
     $allMacs = array();
-    $resultArr=array();
+    $resultArr = array();
     $lineLimit = ($ubillingConfig->getAlterParam('NMLOOKUP_DEPTH')) ? $ubillingConfig->getAlterParam('NMLOOKUP_DEPTH') : 200;
     $leases = $ubillingConfig->getAlterParam('NMLEASES');
     $additionalSources = $ubillingConfig->getAlterParam('NMSOURCES_ADDITIONAL');
     $reverseFlag = ($ubillingConfig->getAlterParam('NMREVERSE')) ? true : false;
     $searchableFlag = ($ubillingConfig->getAlterParam('MACSEL_SEARCHBL')) ? true : false;
-
+    $additionalMark = ($ubillingConfig->getAlterParam('NMLEASEMARK_ADDITIONAL')) ? $ubillingConfig->getAlterParam('NMLEASEMARK_ADDITIONAL') : '';
     //parsing new MAC sources
     if (!empty($leases)) {
         $allMacs += zb_MacParseSource($leases, $lineLimit);
     }
 
-    //and optional additional sources
+    //and optional supplementary sources
     if (!empty($additionalSources)) {
         $additionalSources = explode(',', $additionalSources);
         if (!empty($additionalSources)) {
             foreach ($additionalSources as $io => $eachAdditionalSource) {
-                $allMacs += zb_MacParseSource($eachAdditionalSource, $lineLimit);
+                $supSourceMacs = zb_MacParseSource($eachAdditionalSource, $lineLimit, $additionalMark);
+                $allMacs = array_merge($allMacs, $supSourceMacs);
             }
         }
     }
