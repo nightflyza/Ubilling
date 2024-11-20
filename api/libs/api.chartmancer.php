@@ -757,9 +757,10 @@ class ChartMancer {
              */
             if (is_array($value)) {
                 //nested data rendering here
-                $i = 0;
+                $i = sizeof($value) - 1;
                 $zBuffer = array();
-                foreach ($value as $io => $subVal) {
+
+                foreach (array_reverse($value, true) as $io => $subVal) {
                     $x1 = $itemX - $this->barWidth / 2;
                     $y1 = $gridBottom - $subVal / $yMaxValue * $gridHeight;
                     $x2 = $itemX + $this->barWidth / 2;
@@ -792,7 +793,7 @@ class ChartMancer {
                     } else {
                         $drawSkip++;
                     }
-                    $i++; //color index changes anyway
+                    $i--; //color index changes anyway
                 }
 
                 if (!empty($zBuffer)) {
