@@ -5051,6 +5051,29 @@ function zb_formatTime($seconds) {
 }
 
 /**
+ * Renders time duration in seconds into formatted human-readable view in days
+ *      
+ * @param int $seconds
+ * 
+ * @return string
+ */
+function zb_formatTimeDays($seconds) {
+    $init = $seconds;
+    $days = floor($seconds / 86400);
+    if ($init >= 86400) {
+        $result = $days . ' ' . __('days');
+    } else {
+        if ($init > 0) {
+            $result = '0 ' . __('days');
+        } else {
+            $result = $days . ' ' . __('days');
+        }
+    }
+    return ($result);
+}
+
+
+/**
  * Renders list of loaded modules
  * 
  * @global object $system
