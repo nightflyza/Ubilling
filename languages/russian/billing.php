@@ -3537,3 +3537,4 @@ $lang['def']['Visible'] = 'Видимый';
 $lang['def']['Write message'] = 'Напишите сообщение';
 $lang['def']['Select a chat to start a conversation'] = 'Выберите чат для начала общения';
 $lang['def']['No ONU assigned'] = 'Не присвоено ONU';
+$lang['def']['Quick search'] = 'Быстрый поиск';

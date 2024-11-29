@@ -462,13 +462,69 @@ textarea:hover {
     overflow: hidden;
     box-shadow: 3px 3px 4px rgba(0, 0, 0, 0);
     line-height: 100%;
+    transition: opacity 0.3s, transform 0.3s;
 }
 
 .dashtask:hover {
     -webkit-box-shadow: 3px 3px 4px rgba(50, 50, 50, 0.75);
     -moz-box-shadow: 3px 3px 4px rgba(50, 50, 50, 0.75);
     box-shadow: 3px 3px 4px rgba(50, 50, 50, 0.75);
+}
 
+.hiddentbelem {
+    opacity: 0;
+    transform: translateY(20px);
+}
+
+.hiddentbelem[style*="display: none;"] {
+    transform: translateY(0);
+}
+
+.tbqsearchform {
+    float: left;
+    margin-right: 0px;
+    margin-left: 5px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    /* border: 1px solid blue; */
+}
+
+.tbqsearchform input {
+    border-radius: 10px;
+    border: 1px solid #ccc;
+    padding: 8px 6px;
+    font-size: 12px;
+    outline: none;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 350px;
+}
+
+.tbqsearchform input:focus {
+    border-color: #007BFF;
+    box-shadow: 0 4px 8px rgba(0, 123, 255, 0.3);
+}
+
+.tbqsearchform .clear-btn {
+    position: absolute;
+    right: 10px;
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
+    font-size: 18px;
+    color: #aaa;
+    display: none;
+    /* clear button is hidden by default */
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    transition: color 0.3s ease;
+}
+
+.tbqsearchform .clear-btn:hover {
+    color: #000;
 }
 
 .ubimchat {

@@ -62,6 +62,13 @@ class UbillingTaskbar {
     protected $taskbarContent = '';
 
     /**
+     * Contains current instance administrator login
+     *
+     * @var string
+     */
+    protected $myLogin = '';
+
+    /**
      * Contains default taskbar elements path
      */
     const BASE_PATH = 'config/taskbar.d/';
@@ -168,6 +175,7 @@ class UbillingTaskbar {
         $name = __($elementName);
         $iconPath = CUR_SKIN_PATH . 'taskbar/';
         $icon = $iconPath . $elementIcon;
+        $elemQsId = 'ubtbelcont_' . $name . '_' . $elementName;
         if (!file_exists($icon)) {
             $icon = 'skins/taskbar/' . $elementIcon;
         }
@@ -185,12 +193,12 @@ class UbillingTaskbar {
 
         if ($this->altCfg['TB_LABELED']) {
             if ($iconsize > 63) {
-                $result = '<div class="dashtask" style="height:' . ($iconsize + 30) . 'px; width:' . ($iconsize + 30) . 'px;"> <a href="' . $url . '"><img  src="' . $icon . '" border="0" width="' . $iconsize . '"  height="' . $iconsize . '" alt="' . $name . '" title="' . $name . '"></a> <br><br>' . $name . ' </div>';
+                $result = '<div class="dashtask" id="' . $elemQsId . '" style="height:' . ($iconsize + 30) . 'px; width:' . ($iconsize + 30) . 'px;"> <a href="' . $url . '"><img  src="' . $icon . '" border="0" width="' . $iconsize . '"  height="' . $iconsize . '" alt="' . $name . '" title="' . $name . '"></a> <br><br>' . $name . ' </div>';
             } else {
-                $result = '<div class="dashtask" style="height:' . ($iconsize + 10) . 'px; width:' . ($iconsize + 10) . 'px;"> <a href="' . $url . '"><img  src="' . $icon . '" border="0" width="' . $iconsize . '"  height="' . $iconsize . '" alt="' . $name . '" title="' . $name . '"></a></div>';
+                $result = '<div class="dashtask" id="' . $elemQsId . '" style="height:' . ($iconsize + 10) . 'px; width:' . ($iconsize + 10) . 'px;"> <a href="' . $url . '"><img  src="' . $icon . '" border="0" width="' . $iconsize . '"  height="' . $iconsize . '" alt="' . $name . '" title="' . $name . '"></a></div>';
             }
         } else {
-            $result = '<a href="' . $url . '"><img  src="' . $icon . '" border="0" width="' . $iconsize . '"  height="' . $tbiconsize . '" alt="' . $name . '" title="' . $name . '"></a><img src="' . $icon . 'spacer.gif">  ';
+            $result = '<a href="' . $url . '"><img  src="' . $icon . '" border="0" width="' . $iconsize . '"  height="' . $iconsize . '" alt="' . $name . '" title="' . $name . '"></a><img src="skins/taskbar/spacer.gif">  ';
         }
 
         return ($result);
@@ -363,6 +371,7 @@ class UbillingTaskbar {
      */
     protected function loadAllCategories() {
         $result = '';
+
         if (!empty($this->categories)) {
             foreach ($this->categories as $category => $categoryname) {
                 $result .= $this->loadCategoryElements($category);
@@ -583,6 +592,94 @@ class UbillingTaskbar {
     }
 
     /**
+     * Renders the search form and frontend controller for taskbar elements
+     *
+     * @return string
+     */
+    public function renderQuickSearchForm() {
+        global $ubillingConfig;
+        $result = '';
+        if (@$this->altCfg['TB_QUICKSEARCH_ENABLED']) {
+            $result .= wf_tag('div', false, 'tbqsearchform');
+            $result .= wf_TextInput('tbquicksearch', ' ' . '', '', false, 20, '', '', 'tbquicksearch', 'placeholder="' . __('Quick search') . '...' . '"');
+
+            $result .= wf_tag('button', false, 'clear-btn', 'type="button" aria-label="Clear search"') . '&times;' . wf_tag('button', true);
+            $result .= wf_tag('div', true);
+
+            $result .= wf_tag('script');
+            $result .= "
+                    document.getElementById('tbquicksearch').addEventListener('input', function () {
+                        const searchValue = this.value.toLowerCase();
+                        const tbElements = document.querySelectorAll('[id^=\"ubtbelcont_\"]');
+                        const statusContainer = document.getElementById('ubtbqsstatus');
+                        let visibleCount = 0;
+                
+                        tbElements.forEach(tbElement => {
+                            const idText = tbElement.id.toLowerCase();
+                            if (searchValue === '' || idText.includes(searchValue)) {
+                                tbElement.classList.remove('hiddentbelem');
+                                tbElement.style.display = 'block';
+                                requestAnimationFrame(() => tbElement.style.opacity = '1');
+                                visibleCount++;
+                            } else {
+                                tbElement.classList.add('hiddentbelem');
+                                setTimeout(() => {
+                                    if (tbElement.classList.contains('hiddentbelem')) {
+                                        tbElement.style.display = 'none';
+                                    }
+                                }, 300);
+                            }
+                        });
+                
+                        //no elements found
+                        if (visibleCount === 0) {
+                            statusContainer.textContent = '" . __('Nothing found') . "';
+                        } else {
+                            statusContainer.textContent = '';
+                        }
+                    });
+
+                    document.addEventListener('DOMContentLoaded', () => {
+                        const searchInput = document.getElementById('tbquicksearch');
+                        const clearButton = document.querySelector('.clear-btn');
+                        searchInput.addEventListener('input', () => {
+                            if (searchInput.value.trim() !== '') {
+                                clearButton.style.display = 'flex';
+                            } else {
+                                clearButton.style.display = 'none';
+                            }
+                        });
+
+                        clearButton.addEventListener('click', () => {
+                            searchInput.value = '';
+                            clearButton.style.display = 'none';
+                            searchInput.dispatchEvent(new Event('input'));
+                            searchInput.focus();
+                        });
+                    });
+                ";
+            $result .= wf_tag('script', true);
+
+
+            $result .= wf_CleanDiv();
+        }
+        return ($result);
+    }
+
+    /**
+     * Renders quick search form as modal dialog
+     *
+     * @return string
+     */
+    public function renderQuickSearchModal() {
+        $result = '';
+        if (@$this->altCfg['TB_QUICKSEARCH_ENABLED'] and !@$this->altCfg['TB_QUICKSEARCH_INLINE']) {
+            $result .= ' ' . wf_modalAuto(web_icon_search(), __('Search'), $this->renderQuickSearchForm());
+        }
+        return ($result);
+    }
+
+    /**
      * Returns rendered taskbar elements and services content
      * 
      * @return string
@@ -596,6 +693,11 @@ class UbillingTaskbar {
         if (!empty($this->currentAlerts)) {
             $result .= $this->currentAlerts;
         }
+
+        if (@$this->altCfg['TB_QUICKSEARCH_INLINE'] ) {
+            $result .= $this->renderQuickSearchForm();
+        }
+        $result .= wf_AjaxContainer('ubtbqsstatus');
         $result .= $this->taskbarContent;
         $result .= $this->renderResizeForm();
         $result .= $this->loadStickyNotes();
