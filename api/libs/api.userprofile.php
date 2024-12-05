@@ -15,7 +15,7 @@ class UserProfile {
     /**
      * UbillingConfig object placeholder
      *
-     * @var null
+     * @var object
      */
     protected $ubConfig = null;
 
@@ -1148,7 +1148,7 @@ class UserProfile {
         $result = '';
         if (isset($this->alterCfg['SIGNAL_IN_PROFILE_COMPACT'])) {
             if ($this->alterCfg['SIGNAL_IN_PROFILE_COMPACT']) {
-                
+
                 $signal = 'ETAOIN SHRDLU';
                 $deregReason = '';
                 $ponizerDb = new NyanORM(PONizer::TABLE_ONUS);
@@ -2345,6 +2345,29 @@ class UserProfile {
     }
 
     /**
+     * Renders pseudo CRM activities if enabled in the configuration.
+     *
+     * This method checks if the pseudo CRM feature is enabled and if the activities
+     * should be displayed in the user profile. If both conditions are met, it searches
+     * for a lead by the user's login and renders the lead's activities list.
+     *
+     * @return string
+     */
+    protected function renderPseudoCRMActs() {
+        $result = '';
+        if ($this->alterCfg['PSEUDOCRM_ENABLED']) {
+            if ($this->alterCfg['PSEUDOCRM_ACT_IN_PROFILE']) {
+                $crm = new PseudoCRM();
+                $detectedLeadId = $crm->searchLeadByLogin($this->login);
+                if ($detectedLeadId) {
+                    $result .= $crm->renderLeadActivitiesList($detectedLeadId, true);
+                }
+            }
+        }
+        return ($result);
+    }
+
+    /**
      * Renders user profile with all loaded data
      * 
      * @return string
@@ -2510,6 +2533,8 @@ class UserProfile {
 
         $profile .= wf_tag('tbody', true);
         $profile .= wf_tag('table', true); //end of all profile container
+        //PseudoCRM lead related data here
+        $profile .= $this->renderPseudoCRMActs();
         //profile switch port controls
         $profile .= $this->getSwitchAssignControls();
         //profile zabbix problen controls
@@ -2529,6 +2554,7 @@ class UserProfile {
 
         //Custom filelds display
         $profile .= $this->customFields->renderUserFields();
+
         //Tags add control and exiting tags listing
         if ($this->ubConfig->getAlterParam('USERPROFILE_TAG_SECTION_HIGHLIGHT')) {
             if (cfr('TAGS')) {

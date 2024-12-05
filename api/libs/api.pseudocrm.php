@@ -275,7 +275,7 @@ class PseudoCRM {
                         if (ispos($each, ':')) {
                             $actStatesCustom = explode(':', $each);
                             //at least two required sections available
-                            if (isset($actStatesCustom[0]) AND isset($actStatesCustom[1])) {
+                            if (isset($actStatesCustom[0]) and isset($actStatesCustom[1])) {
                                 $customScope = strtoupper($actStatesCustom[0]);
                                 $customStateName = __($actStatesCustom[1]);
                                 $this->activitiesStatesList[$customScope] = $customStateName;
@@ -405,7 +405,7 @@ class PseudoCRM {
         $customStyling .= wf_tag('style', true);
         $result .= $customStyling;
         $result .= wf_JqDtLoader($columns, $url, false, __('Leads'), 50, '"order": [[ 0, "desc" ]]');
-        return($result);
+        return ($result);
     }
 
     /**
@@ -484,7 +484,7 @@ class PseudoCRM {
         $inputs .= wf_TextInput(self::PROUTE_LEAD_NOTES, __('Notes') . $sup, $prevNotes, true, '40', '');
         $inputs .= wf_Submit(__('Create'));
         $result .= wf_Form('', 'POST', $inputs, 'glamour');
-        return($result);
+        return ($result);
     }
 
     /**
@@ -532,7 +532,7 @@ class PseudoCRM {
         $this->leadsDb->create();
         $newId = $this->leadsDb->getLastId();
         log_register('CRM CREATE LEAD [' . $newId . ']');
-        return($newId);
+        return ($newId);
     }
 
     /**
@@ -547,7 +547,7 @@ class PseudoCRM {
         if (isset($this->allLeads[$leadId])) {
             $result = $this->allLeads[$leadId];
         }
-        return($result);
+        return ($result);
     }
 
     /**
@@ -562,7 +562,7 @@ class PseudoCRM {
         if (isset($this->allLeads[$leadId])) {
             $result = true;
         }
-        return($result);
+        return ($result);
     }
 
     /**
@@ -578,7 +578,7 @@ class PseudoCRM {
         if (!empty($leadData)) {
             $result .= $leadData['address'] . ', ' . $leadData['realname'];
         }
-        return($result);
+        return ($result);
     }
 
     /**
@@ -599,7 +599,7 @@ class PseudoCRM {
             }
             $result .= $leadSource->render($leadId, '54', $readOnly);
         }
-        return($result);
+        return ($result);
     }
 
     /**
@@ -682,7 +682,7 @@ class PseudoCRM {
             $result .= wf_delimiter();
             $result .= wf_BackLink(self::URL_ME . '&' . self::ROUTE_LEADS_LIST . '=true');
         }
-        return($result);
+        return ($result);
     }
 
     /**
@@ -728,7 +728,7 @@ class PseudoCRM {
         } else {
             $result .= $this->messages->getStyledMessage(__('Strange exception') . ': ' . __('Lead') . ' [' . $leadId . '] ' . __('Not exists'), 'error');
         }
-        return($result);
+        return ($result);
     }
 
     /**
@@ -779,7 +779,7 @@ class PseudoCRM {
         $this->leadsDb->save();
         log_register('CRM EDIT LEAD [' . $leadId . ']');
 
-        return($leadId);
+        return ($leadId);
     }
 
     /**
@@ -797,7 +797,7 @@ class PseudoCRM {
             $label = __('Are you realy want to create record for this lead') . '?';
             $result .= wf_ConfirmDialog($urlCreate, web_icon_create() . ' ' . __('Create new record'), $label, 'ubButton', $urlCancel, __('Create new record'));
         }
-        return($result);
+        return ($result);
     }
 
     /**
@@ -829,7 +829,7 @@ class PseudoCRM {
             $result = $newId;
             log_register('CRM CREATE ACTIVITY [' . $newId . '] FOR LEAD [' . $leadId . ']');
         }
-        return($result);
+        return ($result);
     }
 
     /**
@@ -844,7 +844,7 @@ class PseudoCRM {
         if (isset($this->allActivities[$activityId])) {
             $result = true;
         }
-        return($result);
+        return ($result);
     }
 
     /**
@@ -859,7 +859,7 @@ class PseudoCRM {
         if (isset($this->allActivities[$activityId])) {
             $result = $this->allActivities[$activityId];
         }
-        return($result);
+        return ($result);
     }
 
     /**
@@ -892,7 +892,7 @@ class PseudoCRM {
                 $result .= $stigmaInstances[$eachScope]->render($activityId, $size, $readOnly);
             }
         }
-        return($result);
+        return ($result);
     }
 
     /**
@@ -924,7 +924,7 @@ class PseudoCRM {
         } else {
             $result = true;
         }
-        return($result);
+        return ($result);
     }
 
     /**
@@ -987,7 +987,7 @@ class PseudoCRM {
             $inputs .= wf_Submit(__('Save'));
             $result .= wf_Form('', 'POST', $inputs, '');
         }
-        return($result);
+        return ($result);
     }
 
     /**
@@ -1105,7 +1105,7 @@ class PseudoCRM {
         } else {
             $result .= $this->messages->getStyledMessage(__('Strange exception') . ': ' . __('Activity record') . ' [' . $activityId . '] ' . __('Not exists'), 'error');
         }
-        return($result);
+        return ($result);
     }
 
     /**
@@ -1208,20 +1208,25 @@ class PseudoCRM {
                 }
             }
         }
-        return($result);
+        return ($result);
     }
 
     /**
      * Renders previous lead activities list
      * 
      * @param int $leadId
+     * @param bool $onlyLast
      * 
      * @return string
      */
-    public function renderLeadActivitiesList($leadId) {
+    public function renderLeadActivitiesList($leadId, $onlyLast = false) {
         $result = '';
         $previousActivities = $this->getLeadActivities($leadId);
         if (!empty($previousActivities)) {
+            if ($onlyLast) {
+                $previousActivities=array_slice($previousActivities, 0, 1, true);
+            }
+
             //performing stigma instances creation
             $stigmaInstances = array();
             if (!empty($this->activitiesStatesList)) {
@@ -1260,9 +1265,11 @@ class PseudoCRM {
                 $result .= wf_tag('div', true);
             }
         } else {
-            $result .= $this->messages->getStyledMessage(__('Nothing to show'), 'info');
+            if (!$onlyLast) {
+                $result .= $this->messages->getStyledMessage(__('Nothing to show'), 'info');
+            }
         }
-        return($result);
+        return ($result);
     }
 
     /**
@@ -1288,7 +1295,7 @@ class PseudoCRM {
             $taskForm = ts_TaskCreateFormUnified($taskAddress, $taskMobile, $taskPhone, $taskLogin);
             $result .= wf_modal(wf_img('skins/createtask.gif') . ' ' . __('Create task'), __('Create task'), $taskForm, 'ubButton', '450', '540');
         }
-        return($result);
+        return ($result);
     }
 
     /**
@@ -1308,7 +1315,7 @@ class PseudoCRM {
                 }
             }
         }
-        return($result);
+        return ($result);
     }
 
     /**
@@ -1320,7 +1327,7 @@ class PseudoCRM {
         $result = '';
         $sources = new Stigma(self::STIGMA_LEAD_SOURCE);
         $result .= $sources->renderBasicReport();
-        return($result);
+        return ($result);
     }
 
     /**
@@ -1334,7 +1341,7 @@ class PseudoCRM {
         $opts = ' "order": [[ 0, "desc" ]]';
         $ajaxUrl = self::URL_ME . '&' . self::ROUTE_REPORT_STATESLOG_AJ . '=true';
         $result .= wf_JqDtLoader($columns, $ajaxUrl, false, __('Events'), 100, $opts);
-        return($result);
+        return ($result);
     }
 
     /**
@@ -1423,7 +1430,7 @@ class PseudoCRM {
         } else {
             $result .= $this->messages->getStyledMessage(__('Strange exception') . ': ' . __('User not exists'), 'error');
         }
-        return($result);
+        return ($result);
     }
 
     /**
@@ -1502,7 +1509,7 @@ class PseudoCRM {
         } else {
             $result .= $this->messages->getStyledMessage(__('Strange exception') . ': ' . __('User not exists'), 'error');
         }
-        return($result);
+        return ($result);
     }
 
     /**
@@ -1529,7 +1536,7 @@ class PseudoCRM {
         } else {
             $result .= __('Strange exception') . ': ' . __('Lead') . ' [' . $leadId . '] ' . __('Not exists');
         }
-        return($result);
+        return ($result);
     }
 
     /**
@@ -1583,6 +1590,6 @@ class PseudoCRM {
             // ????
         }
 
-        return($result);
+        return ($result);
     }
 }
