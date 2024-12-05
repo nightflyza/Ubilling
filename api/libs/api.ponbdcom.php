@@ -111,18 +111,18 @@ class PONBdcom extends PONProto {
                     // processing distance data
                     $this->distanceParse($oltid, $distIndex, $onuIndex);
                     // processing interfaces data and interface description data
-                    $this->interfaceParseBd($oltid, $intIndex, $macIndex, $ifaceCustDescrIndex);
+                    $this->interfaceParseBd($intIndex, $macIndex, $ifaceCustDescrIndex);
                     // processing FDB data
                     if (!$oltNoFDBQ) {
                         if (isset($this->snmpTemplates[$oltModelId]['misc']['FDBMODE']) and $this->snmpTemplates[$oltModelId]['misc']['FDBMODE'] == 'FIRMWARE-F') {
-                            $this->FDBParseBdFirmwareF($oltid, $FDBIndex, $macIndex, $oltModelId);
+                            $this->FDBParseBdFirmwareF($FDBIndex, $macIndex, $oltModelId);
                         } else {
-                            $this->FDBParseBd($oltid, $FDBIndex, $macIndex, $oltModelId);
+                            $this->FDBParseBd($FDBIndex, $macIndex, $oltModelId);
                         }
                     }
                     // processing last dereg reason data
                     if (isset($this->snmpTemplates[$oltModelId]['misc']['DEREGREASON'])) {
-                        $this->lastDeregParseBd($oltid, $deregIndex, $onuIndex);
+                        $this->lastDeregParseBd($deregIndex, $onuIndex);
                     }
                     // processing UniOperStauts
                     if (isset($this->snmpTemplates[$oltModelId]['misc']['UNIOPERSTATUS'])) {
@@ -136,15 +136,13 @@ class PONBdcom extends PONProto {
     /**
      * Parses & stores in cache OLT ONU interfaces
      *
-     * @param int $oltid
      * @param array $intIndex
      * @param array $macIndex
      * @param array $ifaceCustDescrRaw
      *
      * @return void
      */
-    protected function interfaceParseBd($oltid, $intIndex, $macIndex, $ifaceCustDescrRaw = array()) {
-        $oltid = vf($oltid, 3);
+    protected function interfaceParseBd($intIndex, $macIndex, $ifaceCustDescrRaw = array()) {
         $intTmp = array();
         $macTmp = array();
         $result = array();
@@ -223,15 +221,13 @@ class PONBdcom extends PONProto {
     /**
      * Parses & stores in cache OLT ONU interfaces
      *
-     * @param int $oltid
      * @param array $FDBIndex
      * @param array $macIndex
      * @param array $oltModelId
      *
      * @return void
      */
-    protected function FDBParseBd($oltid, $FDBIndex, $macIndex, $oltModelId) {
-        $oltid = vf($oltid, 3);
+    protected function FDBParseBd($FDBIndex, $macIndex, $oltModelId) {
         $FDBTmp = array();
         $macTmp = array();
         $result = array();
@@ -291,15 +287,13 @@ class PONBdcom extends PONProto {
     /**
      * Parses & stores in cache OLT FDB
      *
-     * @param int $oltid
      * @param array $FDBIndex
      * @param array $macIndex
      * @param array $oltModelId
      *
      * @return void
      */
-    protected function FDBParseBdFirmwareF($oltid, $FDBIndex, $macIndex, $oltModelId) {
-        $oltid = vf($oltid, 3);
+    protected function FDBParseBdFirmwareF($FDBIndex, $macIndex, $oltModelId) {
         $TmpArr = array();
         $FDBTmp = array();
         $macTmp = array();
@@ -371,14 +365,12 @@ class PONBdcom extends PONProto {
     /**
      * Parses & stores in cache OLT ONU dereg reaesons
      *
-     * @param int $oltid
      * @param array $distIndex
      * @param array $onuIndex
      *
      * @return void
      */
-    protected function lastDeregParseBd($oltid, $deregIndex, $onuIndex) {
-        $oltid = vf($oltid, 3);
+    protected function lastDeregParseBd($deregIndex, $onuIndex) {
         $deregTmp = array();
         $onuTmp = array();
         $result = array();
