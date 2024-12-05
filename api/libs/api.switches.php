@@ -56,9 +56,9 @@ function zb_SwitchDeathTimeSet($ip) {
  * @return void
  */
 function zb_SwitchDeathTimeResurrection($ip) {
-    $ip = ubRouting::filters($ip,'mres');
+    $ip = ubRouting::filters($ip, 'mres');
     $deathTimeDb = new NyanORM('deathtime');
-    $deathTimeDb->where('ip','=',$ip);
+    $deathTimeDb->where('ip', '=', $ip);
     $deathTimeDb->delete();
 }
 
@@ -1350,7 +1350,9 @@ function web_SwitchesRenderList() {
     $alterconf = $ubillingConfig->getAlter();
     $swGroupsEnabled = $ubillingConfig->getAlterParam('SWITCH_GROUPS_ENABLED');
     $switchesExtended = $ubillingConfig->getAlterParam('SWITCHES_EXTENDED');
+    $switchesCompactFlag = $ubillingConfig->getAlterParam('SWITCHES_LIST_COMPACT');
     $summaryCache = 'exports/switchcounterssummary.dat';
+
     $columns = array('ID', 'IP');
 
     if ($alterconf['SWITCHES_SNMP_MAC_EXORCISM']) {
@@ -1365,11 +1367,17 @@ function web_SwitchesRenderList() {
         }
     }
 
-    if ($swGroupsEnabled) {
-        array_push($columns, 'Location', 'Active', 'Model', 'SNMP community', 'Geo location', 'Description', 'Group', 'Actions');
-    } else {
-        array_push($columns, 'Location', 'Active', 'Model', 'SNMP community', 'Geo location', 'Description', 'Actions');
+    array_push($columns, 'Location', 'Active', 'Model');
+    if (!$switchesCompactFlag) {
+        array_push($columns, 'SNMP community', 'Geo location');
     }
+    $columns[] = 'Description';
+
+    if ($swGroupsEnabled) {
+        $columns[] = 'Group';
+    }
+
+    $columns[] = 'Actions';
 
     $opts = '"order": [[ 0, "desc" ]]';
     $result = wf_JqDtLoader($columns, '?module=switches&ajaxlist=true', false, __('Switch'), 100, $opts);
@@ -1391,6 +1399,7 @@ function zb_SwitchesRenderAjaxList() {
 
     $swGroupsEnabled = $ubillingConfig->getAlterParam('SWITCH_GROUPS_ENABLED');
     $switchesExtended = $ubillingConfig->getAlterParam('SWITCHES_EXTENDED');
+    $switchesCompactFlag = $ubillingConfig->getAlterParam('SWITCHES_LIST_COMPACT');
 
     $allswitchgroups = '';
     if ($swGroupsEnabled) {
@@ -1492,8 +1501,10 @@ function zb_SwitchesRenderAjaxList() {
             $jsonItem[] = $eachswitch['location'];
             $jsonItem[] = $aliveled;
             $jsonItem[] = @$modelnames[$eachswitch['modelid']];
-            $jsonItem[] = $eachswitch['snmp'];
-            $jsonItem[] = $eachswitch['geo'];
+            if (!$switchesCompactFlag) {
+                $jsonItem[] = $eachswitch['snmp'];
+                $jsonItem[] = $eachswitch['geo'];
+            }
             $jsonItem[] = $eachswitch['desc'];
 
             if ($swGroupsEnabled) {
