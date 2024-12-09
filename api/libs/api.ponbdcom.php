@@ -70,7 +70,7 @@ class PONBdcom extends PONProto {
                 $ifaceCustDescrIndex = explodeRows($ifaceCustDescrIndex);
             }
             // Get UniOperStatusIndex
-            if (isset($this->snmpTemplates[$oltModelId]['misc']['UNIOPERSTATUS'])) {
+            if (isset($this->snmpTemplates[$oltModelId]['misc']['UNIOPERSTATUS']) and $this->onuUniStatusEnabled) {
                 $uniOperStatusIndexOID = $this->snmpTemplates[$oltModelId]['misc']['UNIOPERSTATUS'];
                 $uniOperStatusIndex = $this->snmp->walk($oltIp . ':' . self::SNMPPORT, $oltCommunity, $uniOperStatusIndexOID, self::SNMPCACHE);
                 $uniOperStatusIndex = str_replace($uniOperStatusIndexOID . '.', '', $uniOperStatusIndex);
