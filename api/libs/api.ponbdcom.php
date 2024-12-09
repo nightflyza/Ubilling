@@ -23,7 +23,7 @@ class PONBdcom extends PONProto {
         $sigIndex = str_replace($this->snmpTemplates[$oltModelId]['signal']['SIGVALUE'], '', $sigIndex);
         $sigIndex = explodeRows($sigIndex);
         $ifaceCustDescrIndex = array();
-//ONU distance polling for bdcom devices
+        // ONU distance polling for bdcom devices
         if (isset($this->snmpTemplates[$oltModelId]['misc'])) {
             if (isset($this->snmpTemplates[$oltModelId]['misc']['DISTINDEX'])) {
                 if (!empty($this->snmpTemplates[$oltModelId]['misc']['DISTINDEX'])) {
@@ -69,8 +69,16 @@ class PONBdcom extends PONProto {
                 $ifaceCustDescrIndex = str_replace(array($this->snmpTemplates[$oltModelId]['misc']['INTERFACEVALUE'], '"'), '', $ifaceCustDescrIndex);
                 $ifaceCustDescrIndex = explodeRows($ifaceCustDescrIndex);
             }
+            // Get UniOperStatusIndex
+            if (isset($this->snmpTemplates[$oltModelId]['misc']['UNIOPERSTATUS']) and $this->onuUniStatusEnabled) {
+                $uniOperStatusIndexOID = $this->snmpTemplates[$oltModelId]['misc']['UNIOPERSTATUS'];
+                $uniOperStatusIndex = $this->snmp->walk($oltIp . ':' . self::SNMPPORT, $oltCommunity, $uniOperStatusIndexOID, self::SNMPCACHE);
+                $uniOperStatusIndex = str_replace($uniOperStatusIndexOID . '.', '', $uniOperStatusIndex);
+                $uniOperStatusIndex = str_replace(array($this->snmpTemplates[$oltModelId]['misc']['UNIOPERSTATUSVALUE'], '"'), '', $uniOperStatusIndex);
+                $uniOperStatusIndex = explodeRows($uniOperStatusIndex);
+            }
         }
-//getting other system data from OLT
+        // getting other system data from OLT
         if (isset($this->snmpTemplates[$oltModelId]['system'])) {
             //OLT uptime
             if (isset($this->snmpTemplates[$oltModelId]['system']['UPTIME'])) {
@@ -86,34 +94,43 @@ class PONBdcom extends PONProto {
                 $this->temperatureParse($oltid, $oltTemperatureRaw);
             }
         }
-//getting MAC index.
+        // getting MAC index.
         $macIndexOID = $this->snmpTemplates[$oltModelId]['signal']['MACINDEX'];
         $macIndex = $this->snmp->walk($oltIp . ':' . self::SNMPPORT, $oltCommunity, $macIndexOID, self::SNMPCACHE);
         $macIndex = str_replace($macIndexOID . '.', '', $macIndex);
         $macIndex = str_replace($this->snmpTemplates[$oltModelId]['signal']['MACVALUE'], '', $macIndex);
         $macIndex = explodeRows($macIndex);
         $this->signalParse($oltid, $sigIndex, $macIndex, $this->snmpTemplates[$oltModelId]['signal']);
+
+        // Start proccesing for get ONU id and MAC
+        $this->onuMacProcessing($macIndex);
+        $this->onuDevIndexProcessing($onuIndex);
+
         /**
          * This is here because BDCOM is BDCOM and another SNMP queries cant be processed after MACINDEX query in some cases. 
          */
         if (isset($this->snmpTemplates[$oltModelId]['misc'])) {
             if (isset($this->snmpTemplates[$oltModelId]['misc']['DISTINDEX'])) {
                 if (!empty($this->snmpTemplates[$oltModelId]['misc']['DISTINDEX'])) {
-// processing distance data
+                    // processing distance data
                     $this->distanceParse($oltid, $distIndex, $onuIndex);
-//processing interfaces data and interface description data
-                    $this->interfaceParseBd($oltid, $intIndex, $macIndex, $ifaceCustDescrIndex);
-//processing FDB data
+                    // processing interfaces data and interface description data
+                    $this->interfaceParseBd($intIndex, $ifaceCustDescrIndex);
+                    // processing FDB data
                     if (!$oltNoFDBQ) {
                         if (isset($this->snmpTemplates[$oltModelId]['misc']['FDBMODE']) and $this->snmpTemplates[$oltModelId]['misc']['FDBMODE'] == 'FIRMWARE-F') {
-                            $this->FDBParseBdFirmwareF($oltid, $FDBIndex, $macIndex, $oltModelId);
+                            $this->FDBParseBdFirmwareF($FDBIndex, $oltModelId);
                         } else {
-                            $this->FDBParseBd($oltid, $FDBIndex, $macIndex, $oltModelId);
+                            $this->FDBParseBd($FDBIndex, $oltModelId);
                         }
                     }
-//processing last dereg reason data                                        
+                    // processing last dereg reason data
                     if (isset($this->snmpTemplates[$oltModelId]['misc']['DEREGREASON'])) {
-                        $this->lastDeregParseBd($oltid, $deregIndex, $onuIndex);
+                        $this->lastDeregParseBd($deregIndex);
+                    }
+                    // processing UniOperStauts
+                    if (isset($this->snmpTemplates[$oltModelId]['misc']['UNIOPERSTATUS'])) {
+                        $this->uniParseBd($uniOperStatusIndex);
                     }
                 }
             }
@@ -123,23 +140,19 @@ class PONBdcom extends PONProto {
     /**
      * Parses & stores in cache OLT ONU interfaces
      *
-     * @param int $oltid
      * @param array $intIndex
-     * @param array $macIndex
      * @param array $ifaceCustDescrRaw
      *
      * @return void
      */
-    protected function interfaceParseBd($oltid, $intIndex, $macIndex, $ifaceCustDescrRaw = array()) {
-        $oltid = vf($oltid, 3);
+    protected function interfaceParseBd($intIndex, $ifaceCustDescrRaw = array()) {
         $intTmp = array();
-        $macTmp = array();
         $result = array();
-        $processIfaceCustDescr = !empty($ifaceCustDescrRaw);
+        $processIfaceCustDescr = ! empty($ifaceCustDescrRaw);
         $ifaceCustDescrIdx = array();
         $ifaceCustDescrArr = array();
 
-// olt iface descr extraction
+        // olt iface descr extraction
         if ($processIfaceCustDescr) {
             foreach ($ifaceCustDescrRaw as $io => $each) {
                 if (empty($each)) {
@@ -159,11 +172,11 @@ class PONBdcom extends PONProto {
             }
         }
 
-//interface index preprocessing
-        if ((!empty($intIndex)) and ( !empty($macIndex))) {
+        // interface index preprocessing
+        if ((! empty($intIndex)) and ( ! empty($this->macIndexProcessed))) {
             foreach ($intIndex as $io => $eachint) {
                 $line = explode('=', $eachint);
-//interface is present
+                // interface is present
                 if (isset($line[1])) {
                     $interfaceRaw = trim($line[1]); // interface
                     $devIndex = trim($line[0]); // device index
@@ -171,65 +184,46 @@ class PONBdcom extends PONProto {
                 }
             }
 
-//mac index preprocessing
-            foreach ($macIndex as $io => $eachmac) {
-                $line = explode('=', $eachmac);
-//mac is present
-                if (isset($line[1])) {
-                    $macRaw = trim($line[1]); //mac address
-                    $devIndex = trim($line[0]); //device index
-                    $macRaw = str_replace(' ', ':', $macRaw);
-                    $macRaw = strtolower($macRaw);
-                    $macTmp[$devIndex] = $macRaw;
-                }
-            }
+            // storing results
+            foreach ($this->macIndexProcessed as $devId => $eachMac) {
+                if (isset($intTmp[$devId])) {
+                    $interface = $intTmp[$devId];
+                    $result[$eachMac] = $interface;
+                    $cleanIface = strstr($interface, ':', true);
+                    $tPONIfaceNum = substr($cleanIface, -1, 1);
 
-//storing results
-            if (!empty($macTmp)) {
-                foreach ($macTmp as $devId => $eachMac) {
-                    if (isset($intTmp[$devId])) {
-                        $interface = $intTmp[$devId];
-                        $result[$eachMac] = $interface;
-                        $cleanIface = strstr($interface, ':', true);
-                        $tPONIfaceNum = substr($cleanIface, -1, 1);
-
-                        if ($processIfaceCustDescr && !isset($ifaceCustDescrArr[$cleanIface]) && array_key_exists($tPONIfaceNum, $ifaceCustDescrIdx)) {
-                            $ifaceCustDescrArr[$cleanIface] = $ifaceCustDescrIdx[$tPONIfaceNum];
-                        }
+                    if ($processIfaceCustDescr && !isset($ifaceCustDescrArr[$cleanIface]) && array_key_exists($tPONIfaceNum, $ifaceCustDescrIdx)) {
+                        $ifaceCustDescrArr[$cleanIface] = $ifaceCustDescrIdx[$tPONIfaceNum];
                     }
                 }
-
-                //saving interfaces cache as mac=>interface name
-                $this->olt->writeInterfaces($result);
-                //saving interfaces custom descriptions as interface=>desctription
-                $this->olt->writeInterfacesDescriptions($ifaceCustDescrArr);
             }
+
+            //saving interfaces cache as mac=>interface name
+            $this->olt->writeInterfaces($result);
+            //saving interfaces custom descriptions as interface=>desctription
+            $this->olt->writeInterfacesDescriptions($ifaceCustDescrArr);
         }
     }
 
     /**
      * Parses & stores in cache OLT ONU interfaces
      *
-     * @param int $oltid
      * @param array $FDBIndex
-     * @param array $macIndex
      * @param array $oltModelId
      *
      * @return void
      */
-    protected function FDBParseBd($oltid, $FDBIndex, $macIndex, $oltModelId) {
-        $oltid = vf($oltid, 3);
+    protected function FDBParseBd($FDBIndex, $oltModelId) {
         $FDBTmp = array();
-        $macTmp = array();
         $result = array();
 
-//fdb index preprocessing
-        if ((!empty($FDBIndex)) and ( !empty($macIndex))) {
+        // fdb index preprocessing
+        if ((! empty($FDBIndex)) and ( ! empty($this->macIndexProcessed))) {
             foreach ($FDBIndex as $io => $eachfdb) {
                 if (preg_match('/' . $this->snmpTemplates[$oltModelId]['misc']['FDBVALUE'] . '/', $eachfdb)) {
                     $eachfdb = str_replace($this->snmpTemplates[$oltModelId]['misc']['FDBVALUE'], '', $eachfdb);
                     $line = explode('=', $eachfdb);
-//fdb is present
+                    // fdb is present
                     if (isset($line[1])) {
                         $FDBRaw = trim($line[1]); // FDB
                         $devOID = trim($line[0]); // FDB last OID
@@ -247,58 +241,39 @@ class PONBdcom extends PONProto {
                 }
             }
 
-//mac index preprocessing
-            foreach ($macIndex as $io => $eachmac) {
-                $line = explode('=', $eachmac);
-//mac is present
-                if (isset($line[1])) {
-                    $macRaw = trim($line[1]); //mac address
-                    $devIndex = trim($line[0]); //device index
-                    $macRaw = str_replace(' ', ':', $macRaw);
-                    $macRaw = strtolower($macRaw);
-                    $macTmp[$devIndex] = $macRaw;
+            // storing results
+            foreach ($this->macIndexProcessed as $devId => $eachMac) {
+                if (isset($FDBTmp[$devId])) {
+                    $fdb = $FDBTmp[$devId];
+                    $result[$eachMac] = $fdb;
                 }
             }
 
-//storing results
-            if (!empty($macTmp)) {
-                foreach ($macTmp as $devId => $eachMac) {
-                    if (isset($FDBTmp[$devId])) {
-                        $fdb = $FDBTmp[$devId];
-                        $result[$eachMac] = $fdb;
-                    }
-                }
-
-                //saving FDB cache
-                $this->olt->writeFdb($result);
-            }
+            //saving FDB cache
+            $this->olt->writeFdb($result);
         }
     }
 
     /**
      * Parses & stores in cache OLT FDB
      *
-     * @param int $oltid
      * @param array $FDBIndex
-     * @param array $macIndex
      * @param array $oltModelId
      *
      * @return void
      */
-    protected function FDBParseBdFirmwareF($oltid, $FDBIndex, $macIndex, $oltModelId) {
-        $oltid = vf($oltid, 3);
+    protected function FDBParseBdFirmwareF($FDBIndex, $oltModelId) {
         $TmpArr = array();
         $FDBTmp = array();
-        $macTmp = array();
         $result = array();
 
-//fdb index preprocessing
-        if ((!empty($FDBIndex)) and ( !empty($macIndex))) {
+        //fdb index preprocessing
+        if ((! empty($FDBIndex)) and ( ! empty($this->macIndexProcessed))) {
             foreach ($FDBIndex as $io => $eachfdbRaw) {
                 if (preg_match('/' . $this->snmpTemplates[$oltModelId]['misc']['FDBVALUE'] . '|INTEGER:/', $eachfdbRaw)) {
                     $eachfdbRaw = str_replace(array($this->snmpTemplates[$oltModelId]['misc']['FDBVALUE'], 'INTEGER:'), '', $eachfdbRaw);
                     $line = explode('=', $eachfdbRaw);
-//fdb is present
+                    //fdb is present
                     if (isset($line[1])) {
                         $devOID = trim($line[0]); // FDB last OID
                         $lineRaw = trim($line[1]); // FDB
@@ -329,54 +304,35 @@ class PONBdcom extends PONProto {
                     }
                 }
             }
-//mac index preprocessing
-            foreach ($macIndex as $io => $eachmac) {
-                $line = explode('=', $eachmac);
-//mac is present
-                if (isset($line[1])) {
-                    $macRaw = trim($line[1]); //mac address
-                    $devIndex = trim($line[0]); //device index
-                    $macRaw = str_replace(' ', ':', $macRaw);
-                    $macRaw = strtolower($macRaw);
-                    $macTmp[$devIndex] = $macRaw;
+
+            //storing results
+            foreach ($this->macIndexProcessed as $devId => $eachMac) {
+                if (isset($FDBTmp[$devId])) {
+                    $fdb = $FDBTmp[$devId];
+                    $result[$eachMac] = $fdb;
                 }
             }
-//storing results
-            if (!empty($macTmp)) {
-                foreach ($macTmp as $devId => $eachMac) {
-                    if (isset($FDBTmp[$devId])) {
-                        $fdb = $FDBTmp[$devId];
-                        $result[$eachMac] = $fdb;
-                    }
-                }
-                //saving FDB cache
-                $this->olt->writeFDB($result);
-            }
+            //saving FDB cache
+            $this->olt->writeFDB($result);
         }
     }
 
     /**
      * Parses & stores in cache OLT ONU dereg reaesons
      *
-     * @param int $oltid
      * @param array $distIndex
-     * @param array $onuIndex
      *
      * @return void
      */
-    protected function lastDeregParseBd($oltid, $deregIndex, $onuIndex) {
-        $oltid = vf($oltid, 3);
-        $deregTmp = array();
-        $onuTmp = array();
+    protected function lastDeregParseBd($deregIndex) {
         $result = array();
-        $curDate = curdatetime();
 
-//dereg index preprocessing
-        if ((!empty($deregIndex)) and ( !empty($onuIndex))) {
+        //dereg index preprocessing
+        if ((!empty($deregIndex)) and ( !empty($this->onuDevIndexProcessed))) {
             foreach ($deregIndex as $io => $eachdereg) {
                 $line = explode('=', $eachdereg);
 
-//dereg is present
+                //dereg is present
                 if (isset($line[1])) {
                     $deregRaw = trim($line[1]); // dereg
                     $devIndex = trim($line[0]); // device index
@@ -432,35 +388,54 @@ class PONBdcom extends PONProto {
                             $tmpONULastDeregReasonStr .
                             wf_tag('font', true);
 
-                    $deregTmp[$devIndex] = $tmpONULastDeregReasonStr;
-                }
-            }
-
-//mac index preprocessing
-            foreach ($onuIndex as $io => $eachmac) {
-                $line = explode('=', $eachmac);
-//mac is present
-                if (isset($line[1])) {
-                    $macRaw = trim($line[1]); //mac address
-                    $devIndex = trim($line[0]); //device index
-                    $macRaw = str_replace(' ', ':', $macRaw);
-                    $macRaw = strtolower($macRaw);
-                    $onuTmp[$devIndex] = $macRaw;
-                }
-            }
-
-//storing results
-            if (!empty($onuTmp)) {
-                foreach ($onuTmp as $devId => $eachMac) {
-                    if (isset($deregTmp[$devId])) {
-                        $lastDereg = $deregTmp[$devId];
-                        $result[$eachMac] = $lastDereg;
+                    if (isset($this->onuDevIndexProcessed[$devIndex])) {
+                        $result[$this->onuDevIndexProcessed[$devIndex]] = $tmpONULastDeregReasonStr;
                     }
                 }
-                //saving dereg reasons cache
-                $this->olt->writeDeregs($result);
             }
+
+            //saving dereg reasons cache
+            $this->olt->writeDeregs($result);
         }
     }
 
+    /**
+    * Performs UNI port oper status preprocessing for index array and stores it into cache
+    *
+    * @param $uniOperStatusIndex
+    *
+    * @return void
+    */
+    protected function uniParseBd($uniOperStatusIndex) {
+        $result = array();
+        if (! empty($this->macIndexProcessed) and ! empty($uniOperStatusIndex)) {
+            foreach ($uniOperStatusIndex as $io => $eachRow) {
+                $line = explode('=', $eachRow);
+                if (empty($line[0]) || empty($line[1])) {
+                    continue;
+                }
+
+                // LLID + ether port index
+                $tmpLLIDEtherIdx = trim($line[0]);
+                $tmpLLIDEtherIdx = ltrim($tmpLLIDEtherIdx, '.');
+                $tmpLLIDEtherIdxLen = strlen($tmpLLIDEtherIdx);
+
+                // ehter port index
+                $tmpEtherIdx = strrchr($tmpLLIDEtherIdx, '.');
+                $tmpEtherIdxLen = strlen($tmpEtherIdx);
+                $tmpEtherIdx = 'eth' . trim($tmpEtherIdx, '.');
+
+                //LLID
+                $tmpONUPortLLID = substr($tmpLLIDEtherIdx, 0, $tmpLLIDEtherIdxLen - $tmpEtherIdxLen);
+                $tmpUniStatus = trim($line[1]);
+                $tmpUniStatus = ($tmpUniStatus == 1) ? 1 : 0;
+
+                if (isset($this->macIndexProcessed[$tmpONUPortLLID])) {
+                    $result[$this->macIndexProcessed[$tmpONUPortLLID]][$tmpEtherIdx] = $tmpUniStatus;
+                }
+            }
+            //saving UniOperStats
+            $this->olt->writeUniOperStats($result);
+        }
+    }
 }
