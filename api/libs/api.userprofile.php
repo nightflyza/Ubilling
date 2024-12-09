@@ -1224,28 +1224,26 @@ class UserProfile {
 
         if ($this->alterCfg['SIGNAL_IN_PROFILE']) {
             $onuAdditionalData = '';
-            $query = "SELECT `pononu`.`id`, `pononu`.`onumodelid`, `pononu`.`oltid`, `pononu`.`ip`, `pononu`.`mac`, `pononu`.`serial`, `switchmodels`.`modelname` 
-                        FROM `pononu`
-                        LEFT JOIN `switchmodels` ON `pononu`.`onumodelid` = `switchmodels`.`id` 
-                        WHERE `login` = '" . $this->login . "'";
-            $onu_data = simple_query($query);
+            $ponizerDb = new NyanORM(PONizer::TABLE_ONUS);
+            $ponizerDb->selectable('`pononu`.`id`, `pononu`.`onumodelid`, `pononu`.`oltid`, `pononu`.`ip`, `pononu`.`mac`, `pononu`.`serial`, `switchmodels`.`modelname`');
+            $ponizerDb->joinOn('LEFT', 'switchmodels', '`pononu`.`onumodelid` = `switchmodels`.`id`');
+            $ponizerDb->where('login', '=', $this->login);
+            $onuData = $ponizerDb->getAll();
 
-            if (empty($onu_data)) {
-                $query = "SELECT `pononu`.`id`, `pononu`.`onumodelid`, `pononu`.`oltid`, `pononu`.`ip`, `pononu`.`mac`, `pononu`.`serial`, 
-                                 `switchmodels`.`modelname`, `pononuextusers`.`login` 
-                            FROM `pononu`
-                                LEFT JOIN `switchmodels` ON `pononu`.`onumodelid` = `switchmodels`.`id`
-                                INNER JOIN `pononuextusers` ON `pononu`.`id` = `pononuextusers`.`onuid`  
-                            WHERE `pononuextusers`.`login` = '" . $this->login . "'";
-                $onu_data = simple_query($query);
+            if (empty($onuData)) {
+                $ponizerDb->joinOn('LEFT', 'switchmodels', '`pononu`.`onumodelid` = `switchmodels`.`id`');
+                $ponizerDb->joinOn('INNER', 'pononuextusers', '`pononu`.`id` = `pononuextusers`.`onuid`');
+                $ponizerDb->where('`pononuextusers`.`login`', '=', $this->login);
+                $onuData = $ponizerDb->getAll();
             }
 
-            if (!empty($onu_data)) {
+            if (!empty($onuData)) {
+                $onuData = $onuData[0];
                 $pon = ($this->ubConfig->getAlterParam('PON_OLT_UPTIME_IN_PROFILE')
                     or $this->ubConfig->getAlterParam('PON_REALTIME_SIGNAL_IN_PROFILE')
                     or $this->ubConfig->getAlterParam('PON_REALTIME_EXTEN_INFO_IN_PROFILE')) ? new PONizer() : null;
 
-                $curOLTID = (empty($onu_data['oltid']) ? 0 : $onu_data['oltid']);
+                $curOLTID = (empty($onuData['oltid']) ? 0 : $onuData['oltid']);
                 $curOLTAliveCheck = $this->ubConfig->getAlterParam('PON_OLT_ALIVE_PING_CHECK', false);
                 $curOLTAliveCheckTimeout = $this->ubConfig->getAlterParam('PON_OLT_ALIVE_PING_CHECK_TIMEOUT', 1);
                 $curOLTAlive = ($curOLTAliveCheck) ? false : true;
@@ -1253,11 +1251,11 @@ class UserProfile {
                 $curOLTModelName = '';
                 $curOLTLocation = '';
 
-                $query = "SELECT `switches`.`id`, `switches`.`ip`, `switches`.`location`, `switchmodels`.`modelname` 
-                            FROM `switches` 
-                            LEFT JOIN `switchmodels` ON `switches`.`modelid` = `switchmodels`.`id`  
-                            WHERE `switches`.`id` = " . $curOLTID;
-                $oltData = simple_queryall($query);
+                $switchesDb = new NyanORM('switches');
+                $switchesDb->selectable('`switches`.`id`,`switches`.`ip`,`switches`.`location`,`switchmodels`.`modelname`');
+                $switchesDb->joinOn('LEFT', 'switchmodels', '`switches`.`modelid` = `switchmodels`.`id`');
+                $switchesDb->where('`switches`.`id`', '=', $curOLTID);
+                $oltData = $switchesDb->getAll();
 
                 if (isset($oltData[0]) and !empty($oltData[0])) {
                     $curOLTIP = $oltData[0]['ip'];
@@ -1294,20 +1292,20 @@ class UserProfile {
                         $rows .= wf_TableRow($onuAdditionalData, 'row3');
                     }
 
-                    $webIfaceLink = wf_tag('a', false, '', 'href="http://' . $onu_data['ip'] . '" target="_blank" title="' . __('Go to the web interface') . '"');
+                    $webIfaceLink = wf_tag('a', false, '', 'href="http://' . $onuData['ip'] . '" target="_blank" title="' . __('Go to the web interface') . '"');
                     $webIfaceLink .= wf_img('skins/ymaps/network.png');
                     $webIfaceLink .= wf_tag('a', true);
 
                     $onuAdditionalData = wf_TableCell(__('ONU IP'), '30%', 'row2');
-                    $onuAdditionalData .= wf_TableCell($onu_data['ip'] . ' - ' . $onu_data['modelname'] . wf_nbsp(2) . $webIfaceLink);
+                    $onuAdditionalData .= wf_TableCell($onuData['ip'] . ' - ' . $onuData['modelname'] . wf_nbsp(2) . $webIfaceLink);
                     $rows .= wf_TableRow($onuAdditionalData, 'row3');
 
                     $onuAdditionalData = wf_TableCell(__('ONU MAC'), '30%', 'row2');
-                    $onuAdditionalData .= wf_TableCell($onu_data['mac']);
+                    $onuAdditionalData .= wf_TableCell($onuData['mac']);
                     $rows .= wf_TableRow($onuAdditionalData, 'row3');
 
                     $onuAdditionalData = wf_TableCell(__('ONU Serial'), '30%', 'row2');
-                    $onuAdditionalData .= wf_TableCell($onu_data['serial']);
+                    $onuAdditionalData .= wf_TableCell($onuData['serial']);
                     $rows .= wf_TableRow($onuAdditionalData, 'row3');
 
                     $onuInterface = '';
@@ -1316,7 +1314,7 @@ class UserProfile {
                         $raw = file_get_contents($onuInterfacesCache);
                         $raw = unserialize($raw);
                         foreach ($raw as $mac => $interface) {
-                            if ($mac == $onu_data['mac'] or $mac == $onu_data['serial']) {
+                            if ($mac == $onuData['mac'] or $mac == $onuData['serial']) {
                                 $onuInterface = $interface;
                                 break;
                             }
@@ -1332,7 +1330,7 @@ class UserProfile {
                 $realtimeStr = '';
 
                 if ($curOLTAlive and $this->ubConfig->getAlterParam('PON_REALTIME_SIGNAL_IN_PROFILE')) {
-                    $onuMAC = (empty($onu_data['serial'])) ? $onu_data['mac'] : $onu_data['serial'];
+                    $onuMAC = (empty($onuData['serial'])) ? $onuData['mac'] : $onuData['serial'];
                     $signal = $pon->getONURealtimeSignal($curOLTID, $onuMAC);
 
                     if (!empty($signal)) {
@@ -1349,38 +1347,26 @@ class UserProfile {
                     }
                 }
 
-                if (isset($raw[$onu_data['mac']])) {
-                    $signal = $raw[$onu_data['mac']];
+                if (isset($raw[$onuData['mac']])) {
+                    $signal = $raw[$onuData['mac']];
                 }
-                if (isset($raw[$onu_data['serial']])) {
-                    $signal = $raw[$onu_data['serial']];
+                if (isset($raw[$onuData['serial']])) {
+                    $signal = $raw[$onuData['serial']];
                 }
                 if (!empty($signal)) {
-                    if (($signal > 0) or ($signal < -27)) {
-                        $sigColor = PONizer::COLOR_BAD;
-                    } elseif ($signal > -27 and $signal < -25) {
-                        $sigColor = PONizer::COLOR_AVG;
-                    } else {
-                        $sigColor = PONizer::COLOR_OK;
-                    }
-                    $searched = $signal;
-
-                    if ($signal == 'Offline') {
-                        $sigColor = PONizer::COLOR_NOSIG;
-                        $searched = __('No');
-                    }
+                    $searched = zb_PonSignalColorize($signal);
                 }
 
                 $cells = wf_TableCell(__('ONU Signal') . $realtimeStr, '30%', 'row2');
-                $cells .= wf_TableCell(wf_tag('strong') . wf_tag('font color=' . $sigColor, false) . $searched . wf_tag('font', true) . wf_tag('strong', true)
-                    . wf_nbsp(2) . wf_Link('?module=ponizer&editonu=' . $onu_data['id'], web_edit_icon()));
+                $cells .= wf_TableCell(wf_tag('strong') . $searched . wf_tag('strong', true)
+                    . wf_nbsp(2) . wf_Link('?module=ponizer&editonu=' . $onuData['id'], web_edit_icon()));
                 $rows .= wf_TableRow($cells, 'row3');
 
                 if ($curOLTAlive and $this->ubConfig->getAlterParam('PON_REALTIME_EXTEN_INFO_IN_PROFILE')) {
                     $lastRegTime = '';
                     $lastDeregTime = '';
                     $lastAliveTime = '';
-                    $onuMAC = (empty($onu_data['serial'])) ? $onu_data['mac'] : $onu_data['serial'];
+                    $onuMAC = (empty($onuData['serial'])) ? $onuData['mac'] : $onuData['serial'];
                     $onuTXSignal = $pon->getONURealtimeSignal($curOLTID, $onuMAC, true);
                     $extenInfo = $pon->getONUExtenInfo($curOLTID, $onuMAC);
 
@@ -1410,7 +1396,7 @@ class UserProfile {
                 if ($this->ubConfig->getAlterParam('PONBOXES_ENABLED')) {
                     $ponBoxes = new PONBoxes(true);
 
-                    $tmpONUData = $onu_data;
+                    $tmpONUData = $onuData;
                     $tmpONUData['login'] = $this->login;
                     $crossLinkWarning = '';
                     $cells = wf_TableCell(__('PON box'), '30%', 'row2');
