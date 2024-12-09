@@ -54,6 +54,24 @@ class PONProto {
     protected $olt = '';
 
     /**
+    * Contains ONU id and her MAC
+    *
+    * @var array as onuId => onuMAC
+    *
+    * onuMAC on lower case
+    */
+    protected $macIndexProcessed = array();
+
+    /**
+    * Contains ONU device index and her MAC
+    *
+    * @var array as onuDevInd => onuMAC
+    *
+    * onuMAC on lower case
+    */
+    protected $onuDevIndexProcessed = array();
+
+    /**
      * Replicated paths from primary PONizer class. 
      * This is here only for legacy of manual data manipulations wit self::
      * instead of usage $this->olt abstraction in HAL libs.
@@ -316,6 +334,54 @@ class PONProto {
             $tempRaw = explode(':', $tempRaw);
             $tempRaw = $tempRaw[1];
             $this->olt->writeTemperature($tempRaw);
+        }
+    }
+
+    /**
+    * Parses ONU and get her ID and MAC
+    *
+    * @param array $macIndex
+    *
+    * @return array
+    */
+    protected function onuMacProcessing($macIndex) {
+        if (!empty($macIndex)) {
+            //mac index preprocessing
+            foreach ($macIndex as $io => $eachmac) {
+                $line = explode('=', $eachmac);
+                //mac is present
+                if (isset($line[1])) {
+                    $macRaw = trim($line[1]); //mac address
+                    $devIndex = trim($line[0]); //device index
+                    $macRaw = str_replace(' ', ':', $macRaw);
+                    $macRaw = strtolower($macRaw);
+                    $this->macIndexProcessed[$devIndex] = $macRaw;
+                }
+            }
+        }
+    }
+
+    /**
+    * Parses ONU and get her device ID and MAC
+    *
+    * @param array $onuIndex
+    *
+    * @return array
+    */
+    protected function onuDevIndexProcessing($onuIndex) {
+        if (!empty($onuIndex)) {
+            // mac index preprocessing
+            foreach ($onuIndex as $io => $eachmac) {
+                $line = explode('=', $eachmac);
+                //mac is present
+                if (isset($line[1])) {
+                    $macRaw = trim($line[1]); //mac address
+                    $devIndex = trim($line[0]); //device index
+                    $macRaw = str_replace(' ', ':', $macRaw);
+                    $macRaw = strtolower($macRaw);
+                    $this->onuDevIndexProcessed[$devIndex] = $macRaw;
+                }
+            }
         }
     }
 
