@@ -354,7 +354,11 @@ class PONProto {
                     $macRaw = trim($line[1]); //mac address
                     $devIndex = trim($line[0]); //device index
                     $macRaw = str_replace(' ', ':', $macRaw);
-                    $macRaw = strtolower($macRaw);
+                    if ($this->onuSerialCaseMode == 1) {
+                        $macRaw = strtolower($macRaw);
+                    } elseif ($this->onuSerialCaseMode == 2) {
+                        $macRaw = strtoupper($macRaw);
+                    }
                     $this->macIndexProcessed[$devIndex] = $macRaw;
                 }
             }
