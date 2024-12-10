@@ -160,6 +160,13 @@ class UserProfile {
     protected $customFields = '';
 
     /**
+    * Contains user assigned culpa if it exists
+    *
+    * @var string
+    */
+    protected $culpa = '';
+
+    /**
      * Path to SMS template for user quick credentials sending
      *
      * @var string
@@ -198,6 +205,7 @@ class UserProfile {
             $this->loadPlugins();
             $this->loadMobilesExt();
             $this->loadCustomFields();
+            $this->loadCulpa();
         } else {
             throw new Exception(self::EX_EMPTY_LOGIN);
         }
@@ -401,6 +409,36 @@ class UserProfile {
             }
         }
         return ($result);
+    }
+
+    /**
+    * returns MeCulpa if enabled
+    *
+    * @return string
+    */
+    protected function getMeCulpaRaw() {
+        $result = '';
+        if ($this->ubConfig->getAlterParam('MEACULPA_ENABLED')) {
+            if ($this->culpa) {
+                $result = $this->addRow(__('CULPA'), $this->culpa);
+            } else {
+                $result = $this->addRow(__('CULPA'), __('No'));
+            }
+        }
+        return ($result);
+    }
+
+    /**
+    * Returns user assigned culpa if it exists
+    *
+    *
+    * @return string
+    */
+    protected function loadCulpa() {
+        if ($this->ubConfig->getAlterParam('MEACULPA_ENABLED')) {
+            $meaCulpa = new MeaCulpa();
+            $this->culpa = $meaCulpa->get($this->login);
+        }
     }
 
     /**
@@ -2428,6 +2466,8 @@ class UserProfile {
         $profile .= $this->addRow(__('IP') . ' ' . $this->getNasInfoControls($this->userdata['IP']), $this->userdata['IP'] . $this->getExtNetsControls() . $this->getNasInfoContrainer(), true);
         //MAC address row
         $profile .= $this->addRow(__('MAC') . ' ' . $this->getSearchmacControl() . ' ' . $this->getProfileFdbSearchControl(), $this->mac);
+        //MeCulpa row
+        $profile .= $this->getMeCulpaRaw();
         //User tariff row
         $profile .= $this->addRow(__('Tariff') . $this->getTariffInfoControls($this->userdata['Tariff']), $this->userdata['Tariff'] . $this->getTariffInfoContrainer(), true);
         //Tariff change row
