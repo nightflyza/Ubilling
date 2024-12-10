@@ -11,6 +11,10 @@ class PONBdcom extends PONProto {
      * @return void
      */
     public function collect() {
+        global $ubillingConfig;
+        $this->ubConfig = $ubillingConfig;
+        $this->onuUniStatusEnabled = $this->ubConfig->getAlterParam('PON_ONU_UNI_STATUS_ENABLED', false);
+
         $oltModelId = $this->oltParameters['MODELID'];
         $oltid = $this->oltParameters['ID'];
         $oltIp = $this->oltParameters['IP'];
@@ -129,7 +133,7 @@ class PONBdcom extends PONProto {
                         $this->lastDeregParseBd($deregIndex);
                     }
                     // processing UniOperStauts
-                    if (isset($this->snmpTemplates[$oltModelId]['misc']['UNIOPERSTATUS'])) {
+                    if (isset($this->snmpTemplates[$oltModelId]['misc']['UNIOPERSTATUS']) and $this->onuUniStatusEnabled) {
                         $this->uniParseBd($uniOperStatusIndex);
                     }
                 }
