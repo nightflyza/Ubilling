@@ -41,7 +41,7 @@ $customerIdFields = array(
  * Кінець секції налаштувань
  */
 
-include ("../../libs/api.openpayz.php");
+include("../../libs/api.openpayz.php");
 
 error_reporting(E_ALL);
 
@@ -106,9 +106,9 @@ function pbx_RequestGet() {
  */
 function pbx_ispos($string, $search) {
     if (strpos($string, $search) === false) {
-        return(false);
+        return (false);
     } else {
-        return(true);
+        return (true);
     }
 }
 
@@ -126,7 +126,7 @@ function pbx_UserGetAllRealnames() {
             $result[$each['login']] = $each['realname'];
         }
     }
-    return($result);
+    return ($result);
 }
 
 /**
@@ -157,7 +157,7 @@ function pbx_UserGetAllMobiles() {
             $result[$each['login']] = $each['mobile'];
         }
     }
-    return($result);
+    return ($result);
 }
 
 /**
@@ -201,7 +201,7 @@ function pbx_GenerateHash($size = 12) {
  * @return array
  */
 function pbx_AddressGetFulladdresslist() {
-//наглая заглушка
+    //наглая заглушка
     $alterconf['ZERO_TOLERANCE'] = 0;
     $alterconf['CITY_DISPLAY'] = 0;
     $result = array();
@@ -227,7 +227,7 @@ function pbx_AddressGetFulladdresslist() {
             }
         }
     }
-    return($result);
+    return ($result);
 }
 
 /**
@@ -244,6 +244,9 @@ function pbx_ReplySearch($customerid, $UsrBalanceDecimals = -1) {
         $allmobiles = pbx_UserGetAllMobiles();
         $userdata = pbx_UserGetStargazerData($customerLogin);
         $agentData = getAgentData($customerLogin);
+        $realName = @$allrealnames[$customerLogin];
+        $realName = (mb_strlen($realName, 'UTF-8') > 50) ? mb_substr($realName, 0, 47, 'utf-8') . '...' : $realName;
+
         if (!empty($agentData)) {
             $agentData = json_decode($agentData, true);
             if (!empty($agentData)) {
@@ -277,7 +280,7 @@ function pbx_ReplySearch($customerid, $UsrBalanceDecimals = -1) {
                     <Transfer xmlns="http://debt.privatbank.ua/Transfer" interface="Debt" action="Search">
                     <Data xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="DebtPack" billPeriod="' . date("Ym") . '">
                     <PayerInfo billIdentifier="' . $customerid . '">
-                     <Fio>' . @$allrealnames[$customerLogin] . '</Fio>
+                     <Fio>' .  $realName . '</Fio>
                      <Phone>' . @$allmobiles[$customerLogin] . '</Phone>
                      <Address>' . @$alladdress[$customerLogin] . '</Address>
                     </PayerInfo>
@@ -289,7 +292,7 @@ function pbx_ReplySearch($customerid, $UsrBalanceDecimals = -1) {
                         </DebtInfo>
                        <ServiceName>' . ISP_SERVICE_NAME . '</ServiceName>
                        <PayerInfo billIdentifier="' . $customerid . '" ls="' . $customerid . '">
-                         <Fio>' . @$allrealnames[$customerLogin] . '</Fio>
+                         <Fio>' .  $realName . '</Fio>
                          <Phone>' . @$allmobiles[$customerLogin] . '</Phone>
                          <Address>' . @$alladdress[$customerLogin] . '</Address>
                         </PayerInfo>
@@ -442,7 +445,7 @@ function pbx_extractCustomerId($xmlParse, $validPayIdF) {
             }
         }
     }
-    return($result);
+    return ($result);
 }
 
 /**
