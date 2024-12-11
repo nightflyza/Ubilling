@@ -1224,7 +1224,7 @@ class PseudoCRM {
         $previousActivities = $this->getLeadActivities($leadId);
         if (!empty($previousActivities)) {
             if ($onlyLast) {
-                $previousActivities=array_slice($previousActivities, 0, 1, true);
+                $previousActivities = array_slice($previousActivities, 0, 1, true);
             }
 
             //performing stigma instances creation
@@ -1294,6 +1294,62 @@ class PseudoCRM {
             $taskLogin = $leadData['login'];
             $taskForm = ts_TaskCreateFormUnified($taskAddress, $taskMobile, $taskPhone, $taskLogin);
             $result .= wf_modal(wf_img('skins/createtask.gif') . ' ' . __('Create task'), __('Create task'), $taskForm, 'ubButton', '450', '540');
+        }
+        return ($result);
+    }
+
+    /**
+     * Returns sticky note creation form
+     * 
+     * @return string
+     */
+    protected function renderStickyCreateForm($textPreset) {
+        $inputs = wf_tag('label') . __('Text') . ': ' . wf_tag('br') . wf_tag('label', true);
+        $inputs .= wf_TextArea('newtext', '', $textPreset, true, '50x15');
+        $inputs .= wf_CheckInput('newactive', __('Create note as active'), true, true);
+        $inputs .= wf_DatePickerPreset('newreminddate', '');
+        $inputs .= wf_tag('label') . __('Remind only after this date') . wf_tag('label', true);
+        $inputs .= wf_tag('br');
+        $inputs .= wf_TimePickerPreset('newremindtime', '', __('Remind time'), false);
+        $inputs .= wf_tag('br');
+        $inputs .= wf_tag('br');
+        $inputs .= wf_Submit(__('Create'));
+
+        $result = wf_Form(StickyNotes::URL_ME, 'POST', $inputs, 'glamour');
+
+        return ($result);
+    }
+
+
+    /**
+     * Returns lead sticky note creation form control
+     * 
+     * @param int $leadId
+     * 
+     * @return string
+     */
+    protected function renderLeadStickyControl($leadId) {
+        $result = '';
+        $leadId = ubRouting::filters($leadId, 'int');
+        if ($this->isLeadExists($leadId)) {
+            $leadData = $this->getLeadData($leadId);
+            $textPreset = '';
+            $textPreset .= __('Lead') . ': ' . $leadData['address'] . PHP_EOL;
+            $textPreset .= __('Real Name') . ': ' . $leadData['realname'] . PHP_EOL;
+            if (!empty($leadData['mobile'])) {
+                $textPreset .= __('Mobile') . ': ' . $leadData['mobile'] . PHP_EOL;
+            }
+            if (!empty($leadData['phone'])) {
+                $textPreset .= __('Phone') . ': ' . $leadData['phone'] . PHP_EOL;
+            }
+            if (!empty($leadData['extmobile'])) {
+                $textPreset .= __('Additional mobile') . ': ' . $leadData['extmobile'] . PHP_EOL;
+            }
+            $textPreset .= '======' . PHP_EOL;
+
+
+            $stickyForm = $this->renderStickyCreateForm($textPreset);
+            $result .= wf_modalAuto(wf_img('skins/pushpin.png') . ' ' . __('Create new personal note'), __('Create new personal note'), $stickyForm, 'ubButton');
         }
         return ($result);
     }
@@ -1566,6 +1622,12 @@ class PseudoCRM {
             }
             if (cfr(self::RIGHT_TASKS)) {
                 $result .= $this->renderLeadTaskCreateForm($leadId);
+            }
+
+            if (cfr('STICKYNOTES')) {
+                if ($this->altCfg['STICKY_NOTES_ENABLED']) {
+                    $result .= $this->renderLeadStickyControl($leadId);
+                }
             }
         }
 
