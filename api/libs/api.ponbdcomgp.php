@@ -25,7 +25,7 @@ class PONBdcomGP extends PONBdcom {
         $sigIndex = str_replace($this->snmpTemplates[$oltModelId]['signal']['SIGVALUE'], '', $sigIndex);
         $sigIndex = explodeRows($sigIndex);
 
-//ONU distance polling for bdcom devices
+        // ONU distance polling for bdcom devices
         if (isset($this->snmpTemplates[$oltModelId]['misc'])) {
             if (isset($this->snmpTemplates[$oltModelId]['misc']['DISTINDEX'])) {
                 if (!empty($this->snmpTemplates[$oltModelId]['misc']['DISTINDEX'])) {
@@ -57,23 +57,24 @@ class PONBdcomGP extends PONBdcom {
             }
         }
 
-//getting others system data from OLT
+        // getting others system data from OLT
         if (isset($this->snmpTemplates[$oltModelId]['system'])) {
-            //OLT uptime
+            // OLT uptime
             if (isset($this->snmpTemplates[$oltModelId]['system']['UPTIME'])) {
                 $uptimeIndexOid = $this->snmpTemplates[$oltModelId]['system']['UPTIME'];
                 $oltSystemUptimeRaw = $this->snmp->walk($oltIp . ':' . self::SNMPPORT, $oltCommunity, $uptimeIndexOid, self::SNMPCACHE);
                 $this->uptimeParse($oltid, $oltSystemUptimeRaw);
             }
 
-            //OLT temperature
+            // OLT temperature
             if (isset($this->snmpTemplates[$oltModelId]['system']['TEMPERATURE'])) {
                 $temperatureIndexOid = $this->snmpTemplates[$oltModelId]['system']['TEMPERATURE'];
                 $oltTemperatureRaw = $this->snmp->walk($oltIp . ':' . self::SNMPPORT, $oltCommunity, $temperatureIndexOid, self::SNMPCACHE);
                 $this->temperatureParse($oltid, $oltTemperatureRaw);
             }
         }
-//getting MAC index.
+
+        // getting MAC index.
         $macIndexOID = $this->snmpTemplates[$oltModelId]['signal']['MACINDEX'];
         $macIndex = $this->snmp->walk($oltIp . ':' . self::SNMPPORT, $oltCommunity, $macIndexOID, self::SNMPCACHE);
         $macIndex = str_replace($macIndexOID . '.', '', $macIndex);
@@ -81,22 +82,26 @@ class PONBdcomGP extends PONBdcom {
         $macIndex = str_replace('"', '', $macIndex);
         $macIndex = explodeRows($macIndex);
 
+        // Start proccesing for get ONU id and MAC
+        $this->onuMacProcessing($macIndex);
+        $this->onuDevIndexProcessing($onuIndex);
+
         $this->signalParse($oltid, $sigIndex, $macIndex, $this->snmpTemplates[$oltModelId]['signal']);
-//This is here because BDCOM is BDCOM and another snmp queries cant be processed after MACINDEX query in some cases.
+        // This is here because BDCOM is BDCOM and another snmp queries cant be processed after MACINDEX query in some cases.
         if (isset($this->snmpTemplates[$oltModelId]['misc'])) {
             if (isset($this->snmpTemplates[$oltModelId]['misc']['DISTINDEX'])) {
                 if (!empty($this->snmpTemplates[$oltModelId]['misc']['DISTINDEX'])) {
-// processing distance data
-                    $this->distanceParseGPBd($oltid, $distIndex, $onuIndex);
-//processing interfaces data
-                    $this->interfaceParseBd($oltid, $intIndex, $macIndex);
-//processing FDB data
+                    // processing distance data
+                    $this->distanceParseGPBd($distIndex, $onuIndex);
+                    // processing interfaces data
+                    $this->interfaceParseBd($intIndex);
+                    // processing FDB data
                     if (!$oltNoFDBQ) {
-                        $this->FDBParseGPBd($oltid, $FDBIndex, $macIndex, $oltModelId);
+                        $this->FDBParseGPBd($FDBIndex, $oltModelId);
                     }
 
                     if (isset($this->snmpTemplates[$oltModelId]['misc']['DEREGREASON'])) {
-//processing last dereg reason data
+                    // processing last dereg reason data
                         $this->lastDeregParseBd($oltid, $deregIndex, $onuIndex);
                     }
                 }
@@ -107,28 +112,23 @@ class PONBdcomGP extends PONBdcom {
     /**
      * Parses & stores in cache OLT ONU interfaces
      *
-     * @param int $oltid
      * @param array $FDBIndex
-     * @param array $macIndex
-     * @param array $FDBDEVIndex
      * @param array $oltModelId
      *
      * @return void
      */
-    protected function FDBParseGPBd($oltid, $FDBIndex, $macIndex, $oltModelId) {
-        $oltid = vf($oltid, 3);
+    protected function FDBParseGPBd($FDBIndex, $oltModelId) {
         $TmpArr = array();
         $FDBTmp = array();
-        $macTmp = array();
         $result = array();
 
-//fdb index preprocessing
-        if ((!empty($FDBIndex)) and ( !empty($macIndex))) {
+        // fdb index preprocessing
+        if ((!empty($FDBIndex)) and ( ! empty($this->macIndexProcessed))) {
             foreach ($FDBIndex as $io => $eachfdbRaw) {
                 if (preg_match('/' . $this->snmpTemplates[$oltModelId]['misc']['FDBVALUE'] . '|INTEGER:/', $eachfdbRaw)) {
                     $eachfdbRaw = str_replace(array($this->snmpTemplates[$oltModelId]['misc']['FDBVALUE'], 'INTEGER:'), '', $eachfdbRaw);
                     $line = explode('=', $eachfdbRaw);
-//fdb is present
+                    // fdb is present
                     if (isset($line[1])) {
                         $devOID = trim($line[0]); // FDB last OID
                         $lineRaw = trim($line[1]); // FDB
@@ -159,21 +159,9 @@ class PONBdcomGP extends PONBdcom {
                     }
                 }
             }
-//mac index preprocessing
-            foreach ($macIndex as $io => $eachmac) {
-                $line = explode('=', $eachmac);
-//mac is present
-                if (isset($line[1])) {
-                    $macRaw = trim($line[1]); //mac address
-                    $devIndex = trim($line[0]); //device index
-                    $macRaw = str_replace(' ', ':', $macRaw);
-                    $macRaw = strtolower($macRaw);
-                    $macTmp[$devIndex] = $macRaw;
-                }
-            }
-//storing results
-            if (!empty($macTmp)) {
-                foreach ($macTmp as $devId => $eachMac) {
+
+            // storing results
+                foreach ($this->macIndexProcessed as $devId => $eachMac) {
                     if (isset($FDBTmp[$devId])) {
                         $fdb = $FDBTmp[$devId];
                         $result[$eachMac] = $fdb;
@@ -182,31 +170,27 @@ class PONBdcomGP extends PONBdcom {
 
                 //saving FDB data
                 $this->olt->writeFdb($result);
-            }
         }
     }
 
     /**
      * Parses & stores in cache OLT ONU distances
      *
-     * @param int $oltid
      * @param array $distIndex
      * @param array $onuIndex
      *
      * @return void
      */
-    protected function distanceParseGPBd($oltid, $distIndex, $onuIndex) {
-        $oltid = vf($oltid, 3);
+    protected function distanceParseGPBd($distIndex, $onuIndex) {
         $distTmp = array();
         $onuTmp = array();
         $result = array();
-        $curDate = curdatetime();
 
-//distance index preprocessing
+        // distance index preprocessing
         if ((!empty($distIndex)) and ( !empty($onuIndex))) {
             foreach ($distIndex as $io => $eachdist) {
                 $line = explode('=', $eachdist);
-//distance is present
+                // distance is present
                 if (isset($line[1])) {
                     $distanceRaw = trim($line[1]); // distance
                     $devIndex = trim($line[0]); // device index
@@ -214,10 +198,10 @@ class PONBdcomGP extends PONBdcom {
                 }
             }
 
-//mac index preprocessing
+            // mac index preprocessing
             foreach ($onuIndex as $io => $eachmac) {
                 $line = explode('=', $eachmac);
-//mac is present
+                // mac is present
                 if (isset($line[1])) {
                     $macRaw = trim($line[1]); //mac address
                     $devIndex = trim($line[0]); //device index
@@ -227,7 +211,7 @@ class PONBdcomGP extends PONBdcom {
                 }
             }
 
-//storing results
+            // storing results
             if (!empty($onuTmp)) {
                 foreach ($onuTmp as $devId => $eachMac) {
                     if (isset($distTmp[$devId])) {
@@ -241,13 +225,12 @@ class PONBdcomGP extends PONBdcom {
                         }
                     }
                 }
-                //saving ONUs distances
+                // saving ONUs distances
                 $this->olt->writeDistances($result);
 
-                //saving ONUs cache
+                // saving ONUs cache
                 $this->olt->writeOnuCache($onuTmp);
             }
         }
     }
-
 }
