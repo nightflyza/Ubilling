@@ -332,7 +332,7 @@ class PONProto {
     protected function temperatureParse($oltid, $tempRaw) {
         if (!empty($tempRaw)) {
             $tempRaw = explode(':', $tempRaw);
-            $tempRaw = $tempRaw[1];
+            $tempRaw = @$tempRaw[1];
             $this->olt->writeTemperature($tempRaw);
         }
     }
