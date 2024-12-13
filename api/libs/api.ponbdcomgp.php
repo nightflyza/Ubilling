@@ -102,7 +102,7 @@ class PONBdcomGP extends PONBdcom {
 
                     if (isset($this->snmpTemplates[$oltModelId]['misc']['DEREGREASON'])) {
                     // processing last dereg reason data
-                        $this->lastDeregParseBd($oltid, $deregIndex, $onuIndex);
+                        $this->lastDeregParseBd($deregIndex);
                     }
                 }
             }
