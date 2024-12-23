@@ -115,7 +115,7 @@ if (ubRouting::get('action') == 'fullhostscan') {
                 if ($each['Cash'] >= '-' . $each['Credit']) {
                     $seed = rand(0, 8);
                     if ($seed) {
-                        $fullScanResult .= 'login ' . $each['login'] . ' ' . $each['IP'] . ' demo mode alive' . "\n";
+                        $fullScanResult .= 'login ' . $each['login'] . ' ' . $each['ip'] . ' demo mode alive' . "\n";
                     }
                 }
             }
