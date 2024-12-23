@@ -134,11 +134,11 @@
 
                     switch ($monthny) {
                         case '12':
-                            $date_startny = strtotime(date('Y') . '-12-25');
+                            $date_startny = strtotime(date('Y') . '-12-23');
                             $date_stopny = strtotime((date('Y') + 1) . '-1-05');
                             break;
                         case '1':
-                            $date_startny = strtotime((date('Y') - 1) . '-12-25');
+                            $date_startny = strtotime((date('Y') - 1) . '-12-23');
                             $date_stopny = strtotime(date('Y') . '-1-05');
                             break;
                     }
