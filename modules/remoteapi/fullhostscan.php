@@ -44,7 +44,7 @@ if (ubRouting::get('action') == 'fullhostscan') {
                     }
                 }
 
-                if (!empty($curTraff) AND !empty($additionalTraffic)) {
+                if (!empty($curTraff) and !empty($additionalTraffic)) {
                     foreach ($curTraff as $io => $each) {
                         if (isset($additionalTraffic[$each['login']])) {
                             $curTraff[$io]['traff'] += $additionalTraffic[$each['login']];
@@ -57,7 +57,7 @@ if (ubRouting::get('action') == 'fullhostscan') {
             if ($alterconf[OphanimFlow::OPTION_ENABLED]) {
                 $ophTraff = new OphanimFlow();
                 $additionalTraffic = $ophTraff->getAllUsersAggrTraff();
-                if (!empty($curTraff) AND !empty($additionalTraffic)) {
+                if (!empty($curTraff) and !empty($additionalTraffic)) {
                     foreach ($curTraff as $io => $each) {
                         if (isset($additionalTraffic[$each['login']])) {
                             $curTraff[$io]['traff'] += $additionalTraffic[$each['login']];
@@ -106,6 +106,22 @@ if (ubRouting::get('action') == 'fullhostscan') {
             file_put_contents('exports/prevtraff', $savePrev);
         }
     }
+
+    //demo mode - random users will be alive
+    if (file_exists('DEMO_MODE')) {
+        $allUsers = zb_UserGetAllDataCache();
+        if (!empty($allUsers)) {
+            foreach ($allUsers as $io => $each) {
+                if ($each['Cash'] >= '-' . $each['Credit']) {
+                    $seed = rand(0, 8);
+                    if ($seed) {
+                        $fullScanResult .= 'login ' . $each['login'] . ' ' . $each['IP'] . ' demo mode alive' . "\n";
+                    }
+                }
+            }
+        }
+    }
+
     //saving scan data
     file_put_contents('exports/nmaphostscan', $fullScanResult);
 
