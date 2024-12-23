@@ -160,10 +160,10 @@ class UserProfile {
     protected $customFields = '';
 
     /**
-    * Contains user assigned culpa if it exists
-    *
-    * @var string
-    */
+     * Contains user assigned culpa if it exists
+     *
+     * @var string
+     */
     protected $culpa = '';
 
     /**
@@ -412,10 +412,10 @@ class UserProfile {
     }
 
     /**
-    * returns MeCulpa if enabled
-    *
-    * @return string
-    */
+     * returns MeCulpa if enabled
+     *
+     * @return string
+     */
     protected function getMeCulpaRaw() {
         $result = '';
         if ($this->ubConfig->getAlterParam('MEACULPA_ENABLED')) {
@@ -429,11 +429,11 @@ class UserProfile {
     }
 
     /**
-    * Returns user assigned culpa if it exists
-    *
-    *
-    * @return string
-    */
+     * Returns user assigned culpa if it exists
+     *
+     *
+     * @return string
+     */
     protected function loadCulpa() {
         if ($this->ubConfig->getAlterParam('MEACULPA_ENABLED')) {
             $meaCulpa = new MeaCulpa();
@@ -467,6 +467,7 @@ class UserProfile {
         if (!empty($plugins)) {
             foreach ($plugins as $modulename => $eachplugin) {
                 $renderable = true;
+                $linkTarget = '';
                 //checks for required pluging rights
                 if (isset($eachplugin['need_right']) and !empty($eachplugin['need_right'])) {
                     if (cfr($eachplugin['need_right'])) {
@@ -487,9 +488,16 @@ class UserProfile {
                     }
                 }
 
+                //optional link target
+                if (isset($eachplugin['link_target'])) {
+                    if (!empty($eachplugin['link_target'])) {
+                        $linkTarget = 'target="' . $eachplugin['link_target'] . '"';
+                    }
+                }
+
                 if ($renderable) {
                     $pluginsTmp .= wf_tag('div', false, '', 'style="width: ' . self::MAIN_OVERLAY_DISTANCE . '; height: ' . self::MAIN_OVERLAY_DISTANCE . '; float: left; font-size: 8pt;"');
-                    $pluginsTmp .= wf_Link('?module=' . $modulename . '&username=' . $this->login, wf_img_sized('skins/' . $eachplugin['icon'], __($eachplugin['name']), '', ''), false, '');
+                    $pluginsTmp .= wf_Link('?module=' . $modulename . '&username=' . $this->login, wf_img_sized('skins/' . $eachplugin['icon'], __($eachplugin['name']), '', ''), false, '', $linkTarget);
                     $pluginsTmp .= wf_tag('br') . __($eachplugin['name']);
                     $pluginsTmp .= wf_tag('div', true);
                 }
@@ -522,6 +530,7 @@ class UserProfile {
             if (!empty($rawPlugins)) {
                 $graphPing = (@$this->alterCfg['PINGCHARTS_DEFAULT']) ? true : false;
                 foreach ($rawPlugins as $modulename => $eachplugin) {
+                    $linkTarget = '';
                     $renderable = true;
                     //checks for required pluging rights
                     if (isset($eachplugin['need_right']) and !empty($eachplugin['need_right'])) {
@@ -540,6 +549,12 @@ class UserProfile {
                             } else {
                                 $renderable = false;
                             }
+                        }
+                    }
+
+                    if (isset($eachplugin['link_target'])) {
+                        if (!empty($eachplugin['link_target'])) {
+                            $linkTarget = 'target="' . $eachplugin['link_target'] . '"';
                         }
                     }
 
@@ -562,7 +577,7 @@ class UserProfile {
                         }
 
                         if ($renderable) {
-                            $this->plugins .= wf_Link($pluginUrl, wf_img_sized('skins/' . $eachplugin['icon'], __($eachplugin['name']), '', self::MAIN_PLUGINS_SIZE), false, '') . wf_delimiter();
+                            $this->plugins .= wf_Link($pluginUrl, wf_img_sized('skins/' . $eachplugin['icon'], __($eachplugin['name']), '', self::MAIN_PLUGINS_SIZE), false, '', $linkTarget) . wf_delimiter();
                         }
                     }
                 }

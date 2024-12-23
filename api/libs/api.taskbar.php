@@ -165,17 +165,22 @@ class UbillingTaskbar {
      * Renders taskbar icon element
      * 
      * @param string $url
-     * @param string $name
-     * @param string $icon
+     * @param string $elementName
+     * @param string $elementIcon
+     * @param string $elementTarget
      * 
      * @return string
      */
-    protected function renderIconElement($url, $elementName, $elementIcon) {
+    protected function renderIconElement($url, $elementName, $elementIcon, $elementTarget = '') {
         $result = '';
         $name = __($elementName);
         $iconPath = CUR_SKIN_PATH . 'taskbar/';
         $icon = $iconPath . $elementIcon;
         $elemQsId = 'ubtbelcont_' . $name . '_' . $elementName;
+        $linkOpts = '';
+        if (!empty($elementTarget)) {
+            $linkOpts .= 'target="' . $elementTarget . '"';
+        }
         if (!file_exists($icon)) {
             $icon = 'skins/taskbar/' . $elementIcon;
         }
@@ -193,12 +198,12 @@ class UbillingTaskbar {
 
         if ($this->altCfg['TB_LABELED']) {
             if ($iconsize > 63) {
-                $result = '<div class="dashtask" id="' . $elemQsId . '" style="height:' . ($iconsize + 30) . 'px; width:' . ($iconsize + 30) . 'px;"> <a href="' . $url . '"><img  src="' . $icon . '" border="0" width="' . $iconsize . '"  height="' . $iconsize . '" alt="' . $name . '" title="' . $name . '"></a> <br><br>' . $name . ' </div>';
+                $result = '<div class="dashtask" id="' . $elemQsId . '" style="height:' . ($iconsize + 30) . 'px; width:' . ($iconsize + 30) . 'px;"> <a href="' . $url . '" ' . $linkOpts . '><img  src="' . $icon . '" border="0" width="' . $iconsize . '"  height="' . $iconsize . '" alt="' . $name . '" title="' . $name . '"></a> <br><br>' . $name . ' </div>';
             } else {
-                $result = '<div class="dashtask" id="' . $elemQsId . '" style="height:' . ($iconsize + 10) . 'px; width:' . ($iconsize + 10) . 'px;"> <a href="' . $url . '"><img  src="' . $icon . '" border="0" width="' . $iconsize . '"  height="' . $iconsize . '" alt="' . $name . '" title="' . $name . '"></a></div>';
+                $result = '<div class="dashtask" id="' . $elemQsId . '" style="height:' . ($iconsize + 10) . 'px; width:' . ($iconsize + 10) . 'px;"> <a href="' . $url . '" ' . $linkOpts . '><img  src="' . $icon . '" border="0" width="' . $iconsize . '"  height="' . $iconsize . '" alt="' . $name . '" title="' . $name . '"></a></div>';
             }
         } else {
-            $result = '<a href="' . $url . '"><img  src="' . $icon . '" border="0" width="' . $iconsize . '"  height="' . $iconsize . '" alt="' . $name . '" title="' . $name . '"></a><img src="skins/taskbar/spacer.gif">  ';
+            $result = '<a href="' . $url . '" ' . $linkOpts . '><img  src="' . $icon . '" border="0" width="' . $iconsize . '"  height="' . $iconsize . '" alt="' . $name . '" title="' . $name . '"></a><img src="skins/taskbar/spacer.gif">  ';
         }
 
         return ($result);
@@ -248,7 +253,8 @@ class UbillingTaskbar {
                     $elementName = (!empty($elementData['NAME'])) ? $elementData['NAME'] : '';
                     $elementUrl = (!empty($elementData['URL'])) ? $elementData['URL'] : '';
                     $elementIcon = (!empty($elementData['ICON'])) ? $elementData['ICON'] : '';
-                    $result .= $this->renderIconElement($elementUrl, $elementName, $elementIcon);
+                    $elementTarget = (!empty($elementData['LINK_TARGET'])) ? $elementData['LINK_TARGET'] : '';
+                    $result .= $this->renderIconElement($elementUrl, $elementName, $elementIcon, $elementTarget);
                 }
             }
         }
@@ -694,7 +700,7 @@ class UbillingTaskbar {
             $result .= $this->currentAlerts;
         }
 
-        if (@$this->altCfg['TB_QUICKSEARCH_INLINE'] ) {
+        if (@$this->altCfg['TB_QUICKSEARCH_INLINE']) {
             $result .= $this->renderQuickSearchForm();
         }
         $result .= wf_AjaxContainer('ubtbqsstatus');
