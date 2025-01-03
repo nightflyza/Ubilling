@@ -6904,3 +6904,38 @@ function zb_getPonSignalData($login = '', $colored = false, $label = false, $onu
     }
     return ($result);
 }
+
+
+/**
+ * Trims the content of a log file if it exceeds a specified size.
+ *
+ * This function checks if the specified log file exists and if its size exceeds
+ * the given maximum size. If the file size exceeds the limit, it trims the file
+ * content by removing lines from the beginning until the file size is within the limit.
+ *
+ * @param string $fileName The path to the text log file.
+ * @param int $size The maximum allowed size of the log file in megabytes (MB).
+ *
+ * @return void
+ */
+function zb_TrimTextLog($fileName, $size) {
+    if (file_exists($fileName)) {
+        $maxSize = $size * 1024 * 1024; // in mb
+        $fileSize = filesize($fileName);
+        if ($fileSize >= $maxSize) {
+            $fileContent = file($fileName, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+            if (!empty($fileContent)) {
+                $fileContent = array_reverse($fileContent);
+                $seekSize = 0;
+                foreach ($fileContent as $io => $each) {
+                    $seekSize += strlen($each);
+                    if ($seekSize >= $maxSize) {
+                        unset($fileContent[$io]);
+                    }
+                }
+                $fileContent = array_reverse($fileContent);
+                file_put_contents($fileName, implode(PHP_EOL, $fileContent));
+            }
+        }
+    }
+}
