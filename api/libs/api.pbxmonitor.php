@@ -285,7 +285,7 @@ class PBXMonitor {
         $allArchiveFiles = $this->getArchiveDir();
         $telepathy = new Telepathy(false, true);
         $telepathy->usePhones();
-        $askCalls = new nya_askcalls();
+        $askCalls = new NyanORM('askcalls');
         $previousCalls = $askCalls->getAll('filename');
         $curYear = curyear() . '-';
         //current year filter for all calls
