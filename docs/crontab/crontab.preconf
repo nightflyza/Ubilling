@@ -17,5 +17,6 @@
 */20 * * * *    /bin/ubapi "cachedog"
 */2 * * * *     /bin/ubapi "multigen"
 10 0 * * *      /bin/ubapi "feesharvester"
+5 3 5 * *       /bin/ubapi "onusigcompressor"
 
 
