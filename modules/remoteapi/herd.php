@@ -25,14 +25,21 @@ if (ubRouting::get('action') == 'herd') {
              *  < |    /__\                <  \             
              *  /__\                       /___\            
              */
+
             $oltId = ubRouting::get('oltid', 'int');
-            $pony = new PONizer();
-            $pony->pollOltSignal($oltId);
-            die('OK:HERD');
+            $compressorProcess = new StarDust(ONUSigCompressor::PID);
+            if ($compressorProcess->notRunning()) {
+                $pony = new PONizer();
+                $pony->pollOltSignal($oltId);
+                die('OK:HERD');
+            } else {
+                log_register('PON HERD OLT ['.$oltId.'] SKIPPED DUE COMPRESSOR RUNNING');
+                die('SKIPPED:HERD');
+            }
         } else {
             die('ERROR:NO_OLTID');
         }
     } else {
         die('ERROR:PON_DISABLED');
     }
-}    
+}

@@ -1,6 +1,6 @@
  <?php
     /**
-     * This class is responsible for compressing ONU signal data logs by filtering and trimming the data.
+     * This class is responsible for compressing ONU signal history logs by filtering and trimming the data.
      * It processes signal history files to retain only the first and last entries of each day, 
      * while keeping the current month's logs unchanged.
      **/
