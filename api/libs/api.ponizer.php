@@ -169,7 +169,7 @@ class PONizer {
     /**
      * SNMPHelper object instance
      *
-     * @var array
+     * @var object
      */
     protected $snmp = '';
 
@@ -281,7 +281,7 @@ class PONizer {
     /**
      * Placeholder for UbillingConfig object
      *
-     * @var null
+     * @var object
      */
     protected $ubConfig = null;
 
