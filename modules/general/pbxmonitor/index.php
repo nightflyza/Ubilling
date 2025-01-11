@@ -17,15 +17,16 @@ if ($altcfg['PBXMON_ENABLED']) {
         }
 
         //manual cache cleanup
-        if (ubRouting::checkGet('cleantelepathycache')) {
+        if (ubRouting::checkGet('refillcache')) {
             $telepathy = new Telepathy(false, true, false, true);
             $telepathy->usePhones();
             $telepathy->flushPhoneTelepathyCache();
+            $pbxMon->refillCache();
             ubRouting::nav($pbxMon::URL_ME);
         }
 
         $windowControls = '';
-        if (!ubRouting::checkGet('renderall') AND ! ubRouting::checkGet('username')) {
+        if (!ubRouting::checkGet('renderall') and ! ubRouting::checkGet('username')) {
             $allTime = false;
         } else {
             $allTime = true;
@@ -36,9 +37,7 @@ if ($altcfg['PBXMON_ENABLED']) {
             $windowControls .= ' (' . __('All time') . ') ';
         }
 
-        if (cfr('ROOT')) {
-            $windowControls .= wf_Link($pbxMon::URL_ME . '&cleantelepathycache=true', wf_img('skins/icon_cleanup.png', __('Cache cleanup')), false);
-        }
+        $windowControls .= wf_Link($pbxMon::URL_ME . '&refillcache=true', wf_img('skins/icon_cleanup.png', __('Renew') . ' ' . __('Cache')), false);
 
         if ($allTime) {
             $windowControls .= ' ' . wf_Link($pbxMon::URL_ME, wf_img('skins/done_icon.png', __('Current year')));
@@ -46,8 +45,15 @@ if ($altcfg['PBXMON_ENABLED']) {
             $windowControls .= ' ' . wf_Link($pbxMon::URL_ME . '&renderall=true', wf_img('skins/allcalls.png', __('All time')));
         }
 
-        //renders calls archive
-        show_window(__('Telephony calls records') . ' ' . $windowControls, $pbxMon->renderCallsList());
+        //rendering calls archive
+        if (!ubRouting::checkGet('pbxplayer')) {
+            show_window(__('Telephony calls records') . ' ' . $windowControls, $pbxMon->renderCallsList());
+        } else {
+            //call player is here?
+            $fileName = ubRouting::get('pbxplayer');
+            show_window(__('Playback') . ': ' . $fileName, $pbxMon->renderSoundPlayer($fileName));
+        }
+
 
         //user-related controls here
         if (ubRouting::checkGet('username')) {
