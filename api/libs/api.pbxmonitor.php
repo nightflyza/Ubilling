@@ -313,27 +313,29 @@ class PBXMonitor {
             //normal voice records
             if (!empty($allVoiceFiles)) {
                 foreach ($allVoiceFiles as $io => $each) {
-                    $fileName = $each;
-                    $fileSize = filesize($this->voicePath . $fileName);
-                    if ($fileSize > 0) {
+                        $fileName = $each;
                         $explodedFile = explode('_', $fileName);
                         $cleanDate = explode('.', $explodedFile[2]);
                         $cleanDate = $cleanDate[0];
-                        $callingNumber = $explodedFile[1];
-                        $callDirection = ($explodedFile[0] == 'in') ? 'in' : 'out';
-                        $dateString = date_format(date_create_from_format('Y-m-d-H-i-s', $cleanDate), 'Y-m-d H:i:s');
+                       
                         //unfinished calls
                         if ((!ispos($cleanDate, 'in')) and (!ispos($cleanDate, 'out'))) {
                             //new call?
                             if (!isset($previousCalls[$fileName])) {
-                                $userLogin = $telepathy->getByPhoneFast($callingNumber, $this->onlyMobileFlag, $this->onlyMobileFlag);
-                                $this->pbxCallsDb->data('filename', ubRouting::filters($fileName, 'mres'));
-                                $this->pbxCallsDb->data('login', ubRouting::filters($userLogin, 'mres'));
-                                $this->pbxCallsDb->data('size', $fileSize);
-                                $this->pbxCallsDb->data('direction', $callDirection);
-                                $this->pbxCallsDb->data('date', $dateString);
-                                $this->pbxCallsDb->data('storage', 'rec');
-                                $this->pbxCallsDb->create();
+                                $fileSize = filesize($this->voicePath . $fileName);
+                                if ($fileSize > 0) {
+                                    $callingNumber = $explodedFile[1];
+                                    $callDirection = ($explodedFile[0] == 'in') ? 'in' : 'out';
+                                    $dateString = date_format(date_create_from_format('Y-m-d-H-i-s', $cleanDate), 'Y-m-d H:i:s');
+                                    $userLogin = $telepathy->getByPhoneFast($callingNumber, $this->onlyMobileFlag, $this->onlyMobileFlag);
+                                    $this->pbxCallsDb->data('filename', ubRouting::filters($fileName, 'mres'));
+                                    $this->pbxCallsDb->data('login', ubRouting::filters($userLogin, 'mres'));
+                                    $this->pbxCallsDb->data('size', $fileSize);
+                                    $this->pbxCallsDb->data('direction', $callDirection);
+                                    $this->pbxCallsDb->data('date', $dateString);
+                                    $this->pbxCallsDb->data('storage', 'rec');
+                                    $this->pbxCallsDb->create();
+                                }
                             } else {
                                 $callData = $previousCalls[$fileName];
                                 //storage changed?
@@ -345,26 +347,27 @@ class PBXMonitor {
                                 }
                             }
                         }
-                    }
+                    
                 }
             }
 
             //archived records
             if (!empty($allArchiveFiles)) {
                 foreach ($allArchiveFiles as $io => $each) {
-                    $fileName = $each;
-                    $fileSize = filesize($this->archivePath . $fileName);
-                    if ($fileSize > 0) {
+                        $fileName = $each;
                         $explodedFile = explode('_', $fileName);
                         $cleanDate = explode('.', $explodedFile[2]);
                         $cleanDate = $cleanDate[0];
-                        $callingNumber = $explodedFile[1];
-                        $callDirection = ($explodedFile[0] == 'in') ? 'in' : 'out';
-                        $dateString = date_format(date_create_from_format('Y-m-d-H-i-s', $cleanDate), 'Y-m-d H:i:s');
+                  
                         //unfinished calls
                         if ((!ispos($cleanDate, 'in')) and (!ispos($cleanDate, 'out'))) {
                             //new call?
                             if (!isset($previousCalls[$fileName])) {
+                                $fileSize = filesize($this->archivePath . $fileName);
+                                if ($fileSize > 0) {
+                                $callingNumber = $explodedFile[1];
+                                $callDirection = ($explodedFile[0] == 'in') ? 'in' : 'out';
+                                $dateString = date_format(date_create_from_format('Y-m-d-H-i-s', $cleanDate), 'Y-m-d H:i:s');    
                                 $userLogin = $telepathy->getByPhoneFast($callingNumber, $this->onlyMobileFlag, $this->onlyMobileFlag);
                                 $this->pbxCallsDb->data('filename', ubRouting::filters($fileName, 'mres'));
                                 $this->pbxCallsDb->data('login', ubRouting::filters($userLogin, 'mres'));
@@ -373,6 +376,7 @@ class PBXMonitor {
                                 $this->pbxCallsDb->data('date', $dateString);
                                 $this->pbxCallsDb->data('storage', 'arch');
                                 $this->pbxCallsDb->create();
+                                }
                             } else {
                                 $callData = $previousCalls[$fileName];
                                 //storage changed?
@@ -384,7 +388,6 @@ class PBXMonitor {
                                 }
                             }
                         }
-                    }
                 }
             }
 
