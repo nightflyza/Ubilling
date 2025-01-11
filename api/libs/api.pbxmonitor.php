@@ -429,7 +429,6 @@ class PBXMonitor {
                 $archiveLabel = ($each['storage'] == 'arch') ?  wf_img('skins/calls/archived.png', __('Archive')) : '';
                 $fileName = $each['filename'];
                 $userLogin = $each['login'];
-                if ($each['size'] > 0) {
                     $rowFiltered = false;
                     $cleanDate = $each['date'];
                     $explodedFile = explode('_', $fileName);
@@ -437,7 +436,6 @@ class PBXMonitor {
                     $callDirection = ($each['direction'] == 'in') ? self::ICON_PATH . 'incoming.png' : self::ICON_PATH . 'outgoing.png';
                     $userLink = (!empty($userLogin)) ? wf_Link('?module=userprofile&username=' . $userLogin, web_profile_icon() . ' ' . @$allAddress[$userLogin]) . ' ' . @$allRealnames[$userLogin] : '';
                     $fileUrl = self::URL_ME . '&dlpbxcall=' . $fileName;
-
 
                     if ((empty($filterLogin)) or ($filterLogin == $userLogin)) {
                         if ($renderAll) {
@@ -459,7 +457,7 @@ class PBXMonitor {
                             unset($data);
                         }
                     }
-                }
+                
             }
         }
 
