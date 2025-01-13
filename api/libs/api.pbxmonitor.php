@@ -20,6 +20,13 @@ class PBXMonitor {
     protected $totalRecordsCount = 0;
 
     /**
+     * Contains filtered records count
+     *
+     * @var int
+     */
+    protected $filteredRecordsCount = 0;
+
+    /**
      * Contains system alter config as key=>value
      *
      * @var array
@@ -441,23 +448,12 @@ class PBXMonitor {
             }
         }
 
-        $searchQuery = '';
-        if (ubRouting::checkGet('sSearch')) {
-            $searchQuery = ubRouting::get('sSearch', 'mres');
-            if (!$filterLogin) {
-                $dateQuery = ubRouting::filters($searchQuery, 'gigasafe', '-:');
-                $this->pbxCallsDb->where('number', 'LIKE', '%' . $searchQuery . '%');
-                $this->pbxCallsDb->orWhere('date', 'LIKE', '%' . $dateQuery . '%');
-                $this->pbxCallsDb->orWhere('login', 'LIKE', '%' . $searchQuery . '%');
-            }
-        }
 
         $sortField = 'date';
         $sortDir = 'desc';
         if (ubRouting::checkGet('iSortCol_0', false)) {
             $sortingColumn = ubRouting::get('iSortCol_0', 'int');
             $sortDir = ubRouting::get('sSortDir_0', 'gigasafe');
-
             switch ($sortingColumn) {
                 case 0:
                     $sortField = 'date';
@@ -471,13 +467,34 @@ class PBXMonitor {
             }
         }
         $this->pbxCallsDb->orderBy($sortField, $sortDir);
+        $this->totalRecordsCount = $this->pbxCallsDb->getFieldsCount('id', false);
+
+
 
         $offset = 0;
         if (ubRouting::checkGet('iDisplayStart')) {
             $offset = ubRouting::get('iDisplayStart', 'int');
         }
 
-        $this->totalRecordsCount = $this->pbxCallsDb->getFieldsCount('id', false);
+        //optional live search
+        $searchQuery = '';
+        if (ubRouting::checkGet('sSearch')) {
+            $searchQuery = ubRouting::get('sSearch', 'mres');
+            if (!$filterLogin) {
+                $dateQuery = ubRouting::filters($searchQuery, 'gigasafe', '-: ');
+                $this->pbxCallsDb->where('number', 'LIKE', '%' . $searchQuery . '%');
+                $this->pbxCallsDb->orWhere('date', 'LIKE', '%' . $dateQuery . '%');
+                $this->pbxCallsDb->orWhere('login', 'LIKE', '%' . $searchQuery . '%');
+            }
+        }
+
+
+        //optional live search happens
+        if ($searchQuery) {
+            $this->filteredRecordsCount = $this->pbxCallsDb->getFieldsCount('id', false) - 1;
+        } else {
+            $this->filteredRecordsCount = $this->totalRecordsCount;
+        }
         $this->pbxCallsDb->limit($this->onPage, $offset);
         $this->allRecords = $this->pbxCallsDb->getAll();
     }
@@ -497,7 +514,7 @@ class PBXMonitor {
         $this->recordsLoader($filterLogin, $renderAll);
         $json = new wf_JqDtHelper(true);
         $json->setTotalRowsCount($this->totalRecordsCount);
-        $json->setFilteredRowsCount($this->totalRecordsCount);
+        $json->setFilteredRowsCount($this->filteredRecordsCount);
 
         $curYear = curyear() . '-';
         //current year filter for all calls
@@ -513,21 +530,17 @@ class PBXMonitor {
         if (!empty($this->allRecords)) {
             foreach ($this->allRecords as $io => $each) {
                 $archiveLabel = ($each['storage'] == 'arch') ?  wf_img('skins/calls/archived.png', __('Archive')) : '';
-                $fileName = $each['filename'];
                 $userLogin = $each['login'];
-                $rowFiltered = false;
-                $cleanDate = $each['date'];
                 $callingNumber = $each['number'];
                 $callDirection = ($each['direction'] == 'in') ? self::ICON_PATH . 'incoming.png' : self::ICON_PATH . 'outgoing.png';
                 $userLink = (!empty($userLogin)) ? wf_Link('?module=userprofile&username=' . $userLogin, web_profile_icon() . ' ' . @$allAddress[$userLogin]) . ' ' . @$allRealnames[$userLogin] : '';
-                $fileUrl = self::URL_ME . '&dlpbxcall=' . $fileName;
+                $fileUrl = self::URL_ME . '&dlpbxcall=' . $each['filename'];
                 //append data to results
-
-                $data[] = wf_img($callDirection) . ' ' . $cleanDate;
+                $data[] = wf_img($callDirection) . ' ' . $each['date'];
                 $data[] = $callingNumber;
                 $data[] = $userLink;
                 $data[] = $this->renderUserTags($userLogin);
-                $data[] = $this->getSoundcontrols($fileUrl, $fileName, $filterLogin) . $archiveLabel  . $allCallsLabel;
+                $data[] = $this->getSoundcontrols($fileUrl, $each['filename'], $filterLogin) . $archiveLabel  . $allCallsLabel;
                 $json->addRow($data);
                 unset($data);
             }
