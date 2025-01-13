@@ -2547,15 +2547,17 @@ function wf_CleanDiv() {
  * @param bool $addFooter
  * @param string $footerOpts
  * @param string $footerTHOpts
+ * @param bool $serverSide Use server-side processing?
  *
  * @return string
  */
-function wf_JqDtLoader($columns, $ajaxUrl, $saveState = false, $objects = 'users', $rowsCount = 100, $opts = '', $addFooter = false, $footerOpts = '', $footerTHOpts = '') {
+function wf_JqDtLoader($columns, $ajaxUrl, $saveState = false, $objects = 'users', $rowsCount = 100, $opts = '', $addFooter = false, $footerOpts = '', $footerTHOpts = '', $serverSide = false) {
 
     $tableId = 'jqdt_' . md5($ajaxUrl);
     $result = '';
     $saveState = ($saveState) ? 'true' : 'false';
     $opts = (!empty($opts)) ? $opts . ',' : '';
+    $sside = ($serverSide) ? '"serverSide": true,' : '';
 
     $jq_dt = wf_tag('script', false, '', ' type="text/javascript" charset="utf-8"');
     $jq_dt .= '
@@ -2589,6 +2591,7 @@ function wf_JqDtLoader($columns, $ajaxUrl, $saveState = false, $objects = 'users
                 "iDisplayLength": ' . $rowsCount . ',
                 "sAjaxSource": \'' . $ajaxUrl . '\',
                 "bDeferRender": true,
+                ' . $sside . '
                 "lengthMenu": [[10, 25, 50, 100, 200, -1], [10, 25, 50, 100, 200, "' . __('All') . '"]],
                 ' . $opts . '
                 "bJQueryUI": true
@@ -4430,6 +4433,46 @@ class wf_JqDtHelper {
     protected $allRows = array();
 
     /**
+     * Total available records count
+     *
+     * @var int
+     */
+    protected $rowsTotalCount = 0;
+    /**
+     * Filtered rows count
+     *
+     * @var int
+     */
+    protected $rowsFilteredCount = 0;
+    /**
+     * The draw counter that this object is a response to
+     *
+     * @var int
+     */
+    protected $draw = 0;
+    /**
+     * Server side processing flag
+     *
+     * @var bool
+     */
+    protected $sSideFlag = true;
+
+    public function __construct($serverSideProcessing = false) {
+        $this->setServerSideProcessing($serverSideProcessing);
+    }
+
+    /**
+     * Sets the server-side processing state.
+     *
+     * @param bool $state
+     * 
+     * @return void
+     */
+    public function setServerSideProcessing($state = false) {
+        $this->sSideFlag = $state;
+    }
+
+    /**
      * Adds new row to elements array, dont forget unset() data in your loop, after adding new row.
      * 
      * @param array $data
@@ -4452,9 +4495,39 @@ class wf_JqDtHelper {
      * @return string
      */
     protected function renderJson() {
-        $result = array("aaData" => $this->allRows);
+        $result = array();
+        if ($this->sSideFlag) {
+            $result += array(
+                'draw' => 0,
+                'recordsTotal' => $this->rowsTotalCount,
+                'recordsFiltered' => $this->rowsFilteredCount
+            );
+        }
+        $result += array("aaData" => $this->allRows);
         $result = json_encode($result);
         return ($result);
+    }
+
+    /**
+     * Sets total rows count
+     *
+     * @param int $count
+     * 
+     * @return void
+     */
+    public function setTotalRowsCount($count) {
+        $this->rowsTotalCount = $count;
+    }
+
+    /**
+     * Sets filtered rows count
+     *
+     * @param int $count
+     * 
+     * @return void
+     */
+    public function setFilteredRowsCount($count) {
+        $this->rowsFilteredCount = $count;
     }
 
     /**
@@ -4463,6 +4536,7 @@ class wf_JqDtHelper {
      * @return void
      */
     public function getJson() {
+        header('Content-Type: application/json');
         die($this->renderJson());
     }
 

@@ -333,6 +333,7 @@ class PBXMonitor {
                                     $this->pbxCallsDb->data('size', $fileSize);
                                     $this->pbxCallsDb->data('direction', $callDirection);
                                     $this->pbxCallsDb->data('date', $dateString);
+                                    $this->pbxCallsDb->data('number', $callingNumber);
                                     $this->pbxCallsDb->data('storage', 'rec');
                                     $this->pbxCallsDb->create();
                                 }
@@ -374,6 +375,7 @@ class PBXMonitor {
                                 $this->pbxCallsDb->data('size', $fileSize);
                                 $this->pbxCallsDb->data('direction', $callDirection);
                                 $this->pbxCallsDb->data('date', $dateString);
+                                $this->pbxCallsDb->data('number', $callingNumber);
                                 $this->pbxCallsDb->data('storage', 'arch');
                                 $this->pbxCallsDb->create();
                                 }
@@ -431,8 +433,7 @@ class PBXMonitor {
                 $userLogin = $each['login'];
                     $rowFiltered = false;
                     $cleanDate = $each['date'];
-                    $explodedFile = explode('_', $fileName);
-                    $callingNumber = $explodedFile[1];
+                    $callingNumber = $each['number'];
                     $callDirection = ($each['direction'] == 'in') ? self::ICON_PATH . 'incoming.png' : self::ICON_PATH . 'outgoing.png';
                     $userLink = (!empty($userLogin)) ? wf_Link('?module=userprofile&username=' . $userLogin, web_profile_icon() . ' ' . @$allAddress[$userLogin]) . ' ' . @$allRealnames[$userLogin] : '';
                     $fileUrl = self::URL_ME . '&dlpbxcall=' . $fileName;
