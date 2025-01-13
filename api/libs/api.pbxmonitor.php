@@ -6,6 +6,20 @@
 class PBXMonitor {
 
     /**
+     * Contains all call records loaded from database
+     *
+     * @var array
+     */
+    protected $allRecords = array();
+
+    /**
+     * Contains count of call records available
+     *
+     * @var int
+     */
+    protected $totalRecordsCount = 0;
+
+    /**
      * Contains system alter config as key=>value
      *
      * @var array
@@ -81,6 +95,13 @@ class PBXMonitor {
      * @var object
      */
     protected $pbxCallsDb = '';
+
+    /**
+     * Default on-page calls number
+     *
+     * @var int
+     */
+    protected $onPage = 50;
 
     /**
      * Default icons path
@@ -272,7 +293,7 @@ class PBXMonitor {
             $filterNumber = '';
         }
 
-        $result = wf_JqDtLoader($columns, self::URL_ME . '&ajax=true' . $loginFilter . $filterNumber, false, __('Calls records'), 100, $opts);
+        $result = wf_JqDtLoader($columns, self::URL_ME . '&ajax=true' . $loginFilter . $filterNumber, false, __('Calls records'), $this->onPage, $opts, false, '', '', true);
         return ($result);
     }
 
@@ -313,62 +334,61 @@ class PBXMonitor {
             //normal voice records
             if (!empty($allVoiceFiles)) {
                 foreach ($allVoiceFiles as $io => $each) {
-                        $fileName = $each;
-                        $explodedFile = explode('_', $fileName);
-                        $cleanDate = explode('.', $explodedFile[2]);
-                        $cleanDate = $cleanDate[0];
-                       
-                        //unfinished calls
-                        if ((!ispos($cleanDate, 'in')) and (!ispos($cleanDate, 'out'))) {
-                            //new call?
-                            if (!isset($previousCalls[$fileName])) {
-                                $fileSize = filesize($this->voicePath . $fileName);
-                                if ($fileSize > 0) {
-                                    $callingNumber = $explodedFile[1];
-                                    $callDirection = ($explodedFile[0] == 'in') ? 'in' : 'out';
-                                    $dateString = date_format(date_create_from_format('Y-m-d-H-i-s', $cleanDate), 'Y-m-d H:i:s');
-                                    $userLogin = $telepathy->getByPhoneFast($callingNumber, $this->onlyMobileFlag, $this->onlyMobileFlag);
-                                    $this->pbxCallsDb->data('filename', ubRouting::filters($fileName, 'mres'));
-                                    $this->pbxCallsDb->data('login', ubRouting::filters($userLogin, 'mres'));
-                                    $this->pbxCallsDb->data('size', $fileSize);
-                                    $this->pbxCallsDb->data('direction', $callDirection);
-                                    $this->pbxCallsDb->data('date', $dateString);
-                                    $this->pbxCallsDb->data('number', $callingNumber);
-                                    $this->pbxCallsDb->data('storage', 'rec');
-                                    $this->pbxCallsDb->create();
-                                }
-                            } else {
-                                $callData = $previousCalls[$fileName];
-                                //storage changed?
-                                if ($callData['storage'] != 'rec') {
-                                    $callId = $callData['id'];
-                                    $this->pbxCallsDb->where('id', '=', $callId);
-                                    $this->pbxCallsDb->data('storage', 'rec');
-                                    $this->pbxCallsDb->save();
-                                }
+                    $fileName = $each;
+                    $explodedFile = explode('_', $fileName);
+                    $cleanDate = explode('.', $explodedFile[2]);
+                    $cleanDate = $cleanDate[0];
+
+                    //unfinished calls
+                    if ((!ispos($cleanDate, 'in')) and (!ispos($cleanDate, 'out'))) {
+                        //new call?
+                        if (!isset($previousCalls[$fileName])) {
+                            $fileSize = filesize($this->voicePath . $fileName);
+                            if ($fileSize > 0) {
+                                $callingNumber = $explodedFile[1];
+                                $callDirection = ($explodedFile[0] == 'in') ? 'in' : 'out';
+                                $dateString = date_format(date_create_from_format('Y-m-d-H-i-s', $cleanDate), 'Y-m-d H:i:s');
+                                $userLogin = $telepathy->getByPhoneFast($callingNumber, $this->onlyMobileFlag, $this->onlyMobileFlag);
+                                $this->pbxCallsDb->data('filename', ubRouting::filters($fileName, 'mres'));
+                                $this->pbxCallsDb->data('login', ubRouting::filters($userLogin, 'mres'));
+                                $this->pbxCallsDb->data('size', $fileSize);
+                                $this->pbxCallsDb->data('direction', $callDirection);
+                                $this->pbxCallsDb->data('date', $dateString);
+                                $this->pbxCallsDb->data('number', $callingNumber);
+                                $this->pbxCallsDb->data('storage', 'rec');
+                                $this->pbxCallsDb->create();
+                            }
+                        } else {
+                            $callData = $previousCalls[$fileName];
+                            //storage changed?
+                            if ($callData['storage'] != 'rec') {
+                                $callId = $callData['id'];
+                                $this->pbxCallsDb->where('id', '=', $callId);
+                                $this->pbxCallsDb->data('storage', 'rec');
+                                $this->pbxCallsDb->save();
                             }
                         }
-                    
+                    }
                 }
             }
 
             //archived records
             if (!empty($allArchiveFiles)) {
                 foreach ($allArchiveFiles as $io => $each) {
-                        $fileName = $each;
-                        $explodedFile = explode('_', $fileName);
-                        $cleanDate = explode('.', $explodedFile[2]);
-                        $cleanDate = $cleanDate[0];
-                  
-                        //unfinished calls
-                        if ((!ispos($cleanDate, 'in')) and (!ispos($cleanDate, 'out'))) {
-                            //new call?
-                            if (!isset($previousCalls[$fileName])) {
-                                $fileSize = filesize($this->archivePath . $fileName);
-                                if ($fileSize > 0) {
+                    $fileName = $each;
+                    $explodedFile = explode('_', $fileName);
+                    $cleanDate = explode('.', $explodedFile[2]);
+                    $cleanDate = $cleanDate[0];
+
+                    //unfinished calls
+                    if ((!ispos($cleanDate, 'in')) and (!ispos($cleanDate, 'out'))) {
+                        //new call?
+                        if (!isset($previousCalls[$fileName])) {
+                            $fileSize = filesize($this->archivePath . $fileName);
+                            if ($fileSize > 0) {
                                 $callingNumber = $explodedFile[1];
                                 $callDirection = ($explodedFile[0] == 'in') ? 'in' : 'out';
-                                $dateString = date_format(date_create_from_format('Y-m-d-H-i-s', $cleanDate), 'Y-m-d H:i:s');    
+                                $dateString = date_format(date_create_from_format('Y-m-d-H-i-s', $cleanDate), 'Y-m-d H:i:s');
                                 $userLogin = $telepathy->getByPhoneFast($callingNumber, $this->onlyMobileFlag, $this->onlyMobileFlag);
                                 $this->pbxCallsDb->data('filename', ubRouting::filters($fileName, 'mres'));
                                 $this->pbxCallsDb->data('login', ubRouting::filters($userLogin, 'mres'));
@@ -378,18 +398,18 @@ class PBXMonitor {
                                 $this->pbxCallsDb->data('number', $callingNumber);
                                 $this->pbxCallsDb->data('storage', 'arch');
                                 $this->pbxCallsDb->create();
-                                }
-                            } else {
-                                $callData = $previousCalls[$fileName];
-                                //storage changed?
-                                if ($callData['storage'] != 'arch') {
-                                    $callId = $callData['id'];
-                                    $this->pbxCallsDb->where('id', '=', $callId);
-                                    $this->pbxCallsDb->data('storage', 'arch');
-                                    $this->pbxCallsDb->save();
-                                }
+                            }
+                        } else {
+                            $callData = $previousCalls[$fileName];
+                            //storage changed?
+                            if ($callData['storage'] != 'arch') {
+                                $callId = $callData['id'];
+                                $this->pbxCallsDb->where('id', '=', $callId);
+                                $this->pbxCallsDb->data('storage', 'arch');
+                                $this->pbxCallsDb->save();
                             }
                         }
+                    }
                 }
             }
 
@@ -398,6 +418,68 @@ class PBXMonitor {
         } else {
             log_register('PBXMON REFILL SKIPPED ALREADY RUNNING');
         }
+    }
+
+
+    /**
+     * Performs records filtering, ordering and load
+     *
+     * @return void
+     */
+    protected function recordsLoader($filterLogin = '', $renderAll = false) {
+        $filterLogin = ubRouting::filters($filterLogin, 'mres');
+
+        $this->onPage = (ubRouting::checkGet('iDisplayLength')) ? ubRouting::get('iDisplayLength') : $this->onPage;
+
+        //login filtering
+        if ($filterLogin) {
+            $this->pbxCallsDb->where('login', '=', $filterLogin);
+        } else {
+            //date current year filtering 
+            if (!$renderAll) {
+                $this->pbxCallsDb->where('date', 'LIKE', curyear() . '-%');
+            }
+        }
+
+        $searchQuery = '';
+        if (ubRouting::checkGet('sSearch')) {
+            $searchQuery = ubRouting::get('sSearch', 'mres');
+            if (!$filterLogin) {
+                $dateQuery = ubRouting::filters($searchQuery, 'gigasafe', '-:');
+                $this->pbxCallsDb->where('number', 'LIKE', '%' . $searchQuery . '%');
+                $this->pbxCallsDb->orWhere('date', 'LIKE', '%' . $dateQuery . '%');
+                $this->pbxCallsDb->orWhere('login', 'LIKE', '%' . $searchQuery . '%');
+            }
+        }
+
+        $sortField = 'date';
+        $sortDir = 'desc';
+        if (ubRouting::checkGet('iSortCol_0', false)) {
+            $sortingColumn = ubRouting::get('iSortCol_0', 'int');
+            $sortDir = ubRouting::get('sSortDir_0', 'gigasafe');
+
+            switch ($sortingColumn) {
+                case 0:
+                    $sortField = 'date';
+                    break;
+                case 1:
+                    $sortField = 'number';
+                    break;
+                case 2:
+                    $sortField = 'login';
+                    break;
+            }
+        }
+        $this->pbxCallsDb->orderBy($sortField, $sortDir);
+
+        $offset = 0;
+        if (ubRouting::checkGet('iDisplayStart')) {
+            $offset = ubRouting::get('iDisplayStart', 'int');
+        }
+
+        $this->totalRecordsCount = $this->pbxCallsDb->getFieldsCount('id', false);
+        $this->pbxCallsDb->limit($this->onPage, $offset);
+        $this->allRecords = $this->pbxCallsDb->getAll();
     }
 
     /**
@@ -412,8 +494,10 @@ class PBXMonitor {
         $allAddress = zb_AddressGetFulladdresslistCached();
         $allRealnames = zb_UserGetAllRealnames();
         $this->loadUserTags();
-        $json = new wf_JqDtHelper();
-        $allVoiceRecords = $this->pbxCallsDb->getAll();
+        $this->recordsLoader($filterLogin, $renderAll);
+        $json = new wf_JqDtHelper(true);
+        $json->setTotalRowsCount($this->totalRecordsCount);
+        $json->setFilteredRowsCount($this->totalRecordsCount);
 
         $curYear = curyear() . '-';
         //current year filter for all calls
@@ -426,39 +510,26 @@ class PBXMonitor {
         $allCallsLabel = ($renderAll) ? wf_img('skins/allcalls.png', __('All time')) . ' ' : '';
 
         //normal voice records rendering
-        if (!empty($allVoiceRecords)) {
-            foreach ($allVoiceRecords as $io => $each) {
+        if (!empty($this->allRecords)) {
+            foreach ($this->allRecords as $io => $each) {
                 $archiveLabel = ($each['storage'] == 'arch') ?  wf_img('skins/calls/archived.png', __('Archive')) : '';
                 $fileName = $each['filename'];
                 $userLogin = $each['login'];
-                    $rowFiltered = false;
-                    $cleanDate = $each['date'];
-                    $callingNumber = $each['number'];
-                    $callDirection = ($each['direction'] == 'in') ? self::ICON_PATH . 'incoming.png' : self::ICON_PATH . 'outgoing.png';
-                    $userLink = (!empty($userLogin)) ? wf_Link('?module=userprofile&username=' . $userLogin, web_profile_icon() . ' ' . @$allAddress[$userLogin]) . ' ' . @$allRealnames[$userLogin] : '';
-                    $fileUrl = self::URL_ME . '&dlpbxcall=' . $fileName;
+                $rowFiltered = false;
+                $cleanDate = $each['date'];
+                $callingNumber = $each['number'];
+                $callDirection = ($each['direction'] == 'in') ? self::ICON_PATH . 'incoming.png' : self::ICON_PATH . 'outgoing.png';
+                $userLink = (!empty($userLogin)) ? wf_Link('?module=userprofile&username=' . $userLogin, web_profile_icon() . ' ' . @$allAddress[$userLogin]) . ' ' . @$allRealnames[$userLogin] : '';
+                $fileUrl = self::URL_ME . '&dlpbxcall=' . $fileName;
+                //append data to results
 
-                    if ((empty($filterLogin)) or ($filterLogin == $userLogin)) {
-                        if ($renderAll) {
-                            $rowFiltered = true;
-                        } else {
-                            if (ispos($cleanDate, $curYear)) {
-                                $rowFiltered = true;
-                            }
-                        }
-
-                        //append data to results
-                        if ($rowFiltered) {
-                            $data[] = wf_img($callDirection) . ' ' . $cleanDate;
-                            $data[] = $callingNumber;
-                            $data[] = $userLink;
-                            $data[] = $this->renderUserTags($userLogin);
-                            $data[] = $this->getSoundcontrols($fileUrl, $fileName, $filterLogin) . $archiveLabel  . $allCallsLabel;
-                            $json->addRow($data);
-                            unset($data);
-                        }
-                    }
-                
+                $data[] = wf_img($callDirection) . ' ' . $cleanDate;
+                $data[] = $callingNumber;
+                $data[] = $userLink;
+                $data[] = $this->renderUserTags($userLogin);
+                $data[] = $this->getSoundcontrols($fileUrl, $fileName, $filterLogin) . $archiveLabel  . $allCallsLabel;
+                $json->addRow($data);
+                unset($data);
             }
         }
 
@@ -518,7 +589,7 @@ class PBXMonitor {
                 $iconPause = wf_img('skins/pause.png', __('Pause')) . ' ' . __('Pause');
                 $playerId = 'player_' . wf_InputId();
                 $playControlId = 'controller_' . wf_InputId();
-                $result .= wf_tag('audio', false, '', 'id="' . $playerId . '" src="' . $playableUrl . '" style="width:100%;" controls preload=none'). wf_tag('audio', true).wf_delimiter();
+                $result .= wf_tag('audio', false, '', 'id="' . $playerId . '" src="' . $playableUrl . '" style="width:100%;" controls preload=none') . wf_tag('audio', true) . wf_delimiter();
                 $playController = 'document.getElementById(\'' . $playerId . '\').play();';
                 $result .= wf_Link('#', $iconPlay, false, 'ubButton', 'id="' . $playControlId . '" onclick="' . $playController . '"') . ' ';
                 $result .= wf_Link('#', $iconPause, false, 'ubButton', 'onclick="document.getElementById(\'' . $playerId . '\').pause();"') . ' ';

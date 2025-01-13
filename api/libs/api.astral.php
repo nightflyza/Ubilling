@@ -2558,7 +2558,7 @@ function wf_JqDtLoader($columns, $ajaxUrl, $saveState = false, $objects = 'users
     $saveState = ($saveState) ? 'true' : 'false';
     $opts = (!empty($opts)) ? $opts . ',' : '';
     $sside = ($serverSide) ? '"serverSide": true,' : '';
-
+    $lenMenu=($serverSide) ? '[[10, 25, 50, 100, 200], [10, 25, 50, 100, 200]]' : '[[10, 25, 50, 100, 200, -1], [10, 25, 50, 100, 200, "' . __('All') . '"]]';
     $jq_dt = wf_tag('script', false, '', ' type="text/javascript" charset="utf-8"');
     $jq_dt .= '
  		$(document).ready(function() {                 
@@ -2592,7 +2592,7 @@ function wf_JqDtLoader($columns, $ajaxUrl, $saveState = false, $objects = 'users
                 "sAjaxSource": \'' . $ajaxUrl . '\',
                 "bDeferRender": true,
                 ' . $sside . '
-                "lengthMenu": [[10, 25, 50, 100, 200, -1], [10, 25, 50, 100, 200, "' . __('All') . '"]],
+                "lengthMenu": '.$lenMenu.',
                 ' . $opts . '
                 "bJQueryUI": true
             } );
