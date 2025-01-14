@@ -226,8 +226,12 @@ class PBXMonitor {
                         //original file is already located
                         $newFileExtension = (ubRouting::checkGet('mp3')) ? '.mp3' : '.ogg';
                         $newFilePath = $this->convertedPath . $origFileName . $newFileExtension;
-                        $command = $this->ffmpegPath . ' -y -i ' . $downloadableName . ' ' . $newFilePath . ' 2>> ' . $this->converterLogPath;
-                        shell_exec($command);
+                        //convert if not already converted
+                        if (!file_exists($newFilePath)) {
+                            $command = $this->ffmpegPath . ' -y -i ' . $downloadableName . ' ' . $newFilePath . ' 2>> ' . $this->converterLogPath;
+                            shell_exec($command);
+                        }
+
                         $downloadableName = $newFilePath;
                     }
                 }
@@ -598,14 +602,12 @@ class PBXMonitor {
             $fileUrl = self::URL_ME . '&dlpbxcall=' . $fileName;
             if ($this->ffmpegFlag) {
                 $playableUrl = $fileUrl . '&playable=true';
-                $iconPlay = wf_img('skins/play.png', __('Play')) . ' ' . __('Play');
-                $iconPause = wf_img('skins/pause.png', __('Pause')) . ' ' . __('Pause');
-                $playerId = 'player_' . wf_InputId();
-                $playControlId = 'controller_' . wf_InputId();
-                $result .= wf_tag('audio', false, '', 'id="' . $playerId . '" src="' . $playableUrl . '" style="width:100%;" controls preload=none') . wf_tag('audio', true) . wf_delimiter();
-                $playController = 'document.getElementById(\'' . $playerId . '\').play();';
-                $result .= wf_Link('#', $iconPlay, false, 'ubButton', 'id="' . $playControlId . '" onclick="' . $playController . '"') . ' ';
-                $result .= wf_Link('#', $iconPause, false, 'ubButton', 'onclick="document.getElementById(\'' . $playerId . '\').pause();"') . ' ';
+                $playerId = 'pbxcallrecfile';
+                $result .= wf_tag('audio', false, '', 'id="' . $playerId . '" src="' . $playableUrl . '" preload=auto') . wf_tag('audio', true);
+                $result .= wf_tag('div', false, '', 'id="waveform"') . wf_tag('div', true);
+                $result .= wf_tag('script', false, '', 'src="https://unpkg.com/wavesurfer.js"') . wf_tag('script', true);
+                $result .= wf_tag('script', false, '', 'type="text/javascript" src="modules/jsc/pbxmonplayer.js"') . wf_tag('script', true);
+                $result .= wf_delimiter(0);
                 $result .= wf_Link($playableUrl, wf_img('skins/icon_ogg.png', __('Download') . ' ' . __('as OGG')) . ' ' . __('Download') . ' ' . __('as OGG'), false, 'ubButton') . ' ';
                 $result .= wf_Link($playableUrl . '&mp3=true', wf_img('skins/icon_mp3.png', __('Download') . ' ' . __('as MP3')) . ' ' . __('Download') . ' ' . __('as MP3'), false, 'ubButton') . ' ';
             } else {
