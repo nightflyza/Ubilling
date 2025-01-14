@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
     const waveformstatus = document.getElementById('waveformstatus');
-    waveformstatus.textContent = 'Loading...';
+    waveformstatus.innerHTML = '<img src="skins/ajaxloader.gif" alt="Loading...">';
 
     const wavesurfer = WaveSurfer.create({
         container: '#waveform',
@@ -20,9 +20,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     setTimeout(() => {
         wavesurfer.load(audioElement.src);
-        waveformstatus.textContent = ''; 
-    }, 3000);
-    
+        waveformstatus.innerHTML = '';
+    }, 1000);
+
 
     audioElement.onplay = function () {
         wavesurfer.play();
