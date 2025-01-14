@@ -1,0 +1,32 @@
+#profitcalccontainer {
+    font-size: 2.5rem; 
+    font-weight: bold;
+    color: #4caf50;
+    text-align: center;
+    padding: 20px;
+    border: 2px solid #4caf50;
+    border-radius: 10px;
+    background: #e8f5e9; 
+    display: none;
+    margin-top: 20px;
+    transition: transform 0.2s ease, background-color 0.2s ease; 
+}
+
+#profitcalccontainer.wehaveprofit {
+    animation: data-update 0.5s ease-in-out; 
+}
+
+@keyframes data-update {
+    0% {
+        transform: scale(1);
+        background-color: #a5d6a7;
+    }
+    50% {
+        transform: scale(1.2);
+        background-color: #66bb6a;
+    }
+    100% {
+        transform: scale(1);
+        background-color: #e8f5e9;
+    }
+}

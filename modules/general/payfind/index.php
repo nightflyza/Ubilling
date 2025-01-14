@@ -167,7 +167,7 @@ if (cfr('PAYFIND')) {
             }
         }
         $result = wf_Selector('tagid', $tags, __('Tags'), '', true, true);
-        return($result);
+        return ($result);
     }
 
     /**
@@ -329,6 +329,7 @@ if (cfr('PAYFIND')) {
         $cells .= wf_TableCell(__('Cash'));
         $cells .= wf_TableCell(__('PS%'));
         $cells .= wf_TableCell(__('Profit'));
+        $cells .= wf_TableCell('');
         $cells .= wf_TableCell(__('Login'));
         if ($altercfg['FINREP_CONTRACT']) {
             $cells .= wf_TableCell(__('Contract'));
@@ -375,10 +376,15 @@ if (cfr('PAYFIND')) {
                     $ourProfit = $rawSumm - $paySysPc;
                 } else {
                     $paySysPc = 0;
-                    $ourProfit = $each['summ'];
+                    if ($each['summ'] > 0) {
+                        $ourProfit = $each['summ'];
+                    } else {
+                        $ourProfit = 0;
+                    }
                 }
                 $cells .= wf_TableCell($paySysPc);
                 $cells .= wf_TableCell($ourProfit);
+                $cells .= wf_TableCell(wf_CheckInput('profitcalc', '', false, false, 'prcalc', '', 'pfstc="' . $ourProfit . '"'));
 
                 $cells .= wf_TableCell(wf_Link('?module=userprofile&username=' . $each['login'], web_profile_icon() . ' ' . $each['login'], false, ''));
                 if ($altercfg['FINREP_CONTRACT']) {
@@ -386,8 +392,7 @@ if (cfr('PAYFIND')) {
                 }
                 @$paymentRealname = $allrealnames[$each['login']];
                 @$paymentCashType = __($alltypes[$each['cashtypeid']]);
-                @$paymentAddress = $alladdress[$each['login']];
-                ;
+                @$paymentAddress = $alladdress[$each['login']];;
                 $cells .= wf_TableCell($paymentAddress);
                 $cells .= wf_TableCell($paymentRealname);
                 if ($altercfg['FINREP_TARIFF']) {
@@ -608,9 +613,16 @@ if (cfr('PAYFIND')) {
 
     //executing search
     if (wf_CheckPost(array('dosearch'))) {
+        //performing search
         web_PaymentSearch($markers, $joins);
+
+        //inline profit calculator
+        $profitCalc = '';
+        $profitCalc .= wf_AjaxContainer('profitcalccontainer');
+        $profitCalc .= wf_tag('link', false, '', 'rel="stylesheet" href="skins/profitcalc.css" type="text/css"');
+        $profitCalc .= wf_tag('script', false, '', 'src="modules/jsc/profitcalc.js" language="javascript"') . wf_tag('script', true);
+        show_window('', $profitCalc);
     }
 } else {
     show_error(__('Access denied'));
 }
-
