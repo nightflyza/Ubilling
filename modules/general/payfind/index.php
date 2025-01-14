@@ -411,7 +411,7 @@ if (cfr('PAYFIND')) {
                 }
                 $cells .= wf_TableCell($paynote);
                 $cells .= wf_TableCell($each['admin']);
-                $rows .= wf_TableRow($cells, 'row3');
+                $rows .= wf_TableRow($cells, 'row5');
 
                 //calculating totals
                 if ($each['summ'] > 0) {
