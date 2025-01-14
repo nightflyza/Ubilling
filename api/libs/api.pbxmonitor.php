@@ -603,7 +603,8 @@ class PBXMonitor {
             if ($this->ffmpegFlag) {
                 $playableUrl = $fileUrl . '&playable=true';
                 $playerId = 'pbxcallrecfile';
-                $result .= wf_tag('audio', false, '', 'id="' . $playerId . '" src="' . $playableUrl . '" preload=auto') . wf_tag('audio', true);
+                $result .= wf_tag('audio', false, '', 'id="' . $playerId . '" src="' . $playableUrl . '" preload="auto"') . wf_tag('audio', true);
+                $result .= wf_tag('div', false, '', 'id="waveformstatus"') . wf_tag('div', true);
                 $result .= wf_tag('div', false, '', 'id="waveform"') . wf_tag('div', true);
                 $result .= wf_tag('script', false, '', 'src="https://unpkg.com/wavesurfer.js"') . wf_tag('script', true);
                 $result .= wf_tag('script', false, '', 'type="text/javascript" src="modules/jsc/pbxmonplayer.js"') . wf_tag('script', true);

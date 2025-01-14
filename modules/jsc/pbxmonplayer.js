@@ -1,4 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
+    const waveformstatus = document.getElementById('waveformstatus');
+    waveformstatus.textContent = 'Loading...';
+
     const wavesurfer = WaveSurfer.create({
         container: '#waveform',
         barWidth: 4,
@@ -12,8 +15,14 @@ document.addEventListener('DOMContentLoaded', () => {
         scrollParent: true
     });
 
+
     const audioElement = document.getElementById('pbxcallrecfile');
-    wavesurfer.load(audioElement.src);
+
+    setTimeout(() => {
+        wavesurfer.load(audioElement.src);
+        waveformstatus.textContent = ''; 
+    }, 3000);
+    
 
     audioElement.onplay = function () {
         wavesurfer.play();
@@ -26,7 +35,6 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     wavesurfer.on('ready', function () {
-        console.log('WaveSurfer is ready!');
         document.getElementById('pbxcallrecfile').disabled = false;
     });
 
