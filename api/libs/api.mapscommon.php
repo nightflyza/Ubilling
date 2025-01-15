@@ -614,21 +614,6 @@ function sm_MapAddLine($coord1, $coord2, $color = '', $hint = '', $width = '') {
     return (generic_MapAddLine($coord1, $coord2, $color, $hint, $width));
 }
 
-/**
- * Initialize map container with some settings
- * 
- * @param $center - map center lat,long
- * @param $zoom - default map zoom
- * @param $type - map type, may be: map, satellite, hybrid
- * @param $placemarks - already filled map placemarks
- * @param $editor - field for visual editor or geolocator
- * @param $lang - map language in format ru-RU
- * 
- * @return void
- */
-function sm_MapInit($center, $zoom, $type, $placemarks = '', $editor = '', $lang = 'ru-RU') {
-    show_window('', generic_MapInit($center, $zoom, $type, $placemarks, $editor, $lang));
-}
 
 /**
  * Return geo coordinates locator for builds
@@ -652,38 +637,6 @@ function sm_MapLocationFinder() {
     $data = sm_MapLocationSwitchForm();
     $result = generic_MapEditor('placecoords', $title, $data);
     return ($result);
-}
-
-/**
- * Initialize map container with some settings
- * 
- * @param $center - map center lat,long
- * @param $zoom - default map zoom
- * @param $type - map type, may be: map, satellite, hybrid
- * @param $placemarks - already filled map placemarks
- * @param $editor - field for visual editor or geolocator
- * @param $lang - map language in format ru-RU
- * 
- * @return void
- */
-function sm_MapInitQuiet($center, $zoom, $type, $placemarks = '', $editor = '', $lang = 'ru-RU') {
-    return (generic_MapInit($center, $zoom, $type, $placemarks, $editor, $lang));
-}
-
-/**
- * Initialize map container with some settings
- * 
- * @param $center - map center lat,long
- * @param $zoom - default map zoom
- * @param $type - map type, may be: map, satellite, hybrid
- * @param $placemarks - already filled map placemarks
- * @param $editor - field for visual editor or geolocator
- * @param $lang - map language in format ru-RU
- * 
- * @return void
- */
-function sm_MapInitBasic($center, $zoom, $type, $placemarks = '', $editor = '', $lang = 'ru-RU') {
-    return (generic_MapInit($center, $zoom, $type, $placemarks, $editor, $lang));
 }
 
 /**
