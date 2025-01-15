@@ -3525,6 +3525,7 @@ class UkvSystem {
         if (empty($this->cashtypes)) {
             $this->loadCashtypes();
         }
+        $profitCalcFlag = (@$this->altCfg['FASTPROFITCALC_ENABLED']) ? true : false;
         $alltypes = $this->cashtypes;
         $allapayments = simple_queryall($query);
         $cashTypesStats = array();
@@ -3535,6 +3536,9 @@ class UkvSystem {
         $cells = wf_TableCell(__('ID'));
         $cells .= wf_TableCell(__('Date'));
         $cells .= wf_TableCell(__('Cash'));
+        if ($profitCalcFlag) {
+            $cells .= wf_TableCell(__('💲'));
+        }
         //optional contract display
         if ($this->altCfg['FINREP_CONTRACT']) {
             $cells .= wf_TableCell(__('Contract'));
@@ -3558,6 +3562,10 @@ class UkvSystem {
                 $cells = wf_TableCell($eachpayment['id']);
                 $cells .= wf_TableCell($eachpayment['date']);
                 $cells .= wf_TableCell($eachpayment['summ']);
+                if ($profitCalcFlag) {
+                    $ourProfit = ($eachpayment['summ'] > 0) ? $eachpayment['summ'] : 0;
+                    $cells .= wf_TableCell(wf_CheckInput('profitcalc', '', false, false, 'prcalc', '', 'pfstc="' . $ourProfit . '"'));
+                }
                 //optional contract display
                 if ($this->altCfg['FINREP_CONTRACT']) {
                     $cells .= wf_TableCell(@$userData['contract']);
@@ -3589,6 +3597,15 @@ class UkvSystem {
         $result = wf_TableBody($rows, '100%', '0', 'sortable');
         $result .= wf_tag('strong') . __('Cash') . ': ' . $total . wf_tag('strong', true) . wf_tag('br');
         $result .= wf_tag('strong') . __('Payments count') . ': ' . $totalPaycount . wf_tag('strong', true);
+        if ($profitCalcFlag) {
+            //inline profit calculator
+            $profitCalc = '';
+            $profitCalc .= wf_AjaxContainer('profitcalccontainer');
+            $profitCalc .= wf_tag('link', false, '', 'rel="stylesheet" href="skins/profitcalc.css" type="text/css"');
+            $profitCalc .= wf_tag('script', false, '', 'src="modules/jsc/profitcalc.js" language="javascript"') . wf_tag('script', true);
+            $result .= $profitCalc;
+            $result .= wf_delimiter(0);
+        }
 
         //render cashtype stats
         if (!empty($cashTypesStats)) {

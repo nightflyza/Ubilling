@@ -289,6 +289,8 @@ if (cfr('PAYFIND')) {
     function web_PaymentSearch($markers, $joins = '') {
         global $ubillingConfig;
         $altercfg = $ubillingConfig->getAlter();
+        $profitCalcFlag = (@$altercfg['FASTPROFITCALC_ENABLED']) ? true : false;
+
         if (wf_CheckPost(array('searchtable'))) {
             if ($_POST['searchtable'] == 'payments') {
                 $table = 'payments';
@@ -329,7 +331,10 @@ if (cfr('PAYFIND')) {
         $cells .= wf_TableCell(__('Cash'));
         $cells .= wf_TableCell(__('PS%'));
         $cells .= wf_TableCell(__('Profit'));
-        $cells .= wf_TableCell('');
+        if ($profitCalcFlag) {
+            $cells .= wf_TableCell('💲');
+        }
+
         $cells .= wf_TableCell(__('Login'));
         if ($altercfg['FINREP_CONTRACT']) {
             $cells .= wf_TableCell(__('Contract'));
@@ -384,8 +389,9 @@ if (cfr('PAYFIND')) {
                 }
                 $cells .= wf_TableCell($paySysPc);
                 $cells .= wf_TableCell($ourProfit);
-                $cells .= wf_TableCell(wf_CheckInput('profitcalc', '', false, false, 'prcalc', '', 'pfstc="' . $ourProfit . '"'));
-
+                if ($profitCalcFlag) {
+                    $cells .= wf_TableCell(wf_CheckInput('profitcalc', '', false, false, 'prcalc', '', 'pfstc="' . $ourProfit . '"'));
+                }
                 $cells .= wf_TableCell(wf_Link('?module=userprofile&username=' . $each['login'], web_profile_icon() . ' ' . $each['login'], false, ''));
                 if ($altercfg['FINREP_CONTRACT']) {
                     $cells .= wf_TableCell(@$allcontracts[$each['login']]);

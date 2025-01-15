@@ -180,7 +180,7 @@ function generic_MapAddCircle($coords, $radius, $content = '', $hint = '', $colo
 }
 
 /**
- * Initalizes google maps API with some params
+ * Initalizes leaflet maps API with some params
  * 
  * @param string $center
  * @param int $zoom
@@ -189,14 +189,16 @@ function generic_MapAddCircle($coords, $radius, $content = '', $hint = '', $colo
  * @param bool $editor
  * @param string $lang
  * @param string $container
+ * @param string $searchPrefill
  * 
  * @return string
  */
-function generic_MapInit($center, $zoom, $type, $placemarks = '', $editor = '', $lang = 'ru-RU', $container = 'ubmap') {
+function generic_MapInit($center, $zoom, $type, $placemarks = '', $editor = '', $lang = 'uk-UA', $container = 'ubmap', $searchPrefill='') {
     global $ubillingConfig;
     $mapsCfg = $ubillingConfig->getYmaps();
     $result = '';
     $tileLayerCustoms = '';
+    $searchCode='';
     $canvasRender = ($mapsCfg['CANVAS_RENDER']) ? 'true' : 'false'; //string values
     if (empty($center)) {
         //autolocator here
@@ -231,6 +233,15 @@ function generic_MapInit($center, $zoom, $type, $placemarks = '', $editor = '', 
         }
     }
 
+    if (!empty($searchPrefill)) {
+        $searchCode='
+        const searchInput = document.querySelector(\'.leaflet-control-geocoder-form input\');
+         if (searchInput) {
+            searchInput.value = \''.$searchPrefill.'\';
+         }
+      ';
+    }
+
     //Leaflet core libs
     $result .= wf_tag('link', false, '', 'rel="stylesheet" href="modules/jsc/leaflet/leaflet.css"');
     $result .= wf_tag('script', false, '', 'src="modules/jsc/leaflet/leaflet.js"') . wf_tag('script', true);
@@ -260,7 +271,7 @@ function generic_MapInit($center, $zoom, $type, $placemarks = '', $editor = '', 
         
         var geoControl = new L.Control.Geocoder({showResultIcons: true, errorMessage: "' . __('Nothing found') . '", placeholder: "' . __('Search') . '"});
         geoControl.addTo(map);
-        
+
         L.easyPrint({
 	title: \'' . __('Export') . '\',
         defaultSizeTitles: {Current: \'' . __('Current') . '\', A4Landscape: \'A4 Landscape\', A4Portrait: \'A4 Portrait\'},
@@ -292,8 +303,10 @@ function generic_MapInit($center, $zoom, $type, $placemarks = '', $editor = '', 
            
 	' . $placemarks . '
         ' . $editor . '
+     '.$searchCode.'   
+ ';
 
-';
+
     $result .= wf_tag('script', true);
     return($result);
 }

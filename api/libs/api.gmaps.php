@@ -103,10 +103,11 @@ function gm_GetIconUrl($icon) {
  * @param bool $editor
  * @param string $lang
  * @param string $container
+ * @param string $searchPrefill
  * 
  * @return string
  */
-function generic_MapInit($center, $zoom, $type, $placemarks = '', $editor = '', $lang = 'ru-RU', $container = 'ubmap') {
+function generic_MapInit($center, $zoom, $type, $placemarks = '', $editor = '', $lang = 'uk-UA', $container = 'ubmap', $searchPrefill='') {
     global $ubillingConfig;
     $mapsCfg = $ubillingConfig->getYmaps();
     @$apikey = $mapsCfg['GMAPS_APIKEY'];
