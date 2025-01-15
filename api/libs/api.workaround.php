@@ -6764,6 +6764,11 @@ function web_avatarControlForm($backUrl = '') {
     return ($result);
 }
 
+/**
+ * Renders task bar elements quick search form
+ * 
+ * @return string
+ */
 function web_TaskBarQuickSearchForm() {
     $result = '';
     $result .= wf_tag('div', false, 'tbqsearchform');
