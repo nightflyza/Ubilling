@@ -28,6 +28,13 @@ class DarkVoid {
     protected $alerts = '';
 
     /**
+     * Contains non-cachable alerts & notifications
+     *
+     * @var string
+     */
+    protected $dynamicArea = '';
+
+    /**
      * Contains default cache timeout in minutes
      *
      * @var int
@@ -49,6 +56,13 @@ class DarkVoid {
     protected $skipOnModules = array();
 
     /**
+     * Contains current module
+     *
+     * @var string
+     */
+    protected $currentModule = '';
+
+    /**
      * Cache storage path
      */
     const CACHE_PATH = 'exports/';
@@ -60,10 +74,23 @@ class DarkVoid {
 
     public function __construct() {
         if (LOGGED_IN) {
+            $this->setCurrentModule();
             $this->setModSkip();
             $this->setMyLogin();
             $this->loadAlter();
             $this->loadAlerts();
+            $this->loadDynamicArea();
+        }
+    }
+
+    /**
+     * Sets current instance current route module name
+     *
+     * @return void
+     */
+    protected function setCurrentModule() {
+        if (ubRouting::checkGet('module')) {
+            $this->currentModule = ubRouting::get('module', 'vf');
         }
     }
 
@@ -100,8 +127,8 @@ class DarkVoid {
 
         if ($updateCache) {
             //ugly hack to prevent alerts update on tsms and senddog modules
-            if (isset($_GET['module'])) {
-                if (!isset($this->skipOnModules[$_GET['module']])) {
+            if (!empty($this->currentModule)) {
+                if (!isset($this->skipOnModules[$this->currentModule])) {
                     //renew cache
                     $this->updateAlerts();
                 }
@@ -112,6 +139,37 @@ class DarkVoid {
         } else {
             //read from cache
             @$this->alerts = file_get_contents($cacheName);
+        }
+    }
+
+    /**
+     * Loads dynamic, non-cachable dark-void conten
+     *
+     * @return void
+     */
+    protected function loadDynamicArea() {
+        //Taskbar quick search
+        if (isset($this->altCfg['TB_QUICKSEARCH_ENABLED'])) {
+            if ($this->altCfg['TB_QUICKSEARCH_ENABLED']) {
+                if (@$this->altCfg['TB_QUICKSEARCH_INLINE'] == 1) {
+                    if ($this->currentModule == 'taskbar' or empty($this->currentModule)) {
+                        $this->dynamicArea .= web_TaskBarQuickSearchForm();
+                        //overriding default style
+                        $this->dynamicArea .= wf_tag('style');
+                        $this->dynamicArea .= '
+                        .tbqsearchform {
+                                float: right;
+                                margin-right: 0px;
+                                margin-left: 5px;
+                                position: relative;
+                                display: flex;
+                                align-items: center;
+                        }
+                        ';
+                        $this->dynamicArea .= wf_tag('style', true);
+                    }
+                }
+            }
         }
     }
 
@@ -354,7 +412,6 @@ class DarkVoid {
             }
         }
 
-
         //ForWhotTheBellTolls notification widget
         if (isset($this->altCfg['FWTBT_ENABLED'])) {
             if ($this->altCfg['FWTBT_ENABLED']) {
@@ -404,7 +461,9 @@ class DarkVoid {
      * @return string
      */
     public function render() {
-        return ($this->alerts);
+        $result = $this->alerts;
+        $result .= $this->dynamicArea;
+        return ($result);
     }
 
     /**

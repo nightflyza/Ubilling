@@ -6764,6 +6764,71 @@ function web_avatarControlForm($backUrl = '') {
     return ($result);
 }
 
+function web_TaskBarQuickSearchForm() {
+    $result = '';
+    $result .= wf_tag('div', false, 'tbqsearchform');
+    $result .= wf_TextInput('tbquicksearch', ' ' . '', '', false, 20, '', '', 'tbquicksearch', 'placeholder="' . __('Quick search') . '...' . '"');
+
+    $result .= wf_tag('button', false, 'clear-btn', 'type="button" aria-label="Clear search"') . '&times;' . wf_tag('button', true);
+    $result .= wf_tag('div', true);
+
+    $result .= wf_tag('script');
+    $result .= "
+            document.getElementById('tbquicksearch').addEventListener('input', function () {
+                const searchValue = this.value.toLowerCase();
+                const tbElements = document.querySelectorAll('[id^=\"ubtbelcont_\"]');
+                const statusContainer = document.getElementById('ubtbqsstatus');
+                let visibleCount = 0;
+        
+                tbElements.forEach(tbElement => {
+                    const idText = tbElement.id.toLowerCase();
+                    if (searchValue === '' || idText.includes(searchValue)) {
+                        tbElement.classList.remove('hiddentbelem');
+                        tbElement.style.display = 'block';
+                        requestAnimationFrame(() => tbElement.style.opacity = '1');
+                        visibleCount++;
+                    } else {
+                        tbElement.classList.add('hiddentbelem');
+                        setTimeout(() => {
+                            if (tbElement.classList.contains('hiddentbelem')) {
+                                tbElement.style.display = 'none';
+                            }
+                        }, 300);
+                    }
+                });
+        
+                //no elements found
+                if (visibleCount === 0) {
+                    statusContainer.textContent = '" . __('Nothing found') . "';
+                } else {
+                    statusContainer.textContent = '';
+                }
+            });
+
+            document.addEventListener('DOMContentLoaded', () => {
+                const searchInput = document.getElementById('tbquicksearch');
+                const clearButton = document.querySelector('.clear-btn');
+                searchInput.addEventListener('input', () => {
+                    if (searchInput.value.trim() !== '') {
+                        clearButton.style.display = 'flex';
+                    } else {
+                        clearButton.style.display = 'none';
+                    }
+                });
+
+                clearButton.addEventListener('click', () => {
+                    searchInput.value = '';
+                    clearButton.style.display = 'none';
+                    searchInput.dispatchEvent(new Event('input'));
+                    searchInput.focus();
+                });
+            });
+        ";
+    $result .= wf_tag('script', true);
+    $result .= wf_CleanDiv();
+    return ($result);
+}
+
 /**
  * Flushes cached avatars for all users
  * 
