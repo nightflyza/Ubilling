@@ -90,7 +90,7 @@ if (!empty($requestData)) {
                 $summRaw = $requestData['amount'];
                 $summ = $summRaw;
                 if (SERVICE_PAYMENT_PERCENT) {
-                    $summ = $summ / (1 + (SERVICE_PAYMENT_PERCENT / 100));
+                    $summ = round($summ / (1 + (SERVICE_PAYMENT_PERCENT / 100)));
                 }
                 $paysys = 'PLATON';
                 $hash = $paysys . '_' . $requestData['id'];
