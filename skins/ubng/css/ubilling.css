@@ -491,7 +491,7 @@ textarea:hover {
 }
 
 .tbqsearchform input {
-    border-radius: 10px;
+    border-radius: 6px;
     border: 1px solid #ccc;
     padding: 8px 6px;
     font-size: 12px;
@@ -503,7 +503,7 @@ textarea:hover {
 }
 
 .tbqsearchform input:focus {
-    border-color: #007BFF;
+    border-color: #77BACE;
     box-shadow: 0 4px 8px rgba(0, 123, 255, 0.3);
 }
 
