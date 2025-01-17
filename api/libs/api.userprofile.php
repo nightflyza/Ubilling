@@ -1500,9 +1500,11 @@ class UserProfile {
     protected function getUserKarma() {
         $result = '';
         if (@$this->alterCfg['KARMA_CONTROL']) {
-            $userKarma = new BadKarma(true);
-            $karmaState = $userKarma->getKarmaIndicator($this->login, $this->userdata, '12');
-            $result = $this->addRow(__('Karma'), $karmaState);
+            if (@$this->alterCfg['KARMA_IN_PROFILE']) {
+                $userKarma = new BadKarma(true);
+                $karmaState = $userKarma->getKarmaIndicator($this->login, $this->userdata, '12');
+                $result = $this->addRow(__('Karma'), $karmaState);
+            }
         }
         return ($result);
     }
