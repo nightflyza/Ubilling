@@ -36,7 +36,7 @@ class SendDog {
     /**
      * Placeholder for UbillingConfig object
      *
-     * @var null
+     * @var object
      */
     protected $ubConfig = null;
 
