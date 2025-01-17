@@ -1363,3 +1363,66 @@ table.sortable.id tbody tr::before {
 .tbqsearchform .clear-btn:hover {
     color: #000;
 }
+
+.photostorageuploadform {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-color: #ffffff;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 20px;
+    width: 100%;
+    max-width: 80%;
+    margin: 0 auto;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  }
+  
+  .photostorageuploadform input[type="file"] {
+    font-size: 18px;
+    padding: 15px;
+    background-color: #f0f0f0;
+    border: 2px solid #ccc;
+    border-radius: 8px;
+    color: #333;
+    cursor: pointer;
+    width: 100%;
+    max-width: 500px;
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  
+  .photostorageuploadform input[type="file"]:focus {
+    outline: none;
+    background-color: #f9f9f9;
+  }
+  
+  .photostorageuploadform input[type="submit"] {
+    font-size: 20px;
+    padding: 15px;
+    color: #333;
+    border: 2px dashed #ccc;
+    border-radius: 8px;
+    cursor: pointer;
+    width: 100%;
+    max-width: 500px;
+    font-weight: bold;
+  }
+  
+  .photostorageuploadform input[type="submit"]:hover {
+    background-color: #e6e6e6;
+    color: #333;
+  }
+  
+  @media (max-width: 480px) {
+    .photostorageuploadform {
+      padding: 15px;
+    }
+  
+    .photostorageuploadform input[type="file"],
+    .photostorageuploadform input[type="submit"] {
+      font-size: 18px;
+      width: 100%;
+    }
+  }
+  

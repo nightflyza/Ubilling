@@ -874,8 +874,8 @@ class PhotoStorage {
         }
 
         $postUrl = self::UPLOAD_URL_FILE . '&scope=' . $this->scope . '&itemid=' . $this->itemId . $customBackLink;
-        $inputs = wf_tag('form', false, 'glamour', 'action="' . $postUrl . '" enctype="multipart/form-data" method="POST"');
-        $inputs .= wf_tag('input', false, '', 'type="file" name="photostorageFileUpload"');
+        $inputs = wf_tag('form', false, 'photostorageuploadform', 'action="' . $postUrl . '" enctype="multipart/form-data" method="POST"');
+        $inputs .= wf_tag('input', false, '', 'type="file" name="photostorageFileUpload" accept="image/*" required');
         $inputs .= wf_Submit(__('Upload'));
         $inputs .= wf_tag('form', true);
 
