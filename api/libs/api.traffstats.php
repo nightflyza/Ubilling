@@ -1102,6 +1102,7 @@ class TraffStats {
                 switch ($nas['nastype']) {
                     case 'local':
                     case 'radius':
+                    case 'other':                        
                     case 'rscriptd':
                         //normal bandwidthd
                         if (!ispos($bwd, 'mlgmths') and !ispos($bwd, 'mlgmtppp') and !ispos($bwd, 'mlgmtdhcp')) {
@@ -1123,17 +1124,13 @@ class TraffStats {
 
                             //OphanimFlow graphs
                             if (ispos($bwd, 'OphanimFlow') or ispos($bwd, 'of/')) {
-                                $width = 1540; //defaults
-                                $height = 400;
-                                $offsetX = 60; //window size offsets
-                                $offsetY = 60;
+                                $height = "'auto'";
+                                $width = "'auto'";
 
                                 $custParams = '';
                                 $customDimensions = $this->getOphCustomDimensions(true);
                                 if ($customDimensions) {
                                     $custParams = $this->getOphCustomDimensions(false); //as string
-                                    $width = $customDimensions['w'];
-                                    $height = $customDimensions['h'];
                                 }
                                 $d_day = $bwd . '/?module=graph&ip=0.0.0.0&dir=R&period=day' . $custParams;
                                 $d_week = $bwd . '/?module=graph&ip=0.0.0.0&dir=R&period=week' . $custParams;
@@ -1144,15 +1141,26 @@ class TraffStats {
                                 $u_month = $bwd . '/?module=graph&ip=0.0.0.0&dir=S&period=month' . $custParams;
                                 $u_year = $bwd . '/?module=graph&ip=0.0.0.0&dir=S&period=year' . $custParams;
 
-                                $width = $width + $offsetX;
-                                $height = ($height * 2) + ($offsetY * 2);
+                                $daygraph = __('Downloaded') .  wf_tag('br') . wf_img_sized(zb_BandwidthdImgLink($d_day),'','100%') . wf_tag('br') . __('Uploaded') . wf_tag('br') . wf_img_sized(zb_BandwidthdImgLink($u_day),'','100%');
+                                $weekgraph = __('Downloaded') .  wf_tag('br') . wf_img_sized(zb_BandwidthdImgLink($d_week),'','100%') . wf_tag('br') . __('Uploaded') . wf_tag('br') . wf_img_sized(zb_BandwidthdImgLink($u_week),'','100%');
+                                $monthgraph = __('Downloaded') .  wf_tag('br') . wf_img_sized(zb_BandwidthdImgLink($d_month),'','100%') . wf_tag('br') . __('Uploaded') . wf_tag('br') . wf_img_sized(zb_BandwidthdImgLink($u_month),'','100%');
+                                $yeargraph = __('Downloaded') . wf_tag('br') . wf_img_sized(zb_BandwidthdImgLink($d_year),'','100%') . wf_tag('br') . __('Uploaded') . wf_tag('br') . wf_img_sized(zb_BandwidthdImgLink($u_year),'','100%');
+                                $graphLegend = wf_tag('br') . wf_img('skins/bwdlegend.gif');
+    
+                                //100% width container for auto windows on OphanimFlow
+                                $daygraph = wf_tag('div', false, '', 'style="width:100%;"') . $daygraph . wf_tag('div', true);
+                                $weekgraph = wf_tag('div', false, '', 'style="width:100%;"') . $weekgraph . wf_tag('div', true);
+                                $monthgraph = wf_tag('div', false, '', 'style="width:100%;"') . $monthgraph . wf_tag('div', true);
+                                $yeargraph = wf_tag('div', false, '', 'style="width:100%;"') . $yeargraph . wf_tag('div', true);
+    
+                            } else {
+                                $daygraph = __('Downloaded') .  wf_tag('br') . wf_img(zb_BandwidthdImgLink($d_day)) . wf_tag('br') . __('Uploaded') . wf_tag('br') . wf_img(zb_BandwidthdImgLink($u_day));
+                                $weekgraph = __('Downloaded') .  wf_tag('br') . wf_img(zb_BandwidthdImgLink($d_week)) . wf_tag('br') . __('Uploaded') . wf_tag('br') . wf_img(zb_BandwidthdImgLink($u_week));
+                                $monthgraph = __('Downloaded') .  wf_tag('br') . wf_img(zb_BandwidthdImgLink($d_month)) . wf_tag('br') . __('Uploaded') . wf_tag('br') . wf_img(zb_BandwidthdImgLink($u_month));
+                                $yeargraph = __('Downloaded') . wf_tag('br') . wf_img(zb_BandwidthdImgLink($d_year)) . wf_tag('br') . __('Uploaded') . wf_tag('br') . wf_img(zb_BandwidthdImgLink($u_year));
+                                $graphLegend = wf_tag('br') . wf_img('skins/bwdlegend.gif');
                             }
 
-                            $daygraph = __('Downloaded') . wf_img(zb_BandwidthdImgLink($d_day)) . wf_tag('br') . __('Uploaded') . wf_tag('br') . wf_img(zb_BandwidthdImgLink($u_day));
-                            $weekgraph = __('Downloaded') . wf_img(zb_BandwidthdImgLink($d_week)) . wf_tag('br') . __('Uploaded') . wf_tag('br') . wf_img(zb_BandwidthdImgLink($u_week));
-                            $monthgraph = __('Downloaded') . wf_img(zb_BandwidthdImgLink($d_month)) . wf_tag('br') . __('Uploaded') . wf_tag('br') . wf_img(zb_BandwidthdImgLink($u_month));
-                            $yeargraph = __('Downloaded') . wf_img(zb_BandwidthdImgLink($d_year)) . wf_tag('br') . __('Uploaded') . wf_tag('br') . wf_img(zb_BandwidthdImgLink($u_year));
-                            $graphLegend = wf_tag('br') . wf_img('skins/bwdlegend.gif');
                         } else {
                             //Multigen Mikrotik hotspot
                             $bwd = str_replace('mlgmths', 'graphs/iface/bridge', $bwd);
