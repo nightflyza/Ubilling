@@ -40,8 +40,6 @@ if (cfr('USERSMAP')) {
             if ($ymconf['FINDING_CIRCLE']) {
                 $radius = 30;
                 $area = sm_MapAddCircle($ym_center, $radius, __('Search area radius') . ' ' . $radius . ' ' . __('meters'), __('Search area'));
-            } else {
-                $area = '';
             }
         }
 
@@ -58,7 +56,7 @@ if (cfr('USERSMAP')) {
 
         //render map container
         um_ShowMapContainer();
-        show_window('', generic_MapInit($ym_center, $ym_zoom, $ym_type, $placemarks, $locator, $ym_lang, 'ubmap', $searchPrefill));
+        show_window('', generic_MapInit($ym_center, $ym_zoom, $ym_type, $area . $placemarks, $locator, $ym_lang, 'ubmap', $searchPrefill));
     } else {
         show_window(__('Error'), __('This module is disabled'));
     }
