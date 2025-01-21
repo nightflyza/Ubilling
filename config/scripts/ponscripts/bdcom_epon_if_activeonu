@@ -1,0 +1,41 @@
+#
+# EPON interface active ONU display
+#
+
+if {[llength $argv] != 5} {
+puts "Usage: ip username password interface"
+exit 1
+}
+
+set timeout 30
+
+
+set ip [lindex $argv 0]
+set login [lindex $argv 1]
+set password [lindex $argv 2]
+set enable [lindex $argv 3]
+set iface [lindex $argv 4]
+
+spawn telnet $ip
+
+expect "Username:*"
+send "$login\r"
+
+expect "Password:*"
+send "$password\r"
+
+expect "*>"
+send "enable\r"
+
+expect "*#"
+send "terminal length 0\r"
+
+expect "*#"
+send "show epon active-onu interface $iface\r"
+
+expect "*#"
+send "exit\r"
+
+expect "*>"
+send "exit\r"
+
