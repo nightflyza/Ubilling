@@ -4603,7 +4603,7 @@ function web_ReportSysloadCustomScripts($scriptoption) {
             if (!empty($curScript)) {
                 $name = $curScript[0];
                 $path = $curScript[1];
-                $result .= wf_AjaxLink('?module=report_sysload&ajxcscrun=' . base64_encode($path), $name, 'custommoncontainder', false, 'ubButton');
+                $result .= wf_AjaxLink('?module=report_sysload&ajxcscrun=' . base64_encode($path), wf_img('skins/script16.png') . ' ' . $name, 'custommoncontainder', false, 'ubButton');
             }
         }
         $result .= wf_delimiter();
