@@ -599,6 +599,23 @@ function web_SwitchEditForm($switchid) {
         }
     }
 
+    //switch auth data directory enabled?
+    if ($ubillingConfig->getAlterParam('SWITCHES_AUTH_ENABLED')) {
+        $swAuth = new SwitchAuth($switchid);
+        $swAuthData = $swAuth->getAuthData($switchid);
+        if (empty($swAuthData)) {
+            $authLabel = '🔒 ' . __('Device authorization data not set');
+        } else {
+            $authLabel = '🔑 ' . __('Device authorization data available');
+        }
+        $editinputs .= wf_delimiter(0);
+        if (cfr('SWITCHESEDIT')) {
+            $editinputs .= wf_Link($swAuth::URL_ME . '&' . $swAuth::ROUTE_DEVID . '=' . $switchid, $authLabel);
+        } else {
+            $editinputs .= $authLabel;
+        }
+    }
+
     $editinputs .= wf_tag('br');
 
     if (cfr('SWITCHGROUPS') and $swGroupsEnabled) {
@@ -1756,6 +1773,12 @@ function ub_SwitchDelete($switchid) {
     if ($switchesExtended) {
         $switchesUplinks = new SwitchUplinks();
         $switchesUplinks->flush($switchid);
+    }
+
+    $swAuth = $ubillingConfig->getAlterParam('SWITCHES_AUTH_ENABLED');
+    if ($swAuth) {
+        $switchAuth = new SwitchAuth($switchid);
+        $switchAuth->flushAuthData($switchid);
     }
 
     $query = 'DELETE FROM `switches_qinq` WHERE `switchid` = "' . $switchid . '"';

@@ -12,3 +12,16 @@ CREATE TABLE IF NOT EXISTS `pbxcalls` (
   KEY `idx_date` (`date`),
   KEY `idx_number` (`number`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
+
+
+CREATE TABLE IF NOT EXISTS `switchauth` (
+  `id` INT(11) NOT NULL AUTO_INCREMENT,
+  `swid` INT(11) NOT NULL,
+  `login` VARCHAR(64) DEFAULT NULL,
+  `password` VARCHAR(64) DEFAULT NULL,
+  `enable` VARCHAR(64) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `switchid` (`swid`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
+
+
