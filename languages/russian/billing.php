@@ -3538,3 +3538,6 @@ $lang['def']['Write message'] = 'Напишите сообщение';
 $lang['def']['Select a chat to start a conversation'] = 'Выберите чат для начала общения';
 $lang['def']['No ONU assigned'] = 'Не присвоено ONU';
 $lang['def']['Quick search'] = 'Быстрый поиск';
+$lang['def']['Device authorization data not set'] = 'Нет данных авторизации устройства';
+$lang['def']['Device authorization data available'] = 'Данные авторизации устройства существуют';
+$lang['def']['Device authorization data'] = 'Данные авторизации устройства';
