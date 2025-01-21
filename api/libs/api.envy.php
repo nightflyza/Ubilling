@@ -467,7 +467,7 @@ class Envy {
                 $result .= wf_BackLink(self::URL_ME . '&' . self::ROUTE_DEVICES . '=true') . ' '; //devfiltered diff backs to device manager
             }
         } else {
-            $result .= wf_Link(self::URL_ME . '&' . self::ROUTE_SCRIPTS . '=true', wf_img('skins/switch_models.png') . ' ' . __('Scripts'), false, 'ubButton') . ' ';
+            $result .= wf_Link(self::URL_ME . '&' . self::ROUTE_SCRIPTS . '=true', wf_img('skins/script16.png') . ' ' . __('Scripts'), false, 'ubButton') . ' ';
             $result .= wf_Link(self::URL_ME . '&' . self::ROUTE_DEVICES . '=true', wf_img('skins/ymaps/switchdir.png') . ' ' . __('Devices'), false, 'ubButton') . ' ';
             $result .= wf_Link(self::URL_ME . '&' . self::ROUTE_DIFF . '=true', wf_img('skins/diff_icon.png') . ' ' . __('Changes'), false, 'ubButton') . ' ';
             $cleanupAlert = __('All configs for each of devices will be deletet from the archive except the last one');

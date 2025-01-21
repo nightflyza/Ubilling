@@ -115,7 +115,7 @@ if (cfr('ENVY')) {
             $envy->getAjArchive();
         }
 
-        if (ubRouting::checkGet('previewdevice') OR ubRouting::checkGet('viewarchiveid')) {
+        if (ubRouting::checkGet('previewdevice') or ubRouting::checkGet('viewarchiveid')) {
             //device preview
             if (ubRouting::checkGet('previewdevice')) {
                 show_window('', wf_BackLink($envy::URL_ME . '&' . $envy::ROUTE_DEVICES . ' = true'));
@@ -152,13 +152,10 @@ if (cfr('ENVY')) {
             }
 
             //here previous data archive
-            if (!ubRouting::checkGet($envy::ROUTE_DEVICES) AND ! ubRouting::checkGet($envy::ROUTE_SCRIPTS) AND ! ubRouting::checkGet($envy::ROUTE_DIFF)) {
+            if (!ubRouting::checkGet($envy::ROUTE_DEVICES) and ! ubRouting::checkGet($envy::ROUTE_SCRIPTS) and ! ubRouting::checkGet($envy::ROUTE_DIFF)) {
                 show_window(__('Previously collected devices configs'), $envy->renderArchive());
                 zb_BillingStats(true);
             }
-
-            //Envy archive cleanup
-            // TODO
         }
     } else {
         show_error(__('This module is disabled'));
