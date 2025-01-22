@@ -1,5 +1,5 @@
 #
-# EPON interface all ONU flush
+# EPON interface all ONU flush/deregister
 #
 
 if {[llength $argv] != 5} {
@@ -7,7 +7,7 @@ puts "Usage: ip username password enablepassword interface"
 exit 1
 }
 
-set timeout 30
+set timeout 60
 
 
 set ip [lindex $argv 0]
@@ -31,7 +31,24 @@ expect "*#"
 send "terminal length 0\r"
 
 expect "*#"
-send "show epon inactive-onu interface $iface\r"
+send "config\r"
+
+expect "*#"
+send "interface $iface\r"
+
+for {set i 1} {$i <= 64} {incr i} {
+    expect "*#"
+    send "no epon bind-onu sequence $i\r"
+}
+
+expect "*#"
+send "exit\r"
+
+expect "*#"
+send "exit\r"
+
+expect "*#"
+send "write all\r"
 
 expect "*#"
 send "exit\r"
