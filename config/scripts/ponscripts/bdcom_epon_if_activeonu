@@ -3,7 +3,7 @@
 #
 
 if {[llength $argv] != 5} {
-puts "Usage: ip username password interface"
+puts "Usage: ip username password enablepassword interface"
 exit 1
 }
 

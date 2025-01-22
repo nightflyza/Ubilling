@@ -1,5 +1,5 @@
 #
-# EPON interface inactive ONU display
+# EPON interface all ONU flush
 #
 
 if {[llength $argv] != 5} {

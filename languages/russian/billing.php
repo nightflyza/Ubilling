@@ -3541,3 +3541,6 @@ $lang['def']['Quick search'] = 'Быстрый поиск';
 $lang['def']['Device authorization data not set'] = 'Нет данных авторизации устройства';
 $lang['def']['Device authorization data available'] = 'Данные авторизации устройства существуют';
 $lang['def']['Device authorization data'] = 'Данные авторизации устройства';
+$lang['def']['Run script'] = 'Запустить скрипт';
+$lang['def']['Optical diagnostics'] = 'Оптическая диагностика';
+$lang['def']['right to execute PON scripts'] = 'Право запускать PON-скрипты на OLT';

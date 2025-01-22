@@ -1,5 +1,5 @@
 #
-# EPON interface inactive ONU display
+# EPON interface optical diagnostics stats
 #
 
 if {[llength $argv] != 5} {
@@ -31,7 +31,7 @@ expect "*#"
 send "terminal length 0\r"
 
 expect "*#"
-send "show epon inactive-onu interface $iface\r"
+send "show epon optical-transceiver-diagnosis interface $iface\r"
 
 expect "*#"
 send "exit\r"

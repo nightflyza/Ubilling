@@ -116,6 +116,19 @@ class SwitchAuth {
     }
 
     /**
+     * Returns auth data for all devices
+     * 
+     * @return array
+     */
+    public function getAllAuthData() {
+        $result = array();
+        if (!empty($this->allAuthData)) {
+            $result = $this->allAuthData;
+        }
+        return ($result);
+    }
+
+    /**
      * Returns current device auth edit form
      * 
      * @return string

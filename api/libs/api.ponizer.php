@@ -634,6 +634,22 @@ class PONizer {
     public function getAllOltDevices() {
         return $this->allOltDevices;
     }
+    /**
+     * Retrieves all OLT IP addresses.
+     *
+     * @return array An array containing all OLT IP addresses.
+     */
+    public function getAllOltIps() {
+        return $this->allOltIps;
+    }
+    /**
+     * Retrieves all OLT model IDs.
+     *
+     * @return array An array containing all OLT model IDs.
+     */
+    public function getAllOltModelIds() {
+        return $this->allOltModelIds;
+    }
 
     /**
      * Loads all available snmp models data into private data property
@@ -2150,7 +2166,7 @@ class PONizer {
             $deadOltFlag = (isset($allDeadSwitches[$oltIp])) ? true : false;
             $onuSignal = $this->getOnuSignalLevelData($onuId);
             if (!empty($onuSignal)) {
-                $sigTypeLabel=($deadOltFlag) ? __('Latest') :  __('Current');
+                $sigTypeLabel = ($deadOltFlag) ? __('Latest') :  __('Current');
                 $result .= wf_tag('div', false, 'onusignalbig');
                 $result .= $sigTypeLabel . ' ' . __('Signal') . ' ' . __('ONU');
                 $result .= wf_delimiter();
@@ -3011,6 +3027,11 @@ class PONizer {
         $avgSignals = array();
         $oltsTemps = array(); //oltId=>temperature
         $oltData = new OLTAttractor();
+        $ponScriptsFlag = ($this->altCfg['SWITCHES_AUTH_ENABLED'] and $this->altCfg['PON_SCRIPTS_ENABLED']) ? true : false;
+        if ($ponScriptsFlag) {
+            $ponScripts = new PONScripts($this->allOltIps, $this->allOltModelIds, $this->allModelsData);
+            //ic($ponScripts);
+        }
 
         $statsControls = wf_BackLink(self::URL_ONULIST);
         $statsControls .= wf_Link(self::URL_ME . '&oltstats=true', wf_img('skins/icon_stats_16.gif') . ' ' . __('Stats') . ' ' . __('OLT'), false, 'ubButton') . ' ';
@@ -3129,6 +3150,12 @@ class PONizer {
                         $badSignalPercent = '';
                         $interfaceFillColor = '';
                         $interfaceFillColorEnd = '';
+                        $interfaceScriptsControls = '';
+                        if ($ponScriptsFlag) {
+                            if (cfr('PONSCRIPTS')) {
+                                $interfaceScriptsControls = $ponScripts->renderIfaceControls($oltId, $eachInterface);
+                            }
+                        }
 
                         if ($eachInterfacePercent > 80) {
                             $interfaceFillColor = wf_tag('font', false, '', 'color="' . self::COLOR_AVG . '"') . wf_tag('b', false);
@@ -3184,7 +3211,7 @@ class PONizer {
                             }
                         }
 
-                        $cells = wf_TableCell($eachInterfaceLabel . $oltIfaceDescr);
+                        $cells = wf_TableCell($eachInterfaceLabel . $oltIfaceDescr . $interfaceScriptsControls);
                         $cells .= wf_TableCell($interfaceFillLabel, '', '', 'sorttable_customkey="' . $eachInterfaceCount . '"');
                         $cells .= wf_TableCell($avgSignalColor . $avgSignalCount . $avgSignalColorEnd);
                         $cells .= wf_TableCell($avgSignalPercent);
