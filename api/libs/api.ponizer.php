@@ -3859,17 +3859,18 @@ class PONizer {
     /**
      * Renders json formatted data for jquery data tables list
      *
-     * @param string $OnuId
+     * @param string $onuId
      * @return void
      */
-    public function ajaxOltFdbData($OnuId) {
+    public function ajaxOltFdbData($onuId) {
         $json = new wf_JqDtHelper();
         $fdbPointer = '';
+        $selfFilterFlag = (@$this->altCfg['PON_ONU_FDB_SELFFILTER']) ? true : false;
 
-        if (!empty($OnuId)) {
+        if (!empty($onuId)) {
             $allUserTariffs = zb_TariffsGetAllUsers();
-            $onuMacId = @$this->allOnu[$OnuId]['mac'];
-            $onuSerialId = @$this->allOnu[$OnuId]['serial'];
+            $onuMacId = @$this->allOnu[$onuId]['mac'];
+            $onuSerialId = @$this->allOnu[$onuId]['serial'];
             $fdbCacheAvail = $this->oltData->isFdbAvailable();
 
             if ($fdbCacheAvail) {
@@ -3886,26 +3887,36 @@ class PONizer {
                 $fdbPointer = $this->FDBCache[$onuSerialId];
             }
 
-            if ($fdbCacheAvail and $fdbPointer) {
-                $GetLoginMac = zb_UserGetAllMACs();
+            if ($fdbCacheAvail && $fdbPointer) {
+                $getLoginMac = zb_UserGetAllMACs();
                 $allAddress = zb_AddressGetFulladdresslistCached();
                 $allRealnames = zb_UserGetAllRealnames();
 
-                foreach ($fdbPointer as $id => $FDBdata) {
-                    $login = in_array($FDBdata['mac'], array_map('strtolower', $GetLoginMac)) ? array_search($FDBdata['mac'], array_map('strtolower', $GetLoginMac)) : '';
-                    $userLink = $login ? wf_Link('?module=userprofile&username=' . $login, web_profile_icon() . ' ' . @$allAddress[$login], false) : '';
-                    $userRealnames = $login ? @$allRealnames[$login] : '';
-                    $userTariff = (isset($allUserTariffs[$login])) ? $allUserTariffs[$login] : '';
+                foreach ($fdbPointer as $id => $fdbData) {
+                    $filtered = true;
+                    if ($selfFilterFlag) {
+                        $filtered = false;
+                        if ($fdbData['mac'] != $onuMacId) {
+                            $filtered = true;
+                        }
+                    }
 
-                    $data[] = $id;
-                    $data[] = $FDBdata['vlan'];
-                    $data[] = $FDBdata['mac'];
-                    $data[] = @$userLink;
-                    $data[] = @$userRealnames;
-                    $data[] = $userTariff;
+                    if ($filtered) {
+                        $login = in_array($fdbData['mac'], array_map('strtolower', $getLoginMac)) ? array_search($fdbData['mac'], array_map('strtolower', $getLoginMac)) : '';
+                        $userLink = $login ? wf_Link('?module=userprofile&username=' . $login, web_profile_icon() . ' ' . @$allAddress[$login], false) : '';
+                        $userRealnames = $login ? @$allRealnames[$login] : '';
+                        $userTariff = (isset($allUserTariffs[$login])) ? $allUserTariffs[$login] : '';
 
-                    $json->addRow($data);
-                    unset($data);
+                        $data[] = $id;
+                        $data[] = $fdbData['vlan'];
+                        $data[] = $fdbData['mac'];
+                        $data[] = @$userLink;
+                        $data[] = @$userRealnames;
+                        $data[] = $userTariff;
+
+                        $json->addRow($data);
+                        unset($data);
+                    }
                 }
             }
         }
@@ -3990,6 +4001,8 @@ class PONizer {
     public function ajaxFdbCacheList() {
         $json = new wf_JqDtHelper();
         $availOnuFdbCache = $this->oltData->isFdbAvailable();
+        $selfFilterFlag = (@$this->altCfg['PON_ONU_FDB_SELFFILTER']) ? true : false;
+
         if (!empty($availOnuFdbCache)) {
             $availOnuFdbCache = $this->oltData->getFdbOLTAll();
             $allAddress = zb_AddressGetFulladdresslistCached();
@@ -4005,33 +4018,43 @@ class PONizer {
                     foreach ($eachOltFdb as $onuMac => $onuTmp) {
                         if (!empty($onuTmp)) {
                             foreach ($onuTmp as $id => $onuData) {
-                                $onuRealId = $this->getOnuIDbyIdent($onuMac);
-                                if ($onuRealId) {
-                                    $associatedUserLogin = $this->allOnu[$onuRealId]['login'];
-                                } else {
-                                    $associatedUserLogin = '';
+                                $filtered = true;
+                                if ($selfFilterFlag) {
+                                    $filtered = false;
+                                    if ($onuData['mac'] != $onuMac) {
+                                        $filtered = true;
+                                    }
                                 }
-                                $userLogin = (isset($allUserMac[$onuData['mac']])) ? $allUserMac[$onuData['mac']] : '';
-                                $onuLink = ($onuRealId) ? wf_Link(self::URL_ME . '&editonu=' . $onuRealId, $id) : $id;
-                                @$userAddress = $allAddress[$userLogin];
-                                @$userRealName = $allRealnames[$userLogin];
-                                @$userTariff = $allUserTariffs[$userLogin];
-                                $userLink = (!empty($userLogin)) ? wf_Link('?module=userprofile&username=' . $userLogin, web_profile_icon() . ' ' . $userAddress) : '';
-                                $oltCheck = (!$this->checkOnuOLTid($onuMac, $oltId)) ? ' ' . wf_img('skins/createtask.gif', __('Wrong OLT')) . ' ' . __('Oh no') : '';
-                                $userCheck = (!$this->checkOnuUserAssign($onuRealId, $userLogin)) ? ' ' . wf_img('skins/createtask.gif', __('Wrong associated user')) . ' ' . __('Oh no') : '';
 
-                                $data[] = $oltDesc . $oltCheck;
-                                $data[] = $onuMac;
-                                $data[] = $onuLink;
-                                $data[] = $onuData['vlan'];
-                                $data[] = $onuData['mac'] . $userCheck;
-                                $data[] = $userLink;
-                                $data[] = $associatedUserLogin;
-                                $data[] = $userRealName;
-                                $data[] = $userTariff;
+                                if ($filtered) {
+                                    $onuRealId = $this->getOnuIDbyIdent($onuMac);
+                                    if ($onuRealId) {
+                                        $associatedUserLogin = $this->allOnu[$onuRealId]['login'];
+                                    } else {
+                                        $associatedUserLogin = '';
+                                    }
+                                    $userLogin = (isset($allUserMac[$onuData['mac']])) ? $allUserMac[$onuData['mac']] : '';
+                                    $onuLink = ($onuRealId) ? wf_Link(self::URL_ME . '&editonu=' . $onuRealId, $id) : $id;
+                                    @$userAddress = $allAddress[$userLogin];
+                                    @$userRealName = $allRealnames[$userLogin];
+                                    @$userTariff = $allUserTariffs[$userLogin];
+                                    $userLink = (!empty($userLogin)) ? wf_Link('?module=userprofile&username=' . $userLogin, web_profile_icon() . ' ' . $userAddress) : '';
+                                    $oltCheck = (!$this->checkOnuOLTid($onuMac, $oltId)) ? ' ' . wf_img('skins/createtask.gif', __('Wrong OLT')) . ' ' . __('Oh no') : '';
+                                    $userCheck = (!$this->checkOnuUserAssign($onuRealId, $userLogin)) ? ' ' . wf_img('skins/createtask.gif', __('Wrong associated user')) . ' ' . __('Oh no') : '';
 
-                                $json->addRow($data);
-                                unset($data);
+                                    $data[] = $oltDesc . $oltCheck;
+                                    $data[] = $onuMac;
+                                    $data[] = $onuLink;
+                                    $data[] = $onuData['vlan'];
+                                    $data[] = $onuData['mac'] . $userCheck;
+                                    $data[] = $userLink;
+                                    $data[] = $associatedUserLogin;
+                                    $data[] = $userRealName;
+                                    $data[] = $userTariff;
+
+                                    $json->addRow($data);
+                                    unset($data);
+                                }
                             }
                         }
                     }
