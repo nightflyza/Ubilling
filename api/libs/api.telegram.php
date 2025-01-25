@@ -635,6 +635,41 @@ class UbillingTelegram {
             $data['reply_markup'] = $encodedMarkup;
         }
 
+        //banChatMember
+        if (ispos($message, 'banChatMember:')) {
+            if (preg_match('!\[(.*?)\]!si', $message, $tmpBanString)) {
+                $cleanBanString = explode('@', $tmpBanString[1]);
+                $banUserId = $cleanBanString[0];
+                $banChatId = $cleanBanString[1];
+            }
+
+            $banParams = '?chat_id=' . $banChatId . '&user_id=' . $banUserId;
+            $method = 'banChatMember' . $banParams;
+        }
+
+        //unbanChatMember
+        if (ispos($message, 'unbanChatMember:')) {
+            if (preg_match('!\[(.*?)\]!si', $message, $tmpUnbanString)) {
+                $cleanUnbanString = explode('@', $tmpUnbanString[1]);
+                $unbanUserId = $cleanUnbanString[0];
+                $unbanChatId = $cleanUnbanString[1];
+            }
+
+            $unbanParams = '?chat_id=' . $unbanChatId . '&user_id=' . $unbanUserId;
+            $method = 'unbanChatMember' . $unbanParams;
+        }
+
+        //deleting message by its id
+        if (ispos($message, 'removeChatMessage:')) {
+            if (preg_match('!\[(.*?)\]!si', $message, $tmpRemoveString)) {
+                $cleanRemoveString = explode('@', $tmpRemoveString[1]);
+                $removeMessageId = $cleanRemoveString[0];
+                $removeChatId = $cleanRemoveString[1];
+                $removeParams = '?chat_id=' . $removeChatId . '&message_id=' . $removeMessageId;
+                $method = 'deleteMessage' . $removeParams;
+            }
+        }
+
 
         //POST data encoding
         $data_json = json_encode($data);
@@ -914,13 +949,18 @@ class UbillingTelegram {
         @$result['location'] = $messageData['location'];
         @$result['sticker'] = $messageData['sticker'];
         @$result['new_chat_member'] = $messageData['new_chat_member'];
+        @$result['new_chat_members'] = $messageData['new_chat_members'];
+        @$result['new_chat_participant'] = $messageData['new_chat_participant'];
         @$result['left_chat_member'] = $messageData['left_chat_member'];
+        @$result['left_chat_participant'] = $messageData['left_chat_participant'];
         @$result['reply_to_message'] = $messageData['reply_to_message'];
         //decode replied message too if received
         if ($result['reply_to_message']) {
             $result['reply_to_message'] = $this->preprocessMessageData($result['reply_to_message']);
         }
 
+        //Uncomment following for total debug
+        //@$result['rawMessageData'] = $messageData;
 
         return ($result);
     }

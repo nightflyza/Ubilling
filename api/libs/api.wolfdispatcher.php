@@ -167,21 +167,21 @@ class WolfDispatcher {
             $this->botToken = $token;
         }
 
-//                                ,     ,
-//                                |\---/|
-//                               /  , , |
-//                          __.-'|  / \ /
-//                 __ ___.-'        ._O|
-//              .-'  '        :      _/
-//             / ,    .        .     |
-//            :  ;    :        :   _/
-//            |  |   .'     __:   /
-//            |  :   /'----'| \  |
-//            \  |\  |      | /| |
-//             '.'| /       || \ |
-//             | /|.'       '.l \\_
-//             || ||             '-'
-//             '-''-'
+        //                                ,     ,
+        //                                |\---/|
+        //                               /  , , |
+        //                          __.-'|  / \ /
+        //                 __ ___.-'        ._O|
+        //              .-'  '        :      _/
+        //             / ,    .        .     |
+        //            :  ;    :        :   _/
+        //            |  |   .'     __:   /
+        //            |  :   /'----'| \  |
+        //            \  |\  |      | /| |
+        //             '.'| /       || \ |
+        //             | /|.'       '.l \\_
+        //             || ||             '-'
+        //             '-''-'
 
         $this->initTelegram();
         $this->setBotName();
@@ -399,7 +399,7 @@ class WolfDispatcher {
                 }
             }
         }
-        return($result);
+        return ($result);
     }
 
     /**
@@ -446,7 +446,7 @@ class WolfDispatcher {
     protected function reactInput() {
         $currentInputAction = '';
         if (!empty($this->receivedData)) {
-            if (isset($this->receivedData['from']) AND isset($this->receivedData['chat'])) {
+            if (isset($this->receivedData['from']) and isset($this->receivedData['chat'])) {
                 $chatId = $this->receivedData['chat']['id']; //yeah, we waiting for preprocessed data here
                 $interractionAllowed = true;
                 //separate allows here
@@ -594,7 +594,7 @@ class WolfDispatcher {
             $this->reactInput();
         }
         $this->writeDebugLog();
-        return($this->receivedData);
+        return ($this->receivedData);
     }
 
     /**
@@ -604,7 +604,7 @@ class WolfDispatcher {
      */
     protected function isPhotoReceived() {
         $result = false;
-        if ($this->receivedData['photo'] OR $this->receivedData['document']) {
+        if ($this->receivedData['photo'] or $this->receivedData['document']) {
             $imageMimeTypes = array('image/png', 'image/jpeg');
             if ($this->receivedData['photo']) {
                 $result = true;
@@ -617,7 +617,7 @@ class WolfDispatcher {
                 }
             }
         }
-        return($result);
+        return ($result);
     }
 
     /**
@@ -633,7 +633,7 @@ class WolfDispatcher {
         if ($this->receivedData['new_chat_member']) {
             $result = $this->receivedData['new_chat_member'];
         }
-        return($result);
+        return ($result);
     }
 
     /**
@@ -649,7 +649,7 @@ class WolfDispatcher {
         if ($this->receivedData['left_chat_member']) {
             $result = $this->receivedData['left_chat_member'];
         }
-        return($result);
+        return ($result);
     }
 
     /**
@@ -670,7 +670,7 @@ class WolfDispatcher {
                 }
             }
         }
-        return($result);
+        return ($result);
     }
 
     /**
@@ -679,7 +679,7 @@ class WolfDispatcher {
      * @return array
      */
     protected function message() {
-        return($this->receivedData);
+        return ($this->receivedData);
     }
 
     /**
@@ -713,7 +713,7 @@ class WolfDispatcher {
                 $result = $this->telegram->downloadFile($filePath);
             }
         }
-        return($result);
+        return ($result);
     }
 
     /**
@@ -736,7 +736,7 @@ class WolfDispatcher {
                 }
             }
         }
-        return($result);
+        return ($result);
     }
 
     /**
@@ -755,7 +755,7 @@ class WolfDispatcher {
                 $result = json_decode($replyResult, true);
             }
         }
-        return($result);
+        return ($result);
     }
 
     /**
@@ -778,7 +778,7 @@ class WolfDispatcher {
                 $result = json_decode($replyResult, true);
             }
         }
-        return($result);
+        return ($result);
     }
 
     /**
@@ -851,5 +851,4 @@ class WolfDispatcher {
             }
         }
     }
-
 }
