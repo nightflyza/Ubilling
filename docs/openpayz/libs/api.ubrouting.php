@@ -249,7 +249,7 @@ class ubRouting {
      * Returns some variable value with optional filtering from GET scope
      * 
      * @param string $name name of variable to extract
-     * @param string $filtering filtering options. Possible values: raw, int, mres, callback
+     * @param string $filtering filtering options. Possible values: raw, int, mres, callback, fi, vf, nb, float, login, safe, gigasafe
      * @param string|array $callback callback function name or names array to filter variable value
      * 
      * @return mixed|false
