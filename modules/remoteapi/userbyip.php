@@ -3,7 +3,7 @@
 if (ubRouting::get('action') == 'userbyip') {
     if (@$alterconf['USERBYIP_ENABLED']) {
         if (ubRouting::checkGet('ip')) {
-            $ip = ubRouting::get('ip','mres');
+            $ip = ubRouting::get('ip', 'mres');
             $guessedLogin = zb_UserGetLoginByIp($ip);
             $result = array('result' => 0);
             if (!empty($guessedLogin)) {
