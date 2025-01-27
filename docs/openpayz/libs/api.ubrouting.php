@@ -280,7 +280,7 @@ class ubRouting {
     }
 
     /**
-     * Short rcms_redirect replacement
+     * Redirects user to some specified URL
      * 
      * @param string $url URL to perform redirect
      * @param bool $header Use header redirect instead of JS document.location
@@ -289,7 +289,11 @@ class ubRouting {
      */
     public static function nav($url, $header = false) {
         if (!empty($url)) {
-            rcms_redirect($url, $header);
+            if ($header) {
+                @header('Location: ' . $url);
+            } else {
+                print('<script language="javascript">document.location.href="' . $url . '";</script>');
+            }
         }
     }
 

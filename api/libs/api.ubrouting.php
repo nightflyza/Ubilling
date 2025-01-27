@@ -250,7 +250,7 @@ class ubRouting {
      * Returns some variable value with optional filtering from GET scope
      * 
      * @param string $name name of variable to extract
-     * @param string $filtering filtering options. Possible values: raw, int, mres, callback
+     * @param string $filtering filtering options. Possible values: raw, int, mres, callback, fi, vf, nb, float, login, safe, gigasafe
      * @param string|array $callback callback function name or names array to filter variable value
      * 
      * @return mixed|false
@@ -281,7 +281,7 @@ class ubRouting {
     }
 
     /**
-     * Short rcms_redirect replacement
+     * Redirects user to some specified URL
      * 
      * @param string $url URL to perform redirect
      * @param bool $header Use header redirect instead of JS document.location
@@ -290,7 +290,11 @@ class ubRouting {
      */
     public static function nav($url, $header = false) {
         if (!empty($url)) {
-            rcms_redirect($url, $header);
+            if ($header) {
+                @header('Location: ' . $url);
+            } else {
+                print('<script language="javascript">document.location.href="' . $url . '";</script>');
+            }
         }
     }
 
@@ -369,7 +373,7 @@ class ubRouting {
      * @global array $argv
      * 
      * @param string $name name of variable to extract from CLI options
-     * @param string $filtering filtering options. Possible values: raw, int, mres, callback
+     * @param string $filtering filtering options. Possible values: raw, int, mres, callback, fi, vf, nb, float, login, safe, gigasafe
      * @param string $callback callback function name to filter variable value
      * 
      * @return mixed|false
