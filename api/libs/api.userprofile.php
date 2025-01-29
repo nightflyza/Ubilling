@@ -1624,6 +1624,34 @@ class UserProfile {
     }
 
     /**
+     * Returns PB fast controls for all user phones available
+     *
+     * @return void
+     */
+    protected function getPbFastUrlControls() {
+        $result = '';
+        if (@$this->alterCfg['PB_FASTURL_TOKEN']) {
+            $pbFastUrl = new PBFastURL();
+            $allUserPhones = array();
+            $defaultAmount = 0;
+            if (!empty($this->mobile)) {
+                $allUserPhones[] = $this->mobile;
+            }
+            if (!empty($this->mobilesExt)) {
+                $allUserPhones = array_merge($allUserPhones, $this->mobilesExt);
+            }
+
+            if ($this->userdata['Cash'] < 0) {
+                $defaultAmount = abs($this->userdata['Cash']);
+            }
+            $pbForm = $pbFastUrl->renderForm($this->paymentid, $allUserPhones, $defaultAmount);
+            $controlLabel = wf_img_sized('skins/pbfpay16.png', __('Send SMS'), '10', '10');
+            $result .= wf_modalAuto($controlLabel, __('Send SMS'), $pbForm, '');
+        }
+        return ($result);
+    }
+
+    /**
      * Checks agent assing and return controls if needed
      * 
      * @return string
@@ -2471,7 +2499,7 @@ class UserProfile {
         }
         //payment ID data
         if ($this->alterCfg['OPENPAYZ_SUPPORT']) {
-            $profile .= $this->addRow(__('Payment ID'), $this->paymentid, true);
+            $profile .= $this->addRow(__('Payment ID') . $this->getPbFastUrlControls(), $this->paymentid, true);
         }
         //LAT data row
         $profile .= $this->getUserLat();
