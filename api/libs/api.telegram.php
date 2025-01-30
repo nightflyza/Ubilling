@@ -202,7 +202,7 @@ class UbillingTelegram {
      */
     public function deleteMessage($filename) {
         if (file_exists(self::QUEUE_PATH . $filename)) {
-            rcms_delete_files(self::QUEUE_PATH . $filename);
+            unlink(self::QUEUE_PATH . $filename);
             $result = 0;
             if (file_exists(self::QUEUE_PATH . $filename)) {
                 $result = 1;
@@ -709,10 +709,11 @@ class UbillingTelegram {
      * 
      * @param string $webHookUrl HTTPS url to send updates to. Use an empty string to remove webhook integration
      * @param int $maxConnections Maximum allowed number of simultaneous HTTPS connections to the webhook for update delivery, 1-100. Defaults to 40.
-     * 
+     * @param array $allowedUpdates Array of updates types allowed for that hook. Example:  array('update_id', 'message', 'chat_member', 'message_reaction')
+     *                              some of this types https://core.telegram.org/bots/api#update or leave this empty in most cases
      * @return string
      */
-    public function setWebHook($webHookUrl, $maxConnections = 40) {
+    public function setWebHook($webHookUrl, $maxConnections = 40, $allowedUpdates = array()) {
         $result = '';
         if (!empty($this->botToken)) {
             $data = array();
@@ -721,6 +722,9 @@ class UbillingTelegram {
                 if (ispos($webHookUrl, 'https://')) {
                     $data['url'] = $webHookUrl;
                     $data['max_connections'] = $maxConnections;
+                    if (!empty($allowedUpdates)) {
+                        $data['allowed_updates'] = $allowedUpdates;
+                    }
                 } else {
                     throw new Exception('EX_NOT_SSL_URL');
                 }
@@ -749,7 +753,8 @@ class UbillingTelegram {
                 if (!empty($curlError)) {
                     show_error(__('Error') . ' ' . __('Telegram') . ': ' . $curlError);
                 } else {
-                    show_success(__('Telegram API sending via') . ' ' . $this->apiUrl . ' ' . __('success'));
+                    show_success(__('Telegram API Hook') . ' ' . $this->apiUrl . ' =>' . print_r($data, true) . '|' . $data_json . __('success'));
+                    show_success($url);
                 }
             } else {
                 $result = curl_exec($ch);
@@ -959,7 +964,7 @@ class UbillingTelegram {
             $result['reply_to_message'] = $this->preprocessMessageData($result['reply_to_message']);
         }
 
-        //Uncomment following for total debug
+        //Uncomment following line for total debug
         //@$result['rawMessageData'] = $messageData;
 
         return ($result);
@@ -989,6 +994,11 @@ class UbillingTelegram {
                 } else {
                     if (isset($postRaw['channel_post'])) {
                         $result = $this->preprocessMessageData($postRaw['channel_post'], true);
+                    } else {
+                        //other object like chat_member or message_reaction etc
+                        if (is_array($postRaw) and !empty($postRaw)) {
+                            $result = $postRaw;
+                        }
                     }
                 }
             } else {

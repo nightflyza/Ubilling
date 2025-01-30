@@ -146,6 +146,20 @@ class WolfDispatcher {
     protected $hookAutoSetup = false;
 
     /**
+     * Hook allowed updates array
+     *
+     * @var array
+     */
+    protected $allowedUpdates = array();
+
+    /**
+     * Contains default webhook maxConnections value
+     *
+     * @var int
+     */
+    protected $maxConnections = 100;
+
+    /**
      * Contains default debug log path
      */
     const LOG_PATH = 'exports/';
@@ -330,6 +344,31 @@ class WolfDispatcher {
         if (!empty($methodLeft)) {
             $this->chatMemberLeftMethod = $methodLeft;
         }
+    }
+
+    /**
+     * Sets allowed hook updates list. Example: array('update_id', 'message', 'chat_member')
+     * 
+     * https://core.telegram.org/bots/api#update
+     * https://core.telegram.org/bots/api#setwebhook
+     *
+     * @param array $allowedHookUpdates
+     * 
+     * @return void
+     */
+    public function setAllowedUpdates($allowedHookUpdates = array()) {
+        $this->allowedUpdates = $allowedHookUpdates;
+    }
+
+    /**
+     * Sets hook max connections limit
+     *
+     * @param int $limit
+     * 
+     * @return void
+     */
+    public function setMaxConnections($limit = 100) {
+        $this->maxConnections = $limit;
     }
 
     /**
@@ -622,6 +661,7 @@ class WolfDispatcher {
 
     /**
      * Checks is new chat member appeared in chat? Returns his data on this event.
+     * 
      * Data fields: 
      *   id, is_bot, first_name, username, language_code, is_premium - normal users
      *   id, is_bot, first_name, username - bots
@@ -648,6 +688,98 @@ class WolfDispatcher {
         $result = false;
         if ($this->receivedData['left_chat_member']) {
             $result = $this->receivedData['left_chat_member'];
+        }
+        return ($result);
+    }
+
+    /**
+     * Checks if a new chat member has appeared in a group chat.
+     *
+     * This method inspects the received data to determine if a new chat member
+     * has joined a group chat. It returns the received data if the new chat member's
+     * status is 'member' and the chat ID is negative (indicating a group chat).
+     *
+     * @return array|bool Returns the received data if a new chat member has appeared in a group chat, otherwise false.
+     */
+    protected function isGroupMemberAppear() {
+        $result = false;
+        //chat_member object update
+        if (isset($this->receivedData['chat_member'])) {
+            $data = $this->receivedData['chat_member'];
+            if ($data['new_chat_member']['status'] == 'member') {
+                if ($data['chat']['id'] < 0) {
+                    $result = $this->receivedData;
+                }
+            }
+        }
+        return ($result);
+    }
+
+
+    /**
+     * Checks if a group member has left the chat by the own will
+     *
+     * This method inspects the received data to determine if a chat member's status
+     * has changed to 'left' in a group chat. If the status is 'left' and the chat ID
+     * is less than 0 (indicating a group chat), it returns the received data.
+     *
+     * @return array|false Returns the received data if a group member has left, otherwise false.
+     */
+    protected function isGroupMemberLeft() {
+        $result = false;
+        //chat_member object update
+        if (isset($this->receivedData['chat_member'])) {
+            $data = $this->receivedData['chat_member'];
+            if ($data['new_chat_member']['status'] == 'left' and $data['old_chat_member']['status'] == 'member') {
+                if ($data['chat']['id'] < 0) {
+                    $result = $this->receivedData;
+                }
+            }
+        }
+        return ($result);
+    }
+    /**
+     * Checks if a group member has been kicked/banned from the chat.
+     *
+     * This method inspects the received data to determine if a member's status
+     * has been updated to 'kicked' in a group chat. If the member has been kicked
+     * and the chat ID is negative (indicating a group chat), it returns the
+     * received data.
+     *
+     * @return array|false Returns the received data if a member has been kicked
+     *                     from a group chat, otherwise returns false.
+     */
+    protected function isGroupMemberBanned() {
+        $result = false;
+        //chat_member object update
+        if (isset($this->receivedData['chat_member'])) {
+            $data = $this->receivedData['chat_member'];
+            if ($data['new_chat_member']['status'] == 'kicked' and ($data['old_chat_member']['status'] == 'member' or $data['old_chat_member']['status'] == 'left')) {
+                if ($data['chat']['id'] < 0) {
+                    $result = $this->receivedData;
+                }
+            }
+        }
+        return ($result);
+    }
+
+    /**
+     * Checks if a group member has been unbanned.
+     *
+     * This method verifies if the received data indicates that a member who was previously kicked
+     * from the group has now left the group, which implies they have been unbanned.
+     *
+     * @return mixed Returns the received data if the member has been unbanned, otherwise false.
+     */
+    protected function isGroupMemberUnbanned() {
+        $result = false;
+        if (isset($this->receivedData['chat_member'])) {
+            $data = $this->receivedData['chat_member'];
+            if ($data['new_chat_member']['status'] == 'left' and $data['old_chat_member']['status'] == 'kicked') {
+                if ($data['chat']['id'] < 0) {
+                    $result = $this->receivedData;
+                }
+            }
         }
         return ($result);
     }
@@ -782,6 +914,61 @@ class WolfDispatcher {
     }
 
     /**
+     * Removes a chat message by its ID from a specified chat.
+     *
+     * @param int $messageId The ID of the message to be removed.
+     * @param int $chatId The ID of the chat from which the message will be removed.
+     * 
+     * @return array
+     */
+    protected function removeChatMessage($messageId, $chatId) {
+        $result = array();
+        $deleteResult = $this->telegram->directPushMessage($chatId, 'removeChatMessage:[' . $messageId . '@' . $chatId . ']');
+        if ($deleteResult) {
+            $result = json_decode($deleteResult, true);
+        }
+        return ($result);
+    }
+
+    /**
+     * Bans a member from a specified group.
+     *
+     * This function sends a direct push message to the Telegram API to ban a member from a group.
+     *
+     * @param int $memberId The ID of the member to be banned.
+     * @param int $groupId The ID of the group from which the member will be banned.
+     * 
+     * @return array
+     */
+    protected function banGroupMember($memberId, $groupId) {
+        $result = array();
+        $banResult = $this->telegram->directPushMessage($groupId, 'banChatMember:[' . $memberId . '@' . $groupId . ']');
+        if ($banResult) {
+            $result = json_decode($banResult, true);
+        }
+        return ($result);
+    }
+
+    /**
+     * Unbans a member from a group.
+     *
+     * This method sends a direct push message to unban a member from a specified group using the Telegram API.
+     *
+     * @param int $memberId The ID of the member to be unbanned.
+     * @param int $groupId The ID of the group from which the member will be unbanned.
+     * 
+     * @return array 
+     */
+    protected function unbanGroupMember($memberId, $groupId) {
+        $result = array();
+        $unbanResult = $this->telegram->directPushMessage($groupId, 'unbanChatMember:[' . $memberId . '@' . $groupId . ']');
+        if ($unbanResult) {
+            $result = json_decode($unbanResult, true);
+        }
+        return ($result);
+    }
+
+    /**
      * Sends some keyboard to current chat
      * 
      * @param array $buttons
@@ -820,16 +1007,19 @@ class WolfDispatcher {
             //need to be installed?
             if (!file_exists($hookPidName)) {
                 $hookInfo = json_decode($this->telegram->getWebHookInfo(), true);
-                if ($hookInfo['result']['url'] != $listenerUrl) {
-                    //need to be installed new URL
-                    $this->telegram->setWebHook($listenerUrl, 100);
+                $hookInfo = $hookInfo['result'];
+                $hookAllowedUpdates = isset($hookInfo['allowed_updates']) ? $hookInfo['allowed_updates'] : array();
+
+                if ($hookInfo['url'] != $listenerUrl or $hookAllowedUpdates != $this->allowedUpdates or $hookInfo['max_connections'] != $this->maxConnections) {
+                    //need to be installed new URL with new params
+                    $this->telegram->setWebHook($listenerUrl, $this->maxConnections, $this->allowedUpdates);
                     if (function_exists('show_success')) {
-                        show_success($this->botImplementation . ' web-hook URL: ' . $hookInfo['result']['url']);
+                        show_success($this->botImplementation . 'installed web-hook URL: ' . $hookInfo['url']);
                     }
                 } else {
                     //already set, but no PID
                     if (function_exists('show_warning')) {
-                        show_warning($this->botImplementation . ' web-hook URL: ' . $hookInfo['result']['url']);
+                        show_warning($this->botImplementation . ' PID saved for web-hook URL: ' . $hookInfo['url']);
                     }
                 }
                 //write hook pid
