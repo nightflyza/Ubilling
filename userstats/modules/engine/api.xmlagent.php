@@ -118,6 +118,77 @@ class XMLAgent {
     protected $uscfgTariffCahngeAllowedFrom = '';
 
     /**
+     * Placeholder for AF_ENABLED "userstats.ini" option
+     *
+     * @var bool
+     */
+    protected $uscfgFreezeSelfON = false;
+
+    /**
+     * Placeholder for AF_FREEZPRICE "userstats.ini" option
+     *
+     * @var int
+     */
+    protected $uscfgFreezeSelfPrice = 0;
+
+    /**
+     * Placeholder for AF_FREEZPRICE_PERIOD "userstats.ini" option
+     *
+     * @var string
+     */
+    protected $uscfgFreezeSelfPricePeriod = 'day';
+
+    /**
+     * Placeholder for AF_TARIFFSALLOWED "userstats.ini" option
+     *
+     * @var string
+     */
+    protected $uscfgFreezeSelfTariffsAllowed = '';
+
+    /**
+     * Placeholder for AF_TARIFF_ALLOW_ANY "userstats.ini" option
+     *
+     * @var bool
+     */
+    protected $uscfgFreezeSelfTariffAllowAny = false;
+
+    /**
+     * Placeholder for AF_CASHTYPEID "userstats.ini" option
+     *
+     * @var int
+     */
+    protected $uscfgFreezeSelfPriceCashTypeID = 1;
+
+    /**
+     * Placeholder for FREEZE_ALLOW_ON_NEGATIVE_BALANCE "userstats.ini" option
+     *
+     * @var bool
+     */
+    protected $uscfgFreezeIfNegativeBalance = false;
+
+    /**
+     * Placeholder for FREEZE_DAYS_CHARGE_ENABLED "userstats.ini" option
+     *
+     * @var bool
+     */
+    protected $uscfgFreezeDaysChargeON = false;
+
+    /**
+     * Placeholder for FREEZE_DAYS_INITIAL_AMOUNT "userstats.ini" option
+     *
+     * @var int
+     */
+    protected $uscfgFreezeDaysInitAmount = 365;
+
+    /**
+     * Placeholder for FREEZE_DAYS_WORK_TO_RESTORE "userstats.ini" option
+     *
+     * @var int
+     */
+    protected $uscfgFreezeDaysWorkToRestore = 120;
+
+
+    /**
      * Placeholder for the whole "opayz.ini" config contents
      *
      * @var int
@@ -189,26 +260,37 @@ class XMLAgent {
      * @return void
      */
     protected function loadOptions() {
-        $this->usOpayzCfg                   = $this->usConfig->getOpayzCfg();
-        $this->usTariffMatrixCfg            = $this->usConfig->getTariffMatrixCfg();
+        $this->usOpayzCfg                       = $this->usConfig->getOpayzCfg();
+        $this->usTariffMatrixCfg                = $this->usConfig->getTariffMatrixCfg();
 
-        $this->uscfgPaymentsON              = $this->usConfig->getUstasParam('PAYMENTS_ENABLED', 0);
-        $this->uscfgAnnouncementsON         = $this->usConfig->getUstasParam('AN_ENABLED', 0);
-        $this->uscfgTicketingON             = $this->usConfig->getUstasParam('TICKETING_ENABLED', 0);
-        $this->uscfgAddressStructON         = $this->usConfig->getUstasParam('UBA_XML_ADDRESS_STRUCT', 0);
-        $this->uscfgOnlineLeftCountON       = $this->usConfig->getUstasParam('ONLINELEFT_COUNT', 0);
-        $this->uscfgOpenPayzON              = $this->usConfig->getUstasParam('OPENPAYZ_ENABLED', 0);
-        $this->uscfgOpenPayzRealIDON        = $this->usConfig->getUstasParam('OPENPAYZ_REALID', 0);
-        $this->uscfgOpenPayzURL             = $this->usConfig->getUstasParam('OPENPAYZ_URL', '../openpayz/backend/');
-        $this->uscfgOpenPayzPaySys          = $this->usConfig->getUstasParam('OPENPAYZ_PAYSYS', 0);
-        $this->uscfgCurrency                = $this->usConfig->getUstasParam('currency', 'UAH');
-        $this->uscfgTariffCahngeEnabled     = $this->usConfig->getUstasParam('TC_ENABLED', 0);
-        $this->uscfgTariffCahngeMatrix      = $this->usConfig->getUstasParam('TC_EXTENDED_MATRIX', 0);
-        $this->uscfgTariffCahngeAllowedTo   = $this->usConfig->getUstasParam('TC_TARIFFSALLOWED', '');
-        $this->uscfgTariffCahngeAllowedFrom = $this->usConfig->getUstasParam('TC_TARIFFENABLEDFROM', '');
-        $this->debug                        = $this->usConfig->getUstasParam('XMLAGENT_DEBUG_ON', false);
-        $this->debugDeep                    = $this->usConfig->getUstasParam('XMLAGENT_DEBUG_DEEP_ON', false);
-        $this->extendedAuthON               = $this->usConfig->getUstasParam('XMLAGENT_EXTENDED_AUTH_ON', false);
+        $this->uscfgPaymentsON                  = $this->usConfig->getUstasParam('PAYMENTS_ENABLED', 0);
+        $this->uscfgAnnouncementsON             = $this->usConfig->getUstasParam('AN_ENABLED', 0);
+        $this->uscfgTicketingON                 = $this->usConfig->getUstasParam('TICKETING_ENABLED', 0);
+        $this->uscfgAddressStructON             = $this->usConfig->getUstasParam('UBA_XML_ADDRESS_STRUCT', 0);
+        $this->uscfgOnlineLeftCountON           = $this->usConfig->getUstasParam('ONLINELEFT_COUNT', 0);
+        $this->uscfgOpenPayzON                  = $this->usConfig->getUstasParam('OPENPAYZ_ENABLED', 0);
+        $this->uscfgOpenPayzRealIDON            = $this->usConfig->getUstasParam('OPENPAYZ_REALID', 0);
+        $this->uscfgOpenPayzURL                 = $this->usConfig->getUstasParam('OPENPAYZ_URL', '../openpayz/backend/');
+        $this->uscfgOpenPayzPaySys              = $this->usConfig->getUstasParam('OPENPAYZ_PAYSYS', 0);
+        $this->uscfgCurrency                    = $this->usConfig->getUstasParam('currency', 'UAH');
+        $this->uscfgTariffCahngeEnabled         = $this->usConfig->getUstasParam('TC_ENABLED', 0);
+        $this->uscfgTariffCahngeMatrix          = $this->usConfig->getUstasParam('TC_EXTENDED_MATRIX', 0);
+        $this->uscfgTariffCahngeAllowedTo       = $this->usConfig->getUstasParam('TC_TARIFFSALLOWED', '');
+        $this->uscfgTariffCahngeAllowedFrom     = $this->usConfig->getUstasParam('TC_TARIFFENABLEDFROM', '');
+        $this->debug                            = $this->usConfig->getUstasParam('XMLAGENT_DEBUG_ON', false);
+        $this->debugDeep                        = $this->usConfig->getUstasParam('XMLAGENT_DEBUG_DEEP_ON', false);
+        $this->extendedAuthON                   = $this->usConfig->getUstasParam('XMLAGENT_EXTENDED_AUTH_ON', false);
+
+        $this->uscfgFreezeSelfON                = $this->usConfig->getUstasParam('AF_ENABLED', false);
+        $this->uscfgFreezeSelfPrice             = $this->usConfig->getUstasParam('AF_FREEZPRICE', 0);
+        $this->uscfgFreezeSelfPricePeriod       = $this->usConfig->getUstasParam('AF_FREEZPRICE_PERIOD', 'day');
+        $this->uscfgFreezeSelfTariffsAllowed    = $this->usConfig->getUstasParam('AF_TARIFFSALLOWED', false);;
+        $this->uscfgFreezeSelfTariffAllowAny    = $this->usConfig->getUstasParam('AF_TARIFF_ALLOW_ANY', false);
+        $this->uscfgFreezeSelfPriceCashTypeID   = $this->usConfig->getUstasParam('AF_CASHTYPEID', 1);
+        $this->uscfgFreezeIfNegativeBalance     = $this->usConfig->getUstasParam('FREEZE_ALLOW_ON_NEGATIVE_BALANCE', false);
+        $this->uscfgFreezeDaysChargeON          = $this->usConfig->getUstasParam('FREEZE_DAYS_CHARGE_ENABLED', false);
+        $this->uscfgFreezeDaysInitAmount        = $this->usConfig->getUstasParam('FREEZE_DAYS_INITIAL_AMOUNT', 365);
+        $this->uscfgFreezeDaysWorkToRestore     = $this->usConfig->getUstasParam('FREEZE_DAYS_WORK_TO_RESTORE', 120);
     }
 
     /**
@@ -266,7 +348,10 @@ class XMLAgent {
                                     'activetariffsvservices',
                                     'tarifftoswitchallowed',
                                     'feecharges',
-                                    'ticketcreate'
+                                    'ticketcreate',
+                                    'freezedata',
+                                    'dofreeze',
+                                    'dounfreeze'
                                     ),
                                 true, true)
                             );
@@ -312,6 +397,21 @@ class XMLAgent {
                     $date_from      = ubRouting::checkGet('datefrom') ? ubRouting::get('datefrom') : '';
                     $date_to        = ubRouting::checkGet('dateto') ? ubRouting::get('dateto') : '';
                     $resultToRender = $this->getUserFeeCharges($user_login, $date_from, $date_to);
+                }
+
+                if (ubRouting::checkGet('freezedata')) {
+                    $mainSection    = 'freezedata';
+                    $resultToRender = $this->getUserFreezeData($user_login);
+                }
+
+                if (ubRouting::checkGet('dofreeze')) {
+                    $mainSection    = 'dofreeze';
+                    $resultToRender = $this->doFreeze($user_login);
+                }
+
+                if (ubRouting::checkGet('dounfreeze')) {
+                    $mainSection    = 'dounfreeze';
+                    $resultToRender = $this->doUNFreeze($user_login);
                 }
 
                 if (ubRouting::checkGet(array('ticketcreate', 'tickettext', 'tickettype'))
@@ -868,6 +968,137 @@ class XMLAgent {
         return ($feeCharges);
     }
 
+    /**
+     * Returns user's current freezing data and status
+     *
+     * @param $login
+     *
+     * @return array
+     *
+     * @throws Exception
+     */
+    protected function getUserFreezeData($login) {
+        $freezeData   = array();
+        $userdata     = zbs_UserGetStargazerData($login);
+        $userTariff   = $userdata['Tariff'];
+        $userBalance  = $userdata['Cash'];
+        $frozenState  = $userdata['Passive'] == '1' ? 'frozen' : 'unfrozen';
+
+        $weblogsTable = new NyanORM('weblogs');
+        $weblogsTable->selectable('date');
+        $weblogsTable->whereRaw("`event` = 'CHANGE Passive (" . $login . ") ON 1'");
+        $weblogsTable->orderBy('id', 'DESC');
+        $weblogsTable->limit(1);
+        $freezeDateFrom = $weblogsTable->getAll();
+        $freezeDateFrom = empty($freezeDateFrom[0]) ? '' : $freezeDateFrom[0]['date'];
+        $freezeDateTo   = '';
+        $FrzDaysAmount           = null;
+        $FrzDaysUsed             = null;
+        $FrzDaysAvailable        =
+        $WrkDaysToRestoreFrzDays = null;
+        $DaysWorked              = null;
+        $DaysLeftToWork          = null;
+
+        if ($this->uscfgFreezeDaysChargeON) {
+            $freezeDaysChargeData = zbs_getFreezeDaysChargeData($login);
+
+            if (!empty($freezeDaysChargeData[$login])) {
+                $freezeDaysChargeData    = $freezeDaysChargeData[$login];
+
+                $FrzDaysAmount           = empty($freezeDaysChargeData['freeze_days_amount']) ? $this->uscfgFreezeDaysInitAmount : $freezeDaysChargeData['freeze_days_amount'];
+                $FrzDaysUsed             = $freezeDaysChargeData['freeze_days_used'];
+                $FrzDaysAvailable        = $FrzDaysAmount - $FrzDaysUsed;
+                $WrkDaysToRestoreFrzDays = empty($freezeDaysChargeData['work_days_restore']) ? $this->uscfgFreezeDaysWorkToRestore : $freezeDaysChargeData['work_days_restore'];
+                $DaysWorked              = $freezeDaysChargeData['days_worked'];
+                $DaysLeftToWork          = $WrkDaysToRestoreFrzDays - $DaysWorked;
+                $freezeDateTo            = (empty($freezeDateFrom) or empty($FrzDaysUsed)) ? '' : date('Y-m-d H:m:s',strtotime($freezeDateFrom . ' +' . $FrzDaysUsed . ' days'));
+            }
+        }
+
+        $freezeData[] = array(
+                        "result"                        => 'Success',
+                        "message"                       => '',
+                        "freezeSelfAvailable"           => ubRouting::filters($this->uscfgFreezeSelfON, 'fi', FILTER_VALIDATE_BOOLEAN),
+                        "activationCost"                => (empty($this->uscfgFreezeSelfPrice) ? null : $this->uscfgFreezeSelfPrice), // якщо немає плати за самозаморозку - повертаємо null
+                        "tariffsAllowedList"            => $this->uscfgFreezeSelfTariffsAllowed,
+                        "tariffAllowedAny"              => ubRouting::filters($this->uscfgFreezeSelfTariffAllowAny, 'fi', FILTER_VALIDATE_BOOLEAN),
+                        "negativeBalanceFreezeAllowed"  => ubRouting::filters($this->uscfgFreezeIfNegativeBalance, 'fi', FILTER_VALIDATE_BOOLEAN),
+                        "userBalance"                   => $userBalance,
+                        "userTariff"                    => $userTariff,
+                        "freezeStatus"                  => $frozenState,                // "frozen" or "unfrozen",
+                        "dateFrom"                      => $freezeDateFrom,
+                        "dateTo"                        => $freezeDateTo,               // empty string("") if freezeDaysChargeActive is false,
+                        "freezeDaysChargeActive"        => ubRouting::filters($this->uscfgFreezeDaysChargeON, 'fi', FILTER_VALIDATE_BOOLEAN),
+                        "freezeDaysTotal"               => $FrzDaysAmount,              // загальна початкова кількість днів заморожування, доступна для кожного абонента
+                        "freezeDaysRestore"             => $WrkDaysToRestoreFrzDays,    // кількість днів, яка має бути фактично відпрацьована(і оплачена) абонентом для того, щоб відновити свій "баланс доступних днів заморозки" після його вичерпання
+                        "freezeDaysUsed"                => $FrzDaysUsed,                // кількість використаних днів заморозки з доступного балансу
+                        "freezeDaysAvailable"           => $FrzDaysAvailable,           // кількість доступних днів заморозки, що залишилсь на балансі
+                        "freezeDaysWorked"              => $DaysWorked,                 // кількість днів, які вже було відпрацьовано(які фактично минули) з моменту вичерпання всіх доступних днів заморозки
+                        "freezeDaysLeftToWork"          => $DaysLeftToWork              // кількість днів, які ще треба відпрацювати(які мають бути оплачені і фактично минути) для відновлення балансу доступних для заморозки днів до freezeDaysTotal
+                      );
+
+        return ($freezeData);
+    }
+
+    /**
+     * Makes user frozen
+     *
+     * @param $login
+     *
+     * @return array
+     */
+    protected function doFreeze($login) {
+        $result       = array();
+        $userdata     = zbs_UserGetStargazerData($login);
+        $userTariff   = $userdata['Tariff'];
+        $userBalance  = $userdata['Cash'];
+        $frozenState  = $userdata['Passive'];
+
+        if ($frozenState != '1') {
+            //lets freeze account
+            billing_freeze($login);
+
+            //push cash fee anyway
+            zbs_PaymentLog($login, '-' . $this->uscfgFreezeSelfPrice, $this->uscfgFreezeSelfPriceCashTypeID, "AFFEE_XMLAGENT");
+            billing_addcash($login, '-' . $this->uscfgFreezeSelfPrice);
+            log_register('CHANGE Passive (' . $login . ') ON 1');
+            log_register('XMLAGENT: REST API is the source of previous action');
+
+            $result[] = array('result' => 'Success', 'message' => 'User \'' . $login . '\' has been frozen');
+        } else {
+            $result[] = array('result' => 'Failure', 'message' => 'User \'' . $login . '\' is already frozen');
+        }
+
+        return ($result);
+    }
+
+
+    /**
+     * Makes user UNfrozen
+     * Use with EXTREME CARE
+     *
+     * @param $login
+     *
+     * @return array
+     */
+    protected function doUNFreeze($login) {
+        $result       = array();
+        $userdata     = zbs_UserGetStargazerData($login);
+        $frozenState  = $userdata['Passive'];
+
+        if ($frozenState == '1') {
+            //lets UNfreeze account
+            executor('-u' . $login . ' -i 0');
+            log_register('CHANGE Passive (' . $login . ') ON 0');
+            log_register('XMLAGENT: REST API is the source of previous action');
+
+            $result[] = array('result' => 'Success', 'message' => 'User \'' . $login . '\' has been UNfrozen');
+        } else {
+            $result[] = array('result' => 'Failure', 'message' => 'User \'' . $login . '\' is already UNfrozen');
+        }
+
+        return ($result);
+    }
 
     /**
      * Support request creation routine
@@ -912,6 +1143,7 @@ class XMLAgent {
             }
 
             log_register($logEvent);
+            log_register('XMLAGENT: REST API is the source of previous action');
         }
 
         return ($result);
@@ -959,6 +1191,7 @@ class XMLAgent {
             $result = array('signup_request' => array('created' => 'success', 'id' => $sigreqID));
             $logEvent = 'SIGNUP REQUEST CREATED WITH ID: ' . $sigreqID;
             log_register($logEvent);
+            log_register('XMLAGENT: REST API is the source of previous action');
         }
 
         return ($result);
@@ -995,7 +1228,6 @@ class XMLAgent {
 
         return ($result);
     }
-
 
     /**
      * Writes some debbuggins to log or/and to a local file
