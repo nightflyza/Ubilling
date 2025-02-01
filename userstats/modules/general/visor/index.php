@@ -276,7 +276,7 @@ if (@$us_config['VISOR_ENABLED']) {
                                                 $fullQualUrl = '?module=visor&previewchannels=true&fullpreview=' . $eachChanGuid;
                                             }
                                             $result .= la_tag('div', false, '', 'style="float:left; width:' . $previewWidth . '; height:' . $previewHeight . '; margin:5px; overflow:hidden;"');
-                                            $result .= $this->renderChannelPlayer($eachUrl, '90%', $previewHeight, true, $fullQualUrl);
+                                            $result .= $this->renderChannelPlayer($eachUrl, $previewWidth, $previewHeight, true, $fullQualUrl);
                                             $result .= la_tag('div', true);
                                         }
                                     }
