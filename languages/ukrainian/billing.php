@@ -3557,5 +3557,6 @@ $lang['def']['Device authorization data'] = 'Дані авторизації п�
 $lang['def']['Run script'] = 'Запустити скрипт';
 $lang['def']['Optical diagnostics'] = 'Оптична діагностика';
 $lang['def']['right to execute PON scripts'] = 'Право запускати PON-скрипти на OLT';
-
-
+$lang['def']['Just show me link'] = 'Просто показати посилання';
+$lang['def']['Copy'] = 'Копіювати';
+$lang['def']['Text copied to clipboard'] = 'Текст скопійовано до буферу обміну';

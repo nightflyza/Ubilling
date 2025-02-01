@@ -54,6 +54,13 @@ class PBFastURL {
     protected $sendDogFlag = 0;
 
     /**
+     * Is preview checkbox enabled?
+     *
+     * @var int
+     */
+    protected $previewFlag = 0;
+
+    /**
      * Contains default mobile numbers prefix
      *
      * @var string
@@ -69,12 +76,15 @@ class PBFastURL {
     const OPTION_SHORTENER = 'PB_FASTURL_SHORTENER';
     const OPTION_CURRENCY = 'TEMPLATE_CURRENCY';
     const OPTION_SENDDOG = 'SENDDOG_ENABLED';
+    const OPTION_PREVIEW = 'PB_FASTURL_PREVIEW';
     const OPTION_MOBILE_PREFIX = 'REMINDER_PREFIX';
     const AGENT_PREFIX = 'UbillingPBFastURL';
     const PROUTE_PAYID = 'pbfupaymentid';
     const PROUTE_AMOUNT = 'pbfuamount';
     const PROUTE_CUST_AMOUNT = 'pbfucustomamount';
+    const PROUTE_PREVIEW = 'pbfonlypreview';
     const PROUTE_PHONE = 'pbfuphonenumber';
+    const STYLE_PATH = 'skins/pbfu.css';
 
     //
     //                         _._._                       _._._
@@ -114,6 +124,7 @@ class PBFastURL {
         $this->currency = $ubillingConfig->getAlterParam(self::OPTION_CURRENCY, 'грн');
         $this->shortener = $ubillingConfig->getAlterParam(self::OPTION_SHORTENER);
         $this->sendDogFlag = $ubillingConfig->getAlterParam(self::OPTION_SENDDOG);
+        $this->previewFlag = $ubillingConfig->getAlterParam(self::OPTION_PREVIEW);
         $this->mobilePrefix = $ubillingConfig->getAlterParam(self::OPTION_MOBILE_PREFIX, '');
         if ($this->shortener) {
             //forcing trailing slash for shortener service URL
@@ -171,6 +182,40 @@ class PBFastURL {
         return ($result);
     }
 
+
+    /**
+     * Renders link preview
+     *
+     * @param string $data
+     * 
+     * @return string|void
+     */
+    protected function renderLinkPreview($data) {
+        $result = '';
+        if (!empty($data)) {
+            $result .= wf_tag('div', false, 'pbfu-container');
+            $result .= wf_tag('span', false, 'pbfu-text', 'id="pbfu-text"');
+            $result .= $data;
+            $result .= wf_tag('span', true);
+            $result .= wf_tag('button', false, 'pbfu-copy-btn', 'onclick="pbfuCopyToClipboard()"');
+            $result .= wf_img('skins/clipcopy.png', __('Copy'));
+            $result .= __('Copy');
+            $result .= wf_tag('button', true);
+            $result .= wf_tag('div', true);
+            $result .= wf_tag('script');
+            $result .= 'function pbfuCopyToClipboard() {
+                            const text = document.getElementById("pbfu-text").innerText;
+                            navigator.clipboard.writeText(text).then(() => {
+                                alert("' . __('Text copied to clipboard') . '");
+                            }).catch(err => {
+                                console.error("Failed to copy: ", err);
+                            });
+                    }';
+            $result .= wf_tag('script', true);
+        }
+        return ($result);
+    }
+
     /**
      * Catches SMS sending request and stores SMS into SendDog sending queue
      *
@@ -195,9 +240,15 @@ class PBFastURL {
                 if (!empty($paymentUrl)) {
                     if (!empty($mobileNumber)) {
                         $smsText = $this->template . ' ' . $paymentUrl;
-                        $smsQueue = new UbillingSMS();
-                        $smsQueue->sendSMS($mobileNumber, $smsText, false, 'PBFASTURL');
-                        $result .= $this->messages->getStyledMessage($mobileNumber . ' ' . __('SMS') . ': ' . $smsText, 'success');
+                        if (!ubRouting::checkPost(self::PROUTE_PREVIEW)) {
+                            //SMS sending
+                            $smsQueue = new UbillingSMS();
+                            $smsQueue->sendSMS($mobileNumber, $smsText, false, 'PBFASTURL');
+                            $result .= $this->messages->getStyledMessage($mobileNumber . ' ' . __('SMS') . ': ' . $smsText, 'success');
+                        } else {
+                            //rendering preview
+                            $result .= $this->renderLinkPreview($smsText);
+                        }
                     } else {
                         $result .= $this->messages->getStyledMessage(__('Something went wrong') . ': ' . __('Mobile') . ' ' . __('is empty'), 'error');
                     }
@@ -218,8 +269,9 @@ class PBFastURL {
      * 
      * @return string The HTML string of the rendered form or an error message if inputs are invalid.
      */
-    public function renderForm($paymentId = '', $phones = array(),$defaultAmount=0) {
+    public function renderForm($paymentId = '', $phones = array(), $defaultAmount = 0) {
         $result = '';
+        $result .= wf_tag('link', false, '', 'type="text/css" href="' . self::STYLE_PATH . '" rel="stylesheet"');
         $phonesParams = array();
         if ($this->sendDogFlag) {
             if (!empty($phones)) {
@@ -230,7 +282,7 @@ class PBFastURL {
                     //may be some form already pushed?
                     $sendingResult = $this->catchSMSRequest();
                     if (!empty($sendingResult)) {
-                        $sendingResult = wf_tag('div', false, '', 'style="width:900px;"') . $sendingResult . wf_tag('div', true);
+                        $sendingResult = wf_tag('div', false, 'pbfu-result-container') . $sendingResult . wf_tag('div', true);
                         $result .= wf_modalOpenedAuto(__('Result'), $sendingResult);
                     }
                     //form construct
@@ -238,21 +290,24 @@ class PBFastURL {
                     $inputs .= wf_Selector(self::PROUTE_PHONE, $phonesParams, __('Mobile'), '', true);
                     $inputs .= wf_delimiter(0);
                     $firstPrice = true;
-                    
+
                     //default amount on top of the list
-                    if ($defaultAmount) {
+                    if ($defaultAmount > 0) {
                         $inputs .= wf_RadioInput(self::PROUTE_AMOUNT, $defaultAmount . ' ' . $this->currency, $defaultAmount, true, $firstPrice);
                         $firstPrice = false;
                     }
                     //config-defined prices
                     if (!empty($this->pricesAvail)) {
                         foreach ($this->pricesAvail as $io => $each) {
-                            $eSum=trim($each);
+                            $eSum = trim($each);
                             $inputs .= wf_RadioInput(self::PROUTE_AMOUNT, $eSum . ' ' . $this->currency, trim($eSum), true, $firstPrice);
                             $firstPrice = false;
                         }
                     }
                     $inputs .= wf_TextInput(self::PROUTE_CUST_AMOUNT, __('Other'), '', true, 4, 'finance');
+                    if ($this->previewFlag) {
+                        $inputs .= wf_CheckInput(self::PROUTE_PREVIEW, __('Just show me link'), true, false);
+                    }
                     $inputs .= wf_delimiter(0);
                     $inputs .= wf_Submit(__('Send SMS'));
                     $result .= wf_Form('', 'POST', $inputs, 'glamour');

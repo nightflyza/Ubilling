@@ -1,0 +1,53 @@
+.pbfu-result-container {
+    min-width: 700px;
+    max-width: 900px;
+}
+
+.pbfu-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: #f8f9fa;
+    padding: 10px;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    max-width: 600px;
+    font-family: Arial, sans-serif;
+}
+
+.pbfu-text {
+    flex-grow: 1;
+    font-size: 14px;
+    color: #333;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.pbfu-link {
+    text-decoration: none;
+    color: #007bff;
+    font-weight: bold;
+}
+
+.pbfu-copy-btn {
+    background: #6c757d;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.pbfu-copy-btn:hover {
+    background: #5a6268;
+}
+
+.pbfu-copy-btn img {
+    width: 16px;
+    height: 16px;
+}
