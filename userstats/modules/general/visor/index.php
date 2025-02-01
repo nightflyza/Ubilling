@@ -183,11 +183,13 @@ if (@$us_config['VISOR_ENABLED']) {
          * 
          * @param string $streamUrl
          * @param string $width
+         * @param string $height
          * @param bool $autoPlay
+         * @param string $fullUrl
          * 
          * @return string
          */
-        protected function renderChannelPlayer($streamUrl, $width, $autoPlay = false) {
+        protected function renderChannelPlayer($streamUrl, $width, $height, $autoPlay = false, $fullUrl = '') {
             $result = '';
             // detect type based on URL
             $this->chanPreviewContainer = 'mjpeg';
@@ -200,17 +202,24 @@ if (@$us_config['VISOR_ENABLED']) {
             }
 
             if ($this->chanPreviewContainer == 'mjpeg') {
-                $result .= la_img_sized($streamUrl, '', $width);
+                if ($fullUrl) {
+                    $result .= la_Link($fullUrl, la_img_sized($streamUrl, '', $width, $height));
+                } else {
+                    $result .= la_img_sized($streamUrl, '', $width, $height);
+                }
             }
 
             if ($this->chanPreviewContainer == 'hls') {
                 $autoPlayMode = ($autoPlay) ? 'true' : 'false';
                 $uniqId = 'hlsplayer' . la_InputId();
                 $result .= la_tag('script', false, '', 'src="modules/jsc/playerjs/playerjs.js"') . la_tag('script', true);
-                $result .= la_tag('div', false, '', 'id="' . $uniqId . '" style="width:' . $width . ';"') . la_tag('div', true);
+                $result .= la_tag('div', false, '', 'id="' . $uniqId . '" style="width:' . $width . '; height:' . $height . ';"') . la_tag('div', true);
                 $result .= la_tag('script', false);
                 $result .= 'var player = new Playerjs({id:"' . $uniqId . '", file:"' . $streamUrl . '", autoplay:' . $autoPlayMode . '});';
                 $result .= la_tag('script', true);
+                if ($fullUrl) {
+                    $result .= la_Link($fullUrl, __('View'), false, '');
+                }
             }
             return ($result);
         }
@@ -247,9 +256,11 @@ if (@$us_config['VISOR_ENABLED']) {
                                 foreach ($channels as $eachChanGuid => $eachUrl) {
                                     $filteredChan = true;
                                     $previewWidth = '300px';
+                                    $previewHeight = '185px';
 
                                     if ($channelFilter) {
-                                        $previewWidth = '100%';
+                                        $previewWidth = '90%';
+                                        $previewHeight = 'auto';
                                         if ($eachChanGuid == $channelFilter) {
                                             $filteredChan = true;
                                         } else {
@@ -260,14 +271,12 @@ if (@$us_config['VISOR_ENABLED']) {
 
                                     if (!empty($eachUrl)) {
                                         if ($filteredChan) {
-                                            $result .= la_tag('div', false, '', 'style="float:left; width:' . $previewWidth . '; margin:5px;"');
-                                            $result .= $this->renderChannelPlayer($eachUrl, '90%', true);
-                                            $result .= la_tag('br');
-                                            $result .= la_tag('br');
+                                            $fullQualUrl = '';
                                             if (!$channelFilter) {
                                                 $fullQualUrl = '?module=visor&previewchannels=true&fullpreview=' . $eachChanGuid;
-                                                $result .= la_Link($fullQualUrl, __('View'), false, 'anreadbutton');
                                             }
+                                            $result .= la_tag('div', false, '', 'style="float:left; width:' . $previewWidth . '; height:' . $previewHeight . '; margin:5px; overflow:hidden;"');
+                                            $result .= $this->renderChannelPlayer($eachUrl, '90%', $previewHeight, true, $fullQualUrl);
                                             $result .= la_tag('div', true);
                                         }
                                     }
@@ -410,15 +419,15 @@ if (@$us_config['VISOR_ENABLED']) {
 
                         foreach ($authData as $io => $each) {
                             $cells = '';
-                            $cells= la_TableCell($each['dvrname']);
+                            $cells = la_TableCell($each['dvrname']);
                             if ($dvrFullFlag) {
                                 $cells .= la_TableCell($each['ip']);
                                 $cells .= la_TableCell($each['port']);
-                            } 
-                            
+                            }
+
                             $cells .= la_TableCell($each['login']);
                             $cells .= la_TableCell($each['password']);
-                            
+
                             $actLink = (!empty($each['weburl'])) ? la_Link($each['weburl'], __('Go to'), false, 'anreadbutton', 'target="_BLANK"') : '';
                             $cells .= la_TableCell($actLink);
                             $rows .= la_TableRow($cells, 'row3');
