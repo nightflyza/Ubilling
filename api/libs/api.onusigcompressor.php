@@ -87,7 +87,7 @@
                     $date = substr($timestamp, 0, 10); // YYYY-MM-DD date
 
                     if (!isset($logsByDate[$date])) {
-                        $logsByDate[$date] = ["first" => $line, "last" => $line];
+                        $logsByDate[$date] = array("first" => $line, "last" => $line);
                     } else {
                         $logsByDate[$date]["last"] = $line;
                     }
