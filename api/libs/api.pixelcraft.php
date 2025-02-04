@@ -91,6 +91,13 @@ class PixelCraft {
     protected $watermark = '';
 
     /**
+     * Contains currently loaded brush image
+     * 
+     * @var GDimage
+     */
+    protected $brush = '';
+
+    /**
      * Schweigen im wald
      */
     public function __construct() {
@@ -703,7 +710,7 @@ class PixelCraft {
     }
 
     /**
-     * Draws a line
+     * Draws a line using some color
      * 
      * @param int $x1
      * @param int $y1
@@ -715,6 +722,20 @@ class PixelCraft {
      */
     public function drawLine($x1, $y1, $x2, $y2, $colorName) {
         imageline($this->image, $x1, $y1, $x2, $y2, $this->allocateColor($colorName));
+    }
+
+    /**
+     * Draws a line using preloaded brush
+     * 
+     * @param int $x1
+     * @param int $y1
+     * @param int $x2
+     * @param int $y2
+     * 
+     * @return void
+     */
+    public function drawLineBrush($x1, $y1, $x2, $y2) {
+        imageline($this->image, $x1, $y1, $x2, $y2, IMG_COLOR_BRUSHED);
     }
 
     /**
@@ -863,7 +884,6 @@ class PixelCraft {
         return ($result);
     }
 
-
     /**
      * Calculates the brightness of a pixel at the specified coordinates.
      *
@@ -877,5 +897,49 @@ class PixelCraft {
         $pixelColor = $this->getPixelColor($x, $y);
         $result = $this->rgbToBrightness($pixelColor);
         return ($result);
+    }
+
+    /**
+     * Rotates the image by the specified angle clockwise
+     *
+     * @param int $angle The angle in degrees to rotate the image.
+     * 
+     * @return void
+     */
+    public function rotate($angle) {
+        $this->image = imagerotate($this->image, 360 - $angle, 0);
+    }
+
+    /**
+     * Sets the brush for the image using the specified file path.
+     *
+     * @param string $filePath The path to the image file to be used as a brush.
+     * 
+     * @return bool
+     */
+    public function setBrush($filePath) {
+        $result = $this->loadImageFile($filePath, 'brush');
+        if ($result) {
+            imagesetbrush($this->image, $this->brush);
+        }
+        return ($result);
+    }
+
+    /**
+     * Draw a partial arc and fill it
+     *
+     * @param int $x The x-coordinate of the center.
+     * @param int $y The y-coordinate of the center.
+     * @param int $width The width of the arc.
+     * @param int $height The height of the arc.
+     * @param int $startAngle The start angle of the arc in degrees.
+     * @param int $endAngle The end angle of the arc in degrees.
+     * @param string $colorName The name of the color to use for the arc.
+     * @param int $style The style of the arc. Available: IMG_ARC_PIE, IMG_ARC_CHORD, IMG_ARC_NOFILL, IMG_ARC_EDGED
+     *
+     * @return void
+     */
+    public function drawArc($x, $y, $width, $height, $startAngle, $endAngle, $colorName, $style = IMG_ARC_PIE) {
+        imagefilledarc($this->image, $x, $y, $width, $height, $startAngle, $endAngle, $this->allocateColor($colorName), $style);
     }
 }
