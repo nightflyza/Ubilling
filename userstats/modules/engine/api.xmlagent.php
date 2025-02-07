@@ -978,11 +978,13 @@ class XMLAgent {
      * @throws Exception
      */
     protected function getUserFreezeData($login) {
-        $freezeData   = array();
-        $userdata     = zbs_UserGetStargazerData($login);
-        $userTariff   = $userdata['Tariff'];
-        $userBalance  = $userdata['Cash'];
-        $frozenState  = $userdata['Passive'] == '1' ? 'frozen' : 'unfrozen';
+        $freezeData             = array();
+        $userdata               = zbs_UserGetStargazerData($login);
+        $userBalance            = $userdata['Cash'];
+        $frozenState            = $userdata['Passive'] == '1' ? 'frozen' : 'unfrozen';
+        $userTariff             = $userdata['Tariff'];
+        $userTariffData         = zbs_UserGetTariffData($userTariff);
+        $userTariffFreezePrice  = empty($userTariffData) ? null : $userTariffData['PassiveCost'];
 
         $weblogsTable = new NyanORM('weblogs');
         $weblogsTable->selectable('date');
@@ -1002,8 +1004,8 @@ class XMLAgent {
         if ($this->uscfgFreezeDaysChargeON) {
             $freezeDaysChargeData = zbs_getFreezeDaysChargeData($login);
 
-            if (!empty($freezeDaysChargeData[$login])) {
-                $freezeDaysChargeData    = $freezeDaysChargeData[$login];
+            if (!empty($freezeDaysChargeData[0])) {
+                $freezeDaysChargeData    = $freezeDaysChargeData[0];
 
                 $FrzDaysAmount           = empty($freezeDaysChargeData['freeze_days_amount']) ? $this->uscfgFreezeDaysInitAmount : $freezeDaysChargeData['freeze_days_amount'];
                 $FrzDaysUsed             = $freezeDaysChargeData['freeze_days_used'];
@@ -1025,6 +1027,7 @@ class XMLAgent {
                         "negativeBalanceFreezeAllowed"  => ubRouting::filters($this->uscfgFreezeIfNegativeBalance, 'fi', FILTER_VALIDATE_BOOLEAN),
                         "userBalance"                   => $userBalance,
                         "userTariff"                    => $userTariff,
+                        "userTariffFreezePrice"         => $userTariffFreezePrice,
                         "freezeStatus"                  => $frozenState,                // "frozen" or "unfrozen",
                         "dateFrom"                      => $freezeDateFrom,
                         "dateTo"                        => $freezeDateTo,               // empty string("") if freezeDaysChargeActive is false,
