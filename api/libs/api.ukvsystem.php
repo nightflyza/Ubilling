@@ -4072,7 +4072,7 @@ class UkvSystem {
                         $profileLink = wf_Link(self::URL_USERS_PROFILE . $eachUser['id'], web_profile_icon() . ' ', false, '');
                         $cells .= wf_TableCell($profileLink . $fullAddress);
                         $cells .= wf_TableCell($eachUser['realname']);
-                        $cells .= wf_TableCell($this->tariffs[$eachUser['tariffid']]['tariffname']);
+                        $cells .= wf_TableCell(@$this->tariffs[$eachUser['tariffid']]['tariffname']);
                         $cells .= wf_TableCell($eachUser['cash']);
                         $cells .= wf_TableCell($eachUser['cableseal']);
                         $cells .= wf_TableCell(web_bool_led($eachUser['active'], true));
