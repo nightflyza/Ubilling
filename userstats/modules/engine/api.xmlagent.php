@@ -446,7 +446,7 @@ class XMLAgent {
             $resultToRender = $this->createSignUpRequest($requestJSON);
         }
 
-        $restapiMethod  = (empty($restapiMethod) and !empty($subSection)) ? $subSection : $restapiMethod;
+        $restapiMethod  = (empty($restapiMethod) and !empty($subSection)) ? $subSection : (empty($mainSection) ? $restapiMethod : $mainSection);
 
         $this->debugLog($restapiMethod, $debugData);
         $this->renderResponse($resultToRender, $mainSection, $subSection, $outputFormat, $messages);
