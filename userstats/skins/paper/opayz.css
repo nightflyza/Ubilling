@@ -1,21 +1,38 @@
 .opbackend {
-    float: left !important;
-    display: block !important;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
     padding: 10px;
     margin: 5px;
-    border:solid 1px #EEE;
-    border-radius:10px;
+    border: solid 1px #EEE;
+    border-radius: 10px;
     text-align: center;
-    font-size: 8pt;
+    font-size: 10pt;
     overflow: hidden;
-    box-shadow: 3px 3px 4px rgba(0,0,0,0);
-    line-height: 100%;
-    width:200px;
-    height:200px;
+    box-shadow: 3px 3px 4px rgba(0, 0, 0, 0);
+    width: 200px;
+    height: 200px;
+    transition: box-shadow 0.3s ease-in-out, transform 0.2s;
 }
 
 .opbackend:hover {
-    -webkit-box-shadow: 3px 3px 4px rgba(50, 50, 50, 0.75);
-    -moz-box-shadow:    3px 3px 4px rgba(50, 50, 50, 0.75);
-    box-shadow:         3px 3px 4px rgba(50, 50, 50, 0.75);
+    box-shadow: 3px 3px 6px rgba(50, 50, 50, 0.5);
+    transform: translateY(-2px);
+}
+
+.payment-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+    max-width: 100%;
+    margin: auto;
+}
+
+@media (max-width: 600px) {
+    .payment-container {
+        flex-direction: column;
+        align-items: center;
+    }
 }

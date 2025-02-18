@@ -45,7 +45,7 @@ if ($us_config['OPENPAYZ_ENABLED']) {
         /**
          * Contains available payment systems backends list
          *
-         * @var string
+         * @var array
          */
         protected $paySys = array();
 
@@ -156,6 +156,7 @@ if ($us_config['OPENPAYZ_ENABLED']) {
             $result = '';
             $result .= $this->getStyle();
             $inputs = '';
+            $result.=la_tag('div', false, 'payment-container');
             if (!empty($this->paySys)) {
                 if (!empty($this->paymentId)) {
                     foreach ($this->paySys as $eachpaysys) {
@@ -190,7 +191,7 @@ if ($us_config['OPENPAYZ_ENABLED']) {
 
                         $result .= la_Form($this->usConf['OPENPAYZ_URL'] . $eachpaysys . '/', 'GET', $inputs, '', '', false);
                     }
-
+                    $result.=la_tag('div',true);
 
                     show_window(__('Online payments'), $result);
                 } else {
