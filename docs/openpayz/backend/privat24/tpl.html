@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="uk">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>
+        <?=$ispName; ?> -
+        <?=$merchant_service; ?>
+    </title>
+    <style>
+        body {
+            background-color: #f3f4f6;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            flex-direction: column;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 600px;
+            text-align: center;
+            margin: 40px auto;
+        }
+
+        .logo {
+            width: 96px;
+            margin-bottom: 16px;
+        }
+
+        .form-group {
+            margin-bottom: 10px;
+        }
+
+        .form-group label {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .form-group input {
+            margin-right: 8px;
+        }
+
+        .custom-amount {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        #input_custom_amount {
+            width: 80px;
+            padding: 4px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            text-align: center;
+        }
+
+        .btn {
+            width: 100%;
+            background-color: #6b7280;
+            color: white;
+            padding: 10px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 10px;
+        }
+
+        .btn:hover {
+            background-color: #4b5563;
+        }
+
+        .footer {
+            font-size: 12px;
+            color: #999;
+            text-align: right;
+            width: 100%;
+            padding: 10px;
+            position: absolute;
+            bottom: 5px;
+            right: 10px;
+        }
+
+        .footer a {
+            color: #999;
+            text-decoration: none;
+        }
+
+        .footer a:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                max-width: 90%;
+                margin: 20px auto;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h2>
+            <?=$ispName; ?>
+        </h2>
+        <a href="<?=$ispUrl; ?>" target="_blank"><img src="<?= $ispLogo; ?>" alt="ISP logo" class="logo"></a>
+        <p><strong>
+                <?=$merchant_service; ?>
+            </strong></p>
+        <?=$paymentForm; ?>
+    </div>
+    <div class="footer">
+        Powered by <a href="https://ubilling.net.ua">OpenPayz</a>
+    </div>
+</body>
+
+</html>
