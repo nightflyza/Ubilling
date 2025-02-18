@@ -198,7 +198,7 @@ if (cfr('TASKMAN')) {
 
     if (!ubRouting::checkGet('edittask')) {
         if (!ubRouting::checkGet('print')) {
-            if (ubRouting::checkGet('show') AND (ubRouting::get('show') == 'logs' and cfr('TASKMANNWATCHLOG'))) {
+            if (ubRouting::checkGet('show') and (ubRouting::get('show') == 'logs' and cfr('TASKMANNWATCHLOG'))) {
                 /**
                  * Task logs rendering
                  */
@@ -215,7 +215,7 @@ if (cfr('TASKMAN')) {
                 /** ////////////////////////////////////////
                  * rendering of primary full calendar view
                  * //////////////////////////////////////// */
-                show_window('', $customJobColorStyle . wf_FullCalendar($showtasks, $fullCalendarOpts, $extendedDoneAlterStylingBool, $extendedDoneAlterListOnly, '?module=taskman'));
+                show_window('', $customJobColorStyle . wf_FullCalendar($showtasks, $fullCalendarOpts, $extendedDoneAlterStylingBool, $extendedDoneAlterListOnly, '?module=taskman', true));
             }
         } else {
             /**

@@ -1502,16 +1502,27 @@ function wf_DatePickerPreset($field, $date, $extControls = false, $CtrlID = '', 
  * @param bool $useHTMLInTitle
  * @param bool $useHTMLListViewOnly
  * @param string $ajaxURLForDnD
+ * @param bool $saveViewState
  *
  * @return string
  */
-function wf_FullCalendar($data, $options = '', $useHTMLInTitle = false, $useHTMLListViewOnly = false, $ajaxURLForDnD = '') {
+function wf_FullCalendar($data, $options = '', $useHTMLInTitle = false, $useHTMLListViewOnly = false, $ajaxURLForDnD = '', $saveViewState = false) {
     global $ubillingConfig;
 
     $elementid = wf_InputId();
     $dragdropON = ($ubillingConfig->getAlterParam('CALENDAR_DRAG_AND_DROP_ON') and !empty($ajaxURLForDnD));
     $dndConfirmON = $ubillingConfig->getAlterParam('CALENDAR_DRAG_AND_DROP_CONFIRM_ON');
     $titlesSearchON = $ubillingConfig->getAlterParam('CALENDAR_TITLES_SEARCH_ON');
+    $viewLoad = '';
+    $viewSetup = '';
+    $viewSave = '';
+    if ($saveViewState) {
+        $viewLoad = "var savedView = localStorage.getItem('calendarView') || 'month';";
+        $viewSetup = "defaultView: savedView,";
+        $viewSave = ",viewRender: function(view) {
+                        localStorage.setItem('calendarView', view.name);
+                    }";
+    }
 
     if ($useHTMLInTitle) {
         if ($useHTMLListViewOnly) {
@@ -1554,6 +1565,8 @@ function wf_FullCalendar($data, $options = '', $useHTMLInTitle = false, $useHTML
 		var d = date.getDate();
 		var m = date.getMonth();
 		var y = date.getFullYear();
+
+        " . $viewLoad . "
          
 		$('#" . $elementid . "').fullCalendar({
                      header: {
@@ -1570,7 +1583,9 @@ function wf_FullCalendar($data, $options = '', $useHTMLInTitle = false, $useHTML
                         displayEventTime: false,
                         height: 'auto',
                         contentHeight: 'auto',
+                        " . $viewSetup . "
                         " . $options . "
+                        
                         monthNamesShort: [
                         '" . rcms_date_localise('Jan') . "',
                         '" . rcms_date_localise('Feb') . "',
@@ -1634,7 +1649,8 @@ function wf_FullCalendar($data, $options = '', $useHTMLInTitle = false, $useHTML
 				" . $data . "
 			
 			]
-                        
+
+            " . $viewSave . "
 		});
 		
 	});
@@ -2558,7 +2574,7 @@ function wf_JqDtLoader($columns, $ajaxUrl, $saveState = false, $objects = 'users
     $saveState = ($saveState) ? 'true' : 'false';
     $opts = (!empty($opts)) ? $opts . ',' : '';
     $sside = ($serverSide) ? '"serverSide": true,' : '';
-    $lenMenu=($serverSide) ? '[[10, 25, 50, 100, 200], [10, 25, 50, 100, 200]]' : '[[10, 25, 50, 100, 200, -1], [10, 25, 50, 100, 200, "' . __('All') . '"]]';
+    $lenMenu = ($serverSide) ? '[[10, 25, 50, 100, 200], [10, 25, 50, 100, 200]]' : '[[10, 25, 50, 100, 200, -1], [10, 25, 50, 100, 200, "' . __('All') . '"]]';
     $jq_dt = wf_tag('script', false, '', ' type="text/javascript" charset="utf-8"');
     $jq_dt .= '
  		$(document).ready(function() {                 
@@ -2592,7 +2608,7 @@ function wf_JqDtLoader($columns, $ajaxUrl, $saveState = false, $objects = 'users
                 "sAjaxSource": \'' . $ajaxUrl . '\',
                 "bDeferRender": true,
                 ' . $sside . '
-                "lengthMenu": '.$lenMenu.',
+                "lengthMenu": ' . $lenMenu . ',
                 ' . $opts . '
                 "bJQueryUI": true
             } );
