@@ -2072,6 +2072,7 @@ function sn_SnmpParseDeviceMAC($data) {
 function zb_SanitizeSNMPValue($data) {
     $result = '';
     $dataTypes = array(
+        'Hex-STRING:',
         'Counter32:',
         'Counter64:',
         'Gauge32:',
@@ -2080,7 +2081,6 @@ function zb_SanitizeSNMPValue($data) {
         'STRING:',
         'OID:',
         'Timeticks:',
-        'Hex-STRING:',
         'Network Address:'
     );
 
