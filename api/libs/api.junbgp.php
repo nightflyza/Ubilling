@@ -17,7 +17,7 @@ class JunBGP {
      *
      * @var bool
      */
-    protected $rawCache = true;
+    protected $rawCache = false;
 
     /**
      * Mapping of BGP state codes to state names
@@ -66,6 +66,8 @@ class JunBGP {
     const OID_AS = '.1.3.6.1.4.1.2636.5.1.1.2.1.1.1.13';
     const OID_STATE = '.1.3.6.1.4.1.2636.5.1.1.2.1.1.1.2';
     const OID_STATUS = '1.3.6.1.4.1.2636.5.1.1.2.1.1.1.3';
+    const OID_PREF_IN = '.1.3.6.1.4.1.2636.5.1.1.2.6.2.1.7';
+    const OID_PREF_OUT = '.1.3.6.1.4.1.2636.5.1.1.2.6.2.1.10';
 
     /**
      * Constructor
