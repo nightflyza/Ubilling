@@ -1,12 +1,12 @@
 <?php
 
 /**
- * This class is responsible for getting Juniper BGP peers using SNMP.
+ * This class is responsible for getting Juniper BGP peers stats using SNMP.
  */
 class JunBGP {
 
     /**
-     * Contains SNMP Helper instance
+     * Contains system SNMP Helper instance
      *
      * @var object
      */
@@ -60,17 +60,18 @@ class JunBGP {
     /**
      * Some predefined stuff here
      */
-    const OID_PEER_TABLE = '.1.3.6.1.4.1.2636.5.1.1.2.1.1.1';
+    const OID_PEER_TABLE = '.1.3.6.1.4.1.2636.5.1.1.2';
     const OID_INDEX = '.1.3.6.1.4.1.2636.5.1.1.2.1.1.1.14';
     const OID_REMOTEIP = '.1.3.6.1.4.1.2636.5.1.1.2.1.1.1.11.0.1';
     const OID_AS = '.1.3.6.1.4.1.2636.5.1.1.2.1.1.1.13';
     const OID_STATE = '.1.3.6.1.4.1.2636.5.1.1.2.1.1.1.2';
     const OID_STATUS = '1.3.6.1.4.1.2636.5.1.1.2.1.1.1.3';
+    const OID_TIMERS = '.1.3.6.1.4.1.2636.5.1.1.2.4.1.1.1';
     const OID_PREF_IN = '.1.3.6.1.4.1.2636.5.1.1.2.6.2.1.7';
     const OID_PREF_OUT = '.1.3.6.1.4.1.2636.5.1.1.2.6.2.1.10';
 
     /**
-     * Constructor
+     * Quidquid latine dictum sit, altum sonatur
      *
      * @param string $ip IP address of the BGP peer
      * @param string $community SNMP community string
@@ -191,6 +192,7 @@ class JunBGP {
             $remoteIp = $this->parseData($rawData, self::OID_REMOTEIP, true);
             $states = $this->parseData($rawData, self::OID_STATE);
             $status = $this->parseData($rawData, self::OID_STATUS);
+            $timers = $this->parseData($rawData, self::OID_TIMERS);
             foreach ($index as $io => $eachPeerIdx) {
                 $peerIp = $remoteIp[$io];
                 $result[$peerIp] = array(
@@ -200,11 +202,33 @@ class JunBGP {
                     'state' => $states[$io],
                     'stateName' => $this->statesNames[$states[$io]],
                     'status' => $status[$io],
-                    'statusName' => $this->statusNames[$status[$io]]
+                    'statusName' => $this->statusNames[$status[$io]],
+                    'timer' => $timers[$io]
                 );
             }
         }
 
         return ($result);
     }
+
+    //
+    //                             ___          
+    //                            /   \\        
+    //                       /\\ | . . \\       
+    //                     ////\\|     ||       
+    //                   ////   \\ ___//\       
+    //                  ///      \\      \      
+    //                 ///       |\\      |     
+    //                //         | \\  \   \    
+    //                /          |  \\  \   \   
+    //                           |   \\ /   /   
+    //                           |    \/   /    
+    //                           |     \\/|     
+    //                           |      \\|     
+    //                           |       \\     
+    //                           |        |     
+    //                           |_________\    
+    //                     
+    //               there are no immortal neighbors
+    //
 }
