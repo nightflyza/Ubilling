@@ -53,3 +53,8 @@
     background-color: #fefefe;
     color: #000000 !important;
 }
+
+.ui-menu-item.active {
+    background-color: #dbdada;
+    color: #000000 !important;
+}
