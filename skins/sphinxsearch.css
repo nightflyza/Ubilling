@@ -57,4 +57,8 @@
 .ui-menu-item.active {
     background-color: #dbdada;
     color: #000000 !important;
+    transition: background-color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
+    margin-right: 6px !important;
+    transform: translateY(-4px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
 }
