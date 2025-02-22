@@ -1398,7 +1398,11 @@ function web_SwitchesRenderList() {
 
     array_push($columns, 'Location', 'Active', 'Model');
     if (!$switchesCompactFlag) {
-        array_push($columns, 'SNMP community', 'Geo location');
+        if (cfr('SWITCHESEDIT')) {
+            array_push($columns, 'SNMP community', 'Geo location');
+        } else {
+            array_push($columns, 'Geo location');
+        }
     }
     $columns[] = 'Description';
 
@@ -1446,6 +1450,7 @@ function zb_SwitchesRenderAjaxList() {
     $deathTime = zb_SwitchesGetAllDeathTime();
     $summaryCache = 'exports/switchcounterssummary.dat';
     $jsonAAData = array();
+    $editRightsFlag = (cfr('SWITCHESEDIT')) ? true : false;
 
     //counters
     $countTotal = 0;
@@ -1531,7 +1536,9 @@ function zb_SwitchesRenderAjaxList() {
             $jsonItem[] = $aliveled;
             $jsonItem[] = @$modelnames[$eachswitch['modelid']];
             if (!$switchesCompactFlag) {
-                $jsonItem[] = $eachswitch['snmp'];
+                if ($editRightsFlag) {
+                    $jsonItem[] = $eachswitch['snmp'];
+                }
                 $jsonItem[] = $eachswitch['geo'];
             }
             $jsonItem[] = $eachswitch['desc'];
