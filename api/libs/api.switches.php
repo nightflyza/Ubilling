@@ -559,8 +559,10 @@ function web_SwitchEditForm($switchid) {
     $editinputs .= wf_TextInput('editip', 'IP', $switchdata['ip'], true, 20, 'ip');
     $editinputs .= wf_TextInput('editlocation', 'Location', $switchdata['location'], true, 30);
     $editinputs .= wf_TextInput('editdesc', 'Description', $switchdata['desc'], true, 30);
-    $editinputs .= wf_TextInput('editsnmp', 'SNMP community', $switchdata['snmp'], true, 20);
-    $editinputs .= wf_TextInput('editsnmpwrite', 'SNMP write community', $switchdata['snmpwrite'], true, 20);
+    if (cfr('SWITCHESEDIT')) {
+        $editinputs .= wf_TextInput('editsnmp', 'SNMP community', $switchdata['snmp'], true, 20);
+        $editinputs .= wf_TextInput('editsnmpwrite', 'SNMP write community', $switchdata['snmpwrite'], true, 20);
+    }
     if ($altCfg['SWITCHES_EXTENDED']) {
         $macVenControl = '';
         if ((!empty($switchdata['swid'])) and ($altCfg['MACVEN_ENABLED'])) {
@@ -635,10 +637,20 @@ function web_SwitchEditForm($switchid) {
         $rightContainer .= wf_AjaxContainer('icmppingcontainer');
     }
 
-    $cells = wf_TableCell($mainForm, '50%', '', 'valign="top"');
-    $cells .= wf_TableCell($rightContainer, '', '', 'valign="top"');
-    $rows = wf_TableRow($cells);
-    $result .= wf_TableBody($rows, '100%', 0, '');
+
+    $boxStyle = 'style="flex: 1; width: 50%; box-sizing: border-box; padding: 10px;"';
+    $result .= wf_tag('div', false, '', 'style="display: flex; flex-wrap: wrap;"');
+
+    $result .= wf_tag('div', false, '', $boxStyle);
+    $result .= $mainForm;
+    $result .= wf_tag('div', true);
+
+    $result .= wf_tag('div', false, '', $boxStyle);
+    $result .= $rightContainer;
+    $result .= wf_tag('div', true);
+
+    $result .= wf_tag('div', true);
+
     $result .= wf_CleanDiv();
 
     $result .= wf_delimiter();
