@@ -33,7 +33,7 @@ function sp_parse_raw_sanitized($data) {
     } else {
         $result = __('Empty reply received');
     }
-    return($result);
+    return ($result);
 }
 
 /**
@@ -53,7 +53,7 @@ function sp_parse_time_seconds($data) {
     } else {
         $result = __('Empty reply received');
     }
-    return($result);
+    return ($result);
 }
 
 /**
@@ -75,7 +75,7 @@ function sp_parse_power($data) {
     } else {
         $result = __('Empty reply received');
     }
-    return($result);
+    return ($result);
 }
 
 /**
@@ -95,7 +95,7 @@ function sp_parse_eping_temp($data) {
     } else {
         $result = __('Empty reply received');
     }
-    return($result);
+    return ($result);
 }
 
 /**
@@ -124,7 +124,36 @@ function sp_parse_eping_temp_gauge($data) {
     } else {
         $result = __('Empty reply received');
     }
-    return($result);
+    return ($result);
+}
+
+/**
+ * Returns CPU percent load as gauge
+ *
+ * @param string $data
+ *
+ * @return string
+ */
+function sp_parse_cpu_gauge($data) {
+    $result = '';
+    if (!empty($data)) {
+        $rawValue = zb_SanitizeSNMPValue($data);
+        if (!empty($rawValue)) {
+            $percent = $rawValue;
+            $options = 'max: 100,
+                        min: 0,
+                        width: 280, height: 280,
+                        greenFrom: 0, greenTo: 40,
+                        yellowFrom:40, yellowTo: 70,
+                        redFrom: 70, redTo: 100,
+                        minorTicks: 5';
+
+            $result = wf_renderGauge($percent, '', '%', $options);
+        }
+    } else {
+        $result = __('Empty reply received');
+    }
+    return ($result);
 }
 
 /**
@@ -144,7 +173,7 @@ function sp_parse_eping_bat($data) {
     } else {
         $result = __('Empty reply received');
     }
-    return($result);
+    return ($result);
 }
 
 /**
@@ -303,43 +332,43 @@ function sp_parse_cable_tester($ip, $community, $currentTemplate) {
                 $cells_data = '';
                 foreach ($data as $test_id => $info) {
                     if ($test_id == 0 and $info != 2) {
-                        if (@$data[1] == 0 OR @ $data[2] == 0 OR @ $data[3] == 0 OR @ $data[4] == 0) {
+                        if (@$data[1] == 0 or @$data[2] == 0 or @$data[3] == 0 or @$data[4] == 0) {
                             $cells_data .= __("OK");
                             // Return Length for Pair2, becase some modele have accrose rawdata
-                            @$cells_data .= ($data[2] == 0 AND $data[6] > 0 ) ? "," . __("Cable Length:") . $data[6] : '';
-                        } elseif ($data[1] == 1 OR $data[2] == 1 OR $data[3] == 1 OR $data[4] == 1) {
+                            @$cells_data .= ($data[2] == 0 and $data[6] > 0) ? "," . __("Cable Length:") . $data[6] : '';
+                        } elseif ($data[1] == 1 or $data[2] == 1 or $data[3] == 1 or $data[4] == 1) {
                             $cells_data .= ($data[1] == 1) ? __("Pair1 Open:") . $data[5] . " " : '';
                             $cells_data .= ($data[2] == 1) ? __("Pair2 Open:") . $data[6] . " " : '';
                             $cells_data .= ($data[3] == 1) ? __("Pair3 Open:") . $data[7] . " " : '';
                             $cells_data .= ($data[4] == 1) ? __("Pair4 Open:") . $data[8] . " " : '';
-                        } elseif ($data[1] == 2 OR $data[2] == 2 OR $data[3] == 2 OR $data[4] == 2) {
+                        } elseif ($data[1] == 2 or $data[2] == 2 or $data[3] == 2 or $data[4] == 2) {
                             $cells_data .= ($data[1] == 2) ? __("Pair1 Short:") . $data[5] . " " : '';
                             $cells_data .= ($data[2] == 2) ? __("Pair2 Short:") . $data[6] . " " : '';
                             $cells_data .= ($data[3] == 2) ? __("Pair3 Short:") . $data[7] . " " : '';
                             $cells_data .= ($data[4] == 2) ? __("Pair4 Short:") . $data[8] . " " : '';
-                        } elseif ($data[1] == 3 OR $data[2] == 3 OR $data[3] == 3 OR $data[4] == 3) {
+                        } elseif ($data[1] == 3 or $data[2] == 3 or $data[3] == 3 or $data[4] == 3) {
                             $cells_data .= ($data[1] == 3) ? __("Pair1 Open-Short:") . $data[5] . " " : '';
                             $cells_data .= ($data[2] == 3) ? __("Pair2 Open-Short:") . $data[6] . " " : '';
                             $cells_data .= ($data[3] == 3) ? __("Pair3 Open-Short:") . $data[7] . " " : '';
                             $cells_data .= ($data[4] == 3) ? __("Pair4 Open-Short:") . $data[8] . " " : '';
-                        } elseif ($data[1] == 4 OR $data[2] == 4 OR $data[3] == 4 OR $data[4] == 4) {
+                        } elseif ($data[1] == 4 or $data[2] == 4 or $data[3] == 4 or $data[4] == 4) {
                             $cells_data .= ($data[1] == 4) ? __("Pair1 crosstalk") . " " : '';
                             $cells_data .= ($data[2] == 4) ? __("Pair2 crosstalk") . " " : '';
                             $cells_data .= ($data[3] == 4) ? __("Pair3 crosstalk") . " " : '';
                             $cells_data .= ($data[4] == 4) ? __("Pair4 crosstalk") . " " : '';
-                        } elseif ($data[1] == 5 OR $data[2] == 5 OR $data[5] == 5 OR $data[4] == 5) {
+                        } elseif ($data[1] == 5 or $data[2] == 5 or $data[5] == 5 or $data[4] == 5) {
                             $cells_data .= ($data[1] == 5) ? __("Pair1 unknown") . " " : '';
                             $cells_data .= ($data[2] == 5) ? __("Pair2 unknown") . " " : '';
                             $cells_data .= ($data[3] == 5) ? __("Pair3 unknown") . " " : '';
                             $cells_data .= ($data[4] == 5) ? __("Pair4 unknown") . " " : '';
-                        } elseif ($data[1] == 6 OR $data[2] == 6 OR $data[5] == 6 OR $data[4] == 6) {
+                        } elseif ($data[1] == 6 or $data[2] == 6 or $data[5] == 6 or $data[4] == 6) {
                             $cells_data .= ($data[1] == 6) ? __("Pair1 count") . " " : '';
                             $cells_data .= ($data[2] == 6) ? __("Pair2 count") . " " : '';
                             $cells_data .= ($data[3] == 6) ? __("Pair3 count") . " " : '';
                             $cells_data .= ($data[4] == 6) ? __("Pair4 count") . " " : '';
-                        } elseif ($data[1] == 7 OR $data[2] == 7 OR $data[5] == 7 OR $data[4] == 7) {
+                        } elseif ($data[1] == 7 or $data[2] == 7 or $data[5] == 7 or $data[4] == 7) {
                             $cells_data .= __("No Cable");
-                        } elseif ($data[1] == 8 OR $data[2] == 8 OR $data[5] == 8 OR $data[4] == 8) {
+                        } elseif ($data[1] == 8 or $data[2] == 8 or $data[5] == 8 or $data[4] == 8) {
                             $cells_data .= __("The PHY can't support Cable Diagnostic");
                         }
                     } elseif ($test_id == 0 and $info == 2) {
@@ -600,9 +629,10 @@ function sp_parse_eltex_battery($data) {
 function sp_parse_division_units($data, $divBy = '', $units = '') {
     $result = '';
 
-    if (!empty($data)
-            and ! ispos($data, 'No Such Object available')
-            and ! ispos($data, 'No more variables left')
+    if (
+        !empty($data)
+        and ! ispos($data, 'No Such Object available')
+        and ! ispos($data, 'No more variables left')
     ) {
 
         $data = trimSNMPOutput($data, '');
@@ -653,9 +683,10 @@ function sp_parse_division_units($data, $divBy = '', $units = '') {
 function sp_parse_division_units_ra($data, $divBy = '', $units = '') {
     $result = '';
 
-    if (!empty($data)
-            and ! ispos($data, 'No Such Object available')
-            and ! ispos($data, 'No more variables left')
+    if (
+        !empty($data)
+        and ! ispos($data, 'No Such Object available')
+        and ! ispos($data, 'No more variables left')
     ) {
 
         $data = trimSNMPOutput($data, '');
@@ -702,9 +733,10 @@ function sp_parse_division_units_ra($data, $divBy = '', $units = '') {
 function sp_parse_division_units_noport($data, $divBy = '', $units = '') {
     $result = '';
 
-    if (!empty($data)
-            and ! ispos($data, 'No Such Object available')
-            and ! ispos($data, 'No more variables left')
+    if (
+        !empty($data)
+        and ! ispos($data, 'No Such Object available')
+        and ! ispos($data, 'No more variables left')
     ) {
 
         $data = trimSNMPOutput($data, '');
@@ -741,9 +773,10 @@ function sp_parse_division_units_noport($data, $divBy = '', $units = '') {
 function sp_parse_mikrotik_poe($data) {
     $result = __('Empty reply received');
 
-    if (!empty($data)
-            and ! ispos($data, 'No Such Object available')
-            and ! ispos($data, 'No more variables left')
+    if (
+        !empty($data)
+        and ! ispos($data, 'No Such Object available')
+        and ! ispos($data, 'No more variables left')
     ) {
         $data = trimSNMPOutput($data, '');
 
@@ -931,7 +964,7 @@ function sp_PartsToMac($parts) {
         $result = rtrim($result, ':');
         $result = strtolower($result);
     }
-    return($result);
+    return ($result);
 }
 
 /**
@@ -1306,7 +1339,7 @@ function sp_SnmpPollDevice($ip, $community, $alltemplates, $deviceTemplate, $all
 
                             // $tmpAliasArr[0] - iface/port index
                             // $tmpAliasArr[1] - iface/port alias
-                            if (!empty($tmpAliasArr[0]) and ( !isset($portDescrArr[$tmpAliasArr[0]]) or empty($portDescrArr[$tmpAliasArr[0]]))) {
+                            if (!empty($tmpAliasArr[0]) and (!isset($portDescrArr[$tmpAliasArr[0]]) or empty($portDescrArr[$tmpAliasArr[0]]))) {
                                 // if nothing was found in port description section for current port index
                                 if (!empty($tmpAliasArr[1])) {
                                     $portDescrArr[$tmpAliasArr[0]] = $tmpAliasArr[1];
@@ -1358,7 +1391,7 @@ function sp_SnmpPollDevice($ip, $community, $alltemplates, $deviceTemplate, $all
                                 $eachSetOidRaw = trim($eachSetOid);
                                 $eachSetOidRaw = explode('|', $eachSetOidRaw);
                                 //all three parts of set squense present
-                                if ((isset($eachSetOidRaw[0])) and ( isset($eachSetOidRaw[1])) and ( isset($eachSetOidRaw[2]))) {
+                                if ((isset($eachSetOidRaw[0])) and (isset($eachSetOidRaw[1])) and (isset($eachSetOidRaw[2]))) {
                                     $setDataTmp[0] = array('oid' => $eachSetOidRaw[0], 'type' => $eachSetOidRaw[1], 'value' => $eachSetOidRaw[2]);
                                     if (!empty($communitywrite)) {
                                         $runSet = $snmp->set($ip, $communitywrite, $setDataTmp);
@@ -1389,11 +1422,11 @@ function sp_SnmpPollDevice($ip, $community, $alltemplates, $deviceTemplate, $all
                                             continue;
                                         }
 
-                                        if ($isSFPSection and ( $eachPort < $sfpStartPort or $eachPort > $sfpEndPort)) {
+                                        if ($isSFPSection and ($eachPort < $sfpStartPort or $eachPort > $sfpEndPort)) {
                                             continue;
                                         }
 
-                                        if ($isPOESection and ( $eachPort < $poeStartPort or $eachPort > $poeEndPort)) {
+                                        if ($isPOESection and ($eachPort < $poeStartPort or $eachPort > $poeEndPort)) {
                                             continue;
                                         }
 
@@ -1455,7 +1488,7 @@ function sp_SnmpPollDevice($ip, $community, $alltemplates, $deviceTemplate, $all
                 //
                 //parsing data from FDB table
                 //
-            if ($deviceFdb == 'true') {
+                if ($deviceFdb == 'true') {
                     $portData = array();
                     $vlanData = array();
                     $portTable = '';
@@ -1486,11 +1519,13 @@ function sp_SnmpPollDevice($ip, $community, $alltemplates, $deviceTemplate, $all
 
                         // if dot1Q table is not empty - we prefer it's data
                         // as it's usually more detailed and contains VLAN data
-                        if (!empty($portQTable) and ! empty($statusQTable)
-                                and ! ispos($portQTable, 'No Such Object available')
-                                and ! ispos($statusQTable, 'No Such Object available')
-                                and ! ispos($portQTable, 'No more variables left')
-                                and ! ispos($statusQTable, 'No more variables left')) {
+                        if (
+                            !empty($portQTable) and ! empty($statusQTable)
+                            and ! ispos($portQTable, 'No Such Object available')
+                            and ! ispos($statusQTable, 'No Such Object available')
+                            and ! ispos($portQTable, 'No more variables left')
+                            and ! ispos($statusQTable, 'No more variables left')
+                        ) {
 
                             $dot1Q = true;
                             $portTabOID = $portQTabOID;
@@ -1499,7 +1534,7 @@ function sp_SnmpPollDevice($ip, $community, $alltemplates, $deviceTemplate, $all
                             $statusTable = $statusQTable;
                         }
                     } else {
-                        if (($deviceFdbMode == 'dlp') OR ( $deviceFdbMode == 'ra')) {
+                        if (($deviceFdbMode == 'dlp') or ($deviceFdbMode == 'ra')) {
                             //custom dlink port table with VLANS
                             $portTable = $snmp->walk($ip, $community, '.1.3.6.1.2.1.17.7.1.2.2.1.2', true);
                         }
@@ -1565,7 +1600,7 @@ function sp_SnmpPollDevice($ip, $community, $alltemplates, $deviceTemplate, $all
                                 $portData = sp_SnmpParseFdbRa($portTable);
                             }
 
-                            if (($deviceFdbMode == 'tlp5428ev2') OR ( $deviceFdbMode == 'tlp2428') OR ( $deviceFdbMode == 'tlp2210')) {
+                            if (($deviceFdbMode == 'tlp5428ev2') or ($deviceFdbMode == 'tlp2428') or ($deviceFdbMode == 'tlp2210')) {
                                 //more exotic tplink parser
                                 $portData = sp_SnmpParseFdbTlp($portTable, $tlpOid);
                             }
@@ -1719,7 +1754,7 @@ function sp_SnmpPollDevice($ip, $community, $alltemplates, $deviceTemplate, $all
                 //
                 //parsing data of DEVICE MAC
                 //
-            if ($alterCfg['SWITCHES_SNMP_MAC_EXORCISM'] and $deviceMAC == 'true') {
+                if ($alterCfg['SWITCHES_SNMP_MAC_EXORCISM'] and $deviceMAC == 'true') {
                     $MacOfDevice = '';
                     $snmp->setBackground(false); // need to process data with system + background
 
@@ -2009,7 +2044,7 @@ function sn_SnmpParseFdbCacheArray($fdbData_raw) {
         }
     }
 
-    return($result);
+    return ($result);
 }
 
 /**
@@ -2093,7 +2128,7 @@ function zb_SanitizeSNMPValue($data) {
     }
 
 
-    return($result);
+    return ($result);
 }
 
 /**
@@ -2108,9 +2143,10 @@ function zb_SanitizeSNMPValue($data) {
  */
 function sp_parse_division_temperature($data, $divBy = '', $units = '') {
     $result = '';
-    if (!empty($data)
-            and ! ispos($data, 'No Such Object available')
-            and ! ispos($data, 'No more variables left')
+    if (
+        !empty($data)
+        and ! ispos($data, 'No Such Object available')
+        and ! ispos($data, 'No more variables left')
     ) {
 
         $data = trimSNMPOutput($data, '');
@@ -2307,7 +2343,7 @@ function web_HordeStatsControl() {
         }
         $result .= ' ' . wf_modal(wf_img('skins/orc_small.png', __('Devices polling stats')), __('Devices polling stats'), $stats, '', '800', '600');
     }
-    return($result);
+    return ($result);
 }
 
 /**
