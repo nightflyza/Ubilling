@@ -41,3 +41,11 @@
     color: #000000 !important;
 }
 
+.ui-menu-item.active {
+    background-color: #e2e2e2;
+    color: #000000 !important;
+    transition: background-color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
+    margin-right: 8px !important;
+    transform: translateX(2px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+}

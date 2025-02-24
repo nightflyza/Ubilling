@@ -70,3 +70,42 @@ $(document).keyup(function (e) {
         hideSearchContainer();
     }
 });
+
+//keyboard navigation
+document.addEventListener("DOMContentLoaded", function () {
+    let currentIndex = -1;
+    let searchContainer = document.getElementById("ssearchcontainer");
+
+    document.addEventListener("keydown", function (e) {
+        let items = searchContainer.querySelectorAll(".ui-menu-item");
+
+        if (searchContainer.style.display === "block" && items.length > 0) {
+            if (e.key === "ArrowDown") {
+                e.preventDefault();
+                if (currentIndex < items.length - 1) {
+                    currentIndex++;
+                } else {
+                    currentIndex = 0;
+                }
+            } else if (e.key === "ArrowUp") {
+                e.preventDefault();
+                if (currentIndex > 0) {
+                    currentIndex--;
+                } else {
+                    currentIndex = items.length - 1;
+                }
+            } else if (e.key === "Enter" && currentIndex >= 0) {
+                e.preventDefault();
+                let link = items[currentIndex].querySelector("a");
+                if (link) {
+                    window.location.href = link.href;
+                }
+            }
+
+            items.forEach(item => item.classList.remove("active"));
+            if (currentIndex >= 0) {
+                items[currentIndex].classList.add("active");
+            }
+        }
+    });
+});
