@@ -438,9 +438,9 @@ class XMLAgent {
         }
 
         if (ubRouting::checkGet(array('ticketcreate', 'tickettype'))
-            and ubRouting::get('tickettype') == self::TICKET_TYPE_SIGNUP
-        ) {
-            $requestJSON = file_get_contents("php://input");
+            and ubRouting::get('tickettype') == self::TICKET_TYPE_SIGNUP) {
+
+            $requestJSON    = file_get_contents("php://input");
             $debugData      = $requestJSON;
             $restapiMethod  = 'signupticketcreate';
             $resultToRender = $this->createSignUpRequest($requestJSON);
