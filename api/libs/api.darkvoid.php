@@ -325,6 +325,14 @@ class DarkVoid {
             }
         }
 
+        //BGP sessions monitoring
+        if (isset($this->altCfg['BGPMON_ENABLED'])) {
+            if ($this->altCfg['BGPMON_ENABLED']) {
+                $bgpMon = new BGPMon();
+                $this->alerts .= $bgpMon->getPeersAlerts();
+            }
+        }
+
         //watchdog maintenance mode notification
         if (isset($this->altCfg['WATCHDOG_ENABLED'])) {
             if ($this->altCfg['WATCHDOG_ENABLED']) {

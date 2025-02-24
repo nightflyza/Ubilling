@@ -349,4 +349,61 @@ class BGPMon {
 
         return ($result);
     }
+
+    /**
+     * Returns peer stats of all routers as routerId=>fullPeerStats
+     *
+     * @return array
+     */
+    public function getAllPeersStats() {
+        $result = array();
+        $this->pollAllDevsStats(); //preloading stats data
+        if (!empty($this->allRoutersStats)) {
+            foreach ($this->allRoutersStats as $routerId => $eachRouterStats) {
+                if (!empty($eachRouterStats)) {
+                    foreach ($eachRouterStats as $io => $each) {
+                        $peerData = array(
+                            'name' => '-',
+                            'short' => '-'
+                        );
+                        if (isset($this->allPeerNames[$each['ip']])) {
+                            $peerData['name'] = $this->allPeerNames[$each['ip']]['name'];
+                            $peerData['short'] = $this->allPeerNames[$each['ip']]['short'];
+                        }
+
+                        $result[$routerId][$each['ip']] = $each;
+                        $result[$routerId][$each['ip']] += $peerData;
+                    }
+                }
+            }
+        }
+        return ($result);
+    }
+
+    /**
+     * Returns some alert control. Used in DarkVoid.
+     * 
+     * @return string
+     */
+    public function getPeersAlerts() {
+        $result = '';
+        $allPeersStats = $this->getAllPeersStats();
+        $deadCount = 0;
+        if (!empty($allPeersStats)) {
+            foreach ($allPeersStats as $eachRouterId => $eachRouterStats) {
+                if (!empty($eachRouterStats)) {
+                    foreach ($eachRouterStats as $io => $each) {
+                        if ($each['state'] != 6) {
+                            $deadCount++;
+                        }
+                    }
+                }
+            }
+        }
+
+        if ($deadCount > 0) {
+            $result = wf_Link(self::URL_ME, wf_img('skins/bgpmonalert.png', __('BGP problems') . ': ' . $deadCount . ' ' . __('peers is dead')), false, '');
+        }
+        return ($result);
+    }
 }
