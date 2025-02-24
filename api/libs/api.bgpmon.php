@@ -71,6 +71,10 @@ class BGPMon {
     const PROUTE_PEER_NAME = 'editpeername';
     const PROUTE_PEER_SHORT = 'editpeershort';
 
+    /**
+     * Два обличчя бачу на стіні,
+     * Двоє посміхаються мені, 
+     */
     public function __construct() {
         $this->initMessages();
         $this->initCache();
