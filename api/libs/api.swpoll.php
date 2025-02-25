@@ -47,6 +47,7 @@ function sp_parse_time_seconds($data) {
     $result = '';
     if (!empty($data)) {
         $rawTime = zb_SanitizeSNMPValue($data);
+        $rawTime = ubRouting::filters($rawTime, 'int');
         if (!empty($rawTime)) {
             $result = zb_formatTime($rawTime) . wf_tag('br');
         }
