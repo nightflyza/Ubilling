@@ -222,6 +222,13 @@ class XMLAgent {
     protected $extendedAuthON = false;
 
     /**
+     * Placeholder for XMLAGENT_SELF_UNFREEZE_ALLOWED "userstats.ini" option
+     *
+     * @var bool
+     */
+    protected $selfUnFreezeAllowed = false;
+
+    /**
      * Contains auth key (MD5 hash of the current UB instance serial) from the incoming request
      *
      * @var string
@@ -280,6 +287,7 @@ class XMLAgent {
         $this->debug                            = $this->usConfig->getUstasParam('XMLAGENT_DEBUG_ON', false);
         $this->debugDeep                        = $this->usConfig->getUstasParam('XMLAGENT_DEBUG_DEEP_ON', false);
         $this->extendedAuthON                   = $this->usConfig->getUstasParam('XMLAGENT_EXTENDED_AUTH_ON', false);
+        $this->selfUnFreezeAllowed              = $this->usConfig->getUstasParam('XMLAGENT_SELF_UNFREEZE_ALLOWED', false);
 
         $this->uscfgFreezeSelfON                = $this->usConfig->getUstasParam('AF_ENABLED', false);
         $this->uscfgFreezeSelfPrice             = $this->usConfig->getUstasParam('AF_FREEZPRICE', 0);
@@ -1085,19 +1093,24 @@ class XMLAgent {
      * @return array
      */
     protected function doUNFreeze($login) {
-        $result       = array();
-        $userdata     = zbs_UserGetStargazerData($login);
-        $frozenState  = $userdata['Passive'];
+        $result = array();
 
-        if ($frozenState == '1') {
-            //lets UNfreeze account
-            executor('-u' . $login . ' -i 0');
-            log_register('CHANGE Passive (' . $login . ') ON 0');
-            log_register('XMLAGENT: REST API is the source of previous action');
+        if ($this->selfUnFreezeAllowed) {
+            $userdata     = zbs_UserGetStargazerData($login);
+            $frozenState  = $userdata['Passive'];
 
-            $result[] = array('result' => 'Success', 'message' => 'User \'' . $login . '\' has been UNfrozen');
+            if ($frozenState == '1') {
+                //lets UNfreeze account
+                executor('-u' . $login . ' -i 0');
+                log_register('CHANGE Passive (' . $login . ') ON 0');
+                log_register('XMLAGENT: REST API is the source of previous action');
+
+                $result[] = array('result' => 'Success', 'message' => 'User \'' . $login . '\' has been UNfrozen');
+            } else {
+                $result[] = array('result' => 'Failure', 'message' => 'User \'' . $login . '\' is already UNfrozen');
+            }
         } else {
-            $result[] = array('result' => 'Failure', 'message' => 'User \'' . $login . '\' is already UNfrozen');
+            $result[] = array('result' => 'Failure', 'message' => 'Feature is not allowed');
         }
 
         return ($result);
