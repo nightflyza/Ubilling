@@ -670,7 +670,7 @@ class WolfDispatcher {
      */
     protected function isNewChatMemberAppear() {
         $result = false;
-        if ($this->receivedData['new_chat_member']) {
+        if (@$this->receivedData['new_chat_member']) {
             $result = $this->receivedData['new_chat_member'];
         }
         return ($result);
