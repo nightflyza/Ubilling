@@ -1410,9 +1410,10 @@ function zbs_VservicesGetAllNamesLabeled() {
     $result = array();
     $allservices = zbs_getVservicesAll();
     $alltagnames = zbs_getTagNames();
+
     if (!empty($allservices)) {
-        foreach ($allservices as $io => $eachservice) {
-            @$result['Service:' . $eachservice['id']] = $alltagnames[$eachservice['tagid']];
+        foreach ($allservices as $eachTagID => $eachPrice) {
+            $result['Service:' . $eachTagID] = $alltagnames[$eachTagID];
         }
     }
 
