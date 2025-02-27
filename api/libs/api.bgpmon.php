@@ -328,9 +328,9 @@ class BGPMon {
                         $cells = wf_TableCell($each['ip']);
                         $asControl = wf_Link(self::URL_AS_LOOKUP . $each['as'], $each['as'], false, '', 'target="_blank"');
                         $cells .= wf_TableCell($asControl);
-                        $cells .= wf_TableCell($stateIcon);
+                        $cells .= wf_TableCell($stateIcon, '', '', 'sorttable_customkey="' . $each['state'] . '"');
                         $cells .= wf_TableCell(__($each['stateName']));
-                        $cells .= wf_TableCell(zb_formatTime($each['timer']));
+                        $cells .= wf_TableCell(zb_formatTime($each['timer']), '', '', 'sorttable_customkey="' . $each['timer'] . '"');
                         $cells .= wf_TableCell($this->getPeerLabel($each['ip']));
                         if (cfr('ROOT')) {
                             $actLinks = wf_Link(self::URL_ME . '&' . self::ROUTE_EDIT_NAMES . '=' . $each['ip'], web_edit_icon());
