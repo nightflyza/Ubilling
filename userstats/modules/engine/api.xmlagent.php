@@ -1127,7 +1127,7 @@ class XMLAgent {
      */
     protected function createSupportTicket($login, $tickettext, $replyID) {
         $ticketID = 0;
-        $replyID  = empty($replyID) ? 'NULL' : $replyID;
+        $replyID  = empty($replyID) ? NULL : $replyID;
         $result   = array();
 
         if (!empty($login) and !empty($tickettext)) {
@@ -1136,6 +1136,7 @@ class XMLAgent {
             $date = curdatetime();
 
             $ticketDB = new NyanORM('ticketing');
+$ticketDB->setDebug(true, true);
             $ticketDB->dataArr(array(
                                 'date'    => $date,
                                 'replyid' => $replyID,
