@@ -20,6 +20,13 @@ class OpenPayz {
     protected $allTransactions = array();
 
     /**
+     * Contains full list of preloaded transactions
+     *
+     * @var array
+     */
+    protected $wholeTransactions = array();
+
+    /**
      * Existing payment systems names
      *
      * @var array
@@ -172,6 +179,28 @@ class OpenPayz {
      * @var int
      */
     protected $cacheTimeout = 86400;
+
+    /**
+     * Default on-page transactions number
+     *
+     * @var int
+     */
+    protected $onPage = 50;
+
+    /**
+     * Contains count of transactions available
+     *
+     * @var int
+     */
+    protected $totalTransactionsCount = 0;
+
+    /**
+     * Contains filtered transactions count
+     *
+     * @var int
+     */
+    protected $filteredTransactionsCount = 0;
+
 
     /**
      * Transactions list ajax callback URL
@@ -811,69 +840,6 @@ class OpenPayz {
         return ($result);
     }
 
-    /**
-     * Retruns json data for jquery data tables with transactions list
-     * 
-     * @global object $ubillingConfig
-     * 
-     * @return void
-     */
-    public function transactionAjaxSource() {
-        $this->loadCustomers();
-        $this->loadAddress();
-        $this->loadRealname();
-        $curYear = curyear();
-
-        //loading current year transactions
-        $this->loadTransactions($curYear);
-
-        $json = new wf_JqDtHelper();
-
-        if (!empty($this->allTransactions)) {
-            foreach ($this->allTransactions as $io => $eachtransaction) {
-                $control = '';
-                @$user_login = $this->allCustomers[$eachtransaction['customerid']];
-                @$user_realname = $this->allRealnames[$user_login];
-                @$user_address = $this->allAddress[$user_login];
-
-                if (!empty($user_login)) {
-                    $profileLink = wf_Link('?module=userprofile&username=' . $user_login, web_profile_icon() . ' ' . @$user_address);
-                } else {
-                    $profileLink = '';
-                }
-
-                $stateIcon = web_bool_led($eachtransaction['processed']);
-                $detailsControl = ' ' . wf_Link(self::URL_ME . '&showtransaction=' . $eachtransaction['id'], $eachtransaction['id']);
-                $data[] = $detailsControl;
-                $data[] = $eachtransaction['date'];
-                $data[] = $eachtransaction['summ'];
-                $data[] = $eachtransaction['customerid'];
-                $data[] = $user_realname;
-                $data[] = $profileLink;
-                $data[] = $eachtransaction['paysys'];
-                $data[] = $stateIcon . $control;
-
-                $json->addRow($data);
-                unset($data);
-            }
-        }
-
-
-        $json->getJson();
-    }
-
-    /**
-     * Renders transaction list container
-     * 
-     * @return void
-     */
-    public function renderTransactionList() {
-        $opts = '"order": [[ 0, "desc" ]]';
-        $columns = array('ID', 'Date', 'Cash', 'Payment ID', 'Real Name', 'Full address', 'Payment system', 'Processed');
-        $graphsUrl = wf_Link(self::URL_CHARTS, wf_img('skins/icon_stats.gif', __('Graphs')), false, '') . ' ';
-        $searchUrl = wf_Link(self::URL_ME . '&transactionsearch=true', web_icon_search(), false, '');
-        show_window(__('OpenPayz transactions') . ' ' . $graphsUrl . $searchUrl, wf_JqDtLoader($columns, self::URL_AJAX_SOURCE, false, 'payments', 100, $opts));
-    }
 
     /**
      * Renders transaction details
@@ -1078,5 +1044,178 @@ class OpenPayz {
         if ($sentCount > 0 or $this->smsDebugON) {
             log_register('OPAYZ SMS NOTIFY: sent ' . $sentCount . ' messages');
         }
+    }
+
+    /**
+     * Returns transactions list container
+     * 
+     * @return void
+     */
+    public function renderTransactionsList() {
+        $filterNumber = '';
+        $filtercustomerId = '';
+        $opts = '"order": [[ 0, "desc" ]]';
+        $columns = array(__('Date'), __('Number'), __('User'), __('Tags'), __('File'));
+        if (ubRouting::checkGet('filtercustomerid')) {
+            $filtercustomerId = '&filtercustomerid=' . ubRouting::get('username');
+        }
+        if (ubRouting::checkGet('renderall')) {
+            $filterNumber = '&renderall=true';
+        }
+
+        $renderAllControl = (ubRouting::checkGet('renderall')) ? wf_Link(self::URL_ME, wf_img('skins/done_icon.png', __('Current year'))) : wf_Link(self::URL_ME . '&renderall=true', wf_img('skins/allcalls.png', __('All time')));
+        $columns = array('ID', 'Date', 'Cash', 'Payment ID', 'Real Name', 'Full address', 'Payment system', 'Processed');
+
+        $controls = $renderAllControl;
+        $controls .= wf_Link(self::URL_CHARTS, wf_img('skins/icon_stats.gif', __('Graphs')), false, '') . ' ';
+        $controls .= wf_Link(self::URL_ME . '&transactionsearch=true', web_icon_search(), false, '');
+
+
+        $container = wf_JqDtLoader($columns, self::URL_ME . '&ajax=true' . $filtercustomerId . $filterNumber, false, __('Payments'), $this->onPage, $opts, false, '', '', true);
+        show_window(__('OpenPayz transactions') . ' ' . $controls, $container);
+    }
+
+    /**
+     * Renders json transactions list
+     * 
+     * @param string $filtercustomerId
+     * @param bool $renderAll
+     * 
+     * @return void
+     */
+    public function jsonTransactionsList($filtercustomerId = '', $renderAll = false) {
+        $this->loadCustomers();
+        $this->loadAddress();
+        $this->loadRealname();
+
+
+        $this->transactionsLoader($filtercustomerId, $renderAll);
+        $json = new wf_JqDtHelper(true);
+        $json->setTotalRowsCount($this->totalTransactionsCount);
+        $json->setFilteredRowsCount($this->filteredTransactionsCount);
+
+        //current year filter for all transactions
+        if (empty($filtercustomerId) and ! $renderAll) {
+            $renderAll = false;
+        } else {
+            $renderAll = true;
+        }
+
+        if (!empty($this->wholeTransactions)) {
+            foreach ($this->wholeTransactions as $io => $each) {
+                $detailsControl = wf_Link(self::URL_ME . '&showtransaction=' . $each['id'], $each['id']);
+                @$userLogin = $this->allCustomers[$each['customerid']];
+                @$userRealname = $this->allRealnames[$userLogin];
+                @$userAddress = $this->allAddress[$userLogin];
+                $stateIcon = web_bool_led($each['processed']);
+                $userLink = (!empty($userLogin)) ? wf_Link('?module=userprofile&username=' . $userLogin, web_profile_icon() . ' ' . $userAddress) : '';
+
+                //append data to results
+                $data[] = $detailsControl;
+                $data[] = $each['date'];
+                $data[] = $each['summ'];
+                $data[] = $each['customerid'];
+                $data[] = $userRealname;
+                $data[] = $userLink;
+                $data[] = $each['paysys'];
+                $data[] = $stateIcon;
+
+                $json->addRow($data);
+                unset($data);
+            }
+        }
+
+        $json->getJson();
+    }
+
+
+    /**
+     * Performs transactions filtering, ordering and load for ajax list
+     * 
+     * @param string $filtercustomerId
+     * @param bool $renderAll
+     *
+     * @return void
+     */
+    public function transactionsLoader($filtercustomerId = '', $renderAll = false) {
+        $filtercustomerId = ubRouting::filters($filtercustomerId, 'mres');
+
+        $this->onPage = (ubRouting::checkGet('iDisplayLength')) ? ubRouting::get('iDisplayLength') : $this->onPage;
+
+        //login filtering
+        if ($filtercustomerId) {
+            $this->transactionsDb->where('customerid', '=', $filtercustomerId);
+        } else {
+            //date current year filtering 
+            if (!$renderAll) {
+                $this->transactionsDb->where('date', 'LIKE', curyear() . '-%');
+            }
+        }
+
+
+        $sortField = 'date';
+        $sortDir = 'desc';
+        if (ubRouting::checkGet('iSortCol_0', false)) {
+            $sortingColumn = ubRouting::get('iSortCol_0', 'int');
+            $sortDir = ubRouting::get('sSortDir_0', 'gigasafe');
+            switch ($sortingColumn) {
+                case 0:
+                    $sortField = 'id';
+                    break;
+                case 1:
+                    $sortField = 'date';
+                    break;
+                case 2:
+                    $sortField = 'summ';
+                    break;
+                case 3:
+                    $sortField = 'customerid';
+                    break;
+                case 4:
+                    $sortField = 'customerid';
+                    break;
+                case 5:
+                    $sortField = 'customerid';
+                    break;
+                case 6:
+                    $sortField = 'paysys';
+                    break;
+                case 7:
+                    $sortField = 'processed';
+                    break;
+            }
+        }
+        $this->transactionsDb->orderBy($sortField, $sortDir);
+        $this->totalTransactionsCount = $this->transactionsDb->getFieldsCount('id', false);
+
+
+
+        $offset = 0;
+        if (ubRouting::checkGet('iDisplayStart')) {
+            $offset = ubRouting::get('iDisplayStart', 'int');
+        }
+
+        //optional live search
+        $searchQuery = '';
+        if (ubRouting::checkGet('sSearch')) {
+            $searchQuery = ubRouting::get('sSearch', 'mres');
+            if (!$filtercustomerId) {
+                $dateQuery = ubRouting::filters($searchQuery, 'gigasafe', '-: ');
+                $this->transactionsDb->where('customerid', 'LIKE', '%' . $searchQuery . '%');
+                $this->transactionsDb->orWhere('date', 'LIKE', '%' . $dateQuery . '%');
+                $this->transactionsDb->orWhere('summ', 'LIKE', '%' . $searchQuery . '%');
+                $this->transactionsDb->orWhere('paysys', 'LIKE', '%' . $searchQuery . '%');
+            }
+        }
+
+
+        //optional live search happens
+        if ($searchQuery) {
+            $this->filteredTransactionsCount = $this->transactionsDb->getFieldsCount('id', false) - 1;
+        } else {
+            $this->filteredTransactionsCount = $this->totalTransactionsCount;
+        }
+        $this->transactionsDb->limit($this->onPage, $offset);
+        $this->wholeTransactions = $this->transactionsDb->getAll();
     }
 }

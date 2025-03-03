@@ -2,17 +2,20 @@
 
 if (cfr('OPENPAYZ')) {
     $altCfg = $ubillingConfig->getAlter();
-//check is openpayz enabled?
+    //check is openpayz enabled?
     if ($altCfg['OPENPAYZ_SUPPORT']) {
 
         $paySysLoadFlag = false;
-        if (ubRouting::checkGet('transactionsearch') OR ubRouting::checkPost('searchpaysys')) {
+        if (ubRouting::checkGet('transactionsearch') or ubRouting::checkPost('searchpaysys')) {
             $paySysLoadFlag = true;
         }
         $opayz = new OpenPayz($paySysLoadFlag);
 
+        //rendering ajax datatables data
         if (ubRouting::checkGet('ajax')) {
-            $opayz->transactionAjaxSource();
+            $customerIdFilter = (ubRouting::checkGet('filtercustomerid')) ? ubRouting::get('filtercustomerid') : '';
+            $renderAll = (ubRouting::checkGet('renderall')) ? true : false;
+            $opayz->jsonTransactionsList($customerIdFilter, $renderAll);
         }
 
 
@@ -34,7 +37,7 @@ if (cfr('OPENPAYZ')) {
             } else {
                 if (!ubRouting::checkGet('showtransaction')) {
                     //show transactions list
-                    $opayz->renderTransactionList();
+                    $opayz->renderTransactionsList();
                 } else {
                     $opayz->renderTransactionDetails(ubRouting::get('showtransaction'));
                 }
@@ -49,4 +52,3 @@ if (cfr('OPENPAYZ')) {
 } else {
     show_error(__('You cant control this module'));
 }
-
