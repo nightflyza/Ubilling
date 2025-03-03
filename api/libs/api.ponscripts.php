@@ -100,6 +100,7 @@ class PONScripts {
     const PATH_CUSTOM = 'content/documents/myscripts/';
     const ICONS_PATH = 'skins/';
     const URL_ME = '?module=ponscripts';
+    const ROUTE_RENDER_OLT_SCRIPTS='showoltidscripts';
     const ROUTE_RUN_IFSCRIPT = 'runifscript';
     const ROUTE_RUN_OLTID = 'oltid';
     const ROUTE_RUN_IFNAME = 'iface';

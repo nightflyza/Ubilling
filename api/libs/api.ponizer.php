@@ -839,7 +839,7 @@ class PONizer {
                             );
 
                             switch ($this->snmpTemplates[$oltModelId]['signal']['SIGNALMODE']) {
-                                    /**
+                                /**
                                  * Switchable OLT devices polling abstraction layer
                                  */
                                 case 'HAL':
@@ -3028,9 +3028,10 @@ class PONizer {
         $oltsTemps = array(); //oltId=>temperature
         $oltData = new OLTAttractor();
         $ponScriptsFlag = ($this->altCfg['SWITCHES_AUTH_ENABLED'] and $this->altCfg['PON_SCRIPTS_ENABLED']) ? true : false;
+        $ponscriptsOltRender = 0;
         if ($ponScriptsFlag) {
             $ponScripts = new PONScripts($this->allOltIps, $this->allOltModelIds, $this->allModelsData);
-            //ic($ponScripts);
+            $ponscriptsOltRender = ubRouting::get($ponScripts::ROUTE_RENDER_OLT_SCRIPTS, 'int');
         }
 
         $statsControls = wf_BackLink(self::URL_ONULIST);
@@ -3124,6 +3125,13 @@ class PONizer {
                 if (@$this->altCfg['PONMAP_ENABLED']) {
                     $oltControls .= ' ' . wf_Link(PONONUMap::URL_ME . '&' . PONONUMap::ROUTE_FILTER_OLT . '=' . $oltId, wf_img('skins/ponmap_icon.png', __('ONU Map')), false);
                 }
+
+                if ($ponScriptsFlag) {
+                    if (cfr('PONSCRIPTS')) {
+                        $oltControls .= ' ' . wf_Link(self::URL_ME . '&oltstats=true&' . $ponScripts::ROUTE_RENDER_OLT_SCRIPTS . '=' . $oltId, wf_img('skins/script16.png', __('Scripts')));
+                    }
+                }
+
                 $result .= $oltControls;
                 $result .= wf_tag('h3', true);
                 if (isset($oltInterfacesFilled[$oltId])) {
@@ -3153,7 +3161,9 @@ class PONizer {
                         $interfaceScriptsControls = '';
                         if ($ponScriptsFlag) {
                             if (cfr('PONSCRIPTS')) {
-                                $interfaceScriptsControls = $ponScripts->renderIfaceControls($oltId, $eachInterface);
+                                if ($oltId == $ponscriptsOltRender) {
+                                    $interfaceScriptsControls = $ponScripts->renderIfaceControls($oltId, $eachInterface);
+                                }
                             }
                         }
 
