@@ -17,6 +17,7 @@ if ($ubillingConfig->getAlterParam('PON_SCRIPTS_ENABLED')) {
                     $oltId = ubRouting::get($ponScripts::ROUTE_RUN_OLTID, 'int');
                     $ifName = ubRouting::get($ponScripts::ROUTE_RUN_IFNAME, 'mres');
                     show_window(__('Result'), $ponScripts->runIfaceScript($scriptId, $oltId, $ifName));
+                    zb_BillingStats();
                 } else {
                     show_error(__('Something went wrong') . ': ' . __('Important parameter missed'));
                 }

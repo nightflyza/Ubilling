@@ -792,34 +792,6 @@ class OpenPayz {
         return ($result);
     }
 
-    /**
-     * Sets openpayz transaction as processed in database
-     * 
-     * @param int $transactionId
-     * 
-     * @return void
-     */
-    public function transactionSetProcessed($transactionId) {
-        $transactionId = ubRouting::filters($transactionId, 'int');
-        $this->transactionsDb->where('id', '=', $transactionId);
-        $this->transactionsDb->data('processed', '1');
-        $this->transactionsDb->save();
-        log_register('OPENPAYZ PROCESSED [' . $transactionId . ']');
-    }
-
-    /**
-     * Pushes user payment with some payment system
-     * 
-     * @param string $login
-     * @param float  $cash
-     * @param string $paysys
-     * 
-     * @return void
-     */
-    public function cashAdd($login, $cash, $paysys) {
-        $note = 'OP:' . $paysys;
-        zb_CashAdd($login, $cash, 'add', $this->altCfg['OPENPAYZ_CASHTYPEID'], $note);
-    }
 
     /**
      * Returns openpayz transaction data by its ID
@@ -851,7 +823,7 @@ class OpenPayz {
         $this->loadAddress();
         $this->loadRealname();
         $curYear = curyear();
-        $manual_mode = $this->altCfg['OPENPAYZ_MANUAL'];
+
         //loading current year transactions
         $this->loadTransactions($curYear);
 
@@ -860,13 +832,6 @@ class OpenPayz {
         if (!empty($this->allTransactions)) {
             foreach ($this->allTransactions as $io => $eachtransaction) {
                 $control = '';
-
-                if ($manual_mode) {
-                    if ($eachtransaction['processed'] == 0) {
-                        $control .= ' ' . wf_Link(self::URL_ME . '&process=' . $eachtransaction['id'], web_add_icon('Payment'));
-                    }
-                }
-
                 @$user_login = $this->allCustomers[$eachtransaction['customerid']];
                 @$user_realname = $this->allRealnames[$user_login];
                 @$user_address = $this->allAddress[$user_login];
