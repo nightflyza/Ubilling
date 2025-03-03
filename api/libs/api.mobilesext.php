@@ -139,7 +139,7 @@ class MobilesExt {
      */
     public function createUserMobile($login, $mobile, $notes = '') {
         $result = '';
-        if ((!empty($login)) AND ( !empty($mobile))) {
+        if ((!empty($login)) and (!empty($mobile))) {
             $this->mobilesDb->data('login', ubRouting::filters($login, 'mres'));
             $this->mobilesDb->data('mobile', ubRouting::filters($mobile, 'mres'));
             $this->mobilesDb->data('notes', ubRouting::filters($notes, 'mres'));
@@ -182,7 +182,7 @@ class MobilesExt {
             $mobileData = $this->allMobiles[$mobileId];
             $somethingChanged = false;
 
-            if ((!empty($mobile)) AND ( $mobileData['mobile'] != $mobile)) {
+            if ((!empty($mobile)) and ($mobileData['mobile'] != $mobile)) {
                 $somethingChanged = true;
                 $this->mobilesDb->data('mobile', ubRouting::filters($mobile, 'mres'));
                 log_register('MOBILEEXT CHANGE (' . $mobileData['login'] . ') MOBILE ON `' . $mobile . '` [' . $mobileId . ']');
@@ -297,7 +297,7 @@ class MobilesExt {
                 $result[$each['login']][] = $each['mobile'];
             }
         }
-        return($result);
+        return ($result);
     }
 
     /**
@@ -335,14 +335,15 @@ class MobilesExt {
             foreach ($inCallsLog as $io => $each) {
                 //only today calls
                 if ($each['date'] == $curdate) {
-                    if ((empty($each['login'])) AND ( $each['reply'] == 0)) {
+                    if ((empty($each['login'])) and ($each['reply'] == 0)) {
                         //just for last hour
                         if (substr($each['time'], 0, 3) == $curhour) {
-                            if (!empty($each['number'])) {
+                            $number = ubRouting::filters($each['number'], 'int');
+                            if (!empty($number)) {
                                 //is this really unknown number?
-                                $detectedLogin = $telepathy->getByPhone($each['number'], true, true);
+                                $detectedLogin = $telepathy->getByPhone($number, true, true);
                                 if (empty($detectedLogin)) {
-                                    $numsTmp[$each['number']] = $each['time'] . ' - ' . $each['number'];
+                                    $numsTmp[$number] = $each['time'] . ' - ' . $number;
                                 }
                             }
                         }
@@ -364,5 +365,4 @@ class MobilesExt {
             }
         }
     }
-
 }

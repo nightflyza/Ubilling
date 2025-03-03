@@ -5,12 +5,12 @@ if (cfr('MOBILE')) {
     if (wf_CheckGet(array('username'))) {
         $altCfg = $ubillingConfig->getAlter();
 
-        $login = vf($_GET['username']);
+        $login = ubRouting::get('username', 'login');
         // change mobile if need
-        if (isset($_POST['newmobile'])) {
-            $mobile = $_POST['newmobile'];
+        if (ubRouting::checkPost('newmobile')) {
+            $mobile = ubRouting::post('newmobile', 'safe');
             zb_UserChangeMobile($login, $mobile);
-            rcms_redirect("?module=mobileedit&username=" . $login);
+            ubRouting::nav('?module=mobileedit&username=' . $login);
         }
 
         $current_mobile = zb_UserGetMobile($login);
@@ -20,11 +20,9 @@ if (cfr('MOBILE')) {
         // Edit form construct
         $fieldnames = array('fieldname1' => __('Current mobile'), 'fieldname2' => __('New mobile'));
         $fieldkey = 'newmobile';
-        if (@$altCfg['MOBILE_FILTERS_DISABLED']) {
-            $formFilters = '';
-        } else {
-            $formFilters = 'mobile';
-        }
+        $formFilters = (@$altCfg['MOBILE_FILTERS_DISABLED']) ? '' : 'mobile';
+
+
         $form = web_EditorStringDataForm($fieldnames, $fieldkey, $useraddress, $current_mobile, $formFilters);
         // Edit form display        
         show_window(__('Edit mobile'), $form);
@@ -56,6 +54,7 @@ if (cfr('MOBILE')) {
                     $extMobiles->updateUserMobile($updateExtId, $updateNumber, $updateNotes);
                     ubRouting::nav($extMobiles::URL_ME . '&' . $extMobiles::ROUTE_LOGIN . '=' . $login);
                 }
+
                 $extCreateForm = $extMobiles->renderCreateForm($login);
                 $extList = $extMobiles->renderUserMobilesList($login);
                 show_window(__('Additional mobile phones'), $extList . $extCreateForm);
@@ -72,4 +71,3 @@ if (cfr('MOBILE')) {
 } else {
     show_error(__('You cant control this module'));
 }
-?>
