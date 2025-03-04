@@ -3569,4 +3569,5 @@ $lang['def']['BGP problems'] = 'Проблеми з BGP';
 $lang['def']['peers is dead'] = 'пірів мертві';
 $lang['def']['BGP Sessions monitoring'] = 'Моніторинг BGP сесій';
 $lang['def']['right to view BGP sessions monitoring report'] = 'Право використовувати моніторинг BGP сесій';
+$lang['def']['Use DataTables renderer'] = 'Використовувати DataTables для відображення результатів';
 $lang['def'][''] = '';

@@ -4,7 +4,7 @@ if (cfr('REPORTMASTER')) {
 
     $reportMaster = new ReportMaster();
 
-//new report creation
+    //new report creation
     if (ubRouting::checkPost(array($reportMaster::PROUTE_NEWTYPE, $reportMaster::PROUTE_NEWNAME, $reportMaster::PROUTE_NEWQUERY))) {
         if (cfr('REPORTMASTERADM')) {
             $newReportType = ubRouting::post($reportMaster::PROUTE_NEWTYPE);
@@ -15,13 +15,14 @@ if (cfr('REPORTMASTER')) {
             $newReportAddr = ubRouting::post($reportMaster::PROUTE_NEWADDR);
             $newReportRenderNames = ubRouting::post($reportMaster::PROUTE_NEWRNAMES);
             $newReportRowCount = ubRouting::post($reportMaster::PROUTE_NEWROWCOUNT);
-            $reportMaster->createReport($newReportType, $newReportName, $newReportQuery, $newReportKeys, $newReportFields, $newReportAddr, $newReportRenderNames, $newReportRowCount);
+            $newReportDtRender = ubRouting::post($reportMaster::PROUTE_NEWRDTRENDER);
+            $reportMaster->createReport($newReportType, $newReportName, $newReportQuery, $newReportKeys, $newReportFields, $newReportAddr, $newReportRenderNames, $newReportRowCount, $newReportDtRender);
             ubRouting::nav($reportMaster::URL_ME);
         } else {
             show_error(__('You cant control this module'));
         }
     }
-//third party report installation
+    //third party report installation
     if (ubRouting::checkPost($reportMaster::PROUTE_INSTALL)) {
         if (cfr('REPORTMASTERADM')) {
             $installResult = $reportMaster->installReport(ubRouting::post($reportMaster::PROUTE_INSTALL));
@@ -34,8 +35,8 @@ if (cfr('REPORTMASTER')) {
             show_error(__('Access denied'));
         }
     }
-//existing reports list
-    if (!ubRouting::checkGet($reportMaster::ROUTE_EDIT) AND ! ubRouting::checkGet($reportMaster::ROUTE_VIEW) AND ! ubRouting::checkGet($reportMaster::ROUTE_ADD)) {
+    //existing reports list
+    if (!ubRouting::checkGet($reportMaster::ROUTE_EDIT) and ! ubRouting::checkGet($reportMaster::ROUTE_VIEW) and ! ubRouting::checkGet($reportMaster::ROUTE_ADD)) {
         $listingControls = '';
         if (cfr('ROOT')) {
             $listingControls .= wf_Link($reportMaster::URL_ME . '&' . $reportMaster::ROUTE_BASEEXPORT . '=excel', web_icon_download(__('Export userbase')), false);
@@ -49,7 +50,7 @@ if (cfr('REPORTMASTER')) {
         zb_BillingStats(true);
     }
 
-//new report creation form
+    //new report creation form
     if (ubRouting::checkGet($reportMaster::ROUTE_ADD)) {
         if (cfr('REPORTMASTERADM')) {
             show_window(__('Create new report'), $reportMaster->renderCreateForm(ubRouting::get($reportMaster::ROUTE_ADD)));
@@ -60,7 +61,7 @@ if (cfr('REPORTMASTER')) {
     }
 
 
-//report deletion
+    //report deletion
     if (ubRouting::checkGet($reportMaster::ROUTE_DELETE)) {
         if (cfr('REPORTMASTERADM')) {
             $reportToDelete = ubRouting::get($reportMaster::ROUTE_DELETE, 'mres');
@@ -77,7 +78,7 @@ if (cfr('REPORTMASTER')) {
     }
 
 
-//existing report editing
+    //existing report editing
     if (ubRouting::checkGet($reportMaster::ROUTE_EDIT)) {
         if (cfr('REPORTMASTERADM')) {
             $reportToEdit = ubRouting::get($reportMaster::ROUTE_EDIT);
@@ -102,7 +103,7 @@ if (cfr('REPORTMASTER')) {
         }
     }
 
-//userbase exporting
+    //userbase exporting
     if (ubRouting::checkGet($reportMaster::ROUTE_BASEEXPORT)) {
         if (ubRouting::get($reportMaster::ROUTE_BASEEXPORT) == 'excel') {
             if (cfr('ROOT')) {
@@ -115,7 +116,7 @@ if (cfr('REPORTMASTER')) {
     }
 
 
-// view reports
+    // view reports
     if (ubRouting::checkGet($reportMaster::ROUTE_VIEW)) {
         $reportCode = $reportMaster->renderReport(ubRouting::get($reportMaster::ROUTE_VIEW));
         if (!empty($reportCode)) {

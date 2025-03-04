@@ -56,6 +56,7 @@ class ReportMaster {
     const PROUTE_NEWADDR = 'newaddr';
     const PROUTE_NEWRNAMES = 'newrnames';
     const PROUTE_NEWROWCOUNT = 'newrowcount';
+    const PROUTE_NEWRDTRENDER = 'newdtrender';
     const PROUTE_EDTYPE = 'editreporttype';
     const PROUTE_EDNAME = 'editreportname';
     const PROUTE_EDQUERY = 'editquery';
@@ -64,6 +65,7 @@ class ReportMaster {
     const PROUTE_EDADDR = 'editaddr';
     const PROUTE_EDRNAMES = 'editrnames';
     const PROUTE_EDROWCOUNT = 'editrowcount';
+    const PROUTE_EDRDTRENDER = 'editdtrender';
     const PROUTE_EDADMACL = 'editadminsacl';
     const PROUTE_EDONTB = 'editontb';
     const PROUTE_EDAOTD = 'editaotd';
@@ -337,10 +339,11 @@ class ReportMaster {
      * @param int $addr address rendering by login field flag
      * @param int $rn realname rendering by login field flag
      * @param int $rowcount result rows count rendering flag
+     * @param int $dtRender use Data Tables for SQL results rendering
      * 
      * @return void
      */
-    public function createReport($type, $name, $query, $keys = '', $fields = '', $addr = 0, $rn = 0, $rowcount = 0) {
+    public function createReport($type, $name, $query, $keys = '', $fields = '', $addr = 0, $rn = 0, $rowcount = 0, $dtRender = 0) {
         $fileName = 'rm' . time();
         $pathToSave = self::PATH_REPORTS . $fileName;
         $isOk = false;
@@ -365,6 +368,7 @@ class ReportMaster {
             $reportBody .= 'REPORT_ADDR="' . $addr . '"' . PHP_EOL;
             $reportBody .= 'REPORT_RNAMES="' . $rn . '"' . PHP_EOL;
             $reportBody .= 'REPORT_ROW_COUNT="' . $rowcount . '"' . PHP_EOL;
+            $reportBody .= 'REPORT_DT_RENDER="' . $dtRender . '"' . PHP_EOL;
         }
 
         if ($type == 'onepunch') {
@@ -408,6 +412,7 @@ class ReportMaster {
             $inputs .= web_TriggerSelector(self::PROUTE_NEWADDR) . ' ' . __('Show full address by login key') . wf_tag('br');
             $inputs .= web_TriggerSelector(self::PROUTE_NEWRNAMES) . ' ' . __('Show Real Names by login key') . wf_tag('br');
             $inputs .= web_TriggerSelector(self::PROUTE_NEWROWCOUNT) . ' ' . __('Show data query row count') . wf_tag('br');
+            $inputs .= web_TriggerSelector(self::PROUTE_NEWRDTRENDER) . ' ' . __('Use DataTables renderer') . wf_tag('br');
         }
 
         if ($type == 'onepunch') {
@@ -460,16 +465,23 @@ class ReportMaster {
      * @param bool $address
      * @param bool $realnames
      * @param bool $rowcount
+     * @param bool $dtRenderer
      * 
      * @return void
      */
-    protected function showSqlReport($reportfile, $report_name, $titles, $keys, $alldata, $address = 0, $realnames = 0, $rowcount = 0) {
+    protected function showSqlReport($reportfile, $report_name, $titles, $keys, $alldata, $address = 0, $realnames = 0, $rowcount = 0, $dtRenderer = false) {
+        $result = '';
         $report_name = __($report_name) . ' ';
-        $urlPrint = self::URL_ME . '&' . self::ROUTE_VIEW . '=' . $reportfile . '&' . self::ROUTE_RENDERER . '=' . self::MOD_PRINT;
-        $urlCsv = self::URL_ME . '&' . self::ROUTE_VIEW . '=' . $reportfile . '&' . self::ROUTE_RENDERER . '=' . self::MOD_CSV;
-        $report_name .= wf_Link($urlPrint, web_icon_print(), false, '', 'target="_BLANK"') . ' ';
-        $report_name .= wf_Link($urlCsv, wf_img('skins/excel.gif', __('Export') . ' CSV'), false) . ' ';
-        $result = $this->getReportData($reportfile, $report_name, $titles, $keys, $alldata, $address, $realnames, $rowcount);
+        if ($dtRenderer) {
+            $result .= $this->getReportDataDT($titles, $keys, $alldata, $address, $realnames, $rowcount);
+        } else {
+            $urlPrint = self::URL_ME . '&' . self::ROUTE_VIEW . '=' . $reportfile . '&' . self::ROUTE_RENDERER . '=' . self::MOD_PRINT;
+            $urlCsv = self::URL_ME . '&' . self::ROUTE_VIEW . '=' . $reportfile . '&' . self::ROUTE_RENDERER . '=' . self::MOD_CSV;
+            $report_name .= wf_Link($urlPrint, web_icon_print(), false, '', 'target="_BLANK"') . ' ';
+            $report_name .= wf_Link($urlCsv, wf_img('skins/excel.gif', __('Export') . ' CSV'), false) . ' ';
+            $result .= $this->getReportData($titles, $keys, $alldata, $address, $realnames, $rowcount);
+        }
+
         $result .= wf_delimiter(1);
         $result .= $this->renderBackControl();
         show_window($report_name, $result);
@@ -554,7 +566,7 @@ class ReportMaster {
      * @return void
      */
     protected function showSqlPrintable($reportfile, $report_name, $titles, $keys, $alldata, $address = 0, $realnames = 0, $rowcount = 0) {
-        $result = $this->getReportData($report_name, $report_name, $titles, $keys, $alldata, $address, $realnames, $rowcount);
+        $result = $this->getReportData($titles, $keys, $alldata, $address, $realnames, $rowcount);
         $result = zb_ReportPrintable(__($report_name), $result);
         die($result);
     }
@@ -562,8 +574,6 @@ class ReportMaster {
     /**
      * Returns custom-report data
      * 
-     * @param string $reportfile
-     * @param string $report_name
      * @param array $titles
      * @param array $keys
      * @param array $alldata
@@ -573,7 +583,7 @@ class ReportMaster {
      * 
      * @return string
      */
-    protected function getReportData($reportfile, $report_name, $titles, $keys, $alldata, $address = 0, $realnames = 0, $rowcount = 0) {
+    protected function getReportData($titles, $keys, $alldata, $address = 0, $realnames = 0, $rowcount = 0) {
         $result = '';
         $allrealnames = zb_UserGetAllRealnames();
         $alladdress = zb_AddressGetFulladdresslist();
@@ -624,6 +634,88 @@ class ReportMaster {
     }
 
     /**
+     * Returns custom-report data as embedded DataTable
+     * 
+     * @param array $titles
+     * @param array $keys
+     * @param array $alldata
+     * @param bool $address
+     * @param bool $realnames
+     * @param bool $rowcount
+     * 
+     * @return string
+     */
+    protected function getReportDataDT($titles, $keys, $alldata, $address = 0, $realnames = 0, $rowcount = 0) {
+        $result = '';
+        $totalCount = sizeof($alldata);
+        $columns = array();
+        $dataArr = array();
+
+        if ($realnames) {
+            $allrealnames = zb_UserGetAllRealnames();
+        }
+
+        if ($address) {
+            $alladdress = zb_AddressGetFulladdresslist();
+        }
+
+
+        foreach ($titles as $eachtitle) {
+            $columns[] =  __($eachtitle);
+        }
+
+        if ($address) {
+            $columns[] =  __('Full address');
+        }
+
+        if ($realnames) {
+            $columns[] =  __('Real Name');
+        }
+
+
+
+        if (!empty($alldata)) {
+            foreach ($alldata as $io => $eachdata) {
+                $dataRow = array();
+                foreach ($keys as $eachkey) {
+                    if (array_key_exists($eachkey, $eachdata)) {
+                        $dataRow[] = $eachdata[$eachkey];
+                    }
+                }
+
+                if ($address) {
+                    $userAddress = '';
+                    if (@$alladdress[$eachdata['login']]) {
+                        $userAddress = @$alladdress[$eachdata['login']];
+                    }
+                    $dataRow[] = $userAddress;
+                }
+
+                if ($realnames) {
+                    $userRealName = '';
+                    if (@$allrealnames[$eachdata['login']]) {
+                        $userRealName = @$allrealnames[$eachdata['login']];
+                    }
+                    $userLink = wf_Link(self::URL_USERPROFILE . $eachdata['login'], web_profile_icon() . ' ' . $userRealName);
+                    $dataRow[] = $userLink;
+                }
+
+
+                $dataArr[] = $dataRow;
+            }
+        }
+
+
+        $options = '"dom": \'<"F"lfB>rti<"F"ps>\',  buttons: [\'csv\', \'excel\', \'pdf\', \'print\']';
+        $result = wf_JqDtEmbed($columns, $dataArr, false, 'results', 50, $options);
+
+        if ($rowcount) {
+            $result .= wf_tag('strong') . __('Total') . ': ' . $totalCount . wf_tag('strong', true);
+        }
+        return ($result);
+    }
+
+    /**
      * Renders some report by its reportId aka template name
      * 
      * @param string $reportId
@@ -631,10 +723,14 @@ class ReportMaster {
      * @return void/script for One-Punch based report
      */
     public function renderReport($reportId) {
+        global $system;
         $result = '';
         if (isset($this->allReports[$reportId])) {
             if ($this->isMeAllowed($reportId)) {
                 $reportData = $this->allReports[$reportId];
+                //setting page title
+                $system->config['pagename'] =  __($reportData['REPORT_NAME']);
+
                 //need some advice?
                 if ($reportData['REPORT_AOTD']) {
                     $fga = new FGA();
@@ -644,6 +740,13 @@ class ReportMaster {
 
                 //normal SQL report
                 if ($reportData['REPORT_TYPE'] == 'SQL') {
+                    $dtRendererFlag = false;
+                    if (isset($reportData['REPORT_DT_RENDER'])) {
+                        if ($reportData['REPORT_DT_RENDER']) {
+                            $dtRendererFlag = true;
+                        }
+                    }
+
                     $data_query = simple_queryall($reportData['REPORT_QUERY']);
                     $keys = explode(',', $reportData['REPORT_KEYS']);
                     $titles = explode(',', $reportData['REPORT_FIELD_NAMES']);
@@ -658,10 +761,11 @@ class ReportMaster {
                             $this->showSqlPrintable($reportId, $reportData['REPORT_NAME'], $titles, $keys, $data_query, $reportData['REPORT_ADDR'], $reportData['REPORT_RNAMES'], $reportData['REPORT_ROW_COUNT']);
                         }
                     } else {
-                        //just render as normal table
-                        $this->showSqlReport($reportId, $reportData['REPORT_NAME'], $titles, $keys, $data_query, $reportData['REPORT_ADDR'], $reportData['REPORT_RNAMES'], $reportData['REPORT_ROW_COUNT']);
+                        //just render as normal or DataTables table
+                        $this->showSqlReport($reportId, $reportData['REPORT_NAME'], $titles, $keys, $data_query, $reportData['REPORT_ADDR'], $reportData['REPORT_RNAMES'], $reportData['REPORT_ROW_COUNT'], $dtRendererFlag);
                     }
                 }
+
                 //One-Punch type report?
                 if ($reportData['REPORT_TYPE'] == 'ONEPUNCH') {
                     $onePunch = new OnePunch($reportData['REPORT_QUERY']);
@@ -728,6 +832,8 @@ class ReportMaster {
                 $inputs .= web_TriggerSelector(self::PROUTE_EDADDR, $reportData['REPORT_ADDR']) . ' ' . __('Show full address by login key') . wf_tag('br');
                 $inputs .= web_TriggerSelector(self::PROUTE_EDRNAMES, $reportData['REPORT_RNAMES']) . ' ' . __('Show Real Names by login key') . wf_tag('br');
                 $inputs .= web_TriggerSelector(self::PROUTE_EDROWCOUNT, $reportData['REPORT_ROW_COUNT']) . ' ' . __('Show data query row count') . wf_tag('br');
+                $dtRenderValue = (isset($reportData['REPORT_DT_RENDER'])) ? $reportData['REPORT_DT_RENDER'] : 0;
+                $inputs .= web_TriggerSelector(self::PROUTE_EDRDTRENDER, $dtRenderValue) . ' ' . __('Use DataTables renderer') . wf_tag('br');
             }
 
             if ($reportType == 'ONEPUNCH') {
@@ -965,6 +1071,7 @@ class ReportMaster {
                 $newReportIcon = ubRouting::post(self::PROUTE_EDICON);
                 $newReportOnTb = ubRouting::post(self::PROUTE_EDONTB);
                 $newReportAotd = ubRouting::post(self::PROUTE_EDAOTD);
+                $newReportDtRender = ubRouting::post(self::PROUTE_EDRDTRENDER);
 
                 if (!empty($newReportType) and ! empty($newReportName) and ! empty($newReportQuery)) {
                     //base params here?
@@ -988,6 +1095,7 @@ class ReportMaster {
                     $reportBody .= 'REPORT_ADDR="' . $newReportAddr . '"' . PHP_EOL;
                     $reportBody .= 'REPORT_RNAMES="' . $newReportRenderNames . '"' . PHP_EOL;
                     $reportBody .= 'REPORT_ROW_COUNT="' . $newReportRowCount . '"' . PHP_EOL;
+                    $reportBody .= 'REPORT_DT_RENDER="' . $newReportDtRender . '"' . PHP_EOL;
                 }
 
                 if ($newReportType == 'ONEPUNCH') {
