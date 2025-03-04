@@ -3118,6 +3118,7 @@ class PONizer {
             foreach ($oltOnuFilled as $oltId => $oltFilledPercent) {
                 $oltData->setOltId($oltId);
                 $oltControls = '';
+                $result .= wf_tag('a', false, '', 'name="go' . $oltId . '"') . wf_tag('a', true);
                 $result .= wf_tag('h3');
                 $result .= $this->allOltDevices[$oltId] . ' ' . __('filled on') . ' ' . $oltFilledPercent . '%';
                 $result .= ' (' . $oltOnuCounters[$oltId] . ' ' . __('ONU') . ' ' . __('Registered') . ')';
@@ -3128,7 +3129,8 @@ class PONizer {
 
                 if ($ponScriptsFlag) {
                     if (cfr('PONSCRIPTS')) {
-                        $oltControls .= ' ' . wf_Link(self::URL_ME . '&oltstats=true&' . $ponScripts::ROUTE_RENDER_OLT_SCRIPTS . '=' . $oltId, wf_img('skins/script16.png', __('Scripts')));
+                        $ponScriptGoUrl = self::URL_ME . '&oltstats=true&' . $ponScripts::ROUTE_RENDER_OLT_SCRIPTS . '=' . $oltId . '#go' . $oltId;
+                        $oltControls .= ' ' . wf_Link($ponScriptGoUrl, wf_img('skins/script16.png', __('Scripts')));
                     }
                 }
 
