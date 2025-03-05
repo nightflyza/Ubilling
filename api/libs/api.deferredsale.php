@@ -37,6 +37,21 @@ class DeferredSale {
 
     public function __construct($userLogin) {
         $this->setLogin($userLogin);
+        $this->setOptions();
+    }
+
+    /**
+     * Sets some current instance options
+     *
+     * @return void
+     */
+    protected function setOptions() {
+        global $ubillingConfig;
+        $defOptionState = $ubillingConfig->getAlterParam('DEFERRED_SALE_ENABLED', 0);
+        $defOptionState = ubRouting::filters($defOptionState, 'int');
+        if ($defOptionState > 1) {
+            $this->maxMonth = $defOptionState;
+        }
     }
 
     /**
@@ -60,7 +75,7 @@ class DeferredSale {
         for ($i = $this->minMonth; $i <= $this->maxMonth; $i++) {
             $result[$i] = $i;
         }
-        return($result);
+        return ($result);
     }
 
     /**
@@ -92,7 +107,7 @@ class DeferredSale {
         $inputs .= wf_Submit(__('Charge'));
         $form = wf_Form('', 'POST', $inputs, 'glamour');
         $result .= ' ' . wf_modalAuto(wf_img_sized('skins/letter-r16.png', __('Deferred sale'), '10'), __('Deferred sale'), $form);
-        return($result);
+        return ($result);
     }
 
     /**
@@ -147,7 +162,6 @@ class DeferredSale {
                 log_register('DEFSALE (' . $this->login . ') WRONG SUMM `' . $chargeSumm . '`');
             }
         }
-        return($result);
+        return ($result);
     }
-
 }
