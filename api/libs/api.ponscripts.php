@@ -100,7 +100,7 @@ class PONScripts {
     const PATH_CUSTOM = 'content/documents/myscripts/';
     const ICONS_PATH = 'skins/';
     const URL_ME = '?module=ponscripts';
-    const ROUTE_RENDER_OLT_SCRIPTS='showoltidscripts';
+    const ROUTE_RENDER_OLT_SCRIPTS = 'showoltidscripts';
     const ROUTE_RUN_IFSCRIPT = 'runifscript';
     const ROUTE_RUN_OLTID = 'oltid';
     const ROUTE_RUN_IFNAME = 'iface';
@@ -451,7 +451,7 @@ class PONScripts {
             $result .= $this->messages->getStyledMessage(__('Script') . ' ' . $scriptId . ' ' . __('not exists'), 'error');
         }
         $result .= wf_delimiter();
-        $result .= wf_BackLink(PONizer::URL_ME . '&oltstats=true');
+        $result .= wf_BackLink(PONizer::URL_ME . '&oltstats=true&' . self::ROUTE_RENDER_OLT_SCRIPTS . '=' . $oltId . '#go' . $oltId);
         return ($result);
     }
 }
