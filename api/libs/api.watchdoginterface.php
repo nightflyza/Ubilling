@@ -339,6 +339,7 @@ class WatchDogInterface {
         $operator = mysql_real_escape_string($operator);
         $condition = mysql_real_escape_string($condition);
         $action = mysql_real_escape_string($action);
+        $active = (!empty($active)) ? 1 : 0;
 
         if ((empty($name)) or (empty($param)) or (empty($action))) {
             throw new Exception(self::TASKADD_EX);

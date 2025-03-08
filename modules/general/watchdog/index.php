@@ -8,36 +8,40 @@ if (cfr('WATCHDOG')) {
         $interface->loadSettings();
 
         //manual run of existing tasks
-        if (wf_CheckGet(array('manual'))) {
+        if (ubRouting::checkGet('manual')) {
             $watchdog = new WatchDog();
             $watchdog->processTask();
             ubRouting::nav('?module=watchdog');
         }
+
         //deleting existing task
-        if (wf_CheckGet(array('delete'))) {
-            $interface->deleteTask($_GET['delete']);
+        if (ubRouting::checkGet('delete')) {
+            $interface->deleteTask(ubRouting::get('delete'));
             ubRouting::nav('?module=watchdog');
         }
 
-        //adding new task
-        if (wf_CheckPost(array('newname', 'newchecktype', 'newparam', 'newoperator'))) {
-            if (isset($_POST['newactive'])) {
-                $newActivity = 1;
-            } else {
-                $newActivity = 0;
-            }
-            $interface->createTask($_POST['newname'], $_POST['newchecktype'], $_POST['newparam'], $_POST['newoperator'], $_POST['newcondition'], $_POST['newaction'], $newActivity);
+        //new task creation
+        if (ubRouting::checkPost(array('newname', 'newchecktype', 'newparam', 'newoperator'))) {
+            $interface->createTask(
+                ubRouting::post('newname'),
+                ubRouting::post('newchecktype'),
+                ubRouting::post('newparam'),
+                ubRouting::post('newoperator'),
+                ubRouting::post('newcondition'),
+                ubRouting::post('newaction'),
+                ubRouting::post('newactive')
+            );
             ubRouting::nav('?module=watchdog');
         }
 
         //changing task
-        if (wf_CheckPost(array('editname'))) {
+        if (ubRouting::checkPost('editname')) {
             $interface->changeTask();
             ubRouting::nav('?module=watchdog');
         }
 
         //changing watchdog settings
-        if (wf_CheckPost(array('changealert'))) {
+        if (ubRouting::checkPost('changealert')) {
             $interface->saveSettings();
             ubRouting::nav('?module=watchdog');
         }
@@ -58,12 +62,12 @@ if (cfr('WATCHDOG')) {
         //show watchdog main control panel
         show_window('', $interface->panel());
 
-        if (!wf_CheckGet(array('edit'))) {
+        if (!ubRouting::checkGet(array('edit'))) {
             //show previous detections
-            if (wf_CheckGet(array('previousalerts'))) {
+            if (ubRouting::checkGet(array('previousalerts'))) {
                 $interface->loadAllPreviousAlerts();
 
-                if (wf_CheckPost(array('previousalertsearch'))) {
+                if (ubRouting::checkPost(array('previousalertsearch'))) {
                     //do the search
                     show_window(__('Search results'), $interface->alertSearchResults($_POST['previousalertsearch']));
                 } else {

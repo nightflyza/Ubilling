@@ -836,7 +836,4 @@ class WatchDog {
             log_register('WATCHDOG MAINTENANCE TASKS SKIPPED');
         }
     }
-
 }
-
-?>
