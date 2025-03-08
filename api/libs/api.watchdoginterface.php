@@ -340,7 +340,7 @@ class WatchDogInterface {
         $condition = mysql_real_escape_string($condition);
         $action = mysql_real_escape_string($action);
 
-        if ((empty($name)) OR ( empty($param)) OR ( empty($action))) {
+        if ((empty($name)) or (empty($param)) or (empty($action))) {
             throw new Exception(self::TASKADD_EX);
         }
 
@@ -438,7 +438,7 @@ class WatchDogInterface {
                 $result .= wf_Link('?module=watchdog&maintenance=disable', wf_img('skins/icon_minus.png') . ' ' . __('Watchdog') . ': ' . __('Disabled'), false, 'ubButton');
             }
             $result .= ' ';
-            
+
             if (!$this->settings['WATCHDOG_SMSSILENCE']) {
                 $result .= wf_Link('?module=watchdog&smssilence=enable', wf_img('skins/icon_smsenabled.png') . ' ' . __('SMS silence') . ': ' . __('Disabled'), false, 'ubButton');
             } else {
@@ -494,16 +494,18 @@ class WatchDogInterface {
                 $timestamp = strtotime($each['date']);
                 $date = date("Y, n-1, j", $timestamp);
                 $rawTime = date("H:i:s", $timestamp);
+                $eventString = ubRouting::filters($each['event'], 'safe');
+                $eventString = str_replace(PHP_EOL, '', $eventString);
                 $calendarData .= "
                       {
-                        title: '" . $rawTime . ' ' . $each['event'] . "',
+                        title: '" . $rawTime . ' ' . $eventString . "',
                         start: new Date(" . $date . "),
                         end: new Date(" . $date . "),
                         className : 'undone'
 		      },
                     ";
             }
-            $result .= wf_FullCalendar($calendarData);
+            $result .= wf_FullCalendar($calendarData, '', false, false, '', true);
         } else {
             $result .= __('Nothing found');
         }
@@ -560,5 +562,4 @@ class WatchDogInterface {
 
         return ($result);
     }
-
 }
