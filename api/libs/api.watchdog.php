@@ -444,7 +444,7 @@ class WatchDog {
                 // gets some user traffic by his login
                 case 'getusertraff':
                     if (!empty($this->taskData[$taskID]['param'])) {
-                        $userLoging = mysql_real_escape_string($this->taskData[$taskID]['param']);
+                        $userLogin = mysql_real_escape_string($this->taskData[$taskID]['param']);
                         $traffQuery = "SELECT SUM(`D0`+`U0`) from `users` WHERE login='" . $userLogin . "'";
                         $traffData = simple_query($traffQuery);
                         $result = $traffData['SUM(`D0`+`U0`)'];
