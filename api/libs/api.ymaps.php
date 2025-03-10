@@ -179,7 +179,7 @@ function generic_mapAddMark($coords, $title = '', $content = '', $footer = '', $
         
             
             ';
-    return($result);
+    return ($result);
 }
 
 /**
@@ -206,10 +206,11 @@ function generic_MapContainer($width = '', $height = '', $id = '') {
  * @param string $name
  * @param string $title
  * @param string $data
+ * @param int $precision
  * 
  * @return string
  */
-function generic_MapEditor($name, $title = '', $data = '') {
+function generic_MapEditor($name, $title = '', $data = '', $precision = 8) {
     $data = str_replace("'", '`', $data);
     $data = str_replace("\n", '', $data);
 
@@ -221,9 +222,9 @@ function generic_MapEditor($name, $title = '', $data = '') {
                         contentHeader: \'' . $title . '\',
                         contentBody: \' \' +
                             \'<p>\' + [
-                            coords[0].toPrecision(7),
-                            coords[1].toPrecision(7)
-                            ].join(\', \') + \'</p> <form action="" method="POST"><input type="hidden" name="' . $name . '" value="\'+coords[0].toPrecision(7)+\', \'+coords[1].toPrecision(7)+\'">' . $data . '</form> \'
+                            coords[0].toPrecision(' . $precision . '),
+                            coords[1].toPrecision(' . $precision . ')
+                            ].join(\', \') + \'</p> <form action="" method="POST"><input type="hidden" name="' . $name . '" value="\'+coords[0].toPrecision(' . $precision . ')+\', \'+coords[1].toPrecision(' . $precision . ')+\'">' . $data . '</form> \'
                  
                     });
                 } else {
@@ -234,5 +235,3 @@ function generic_MapEditor($name, $title = '', $data = '') {
 
     return ($result);
 }
-
-?>

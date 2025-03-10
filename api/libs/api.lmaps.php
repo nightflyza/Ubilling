@@ -73,7 +73,7 @@ function lm_GetIconUrl($icon) {
         case 'twirl#campingIcon':
             $result = 'skins/mapmarks/camping.png';
             break;
-            //extended icon pack
+        //extended icon pack
         case 'redCar':
             $result = 'skins/mapmarks/redcar.png';
             break;
@@ -84,7 +84,7 @@ function lm_GetIconUrl($icon) {
             $result = 'skins/mapmarks/yellowcar.png';
             break;
 
-            //unknown icon fallback
+        //unknown icon fallback
         default:
             $result = 'skins/mapmarks/blue.png';
             show_warning('Unknown icon received: ' . $icon);
@@ -193,7 +193,7 @@ function generic_MapAddCircle($coords, $radius, $content = '', $hint = '', $colo
  * 
  * @return string
  */
-function generic_MapInit($center='', $zoom = 15, $type = 'map', $placemarks = '', $editor = '', $lang = 'uk-UA', $container = 'ubmap', $searchPrefill = '') {
+function generic_MapInit($center = '', $zoom = 15, $type = 'map', $placemarks = '', $editor = '', $lang = 'uk-UA', $container = 'ubmap', $searchPrefill = '') {
     global $ubillingConfig;
     $mapsCfg = $ubillingConfig->getYmaps();
     $result = '';
@@ -317,15 +317,16 @@ function generic_MapInit($center='', $zoom = 15, $type = 'map', $placemarks = ''
  * @param string $name
  * @param string $title
  * @param string $data
+ * @param int    $precision
  * 
  * @return string
  */
-function generic_MapEditor($name, $title = '', $data = '') {
+function generic_MapEditor($name, $title = '', $data = '', $precision = 8) {
 
     $data = str_replace("'", '`', $data);
     $data = str_replace("\n", '', $data);
     $data = str_replace('"', '\"', $data);
-    $content = '<form action=\"\" method=\"POST\"><input type=\"hidden\" name=' . $name . ' value=\'"+e.latlng.lat.toPrecision(7)+\',\'+e.latlng.lng.toPrecision(7)+"\'>' . $data . '</form>';
+    $content = '<form action=\"\" method=\"POST\"><input type=\"hidden\" name=' . $name . ' value=\'"+e.latlng.lat.toPrecision(' . $precision . ')+\',\'+e.latlng.lng.toPrecision(' . $precision . ')+"\'>' . $data . '</form>';
 
     $windowCode = '<b>' . $title . '</b><br>' . $content;
     $result = 'var popup = L.popup();
@@ -333,7 +334,7 @@ function generic_MapEditor($name, $title = '', $data = '') {
                 function onMapClick(e) {
                         popup
                                 .setLatLng(e.latlng)
-                                .setContent("' . $windowCode . '<br>" + e.latlng.lat.toPrecision(7) + "," + e.latlng.lng.toPrecision(7))
+                                .setContent("' . $windowCode . '<br>" + e.latlng.lat.toPrecision(' . $precision . ') + "," + e.latlng.lng.toPrecision(' . $precision . '))
                                 .openOn(map);
                 }
 

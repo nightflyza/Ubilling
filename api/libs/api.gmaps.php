@@ -85,7 +85,7 @@ function gm_GetIconUrl($icon) {
             break;
 
         //unknown icon fallback
-        default :
+        default:
             $result = 'skins/mapmarks/blue.png';
             show_warning('Unknown icon received: ' . $icon);
             break;
@@ -107,7 +107,7 @@ function gm_GetIconUrl($icon) {
  * 
  * @return string
  */
-function generic_MapInit($center, $zoom, $type, $placemarks = '', $editor = '', $lang = 'uk-UA', $container = 'ubmap', $searchPrefill='') {
+function generic_MapInit($center, $zoom, $type, $placemarks = '', $editor = '', $lang = 'uk-UA', $container = 'ubmap', $searchPrefill = '') {
     global $ubillingConfig;
     $mapsCfg = $ubillingConfig->getYmaps();
     @$apikey = $mapsCfg['GMAPS_APIKEY'];
@@ -116,7 +116,7 @@ function generic_MapInit($center, $zoom, $type, $placemarks = '', $editor = '', 
         $mapType = 'roadmap';
     }
     $result = '';
-    if ((!empty($apikey)) AND ( $apikey != 'YOUR_API_KEY_HERE')) {
+    if ((!empty($apikey)) and ($apikey != 'YOUR_API_KEY_HERE')) {
         if (!empty($center)) {
             $center = explode(',', $center);
             $centerLat = trim($center[0]);
@@ -210,7 +210,7 @@ function generic_MapAddMark($coords, $title = '', $content = '', $footer = '', $
     } else {
         $labelCode = '';
     }
-    if ((!empty($content)) OR ( !empty($footer))) {
+    if ((!empty($content)) or (!empty($footer))) {
         if (!empty($footer)) {
             $footerCode = '<div id="footer_' . $markerId . '" class="row3">' . $footer . '</div>';
         } else {
@@ -348,10 +348,11 @@ function generic_MapAddCircle($coords, $radius, $content = '', $hint = '', $colo
  * @param string $name
  * @param string $title
  * @param string $data
+ * @param int    $precision
  * 
  * @return string
  */
-function generic_MapEditor($name, $title = '', $data = '') {
+function generic_MapEditor($name, $title = '', $data = '', $precision = 8) {
     $windowId = wf_InputId();
     $data = str_replace("'", '`', $data);
     $data = str_replace("\n", '', $data);
@@ -365,8 +366,8 @@ function generic_MapEditor($name, $title = '', $data = '') {
     $result = '
             google.maps.event.addListener(map, \'click\', function(event) {
             var myLatLng = event.latLng;
-            var lat = myLatLng.lat().toPrecision(7);
-            var lng = myLatLng.lng().toPrecision(7);
+            var lat = myLatLng.lat().toPrecision(' . $precision . ');
+            var lng = myLatLng.lng().toPrecision(' . $precision . ');
             ' . $windowCode . '
                infowindow_' . $windowId . '.setPosition(event.latLng);
                infowindow_' . $windowId . '.open(map);
@@ -374,5 +375,3 @@ function generic_MapEditor($name, $title = '', $data = '') {
             ';
     return ($result);
 }
-
-?>
