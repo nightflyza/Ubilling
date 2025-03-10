@@ -201,6 +201,26 @@ class OpenPayz {
      */
     protected $filteredTransactionsCount = 0;
 
+    /**
+     * Is OPENPAYZ_HIGHLOAD_ENABLE option enabled in alter.ini?
+     *
+     * @var bool
+     */
+    protected $hiLoadFlag = false;
+
+    /**
+     * Transactions processing StarDust placeholder
+     *
+     * @var object
+     */
+    protected $transactionsProcess = '';
+
+    /**
+     * Contains default cash type id for transactions deffered processing
+     *
+     * @var int
+     */
+    protected $defaultCashTypeId = 1;
 
     /**
      * Transactions list ajax callback URL
@@ -225,6 +245,8 @@ class OpenPayz {
     const TABLE_STATIC = 'op_static';
     const KEY_PSYS = 'OPPAYSYS';
     const KEY_CHARTS = 'OPCHARTS_';
+    const PID_PROCESSING = 'OP_PROCESSING';
+    const CUSTOM_CASHTYPE_PREFIX = 'CASHTYPEID_';
 
     /**
      * Creates new OpenPayz instance
@@ -243,6 +265,7 @@ class OpenPayz {
         $this->initMessages();
         $this->initDbLayers();
         $this->initCache();
+        $this->initStarDust();
 
         //preloading some optional data
         if ($loadPaySys) {
@@ -283,6 +306,8 @@ class OpenPayz {
         $this->smsReminderTagID = ubRouting::filters($this->ubConfig->getAlterParam('REMINDER_TAGID', 0), 'int');
         $this->payidStaticLen = ubRouting::filters($this->ubConfig->getAlterParam('OPENPAYZ_STATIC_ID', 0), 'int');
         $this->payIdStaticPrefix = $this->ubConfig->getAlterParam('OPENPAYZ_STATIC_ID_PREFIX', '');
+        $this->hiLoadFlag = $this->ubConfig->getAlterParam('OPENPAYZ_HIGHLOAD_ENABLE', false);
+        $this->defaultCashTypeId = $this->ubConfig->getAlterParam('OPENPAYZ_CASHTYPEID', 1);
     }
 
     /**
@@ -303,6 +328,15 @@ class OpenPayz {
      */
     protected function initCache() {
         $this->cache = new UbillingCache();
+    }
+
+    /**
+     * Inits StarDust process manager for payment transactions processing
+     *
+     * @return void
+     */
+    protected function initStarDust() {
+        $this->transactionsProcess = new StarDust(self::PID_PROCESSING);
     }
 
     /**
@@ -1217,5 +1251,89 @@ class OpenPayz {
         }
         $this->transactionsDb->limit($this->onPage, $offset);
         $this->wholeTransactions = $this->transactionsDb->getAll();
+    }
+
+    /**
+     * Returns plain array of not processed transactions
+     * 
+     * @return array
+     */
+    protected function getUnprocessedTransactions() {
+        $this->transactionsDb->where('processed', '=', '0');
+        $result = $this->transactionsDb->getAll();
+        return ($result);
+    }
+
+    /**
+     * Sets transaction processed by its ID
+     *
+     * @param int $transactionId
+     * 
+     * @return void
+     */
+    protected function setTransactionProcessed($transactionId) {
+        $transactionId = ubRouting::filters($transactionId, 'int');
+        if ($transactionId) {
+            $this->transactionsDb->data('processed', '1');
+            $this->transactionsDb->where('id', '=', $transactionId);
+            $this->transactionsDb->save();
+        }
+    }
+
+    /**
+     * Performs transaction processing
+     *
+     * @param array $transactionData
+     * 
+     * @return void
+     */
+    protected function processTransaction($transactionData) {
+        if (!empty($transactionData)) {
+            $transactionId = $transactionData['id'];
+            $customerId = $transactionData['customerid'];
+            $paymentSumm = $transactionData['summ'];
+            $paySys = $transactionData['paysys'];
+            $paymentNote = (!empty($paySys)) ? 'OP:' . $paySys : 'UNKNOWN';
+            $cashTypeId = $this->defaultCashTypeId;
+            //some custom cashtype for this payment system defined?
+            if (isset($this->altCfg[self::CUSTOM_CASHTYPE_PREFIX . $paySys])) {
+                $cashTypeId = ubRouting::filters($this->altCfg[self::CUSTOM_CASHTYPE_PREFIX . $paySys], 'int');
+            }
+
+            if (isset($this->allCustomers[$customerId])) {
+                //existing user?
+                $userLogin = $this->allCustomers[$customerId];
+                //push some cash to his balance
+                zb_CashAdd($userLogin, $paymentSumm, 'op', $cashTypeId, $paymentNote, 'openpayz');
+                //setting this transaction as processed
+                $this->setTransactionProcessed($transactionId);
+            }
+        }
+    }
+
+    /**
+     * Performs processing of all unprocessed transctions in database
+     *
+     * @return int|bool
+     */
+    public function transactionsProcessingAll() {
+        $result = 0;
+        if ($this->hiLoadFlag) {
+            if ($this->transactionsProcess->notRunning()) {
+                $this->transactionsProcess->start();
+                $allTransactions = $this->getUnprocessedTransactions();
+                if (!empty($allTransactions)) {
+                    foreach ($allTransactions as $io => $eachTransaction) {
+                        $this->processTransaction($eachTransaction);
+                        $result++;
+                    }
+                }
+                $this->transactionsProcess->stop();
+            } else {
+                $result = false;
+                log_register('OPENPAYZ PROCESSING SKIPPED ALREADY RUNNING');
+            }
+        }
+        return ($result);
     }
 }

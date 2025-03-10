@@ -10,7 +10,7 @@ function zb_CashGetUserBalance($login) {
     $login = vf($login);
     $query = "SELECT `Cash` from `users` WHERE `login`='" . $login . "'";
     $cash = simple_query($query);
-    return($cash['Cash']);
+    return ($cash['Cash']);
 }
 
 /**
@@ -30,13 +30,14 @@ function zb_checkMoney($number) {
  * @global object $billing   Pre-initialized low-level stargazer handlers
  * @param string  $login     Existing users login
  * @param float   $cash      Amount of money to put/set on user login
- * @param string  $operation Operation  type: add, correct,set,mock
+ * @param string  $operation Operation  type: add, correct, set, mock, op
  * @param int     $cashtype  Existing cashtype ID for payment registry
  * @param string  $note      Payment notes
+ * @param string  $customAdmin Custom administrator login
  * 
  * @return void
  */
-function zb_CashAdd($login, $cash, $operation, $cashtype, $note) {
+function zb_CashAdd($login, $cash, $operation, $cashtype, $note, $customAdmin = '') {
     global $billing;
     $login = mysql_real_escape_string($login);
     $cash = mysql_real_escape_string($cash);
@@ -47,6 +48,9 @@ function zb_CashAdd($login, $cash, $operation, $cashtype, $note) {
     $date = curdatetime();
     $balance = zb_CashGetUserBalance($login);
     $admin = whoami();
+    if (!empty($customAdmin)) {
+        $admin =  mysql_real_escape_string($customAdmin);
+    }
     $noteprefix = '';
 
     /**
@@ -76,6 +80,10 @@ function zb_CashAdd($login, $cash, $operation, $cashtype, $note) {
             $targettable = 'payments';
             log_register("BALANCEMOCK (" . $login . ') ON ' . $cash);
             $noteprefix = 'MOCK:';
+            break;
+        case 'op':
+            $targettable = 'payments';
+            $billing->addcash($login, $cash);
             break;
     }
     //push dat payment to payments registry
@@ -140,7 +148,7 @@ function zb_CashAddWithSignup($login, $cash, $operation, $cashtype, $note) {
 function zb_CashGetAlltypes() {
     $query = "SELECT * from `cashtype`";
     $alltypes = simple_queryall($query);
-    return($alltypes);
+    return ($alltypes);
 }
 
 /**
@@ -170,7 +178,7 @@ function zb_CashGetTypeName($typeid) {
     $query = "SELECT `cashtype` from `cashtype` WHERE `id`='" . $typeid . "'";
     $result = simple_query($query);
     $result = $result['cashtype'];
-    return($result);
+    return ($result);
 }
 
 /**
@@ -192,7 +200,7 @@ function zb_CashGetUserPayments($login) {
      */
     $query = "SELECT * from `payments` WHERE `login`='" . $login . "' ORDER BY `id` DESC";
     $allpayments = simple_queryall($query);
-    return($allpayments);
+    return ($allpayments);
 }
 
 /**
@@ -210,7 +218,7 @@ function zb_CashGetAllCashTypes() {
         }
     }
 
-    return($result);
+    return ($result);
 }
 
 /**
@@ -247,7 +255,7 @@ function zb_PaymentsGetYearSumm($year) {
     $year = vf($year);
     $query = "SELECT SUM(`summ`) from `payments` WHERE `date` LIKE '" . $year . "-%' AND `summ` > 0";
     $result = simple_query($query);
-    return($result['SUM(`summ`)']);
+    return ($result['SUM(`summ`)']);
 }
 
 /**
@@ -261,7 +269,7 @@ function zb_PaymentsGetMonthSumm($year, $month) {
     $year = vf($year);
     $query = "SELECT SUM(`summ`) from `payments` WHERE `date` LIKE '" . $year . "-" . $month . "%' AND `summ` > 0";
     $result = simple_query($query);
-    return($result['SUM(`summ`)']);
+    return ($result['SUM(`summ`)']);
 }
 
 /**
@@ -275,7 +283,7 @@ function zb_PaymentsGetMonthCount($year, $month) {
     $year = vf($year);
     $query = "SELECT COUNT(`id`) from `payments` WHERE `date` LIKE '" . $year . "-" . $month . "%' AND `summ` > 0";
     $result = simple_query($query);
-    return($result['COUNT(`id`)']);
+    return ($result['COUNT(`id`)']);
 }
 
 /**
@@ -366,5 +374,3 @@ function zb_UserChangeSignupPrice($login, $new_price) {
     zb_UserCreateSignupPrice($login, $new_price);
     log_register('CHANGE SignupPrice (' . $login . ') FROM ' . $old_price . ' TO ' . $new_price);
 }
-
-?>
