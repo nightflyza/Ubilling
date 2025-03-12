@@ -7,7 +7,7 @@ if (cfr('MOBILE')) {
 
         $login = ubRouting::get('username', 'login');
         // change mobile if need
-        if (ubRouting::checkPost('newmobile')) {
+        if (ubRouting::checkPost('newmobile', false)) {
             $mobile = ubRouting::post('newmobile', 'safe');
             zb_UserChangeMobile($login, $mobile);
             ubRouting::nav('?module=mobileedit&username=' . $login);
