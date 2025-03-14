@@ -647,11 +647,13 @@ class PonZte {
                         if ($this->currentSnmpTemplate['signal']['SIGNALTYPE'] == 'ONURX') {
                             $splitIndex = explode(".", $naturalIndex);
                             $trueIndex = $splitIndex[0] . "." . $splitIndex[1];
-                            if ($naturalSig <= 30000) {
-                                $naturalSig = $naturalSig * 0.002 - 30;
-                            }
-                            if ($naturalSig > 30000) {
-                                $naturalSig = ($naturalSig - 65535) * 0.002 - 30;
+                            if ($naturalSig != 65535) {
+                                if ($naturalSig <= 30000) {
+                                    $naturalSig = $naturalSig * 0.002 - 30;
+                                }
+                                if ($naturalSig > 30000) {
+                                    $naturalSig = ($naturalSig - 65535) * 0.002 - 30;
+                                }
                             }
                         }
                         $sigIndexTmp[$trueIndex] = $naturalSig;
