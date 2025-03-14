@@ -1,5 +1,5 @@
 [define]
-DEVICE="ZTE 320 GPON v2"
+DEVICE="ZTE 320 GPON v2 ONURX"
 
 
 [signal]
