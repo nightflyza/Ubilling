@@ -10,11 +10,17 @@ if (ubRouting::get('action') == 'cachedog') {
             $cache = new UbillingCache();
             $cache->delete('HPONLINEJSON');
         }
-        if (@$alterconf['USERBYNUM_ENABLED'] OR @$alterconf['TELEPONY_ENABLED']) {
+
+        if (@$alterconf['USERBYNUM_ENABLED'] or @$alterconf['TELEPONY_ENABLED']) {
             $cache = new UbillingCache();
             $cache->delete('PHONEDATA');
             $cache->delete('EXTMOBILES');
             $cache->delete('PHONETELEPATHY');
+        }
+
+        if (@$alterconf['BUILD_EXTENDED']) {
+            $cache = new UbillingCache();
+            $cache->delete('USERBUILDS');
         }
         die('CACHEDOG:CACHE_CLEANED');
     } else {

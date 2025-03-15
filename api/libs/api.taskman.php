@@ -1512,7 +1512,7 @@ function ts_PreviousBuildTasksRender($buildId, $noFixedWidth = false, $arrayResu
     );
     $allJobTypes = ts_GetAllJobtypes();
     $allEmployee = ts_GetAllEmployee();
-    $allUserBuilds = zb_AddressGetBuildUsers();
+    $allUserBuilds = zb_AddressGetBuildUsersCached();
     $curYear = curyear();
     $curMonth = curmonth();
     $curDay = curdate();
@@ -2250,7 +2250,7 @@ function ts_ModifyTask($taskid, $startdate, $starttime, $address, $login, $phone
 
     //Telegram sending
     if (isset($_POST['changetasksendtelegram'])) {
-        $tgEol='\r\n';
+        $tgEol = '\r\n';
         if (!empty($login)) {
             $userData = zb_UserGetAllData($login);
         }
@@ -2266,11 +2266,11 @@ function ts_ModifyTask($taskid, $startdate, $starttime, $address, $login, $phone
         if (!empty($login)) {
             $userCableSeal = '';
             if ($ubillingConfig->getAlterParam('CONDET_ENABLED')) {
-            $userCondet = new ConnectionDetails();
-            $userCableSeal = $userCondet->getByLogin($login);
-            if (!empty($userCableSeal)) {
-                $userCableSeal = __('Cable seal') . ': ' . $userCableSeal['seal'] . $tgEol;
-            }
+                $userCondet = new ConnectionDetails();
+                $userCableSeal = $userCondet->getByLogin($login);
+                if (!empty($userCableSeal)) {
+                    $userCableSeal = __('Cable seal') . ': ' . $userCableSeal['seal'] . $tgEol;
+                }
             }
 
             $newTelegramText .= __('Login') . ': ' . $login . $tgEol;
@@ -2281,10 +2281,10 @@ function ts_ModifyTask($taskid, $startdate, $starttime, $address, $login, $phone
             $newTelegramText .= __('Tariff') . ': ' . @$userData[$login]['Tariff'] . $tgEol;
 
             if ($ubillingConfig->getAlterParam('SWITCHPORT_IN_PROFILE')) {
-            $allAssigns = zb_SwitchesGetAssignsAll();
-            if (isset($allAssigns[$login])) {
-                $newTelegramText .= __('Switch') . ': ' . @$allAssigns[$login]['label'] . $tgEol;
-            }
+                $allAssigns = zb_SwitchesGetAssignsAll();
+                if (isset($allAssigns[$login])) {
+                    $newTelegramText .= __('Switch') . ': ' . @$allAssigns[$login]['label'] . $tgEol;
+                }
             }
 
             if (!empty($userCableSeal)) {
@@ -2648,7 +2648,7 @@ function ts_TaskChangeForm($taskid) {
         if ($altCfg['BUILD_EXTENDED']) {
             if (!empty($taskLogin)) {
                 if (cfr('BUILDPASSPORT')) {
-                    $allUserBuilds = zb_AddressGetBuildUsers();
+                    $allUserBuilds = zb_AddressGetBuildUsersCached();
                     if (isset($allUserBuilds[$taskLogin])) {
                         $taskUserBuildId = $allUserBuilds[$taskLogin];
                         $buildPassport = new BuildPassport();
@@ -2721,7 +2721,7 @@ function ts_TaskChangeForm($taskid) {
                 }
 
                 if ($ubillingConfig->getAlterParam('TASKMAN_RENDER_ONU_SIGNAL')) {
-                    $onuLinkFlag=(cfr('PON')) ? true : false;
+                    $onuLinkFlag = (cfr('PON')) ? true : false;
                     $tablecells = wf_TableCell(__('ONU Signal'));
                     $tablecells .= wf_TableCell(zb_getPonSignalData($taskLogin, true, false, $onuLinkFlag));
                     $tablerows .= wf_TableRow($tablecells, 'row3');

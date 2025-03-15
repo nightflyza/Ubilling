@@ -268,7 +268,7 @@ function zb_AddressChangeStreetAlias($streetid, $streetalias) {
     $streetalias = trim($streetalias);
     $streetalias = ubRouting::filters($streetalias, 'gigasafe');
     $streetaliasF = ubRouting::filters($streetalias, 'mres');
-    
+
     $query = "UPDATE `street` SET `streetalias` = '" . $streetaliasF . "' WHERE `id`= '" . $streetid . "' ;";
     nr_query($query);
     log_register('CHANGE AddressStreetAlias [' . $streetid . '] `' . $streetalias . '`');
@@ -2152,7 +2152,7 @@ function zb_AddressGetStreetUsers() {
 }
 
 /**
- * Returns all user builds as  login=>buildId
+ * Returns all user builds as login=>buildId
  * 
  * @return array
  */
@@ -2168,6 +2168,27 @@ function zb_AddressGetBuildUsers() {
         foreach ($rawData as $each) {
             $result[$each['login']] = $each['buildid'];
         }
+    }
+
+    return ($result);
+}
+
+/**
+ * Returns all user builds cached data as login=>buildId
+ * 
+ * @return array
+ */
+function zb_AddressGetBuildUsersCached() {
+    $result = array();
+    $cacheTimeout = 86400;
+    $cacheKey = 'USERBUILDS';
+    $cache = new UbillingCache();
+    $cachedData = $cache->get($cacheKey, $cacheTimeout);
+    if (empty($cachedData)) {
+        $result = zb_AddressGetBuildUsers();
+        $cache->set($cacheKey, $result, $cacheTimeout);
+    } else {
+        $result = $cachedData;
     }
 
     return ($result);
