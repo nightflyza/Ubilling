@@ -1586,8 +1586,8 @@ class Warehouse {
      */
     public function reserveHistoryPrintFiltered() {
         $result = '';
+        $this->loadReserveHistory();
         if (wf_CheckPost(array('reshistfilterfrom', 'reshistfilterto', 'reshistfilteremployeeid'))) {
-            $this->loadReserveHistory();
             $dateFrom = $_POST['reshistfilterfrom'];
             $dateTo = $_POST['reshistfilterto'];
             $employeeId = vf($_POST['reshistfilteremployeeid'], 3);
