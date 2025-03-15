@@ -36,7 +36,7 @@ class GlobalSearch {
     /**
      * Contains raw user data for further usage
      *
-     * @var array
+     * @var array|string
      */
     protected $rawData = array();
 
@@ -50,7 +50,7 @@ class GlobalSearch {
     /**
      * UbillingConfig object placeholder
      *
-     * @var null
+     * @var object
      */
     protected $ubConfig = null;
 
@@ -257,7 +257,7 @@ class GlobalSearch {
                 $this->rawData = $this->rawData + $this->transformArray($allContracts, __('Contract'), 'contract');
             }
 
-            if ((isset($this->fields['phone'])) OR ( isset($this->fields['mobile']))) {
+            if ((isset($this->fields['phone'])) or (isset($this->fields['mobile']))) {
                 $allPhonedata = zb_UserGetAllPhoneData();
                 if (isset($this->fields['phone'])) {
                     if (!empty($allPhonedata)) {
@@ -384,7 +384,4 @@ class GlobalSearch {
         }
         return ($result);
     }
-
 }
-
-?>
