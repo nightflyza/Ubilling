@@ -1135,6 +1135,7 @@ class Warehouse {
         }
 
         if ($printFlag) {
+            $this->loadReserveHistory();
             //Printable report here
             if (!empty($this->allReserve)) {
                 $cells = wf_TableCell(__('ID'));
