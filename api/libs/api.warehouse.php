@@ -262,7 +262,6 @@ class Warehouse {
         $this->initReturns();
         if (empty($taskid)) {
             $this->loadReserve();
-            $this->loadReserveHistory();
             $this->loadInOperations();
         }
     }
@@ -807,6 +806,7 @@ class Warehouse {
     protected function reserveRenderTodayReserved($employeeId) {
         $employeeId = vf($employeeId, 3);
         $result = '';
+        $this->loadReserveHistory();
         if (!empty($this->allReserveHistory)) {
             $curDate = curdate();
             foreach ($this->allReserveHistory as $io => $each) {
@@ -1500,6 +1500,7 @@ class Warehouse {
      */
     public function reserveHistoryAjaxReply() {
         $json = new wf_JqDtHelper();
+        $this->loadReserveHistory();
         if (!empty($this->allReserveHistory)) {
 
             $employeeLogins = unserialize(ts_GetAllEmployeeLoginsCached());
@@ -1586,6 +1587,7 @@ class Warehouse {
     public function reserveHistoryPrintFiltered() {
         $result = '';
         if (wf_CheckPost(array('reshistfilterfrom', 'reshistfilterto', 'reshistfilteremployeeid'))) {
+            $this->loadReserveHistory();
             $dateFrom = $_POST['reshistfilterfrom'];
             $dateTo = $_POST['reshistfilterto'];
             $employeeId = vf($_POST['reshistfilteremployeeid'], 3);
@@ -1687,18 +1689,14 @@ class Warehouse {
      */
     public function reserveRenderHistory() {
         $result = '';
-        if (!empty($this->allReserveHistory)) {
-            $colums = array('ID', 'Date', 'Type', 'Warehouse storage', 'Category', 'Warehouse item type', 'Count', 'Employee', 'Admin');
-            $opts = '"order": [[ 0, "desc" ]]';
-            $ajaxUrl = self::URL_ME . '&' . self::URL_RESERVE . '&reshistajlist=true';
-            $result .= wf_JqDtLoader($colums, $ajaxUrl, false, __('Reserve'), 50, $opts);
-            if (!empty($this->allReserveHistory)) {
-                $result .= wf_delimiter();
-                $result .= $this->reserveHistoryFilterForm();
-            }
-        } else {
-            $result = $this->messages->getStyledMessage(__('Nothing found'), 'info');
-        }
+        $colums = array('ID', 'Date', 'Type', 'Warehouse storage', 'Category', 'Warehouse item type', 'Count', 'Employee', 'Admin');
+        $opts = '"order": [[ 1, "desc" ]]';
+        $ajaxUrl = self::URL_ME . '&' . self::URL_RESERVE . '&reshistajlist=true';
+
+        $result .= wf_JqDtLoader($colums, $ajaxUrl, false, __('Reserve'), 50, $opts);
+        $result .= wf_delimiter();
+        $result .= $this->reserveHistoryFilterForm();
+
         return ($result);
     }
 
@@ -4897,6 +4895,7 @@ class Warehouse {
         $result = '';
         $tmpArr = array();
         if (isset($this->allItemTypeNames[$itemtypeId])) {
+            $this->loadReserveHistory();
             $itemTypeName = $this->allItemTypeNames[$itemtypeId];
             $itemTypeCategory = $this->allCategories[$this->allItemTypes[$itemtypeId]['categoryid']];
             if (!empty($this->allIncoming)) {
