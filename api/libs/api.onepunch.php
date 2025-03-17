@@ -41,23 +41,30 @@ class OnePunch {
     protected $punchDb = '';
 
     /**
+     * Fancy code editor enable flag
+     *
+     * @var bool
+     */
+    protected $cmFlag = false;
+
+    /**
      * Some predefined URLs, routes, tables etc...
      */
     const URL_DEVCON = '?module=sqlconsole&devconsole=true';
     const TABLE_DATASOURCE = 'punchscripts';
 
-//     ⠀⠀⠀⣠⣶⡾⠏⠉⠙⠳⢦⡀⠀⠀⠀⢠⠞⠉⠙⠲⡀⠀
-//    ⠀⠀⠀⣴⠿⠏⠀⠀⠀⠀⠀⠀⢳⡀⠀⡏⠀⠀⠀⠀⠀⢷
-//    ⠀⠀⢠⣟⣋⡀⢀⣀⣀⡀⠀⣀⡀⣧⠀⢸⠀⠀⠀⠀⠀ ⡇
-//    ⠀⠀⢸⣯⡭⠁⠸⣛⣟⠆⡴⣻⡲⣿⠀⣸⠀⠀OK⠀ ⡇
-//    ⠀⠀⣟⣿⡭⠀⠀⠀⠀⠀⢱⠀⠀⣿⠀⢹⠀⠀⠀⠀⠀ ⡇
-//    ⠀⠀⠙⢿⣯⠄⠀⠀⠀⢀⡀⠀⠀⡿⠀⠀⡇⠀⠀⠀⠀⡼
-//    ⠀⠀⠀⠀⠹⣶⠆⠀⠀⠀⠀⠀⡴⠃⠀⠀⠘⠤⣄⣠⠞⠀
-//    ⠀⠀⠀⠀⠀⢸⣷⡦⢤⡤⢤⣞⣁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-//    ⠀⠀⢀⣤⣴⣿⣏⠁⠀⠀⠸⣏⢯⣷⣖⣦⡀⠀⠀⠀⠀⠀⠀
-//    ⢀⣾⣽⣿⣿⣿⣿⠛⢲⣶⣾⢉⡷⣿⣿⠵⣿⠀⠀⠀⠀⠀⠀
-//    ⣼⣿⠍⠉⣿⡭⠉⠙⢺⣇⣼⡏⠀⠀⠀⣄⢸⠀⠀⠀⠀⠀⠀
-//    ⣿⣿⣧⣀⣿………⣀⣰⣏⣘⣆⣀⠀⠀
+    //     ⠀⠀⠀⣠⣶⡾⠏⠉⠙⠳⢦⡀⠀⠀⠀⢠⠞⠉⠙⠲⡀⠀
+    //    ⠀⠀⠀⣴⠿⠏⠀⠀⠀⠀⠀⠀⢳⡀⠀⡏⠀⠀⠀⠀⠀⢷
+    //    ⠀⠀⢠⣟⣋⡀⢀⣀⣀⡀⠀⣀⡀⣧⠀⢸⠀⠀⠀⠀⠀ ⡇
+    //    ⠀⠀⢸⣯⡭⠁⠸⣛⣟⠆⡴⣻⡲⣿⠀⣸⠀⠀OK⠀ ⡇
+    //    ⠀⠀⣟⣿⡭⠀⠀⠀⠀⠀⢱⠀⠀⣿⠀⢹⠀⠀⠀⠀⠀ ⡇
+    //    ⠀⠀⠙⢿⣯⠄⠀⠀⠀⢀⡀⠀⠀⡿⠀⠀⡇⠀⠀⠀⠀⡼
+    //    ⠀⠀⠀⠀⠹⣶⠆⠀⠀⠀⠀⠀⡴⠃⠀⠀⠘⠤⣄⣠⠞⠀
+    //    ⠀⠀⠀⠀⠀⢸⣷⡦⢤⡤⢤⣞⣁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+    //    ⠀⠀⢀⣤⣴⣿⣏⠁⠀⠀⠸⣏⢯⣷⣖⣦⡀⠀⠀⠀⠀⠀⠀
+    //    ⢀⣾⣽⣿⣿⣿⣿⠛⢲⣶⣾⢉⡷⣿⣿⠵⣿⠀⠀⠀⠀⠀⠀
+    //    ⣼⣿⠍⠉⣿⡭⠉⠙⢺⣇⣼⡏⠀⠀⠀⣄⢸⠀⠀⠀⠀⠀⠀
+    //    ⣿⣿⣧⣀⣿………⣀⣰⣏⣘⣆⣀⠀⠀
 
     /**
      * Creates new object instance
@@ -100,6 +107,7 @@ class OnePunch {
         global $ubillingConfig;
         $this->ubConfig = $ubillingConfig;
         $customSortField = $this->ubConfig->getAlterParam('ONEPUNCH_DEFAULT_SORT_FIELD');
+        $this->cmFlag = ($this->ubConfig->getAlterParam('ONEPUNCH_CM')) ? true : false;
         if ($customSortField) {
             $this->defaultSortField = $customSortField;
         }
@@ -129,7 +137,7 @@ class OnePunch {
      * @return array
      */
     public function getAllScripts() {
-        return($this->punchScripts);
+        return ($this->punchScripts);
     }
 
     /**
@@ -156,6 +164,7 @@ class OnePunch {
     public function renderCreateForm() {
         $result = '';
         $inputs = '';
+
         $namePreset = (ubRouting::checkPost('newscriptname')) ? ubRouting::post('newscriptname') : '';
         $aliasPreset = (ubRouting::checkPost('newscriptalias')) ? ubRouting::post('newscriptalias') : '';
         $contentPreset = (ubRouting::checkPost('newscriptcontent')) ? ubRouting::post('newscriptcontent') : '';
@@ -163,11 +172,17 @@ class OnePunch {
         // nan dattenda? FURASUTOREESHON ore wa tomaranai
         $inputs .= wf_TextInput('newscriptname', __('Name'), $namePreset, true, 30);
         $inputs .= wf_TextInput('newscriptalias', __('Alias'), $aliasPreset, true, 15, 'alphanumeric');
-        $inputs .= wf_tag('textarea', false, 'fileeditorarea', 'name="newscriptcontent" cols="145" rows="30" spellcheck="false"');
-        $inputs .= $contentPreset;
-        $inputs .= wf_tag('textarea', true);
+        if ($this->cmFlag) {
+            $cmirr = new CMIRR();
+            $inputs .= $cmirr->getEditorArea('newscriptcontent', $contentPreset);
+        } else {
+            $inputs .= wf_tag('textarea', false, 'fileeditorarea', 'name="newscriptcontent" cols="145" rows="30" spellcheck="false"');
+            $inputs .= $contentPreset;
+            $inputs .= wf_tag('textarea', true);
+        }
         $inputs .= wf_Submit(__('Create'));
-        $result .= wf_Form('', 'POST', $inputs, 'glamour');
+        $formStyle = ($this->cmFlag) ? '' : 'glamour';
+        $result .= wf_Form('', 'POST', $inputs, $formStyle);
         $result .= wf_delimiter();
         $result .= wf_BackLink(self::URL_DEVCON);
         return ($result);
@@ -194,11 +209,18 @@ class OnePunch {
             $inputs .= wf_HiddenInput('editscriptoldalias', $aliasPreset);
             $inputs .= wf_TextInput('editscriptname', __('Name'), $namePreset, true, 30);
             $inputs .= wf_TextInput('editscriptalias', __('Alias'), $aliasPreset, true, 15, 'alphanumeric');
-            $inputs .= wf_tag('textarea', false, 'fileeditorarea', 'name="editscriptcontent" cols="145" rows="30" spellcheck="false"');
-            $inputs .= $contentPreset;
-            $inputs .= wf_tag('textarea', true);
+            if ($this->cmFlag) {
+                $cmirr = new CMIRR();
+                $inputs .= $cmirr->getEditorArea('editscriptcontent', $contentPreset);
+            } else {
+                $inputs .= wf_tag('textarea', false, 'fileeditorarea', 'name="editscriptcontent" cols="145" rows="30" spellcheck="false"');
+                $inputs .= $contentPreset;
+                $inputs .= wf_tag('textarea', true);
+            }
+
             $inputs .= wf_Submit(__('Save'));
-            $result .= wf_Form('', 'POST', $inputs, 'glamour');
+            $formStyle = ($this->cmFlag) ? '' : 'glamour';
+            $result .= wf_Form('', 'POST', $inputs, $formStyle);
             $result .= wf_delimiter();
             $result .= wf_BackLink(self::URL_DEVCON);
         }
@@ -311,7 +333,7 @@ class OnePunch {
                 $templateRaw = zb_StorageGet($eachTemplateKey['key']);
                 @$templateData = unserialize($templateRaw);
                 if (!empty($templateData)) {
-                    if ((isset($templateData['name'])) AND ( isset($templateData['body']))) {
+                    if ((isset($templateData['name'])) and (isset($templateData['body']))) {
                         if ($this->checkAlias($newAlias)) {
                             //alias not exists yet
                             $this->createScript($newAlias, $templateData['name'], $templateData['body']);
@@ -380,7 +402,7 @@ class OnePunch {
      * @return bool 
      */
     public function isAliasFree($alias) {
-        return($this->checkAlias($alias));
+        return ($this->checkAlias($alias));
     }
 
     /**
@@ -393,11 +415,11 @@ class OnePunch {
     public function installScript($scriptData) {
         $result = '';
         if (is_array($scriptData)) {
-            if (isset($scriptData['alias']) AND isset($scriptData['name']) AND isset($scriptData['content'])) {
+            if (isset($scriptData['alias']) and isset($scriptData['name']) and isset($scriptData['content'])) {
                 $alias = $scriptData['alias'];
                 $name = $scriptData['name'];
                 $content = $scriptData['content'];
-                if (!empty($alias) AND !empty($name) AND !empty($content)) {
+                if (!empty($alias) and !empty($name) and !empty($content)) {
                     if ($this->isAliasFree($alias)) {
                         $result .= $this->createScript($alias, $name, $content);
                     } else {
@@ -412,6 +434,6 @@ class OnePunch {
         } else {
             $result .= __('One-punch') . ' ' . __('script') . ' ' . _('is corrupted');
         }
-        return($result);
+        return ($result);
     }
 }
