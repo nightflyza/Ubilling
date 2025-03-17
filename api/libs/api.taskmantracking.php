@@ -209,6 +209,18 @@ class TaskmanTracking {
                     $rows .= wf_TableRow($cells, $rowStyle);
                 } else {
                     //task is deleted
+                    $cells = wf_TableCell($taskid);
+                    $cells .= wf_TableCell(__('Deleted'));
+                    $cells .= wf_TableCell(__('Deleted'));
+                    $cells .= wf_TableCell(__('-'));
+                    $cells .= wf_TableCell(__('-'));
+                    $cells .= wf_TableCell(__('-'));
+                    $cells .= wf_TableCell(__('-'));
+                    $cells .= wf_TableCell(__('-'));
+                    $cells .= wf_TableCell(__('-'));
+                    $actLinks = wf_Link('?module=taskmantrack&untrackid=' . $taskid, wf_img('skins/icon_cleanup.png', __('Stop tracking this task')));
+                    $cells .= wf_TableCell($actLinks);
+                    $rows .= wf_TableRow($cells, 'ukvbankstadup');
                 }
             }
             $result = wf_TableBody($rows, '100%', 0, 'sortable');
