@@ -25,7 +25,7 @@ unset($global);
 ////////////////////////////////////////////////////////////////////////////////
 define('RCMS_VERSION_A', '1');
 define('RCMS_VERSION_B', '2');
-define('RCMS_VERSION_C', '22');
+define('RCMS_VERSION_C', '23');
 if (!defined('RCMS_ROOT_PATH')) {
     die('Even though I walk through the darkest valley, I will fear no evil, for you are with me; your rod and your staff, they comfort me.'); //23:4
 }
