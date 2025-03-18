@@ -42,7 +42,7 @@ class UBCodeInspector {
                 $classLibName = $classRef->getFileName();
                 $defineStartLine = $classRef->getStartLine();
                 if (!empty($classLibName)) {
-                    $classLibName = $this->libsPath . basename($classLibName);
+                    $classLibName =  basename($classLibName);
                 }
                 $classMethods = get_class_methods($eachClass);
                 $methodParams = array();
@@ -87,7 +87,7 @@ class UBCodeInspector {
                     $defineStartLine = $ref->getStartLine();
                     $funcComment = $ref->getDocComment();
                     if (!empty($fileName)) {
-                        $fileName = $this->libsPath . basename($fileName);
+                        $fileName =  basename($fileName);
                     }
                     if (!empty($params)) {
                         foreach ($params as $eachParam) {
@@ -99,7 +99,6 @@ class UBCodeInspector {
                     $funcParams[$eachFuncName]['comment'] = $funcComment;
                     $funcParams[$eachFuncName]['file'] = $fileName;
                     $funcParams[$eachFuncName]['line'] = $defineStartLine;
-                    
                 }
             }
 
@@ -131,12 +130,12 @@ class UBCodeInspector {
             $lines = preg_split('/\R/', $docComment);
             $cleanedLines = array_map(fn($line) => preg_replace('/^\s*\*\s?/', '', $line), $lines);
             $cleanedComment = trim(implode("\n", $cleanedLines));
-    
+
             preg_match_all('/@(\w+)\s+([^\n]+)/', $cleanedComment, $matches, PREG_SET_ORDER);
-    
+
             $result .= __('Description') . ':' . PHP_EOL;
             $result .= strtok($cleanedComment, '@') . "\n\n";
-    
+
             $result .= __('Details') . ':' . PHP_EOL;
             foreach ($matches as $match) {
                 $result .= ucfirst($match[1]) . ": " . trim($match[2]) . "\n";
@@ -144,7 +143,7 @@ class UBCodeInspector {
         }
         return $result;
     }
-    
+
 
     public function getCodeEnv() {
         return ($this->result);
