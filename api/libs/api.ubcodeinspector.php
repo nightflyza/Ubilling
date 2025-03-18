@@ -13,6 +13,7 @@ class UBCodeInspector {
         $this->processFunctions();
     }
 
+
     protected function loadLibraries() {
         $allLibs = rcms_scandir($this->libsPath, '*.php');
         $loadedRaw = get_included_files();
@@ -42,7 +43,7 @@ class UBCodeInspector {
                 $classLibName = $classRef->getFileName();
                 $defineStartLine = $classRef->getStartLine();
                 if (!empty($classLibName)) {
-                    $classLibName =  basename($classLibName);
+                    $classLibName =  $this->cleanFilePath($classLibName);
                 }
                 $classMethods = get_class_methods($eachClass);
                 $methodParams = array();
@@ -82,23 +83,25 @@ class UBCodeInspector {
             if (!empty($allDefinedFuncs)) {
                 foreach ($allDefinedFuncs as $eachFuncName) {
                     $ref = new ReflectionFunction($eachFuncName);
+                    $originalFuncName = $ref->getName();
                     $params = $ref->getParameters();
                     $fileName = $ref->getFileName();
                     $defineStartLine = $ref->getStartLine();
                     $funcComment = $ref->getDocComment();
                     if (!empty($fileName)) {
-                        $fileName =  basename($fileName);
+                        $fileName =   $this->cleanFilePath($fileName);
                     }
                     if (!empty($params)) {
                         foreach ($params as $eachParam) {
                             $paramName = $eachParam->getName();
                             $paramOptional = $eachParam->isOptional();
-                            $funcParams[$eachFuncName]['params'][$paramName] = $paramOptional;
+                            $funcParams[$originalFuncName]['params'][$paramName] = $paramOptional;
                         }
                     }
-                    $funcParams[$eachFuncName]['comment'] = $funcComment;
-                    $funcParams[$eachFuncName]['file'] = $fileName;
-                    $funcParams[$eachFuncName]['line'] = $defineStartLine;
+
+                    $funcParams[$originalFuncName]['comment'] = $funcComment;
+                    $funcParams[$originalFuncName]['file'] = $fileName;
+                    $funcParams[$originalFuncName]['line'] = $defineStartLine;
                 }
             }
 
@@ -123,7 +126,7 @@ class UBCodeInspector {
         }
     }
 
-    public function parseDocBlock($docComment) {
+    public function parseDocBlock($docComment, $extensive = true) {
         $result = '';
         if ($docComment) {
             $docComment = preg_replace('/^\/\*\*|\*\/$/', '', $docComment);
@@ -133,17 +136,32 @@ class UBCodeInspector {
 
             preg_match_all('/@(\w+)\s+([^\n]+)/', $cleanedComment, $matches, PREG_SET_ORDER);
 
-            $result .= __('Description') . ':' . PHP_EOL;
+            if ($extensive) {
+                $result .= __('Description') . ':' . PHP_EOL;
+            }
             $result .= strtok($cleanedComment, '@') . "\n\n";
 
-            $result .= __('Details') . ':' . PHP_EOL;
-            foreach ($matches as $match) {
-                $result .= ucfirst($match[1]) . ": " . trim($match[2]) . "\n";
+            if ($extensive) {
+                $result .= __('Details') . ':' . PHP_EOL;
+                foreach ($matches as $match) {
+                    $result .= ucfirst($match[1]) . ": " . trim($match[2]) . "\n";
+                }
             }
         }
-        return $result;
+        return ($result);
     }
 
+    protected function cleanFilePath($path = '') {
+        $result = '';
+        if (!empty($path)) {
+            $path = str_replace('/usr/local/www/apache24/data/', '', $path);
+            $path = str_replace('/var/www/html/', '', $path);
+            $path = str_replace('dev/ubilling/', '', $path);
+            $path = str_replace('billing/', '', $path);
+            $result = $path;
+        }
+        return ($result);
+    }
 
     public function getCodeEnv() {
         return ($this->result);
