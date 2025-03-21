@@ -31,22 +31,22 @@ class CMIRR {
      * @var string
      */
     protected $headers = '
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.min.css">
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/theme/dracula.min.css">
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/addon/hint/show-hint.min.css">
+        <link rel="stylesheet" href="modules/jsc/cmirr/codemirror.min.css">
+        <link rel="stylesheet" href="modules/jsc/cmirr/dracula.min.css">
+        <link rel="stylesheet" href="modules/jsc/cmirr/show-hint.min.css">
         
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.min.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/mode/clike/clike.min.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/mode/htmlmixed/htmlmixed.min.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/mode/javascript/javascript.min.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/mode/css/css.min.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/mode/php/php.min.js"></script>
+        <script src="modules/jsc/cmirr/codemirror.min.js"></script>
+        <script src="modules/jsc/cmirr/clike.min.js"></script>
+        <script src="modules/jsc/cmirr/htmlmixed.min.js"></script>
+        <script src="modules/jsc/cmirr/javascript.min.js"></script>
+        <script src="modules/jsc/cmirr/css.min.js"></script>
+        <script src="modules/jsc/cmirr/php.min.js"></script>
         
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/addon/edit/matchbrackets.min.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/addon/edit/closebrackets.min.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/addon/hint/show-hint.min.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/addon/hint/anyword-hint.min.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/addon/hint/javascript-hint.min.js"></script>
+        <script src="modules/jsc/cmirr/matchbrackets.min.js"></script>
+        <script src="modules/jsc/cmirr/closebrackets.min.js"></script>
+        <script src="modules/jsc/cmirr/show-hint.min.js"></script>
+        <script src="modules/jsc/cmirr/anyword-hint.min.js"></script>
+        <script src="modules/jsc/cmirr/javascript-hint.min.js"></script>
     ';
 
     /**
