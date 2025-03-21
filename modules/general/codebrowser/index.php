@@ -18,6 +18,17 @@ if (cfr('SQLCONSOLE')) {
         case $cbrowser::SCOPE_CLASSES;
             show_window(__('Ubilling classes dictionary'), $cbrowser->renderClassesList());
             break;
+        case $cbrowser::SCOPE_CLASS_DESC:
+            $className = ubRouting::get($cbrowser::ROUTE_CLASS_NAME, 'safe');
+            $methodName = ubRouting::get($cbrowser::ROUTE_METHOD_NAME, 'safe');
+            show_window(__('Class') . ': ' . $className . ' ' . __('method') . ' ' . $methodName . ' ', $cbrowser->renderMethodDescription($className, $methodName));
+            break;
+        case $cbrowser::SCOPE_PHP_FUNC:
+            show_window(__('PHP built in functions dictionary'), $cbrowser->renderBuiltInFuncsList());
+            break;
+        case $cbrowser::SCOPE_PHP_CLASSES:
+            show_window(__('PHP built in classes directory'), $cbrowser->renderBuiltInClassesList());
+            break;
     }
 } else {
     show_error(__('Access denied'));

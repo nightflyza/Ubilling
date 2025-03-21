@@ -4,7 +4,17 @@
  * UBCodeInspector is responsible for inspecting and analyzing code base.
  */
 class UBCodeInspector {
+    /**
+     * Default Ubilling libs path
+     *
+     * @var string
+     */
     protected $libsPath = 'api/libs/';
+    /**
+     * Contains full code environment
+     *
+     * @var array
+     */
     protected $result = array();
 
     public function __construct() {
@@ -13,7 +23,11 @@ class UBCodeInspector {
         $this->processFunctions();
     }
 
-
+    /**
+     * Preloads all available libs to inspect defined classess and function
+     *
+     * @return void
+     */
     protected function loadLibraries() {
         $allLibs = rcms_scandir($this->libsPath, '*.php');
         $loadedRaw = get_included_files();
@@ -35,6 +49,11 @@ class UBCodeInspector {
         }
     }
 
+    /**
+     * Preprocesses available classes and methods data
+     *
+     * @return void
+     */
     protected function processClasses() {
         $allClasses = get_declared_classes();
         if (!empty($allClasses)) {
@@ -61,6 +80,10 @@ class UBCodeInspector {
                             }
                             $methodParams[$eachMethod]['line'] = $methodDefineLine;
                             $methodParams[$eachMethod]['comment'] = $methodComment;
+                        } else {
+                            $methodParams[$eachMethod]['params'] = array();
+                            $methodParams[$eachMethod]['line'] = $methodDefineLine;
+                            $methodParams[$eachMethod]['comment'] = $methodComment;
                         }
                     }
                 }
@@ -74,6 +97,11 @@ class UBCodeInspector {
         }
     }
 
+    /**
+     * Preprocesses available functions
+     *
+     * @return void
+     */
     protected function processFunctions() {
         $allFunctions = get_defined_functions();
         if (!empty($allFunctions)) {
@@ -126,6 +154,14 @@ class UBCodeInspector {
         }
     }
 
+    /**
+     * Parses docBlock data into human-readable text
+     *
+     * @param string $docComment
+     * @param bool $extensive
+     * 
+     * @return string
+     */
     public function parseDocBlock($docComment, $extensive = true) {
         $result = '';
         if ($docComment) {
@@ -151,6 +187,13 @@ class UBCodeInspector {
         return ($result);
     }
 
+    /**
+     * Cleans lib file-path and transforms it to relative
+     *
+     * @param string $path
+     * 
+     * @return string
+     */
     protected function cleanFilePath($path = '') {
         $result = '';
         if (!empty($path)) {
@@ -163,6 +206,11 @@ class UBCodeInspector {
         return ($result);
     }
 
+    /**
+     * Returns full code environment data
+     *
+     * @return void
+     */
     public function getCodeEnv() {
         return ($this->result);
     }
