@@ -51,6 +51,7 @@ class OnePunch {
      * Some predefined URLs, routes, tables etc...
      */
     const URL_DEVCON = '?module=sqlconsole&devconsole=true';
+    const URL_HELPER = '?module=codebrowser';
     const TABLE_DATASOURCE = 'punchscripts';
 
     //     ⠀⠀⠀⣠⣶⡾⠏⠉⠙⠳⢦⡀⠀⠀⠀⢠⠞⠉⠙⠲⡀⠀
@@ -184,7 +185,8 @@ class OnePunch {
         $formStyle = ($this->cmFlag) ? '' : 'glamour';
         $result .= wf_Form('', 'POST', $inputs, $formStyle);
         $result .= wf_delimiter();
-        $result .= wf_BackLink(self::URL_DEVCON);
+        $result .= wf_BackLink(self::URL_DEVCON) . ' ';
+        $result .= wf_Link(self::URL_HELPER, wf_img('skins/question.png') . ' ' . __('Available classes and functions directory'), false, 'ubButton', 'target="_blank"');
         return ($result);
     }
 
@@ -222,7 +224,8 @@ class OnePunch {
             $formStyle = ($this->cmFlag) ? '' : 'glamour';
             $result .= wf_Form('', 'POST', $inputs, $formStyle);
             $result .= wf_delimiter();
-            $result .= wf_BackLink(self::URL_DEVCON);
+            $result .= wf_BackLink(self::URL_DEVCON) . ' ';
+            $result .= wf_Link(self::URL_HELPER, wf_img('skins/question.png') . ' ' . __('Available classes and functions directory'), false, 'ubButton', 'target="_blank"');
         }
         return ($result);
     }
