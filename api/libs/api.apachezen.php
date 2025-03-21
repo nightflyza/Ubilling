@@ -110,6 +110,7 @@ class ApacheZen {
      */
     const URL_ME = '?module=apachezen';
     const URL_BACK = '?module=report_sysload';
+    const URL_TASKBAR='?module=taskbar';
     const URL_CODE = 'https://github.com/nightflyza/Ubilling/';
     const ROUTE_ERRORS = 'errorlog';
     const ROUTE_PHPERR = 'phperrors';
@@ -361,7 +362,11 @@ class ApacheZen {
      */
     public function controls() {
         $result = '';
-        $result .= wf_BackLink(self::URL_BACK) . ' ';
+        $backUrl = self::URL_BACK;
+        if (ubRouting::get('back') == 'tb') {
+            $backUrl = self::URL_TASKBAR;
+        }
+        $result .= wf_BackLink($backUrl) . ' ';
         $result .= wf_Link(self::URL_ME, wf_img('skins/zen.png') . ' Access ' . __('Zen'), false, 'ubButton');
         $result .= wf_Link(self::URL_ME . '&' . self::ROUTE_ERRORS . '=true', wf_img('skins/zen.png') . ' Error ' . __('Zen'), false, 'ubButton');
         $result .= wf_Link(self::URL_ME . '&' . self::ROUTE_PHPERR . '=true', wf_img('skins/icon_php.png') . ' ' . __('PHP errors'), false, 'ubButton');

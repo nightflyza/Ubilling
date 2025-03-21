@@ -84,12 +84,16 @@ class ProcessMon {
      */
     public function renderControls() {
         $result = '';
-        $result .= wf_BackLink('?module=report_sysload');
+        $backUrl = '?module=report_sysload';
+        if (ubRouting::get('back') == 'tb') {
+            $backUrl = '?module=taskbar';
+        }
+        $result .= wf_BackLink($backUrl);
         $result .= wf_Link(self::URL_ME . '&' . self::ROUTE_ALL . '=true', wf_img('skins/icon_thread.png') . ' ' . __('All'), false, 'ubButton') . ' ';
         $result .= wf_Link(self::URL_ME . '&' . self::ROUTE_ACTIVE . '=true', wf_img('skins/icon_active.gif') . ' ' . __('Active'), false, 'ubButton') . ' ';
         $result .= wf_Link(self::URL_ME . '&' . self::ROUTE_FINISHED . '=true', wf_img('skins/icon_inactive.gif') . ' ' . __('Finished'), false, 'ubButton') . ' ';
         $result .= wf_Link(self::URL_ME . '&' . self::ROUTE_ZENMODE . '=true', wf_img('skins/zen.png') . ' ' . __('Zen'), false, 'ubButton') . ' ';
-        return($result);
+        return ($result);
     }
 
     /**
@@ -114,7 +118,7 @@ class ProcessMon {
                 }
             }
         }
-        return($result);
+        return ($result);
     }
 
     /**
@@ -155,7 +159,7 @@ class ProcessMon {
             $result .= __('No matching process was found') . ': ' . $processName;
             log_register('PROCESSMON PROCESS `' . $processName . '` KILL FAILED PROCESS NOT FOUND');
         }
-        return($result);
+        return ($result);
     }
 
     /**
@@ -174,7 +178,7 @@ class ProcessMon {
         $result .= wf_delimiter();
         $result .= wf_JSAlert($brutalityUrl, wf_img('skins/skull.png') . ' ' . __('Stop the process with extreme cruelty'), $stopAlert, '', 'ubButton');
 
-        return($result);
+        return ($result);
     }
 
     /**
@@ -252,14 +256,14 @@ class ProcessMon {
                 if ($rowRender) {
                     $pidLabel = $processData['pid'];
                     //process management form if its running
-                    if (isset($runningPids[$processData['pid']]) AND $activityFlag) {
+                    if (isset($runningPids[$processData['pid']]) and $activityFlag) {
                         $processString = $runningPids[$processData['pid']];
                         $pidModal = wf_modalAuto($processData['pid'], __('Manage') . ' ' . $processName, $this->renderShutdownForm($processName));
                         $pidLabel = $pidModal;
                     }
                     //highligthing dead processes with no PIDs
                     if (!$zenFlag) {
-                        if (!isset($runningPids[$processData['pid']]) AND $activityFlag) {
+                        if (!isset($runningPids[$processData['pid']]) and $activityFlag) {
                             $pidLabel = $pidLabel . ' ' . wf_img_sized('skins/skull.png', __('Dead'), '12');
                         }
                     }
@@ -282,7 +286,6 @@ class ProcessMon {
         } else {
             $result .= $this->messages->getStyledMessage(__('Nothing found'), 'warning');
         }
-        return($result);
+        return ($result);
     }
-
 }

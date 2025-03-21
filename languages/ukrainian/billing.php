@@ -3571,4 +3571,6 @@ $lang['def']['BGP Sessions monitoring'] = 'Моніторинг BGP сесій';
 $lang['def']['right to view BGP sessions monitoring report'] = 'Право використовувати моніторинг BGP сесій';
 $lang['def']['Use DataTables renderer'] = 'Використовувати DataTables для відображення результатів';
 $lang['def']['Available classes and functions directory'] = 'Додвідник доступних класів та функцій';
+$lang['def']['Web server logs'] = 'Журнали веб сервера';
 $lang['def'][''] = '';
+
