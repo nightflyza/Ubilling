@@ -42,14 +42,8 @@ class UBCodeInspector {
 
         if (!empty($allLibs)) {
             foreach ($allLibs as $eachLib) {
-                if (!isset($loadedLibs[$eachLib]) and !ispos($eachLib, 'maps') and !ispos($eachLib, 'oll')) {
-                    if ($eachLib == 'api.ic.php') {
-                        if (PHP_VERSION_ID >= 50638) {
-                            require_once($this->libsPath . $eachLib);
-                        }
-                    } else {
-                        require_once($this->libsPath . $eachLib);
-                    }
+                if (!isset($loadedLibs[$eachLib]) and !ispos($eachLib, 'maps') and !ispos($eachLib, 'oll') and ($eachLib != 'api.ic.php')) {
+                    require_once($this->libsPath . $eachLib);
                 }
             }
         }
