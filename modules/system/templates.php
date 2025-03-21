@@ -129,6 +129,16 @@ function rcms_parse_menu($format) {
     return $result;
 }
 
+/**
+ * Converts a nested array into a dropdown menu format.
+ *
+ * This function takes a nested array and converts it into a format suitable for
+ * creating a dropdown menu. Each element in the array can have a title and an
+ * optional sub-array of elements.
+ *
+ * @param array $array The input array to be converted.
+ * @return array The formatted array suitable for a dropdown menu.
+ */
 function arr2ddm($array) {
     $ra = array();
     foreach ($array as $key => $val) {

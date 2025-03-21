@@ -19,6 +19,16 @@ $skin['menu_point']['index-menus'] = __('Menu modules in index');
 
 $this->registerNavModifier('module', '_nav_modifier_module_m', '_nav_modifier_module_h');
 
+/**
+ * Modifies the navigation module based on the input.
+ *
+ * This function checks if the specified module exists in the system's main modules.
+ * If it exists, it returns an array containing the module URL and its title.
+ * If it does not exist, it returns false.
+ *
+ * @param string $input The module identifier to check.
+ * @return array|false An array with the module URL and title if the module exists, or false if it does not.
+ */
 function _nav_modifier_module_m($input){
 	global $system;
 	if(!empty($system->modules['main'][$input])){
@@ -28,6 +38,14 @@ function _nav_modifier_module_m($input){
 	}
 }
 
+/**
+ * This function returns a localized description of the module navigation modifier.
+ *
+ * The modifier is used to create links to modules by typing the module's ID after a colon (:).
+ * The default title will be the localized name of the module.
+ *
+ * @return string Localized description of the module navigation modifier.
+ */
 function _nav_modifier_module_h(){
 	return __('This modifier is used to create links to modules, just type module\'s ID after ":". Default title will be localised name of module.');
 }
