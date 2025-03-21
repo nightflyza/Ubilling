@@ -7009,3 +7009,53 @@ function zb_TrimTextLog($fileName, $size) {
         }
     }
 }
+
+/**
+ * Returns ICMP ping configuration form
+ * 
+ * @return string
+ */
+function wf_PlPingerOptionsForm() {
+    //previous setting
+    if (ubRouting::checkPost('packet')) {
+        $currentpack = ubRouting::post('packet', 'int');
+    } else {
+        $currentpack = '';
+    }
+
+    if (ubRouting::checkPost('count')) {
+        $getCount = ubRouting::post('count', 'int');
+        if ($getCount <= 10000) {
+            $currentcount = $getCount;
+        } else {
+            $currentcount = '';
+        }
+    } else {
+        $currentcount = '';
+    }
+
+    $inputs = wf_TextInput('packet', __('Packet size'), $currentpack, false, 5);
+    $inputs .= wf_TextInput('count', __('Count'), $currentcount, false, 5);
+    $inputs .= wf_Submit(__('Save'));
+    $result = wf_Form('', 'POST', $inputs, 'glamour');
+    return ($result);
+}
+
+/**
+ * Returns ARPping configuration form
+ * 
+ * @return string
+ */
+function wf_PlArpingOptionsForm() {
+    $currentcount = '';
+    if (ubRouting::post('count')) {
+        $getCount = ubRouting::post('count', 'int');
+        if ($getCount <= 1000) {
+            $currentcount = $getCount;
+        }
+    }
+    $inputs = wf_TextInput('count', __('Count'), $currentcount, false, 5);
+    $inputs .= wf_Submit(__('Save'));
+    $result = wf_Form('', 'POST', $inputs, 'glamour');
+    return ($result);
+}
