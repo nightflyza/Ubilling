@@ -43,7 +43,13 @@ class UBCodeInspector {
         if (!empty($allLibs)) {
             foreach ($allLibs as $eachLib) {
                 if (!isset($loadedLibs[$eachLib]) and !ispos($eachLib, 'maps') and !ispos($eachLib, 'oll')) {
-                    require_once($this->libsPath . $eachLib);
+                    if ($eachLib == 'api.ic.php') {
+                        if (PHP_VERSION_ID >= 50638) {
+                            require_once($this->libsPath . $eachLib);
+                        }
+                    } else {
+                        require_once($this->libsPath . $eachLib);
+                    }
                 }
             }
         }
@@ -167,7 +173,9 @@ class UBCodeInspector {
         if ($docComment) {
             $docComment = preg_replace('/^\/\*\*|\*\/$/', '', $docComment);
             $lines = preg_split('/\R/', $docComment);
-            $cleanedLines = array_map(fn($line) => preg_replace('/^\s*\*\s?/', '', $line), $lines);
+            $cleanedLines = array_map(function ($line) {
+                return preg_replace('/^\s*\*\s?/', '', $line);
+            }, $lines);
             $cleanedComment = trim(implode("\n", $cleanedLines));
 
             preg_match_all('/@(\w+)\s+([^\n]+)/', $cleanedComment, $matches, PREG_SET_ORDER);
