@@ -173,7 +173,6 @@ MASSSEND_ENABLED=TRIGGER|Mass sender enabled
 MASSSEND_SAFE=TRIGGER|Mass sender use ticketing
 CAPABDIR_ENABLED=TRIGGER|Available connection capabilities
 STRICT_CREDIT_LIMIT=VARCHAR|Strict credit limit
-NOBACKUPTABLESLIKE=VARCHAR|Mask for tables to skip in backup
 RESETONCFCHANGE=TRIGGER|Reset users on custom field change
 RESETONTAGCHANGE=TRIGGER|Reset users on tag change
 MTSIGMON_ENABLED=TRIGGER|Wireless APs signal monitor enabled
