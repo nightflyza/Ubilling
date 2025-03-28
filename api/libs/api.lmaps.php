@@ -178,7 +178,6 @@ function generic_MapAddCircle($coords, $radius, $content = '', $hint = '', $colo
 
     return ($result);
 }
-
 /**
  * Initalizes leaflet maps API with some params
  * 
@@ -193,41 +192,47 @@ function generic_MapAddCircle($coords, $radius, $content = '', $hint = '', $colo
  * 
  * @return string
  */
-function generic_MapInit($center = '', $zoom = 15, $type = 'map', $placemarks = '', $editor = '', $lang = 'uk-UA', $container = 'ubmap', $searchPrefill = '') {
+function generic_MapInit($center = '', $zoom = 15, $type = 'roadmap', $placemarks = '', $editor = '', $lang = 'uk-UA', $container = 'ubmap', $searchPrefill = '') {
     global $ubillingConfig;
     $mapsCfg = $ubillingConfig->getYmaps();
     $result = '';
     $tileLayerCustoms = '';
     $searchCode = '';
+    $type = ($type == 'map') ? 'roadmap' : $type; // legacy config option
     $canvasRender = ($mapsCfg['CANVAS_RENDER']) ? 'true' : 'false'; //string values
+
     if (empty($center)) {
         //autolocator here
-        $mapCenter = 'map.locate({setView: true, maxZoom: ' . $zoom . '});';
-        //error notice if autolocation failed
-        $mapCenter .= 'function onLocationError(e) {
-                        alert(e.message);
-                       }
-                       map.on(\'locationerror\', onLocationError)';
+        $mapCenter = 'map.locate({setView: true, maxZoom: ' . $zoom . '});
+                      function onLocationError(e) {
+                          alert(e.message);
+                      }
+                      map.on(\'locationerror\', onLocationError);';
     } else {
         //explicit map center
         $mapCenter = 'map.setView([' . $center . '], ' . $zoom . ');';
     }
 
     //default OSM tile layer
-    $tileLayer = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+    $tileLayerOSM = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+
+    //satellite map layers
+    $tileLayerSatellite = 'https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}';
+    $tileLayerHybrid = 'https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}';
 
     //custom tile layer
     if (isset($mapsCfg['LEAFLET_TILE_LAYER'])) {
         if ($mapsCfg['LEAFLET_TILE_LAYER']) {
-            $tileLayer = $mapsCfg['LEAFLET_TILE_LAYER'];
+            $tileLayerOSM = $mapsCfg['LEAFLET_TILE_LAYER'];
+
             //Visicom custom options
-            if (ispos($tileLayer, 'visicom')) {
+            if (ispos($tileLayerOSM, 'visicom')) {
                 $tileLayerCustoms = "subdomains: '123',
                 tms: true";
             }
 
             //google satellite
-            if (ispos($tileLayer, 'google.com')) {
+            if (ispos($tileLayerOSM, 'google.com')) {
                 $tileLayerCustoms = "subdomains:['mt0','mt1','mt2','mt3']";
             }
         }
@@ -236,10 +241,9 @@ function generic_MapInit($center = '', $zoom = 15, $type = 'map', $placemarks = 
     if (!empty($searchPrefill)) {
         $searchCode = '
         const searchInput = document.querySelector(\'.leaflet-control-geocoder-form input\');
-         if (searchInput) {
+        if (searchInput) {
             searchInput.value = \'' . $searchPrefill . '\';
-         }
-      ';
+        }';
     }
 
     //Leaflet core libs
@@ -260,56 +264,80 @@ function generic_MapInit($center = '', $zoom = 15, $type = 'map', $placemarks = 
     //basic map init
     $result .= wf_tag('script', false, '', 'type = "text/javascript"');
     $result .= '
-	var map = L.map(\'' . $container . '\');
-        ' . $mapCenter . '
-	L.tileLayer(\'' . $tileLayer . '\', {
-		maxZoom: 18,
-		attribution: \'\',
-		id: \'mapbox.streets\',
-                ' . $tileLayerCustoms . '
-	}).addTo(map);
-        
-        var geoControl = new L.Control.Geocoder({showResultIcons: true, errorMessage: "' . __('Nothing found') . '", placeholder: "' . __('Search') . '"});
-        geoControl.addTo(map);
+    var map = L.map(\'' . $container . '\');
+    ' . $mapCenter . '
 
-        L.easyPrint({
-	title: \'' . __('Export') . '\',
+    // Tile layers
+    var roadmap = L.tileLayer(\'' . $tileLayerOSM . '\', {
+        maxZoom: 18,
+        attribution: \'\'
+        ' . $tileLayerCustoms . '
+    });
+
+    var satellite = L.tileLayer(\'' . $tileLayerSatellite . '\', {
+        maxZoom: 18,
+        attribution: \'© Google\'
+    });
+
+    var hybrid = L.tileLayer(\'' . $tileLayerHybrid . '\', {
+        maxZoom: 18,
+        attribution: \'© Google\'
+    });
+
+    // Default tile layer
+    ' . $type . '.addTo(map);
+
+    // Base layers switcher
+    var baseMaps = {
+        "' . __('Map') . '": roadmap,
+        "' . __('Hybrid') . '": hybrid,
+        "' . __('Satellite') . '": satellite,
+        
+    };
+
+    var geoControl = new L.Control.Geocoder({showResultIcons: true, errorMessage: "' . __('Nothing found') . '", placeholder: "' . __('Search') . '"});
+    geoControl.addTo(map);
+
+    L.easyPrint({
+        title: \'' . __('Export') . '\',
         defaultSizeTitles: {Current: \'' . __('Current') . '\', A4Landscape: \'A4 Landscape\', A4Portrait: \'A4 Portrait\'},
-	position: \'topright\',
+        position: \'topright\',
         filename: \'ubillingmap_' . date("Y-m-d_H:i:s") . '\',
         exportOnly: true,
         hideControlContainer: true,
-	sizeModes: [\'Current\', \'A4Landscape\', \'A4Portrait\'],
-        }).addTo(map);
+        sizeModes: [\'Current\', \'A4Landscape\', \'A4Portrait\']
+    }).addTo(map);
 
-        
-        var options = {
-          position: \'topright\',
-          preferCanvas: \'' . $canvasRender . '\',
-             lengthUnit: {        
-        display: \'' . __('meters') . '\',          
-        decimal: 2,               
-        factor: 1000,    
-        label: \'' . __('Distance') . ':\'           
-      },
-      angleUnit: {
-        display: \'&deg;\',
-        decimal: 2,        
-        factor: null, 
-        label: \'' . __('Bearing') . ':\'
-      }
-        };
-        L.control.ruler(options).addTo(map);
-           
-	' . $placemarks . '
-        ' . $editor . '
-     ' . $searchCode . '   
- ';
+    var options = {
+        position: \'topright\',
+        preferCanvas: \'' . $canvasRender . '\',
+        lengthUnit: {        
+            display: \'' . __('meters') . '\',          
+            decimal: 2,               
+            factor: 1000,    
+            label: \'' . __('Distance') . ':\'           
+        },
+        angleUnit: {
+            display: \'&deg;\',
+            decimal: 2,        
+            factor: null, 
+            label: \'' . __('Bearing') . ':\'
+        }
+    };
+    L.control.ruler(options).addTo(map);
 
+    var layerControl = L.control.layers(baseMaps, null, { collapsed: true });
+    map.addControl(layerControl);
 
+    ' . $placemarks . '
+    ' . $editor . '
+    ' . $searchCode . '
+
+    ';
     $result .= wf_tag('script', true);
     return ($result);
 }
+
 
 /**
  * Return generic editor code
