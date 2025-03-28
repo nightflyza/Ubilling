@@ -540,6 +540,22 @@ function zb_AddressGetStreetsWithBuilds() {
 }
 
 /**
+ * Returns all streets available array as streetname=>streetname
+ * 
+ * @return array
+ */
+function zb_AddressGetStreets() {
+    $result = array();
+    $rawStreets = zb_AddressGetStreetAllData();
+    if (!empty($rawStreets)) {
+        foreach ($rawStreets as $io => $each) {
+            $result[$each['streetname']] = $each['streetname'];
+        }
+    }
+    return ($result);
+}
+
+/**
  * Returns all builds data by some street, naturally ordered by build number
  * 
  * @param int $streetid

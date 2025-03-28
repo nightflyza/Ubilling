@@ -1246,6 +1246,7 @@ function ts_TaskCreateForm() {
     $alljobtypes = ts_GetAllJobtypes();
     $allemployee = ts_GetActiveEmployee();
     $preselectedEmployee = $ubillingConfig->getAlterParam('TASKMAN_ANYONE_EMPLOYEEID', '');
+    $sup = wf_tag('sup', false) . '*' . wf_tag('sup', true);
 
     if (!empty($alljobtypes) and !empty($allemployee)) {
         //construct sms sending inputs
@@ -1264,23 +1265,30 @@ function ts_TaskCreateForm() {
         $inputs .= wf_HiddenInput('createtask', 'true');
         $inputs .= wf_DatePicker('newstartdate');
         $inputs .= wf_TimePickerPreset('newstarttime', '', '', false);
-        $inputs .= wf_tag('label') . __('Target date') . wf_tag('sup') . '*' . wf_tag('sup', true) . wf_tag('label', true);
+        $inputs .= wf_tag('label') . __('Target date') . $sup . wf_tag('label', true);
         $inputs .= wf_delimiter();
 
         if (!$altercfg['SEARCHADDR_AUTOCOMPLETE']) {
-            $inputs .= wf_TextInput('newtaskaddress', __('Address') . '<sup>*</sup>', '', true, '30');
+            $inputs .= wf_TextInput('newtaskaddress', __('Address') . $sup, '', true, '30');
         } else {
+            $allAddress = array();
             if (!@$altercfg['TASKMAN_SHORT_AUTOCOMPLETE']) {
                 $allAddress = zb_AddressGetFulladdresslistCached();
             } else {
-                $allAddress = zb_AddressGetStreetsWithBuilds();
+                if ($altercfg['TASKMAN_SHORT_AUTOCOMPLETE'] == 1) {
+                    $allAddress = zb_AddressGetStreetsWithBuilds();
+                }
+
+                if ($altercfg['TASKMAN_SHORT_AUTOCOMPLETE'] == 2) {
+                    $allAddress = zb_AddressGetStreets();
+                }
             }
-            $inputs .= wf_AutocompleteTextInput('newtaskaddress', $allAddress, __('Address') . '<sup>*</sup>', '', true, '30');
+            $inputs .= wf_AutocompleteTextInput('newtaskaddress', $allAddress, __('Address') . $sup, '', true, '30');
         }
         $inputs .= wf_tag('br');
         //hidden for new task login input
         $inputs .= wf_HiddenInput('newtasklogin', '');
-        $inputs .= wf_TextInput('newtaskphone', __('Phone') . '<sup>*</sup>', '', true, '30');
+        $inputs .= wf_TextInput('newtaskphone', __('Phone') . $sup, '', true, '30');
         $inputs .= wf_tag('br');
         $inputs .= wf_Selector('newtaskjobtype', $alljobtypes, __('Job type'), '', true);
         $inputs .= wf_tag('br');
@@ -2141,9 +2149,10 @@ function ts_TaskModifyForm($taskid) {
     $taskid = vf($taskid, 3);
     $taskdata = ts_GetTaskData($taskid);
     $result = '';
-    $allemployee = ts_GetAllEmployee();
     $activeemployee = ts_GetActiveEmployee();
     $alljobtypes = ts_GetAllJobtypes();
+    $sup = wf_tag('sup') . '*' . wf_tag('sup', false);
+
     //construct sms sending inputs
     if ($altercfg['SENDDOG_ENABLED']) {
         $smsCheckBox = ($ubillingConfig->getAlterParam('TASKMAN_SMS_PROFILE_CHECK')) ? true : false;
@@ -2164,22 +2173,31 @@ function ts_TaskModifyForm($taskid) {
             $inputs .= wf_HiddenInput('modifystartdate', $taskdata['startdate']);
         }
         $inputs .= wf_TimePickerPreset('modifystarttime', $taskdata['starttime'], '', false);
-        $inputs .= wf_tag('label') . __('Target date') . wf_tag('sup') . '*' . wf_tag('sup', true) . wf_tag('label', true);
+        $inputs .= wf_tag('label') . __('Target date') . $sup . wf_tag('label', true);
         $inputs .= wf_delimiter();
         $inputs .= wf_tag('br');
         if ($altercfg['SEARCHADDR_AUTOCOMPLETE']) {
-            $alladdress = zb_AddressGetFulladdresslistCached();
-            //Commented because significantly reduces performance. Waiting for feedback.
-            //natsort($alladdress);
-            $inputs .= wf_AutocompleteTextInput('modifytaskaddress', $alladdress, __('Address') . '<sup>*</sup>', $taskdata['address'], true, '30');
+            $allAddress = array();
+            if (!@$altercfg['TASKMAN_SHORT_AUTOCOMPLETE']) {
+                $allAddress = zb_AddressGetFulladdresslistCached();
+            } else {
+                if ($altercfg['TASKMAN_SHORT_AUTOCOMPLETE'] == 1) {
+                    $allAddress = zb_AddressGetStreetsWithBuilds();
+                }
+
+                if ($altercfg['TASKMAN_SHORT_AUTOCOMPLETE'] == 2) {
+                    $allAddress = zb_AddressGetStreets();
+                }
+            }
+            $inputs .= wf_AutocompleteTextInput('modifytaskaddress',  $allAddress, __('Address') . $sup, $taskdata['address'], true, '30');
         } else {
-            $inputs .= wf_TextInput('modifytaskaddress', __('Address') . '<sup>*</sup>', $taskdata['address'], true, '30');
+            $inputs .= wf_TextInput('modifytaskaddress', __('Address') . $sup, $taskdata['address'], true, '30');
         }
         $inputs .= wf_tag('br');
         //custom login text input
         $inputs .= wf_TextInput('modifytasklogin', __('Login'), $taskdata['login'], true, 30);
         $inputs .= wf_tag('br');
-        $inputs .= wf_TextInput('modifytaskphone', __('Phone') . '<sup>*</sup>', $taskdata['phone'], true, '30');
+        $inputs .= wf_TextInput('modifytaskphone', __('Phone') . $sup, $taskdata['phone'], true, '30');
         $inputs .= wf_tag('br');
         $inputs .= wf_Selector('modifytaskjobtype', $alljobtypes, __('Job type'), $taskdata['jobtype'], true);
         $inputs .= wf_tag('br');
@@ -2954,7 +2972,7 @@ function ts_DeleteTask($taskid) {
  *
  * @param int $taskid
  *
- * @return void
+ * @return array
  */
 function ts_GetLogTask($taskid) {
     $result = '';

@@ -301,11 +301,22 @@ function web_UserSearchContractForm() {
  */
 function web_UserSearchAddressPartialForm() {
     global $ubillingConfig;
-    $alterconf = $ubillingConfig->getAlter();
-    if ($alterconf['SEARCHADDR_AUTOCOMPLETE']) {
-        $alladdress = zb_AddressGetFulladdresslistCached();
-        natsort($alladdress);
-        $inputs = wf_AutocompleteTextInput('partialaddr', $alladdress, '', '', false, 30);
+    $altercfg = $ubillingConfig->getAlter();
+    if ($altercfg['SEARCHADDR_AUTOCOMPLETE']) {
+        $allAddress = array();
+            if (!@$altercfg['TASKMAN_SHORT_AUTOCOMPLETE']) {
+                $allAddress = zb_AddressGetFulladdresslistCached();
+            } else {
+                if ($altercfg['TASKMAN_SHORT_AUTOCOMPLETE'] == 1) {
+                    $allAddress = zb_AddressGetStreetsWithBuilds();
+                }
+
+                if ($altercfg['TASKMAN_SHORT_AUTOCOMPLETE'] == 2) {
+                    $allAddress = zb_AddressGetStreets();
+                }
+            }
+        natsort($allAddress);
+        $inputs = wf_AutocompleteTextInput('partialaddr', $allAddress, '', '', false, 30);
     } else {
         $inputs = wf_TextInput('partialaddr', '', '', false, 30);
     }
