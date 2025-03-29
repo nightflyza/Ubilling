@@ -3574,4 +3574,6 @@ $lang['def']['Available classes and functions directory'] = 'Додвідник 
 $lang['def']['Web server logs'] = 'Журнали веб сервера';
 $lang['def']['Hybrid'] = 'Гібрид';
 $lang['def']['Satellite'] = 'Супутник';
+$lang['def']['Fullscreen'] = 'На повний екран';
+$lang['def']['Exit fullscreen'] = 'Вийти з повноекранного режиму';
 $lang['def'][''] = '';

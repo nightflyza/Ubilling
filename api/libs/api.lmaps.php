@@ -258,8 +258,12 @@ function generic_MapInit($center = '', $zoom = 15, $type = 'roadmap', $placemark
     $result .= wf_tag('link', false, '', 'rel="stylesheet" href="modules/jsc/leaflet-ruler/src/leaflet-ruler.css"');
     $result .= wf_tag('script', false, '', 'src="modules/jsc/leaflet-ruler/src/leaflet-ruler.js"') . wf_tag('script', true);
 
-    //Easyprint libs init
+    //Easyprint lib init
     $result .= wf_tag('script', false, '', 'src="modules/jsc/leaflet-easyprint/dist/bundle.js"') . wf_tag('script', true);
+
+    //Fullscreen control
+    $result .= wf_tag('link', false, '', 'rel="stylesheet" href="modules/jsc/leaflet-fullscreen/dist/leaflet.fullscreen.css"');
+    $result .= wf_tag('script', false, '', 'src="modules/jsc/leaflet-fullscreen/dist/Leaflet.fullscreen.min.js"') . wf_tag('script', true);
 
     //basic map init
     $result .= wf_tag('script', false, '', 'type = "text/javascript"');
@@ -325,6 +329,13 @@ function generic_MapInit($center = '', $zoom = 15, $type = 'roadmap', $placemark
         }
     };
     L.control.ruler(options).addTo(map);
+
+    map.addControl(new L.Control.Fullscreen({
+    title: {
+        \'false\': \'' . __('Fullscreen') . '\',
+        \'true\': \'' . __('Exit fullscreen') . '\'
+    }
+    }));
 
     var layerControl = L.control.layers(baseMaps, null, { collapsed: true });
     map.addControl(layerControl);

@@ -3559,3 +3559,7 @@ $lang['def']['right to view BGP sessions monitoring report'] = 'Право ис�
 $lang['def']['Use DataTables renderer'] = 'Использовать DataTables для отображения результатов';
 $lang['def']['Available classes and functions directory'] = 'Справочник доступных класов и функций';
 $lang['def']['Web server logs'] = 'Журналы веб-сервера';
+$lang['def']['Hybrid'] = 'Гибрид';
+$lang['def']['Satellite'] = 'Спутник';
+$lang['def']['Fullscreen'] = 'Полный экран';
+$lang['def']['Exit fullscreen'] = 'Выйти из полноэкранного режима';
