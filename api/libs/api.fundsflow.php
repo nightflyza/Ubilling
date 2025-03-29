@@ -339,7 +339,7 @@ class FundsFlow {
                 $result[$counter]['cashtype'] = $each['cashtype'];
             }
         }
-        return($result);
+        return ($result);
     }
 
     /**
@@ -356,7 +356,7 @@ class FundsFlow {
         } else {
             $result = $this->getLogFees($login);
         }
-        return($result);
+        return ($result);
     }
 
     /**
@@ -469,8 +469,8 @@ class FundsFlow {
                     $cashto = $each['summ'];
                 }
 
-                if ((!ispos($each['note'], 'MOCK:')) AND (!ispos($each['note'], 'BALANCESET:'))) {
-                    if (is_numeric($each['summ']) AND is_numeric($each['balance'])) {
+                if ((!ispos($each['note'], 'MOCK:')) and (!ispos($each['note'], 'BALANCESET:'))) {
+                    if (is_numeric($each['summ']) and is_numeric($each['balance'])) {
                         $cashto = $each['summ'] + $each['balance'];
                     } else {
                         $cashto = __('Corrupted');
@@ -518,7 +518,7 @@ class FundsFlow {
                 $result[$each['login']][$counter]['cashtype'] = $each['cashtypeid'];
             }
         }
-        return($result);
+        return ($result);
     }
 
     /**
@@ -554,7 +554,7 @@ class FundsFlow {
             // checking for "handle" to be non-empty, e.g. the "fopen()" didn't return "false"
             // or we might find ourselves in an infinite loop
             if (empty($handle)) {
-                log_register('FEES HARVESTER: FAILED TO OPEN "'. $stgLog . '"');
+                log_register('FEES HARVESTER: FAILED TO OPEN "' . $stgLog . '"');
             } else {
                 while (!feof($handle)) {
                     $eachline = fgets($handle);
@@ -564,8 +564,7 @@ class FundsFlow {
                             if (ispos($eachline, $dateMaskFilter)) {
                                 $requiredDateOffset = true;
                             }
-                        }
-                        else {
+                        } else {
                             $requiredDateOffset = true;
                         }
 
@@ -616,7 +615,7 @@ class FundsFlow {
             $this->getLastFeeChargesAll();
         }
 
-        return($result);
+        return ($result);
     }
 
     /**
@@ -667,8 +666,8 @@ class FundsFlow {
                     $cashto = $eachpayment['summ'];
                 }
 
-                if ((!ispos($eachpayment['note'], 'MOCK:')) AND (!ispos($eachpayment['note'], 'BALANCESET:'))) {
-                    if (is_numeric($eachpayment['summ']) AND is_numeric($eachpayment['balance'])) {
+                if ((!ispos($eachpayment['note'], 'MOCK:')) and (!ispos($eachpayment['note'], 'BALANCESET:'))) {
+                    if (is_numeric($eachpayment['summ']) and is_numeric($eachpayment['balance'])) {
                         $cashto = $eachpayment['summ'] + $eachpayment['balance'];
                     } else {
                         $cashto = __('Corrupted');
@@ -801,13 +800,13 @@ class FundsFlow {
                 }
 
                 //virtual services fees
-                if ((ispos($each['note'], 'Service:')) AND ( $each['summ'] < 0)) {
+                if ((ispos($each['note'], 'Service:')) and ($each['summ'] < 0)) {
                     $fc = wf_tag('font', false, '', 'color="#' . $this->colorAdditionalFee . '"');
                     $operation = __('Virtual service');
                 }
 
                 //virtual services bonuses
-                if ((ispos($each['note'], 'Service:')) AND ( $each['summ'] >= 0)) {
+                if ((ispos($each['note'], 'Service:')) and ($each['summ'] >= 0)) {
                     $fc = wf_tag('font', false, '', 'color="#' . $this->colorBonus . '"');
                     $operation = __('Bonus');
                 }
@@ -988,6 +987,9 @@ class FundsFlow {
 
             $result = wf_TableBody($tablerows, '100%', 0, 'sortable');
             $result .= $legend;
+        } else {
+            $messages = new UbillingMessageHelper();
+            $result .= $messages->getStyledMessage(__('Nothing to show'), 'warning');
         }
 
         return ($result);
@@ -1521,9 +1523,10 @@ class FundsFlow {
                     $tmpVal = $payments[$key];
                     $tmpKey = $key + 1;
 
-                    while (array_key_exists($tmpKey, $fees) or
-                    array_key_exists($tmpKey, $payments) or
-                    array_key_exists($tmpKey, $corrections)
+                    while (
+                        array_key_exists($tmpKey, $fees) or
+                        array_key_exists($tmpKey, $payments) or
+                        array_key_exists($tmpKey, $corrections)
                     ) {
 
                         $tmpKey++;
@@ -1547,9 +1550,10 @@ class FundsFlow {
                     $tmpVal = $corrections[$key];
                     $tmpKey = $key + 1;
 
-                    while (array_key_exists($tmpKey, $fees) or
-                    array_key_exists($tmpKey, $payments) or
-                    array_key_exists($tmpKey, $corrections)
+                    while (
+                        array_key_exists($tmpKey, $fees) or
+                        array_key_exists($tmpKey, $payments) or
+                        array_key_exists($tmpKey, $corrections)
                     ) {
 
                         $tmpKey++;
@@ -1570,9 +1574,10 @@ class FundsFlow {
                     $tmpVal = $corrections[$key];
                     $tmpKey = $key + 1;
 
-                    while (array_key_exists($tmpKey, $fees) or
-                    array_key_exists($tmpKey, $payments) or
-                    array_key_exists($tmpKey, $corrections)
+                    while (
+                        array_key_exists($tmpKey, $fees) or
+                        array_key_exists($tmpKey, $payments) or
+                        array_key_exists($tmpKey, $corrections)
                     ) {
 
                         $tmpKey++;

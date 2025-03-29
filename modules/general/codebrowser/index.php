@@ -30,6 +30,7 @@ if (cfr('SQLCONSOLE')) {
             show_window(__('PHP built in classes directory'), $cbrowser->renderBuiltInClassesList());
             break;
     }
+    zb_BillingStats();
 } else {
     show_error(__('Access denied'));
 }

@@ -1833,7 +1833,7 @@ $lang['def']['Fast access'] = 'Швидкий доступ';
 $lang['def']['Wireless APs signal levels'] = 'Рівні сигналу на БС';
 
 //rev 4112
-$lang['def']['Edit map'] = 'Редагувати карту';
+$lang['def']['Edit map'] = 'Редагувати мапу';
 $lang['def']['Manufacturer'] = 'Виробник';
 $lang['def']['Photo upload complete'] = 'Фото успішно завантажено';
 $lang['def']['Photo upload failed'] = 'Завантаження фото завершилось невдачею';
