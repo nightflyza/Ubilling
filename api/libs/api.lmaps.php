@@ -220,7 +220,7 @@ function generic_MapInit($center = '', $zoom = 15, $type = 'roadmap', $placemark
     $tileLayerSatellite = 'https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}';
     $tileLayerHybrid = 'https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}';
 
-    //custom tile layer
+    //custom OSM tile layer
     if (isset($mapsCfg['LEAFLET_TILE_LAYER'])) {
         if ($mapsCfg['LEAFLET_TILE_LAYER']) {
             $tileLayerOSM = $mapsCfg['LEAFLET_TILE_LAYER'];
