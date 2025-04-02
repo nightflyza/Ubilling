@@ -661,3 +661,5 @@ svg.leaflet-image-layer.leaflet-interactive path {
 		print-color-adjust: exact;
 		}
 	}
+
+.ui-dialog { z-index: 1000 !important ;}
