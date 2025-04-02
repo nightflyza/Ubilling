@@ -1432,16 +1432,24 @@ function ts_PreviousUserTasksRender($login, $address = '', $noFixedWidth = false
     $userTasks = array();
     $telepathyTasks = array();
     $telepathy = new Telepathy(false, true);
+    $alljobtypes = ts_GetAllJobtypes();
+    $allemployee = ts_GetAllEmployee();
     $cache = new UbillingCache();
     $addressLoginsCache = $cache->get('ADDRESSTELEPATHY', 2592000);
     if (empty($addressLoginsCache)) {
         $addressLoginsCache = array();
     }
 
-    $alljobtypes = ts_GetAllJobtypes();
-    $allemployee = ts_GetAllEmployee();
-    $query = "SELECT * from `taskman` ORDER BY `id` DESC;";
-    $rawTasks = simple_queryall($query);
+    $rawTasks = $cache->get('ALL_TASKS', 3600);
+
+    if (empty($rawTasks)) {
+        $tasksDb = new NyanORM('taskman');
+        $tasksDb->selectable('id,address,login,jobtype,employee,startdate,status');
+        $tasksDb->orderBy('id', 'DESC');
+        $rawTasks = $tasksDb->getAll();
+        $cache->set('ALL_TASKS', $rawTasks, 3600);
+    }
+
     if (!empty($rawTasks)) {
         if (!$noFixedWidth) {
             $result .= wf_tag('hr');
@@ -2113,6 +2121,10 @@ function ts_CreateTask($startdate, $starttime, $address, $login, $phone, $jobtyp
     //flushing darkvoid
     $darkVoid = new DarkVoid();
     $darkVoid->flushCache();
+
+    //flushing all tasks cache 
+    $cache = new UbillingCache();
+    $cache->delete('ALL_TASKS');
 
     $queryLogTask = ("
         INSERT INTO `taskmanlogs` (`id`, `taskid`, `date`, `admin`, `ip`, `event`, `logs`) 
