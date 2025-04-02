@@ -1454,6 +1454,8 @@ function ts_PreviousUserTasksRender($login, $address = '', $noFixedWidth = false
         if (!$noFixedWidth) {
             $result .= wf_tag('hr');
         }
+
+        //TODO: do some caching around already detected users tasks?
         foreach ($rawTasks as $io => $each) {
             if (!empty($login)) {
                 if ($each['login'] == $login) {
