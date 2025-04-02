@@ -12,7 +12,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 /**
- * is Xhprof Hierarchical Profiler enabled?
+ * is Xhprof Hierarchical Profiler/slow page log enabled?
  */
 $minimalBillingConfig = @parse_ini_file('config/billing.ini');
 if (@$minimalBillingConfig['XHPROF']) {
@@ -21,12 +21,18 @@ if (@$minimalBillingConfig['XHPROF']) {
     define('XHPROF', 0);
 }
 
+if (@$minimalBillingConfig['SLOW_PAGE_LOG']) {
+    define('SLOW_PAGE_LOG', $minimalBillingConfig['SLOW_PAGE_LOG']);
+} else {
+    define('SLOW_PAGE_LOG', 0);
+}
+
 if (XHPROF) {
     //xhprof installed?
     if (file_exists('modules/foreign/xhprof/xhprof_lib/utils/xhprof_lib.php')) {
         define("XHPROF_ROOT", __DIR__ . '/modules/foreign/xhprof');
-        require_once (XHPROF_ROOT . '/xhprof_lib/utils/xhprof_lib.php');
-        require_once (XHPROF_ROOT . '/xhprof_lib/utils/xhprof_runs.php');
+        require_once(XHPROF_ROOT . '/xhprof_lib/utils/xhprof_lib.php');
+        require_once(XHPROF_ROOT . '/xhprof_lib/utils/xhprof_runs.php');
         //append XHPROF_FLAGS_NO_BUILTINS if your PHP instance crashes
         xhprof_enable(XHPROF_FLAGS_CPU + XHPROF_FLAGS_MEMORY);
     }
@@ -87,7 +93,7 @@ if (@$ubillingMainConf['IPACL_ENABLED']) {
     $ipAclAllowedIps = rcms_scandir(IPACLALLOWIP_PATH);
     $ipAclAllowedNets = rcms_scandir(IPACLALLOWNETS_PATH);
     //checks only if at least one ACL exists
-    if (!empty($ipAclAllowedIps) OR ! empty($ipAclAllowedNets)) {
+    if (!empty($ipAclAllowedIps) or ! empty($ipAclAllowedNets)) {
         $ipAclAllowedFlag = false;
         $ipAclAllowedIps = array_flip($ipAclAllowedIps);
         $ipAclRemoteIp = $_SERVER['REMOTE_ADDR'];

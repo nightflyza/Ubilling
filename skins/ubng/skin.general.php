@@ -150,6 +150,13 @@
                     $totaltime = $mtime[0] + $mtime[1] - $starttime;
                     print('GT:' . round($totaltime, 3));
                     print(' QC: ' . $query_counter);
+
+                    if (SLOW_PAGE_LOG) {
+                        if ($totaltime >= SLOW_PAGE_LOG) {
+                            $slowPageLogRecord = date("Y-m-d H:i:s") . ' IP: ' . $_SERVER['REMOTE_ADDR'] . ' GT:' . $totaltime . ' QC:' . $query_counter . ' URL: ' . $_SERVER['REQUEST_URI'] . PHP_EOL;
+                            file_put_contents('exports/slow_page.log', $slowPageLogRecord, FILE_APPEND);
+                        }
+                    }
                     ?>
                 </p>
                 <br />
