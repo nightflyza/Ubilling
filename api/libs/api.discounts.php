@@ -276,7 +276,7 @@ class Discounts {
     /**
      * Do the processing of discounts by the payments
      * 
-     * @param bool $debug
+     * @return void
      */
     public function processPayments() {
         global $ubillingConfig;
