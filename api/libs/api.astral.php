@@ -4698,13 +4698,6 @@ function wf_SliderInput($name, $label = '', $value = '', $min = 0, $max = 100, $
         $ctrlID = wf_InputId();
     }
     
-    if ($label) {
-        $result .= wf_tag('label', false, '', 'for="' . $ctrlID . '"');
-        $result .= __($label);
-        $result .= wf_tag('label', true);
-        $result .= wf_delimiter();
-    }
-    
     $valueDisplayId = 'val_' . $ctrlID;
     $result .= wf_tag('div', false, '', 'style="display:flex; align-items:center; gap:10px;"');
     
@@ -4724,7 +4717,13 @@ function wf_SliderInput($name, $label = '', $value = '', $min = 0, $max = 100, $
         }
     ';
     $result .= wf_tag('script', true);
-    
+    if ($label) {
+        $result .= wf_tag('label', false, '', 'for="' . $ctrlID . '"');
+        $result .= __($label);
+        $result .= wf_tag('label', true);
+        $result .= wf_delimiter();
+    }
+
     if ($br) {
         $result .= wf_delimiter();
     }
