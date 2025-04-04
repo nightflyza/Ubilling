@@ -6,6 +6,12 @@ VALUES=""
 PATTERN=""
 VALIDATOR=""
 
+[somepass]
+LABEL="User password or API key"
+OPTION=PASSW
+TYPE=PASSWORD
+DEFAULT="123"
+
 [sectionname2]
 LABEL="log rotator debug log"
 OPTION=ROTATOR_DEBUG
@@ -47,3 +53,14 @@ VALUES=""
 PATTERN="mac"
 VALIDATOR="IsMacValid"
 DEFAULT="14:88:92:94:94:66"
+
+[woof]
+LABEL="some non existing checkbox"
+OPTION=WOOF
+TYPE=CHECKBOX
+
+[sli]
+LABEL="just testing slider"
+OPTION=RANGE
+TYPE=SLIDER
+VALUES="40..50"

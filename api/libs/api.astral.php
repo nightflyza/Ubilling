@@ -4536,6 +4536,8 @@ function wf_ShowHide($content, $title = '', $class = '') {
     return ($result);
 }
 
+
+
 /**
  * JQuery Data Tables JSON formatting class
  */
@@ -4673,4 +4675,59 @@ class wf_JqDtHelper {
     public function flushData() {
         $this->allRows = array();
     }
+}
+
+/**
+ * Renders HTML5 range input (slider)
+ * 
+ * @param string $name Input name
+ * @param string $label Label text
+ * @param string $value Current value
+ * @param int $min Minimum value
+ * @param int $max Maximum value
+ * @param bool $br Add line break after input
+ * @param string $ctrlID Custom control ID
+ * @param string $options Additional HTML options
+ * 
+ * @return string
+ */
+function wf_SliderInput($name, $label = '', $value = '', $min = 0, $max = 100, $br = false, $ctrlID = '', $options = '') {
+    $result = '';
+    
+    if (empty($ctrlID)) {
+        $ctrlID = wf_InputId();
+    }
+    
+    if ($label) {
+        $result .= wf_tag('label', false, '', 'for="' . $ctrlID . '"');
+        $result .= __($label);
+        $result .= wf_tag('label', true);
+        $result .= wf_delimiter();
+    }
+    
+    $valueDisplayId = 'val_' . $ctrlID;
+    $result .= wf_tag('div', false, '', 'style="display:flex; align-items:center; gap:10px;"');
+    
+    $inputOptions = 'id="' . $ctrlID . '" name="' . $name . '" type="range" min="' . $min . '" max="' . $max . '" value="' . $value . '" style="flex:1;" ' . $options;
+    $result .= wf_tag('input', false, '', $inputOptions);
+    
+    $result .= wf_tag('span', false, '', 'id="' . $valueDisplayId . '"');
+    $result .= $value;
+    $result .= wf_tag('span', true);
+    
+    $result .= wf_tag('div', true);
+    
+    $result .= wf_tag('script');
+    $result .= '
+        document.getElementById("' . $ctrlID . '").oninput = function() {
+            document.getElementById("' . $valueDisplayId . '").innerHTML = this.value;
+        }
+    ';
+    $result .= wf_tag('script', true);
+    
+    if ($br) {
+        $result .= wf_delimiter();
+    }
+    
+    return($result);
 }

@@ -3,22 +3,20 @@
 //just dummy module for testing purposes
 error_reporting(E_ALL);
 if (cfr('ROOT')) {
-    $configPath = 'config/test.ini';
+    $configPath = 'config/tests.ini';
     $specPath = 'config/test.spec';
     
-    //ic(ubRouting::rawPost());
     $forge = new ConfigForge($configPath, $specPath);
     
-    if (ubRouting::checkPost(array('configforge_submit'))) {
-        $message = $forge->handleSubmit();
-        if (!empty($message)) {
-            show_window('', $message);
-        }
-        $configContent = $forge->getConfigAsText();
-        show_window('New config content', wf_TextArea('configcontent', '', $configContent, true, '40x10'));
+    // Handle form submission
+    $submitResult = $forge->handleSubmit();
+    if (!empty($submitResult)) {
+        // If there's an error message, show it
+        show_error('', $submitResult);
+    } elseif (ubRouting::checkPost(ConfigForge::FORM_SUBMIT_KEY)) {
+        // If submission was successful, redirect
+        ubRouting::nav('?module=testing');
     }
-
-    
 
     show_window(__('Config Forge'), $forge->renderEditor());
 }

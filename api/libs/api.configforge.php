@@ -4,8 +4,10 @@
  * ConfigForge class for managing configuration files
  * 
  * This class provides functionality to load, edit, and save configuration files
- * based on a specification file. It supports various input types including
- * text, checkbox, radio, select, and trigger inputs.
+ * based on a specification file.
+ * available types: TEXT, CHECKBOX, RADIO, SELECT, TRIGGER, PASSWORD, SLIDER
+ * available patterns: geo, mobile, finance, ip, net-cidr, digits, email, alpha, alphanumeric,
+ *                     mac, float, login, url, sigint
  * 
  * Specification file example:  
  * 
@@ -61,13 +63,6 @@ class ConfigForge {
     protected $lineComments = array();
 
     /**
-     * Ubilling messages helper placeholder
-     *
-     * @var object
-     */
-    protected $messages='';
-
-    /**
      * Path to the spec file
      * 
      * @var string
@@ -89,6 +84,25 @@ class ConfigForge {
     protected $formClass = 'glamour';
 
     /**
+     * Form submission identifier
+     */
+    const FORM_SUBMIT_KEY = 'configforge_submit';
+
+    // ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣠⠀⠀⠀⠀⠀⠀
+    // ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠰⣾⣷⣄⠀⠀⠀⠀⠀⠀⠀⠀⣴⡏⠀⠀⢀⠀⠀⠀
+    // ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢻⣿⣿⣷⣄⠀⠀⠀⠀⠀⢀⣼⣿⁣⣤⡶⠁⠀⠀⠀
+    // ⠀⠀⠀⠀⠀⠀⠀⢀⣀⣤⣶⣿⣿⣿⣿⣿⡄⠀⢠⣷⣾⣿⣿⣿⣿⣁⣀⡀⠀⠀
+    // ⠀⠀⠀⢀⣠⣴⣾⡿⠟⠋⠉⠀⠈⢿⣿⣿⠷⠀⣾⠿⠛⣿⣿⠿⠛⠋⠁⠀⠀⠀
+    // ⠀⢲⣿⡿⠟⠋⠁⠀⠀⠀⠀⢀⣀⣈⣁⣀⣀⣀⣀⣀⣀⣁⣀⣀⣀⡀⠀⠀⠀⠀
+    // ⠀⠈⠁⠀⠀⠀⢠⣤⣤⣤⣤⣼⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣇⠀⠀⠀⠀
+    // ⠀⠀⠀⠀⠀⠀⠀⠙⠿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣷⠄⠀
+    // ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠙⢻⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡟⠋⠁⠀⠀
+    // ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠘⠛⠛⢛⣿⣿⣿⣿⣿⣿⡟⠛⠛⠛⠃⠀⠀⠀⠀
+    // ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣾⣿⣿⣿⣿⣿⣿⣿⣆⠀⠀⠀⠀⠀⠀⠀
+    // ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣀⣴⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣷⣄⣀⡀⠀⠀⠀
+    // ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠁⠀⠀⠀
+
+    /**
      * Creates new ConfigForge instance
      * 
      * @param string $configPath Path to config file
@@ -100,17 +114,6 @@ class ConfigForge {
         $this->specPath = $specPath;
         $this->instanceId = md5($configPath . $specPath);
         $this->loadConfig($configPath);
-        $this->initMessages();
-    }
-
-    /**
-     * Initializes messages helper placeholder
-     *
-     * @return void
-     */
-
-    protected function initMessages() {
-        $this->messages=new UbillingMessageHelper();
     }
 
     /**
@@ -214,15 +217,21 @@ class ConfigForge {
                     $option = $props['OPTION'];
                     $value = '';
                     
-                    // Check if we have a POST value for this option
-                    if (ubRouting::checkPost(array('configforge_submit'))) {
-                        $submitId = ubRouting::post('configforge_submit');
+                    // First try to get value from POST if available
+                    if (ubRouting::checkPost(array(self::FORM_SUBMIT_KEY))) {
+                        $submitId = ubRouting::post(self::FORM_SUBMIT_KEY);
                         if ($submitId === $this->instanceId) {
                             $postData = ubRouting::rawPost();
-                            if (isset($postData[$option])) {
-                                $value = $postData[$option];
+                            $uniqueInputName = $option . '_' . $this->instanceId;
+                            if (isset($postData[$uniqueInputName])) {
+                                $value = $postData[$uniqueInputName];
                             }
                         }
+                    }
+                    
+                    // For non-TEXT and non-PASSWORD types, use default if value is empty
+                    if (empty($value) and isset($props['TYPE']) and !in_array($props['TYPE'], array('TEXT', 'PASSWORD')) and isset($props['DEFAULT'])) {
+                        $value = $props['DEFAULT'];
                     }
                     
                     // Handle checkbox and trigger values
@@ -242,22 +251,24 @@ class ConfigForge {
             }
         }
         
-        return $configContent;
+        $configContent = rtrim($configContent);
+        return($configContent . PHP_EOL);
     }
 
     /**
      * Saves current config back to file preserving comments
      * 
-     * @return bool
+     * @return void|string on error returns error message
      */
     public function saveConfig() {
-        $result = false;
+        $result='';
         if (is_writable($this->configPath)) {
             $configContent = $this->getConfigAsText();
             file_put_contents($this->configPath, $configContent);
-            $result = true;
+        } else {
+            $result = __('Failed to save config file') . ': ' . $this->configPath;
         }
-        return $result;
+        return ($result);
     }
 
     /**
@@ -317,9 +328,9 @@ class ConfigForge {
         
         // Check if spec file exists and is readable
         if (!file_exists($this->specPath)) {
-            $errors[] = $this->messages->getStyledMessage(__('Spec file does not exist').': '.$this->specPath, 'error');
+            $errors[] = __('Spec file does not exist').': '.$this->specPath;
         } elseif (!is_readable($this->specPath)) {
-            $errors[] = $this->messages->getStyledMessage(__('Spec file is not readable').': '.$this->specPath, 'error');
+            $errors[] = __('Spec file is not readable').': '.$this->specPath;
         }
         
         // If there are errors, display them and return
@@ -327,7 +338,7 @@ class ConfigForge {
             foreach ($errors as $error) {
                 $result .= $error . wf_delimiter(0);
             }
-            return $result;
+            return($result);
         }
         
         // If spec file is readable, proceed with rendering the form
@@ -346,6 +357,9 @@ class ConfigForge {
                         continue;
                     }
 
+                    // Create unique input name by appending instance ID
+                    $uniqueInputName = $option . '_' . $this->instanceId;
+
                     // Get current value from config file
                     $currentValue = $this->getValue($option, false);
                     
@@ -362,14 +376,14 @@ class ConfigForge {
                     switch ($type) {
                         case 'TRIGGER':
                             $values = !empty($sectionData['VALUES']) ? explode(',', $sectionData['VALUES']) : array('1', '0');
-                            $result .= wf_Trigger($option, $labelText, $currentValue);
+                            $result .= wf_Trigger($uniqueInputName, $labelText, $currentValue);
                             $result .= wf_delimiter(0);
                             break;
                             
                         case 'CHECKBOX':
                             $values = !empty($sectionData['VALUES']) ? explode(',', $sectionData['VALUES']) : array('1', '0');
                             $isChecked = ($currentValue == $values[0]);
-                            $result .= wf_CheckInput($option, $labelText, false, $isChecked);
+                            $result .= wf_CheckInput($uniqueInputName, $labelText, false, $isChecked);
                             $result .= wf_delimiter(0);
                             break;
                             
@@ -378,7 +392,7 @@ class ConfigForge {
                             $result .= $labelText . wf_delimiter(0);
                             foreach ($values as $value) {
                                 $isChecked = ($currentValue == $value);
-                                $result .= wf_RadioInput($option, $value, $value, false, $isChecked);
+                                $result .= wf_RadioInput($uniqueInputName, $value, $value, false, $isChecked);
                                 $result .= wf_delimiter(0);
                             }
                             break;
@@ -389,24 +403,50 @@ class ConfigForge {
                             foreach ($values as $value) {
                                 $params[$value] = $value;
                             }
-                            $result .= wf_Selector($option, $params, $labelText, $currentValue);
+                            $result .= wf_Selector($uniqueInputName, $params, $labelText, $currentValue);
+                            $result .= wf_delimiter(0);
+                            break;
+                            
+                        case 'PASSWORD':
+                            $pattern = (!empty($sectionData['PATTERN'])) ? $sectionData['PATTERN'] : '';
+                            $result .= wf_PasswordInput($uniqueInputName, $labelText, $currentValue, false);
                             $result .= wf_delimiter(0);
                             break;
                             
                         case 'TEXT':
                             $pattern = (!empty($sectionData['PATTERN'])) ? $sectionData['PATTERN'] : '';
-                            $result .= wf_TextInput($option, $labelText, $currentValue, false, '', $pattern);
+                            $result .= wf_TextInput($uniqueInputName, $labelText, $currentValue, false, '', $pattern);
+                            $result .= wf_delimiter(0);
+                            break;
+                            
+                        case 'SLIDER':
+                            // Parse range from VALUES or use default 0..100
+                            $range = array(0, 100); // default range
+                            if (!empty($sectionData['VALUES'])) {
+                                $rangeStr = trim($sectionData['VALUES']);
+                                if (preg_match('/^(\d+)\.\.(\d+)$/', $rangeStr, $matches)) {
+                                    $range = array(intval($matches[1]), intval($matches[2]));
+                                }
+                            }
+                            // Ensure current value is within range
+                            $currentValue = intval($currentValue);
+                            if ($currentValue < $range[0]) {
+                                $currentValue = $range[0];
+                            } elseif ($currentValue > $range[1]) {
+                                $currentValue = $range[1];
+                            }
+                            $result .= wf_SliderInput($uniqueInputName, $labelText, $currentValue, $range[0], $range[1]);
                             $result .= wf_delimiter(0);
                             break;
                             
                         default:
-                            $result .= wf_TextInput($option, $labelText, $currentValue);
+                            $result .= wf_TextInput($uniqueInputName, $labelText, $currentValue);
                             $result .= wf_delimiter(0);
                     }
                 }
                 
                 // Add hidden input to identify ConfigForge form submission and instance
-                $result .= wf_HiddenInput('configforge_submit', $this->instanceId);
+                $result .= wf_HiddenInput(self::FORM_SUBMIT_KEY, $this->instanceId);
                 
                 // Submit button
                 $result .= wf_Submit('Save');
@@ -414,10 +454,10 @@ class ConfigForge {
                 // Wrap in form
                 $result = wf_Form('', 'POST', $result, $this->formClass);
             } else {
-                $result .= $this->messages->getStyledMessage(__('Spec file is empty or invalid'), 'error');
+                $result .= __('Spec file is empty or invalid');
             }
         }
-        return $result;
+        return($result);
     }
 
     /**
@@ -477,15 +517,21 @@ class ConfigForge {
                     $option = $props['OPTION'];
                     $value = '';
                     
-                    // Check if we have a POST value for this option
-                    if (ubRouting::checkPost(array('configforge_submit'))) {
-                        $submitId = ubRouting::post('configforge_submit');
+                    // First try to get value from POST if available
+                    if (ubRouting::checkPost(array(self::FORM_SUBMIT_KEY))) {
+                        $submitId = ubRouting::post(self::FORM_SUBMIT_KEY);
                         if ($submitId === $this->instanceId) {
                             $postData = ubRouting::rawPost();
-                            if (isset($postData[$option])) {
-                                $value = $postData[$option];
+                            $uniqueInputName = $option . '_' . $this->instanceId;
+                            if (isset($postData[$uniqueInputName])) {
+                                $value = $postData[$uniqueInputName];
                             }
                         }
+                    }
+                    
+                    // If no POST value, try to get default from spec
+                    if (empty($value) && isset($props['DEFAULT'])) {
+                        $value = $props['DEFAULT'];
                     }
                     
                     // Handle checkbox and trigger values
@@ -517,8 +563,8 @@ class ConfigForge {
         $result = '';
         
         // Check if this is a ConfigForge form submission for this instance
-        if (ubRouting::checkPost(array('configforge_submit'))) {
-            $submitId = ubRouting::post('configforge_submit');
+        if (ubRouting::checkPost(array(self::FORM_SUBMIT_KEY))) {
+            $submitId = ubRouting::post(self::FORM_SUBMIT_KEY);
             if ($submitId === $this->instanceId) {
                 $postData = ubRouting::rawPost();
                 
@@ -530,16 +576,20 @@ class ConfigForge {
                     foreach ($specData as $section => $props) {
                         if (isset($props['OPTION'])) {
                             $option = $props['OPTION'];
+                            $uniqueInputName = $option . '_' . $this->instanceId;
                             
-                            // If this option was submitted in the form
-                            if (isset($postData[$option])) {
-                                $value = $postData[$option];
-                                
-                                // Handle checkbox values
-                                if (isset($props['TYPE']) and $props['TYPE'] === 'CHECKBOX') {
-                                    $values = !empty($props['VALUES']) ? explode(',', $props['VALUES']) : array('1', '0');
-                                    $value = $value ? $values[0] : $values[1];
-                                }
+                            // For checkboxes, handle both present and not present in POST data
+                            if (isset($props['TYPE']) and $props['TYPE'] === 'CHECKBOX') {
+                                $values = !empty($props['VALUES']) ? explode(',', $props['VALUES']) : array('1', '0');
+                                $value = isset($postData[$uniqueInputName]) ? $values[0] : $values[1];
+                                $this->setValue($option, $value);
+                                $updated = true;
+                                continue;
+                            }
+                            
+                            // For other types, process only if present in POST
+                            if (isset($postData[$uniqueInputName])) {
+                                $value = $postData[$uniqueInputName];
                                 
                                 // Handle trigger values
                                 if (isset($props['TYPE']) and $props['TYPE'] === 'TRIGGER') {
@@ -550,27 +600,22 @@ class ConfigForge {
                                 // Validate value if validator exists
                                 if (!empty($props['VALIDATOR'])) {
                                     $validator = $props['VALIDATOR'];
-                                    $validationError = '';
                                     
                                     // Check if validator is a method in this class
                                     if (method_exists($this, $validator)) {
                                         if (!$this->$validator($value)) {
-                                            $validationError = __('Validation failed for') . ' ' . $option;
+                                            return(__('Validation failed for') . ' ' . $option);
                                         }
                                     } 
                                     // Check if validator is a global function
                                     else if (function_exists($validator)) {
                                         if (!$validator($value)) {
-                                            $validationError = __('Validation failed for') . ' ' . $option;
+                                            return(__('Validation failed for') . ' ' . $option);
                                         }
                                     }
                                     // If validator exists but neither method nor function found
                                     else {
-                                        $validationError = __('Validator not found') . ': ' . $validator . ' ' . __('for option') . ' ' . $option;
-                                    }
-                                    
-                                    if (!empty($validationError)) {
-                                        return $this->messages->getStyledMessage($validationError, 'error');
+                                        return(__('Validator not found') . ': ' . $validator . ' ' . __('for option') . ' ' . $option);
                                     }
                                 }
                                 
@@ -582,13 +627,18 @@ class ConfigForge {
                     }
                     
                     if ($updated) {
-                        return $this->messages->getStyledMessage(__('Config updated successfully'), 'success');
+                        // Try to save and check for errors
+                        $saveResult = $this->saveConfig();
+                        if ($saveResult !== true) {
+                            return($saveResult); // Return error message if save failed
+                        }
+                        return(''); // Return empty string on successful update
                     }
                 }
             }
         }
         
-        return $result;
+        return($result);
     }
 }
 
