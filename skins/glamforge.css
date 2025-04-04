@@ -1,0 +1,44 @@
+       .glamforge {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+        }
+        .glamforge label {
+            display: block;
+            margin: 15px 0 5px;
+            font-weight: bold;
+            color: #333;
+        }
+        .glamforge input[type="text"],
+        .glamforge input[type="password"],
+        .glamforge select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        .glamforge input[type="checkbox"] {
+            margin-right: 8px;
+        }
+        .glamforge input[type="submit"] {
+            background: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+        .glamforge input[type="submit"]:hover {
+            background: #45a049;
+        }
+        @media (max-width: 600px) {
+            .glamforge {
+                padding: 10px;
+            }
+            .glamforge input[type="submit"] {
+                width: 100%;
+            }
+        }

@@ -31,6 +31,19 @@
  * PATTERN="mac"
  * VALIDATOR="IsMacValid"
  * DEFAULT="14:88:92:94:94:61"
+ * 
+ * class usage example:
+ *     $configPath = 'config/test.ini';
+ *     $specPath = 'config/test.spec';
+ *     $forge = new ConfigForge($configPath, $specPath);
+ *   $processResult = $forge->process();
+ *   if (!empty($processResult)) {
+ *       show_error($processResult);
+ *   } elseif (ubRouting::checkPost(ConfigForge::FORM_SUBMIT_KEY)) {
+ *       ubRouting::nav('?module=testing');
+ *   }
+ *    
+ *   show_window(__('Config Forge'), $forge->renderEditor());
  */
 class ConfigForge {
 
