@@ -19,6 +19,13 @@ class TaxSup {
      */
     protected $allUserFees = array();
 
+    /**
+     * System message helper placeholder
+     *
+     * @var object
+     */
+    protected $messages = '';
+
     //some predefined stuff
     const USERS_TABLE = 'taxsup';
     const URL_ME = '?module=taxsupedit';
@@ -27,10 +34,29 @@ class TaxSup {
     const PROUTE_LOGIN = 'settaxsuplogin';
     const PID_PROCESSING = 'TAXSUP_PROCESSING';
 
+    //    __
+    //    ,                    ," e`--o
+    //   ((                   (  | __,'
+    //    \\~----------------' \_;/
+    //     (     SUPLIMENTARA    /
+    //    /) ._______________.  )
+    //   (( (               (( (
+    //    ``-'               ``-'
     public function __construct() {
+        $this->initMessages();
         $this->initDb();
         $this->loadUserFees();
     }
+
+    /**
+     * Inits system messages helper into protected prop
+     * 
+     * @return void
+     */
+    protected function initMessages() {
+        $this->messages = new UbillingMessageHelper();
+    }
+
 
     /**
      * Loads all user fees from database
@@ -152,5 +178,43 @@ class TaxSup {
             }
             $processingProcess->stop();
         }
+    }
+
+    /**
+     * Renders available users additional fees report
+     *
+     * @return void
+     */
+    public function renderReport() {
+        $result = '';
+        if (!empty($this->allUserFees)) {
+            $allUserData=zb_UserGetAllDataCache();
+            $dataArr=array();
+            $columns=array('Full address','Real Name','IP','Tariff','Additional fee','Active','Cash','Credit');
+            foreach ($this->allUserFees as $eachLogin=>$eachFee) {
+                if (isset($allUserData[$eachLogin])) {
+                    $userData=$allUserData[$eachLogin];
+                    $userAdditionalFee=$eachFee['fee'];
+                    $actFlag=zb_UserIsActive($userData);
+                    $actLabel=web_bool_led($actFlag);
+                    $userLink=wf_Link(UserProfile::URL_PROFILE.$eachLogin,web_profile_icon().' '.$userData['fulladress']);
+                    $dataArr[]=array(
+                        $userLink,
+                        $userData['realname'],
+                        $userData['ip'],
+                        $userData['Tariff'],
+                        $userAdditionalFee,
+                        $actLabel,
+                        $userData['Cash'],
+                        $userData['Credit'],
+                    );
+                }
+            }
+            $result.=wf_JqDtEmbed($columns,$dataArr,false,'users',50);
+
+        } else {
+            $result.=$this->messages->getStyledMessage(__('Nothing to show'),'info');
+        }
+        return ($result);
     }
 }

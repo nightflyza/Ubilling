@@ -22,6 +22,7 @@ if ($ubillingConfig->getAlterParam('TAXSUP_ENABLED')) {
 
             show_window(__('Change additional fee'), $feeEditor);
             show_window('', web_UserControls($userLogin));
+            zb_BillingStats(true, 'suplimentara');
         } else {
             show_error(__('Strange exception') . ': ' . __('Empty login'));
             show_window('', wf_tag('center') . wf_img('skins/unicornwrong.png') . wf_tag('center', true));
