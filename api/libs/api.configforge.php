@@ -1,5 +1,35 @@
 <?php
 
+/**
+ * ConfigForge class for managing configuration files
+ * 
+ * This class provides functionality to load, edit, and save configuration files
+ * based on a specification file. It supports various input types including
+ * text, checkbox, radio, select, and trigger inputs.
+ * 
+ * Specification file example:  
+ * 
+ * [sectionname]
+ * LABEL="Option label"
+ * OPTION=SOME_OPTION
+ * TYPE=CHECKBOX
+ * DEFAULT=0
+ * 
+ * [sectionname2]
+ * LABEL="Your sex?"
+ * OPTION=SEX
+ * TYPE=SELECT
+ * VALUES="male,female,unknown"
+ * DEFAULT="unknown"
+ * 
+ * [sectionname3]
+ * LABEL="Option label 2"
+ * OPTION=ANOTHER_OPTION
+ * TYPE=TEXT
+ * PATTERN="mac"
+ * VALIDATOR="IsMacValid"
+ * DEFAULT="14:88:92:94:94:61"
+ */
 class ConfigForge {
 
     /**
