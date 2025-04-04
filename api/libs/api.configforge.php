@@ -258,17 +258,19 @@ class ConfigForge {
     /**
      * Saves current config back to file preserving comments
      * 
-     * @return void|string on error returns error message
+     * @return string Empty string on success, error message on failure
      */
     public function saveConfig() {
-        $result='';
-        if (is_writable($this->configPath)) {
-            $configContent = $this->getConfigAsText();
-            file_put_contents($this->configPath, $configContent);
-        } else {
-            $result = __('Failed to save config file') . ': ' . $this->configPath;
+        if (!is_writable($this->configPath)) {
+            return(__('Failed to save config file') . ': ' . $this->configPath);
         }
-        return ($result);
+        
+        $configContent = $this->getConfigAsText();
+        if (file_put_contents($this->configPath, $configContent) === false) {
+            return(__('Failed to write config file') . ': ' . $this->configPath);
+        }
+        
+        return('');
     }
 
     /**
@@ -555,90 +557,103 @@ class ConfigForge {
     }
 
     /**
-     * Handles form submission and updates config
+     * Process config editing request
+     * Handles form submission and config saving in one place
      * 
-     * @return string
+     * @return string Empty string on success, error message on failure
      */
-    public function handleSubmit() {
-        $result = '';
-        
+    public function process() {
         // Check if this is a ConfigForge form submission for this instance
-        if (ubRouting::checkPost(array(self::FORM_SUBMIT_KEY))) {
-            $submitId = ubRouting::post(self::FORM_SUBMIT_KEY);
-            if ($submitId === $this->instanceId) {
-                $postData = ubRouting::rawPost();
+        if (!ubRouting::checkPost(array(self::FORM_SUBMIT_KEY))) {
+            return('');
+        }
+        
+        $submitId = ubRouting::post(self::FORM_SUBMIT_KEY);
+        if ($submitId !== $this->instanceId) {
+            return('');
+        }
+        
+        $postData = ubRouting::rawPost();
+        if (empty($postData)) {
+            return(__('No data received'));
+        }
+        
+        if (!is_readable($this->specPath)) {
+            return(__('Spec file is not readable') . ': ' . $this->specPath);
+        }
+        
+        $specData = rcms_parse_ini_file($this->specPath, true);
+        if (empty($specData)) {
+            return(__('Spec file is empty or invalid') . ': ' . $this->specPath);
+        }
+        
+        $updated = false;
+        
+        // Process each option from spec file
+        foreach ($specData as $section => $props) {
+            if (!isset($props['OPTION'])) {
+                continue;
+            }
+            
+            $option = $props['OPTION'];
+            $uniqueInputName = $option . '_' . $this->instanceId;
+            
+            // For checkboxes, handle both present and not present in POST data
+            if (isset($props['TYPE']) and $props['TYPE'] === 'CHECKBOX') {
+                $values = !empty($props['VALUES']) ? explode(',', $props['VALUES']) : array('1', '0');
+                $value = isset($postData[$uniqueInputName]) ? $values[0] : $values[1];
+                $this->setValue($option, $value);
+                $updated = true;
+                continue;
+            }
+            
+            // For other types, process only if present in POST
+            if (isset($postData[$uniqueInputName])) {
+                $value = $postData[$uniqueInputName];
                 
-                if (!empty($postData) and is_readable($this->specPath)) {
-                    $specData = rcms_parse_ini_file($this->specPath, true);
-                    $updated = false;
+                // Handle trigger values
+                if (isset($props['TYPE']) and $props['TYPE'] === 'TRIGGER') {
+                    $values = !empty($props['VALUES']) ? explode(',', $props['VALUES']) : array('1', '0');
+                    $value = $value ? $values[0] : $values[1];
+                }
+                
+                // Validate value if validator exists
+                if (!empty($props['VALIDATOR'])) {
+                    $validator = $props['VALIDATOR'];
                     
-                    // Process each option from spec file
-                    foreach ($specData as $section => $props) {
-                        if (isset($props['OPTION'])) {
-                            $option = $props['OPTION'];
-                            $uniqueInputName = $option . '_' . $this->instanceId;
-                            
-                            // For checkboxes, handle both present and not present in POST data
-                            if (isset($props['TYPE']) and $props['TYPE'] === 'CHECKBOX') {
-                                $values = !empty($props['VALUES']) ? explode(',', $props['VALUES']) : array('1', '0');
-                                $value = isset($postData[$uniqueInputName]) ? $values[0] : $values[1];
-                                $this->setValue($option, $value);
-                                $updated = true;
-                                continue;
-                            }
-                            
-                            // For other types, process only if present in POST
-                            if (isset($postData[$uniqueInputName])) {
-                                $value = $postData[$uniqueInputName];
-                                
-                                // Handle trigger values
-                                if (isset($props['TYPE']) and $props['TYPE'] === 'TRIGGER') {
-                                    $values = !empty($props['VALUES']) ? explode(',', $props['VALUES']) : array('1', '0');
-                                    $value = $value ? $values[0] : $values[1];
-                                }
-                                
-                                // Validate value if validator exists
-                                if (!empty($props['VALIDATOR'])) {
-                                    $validator = $props['VALIDATOR'];
-                                    
-                                    // Check if validator is a method in this class
-                                    if (method_exists($this, $validator)) {
-                                        if (!$this->$validator($value)) {
-                                            return(__('Validation failed for') . ' ' . $option);
-                                        }
-                                    } 
-                                    // Check if validator is a global function
-                                    else if (function_exists($validator)) {
-                                        if (!$validator($value)) {
-                                            return(__('Validation failed for') . ' ' . $option);
-                                        }
-                                    }
-                                    // If validator exists but neither method nor function found
-                                    else {
-                                        return(__('Validator not found') . ': ' . $validator . ' ' . __('for option') . ' ' . $option);
-                                    }
-                                }
-                                
-                                // Set the value in our parsed config
-                                $this->setValue($option, $value);
-                                $updated = true;
-                            }
+                    // Check if validator is a method in this class
+                    if (method_exists($this, $validator)) {
+                        if (!$this->$validator($value)) {
+                            return(__('Validation failed for') . ' ' . $option);
+                        }
+                    } 
+                    // Check if validator is a global function
+                    else if (function_exists($validator)) {
+                        if (!$validator($value)) {
+                            return(__('Validation failed for') . ' ' . $option);
                         }
                     }
-                    
-                    if ($updated) {
-                        // Try to save and check for errors
-                        $saveResult = $this->saveConfig();
-                        if ($saveResult !== true) {
-                            return($saveResult); // Return error message if save failed
-                        }
-                        return(''); // Return empty string on successful update
+                    // If validator exists but neither method nor function found
+                    else {
+                        return(__('Validator not found') . ': ' . $validator . ' ' . __('for option') . ' ' . $option);
                     }
                 }
+                
+                // Set the value in our parsed config
+                $this->setValue($option, $value);
+                $updated = true;
             }
         }
         
-        return($result);
+        if ($updated) {
+            // Try to save and check for errors
+            $saveResult = $this->saveConfig();
+            if (!empty($saveResult)) {
+                return($saveResult); // Return error message if save failed
+            }
+        }
+        
+        return('');
     }
 }
 
