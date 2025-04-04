@@ -8,6 +8,7 @@ if (cfr('ROOT')) {
     
     //ic(ubRouting::rawPost());
     $forge = new ConfigForge($configPath, $specPath);
+    
     if (ubRouting::checkPost(array('configforge_submit'))) {
         $message = $forge->handleSubmit();
         if (!empty($message)) {

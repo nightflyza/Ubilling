@@ -52,6 +52,13 @@ class ConfigForge {
     protected $instanceId = '';
 
     /**
+     * Form CSS class
+     * 
+     * @var string
+     */
+    protected $formClass = 'glamour';
+
+    /**
      * Creates new ConfigForge instance
      * 
      * @param string $configPath Path to config file
@@ -133,13 +140,13 @@ class ConfigForge {
         foreach ($this->currentConfig as $lineNum => $line) {
             $line = trim($line);
             if (empty($line)) {
-                $configContent .= "\n";
+                $configContent .= PHP_EOL;
                 continue;
             }
             
             // Handle standalone comments
             if (substr($line, 0, 1) === ';') {
-                $configContent .= $line . "\n";
+                $configContent .= $line . PHP_EOL;
                 continue;
             }
             
@@ -164,7 +171,7 @@ class ConfigForge {
                     $line .= ' ;' . $this->lineComments[$lineNum];
                 }
                 
-                $configContent .= $line . "\n";
+                $configContent .= $line . PHP_EOL;
                 $processedOptions[] = $key;
             }
         }
@@ -200,7 +207,7 @@ class ConfigForge {
                     }
                     
                     $line = $option . '=' . $value;
-                    $configContent .= $line . "\n";
+                    $configContent .= $line . PHP_EOL;
                 }
             }
         }
@@ -260,6 +267,16 @@ class ConfigForge {
     }
 
     /**
+     * Sets form CSS class
+     * 
+     * @param string $class CSS class name
+     * @return void
+     */
+    public function setFormClass($class) {
+        $this->formClass = $class;
+    }
+
+    /**
      * Renders form editor for config file based on spec file
      * 
      * @return string
@@ -308,7 +325,7 @@ class ConfigForge {
                     }
                     
                     // Label - use LABEL from spec if available, otherwise use OPTION name
-                    $labelText = (!empty($sectionData['LABEL'])) ? $sectionData['LABEL'] : $option;
+                    $labelText = (!empty($sectionData['LABEL'])) ? __($sectionData['LABEL']) : $option;
                     
                     // Input field based on type
                     $type = isset($sectionData['TYPE']) ? $sectionData['TYPE'] : 'TEXT';
@@ -365,7 +382,7 @@ class ConfigForge {
                 $result .= wf_Submit('Save');
                 
                 // Wrap in form
-                $result = wf_Form('', 'POST', $result, 'glamour');
+                $result = wf_Form('', 'POST', $result, $this->formClass);
             } else {
                 $result .= $this->messages->getStyledMessage(__('Spec file is empty or invalid'), 'error');
             }
@@ -386,13 +403,13 @@ class ConfigForge {
         foreach ($this->currentConfig as $lineNum => $line) {
             $line = trim($line);
             if (empty($line)) {
-                $configContent .= "\n";
+                $configContent .= PHP_EOL;
                 continue;
             }
             
             // Handle standalone comments
             if (substr($line, 0, 1) === ';') {
-                $configContent .= $line . "\n";
+                $configContent .= $line . PHP_EOL;
                 continue;
             }
             
@@ -417,7 +434,7 @@ class ConfigForge {
                     $line .= ' ;' . $this->lineComments[$lineNum];
                 }
                 
-                $configContent .= $line . "\n";
+                $configContent .= $line . PHP_EOL;
                 $processedOptions[] = $key;
             }
         }
@@ -453,7 +470,7 @@ class ConfigForge {
                     }
                     
                     $line = $option . '=' . $value;
-                    $configContent .= $line . "\n";
+                    $configContent .= $line . PHP_EOL;
                 }
             }
         }

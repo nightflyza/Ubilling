@@ -31,7 +31,7 @@ PATTERN=""
 VALIDATOR=""
 
 [sectionname5]
-LABEL="email here"
+LABEL="Email"
 OPTION=EMAIL
 TYPE=TEXT
 VALUES=""
@@ -44,6 +44,6 @@ LABEL="Some MAC address"
 OPTION=SOME_MAC
 TYPE=TEXT
 VALUES=""
-PATTERN=""
+PATTERN="mac"
 VALIDATOR="IsMacValid"
-DEFAULT=""
+DEFAULT="14:88:92:94:94:66"
