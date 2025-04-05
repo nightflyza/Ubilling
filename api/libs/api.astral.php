@@ -129,7 +129,7 @@ function wf_TextInput($name, $label = '', $value = '', $br = false, $size = '', 
     $pattern = ($pattern == 'mobile') ? 'pattern="\+?(\d{1,3})?\d{2,3}\d{7}" placeholder="(+)(38)0500000000" title="' . __('The mobile number format can be') . ': +380800100102, 0506430501, 375295431122"' : $pattern;
     $pattern = ($pattern == 'path') ? 'pattern="^[^/ ]([^/ ]*/?)*$" placeholder="some/dir/file" title="' . __('This field can contain relative or absolute paths') . ': some/dir/file, dir/file.txt, file.txt"' : $pattern;
     $pattern = ($pattern == 'fullpath') ? 'pattern="^(/[^/ ]*)+/?$" placeholder="/some/dir/file" title="' . __('This field can only contain absolute Unix-style paths starting with /') . ': /some/dir/file ' . __('or') . ' /some/dir/"' : $pattern;
-    $pattern = ($pattern == 'pathorurl') ? 'pattern="^(https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}(:\d+)?\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)|([^/ ]([^/ ]*/?)*))$" placeholder="http://domain.com/path or some/dir/" title="' . __('This field can accept URLs or paths') . 'http://someurl.com/, some/dir/file, /some/dir/"' : $pattern;
+    $pattern = ($pattern == 'pathorurl') ? 'pattern="^(https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}(:\d+)?\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)|([^/ ]([^/ ]*/?)*))$" placeholder="some/path or http://domain.com/path" title="' . __('This field can accept URLs or paths') . 'http://someurl.com/, some/dir/file, /some/dir/"' : $pattern;
 
     $result = '<input type="text" name="' . $name . '" value="' . $value . '" ' . $input_size . ' id="' . $inputid . '" class="' . $class . '" ' . $opts . ' ' . $pattern . '>' . "\n";
     if ($label != '') {
