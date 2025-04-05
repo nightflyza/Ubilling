@@ -645,6 +645,12 @@ class ConfigForge {
             if (isset($props['TYPE']) and $props['TYPE'] === 'CHECKBOX') {
                 $values = !empty($props['VALUES']) ? explode(',', $props['VALUES']) : array('1', '0');
                 $value = isset($postData[$uniqueInputName]) ? $values[0] : $values[1];
+                
+                // Applying optional save filter if exists
+                if (!empty($props['SAVEFILTER'])) {
+                    $value = ubRouting::filters($value, $props['SAVEFILTER']);
+                }
+                
                 $this->setValue($option, $value);
                 $updated = true;
                 continue;
@@ -695,6 +701,11 @@ class ConfigForge {
                     if (!$validatorPassed) {
                         return (__('Validator method not found') . ': ' . $validator . ' ' . __('for option') . ' ' . $option);
                     }
+                }
+
+                // Applying optional save filter if exists
+                if (!empty($props['SAVEFILTER'])) {
+                    $value = ubRouting::filters($value, $props['SAVEFILTER']);
                 }
 
                 // Set the value in our parsed config
