@@ -30,6 +30,7 @@
  * TYPE=TEXT
  * PATTERN="mac"
  * VALIDATOR="IsMacValid"
+ * ONINVALID="This mac address is invalid"
  * DEFAULT="14:88:92:94:94:61"
  * 
  * class usage example:
@@ -39,7 +40,7 @@
  *   $processResult = $forge->process();
  *   if (!empty($processResult)) {
  *       show_error($processResult);
- *   } elseif (ubRouting::checkPost(ConfigForge::FORM_SUBMIT_KEY)) {
+ *   } elseif (ubRouting::post(ConfigForge::FORM_SUBMIT_KEY)==$forge->getInstanceId()) {
  *       ubRouting::nav('?module=testing');
  *   }
  *    
@@ -633,22 +634,37 @@ class ConfigForge {
                 // Validate value if validator exists
                 if (!empty($props['VALIDATOR'])) {
                     $validator = $props['VALIDATOR'];
+                    $validatorPassed = false;
+
+                    // Default validation error notice
+                    $onInvalidMessage = __('Validation failed for') . ' ' . $option;
+
+                    // Or custom one
+                    if (!empty($props['ONINVALID'])) {
+                        $onInvalidMessage = __($props['ONINVALID']);
+                    }
 
                     // Check if validator is a method in this class
                     if (method_exists($this, $validator)) {
                         if (!$this->$validator($value)) {
-                            return (__('Validation failed for') . ' ' . $option);
+                            return ($onInvalidMessage);
+                        } else {
+                            $validatorPassed = true;
                         }
                     }
+
                     // Check if validator is a global function
-                    else if (function_exists($validator)) {
+                    if (function_exists($validator)) {
                         if (!$validator($value)) {
-                            return (__('Validation failed for') . ' ' . $option);
+                            return ($onInvalidMessage);
+                        } else {
+                            $validatorPassed = true;
                         }
                     }
-                    // If validator exists but neither method nor function found
-                    else {
-                        return (__('Validator not found') . ': ' . $validator . ' ' . __('for option') . ' ' . $option);
+
+                    // If validator set but neither method nor function found
+                    if (!$validatorPassed) {
+                        return (__('Validator method not found') . ': ' . $validator . ' ' . __('for option') . ' ' . $option);
                     }
                 }
 
