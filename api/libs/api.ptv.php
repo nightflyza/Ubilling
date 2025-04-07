@@ -235,7 +235,7 @@ class PTV {
                 $newPassword = $userData['Password'];
                 $userRealName = $userData['realname'];
                 $userRealNameParts = explode(' ', $userRealName);
-                if (sizeof($userRealNameParts == 3)) {
+                if (sizeof($userRealNameParts) == 3) {
                     $firstName = @$userRealNameParts[1];
                     $middleName = @$userRealNameParts[2];
                     $lastName = @$userRealNameParts[0];
