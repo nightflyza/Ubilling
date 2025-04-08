@@ -160,6 +160,16 @@ if (cfr('USEREDIT')) {
                     $rows .= wf_TableRow($cells, 'row3');
                 }
 
+                if ($altCfg['TAXSUP_ENABLED']) {
+                    $taxa = new TaxSup();
+                    $currentUserFee = $taxa->getUserFee($login);
+                    $renderUserFee = ($currentUserFee) ? $currentUserFee : __('No');
+                    $cells = wf_TableCell(__('Additional fee'));
+                    $cells .= wf_TableCell($renderUserFee);
+                    $cells .= wf_TableCell(zb_rightControl('TAXSUP', wf_Link($taxa::URL_ME . '&' . $taxa::ROUTE_USERNAME . '=' . $login, wf_img('skins/icon_tax_16.png') . ' ' . __('Change additional fee'))));
+                    $rows .= wf_TableRow($cells, 'row3');
+                }
+
                 if (isset($altCfg['SIGNUP_PAYMENTS']) && !empty($altCfg['SIGNUP_PAYMENTS'])) {
                     $payment = zb_UserGetSignupPrice($login);
                     $paid = zb_UserGetSignupPricePaid($login);

@@ -1706,6 +1706,28 @@ class UserProfile {
     }
 
     /**
+     * Returns additional fee controller
+     * 
+     * @return string
+     */
+    protected function getTaxSupController() {
+        $result = '';
+        if (isset($this->alterCfg['TAXSUP_ENABLED'])) {
+            if ($this->alterCfg['TAXSUP_ENABLED']) {
+                $taxa = new TaxSup();
+                $userFee = $taxa->getUserFee($this->login);
+                if ($userFee) {
+                    $renderFee = $userFee;
+                } else {
+                    $renderFee = __('No');
+                }
+                $result = $this->addRow(__('Additional fee'), $renderFee, true);
+            }
+        }
+        return ($result);
+    }
+
+    /**
      * returns easy credit controller if feature is enabled
      * 
      * @return
@@ -2529,6 +2551,8 @@ class UserProfile {
         $profile .= $this->addRow(__('Balance') . $this->getEasyChargeController() . $this->getDeferredSaleController(), $this->getUserCash(), true);
         //User discount row
         $profile .= $this->getDiscountController();
+        //User additional fee row
+        $profile .= $this->getTaxSupController();
         //User credit row & easycredit control if needed
         $profile .= $this->addRow(__('Credit') . ' ' . $this->getEasyCreditController(), $this->userdata['Credit'], true);
         //credit expire row

@@ -3563,3 +3563,7 @@ $lang['def']['Hybrid'] = 'Гибрид';
 $lang['def']['Satellite'] = 'Спутник';
 $lang['def']['Fullscreen'] = 'Полный экран';
 $lang['def']['Exit fullscreen'] = 'Выйти из полноэкранного режима';
+$lang['def']['Additional fee'] = 'Дополнительное начисление';
+$lang['def']['Change additional fee'] = 'Изменить дополнительное начисление';
+$lang['def']['Current fee'] = 'Текущее начисление';
+$lang['def']['New fee'] = 'Новое начисление';

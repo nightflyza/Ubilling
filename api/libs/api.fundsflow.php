@@ -931,6 +931,14 @@ class FundsFlow {
                     $operation = __('Fee');
                     $cashtype = __('Fee');
                 }
+
+                //taxsup fees
+                if (ispos($each['note'], 'TAXSUP:')) {
+                    $fc = wf_tag('font', false, '', 'color="#' . $this->colorAdditionalFee . '"');
+                    $operation = __('Fee');
+                    $cashtype = __('Fee');
+                }
+
                 //deferred sale
                 if (ispos($each['note'], 'DEFSALE')) {
                     $fc = wf_tag('font', false, '', 'color="#' . $this->colorAdditionalFee . '"');
