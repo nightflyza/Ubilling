@@ -23,6 +23,11 @@
 // Имя POST переменной в которой должны приходить запросы, либо raw в случае получения 
 // запросов в виде HTTP_RAW_POST_DATA.
 define('PBX_REQUEST_MODE', 'raw');
+//Режим отладки - заставляет данные подгружаться из файла debug.xml 
+//(Да-да, ложите туда запрос и смотрите в браузере как на него отвечает фронтенд)
+define('PBX_DEBUG_MODE', 0);
+// Configuration section
+define('DEBUG_MODE', 0);
 
 //Текст уведомлений и екзепшнов
 define('USER_BALANCE_DECIMALS', 2);    // Сколько знаков после запятой возвращать в балансе абонента 0 - возвращать только целую часть
@@ -130,10 +135,11 @@ function pbx_GenerateHash($size = 12) {
  *
  * @return string
  */
-function pbx_ReplySearch($customerid, $userEnterAmount = 0) {
+function pbx_ReplySearch($customerid, $userEnterAmount = 100) {
     $allcustomers = op_CustomersGetAll();
     if (isset($allcustomers[$customerid])) {
         $customerLogin = $allcustomers[$customerid];
+        $userEnterAmount = ($userEnterAmount < 100) ? 100 : $userEnterAmount;
         $gooseResult = getGoosData($customerLogin,  $userEnterAmount);            
         if (!empty($gooseResult)) {
            $gooseResult = json_decode($gooseResult);
@@ -368,6 +374,20 @@ function pbx_ReplyPayment($customerid, $summ, $rawhash, $serviceCode) {
 /*
  *  Controller part
  */
+if (!PBX_DEBUG_MODE) {
+    $xmlRequest = pbx_RequestGet();
+} else {
+    if (file_exists('debug.xml')) {
+        $xmlRequest = file_get_contents('debug.xml');
+    } else {
+        die('PBX_DEBUG_MODE requires existing debug.xml file');
+    }
+}
+
+//debug mode logging
+if (DEBUG_MODE) {
+    file_put_contents('debug.log', $xmlRequest, FILE_APPEND | LOCK_EX);
+}
 
 //raw xml data received
 if (!empty($xmlRequest)) {

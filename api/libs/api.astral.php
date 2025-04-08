@@ -69,15 +69,31 @@ function wf_Form($action, $method, $inputs, $class = '', $legend = '', $CtrlID =
  * @param  string $value current value
  * @param  bool   $br append new line
  * @param  string $size input size
- * @param  string $pattern input check pattern. Avaible: geo, mobile, finance, ip, net-cidr, digits, email, alpha, alphanumeric,mac,float,login,url,sigint
+ * @param  string $pattern input check pattern. Available patterns:
+ *         - alpha: only Latin letters [a-zA-Z] (e.g., "abcDEF")
+ *         - alphanumeric: only Latin letters and numbers [a-zA-Z0-9] (e.g., "abc123")
+ *         - digits: only digits [0-9] (e.g., "12345")
+ *         - email: valid email address format (e.g., "user@domain.com")
+ *         - finance: decimal numbers with optional decimal point (e.g., "123.45", "100", "0.99")
+ *         - float: floating point numbers (e.g., "123.45", "0.001")
+ *         - fullpath: absolute Unix-style paths starting with / (e.g., "/var/www/html")
+ *         - geo: geographic coordinates (e.g., "40.7143528,-74.0059731")
+ *         - ip: IPv4 address format (e.g., "192.168.1.1")
+ *         - login: username format with letters, numbers and underscore (e.g., "user_123")
+ *         - mac: MAC address format with : or - separator (e.g., "00:1A:2B:3C:4D:5E")
+ *         - mobile: phone number with optional country code (e.g., "+380501234567")
+ *         - net-cidr: network CIDR notation, mask can't be /31 (e.g., "192.168.1.0/24")
+ *         - path: relative or absolute Unix-style paths (e.g., "dir/file.txt", "/etc/config")
+ *         - pathorurl: URLs with optional ports or paths (e.g., "http://example.com:8080", "some/dir/")
+ *         - sigint: signed integers (e.g., "-123", "456")
+ *         - url: HTTP/HTTPS URLs with optional port numbers (e.g., "http://example.com:8080")
  * @param  string $class class of the element
  * @param  string $ctrlID id of the element
- * @param  string $options
- * @param  bool   $labelLeftSide
- * @param  string $labelOpts
+ * @param  string $options additional HTML attributes
+ * @param  bool   $labelLeftSide position label to the left of input
+ * @param  string $labelOpts additional label HTML attributes
  *
  * @return string
- *
  */
 function wf_TextInput($name, $label = '', $value = '', $br = false, $size = '', $pattern = '', $class = '', $ctrlID = '', $options = '', $labelLeftSide = false, $labelOpts = '') {
     $inputid = (empty($ctrlID)) ? wf_InputId() : $ctrlID;
@@ -108,9 +124,12 @@ function wf_TextInput($name, $label = '', $value = '', $br = false, $size = '', 
     $pattern = ($pattern == 'email') ? 'pattern="^([\w\._-]+)@([\w\._-]+)\.([a-z]{2,6}\.?)$" placeholder="bobrik@bobrik.com" title="' . __('This field can only contain email address') . '"' : $pattern;
     $pattern = ($pattern == 'login') ? 'pattern="[a-zA-Z0-9_]+" placeholder="aZ09_" title="' . __('This field can only contain Latin letters and numbers') . ' ' . __('and') . ' _' . '"' : $pattern;
     $pattern = ($pattern == 'mac') ? 'pattern="^[a-fA-F0-9]{2}:[a-fA-F0-9]{2}:[a-fA-F0-9]{2}:[a-fA-F0-9]{2}:[a-fA-F0-9]{2}:[a-fA-F0-9]{2}$|^[a-fA-F0-9]{2}-[a-fA-F0-9]{2}-[a-fA-F0-9]{2}-[a-fA-F0-9]{2}-[a-fA-F0-9]{2}-[a-fA-F0-9]{2}$" placeholder="00:02:02:34:72:a5" title="' . __('This MAC have wrong format') . '"' : $pattern;
-    $pattern = ($pattern == 'url') ? 'pattern="https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)" placeholder="http://ubilling.net.ua/" title="' . __('URL') . ': http://host.domain/ ' . __('or') . ' https://host.domain/ ' . __('or') . ' http://host.domain:port"' : $pattern;
+    $pattern = ($pattern == 'url') ? 'pattern="https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}(:\d+)?\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)" placeholder="http://ubilling.net.ua/" title="' . __('URL') . ': http://host.domain/ ' . __('or') . ' https://host.domain/ ' . __('or') . ' http://host.domain:port"' : $pattern;
     $pattern = ($pattern == 'geo') ? 'pattern="-?\d{1,2}(\.\d+)\s?,\s?-?\d{1,3}(\.\d+)" placeholder="0.00000,0.00000" title="' . __('The format of geographic data can be') . ': 40.7143528,-74.0059731 ; 41.40338, 2.17403 ; -14.235004 , 51.92528"' : $pattern;
     $pattern = ($pattern == 'mobile') ? 'pattern="\+?(\d{1,3})?\d{2,3}\d{7}" placeholder="(+)(38)0500000000" title="' . __('The mobile number format can be') . ': +380800100102, 0506430501, 375295431122"' : $pattern;
+    $pattern = ($pattern == 'path') ? 'pattern="^[^/ ]([^/ ]*/?)*$" placeholder="some/dir/file" title="' . __('This field can contain relative or absolute paths') . ': some/dir/file, dir/file.txt, file.txt"' : $pattern;
+    $pattern = ($pattern == 'fullpath') ? 'pattern="^(/[^/ ]*)+/?$" placeholder="/some/dir/file" title="' . __('This field can only contain absolute Unix-style paths starting with /') . ': /some/dir/file ' . __('or') . ' /some/dir/"' : $pattern;
+    $pattern = ($pattern == 'pathorurl') ? 'pattern="^(https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}(:\d+)?\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)|([^/ ]([^/ ]*/?)*))$" placeholder="some/path or http://domain.com/path" title="' . __('This field can accept URLs or paths') . 'http://someurl.com/, some/dir/file, /some/dir/"' : $pattern;
 
     $result = '<input type="text" name="' . $name . '" value="' . $value . '" ' . $input_size . ' id="' . $inputid . '" class="' . $class . '" ' . $opts . ' ' . $pattern . '>' . "\n";
     if ($label != '') {
@@ -1371,7 +1390,7 @@ function wf_DatePicker($field, $extControls = false) {
 		\'Липень\',\'Серпень\',\'Вересень\',\'Жовтень\',\'Листопад\',\'Грудень\'],
 		monthNamesShort: [\'Січ\',\'Лют\',\'Бер\',\'Кві\',\'Тра\',\'Чер\',
 		\'Лип\',\'Сер\',\'Вер\',\'Жов\',\'Лис\',\'Гру\'],
-		dayNames: [\'неділя\',\'понеділок\',\'вівторок\',\'середа\',\'четвер\',\'п’ятниця\',\'субота\'],
+		dayNames: [\'неділя\',\'понеділок\',\'вівторок\',\'середа\',\'четвер\',\'п`ятниця\',\'субота\'],
 		dayNamesShort: [\'нед\',\'пнд\',\'вів\',\'срд\',\'чтв\',\'птн\',\'сбт\'],
 		dayNamesMin: [\'Нд\',\'Пн\',\'Вт\',\'Ср\',\'Чт\',\'Пт\',\'Сб\'],
 		weekHeader: \'Тиж\',
@@ -1473,7 +1492,7 @@ function wf_DatePickerPreset($field, $date, $extControls = false, $CtrlID = '', 
 		\'Липень\',\'Серпень\',\'Вересень\',\'Жовтень\',\'Листопад\',\'Грудень\'],
 		monthNamesShort: [\'Січ\',\'Лют\',\'Бер\',\'Кві\',\'Тра\',\'Чер\',
 		\'Лип\',\'Сер\',\'Вер\',\'Жов\',\'Лис\',\'Гру\'],
-		dayNames: [\'неділя\',\'понеділок\',\'вівторок\',\'середа\',\'четвер\',\'п’ятниця\',\'субота\'],
+		dayNames: [\'неділя\',\'понеділок\',\'вівторок\',\'середа\',\'четвер\',\'п`ятниця\',\'субота\'],
 		dayNamesShort: [\'нед\',\'пнд\',\'вів\',\'срд\',\'чтв\',\'птн\',\'сбт\'],
 		dayNamesMin: [\'Нд\',\'Пн\',\'Вт\',\'Ср\',\'Чт\',\'Пт\',\'Сб\'],
 		weekHeader: \'Тиж\',
@@ -2294,6 +2313,8 @@ $.widget( "custom.combobox_' . $id . '", {
 _create: function() {
 this.wrapper = $( "<span>" )
 .addClass( "custom-combobox_' . $id . '" )
+```
+</region_of_rewritten_file>
 .insertAfter( this.element );
 this.element.hide();
 this._createAutocomplete();
@@ -4536,6 +4557,8 @@ function wf_ShowHide($content, $title = '', $class = '') {
     return ($result);
 }
 
+
+
 /**
  * JQuery Data Tables JSON formatting class
  */
@@ -4673,4 +4696,58 @@ class wf_JqDtHelper {
     public function flushData() {
         $this->allRows = array();
     }
+}
+
+/**
+ * Renders HTML5 range input (slider)
+ * 
+ * @param string $name Input name
+ * @param string $label Label text
+ * @param string $value Current value
+ * @param int $min Minimum value
+ * @param int $max Maximum value
+ * @param bool $br Add line break after input
+ * @param string $ctrlID Custom control ID
+ * @param string $options Additional HTML options
+ * 
+ * @return string
+ */
+function wf_SliderInput($name, $label = '', $value = '', $min = 0, $max = 100, $br = false, $ctrlID = '', $options = '') {
+    $result = '';
+    
+    if (empty($ctrlID)) {
+        $ctrlID = wf_InputId();
+    }
+    
+    $valueDisplayId = 'val_' . $ctrlID;
+    $result .= wf_tag('div', false, '', 'style="display:flex; align-items:center; gap:10px;"');
+    
+    $inputOptions = 'id="' . $ctrlID . '" name="' . $name . '" type="range" min="' . $min . '" max="' . $max . '" value="' . $value . '" style="flex:1;" ' . $options;
+    $result .= wf_tag('input', false, '', $inputOptions);
+    
+    $result .= wf_tag('span', false, '', 'id="' . $valueDisplayId . '"');
+    $result .= $value;
+    $result .= wf_tag('span', true);
+    
+    $result .= wf_tag('div', true);
+    
+    $result .= wf_tag('script');
+    $result .= '
+        document.getElementById("' . $ctrlID . '").oninput = function() {
+            document.getElementById("' . $valueDisplayId . '").innerHTML = this.value;
+        }
+    ';
+    $result .= wf_tag('script', true);
+    if ($label) {
+        $result .= wf_tag('label', false, '', 'for="' . $ctrlID . '"');
+        $result .= __($label);
+        $result .= wf_tag('label', true);
+        $result .= wf_delimiter();
+    }
+
+    if ($br) {
+        $result .= wf_delimiter();
+    }
+    
+    return($result);
 }

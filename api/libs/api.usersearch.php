@@ -52,6 +52,7 @@ function zb_UserSearchFields($query, $searchtype) {
     $query = mysql_real_escape_string(trim($query));
     $searchtype = vf($searchtype);
     $altercfg = $ubillingConfig->getAlter();
+    $mobileExtFlag = $ubillingConfig->getAlterParam('MOBILES_EXT');
 
     //check strict mode for our searchtype
     $strictsearch = array();
@@ -78,7 +79,13 @@ function zb_UserSearchFields($query, $searchtype) {
     }
     if ($searchtype == 'mobile') {
         $mask = (isset($strictsearch[$searchtype]) ? '' : '%');
-        $query = "SELECT `login` from `phones` WHERE `mobile` LIKE '" . $mask . $query . $mask . "'";
+        if ($mobileExtFlag) {
+            $query = "SELECT `login` FROM `phones` WHERE `mobile` LIKE '" . $mask . $query . $mask . "'
+                        UNION
+                      SELECT `login` FROM `mobileext` WHERE `mobile` LIKE '" . $mask . $query . $mask . "'";
+        } else {
+            $query = "SELECT `login` from `phones` WHERE `mobile` LIKE '" . $mask . $query . $mask . "'";
+        }
     }
     if ($searchtype == 'email') {
         $mask = (isset($strictsearch[$searchtype]) ? '' : '%');
@@ -193,24 +200,39 @@ function zb_UserSearchFields($query, $searchtype) {
 function zb_UserSearchAllFields($query, $render = true) {
     global $ubillingConfig;
     $notesSearchFlag = $ubillingConfig->getAlterParam('SEARCH_NOTES');
+    $mobileExtFlag = $ubillingConfig->getAlterParam('MOBILES_EXT');
+
     $allfoundlogins = array();
     if (strlen($query) >= 3) {
-        $searh_data_array = zb_UserGetAllDataCache();
+        $search_data_array = zb_UserGetAllDataCache();
+
         if ($notesSearchFlag) {
             $allUserNotes = zb_UserGetAllNotes();
             if (!empty($allUserNotes)) {
                 foreach ($allUserNotes as $noteLogin => $noteText) {
-                    if (isset($searh_data_array[$noteLogin])) {
-                        $searh_data_array[$noteLogin]['note'] = $noteText;
+                    if (isset($search_data_array[$noteLogin])) {
+                        $search_data_array[$noteLogin]['note'] = $noteText;
                     }
                 }
             }
         }
 
-        $searh_part = trim($query);
-        $searh_part = preg_quote($searh_part, '/');
-        foreach ($searh_data_array as $login => $data) {
-            if (preg_grep('/' . $searh_part . '/iu', $data)) {
+        if ($mobileExtFlag) {
+            $mobilesExt = new MobilesExt();
+            $rawMobiles = $mobilesExt->getAllUsersMobileNumbers();
+            if (!empty($rawMobiles)) {
+                foreach ($rawMobiles as $mobileLogin => $additionalMobiles) {
+                    if (isset($search_data_array[$mobileLogin])) {
+                        $search_data_array[$mobileLogin]['mobile'] .= ' ' . implode(' ', $additionalMobiles);
+                    }
+                }
+            }
+        }
+
+        $search_part = trim($query);
+        $search_part = preg_quote($search_part, '/');
+        foreach ($search_data_array as $login => $data) {
+            if (preg_grep('/' . $search_part . '/iu', $data)) {
                 $allfoundlogins[] = $login;
             }
         }
@@ -304,17 +326,17 @@ function web_UserSearchAddressPartialForm() {
     $altercfg = $ubillingConfig->getAlter();
     if ($altercfg['SEARCHADDR_AUTOCOMPLETE']) {
         $allAddress = array();
-            if (!@$altercfg['TASKMAN_SHORT_AUTOCOMPLETE']) {
-                $allAddress = zb_AddressGetFulladdresslistCached();
-            } else {
-                if ($altercfg['TASKMAN_SHORT_AUTOCOMPLETE'] == 1) {
-                    $allAddress = zb_AddressGetStreetsWithBuilds();
-                }
-
-                if ($altercfg['TASKMAN_SHORT_AUTOCOMPLETE'] == 2) {
-                    $allAddress = zb_AddressGetStreets();
-                }
+        if (!@$altercfg['TASKMAN_SHORT_AUTOCOMPLETE']) {
+            $allAddress = zb_AddressGetFulladdresslistCached();
+        } else {
+            if ($altercfg['TASKMAN_SHORT_AUTOCOMPLETE'] == 1) {
+                $allAddress = zb_AddressGetStreetsWithBuilds();
             }
+
+            if ($altercfg['TASKMAN_SHORT_AUTOCOMPLETE'] == 2) {
+                $allAddress = zb_AddressGetStreets();
+            }
+        }
         natsort($allAddress);
         $inputs = wf_AutocompleteTextInput('partialaddr', $allAddress, '', '', false, 30);
     } else {

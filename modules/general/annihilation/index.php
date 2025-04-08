@@ -84,6 +84,12 @@ if (cfr('ANNIHILATION')) {
             $switchPortAssigns->delete($login);
         }
 
+        //taxsup user fee deletion
+        if ($altCfg['TAXSUP_ENABLED']) {
+            $taxsup = new TaxSup();
+            $taxsup->deleteUserFee($login);
+        }
+
         //flushing some QinQ bindings
         $qinqBindingsDb = new NyanORM('qinq_bindings');
         $qinqBindingsDb->where('login', '=', $login);

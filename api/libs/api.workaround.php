@@ -971,6 +971,11 @@ function zb_TranslatePaymentNote($paynote, $allservicenames) {
         $paynote = __('Deferred sale') . ': ' . $defsaleNote[1];
     }
 
+    if (ispos($paynote, 'TAXSUP:')) {
+        $taxsup = explode(':', $paynote);
+        $paynote = __('Additional fee') . ': ' . $taxsup[1];
+    }
+
     return ($paynote);
 }
 
@@ -1878,7 +1883,11 @@ function web_PaymentsShowGraphPerBranch($year) {
         foreach ($months as $eachmonth => $monthname) {
             $month_summ = (isset($yearStats[$eachBranchId][$eachmonth])) ? $yearStats[$eachBranchId][$eachmonth]['summ'] : 0;
             $paycount = (isset($yearStats[$eachBranchId][$eachmonth])) ? $yearStats[$eachBranchId][$eachmonth]['count'] : 0;
-            $monthArpu = @round($month_summ / $paycount, 2);
+            if ($paycount != 0) {
+                $monthArpu = @round($month_summ / $paycount, 2);
+            } else {
+                $monthArpu = 0;
+            }
             $branchTotalSumm += $month_summ;
             if (is_nan($monthArpu)) {
                 $monthArpu = 0;
