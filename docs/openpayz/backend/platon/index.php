@@ -73,7 +73,8 @@ if (!ubRouting::checkPost('amount') and ! ubRouting::checkPost('paymentid')) {
     if (isset($cfgPltn['SERVICE_PAYMENT_PERCENT'])) {
         if ($cfgPltn['SERVICE_PAYMENT_PERCENT']) {
             $externalPercent = ubRouting::filters($cfgPltn['SERVICE_PAYMENT_PERCENT'], 'float');
-            $amountRaw = ceil($amountRaw + ($amountRaw * ($externalPercent / 100)));
+            $decimalPercent=$externalPercent/100;
+            $amountRaw=round($amountRaw*(1/(1-$decimalPercent)),2);
         }
     }
 
