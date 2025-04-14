@@ -459,7 +459,7 @@ class PONstels16 extends PONProto {
 //UniOperStats index preprocessing
             foreach ($uniOperStatusIndex as $io => $eachRow) {
                 $line = explode('=', $eachRow);
-file_put_contents('exports/pondata/unioperstats/unistats', print_r($line, true));
+//file_put_contents('exports/pondata/unioperstats/unistats', print_r($line, true));
                 if (empty($line[0]) || empty($line[1])) {
                     continue;
                 }
@@ -472,16 +472,16 @@ file_put_contents('exports/pondata/unioperstats/unistats', print_r($line, true))
                 $tmpEtherIdx = strrchr($tmpDevIdxEtherIdx, '.');
                 $tmpEtherIdxLen = strlen($tmpEtherIdx);
                 $tmpEtherIdx = 'eth' . trim($tmpEtherIdx, '.');
-file_put_contents('exports/pondata/unioperstats/unistats', $tmpEtherIdx . "\n", 8);
+//file_put_contents('exports/pondata/unioperstats/unistats', $tmpEtherIdx . "\n", 8);
                 //dev index = $tmpDevIdxEtherIdx - '.0.' - $tmpEtherIdx
                 $tmpONUDevIdx = substr($tmpDevIdxEtherIdx, 0, $tmpDevIdxEtherIdxLen - $tmpEtherIdxLen - 2);
                 $tmpUniStatus = trim(trim($line[1]), '"');
-file_put_contents('exports/pondata/unioperstats/unistats', $tmpONUDevIdx . "\n", 8);
-file_put_contents('exports/pondata/unioperstats/unistats', $tmpUniStatus . "\n", 8);
+//file_put_contents('exports/pondata/unioperstats/unistats', $tmpONUDevIdx . "\n", 8);
+//file_put_contents('exports/pondata/unioperstats/unistats', $tmpUniStatus . "\n", 8);
                 $uniStats[$tmpONUDevIdx] = array($tmpEtherIdx => $tmpUniStatus);
             }
-file_put_contents('exports/pondata/unioperstats/unistats', print_r($uniStats, true), 8);
-file_put_contents('exports/pondata/unioperstats/unistats', print_r($macIndexProcessed, true), 8);
+//file_put_contents('exports/pondata/unioperstats/unistats', print_r($uniStats, true), 8);
+//file_put_contents('exports/pondata/unioperstats/unistats', print_r($macIndexProcessed, true), 8);
 //storing results
             foreach ($macIndexProcessed as $devId => $eachMac) {
                 if (isset($uniStats[$devId])) {
