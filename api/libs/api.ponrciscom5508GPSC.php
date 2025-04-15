@@ -169,11 +169,11 @@ class PONRC5508GPSC extends PONProto {
      * @param $onuSerialsIndexProcessed
      * @param $ifaceCustDescrRaw
      *
-     * @return void
+     * @return array
      */
     protected function interfacesParseRCOMG($serialsProcessed, $ifaceDescrIndex, $ifaceNamesIndex) {
-        $ONUIfaces = array();
-        $PONIfaces = array();        
+        $ONUIfacesArr = array();
+        $PONIfacesArr = array();        
         $ifaceIdxNameArr = array();
         $ifaceIdxDescrArr = array();
 
@@ -231,14 +231,14 @@ class PONRC5508GPSC extends PONProto {
                 if (!empty($serialsProcessed[$eachPlasticIdx])) {
                     $tmpONUSerial = $serialsProcessed[$eachPlasticIdx];
                     $tmpONUBoardPortLLID = substr_replace($eachIface, ':', strrpos($eachIface, '/'), 1);                    
-                    $ONUIfaces[$tmpONUSerial] = $tmpONUBoardPortLLID;
+                    $ONUIfacesArr[$tmpONUSerial] = $tmpONUBoardPortLLID;
                 }
         
                 if (strpos($eachIface, $ponIfacePrefix)) {
                     $tmpPONBoardPort = str_replace($ponIfacePrefix, '', $eachIface);
 // as the iface descr is smotheing like this: "gpon-olt3/1" - it's a simple way to add space between numbers and name to get "gpon-olt 3/1"                   
                     $tmpPONIfaceDescr = $ponIfacePrefix . ' ' . $tmpPONBoardPort;
-                    $PONIfaces[$tmpPONBoardPort] = $tmpPONIfaceDescr;
+                    $PONIfacesArr[$tmpPONBoardPort] = $tmpPONIfaceDescr;
                 }
             }
 
@@ -246,10 +246,10 @@ class PONRC5508GPSC extends PONProto {
             // foreach ($onuSerialsIndexProcessed as $devId => $eachMac) {
             //     $tPONIfaceNum = substr($devId, 0, 1);
 
-            //     if (array_key_exists($tPONIfaceNum, $ONUIfaces)) {
-            //         $tPONIfaceName = $ONUIfaces[$tPONIfaceNum];
-            //         $tPONIfaceStr = $tPONIfaceName . ' / ' . str_replace('.', ':', $devId);
-            //         $cleanIface = strstr($tPONIfaceStr, ':', true);
+            //     if (array_key_exists($tPONIfaceNum, $ONUIfacesArr)) {
+            //         $tPONIfaceName = $ONUIfacesArr[$tPONIfaceNum];
+            //         $tPONIfacesArrtr = $tPONIfaceName . ' / ' . str_replace('.', ':', $devId);
+            //         $cleanIface = strstr($tPONIfacesArrtr, ':', true);
 
             //         if ($processIfaceCustDescr && !isset($ifaceCustDescrArr[$cleanIface]) && array_key_exists($tPONIfaceNum, $ifaceCustDescrIdx)) {
             //             $ifaceCustDescrArr[$cleanIface] = $ifaceCustDescrIdx[$tPONIfaceNum];
@@ -262,9 +262,11 @@ class PONRC5508GPSC extends PONProto {
             // }
 
 //saving ONU interfaces and interfaces descriptions
-            $this->olt->writeInterfaces($ONUIfaces);
+            $this->olt->writeInterfaces($ONUIfacesArr);
             $this->olt->writeInterfacesDescriptions($PONIfaces);
         }
+
+        return ($ONUIfacesArr);
     }
 
 
@@ -276,41 +278,69 @@ class PONRC5508GPSC extends PONProto {
      *
      * @return void
      */
-    protected function signalsParseRCOMG($signalsIndex, $onuSerialsIndexProcessed) {
+    protected function signalsParseRCOMG($signalsIndex, $onuSerialsIfacesProcessed) {
         $ONUsModulesTemps = array();
         $ONUsModulesVoltages = array();
         $ONUsModulesCurrents = array();
         $ONUsSignals = array();
         $result = array();
-        $macDevID = array();
+        $onuSerialDevID = array_flip($onuSerialsIfacesProcessed);
         $curDate = curdatetime();
 
 //signal index preprocessing
-        if ((!empty($signalsIndex)) and ( !empty($onuSerialsIndexProcessed))) {
-            foreach ($signalsIndex as $io => $eachsig) {
-                if (empty($eachsig) or !ispos($eachsig, '=')) { continue; }
+        if (!empty($signalsIndex) and !empty($onuSerialDevID)) {
+            foreach ($signalsIndex as $io => $eachSignal) {
+                if (empty($eachSignal) or !ispos($eachSignal, '=')) { continue; }
 
-                $line = explode('=', $eachsig);
+                $line = explode('=', $eachSignal);
 
 //signal is present
                 if (isset($line[0])) {
-                    $tmpONUPortLLID = trim($line[0]);
-                    $SignalRaw = trim($line[1]);
-//                    $ONUsSignals[$tmpONUPortLLID]['SignalRXRaw'] = trim($SignalRaw, '"');
-//                    $ONUsSignals[$tmpONUPortLLID]['SignalRXdBm'] = trim(substr(stristr(stristr(stristr($SignalRaw, '('), ')', true), 'dBm', true), 1));
-                    $ONUsSignals[$tmpONUPortLLID]['SignalRXdBm'] = trim($SignalRaw);
-                    }
+                    $onuBoardPortLLIDRaw = trim($line[0]);
+                    $onuSignalRaw = trim($line[1]);
+// now some shitty math comes out for getting both - LLIDs and signals from raw values
+// actual signal value from the raw value can be obtained via 2 formulas
+//  the official one:            (signal_raw - 15000) / 500
+//  or the semi-official one:    signal_raw / 500 - 30
+// the furmulas are pretty exchangable mathematically, but let's stick to the official one
+
+// and the "math" for LLIDs is just mind-blowing
+//  if the LLID raw value strarts from 1 or 3 - it contains the actual LLIDs from 1 to 99
+//      and
+//      - the 1st digit is the BOARD index(number)
+//      - the 3rd digit is the PON PORT index(number)
+//      - the 4th and 5th digits are the actual LLID index(number)
+//  if the LLID raw value strarts from 8 - it contains the actual LLIDs from 100 to 128
+//      and
+//      - the 2nd digit is the BOARD index(number)
+//      - the 4th digit MINUS 3 is the PON PORT index(number)
+//      - the 5th and 6th digits PLUS 94 are the actual LLID index(number)
+
+                    if (substr($onuBoardPortLLIDRaw, 0, 1) == '1' or substr($onuBoardPortLLIDRaw, 0, 1) == '3')
+                        $tmpBoardIdx = substr($onuBoardPortLLIDRaw, 0, 1);
+                        $tmpPONPortIdx = substr($onuBoardPortLLIDRaw, 2, 1);
+                        $tmpLLIDIdx = intval(substr($onuBoardPortLLIDRaw, 3, 2));
+                    elseif (substr($onuBoardPortLLIDRaw, 0, 1) == '8') {
+                        $tmpBoardIdx = substr($onuBoardPortLLIDRaw, 1, 1);
+                        $tmpPONPortIdx = intval(substr($onuBoardPortLLIDRaw, 3, 1)) - 3;
+                        $tmpLLIDIdx = intval(substr($onuBoardPortLLIDRaw, 4, 2)) + 94;
+                    } else { continue; }
+                    
+                    $tmpBoardPortLLID = $tmpBoardIdx . '/' . $tmpPONPortIdx . ':' . $tmpLLIDIdx;
+                    $tmpONUSignal = round(intval((trim($onuSignalRaw)) - 15000) / 500, 2);
+
+                    $ONUsSignals[$tmpBoardPortLLID]['SignalRXdBm'] = $tmpONUSignal;
                 }
+            }
 
 //storing results
-            foreach ($onuSerialsIndexProcessed as $devId => $eachMac) {
+            foreach ($onuSerialDevID as $devId => $eachSerial) {
                 if (isset($ONUsSignals[$devId])) {
 //signal history filling
                     $signal = $ONUsSignals[$devId]['SignalRXdBm'];
 
                     if (!empty($signal)) {
-                        $signal = round($signal, 2);
-                        $result[$eachMac] = $signal;
+                        $result[$eachSerial] = $signal;
                     }
 
                     if (empty($signal) or $signal == 'Offline') {
@@ -318,20 +348,18 @@ class PONRC5508GPSC extends PONProto {
                     }
 
                     //saving each ONU signal history
-                    $this->olt->writeSignalHistory($eachMac, $signal);
+                    $this->olt->writeSignalHistory($eachSerial, $signal);
                 }
             }
-
-            $macDevID = array_flip($onuSerialsIndexProcessed);
 
             //writing signals cache
             $this->olt->writeSignals($result);
 
             //saving ONU cache
-            $this->olt->writeOnuCache($onuSerialsIndexProcessed);
+            $this->olt->writeOnuCache($onuSerialsIfacesProcessed);
 
             // saving macindex as MAC => devID
-            $this->olt->writeMacIndex($macDevID);
+            $this->olt->writeMacIndex($onuSerialDevID);
         }
     }
 
