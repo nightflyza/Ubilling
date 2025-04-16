@@ -2296,24 +2296,30 @@ function checkBuildOnStreetExists($BuildNumber, $StreetID, $ExcludeEditedBuildID
 }
 
 /**
- * Returns list of all builds address strings as buildId=>buildAddress
+ * Returns list of all builds address strings as buildId=>buildAddress (city/street/buildnum)
  * 
  * @return array
  */
-function zb_AddressGetBuildAllAddress() {
+function zb_AddressGetBuildAllAddress($full = true) {
     $result = array();
     $allBuilds = zb_AddressGetBuildAllDataAssoc();
     if (!empty($allBuilds)) {
-        $allCities = zb_AddressGetFullCityNames();
+        if ($full) {
+            $allCities = zb_AddressGetFullCityNames();
+        }
+
         $allStreets = zb_AddressGetStreetsDataAssoc();
 
         foreach ($allBuilds as $buildId => $buildData) {
             $buildStreetId = $buildData['streetid'];
             $buildStreetData = $allStreets[$buildStreetId];
-            $buildCityId = $buildStreetData['cityid'];
-            $buildCityName = $allCities[$buildCityId];
-
-            $result[$buildId] = $buildCityName . ' ' . $buildStreetData['streetname'] . ' ' . $buildData['buildnum'];
+            if ($full) {
+                $buildCityId = $buildStreetData['cityid'];
+                $buildCityName = $allCities[$buildCityId];
+                $result[$buildId] = $buildCityName . ' ' . $buildStreetData['streetname'] . ' ' . $buildData['buildnum'];
+            } else {
+                $result[$buildId] = $buildStreetData['streetname'] . ' ' . $buildData['buildnum'];
+            }
         }
     }
     return ($result);

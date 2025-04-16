@@ -304,8 +304,15 @@ function sm_MapDrawSwitches() {
  * @return string
  */
 function um_MapDrawBuilds($buildIdFilter = '') {
+    global $ubillingConfig;
     $result = '';
     $buildIdFilter = ubRouting::filters($buildIdFilter, 'int');
+    $defferedLoading = ($ubillingConfig->getAlterParam('BUILDMAP_DEFERRED')) ? true : false;
+    if ($defferedLoading) {
+        if (!function_exists('generic_MapAddMarkDynamic')) {
+            $defferedLoading = false;
+        }
+    }
     $query = "SELECT * from `build` WHERE `geo` != '' ";
     //optional filter here
     if ($buildIdFilter) {
@@ -425,7 +432,11 @@ function um_MapDrawBuilds($buildIdFilter = '') {
             $title = str_replace("'", '', $title);
             $title = str_replace("\n", '', $title);
 
-            $result .= sm_MapAddMark($geo, $title, $content, $footer, $icon, $iconlabel, true);
+            if ($defferedLoading) {
+                $result .= generic_MapAddMarkDynamic($geo, $title, '?module=usersmap&getbuildusers=' . $each['id'], $icon);
+            } else {
+                $result .= sm_MapAddMark($geo, $title, $content, $footer, $icon, $iconlabel, true);
+            }
         }
 
         //update cache data if required
@@ -433,6 +444,39 @@ function um_MapDrawBuilds($buildIdFilter = '') {
             $cache->set('INBUILDUSERS', $cachedData, $cacheTime);
         }
     }
+    return ($result);
+}
+
+/**
+ * Retrieves and formats building data including address and user statistics
+ * 
+ * This function gets building information from cache and formats it with address,
+ * user table data and statistics about active/total users.
+ *
+ * @param mixed $buildId Building ID to retrieve data for
+ * 
+ * @return string 
+ */
+function um_GetBuildData($buildId) {
+    $buildId = ubRouting::filters($buildId, 'int');
+    $result = 'Oo';
+    $cache = new UbillingCache();
+    $cacheTime = 3600;
+    $cachedData = $cache->get('INBUILDUSERS', $cacheTime);
+    if (is_array($cachedData) and !empty($cachedData)) {
+        if (isset($cachedData[$buildId])) {
+            $result = '';
+            $allBuildsAddress = zb_AddressGetBuildAllAddress(false);
+            if (isset($allBuildsAddress[$buildId])) {
+                $result .= wf_tag('b') . $allBuildsAddress[$buildId] . wf_tag('b', true);
+            }
+            $buildData = $cachedData[$buildId];
+            $result .= wf_TableBody($buildData['rows'], '', 0);
+            $result .= wf_delimiter(0);
+            $result .= __('Active') . ' ' . $buildData['aliveusers'] . '/' . $buildData['userscount'];
+        }
+    }
+
     return ($result);
 }
 

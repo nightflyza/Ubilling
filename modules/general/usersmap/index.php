@@ -26,9 +26,12 @@ if (cfr('USERSMAP')) {
             }
         }
 
+        //AJAX build data from cache
+        if (ubRouting::checkGet('getbuildusers')) {
+            die(um_GetBuildData(ubRouting::get('getbuildusers')));
+        }
 
-
-        //collect biulds geolocation data
+        //collect builds geolocation data
         $placemarks = um_MapDrawBuilds();
 
         //setting custom zoom and map center if need to find some build
