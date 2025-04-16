@@ -143,6 +143,81 @@ function generic_MapAddMark($coords, $title = '', $content = '', $footer = '', $
 }
 
 /**
+ * Adds a dynamic map marker with AJAX-loaded popup content
+ *
+ * @param string $coords Coordinates in "lat,lng" format
+ * @param string $title Marker tooltip text
+ * @param string $contentUrl URL to load popup content from
+ * @param string $icon Icon identifier
+ * 
+ * @return string
+ */
+function generic_MapAddMarkDynamic($coords, $title = '', $contentUrl = '', $icon = 'twirl#lightblueIcon') {
+    $markerId = wf_InputId();
+    $title = str_replace('"', '\"', $title);
+    $contentUrl = str_replace('"', '\"', $contentUrl);
+    $iconCode = '';
+    $iconDefines = '';
+
+    if (!empty($icon)) {
+        $iconFile = lm_GetIconUrl($icon);
+        $iconDefines .= "var LeafIcon = L.Icon.extend({
+            options: {
+                iconSize:     [42, 42],
+                iconAnchor:   [22, 41],
+                popupAnchor:  [-3, -44]
+            }
+        });
+
+        var customIcon_$markerId = new LeafIcon({iconUrl: '" . $iconFile . "'});\n";
+        $iconCode = ", {icon: customIcon_$markerId}";
+    }
+
+    $js = "
+        $iconDefines
+        var marker_$markerId = L.marker([$coords]$iconCode).addTo(map);";
+
+    if (!empty($contentUrl)) {
+        $js .= "
+        marker_$markerId.bindPopup('" . __('Loading') . "...');
+        marker_$markerId._popupHtml = null;
+
+        marker_$markerId.on('click', function (e) {
+            var marker = e.target;
+
+            if (marker._popupHtml !== null) {
+                marker.setPopupContent(marker._popupHtml);
+                marker.openPopup();
+                return;
+            }
+
+            marker.setPopupContent('" . __('Loading') . "...');
+            marker.openPopup();
+
+            fetch('$contentUrl')
+                .then(response => response.text())
+                .then(html => {
+                    marker._popupHtml = html;
+                    marker.setPopupContent(html);
+                    marker.openPopup();
+                })
+                .catch(() => {
+                    marker.setPopupContent('" . __('Error') . ' ' . __('Loading') . "');
+                    marker.openPopup();
+                });
+        });";
+    }
+
+    if (!empty($title)) {
+        $js .= "\nmarker_$markerId.bindTooltip(\"$title\", {sticky: true});";
+    }
+
+    return $js;
+}
+
+
+
+/**
  * Returns circle map placemark
  * 
  * @param string $coords - map coordinates

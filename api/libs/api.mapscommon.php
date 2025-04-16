@@ -124,12 +124,12 @@ function sm_MapDrawSwitchUplinks($traceid = '') {
         foreach ($allswitches as $io => $each) {
             if (!empty($each['parentid'])) {
                 if (isset($allswitches[$each['parentid']])) {
-                    if (($allswitches[$each['parentid']]['geo'] != '') AND ( $each['geo'] != '')) {
+                    if (($allswitches[$each['parentid']]['geo'] != '') and ($each['geo'] != '')) {
                         $coord1 = $each['geo'];
                         $coord2 = $allswitches[$each['parentid']]['geo'];
                         $hint = $each['location'] . ' ' . $each['ip'] . ' → ' . $allswitches[$each['parentid']]['location'] . ' ' . $allswitches[$each['parentid']]['ip'];
 
-                        if ((!isset($deadarr[$each['ip']])) AND ( !isset($deadarr[$allswitches[$each['parentid']]['ip']]))) {
+                        if ((!isset($deadarr[$each['ip']])) and (!isset($deadarr[$allswitches[$each['parentid']]['ip']]))) {
                             $color = '#00FF00';
                         } else {
                             $color = '#FF0000';
@@ -304,8 +304,8 @@ function sm_MapDrawSwitches() {
  * @return string
  */
 function um_MapDrawBuilds($buildIdFilter = '') {
+    $result = '';
     $buildIdFilter = ubRouting::filters($buildIdFilter, 'int');
-    $ym_conf = rcms_parse_ini_file(CONFIG_PATH . "ymaps.ini");
     $query = "SELECT * from `build` WHERE `geo` != '' ";
     //optional filter here
     if ($buildIdFilter) {
@@ -313,6 +313,7 @@ function um_MapDrawBuilds($buildIdFilter = '') {
     }
     $allbuilds = simple_queryall($query);
     $allstreets = zb_AddressGetStreetAllData();
+    $alluserips = zb_UserGetAllIPs();
     $streetData = array();
 
     $cache = new UbillingCache();
@@ -332,6 +333,7 @@ function um_MapDrawBuilds($buildIdFilter = '') {
             $streetData[$eachstreet['id']] = $eachstreet['streetname'];
         }
     }
+
     //get apts in all builds aggregated with users logins
     $aptData = array();
     $allapts_q = "SELECT `buildid`,`apt`,`login` from `apt` JOIN `address` ON `apt`.`id`=`address`.`aptid`";
@@ -339,25 +341,12 @@ function um_MapDrawBuilds($buildIdFilter = '') {
     if (!empty($allapts)) {
         $aptData = $allapts;
     }
-    //get all user ips
-    $alluserips = zb_UserGetAllIPs();
-    //form alive ips array 
-    $aliveIps = array();
-    if (file_exists("exports/nmaphostscan")) {
-        $nmapData = file_get_contents("exports/nmaphostscan");
-        $nmapData = explodeRows($nmapData);
-        if (!empty($nmapData)) {
-            foreach ($nmapData as $ic => $eachnmaphost) {
-                $zhost = zb_ExtractIpAddress($eachnmaphost);
-                if ($zhost) {
-                    $aliveIps[$zhost] = $zhost;
-                }
-            }
-        }
+
+    //get all Online users if available
+    $dnUsers = rcms_scandir('content/dn');
+    if (!empty($dnUsers)) {
+        $dnUsers = array_flip($dnUsers);
     }
-
-    $result = '';
-
 
     if (!empty($allbuilds)) {
         foreach ($allbuilds as $io => $each) {
@@ -395,9 +384,10 @@ function um_MapDrawBuilds($buildIdFilter = '') {
                     foreach ($aptData as $ib => $eachapt) {
                         if ($eachapt['buildid'] == $each['id']) {
                             if (isset($alluserips[$eachapt['login']])) {
+                                $userLogin = $eachapt['login'];
                                 $userIp = $alluserips[$eachapt['login']];
                                 $usersCount++;
-                                if (isset($aliveIps[$userIp])) {
+                                if (isset($dnUsers[$userLogin])) {
                                     $aliveFlag = web_bool_led(true);
                                     $aliveUsers++;
                                     $aliveKey = 'live';
@@ -408,7 +398,7 @@ function um_MapDrawBuilds($buildIdFilter = '') {
 
 
                                 $cells = wf_TableCell($eachapt['apt']);
-                                $cells .= wf_TableCell(wf_Link('?module=userprofile&username=' . $eachapt['login'], $userIp, false));
+                                $cells .= wf_TableCell(wf_Link('?module=userprofile&username=' . $userLogin, $userIp, false));
                                 $cells .= wf_TableCell($aliveFlag, '', '', 'sorttable_customkey="' . $aliveKey . '"');
                                 $rows .= wf_TableRow($cells, 'row5');
                             }
@@ -420,6 +410,7 @@ function um_MapDrawBuilds($buildIdFilter = '') {
                     $cachedData[$each['id']]['aliveusers'] = $aliveUsers;
                 }
             }
+
             $footer = __('Active') . ' ' . $aliveUsers . '/' . $usersCount;
             $icon = um_MapBuildIcon($usersCount);
 
