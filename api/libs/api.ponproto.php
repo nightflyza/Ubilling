@@ -112,7 +112,11 @@ class PONProto {
     public function __construct($oltParameters, $snmpTemplates) {
         $this->oltParameters = $oltParameters;
         $this->snmpTemplates = $snmpTemplates;
-        $this->initSNMP();
+
+        $snmpDebug = (isset($this->snmpTemplates[$this->oltParameters['MODELID']]['define']['SNMP_DEBUG_ON'])
+                     ? $this->snmpTemplates[$this->oltParameters['MODELID']]['define']['SNMP_DEBUG_ON'] : 0);
+
+        $this->initSNMP($snmpDebug);
         $this->initOltAttractor();
     }
 
@@ -121,8 +125,8 @@ class PONProto {
      *
      * @return void
      */
-    protected function initSNMP() {
-        $this->snmp = new SNMPHelper();
+    protected function initSNMP($snmpDebug) {
+        $this->snmp = new SNMPHelper($snmpDebug);
     }
 
     /**
