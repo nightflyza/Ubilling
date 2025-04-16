@@ -56,22 +56,22 @@ class PONRC5508GPSC extends PONProto {
             $rcomgSerialsIfacesProcessed = $this->interfacesParseRCOMG($rcomgSerialsProcessed, $ifaceDescrIndex, $ifaceNamesIndex);
             $this->signalsParseRCOMG($signalsIndex, $rcomgSerialsIfacesProcessed);
 
-            // $distIndex = $this->walkCleared($oltIPPORT, $oltCommunity,
-            //                                 $this->snmpTemplates[$oltModelId]['misc']['DISTINDEX'],
-            //                                 '',
-            //                                 array($this->snmpTemplates[$oltModelId]['misc']['DISTVALUE'], '"'),
-            //                                 self::SNMPCACHE);
+            $distIndex = $this->walkCleared($oltIPPORT, $oltCommunity,
+                                            $this->snmpTemplates[$oltModelId]['misc']['DISTINDEX'],
+                                            '',
+                                            array($this->snmpTemplates[$oltModelId]['misc']['DISTVALUE'], '"'),
+                                            self::SNMPCACHE);
 
-            // $this->distanceParseGCOMG($distIndex, $rcomgSerialsProcessed);
+            $this->distanceParseRCOMG($distIndex, $rcomgSerialsProcessed);
 
 
-            // $lastDeregIndex = $this->walkCleared($oltIPPORT, $oltCommunity,
-            //                                      $this->snmpTemplates[$oltModelId]['misc']['DEREGREASON'],
-            //                                      '',
-            //                                      array($this->snmpTemplates[$oltModelId]['misc']['IFACEVALUE'], '"'),
-            //                                      self::SNMPCACHE);
+            $lastDeregIndex = $this->walkCleared($oltIPPORT, $oltCommunity,
+                                                 $this->snmpTemplates[$oltModelId]['misc']['DEREGREASON'],
+                                                 '',
+                                                 array($this->snmpTemplates[$oltModelId]['misc']['DEREGVALUE'], '"'),
+                                                 self::SNMPCACHE);
 
-            // $this->lastDeregParseGCOMG($lastDeregIndex, $rcomgSerialsProcessed);
+            $this->lastDeregParseRCOMG($lastDeregIndex, $rcomgSerialsProcessed);
 
             // if (!$oltNoFDBQ) {
             //     // for some reason fdbVLANIndex for this OLT should be queried first
@@ -199,18 +199,13 @@ class PONRC5508GPSC extends PONProto {
 // iface descrs processing
         if (!empty($ifaceDescrIndex)) {
             foreach ($ifaceDescrIndex as $io => $eachIfaceDescr) {
-                if (empty($eachIfaceName)) {
+                if (empty($eachIfaceDescr)) {
                     continue;
                 }
 
                 $tmpIface = explode('=', str_replace(array(" ", "\t", "\n", "\r", "\0", "\x0B"), '', $eachIfaceDescr));
                 $tmpPlasticIdx = trim($tmpIface[0]);
                 $tmpIfaceDescr = trim($tmpIface[1]);
-
-// if descr is empty for some reason - try to substitute with value from iface names array                
-                if (empty($tmpIfaceDescr) and !empty($ifaceIdxNameArr[$tmpPlasticIdx])) {
-                    $tmpIfaceDescr = $ifaceIdxNameArr[$tmpPlasticIdx];
-                }
 
                 if (empty($tmpPlasticIdx) || empty($tmpIfaceDescr)) {
                     continue;
@@ -220,9 +215,9 @@ class PONRC5508GPSC extends PONProto {
             }
         }        
 
-        if (!empty($serialsProcessed) and !empty($ifaceIdxDescrArr)) {
+        if (!empty($serialsProcessed) and !empty($ifaceIdxNameArr)) {
 //ONU serials to ifaces mapping
-            foreach ($ifaceIdxDescrArr as $eachPlasticIdx => $eachIface) {
+            foreach ($ifaceIdxNameArr as $eachPlasticIdx => $eachIface) {
                 if (empty($eachIface)) {
                     continue;
                 }
@@ -236,8 +231,15 @@ class PONRC5508GPSC extends PONProto {
         
                 if (strpos($eachIface, $ponIfacePrefix)) {
                     $tmpPONBoardPort = str_replace($ponIfacePrefix, '', $eachIface);
+
+// if there is some custom descr for current PON port - use it instead of value from iface names array                
+                    if (!empty($ifaceIdxDescrArr[$eachPlasticIdx])) {
+                        $tmpPONIfaceDescr = $ifaceIdxDescrArr[$eachPlasticIdx];
+                    } else {
 // as the iface descr is smotheing like this: "gpon-olt3/1" - it's a simple way to add space between numbers and name to get "gpon-olt 3/1"                   
-                    $tmpPONIfaceDescr = $ponIfacePrefix . ' ' . $tmpPONBoardPort;
+                        $tmpPONIfaceDescr = $ponIfacePrefix . ' ' . $tmpPONBoardPort;
+                    }    
+
                     $PONIfacesArr[$tmpPONBoardPort] = $tmpPONIfaceDescr;
                 }
             }
@@ -296,7 +298,7 @@ class PONRC5508GPSC extends PONProto {
 
 //signal is present
                 if (isset($line[0])) {
-                    $onuBoardPortLLIDRaw = trim($line[0]);
+                    $onuBoardPortLLIDRaw = str_replace('.', '', trim($line[0]));
                     $onuSignalRaw = trim($line[1]);
 // now some shitty math comes out for getting both - LLIDs and signals from raw values
 // actual signal value from the raw value can be obtained via 2 formulas
@@ -316,11 +318,11 @@ class PONRC5508GPSC extends PONProto {
 //      - the 4th digit MINUS 3 is the PON PORT index(number)
 //      - the 5th and 6th digits PLUS 94 are the actual LLID index(number)
 
-                    if (substr($onuBoardPortLLIDRaw, 0, 1) == '1' or substr($onuBoardPortLLIDRaw, 0, 1) == '3')
+                    if (substr($onuBoardPortLLIDRaw, 0, 1) == '1' or substr($onuBoardPortLLIDRaw, 0, 1) == '3') {
                         $tmpBoardIdx = substr($onuBoardPortLLIDRaw, 0, 1);
                         $tmpPONPortIdx = substr($onuBoardPortLLIDRaw, 2, 1);
                         $tmpLLIDIdx = intval(substr($onuBoardPortLLIDRaw, 3, 2));
-                    elseif (substr($onuBoardPortLLIDRaw, 0, 1) == '8') {
+                    } elseif (substr($onuBoardPortLLIDRaw, 0, 1) == '8') {
                         $tmpBoardIdx = substr($onuBoardPortLLIDRaw, 1, 1);
                         $tmpPONPortIdx = intval(substr($onuBoardPortLLIDRaw, 3, 1)) - 3;
                         $tmpLLIDIdx = intval(substr($onuBoardPortLLIDRaw, 4, 2)) + 94;
@@ -367,13 +369,13 @@ class PONRC5508GPSC extends PONProto {
      * Performs distance preprocessing for distance/mac index arrays and stores it into cache
      *
      * @param $DistIndex
-     * @param $onuSerialsIndexProcessed
+     * @param $rcomgSerialsProcessed
      */
-    protected function distanceParseGCOMG($DistIndex, $onuSerialsIndexProcessed) {
+    protected function distanceParseRCOMG($DistIndex, $rcomgSerialsProcessed) {
         $ONUDistances = array();
         $result = array();
 
-        if (!empty($onuSerialsIndexProcessed) and ! empty($DistIndex)) {
+        if (!empty($rcomgSerialsProcessed) and !empty($DistIndex)) {
 //last dereg index preprocessing
             foreach ($DistIndex as $io => $eachRow) {
                 $line = explode('=', $eachRow);
@@ -382,16 +384,16 @@ class PONRC5508GPSC extends PONProto {
                     continue;
                 }
 
-                $tmpONUPortLLID = trim($line[0]);
+                $tmpPlasticIdx = trim($line[0]);
                 $tmpONUDistance = trim($line[1]);
 
-                $ONUDistances[$tmpONUPortLLID] = $tmpONUDistance;
+                $ONUDistances[$tmpPlasticIdx] = $tmpONUDistance;
             }
 
 //storing results
-            foreach ($onuSerialsIndexProcessed as $devId => $eachMac) {
-                if (isset($ONUDistances[$devId])) {
-                    $result[$eachMac] = $ONUDistances[$devId];
+            foreach ($rcomgSerialsProcessed as $eachPlasticIdx => $eachSerial) {
+                if (isset($ONUDistances[$eachPlasticIdx])) {
+                    $result[$eachSerial] = $ONUDistances[$eachPlasticIdx];
                 }
             }
 
@@ -399,6 +401,70 @@ class PONRC5508GPSC extends PONProto {
             $this->olt->writeDistances($result);
         }
     }
+
+
+    /**
+     * Performs last dereg reason preprocessing for dereg reason/mac index arrays and stores it into cache
+     *
+     * @param $LastDeregIndex
+     * @param $rcomgSerialsProcessed
+     *
+     * @return void
+     */
+    protected function lastDeregParseRCOMG($LastDeregIndex, $rcomgSerialsProcessed) {
+        $ONUDeRegs = array();
+        $result = array();
+
+        if (!empty($rcomgSerialsProcessed) and !empty($LastDeregIndex)) {
+//last dereg index preprocessing
+            foreach ($LastDeregIndex as $io => $eachRow) {
+                $line = explode('=', $eachRow);
+
+                if (empty($line[0]) || empty($line[1])) {
+                    continue;
+                }
+
+                $tmpPlasticIdx = trim($line[0]);
+                $tmpONULastDeregReason = intval(trim($line[1]));
+
+                switch ($tmpONULastDeregReason) {
+                    case 13:
+                        $TxtColor = '"#F80000"';
+                        $tmpONULastDeregReasonStr = 'Wire down';
+                        break;
+
+                    case 6:
+                        $TxtColor = '"#FF4400"';
+                        $tmpONULastDeregReasonStr = 'Power off';
+                        break;
+
+                    default:
+                        $TxtColor = '"#000000"';
+                        $tmpONULastDeregReasonStr = 'Unknown';
+                        break;
+                }
+
+                if (!empty($tmpPlasticIdx)) {
+                    $tmpONULastDeregReasonStr = wf_tag('font', false, '', 'color=' . $TxtColor . '') .
+                                                $tmpONULastDeregReasonStr .
+                                                wf_tag('font', true);
+
+                    $ONUDeRegs[$tmpPlasticIdx] = $tmpONULastDeregReasonStr;
+                }
+            }
+
+//storing results
+            foreach ($rcomgSerialsProcessed as $eachPlasticIdx => $eachSerial) {
+                if (isset($ONUDeRegs[$eachPlasticIdx])) {
+                    $result[$eachSerial] = $ONUDeRegs[$eachPlasticIdx];
+                }
+            }
+
+            //saving ONUs deregs reasons
+            $this->olt->writeDeregs($result);
+        }
+    }
+
 
     /**
      * Parses & stores to cache ONUs FDB cache (MACs behind ONU)
@@ -409,7 +475,7 @@ class PONRC5508GPSC extends PONProto {
      *
      * @return void
      */
-    protected function fdbParseGCOMG($onuMACIndex, $fdbIndex, $fdbVLANIndex) {
+    protected function fdbParseRCOMG($onuMACIndex, $fdbIndex, $fdbVLANIndex) {
         if (!empty($onuMACIndex)) {
             $fdbDevIdxMAC   = array();
             $fdbIdxVLAN     = array();
@@ -471,67 +537,6 @@ class PONRC5508GPSC extends PONProto {
         }
     }
 
-    /**
-     * Performs last dereg reason preprocessing for dereg reason/mac index arrays and stores it into cache
-     *
-     * @param $LastDeregIndex
-     * @param $onuSerialsIndexProcessed
-     *
-     * @return void
-     */
-    protected function lastDeregParseGCOMG($LastDeregIndex, $onuSerialsIndexProcessed) {
-        $ONUDeRegs = array();
-        $result = array();
-
-        if (!empty($onuSerialsIndexProcessed) and ! empty($LastDeregIndex)) {
-//last dereg index preprocessing
-            foreach ($LastDeregIndex as $io => $eachRow) {
-                $line = explode('=', $eachRow);
-
-                if (empty($line[0]) || empty($line[1])) {
-                    continue;
-                }
-
-                $tmpONUPortLLID = trim($line[0]);
-                $tmpONULastDeregReason = intval(trim($line[1]));
-
-                switch ($tmpONULastDeregReason) {
-                    case 1:
-                        $TxtColor = '"#F80000"';
-                        $tmpONULastDeregReasonStr = 'Wire down';
-                        break;
-
-                    case 3:
-                        $TxtColor = '"#FF4400"';
-                        $tmpONULastDeregReasonStr = 'Power off';
-                        break;
-
-                    default:
-                        $TxtColor = '"#000000"';
-                        $tmpONULastDeregReasonStr = 'Unknown';
-                        break;
-                }
-
-                if (!empty($tmpONUPortLLID)) {
-                    $tmpONULastDeregReasonStr = wf_tag('font', false, '', 'color=' . $TxtColor . '') .
-                            $tmpONULastDeregReasonStr .
-                            wf_tag('font', true);
-
-                    $ONUDeRegs[$tmpONUPortLLID] = $tmpONULastDeregReasonStr;
-                }
-            }
-
-//storing results
-            foreach ($onuSerialsIndexProcessed as $devId => $eachMac) {
-                if (isset($ONUDeRegs[$devId])) {
-                    $result[$eachMac] = $ONUDeRegs[$devId];
-                }
-            }
-
-            //saving ONUs deregs reasons
-            $this->olt->writeDeregs($result);
-        }
-    }
 
     /**
      * Performs UNI port oper status preprocessing for index array and stores it into cache
@@ -541,7 +546,7 @@ class PONRC5508GPSC extends PONProto {
      *
      * @return void
      */
-    protected function uniParseGCOMG($uniOperStatusIndex, $onuSerialsIndexProcessed) {
+    protected function uniParseRCOMG($uniOperStatusIndex, $onuSerialsIndexProcessed) {
         $uniStats = array();
         $result = array();
 
