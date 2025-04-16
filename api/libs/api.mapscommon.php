@@ -696,7 +696,7 @@ function sm_ShowMapContainer() {
     $controls .= wf_Link("?module=switchmap&showuplinks=true", wf_img('skins/ymaps/uplinks.png') . ' ' . __('Show links'), false, 'ubButton');
     $controls .= wf_Link("?module=switchmap&coverage=true", wf_img('skins/ymaps/coverage.png') . ' ' . __('Coverage area'), false, 'ubButton');
     if (cfr('SWITCHES')) {
-        $controls .= wf_Link("?module=switches", wf_img('skins/ymaps/switchdir.png') . ' ' . __('Available switches'), true, 'ubButton');
+        $controls .= wf_Link("?module=switches", wf_img('skins/ymaps/switchdir.png') . ' ' . __('Available switches'), false, 'ubButton');
     }
     $controls .= wf_delimiter(1);
 
