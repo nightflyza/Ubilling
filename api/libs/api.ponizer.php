@@ -2295,9 +2295,19 @@ class PONizer {
 
             if (!empty($uniStatsData)) {
                 foreach ($uniStatsData as $eachPort => $eachStatus) {
-                    if ($eachStatus) {
+                    $curEtherStatus = false;
+                    $curEtherSpeed = '';
+
+                    if (is_array($eachStatus) and isset($eachStatus['unistatus']) and isset($eachStatus['unispeed'])) {
+                        $curEtherStatus = $eachStatus['unistatus'];
+                        $curEtherSpeed = $eachStatus['unispeed'];
+                    } else {
+                        $curEtherStatus = $eachStatus;
+                    }
+
+                    if ($curEtherStatus) {
                         $interfaceIcon = wf_img_sized('skins/icon_ether.gif', __('Interface')) . wf_nbsp()
-                            . wf_img_sized('skins/rise_icon.png', __('Up'), '8', '10');
+                            . wf_img_sized('skins/rise_icon.png', __('Up'), '8', '10') . ' ' . $curEtherSpeed;
                     } else {
 
                         $interfaceIcon = wf_img_sized('skins/icon_ether_down.png', __('Interface')) . wf_nbsp()
