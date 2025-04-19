@@ -223,6 +223,30 @@ class OpenPayz {
     protected $defaultCashTypeId = 1;
 
     /**
+     * Contains default payment systems coloring
+     * 
+     * @var array
+     */
+    protected $paySysColors = array(
+        'PBANK' => '4ea524',
+        'PRIVAT' => '4ea524',
+        'PBANKX' => '4ea524',
+        'PBANKNEW' => '4ea524',
+        'PB_MULTISERV' => '4ea524',
+        'EASYPAY' => '136bb5',
+        'FBANK' => '541e00',
+        'ABANK' => '00d352',
+        'IPAY' => '7b9aa9',
+        'LIQPAY' => '54b09c',
+        'MONOBANK' => '27292f',
+        'MONO' => '27292f',
+        'PLATEZHKA' => 'ffe007',
+        'PLATON' => 'ee6623',
+        'PORTMONE' => 'fc3131',
+        'PROVIDEX' => 'ed4c6f',
+    );
+
+    /**
      * Transactions list ajax callback URL
      */
     const URL_AJAX_SOURCE = '?module=openpayz&ajax=true';
@@ -810,22 +834,22 @@ class OpenPayz {
         }
 
         $chartOpts = "chartArea: {  width: '90%', height: '90%' }, legend : {position: 'right'}, ";
-        $fixedColors = @$this->altCfg['OPENPAYZ_PALETTE'];
+        $customPalette = @$this->altCfg['OPENPAYZ_PALETTE'];
 
         if (!empty($gcDayData)) {
-            $gcDayPie = wf_gcharts3DPie($gcDayData, __('Today'), '300px', '300px', $chartOpts, $fixedColors);
+            $gcDayPie = wf_gcharts3DPie($gcDayData, __('Today'), '300px', '300px', $chartOpts, $customPalette, $this->paySysColors);
         } else {
             $gcDayPie = '';
         }
 
         if (!empty($gcMonthData)) {
-            $gcMonthPie = wf_gcharts3DPie($gcMonthData, __('Current month'), '300px', '300px', $chartOpts, $fixedColors);
+            $gcMonthPie = wf_gcharts3DPie($gcMonthData, __('Current month'), '300px', '300px', $chartOpts, $customPalette, $this->paySysColors);
         } else {
             $gcMonthPie = '';
         }
 
         if (!empty($gcYearData)) {
-            $gcYearPie = wf_gcharts3DPie($gcYearData, __('Current year'), '300px', '300px', $chartOpts, $fixedColors);
+            $gcYearPie = wf_gcharts3DPie($gcYearData, __('Current year'), '300px', '300px', $chartOpts, $customPalette, $this->paySysColors);
         } else {
             $gcYearPie = '';
         }

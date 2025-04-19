@@ -3022,20 +3022,21 @@ function wf_genColorCodeFromText($text, $palette = '') {
  * backgroundColor: '#666', <br>
  * legend : {position: 'bottom', textStyle: {color: 'red', fontSize: 12 }}, <br>
  * chartArea: {  width: '90%', height: '90%' }, <br>
- * @param string $fixedColors use fixed auto-generated colors based on text labels with pallette<br>
+ * @param string $palette use auto-generated colors based on text labels with pallette<br>
+ * @param array $fixedColors use fixed colors based on key name. array(key=>color)
  *
  * @return string
  */
-function wf_gcharts3DPie($params, $title = '', $width = '', $height = '', $options = '', $fixedColors = '') {
+function wf_gcharts3DPie($params, $title = '', $width = '', $height = '', $options = '', $palette = '', $fixedColors = array()) {
     global $ubillingConfig;
     $altCfg = $ubillingConfig->getAlter();
-
     $containerId = wf_InputId();
     $width = ($width) ? $width : '500px';
     $height = ($height) ? $height : '500px';
     $result = '';
     $chartData = '';
     $enableFlag = true;
+    $paletteString = (is_bool($palette)) ? '' : $palette; //use string parameter as palette
     if (!isset($altCfg['GCHARTS_ENABLED'])) {
         $enableFlag = true;
     } else {
@@ -3048,27 +3049,35 @@ function wf_gcharts3DPie($params, $title = '', $width = '', $height = '', $optio
 
     if ($enableFlag) {
         $colors = '';
-        if ($fixedColors) {
-            $palette = (is_bool($fixedColors)) ? '' : $fixedColors; //use string parameter as palette
+        if ($paletteString or !empty($fixedColors)) {
             $colors .= 'var colors = { ';
         }
 
         if (!empty($params)) {
             foreach ($params as $io => $each) {
                 $chartData .= '[\'' . $io . '\',' . $each . '],';
-                if ($fixedColors) {
-                    $colors .= " '" . $io . "': '" . wf_genColorCodeFromText($io, $palette) . "',";
+                if ($paletteString or $fixedColors) {
+                    if (isset($fixedColors[$io])) {
+                        $keyColor = $fixedColors[$io];
+                    } else {
+                        if ($paletteString) {
+                            $keyColor = wf_genColorCodeFromText($io, $paletteString);
+                        } else {
+                            $keyColor = wf_genColorCodeFromText($io, $io);
+                        }
+                    }
+                    $colors .= " '" . $io . "': '" . $keyColor . "',";
                 }
             }
             $chartData = substr($chartData, 0, -1);
         }
 
-        if ($fixedColors) {
+        if ($paletteString or $fixedColors) {
             $colors = rtrim($colors, ',');
             $colors .= '};';
         }
 
-        if ($fixedColors) {
+        if ($paletteString or $fixedColors) {
             $colors .= ' var slices = [];
                 for (var i = 0; i < data.getNumberOfRows(); i++) {
                   slices.push({
@@ -4714,23 +4723,23 @@ class wf_JqDtHelper {
  */
 function wf_SliderInput($name, $label = '', $value = '', $min = 0, $max = 100, $br = false, $ctrlID = '', $options = '') {
     $result = '';
-    
+
     if (empty($ctrlID)) {
         $ctrlID = wf_InputId();
     }
-    
+
     $valueDisplayId = 'val_' . $ctrlID;
     $result .= wf_tag('div', false, '', 'style="display:flex; align-items:center; gap:10px;"');
-    
+
     $inputOptions = 'id="' . $ctrlID . '" name="' . $name . '" type="range" min="' . $min . '" max="' . $max . '" value="' . $value . '" style="flex:1;" ' . $options;
     $result .= wf_tag('input', false, '', $inputOptions);
-    
+
     $result .= wf_tag('span', false, '', 'id="' . $valueDisplayId . '"');
     $result .= $value;
     $result .= wf_tag('span', true);
-    
+
     $result .= wf_tag('div', true);
-    
+
     $result .= wf_tag('script');
     $result .= '
         document.getElementById("' . $ctrlID . '").oninput = function() {
@@ -4748,6 +4757,6 @@ function wf_SliderInput($name, $label = '', $value = '', $min = 0, $max = 100, $
     if ($br) {
         $result .= wf_delimiter();
     }
-    
-    return($result);
+
+    return ($result);
 }
