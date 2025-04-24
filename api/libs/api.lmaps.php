@@ -349,7 +349,7 @@ function generic_MapInit($center = '', $zoom = 15, $type = 'roadmap', $placemark
     // Tile layers
     var roadmap = L.tileLayer(\'' . $tileLayerOSM . '\', {
         maxZoom: 18,
-        attribution: \'\'
+        attribution: \'\',
         ' . $tileLayerCustoms . '
     });
 
