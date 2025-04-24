@@ -481,4 +481,4 @@
     return $.ui.scrollTabs;
 })(jQuery);
 
-//# sourceMappingURL=jquery.ui.scrolltabs.js.map
+
