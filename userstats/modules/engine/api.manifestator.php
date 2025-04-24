@@ -37,14 +37,14 @@ class Manifestator {
      *
      * @var string
      */
-    protected $themeColor = 'ffffff';
+    protected $themeColor = '#ffffff';
 
     /**
      * The background color 
      *
      * @var string
      */
-    protected $backgroundColor = 'ffffff';
+    protected $backgroundColor = '#ffffff';
 
     /**
      * The icons set
