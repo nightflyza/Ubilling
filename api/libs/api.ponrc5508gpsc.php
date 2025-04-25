@@ -292,7 +292,15 @@ class PONRC5508GPSC extends PONProto {
                     
                     $tmpBoardPortLLID = $this->getBoardPortLLIDFromRAW($onuBoardPortLLIDRaw, $bpllFirstDigit);
                     $tmpONUSignal = intval(trim($onuSignalRaw));
-                    $tmpONUSignal = ($tmpONUSignal == 0) ? 0 : round(($tmpONUSignal - 15000) / 500, 2);
+                    
+                    if ($tmpONUSignal == 0) {
+                        $tmpONUSignal = 0;
+                    } elseif ($tmpONUSignal >= 60000) {
+                        $tmpONUSignal = round((($tmpONUSignal - 15000) / 500) - 131, 2);
+                    } else {
+                        $tmpONUSignal = round(($tmpONUSignal - 15000) / 500, 2);
+                    }
+                    
 
                     $ONUsSignals[$tmpBoardPortLLID]['SignalRXdBm'] = $tmpONUSignal;
                 }
