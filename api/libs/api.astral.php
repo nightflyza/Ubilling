@@ -2143,9 +2143,13 @@ function wf_Graph($data, $width = '500', $height = '300', $errorbars = false, $G
     $result .= (!empty($YLabel)) ? ', ylabel: \'' . $YLabel . '\'' : '';
     $result .= (!empty($RangeSelector)) ? ', showRangeSelector: true' : '';
     $result .= ' }' . "\n";
-
     $result .= ');';
     $result .= wf_tag('script', true);
+    $result .= wf_tag('style');
+    $result .= '.dygraph-legend {
+                float: right;
+            }';
+    $result .= wf_tag('style', true);
 
     return ($result);
 }
@@ -2181,9 +2185,13 @@ function wf_GraphCSV($datafile, $width = '500', $height = '300', $errorbars = fa
     $result .= (!empty($YLabel)) ? ', ylabel: \'' . $YLabel . '\'' : '';
     $result .= (!empty($RangeSelector)) ? ', showRangeSelector: true' : '';
     $result .= ' }' . "\n";
-
     $result .= ');';
     $result .= wf_tag('script', true);
+    $result .= wf_tag('style');
+    $result .= '.dygraph-legend {
+                float: right;
+            }';
+    $result .= wf_tag('style', true);
 
     return ($result);
 }
