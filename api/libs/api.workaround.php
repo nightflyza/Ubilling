@@ -6378,7 +6378,7 @@ function ub_SanitizeData($data, $mres = true) {
  * @param string $stringToParse - just string that contains some data to parse
  * @param bool   $mutipleResults - extract just first result as string or all matches as array like match=>match
  * 
- * @return string/array
+ * @return string|array
  */
 function zb_ParseTagData($openTag, $closeTag, $stringToParse = '', $mutipleResults = false) {
     $result = '';
