@@ -8,6 +8,9 @@ DEVICE="STELS_FD16XXS_v1"
 SIGNALMODE="HAL"
 COLLECTORNAME="PONStels16"
 
+;Can be "bulk" or "single". With "single" poll type ONU Rx signals will be queried individually, on a per-ONU basis(yeah, many-many SNMP requests). Default - "bulk".
+;SIGNAL_POLL_TYPE="bulk"
+
 SIGINDEX=".1.3.6.1.4.1.17409.2.8.4.4.1.4"
 MACINDEX=".1.3.6.1.4.1.17409.2.8.4.1.1.3"
 SIGVALUE="INTEGER:"

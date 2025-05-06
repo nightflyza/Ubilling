@@ -18,18 +18,47 @@ class PONstels16 extends PONProto {
         $oltNoFDBQ = $this->oltParameters['NOFDB'];
         $oltIPPORT = $oltIp . ':' . self::SNMPPORT;
         $deviceType = $this->snmpTemplates[$oltModelId]['define']['DEVICE'];
+        $signalPollType = (empty($this->snmpTemplates[$oltModelId]['signal']['SIGNAL_POLL_TYPE']) 
+                          ? "bulk" : $this->snmpTemplates[$oltModelId]['signal']['SIGNAL_POLL_TYPE']);
         $ponPrefixAdd = (empty($this->snmpTemplates[$oltModelId]['misc']['INTERFACEADDPONPREFIX'])
                         ? '' : $this->snmpTemplates[$oltModelId]['misc']['INTERFACEADDPONPREFIX']);
         $this->onuSerialCaseMode = (isset($this->snmpTemplates[$oltModelId]['onu']['SERIAL_CASE_MODE'])
                         ? $this->snmpTemplates[$oltModelId]['onu']['SERIAL_CASE_MODE'] : 0);
 
+        $macIndex = array();
+        $sigIndex = array();
         $distIndex = array();
         $ifaceIndex = array();
 
-        $sigIndex = $this->walkCleared($oltIPPORT, $oltCommunity,
-                                       $this->snmpTemplates[$oltModelId]['signal']['SIGINDEX'],
+        //getting MAC index.
+        $macIndex = $this->walkCleared($oltIPPORT, $oltCommunity,
+                                       $this->snmpTemplates[$oltModelId]['signal']['MACINDEX'],
                                        '',
-                                       '.0.0 ', self::SNMPCACHE);
+                                       '', self::SNMPCACHE);
+
+        $macIndexProcessed = $this->macParseStels16($macIndex);
+
+        if ($signalPollType == 'bulk') {
+            $sigIndex = $this->walkCleared($oltIPPORT, $oltCommunity,
+                                        $this->snmpTemplates[$oltModelId]['signal']['SIGINDEX'],
+                                        '',
+                                        '.0.0 ', self::SNMPCACHE);
+        } elseif ($signalPollType == 'single') {
+            if (!empty($macIndexProcessed)) {
+                foreach($macIndexProcessed as $eachDevIdx => $eachMAC) {
+                    $tmpSNMPRaw = $this->walkCleared($oltIPPORT, $oltCommunity,
+                                        $this->snmpTemplates[$oltModelId]['signal']['SIGINDEX'] . '.' . $eachDevIdx,
+                                        '',
+                                        '0.0 ', self::SNMPCACHE);
+
+                    if (!ispos($tmpSNMPRaw[0], 'No Such Instance currently exists at this OID')) {
+                        $sigIndex[] = $eachDevIdx . $tmpSNMPRaw[0];
+                    }
+                }
+            }
+        }
+
+        $this->signalParseStels16($oltid, $sigIndex, $macIndexProcessed, $this->snmpTemplates[$oltModelId]['signal']);
 
 //ONU distance polling for stels16 devices
         if (isset($this->snmpTemplates[$oltModelId]['misc'])) {
@@ -61,16 +90,6 @@ class PONstels16 extends PONProto {
                 }
             }
         }
-
-//getting MAC index.
-        $macIndex = $this->walkCleared($oltIPPORT, $oltCommunity,
-                                       $this->snmpTemplates[$oltModelId]['signal']['MACINDEX'],
-                                       '',
-                                       '', self::SNMPCACHE);
-
-        $macIndexProcessed = $this->macParseStels16($macIndex);
-
-        $this->signalParse($oltid, $sigIndex, $macIndex, $this->snmpTemplates[$oltModelId]['signal']);
 
         if (isset($this->snmpTemplates[$oltModelId]['misc'])) {
             if (isset($this->snmpTemplates[$oltModelId]['misc']['DISTINDEX'])) {
@@ -110,6 +129,7 @@ class PONstels16 extends PONProto {
         }
     }
 
+
     /**
      * Processes OLT MAC adresses and returns them in array: LLID=>MAC
      *
@@ -147,6 +167,72 @@ class PONstels16 extends PONProto {
         }
 
         return ($ONUsMACs);
+    }
+
+/**
+     * Performs signal preprocessing for sig/mac index arrays and stores it into cache
+     *
+     * @param int $oltid
+     * @param array $sigIndex
+     * @param array $macIndexProcessed
+     * @param array $snmpTemplate
+     *
+     * @return void
+     */
+    protected function signalParseStels16($oltid, $sigIndex, $macIndexProcessed, $snmpTemplate) {
+        $oltid = vf($oltid, 3);
+        $sigTmp = array();
+        $result = array();
+
+//signal index preprocessing
+        if ((!empty($sigIndex)) and ( !empty($macIndexProcessed))) {
+            foreach ($sigIndex as $io => $eachsig) {
+                $line = explode('=', $eachsig);
+//signal is present
+                if (isset($line[1])) {
+                    $signalRaw = trim($line[1]); // signal level
+                    $devIndex = trim($line[0]); // device index
+                    if ($signalRaw == $snmpTemplate['DOWNVALUE']) {
+                        $signalRaw = 'Offline';
+                    } else {
+                        if ($snmpTemplate['OFFSETMODE'] == 'div') {
+                            if ($snmpTemplate['OFFSET']) {
+                                if (is_numeric($signalRaw)) {
+                                    $signalRaw = $signalRaw / $snmpTemplate['OFFSET'];
+                                } else {
+                                    $signalRaw = 'Fail';
+                                }
+                            }
+                        }
+                    }
+                    $sigTmp[$devIndex] = $signalRaw;
+                }
+            }
+
+//storing results
+            if (!empty($macIndexProcessed)) {
+                foreach ($macIndexProcessed as $devId => $eachMac) {
+                    if (isset($sigTmp[$devId])) {
+                        $signal = $sigTmp[$devId];
+                        $result[$eachMac] = $signal;
+                        //signal history preprocessing
+                        if ($signal == 'Offline') {
+                            $signal = $this->onuOfflineSignalLevel; //over 9000 offline signal level :P
+                        }
+
+                        //saving each ONU signal history
+                        $this->olt->writeSignalHistory($eachMac, $signal);
+                    }
+                }
+
+                //writing signals cache
+                $this->olt->writeSignals($result);
+
+                // saving macindex as MAC => devID
+                $macIndexProcessed = array_flip($macIndexProcessed);
+                $this->olt->writeMacIndex($macIndexProcessed);
+            }
+        }
     }
 
     /**
