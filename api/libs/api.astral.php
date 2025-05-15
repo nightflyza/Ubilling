@@ -2119,6 +2119,8 @@ function wf_Graph($data, $width = '500', $height = '300', $errorbars = false, $G
     $data = trim($data);
     $data = explodeRows($data);
     $cleandata = '';
+    $width = (!ispos($width, '%')) ? $width . 'px' : $width;
+    $height = (!ispos($height, '%')) ? $height . 'px' : $height;
     if ($errorbars) {
         $errorbars = 'true';
     } else {
@@ -2130,25 +2132,54 @@ function wf_Graph($data, $width = '500', $height = '300', $errorbars = false, $G
         }
         $cleandata = mb_substr($cleandata, 0, -2, 'utf-8');
     }
-    //style="width: 98%; "
-    $result = wf_tag('div', false, '', 'id="' . $randomId . '" style="width:' . $width . 'px; height:' . $height . 'px;"') . wf_tag('div', true);
+
+    $result = wf_tag('div', false, '', 'id="' . $randomId . '" style="width:' . $width . '; height:' . $height . ';"') . wf_tag('div', true);
     $result .= wf_tag('script', false, '', 'type="text/javascript"');
     $result .= $objectId . ' = new Dygraph(';
     $result .= 'document.getElementById("' . $randomId . '"),' . "\n";
     $result .= $cleandata;
-
+  
     $result .= ', {  errorBars: ' . $errorbars;
     $result .= (!empty($GraphTitle)) ? ', title: \'' . $GraphTitle . '\'' : '';
     $result .= (!empty($XLabel)) ? ', xlabel: \'' . $XLabel . '\'' : '';
     $result .= (!empty($YLabel)) ? ', ylabel: \'' . $YLabel . '\'' : '';
+   
     $result .= (!empty($RangeSelector)) ? ', showRangeSelector: true' : '';
     $result .= ' }' . "\n";
+   
     $result .= ');';
     $result .= wf_tag('script', true);
     $result .= wf_tag('style');
-    $result .= '.dygraph-legend {
+    $result .= '
+    .dygraph-legend {
                 float: right;
-            }';
+    }
+
+    .dygraph-title {
+        text-align: center !important;
+        font-weight: bold;
+        margin-bottom: 4px;
+    }
+
+    .dygraph-xlabel {
+        text-align: center !important;
+        font-weight: bold;
+        margin-top: 4px;
+    }
+
+    .dygraph-ylabel {
+        writing-mode: vertical-rl;
+        transform: rotate(180deg);
+        text-align: center;
+        white-space: nowrap;
+        margin-right: 4px;
+        font-weight: normal;
+       
+    }            
+
+    
+
+    ';
     $result .= wf_tag('style', true);
 
     return ($result);
@@ -2167,6 +2198,8 @@ function wf_Graph($data, $width = '500', $height = '300', $errorbars = false, $G
 function wf_GraphCSV($datafile, $width = '500', $height = '300', $errorbars = false, $GraphTitle = '', $XLabel = '', $YLabel = '', $RangeSelector = false) {
     $randomId = wf_InputId();
     $objectId = 'graph_' . $randomId;
+    $width = (!ispos($width, '%')) ? $width . 'px' : $width;
+    $height = (!ispos($height, '%')) ? $height . 'px' : $height;
 
     if ($errorbars) {
         $errorbars = 'true';
@@ -2174,7 +2207,7 @@ function wf_GraphCSV($datafile, $width = '500', $height = '300', $errorbars = fa
         $errorbars = 'false';
     }
 
-    $result = wf_tag('div', false, '', 'id="' . $randomId . '" style="width:' . $width . 'px; height:' . $height . 'px;"') . wf_tag('div', true);
+    $result = wf_tag('div', false, '', 'id="' . $randomId . '" style="width:' . $width . '; height:' . $height . ';"') . wf_tag('div', true);
     $result .= wf_tag('script', false, '', 'type="text/javascript"');
     $result .= $objectId . ' = new Dygraph(';
     $result .= 'document.getElementById("' . $randomId . '"), "' . $datafile . '" ' . "\n";
@@ -2186,11 +2219,36 @@ function wf_GraphCSV($datafile, $width = '500', $height = '300', $errorbars = fa
     $result .= (!empty($RangeSelector)) ? ', showRangeSelector: true' : '';
     $result .= ' }' . "\n";
     $result .= ');';
+
     $result .= wf_tag('script', true);
     $result .= wf_tag('style');
-    $result .= '.dygraph-legend {
+    $result .= '
+    .dygraph-legend {
                 float: right;
-            }';
+    }
+
+    .dygraph-title {
+        text-align: center !important;
+        font-weight: bold;
+        margin-bottom: 4px;
+    }
+
+    .dygraph-xlabel {
+        text-align: center !important;
+        font-weight: bold;
+        margin-top: 4px;
+    }
+
+    .dygraph-ylabel {
+        writing-mode: vertical-rl;
+        transform: rotate(180deg);
+        text-align: center;
+        white-space: nowrap;
+        margin-right: 4px;
+        font-weight: normal;
+       
+    }            
+';
     $result .= wf_tag('style', true);
 
     return ($result);
