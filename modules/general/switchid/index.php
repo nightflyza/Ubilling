@@ -5,38 +5,33 @@ if (cfr('SWITCHID')) {
     if ($altCfg['SWITCHES_EXTENDED']) {
         $messages = new UbillingMessageHelper();
         $result = wf_BackLink('?module=switches', __('Back'), true, 'ubButton');
-        $result.=wf_tag('br');
+        $result .= wf_tag('br');
 
-        $query = "SELECT switches.modelid,switches.ip,switches.id,switches.swid,switches.location,switchmodels.id,switchmodels.modelname "
-                . "FROM switches,switchmodels WHERE switches.modelid=switchmodels.id";
-        $allsw = simple_queryall($query);
+        $allSwitchModels = zb_SwitchModelsGetAllTag();
+        $switchesDb = new NyanORM('switches');
+        $allsw = $switchesDb->getAll();
+
+        $columns = array('Location', 'IP', 'Model', 'Remote ID', 'Actions');
+        $dataArr = array();
 
         if (!empty($allsw)) {
-
-            $tablecells = wf_TableCell(__('Location'));
-            $tablecells.=wf_TableCell(__('IP'));
-            $tablecells.=wf_TableCell(__('Model'));
-            $tablecells.=wf_TableCell(__('Remote ID'));
-            $tablerows = wf_TableRow($tablecells, 'row1');
-
+            
             foreach ($allsw as $io => $eachsw) {
-                $swloc = $eachsw['location'];
-                $swip = $eachsw['ip'];
-                $swmod = $eachsw['modelname'];
-                $swid = $eachsw['swid'];
-
-                if (!empty($swid)) {
-
-                    $tablecells = wf_TableCell($swloc);
-                    $tablecells.=wf_TableCell($swip);
-                    $tablecells.=wf_TableCell($swmod);
-                    $tablecells.=wf_TableCell($swid);
-                    $tablerows.=wf_TableRow($tablecells, 'row5');
+                if (!empty($eachsw['swid'])) {
+                    $swLink = wf_Link('?module=switches&edit=' . $eachsw['id'], web_edit_icon());
+                    $dataArr[] = array(
+                        $eachsw['location'],
+                        $eachsw['ip'],
+                        @$allSwitchModels[$eachsw['modelid']],
+                        $eachsw['swid'],
+                        $swLink
+                    );
                 }
             }
-            $result.= wf_TableBody($tablerows, '100%', '0', 'sortable');
+
+            $result .= wf_JqDtEmbed($columns, $dataArr, false, 'Switches', 50);
         } else {
-            $result.= $messages->getStyledMessage(__('No switches found'), 'info');
+            $result .= $messages->getStyledMessage(__('No switches found'), 'info');
         }
 
         show_window(__('Remote Switch ID Module'), $result);
@@ -46,4 +41,3 @@ if (cfr('SWITCHID')) {
 } else {
     show_error(__('You cant control this module'));
 }
-?>
