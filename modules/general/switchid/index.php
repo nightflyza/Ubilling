@@ -15,7 +15,6 @@ if (cfr('SWITCHID')) {
         $dataArr = array();
 
         if (!empty($allsw)) {
-            
             foreach ($allsw as $io => $eachsw) {
                 if (!empty($eachsw['swid'])) {
                     $swLink = wf_Link('?module=switches&edit=' . $eachsw['id'], web_edit_icon());
