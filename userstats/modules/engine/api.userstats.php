@@ -1901,11 +1901,79 @@ function zbs_UserShowProfile($login) {
         $paymentid = 0;
     }
 
+    //Power tariffs suport enabled? Getting user current tariff price.
+    if (@$us_config['POWERTARIFFS_ENABLED']) {
+        $powerTariffs = new NyanORM('pt_tariffs');
+        $allPowerTariffs = $powerTariffs->getAll('tariff');
+        $feeDay = 0;
+        if (isset($allPowerTariffs[$userdata['Tariff']])) {
+            //custom tariff price
+            $tariffPrice = $allPowerTariffs[$userdata['Tariff']]['fee'];
+            //getting custom fee date for this user
+            if (!empty($powerUserData)) {
+                $feeDay = zbs_GetPowerTariffDay($login);
+            }
+        } else {
+            //this is just normal tariff
+            @$tariffPrice = zbs_UserGetTariffPrice($userdata['Tariff']);
+        }
+    } else {
+        @$tariffPrice = zbs_UserGetTariffPrice($userdata['Tariff']);
+    }
+
     //payment id qr dialog
     $paymentidqr = '';
     if (isset($us_config['PAYMENTID_QR'])) {
         if ($us_config['PAYMENTID_QR']) {
-            $paymentidqr = la_modalAuto(la_img($iconsPath . 'qrcode.png', 'QR-code'), __('Payment ID'), la_tag('center') . la_img('modules/jsc/qrgen.php?data=' . $paymentid) . la_tag('center', true), '', '300', '250');
+            $qrGenerator = 'modules/jsc/qrgen.php?data=';
+            //defaults - just payment ID
+            $qrUrl =  $qrGenerator . $paymentid;
+            $qrTitle = __('Payment ID');
+
+            //static image URL
+            if (isset($us_config['PAYMENTID_QR_STATIC'])) {
+                if ($us_config['PAYMENTID_QR_STATIC']) {
+                    $qrUrl = $us_config['PAYMENTID_QR_STATIC'];
+                    $qrTitle = __('Payment');
+                }
+            }
+
+            //privat fast payment
+            if (isset($us_config['PAYMENTID_QR_PBFU_TOKEN'])) {
+                if ($us_config['PAYMENTID_QR_PBFU_TOKEN']) {
+                    $pbBaseUrl = 'https://next.privat24.ua/payments/form/';
+
+                    $pbParamsArr = array('token' => $us_config['PAYMENTID_QR_PBFU_TOKEN']);
+                    if (!empty($us_config['PAYMENTID_QR_PBFU_ACC'])) {
+                        $pbParamsArr['personalAccount'] = $paymentid;
+                    }
+
+                    if (!empty($us_config['PAYMENTID_QR_PBFU_SUM'])) {
+                        if ($tariffPrice) {
+                            $pbParamsArr['sum'] = $tariffPrice;
+                        }
+                    }
+
+                    $pbParamsArr['outSource'] = 'QR-mob';
+                    $pbEncParams = json_encode($pbParamsArr);
+                    $pbFullUrl = $pbBaseUrl . $pbEncParams;
+                    //optional shortener service
+                    if (!empty($us_config['PAYMENTID_QR_PBFU_SHORTENER'])) {
+                        $shortenerService = $us_config['PAYMENTID_QR_PBFU_SHORTENER'];
+                        $shortenedUrlId = @file_get_contents($shortenerService . '?shorten=' . $pbFullUrl);
+                        if (!empty($shortenedUrlId)) {
+                            //override URL with shortened one
+                            $pbFullUrl = $shortenerService . $shortenedUrlId;
+                        }
+                    }
+                    $pbEncFullUrl = base64_encode($pbFullUrl);
+                    $qrUrl = $qrGenerator . $pbEncFullUrl . '&be=true';
+                    $qrTitle = __('Payment');
+                }
+            }
+
+            //modal dialog construction
+            $paymentidqr = la_modalAuto(la_img($iconsPath . 'qrcode.png', 'QR-code'), $qrTitle, la_tag('center') . la_img($qrUrl) . la_tag('center', true), '', '300', '250');
         }
     }
 
@@ -2042,25 +2110,6 @@ function zbs_UserShowProfile($login) {
     $profile .= la_TableCell(__($userdata['Tariff']));
     $profile .= la_tag('tr', true);
 
-    //Power tariffs suport enabled?
-    if (@$us_config['POWERTARIFFS_ENABLED']) {
-        $powerTariffs = new NyanORM('pt_tariffs');
-        $allPowerTariffs = $powerTariffs->getAll('tariff');
-        $feeDay = 0;
-        if (isset($allPowerTariffs[$userdata['Tariff']])) {
-            //custom tariff price
-            $tariffPrice = $allPowerTariffs[$userdata['Tariff']]['fee'];
-            //getting custom fee date for this user
-            if (!empty($powerUserData)) {
-                $feeDay = zbs_GetPowerTariffDay($login);
-            }
-        } else {
-            //this is just normal tariff
-            @$tariffPrice = zbs_UserGetTariffPrice($userdata['Tariff']);
-        }
-    } else {
-        @$tariffPrice = zbs_UserGetTariffPrice($userdata['Tariff']);
-    }
 
     //tariff price here
     $profile .= la_tag('tr');
