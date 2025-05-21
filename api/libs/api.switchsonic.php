@@ -310,13 +310,13 @@ class SwitchSonic {
             $timePast = $pollTime - $devTmp['lasttime'];
             $timePast = ($timePast != 0) ? $timePast : 1; //prevent div by zero
             foreach ($newOctIn as $io => $eachIn) {
-                $speedIn = ($eachIn - $devTmp['previn'][$io]) / $timePast;
+                @$speedIn = ($eachIn - $devTmp['previn'][$io]) / $timePast;
                 $rawSpeed = round($speedIn);
                 $devTmp['speedin'][$io] = $rawSpeed;
                 $devTmp['speedline'][$io]['in'][$pollTime] = $rawSpeed;
             }
             foreach ($newOctOut as $io => $eachOut) {
-                $speedOut = ($eachOut - $devTmp['prevout'][$io]) / $timePast;
+                @$speedOut = ($eachOut - $devTmp['prevout'][$io]) / $timePast;
                 $rawSpeed = round($speedOut);
                 $devTmp['speedout'][$io] = $rawSpeed;
                 $devTmp['speedline'][$io]['out'][$pollTime] = $rawSpeed;
@@ -433,13 +433,13 @@ class SwitchSonic {
             foreach ($prevOut as $portNum => $eachPrevOut) {
                 $speedIn = $devStats['speedin'][$portNum];
                 $speedOut = $devStats['speedout'][$portNum];
-                $cells = wf_tableCell($ifaces[$portNum]);
-                $cells .= wf_tableCell($this->convertLinkState($devStats['links'][$portNum], $speedIn, $speedOut));
+                $cells = wf_tableCell(@$ifaces[$portNum]);
+                $cells .= wf_tableCell(@$this->convertLinkState($devStats['links'][$portNum], $speedIn, $speedOut));
                 $descrLabel = (isset($ifdescr[$portNum])) ? $ifdescr[$portNum] : '';
                 $cells .= wf_tableCell($descrLabel);
                 $cells .= wf_tableCell($this->convertSpeed($speedIn));
                 $cells .= wf_tableCell($this->convertSpeed($speedOut));
-                $cells .= wf_tableCell(stg_convert_size($devStats['previn'][$portNum]));
+                $cells .= wf_tableCell(@stg_convert_size($devStats['previn'][$portNum]));
                 $cells .= wf_tableCell(stg_convert_size($devStats['prevout'][$portNum]));
                 $rows .= wf_tableRow($cells, 'row5');
             }
