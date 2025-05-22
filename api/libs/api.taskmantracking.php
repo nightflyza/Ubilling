@@ -54,14 +54,25 @@ class TaskmanTracking {
      */
     protected $trackDb = '';
 
-    public function __construct() {
+    /**
+     * Some predefined stuff
+     */
+    const URL_ME = '?module=taskmantrack';
+    const ROUTE_TRACK = 'trackid';
+    const ROUTE_UNTRACK = 'untrackid';
+    const URL_TRACK_TASK = '?module=taskmantrack&trackid=';
+    const URL_UNTRACK_TASK = '?module=taskmantrack&untrackid=';
+
+    public function __construct($fastLoad = false) {
         $this->setLogin();
         $this->initMessages();
         $this->initDbs();
         $this->loadTrackedTasks();
-        $this->loadAllTasks();
-        $this->loadEmployee();
-        $this->loadJobtypes();
+        if (!$fastLoad) {
+            $this->loadAllTasks();
+            $this->loadEmployee();
+            $this->loadJobtypes();
+        }
     }
 
     /**
@@ -167,6 +178,19 @@ class TaskmanTracking {
 
 
     /**
+     * Checks is some task tracked now by current user
+     *
+     * @param int $taskId
+     * 
+     * @return bool
+     */
+    public function isTaskTracked($taskId) {
+        $result = (isset($this->trackingTasks[$taskId])) ? true : false;
+        return ($result);
+    }
+
+
+    /**
      * Renders list of currently tracked tasks
      * 
      * @return string
@@ -204,7 +228,7 @@ class TaskmanTracking {
                     $cells .= wf_TableCell($taskData['enddate']);
                     $cells .= wf_TableCell(zb_formatTimeDays($timeSpent));
                     $actLinks = wf_Link('?module=taskman&edittask=' . $taskid, web_edit_icon()) . ' ';
-                    $actLinks .= wf_JSAlert('?module=taskmantrack&untrackid=' . $taskid, wf_img('skins/icon_cleanup.png', __('Stop tracking this task')), $this->messages->getEditAlert());
+                    $actLinks .= wf_JSAlert(self::URL_UNTRACK_TASK . $taskid, wf_img('skins/untrack_icon.png', __('Stop tracking this task')), $this->messages->getEditAlert());
                     $cells .= wf_TableCell($actLinks);
                     $rows .= wf_TableRow($cells, $rowStyle);
                 } else {
@@ -218,7 +242,7 @@ class TaskmanTracking {
                     $cells .= wf_TableCell(__('-'));
                     $cells .= wf_TableCell(__('-'));
                     $cells .= wf_TableCell(__('-'));
-                    $actLinks = wf_Link('?module=taskmantrack&untrackid=' . $taskid, wf_img('skins/icon_cleanup.png', __('Stop tracking this task')));
+                    $actLinks = wf_Link(self::URL_UNTRACK_TASK . $taskid, wf_img('skins/icon_cleanup.png', __('Stop tracking this task')));
                     $cells .= wf_TableCell($actLinks);
                     $rows .= wf_TableRow($cells, 'ukvbankstadup');
                 }

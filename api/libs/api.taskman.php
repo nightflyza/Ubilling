@@ -2550,7 +2550,7 @@ function ts_TaskChangeForm($taskid) {
     global $ubillingConfig;
 
     $altCfg = $ubillingConfig->getAlter();
-    $taskid = vf($taskid, 3);
+    $taskid = ubRouting::filters($taskid, 'int');
     $taskdata = ts_GetTaskData($taskid);
     $result = '';
     $allemployee = ts_GetAllEmployee();
@@ -2593,7 +2593,13 @@ function ts_TaskChangeForm($taskid) {
         //modify form handlers
         $modform = '';
         if (cfr('TASKMANTRACK')) {
-            $modform .= wf_Link('?module=taskmantrack&trackid=' . $taskid, wf_img('skins/track_icon.png', __('Track this task'))) . ' ';
+            $taskmanTracking = new TaskmanTracking(true);
+            $isTrackedFlag = $taskmanTracking->isTaskTracked($taskid);
+            if ($isTrackedFlag) {
+                $modform .= wf_JSAlert($taskmanTracking::URL_UNTRACK_TASK . $taskid, wf_img('skins/untrack_icon.png', __('Stop tracking this task')), $messages->getEditAlert()) . ' ';
+            } else {
+                $modform .= wf_Link($taskmanTracking::URL_TRACK_TASK . $taskid, wf_img('skins/track_icon.png', __('Track this task'))) . ' ';
+            }
         }
         //warehouse mass-outcome helper
         if (cfr('WAREHOUSEOUTRESERVE') or cfr('WAREHOUSEOUT')) {
