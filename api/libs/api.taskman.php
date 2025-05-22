@@ -2606,10 +2606,18 @@ function ts_TaskChangeForm($taskid) {
                 }
             }
         }
+
+        //previous tasks search
+        if (!empty($taskLogin)) {
+            $modform .= wf_AjaxLoader();
+            $modform .= ' ' . wf_AjaxLink('?module=prevtasks&nofw=true&username=' . $taskLogin, wf_img_sized('skins/icon_search_small.gif', __('Previous user tasks')), 'taskshistorycontainer', false, '');
+        }
+
         //task editing limitations
         if (cfr('TASKMANEDITTASK')) {
             $modform .= wf_modal(web_edit_icon(), __('Edit'), ts_TaskModifyForm($taskid), '', '450', '550') . ' ';
         }
+
 
         //modform end
         //extracting sms data
@@ -2820,9 +2828,15 @@ function ts_TaskChangeForm($taskid) {
         }
 
         $result .= wf_TableBody($tablerows, '100%', '0', 'glamour');
+        //previous tasks search container
+        if (!empty($taskLogin)) {
+            $result .= wf_tag('div', false, '', 'id="taskshistorycontainer"') . wf_tag('div', true);
+        }
+
         $result .= wf_CleanDiv();
         // show task preview
         show_window(__('View task') . ' ' . $modform, $result);
+
 
         // Task logs
         if (cfr('TASKMANNWATCHLOG')) {

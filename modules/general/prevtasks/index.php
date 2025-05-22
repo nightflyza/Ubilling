@@ -2,23 +2,23 @@
 
 $prevTasksResult = '';
 if (cfr('TASKMAN')) {
-    if (wf_CheckGet(array('username'))) {
-        $prevTasksResult = ts_PreviousUserTasksRender($_GET['username']);
+    if (ubRouting::checkGet('username')) {
+        $noFwFlag = (ubRouting::checkGet('nofw')) ? true : false;
+        $prevTasksResult = ts_PreviousUserTasksRender(ubRouting::get('username', 'login'), '', $noFwFlag);
         die($prevTasksResult);
     } else {
-        if (wf_CheckGet(array('address'))) {
-            $prevTasksResult = ts_PreviousUserTasksRender('', $_GET['address'], true);
+        if (ubRouting::checkGet('address')) {
+            $prevTasksResult = ts_PreviousUserTasksRender('', ubRouting::get('address'), true);
             if (empty($prevTasksResult)) {
-                $messages=new UbillingMessageHelper();
-                $prevTasksResult=$messages->getStyledMessage(__('Nothing found'), 'warning');
+                $messages = new UbillingMessageHelper();
+                $prevTasksResult = $messages->getStyledMessage(__('Nothing found'), 'warning');
             }
             show_window(__('Previous user tasks'), $prevTasksResult);
-            if (wf_CheckGet(array('ukvuserid'))) {
-                show_window('', wf_BackLink(UkvSystem::URL_USERS_PROFILE.$_GET['ukvuserid']));
+            if (ubRouting::checkGet('ukvuserid')) {
+                show_window('', wf_BackLink(UkvSystem::URL_USERS_PROFILE . ubRouting::get('ukvuserid', 'int')));
             }
         }
     }
 } else {
     show_error(__('Access denied'));
 }
-?>
