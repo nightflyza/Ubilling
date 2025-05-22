@@ -166,12 +166,20 @@ if ($us_config['OPENPAYZ_ENABLED']) {
                             $paysys_desc = '';
                         }
 
-
+                        //template based icons
                         $iconsPath = $this->skinPath . 'paysys/';
                         if (file_exists($iconsPath . $eachpaysys . '.' . $this->iconExt)) {
                             $paysysIcon = $iconsPath . $eachpaysys . '.' . $this->iconExt;
                         } else {
                             $paysysIcon = '';
+                        }
+
+                        //may be overrided by custom URLs depend on config
+                        $custConfOpt='PAYSYS_ICON_'.$eachpaysys;
+                        if (isset($this->usConf[$custConfOpt])) {
+                            if (!empty($this->usConf[$custConfOpt])) {
+                                $paysysIcon=$this->usConf[$custConfOpt];
+                            }
                         }
 
                         $inputs = la_tag('div', false, 'opbackend');
