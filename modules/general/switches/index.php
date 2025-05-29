@@ -76,12 +76,21 @@ if (cfr('SWITCHES')) {
 
         $swlinks .= wf_Link('?module=switches&forcereping=true', wf_img('skins/refresh.gif') . ' ' . __('Force ping'), false, 'ubButton');
 
-        if (cfr('SWITCHESEDIT')) {
+        if (cfr('SWITCHES')) {
             $toolsLinks = '';
+
             $toolsLinks .= wf_Link('?module=switches&timemachine=true', wf_img('skins/time_machine.png') . ' ' . __('Time machine'), false, 'ubButton');
-            $toolsLinks .= wf_Link('?module=switchintegrity', wf_img('skins/integrity.png') . ' ' . __('Integrity check'), false, 'ubButton');
-            $toolsLinks .= wf_Link('?module=switchscan', web_icon_search() . ' ' . __('Scan for unknown devices'), false, 'ubButton');
-            $toolsLinks .= wf_Link('?module=saikopasu', wf_img('skins/icon_passport.gif') . ' ' . __('Psycho-Pass'), false, 'ubButton');
+            if (cfr('SWITCHESEDIT')) {
+                $toolsLinks .= wf_Link('?module=switchintegrity', wf_img('skins/integrity.png') . ' ' . __('Integrity check'), false, 'ubButton');
+            }
+
+            if (cfr('SWITCHESEDIT')) {
+                $toolsLinks .= wf_Link('?module=switchscan', web_icon_search() . ' ' . __('Scan for unknown devices'), false, 'ubButton');
+            }
+
+            if (cfr('SWITCHES')) {
+                $toolsLinks .= wf_Link('?module=saikopasu', wf_img('skins/icon_passport.gif') . ' ' . __('Psycho-Pass'), false, 'ubButton');
+            }
 
             if ($ubillingConfig->getAlterParam('SWITCH_GROUPS_ENABLED')) {
                 if (cfr('SWITCHGROUPS')) {
@@ -90,9 +99,15 @@ if (cfr('SWITCHES')) {
             }
 
             if ($altCfg['SWITCHES_EXTENDED']) {
-                $toolsLinks .= wf_Link('?module=switchid', wf_img('skins/swid.png') . ' ' . __('Switch ID'), false, 'ubButton');
+                if (cfr('SWITCHID')) {
+                    $toolsLinks .= wf_Link('?module=switchid', wf_img('skins/swid.png') . ' ' . __('Switch ID'), false, 'ubButton');
+                }
             }
-            $swlinks .= wf_modalAuto(web_icon_extended() . ' ' . __('Tools'), __('Tools'), $toolsLinks, 'ubButton');
+
+            //render if any of tool accessible
+            if (!empty($toolsLinks)) {
+                $swlinks .= wf_modalAuto(web_icon_extended() . ' ' . __('Tools'), __('Tools'), $toolsLinks, 'ubButton');
+            }
         }
 
         if ($altCfg['SWYMAP_ENABLED']) {
@@ -133,7 +148,11 @@ if (cfr('SWITCHES')) {
             if (!ubRouting::checkGet('snapshot')) {
                 //cleanup subroutine
                 if (ubRouting::checkGet('flushalldead')) {
-                    ub_SwitchesTimeMachineCleanup();
+                    if (cfr('SWITCHESEDIT')) {
+                        ub_SwitchesTimeMachineCleanup();
+                    } else {
+                        log_register('SWITCH TIMEMACHINE FLUSH FAIL ACCESS VIOLATION');
+                    }
                     ubRouting::nav('?module=switches&timemachine=true');
                 }
 
@@ -145,7 +164,11 @@ if (cfr('SWITCHES')) {
                     //search processing
                     $timeMachine = ub_SwitchesTimeMachineSearch(ubRouting::post('switchdeadlogsearch'));
                 }
-                $timeMachineCleanupControl = wf_JSAlert('?module=switches&timemachine=true&flushalldead=true', wf_img('skins/icon_cleanup.png', __('Cleanup')), __('Are you serious'));
+                $timeMachineCleanupControl = '';
+                if (cfr('SWITCHESEDIT')) {
+                    $timeMachineCleanupControl = wf_JSAlert('?module=switches&timemachine=true&flushalldead=true', wf_img('skins/icon_cleanup.png', __('Cleanup')), __('Are you serious'));
+                }
+
                 //here some searchform
 
                 $timeMachineSearchForm = web_SwitchTimeMachineSearchForm() . wf_tag('br');
@@ -185,7 +208,7 @@ if (cfr('SWITCHES')) {
             show_window(__('Edit switch'), web_SwitchEditForm($switchid));
             //minimap container
             if ($altCfg['SWYMAP_ENABLED']) {
-                if ((!empty($switchdata['geo'])) AND (!ubRouting::checkPost('editmodel'))) {
+                if ((!empty($switchdata['geo'])) and (!ubRouting::checkPost('editmodel'))) {
                     show_window(__('Mini-map'), wf_delimiter() . web_SwitchMiniMap($switchdata));
                 }
             }

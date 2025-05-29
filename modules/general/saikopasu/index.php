@@ -1,6 +1,6 @@
 <?php
 
-if (cfr('SWITCHESEDIT')) {
+if (cfr('SWITCHES')) {
 
     /**
      * Returns some switch psycho-pass
@@ -34,7 +34,7 @@ if (cfr('SWITCHESEDIT')) {
         return ($result);
     }
 
-    if (wf_CheckGet(array('ajax'))) {
+    if (ubRouting::checkGet('ajax')) {
         $alllinks = array();
         $allSwitches = array();
         $switchModels = zb_SwitchModelsGetAllTag();
@@ -98,7 +98,5 @@ if (cfr('SWITCHESEDIT')) {
     $backControl = wf_BackLink('?module=switches') . wf_delimiter();
     show_window(__('Switches') . ': ' . __('Psycho-Pass'), $backControl . wf_JqDtLoader($columns, '?module=saikopasu&ajax=true', false, 'Switches', 100, $opts));
 } else {
-    show_error('Access denied');
+    show_error(__('Access denied'));
 }
-?>
-    
