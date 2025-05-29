@@ -206,6 +206,7 @@ if (cfr('SWITCHES')) {
 
             //render switch edit form (aka switch profile)
             show_window(__('Edit switch'), web_SwitchEditForm($switchid));
+            
             //minimap container
             if ($altCfg['SWYMAP_ENABLED']) {
                 if ((!empty($switchdata['geo'])) and (!ubRouting::checkPost('editmodel'))) {
