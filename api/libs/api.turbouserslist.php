@@ -287,7 +287,7 @@ class TurboUsersList {
                 $data[] = $each['Tariff'];
                 $data[] = $this->getActivityLabel($each);
                 $data[] = $this->getUserDnLabel($each['login']);
-                $data[] = $each['totaltraff'];
+                $data[] = zb_TraffToGb($each['totaltraff']);
                 $data[] = $each['Cash'];
                 $data[] = $each['Credit'];
                 $json->addRow($data);
