@@ -7068,3 +7068,4 @@ function wf_PlArpingOptionsForm() {
     $result = wf_Form('', 'POST', $inputs, 'glamour');
     return ($result);
 }
+

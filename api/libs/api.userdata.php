@@ -1671,3 +1671,102 @@ function web_PassportDataEditFormshow($login, $passportdata) {
     $form = wf_Form('', 'POST', $inputs, 'glamour');
     show_window(__('Edit') . ' ' . __('passport data') . ' ' . $useraddress, $form);
 }
+
+    /**
+     * Retrieves filtered user data with pagination and sorting options
+     * 
+     * @param string $searchQuery Search query to filter results (default: '')
+     * @param string $orderField Field to sort results by (default: 'login')
+     * @param string $orderDirection Sort direction - 'ASC' or 'DESC' (default: 'ASC')
+     * @param int $from Starting offset for pagination (default: 0)
+     * @param int $to Ending offset for pagination (default: 0)
+     * 
+     * @return array Returns array of user records containing:
+     *               - login: User login name
+     *               - realname: User's real name
+     *               - Passive: Account status
+     *               - Down: Account disabled status
+     *               - AlwaysOnline: Always online flag
+     *               - Tariff: User's tariff plan
+     *               - Credit: Credit amount
+     *               - Cash: Account balance
+     *               - ip: IP address
+     *               - cityname: City name
+     *               - streetname: Street name
+     *               - buildnum: Building number
+     *               - apt: Apartment number
+     *               - fulladdress: Complete formatted address
+     *               - totaltraff: Total traffic usage (current month)
+     */
+    function zb_UserGetDataFiltered($searchQuery = '', $orderField = 'login', $orderDirection = 'ASC', $from = 0, $to = 0) {
+        $searchQuery = ubRouting::filters($searchQuery, 'safe');
+        $orderDirection = ubRouting::filters($orderDirection, 'gigasafe');
+        $orderField = ubRouting::filters($orderField, 'mres');
+        $from = ubRouting::filters($from, 'int');
+        $to = ubRouting::filters($to, 'int');
+
+        $query = "SELECT 
+                    `users`.`login`,
+                    `realname`.`realname`,
+                    `users`.`Passive`,
+                    `users`.`Down`,
+                    `users`.`AlwaysOnline`,
+                    `users`.`Tariff`,
+                    `users`.`Credit`,
+                    `users`.`Cash`,
+                    `users`.`ip`,
+                    `city`.`cityname`,
+                    `street`.`streetname`,
+                    `build`.`buildnum`,
+                    `apt`.`apt`,
+                    CONCAT(`street`.`streetname`, ' ', `build`.`buildnum`, IF(`apt`.`apt`, CONCAT('/', `apt`.`apt`), '')) AS `fulladdress`,
+
+                    (
+                        IFNULL(`users`.`D0`, 0) + IFNULL(`users`.`U0`, 0) +
+                        IFNULL(`oph`.`total`, 0) +
+                        IFNULL(`mlg`.`total`, 0)
+                    ) AS `totaltraff`
+
+                    FROM `users`
+                    LEFT JOIN `realname` ON `users`.`login` = `realname`.`login`
+                    LEFT JOIN `address` ON `users`.`login` = `address`.`login`
+                    LEFT JOIN `apt` ON `address`.`aptid` = `apt`.`id`
+                    LEFT JOIN `build` ON `apt`.`buildid` = `build`.`id`
+                    LEFT JOIN `street` ON `build`.`streetid` = `street`.`id`
+                    LEFT JOIN `city` ON `street`.`cityid` = `city`.`id`
+
+                    LEFT JOIN (
+                    SELECT `login`, SUM(IFNULL(`D0`, 0) + IFNULL(`U0`, 0)) AS `total`
+                    FROM `ophtraff`
+                    WHERE `year` = YEAR(CURDATE()) AND `month` = MONTH(CURDATE())
+                    GROUP BY `login`
+                    ) AS `oph` ON `users`.`login` = `oph`.`login`
+
+                    LEFT JOIN (
+                    SELECT `login`, SUM(IFNULL(`D0`, 0) + IFNULL(`U0`, 0)) AS `total`
+                    FROM `mlg_ishimura`
+                    WHERE `year` = YEAR(CURDATE()) AND `month` = MONTH(CURDATE())
+                    GROUP BY `login`
+                    ) AS `mlg` ON `users`.`login` = `mlg`.`login`
+            ";
+
+        if (!empty($searchQuery)) {
+            $query .= "WHERE 
+                    `users`.`login` LIKE '%" . $searchQuery . "%' OR 
+                    `realname`.`realname` LIKE '%" . $searchQuery . "%' OR 
+                    `users`.`ip` LIKE '%" . $searchQuery . "%' OR 
+                    `users`.`Tariff` LIKE '%" . $searchQuery . "%' OR 
+                    CONCAT(`street`.`streetname`, ' ', `build`.`buildnum`, IF(`apt`.`apt`, CONCAT('/', `apt`.`apt`), '')) LIKE '%" . $searchQuery . "%'";
+        }
+
+        if (!empty($orderField) and $orderDirection) {
+            $query .= "  ORDER BY " . $orderField . " " . $orderDirection . "";
+        }
+
+        if (!empty($from) or !empty($to)) {
+            $query .= " LIMIT " . $from . ", " . $to . ";";
+        }
+
+        $result = simple_queryall($query);
+        return ($result);
+    }

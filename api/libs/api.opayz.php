@@ -1113,7 +1113,7 @@ class OpenPayz {
         $filterNumber = '';
         $filtercustomerId = '';
         $opts = '"order": [[ 0, "desc" ]]';
-        $columns = array(__('Date'), __('Number'), __('User'), __('Tags'), __('File'));
+        
         if (ubRouting::checkGet('filtercustomerid')) {
             $filtercustomerId = '&filtercustomerid=' . ubRouting::get('username');
         }

@@ -116,6 +116,7 @@ require_once('api/libs/api.ubrouting.php');
 require_once('api/libs/api.nyanorm.php');
 require_once('api/libs/api.zabbix.php');
 require_once('api/libs/api.backups.php');
+require_once('api/libs/api.userslist.php');
 
 //preventing loading of icecream on PHP < 5.6
 if (PHP_VERSION_ID >= 50638) {
