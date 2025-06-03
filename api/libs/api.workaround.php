@@ -44,21 +44,33 @@ function curlang() {
 }
 
 /**
- * Returns user logins with non unique passwords
+ * Returns user logins with non-unique passwords as idx => login
  * 
  * @return array
  */
 function zb_GetNonUniquePasswordUsers() {
-    $query_p = "SELECT `Password`,count(*) as cnt from `users` GROUP BY `Password` having cnt >1;";
-    $duppasswords = simple_queryall($query_p);
+    $query_p = "SELECT `login`,`Password` FROM `users`";
+    $allUsers = simple_queryall($query_p);
+
+    $passwordMap = array();
     $result = array();
-    if (!empty($duppasswords)) {
-        foreach ($duppasswords as $io => $each) {
-            $query_l = "SELECT `login` from `users` WHERE `Password`='" . $each['Password'] . "'";
-            $userlogins = simple_queryall($query_l);
-            if (!empty($userlogins)) {
-                foreach ($userlogins as $ia => $eachlogin) {
-                    $result[] = $eachlogin['login'];
+
+    if (!empty($allUsers)) {
+        foreach ($allUsers as $eachUser) {
+            $pass = $eachUser['Password'];
+            $login = $eachUser['login'];
+
+            if (!isset($passwordMap[$pass])) {
+                $passwordMap[$pass] = array();
+            }
+
+            $passwordMap[$pass][] = $login;
+        }
+
+        foreach ($passwordMap as $loginList) {
+            if (sizeof($loginList) > 1) {
+                foreach ($loginList as $login) {
+                    $result[] = $login;
                 }
             }
         }
@@ -2775,14 +2787,14 @@ function web_UserArrayShower($usersarr) {
             //finance check
             $activity = web_red_led();
             $activity_flag = 0;
-     
-             if ($thisUserData['Passive'] == 1 or $thisUserData['Down'] == 1) {
+
+            if ($thisUserData['Passive'] == 1 or $thisUserData['Down'] == 1) {
                 $activity = web_yellow_led() . ' ' . __('No');
-                 $activity_flag = 0;
+                $activity_flag = 0;
             } else {
                 if ($thisUserData['Cash'] >= '-' . $thisUserData['Credit']) {
                     $activity = web_bool_led(true) . ' ' . __('Yes');
-                     $activity_flag = 1;
+                    $activity_flag = 1;
                 }
             }
 
@@ -7074,4 +7086,3 @@ function wf_PlArpingOptionsForm() {
     $result = wf_Form('', 'POST', $inputs, 'glamour');
     return ($result);
 }
-
