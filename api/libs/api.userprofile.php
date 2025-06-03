@@ -2470,7 +2470,16 @@ class UserProfile {
         //activity and other flags
         $passiveicon = ($this->userdata['Passive']) ? wf_img_sized('skins/icon_passive.gif', '', '', '12') . ' ' : '';
         $downicon = ($this->userdata['Down']) ? wf_img_sized('skins/icon_down.gif', '', '', '12') . ' ' : '';
-        $activity = ($this->userdata['Cash'] < '-' . $this->userdata['Credit']) ? wf_img_sized('skins/icon_inactive.gif', '', '', '12') . ' ' . __('No') : wf_img_sized('skins/icon_active.gif', '', '', '12') . ' ' . __('Yes');
+
+        $activity = wf_img_sized('skins/icon_inactive.gif', '', '', '12') . ' ' . __('No');
+        if ($this->userdata['Passive'] == 1 or $this->userdata['Down'] == 1) {
+            $activity  = wf_img_sized('skins/yellow_led.png', '', '', '12') . ' ' . __('No');
+        } else {
+            if ($this->userdata['Cash'] >= '-' . $this->userdata['Credit']) {
+                $activity  = wf_img_sized('skins/icon_active.gif', '', '', '12') . ' ' . __('Yes');
+            }
+        }
+
 
         // user linking controller
         $profile .= $this->getUserLinking();

@@ -2773,11 +2773,17 @@ function web_UserArrayShower($usersarr) {
             $usercash = @$thisUserData['Cash'];
             $usercredit = @$thisUserData['Credit'];
             //finance check
-            $activity = web_green_led();
-            $activity_flag = 1;
-            if ($usercash < '-' . $usercredit) {
-                $activity = web_red_led();
-                $activity_flag = 0;
+            $activity = web_red_led();
+            $activity_flag = 0;
+     
+             if ($thisUserData['Passive'] == 1 or $thisUserData['Down'] == 1) {
+                $activity = web_yellow_led() . ' ' . __('No');
+                 $activity_flag = 0;
+            } else {
+                if ($thisUserData['Cash'] >= '-' . $thisUserData['Credit']) {
+                    $activity = web_bool_led(true) . ' ' . __('Yes');
+                     $activity_flag = 1;
+                }
             }
 
             //fast cash link

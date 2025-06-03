@@ -1345,12 +1345,15 @@ class UbillingVisor {
                     $data[] = @$cameraUserData['Tariff'];
                     $cameraCash = @$cameraUserData['Cash'];
                     $cameraCredit = @$cameraUserData['Credit'];
-                    $cameraState = '';
-                    if ($cameraCash >= '-' . $cameraCredit) {
-                        $cameraState = web_bool_led(true) . ' ' . __('Yes');
+                    $cameraState = web_bool_led(false) . ' ' . __('No');
+                    if ($cameraUserData['Passive'] == 1 or $cameraUserData['Down'] == 1) {
+                        $cameraState = web_yellow_led() . ' ' . __('No');
                     } else {
-                        $cameraState = web_bool_led(false) . ' ' . __('No');
+                        if ($cameraUserData['Cash'] >= '-' . $cameraUserData['Credit']) {
+                            $cameraState = web_bool_led(true) . ' ' . __('Yes');
+                        }
                     }
+
                     $data[] = $cameraState;
                     if ($dnFlag) {
                         $onlineState = web_bool_star(false) . ' ' . __('No');
@@ -1411,12 +1414,16 @@ class UbillingVisor {
                 $data[] = @$cameraUserData['Tariff'];
                 $cameraCash = @$cameraUserData['Cash'];
                 $cameraCredit = @$cameraUserData['Credit'];
-                $cameraState = '';
-                if ($cameraCash >= '-' . $cameraCredit) {
-                    $cameraState = web_bool_led(true) . ' ' . __('Yes');
+                $cameraState = web_bool_led(false) . ' ' . __('No');
+                if ($cameraUserData['Passive'] == 1 or $cameraUserData['Down'] == 1) {
+                    $cameraState = web_yellow_led() . ' ' . __('No');
                 } else {
-                    $cameraState = web_bool_led(false) . ' ' . __('No');
+                    if ($cameraUserData['Cash'] >= '-' . $cameraUserData['Credit']) {
+                        $cameraState = web_bool_led(true) . ' ' . __('Yes');
+                    }
                 }
+
+
                 $data[] = $cameraState;
                 if ($dnFlag) {
                     $onlineState = web_bool_star(false) . ' ' . __('No');
@@ -1719,10 +1726,14 @@ class UbillingVisor {
                 $cameraState = '';
                 $cameraCash = $camProfileData['Cash'];
                 $cameraCredit = $camProfileData['Credit'];
-                if ($cameraCash >= '-' . $cameraCredit) {
-                    $cameraState = wf_img_sized('skins/icon_active.gif', '', '12', '12') . ' ' . __('Yes');
+
+                $cameraState = wf_img_sized('skins/icon_inactive.gif', '', '12', '12') . ' ' . __('No');
+                if ($camProfileData['Passive'] == 1 or $camProfileData['Down'] == 1) {
+                    $cameraState = wf_img_sized('skins/yellow_led.png', '', '12', '12') . ' ' . __('No');
                 } else {
-                    $cameraState = wf_img_sized('skins/icon_inactive.gif', '', '12', '12') . ' ' . __('No');
+                    if ($camProfileData['Cash'] >= '-' . $camProfileData['Credit']) {
+                        $cameraState = wf_img_sized('skins/icon_active.gif', '', '12', '12') . ' ' . __('Yes');
+                    }
                 }
 
                 $camPass = ($cameraData['campassword']) ? wf_img_sized('skins/icon_active.gif', '', '12', '12') : wf_img_sized('skins/icon_inactive.gif', '', '12', '12');
