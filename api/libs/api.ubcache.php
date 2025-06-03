@@ -339,7 +339,7 @@ class UbillingCache {
      * @param Closure $callback Callback function 
      * @param int $expiration Expiration time in seconds
      * 
-     * @return string
+     * @return string|array
      */
     public function getCallback($key, Closure $callback, $expiration = 2592000) {
         // Use this class get function
