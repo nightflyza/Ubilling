@@ -154,6 +154,7 @@ class TurboUsersList {
      * Returns HTML label indicating user activity status
      * 
      * @param array $userData User data array
+     * 
      * @return string 
      */
     protected function getActivityLabel($userData) {

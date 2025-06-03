@@ -500,10 +500,8 @@ function zb_AjaxOnlineDataSourceSafe() {
     }
 
     $query = "SELECT * FROM `users`";
-    $query_fio = "SELECT * from `realname`";
     $allusers = simple_queryall($query);
-    $allfioz = simple_queryall($query_fio);
-    $fioz = zb_UserGetAllRealnames();
+    $allRealNames = zb_UserGetAllRealnames();
     $detect_address = zb_AddressGetFulladdresslist();
     $ucount = 0;
     $deadUsers = array();
@@ -529,6 +527,17 @@ function zb_AjaxOnlineDataSourceSafe() {
             }
         }
     }
+    //true-online detection
+     $dnFlag=false;
+     if ($altCfg['DN_ONLINE_DETECT']) {
+        $allDnUsers=array();
+        $dnFlag=true;
+        $dnRaw= rcms_scandir(DATA_PATH . '/dn/');
+        if (!empty($dnRaw)) {
+            $allDnUsers = array_flip($dnRaw);
+        }
+     }
+
 
     $hidePictTitles = false;
     if (isset($altCfg['ONLINE_HIDE_PICT_TITLES']) && $altCfg['ONLINE_HIDE_PICT_TITLES']) {
@@ -538,12 +547,9 @@ function zb_AjaxOnlineDataSourceSafe() {
     $jsonAAData = array();
 
     if (!empty($allusers)) {
-        $totalusers = sizeof($allusers);
         foreach ($allusers as $io => $eachuser) {
             $tinet = 0;
             $ucount++;
-            $cash = $eachuser['Cash'];
-            $credit = $eachuser['Credit'];
             for ($classcounter = 0; $classcounter <= 9; $classcounter++) {
                 $dc = 'D' . $classcounter . '';
                 $uc = 'U' . $classcounter . '';
@@ -553,11 +559,16 @@ function zb_AjaxOnlineDataSourceSafe() {
             $currentAdditionalTraff = (isset($additionalTraffic[$eachuser['login']])) ? $additionalTraffic[$eachuser['login']] : 0;
             $tinet = $tinet + $currentAdditionalTraff;
 
-            $act = '<img src=skins/icon_active.gif>' . (($hidePictTitles) ? '' : __('Yes'));
-            //finance check
-            if ($cash < '-' . $credit) {
-                $act = '<img src=skins/icon_inactive.gif>' . (($hidePictTitles) ? '' : __('No'));
+            //activity led check
+            $act = '<img src=skins/icon_inactive.gif>' . (($hidePictTitles) ? '' : __('No'));
+              if ($eachuser['Passive'] == 1 or $eachuser['Down'] == 1) {
+                $act = '<img src=skins/yellow_led.png>' . (($hidePictTitles) ? '' : __('No'));
+            } else {
+                if ($eachuser['Cash'] >= '-' . $eachuser['Credit']) {
+                   $act = '<img src=skins/icon_active.gif>' . (($hidePictTitles) ? '' : __('Yes'));
+                }
             }
+        
             if ($displayFreezeFlag) {
                 if (@$altCfg['ONLINE_SHOW_FREEZE_LAT']) {
                     $act .= $eachuser['Passive'] ? ' <img src=skins/icon_passive.gif>' . date('Y-m-d', $eachuser['LastActivityTime']) : '';
@@ -565,10 +576,11 @@ function zb_AjaxOnlineDataSourceSafe() {
                     $act .= $eachuser['Passive'] ? ' <img src=skins/icon_passive.gif>' . (($hidePictTitles) ? '' : __('Freezed')) : '';
                 }
             }
-            //online activity check
-            if ($altCfg['DN_ONLINE_DETECT']) {
+            
+            //dn online activity check
+            if ($dnFlag) {
                 $onlineFlag = '<img src=skins/icon_nostar.gif> ' . (($hidePictTitles) ? '' : __('No'));
-                if (file_exists(DATA_PATH . 'dn/' . $eachuser['login'])) {
+                if (isset($allDnUsers[$eachuser['login']])) {
                     $onlineFlag = '<img src=skins/icon_star.gif> ' . (($hidePictTitles) ? '' : __('Yes'));
                 }
             } else {
@@ -619,7 +631,7 @@ function zb_AjaxOnlineDataSourceSafe() {
                     $jsonItem[] = @$allcontracts[$eachuser['login']] . (($ShowContractDate) ? wf_tag('br') . @$allcontractdates[$eachuser['login']] : '');
                 }
 
-                $jsonItem[] = @$fioz[$eachuser['login']] . (($showUserNotes and isset($allUserNotes[$eachuser['login']]['note'])) ? wf_delimiter(0) . $allUserNotes[$eachuser['login']]['note'] . $allUserNotes[$eachuser['login']]['adcomment'] : '');
+                $jsonItem[] = @$allRealNames[$eachuser['login']] . (($showUserNotes and isset($allUserNotes[$eachuser['login']]['note'])) ? wf_delimiter(0) . $allUserNotes[$eachuser['login']]['note'] . $allUserNotes[$eachuser['login']]['adcomment'] : '');
 
                 if ($showUserPhones) {
                     $jsonItem[] = $userPhones;
@@ -658,7 +670,7 @@ function zb_AjaxOnlineDataSourceSafe() {
                         $jsonItem[] = $allcontracts[$eachuser['login']] . (($ShowContractDate) ? wf_tag('br') . $allcontractdates[$eachuser['login']] : '');
                     }
 
-                    $jsonItem[] = @$fioz[$eachuser['login']] . (($showUserNotes and isset($allUserNotes[$eachuser['login']]['note'])) ? wf_delimiter(0) . $allUserNotes[$eachuser['login']]['note'] . $allUserNotes[$eachuser['login']]['adcomment'] : '');
+                    $jsonItem[] = @$allRealNames[$eachuser['login']] . (($showUserNotes and isset($allUserNotes[$eachuser['login']]['note'])) ? wf_delimiter(0) . $allUserNotes[$eachuser['login']]['note'] . $allUserNotes[$eachuser['login']]['adcomment'] : '');
 
                     if ($showUserPhones) {
                         $jsonItem[] = $userPhones;
@@ -693,14 +705,17 @@ function zb_AjaxOnlineDataSourceSafe() {
         }
     }
     /**
-              Prevail, the time has come
-              Crush the enemy, one by one
-              Prevail, like a venomous snake
-              Ready to strike and dominate
-              Prevail, we conquer as one
-              Pound the enemy, 'till it's done
-              Prevail!
-     */
+        Trollkatt ei sol har skapt
+        Jager vaaret
+        Oede vinters maaneskimm
+        Kjoelner sitt laken saa doedt
+        Dagen er kvelt
+        Natter er vores igjen
+        Og vanaere lurer
+        Bak hvert kaldt tre
+        Under de hatske fjells
+        Storkronede tinder
+    */
     $result = array("aaData" => $jsonAAData);
     return (json_encode($result));
 }
