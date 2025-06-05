@@ -944,6 +944,7 @@ class UbillingTelegram {
         @$result['text'] = $messageData['text'];
         @$result['contact'] = $messageData['contact'];
         @$result['photo'] = $messageData['photo'];
+        @$result['video'] = $messageData['video'];
         @$result['document'] = $messageData['document'];
         //photos and documents have only caption
         if (!empty($result['photo']) or ! empty($result['document'])) {
