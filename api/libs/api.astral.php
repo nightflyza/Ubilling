@@ -2379,8 +2379,6 @@ $.widget( "custom.combobox_' . $id . '", {
 _create: function() {
 this.wrapper = $( "<span>" )
 .addClass( "custom-combobox_' . $id . '" )
-```
-</region_of_rewritten_file>
 .insertAfter( this.element );
 this.element.hide();
 this._createAutocomplete();
