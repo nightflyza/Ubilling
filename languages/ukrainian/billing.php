@@ -3580,3 +3580,5 @@ $lang['def']['Additional fee'] = 'Додаткове нарахування';
 $lang['def']['Change additional fee'] = 'Змінити додаткове нарахування';
 $lang['def']['Current fee'] = 'Поточне нарахування';
 $lang['def']['New fee'] = 'Нове нарахування';
+$lang['def']['Come up with an answer with the help of AI'] = 'Придумати якусь відповідь за допомогою ШІ';
+

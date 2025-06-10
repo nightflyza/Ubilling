@@ -155,7 +155,7 @@ class TinyOllama {
      *
      * @return array
      */
-    public function list() {
+    public function listmodels() {
         $result = array();
         $endPoint = 'tags';
         $rawReply = $this->api->response($this->baseUrl . $endPoint);

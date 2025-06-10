@@ -163,7 +163,7 @@ function zb_TicketCreate($from, $to, $text, $replyto = 'NULL', $admin = '') {
     $date = curdatetime();
     $replyto = vf($replyto);
     $query = "INSERT INTO `ticketing` (`id` , `date` , `replyid` , `status` ,`from` , `to` , `text`, `admin`) "
-            . "VALUES (NULL , '" . $date . "', " . $replyto . ", '0', '" . $from . "', '" . $to . "', '" . $text . "', '" . $admin . "');";
+        . "VALUES (NULL , '" . $date . "', " . $replyto . ", '0', '" . $from . "', '" . $to . "', '" . $text . "', '" . $admin . "');";
     nr_query($query);
 
     $logreplyto = (empty($replyto)) ? '' : 'REPLY TO [' . $replyto . ']';
@@ -439,8 +439,7 @@ function web_TicketReplyForm($ticketid) {
     $ticketstate = $ticketdata['status'];
     if (!$ticketstate) {
         $replyinputs = wf_HiddenInput('postreply', $ticketid);
-        $replyinputs .= wf_tag('textarea', false, '', 'name="replytext" cols="60" rows="10"  id="ticketreplyarea"') . wf_tag('textarea', true) . wf_tag('br');
-        ;
+        $replyinputs .= wf_tag('textarea', false, '', 'name="replytext" cols="60" rows="10"  id="ticketreplyarea"') . wf_tag('textarea', true) . wf_tag('br');;
         $replyinputs .= wf_Submit('Reply');
         $replyform = wf_Form('', 'POST', $replyinputs, 'glamour');
         $replyform .= web_TicketsTAPLister();
@@ -485,6 +484,51 @@ function web_TicketReplyEditForm($replyid) {
 }
 
 /**
+ * Returns AI hivemind reply for ticket
+ * 
+ * @param string $prompt
+ * @param array $dialog
+ * 
+ * @return string
+ */
+function zb_TicketGetAiReply($prompt, $dialog) {
+    set_time_limit(600);
+    $result = '';
+    $url = 'http://hivemind.ubilling.net.ua/';
+    $aiService = new OmaeUrl($url);
+    $ubVer = file_get_contents('RELEASE');
+    $agent = 'UbillingTicketing/' . trim($ubVer);
+    $aiService->setUserAgent($agent);
+    if (!empty($prompt)) {
+        $request = array(
+            'prompt' => $prompt,
+            'dialog' => $dialog,
+        );
+
+        $request = json_encode($request);
+        $aiService->dataPost('chat', $request);
+        $rawReply = $aiService->response();
+        if (json_validate($rawReply)) {
+            $rawReply = json_decode($rawReply, true);
+            if (isset($rawReply['error'])) {
+                //success
+                if ($rawReply['error'] == 0) {
+                    $result = $rawReply['reply'];
+                } else {
+                    $result = __('Something went wrong') . ': ' . __('Error') . ': ' . $rawReply['error'] . ' ' . __($rawReply['reply']);
+                }
+            } else {
+                $result = __('Something went wrong') . ': ' . __('Unexpected error');
+            }
+        } else {
+            $result = __('Something went wrong') . ': ' . __('AI service is not available');
+        }
+    }
+    return ($result);
+}
+
+
+/**
  * Renders ticket, all of replies and all needed controls/forms for they
  * 
  * @param int $ticketid
@@ -496,6 +540,8 @@ function web_TicketDialogue($ticketid) {
     $ticketdata = zb_TicketGetData($ticketid);
     $ticketreplies = zb_TicketGetReplies($ticketid);
     @$employeeNames = unserialize(ts_GetAllEmployeeLoginsCached());
+    $dialog = array();
+    $lastUserPrompt = '';
 
     $result = wf_tag('p', false, '', 'align="right"') . wf_BackLink('?module=ticketing', 'Back to tickets list', true) . wf_tag('p', true);
     if (!empty($ticketdata)) {
@@ -543,14 +589,13 @@ function web_TicketDialogue($ticketid) {
         $result .= wf_TableBody($tablerows, '100%', '0');
 
         //ticket body
-
         $tickettext = strip_tags($ticketdata['text']);
         $tickettext = nl2br($tickettext);
         $tablecells = wf_TableCell('', '20%');
         $tablecells .= wf_TableCell($ticketdata['date']);
         $tablerows = wf_TableRow($tablecells, 'row2');
 
-        $ticketauthor = wf_tag('center') . wf_tag('b') . @$allrealnames[$ticketdata['from']] . wf_tag('b', true) . wf_tag('center', true);
+        $ticketauthor = wf_tag('center') . wf_tag('b') . $userRealName . wf_tag('b', true) . wf_tag('center', true);
         $ticketavatar = wf_tag('center') . wf_img('skins/userava.png') . wf_tag('center', true);
         $ticketpanel = $ticketauthor . wf_tag('br') . $ticketavatar;
 
@@ -560,6 +605,11 @@ function web_TicketDialogue($ticketid) {
 
         $result .= wf_TableBody($tablerows, '100%', '0', 'glamour');
         $result .= $actionlink;
+        $lastUserPrompt = $tickettext;
+        $dialog[] = array(
+            'role' => 'user',
+            'content' => $tickettext
+        );
     }
 
 
@@ -572,9 +622,18 @@ function web_TicketDialogue($ticketid) {
                 $adminRealName = (isset($employeeNames[$eachreply['admin']])) ? $employeeNames[$eachreply['admin']] : $eachreply['admin'];
                 $replyauthor = wf_tag('center') . wf_tag('b') . $adminRealName . wf_tag('b', true) . wf_tag('center', true);
                 $replyavatar = wf_tag('center') . gravatar_ShowAdminAvatar($eachreply['admin'], '64') . wf_tag('center', true);
+                $dialog[] = array(
+                    'role' => 'assistant',
+                    'content' => $eachreply['text']
+                );
             } else {
-                $replyauthor = wf_tag('center') . wf_tag('b') . @$allrealnames[$eachreply['from']] . wf_tag('b', true) . wf_tag('center', true);
+                $replyauthor = wf_tag('center') . wf_tag('b') . $userRealName . wf_tag('b', true) . wf_tag('center', true);
                 $replyavatar = wf_tag('center') . wf_img('skins/userava.png') . wf_tag('center', true);
+                $lastUserPrompt = $eachreply['text'];
+                $dialog[] = array(
+                    'role' => 'user',
+                    'content' => $eachreply['text']
+                );
             }
 
             $replyactions = wf_tag('center');
@@ -583,10 +642,8 @@ function web_TicketDialogue($ticketid) {
             $replyactions .= wf_tag('center', true);
 
             // reply body 
-
-            if (isset($_GET['editreply'])) {
-
-                if ($_GET['editreply'] == $eachreply['id']) {
+            if (ubRouting::checkGet('editreply')) {
+                if (ubRouting::get('editreply', 'int') == $eachreply['id']) {
                     //is this reply editing?
                     $replytext = web_TicketReplyEditForm($eachreply['id']);
                 } else {
@@ -614,7 +671,20 @@ function web_TicketDialogue($ticketid) {
         }
     }
 
+    // Add AI chat button and functionality
+    if ($ticketdata['status'] == 0) {
+        if (sizeof($dialog) == 1) {
+            $dialog = array();
+        }
 
+        $aiDialogCallback = array(
+            'prompt' => $lastUserPrompt,
+            'dialog' => $dialog,
+        );
+
+        $aiDialogCallback = json_encode($aiDialogCallback);
+        $result .= web_TicketAIChatControls($aiDialogCallback);
+    }
 
     //reply form and previous tickets
     $allprevious = zb_TicketsGetAllByUser($ticketdata['from']);
@@ -637,6 +707,48 @@ function web_TicketDialogue($ticketid) {
 
     $result .= wf_TableBody($tablerows, '100%', '0', 'glamour');
     $result .= wf_CleanDiv();
+
+
+
+    return ($result);
+}
+
+/**
+ * Renders AI chat controls
+ * 
+ * @param string $aiDialogCallback
+ * 
+ * @return string
+ */
+function web_TicketAIChatControls($aiDialogCallback) {
+    $result = '';
+    $result .= wf_tag('script', false, '', 'type="text/javascript"');
+    $result .= '
+        function getAiReply() {
+            var callbackData = ' . $aiDialogCallback . ';
+            var aiLink = $("#hivemindstatus").html();
+            $("#hivemindstatus").html("<img src=\'skins/ajaxloader.gif\'>");
+            $.ajax({
+                type: "POST",
+                url: "?module=ticketing&hivemind=true",
+                data: {aichatcallback: JSON.stringify(callbackData)},
+                success: function(response) {
+                    if (response) {
+                        $("#ticketreplyarea").val(response);
+                    }
+                    $("#hivemindstatus").html(aiLink);
+                },
+                error: function() {
+                    $("#hivemindstatus").html(aiLink);
+                }
+            });
+        }
+    ';
+    $result .= wf_tag('script', true);
+
+    $result .= wf_AjaxContainerSpan('hivemindstatus', '', wf_Link('#', wf_img('skins/icon_ai.png') . ' ' . __('Come up with an answer with the help of AI'), false, 'ubButton', 'onClick="getAiReply(); return false;"'));
+    $result .= wf_CleanDiv();
+    $result .= wf_delimiter(0);
     return ($result);
 }
 
@@ -714,7 +826,5 @@ function getTicketEvents($TicketID, $ReturnHTML = false) {
         $HTMLStr .= wf_TableBody($TableRows, '100%', 0, 'sortable');
     }
 
-    return ( ($ReturnHTML) ? $HTMLStr : $QResult );
+    return (($ReturnHTML) ? $HTMLStr : $QResult);
 }
-
-?>
