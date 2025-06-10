@@ -649,6 +649,7 @@ function web_TicketDialogue($ticketid) {
            
             $userContext.=__('Account status').': '.$stateLabel.PHP_EOL;
             $ispContextInfo=$ubillingConfig->getAlterParam('HIVE_ISP_INFO','');
+            $ispContextInfo=ubRouting::filters($ispContextInfo,'safe');
             if (!empty($ispContextInfo)) {
                 $userContext.=__('Here some information about ISP').': '. $ispContextInfo.PHP_EOL;
             }
