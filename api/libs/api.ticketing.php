@@ -497,8 +497,9 @@ function zb_TicketGetAiReply($prompt, $dialog) {
     $url = 'http://hivemind.ubilling.net.ua/';
     $aiService = new OmaeUrl($url);
     $ubVer = file_get_contents('RELEASE');
-    $agent = 'UbillingTicketing/' . trim($ubVer);
+    $agent = 'UbillingHelpdesk/' . trim($ubVer);
     $aiService->setUserAgent($agent);
+    $aiService->setTimeout(600);
     if (!empty($prompt)) {
         $request = array(
             'prompt' => $prompt,
@@ -522,6 +523,7 @@ function zb_TicketGetAiReply($prompt, $dialog) {
             }
         } else {
             $result = __('Something went wrong') . ': ' . __('AI service is not available');
+            $result.=print_r($rawReply,true);
         }
     }
     return ($result);

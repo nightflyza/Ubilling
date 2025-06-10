@@ -84,7 +84,7 @@ if (cfr('TICKETING')) {
 
         //editing tap
         if (ubRouting::checkPost(array('edittapkey', 'edittaptext'))) {
-            zb_TicketsTAPEdit(ubRouting::post('edittapkey'), $ubRouting::post('edittaptext'));
+            zb_TicketsTAPEdit(ubRouting::post('edittapkey'), ubRouting::post('edittaptext'));
             ubRouting::nav('?module=ticketing&settings=true');
         }
 
