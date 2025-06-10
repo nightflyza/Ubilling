@@ -3581,4 +3581,11 @@ $lang['def']['Change additional fee'] = 'Змінити додаткове на�
 $lang['def']['Current fee'] = 'Поточне нарахування';
 $lang['def']['New fee'] = 'Нове нарахування';
 $lang['def']['Come up with an answer with the help of AI'] = 'Придумати якусь відповідь за допомогою ШІ';
+$lang['def']['Here is some information about user'] = 'Ось інформація про користувача';
+$lang['def']['Account balance'] = 'Баланс рахунку';
+$lang['def']['Credit limit'] = 'Кредитний ліміт (поріг)';
+$lang['def']['Account status'] = 'Стан рахунку';
+$lang['def']['Credit until date'] = 'Кредит до дати';
+$lang['def']['Here some information about ISP'] = 'Ось трохи інформації про провайдера';
+$lang['def']['Also take into account these data'] = 'бери до уваги також ці дані';
 
