@@ -18,7 +18,7 @@ if (cfr('TICKETING')) {
 
     //catch AI dialog callback
     if (ubRouting::checkGet('hivemind')) {
-            if (!$ubillingConfig->getAlterParam('HIVE_DISABLED')) {
+        if (!$ubillingConfig->getAlterParam('HIVE_DISABLED')) {
             $rawCallback = ubRouting::post('aichatcallback');
             if (json_validate($rawCallback)) {
                 $callback = json_decode($rawCallback, true);
@@ -27,10 +27,10 @@ if (cfr('TICKETING')) {
                 $reply = zb_TicketGetAiReply($prompt, $dialog);
                 die($reply);
             } else {
-                die(__('Error').': ' . __('Invalid callback'));
+                die(__('Error') . ': ' . __('Invalid callback'));
             }
         } else {
-            die(__('Error').': ' . __('Disabled'));
+            die(__('Error') . ': ' . __('Disabled'));
         }
     }
 

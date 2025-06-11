@@ -495,11 +495,11 @@ function zb_TicketGetAiReply($prompt, $dialog) {
     global $ubillingConfig;
     set_time_limit(600);
     $result = '';
-    $hiveUrl=$ubillingConfig->getAlterParam('HIVE_CUSTOM_URL');
+    $hiveUrl = $ubillingConfig->getAlterParam('HIVE_CUSTOM_URL');
     if (empty($hiveUrl)) {
-      $hiveUrl = 'http://hivemind.ubilling.net.ua/';    
+        $hiveUrl = 'http://hivemind.ubilling.net.ua/';
     }
-    
+
     $aiService = new OmaeUrl($hiveUrl);
     $ubVer = file_get_contents('RELEASE');
     $agent = 'UbillingHelpdesk/' . trim($ubVer);
@@ -550,15 +550,15 @@ function web_TicketDialogue($ticketid) {
     @$employeeNames = unserialize(ts_GetAllEmployeeLoginsCached());
     $dialog = array();
     $lastUserPrompt = '';
-    $moreContextFlag=$ubillingConfig->getAlterParam('HIVE_MORE_CONTEXT',0);
+    $moreContextFlag = $ubillingConfig->getAlterParam('HIVE_MORE_CONTEXT', 0);
 
     $result = wf_tag('p', false, '', 'align="right"') . wf_BackLink('?module=ticketing', 'Back to tickets list', true) . wf_tag('p', true);
     if (!empty($ticketdata)) {
         $userLogin = $ticketdata['from'];
         //this data not used cache, to be 100% actual
         $userData = zb_UserGetAllData($userLogin);
-        $userData=$userData[$userLogin];
-       
+        $userData = $userData[$userLogin];
+
         $userAddress = $userData['fulladress'];
         $userRealName = $userData['realname'];
         $userIp = $userData['ip'];
@@ -618,48 +618,47 @@ function web_TicketDialogue($ticketid) {
         $result .= $actionlink;
         //pushing some context
         if ($moreContextFlag) {
-            $currency=$ubillingConfig->getAlterParam('TEMPLATE_CURRENCY','UAH');
-            $userState=zb_UserIsAlive($userData);
-            $stateLabel=__('Unknown');
+            $currency = $ubillingConfig->getAlterParam('TEMPLATE_CURRENCY', 'UAH');
+            $userState = zb_UserIsAlive($userData);
+            $stateLabel = __('Unknown');
             switch ($userState) {
                 case 0:
-                    $stateLabel=__('Inactive');
+                    $stateLabel = __('Inactive');
                     break;
                 case 1:
-                    $stateLabel=__('Active');
+                    $stateLabel = __('Active');
                     break;
                 case -1:
-                    $stateLabel=__('User passive');
+                    $stateLabel = __('User passive');
                     break;
             }
-            $userContext='';
-            $userContext.=__('Also take into account these data').' '.PHP_EOL;
-            $userContext.=__('Here is some information about user').': '.PHP_EOL;
-            $userContext.=__('Real Name').': '.$userData['realname'].PHP_EOL;
-            $userContext.=__('Address').': '.$userData['fulladress'].PHP_EOL;
-            $userContext.=__('Account balance').': '.$userData['Cash'].' '.$currency.PHP_EOL;
+            $userContext = '';
+            $userContext .= __('Also take into account these data') . ' ' . PHP_EOL;
+            $userContext .= __('Here is some information about user') . ': ' . PHP_EOL;
+            $userContext .= __('Real Name') . ': ' . $userData['realname'] . PHP_EOL;
+            $userContext .= __('Address') . ': ' . $userData['fulladress'] . PHP_EOL;
+            $userContext .= __('Account balance') . ': ' . $userData['Cash'] . ' ' . $currency . PHP_EOL;
             if ($userData['Credit']) {
-                $userContext.=__('Credit limit').': '.$userData['Credit'].' '.$currency.PHP_EOL;
-                $stgUserData=zb_UserGetStargazerData($userLogin);
+                $userContext .= __('Credit limit') . ': ' . $userData['Credit'] . ' ' . $currency . PHP_EOL;
+                $stgUserData = zb_UserGetStargazerData($userLogin);
                 if ($stgUserData['CreditExpire']) {
-                    $expireLabel=date("Y-m-d",$stgUserData['CreditExpire']);
-                    $userContext.=__('Credit until date').': '.$expireLabel.PHP_EOL;
+                    $expireLabel = date("Y-m-d", $stgUserData['CreditExpire']);
+                    $userContext .= __('Credit until date') . ': ' . $expireLabel . PHP_EOL;
                 }
             }
-           
-            $userContext.=__('Account status').': '.$stateLabel.PHP_EOL;
-            $ispContextInfo=$ubillingConfig->getAlterParam('HIVE_ISP_INFO','');
-            $ispContextInfo=ubRouting::filters($ispContextInfo,'safe');
-            if (!empty($ispContextInfo)) {
-                $userContext.=__('Here some information about ISP').': '. $ispContextInfo.PHP_EOL;
-            }
-           
 
-            $dialog[]=array(
-                'role'=>'system',
-                'content'=>$userContext
+            $userContext .= __('Account status') . ': ' . $stateLabel . PHP_EOL;
+            $ispContextInfo = $ubillingConfig->getAlterParam('HIVE_ISP_INFO', '');
+            $ispContextInfo = ubRouting::filters($ispContextInfo, 'safe');
+            if (!empty($ispContextInfo)) {
+                $userContext .= __('Here some information about ISP') . ': ' . $ispContextInfo . PHP_EOL;
+            }
+
+
+            $dialog[] = array(
+                'role' => 'system',
+                'content' => $userContext
             );
-            
         }
 
         $lastUserPrompt = $tickettext;
@@ -776,12 +775,12 @@ function web_TicketDialogue($ticketid) {
  */
 function web_TicketAIChatControls($aiDialogCallback) {
     global $ubillingConfig;
-    $disableOptionState=$ubillingConfig->getAlterParam('HIVE_DISABLED',0);
-    $enableFlag=($disableOptionState) ? false : true;
+    $disableOptionState = $ubillingConfig->getAlterParam('HIVE_DISABLED', 0);
+    $enableFlag = ($disableOptionState) ? false : true;
     $result = '';
     if ($enableFlag) {
-    $result .= wf_tag('script', false, '', 'type="text/javascript"');
-    $result .= '
+        $result .= wf_tag('script', false, '', 'type="text/javascript"');
+        $result .= '
         function getAiReply() {
             var callbackData = ' . $aiDialogCallback . ';
             var aiLink = $("#hivemindstatus").html();
@@ -802,11 +801,11 @@ function web_TicketAIChatControls($aiDialogCallback) {
             });
         }
     ';
-    $result .= wf_tag('script', true);
+        $result .= wf_tag('script', true);
 
-    $result .= wf_AjaxContainerSpan('hivemindstatus', '', wf_Link('#', wf_img('skins/icon_ai.png') . ' ' . __('Come up with an answer with the help of AI'), false, 'ubButton', 'onClick="getAiReply(); return false;"'));
-    $result .= wf_CleanDiv();
-    $result .= wf_delimiter(0);
+        $result .= wf_AjaxContainerSpan('hivemindstatus', '', wf_Link('#', wf_img('skins/icon_ai.png') . ' ' . __('Come up with an answer with the help of AI'), false, 'ubButton', 'onClick="getAiReply(); return false;"'));
+        $result .= wf_CleanDiv();
+        $result .= wf_delimiter(0);
     }
     return ($result);
 }

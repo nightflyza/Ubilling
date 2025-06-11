@@ -281,23 +281,36 @@ if (!function_exists('ispos_array')) {
 
 if (!function_exists('json_validate')) {
     /**
-     * Validates a JSON string. PHP <8.3 replacement.
-     * 
+     * Validates a JSON string. PHP <8.3 replacement. Compatible with PHP 5.3+.
+     *
      * @param string $json The JSON string to validate.
-     * @param int $depth Maximum depth. Must be greater than zero.
-     * @param int $flags Bitmask of JSON decode options.
+     * @param int $depth Maximum depth (only used in PHP >=5.2.1).
+     * @param int $flags Bitmask of JSON decode options (only used in PHP >=5.4.0).
      * @return bool Returns true if the string is a valid JSON, otherwise false.
      */
     function json_validate($json, $depth = 512, $flags = 0) {
-        if (!is_string($json)) {
+        if (!is_string($json) || trim($json) === '') {
             return false;
         }
 
-        try {
-            json_decode($json, false, $depth, $flags | JSON_THROW_ON_ERROR);
-            return true;
-        } catch (\JsonException $e) {
-            return false;
+        // PHP >= 7.3 supports JSON_THROW_ON_ERROR
+        if (defined('JSON_THROW_ON_ERROR')) {
+            try {
+                json_decode($json, false, $depth, $flags | JSON_THROW_ON_ERROR);
+                return true;
+            } catch (Exception $e) {
+                return false;
+            }
         }
+
+        // For older PHP versions (including 5.3.29)
+        // json_decode accepts only up to 3 parameters before PHP 5.4
+        if (version_compare(PHP_VERSION, '5.4.0', '>=')) {
+            json_decode($json, false, $depth, $flags);
+        } else {
+            json_decode($json);
+        }
+
+        return json_last_error() === JSON_ERROR_NONE;
     }
 }
