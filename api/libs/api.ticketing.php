@@ -521,7 +521,7 @@ function zb_TicketGetAiReply($prompt, $dialog) {
                 if ($rawReply['error'] == 0) {
                     $result = $rawReply['reply'];
                 } else {
-                    $result = __('Something went wrong') . ': ' . __('Error') . ': ' . $rawReply['error'] . ' ' . __($rawReply['reply']);
+                    $result =  __('Error') . ': ' . $rawReply['error'] . ' - ' . __($rawReply['reply']);
                 }
             } else {
                 $result = __('Something went wrong') . ': ' . __('Unexpected error');
@@ -784,18 +784,25 @@ function web_TicketAIChatControls($aiDialogCallback) {
         function getAiReply() {
             var callbackData = ' . $aiDialogCallback . ';
             var aiLink = $("#hivemindstatus").html();
-            $("#hivemindstatus").html("<img src=\'skins/ajaxloader.gif\'>");
+            var seconds = 0;
+            var timer = setInterval(function() {
+                seconds++;
+                $("#hivemindstatus").html("<img src=\'skins/ajaxloader.gif\'> " + seconds + " '.__('sec.').'");
+            }, 1000);
+            $("#hivemindstatus").html("<img src=\'skins/ajaxloader.gif\'> 0 '.__('sec.').'");
             $.ajax({
                 type: "POST",
                 url: "?module=ticketing&hivemind=true",
                 data: {aichatcallback: JSON.stringify(callbackData)},
                 success: function(response) {
+                    clearInterval(timer);
                     if (response) {
                         $("#ticketreplyarea").val(response);
                     }
                     $("#hivemindstatus").html(aiLink);
                 },
                 error: function() {
+                    clearInterval(timer);
                     $("#hivemindstatus").html(aiLink);
                 }
             });

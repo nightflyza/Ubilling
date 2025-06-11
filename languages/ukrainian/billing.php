@@ -3588,4 +3588,9 @@ $lang['def']['Account status'] = 'Стан рахунку';
 $lang['def']['Credit until date'] = 'Кредит до дати';
 $lang['def']['Here some information about ISP'] = 'Ось трохи інформації про провайдера';
 $lang['def']['Also take into account these data'] = 'бери до уваги також ці дані';
-
+$lang['def']['Unknown error'] = 'Невідома помилка';
+$lang['def']['all AI engines is to busy now'] = 'всі ШІ-рушії наразі зайняті';
+$lang['def']['AI engine is to busy now'] = 'ШІ-рушій зараз зайнятий';
+$lang['def']['Wrong prompt'] = 'Невірний запит';
+$lang['def']['Corrupted request'] = 'Пошкоджений запит';
+$lang['def']['Wrong request'] = 'Невірний запит';
