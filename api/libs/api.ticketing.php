@@ -559,12 +559,22 @@ function web_TicketDialogue($ticketid) {
         $userData = zb_UserGetAllData($userLogin);
         $userData = $userData[$userLogin];
 
-        $userAddress = $userData['fulladress'];
-        $userRealName = $userData['realname'];
-        $userIp = $userData['ip'];
-        $userCredit = $userData['Credit'];
-        $userCash = $userData['Cash'];
-        $userTariff = $userData['Tariff'];
+        if (!empty($userData)) {
+            $userAddress = $userData['fulladress'];
+            $userRealName = $userData['realname'];
+            $userIp = $userData['ip'];
+            $userCredit = $userData['Credit'];
+            $userCash = $userData['Cash'];
+            $userTariff = $userData['Tariff'];
+        } else {
+            $userAddress = __('Unknown');
+            $userRealName = __('Unknown');
+            $userIp = __('Unknown');
+            $userCredit = __('Unknown');
+            $userCash = __('Unknown');
+            $userTariff = __('Unknown');
+        }
+
 
         if ($ticketdata['status']) {
             $actionlink = wf_Link('?module=ticketing&openticket=' . $ticketdata['id'], wf_img('skins/icon_unlock.png') . ' ' . __('Open'), false, 'ubButton');
@@ -618,6 +628,7 @@ function web_TicketDialogue($ticketid) {
         $result .= $actionlink;
         //pushing some context
         if ($moreContextFlag) {
+            if (!empty($userData)) {
             $currency = $ubillingConfig->getAlterParam('TEMPLATE_CURRENCY', 'UAH');
             $userState = zb_UserIsAlive($userData);
             $stateLabel = __('Unknown');
@@ -659,6 +670,7 @@ function web_TicketDialogue($ticketid) {
                 'role' => 'system',
                 'content' => $userContext
             );
+        }
         }
 
         $lastUserPrompt = $tickettext;
@@ -728,18 +740,20 @@ function web_TicketDialogue($ticketid) {
     }
 
     // Add AI chat button and functionality
-    if ($ticketdata['status'] == 0) {
-        if (sizeof($dialog) == 1) {
-            $dialog = array();
+    if (!empty($userData)) {
+        if ($ticketdata['status'] == 0) {
+            if (sizeof($dialog) == 1) {
+                $dialog = array();
+            }
+
+            $aiDialogCallback = array(
+                'prompt' => $lastUserPrompt,
+                'dialog' => $dialog,
+            );
+
+            $aiDialogCallback = json_encode($aiDialogCallback);
+            $result .= web_TicketAIChatControls($aiDialogCallback);
         }
-
-        $aiDialogCallback = array(
-            'prompt' => $lastUserPrompt,
-            'dialog' => $dialog,
-        );
-
-        $aiDialogCallback = json_encode($aiDialogCallback);
-        $result .= web_TicketAIChatControls($aiDialogCallback);
     }
 
     //reply form and previous tickets
