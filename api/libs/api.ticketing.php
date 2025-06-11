@@ -629,48 +629,48 @@ function web_TicketDialogue($ticketid) {
         //pushing some context
         if ($moreContextFlag) {
             if (!empty($userData)) {
-            $currency = $ubillingConfig->getAlterParam('TEMPLATE_CURRENCY', 'UAH');
-            $userState = zb_UserIsAlive($userData);
-            $stateLabel = __('Unknown');
-            switch ($userState) {
-                case 0:
-                    $stateLabel = __('Inactive');
-                    break;
-                case 1:
-                    $stateLabel = __('Active');
-                    break;
-                case -1:
-                    $stateLabel = __('User passive');
-                    break;
-            }
-            $userContext = '';
-            $userContext .= __('Also take into account these data') . ' ' . PHP_EOL;
-            $userContext .= __('Here is some information about user') . ': ' . PHP_EOL;
-            $userContext .= __('Real Name') . ': ' . $userData['realname'] . PHP_EOL;
-            $userContext .= __('Address') . ': ' . $userData['fulladress'] . PHP_EOL;
-            $userContext .= __('Account balance') . ': ' . $userData['Cash'] . ' ' . $currency . PHP_EOL;
-            if ($userData['Credit']) {
-                $userContext .= __('Credit limit') . ': ' . $userData['Credit'] . ' ' . $currency . PHP_EOL;
-                $stgUserData = zb_UserGetStargazerData($userLogin);
-                if ($stgUserData['CreditExpire']) {
-                    $expireLabel = date("Y-m-d", $stgUserData['CreditExpire']);
-                    $userContext .= __('Credit until date') . ': ' . $expireLabel . PHP_EOL;
+                $currency = $ubillingConfig->getAlterParam('TEMPLATE_CURRENCY', 'UAH');
+                $userState = zb_UserIsAlive($userData);
+                $stateLabel = __('Unknown');
+                switch ($userState) {
+                    case 0:
+                        $stateLabel = __('Inactive');
+                        break;
+                    case 1:
+                        $stateLabel = __('Active');
+                        break;
+                    case -1:
+                        $stateLabel = __('User passive');
+                        break;
                 }
+                $userContext = '';
+                $userContext .= __('Also take into account these data') . ' ' . PHP_EOL;
+                $userContext .= __('Here is some information about user') . ': ' . PHP_EOL;
+                $userContext .= __('Real Name') . ': ' . $userData['realname'] . PHP_EOL;
+                $userContext .= __('Address') . ': ' . $userData['fulladress'] . PHP_EOL;
+                $userContext .= __('Account balance') . ': ' . $userData['Cash'] . ' ' . $currency . PHP_EOL;
+                if ($userData['Credit']) {
+                    $userContext .= __('Credit limit') . ': ' . $userData['Credit'] . ' ' . $currency . PHP_EOL;
+                    $stgUserData = zb_UserGetStargazerData($userLogin);
+                    if ($stgUserData['CreditExpire']) {
+                        $expireLabel = date("Y-m-d", $stgUserData['CreditExpire']);
+                        $userContext .= __('Credit until date') . ': ' . $expireLabel . PHP_EOL;
+                    }
+                }
+
+                $userContext .= __('Account status') . ': ' . $stateLabel . PHP_EOL;
+                $ispContextInfo = $ubillingConfig->getAlterParam('HIVE_ISP_INFO', '');
+                $ispContextInfo = ubRouting::filters($ispContextInfo, 'safe');
+                if (!empty($ispContextInfo)) {
+                    $userContext .= __('Here some information about ISP') . ': ' . $ispContextInfo . PHP_EOL;
+                }
+
+
+                $dialog[] = array(
+                    'role' => 'system',
+                    'content' => $userContext
+                );
             }
-
-            $userContext .= __('Account status') . ': ' . $stateLabel . PHP_EOL;
-            $ispContextInfo = $ubillingConfig->getAlterParam('HIVE_ISP_INFO', '');
-            $ispContextInfo = ubRouting::filters($ispContextInfo, 'safe');
-            if (!empty($ispContextInfo)) {
-                $userContext .= __('Here some information about ISP') . ': ' . $ispContextInfo . PHP_EOL;
-            }
-
-
-            $dialog[] = array(
-                'role' => 'system',
-                'content' => $userContext
-            );
-        }
         }
 
         $lastUserPrompt = $tickettext;
@@ -801,9 +801,9 @@ function web_TicketAIChatControls($aiDialogCallback) {
             var seconds = 0;
             var timer = setInterval(function() {
                 seconds++;
-                $("#hivemindstatus").html("<img src=\'skins/ajaxloader.gif\'> " + seconds + " '.__('sec.').'");
+                $("#hivemindstatus").html("<img src=\'skins/ajaxloader.gif\'> " + seconds + " ' . __('sec.') . '");
             }, 1000);
-            $("#hivemindstatus").html("<img src=\'skins/ajaxloader.gif\'> 0 '.__('sec.').'");
+            $("#hivemindstatus").html("<img src=\'skins/ajaxloader.gif\'> 0 ' . __('sec.') . '");
             $.ajax({
                 type: "POST",
                 url: "?module=ticketing&hivemind=true",
