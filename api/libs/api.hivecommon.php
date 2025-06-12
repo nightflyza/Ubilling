@@ -153,3 +153,34 @@ function web_TicketAIChatControls($aiDialogCallback) {
     }
     return ($result);
 }
+
+
+//TODO
+function zb_HivemindGetTaskmanPayload() {
+
+    $payLoad = '';
+    $tasksDb = new NyanORM('taskman');
+    $toDate = date('Y-m-d');
+    $fromDate = date('Y-m-d', strtotime('-1 days'));
+    $tasksDb->where('startdate', 'BETWEEN', $fromDate . "' AND '" . $toDate);
+    $tasksDb->orderBy('startdate', 'ASC');
+    $allTasks = $tasksDb->getAll('id');
+    $allJobTypes = ts_GetAllJobtypes();
+    $allEmployee = ts_GetAllEmployee();
+
+    if (!empty($allTasks)) {
+        if (sizeof($allTasks) >= 3) {
+            foreach ($allTasks as $io => $each) {
+                $startDate = $each['startdate'];
+                $doneDate = ($each['enddate']) ?  __('Done') . ': ' . $each['enddate'] : __('Undone');
+                $taskAddress = $each['address'];
+                $jobType = trim($allJobTypes[$each['jobtype']]);
+                $jobNote = (!empty($each['jobnote'])) ? ': ' . ubRouting::filters($each['jobnote'],'safe') : '';
+                $jobEmployee = $allEmployee[$each['employee']];
+
+
+                $payLoad .= '[' . $startDate . ' | ' . $taskAddress . ' | ' . $jobType . $jobNote . ' | ' . $jobEmployee . ' | ' . $doneDate . ']' . PHP_EOL;
+            }
+        }
+    }
+}
