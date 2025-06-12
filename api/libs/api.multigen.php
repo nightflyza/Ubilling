@@ -1064,7 +1064,7 @@ class MultiGen {
         }
 
         if (wf_CheckGet(array('lastsessions'))) {
-            $query = "SELECT * FROM `" . self::NAS_ACCT . "` GROUP BY `username` DESC ORDER BY `acctstarttime`;";
+            $query = "SELECT * FROM `" . self::NAS_ACCT . "` GROUP BY `username` ORDER BY `acctstarttime` DESC;";
         } else {
             $query = "SELECT " . $fieldsList . " FROM `" . self::NAS_ACCT . "` WHERE `acctstarttime` BETWEEN '" . $searchDateFrom . "' AND '" . $searchDateTo . "'"
                     . " " . $unfQueryfilter . "  ORDER BY `radacctid` DESC ;";
