@@ -505,6 +505,7 @@ function zb_TicketGetAiReply($prompt, $dialog) {
     $agent = 'UbillingHelpdesk/' . trim($ubVer);
     $aiService->setUserAgent($agent);
     $aiService->setTimeout(600);
+    
     if (!empty($prompt)) {
         $request = array(
             'prompt' => $prompt,
@@ -673,10 +674,10 @@ function web_TicketDialogue($ticketid) {
             }
         }
 
-        $lastUserPrompt = $tickettext;
+        $lastUserPrompt = $ticketdata['text'];
         $dialog[] = array(
             'role' => 'user',
-            'content' => $tickettext
+            'content' => $lastUserPrompt
         );
     }
 
