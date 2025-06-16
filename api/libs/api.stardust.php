@@ -146,7 +146,7 @@ class StarDust {
         //normal flock set
         $this->flockFlag = $state;
         //force by config option
-        $forceFlag = $ubillingConfig->getAlterParam('STRDUST_FLOCK_FORCE');
+        $forceFlag = $ubillingConfig->getAlterParam('STARDUST_FLOCK_FORCE');
         if ($forceFlag) {
             $this->flockFlag = true;
         }
