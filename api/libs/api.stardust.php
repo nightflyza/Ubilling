@@ -34,39 +34,62 @@ class StarDust {
     protected $separateKeys = false;
 
     /**
+     * Use flock mechanics instead of DB locks
+     *
+     * @var bool
+     */
+    protected $flockFlag = false;
+
+    /**
+     * Process flock file path
+     *
+     * @var string
+     */
+    protected $lockFile = '';
+
+    /**
+     * flock handle
+     *
+     * @var string
+     */
+    protected $handle = '';
+
+    /**
      * Some predefined stuff
      */
+    const LOCK_DIR = 'exports/';
     const LOCK_NAME = 'stardustLockfree';
     const LOCK_PREFIX = 'stardustPID_';
     const CACHE_TIMEOUT = 2592000;
     const CACHE_KEY = 'STARDUST';
     const REALTIME_PRECISSION = 5;
 
-    public function __construct($processName = '', $separateKeys = false) {
+    public function __construct($processName = '', $separateKeys = false, $flockOnly = false) {
+        $this->setFlock($flockOnly);
         $this->setProcess($processName);
         $this->setZaWarudo($separateKeys);
         $this->initCache();
         $this->loadCache();
     }
 
-//            ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⡇⢿⢻⣉⣳⣄⣀⣹⠾⠿⠶⠶⠶⠾⠿⣯⣿⣿⣿⣏⣿⣠⣿⣿⣿⣿⡿⠄⠀⠑⢒⡲⠂⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-//        ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢠⢾⠼⣿⣧⠦⠴⢒⣒⣒⣒⣒⣒⣒⣒⣒⣀⣤⠶⢶⣤⡏⣻⣿⣿⠿⢧⣤⠤⡤⢼⡯⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-//        ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠸⣴⣞⠿⠛⠉⠉⠉⠉⠉⡭⠭⣭⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⠿⡿⣼⠃⠀⡨⠟⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-//        ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣠⠴⠋⠁⠀⠀⠀⠀⠀⠐⠀⢉⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡿⢿⣟⣫⣤⡴⢷⡟⣦⡞⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-//        ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠰⠋⠉⠁⠒⠒⠀⠀⠀⠠⠤⠤⠶⠾⠿⠿⢿⡿⡟⠛⠟⠏⢉⣁⣤⠬⠒⢛⣫⣿⣿⣾⣟⣿⠆⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-//        ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠉⠉⠉⠉⠙⢒⣶⢶⡖⣶⣶⡶⢦⣤⣴⢶⣶⣶⣾⣟⣿⣻⣇⢤⣴⣾⠿⣿⢿⢹⣿⡿⡿⠃⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-//        ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢠⢴⣶⣒⡾⣿⣟⢧⠈⢿⡿⠺⠟⠓⣊⡴⢙⡏⠉⣏⢻⣉⠺⠿⣿⠾⠋⠘⡼⣿⡟⠁⠀⠀⠀⢀⡠⠤⠤⠤⢄⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-//        ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣇⢯⣿⣞⣷⣿⣿⢆⠁⢿⠡⠔⠚⢛⣿⣿⠟⡇⠀⡟⢿⣯⠿⠗⠂⢤⢀⢧⣿⣟⡁⠀⠀⡠⠚⢁⣤⢔⣒⣒⠒⠚⢦⠀⠀⠀⠀⠀⠀⠀⠀
-//        ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠢⣿⣿⣿⣿⣟⣿⡇⠘⡇⠀⠀⠩⠻⡁⠀⣇⠀⠃⠀⠀⠈⠀⠀⠈⡟⣸⣿⣿⣯⣿⡿⠁⣴⣿⠋⠁⠀⠀⠙⣦⢰⡇⠀⠀⠀⠀⠀⠀⠀
-//        ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢠⣤⣤⡈⢳⣿⣿⣿⣷⣧⠀⢃⠀⠀⠀⠀⢱⡀⡅⠀⡀⡄⠀⠀⠀⠀⣸⢡⣿⣿⣿⣿⣿⣇⣾⢻⣿⡻⣖⣦⣄⢠⣇⢀⡇⠀⠀⠀⠀⠀⠀⠀
-//        ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⡟⣎⢿⡌⢻⣿⣿⣿⣿⡆⠸⡄⠀⠀⠀⠀⠛⢿⣿⠛⠁⠀⠀⠀⢀⡇⣼⣿⣿⣿⣿⣿⣇⢸⣽⣿⣿⣷⣽⠺⣓⢾⣿⠁⣠⣄⡀⠀⠀⠀⠀
-//        ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⣇⠸⣮⢧⣏⡻⣿⣿⣿⣿⡷⢧⡀⠀⣀⣀⣤⣄⣠⣤⣀⡀⠀⢀⡜⡼⣿⢿⣿⣿⣿⣿⣿⣾⣿⣿⣿⣿⡮⣿⣮⠑⢌⠻⣋⣩⡙⢢⡀⠀⠀
-//        ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣴⣋⣮⣆⡾⣸⡿⠹⡞⣿⣿⣿⣇⣸⣳⡀⠉⣅⣀⣉⣉⣀⣉⠉⢀⣮⣾⠇⡌⠓⢝⣿⣿⣿⣿⣿⣿⠁⣉⠁⠀⠈⡝⢦⡀⡷⠈⣯⡻⣦⡈⢆⠀
-//        ⠀⠀⠀⠀⠀⣀⢤⢚⣉⡓⠚⠉⠲⣿⣿⣿⣿⣯⣿⡄⣽⣿⣿⣿⣿⣿⣷⣵⡀⠈⢻⠉⠙⠛⠋⣠⣿⣿⠏⠀⠰⡄⠀⠙⠻⣿⣿⣿⣿⣾⡇⠀⠀⢀⠇⠦⣣⠃⣼⠻⢿⡎⣿⣄⠱
-//        ⡀⠀⠴⠒⠉⠀⢿⣾⣾⣿⣷⣄⠀⢾⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⢈⠻⣿⣄⡟⠀⠀⠀⣰⣿⣿⡟⣰⠸⣆⢹⡄⣄⡀⠈⠛⠉⣻⣿⡇⠀⠀⡼⠈⡦⣿⣶⣿⣿⣾⠵⣶⣛⢧
-//        ⠀⠀⠀⠀⠀⠀⠈⠹⠽⣿⣿⣻⣶⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⠀⢻⣎⠻⢿⣶⣶⣶⣿⣿⣿⠀⢹⣇⠈⠳⣿⣾⣟⣷⣾⣾⡿⢻⣿⣄⠀⢣⠶⣱⣿⣿⣾⣿⣧⡒⠻⣿⠸
-//        ⠀⠀⠀⠀⠀⠀⢀⣀⣼⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⠀⠀⠻⡄⢈⣿⣟⢿⣿⡟⢸⡀⠈⣿⠀⠀⢈⣿⡿⠛⠋⠀⠈⠁⣿⣿⣶⠌⡧⣿⣿⣿⣿⣿⣿⣿⡄⠙⢣
-//        ⠀⠀⠀⢀⣰⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣧⣤⣶⣿⣿⣿⣿⡀⢻⠀⠀⣷⣄⣷⣀⡴⠏⠁⠀⠀⠀⠀⠀⣰⢟⣿⣿⣿⣾⣿⣿⣿⣿⣿⣿⣿⣿⣦⡀
+    //            ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⡇⢿⢻⣉⣳⣄⣀⣹⠾⠿⠶⠶⠶⠾⠿⣯⣿⣿⣿⣏⣿⣠⣿⣿⣿⣿⡿⠄⠀⠑⢒⡲⠂⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+    //        ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢠⢾⠼⣿⣧⠦⠴⢒⣒⣒⣒⣒⣒⣒⣒⣒⣀⣤⠶⢶⣤⡏⣻⣿⣿⠿⢧⣤⠤⡤⢼⡯⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+    //        ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠸⣴⣞⠿⠛⠉⠉⠉⠉⠉⡭⠭⣭⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⠿⡿⣼⠃⠀⡨⠟⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+    //        ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣠⠴⠋⠁⠀⠀⠀⠀⠀⠐⠀⢉⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡿⢿⣟⣫⣤⡴⢷⡟⣦⡞⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+    //        ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠰⠋⠉⠁⠒⠒⠀⠀⠀⠠⠤⠤⠶⠾⠿⠿⢿⡿⡟⠛⠟⠏⢉⣁⣤⠬⠒⢛⣫⣿⣿⣾⣟⣿⠆⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+    //        ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠉⠉⠉⠉⠙⢒⣶⢶⡖⣶⣶⡶⢦⣤⣴⢶⣶⣶⣾⣟⣿⣻⣇⢤⣴⣾⠿⣿⢿⢹⣿⡿⡿⠃⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+    //        ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢠⢴⣶⣒⡾⣿⣟⢧⠈⢿⡿⠺⠟⠓⣊⡴⢙⡏⠉⣏⢻⣉⠺⠿⣿⠾⠋⠘⡼⣿⡟⠁⠀⠀⠀⢀⡠⠤⠤⠤⢄⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+    //        ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣇⢯⣿⣞⣷⣿⣿⢆⠁⢿⠡⠔⠚⢛⣿⣿⠟⡇⠀⡟⢿⣯⠿⠗⠂⢤⢀⢧⣿⣟⡁⠀⠀⡠⠚⢁⣤⢔⣒⣒⠒⠚⢦⠀⠀⠀⠀⠀⠀⠀⠀
+    //        ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠢⣿⣿⣿⣿⣟⣿⡇⠘⡇⠀⠀⠩⠻⡁⠀⣇⠀⠃⠀⠀⠈⠀⠀⠈⡟⣸⣿⣿⣯⣿⡿⠁⣴⣿⠋⠁⠀⠀⠙⣦⢰⡇⠀⠀⠀⠀⠀⠀⠀
+    //        ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢠⣤⣤⡈⢳⣿⣿⣿⣷⣧⠀⢃⠀⠀⠀⠀⢱⡀⡅⠀⡀⡄⠀⠀⠀⠀⣸⢡⣿⣿⣿⣿⣿⣇⣾⢻⣿⡻⣖⣦⣄⢠⣇⢀⡇⠀⠀⠀⠀⠀⠀⠀
+    //        ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⡟⣎⢿⡌⢻⣿⣿⣿⣿⡆⠸⡄⠀⠀⠀⠀⠛⢿⣿⠛⠁⠀⠀⠀⢀⡇⣼⣿⣿⣿⣿⣿⣇⢸⣽⣿⣿⣷⣽⠺⣓⢾⣿⠁⣠⣄⡀⠀⠀⠀⠀
+    //        ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⣇⠸⣮⢧⣏⡻⣿⣿⣿⣿⡷⢧⡀⠀⣀⣀⣤⣄⣠⣤⣀⡀⠀⢀⡜⡼⣿⢿⣿⣿⣿⣿⣿⣾⣿⣿⣿⣿⡮⣿⣮⠑⢌⠻⣋⣩⡙⢢⡀⠀⠀
+    //        ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣴⣋⣮⣆⡾⣸⡿⠹⡞⣿⣿⣿⣇⣸⣳⡀⠉⣅⣀⣉⣉⣀⣉⠉⢀⣮⣾⠇⡌⠓⢝⣿⣿⣿⣿⣿⣿⠁⣉⠁⠀⠈⡝⢦⡀⡷⠈⣯⡻⣦⡈⢆⠀
+    //        ⠀⠀⠀⠀⠀⣀⢤⢚⣉⡓⠚⠉⠲⣿⣿⣿⣿⣯⣿⡄⣽⣿⣿⣿⣿⣿⣷⣵⡀⠈⢻⠉⠙⠛⠋⣠⣿⣿⠏⠀⠰⡄⠀⠙⠻⣿⣿⣿⣿⣾⡇⠀⠀⢀⠇⠦⣣⠃⣼⠻⢿⡎⣿⣄⠱
+    //        ⡀⠀⠴⠒⠉⠀⢿⣾⣾⣿⣷⣄⠀⢾⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⢈⠻⣿⣄⡟⠀⠀⠀⣰⣿⣿⡟⣰⠸⣆⢹⡄⣄⡀⠈⠛⠉⣻⣿⡇⠀⠀⡼⠈⡦⣿⣶⣿⣿⣾⠵⣶⣛⢧
+    //        ⠀⠀⠀⠀⠀⠀⠈⠹⠽⣿⣿⣻⣶⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⠀⢻⣎⠻⢿⣶⣶⣶⣿⣿⣿⠀⢹⣇⠈⠳⣿⣾⣟⣷⣾⣾⡿⢻⣿⣄⠀⢣⠶⣱⣿⣿⣾⣿⣧⡒⠻⣿⠸
+    //        ⠀⠀⠀⠀⠀⠀⢀⣀⣼⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⠀⠀⠻⡄⢈⣿⣟⢿⣿⡟⢸⡀⠈⣿⠀⠀⢈⣿⡿⠛⠋⠀⠈⠁⣿⣿⣶⠌⡧⣿⣿⣿⣿⣿⣿⣿⡄⠙⢣
+    //        ⠀⠀⠀⢀⣰⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣧⣤⣶⣿⣿⣿⣿⡀⢻⠀⠀⣷⣄⣷⣀⡴⠏⠁⠀⠀⠀⠀⠀⣰⢟⣿⣿⣿⣾⣿⣿⣿⣿⣿⣿⣿⣿⣦⡀
 
     /**
      * Inits system caching instance for further usage
@@ -95,6 +118,9 @@ class StarDust {
      */
     public function setProcess($processName = '') {
         $this->processName = $processName;
+        if (!empty($this->processName)) {
+            $this->lockFile = self::LOCK_DIR . self::LOCK_PREFIX . preg_replace('/[^a-z0-9_\-]/i', '_', $this->processName) . '.lock';
+        }
     }
 
     /**
@@ -106,6 +132,24 @@ class StarDust {
      */
     public function setZaWarudo($state = false) {
         $this->separateKeys = $state;
+    }
+
+    /**
+     * Sets flock usage flag
+     *
+     * @param bool $state
+     * 
+     * @return void
+     */
+    public function setFlock($state = false) {
+        global $ubillingConfig;
+        //normal flock set
+        $this->flockFlag = $state;
+        //force by config option
+        $forceFlag = $ubillingConfig->getAlterParam('STRDUST_FLOCK_FORCE');
+        if ($forceFlag) {
+            $this->flockFlag = true;
+        }
     }
 
     /**
@@ -133,7 +177,7 @@ class StarDust {
                 $result = $cachedData;
             }
         }
-        return($result);
+        return ($result);
     }
 
     /**
@@ -162,7 +206,7 @@ class StarDust {
         } else {
             throw new Exception('EX_EMPTY_PID');
         }
-        return($result);
+        return ($result);
     }
 
     /**
@@ -172,8 +216,23 @@ class StarDust {
      */
     public function start() {
         if ($this->pidIsOk()) {
-            $this->processStateUpdate(false);
-            nr_query("SELECT GET_LOCK('" . self::LOCK_PREFIX . $this->processName . "',1)");
+            if ($this->flockFlag) {
+                $this->handle = fopen($this->lockFile, 'c+');
+                if (!$this->handle) {
+                    throw new RuntimeException('Unable to open lock file ' . $this->lockFile);
+                }
+
+                if (!flock($this->handle, LOCK_EX | LOCK_NB)) {
+                    throw new RuntimeException('Process ' . $this->processName . ' is already running.');
+                }
+
+                ftruncate($this->handle, 0);
+                fwrite($this->handle, getmypid() . PHP_EOL);
+                $this->processStateUpdate(false);
+            } else {
+                nr_query("SELECT GET_LOCK('" . self::LOCK_PREFIX . $this->processName . "',1)");
+                $this->processStateUpdate(false);
+            }
         }
     }
 
@@ -184,8 +243,18 @@ class StarDust {
      */
     public function stop() {
         if ($this->pidIsOk()) {
-            $this->processStateUpdate(true);
-            nr_query("SELECT RELEASE_LOCK('" . self::LOCK_PREFIX . $this->processName . "')");
+            if ($this->flockFlag) {
+                if ($this->handle) {
+                    ftruncate($this->handle, 0);
+                    fflush($this->handle);
+                    flock($this->handle, LOCK_UN);
+                    fclose($this->handle);
+                    $this->processStateUpdate(true);
+                }
+            } else {
+                nr_query("SELECT RELEASE_LOCK('" . self::LOCK_PREFIX . $this->processName . "')");
+                $this->processStateUpdate(true);
+            }
         }
     }
 
@@ -195,13 +264,28 @@ class StarDust {
      * @return bool
      */
     protected function isLocked() {
-        $result = true;
         if ($this->pidIsOk()) {
-            $query = "SELECT IS_FREE_LOCK('" . self::LOCK_PREFIX . $this->processName . "') AS " . self::LOCK_NAME;
-            $rawReply = simple_query($query);
-            $result = ($rawReply[self::LOCK_NAME]) ? false : true;
+            if ($this->flockFlag) {
+                $fp = fopen($this->lockFile, 'c+');
+                if (!$fp) {
+                    return (false);
+                }
+
+                if (flock($fp, LOCK_EX | LOCK_NB)) {
+                    flock($fp, LOCK_UN);
+                    fclose($fp);
+                    return (false);
+                }
+
+                fclose($fp);
+                return (true);
+            } else {
+                $query = "SELECT IS_FREE_LOCK('" . self::LOCK_PREFIX . $this->processName . "') AS " . self::LOCK_NAME;
+                $rawReply = simple_query($query);
+                $result = ($rawReply[self::LOCK_NAME]) ? false : true;
+                return ($result);
+            }
         }
-        return($result);
     }
 
     /**
@@ -212,7 +296,7 @@ class StarDust {
     public function isRunning() {
         $locked = $this->isLocked();
         $result = ($locked) ? true : false;
-        return($result);
+        return ($result);
     }
 
     /**
@@ -223,7 +307,7 @@ class StarDust {
     public function notRunning() {
         $locked = $this->isLocked();
         $result = ($locked) ? false : true;
-        return($result);
+        return ($result);
     }
 
     /**
@@ -243,7 +327,7 @@ class StarDust {
                 }
             }
         }
-        return($result);
+        return ($result);
     }
 
     /**
@@ -265,7 +349,7 @@ class StarDust {
                 $result[$processName] = $eachProcessData;
             }
         }
-        return($result);
+        return ($result);
     }
 
     /**
@@ -345,15 +429,34 @@ class StarDust {
         }
     }
 
-//
-//                 ⠀  (\__/)
-//                    (•ㅅ•)      SONO CHI NO SADAME
-//                 ＿ノヽ  ノ＼＿   
-//             `/　`/ ⌒Ｙ⌒ Ｙ  ヽ
-//             ( 　(三ヽ人　 /　  |
-//             |　ﾉ⌒＼ ￣￣ヽ   ノ
-//             ヽ＿＿＿＞､＿_／
-//                   ｜( 王 ﾉ〈  (\__/)
-//                    /ﾐ`ー―彡\  (•ㅅ•)
-//                   / ╰    ╯ \ /    \>
+    /**
+     * Returns system PID or false if process not running
+     *
+     * @return void|int
+     */
+    public function getSystemPid() {
+        $result = '';
+        if ($this->flockFlag) {
+            if (!file_exists($this->lockFile)) {
+                $result = false;
+            } else {
+                $result = (int)trim(file_get_contents($this->lockFile));
+            }
+        } else {
+            throw new RuntimeException('System PIDs not available with DB locks');
+        }
+        return ($result);
+    }
+
+    //
+    //                 ⠀  (\__/)
+    //                    (•ㅅ•)      SONO CHI NO SADAME
+    //                 ＿ノヽ  ノ＼＿   
+    //             `/　`/ ⌒Ｙ⌒ Ｙ  ヽ
+    //             ( 　(三ヽ人　 /　  |
+    //             |　ﾉ⌒＼ ￣￣ヽ   ノ
+    //             ヽ＿＿＿＞､＿_／
+    //                   ｜( 王 ﾉ〈  (\__/)
+    //                    /ﾐ`ー―彡\  (•ㅅ•)
+    //                   / ╰    ╯ \ /    \>
 }
