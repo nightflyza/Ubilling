@@ -850,7 +850,7 @@ class PONizer {
                                         $collectorMethod = $this->snmpTemplates[$oltModelId]['signal']['COLLECTORMETHOD'];
                                     }
                                     break;
-                                    /**
+                                /**
                                      * Following cases is legacy for old or custom device templates 
                                      * without collector hardware abstraction layer specified explictly
                                      */
@@ -885,7 +885,7 @@ class PONizer {
                                     $collectorName = 'PONVsol';
                                     break;
 
-                                    /**
+                                /**
                                      * ZTE-like EPON OLTs polling
                                      */
                                 case 'ZTE':
@@ -894,7 +894,7 @@ class PONizer {
                                     $oltParameters['TYPE'] = 'EPON';
 
                                     break;
-                                    /**
+                                /**
                                      * ZTE GPON OLTs polling
                                      */
                                 case 'ZTE_GPON':
@@ -902,7 +902,7 @@ class PONizer {
                                     $collectorMethod = 'pollGpon';
                                     $oltParameters['TYPE'] = 'GPON';
                                     break;
-                                    /**
+                                /**
                                      * Huawei EPON OLTs polling
                                      */
                                 case 'HUAWEI_GPON':
@@ -4033,6 +4033,15 @@ class PONizer {
             $allUserMac = array_map('strtolower', $allUserMac);
             $allUserMac = array_flip($allUserMac);
             $allUserTariffs = zb_TariffsGetAllUsers();
+            $allSwtiches = zb_SwitchesGetAll();
+            $allSwitchesMacs = array();
+            if (!empty($allSwtiches)) {
+                foreach ($allSwtiches as $io => $each) {
+                    if (!empty($each['swid'])) {
+                        $allSwitchesMacs[$each['swid']] = $each['ip'] . ' ' . $each['location'];
+                    }
+                }
+            }
 
             foreach ($availOnuFdbCache as $oltId => $eachOltFdb) {
                 $oltDesc = @$this->allOltDevices[$oltId];
@@ -4063,7 +4072,10 @@ class PONizer {
                                     $userLink = (!empty($userLogin)) ? wf_Link('?module=userprofile&username=' . $userLogin, web_profile_icon() . ' ' . $userAddress) : '';
                                     $oltCheck = (!$this->checkOnuOLTid($onuMac, $oltId)) ? ' ' . wf_img('skins/createtask.gif', __('Wrong OLT')) . ' ' . __('Oh no') : '';
                                     $userCheck = (!$this->checkOnuUserAssign($onuRealId, $userLogin)) ? ' ' . wf_img('skins/createtask.gif', __('Wrong associated user')) . ' ' . __('Oh no') : '';
-
+                                    if (isset($allSwitchesMacs[$onuData['mac']])) {
+                                        $userCheck = ' ' . wf_img('skins/menuicons/switches.png', __('Switch behind ONU')) . ' ' . __('Switch') . '!';
+                                        $userLink .= $allSwitchesMacs[$onuData['mac']];
+                                    }
                                     $data[] = $oltDesc . $oltCheck;
                                     $data[] = $onuMac;
                                     $data[] = $onuLink;
