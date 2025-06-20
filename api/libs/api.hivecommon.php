@@ -155,13 +155,19 @@ function web_TicketAIChatControls($aiDialogCallback) {
 }
 
 
-//TODO
-function zb_HivemindGetTaskmanPayload() {
-
+/**
+ * Collects short payload for available tasks trends
+ *
+ * @param int $depth
+ * 
+ * @return string
+ */
+function zb_HivemindGetTaskmanPayload($depth = 1) {
     $payLoad = '';
+    $depth = ubRouting::filters($depth, 'int');
     $tasksDb = new NyanORM('taskman');
     $toDate = date('Y-m-d');
-    $fromDate = date('Y-m-d', strtotime('-1 days'));
+    $fromDate = date('Y-m-d', strtotime('-' . $depth . ' days'));
     $tasksDb->where('startdate', 'BETWEEN', $fromDate . "' AND '" . $toDate);
     $tasksDb->orderBy('startdate', 'ASC');
     $allTasks = $tasksDb->getAll('id');
@@ -175,12 +181,45 @@ function zb_HivemindGetTaskmanPayload() {
                 $doneDate = ($each['enddate']) ?  __('Done') . ': ' . $each['enddate'] : __('Undone');
                 $taskAddress = $each['address'];
                 $jobType = trim($allJobTypes[$each['jobtype']]);
-                $jobNote = (!empty($each['jobnote'])) ? ': ' . ubRouting::filters($each['jobnote'],'safe') : '';
                 $jobEmployee = $allEmployee[$each['employee']];
-
-
-                $payLoad .= '[' . $startDate . ' | ' . $taskAddress . ' | ' . $jobType . $jobNote . ' | ' . $jobEmployee . ' | ' . $doneDate . ']' . PHP_EOL;
+                $payLoad .= '[' . $startDate . ' | ' . $taskAddress . ' | ' . $jobType . ' | ' . $jobEmployee . ' | ' . $doneDate . ']' . PHP_EOL;
             }
         }
     }
+    return ($payLoad);
+}
+
+
+/**
+ * Collects short payload for available helpdesk tickets trends
+ *
+ * @param int $depth
+ * 
+ * @return string
+ */
+function zb_HivemindGetHelpdeskPayload($depth = 30) {
+    $payLoad = '';
+    $depth = ubRouting::filters($depth, 'int');
+    $tasksDb = new NyanORM('ticketing');
+    $toDate = date('Y-m-d');
+    $fromDate = date('Y-m-d', strtotime('-' . $depth . ' days'));
+    $tasksDb->where('date', 'BETWEEN', $fromDate . "' AND '" . $toDate);
+    $tasksDb->where('to', 'IS', 'NULL');
+    $tasksDb->where('admin', 'IS', 'NULL');
+    $tasksDb->orderBy('id', 'ASC');
+    $allTickets = $tasksDb->getAll('id');
+    $allUserData = zb_UserGetAllDataCache();
+
+    if (!empty($allTickets)) {
+
+        if (sizeof($allTickets) >= 3) {
+            foreach ($allTickets as $io => $each) {
+                $ticketDate = $each['date'];
+                $ticketAddress = @$allUserData[$each['from']]['fulladress'];
+                $payLoad .= '[' . $ticketDate . ' , ' . $ticketAddress . ']' . PHP_EOL;
+                $payLoad .= ubRouting::filters($each['text'], 'safe') . PHP_EOL;
+            }
+        }
+    }
+    return ($payLoad);
 }
