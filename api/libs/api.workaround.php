@@ -2785,7 +2785,7 @@ function web_UserArrayShower($usersarr) {
             $usercash = @$thisUserData['Cash'];
             $usercredit = @$thisUserData['Credit'];
             //finance check
-            $activity = web_red_led();
+            $activity = web_red_led() . ' ' . __('No');
             $activity_flag = 0;
 
             if ($thisUserData['Passive'] == 1 or $thisUserData['Down'] == 1) {
@@ -2810,7 +2810,7 @@ function web_UserArrayShower($usersarr) {
             $tablecells .= wf_TableCell(@$thisUserData['fulladress']);
             $tablecells .= wf_TableCell(@$thisUserData['realname']);
             $tablecells .= wf_TableCell(@$thisUserData['ip'], '', '', 'sorttable_customkey="' . ip2int(@$thisUserData['ip']) . '"');
-            $tablecells .= wf_TableCell(@@$thisUserData['Tariff']);
+            $tablecells .= wf_TableCell(@$thisUserData['Tariff']);
             if ($alterconf['ONLINE_LAT']) {
                 if (isset($allUserLat[$eachlogin])) {
                     $cUserLat = date("Y-m-d H:i:s", $allUserLat[$eachlogin]);
