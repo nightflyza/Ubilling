@@ -131,7 +131,7 @@ if (@$ubillingMainConf['IPACL_ENABLED']) {
 
 // Loading main module
 $system->setCurrentPoint('__MAIN__');
-if (!empty($_GET['module']))
+if (!empty($_GET['module']) and is_string($_GET['module']))
     $module = basename($_GET['module']);
 else
     $module = 'index';

@@ -163,10 +163,18 @@ function rcms_scandir($directory, $exp = '', $type = 'all', $do_not_filter = fal
  * @param string $modulename
  */
 function zbs_LoadModule($modulename) {
-    $modulename = vf($modulename);
-    $modulename = preg_replace('/\0/s', '', $modulename);
-    $module_path = 'modules/general/';
-    if (file_exists($module_path . $modulename . '/index.php')) {
+    $modCheck = false;
+    if (!empty($modulename) and is_string($modulename)) {
+        $modulename = vf($modulename);
+        $modulename = preg_replace('/\0/s', '', $modulename);
+        $module_path = 'modules/general/';
+        if (file_exists($module_path . $modulename . '/index.php')) {
+
+            $modCheck = true;
+        }
+    }
+
+    if ($modCheck) {
         include($module_path . $modulename . '/index.php');
     } else {
         die('Wrong module');

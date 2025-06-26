@@ -37,7 +37,7 @@ function web_HelpIconShow() {
     $result = '';
     if (cfr('HELP')) {
         $lang = curlang();
-        $currentModuleName = (ubRouting::checkGet('module')) ? ubRouting::get('module') : 'taskbar';
+        $currentModuleName = (ubRouting::checkGet('module') and is_string(ubRouting::get('module'))) ? ubRouting::get('module') : 'taskbar';
         $donationUrl = 'https://ubilling.net.ua/rds/donate/';
         if (file_exists(DATA_PATH . "help/" . $lang . "/" . $currentModuleName)) {
             $helpChapterContent = web_HelpChapterGet($currentModuleName);
