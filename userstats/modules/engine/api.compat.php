@@ -169,7 +169,6 @@ function zbs_LoadModule($modulename) {
         $modulename = preg_replace('/\0/s', '', $modulename);
         $module_path = 'modules/general/';
         if (file_exists($module_path . $modulename . '/index.php')) {
-
             $modCheck = true;
         }
     }
