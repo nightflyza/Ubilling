@@ -183,7 +183,10 @@ class SystemHwInfo {
                 $params = ' ' . $params;
             }
             $rawOutput = shell_exec($command . $params);
-            $result .= trim($rawOutput);
+
+            if (is_string($rawOutput)) {
+                $result .= trim($rawOutput);
+            }
         }
         return ($result);
     }
@@ -247,7 +250,15 @@ class SystemHwInfo {
                 break;
             case 'Linux':
                 $raw = $this->grabCmdOutput($this->catPath, ' /proc/cpuinfo | ' . $this->grepPath . ' "model name" | ' . $this->headPath . ' -n 1');
-                $raw = str_replace('model name	:', '', $raw);
+                //normal x86 format
+                if (!empty($raw)) {
+                    $raw = str_replace('model name  :', '', $raw);
+                } else {
+                    //non x86 arch workaround
+                    $raw = $this->grabCmdOutput($this->catPath, ' /proc/cpuinfo | ' . $this->grepPath . ' "Model" | ' . $this->headPath . ' -n 1');
+                    $raw = str_replace('Model', '', $raw);
+                    $raw = str_replace(':', '', $raw);
+                }
                 $cpuName = $raw;
                 break;
         }
@@ -269,7 +280,13 @@ class SystemHwInfo {
                 break;
             case 'Linux':
                 $raw = $this->grabCmdOutput($this->catPath, ' /proc/cpuinfo | ' . $this->grepPath . ' "siblings" | ' . $this->headPath . ' -n 1');
-                $coresCount = preg_replace("#[^0-9]#Uis", '', $raw);
+                if (!empty($raw)) {
+                    $coresCount = preg_replace("#[^0-9]#Uis", '', $raw);
+                } else {
+                    //non x86
+                    $raw = $this->grabCmdOutput($this->catPath, ' /proc/cpuinfo | ' . $this->grepPath . ' "processor" | wc -l');
+                    $coresCount = preg_replace("#[^0-9]#Uis", '', $raw);
+                }
                 break;
         }
 
