@@ -970,7 +970,7 @@ class PixelCraft {
      */
     public function drawPolygon($points, $colorName) {
         if (phpversion() < '8.0.0') {
-            $num_points = count($points)/2;
+            $num_points = count($points) / 2;
             imagepolygon($this->image, $points, $num_points, $this->allocateColor($colorName));
         } else {
             imagepolygon($this->image, $points, $this->allocateColor($colorName));
@@ -987,7 +987,7 @@ class PixelCraft {
      */
     public function drawPolygonFilled($points, $colorName) {
         if (phpversion() < '8.0.0') {
-            $num_points = count($points)/2;
+            $num_points = count($points) / 2;
             imagefilledpolygon($this->image, $points, $num_points, $this->allocateColor($colorName));
         } else {
             imagefilledpolygon($this->image, $points, $this->allocateColor($colorName));
