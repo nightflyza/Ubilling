@@ -939,7 +939,58 @@ class PixelCraft {
      *
      * @return void
      */
-    public function drawArc($x, $y, $width, $height, $startAngle, $endAngle, $colorName, $style = IMG_ARC_PIE) {
+    public function drawArcFilled($x, $y, $width, $height, $startAngle, $endAngle, $colorName, $style = IMG_ARC_PIE) {
         imagefilledarc($this->image, $x, $y, $width, $height, $startAngle, $endAngle, $this->allocateColor($colorName), $style);
+    }
+
+    /**
+     * Draw an arc without filling
+     *
+     * @param int $x The x-coordinate of the center.
+     * @param int $y The y-coordinate of the center.
+     * @param int $width The width of the arc.
+     * @param int $height The height of the arc.
+     * @param int $startAngle The start angle of the arc in degrees.
+     * @param int $endAngle The end angle of the arc in degrees.
+     * @param string $colorName The name of the color to use for the arc.
+     * 
+     * @return void
+     */
+    public function drawArc($x, $y, $width, $height, $startAngle, $endAngle, $colorName) {
+        imagearc($this->image, $x, $y, $width, $height, $startAngle, $endAngle, $this->allocateColor($colorName));
+    }
+
+    /**
+     * Draw a polygon
+     *
+     * @param array $points The points of the polygon.
+     * @param string $colorName The name of the color to use for the polygon.
+     * 
+     * @return void
+     */
+    public function drawPolygon($points, $colorName) {
+        if (phpversion() < '8.0.0') {
+            $num_points = count($points)/2;
+            imagepolygon($this->image, $points, $num_points, $this->allocateColor($colorName));
+        } else {
+            imagepolygon($this->image, $points, $this->allocateColor($colorName));
+        }
+    }
+
+    /**
+     * Draw a filled polygon
+     *
+     * @param array $points The points of the polygon.
+     * @param string $colorName The name of the color to use for the polygon.
+     * 
+     * @return void
+     */
+    public function drawPolygonFilled($points, $colorName) {
+        if (phpversion() < '8.0.0') {
+            $num_points = count($points)/2;
+            imagefilledpolygon($this->image, $points, $num_points, $this->allocateColor($colorName));
+        } else {
+            imagefilledpolygon($this->image, $points, $this->allocateColor($colorName));
+        }
     }
 }
