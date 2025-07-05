@@ -866,7 +866,7 @@ class Envy {
             }
 
             $curDeviceId = ubRouting::checkPost('devicefilter') ? ubRouting::post('devicefilter', 'int') : 0;
-            $inputs = wf_Selector('devicefilter', $devicesTmp, __('Device'), $curDeviceId, false, false) . ' ';
+            $inputs = wf_SelectorSearchable('devicefilter', $devicesTmp, __('Device'), $curDeviceId, false, false) . ' ';
             $inputs .= wf_Submit(__('Show'));
 
             $result .= wf_Form('', 'POST', $inputs, 'glamour');
@@ -1130,9 +1130,9 @@ class Envy {
 
             $inputs = wf_HiddenInput('rundiff', 'true');
             $inputs .= __('Compare') . ' ';
-            $inputs .= wf_Selector('diffone', $confTmp, '', $currDiffOne, false) . ' ';
+            $inputs .= wf_SelectorSearchable('diffone', $confTmp, '', $currDiffOne, false) . ' ';
             $inputs .= __('and') . ' ';
-            $inputs .= wf_Selector('difftwo', $confTmp, '', $currDiffTwo, false) . ' ';
+            $inputs .= wf_SelectorSearchable('difftwo', $confTmp, '', $currDiffTwo, false) . ' ';
             $inputs .= wf_Submit(__('Show'));
 
             $result .= wf_Form('', 'POST', $inputs, 'glamour');
