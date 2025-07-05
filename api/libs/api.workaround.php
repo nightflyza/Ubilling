@@ -6070,7 +6070,7 @@ function web_ReportSysloadRenderLA() {
     $memTotalLabel = zb_convertSize($memTotal) . ' ' . __('RAM');
     $cpuLabel = __('CPU') . ': ' . $cpuName;
     $coreLabel = $cpuCoresCount . ' ' . __('Cores');
-    $osLabel = $hwInfo->getOs() . ' ' . $hwInfo->getOsRelease() . ', ';
+    $osLabel = $hwInfo->getOs() . ' ' . $hwInfo->getOsRelease() . ', ' . $hwInfo->getMachineArch() . ', ';
     $phpLabel = __('PHP') . ': ' . $hwInfo->getPhpVersion();
     $result = '';
 

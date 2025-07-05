@@ -24,12 +24,21 @@ class SystemHwInfo {
      * @var string $osFullRelease The full release of the operating system.
      */
     protected $osFullRelease = '';
+
+    /**
+     * Contains type of the current hardware platform
+     *
+     * @var string
+     */
+    protected $machineArch = '';
+
     /**
      * This variable represents the hostname of the system.
      *
      * @var string
      */
     protected $hostname = '';
+
     /**
      * This variable represents the PHP version used in the system. like 7.4.29.
      *
@@ -43,6 +52,7 @@ class SystemHwInfo {
      * @var string
      */
     protected $cpuName = '';
+
     /**
      * This variable represents the number of CPU cores.
      *
@@ -56,42 +66,49 @@ class SystemHwInfo {
      * @var int
      */
     protected $memTotal = 0;
+
     /**
      * This variable represents the free memory in bytes.
      *
      * @var int
      */
     protected $memFree = 0;
+
     /**
      * This variable represents the used memory in bytes.
      *
      * @var int
      */
     protected $memUsed = 0;
+
     /**
      * This variable represents the number of seconds the system has been running.
      *
      * @var int
      */
     protected $uptimeSeconds = 0;
+
     /**
      * This variable represents the load average of the system.
      *
      * @var array
      */
     protected $loadAverage = array();
+
     /**
      * This variable represents the load average of the system in 1 minute
      *
      * @var float
      */
     protected $la1 = 0;
+
     /**
      * This variable represents the load average of the system in 5 minute
      *
      * @var float
      */
     protected $la5 = 0;
+
     /**
      * This variable represents the load average of the system in 15 minutes
      *
@@ -105,18 +122,21 @@ class SystemHwInfo {
      * @var float
      */
     protected $systemLoadPercent = 0;
+
     /**
      * This variable represents the system resources load percent depends on cores count in 1 minute
      *
      * @var float
      */
     protected $loadPercent1 = 0;
+
     /**
      * This variable represents the system resources load percent depends on cores count in 5 minutes
      *
      * @var float
      */
     protected $loadPercent5 = 0;
+
     /**
      * This variable represents the system resources load percent depends on cores count in 15 minutes
      *
@@ -200,6 +220,7 @@ class SystemHwInfo {
         $this->os = trim(php_uname('s'));
         $this->osRelease = trim(php_uname('r'));
         $this->osFullRelease = trim(php_uname('a'));
+        $this->machineArch=trim(php_uname('m'));
         $this->hostname = trim(php_uname('n'));
     }
 
@@ -658,5 +679,14 @@ class SystemHwInfo {
      */
     public function getMountPoints() {
         return ($this->mountPoints);
+    }
+
+    /**
+     * Returns type of the current hardware platform e.g. amd64, arm64, x86_64 etc
+     *
+     * @return void
+     */
+    public function getMachineArch() {
+        return($this->machineArch);
     }
 }
