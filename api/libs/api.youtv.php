@@ -97,7 +97,7 @@ class YouTV {
         curl_setopt($ch, CURLINFO_HEADER_OUT, TRUE);
         curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $method);
 
-        if ($method = 'POST') {
+        if ($method == 'POST') {
             curl_setopt($ch, CURLOPT_POST, TRUE);
             curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
         }
