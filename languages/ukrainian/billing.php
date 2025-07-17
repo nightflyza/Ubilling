@@ -3594,3 +3594,4 @@ $lang['def']['AI engine is to busy now'] = 'ШІ-рушій зараз зайн�
 $lang['def']['Wrong prompt'] = 'Невірний запит';
 $lang['def']['Corrupted request'] = 'Пошкоджений запит';
 $lang['def']['Wrong request'] = 'Невірний запит';
+$lang['def']['Always'] = 'Завжди';

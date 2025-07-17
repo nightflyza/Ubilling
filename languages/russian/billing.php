@@ -3575,3 +3575,4 @@ $lang['def']['Account status'] = 'Состояние счёта';
 $lang['def']['Credit until date'] = 'Кредит до даты';
 $lang['def']['Here some information about ISP'] = 'Вот некоторая информация о провайдере';
 $lang['def']['Also take into account these data'] = 'Также прими во внимание эти данные';
+$lang['def']['Always'] = 'Всегда';

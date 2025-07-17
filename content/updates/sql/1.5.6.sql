@@ -1,0 +1,1 @@
+ALTER TABLE `ddt_options` ADD `chargeabsolute` INT(11) NULL DEFAULT 0 AFTER `tariffmove`;

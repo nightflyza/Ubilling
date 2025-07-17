@@ -355,6 +355,7 @@ class DoomsDayTariffs {
                 $inputs .= wf_CheckInput('createnewddtstartnow', __('Take into account the current period'), true, false);
                 $inputs .= wf_CheckInput('createnewddtchargefee', __('Charge current tariff fee'), true, false);
                 $inputs .= wf_TextInput('createnewddtchargeuntilday', __('Charge current tariff fee if day less then'), '1', true, 2, 'digits');
+                $inputs .= wf_TextInput('createnewddtchargeabsolute', __('Also additionally withdraw the following amount') . ' (' . __('Always') . ')', '', true, 4, 'digits');
                 $inputs .= wf_CheckInput('createnewddtsetcredit', __('Set a user credit if the money is not enough to use the service now'), true, false);
                 $inputs .= wf_Selector('createnewddttariffmove', $this->allTariffNames, __('Move to tariff after ending of periods'), '', true);
                 $inputs .= wf_delimiter(0);
@@ -389,6 +390,7 @@ class DoomsDayTariffs {
             $newChargeFee = (ubRouting::checkPost('createnewddtchargefee')) ? 1 : 0;
             $newChargeDay = ubRouting::post('createnewddtchargeuntilday', 'int');
             $newSetCredit = (ubRouting::checkPost('createnewddtsetcredit')) ? 1 : 0;
+            $newChargeAbs = (ubRouting::checkPost('createnewddtchargeabsolute')) ? ubRouting::post('createnewddtchargeabsolute', 'int') : 0;
             $currentTariffsDDT = $this->getCurrentTariffsDDT();
             $currentTariffsCharge = $this->getCurrentChargeTariffs();
             if ($newTariff != $newTariffMove) {
@@ -402,6 +404,7 @@ class DoomsDayTariffs {
                         $this->optionsDb->data('chargeuntilday', $newChargeDay);
                         $this->optionsDb->data('setcredit', $newSetCredit);
                         $this->optionsDb->data('tariffmove', $newTariffMove_f);
+                        $this->optionsDb->data('chargeabsolute', $newChargeAbs);
                         $this->optionsDb->create();
 
                         $newId = $this->optionsDb->getLastId();
@@ -514,7 +517,11 @@ class DoomsDayTariffs {
                 $cells .= wf_TableCell($this->periods[$each['period']]);
                 $cells .= wf_TableCell(web_bool_led($each['startnow']));
                 $cells .= wf_TableCell($each['duration']);
-                $cells .= wf_TableCell(web_bool_led($each['chargefee']));
+                $absoluteCharge = '';
+                if ($each['chargeabsolute']) {
+                    $absoluteCharge .= ' + ' . $each['chargeabsolute'];
+                }
+                $cells .= wf_TableCell(web_bool_led($each['chargefee']) . $absoluteCharge);
                 $cells .= wf_TableCell($each['chargeuntilday']);
                 $cells .= wf_TableCell(web_bool_led($each['setcredit']));
                 $cells .= wf_TableCell($each['tariffmove']);
@@ -621,6 +628,10 @@ class DoomsDayTariffs {
                             $tariffPeriod = $currentTariffOptions['period'];
                             $tariffDuration = $currentTariffOptions['duration'];
                             $moveTariff = $currentTariffOptions['tariffmove'];
+                            $nativeTariffData = $this->allTariffs[$currentUserTariff];
+                            $nativeTariffFee = $nativeTariffData['Fee'];
+                            $currentUserBalance = $eachUserData['Cash'];
+                            $nextUserBalance = $currentUserBalance;
                             $currentDate = curdate();
                             $currentDayNum = date("j");
 
@@ -655,37 +666,41 @@ class DoomsDayTariffs {
                                 if ($currentTariffOptions['chargefee']) {
                                     if ($currentTariffOptions['chargeuntilday']) {
                                         if ($currentTariffOptions['chargeuntilday'] >= $currentDayNum) {
-                                            $nativeTariffData = $this->allTariffs[$currentUserTariff];
-                                            $nativeTariffFee = $nativeTariffData['Fee'];
-                                            $nativeTariffPeriod = (isset($nativeTariffData['period'])) ? $nativeTariffData['period'] : 'month';
+                                            $nextUserBalance = $nextUserBalance - $nativeTariffFee;
                                             log_register('DDT FEE CHARGE (' . $eachUserLogin . ') TARIFF `' . $currentUserTariff . '` ON -' . $nativeTariffFee);
                                             zb_CashAdd($eachUserLogin, '-' . $nativeTariffFee, 'correct', 1, 'DDT: ' . $currentUserTariff);
-
-                                            //setting credit if required
-                                            if ($currentTariffOptions['setcredit']) {
-                                                $currentUserBalance = $eachUserData['Cash'];
-                                                $nextUserBalance = $currentUserBalance - $nativeTariffFee;
-                                                if ($nextUserBalance < '-' . $eachUserData['Credit']) {
-                                                    $newUserCredit = abs($nextUserBalance);
-
-                                                    //set credit
-                                                    $billing->setcredit($eachUserLogin, $newUserCredit);
-                                                    log_register('DDT CHANGE Credit (' . $eachUserLogin . ') ON ' . $newUserCredit);
-                                                    //set credit expire date
-
-                                                    if ($tariffPeriod == 'month') {
-                                                        $tariffExpireDate = date('Y-m-t');
-                                                    }
-
-                                                    if ($tariffPeriod == 'day') {
-                                                        $tariffExpireDate = date('Y-m-d', strtotime("+3 days", strtotime($currentDate)));
-                                                    }
-
-                                                    $billing->setcreditexpire($eachUserLogin, $tariffExpireDate);
-                                                    log_register('DDT CHANGE CreditExpire (' . $eachUserLogin . ') ON ' . $tariffExpireDate);
-                                                }
-                                            }
                                         }
+                                    }
+                                }
+
+                                //charging absolute fee
+                                if ($currentTariffOptions['chargeabsolute']) {
+                                    $absoluteFee = $currentTariffOptions['chargeabsolute'];
+                                    $nextUserBalance = $nextUserBalance - $absoluteFee;
+                                    log_register('DDT FEE CHARGE (' . $eachUserLogin . ') ABSOLUTE ON -' . $absoluteFee);
+                                    zb_CashAdd($eachUserLogin, '-' . $absoluteFee, 'correct', 1, 'DDT: ABSOLUTE ' . $absoluteFee);
+                                }
+
+                                //setting credit if required
+                                if ($currentTariffOptions['setcredit']) {
+                                    if ($nextUserBalance < '-' . $eachUserData['Credit']) {
+                                        $newUserCredit = abs($nextUserBalance);
+
+                                        //set credit
+                                        $billing->setcredit($eachUserLogin, $newUserCredit);
+                                        log_register('DDT CHANGE Credit (' . $eachUserLogin . ') ON ' . $newUserCredit);
+                                        //set credit expire date
+
+                                        if ($tariffPeriod == 'month') {
+                                            $tariffExpireDate = date('Y-m-t');
+                                        }
+
+                                        if ($tariffPeriod == 'day') {
+                                            $tariffExpireDate = date('Y-m-d', strtotime("+3 days", strtotime($currentDate)));
+                                        }
+
+                                        $billing->setcreditexpire($eachUserLogin, $tariffExpireDate);
+                                        log_register('DDT CHANGE CreditExpire (' . $eachUserLogin . ') ON ' . $tariffExpireDate);
                                     }
                                 }
                             }

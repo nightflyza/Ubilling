@@ -3406,3 +3406,7 @@ CREATE TABLE IF NOT EXISTS `taxsup` (
   PRIMARY KEY (`id`),
   KEY `login` (`login`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
+
+-- 1.5.6 update
+
+ALTER TABLE `ddt_options` ADD `chargeabsolute` INT(11) NULL DEFAULT 0 AFTER `tariffmove`;
