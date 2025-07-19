@@ -167,7 +167,7 @@ class DHCPPL {
     protected function setOptions($userLogin = '', $userIp = '', $userMac = '') {
         $this->userLogin = $userLogin;
         $this->userIp = $userIp;
-        $this->userMac = $userMac;
+        $this->userMac = strtolower($userMac); // Set MAC to lower case
     }
 
     /**
@@ -203,8 +203,10 @@ class DHCPPL {
             $macParse = $this->userMac;
             $grepPath = $this->grep;
             if ($this->opt82Flag) {
-                $grepPath = $this->grep . ' -E';
+                $grepPath = $this->grep . ' -E -i'; // Add -i flag for case insensitive search
                 $macParse = '"( ' . $this->userIp . '(:)? )|(' . $this->userMac . ')"';
+            } else {
+            $grepPath = $this->grep . ' -i'; // Add -i flag for normal search
             }
             $command = $this->sudo . ' ' . $this->cat . ' ' . $this->logPath . ' | ' . $grepPath . ' ' . $macParse . ' | ' . $this->tail . '  -n ' . $this->linesRender;
             $result = shell_exec($command);
