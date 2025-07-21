@@ -357,6 +357,7 @@ class DoomsDayTariffs {
                 $inputs .= wf_TextInput('createnewddtchargeuntilday', __('Charge current tariff fee if day less then'), '1', true, 2, 'digits');
                 $inputs .= wf_TextInput('createnewddtchargeabsolute', __('Also additionally withdraw the following amount') . ' (' . __('Always') . ')', '', true, 4, 'digits');
                 $inputs .= wf_CheckInput('createnewddtsetcredit', __('Set a user credit if the money is not enough to use the service now'), true, false);
+                $inputs .= wf_TextInput('createnewddtcreditcustom', __('Set a credit, for so many days'), '', true, 4, 'digits');
                 $inputs .= wf_Selector('createnewddttariffmove', $this->allTariffNames, __('Move to tariff after ending of periods'), '', true);
                 $inputs .= wf_delimiter(0);
                 $inputs .= wf_Submit(__('Create'));
@@ -390,6 +391,7 @@ class DoomsDayTariffs {
             $newChargeFee = (ubRouting::checkPost('createnewddtchargefee')) ? 1 : 0;
             $newChargeDay = ubRouting::post('createnewddtchargeuntilday', 'int');
             $newSetCredit = (ubRouting::checkPost('createnewddtsetcredit')) ? 1 : 0;
+            $newCreditCustom = (ubRouting::checkPost('createnewddtcreditcustom')) ? ubRouting::post('createnewddtcreditcustom', 'int') : 0;
             $newChargeAbs = (ubRouting::checkPost('createnewddtchargeabsolute')) ? ubRouting::post('createnewddtchargeabsolute', 'int') : 0;
             $currentTariffsDDT = $this->getCurrentTariffsDDT();
             $currentTariffsCharge = $this->getCurrentChargeTariffs();
@@ -405,6 +407,7 @@ class DoomsDayTariffs {
                         $this->optionsDb->data('setcredit', $newSetCredit);
                         $this->optionsDb->data('tariffmove', $newTariffMove_f);
                         $this->optionsDb->data('chargeabsolute', $newChargeAbs);
+                        $this->optionsDb->data('creditcustom', $newCreditCustom);
                         $this->optionsDb->create();
 
                         $newId = $this->optionsDb->getLastId();
@@ -523,7 +526,11 @@ class DoomsDayTariffs {
                 }
                 $cells .= wf_TableCell(web_bool_led($each['chargefee']) . $absoluteCharge);
                 $cells .= wf_TableCell($each['chargeuntilday']);
-                $cells .= wf_TableCell(web_bool_led($each['setcredit']));
+                $creditLabel = web_bool_led($each['setcredit']);
+                if ($each['creditcustom']) {
+                    $creditLabel .= ' (' . $each['creditcustom'] . ' ' . __('days') . ')';
+                }
+                $cells .= wf_TableCell($creditLabel);
                 $cells .= wf_TableCell($each['tariffmove']);
                 $cells .= wf_TableCell($this->getTariffFee($each['tariffmove']));
 
@@ -628,6 +635,7 @@ class DoomsDayTariffs {
                             $tariffPeriod = $currentTariffOptions['period'];
                             $tariffDuration = $currentTariffOptions['duration'];
                             $moveTariff = $currentTariffOptions['tariffmove'];
+                            $customCreditDayCount = $currentTariffOptions['creditcustom'];
                             $nativeTariffData = $this->allTariffs[$currentUserTariff];
                             $nativeTariffFee = $nativeTariffData['Fee'];
                             $currentUserBalance = $eachUserData['Cash'];
@@ -689,14 +697,20 @@ class DoomsDayTariffs {
                                         //set credit
                                         $billing->setcredit($eachUserLogin, $newUserCredit);
                                         log_register('DDT CHANGE Credit (' . $eachUserLogin . ') ON ' . $newUserCredit);
-                                        //set credit expire date
 
-                                        if ($tariffPeriod == 'month') {
-                                            $tariffExpireDate = date('Y-m-t');
-                                        }
+                                        //seting credit expire date
+                                        if ($customCreditDayCount) {
+                                            //custom per tariff rule
+                                            $tariffExpireDate = date('Y-m-d', strtotime("+" . $customCreditDayCount . " days", strtotime($currentDate)));
+                                        } else {
+                                            //defaults
+                                            if ($tariffPeriod == 'month') {
+                                                $tariffExpireDate = date('Y-m-t');
+                                            }
 
-                                        if ($tariffPeriod == 'day') {
-                                            $tariffExpireDate = date('Y-m-d', strtotime("+3 days", strtotime($currentDate)));
+                                            if ($tariffPeriod == 'day') {
+                                                $tariffExpireDate = date('Y-m-d', strtotime("+3 days", strtotime($currentDate)));
+                                            }
                                         }
 
                                         $billing->setcreditexpire($eachUserLogin, $tariffExpireDate);
