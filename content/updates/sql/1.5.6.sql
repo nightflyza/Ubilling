@@ -1,2 +1,30 @@
 ALTER TABLE `ddt_options` ADD `chargeabsolute` INT(11) NULL DEFAULT 0 AFTER `tariffmove`;
 ALTER TABLE `ddt_options` ADD `creditcustom` INT(11) NULL DEFAULT 0 AFTER `chargeabsolute`;
+
+CREATE TABLE IF NOT EXISTS `katottg` (
+  `id` INT(11) NOT NULL AUTO_INCREMENT,
+  `ob` VARCHAR(64) NOT NULL,
+  `ra` VARCHAR(64) NOT NULL,
+  `tg` VARCHAR(64) NOT NULL,
+  `ci` VARCHAR(64) NOT NULL,
+  `type` VARCHAR(2) DEFAULT NULL,
+  `name` VARCHAR(255) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
+
+CREATE TABLE IF NOT EXISTS `katottg_cities` (
+  `id` INT(11) NOT NULL AUTO_INCREMENT,
+  `katid` INT(11) NOT NULL,
+  `cityid` INT(11) NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `cityid` (`cityid`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
+
+CREATE TABLE IF NOT EXISTS `katottg_streets` (
+  `id` INT(11) NOT NULL AUTO_INCREMENT,
+  `katid` INT(11) NOT NULL,
+  `streetid` INT(11) NOT NULL,
+  `cd` VARCHAR(64) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `streetid` (`streetid`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
