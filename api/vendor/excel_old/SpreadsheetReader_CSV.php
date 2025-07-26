@@ -9,10 +9,10 @@
 		/**
 		 * @var array Options array, pre-populated with the default values.
 		 */
-		private $Options = [
+		private $Options = array(
 			'Delimiter' => ';',
 			'Enclosure' => '"'
-		];
+		);
 
 		private $Encoding = 'UTF-8';
 		private $BOMLength = 0;
@@ -44,11 +44,7 @@
 			}
 
 			// For safety's sake
-			if (version_compare(PHP_VERSION, '8.1.0', '<'))
-			{
-				// 8.1 and newer versions don't support auto_detect_line_endings
-				@ini_set('auto_detect_line_endings', true);
-			}
+			@ini_set('auto_detect_line_endings', true);
 
 			$this -> Options = array_merge($this -> Options, $Options);
 			$this -> Handle = fopen($Filepath, 'r');
@@ -135,7 +131,7 @@
 		 */
 		public function Sheets()
 		{
-			return [0 => basename($this -> Filepath)];
+			return array(0 => basename($this -> Filepath));
 		}
 
 		/**
@@ -160,7 +156,6 @@
 		 * Rewind the Iterator to the first element.
 		 * Similar to the reset() function for arrays in PHP
 		 */ 
-		#[\ReturnTypeWillChange]
 		public function rewind()
 		{
 			fseek($this -> Handle, $this -> BOMLength);
@@ -174,7 +169,6 @@
 		 *
 		 * @return mixed current element from the collection
 		 */
-		#[\ReturnTypeWillChange]
 		public function current()
 		{
 			if ($this -> Index == 0 && is_null($this -> CurrentRow))
@@ -189,10 +183,9 @@
 		 * Move forward to next element. 
 		 * Similar to the next() function for arrays in PHP 
 		 */ 
-		#[\ReturnTypeWillChange]
 		public function next()
 		{
-			$this -> CurrentRow = [];
+			$this -> CurrentRow = array();
 
 			// Finding the place the next line starts for UTF-16 encoded files
 			// Line breaks could be 0x0D 0x00 0x0A 0x00 and PHP could split lines on the
@@ -255,7 +248,6 @@
 		 *
 		 * @return mixed either an integer or a string
 		 */ 
-		#[\ReturnTypeWillChange]
 		public function key()
 		{
 			return $this -> Index;
@@ -267,7 +259,6 @@
 		 *
 		 * @return boolean FALSE if there's nothing more to iterate over
 		 */ 
-		#[\ReturnTypeWillChange]
 		public function valid()
 		{
 			return ($this -> CurrentRow || !feof($this -> Handle));
@@ -278,7 +269,6 @@
 		 * Ostensibly should return the count of the contained items but this just returns the number
 		 * of rows read so far. It's not really correct but at least coherent.
 		 */
-		#[\ReturnTypeWillChange]
 		public function count()
 		{
 			return $this -> Index + 1;

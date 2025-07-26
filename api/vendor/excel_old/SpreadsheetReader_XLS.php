@@ -9,7 +9,8 @@
 		/**
 		 * @var array Options array, pre-populated with the default values.
 		 */
-		private $Options = [];
+		private $Options = array(
+		);
 
 		/**
 		 * @var resource File handle
@@ -24,7 +25,7 @@
 		 * @var array Sheet information
 		 */
 		private $Sheets = false;
-		private $SheetIndexes = [];
+		private $SheetIndexes = array();
 
 		/**
 		 * @var int Current sheet index
@@ -34,7 +35,7 @@
 		/**
 		 * @var array Content of the current row
 		 */
-		private $CurrentRow = [];
+		private $CurrentRow = array();
 
 		/**
 		 * @var int Column count in the sheet
@@ -49,7 +50,7 @@
 		 * @var array Template to use for empty rows. Retrieved rows are merged
 		 *	with this so that empty cells are added, too
 		 */
-		private $EmptyRow = [];
+		private $EmptyRow = array();
 
 		/**
 		 * @param string Path to file
@@ -97,7 +98,7 @@
 		{
 			if ($this -> Sheets === false)
 			{
-				$this -> Sheets = [];
+				$this -> Sheets = array();
 				$this -> SheetIndexes = array_keys($this -> Handle -> sheets);
 
 				foreach ($this -> SheetIndexes as $SheetIndex)
@@ -141,7 +142,7 @@
 				}
 				else
 				{
-					$this -> EmptyRow = [];
+					$this -> EmptyRow = array();
 				}
 			}
 
@@ -164,7 +165,6 @@
 		 * Rewind the Iterator to the first element.
 		 * Similar to the reset() function for arrays in PHP
 		 */ 
-		#[\ReturnTypeWillChange]
 		public function rewind()
 		{
 			$this -> Index = 0;
@@ -176,7 +176,6 @@
 		 *
 		 * @return mixed current element from the collection
 		 */
-		#[\ReturnTypeWillChange]
 		public function current()
 		{
 			if ($this -> Index == 0)
@@ -191,7 +190,6 @@
 		 * Move forward to next element. 
 		 * Similar to the next() function for arrays in PHP 
 		 */ 
-		#[\ReturnTypeWillChange]
 		public function next()
 		{
 			// Internal counter is advanced here instead of the if statement
@@ -201,14 +199,14 @@
 
 			if ($this -> Error)
 			{
-				return [];
+				return array();
 			}
 			elseif (isset($this -> Handle -> sheets[$this -> CurrentSheet]['cells'][$this -> Index]))
 			{
 				$this -> CurrentRow = $this -> Handle -> sheets[$this -> CurrentSheet]['cells'][$this -> Index];
 				if (!$this -> CurrentRow)
 				{
-					return [];
+					return array();
 				}
 
 				$this -> CurrentRow = $this -> CurrentRow + $this -> EmptyRow;
@@ -230,7 +228,6 @@
 		 *
 		 * @return mixed either an integer or a string
 		 */ 
-		#[\ReturnTypeWillChange]
 		public function key()
 		{
 			return $this -> Index;
@@ -242,7 +239,6 @@
 		 *
 		 * @return boolean FALSE if there's nothing more to iterate over
 		 */ 
-		#[\ReturnTypeWillChange]
 		public function valid()
 		{
 			if ($this -> Error)
@@ -257,7 +253,6 @@
 		 * Ostensibly should return the count of the contained items but this just returns the number
 		 * of rows read so far. It's not really correct but at least coherent.
 		 */
-		#[\ReturnTypeWillChange]
 		public function count()
 		{
 			if ($this -> Error)

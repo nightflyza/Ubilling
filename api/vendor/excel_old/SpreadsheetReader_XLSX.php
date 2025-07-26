@@ -22,14 +22,14 @@
 		 */
 		const SHARED_STRING_CACHE_LIMIT = 50000;
 
-		private $Options = [
+		private $Options = array(
 			'TempDir' => '',
 			'ReturnDateTimeObjects' => false
-		];
+		);
 
-		private static $RuntimeInfo = [
+		private static $RuntimeInfo = array(
 			'GMPSupported' => false
-		];
+		);
 
 		private $Valid = false;
 
@@ -60,7 +60,7 @@
 		/**
 		 * @var array Shared strings cache, if the number of shared strings is low enough
 		 */
-		private $SharedStringCache = [];
+		private $SharedStringCache = array();
 
 		// Workbook data
 		/**
@@ -76,10 +76,10 @@
 		/**
 		 * @var array Container for cell value style data
 		 */
-		private $Styles = [];
+		private $Styles = array();
 
 		private $TempDir = '';
-		private $TempFiles = [];
+		private $TempFiles = array();
 
 		private $CurrentRow = false;
 
@@ -103,7 +103,7 @@
 		private $SSOpen = false;
 		private $SSForwarded = false;
 
-		private static $BuiltinFormats = [
+		private static $BuiltinFormats = array(
 			0 => '',
 			1 => '0',
 			2 => '0.00',
@@ -152,11 +152,11 @@
 			68 => 't0.00%',
 			69 => 't# ?/?',
 			70 => 't# ??/??'
-		];
-		private $Formats = [];
+		);
+		private $Formats = array();
 
-		private static $DateReplacements = [
-			'All' => [
+		private static $DateReplacements = array(
+			'All' => array(
 				'\\' => '',
 				'am/pm' => 'A',
 				'yyyy' => 'Y',
@@ -173,16 +173,16 @@
 				'd' => 'j',
 				'ss' => 's',
 				'.s' => ''
-			],
-			'24H' => [
+			),
+			'24H' => array(
 				'hh' => 'H',
 				'h' => 'G'
-			],
-			'12H' => [
+			),
+			'12H' => array(
 				'hh' => 'h',
 				'h' => 'G'
-			]
-		];
+			)
+		);
 
 		private static $BaseDate = false;
 		private static $DecimalSeparator = '.';
@@ -192,7 +192,7 @@
 		/**
 		 * @var array Cache for already processed format strings
 		 */
-		private $ParsedFormatCache = [];
+		private $ParsedFormatCache = array();
 
 		/**
 		 * @param string Path to file
@@ -367,7 +367,7 @@
 		{
 			if ($this -> Sheets === false)
 			{
-				$this -> Sheets = [];
+				$this -> Sheets = array();
 				foreach ($this -> WorkbookXML -> sheets -> sheet as $Index => $Sheet)
 				{
 					$Attributes = $Sheet -> attributes('r', true);
@@ -453,7 +453,7 @@
 					case 't':
 						if ($this -> SharedStrings -> nodeType == XMLReader::END_ELEMENT)
 						{
-							continue 2;
+							continue;
 						}
 						$CacheValue .= $this -> SharedStrings -> readString();
 						break;
@@ -578,7 +578,7 @@
 						case 't':
 							if ($this -> SharedStrings -> nodeType == XMLReader::END_ELEMENT)
 							{
-								continue 2;
+								continue;
 							}
 							$Value .= $this -> SharedStrings -> readString();
 							break;
@@ -631,7 +631,7 @@
 				return $this -> GeneralFormat($Value);
 			}
 
-			$Format = [];
+			$Format = array();
 
 			if (isset($this -> ParsedFormatCache[$Index]))
 			{
@@ -640,13 +640,13 @@
 
 			if (!$Format)
 			{
-				$Format = [
+				$Format = array(
 					'Code' => false,
 					'Type' => false,
 					'Scale' => 1,
 					'Thousands' => false,
 					'Currency' => false
-				];
+				);
 
 				if (isset(self::$BuiltinFormats[$Index]))
 				{
@@ -721,22 +721,22 @@
 					// Removing unnecessary escaping
 					$Format['Code'] = preg_replace("{\\\\}", '', $Format['Code']);
 					// Removing string quotes
-					$Format['Code'] = str_replace(['"', '*'], '', $Format['Code']);
+					$Format['Code'] = str_replace(array('"', '*'), '', $Format['Code']);
 					// Removing thousands separator
 					if (strpos($Format['Code'], '0,0') !== false || strpos($Format['Code'], '#,#') !== false)
 					{
 						$Format['Thousands'] = true;
 					}
-					$Format['Code'] = str_replace(['0,0', '#,#'], ['00', '##'], $Format['Code']);
+					$Format['Code'] = str_replace(array('0,0', '#,#'), array('00', '##'), $Format['Code']);
 
 					// Scaling (Commas indicate the power)
 					$Scale = 1;
-					$Matches = [];
+					$Matches = array();
 					if (preg_match('{(0|#)(,+)}', $Format['Code'], $Matches))
 					{
 						$Scale = pow(1000, strlen($Matches[2]));
 						// Removing the commas
-						$Format['Code'] = preg_replace(['{0,+}', '{#,+}'], ['0', '#'], $Format['Code']);
+						$Format['Code'] = preg_replace(array('{0,+}', '{#,+}'), array('0', '#'), $Format['Code']);
 					}
 
 					$Format['Scale'] = $Scale;
@@ -749,7 +749,7 @@
 					{
 						$Format['Code'] = str_replace('#', '', $Format['Code']);
 
-						$Matches = [];
+						$Matches = array();
 						if (preg_match('{(0+)(\.?)(0*)}', preg_replace('{\[[^\]]+\]}', '', $Format['Code']), $Matches))
 						{
 							$Integer = $Matches[1];
@@ -763,7 +763,7 @@
 						}
 					}
 
-					$Matches = [];
+					$Matches = array();
 					if (preg_match('{\[\$(.*)\]}u', $Format['Code'], $Matches))
 					{
 						$CurrFormat = $Matches[0];
@@ -940,8 +940,7 @@
 		/** 
 		 * Rewind the Iterator to the first element.
 		 * Similar to the reset() function for arrays in PHP
-		 */
-		#[\ReturnTypeWillChange]
+		 */ 
 		public function rewind()
 		{
 			// Removed the check whether $this -> Index == 0 otherwise ChangeSheet doesn't work properly
@@ -957,16 +956,12 @@
 				$this -> Worksheet = new XMLReader;
 			}
 
-			$this -> Valid = false;
+			$this -> Worksheet -> open($this -> WorksheetPath);
+
+			$this -> Valid = true;
 			$this -> RowOpen = false;
 			$this -> CurrentRow = false;
 			$this -> Index = 0;
-
-			if ($this -> WorksheetPath)
-			{
-				$this -> Worksheet -> open($this -> WorksheetPath);
-				$this -> Valid = true;
-			}
 		}
 
 		/**
@@ -975,7 +970,6 @@
 		 *
 		 * @return mixed current element from the collection
 		 */
-		#[\ReturnTypeWillChange]
 		public function current()
 		{
 			if ($this -> Index == 0 && $this -> CurrentRow === false)
@@ -990,12 +984,11 @@
 		 * Move forward to next element. 
 		 * Similar to the next() function for arrays in PHP 
 		 */ 
-		#[\ReturnTypeWillChange]
 		public function next()
 		{
 			$this -> Index++;
 
-			$this -> CurrentRow = [];
+			$this -> CurrentRow = array();
 
 			if (!$this -> RowOpen)
 			{
@@ -1053,7 +1046,7 @@
 							// If it is a closing tag, skip it
 							if ($this -> Worksheet -> nodeType == XMLReader::END_ELEMENT)
 							{
-								continue 2;
+								continue;
 							}
 
 							$StyleId = (int)$this -> Worksheet -> getAttribute('s');
@@ -1087,7 +1080,7 @@
 						case 'is':
 							if ($this -> Worksheet -> nodeType == XMLReader::END_ELEMENT)
 							{
-								continue 2;
+								continue;
 							}
 
 							$Value = $this -> Worksheet -> readString();
@@ -1130,7 +1123,6 @@
 		 *
 		 * @return mixed either an integer or a string
 		 */ 
-		#[\ReturnTypeWillChange]
 		public function key()
 		{
 			return $this -> Index;
@@ -1142,7 +1134,6 @@
 		 *
 		 * @return boolean FALSE if there's nothing more to iterate over
 		 */ 
-		#[\ReturnTypeWillChange]
 		public function valid()
 		{
 			return $this -> Valid;
@@ -1153,7 +1144,6 @@
 		 * Ostensibly should return the count of the contained items but this just returns the number
 		 * of rows read so far. It's not really correct but at least coherent.
 		 */
-		#[\ReturnTypeWillChange]
 		public function count()
 		{
 			return $this -> Index + 1;
@@ -1168,7 +1158,7 @@
 		 */
 		public static function IndexFromColumnLetter($Letter)
 		{
-			$Powers = [];
+			$Powers = array();
 
 			$Letter = strtoupper($Letter);
 

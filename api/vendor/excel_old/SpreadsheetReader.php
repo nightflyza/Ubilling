@@ -12,10 +12,10 @@
 		const TYPE_CSV = 'CSV';
 		const TYPE_ODS = 'ODS';
 
-		private $Options = [
+		private $Options = array(
 			'Delimiter' => '',
 			'Enclosure' => '"'
-		];
+		);
 
 		/**
 		 * @var int Current row in the file
@@ -25,7 +25,7 @@
 		/**
 		 * @var SpreadsheetReader_* Handle for the reader object
 		 */
-		private $Handle = [];
+		private $Handle = array();
 
 		/**
 		 * @var TYPE_* Type of the contained spreadsheet
@@ -42,11 +42,6 @@
 			if (!is_readable($Filepath))
 			{
 				throw new Exception('SpreadsheetReader: File ('.$Filepath.') not readable');
-			}
-
-			if (!is_file($Filepath))
-			{
-				throw new Exception('SpreadsheetReader: '.$Filepath.' is not a file');
 			}
 
 			// To avoid timezone warnings and exceptions for formatting dates retrieved from files
@@ -94,7 +89,7 @@
 				case 'application/xlt':
 				case 'application/x-xls':
 					// Excel does weird stuff
-					if (in_array($Extension, ['csv', 'tsv', 'txt']))
+					if (in_array($Extension, array('csv', 'tsv', 'txt')))
 					{
 						$this -> Type = self::TYPE_CSV;
 					}
@@ -216,7 +211,7 @@
 		 */
 		private static function Load($Type)
 		{
-			if (!in_array($Type, [self::TYPE_XLSX, self::TYPE_XLS, self::TYPE_CSV, self::TYPE_ODS]))
+			if (!in_array($Type, array(self::TYPE_XLSX, self::TYPE_XLS, self::TYPE_CSV, self::TYPE_ODS)))
 			{
 				throw new Exception('SpreadsheetReader: Invalid type ('.$Type.')');
 			}
@@ -235,7 +230,6 @@
 		 * Rewind the Iterator to the first element.
 		 * Similar to the reset() function for arrays in PHP
 		 */ 
-		#[\ReturnTypeWillChange]
 		public function rewind()
 		{
 			$this -> Index = 0;
@@ -251,7 +245,6 @@
 		 *
 		 * @return mixed current element from the collection
 		 */
-		#[\ReturnTypeWillChange]
 		public function current()
 		{
 			if ($this -> Handle)
@@ -265,7 +258,6 @@
 		 * Move forward to next element. 
 		 * Similar to the next() function for arrays in PHP 
 		 */ 
-		#[\ReturnTypeWillChange]
 		public function next()
 		{
 			if ($this -> Handle)
@@ -283,7 +275,6 @@
 		 *
 		 * @return mixed either an integer or a string
 		 */ 
-		#[\ReturnTypeWillChange]
 		public function key()
 		{
 			if ($this -> Handle)
@@ -299,7 +290,6 @@
 		 *
 		 * @return boolean FALSE if there's nothing more to iterate over
 		 */ 
-		#[\ReturnTypeWillChange]
 		public function valid()
 		{
 			if ($this -> Handle)
@@ -310,7 +300,6 @@
 		}
 
 		// !Countable interface method
-		#[\ReturnTypeWillChange]
 		public function count()
 		{
 			if ($this -> Handle)
@@ -326,7 +315,6 @@
 		 *
 		 * @param int Position in file
 		 */
-		#[\ReturnTypeWillChange]
 		public function seek($Position)
 		{
 			if (!$this -> Handle)
