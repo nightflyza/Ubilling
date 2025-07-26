@@ -59,6 +59,13 @@ class UserSideApi {
     protected $allBuilds = array();
 
     /**
+     * Contains KATOTTG instance if enabled
+     *
+     * @var object
+     */
+    protected $katottg='';
+
+    /**
      * Contains available custom fields types as id=>name
      *
      * @var array
@@ -189,6 +196,7 @@ class UserSideApi {
         $this->loadCities();
         $this->loadStreets();
         $this->loadBuilds();
+        $this->initKATOTTG();
         $this->loadCF();
         $this->loadUsers();
         $this->loadTagTypes();
@@ -390,6 +398,17 @@ class UserSideApi {
     }
 
     /**
+     * Initializes KATOTTG instance if enabled
+     * 
+     * @return void
+     */
+    protected function initKATOTTG() {
+        if ($this->altCfg['KATOTTG_ENABLED']) {
+            $this->katottg = new KATOTTG();
+        }
+    }
+
+    /**
      * Loads existing custom fields data from database
      * 
      * @return void
@@ -577,6 +596,12 @@ class UserSideApi {
                 $result[$cityId]['id'] = $cityId;
                 $result[$cityId]['name'] = $cityData['cityname'];
                 $result[$cityId]['type_name'] = $this->defaultCityType;
+                if ($this->katottg) {
+                    $katottgData = $this->katottg->getCodeDataByCity($cityId);
+                    if (!empty($katottgData)) {
+                        $result[$cityId]['gov_id'] = $katottgData['ci'];
+                    }
+                }
             }
         }
         return ($result);
