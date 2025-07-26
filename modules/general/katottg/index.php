@@ -55,6 +55,7 @@ if (cfr('KATOTTG')) {
                 show_window(__('City binding'), $bindingForm);
             }
             show_window(__('City binding list'), $kat->renderCityBindingList());
+            zb_BillingStats();
         }
 
         if (ubRouting::checkGet($kat::ROUTE_STREET_BIND)) {
