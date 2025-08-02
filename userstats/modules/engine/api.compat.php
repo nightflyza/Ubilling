@@ -14,17 +14,24 @@ function zbs_LoadConfig() {
 /**
  * Loads required locale lang and returns array of loalized strings
  * 
- * @param type $language
+ * @param string  $language
+ * 
  * @return array
  */
 function zbs_LoadLang($language) {
-    $language = vf($language);
     $language = preg_replace('/\0/s', '', $language);
-    if (file_exists('languages/' . $language . '/lang.php')) {
-        include('languages/' . $language . '/lang.php');
-        //additional locale
-        if (file_exists('languages/' . $language . '/addons.php')) {
-            include('languages/' . $language . '/addons.php');
+    $language = preg_replace('/[^a-zA-Z0-9_]/', '', $language);
+    $availableLanguages = rcms_scandir('languages/');
+    $availableLanguages = array_flip($availableLanguages);
+    if (isset($availableLanguages[$language])) {
+        if (file_exists('languages/' . $language . '/lang.php')) {
+            include('languages/' . $language . '/lang.php');
+            //additional locale
+            if (file_exists('languages/' . $language . '/addons.php')) {
+                include('languages/' . $language . '/addons.php');
+            }
+        } else {
+            include('languages/english/lang.php');
         }
     } else {
         include('languages/english/lang.php');
