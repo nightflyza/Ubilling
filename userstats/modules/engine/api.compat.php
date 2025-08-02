@@ -165,11 +165,17 @@ function rcms_scandir($directory, $exp = '', $type = 'all', $do_not_filter = fal
 function zbs_LoadModule($modulename) {
     $modCheck = false;
     if (!empty($modulename) and is_string($modulename)) {
-        $modulename = vf($modulename);
         $modulename = preg_replace('/\0/s', '', $modulename);
+        $modulename = preg_replace('/[^a-zA-Z0-9_]/', '', $modulename);
         $module_path = 'modules/general/';
-        if (file_exists($module_path . $modulename . '/index.php')) {
-            $modCheck = true;
+        if (!empty($modulename) and is_string($modulename)) {
+            $loadableModules = rcms_scandir($module_path);
+            $loadableModules = array_flip($loadableModules);
+            if (isset($loadableModules[$modulename])) {
+                if (file_exists($module_path . $modulename . '/index.php')) {
+                    $modCheck = true;
+                }
+            }
         }
     }
 
