@@ -1819,6 +1819,28 @@ function zbs_UserChangePassword($login) {
 }
 
 /**
+ * Returns array of apocryphal tariffs like tariffName=>pricing string
+ *
+ * @return array
+ */
+function zbs_LoadTariffsApocrypha() {
+    global $us_config;
+    $result = array();
+    if (isset($us_config['TARIFF_APOCRYPHA'])) {
+        if (!empty($us_config['TARIFF_APOCRYPHA'])) {
+            //format: tariffName1:description1,tariffName2:description2,tariffName3:description3
+            $raw = $us_config['TARIFF_APOCRYPHA'];
+            $raw = explode(',', $raw);
+            foreach ($raw as $each) {
+                $each = explode(':', $each);
+                $result[$each[0]] = $each[1];
+            }
+        }
+    }
+    return ($result);
+}
+
+/**
  * Renders user profile
  * 
  * @param string $login
@@ -1919,6 +1941,14 @@ function zbs_UserShowProfile($login) {
         }
     } else {
         @$tariffPrice = zbs_UserGetTariffPrice($userdata['Tariff']);
+    }
+
+    //apocryphal tariffs override
+    $apocryphalTariffs = zbs_LoadTariffsApocrypha();
+    if (!empty($apocryphalTariffs)) {
+        if (isset($apocryphalTariffs[$userdata['Tariff']])) {
+            $tariffPriceApocrypha = $apocryphalTariffs[$userdata['Tariff']];
+        }
     }
 
     //payment id qr dialog
@@ -2112,9 +2142,13 @@ function zbs_UserShowProfile($login) {
 
 
     //tariff price here
+    $tariffPriceLabel=$tariffPrice.' '.$us_currency;
+    if (!empty($tariffPriceApocrypha)) {
+        $tariffPriceLabel = $tariffPriceApocrypha;
+    }
     $profile .= la_tag('tr');
     $profile .= la_TableCell(__('Tariff price'), '', 'row1');
-    $profile .= la_TableCell($tariffPrice . ' ' . $us_currency);
+    $profile .= la_TableCell($tariffPriceLabel);
     $profile .= la_tag('tr', true);
 
     //render custom fee day
