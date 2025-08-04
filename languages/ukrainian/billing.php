@@ -3613,4 +3613,6 @@ $lang['def']['City district'] = 'Район міста';
 $lang['def']['Streets binding'] = 'Прив`язка вулиць';
 $lang['def']['Streets binding list'] = 'Список прив`язок вулиць';
 $lang['def']['right to manage KATOTTG directory'] = 'Право керувати довідником КАТОТТГ';
-
+$lang['def']['Birthday'] = 'День народження';
+$lang['def']['today'] = 'сьогодні';
+$lang['def']['years'] = 'років';

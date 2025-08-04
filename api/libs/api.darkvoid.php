@@ -456,6 +456,20 @@ class DarkVoid {
             }
         }
 
+        //birthday reminder
+        if ($this->ubConfig->getAlterParam('BIRTHDAY_REMINDER')) {
+            if (cfr('EMPLOYEEDIR')) {
+                $todayBirthdays=em_EmployeeGetTodayBirthdays();
+                if (!empty($todayBirthdays)) {
+                    $birthdayList='';
+                    foreach ($todayBirthdays as $eachId=>$eachData) {
+                        $birthdayList.=$eachData['name'].' '; 
+                    }
+                    $this->alerts .= wf_Link('?module=employee', wf_img('skins/cake32.png', __('Birthday').' '.__('today').': '.$birthdayList));
+                }
+            }
+        }
+
         //appending some debug string to validate cache expire
         $this->alerts .= '<!-- DarkVoid saved: ' . curdatetime() . ' -->';
 

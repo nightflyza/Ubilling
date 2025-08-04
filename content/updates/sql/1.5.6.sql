@@ -28,3 +28,5 @@ CREATE TABLE IF NOT EXISTS `katottg_streets` (
   PRIMARY KEY (`id`),
   KEY `streetid` (`streetid`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
+
+ALTER TABLE `employee` ADD `birthdate` DATE NULL AFTER `amountLimit`; 

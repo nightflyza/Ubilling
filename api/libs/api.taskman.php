@@ -30,6 +30,7 @@ function em_EmployeeRenderList() {
     $allEmployee = ts_GetAllEmployeeData();
     $allTagNames = stg_get_alltagnames();
     $messages = new UbillingMessageHelper();
+    $todayBirthdays=em_EmployeeGetTodayBirthdays($allEmployee);
 
     if (!empty($allEmployee)) {
         $cells = wf_TableCell(__('ID'));
@@ -44,9 +45,15 @@ function em_EmployeeRenderList() {
         $cells .= wf_TableCell(__('Actions'));
         $rows = wf_TableRow($cells, 'row1');
 
-        foreach ($allEmployee as $ion => $eachemployee) {
+        foreach ($allEmployee as $io => $eachemployee) {
+            $cakeTag='';
+            if (isset($todayBirthdays[$eachemployee['id']])) {
+                $age=$todayBirthdays[$eachemployee['id']]['age'];
+                $cake=' 🎂 ';
+                $cakeTag=wf_tag('span',false,'','title="'.$age.' '.__('years').'"').$cake.wf_tag('span',true);
+            }
             $cells = wf_TableCell($eachemployee['id']);
-            $cells .= wf_TableCell($eachemployee['name']);
+            $cells .= wf_TableCell($eachemployee['name'].$cakeTag);
             $cells .= wf_TableCell(web_bool_led($eachemployee['active']), '', '', 'sorttable_customkey="' . $eachemployee['active'] . '"');
             $cells .= wf_TableCell($eachemployee['appointment']);
             $cells .= wf_TableCell($eachemployee['mobile']);
@@ -99,7 +106,8 @@ function em_EmployeeCreateForm() {
     $inputs .= em_TagSelector('editadtagid', __('Tag'));
     $inputs .= wf_delimiter(0);
     $inputs .= wf_TextInput('amountLimit', 'Monthly top up limit', '', true, 5, 'finance');
-    $inputs .= wf_delimiter(0);
+    $inputs .= wf_DatePicker('birthdate',true).' '.__('Birth date');
+    $inputs .= wf_delimiter(1);
     $inputs .= wf_Submit(__('Create new employee'));
 
     $result .= wf_Form('', 'POST', $inputs, 'glamour');
@@ -119,6 +127,10 @@ function em_EmployeeSave($editemployee) {
         $employeeDb = new NyanORM('employee');
         $actFlag = (ubRouting::checkPost('editactive')) ? 1 : 0;
         $amountLim = (ubRouting::checkPost('amountLimit')) ? ubRouting::post('amountLimit') : 0;
+        $birthdate = (ubRouting::checkPost('editbirthdate')) ? ubRouting::post('editbirthdate','mres') : '';
+        if (!zb_checkDate($birthdate)) {
+            $birthdate = '';
+        }
         $employeeDb->data('name', ubRouting::post('editname', 'mres'));
         $employeeDb->data('appointment', ubRouting::post('editappointment', 'mres'));
         $employeeDb->data('mobile', ubRouting::post('editmobile', 'mres'));
@@ -127,11 +139,54 @@ function em_EmployeeSave($editemployee) {
         $employeeDb->data('tagid', ubRouting::post('editadtagid', 'int'));
         $employeeDb->data('amountLimit', $amountLim);
         $employeeDb->data('active', $actFlag);
+        $employeeDb->data('birthdate', $birthdate);
         $employeeDb->where('id', '=', $editemployee);
         $employeeDb->save();
 
         log_register('EMPLOYEE CHANGE [' . $editemployee . ']');
     }
+}
+
+/**
+ * Returns array with birthday today as employeeid=>[name,age,admlogin]
+ * 
+ * @param array $allEmployeeData
+ *
+ * @return void
+ */
+function em_EmployeeGetTodayBirthdays($allEmployeeData=array()) {
+    $result = array();
+    $curdate=curdate();
+    $allData=array();
+    if (empty($allEmployeeData)) {
+        $employeeDb = new NyanORM('employee');
+        $employeeDb->where('birthdate', '!=','');
+        $employeeDb->where('birthdate', '!=','0000-00-00');
+        $allData=$employeeDb->getAll();
+    } else {
+        foreach ($allEmployeeData as $eachId=>$eachData) {
+            if (!empty($eachData['birthdate']) and $eachData['birthdate']!='0000-00-00') {
+                $allData[$eachId]=$eachData;
+            }
+        }
+    }
+    
+    if (!empty($allData)) {
+        foreach ($allData as $each) {
+            $birthdate = $each['birthdate'];
+            $birthMonth = date('m', strtotime($birthdate));
+            $birthDay = date('d', strtotime($birthdate));
+            $curMonth = date('m', strtotime($curdate));
+            $curDay = date('d', strtotime($curdate));
+            if ($birthMonth == $curMonth AND $birthDay == $curDay) {
+                $age=date('Y', strtotime($curdate)) - date('Y', strtotime($birthdate));
+                $result[$each['id']]['name'] = $each['name'];
+                $result[$each['id']]['age'] = $age;
+                $result[$each['id']]['admlogin'] = $each['admlogin'];
+            }
+        }
+    }
+    return ($result);
 }
 
 /**
@@ -154,7 +209,9 @@ function em_employeeEditForm($editemployee) {
     $editinputs .= wf_TextInput('editadmlogin', __('Administrator'), $employeedata['admlogin'], true, 20);
     $editinputs .= em_TagSelector('editadtagid', __('Tag'), $employeedata['tagid'], true);
     $editinputs .= wf_TextInput('amountLimit', __('Monthly top up limit'), $employeedata['amountLimit'], true, 20, 'finance');
+    $editinputs .= wf_DatePickerPreset('editbirthdate',$employeedata['birthdate'],true).' '.__('Birth date').wf_delimiter(0);
     $editinputs .= wf_CheckInput('editactive', 'Active', true, $actflag);
+    $editinputs.=wf_delimiter(0);
     $editinputs .= wf_Submit('Save');
     $result .= wf_Form('', 'POST', $editinputs, 'glamour');
 
@@ -265,10 +322,11 @@ function em_JobTypeCreateForm() {
  * @param string $job
  * @param string $mobile
  * @param string $admlogin
+ * @param string $birthdate
  * 
  * @return void
  */
-function em_EmployeeAdd($name, $job, $mobile = '', $telegram = '', $admlogin = '', $tagid = '', $amountLimit = '') {
+function em_EmployeeAdd($name, $job, $mobile = '', $telegram = '', $admlogin = '', $tagid = '', $amountLimit = '', $birthdate = '') {
     $name = mysql_real_escape_string(trim($name));
     $job = mysql_real_escape_string(trim($job));
     $mobile = mysql_real_escape_string($mobile);
@@ -276,8 +334,12 @@ function em_EmployeeAdd($name, $job, $mobile = '', $telegram = '', $admlogin = '
     $admlogin = mysql_real_escape_string($admlogin);
     $tagid = mysql_real_escape_string($tagid);
     $amountLimit = (empty($amountLimit)) ? 0 : $amountLimit;
-    $query = "INSERT INTO `employee` (`id` , `name` , `appointment`, `mobile`, `telegram`, `admlogin`, `active`, `tagid`, `amountLimit`)
-              VALUES (NULL , '" . $name . "', '" . $job . "','" . $mobile . "','" . $telegram . "' ,'" . $admlogin . "' , '1', " . $tagid . ", " . $amountLimit . "); ";
+    $birthdate = (empty($birthdate)) ? '' : mysql_real_escape_string($birthdate);
+    if (!zb_checkDate($birthdate)) {
+        $birthdate = '';
+    }
+    $query = "INSERT INTO `employee` (`id` , `name` , `appointment`, `mobile`, `telegram`, `admlogin`, `active`, `tagid`, `amountLimit`, `birthdate`)
+              VALUES (NULL , '" . $name . "', '" . $job . "','" . $mobile . "','" . $telegram . "' ,'" . $admlogin . "' , '1', " . $tagid . ", " . $amountLimit . ", '" . $birthdate . "'); ";
     nr_query($query);
     $employee_id = simple_query("SELECT LAST_INSERT_ID() as id");
     $employee_id = $employee_id['id'];

@@ -13,8 +13,9 @@ if (cfr('EMPLOYEEDIR')) {
         $newEmpAdmLogin = ubRouting::post('employeeadmlogin');
         $newEmpTagId = ubRouting::post('editadtagid');
         $newEmpAmLim = ubRouting::post('amountLimit');
+        $newEmpBirthDate = ubRouting::post('birthdate');
 
-        em_EmployeeAdd($newEmpName, $newEmpJob, $newEmpMobile, $newEmpTlg, $newEmpAdmLogin, $newEmpTagId, $newEmpAmLim);
+        em_EmployeeAdd($newEmpName, $newEmpJob, $newEmpMobile, $newEmpTlg, $newEmpAdmLogin, $newEmpTagId, $newEmpAmLim, $newEmpBirthDate);
         $ubCache->delete('EMPLOYEE_LOGINS');
         ubRouting::nav('?module=employee');
     }
