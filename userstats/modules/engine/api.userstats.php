@@ -1841,6 +1841,32 @@ function zbs_LoadTariffsApocrypha() {
 }
 
 /**
+ * Lookups for nearest scheduled tariff changes for some user
+ *
+ * @param string $login
+ * 
+ * @return string
+ */
+function zbs_TariffLookupDWI($login) {
+    global $us_config;
+    $result='';
+    $login=ubRouting::filters($login, 'login');
+    if (isset($us_config['TARIFF_DEALWITHIT_LOOKUP'])) {
+        if ($us_config['TARIFF_DEALWITHIT_LOOKUP']) {
+            $dealWithItDb=new NyanORM('dealwithit');
+            $dealWithItDb->where('login','=' ,$login);
+            $dealWithItDb->where('action','=' ,'tariffchange');
+            $dealWithItDb->orderBy('date','ASC');
+            $records=$dealWithItDb->getAll();
+            if (!empty($records)) {
+                $result.=__($records[0]['param']).' ('.$records[0]['date'].')';
+            }
+        }
+    }
+    return ($result);
+}
+
+/**
  * Renders user profile
  * 
  * @param string $login
@@ -2163,9 +2189,17 @@ function zbs_UserShowProfile($login) {
 
     $profile .= $tariffSpeeds;
 
+    $tariffChangeLabel='';
+    if (!empty($userdata['TariffChange'])) {
+        $tariffChangeLabel=__($userdata['TariffChange']);
+    } else {
+        $tariffChangeLabel=zbs_TariffLookupDWI($login);
+    }
+
+
     $profile .= la_tag('tr');
     $profile .= la_TableCell(__('Tariff change'), '', 'row1');
-    $profile .= la_TableCell(__($userdata['TariffChange']));
+    $profile .= la_TableCell($tariffChangeLabel);
     $profile .= la_tag('tr', true);
 
     $profile .= la_tag('tr');
