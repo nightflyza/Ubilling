@@ -3396,61 +3396,6 @@ function crc16($string) {
 }
 
 /**
- * Retuns vendor name for some MAC address using searchmac.com GET API
- * 
- * @param string $mac
- * @return string
- */
-function zb_MacVendorSearchmac($mac) {
-    // searchmac.com API request
-    $url = 'http://searchmac.com/api/v2/' . $mac;
-    $ubVer = file_get_contents('RELEASE');
-    $agent = 'MacVenUbilling/' . trim($ubVer);
-    $api = new OmaeUrl($url);
-    $api->setUserAgent($agent);
-    $rawdata = $api->response();
-    if (!empty($rawdata)) {
-        $result = $rawdata;
-    } else {
-        $result = 'EMPTY';
-    }
-
-    return ($result);
-}
-
-/**
- * Lookups vendor by mac via searchmac.com or macvendorlookup.com
- * 
- * @param string $mac
- * @return string
- */
-function zb_MacVendorLookup($mac) {
-    global $ubillingConfig;
-    $altcfg = $ubillingConfig->getALter();
-    $result = '';
-    //use old macvendorlookup.com API
-    if (isset($altcfg['MACVEN_OLD'])) {
-        if ($altcfg['MACVEN_OLD']) {
-            $url = 'http://www.macvendorlookup.com/api/v2/';
-            $mac = str_replace(':', '', $mac);
-            $rawdata = file_get_contents($url . $mac . '/pipe');
-
-            if (!empty($rawdata)) {
-                $data = explode("|", $rawdata);
-                if (!empty($data)) {
-                    $result = $data[4];
-                }
-            }
-        } else {
-            $result = zb_MacVendorSearchmac($mac);
-        }
-    } else {
-        $result = zb_MacVendorSearchmac($mac);
-    }
-    return ($result);
-}
-
-/**
  * Returns configuration editor to display in sysconf module
  * 
  * @global bool $hide_passwords
