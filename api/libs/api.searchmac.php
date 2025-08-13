@@ -5,55 +5,55 @@
  */
 class SearchMAC {
 
-    protected $altCfg=array();
+    protected $altCfg = array();
     /**
      * Vendor cache flag
      *
      * @var bool
      */
-    protected $cacheFlag=false;
+    protected $cacheFlag = false;
 
     /**
      * system cache object placeholder
      *
      * @var object
      */
-    protected $cache='';
+    protected $cache = '';
 
     /**
      * Cache time in seconds
      *
      * @var int
-     */    
-    protected $cacheTime=2592000; 
+     */
+    protected $cacheTime = 2592000;
 
     /**
      * Preloaded vendor cache
      *
      * @var array
      */
-    protected $vendorCache=array();
-    
+    protected $vendorCache = array();
+
     /**
      * HTTP code from last request
      *
      * @var int
      */
-    protected $httpCode=0;
+    protected $httpCode = 0;
 
     /**
      * User agent string
      *
      * @var string
      */
-    protected $agentString='';
-    
+    protected $agentString = '';
+
     /**
      * Cache key name
      *
      * @var string
      */
-    const CACHE_KEY='MACVENDB';
+    const CACHE_KEY = 'MACVENDB';
 
     /**
      * imprisoned in a web of night
@@ -76,7 +76,7 @@ class SearchMAC {
         $this->altCfg = $ubillingConfig->getAlter();
         if (isset($this->altCfg['MACVEN_CACHE'])) {
             if ($this->altCfg['MACVEN_CACHE']) {
-                $this->cacheFlag=true;
+                $this->cacheFlag = true;
             }
         }
     }
@@ -119,22 +119,12 @@ class SearchMAC {
      * @return string
      */
     public function getVendor($mac) {
-        $result='';
+        $result = '';
         if ($this->cacheFlag) {
-                if (!empty($this->vendorCache) and is_array($this->vendorCache)) {
-                    if (isset($this->vendorCache[$mac])) {
-                        $result = $this->vendorCache[$mac];
-                    } else {
-                        $vendor = $this->lookupMacVendor($mac);
-                        if ($this->httpCode == 200) {
-                            $this->vendorCache[$mac] = $vendor;
-                            $this->cache->set(self::CACHE_KEY, $this->vendorCache, $this->cacheTime);
-                        }
-                        $result = $vendor;
-                    }
+            if (!empty($this->vendorCache) and is_array($this->vendorCache)) {
+                if (isset($this->vendorCache[$mac])) {
+                    $result = $this->vendorCache[$mac];
                 } else {
-                    //empty cache
-                    $this->vendorCache = array();
                     $vendor = $this->lookupMacVendor($mac);
                     if ($this->httpCode == 200) {
                         $this->vendorCache[$mac] = $vendor;
@@ -142,6 +132,16 @@ class SearchMAC {
                     }
                     $result = $vendor;
                 }
+            } else {
+                //empty cache
+                $this->vendorCache = array();
+                $vendor = $this->lookupMacVendor($mac);
+                if ($this->httpCode == 200) {
+                    $this->vendorCache[$mac] = $vendor;
+                    $this->cache->set(self::CACHE_KEY, $this->vendorCache, $this->cacheTime);
+                }
+                $result = $vendor;
+            }
         } else {
             $result = $this->lookupMacVendor($mac);
         }
@@ -161,11 +161,11 @@ class SearchMAC {
         $api->setUserAgent($this->agentString);
         $rawdata = $api->response();
         $this->httpCode = $api->httpCode();
-            if (!empty($rawdata)) {
-                $result = strip_tags($rawdata);
-            } else {
-                $result = 'EMPTY';
-            }
-        return ($result);
+        if (!empty($rawdata)) {
+            $result = strip_tags($rawdata);
+        } else {
+            $result = 'EMPTY';
         }
+        return ($result);
+    }
 }
