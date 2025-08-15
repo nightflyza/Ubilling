@@ -230,6 +230,13 @@ class UbillingVisor {
     protected $cachedUsersFlag = false;
 
     /**
+     * Contains current locale in two-letter format
+     *
+     * @var string
+     */
+    protected $lang = 'en';
+
+    /**
      * Basic module URLs
      */
     const URL_ME = '?module=visor';
@@ -2907,10 +2914,11 @@ class UbillingVisor {
      * @param string $streamUrl
      * @param string $width
      * @param bool $autoPlay
+     * @param string $poster
      * 
      * @return string
      */
-    protected function renderChannelPlayer($streamUrl, $width, $autoPlay = false) {
+    protected function renderChannelPlayer($streamUrl, $width, $autoPlay = false, $poster = '') {
         $result = '';
 
         if ($this->chanPreviewContainer == 'mjpeg') {
@@ -2918,13 +2926,19 @@ class UbillingVisor {
         }
 
         if ($this->chanPreviewContainer == 'hls') {
-            $autoPlayMode = ($autoPlay) ? 'true' : 'false';
-            $uniqId = 'hlsplayer' . wf_InputId();
+            $autoPlay = ($autoPlay) ? 'true' : 'false';
+            $playerId = 'hlsplayer' . wf_InputId();
+            $poster = ($poster) ? ' poster:"' . $poster . '",' : '';
+            $lang = 'lang: "' . $this->lang . '", ';
+
             $result .= wf_tag('script', false, '', 'src="modules/jsc/playerjs/w7.js"') . wf_tag('script', true);
-            $result .= wf_tag('div', false, '', 'id="' . $uniqId . '" style="width:' . $width . ';"') . wf_tag('div', true);
-            $result .= wf_tag('script', false);
-            $result .= 'var player = new Playerjs({id:"' . $uniqId . '", file:"' . $streamUrl . '", autoplay:' . $autoPlayMode . '});';
+            $result .= wf_tag('div', false, '', 'style="float:left; width:' . $width . '; margin:5px;"');
+            $result .= wf_tag('div', false, '', 'id = "' . $playerId . '" style="width:90%;"') . wf_tag('div', true);
+            $result .= wf_tag('script');
+            $result .= 'var player = new Playerjs({id:"' . $playerId . '", ' . $lang . ' ' . $poster . ' file:"' . $streamUrl . '", autoplay:' . $autoPlay . '});';
             $result .= wf_tag('script', true);
+            $result .= wf_tag('div', true);
+            $result .= wf_CleanDiv();
         }
         return ($result);
     }
@@ -2986,16 +3000,23 @@ class UbillingVisor {
                 $wolfRecorder = new WolfRecorder($apiUrl, $dvrData['apikey']);
                 if ($wolfRecorder->connectionOk()) {
                     $screenshotUrl = '';
+                    //basic check
                     $screenshotReply = $wolfRecorder->channelsGetScreenshot($channelGuid);
                     if ($wolfRecorder->noError($screenshotReply)) {
                         if (isset($screenshotReply['screenshot']) and !empty($screenshotReply['screenshot'])) {
                             $screenshotUrl = $webUrl . $screenshotReply['screenshot'];
+                            $liveStreamReply = $wolfRecorder->channelsGetLiveStream($channelGuid);
+                            if ($wolfRecorder->noError($liveStreamReply)) {
+                                $liveStreamUrl = $webUrl . $liveStreamReply['livestream'] . '&file=stream.m3u8';
+                                $this->chanPreviewContainer = 'hls';
+                                $result .= $this->renderChannelPlayer($liveStreamUrl, '60%', true, $screenshotUrl);
+                            } else {
+                                $result .= $this->messages->getStyledMessage(__('Oh no') . ': ' . __('Live stream') . ' ' . __('Failed'), 'error');
+                            }
                         } else {
                             $screenshotUrl = 'skins/noimage.jpg';
+                            $result .= wf_img_sized($screenshotUrl, '', '70%');
                         }
-
-
-                        $result .= wf_img_sized($screenshotUrl, '', '70%');
                     } else {
                         $result .= $this->messages->getStyledMessage(__('Oh no') . ': ' . __('DVR') . ' ' . __('Connection') . ' ' . __('Failed'), 'error');
                     }
