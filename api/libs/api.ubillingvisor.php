@@ -2920,7 +2920,7 @@ class UbillingVisor {
         if ($this->chanPreviewContainer == 'hls') {
             $autoPlayMode = ($autoPlay) ? 'true' : 'false';
             $uniqId = 'hlsplayer' . wf_InputId();
-            $result .= wf_tag('script', false, '', 'src="modules/jsc/playerjs/playerjs.js"') . wf_tag('script', true);
+            $result .= wf_tag('script', false, '', 'src="modules/jsc/playerjs/w7.js"') . wf_tag('script', true);
             $result .= wf_tag('div', false, '', 'id="' . $uniqId . '" style="width:' . $width . ';"') . wf_tag('div', true);
             $result .= wf_tag('script', false);
             $result .= 'var player = new Playerjs({id:"' . $uniqId . '", file:"' . $streamUrl . '", autoplay:' . $autoPlayMode . '});';
