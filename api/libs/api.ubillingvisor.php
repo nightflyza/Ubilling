@@ -272,6 +272,7 @@ class UbillingVisor {
 
     public function __construct() {
         $this->loadConfigs();
+        $this->setLang();
         $this->loadDvrTypes();
         $this->initMessages();
         $this->initDbLayers();
@@ -379,6 +380,17 @@ class UbillingVisor {
     protected function initMessages() {
         $this->messages = new UbillingMessageHelper();
     }
+
+
+    /**
+     * Sets current locale code in two letter format
+     *
+     * @return void
+     */
+    protected function setLang() {
+        $this->lang = curlang();
+    }
+
 
     /**
      * Loads all existing users data from database
