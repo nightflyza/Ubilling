@@ -58,6 +58,13 @@ if (@$us_config['VISOR_ENABLED']) {
         protected $chanPreviewContainer = 'mjpeg';
 
         /**
+         * Contains current locale in two letters format
+         *
+         * @var string
+         */
+        protected $lang='en';
+
+        /**
          * Some default tables names
          */
         const TABLE_USERS = 'visor_users';
@@ -67,6 +74,7 @@ if (@$us_config['VISOR_ENABLED']) {
 
         public function __construct($login) {
             $this->loadConfigs();
+            $this->setLang();
             $this->setLogin($login);
             $this->loadAllUserData();
             $this->loadAllAddressData();
@@ -85,6 +93,35 @@ if (@$us_config['VISOR_ENABLED']) {
             global $us_config;
             $this->userstatsCfg = $us_config;
         }
+
+    /**
+     * Sets current locale code in two letter format
+     *
+     * @return void
+     */
+    protected function setLang() {
+        
+        $currentLocale = $this->userstatsCfg['lang'];
+        $langCode = 'en';
+        switch ($currentLocale) {
+            case 'ukrainian':
+                $langCode = 'uk';
+                break;
+            case 'english':
+                $langCode = 'en';
+                break;
+            case 'portuguese':
+                $langCode = 'pt';
+                break;
+            case 'spanish':
+                $langCode = 'es';
+                break;
+            case 'russian':
+                $langCode = 'ru';
+                break;
+        }
+        $this->lang = $langCode;
+    }
 
         /**
          * Protected login property setter
@@ -211,11 +248,12 @@ if (@$us_config['VISOR_ENABLED']) {
 
             if ($this->chanPreviewContainer == 'hls') {
                 $autoPlayMode = ($autoPlay) ? 'true' : 'false';
+                 $lang = 'lang: "' . $this->lang . '", ';
                 $uniqId = 'hlsplayer' . la_InputId();
-                $result .= la_tag('script', false, '', 'src="modules/jsc/playerjs/playerjs.js"') . la_tag('script', true);
+                $result .= la_tag('script', false, '', 'src="modules/jsc/playerjs/w7.js"') . la_tag('script', true);
                 $result .= la_tag('div', false, '', 'id="' . $uniqId . '" style="width:' . $width . '; height:' . $height . ';"') . la_tag('div', true);
                 $result .= la_tag('script', false);
-                $result .= 'var player = new Playerjs({id:"' . $uniqId . '", file:"' . $streamUrl . '", autoplay:' . $autoPlayMode . '});';
+                $result .= 'var player = new Playerjs({id:"' . $uniqId . '", ' . $lang . ' file:"' . $streamUrl . '", autoplay:' . $autoPlayMode . '});';
                 $result .= la_tag('script', true);
                 if ($fullUrl) {
                     $result .= la_Link($fullUrl, __('View'), false, '');
