@@ -174,6 +174,20 @@ class ChartMancer {
     protected $xLabelLen = 5;
 
     /**
+     * Maximum length of pie chart label text
+     * 
+     * @var int
+     */
+    protected $pieLabelLen = 15;
+
+    /**
+     * Show percentage values instead of exact values in pie labels
+     * 
+     * @var bool
+     */
+    protected $piePercent = false;
+
+    /**
      * Contains X-axis labels count
      *
      * @var int
@@ -417,6 +431,28 @@ class ChartMancer {
      */
     public function setCutSuffix($value = '...') {
         $this->cutSuffix = $value;
+    }
+
+    /**
+     * Sets pie chart labels length in bytes
+     *
+     * @param int $len
+     * 
+     * @return void
+     */
+    public function setPieLabelLen($len = 15) {
+        $this->pieLabelLen = $len;
+    }
+
+    /**
+     * Sets pie chart labels to show percentage values
+     *
+     * @param bool $enabled
+     * 
+     * @return void
+     */
+    public function setPiePercent($enabled = false) {
+        $this->piePercent = $enabled;
     }
 
     /**
@@ -941,6 +977,176 @@ class ChartMancer {
         }
 
         return ($result);
+    }
+
+    /**
+     * Renders pie chart as PNG image into browser or into specified file
+     * 
+     * @param array $data chart dataset
+     * @param string $filename filename to export chart. May be empty for rendering to browser
+     *                         may contain name of .png file to save as file on FS, or be like 
+     *                         base64 or base64html to return chart as base64 encoded string
+     * 
+     * @return bool|string
+     */
+    public function renderPie($data, $fileName = '') {
+        if ($this->debug) {
+            $starttime = explode(' ', microtime());
+            $starttime = $starttime[1] + $starttime[0];
+        }
+
+        if (!is_array($data) or empty($data)) {
+            return false;
+        }
+
+        $totalValue = array_sum($data);
+        if ($totalValue == 0) {
+            return false;
+        }
+
+        $centerX = $this->imageWidth / 2;
+        $centerY = $this->imageHeight / 2;
+        $radius = min($centerX, $centerY) - 80;
+
+        $chart = imagecreate($this->imageWidth, $this->imageHeight);
+
+        if ($this->backgroundTransparent) {
+            imagealphablending($chart, false);
+            $backgroundColor = imagecolorallocatealpha($chart, 255, 255, 255, 127);
+            imagesavealpha($chart, true);
+        } else {
+            $backgroundColor = imagecolorallocate($chart, $this->backGroundColor['r'], $this->backGroundColor['g'], $this->backGroundColor['b']);
+        }
+
+        $baseColor = imagecolorallocate($chart, $this->baseColor['r'], $this->baseColor['g'], $this->baseColor['b']);
+        $labelColor = imagecolorallocate($chart, $this->textColor['r'], $this->textColor['g'], $this->textColor['b']);
+        $customColors = array();
+        $customColors[0] = $baseColor;
+
+        $dataCount = count($data);
+        for ($i = 1; $i < $dataCount; $i++) {
+            if (isset($this->overrideColors[$i])) {
+                $randomColor = $this->overrideColors[$i];
+            } else {
+                $randomColor = $this->getColorFromText($i);
+            }
+            $customColors[$i] = imagecolorallocate($chart, $randomColor['r'], $randomColor['g'], $randomColor['b']);
+        }
+
+        imagefill($chart, 0, 0, $backgroundColor);
+        imagesetthickness($chart, $this->lineWidth);
+
+        $currentAngle = 0;
+        $index = 0;
+        $sectorInfo = array();
+
+        foreach ($data as $key => $value) {
+            if ($value > 0) {
+                $angle = ($value / $totalValue) * 360;
+                $endAngle = $currentAngle + $angle;
+
+                $sectorInfo[] = array(
+                    'key' => $key,
+                    'value' => $value,
+                    'startAngle' => $currentAngle,
+                    'endAngle' => $endAngle,
+                    'centerAngle' => $currentAngle + ($angle / 2),
+                    'colorIndex' => $index % count($customColors)
+                );
+
+                $currentAngle = $endAngle;
+            }
+            $index++;
+        }
+
+        foreach ($sectorInfo as $sector) {
+            imagefilledarc($chart, $centerX, $centerY, $radius * 2, $radius * 2, $sector['startAngle'], $sector['endAngle'], $customColors[$sector['colorIndex']], IMG_ARC_PIE);
+
+            $labelAngle = $sector['centerAngle'];
+            $labelRadius = $radius + 25;
+            $labelX = $centerX + $labelRadius * cos(deg2rad($labelAngle));
+            $labelY = $centerY + $labelRadius * sin(deg2rad($labelAngle));
+
+            if ($this->piePercent) {
+                $percentage = round(($sector['value'] / $totalValue) * 100, 1);
+                $labelText = $sector['key'] . ' (' . $percentage . '%)';
+            } else {
+                $labelText = $sector['key'] . ' (' . $sector['value'] . ')';
+            }
+
+            if (mb_strlen($labelText, 'UTF-8') > $this->pieLabelLen + 5) {
+                $labelText = mb_substr($sector['key'], 0, $this->pieLabelLen, 'utf-8') . $this->cutSuffix;
+            }
+
+            $labelBox = imagettfbbox($this->fontSize, 0, $this->font, $labelText);
+            $labelWidth = $labelBox[4] - $labelBox[0];
+            $labelHeight = $labelBox[1] - $labelBox[7];
+
+            $labelX = (int) ($labelX - $labelWidth / 2);
+            $labelY = (int) ($labelY + $labelHeight / 2);
+
+            imagettftext($chart, $this->fontSize, 0, $labelX, $labelY, $labelColor, $this->font, $labelText);
+        }
+
+
+
+        if ($this->chartTitle) {
+            $titleX = ($this->imageWidth - $this->gridLeft) / 2.3;
+            imagettftext($chart, $this->fontSize + 8, 0, (int) $titleX, 24, $labelColor, $this->font, $this->chartTitle);
+        }
+
+
+
+        if (!empty($this->chartLegend)) {
+            $lWidth = 20;
+            foreach ($customColors as $colorIndex => $customColor) {
+                if (isset($this->chartLegend[$colorIndex])) {
+                    $rawLabel = $this->chartLegend[$colorIndex];
+                    $legendText = (((mb_strlen($rawLabel, 'UTF-8') > $this->pieLabelLen + 3))) ? mb_substr($rawLabel, 0, $this->pieLabelLen + 3, 'utf-8') . '...' : $rawLabel;
+                    $offset = $colorIndex * 10;
+                    $y1 = $this->imageHeight - 5;
+                    $y2 = $this->imageHeight - 20;
+
+                    $x1 = $offset * 10 + $lWidth;
+                    $x2 = $x1 + $lWidth;
+
+                    $x1 = (int) $x1;
+                    $y1 = (int) $y1;
+                    $x2 = (int) $x2;
+                    $y2 = (int) $y2;
+
+                    $labelX = $x2 + 5;
+
+                    imagefilledrectangle($chart, $x1, $y1, $x2, $y2, $customColor);
+                    imagettftext($chart, $this->fontSize, 0, $labelX, $y1 - 2, $labelColor, $this->font, $legendText);
+                }
+            }
+        }
+
+        if ($this->debug) {
+            $mtime = explode(' ', microtime());
+            $totaltime = $mtime[0] + $mtime[1] - $starttime;
+            $debugX = $this->imageWidth - 90;
+            imagettftext($chart, 8, 0, $debugX, 10, $labelColor, $this->font, 'DS: ' . $dataCount . ' items');
+            imagettftext($chart, 8, 0, $debugX, 22, $labelColor, $this->font, 'GT: ' . round($totaltime, 5) . ' sec.');
+        }
+
+        if (empty($fileName)) {
+            header('Content-Type: image/png');
+            $result = imagepng($chart);
+            imagedestroy($chart);
+            die();
+        } else {
+            if (strpos($fileName, 'base64') !== false) {
+                $htmlOutput = (strpos($fileName, 'base64html') !== false) ? true : false;
+                $result = $this->getChartBase($chart, $htmlOutput);
+            } else {
+                $result = imagepng($chart, $fileName);
+                imagedestroy($chart);
+            }
+        }
+
+        return $result;
     }
 
     /**
