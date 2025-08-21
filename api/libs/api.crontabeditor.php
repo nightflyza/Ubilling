@@ -83,8 +83,11 @@ class CrontabEditor {
             if (ispos($linuxDistro, 'Debian GNU/Linux 12 (bookworm)')) {
                 $result = 'Debian12';
             }
+            if (ispos($linuxDistro, 'Debian GNU/Linux 13 (trixie)')) {
+                $result = 'Debian13';
+            }
         }
-        return($result);
+        return ($result);
     }
 
     /**
@@ -93,7 +96,7 @@ class CrontabEditor {
      * @return string
      */
     public function getCurrentCrontab() {
-        return($this->currentCrontab);
+        return ($this->currentCrontab);
     }
 
     /**
@@ -104,7 +107,7 @@ class CrontabEditor {
     public function renderEditForm() {
         $result = '';
         $result .= web_FileEditorForm(self::TMP_FILE_PATH, htmlentities($this->currentCrontab, ENT_COMPAT, "UTF-8")); // OMG OMG OMG!!!!!
-        return($result);
+        return ($result);
     }
 
     /**
@@ -147,6 +150,6 @@ class CrontabEditor {
         } else {
             $result .= __('File') . ' ' . self::TMP_FILE_PATH . ' ' . __('Not exists');
         }
-        return($result);
+        return ($result);
     }
 }
