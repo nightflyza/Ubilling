@@ -111,9 +111,9 @@ class SignupRequests {
                 $loginDetect = $telepathy->getLogin($reqaddr);
 
                 $profileLink = (!empty($loginDetect)) ? ' ' . wf_Link('?module=userprofile&username=' . $loginDetect, web_profile_icon()) : '';
-                $jsonItem[] = $reqaddr . $profileLink;
-                $jsonItem[] = $eachreq['realname'];
-                $jsonItem[] = $eachreq['phone'];
+                $jsonItem[] = ubRouting::filters($reqaddr, 'safe') . $profileLink;
+                $jsonItem[] = ubRouting::filters($eachreq['realname'], 'safe');
+                $jsonItem[] = ubRouting::filters($eachreq['phone'], 'safe');
 
                 if ($this->altcfg['ADCOMMENTS_ENABLED']) {
                     $commIndicator = ' ' . $adcomments->getCommentsIndicator($eachreq['id']);
@@ -167,19 +167,19 @@ class SignupRequests {
         $all = simple_queryall($query);
         $result = '';
         $calendarData = '';
+        $confControl = '';
         if (!empty($all)) {
             foreach ($all as $io => $each) {
+                $coloring = '';
                 $timestamp = strtotime($each['date']);
                 $date = date("Y, n-1, j", $timestamp);
                 $rawTime = date("H:i:s", $timestamp);
                 if ($each['state'] == 0) {
                     $coloring = "className : 'undone',";
-                } else {
-                    $coloring = '';
                 }
                 $calendarData.="
                       {
-                        title: '" . $rawTime . ' ' . $each['street'] . ' ' . $each['build'] . '/' . $each['apt'] . "',
+                        title: '" . $rawTime . ' ' . ubRouting::filters($each['street'], 'safe') . ' ' . ubRouting::filters($each['build'], 'safe') . '/' . ubRouting::filters($each['apt'], 'safe') . "',
                         url: '?module=sigreq&showreq=" . $each['id'] . "',
                         start: new Date(" . $date . "),
                         end: new Date(" . $date . "),
@@ -192,8 +192,6 @@ class SignupRequests {
         //check database configuration table
         if (zb_CheckTableExists('sigreqconf')) {
             $confControl = wf_Link('?module=sigreq&settings=true', wf_img('skins/settings.png', __('Settings')), false) . ' ';
-        } else {
-            $confControl = '';
         }
         $viewControl = wf_Link('?module=sigreq', wf_img('skins/icon_table.png', __('Grid view')), false, '');
         show_window($confControl . __('Available signup requests') . ' ' . $viewControl, $result);
@@ -234,7 +232,8 @@ class SignupRequests {
         }
 
         $shortaddress = $reqdata['street'] . ' ' . $reqdata['build'] . '/' . $apt;
-        $taskCreateControls = wf_modal(wf_img('skins/createtask.gif', __('Create task')), __('Create task'), ts_TaskCreateFormSigreq($shortaddress, $reqdata['phone']), '', '420', '500');
+        $shortaddress = ubRouting::filters($shortaddress, 'safe');
+        $taskCreateControls = wf_modal(wf_img('skins/createtask.gif', __('Create task')), __('Create task'), ts_TaskCreateFormSigreq($shortaddress, ubRouting::filters($reqdata['phone'], 'safe')), '', '420', '500');
 
         $cells = wf_TableCell(__('Date'));
         $cells.=wf_TableCell($reqdata['date'] . ' ' . $taskCreateControls);
@@ -260,19 +259,19 @@ class SignupRequests {
 
 
         $cells = wf_TableCell(__('Full address'));
-        $cells.=wf_TableCell($reqAddress . ' ' . $capabControl);
+        $cells.=wf_TableCell(ubRouting::filters($reqAddress, 'safe') . ' ' . $capabControl);
         $rows.= wf_TableRow($cells, 'row3');
 
         $cells = wf_TableCell(__('Real Name'));
-        $cells.=wf_TableCell($reqdata['realname']);
+        $cells.=wf_TableCell(ubRouting::filters($reqdata['realname'], 'safe'));
         $rows.= wf_TableRow($cells, 'row3');
 
         $cells = wf_TableCell(__('Phone'));
-        $cells.=wf_TableCell($reqdata['phone']);
+        $cells.=wf_TableCell(ubRouting::filters($reqdata['phone'], 'safe'));
         $rows.= wf_TableRow($cells, 'row3');
 
         $cells = wf_TableCell(__('Service'));
-        $cells.=wf_TableCell($reqdata['service']);
+        $cells.=wf_TableCell(ubRouting::filters($reqdata['service'], 'safe'));
         $rows.=wf_TableRow($cells, 'row3');
 
         $cells = wf_TableCell(__('Processed'));
@@ -280,7 +279,7 @@ class SignupRequests {
         $rows.=wf_TableRow($cells, 'row3');
 
         $cells = wf_TableCell(__('Notes'));
-        $notes = nl2br($reqdata['notes']);
+        $notes = nl2br(ubRouting::filters($reqdata['notes'], 'safe'));
         $notes = str_replace('Tariff:', __('Tariff') . ':', $notes);
         $notes = str_replace('Email:', __('Email') . ':', $notes);
         $cells.=wf_TableCell($notes);
