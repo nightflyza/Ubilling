@@ -4,56 +4,55 @@ if (cfr('SIGREQ')) {
     $alterconf = $ubillingConfig->getAlter();
     if ($alterconf['SIGREQ_ENABLED']) {
         //Main sigreq management
-        if (!wf_CheckGet(array('settings'))) {
+        if (!ubRouting::checkGet('settings')) {
 
             $signups = new SignupRequests();
             //requests management
             //set request as done
-            if (isset($_GET['reqdone'])) {
+            if (ubRouting::checkGet('reqdone')) {
                 if (cfr('SIGREQEDIT')) {
-                    $signups->setDone($_GET['reqdone']);
+                    $signups->setDone(ubRouting::get('reqdone', 'int'));
                     //update notification area
                     $darkVoid = new DarkVoid();
                     $darkVoid->flushCache();
-                    rcms_redirect("?module=sigreq");
+                    ubRouting::nav("?module=sigreq");
                 } else {
                     show_error(__('Access denied'));
-                    log_register('SIGREQ CLOSE RIGHTS FAIL [' . $_GET['reqdone'] . ']');
+                    log_register('SIGREQ CLOSE RIGHTS FAIL [' . ubRouting::get('reqdone', 'int') . ']');
                 }
             }
 
             //set request as undone
-            if (isset($_GET['requndone'])) {
+            if (ubRouting::checkGet('requndone')) {
                 if (cfr('SIGREQEDIT')) {
-                    $signups->setUnDone($_GET['requndone']);
+                    $signups->setUnDone(ubRouting::get('requndone', 'int'));
                     //update notification area
                     $darkVoid = new DarkVoid();
                     $darkVoid->flushCache();
-                    rcms_redirect("?module=sigreq");
+                    ubRouting::nav("?module=sigreq");
                 } else {
                     show_error(__('Access denied'));
-                    log_register('SIGREQ OPEN RIGHTS FAIL [' . $_GET['requndone'] . ']');
+                    log_register('SIGREQ OPEN RIGHTS FAIL [' . ubRouting::get('requndone', 'int') . ']');
                 }
             }
-
 
             //delete request
-            if (isset($_GET['deletereq'])) {
+            if (ubRouting::checkGet('deletereq')) {
                 if (cfr('SIGREQDELETE')) {
-                    $signups->deleteReq($_GET['deletereq']);
-                    rcms_redirect("?module=sigreq");
+                    $signups->deleteReq(ubRouting::get('deletereq', 'int'));
+                    ubRouting::nav("?module=sigreq");
                 } else {
                     show_error(__('Access denied'));
-                    log_register('SIGREQ DELETE RIGHTS FAIL [' . $_GET['deletereq'] . ']');
+                    log_register('SIGREQ DELETE RIGHTS FAIL [' . ubRouting::get('deletereq', 'int') . ']');
                 }
             }
 
-            if (wf_CheckGet(array('showreq'))) {
+            if (ubRouting::checkGet('showreq')) {
                 //shows selected signup request by its ID
-                $signups->showRequest($_GET['showreq']);
+                $signups->showRequest(ubRouting::get('showreq', 'int'));
             } else {
-                if (!wf_CheckGet(array('calendarview'))) {
-                    if (wf_CheckGet(array('ajlist'))) {
+                if (!ubRouting::checkGet('calendarview')) {
+                    if (ubRouting::checkGet('ajlist')) {
                         $signups->renderAjListData();
                     }
                     //display signup requests list
@@ -68,10 +67,10 @@ if (cfr('SIGREQ')) {
             $signupConf = new SignupConfig;
 
             //save config request
-            if (wf_CheckPost(array('changesettings'))) {
+            if (ubRouting::checkPost('changesettings')) {
                 if (cfr('SIGREQCONF')) {
                     $signupConf->save();
-                    rcms_redirect('?module=sigreq&settings=true');
+                    ubRouting::nav('?module=sigreq&settings=true');
                 } else {
                     show_error(__('Access denied'));
                     log_register('SIGREQCONF RIGHTS FAIL');
@@ -85,4 +84,4 @@ if (cfr('SIGREQ')) {
 } else {
     show_error(__('You cant control this module'));
 }
-?>
+

@@ -207,8 +207,8 @@ class SignupRequests {
      * @return array
      */
     protected function getData($reqid) {
-        $requid = vf($reqid, 3);
-        $query = "SELECT * from `sigreq` WHERE `id`='" . $reqid . "'";
+        $requid = ubRouting::filters($reqid, 'int');
+        $query = "SELECT * from `sigreq` WHERE `id`='" . $requid . "'";
         $result = simple_query($query);
         return($result);
     }
@@ -221,9 +221,12 @@ class SignupRequests {
      * @return void
      */
     public function showRequest($reqid) {
-        $requid = vf($reqid, 3);
-        $reqdata = $this->getData($reqid);
+        $requid = ubRouting::filters($reqid, 'int');
+        $reqdata = $this->getData($requid);
+        $deletelink = '';
+        $result = '';
 
+        if (!empty($reqdata)) {
         if (empty($reqdata['apt'])) {
             $apt = 0;
         } else {
@@ -284,32 +287,38 @@ class SignupRequests {
         $rows.=wf_TableRow($cells, 'row3');
 
         $result = wf_TableBody($rows, '100%', '0', 'glamour');
-
+    } else {
+        $result = $this->messages->getStyledMessage(__('Signup request').' ['.$requid.'] '.__('not exists'), 'error');
+    }
 
         $actlinks = wf_BackLink('?module=sigreq');
 
+        if (!empty($reqdata)) {
         if (cfr('SIGREQEDIT')) {
             if ($reqdata['state'] == 0) {
-                $actlinks.=wf_Link('?module=sigreq&reqdone=' . $reqid, wf_img_sized('skins/icon_active.gif', '', '10') . ' ' . __('Close'), false, 'ubButton');
+                $actlinks.=wf_Link('?module=sigreq&reqdone=' . $requid, wf_img_sized('skins/icon_active.gif', '', '10') . ' ' . __('Close'), false, 'ubButton');
             } else {
-                $actlinks.=wf_Link('?module=sigreq&requndone=' . $reqid, wf_img_sized('skins/icon_inactive.gif', '', '10') . ' ' . __('Open'), false, 'ubButton');
+                $actlinks.=wf_Link('?module=sigreq&requndone=' . $requid, wf_img_sized('skins/icon_inactive.gif', '', '10') . ' ' . __('Open'), false, 'ubButton');
             }
         }
+   
 
         if (cfr('SIGREQDELETE')) {
-            $deletelink = ' ' . wf_JSAlert("?module=sigreq&deletereq=" . $reqid, web_delete_icon(), $this->messages->getDeleteAlert());
-        } else {
-            $deletelink = '';
+            $deletelink = ' ' . wf_JSAlert("?module=sigreq&deletereq=" . $requid, web_delete_icon(), $this->messages->getDeleteAlert());
+        } 
         }
 
-        show_window(__('Signup request') . ': ' . $reqid . $deletelink, $result);
+        show_window(__('Signup request') . ': ' . $requid . $deletelink, $result);
         show_window('', $actlinks);
 
         //additional comments
+        if (!empty($reqdata)) {
         if ($this->altcfg['ADCOMMENTS_ENABLED']) {
             $adcomments = new ADcomments('SIGREQ');
             show_window(__('Additional comments'), $adcomments->renderComments($requid));
         }
+        }
+
     }
 
     /**
@@ -320,9 +329,9 @@ class SignupRequests {
      * @return void
      */
     public function setDone($reqid) {
-        $requid = vf($reqid, 3);
-        simple_update_field('sigreq', 'state', '1', "WHERE `id`='" . $reqid . "'");
-        log_register('SIGREQ DONE [' . $reqid . ']');
+        $requid = ubRouting::filters($reqid, 'int');
+        simple_update_field('sigreq', 'state', '1', "WHERE `id`='" . $requid . "'");
+        log_register('SIGREQ DONE [' . $requid . ']');
     }
 
     /**
@@ -333,9 +342,9 @@ class SignupRequests {
      * @return void
      */
     public function setUnDone($reqid) {
-        $requid = vf($reqid, 3);
-        simple_update_field('sigreq', 'state', '0', "WHERE `id`='" . $reqid . "'");
-        log_register('SIGREQ UNDONE [' . $reqid . ']');
+        $requid = ubRouting::filters($reqid, 'int');
+        simple_update_field('sigreq', 'state', '0', "WHERE `id`='" . $requid . "'");
+        log_register('SIGREQ UNDONE [' . $requid . ']');
     }
 
     /**
@@ -346,10 +355,10 @@ class SignupRequests {
      * @return void
      */
     public function deleteReq($reqid) {
-        $requid = vf($reqid, 3);
-        $query = "DELETE from `sigreq` WHERE `id`='" . $reqid . "'";
+        $requid = ubRouting::filters($reqid, 'int');
+        $query = "DELETE from `sigreq` WHERE `id`='" . $requid . "'";
         nr_query($query);
-        log_register('SIGREQ DELETE [' . $reqid . ']');
+        log_register('SIGREQ DELETE [' . $requid . ']');
     }
 
     /**
@@ -415,7 +424,7 @@ class SignupConfig {
      * @return void
      */
     protected function deleteConf($key) {
-        $key = mysql_real_escape_string($key);
+        $key = ubRouting::filters($key, 'mres');
         $query = "DELETE from `sigreqconf` WHERE `key`='" . $key . "';";
         nr_query($query);
     }
@@ -429,8 +438,8 @@ class SignupConfig {
      * @return void
      */
     protected function setConf($key, $data) {
-        $key = mysql_real_escape_string($key);
-        $data = mysql_real_escape_string($data);
+        $key = ubRouting::filters($key, 'mres');
+        $data = ubRouting::filters($data, 'mres');
         $this->deleteConf($key);
         $query = "INSERT INTO `sigreqconf` (`id`, `key`, `value`) VALUES (NULL, '" . $key . "', '" . $data . "'); ";
         nr_query($query);
@@ -504,7 +513,7 @@ class SignupConfig {
      */
     public function save() {
         //city display
-        if (isset($_POST['newcitydisplay'])) {
+        if (ubRouting::checkPost('newcitydisplay')) {
             if (!$this->checkConf('CITY_DISPLAY')) {
                 $this->setConf('CITY_DISPLAY', 'NOP');
                 log_register('SIGREQCONF ENABLED CITY_DISPLAY');
@@ -516,7 +525,7 @@ class SignupConfig {
             }
         }
         //city combobox
-        if (isset($_POST['newcityselectable'])) {
+        if (ubRouting::checkPost('newcityselectable')) {
             if (!$this->checkConf('CITY_SELECTABLE')) {
                 $this->setConf('CITY_SELECTABLE', 'NOP');
                 log_register('SIGREQCONF ENABLED CITY_SELECTABLE');
@@ -529,7 +538,7 @@ class SignupConfig {
         }
 
         //street combobox
-        if (isset($_POST['newstreetselectable'])) {
+        if (ubRouting::checkPost('newstreetselectable')) {
             if (!$this->checkConf('STREET_SELECTABLE')) {
                 $this->setConf('STREET_SELECTABLE', 'NOP');
                 log_register('SIGREQCONF ENABLED STREET_SELECTABLE');
@@ -542,7 +551,7 @@ class SignupConfig {
         }
 
         //mail input
-        if (isset($_POST['newemaildisplay'])) {
+        if (ubRouting::checkPost('newemaildisplay')) {
             if (!$this->checkConf('EMAIL_DISPLAY')) {
                 $this->setConf('EMAIL_DISPLAY', 'NOP');
                 log_register('SIGREQCONF ENABLED EMAIL_DISPLAY');
@@ -554,7 +563,7 @@ class SignupConfig {
             }
         }
         //spamtraps
-        if (isset($_POST['newespamtraps'])) {
+        if (ubRouting::checkPost('newespamtraps')) {
             if (!$this->checkConf('SPAM_TRAPS')) {
                 $this->setConf('SPAM_TRAPS', 'NOP');
                 log_register('SIGREQCONF ENABLED SPAM_TRAPS');
@@ -566,7 +575,7 @@ class SignupConfig {
             }
         }
         //caching
-        if (isset($_POST['newcaching'])) {
+        if (ubRouting::checkPost('newcaching')) {
             if (!$this->checkConf('CACHING')) {
                 $this->setConf('CACHING', 'NOP');
                 log_register('SIGREQCONF ENABLED CACHING');
@@ -578,66 +587,73 @@ class SignupConfig {
             }
         }
         //isp name
-        if (isset($_POST['newispname'])) {
-            if ($this->diffConf('ISP_NAME', $_POST['newispname'])) {
-                $this->setConf('ISP_NAME', $_POST['newispname']);
+        if (ubRouting::checkPost('newispname')) {
+            $ispName = ubRouting::post('newispname', 'safe');
+            if ($this->diffConf('ISP_NAME', $ispName)) {
+                $this->setConf('ISP_NAME', $ispName);
                 log_register('SIGREQCONF CHANGED ISP_NAME');
             }
         }
 
         //isp url
-        if (isset($_POST['newispurl'])) {
-            if ($this->diffConf('ISP_URL', $_POST['newispurl'])) {
-                $this->setConf('ISP_URL', $_POST['newispurl']);
+        if (ubRouting::checkPost('newispurl')) {
+            $ispUrl = ubRouting::post('newispurl', 'safe');
+            if ($this->diffConf('ISP_URL', $ispUrl)) {
+                $this->setConf('ISP_URL', $ispUrl);
                 log_register('SIGREQCONF CHANGED ISP_URL');
             }
         }
 
         //isp logo
-        if (isset($_POST['newisplogo'])) {
-            if ($this->diffConf('ISP_LOGO', $_POST['newisplogo'])) {
-                $this->setConf('ISP_LOGO', $_POST['newisplogo']);
+        if (ubRouting::checkPost('newisplogo')) {
+            $ispLogo = ubRouting::post('newisplogo', 'safe');
+            if ($this->diffConf('ISP_LOGO', $ispLogo)) {
+                $this->setConf('ISP_LOGO', $ispLogo);
                 log_register('SIGREQCONF CHANGED ISP_LOGO');
             }
         }
 
-
         //sidebar
-        if (isset($_POST['newsidebartext'])) {
-            if ($this->diffConf('SIDEBAR_TEXT', $_POST['newsidebartext'])) {
-                $this->setConf('SIDEBAR_TEXT', $_POST['newsidebartext']);
+        if (ubRouting::checkPost('newsidebartext')) {
+            $sidebarText = ubRouting::post('newsidebartext', 'safe', 'HTML');
+            if ($this->diffConf('SIDEBAR_TEXT', $sidebarText)) {
+                $this->setConf('SIDEBAR_TEXT', $sidebarText);
                 log_register('SIGREQCONF CHANGED SIDEBAR_TEXT');
             }
         }
 
         //greeting
-        if (isset($_POST['newgreetingtext'])) {
-            if ($this->diffConf('GREETING_TEXT', $_POST['newgreetingtext'])) {
-                $this->setConf('GREETING_TEXT', $_POST['newgreetingtext']);
+        if (ubRouting::checkPost('newgreetingtext')) {
+            $greetingText = ubRouting::post('newgreetingtext', 'safe', 'HTML');
+            if ($this->diffConf('GREETING_TEXT', $greetingText)) {
+                $this->setConf('GREETING_TEXT', $greetingText);
                 log_register('SIGREQCONF CHANGED GREETING_TEXT');
             }
         }
 
         //services
-        if (isset($_POST['newservices'])) {
-            if ($this->diffConf('SERVICES', $_POST['newservices'])) {
-                $this->setConf('SERVICES', $_POST['newservices']);
+        if (ubRouting::checkPost('newservices')) {
+            $services = ubRouting::post('newservices', 'safe');
+            if ($this->diffConf('SERVICES', $services)) {
+                $this->setConf('SERVICES', $services);
                 log_register('SIGREQCONF CHANGED SERVICES');
             }
         }
 
         //tariffs
-        if (isset($_POST['newtariffs'])) {
-            if ($this->diffConf('TARIFFS', $_POST['newtariffs'])) {
-                $this->setConf('TARIFFS', $_POST['newtariffs']);
+        if (ubRouting::checkPost('newtariffs')) {
+            $tariffs = ubRouting::post('newtariffs', 'safe');
+            if ($this->diffConf('TARIFFS', $tariffs)) {
+                $this->setConf('TARIFFS', $tariffs);
                 log_register('SIGREQCONF CHANGED TARIFFS');
             }
         }
 
         //hideouts
-        if (isset($_POST['newhideouts'])) {
-            if ($this->diffConf('HIDEOUTS', $_POST['newhideouts'])) {
-                $this->setConf('HIDEOUTS', $_POST['newhideouts']);
+        if (ubRouting::checkPost('newhideouts')) {
+            $hideouts = ubRouting::post('newhideouts', 'safe');
+            if ($this->diffConf('HIDEOUTS', $hideouts)) {
+                $this->setConf('HIDEOUTS', $hideouts);
                 log_register('SIGREQCONF CHANGED HIDEOUTS');
             }
         }
@@ -645,4 +661,3 @@ class SignupConfig {
 
 }
 
-?>
