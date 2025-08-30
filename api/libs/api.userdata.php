@@ -634,6 +634,20 @@ function zb_UserDeleteSpeedOverride($login) {
 }
 
 /**
+ * Sets speed override database record for some user
+ * 
+ * @param string $login existing user login
+ * @param int $speed
+ */
+function zb_UserSetSpeedOverride($login, $speed) {
+    $login = vf($login);
+    $speed = vf($speed, 3);
+    $query = "UPDATE `userspeeds` SET `speed`='".$speed."' WHERE `login`='" . $login . "'";
+    nr_query($query);
+    log_register('SET UserSpeedOverride (' . $login . ') `' . $speed . '`');
+}
+
+/**
  * Creates user notes database record for some login
  * 
  * @param string $login existing user login
@@ -1672,40 +1686,40 @@ function web_PassportDataEditFormshow($login, $passportdata) {
     show_window(__('Edit') . ' ' . __('passport data') . ' ' . $useraddress, $form);
 }
 
-    /**
-     * Retrieves filtered user data with pagination and sorting options
-     * 
-     * @param string $searchQuery Search query to filter results (default: '')
-     * @param string $orderField Field to sort results by (default: 'login')
-     * @param string $orderDirection Sort direction - 'ASC' or 'DESC' (default: 'ASC')
-     * @param int $from Starting offset for pagination (default: 0)
-     * @param int $to Ending offset for pagination (default: 0)
-     * 
-     * @return array Returns array of user records containing:
-     *               - login: User login name
-     *               - realname: User's real name
-     *               - Passive: Account status
-     *               - Down: Account disabled status
-     *               - AlwaysOnline: Always online flag
-     *               - Tariff: User's tariff plan
-     *               - Credit: Credit amount
-     *               - Cash: Account balance
-     *               - ip: IP address
-     *               - cityname: City name
-     *               - streetname: Street name
-     *               - buildnum: Building number
-     *               - apt: Apartment number
-     *               - fulladdress: Complete formatted address
-     *               - totaltraff: Total traffic usage (current month)
-     */
-    function zb_UserGetDataFiltered($searchQuery = '', $orderField = 'login', $orderDirection = 'ASC', $from = 0, $to = 0) {
-        $searchQuery = ubRouting::filters($searchQuery, 'safe');
-        $orderDirection = ubRouting::filters($orderDirection, 'gigasafe');
-        $orderField = ubRouting::filters($orderField, 'mres');
-        $from = ubRouting::filters($from, 'int');
-        $to = ubRouting::filters($to, 'int');
+/**
+ * Retrieves filtered user data with pagination and sorting options
+ * 
+ * @param string $searchQuery Search query to filter results (default: '')
+ * @param string $orderField Field to sort results by (default: 'login')
+ * @param string $orderDirection Sort direction - 'ASC' or 'DESC' (default: 'ASC')
+ * @param int $from Starting offset for pagination (default: 0)
+ * @param int $to Ending offset for pagination (default: 0)
+ * 
+ * @return array Returns array of user records containing:
+ *               - login: User login name
+ *               - realname: User's real name
+ *               - Passive: Account status
+ *               - Down: Account disabled status
+ *               - AlwaysOnline: Always online flag
+ *               - Tariff: User's tariff plan
+ *               - Credit: Credit amount
+ *               - Cash: Account balance
+ *               - ip: IP address
+ *               - cityname: City name
+ *               - streetname: Street name
+ *               - buildnum: Building number
+ *               - apt: Apartment number
+ *               - fulladdress: Complete formatted address
+ *               - totaltraff: Total traffic usage (current month)
+ */
+function zb_UserGetDataFiltered($searchQuery = '', $orderField = 'login', $orderDirection = 'ASC', $from = 0, $to = 0) {
+    $searchQuery = ubRouting::filters($searchQuery, 'safe');
+    $orderDirection = ubRouting::filters($orderDirection, 'gigasafe');
+    $orderField = ubRouting::filters($orderField, 'mres');
+    $from = ubRouting::filters($from, 'int');
+    $to = ubRouting::filters($to, 'int');
 
-        $query = "SELECT 
+    $query = "SELECT 
                     `users`.`login`,
                     `realname`.`realname`,
                     `users`.`Passive`,
@@ -1750,23 +1764,23 @@ function web_PassportDataEditFormshow($login, $passportdata) {
                     ) AS `mlg` ON `users`.`login` = `mlg`.`login`
             ";
 
-        if (!empty($searchQuery)) {
-            $query .= "WHERE 
+    if (!empty($searchQuery)) {
+        $query .= "WHERE 
                     `users`.`login` LIKE '%" . $searchQuery . "%' OR 
                     `realname`.`realname` LIKE '%" . $searchQuery . "%' OR 
                     `users`.`ip` LIKE '%" . $searchQuery . "%' OR 
                     `users`.`Tariff` LIKE '%" . $searchQuery . "%' OR 
                     CONCAT(`street`.`streetname`, ' ', `build`.`buildnum`, IF(`apt`.`apt`, CONCAT('/', `apt`.`apt`), '')) LIKE '%" . $searchQuery . "%'";
-        }
-
-        if (!empty($orderField) and $orderDirection) {
-            $query .= "  ORDER BY " . $orderField . " " . $orderDirection . "";
-        }
-
-        if (!empty($from) or !empty($to)) {
-            $query .= " LIMIT " . $from . ", " . $to . ";";
-        }
-
-        $result = simple_queryall($query);
-        return ($result);
     }
+
+    if (!empty($orderField) and $orderDirection) {
+        $query .= "  ORDER BY " . $orderField . " " . $orderDirection . "";
+    }
+
+    if (!empty($from) or !empty($to)) {
+        $query .= " LIMIT " . $from . ", " . $to . ";";
+    }
+
+    $result = simple_queryall($query);
+    return ($result);
+}
