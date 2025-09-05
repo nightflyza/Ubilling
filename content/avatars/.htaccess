@@ -1,1 +1,13 @@
 allow from all
+<ifModule mod_expires.c>
+  ExpiresActive On
+  ExpiresDefault "access plus 1 seconds"
+  ExpiresByType image/jpeg "access plus 120 seconds"
+  ExpiresByType image/png "access plus 120 seconds"
+</ifModule>
+
+<ifModule mod_headers.c>
+  <filesMatch "\.(jpeg|jpg|png|gif)$">
+    Header set Cache-Control "max-age=120, public"
+  </filesMatch>
+</ifModule>

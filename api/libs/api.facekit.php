@@ -35,14 +35,17 @@ class FaceKit {
             $fullUrl = self::PATH_AVATARS.$avaName;
         } else {
             //need some preprocessing
+            $pixelCraft = new PixelCraft();
             $origPath = self::PATH_DUMMY;
             if (file_exists(USERS_PATH.$admLogin)) {
               if (file_exists(self::PATH_ORIG.$admLogin.'.'.self::DEFAULT_EXT)) {
-                        $origPath = self::PATH_ORIG.$admLogin.'.'.self::DEFAULT_EXT;
+                        if ($pixelCraft->isImageValid(self::PATH_ORIG.$admLogin.'.'.self::DEFAULT_EXT)) {
+                            $origPath = self::PATH_ORIG.$admLogin.'.'.self::DEFAULT_EXT;
+                        }
                   }
             }
 
-            $pixelCraft = new PixelCraft();
+           
             $pixelCraft->loadImage($origPath);
             $pixelCraft->resize($size, $size);
             $pixelCraft->saveImage(self::PATH_AVATARS.$avaName);
