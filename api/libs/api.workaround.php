@@ -6186,9 +6186,9 @@ function web_AdministratorEditForm($adminLogin) {
     $userdata = load_user_info($adminLogin);
     if (!empty($userdata)) {
         $inputs = '';
-        $avatarImage = FaceKit::getAvatar($adminLogin, 128,'',__('Avatar control'));
-        $avaBackUrl=base64_encode('?module=adminreg&editadministrator='.$adminLogin);
-        $avaContolUrl='?module=avacontrol&admlogin=' . $adminLogin.'&back='.$avaBackUrl;
+        $avatarImage = FaceKit::getAvatar($adminLogin, 128, '', __('Avatar control'));
+        $avaBackUrl = base64_encode('?module=adminreg&editadministrator=' . $adminLogin);
+        $avaContolUrl = '?module=avacontrol&admlogin=' . $adminLogin . '&back=' . $avaBackUrl;
         $inputs .= wf_tag('div', false, '', 'style="display:block; float:right;"') . wf_Link($avaContolUrl, $avatarImage, false, '') . wf_tag('div', true);
         $inputs .= wf_HiddenInput('save', '1');
         $inputs .= wf_HiddenInput('edadmusername', $userdata['username']);
@@ -6951,5 +6951,28 @@ function wf_PlArpingOptionsForm() {
     $inputs = wf_TextInput('count', __('Count'), $currentcount, false, 5);
     $inputs .= wf_Submit(__('Save'));
     $result = wf_Form('', 'POST', $inputs, 'glamour');
+    return ($result);
+}
+
+/**
+ * Turn all URLs in clickable links. With preview images if its a image URL.
+ *
+ * @param string $text
+ * @param string $imgWidth
+ *
+ * @return string
+ */
+function zb_Linkify($text, $imgWidth = '100%') {
+    $urlPattern = '/\b(https?:\/\/[^\s<>"\'\)]+)/i';
+    $result = preg_replace_callback($urlPattern, function ($matches) use ($imgWidth) {
+        $url = $matches[0];
+
+        if (preg_match('/\.(jpg|png|gif|webp|jpeg)$/i', $url)) {
+            return wf_link($url, wf_img_sized(htmlspecialchars($url), '', $imgWidth), false, '', 'target="_blank"');
+        }
+
+        return wf_Link($url, htmlspecialchars($url), false, '', 'target="_blank"');
+    }, $text);
+
     return ($result);
 }

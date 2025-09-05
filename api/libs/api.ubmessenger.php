@@ -616,7 +616,7 @@ class UBMessenger {
 
                 $messageText = nl2br($each['text']);
                 if (@!$this->altCfg[self::OPT_NOLINKIFY]) {
-                    $messageText = $this->linkify($messageText);
+                    $messageText = zb_Linkify($messageText);
                 }
 
 
@@ -695,27 +695,6 @@ class UBMessenger {
         return ($result);
     }
 
-    /**
-     * Turn all URLs in clickable links.
-     *
-     * @param string $text
-     *
-     * @return string
-     */
-    protected function linkify($text) {
-        $urlPattern = '/\b(https?:\/\/[^\s<>"\'\)]+)/i';
-        $result = preg_replace_callback($urlPattern, function ($matches) {
-            $url = $matches[0];
-
-            if (preg_match('/\.(jpg|png|gif|webp|jpeg)$/i', $url)) {
-                return wf_link($url, wf_img_sized(htmlspecialchars($url), '', '100%'), false, '', 'target="_blank"');
-            }
-
-            return wf_Link($url, htmlspecialchars($url), false, '', 'target="_blank"');
-        }, $text);
-
-        return ($result);
-    }
     
     /**
      * Returns primary messenger window title

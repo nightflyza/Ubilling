@@ -375,29 +375,6 @@ class ADcomments {
     }
 
     /**
-     * Turn all URLs in clickable links.
-     *
-     * @param string $text
-     * @param string $imgWidth
-     *
-     * @return string
-     */
-    protected function linkify($text, $imgWidth='100%') {
-        $urlPattern = '/\b(https?:\/\/[^\s<>"\'\)]+)/i';
-        $result = preg_replace_callback($urlPattern, function ($matches) use ($imgWidth) {
-            $url = $matches[0];
-            
-            if (preg_match('/\.(jpg|png|gif|webp|jpeg)$/i', $url)) {
-                return wf_link($url, wf_img_sized(htmlspecialchars($url), '', $imgWidth), false, '', 'target="_blank"');
-            }
-
-            return wf_Link($url, htmlspecialchars($url), false, '', 'target="_blank"');
-        }, $text);
-
-        return ($result);
-    }
-
-    /**
      * Returns list of available comments for some item
      * 
      * @param string $item
@@ -422,7 +399,7 @@ class ADcomments {
                 $authorPanel = $authorName . wf_tag('br') . $authorAvatar . wf_tag('br') . $commentController;
                 $commentText = nl2br($each['text']);
                 if (!$noLinkifyFlag) {
-                     $commentText = $this->linkify($commentText,'40%');
+                     $commentText = zb_Linkify($commentText,'40%');
                 }
 
                 if (ubRouting::checkPost(self::PROUTE_EDIT_FORM)) {
