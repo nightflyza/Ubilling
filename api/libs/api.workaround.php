@@ -6959,16 +6959,50 @@ function wf_PlArpingOptionsForm() {
  *
  * @param string $text
  * @param string $imgWidth
+ * @param bool $imgLazy
+ * @param bool $youtubeEmbed
  *
  * @return string
  */
-function zb_Linkify($text, $imgWidth = '100%') {
+function zb_Linkify($text, $imgWidth = '100%', $imgLazy = true, $youtubeEmbed = true) {
     $urlPattern = '/\b(https?:\/\/[^\s<>"\'\)]+)/i';
-    $result = preg_replace_callback($urlPattern, function ($matches) use ($imgWidth) {
+    $result = preg_replace_callback($urlPattern, function ($matches) use ($imgWidth, $imgLazy, $youtubeEmbed) {
         $url = $matches[0];
+        
+        // Security: Filter out potentially malicious URLs
+        $url = filter_var($url, FILTER_SANITIZE_URL);
+        if (!filter_var($url, FILTER_VALIDATE_URL)) {
+            return htmlspecialchars($url);
+        }
+        
+        // Additional security: Block javascript: and data: URLs
+        if (preg_match('/^(javascript:|data:|vbscript:|file:|ftp:)/i', $url)) {
+            return htmlspecialchars($url);
+        }
 
+        // Check for YouTube URLs (including Shorts)
+        if ($youtubeEmbed and preg_match('/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|shorts\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/', $url, $youtubeMatches)) {
+            $videoId = $youtubeMatches[1];
+            $embedUrl = 'https://www.youtube.com/embed/' . $videoId;
+            
+            // Check if it's a Shorts URL for vertical aspect ratio
+            if (strpos($url, '/shorts/') !== false) {
+                $iframe = wf_tag('iframe', false, '', 'src="' . $embedUrl . '" width="315" height="560" frameborder="0" allowfullscreen');
+            } else {
+                $iframe = wf_tag('iframe', false, '', 'src="' . $embedUrl . '" width="560" height="315" frameborder="0" allowfullscreen');
+            }
+            $iframe .= wf_tag('iframe', true);
+            return $iframe;
+        }
+
+        // Check for image files
         if (preg_match('/\.(jpg|png|gif|webp|jpeg)$/i', $url)) {
-            return wf_link($url, wf_img_sized(htmlspecialchars($url), '', $imgWidth), false, '', 'target="_blank"');
+            if ($imgLazy) {
+                $imgTag = wf_tag('img', false, '', 'src="' . htmlspecialchars($url) . '" width="' . $imgWidth . '" loading="lazy"');
+            } else {
+                $imgTag = wf_tag('img', false, '', 'src="' . htmlspecialchars($url) . '" width="' . $imgWidth . '"');
+            }
+            return wf_link($url, $imgTag, false, '', 'target="_blank"');
         }
 
         return wf_Link($url, htmlspecialchars($url), false, '', 'target="_blank"');
