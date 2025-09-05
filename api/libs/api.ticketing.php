@@ -639,7 +639,7 @@ function web_TicketDialogue($ticketid) {
             if ($eachreply['admin']) {
                 $adminRealName = (isset($employeeNames[$eachreply['admin']])) ? $employeeNames[$eachreply['admin']] : $eachreply['admin'];
                 $replyauthor = wf_tag('center') . wf_tag('b') . $adminRealName . wf_tag('b', true) . wf_tag('center', true);
-                $replyavatar = wf_tag('center') . gravatar_ShowAdminAvatar($eachreply['admin'], '64') . wf_tag('center', true);
+                $replyavatar = wf_tag('center') . FaceKit::getAvatar($eachreply['admin'], '64') . wf_tag('center', true);
                 $dialog[] = array(
                     'role' => 'assistant',
                     'content' => $eachreply['text']
@@ -774,7 +774,7 @@ function web_TicketsCalendar() {
  * @param int $TicketID
  * @param bool $ReturnHTML
  * 
- * @return array/string
+ * @return array|string
  */
 function getTicketEvents($TicketID, $ReturnHTML = false) {
     $QResult = array();

@@ -71,9 +71,8 @@
                         <li class="nav-item dropdown">
                             <a class="dropdown-toggle profile-pic" data-toggle="dropdown" href="#" aria-expanded="false">
                                 <?php
-                                $adminMail = gravatar_GetUserEmail(whoami());
-                                $admAva36 = gravatar_GetAvatar($adminMail, 36, 'img-circle');
-                                print($admAva36);
+                                print(FaceKit::getAvatar(whoami(), 36, 'img-circle'));
+                                
                                 ?>
 
 
@@ -90,9 +89,7 @@
                                     <div class="user-box">
                                         <div class="u-img">
                                             <?php
-                                            $adminMail = gravatar_GetUserEmail(whoami());
-                                            $admAva80 = gravatar_GetAvatar($adminMail, 80);
-                                            print($admAva80);
+                                            print(FaceKit::getAvatar(whoami(), 80));
                                             ?>
                                         </div>
                                         <div class="u-text">

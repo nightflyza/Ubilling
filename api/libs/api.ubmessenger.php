@@ -430,7 +430,7 @@ class UBMessenger {
                             $unreadLabel .= wf_tag('div', false, 'ubim-unread-label') . $unreadCounter . ' ' . __('Unread message') . wf_tag('div', true);
                         }
 
-                        $conatactAvatar = gravatar_ShowAdminAvatar($eachadmin, '64', 'ubim-avatar');
+                        $conatactAvatar = FaceKit::getAvatar($eachadmin, '64', 'ubim-avatar');
                         $adminName = (isset($this->allEmployeeNames[$eachadmin])) ? $this->allEmployeeNames[$eachadmin] : $eachadmin;
 
                         $contactBody = $conatactAvatar;
@@ -630,7 +630,7 @@ class UBMessenger {
 
                 $result .= wf_tag('div', false, $messageClass);
                 //      $result .= $fromName;
-                $result .= gravatar_ShowAdminAvatar($each['from'], '64', 'ubim-chat-avatar', $fromName);
+                $result .= FaceKit::getAvatar($each['from'], '64', 'ubim-chat-avatar', $fromName);
                 $result .= wf_tag('div', false, 'ubim-message-bubble');
                 $result .= wf_tag('div', false, 'ubim-message-author');
                 $result .= $fromName;
@@ -716,7 +716,7 @@ class UBMessenger {
 
         return ($result);
     }
-
+    
     /**
      * Returns primary messenger window title
      *
@@ -724,7 +724,7 @@ class UBMessenger {
      */
     public function renderMainWinTitle() {
         $result = '';
-        $avaLabel = gravatar_ShowAdminAvatar(whoami(), '16', 'ubim-avacontrol', __('Avatar control'));
+        $avaLabel = FaceKit::getAvatar(whoami(), '16', 'ubim-avacontrol', __('Avatar control'));
         $returnUrl = self::URL_ME;
         if ($this->currentThread) {
             $returnUrl .= '&' . self::ROUTE_THREAD . '=' . $this->currentThread;

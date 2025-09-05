@@ -6186,7 +6186,7 @@ function web_AdministratorEditForm($adminLogin) {
     $userdata = load_user_info($adminLogin);
     if (!empty($userdata)) {
         $inputs = '';
-        $avatarImage = gravatar_ShowAdminAvatar($adminLogin, 128);
+        $avatarImage = FaceKit::getAvatar($adminLogin, 128);
         $inputs .= wf_tag('div', false, '', 'style="display:block; float:right;"') . $avatarImage . wf_tag('div', true);
         $inputs .= wf_HiddenInput('save', '1');
         $inputs .= wf_HiddenInput('edadmusername', $userdata['username']);
@@ -6673,70 +6673,6 @@ function zb_RenderUpdateInfo($version = '', $branch = 'STABLE') {
 
 
 /**
- * Returns avatar control form
- * 
- * @param string $backUrl base64 encoded url
- * 
- * @return string
- */
-function web_avatarControlForm($backUrl = '') {
-    global $ubillingConfig;
-    $myLogin = whoami();
-    $mail = gravatar_GetUserEmail($myLogin);
-    $serviceUrl = '';
-    $serviceName = '';
-    $avatarService = $ubillingConfig->getAlterParam('GRAVATAR_SERVICE');
-    switch ($avatarService) {
-        case 'gravatar':
-            $serviceUrl = 'https://gravatar.com/';
-            $serviceName = 'Gravatar';
-            break;
-        case 'libravatar':
-            $serviceUrl = 'https://libravatar.org/';
-            $serviceName = 'Libravatar';
-            break;
-        default:
-            $serviceUrl = 'https://libravatar.org/';
-            $serviceName = 'Libravatar';
-            break;
-    }
-
-    $cells = wf_TableCell(wf_tag('h1') . $myLogin . wf_tag('h1', true), '', '', 'align="center"');
-    $rows = wf_TableRow($cells);
-    $cells = wf_TableCell(gravatar_ShowAdminAvatar($myLogin, '256'), '', '', 'align="center"');
-    $rows .= wf_TableRow($cells);
-    $cells = wf_TableCell(wf_tag('h3') . __('Your email') . ': ' . $mail . wf_tag('h3', true), '', '', 'align="center"');
-    $rows .= wf_TableRow($cells);
-
-    $controlLink = wf_Link($serviceUrl, __('Change my avatar at') . ' ' . $serviceName, false, 'ubButton', 'target="_blank"');
-    $cells = wf_TableCell($controlLink, false, '', 'align="center"');
-    $rows .= wf_TableRow($cells);
-
-    if (cfr('ROOT')) {
-        $cacheFlushUrl = UBMessenger::URL_AVATAR_CONTROL . '&flushavacache=true';
-        $cancelUrl = UBMessenger::URL_AVATAR_CONTROL;
-        if (ubRouting::checkGet('back')) {
-            $cacheFlushUrl .= '&back=' . ubRouting::get('back');
-            $cancelUrl .= '&back=' . ubRouting::get('back');
-        }
-
-        $cacheFlushLink = wf_ConfirmDialog($cacheFlushUrl, wf_img('skins/icon_cleanup.png') . ' ' . __('Cache cleanup'), __('Cache cleanup'), 'ubButton', $cancelUrl, __('Are you serious'));
-        $cells = wf_TableCell($cacheFlushLink, false, '', 'align="center"');
-        $rows .= wf_TableRow($cells);
-    }
-
-    $result = wf_TableBody($rows, '100%', '0', 'glamour');
-    $result .= wf_CleanDiv();
-    if ($backUrl) {
-        $backUrl = base64_decode($backUrl);
-        $result .= wf_delimiter();
-        $result .= wf_BackLink($backUrl, __('Back'), false, 'ubButton');
-    }
-
-    return ($result);
-}
-
-/**
  * Renders task bar elements quick search form
  * 
  * @return string
@@ -6804,22 +6740,6 @@ function web_TaskBarQuickSearchForm() {
     $result .= wf_tag('script', true);
     $result .= wf_CleanDiv();
     return ($result);
-}
-
-/**
- * Flushes cached avatars for all users
- * 
- * @return void
- */
-function zb_avatarFlushCache() {
-    $avaPath = 'content/avatars/';
-    $allAvatars = rcms_scandir($avaPath, '*.jpg');
-    if (!empty($allAvatars)) {
-        foreach ($allAvatars as $io => $each) {
-            unlink($avaPath . $each);
-        }
-    }
-    log_register('AVACONTROL CACHE FLUSH');
 }
 
 /**

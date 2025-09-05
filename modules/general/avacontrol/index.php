@@ -1,17 +1,13 @@
 <?php
 if (cfr('UBIM')) {
+    $faceKit = new FaceKit();
+    $backUrl=ubRouting::get('back');
+    $customLogin=whoami();
     if (cfr('ROOT')) {
-        if (ubRouting::checkGet('flushavacache')) {
-            zb_avatarFlushCache();
-            if (ubRouting::checkGet('back')) {
-                ubRouting::nav(UBMessenger::URL_AVATAR_CONTROL . '&back=' . ubRouting::get('back'));
-            } else {
-                ubRouting::nav(UBMessenger::URL_AVATAR_CONTROL);
-            }
-        }
+        $customLogin=ubRouting::get('admlogin');
     }
-
-    show_window(__('Avatar control'), web_avatarControlForm(ubRouting::get('back')));
+    $controlForm=$faceKit->renderAvatarControlForm($backUrl,$customLogin);
+    show_window(__('Avatar control').' '.$customLogin ,$controlForm);
     zb_BillingStats();
 } else {
     show_error(__('Access denied'));
