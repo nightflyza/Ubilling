@@ -314,3 +314,74 @@ function rcms_redirect($url, $header = false) {
         print('<script language="javascript">document.location.href="' . $url . '";</script>');
     }
 }
+
+/**
+ * Turn all URLs in clickable links. With preview images if its a image URL.
+ *
+ * @param string $text
+ * @param string $imgWidth
+ * @param bool $imgLazy
+ * @param bool $youtubeEmbed
+ *
+ * @return string
+ */
+function zbs_Linkify($text, $imgWidth = '100%', $imgLazy = true, $youtubeEmbed = true) {
+    $urlPattern = '/\b(https?:\/\/[^\s<>"\'\)]+)/i';
+    $result = preg_replace_callback($urlPattern, function ($matches) use ($imgWidth, $imgLazy, $youtubeEmbed) {
+        $url = $matches[0];
+        
+        // Security: Filter out potentially malicious URLs
+        $url = filter_var($url, FILTER_SANITIZE_URL);
+        if (!filter_var($url, FILTER_VALIDATE_URL)) {
+            return htmlspecialchars($url);
+        }
+        
+        // Additional security: Block javascript: and data: URLs
+        if (preg_match('/^(javascript:|data:|vbscript:|file:|ftp:)/i', $url)) {
+            return htmlspecialchars($url);
+        }
+
+        // Check for YouTube URLs (including Shorts)
+        if ($youtubeEmbed and preg_match('/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|shorts\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/', $url, $youtubeMatches)) {
+            $videoId = $youtubeMatches[1];
+            $embedUrl = 'https://www.youtube.com/embed/' . $videoId;
+            
+            // Check if it's a Shorts URL for vertical aspect ratio
+            if (strpos($url, '/shorts/') !== false) {
+                $containerDiv = la_tag('div', false, 'youtube-container', 'style="position: relative; width: 100%; max-width: 315px; margin: 0 auto;"');
+                $aspectDiv = la_tag('div', false, '', 'style="position: relative; width: 100%; height: 0; padding-bottom: 177.78%;"');
+                $iframe = la_tag('iframe', false, '', 'src="' . $embedUrl . '" frameborder="0" allowfullscreen style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;"');
+                $iframe .= la_tag('iframe', true);
+                $aspectDiv .= $iframe;
+                $aspectDiv .= la_tag('div', true);
+                $containerDiv .= $aspectDiv;
+                $containerDiv .= la_tag('div', true);
+                return $containerDiv;
+            } else {
+                $containerDiv = la_tag('div', false, 'youtube-container', 'style="position: relative; width: 100%; max-width: 560px; margin: 0 auto;"');
+                $aspectDiv = la_tag('div', false, '', 'style="position: relative; width: 100%; height: 0; padding-bottom: 56.25%;"');
+                $iframe = la_tag('iframe', false, '', 'src="' . $embedUrl . '" frameborder="0" allowfullscreen style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;"');
+                $iframe .= la_tag('iframe', true);
+                $aspectDiv .= $iframe;
+                $aspectDiv .= la_tag('div', true);
+                $containerDiv .= $aspectDiv;
+                $containerDiv .= la_tag('div', true);
+                return $containerDiv;
+            }
+        }
+
+        // Check for image files
+        if (preg_match('/\.(jpg|png|gif|webp|jpeg)$/i', $url)) {
+            if ($imgLazy) {
+                $imgTag = la_tag('img', false, 'responsive-image', 'src="' . htmlspecialchars($url) . '" style="max-width: ' . $imgWidth . '; height: auto; display: block; margin: 0 auto;" loading="lazy"');
+            } else {
+                $imgTag = la_tag('img', false, 'responsive-image', 'src="' . htmlspecialchars($url) . '" style="max-width: ' . $imgWidth . '; height: auto; display: block; margin: 0 auto;"');
+            }
+            return la_link($url, $imgTag, false, '', 'target="_blank"');
+        }
+
+        return la_Link($url, htmlspecialchars($url), false, '', 'target="_blank"');
+    }, $text);
+
+    return ($result);
+}

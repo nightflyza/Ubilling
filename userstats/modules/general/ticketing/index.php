@@ -225,7 +225,7 @@ if ($us_config['TICKETING_ENABLED']) {
             $cells .= la_TableCell($ticketdata['date']);
             $rows = la_TableRow($cells, 'row1');
             $cells = la_TableCell($ticketAva, '', '', 'valign="top"');
-            $cells .= la_TableCell(nl2br($ticketdata['text']));
+            $cells .= la_TableCell(zbs_Linkify(nl2br($ticketdata['text'])));
             $rows .= la_TableRow($cells, 'row2');
         }
         if (!empty($ticketreplies)) {
@@ -243,7 +243,7 @@ if ($us_config['TICKETING_ENABLED']) {
                 $cells .= la_TableCell($eachreply['date']);
                 $rows .= la_TableRow($cells, 'row1');
                 $cells = la_TableCell($ticketAva, '', '', 'valign="top"');
-                $cells .= la_TableCell(nl2br($eachreply['text']));
+                $cells .= la_TableCell(zbs_Linkify(nl2br($eachreply['text']),'80%'));
                 $rows .= la_TableRow($cells, 'row3');
             }
         }
