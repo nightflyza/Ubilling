@@ -79,11 +79,14 @@ if (cfr('PERMISSIONS')) {
                 $actions .= wf_Link('?module=adminreg&editadministrator=' . $eachadmin, web_key_icon()) . ' ';
                 $actions .= wf_Link('?module=permissions&edit=' . $eachadmin, web_edit_icon('Rights')) . ' ';
                 if (cfr('ROOT')) {
+                    $avaBackUrl=base64_encode('?module=permissions');
+                    $actions.= wf_Link('?module=avacontrol&admlogin=' . $eachadmin . '&back=' . $avaBackUrl, FaceKit::getAvatar($eachadmin, '16','',__('Avatar control')));
                     if ($myLogin != $eachadmin) {
                         $ghostModeLabel = __('Login as') . ' ' . $eachadmin . ' ' . __('in ghost mode');
                         $actions .= wf_JSAlert('?module=permissions&ghostmode=' . $eachadmin, wf_img('skins/ghost.png', $ghostModeLabel), $ghostModeLabel . '?');
                     }
                 }
+                
                 $cells = wf_TableCell($eachadmin);
                 $employeeName = '';
                 if (isset($allEmployeeLogins[$eachadmin])) {

@@ -4,10 +4,12 @@ if (cfr('UBIM')) {
     $backUrl=ubRouting::get('back');
     $customLogin=whoami();
     if (cfr('ROOT')) {
-        $customLogin=ubRouting::get('admlogin');
+        if (ubRouting::checkGet('admlogin')) {
+            $customLogin=ubRouting::get('admlogin');
+        }
     }
     $controlForm=$faceKit->renderAvatarControlForm($backUrl,$customLogin);
-    show_window(__('Avatar control').' '.$customLogin ,$controlForm);
+    show_window(__('Avatar control').' ('.$customLogin.')' ,$controlForm);
     zb_BillingStats();
 } else {
     show_error(__('Access denied'));

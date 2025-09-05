@@ -6186,8 +6186,10 @@ function web_AdministratorEditForm($adminLogin) {
     $userdata = load_user_info($adminLogin);
     if (!empty($userdata)) {
         $inputs = '';
-        $avatarImage = FaceKit::getAvatar($adminLogin, 128);
-        $inputs .= wf_tag('div', false, '', 'style="display:block; float:right;"') . $avatarImage . wf_tag('div', true);
+        $avatarImage = FaceKit::getAvatar($adminLogin, 128,'',__('Avatar control'));
+        $avaBackUrl=base64_encode('?module=adminreg&editadministrator='.$adminLogin);
+        $avaContolUrl='?module=avacontrol&admlogin=' . $adminLogin.'&back='.$avaBackUrl;
+        $inputs .= wf_tag('div', false, '', 'style="display:block; float:right;"') . wf_Link($avaContolUrl, $avatarImage, false, '') . wf_tag('div', true);
         $inputs .= wf_HiddenInput('save', '1');
         $inputs .= wf_HiddenInput('edadmusername', $userdata['username']);
         $passLabel = wf_tag('small') . __('if you do not want change password you must leave this field empty') . wf_tag('small', true);
