@@ -59,7 +59,6 @@ TASKMAN_NEWTASK_EMPSORT=TRIGGER|New tasks employee sorting
 DEAD_HIDE=TRIGGER|See no dead people
 DEAD_TAGID=VARCHAR|Dead people mark tag id
 CEMETERY_ENABLED=TRIGGER|Funeral service enabled
-GRAVATAR_DEFAULT=VARCHAR|Default avatar from gravatar for unknown users
 CHAPTEREND_LOOK=true
 
 
