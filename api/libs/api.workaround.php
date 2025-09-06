@@ -6985,11 +6985,15 @@ function zb_Linkify($text, $imgWidth = '100%', $imgLazy = true, $youtubeEmbed = 
             $videoId = $youtubeMatches[1];
             $embedUrl = 'https://www.youtube.com/embed/' . $videoId;
             
+            $iframeAttrs = 'frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" ';
+            $iframeAttrs .= 'referrerpolicy="strict-origin-when-cross-origin" ';
+            $iframeAttrs .= 'allowfullscreen';
+            
             // Check if it's a Shorts URL for vertical aspect ratio
             if (strpos($url, '/shorts/') !== false) {
-                $iframe = wf_tag('iframe', false, '', 'src="' . $embedUrl . '" width="315" height="560" frameborder="0" allowfullscreen');
+                $iframe = wf_tag('iframe', false, '', 'src="' . $embedUrl . '" width="315" height="560" ' . $iframeAttrs);
             } else {
-                $iframe = wf_tag('iframe', false, '', 'src="' . $embedUrl . '" width="560" height="315" frameborder="0" allowfullscreen');
+                $iframe = wf_tag('iframe', false, '', 'src="' . $embedUrl . '" width="560" height="315" ' . $iframeAttrs);
             }
             $iframe .= wf_tag('iframe', true);
             return $iframe;
