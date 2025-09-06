@@ -191,7 +191,7 @@ class FaceKit {
         $result = '';
         $myLogin = whoami();
         $uploadResult = $this->catchAvatarUpload();
-        $previewSizes = array(256, 128, 80, 64, 32, 16);
+        $previewSizes = array(256, 128, 64, 32, 16);
         $previewStyle = 'style="float:left; margin:10px; border:1px solid #ccc;"';
         if (cfr('ROOT')) {
             if (!empty($adminLogin)) {
