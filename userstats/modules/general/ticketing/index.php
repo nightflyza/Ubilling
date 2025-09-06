@@ -30,7 +30,7 @@ if ($us_config['TICKETING_ENABLED']) {
         $result = true;
         if (!empty($spamTraps)) {
             foreach ($spamTraps as $eachTrap) {
-                if (la_CheckPost(array($eachTrap))) {
+                if (ubRouting::checkPost($eachTrap)) {
                     return (false);
                 }
             }
@@ -69,7 +69,7 @@ if ($us_config['TICKETING_ENABLED']) {
      * @return array
      */
     function zbs_TicketGetData($ticketid) {
-        $ticketid = vf($ticketid, 3);
+        $ticketid = ubRouting::filters($ticketid, 'int');
         $query = "SELECT * from `ticketing` WHERE `id`='" . $ticketid . "'";
         $result = simple_query($query);
         return ($result);
@@ -82,7 +82,7 @@ if ($us_config['TICKETING_ENABLED']) {
      * @return array
      */
     function zbs_TicketGetReplies($ticketid) {
-        $ticketid = vf($ticketid, 3);
+        $ticketid = ubRouting::filters($ticketid, 'int');
         $query = "SELECT * from `ticketing` WHERE `replyid`='" . $ticketid . "' ORDER by `id` ASC";
         $result = simple_queryall($query);
         return ($result);
@@ -96,8 +96,8 @@ if ($us_config['TICKETING_ENABLED']) {
      * @return bool
      */
     function zbs_TicketIsMy($ticketid, $login) {
-        $ticketid = vf($ticketid, 3);
-        $login = mysql_real_escape_string($login);
+        $ticketid = ubRouting::filters($ticketid, 'int');
+        $login = ubRouting::filters($login, 'mres');
         $query = "SELECT `id` from `ticketing` WHERE `id`='" . $ticketid . "' AND `from`='" . $login . "'";
         $result = simple_query($query);
         if (!empty($result)) {
@@ -116,11 +116,12 @@ if ($us_config['TICKETING_ENABLED']) {
      * @param string $replyto
      */
     function zbs_TicketCreate($from, $to, $text, $replyto = 'NULL') {
-        $from = mysql_real_escape_string($from);
-        $to = mysql_real_escape_string($to);
-        $text = mysql_real_escape_string(strip_tags($text));
+        $from = ubRouting::filters($from, 'mres');
+        $to = ubRouting::filters($to, 'mres');
+        $text = ubRouting::filters(strip_tags($text), 'mres');
+        $text = ubRouting::filters($text, 'safe');
         $date = curdatetime();
-        $replyto = vf($replyto);
+        $replyto = ubRouting::filters($replyto, 'gigasafe');
         $query = "INSERT INTO `ticketing` (`id` ,`date` ,`replyid` , `status` ,`from` ,`to` ,`text`)
     VALUES ( NULL ,'" . $date . "', " . $replyto . ", '0','" . $from . "', " . $to . ",'" . $text . "');";
         nr_query($query);
@@ -164,7 +165,7 @@ if ($us_config['TICKETING_ENABLED']) {
      * @return string
      */
     function zbs_TicketReplyForm($ticketid) {
-        $ticketid = vf($ticketid);
+        $ticketid = ubRouting::filters($ticketid, 'int');
         $ticketdata = zbs_TicketGetData($ticketid);
         if ($ticketdata['status'] == 0) {
             $textAreaClass = 'form-control';
@@ -198,8 +199,8 @@ if ($us_config['TICKETING_ENABLED']) {
         $iconsPath = $skinPath . 'iconz/';
         $allmytickets = zbs_TicketsGetAllMy($user_login);
 
-        $cells = la_TableCell(__('ID'));
-        $cells .= la_TableCell(__('Date'));
+        
+        $cells = la_TableCell(__('Date'));
         $cells .= la_TableCell(__('Status'));
         $cells .= la_TableCell(__('Actions'));
         $rows = la_TableRow($cells, 'row1');
@@ -211,8 +212,7 @@ if ($us_config['TICKETING_ENABLED']) {
                 } else {
                     $ticketstatus = la_img($iconsPath . 'anunread.gif') . ' ' . __('Open');
                 }
-                $cells = la_TableCell($eachticket['id']);
-                $cells .= la_TableCell($eachticket['date']);
+                $cells = la_TableCell($eachticket['date']);
                 $cells .= la_TableCell($ticketstatus);
                 $cells .= la_TableCell(la_Link('?module=ticketing&showticket=' . $eachticket['id'], __('View')));
                 $rows .= la_TableRow($cells, 'row2');
@@ -230,9 +230,9 @@ if ($us_config['TICKETING_ENABLED']) {
      */
     function zbs_TicketShowWithReplies($ticketid) {
         global $us_config;
+        $ticketid = ubRouting::filters($ticketid, 'int');
         $curSkinPath = zbs_GetCurrentSkinPath($us_config);
         $iconzPath = $curSkinPath . 'iconz/';
-        $ticketid = vf($ticketid, 3);
         $ticketdata = zbs_TicketGetData($ticketid);
         $ticketreplies = zbs_TicketGetReplies($ticketid);
 
@@ -274,7 +274,7 @@ if ($us_config['TICKETING_ENABLED']) {
      * Returns list of available direct messages
      * 
      * @global string $user_login
-     * @return string
+     * @return void
      */
     function zbs_MessagesShowMy() {
         global $user_login;
@@ -286,29 +286,29 @@ if ($us_config['TICKETING_ENABLED']) {
 
         if (!empty($allmymessages)) {
             foreach ($allmymessages as $io => $eachmessage) {
-
                 $cells = la_TableCell($eachmessage['date']);
                 $cells .= la_TableCell($eachmessage['text']);
                 $rows .= la_TableRow($cells, 'row2');
             }
+            $result = la_TableBody($rows, '100%', 0);
+            show_window(__('Messages from administration'), $result);
         }
-        $result = la_TableBody($rows, '100%', 0);
-        return ($result);
     }
 
     //////////////////////
 
-    if (!isset($_GET['showticket'])) {
+    if (!ubRouting::checkGet('showticket')) {
         //mb post new ticket?
-        if (isset($_POST['newticket'])) {
-            $newtickettext = strip_tags($_POST['newticket']);
+        if (ubRouting::checkPost('newticket')) {
+            $newtickettext = ubRouting::post('newticket', 'raw');
+            $newtickettext = strip_tags($newtickettext);
             if (!empty($newtickettext)) {
                 if (!isset($us_helpdenied[$user_login])) {
                     if (zbs_spamCheck()) {
                         zbs_TicketCreate($user_login, 'NULL', $newtickettext);
                     }
                 }
-                rcms_redirect("?module=ticketing");
+                ubRouting::nav("?module=ticketing");
             }
         }
         //show previous tickets
@@ -317,23 +317,23 @@ if ($us_config['TICKETING_ENABLED']) {
         }
 
         show_window(__('Previous help requests'), zbs_TicketsShowMy());
-        show_window(__('Messages from administration'), zbs_MessagesShowMy());
+        zbs_MessagesShowMy();
     } else {
-        $ticketid = vf($_GET['showticket'], 3);
+        $ticketid = ubRouting::get('showticket', 'int');
         if (!empty($ticketid)) {
             //ok thats my ticket
             if (zbs_TicketIsMy($ticketid, $user_login)) {
                 //mb post reply?
-                if (isset($_POST['replyticket'])) {
-                    $replytickettext = strip_tags($_POST['replyticket']);
+                if (ubRouting::checkPost('replyticket')) {
+                    $replytickettext = ubRouting::post('replyticket', 'raw');
+                    $replytickettext = strip_tags($replytickettext);
                     if (!empty($replytickettext)) {
                         if (zbs_spamCheck()) {
                             zbs_TicketCreate($user_login, 'NULL', $replytickettext, $ticketid);
                         }
-                        rcms_redirect("?module=ticketing&showticket=" . $ticketid);
+                        ubRouting::nav("?module=ticketing&showticket=" . $ticketid);
                     }
                 }
-
 
                 //let view it
                 show_window(__('Help request') . ': ' . $ticketid, zbs_TicketShowWithReplies($ticketid));
