@@ -13,7 +13,6 @@ class FaceKit {
     const PROUTE_FILEUPLOAD = 'facekitFileUpload';
     const PROUTE_ADMINLOGIN = 'adminlogin';
     const PROUTE_STARTUPLOAD = 'facekitStartUpload';
-    const ALLLOWED_EXTENSIONS = array('jpg', 'jpeg', 'png', 'gif');
 
     public function __construct() {
         //yare yare daze
@@ -136,10 +135,11 @@ class FaceKit {
                     $adminLogin = ubRouting::post('adminlogin');
                 }
             }
+            $allowedExtensions = array('jpg', 'jpeg', 'png', 'gif');
             $fileAccepted = true;
             foreach ($_FILES as $file) {
                 if ($file['tmp_name'] > '') {
-                    if (@!in_array(end(explode(".", strtolower($file['name']))), self::ALLLOWED_EXTENSIONS)) {
+                    if (@!in_array(end(explode(".", strtolower($file['name']))), $allowedExtensions)) {
                         $fileAccepted = false;
                     }
                 }
