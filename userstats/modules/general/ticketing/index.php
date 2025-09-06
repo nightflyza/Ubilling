@@ -140,8 +140,17 @@ if ($us_config['TICKETING_ENABLED']) {
      * @return string
      */
     function zbs_TicketCreateForm() {
+        $textAreaClass = 'form-control';
+        $textAreaStyle = 'width: 100%; min-height: 120px; max-height: 300px; resize: vertical; padding: 12px; ';
+        $textAreaStyle .= 'border: 1px solid #DDDDDD; border-radius: 4px; ';
+        $textAreaStyle .= 'transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;';
+        $textAreaAttr = 'class="' . $textAreaClass . '" style="' . $textAreaStyle . '"';
+        
         $inputs = zbs_spambotsTrap();
-        $inputs .= la_TextArea('newticket', '', '', true, '60x10');
+        $inputs .= la_tag('div', false, 'form-group');
+        $inputs .= la_tag('textarea', false, '', 'name="newticket" id="' . la_InputId() . '" ' . $textAreaAttr);
+        $inputs .= la_tag('textarea', true);
+        $inputs .= la_tag('div', true);
         $inputs .= la_Submit(__('Post'));
 
         $result = la_Form('', 'POST', $inputs, '');
@@ -158,8 +167,17 @@ if ($us_config['TICKETING_ENABLED']) {
         $ticketid = vf($ticketid);
         $ticketdata = zbs_TicketGetData($ticketid);
         if ($ticketdata['status'] == 0) {
+            $textAreaClass = 'form-control';
+            $textAreaStyle = 'width: 100%; min-height: 120px; max-height: 300px; resize: vertical; padding: 12px; ';
+            $textAreaStyle .= 'border: 1px solid #DDDDDD; border-radius: 4px; ';
+            $textAreaStyle .= 'transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;';
+            $textAreaAttr = 'class="' . $textAreaClass . '" style="' . $textAreaStyle . '"';
+            
             $inputs = zbs_spambotsTrap();
-            $inputs .= la_TextArea('replyticket', '', '', true, '60x10');
+            $inputs .= la_tag('div', false, 'form-group');
+            $inputs .= la_tag('textarea', false, '', 'name="replyticket" id="' . la_InputId() . '" ' . $textAreaAttr);
+            $inputs .= la_tag('textarea', true);
+            $inputs .= la_tag('div', true);
             $inputs .= la_Submit(__('Post'));
             $result = la_Form('', 'POST', $inputs, '');
         } else {
