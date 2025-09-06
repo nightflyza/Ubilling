@@ -494,13 +494,38 @@ class PixelCraft {
      * @return void
      */
     public function resize($width, $height) {
-        if ($this->imageWidth and $this->imageHeight) {
-            $imageResized = imagescale($this->image, $width, $height);
+        if ($this->imageWidth && $this->imageHeight) {
+            if (function_exists('imagescale')) {
+                // PHP 5.5+
+                $imageResized = imagescale($this->image, $width, $height);
+            } else {
+                // PHP < 5.5 fallback
+                $imageResized = imagecreatetruecolor($width, $height);
+
+                imagealphablending($imageResized, false);
+                imagesavealpha($imageResized, true);
+
+                imagecopyresampled(
+                    $imageResized,
+                    $this->image,
+                    0,
+                    0,
+                    0,
+                    0,
+                    $width,
+                    $height,
+                    $this->imageWidth,
+                    $this->imageHeight
+                );
+            }
+
+
             $this->image = $imageResized;
             $this->imageWidth = $width;
             $this->imageHeight = $height;
         }
     }
+
 
     /**
      * Crops image to new dimensions starting from 0x0
