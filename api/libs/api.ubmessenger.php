@@ -61,6 +61,34 @@ class UBMessenger {
     protected $onlineTimeout = 10;
 
     /**
+     * Contains month count that means depth for loaded thread messages
+     *
+     * @var int
+     */
+    protected $threadMonthDepth = 0;
+
+    /**
+     * Contains flag that disables thread messages linkification
+     *
+     * @var bool
+     */
+    protected $noLinkifyFlag = false;
+
+    /**
+     * Flag that diables AJAX messages sending and replace it with native POST method.
+     *
+     * @var bool
+     */
+    protected $nativeSendFlag = false;
+
+    /**
+     * Flag that disables sounds behaviour around sending/receiving messages
+     *
+     * @var bool
+     */
+    protected $muteFlag = false;
+
+    /**
      * ZenFlow instance for refreshing messages data
      *
      * @var object
@@ -131,11 +159,14 @@ class UBMessenger {
 
     const OPT_NOLINKIFY = 'UBIM_NO_LINKIFY';
     const OPT_NOAJAXSEND = 'UBIM_MSGSEND_NATIVE';
+    const OPT_MONTHDEPTH = 'UBIM_DEPTH_LIMIT';
+    const OPT_MUTE = 'UBIM_MSG_MUTE';
 
     public function __construct() {
         $this->setMyLogin();
         $this->initDb();
         $this->loadConfigs();
+        $this->setOptions();
         $this->initCache();
         $this->initMessages();
         $this->loadAdmins();
@@ -191,6 +222,35 @@ class UBMessenger {
     protected function loadConfigs() {
         global $ubillingConfig;
         $this->altCfg = $ubillingConfig->getAlter();
+    }
+
+    /**
+     * Sets instance properties depend on config options
+     *
+     * @return void
+     */
+    protected function setOptions() {
+        if (isset($this->altCfg[self::OPT_MONTHDEPTH])) {
+            $this->threadMonthDepth = ubRouting::filters($this->altCfg[self::OPT_MONTHDEPTH], 'int');
+        }
+
+        if (isset($this->altCfg[self::OPT_MUTE])) {
+            if ($this->altCfg[self::OPT_MUTE]) {
+                $this->muteFlag = true;
+            }
+        }
+
+        if (isset($this->altCfg[self::OPT_NOLINKIFY])) {
+            if ($this->altCfg[self::OPT_NOLINKIFY]) {
+                $this->noLinkifyFlag = true;
+            }
+        }
+
+        if (isset($this->altCfg[self::OPT_NOAJAXSEND])) {
+            if ($this->altCfg[self::OPT_NOAJAXSEND]) {
+                $this->nativeSendFlag = true;
+            }
+        }
     }
 
     /**
@@ -261,7 +321,7 @@ class UBMessenger {
         if ($threadId) {
             if (isset($this->allAdmins[$threadId])) {
                 $this->threadsFlow = new ZenFlow(self::SCOPE_THREAD . '_' . $threadId, $this->renderThreadContent($threadId), $this->refreshInterval);
-                if (!@$this->altCfg['UBIM_MSG_MUTE']) {
+                if (!$this->muteFlag) {
                     $this->threadsFlow->setSoundOnChange($this->messageSound);
                 }
                 $result .= $this->threadsFlow->render();
@@ -506,7 +566,7 @@ class UBMessenger {
         if (isset($this->allAdmins[$to])) {
             $this->currentThread = $to;
             $sendButtonTitle = '';
-            if (!@$this->altCfg[self::OPT_NOAJAXSEND]) {
+            if (!$this->nativeSendFlag) {
                 $sendButtonTitle = 'title="' . __('Ctrl-Enter') . '"';
             }
             $inputs = wf_HiddenInput(self::PROUTE_MSG_TO, $to);
@@ -519,7 +579,7 @@ class UBMessenger {
             $result .= wf_tag('span', false, '', 'id="response"') . wf_tag('span', true);
 
             //preventing page refresh on sending message
-            if (!@$this->altCfg[self::OPT_NOAJAXSEND]) {
+            if (!$this->nativeSendFlag) {
                 $result .= wf_tag('script');
                 $result .= "
                         //Ctrl-Enter handling
@@ -568,7 +628,11 @@ class UBMessenger {
         $cachedData = $this->cache->get(self::KEY_MSG_THREADS . $this->myLogin . '_' . $threadUser, $this->cachingTimeout);
 
         if (empty($cachedData) and !is_array($cachedData)) {
-            $this->messagesDb->whereRaw("(`to`='" . $this->myLogin . "' AND `from`='" . $threadUser . "')  OR (`to`='" . $threadUser . "' AND `from`='" . $this->myLogin . "')");
+            $expr = "((`to`='" . $this->myLogin . "' AND `from`='" . $threadUser . "')  OR (`to`='" . $threadUser . "' AND `from`='" . $this->myLogin . "')) ";
+            if ($this->threadMonthDepth) {
+                $expr .= " AND `date` >= DATE_SUB(NOW(), INTERVAL " . $this->threadMonthDepth . " MONTH)";
+            }
+            $this->messagesDb->whereRaw($expr);
             $this->messagesDb->orderBy('id', 'DESC');
             $result = $this->messagesDb->getAll();
             $this->cache->set(self::KEY_MSG_THREADS . $this->myLogin . '_' . $threadUser, $result, $this->cachingTimeout);
@@ -615,7 +679,7 @@ class UBMessenger {
 
 
                 $messageText = nl2br($each['text']);
-                if (@!$this->altCfg[self::OPT_NOLINKIFY]) {
+                if (!$this->noLinkifyFlag) {
                     $messageText = zb_Linkify($messageText);
                 }
 
@@ -629,7 +693,6 @@ class UBMessenger {
                 }
 
                 $result .= wf_tag('div', false, $messageClass);
-                //      $result .= $fromName;
                 $result .= FaceKit::getAvatar($each['from'], '64', 'ubim-chat-avatar', $fromName);
                 $result .= wf_tag('div', false, 'ubim-message-bubble');
                 $result .= wf_tag('div', false, 'ubim-message-author');
@@ -695,7 +758,7 @@ class UBMessenger {
         return ($result);
     }
 
-    
+
     /**
      * Returns primary messenger window title
      *
