@@ -194,6 +194,8 @@ function zb_ContrAhentGetAllDataAssoc() {
 function zb_ContrAhentShow() {
     global $ubillingConfig;
     $allcontr = zb_ContrAhentGetAllData();
+    $editableFlag = (cfr('AGENTSMGMT')) ? true : false;
+    $deletableFlag = (cfr('AGENTSMGMT')) ? true : false;
 
     // construct needed editor
     $titles = array(
@@ -226,9 +228,9 @@ function zb_ContrAhentShow() {
 
     if ($ubillingConfig->getAlterParam('AGENTS_EXTINFO_ON')) {
         $extactbutton = wf_img('skins/icons/articlepost.png', __('Extended info'));
-        $result = web_GridEditor($titles, $keys, $allcontr, 'contrahens', true, true, '', 'extinfo', $extactbutton, true);
+        $result = web_GridEditor($titles, $keys, $allcontr, 'contrahens', $deletableFlag, $editableFlag, '', 'extinfo', $extactbutton, true);
     } else {
-        $result = web_GridEditor($titles, $keys, $allcontr, 'contrahens', true, true, '', '', '', true);
+        $result = web_GridEditor($titles, $keys, $allcontr, 'contrahens', $deletableFlag, $editableFlag, '', '', '', true);
     }
 
     return ($result);
@@ -281,7 +283,7 @@ function zb_ContrAhentEditForm($ahentid) {
     $inputs = '';
     $inputs .= wf_TextInput('changecontrname', __('Contrahent name') . $sup, ubRouting::filters($cdata['contrname'], 'callback', 'htmlspecialchars'), false, '', '', '', '', '', true);
     $inputs .= wf_TextInput('changebankacc', __('Bank account'), $cdata['bankacc'], false, '40', '', '', '', '', true);
-    $inputs .= wf_TextInput('changebankname', __('Bank name'), ubRouting::filters($cdata['bankname'], 'callback', 'htmlspecialchars') , false, '', '', '', '', '', true);
+    $inputs .= wf_TextInput('changebankname', __('Bank name'), ubRouting::filters($cdata['bankname'], 'callback', 'htmlspecialchars'), false, '', '', '', '', '', true);
     $inputs .= wf_TextInput('changebankcode', __('Bank code'), $cdata['bankcode'], false, '', '', '', '', '', true);
     $inputs .= wf_TextInput('changeedrpo', __('EDRPOU'), $cdata['edrpo'], false, '', '', '', '', '', true);
     $inputs .= wf_TextInput('changeipn', __('IPN'), $cdata['ipn'], false, '', '', '', '', '', true);
@@ -418,7 +420,7 @@ function web_AgentAssignForm() {
  * 
  * @return string
  */
-function web_AgentAssignShow($renderAutoAssign = FALSE) {
+function web_AgentAssignShow() {
     $allassigns = zb_AgentAssignGetAllData("ORDER BY `id` DESC");
     $allahens = zb_ContrAhentGetAllData();
     $usedStreets = array();
@@ -432,7 +434,9 @@ function web_AgentAssignShow($renderAutoAssign = FALSE) {
     $cells = wf_TableCell(__('ID'));
     $cells .= wf_TableCell(__('Contrahent name'));
     $cells .= wf_TableCell(__('Street name'));
-    $cells .= wf_TableCell(__('Actions'));
+    if (cfr('AGENTSGEO')) {
+        $cells .= wf_TableCell(__('Actions'));
+    }
     $rows = wf_TableRow($cells, 'row1');
 
     if (!empty($allassigns)) {
@@ -441,35 +445,71 @@ function web_AgentAssignShow($renderAutoAssign = FALSE) {
             $cells = wf_TableCell($eachassign['id']);
             $cells .= wf_TableCell(@$agentnames[$eachassign['ahenid']]);
             $cells .= wf_TableCell($eachassign['streetname']);
-            $actLinks = wf_JSAlert('?module=contrahens&deleteassign=' . $eachassign['id'], web_delete_icon(), __('Removing this may lead to irreparable results'));
-            $cells .= wf_TableCell($actLinks);
+            if (cfr('AGENTSGEO')) {
+                $actLinks = wf_JSAlert('?module=contrahens&deleteassign=' . $eachassign['id'], web_delete_icon(), __('Removing this may lead to irreparable results'));
+                $cells .= wf_TableCell($actLinks);
+            }
             $rows .= wf_TableRow($cells, $rowColor);
             $usedStreets[$eachassign['streetname']] = $eachassign['ahenid'];
         }
     }
 
+    $result = wf_TableBody($rows, '100%', '0', 'sortable');
+    return ($result);
+}
+
+function web_AssignListControl($renderAutoAssign = false) {
+    $result = '';
+    $style = wf_tag('style');
+    $style .= '
+    .renderassignform {
+     display: inline-block;
+    }
+    .renderassignsubmit {
+        display: inline-block; 
+        vertical-align: middle;
+        border:none;
+        width:12px;
+        height:12px;
+        cursor:pointer;
+        padding:0;
+    }
+
+    .renderassigngeo {
+        background:url("skins/menuicons/streets.png") no-repeat center/contain;
+        }
+
+    .renderassignmanual {
+        background:url("skins/menuicons/manual.png") no-repeat center/contain;
+    }
+    ';
+    $style .= wf_tag('style', true);
+
     if (!$renderAutoAssign) {
         // Create button for show automatic assign agetnts
         $inputs = wf_HiddenInput('renderautoassign', 'true');
-        $inputs .= wf_SubmitClassed(true, 'ubButton', '', __('Show automatic agent assignments'));
-        $form = wf_Form("", 'POST', $inputs, 'glamour form-grid-2cols form-grid-2cols-label-right labels-top');
+        $inputs .= wf_tag('button', false, 'renderassignsubmit renderassigngeo', 'type="submit" title="' . __('Show automatic agent assignments') . '"');
+        $inputs .= wf_tag('button', true);
     } else {
-        // Backlink
-        $form = wf_BackLink('?module=contrahens');
+        // Backlink to manual assign overrides
+        $inputs = wf_tag('button', false, 'renderassignsubmit renderassignmanual', 'type="submit" title="' . __('Assign overrides') . '"');
+        $inputs .= wf_tag('button', true);
     }
 
-    $result = wf_TableBody($rows, '100%', '0', 'sortable');
-    $result.= $form;
+    $form = wf_Form("", 'POST', $inputs, 'renderassignform');
 
+
+    $result .= $style;
+    $result .= $form;
     return ($result);
 }
 
 /**
-* Renders list of strict login=>agent assigns with some controls
-*
-* @return string
-*/
-function web_AgentAssignRender($renderAutoAssign = FALSE) {
+ * Renders list of strict login=>agent assigns with some controls
+ *
+ * @return string
+ */
+function web_AgentAssignRender($renderAutoAssign = false) {
     if ($renderAutoAssign) {
         $ajaxURL = '?module=contrahens&ajaxagenassignauto=true';
     } else {
@@ -506,7 +546,7 @@ function web_AgentAssignStrictShow() {
         foreach ($allassigns as $eachlogin => $eachagent) {
             $loginLink = wf_Link('?module=userprofile&username=' . $eachlogin, web_profile_icon() . ' ' . $eachlogin, false, '');
             $actLinks = wf_JSAlert('?module=contractedit&username=' . $eachlogin, web_edit_icon(), __('Are you serious'));
-            $actLinks.= wf_JSAlert('?module=contrahens&deleteassignstrict=true&username=' . $eachlogin, web_delete_icon(), __('Are you serious'));
+            $actLinks .= wf_JSAlert('?module=contrahens&deleteassignstrict=true&username=' . $eachlogin, web_delete_icon(), __('Are you serious'));
 
             $data[] = $loginLink;
             $data[] = @$alladdress[$eachlogin];
@@ -524,10 +564,10 @@ function web_AgentAssignStrictShow() {
 }
 
 /**
-* Renders data list of strict login=>agent assigns with some controls
-*
-* @return string
-*/
+ * Renders data list of strict login=>agent assigns with some controls
+ *
+ * @return string
+ */
 function web_AgentAssignAutoShow() {
     $JSONHelper = new wf_JqDtHelper();
     $allUsers = new NyanORM('users');
@@ -567,7 +607,6 @@ function web_AgentAssignAutoShow() {
                 unset($data);
             }
         }
-
     }
 
     $JSONHelper->getJson();
@@ -1167,6 +1206,9 @@ function zb_AgentStatsRender($mask = '') {
         $strictAssigns = zb_AgentAssignStrictGetAllData();
         $allAgentData = zb_ContrAhentGetAllData();
         $allAgentNames = array(); //agentid=>contrname
+        if (!empty($mask)) {
+            $mask = explode(',', $mask);
+        }
         if (!empty($allAgentData)) {
             //shitty preprocessing here
             foreach ($allAgentData as $io => $eachAgentData) {
@@ -1198,13 +1240,17 @@ function zb_AgentStatsRender($mask = '') {
                 }
 
                 if (!empty($mask)) {
-                    if (ispos($userData['Tariff'], $mask)) {
-                        if (isset($maskCounters[$eachAgentId][$mask])) {
-                            $maskCounters[$eachAgentId][$mask]['all']++;
-                            $maskCounters[$eachAgentId][$mask]['active'] += $active;
-                        } else {
-                            $maskCounters[$eachAgentId][$mask]['all'] = 1;
-                            $maskCounters[$eachAgentId][$mask]['active'] = $active;
+                    foreach ($mask as $mi => $eachMask) {
+                        if (!empty($eachMask)) {
+                            if (ispos($userData['Tariff'], $eachMask)) {
+                                if (isset($maskCounters[$eachAgentId])) {
+                                    $maskCounters[$eachAgentId]['all']++;
+                                    $maskCounters[$eachAgentId]['active'] += $active;
+                                } else {
+                                    $maskCounters[$eachAgentId]['all'] = 1;
+                                    $maskCounters[$eachAgentId]['active'] = $active;
+                                }
+                            }
                         }
                     }
                 }
@@ -1216,7 +1262,7 @@ function zb_AgentStatsRender($mask = '') {
             $cells .= wf_TableCell(__('Users'));
             $cells .= wf_TableCell(__('Active'));
             if ($mask) {
-                $cells .= wf_TableCell($mask . ': ' . __('Total') . ' / ' . __('Active'));
+                $cells .= wf_TableCell(implode(', ', $mask) . ': ' . __('Total') . ' / ' . __('Active'));
             }
             $rows = wf_TableRow($cells, 'row1');
             foreach ($agentCounters as $agentId => $userCount) {
@@ -1224,7 +1270,8 @@ function zb_AgentStatsRender($mask = '') {
                 $cells .= wf_TableCell($userCount['total']);
                 $cells .= wf_TableCell($userCount['active']);
                 if ($mask) {
-                    $cells .= wf_TableCell(@$maskCounters[$agentId][$mask]['all'] . ' / ' . @$maskCounters[$agentId][$mask]['active']);
+                    $maskLabel = (@$maskCounters[$agentId]['all']) ? @$maskCounters[$agentId]['all'] . ' / ' . @$maskCounters[$agentId]['active'] : '-';
+                    $cells .= wf_TableCell($maskLabel);
                 }
                 $rows .= wf_TableRow($cells, 'row5');
             }

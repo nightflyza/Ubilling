@@ -27,19 +27,19 @@ if (cfr('CONTRACT')) {
         $useraddress = zb_UserGetFullAddress($login) . ' (' . $login . ')';
 
 
-// Edit form construct
+        // Edit form construct
         $fieldnames = array('fieldname1' => __('Current contract'), 'fieldname2' => __('New contract'));
         $fieldkey = 'newcontract';
         $form = web_EditorStringDataFormContract($fieldnames, $fieldkey, $useraddress, $current_contract);
         show_window(__('Edit contract'), $form);
 
-//filestorage support here
+        //filestorage support here
         if (@$alter_conf['FILESTORAGE_ENABLED']) {
             $fileStorage = new FileStorage('USERCONTRACT', $login);
             show_window(__('Uploaded files'), $fileStorage->renderFilesPreview(true, ' ' . __('Upload files')));
         }
 
-//contract date editing
+        //contract date editing
         $contractDates = new ContractDates();
         //someone creates new contractdate or changes old
         if (ubRouting::checkPost($contractDates::PROUTE_DATE)) {
@@ -59,21 +59,23 @@ if (cfr('CONTRACT')) {
         //editing form
         show_window(__('User contract date'), $contractDates->renderChangeForm($current_contract));
 
-//agent strict assigning form
+        //agent strict assigning form
         if ($alter_conf['AGENTS_ASSIGN']) {
-            if (wf_CheckPost(array('ahentsel', 'assignstrictlogin'))) {
-                if (isset($_POST['deleteassignstrict'])) {
-                    // deletion of manual assign
-                    zb_AgentAssignStrictDelete($_POST['assignstrictlogin']);
-                } else {
-                    //create new assign
-                    zb_AgentAssignStrictCreate($_POST['assignstrictlogin'], $_POST['ahentsel']);
+            if (cfr('AGENTSOVR')) {
+                if (wf_CheckPost(array('ahentsel', 'assignstrictlogin'))) {
+                    if (isset($_POST['deleteassignstrict'])) {
+                        // deletion of manual assign
+                        zb_AgentAssignStrictDelete($_POST['assignstrictlogin']);
+                    } else {
+                        //create new assign
+                        zb_AgentAssignStrictCreate($_POST['assignstrictlogin'], $_POST['ahentsel']);
+                    }
+                    rcms_redirect('?module=contractedit&username=' . $_POST['assignstrictlogin']);
                 }
-                rcms_redirect('?module=contractedit&username=' . $_POST['assignstrictlogin']);
-            }
 
-            $allAssignsStrict = zb_AgentAssignStrictGetAllData();
-            show_window(__('Manual agent assign'), web_AgentAssignStrictForm($login, @$allAssignsStrict[$login]));
+                $allAssignsStrict = zb_AgentAssignStrictGetAllData();
+                show_window(__('Manual agent assign'), web_AgentAssignStrictForm($login, @$allAssignsStrict[$login]));
+            }
         }
 
         show_window('', web_UserControls($login));
@@ -81,4 +83,3 @@ if (cfr('CONTRACT')) {
 } else {
     show_error(__('You cant control this module'));
 }
-

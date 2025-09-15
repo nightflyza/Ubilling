@@ -475,7 +475,7 @@ $lang['def']['Export encoding'] = 'Кодування експорту';
 $lang['def']['Import encoding'] = 'Кодування імпорту';
 
 //rev 426
-$lang['def']['right to control contrahens'] = 'Право керувати контрагенатми';
+$lang['def']['right to control contrahens'] = 'Право керувати контрагентами';
 $lang['def']['right to view new MAC report'] = 'Право переглядати звіт по нових MAC';
 $lang['def']['right to export payments to 1C'] = 'Право експортувати оплати в 1С';
 $lang['def']['right to change billing settings'] = 'Право змінювати налаштування біллінгу';
@@ -3616,3 +3616,6 @@ $lang['def']['right to manage KATOTTG directory'] = 'Право керувати
 $lang['def']['Birthday'] = 'День народження';
 $lang['def']['today'] = 'сьогодні';
 $lang['def']['years'] = 'років';
+$lang['def']['right to view contrahens'] = 'Право переглядати контрагентів';
+$lang['def']['right to control contrahens geo assigns'] = 'Право контролювати прив`язку контрагентів до місцевості';
+$lang['def']['right to control contrahens assign overrides'] = 'Право контролювати перепризначеннями контрагентів';

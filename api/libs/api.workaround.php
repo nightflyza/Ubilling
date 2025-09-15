@@ -1948,7 +1948,12 @@ function web_GridEditor($titles, $keys, $alldata, $module, $delete = true, $edit
     foreach ($titles as $eachtitle) {
         $cells .= wf_TableCell(__($eachtitle));
     }
-    $cells .= wf_TableCell(__('Actions'));
+
+    if ($delete or $edit or $extaction) {
+        $cells .= wf_TableCell(__('Actions'));
+    }
+
+
     $rows = wf_TableRow($cells, 'row1');
     //headers end
 
@@ -1979,7 +1984,9 @@ function web_GridEditor($titles, $keys, $alldata, $module, $delete = true, $edit
                 $extencontrol = '';
             }
 
-            $cells .= wf_TableCell($deletecontrol . ' ' . $editcontrol . ' ' . $extencontrol);
+            if ($delete or $edit or $extaction) {
+                $cells .= wf_TableCell($deletecontrol . ' ' . $editcontrol . ' ' . $extencontrol);
+            }
             $rows .= wf_TableRow($cells, 'row5');
         }
     }
@@ -6968,13 +6975,13 @@ function zb_Linkify($text, $imgWidth = '100%', $imgLazy = true, $youtubeEmbed = 
     $urlPattern = '/\b(https?:\/\/[^\s<>"\'\)]+)/i';
     $result = preg_replace_callback($urlPattern, function ($matches) use ($imgWidth, $imgLazy, $youtubeEmbed) {
         $url = $matches[0];
-        
+
         // Security: Filter out potentially malicious URLs
         $url = filter_var($url, FILTER_SANITIZE_URL);
         if (!filter_var($url, FILTER_VALIDATE_URL)) {
             return htmlspecialchars($url);
         }
-        
+
         // Additional security: Block javascript: and data: URLs
         if (preg_match('/^(javascript:|data:|vbscript:|file:|ftp:)/i', $url)) {
             return htmlspecialchars($url);
@@ -6984,11 +6991,11 @@ function zb_Linkify($text, $imgWidth = '100%', $imgLazy = true, $youtubeEmbed = 
         if ($youtubeEmbed and preg_match('/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|shorts\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/', $url, $youtubeMatches)) {
             $videoId = $youtubeMatches[1];
             $embedUrl = 'https://www.youtube.com/embed/' . $videoId;
-            
+
             $iframeAttrs = 'frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" ';
             $iframeAttrs .= 'referrerpolicy="strict-origin-when-cross-origin" ';
             $iframeAttrs .= 'allowfullscreen';
-            
+
             // Check if it's a Shorts URL for vertical aspect ratio
             if (strpos($url, '/shorts/') !== false) {
                 $iframe = wf_tag('iframe', false, '', 'src="' . $embedUrl . '" width="315" height="560" ' . $iframeAttrs);
