@@ -30,7 +30,7 @@ function em_EmployeeRenderList() {
     $allEmployee = ts_GetAllEmployeeData();
     $allTagNames = stg_get_alltagnames();
     $messages = new UbillingMessageHelper();
-    $todayBirthdays=em_EmployeeGetTodayBirthdays($allEmployee);
+    $todayBirthdays = em_EmployeeGetTodayBirthdays($allEmployee);
 
     if (!empty($allEmployee)) {
         $cells = wf_TableCell(__('ID'));
@@ -46,14 +46,14 @@ function em_EmployeeRenderList() {
         $rows = wf_TableRow($cells, 'row1');
 
         foreach ($allEmployee as $io => $eachemployee) {
-            $cakeTag='';
+            $cakeTag = '';
             if (isset($todayBirthdays[$eachemployee['id']])) {
-                $age=$todayBirthdays[$eachemployee['id']]['age'];
-                $cake=' 🎂 ';
-                $cakeTag=wf_tag('span',false,'','title="'.$age.' '.__('years').'"').$cake.wf_tag('span',true);
+                $age = $todayBirthdays[$eachemployee['id']]['age'];
+                $cake = ' 🎂 ';
+                $cakeTag = wf_tag('span', false, '', 'title="' . $age . ' ' . __('years') . '"') . $cake . wf_tag('span', true);
             }
             $cells = wf_TableCell($eachemployee['id']);
-            $cells .= wf_TableCell($eachemployee['name'].$cakeTag);
+            $cells .= wf_TableCell($eachemployee['name'] . $cakeTag);
             $cells .= wf_TableCell(web_bool_led($eachemployee['active']), '', '', 'sorttable_customkey="' . $eachemployee['active'] . '"');
             $cells .= wf_TableCell($eachemployee['appointment']);
             $cells .= wf_TableCell($eachemployee['mobile']);
@@ -106,7 +106,7 @@ function em_EmployeeCreateForm() {
     $inputs .= em_TagSelector('editadtagid', __('Tag'));
     $inputs .= wf_delimiter(0);
     $inputs .= wf_TextInput('amountLimit', 'Monthly top up limit', '', true, 5, 'finance');
-    $inputs .= wf_DatePicker('birthdate',true).' '.__('Birth date');
+    $inputs .= wf_DatePicker('birthdate', true) . ' ' . __('Birth date');
     $inputs .= wf_delimiter(1);
     $inputs .= wf_Submit(__('Create new employee'));
 
@@ -127,7 +127,7 @@ function em_EmployeeSave($editemployee) {
         $employeeDb = new NyanORM('employee');
         $actFlag = (ubRouting::checkPost('editactive')) ? 1 : 0;
         $amountLim = (ubRouting::checkPost('amountLimit')) ? ubRouting::post('amountLimit') : 0;
-        $birthdate = (ubRouting::checkPost('editbirthdate')) ? ubRouting::post('editbirthdate','mres') : '';
+        $birthdate = (ubRouting::checkPost('editbirthdate')) ? ubRouting::post('editbirthdate', 'mres') : '';
         if (!zb_checkDate($birthdate)) {
             $birthdate = '';
         }
@@ -154,23 +154,23 @@ function em_EmployeeSave($editemployee) {
  *
  * @return void
  */
-function em_EmployeeGetTodayBirthdays($allEmployeeData=array()) {
+function em_EmployeeGetTodayBirthdays($allEmployeeData = array()) {
     $result = array();
-    $curdate=curdate();
-    $allData=array();
+    $curdate = curdate();
+    $allData = array();
     if (empty($allEmployeeData)) {
         $employeeDb = new NyanORM('employee');
-        $employeeDb->where('birthdate', '!=','');
-        $employeeDb->where('birthdate', '!=','0000-00-00');
-        $allData=$employeeDb->getAll();
+        $employeeDb->where('birthdate', '!=', '');
+        $employeeDb->where('birthdate', '!=', '0000-00-00');
+        $allData = $employeeDb->getAll();
     } else {
-        foreach ($allEmployeeData as $eachId=>$eachData) {
-            if (!empty($eachData['birthdate']) and $eachData['birthdate']!='0000-00-00') {
-                $allData[$eachId]=$eachData;
+        foreach ($allEmployeeData as $eachId => $eachData) {
+            if (!empty($eachData['birthdate']) and $eachData['birthdate'] != '0000-00-00') {
+                $allData[$eachId] = $eachData;
             }
         }
     }
-    
+
     if (!empty($allData)) {
         foreach ($allData as $each) {
             $birthdate = $each['birthdate'];
@@ -178,8 +178,8 @@ function em_EmployeeGetTodayBirthdays($allEmployeeData=array()) {
             $birthDay = date('d', strtotime($birthdate));
             $curMonth = date('m', strtotime($curdate));
             $curDay = date('d', strtotime($curdate));
-            if ($birthMonth == $curMonth AND $birthDay == $curDay) {
-                $age=date('Y', strtotime($curdate)) - date('Y', strtotime($birthdate));
+            if ($birthMonth == $curMonth and $birthDay == $curDay) {
+                $age = date('Y', strtotime($curdate)) - date('Y', strtotime($birthdate));
                 $result[$each['id']]['name'] = $each['name'];
                 $result[$each['id']]['age'] = $age;
                 $result[$each['id']]['admlogin'] = $each['admlogin'];
@@ -209,9 +209,9 @@ function em_employeeEditForm($editemployee) {
     $editinputs .= wf_TextInput('editadmlogin', __('Administrator'), $employeedata['admlogin'], true, 20);
     $editinputs .= em_TagSelector('editadtagid', __('Tag'), $employeedata['tagid'], true);
     $editinputs .= wf_TextInput('amountLimit', __('Monthly top up limit'), $employeedata['amountLimit'], true, 20, 'finance');
-    $editinputs .= wf_DatePickerPreset('editbirthdate',$employeedata['birthdate'],true).' '.__('Birth date').wf_delimiter(0);
+    $editinputs .= wf_DatePickerPreset('editbirthdate', $employeedata['birthdate'], true) . ' ' . __('Birth date') . wf_delimiter(0);
     $editinputs .= wf_CheckInput('editactive', 'Active', true, $actflag);
-    $editinputs.=wf_delimiter(0);
+    $editinputs .= wf_delimiter(0);
     $editinputs .= wf_Submit('Save');
     $result .= wf_Form('', 'POST', $editinputs, 'glamour');
 
@@ -784,6 +784,7 @@ function ts_JGetUndoneTasks() {
         and $ubillingConfig->getAlterParam('TASKMAN_BRANCHES_CONSIDER_ON'));
     $depthMonthLimit = $ubillingConfig->getAlterParam('TASKMAN_DEPTH_LIMIT', 0);
     $depthMonthLimit = ubRouting::filters($depthMonthLimit, 'int');
+    $realnameFlag = $ubillingConfig->getAlterParam('TASKMAN_SHOW_REALNAMES', 0);
 
     //ADcomments init
     if ($altCfg['ADCOMMENTS_ENABLED']) {
@@ -793,7 +794,13 @@ function ts_JGetUndoneTasks() {
         $adcFlag = false;
     }
 
-    $allemployee = ts_GetAllEmployee();
+    //render realnames?
+    if ($realnameFlag) {
+        $allUserData = zb_UserGetAllDataCache();
+    } else {
+        $allUserData = array();
+    }
+
     $alljobdata = ts_getAllJobtypesData();
     $curyear = curyear();
     $curmonth = date("m");
@@ -801,6 +808,7 @@ function ts_JGetUndoneTasks() {
     $dateFilter = '';
     $appendQueryJOIN = '';
     $appendQuerySelect = '';
+
 
     //date filters
     if (!$showAllYearsTasks and ($curmonth != 1 and $curmonth != 12)) {
@@ -914,10 +922,18 @@ function ts_JGetUndoneTasks() {
             // get users's branch
             $branchName = ($branchConsider) ? ' ' . $eachtask['branch_name'] . ' ' : '';
 
+            //user realname rendering
+            $userRealName = '';
+            if ($realnameFlag) {
+                if (!empty($eachtask['login'])) {
+                    $userRealName = isset($allUserData[$eachtask['login']]) ? ' ' . $allUserData[$eachtask['login']]['realname'] : '';
+                }
+            }
+
             $result .= "
                       {
                         id: " . $eachtask['id'] . ",
-                        title: '" . $startTime . $branchName . $eachtask['address'] . " - " . @$alljobdata[$eachtask['jobtype']]['jobname'] . $adcText . "',
+                        title: '" . $startTime . $branchName . $eachtask['address'] . $userRealName . " - " . @$alljobdata[$eachtask['jobtype']]['jobname'] . $adcText . "',
                         start: new Date(" . $startdate . $startTimeTimestamp . "),
                         end: new Date(" . $enddate . "),
                         className : '" . $jobColorClass . "',
@@ -1101,6 +1117,8 @@ function ts_JGetAllTasks() {
         and $ubillingConfig->getAlterParam('TASKMAN_BRANCHES_CONSIDER_ON'));
     $depthMonthLimit = $ubillingConfig->getAlterParam('TASKMAN_DEPTH_LIMIT', 0);
     $depthMonthLimit = ubRouting::filters($depthMonthLimit, 'int');
+    $realnameFlag = $ubillingConfig->getAlterParam('TASKMAN_SHOW_REALNAMES', 0);
+
 
     //ADcomments init
     if ($altCfg['ADCOMMENTS_ENABLED']) {
@@ -1109,7 +1127,16 @@ function ts_JGetAllTasks() {
     } else {
         $adcFlag = false;
     }
-    $allemployee = ts_GetAllEmployee();
+
+
+    //render realnames?
+    if ($realnameFlag) {
+        $allUserData = zb_UserGetAllDataCache();
+    } else {
+        $allUserData = array();
+    }
+
+
     $alljobdata = ts_GetAllJobtypesData();
 
     $curyear = curyear();
@@ -1232,10 +1259,19 @@ function ts_JGetAllTasks() {
             // get users's branch
             $branchName = ($branchConsider) ? ' ' . $eachtask['branch_name'] . ' ' : '';
 
+            //user realname rendering
+            $userRealName = '';
+            if ($realnameFlag) {
+                if (!empty($eachtask['login'])) {
+                    $userRealName = isset($allUserData[$eachtask['login']]) ? ' ' . $allUserData[$eachtask['login']]['realname'] : '';
+                }
+            }
+
+
             $result .= "
                       {
                         id: " . $eachtask['id'] . ",
-                        title: '" . $startTime . $branchName . $eachtask['address'] . " - " . @$alljobdata[$eachtask['jobtype']]['jobname'] . $adcText . "',
+                        title: '" . $startTime . $branchName . $eachtask['address'] .$userRealName. " - " . @$alljobdata[$eachtask['jobtype']]['jobname'] . $adcText . "',
                         start: new Date(" . $startdate . $startTimeTimestamp . "),
                         end: new Date(" . $enddate . "),
                         " . $coloring . "
@@ -2791,20 +2827,30 @@ function ts_TaskChangeForm($taskid) {
             $tablerows .= wf_TableRow($tablecells, 'row3');
         }
 
-        $tablecells = wf_TableCell(__('Login'));
-        $tablecells .= wf_TableCell($taskLogin . $loginType);
-        $tablerows .= wf_TableRow($tablecells, 'row3');
-
         if (!empty($taskLogin)) {
             $allUserLogins = zb_UserGetAllDataCache();
+
+
             if (isset($allUserLogins[$taskLogin])) {
-                $UserIpMAC = zb_UserGetAllData($taskLogin);
+                $userActualData = zb_UserGetAllData($taskLogin);
+
+                if (@$altCfg['TASKMAN_SHOW_REALNAMES']) {
+                    $tablecells = wf_TableCell(__('Real Name'));
+                    $tablecells .= wf_TableCell(@$userActualData[$taskLogin]['realname']);
+                    $tablerows .= wf_TableRow($tablecells, 'row3');
+                }
+
+                $tablecells = wf_TableCell(__('Login'));
+                $tablecells .= wf_TableCell($taskLogin . $loginType);
+                $tablerows .= wf_TableRow($tablecells, 'row3');
+
+
                 $tablecells = wf_TableCell(__('IP'));
-                $tablecells .= wf_TableCell(@$UserIpMAC[$taskLogin]['ip']);
+                $tablecells .= wf_TableCell(@$userActualData[$taskLogin]['ip']);
                 $tablerows .= wf_TableRow($tablecells, 'row3');
 
                 $tablecells = wf_TableCell(__('MAC'));
-                $tablecells .= wf_TableCell(@$UserIpMAC[$taskLogin]['mac']);
+                $tablecells .= wf_TableCell(@$userActualData[$taskLogin]['mac']);
                 $tablerows .= wf_TableRow($tablecells, 'row3');
 
                 if (@$altCfg['TASKMAN_SHOW_USERTAGS']) {
@@ -2834,7 +2880,16 @@ function ts_TaskChangeForm($taskid) {
                     $tablecells .= wf_TableCell(zb_getPonSignalData($taskLogin, true, false, $onuLinkFlag));
                     $tablerows .= wf_TableRow($tablecells, 'row3');
                 }
+            } else {
+                $tablecells = wf_TableCell(__('Login'));
+                $loginType = ' (' . __('not exists') . ')';
+                $tablecells .= wf_TableCell($taskLogin . $loginType);
+                $tablerows .= wf_TableRow($tablecells, 'row3');
             }
+        } else {
+            $tablecells = wf_TableCell(__('Login'));
+            $tablecells .= wf_TableCell(__('None'));
+            $tablerows .= wf_TableRow($tablecells, 'row3');
         }
 
         $tablecells = wf_TableCell(__('Phone'));
