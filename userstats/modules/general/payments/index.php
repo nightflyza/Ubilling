@@ -25,8 +25,13 @@ function zbs_ShowUserPayments($login) {
                 }
 
                 $cells = la_TableCell($dateCells);
-                $cells .= la_TableCell($eachpayment['summ']);
-                $cells .= la_TableCell($eachpayment['balance']);
+                if (isset($usConfig['PAYMENTS_ROUND_SUMM']) AND $usConfig['PAYMENTS_ROUND_SUMM']) {
+                    $cells .= la_TableCell(web_roundValue($eachpayment['summ'], 2));
+                    $cells .= la_TableCell(web_roundValue($eachpayment['balance'], 2));
+                } else {
+                    $cells .= la_TableCell($eachpayment['summ']);
+                    $cells .= la_TableCell($eachpayment['balance']);
+                }
                 $rows .= la_TableRow($cells, 'row2');
             }
         }
