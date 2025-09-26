@@ -3621,3 +3621,4 @@ $lang['def']['right to control contrahens geo assigns'] = 'Право контр
 $lang['def']['right to control contrahens assign overrides'] = 'Право контролювати перепризначеннями контрагентів';
 $lang['def']['Show all'] = 'Показати всі';
 $lang['def']['all'] = 'всі';
+$lang['def']['Move tariff after'] = 'Замінити тариф після';

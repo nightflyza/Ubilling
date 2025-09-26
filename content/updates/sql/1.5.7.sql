@@ -1,0 +1,1 @@
+ALTER TABLE `ukv_users` ADD `tariffnmdate` VARCHAR(20) NULL DEFAULT NULL AFTER `tariffnmid`;

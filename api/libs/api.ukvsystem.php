@@ -643,15 +643,29 @@ class UkvSystem {
                 if (!empty($each['tariffnmid'])) {
                     $newTariffId = $each['tariffnmid'];
                     if (isset($this->tariffs[$newTariffId])) {
-                        $userId = $each['id'];
-                        $where = "WHERE `id`='" . $userId . "'";
-                        //change tariff in database
-                        simple_update_field('ukv_users', 'tariffid', $newTariffId, $where);
-                        //update tariffs state in current instance
-                        $this->users[$userId]['tariffid'] = $newTariffId;
-                        $this->users[$userId]['tariffnmid'] = '';
-                        //drop tariffnm
-                        simple_update_field('ukv_users', 'tariffnmid', '', $where);
+                        $changeNow=true;
+                        //may be tariff must be changed little bit later?
+                        if (!empty($each['tariffnmdate'])) {
+                            $changeNow=false;
+                            if ($each['tariffnmdate'] <= date("Y-m-d")) {
+                                $changeNow=true;
+                            }
+                        }
+
+                        if ($changeNow) {
+                            $userId = $each['id'];
+                            $where = "WHERE `id`='" . $userId . "'";
+                            //change tariff in database
+                            simple_update_field('ukv_users', 'tariffid', $newTariffId, $where);
+                            //update tariffs state in current instance
+                            $this->users[$userId]['tariffid'] = $newTariffId;
+                            $this->users[$userId]['tariffnmid'] = '';
+                            $this->users[$userId]['tariffnmdate'] = '';
+                            //drop tariffnm
+                            simple_update_field('ukv_users', 'tariffnmid', '', $where);
+                            //and change date too
+                            simple_update_field('ukv_users', 'tariffnmdate', '', $where);
+                        }
                     }
                 }
             }
@@ -1061,6 +1075,7 @@ class UkvSystem {
             $inputs .= wf_TextInput('ueditcontract', __('Contract'), $userData['contract'], true, '10');
             $inputs .= wf_Selector('uedittariff', $tariffArr, __('Tariff'), $userData['tariffid'], true);
             $inputs .= wf_Selector('uedittariffnm', $tariffnmArr, __('Next month'), $userData['tariffnmid'], true);
+            $inputs .= wf_DatePickerPreset('uedittariffnmdate', $userData['tariffnmdate'], true) . __('Move tariff after').wf_delimiter(0);
             $inputs .= wf_Selector('ueditactive', $switchArr, __('Connected'), $userData['active'], true);
             $inputs .= wf_TextInput('ueditregdate', __('Contract date'), $userData['regdate'], true, '20');
             $inputs .= wf_TextInput('ueditinetlogin', __('Login'), $userData['inetlogin'], true, '20');
@@ -1254,6 +1269,13 @@ class UkvSystem {
             if ($this->users[$userId]['tariffnmid'] != ubRouting::post('uedittariffnm', 'int')) {
                 simple_update_field($tablename, 'tariffnmid', ubRouting::post('uedittariffnm', 'int'), $where);
                 log_register('UKV USER ((' . $userId . ')) CHANGE TARIFFNM [' . $_POST['uedittariffnm'] . ']');
+            }
+
+            //saving next month tariff change date
+            if ($this->users[$userId]['tariffnmdate'] != ubRouting::post('uedittariffnmdate')) {
+                $newTariffNmDate = ubRouting::post('uedittariffnmdate','mres');
+                simple_update_field($tablename, 'tariffnmdate', $newTariffNmDate, $where);
+                log_register('UKV USER ((' . $userId . ')) CHANGE TARIFFNMDATE `' . $newTariffNmDate . '`');
             }
 
             //saving user activity
@@ -1617,6 +1639,10 @@ class UkvSystem {
 
             $cells = wf_TableCell(__('Planned tariff change'), '30%', 'row2');
             $cells .= wf_TableCell(@$this->tariffs[$userData['tariffnmid']]['tariffname']);
+            $rows .= wf_TableRow($cells, 'row3');
+
+            $cells = wf_TableCell(__('Move tariff after'), '30%', 'row2');
+            $cells .= wf_TableCell($userData['tariffnmdate']);
             $rows .= wf_TableRow($cells, 'row3');
 
             $cells = wf_TableCell(wf_tag('b') . __('Cash') . wf_tag('b', true), '30%', 'row2');
