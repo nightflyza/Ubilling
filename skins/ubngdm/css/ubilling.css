@@ -1616,3 +1616,12 @@ submit {
         width: 100%;
     }
 }
+
+.fullwidthcontainer {
+ width: 100%;
+ max-width: 100%;
+}
+
+.lightcontainerborder {
+ border: 1px solid #ccc;
+}

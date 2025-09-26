@@ -1426,3 +1426,12 @@ table.sortable.id tbody tr::before {
     }
   }
   
+
+.fullwidthcontainer {
+ width: 100%;
+ max-width: 100%;
+}
+
+.lightcontainerborder {
+ border: 1px solid #ccc;
+}
