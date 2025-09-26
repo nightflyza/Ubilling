@@ -54,7 +54,7 @@ function p24_PricesForm() {
             $result .= '<input type="hidden" name="amount" value="' . $mypConf['CUSTOM_PRICE'] . '" id="radio_custom_amount">';
         }
 
-        $result .= '<input id="input_custom_amount" type="number" value="' . $mypConf['CUSTOM_PRICE'] . '" min="' . $mypConf['CUSTOM_PRICE'] . '" step="any"> ' . $mypConf['TEMPLATE_CURRENCY'];
+        $result .= '<input onchange="change_custom_amount()" id="input_custom_amount" type="number" value="' . $mypConf['CUSTOM_PRICE'] . '" min="' . $mypConf['CUSTOM_PRICE'] . '" step="any"> ' . $mypConf['TEMPLATE_CURRENCY'];
         $result .= ' </div>';
     }
 
