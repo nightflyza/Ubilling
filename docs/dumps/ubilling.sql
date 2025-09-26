@@ -3441,3 +3441,7 @@ CREATE TABLE IF NOT EXISTS `katottg_streets` (
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 ALTER TABLE `employee` ADD `birthdate` DATE NULL AFTER `amountLimit`; 
+
+-- 1.5.7 update
+
+ALTER TABLE `ukv_users` ADD `tariffnmdate` VARCHAR(20) NULL DEFAULT NULL AFTER `tariffnmid`;
