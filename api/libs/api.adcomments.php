@@ -579,4 +579,33 @@ class ADcomments {
             throw new Exception(self::EX_EMPTY_SCOPE);
         }
     }
+
+    /**
+     * Returns all comments for a given item in scope
+     * 
+     * @param string $item
+     * 
+     * @return array
+     */
+    public function getCommentsAll($item) {
+        $result=array();
+        if ($this->scope) {
+            if (!empty($item)) {
+              $cachedData = $this->getScopeItemsCached();
+              if (!empty($cachedData)) {
+                foreach ($cachedData as $io => $each) {
+                    if ($each['item'] == $item) {
+                        $result[] = $each;
+                    }
+                }
+            }
+            } else {
+                throw new Exception(self::EX_EMPTY_ITEM);
+            }
+        } else { 
+            throw new Exception(self::EX_EMPTY_SCOPE);
+        }
+
+        return($result);
+    }
 }

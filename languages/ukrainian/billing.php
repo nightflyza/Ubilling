@@ -3619,3 +3619,5 @@ $lang['def']['years'] = 'років';
 $lang['def']['right to view contrahens'] = 'Право переглядати контрагентів';
 $lang['def']['right to control contrahens geo assigns'] = 'Право контролювати прив`язку контрагентів до місцевості';
 $lang['def']['right to control contrahens assign overrides'] = 'Право контролювати перепризначеннями контрагентів';
+$lang['def']['Show all'] = 'Показати всі';
+$lang['def']['all'] = 'всі';

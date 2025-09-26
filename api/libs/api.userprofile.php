@@ -399,11 +399,34 @@ class UserProfile {
         if (!isset($this->alterCfg['NO_ADCOMMENTS_IN_PROFILE'])) {
             if ($this->alterCfg['ADCOMMENTS_ENABLED']) {
                 $adcomments = new ADcomments('USERNOTES');
+                $commentsIndicator = $adcomments->getCommentsIndicator($this->login, '12');
                 if (cfr('NOTES')) {
-                    $result = ' ' . wf_Link('?module=notesedit&username=' . $this->login, $adcomments->getCommentsIndicator($this->login, '12'), false, '');
+                    $result = ' ' . wf_Link('?module=notesedit&username=' . $this->login, $commentsIndicator, false, '');
                 } else {
-                    $result = ' ' . $adcomments->getCommentsIndicator($this->login, '12');
+                    $result = ' ' . $commentsIndicator;
                 }
+
+                    if ($adcomments->haveComments($this->login)) {
+                        $allAdComments = $adcomments->getCommentsAll($this->login);
+                        if (!empty($allAdComments)) {
+                            $commentsContent = '';
+                            $commentsRows = '';
+                            foreach ($allAdComments as $eachComment) {
+                                $commentsCells = wf_TableCell(nl2br($eachComment['text']));
+                                $commentsRows .= wf_TableRow($commentsCells, 'row2');
+                            }
+                            $commentsContent.= wf_TableBody($commentsRows, '100%', 0, '');
+                            $initialState=false;
+                            $myLogin=whoami();
+                            if (isset($this->alterCfg['EXPAND_ADCOMMENTS_IN_PROFILE'])) {
+                            $expandedFor=explode(',', $this->alterCfg['EXPAND_ADCOMMENTS_IN_PROFILE']);
+                                if (in_array($myLogin, $expandedFor)) {
+                                    $initialState=true;
+                                }
+                            }
+                            $result.=wf_ShowHide($commentsContent, __('Show all'),'','fullwidthcontainer', $initialState);
+                        }
+                    }
             } else {
                 $result = '';
             }

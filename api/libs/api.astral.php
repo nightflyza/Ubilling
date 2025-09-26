@@ -4583,10 +4583,12 @@ function wf_AjaxSelectorSearchableAC($container, $params, $label, $selected = ''
  * @param string $content The content to be shown or hidden.
  * @param string $title The title to be displayed on the toggle element. Default is an empty string.
  * @param string $class Additional CSS class to be applied to the outer span. Default is an empty string.
+ * @param string $contentClass Additional CSS class to be applied to the inner content span. Default is an empty string.
+ * @param bool $initialState Initial state of the content rendered. Default is false.
  * 
  * @return string 
  */
-function wf_ShowHide($content, $title = '', $class = '') {
+function wf_ShowHide($content, $title = '', $class = '', $contentClass='', $initialState=false) {
     $result = '';
     $inputId = 'showhide' . wf_InputId();
     $contentId = 'content' . wf_InputId();
@@ -4596,10 +4598,11 @@ function wf_ShowHide($content, $title = '', $class = '') {
 
     $result .= wf_tag('span', false, $class);
     $result .= wf_tag('span', false, '', 'id="' . $inputId . '"');
-    $result .= $labelShow;
+    $result .= $initialState ? $labelHide : $labelShow;
     $result .= wf_tag('span', true);
 
-    $result .= wf_tag('span', false, '', 'id="' . $contentId . '" style="display:none;"');
+    $contentStyle = $initialState ? '' : 'display:none;';
+    $result .= wf_tag('span', false, $contentClass, 'id="' . $contentId . '" style="' . $contentStyle . '"');
     $result .= $content;
     $result .= wf_tag('span', true);
     $result .= wf_tag('span', true);
@@ -4608,13 +4611,21 @@ function wf_ShowHide($content, $title = '', $class = '') {
     $result .= '
         $( "#' . $inputId . '" ).on( "click", function() {
                     $( "#' . $contentId . '" ).toggle( "fast", function() {
-                        $("#' . $inputId . '").html(\'' . $labelHide . '\');
+                        if ($("#' . $contentId . '").is(":visible")) {
+                            $("#' . $inputId . '").html(\'' . $labelHide . '\');
+                        } else {
+                            $("#' . $inputId . '").html(\'' . $labelShow . '\');
+                        }
                 });
             });
             
         $( "#' . $contentId . '" ).on( "click", function() {
                     $( "#' . $contentId . '" ).toggle( "fast", function() {
-                        $("#' . $inputId . '").html(\'' . $labelShow . '\');
+                        if ($("#' . $contentId . '").is(":visible")) {
+                            $("#' . $inputId . '").html(\'' . $labelHide . '\');
+                        } else {
+                            $("#' . $inputId . '").html(\'' . $labelShow . '\');
+                        }
                 });
             });            
             ';
