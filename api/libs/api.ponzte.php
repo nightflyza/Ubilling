@@ -366,13 +366,18 @@ class PonZte {
      * Coverts dec value to binary with byte offset.
      * 
      * @param int $binary
+     * @param int $uuid (moderatory)
      * 
      * @return array()
      */
-    protected function getDecodeType($binary) {
+    protected function getDecodeType($binary, $uuid = '') {
         $match = array();
         $match2 = array();
+        $dooC6XX = false;
         switch (strlen($binary)) {
+            case 29:
+                $dooC6XX = true;
+                break;
             case 30:
                 preg_match("/(\d{4})(\d{3})(\d{4})(\d{3})(\d{8})(\d{8})/", $binary, $match);
                 break;
@@ -402,6 +407,31 @@ class PonZte {
                 }
                 $match2[self::DESC_OLT] += 1;
                 $match = $match2;
+            }
+        }
+        if ($dooC6XX) {
+            // | InterfaceType (4 bits) | Rack (4 bits) | Shelf (8 bits) | Slot (8 bits) | Port (8 bits) |
+            // Оту всю херню для ZTE6XX всіх версій краще було б переробити :(
+            // ensure 32-bit binary (pad to left)
+            $binary = str_pad($binary, 32, '0', STR_PAD_LEFT);
+            preg_match("/(\d{4})(\d{4})(\d{8})(\d{8})(\d{8})/", $binary, $match);
+            foreach ($match as &$each) {
+                $each = bindec($each);
+            }
+            // delete Rack from array
+            array_splice($match, 2,1);
+            // Some fix for next dedode
+            $match[self::DESC_PONTYPE] = 3;
+            // support "285278465.2" or separate args (285278465, 2)
+            // XPON, it's real from OLT
+            // epon_onu-1/2/4:64      Online       complete  4cd7.c889.ac52 1G
+            // epon_onu-1/2/4:65      Online       complete  e067.b336.79fa 1G
+            // epon_onu-1/2/4:66      Online       complete  4cd7.c889.5da6 1G
+            // epon_onu-1/2/4:67      Online       complete  4cd7.c89a.ba80 1G
+            if ($uuid and is_string($uuid) and preg_match('/^(\d+)\.(\d+)$/', $uuid, $match2)) {
+                $base = $match2[1];
+                $onu  = $match2[2];
+                $match[self::DESC_ONU] = (int) $onu;
             }
         }
         return ($match);
@@ -682,13 +712,12 @@ class PonZte {
      * Function for fixing fucking zte interfaces snmp id.
      * 
      * @param int $uuid
-     *        
+     *
      * @return string
      */
     protected function interfaceDecode($uuid) {
         $binary = decbin((int) $uuid);
-        $match = $this->getDecodeType($binary);
-
+        $match = $this->getDecodeType($binary, $uuid);
         if (!empty($match) and isset($match[self::DESC_PONTYPE])) {
             switch ($match[self::DESC_PONTYPE]) {
                 case 1:
@@ -830,7 +859,7 @@ class PonZte {
                     }
                 }
             }
-            //mac index preprocessing            
+            //mac index preprocessing
             foreach ($this->macIndex as $devIndex => $eachMac) {
                 if ($this->interfaceDecode($devIndex)) {
                     $macTmp[$this->interfaceDecode($devIndex)] = $eachMac;
@@ -839,7 +868,7 @@ class PonZte {
 
             $realData = array_intersect_key($macTmp, $fdbTmp);
 
-            //storing results            
+            //storing results
             foreach ($realData as $devId => $eachMac) {
                 $result[$macTmp[$devId]] = $fdbTmp[$devId];
             }
@@ -896,7 +925,7 @@ class PonZte {
     }
 
     /**
-     * Performs signal preprocessing for sig/sn index arrays and stores it into cache for ZTE OLT          
+     * Performs signal preprocessing for sig/sn index arrays and stores it into cache for ZTE OLT
      *
      * @return void
      */
@@ -911,7 +940,7 @@ class PonZte {
             $this->serialIndexGponProcessing();
             $realData = array_intersect_key($this->snIndex, $this->sigIndex);
 
-            //storing results            
+            //storing results
             foreach ($realData as $devId => $eachSn) {
                 $result[$this->snIndex[$devId]] = $this->sigIndex[$devId];
                 $tmpSig = $this->sigIndex[$devId];
@@ -928,7 +957,7 @@ class PonZte {
     /**
      * Parsing distance for ZTE/Huawei GPON 
      * 
-     * @param array $distIndex     
+     * @param array $distIndex
      * 
      * @return void
      */
@@ -1003,7 +1032,7 @@ class PonZte {
                     }
                 }
             }
-            //mac index preprocessing            
+            //mac index preprocessing
             foreach ($this->snIndex as $devIndex => $eachSn) {
                 $devIndexParts = explode(".", $devIndex);
                 $onuNumber = $devIndexParts[1];
@@ -1015,7 +1044,7 @@ class PonZte {
 
             $realData = array_intersect_key($snTmp, $fdbTmp);
 
-            //storing results            
+            //storing results
             foreach ($realData as $devId => $eachSn) {
                 $result[$snTmp[$devId]] = $fdbTmp[$devId];
             }
@@ -1271,8 +1300,6 @@ class PonZte {
             $this->distanceIndexProcess();
             $this->distanceParseGpon();
         }
-
-
 
         if (isset($this->currentSnmpTemplate['misc'])) {
             if (isset($this->currentSnmpTemplate['misc']['CARDOFFSET'])) {
