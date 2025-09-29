@@ -271,6 +271,8 @@ class OpenPayz {
     const KEY_CHARTS = 'OPCHARTS_';
     const PID_PROCESSING = 'OP_PROCESSING';
     const CUSTOM_CASHTYPE_PREFIX = 'CASHTYPEID_';
+    const OPTION_RESET = 'OPENPAYZ_USER_RESET';
+    const OPTION_RESURRECT = 'RESETHARD';
 
     /**
      * Creates new OpenPayz instance
@@ -1113,7 +1115,7 @@ class OpenPayz {
         $filterNumber = '';
         $filtercustomerId = '';
         $opts = '"order": [[ 0, "desc" ]]';
-        
+
         if (ubRouting::checkGet('filtercustomerid')) {
             $filtercustomerId = '&filtercustomerid=' . ubRouting::get('username');
         }
@@ -1312,6 +1314,7 @@ class OpenPayz {
      * @return void
      */
     protected function processTransaction($transactionData) {
+        global $ubillingConfig;
         if (!empty($transactionData)) {
             $transactionId = $transactionData['id'];
             $customerId = $transactionData['customerid'];
@@ -1331,6 +1334,14 @@ class OpenPayz {
                 zb_CashAdd($userLogin, $paymentSumm, 'op', $cashTypeId, $paymentNote, 'openpayz');
                 //setting this transaction as processed
                 $this->setTransactionProcessed($transactionId);
+                //optional reset after transaction processed
+                if ($ubillingConfig->getAlterParam(self::OPTION_RESET)) {
+                    global $billing;
+                    $billing->resetuser($userLogin);
+                    if ($ubillingConfig->getAlterParam(self::OPTION_RESURRECT)) {
+                        zb_UserResurrect($userLogin);
+                    }
+                }
             }
         }
     }
