@@ -1302,6 +1302,18 @@ class PonZte {
                 $this->onuidParseEpon();
             }
         }
+
+        //getting others system data from OLT
+        if (isset($this->currentSnmpTemplate['system'])) {
+            //OLT uptime
+            if (isset($this->currentSnmpTemplate['system']['UPTIME'])) {
+                $this->uptimeParse();
+            }
+            //OLT temperature
+            if (isset($this->currentSnmpTemplate['system']['TEMPERATURE'])) {
+                $this->temperatureParse();
+            }
+        }
     }
 
     /**
