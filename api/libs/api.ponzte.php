@@ -523,9 +523,9 @@ class PonZte {
                 $each = bindec($each);
             }
             if ($match[self::DESC_ONU] == 0) {
-                $result = 'gpon-onu_' . $match[self::DESC_SHELF] . '/' . $match[self::DESC_SLOT] . '/' . $match[self::DESC_OLT] . ':';
+                $result = ($this->ponType == 'EPON' ? 'epon-onu_' : 'gpon-onu_') . $match[self::DESC_SHELF] . '/' . $match[self::DESC_SLOT] . '/' . $match[self::DESC_OLT] . ':';
             } else {
-                $result = 'gpon-onu_' . $match[self::DESC_SHELF + 1] . '/' . $match[self::DESC_SLOT + 1] . '/' . $match[self::DESC_OLT + 1] . ':';
+                $result = ($this->ponType == 'EPON' ? 'epon-onu_' : 'gpon-onu_') . $match[self::DESC_SHELF + 1] . '/' . $match[self::DESC_SLOT + 1] . '/' . $match[self::DESC_OLT + 1] . ':';
             }
         }
         return ($result);
@@ -847,15 +847,20 @@ class PonZte {
                 $line = explode('=', $eachfdb);
                 $devOid = trim($line[0]);
                 $decParts = explode('.', $devOid);
-                $devIndex = trim($decParts[0]);
-                $interfaceName = $this->interfaceDecode($devIndex);
-                if ($interfaceName) {
-                    if (isset($decParts[1])) {
-                        $fdbVlan = trim($decParts[1]);
-                        $fdbMac = implode(':', $this->macPartParse($decParts));
-                        $fdbTmp[$interfaceName][$counter]['mac'] = $fdbMac;
-                        $fdbTmp[$interfaceName][$counter]['vlan'] = $fdbVlan;
-                        $counter++;
+                if ($this->currentSnmpTemplate['onu_reg']['VERSION'] == 'C6XX') {
+                    $fdbTmp += $this->fdbParseC6XX($line, $decParts, $counter);
+                    $counter++;
+                } else {
+                    $devIndex = trim($decParts[0]);
+                    $interfaceName = $this->interfaceDecode($devIndex);
+                    if ($interfaceName) {
+                        if (isset($decParts[1])) {
+                            $fdbVlan = trim($decParts[1]);
+                            $fdbMac = implode(':', $this->macPartParse($decParts));
+                            $fdbTmp[$interfaceName][$counter]['mac'] = $fdbMac;
+                            $fdbTmp[$interfaceName][$counter]['vlan'] = $fdbVlan;
+                            $counter++;
+                        }
                     }
                 }
             }
@@ -975,10 +980,49 @@ class PonZte {
     }
 
     /**
-     * Parses & stores in cache OLT ONU interfaces
-     *
-     * @return void
-     */
+    * Parses FDB, VLAN, Interface for ZTE C6XX series
+    *
+    * @return array
+    */
+    protected function fdbParseC6XX(array $line, $decParts, $counter = 1) {
+        $result = array();
+        if (!empty($line) and !empty($decParts)) {
+            if (isset($decParts[2]) and trim($decParts[2]) != 0) {
+                $vportIndex = trim($decParts[1]);
+                $devIndex = trim($decParts[2]);
+                $interfaceVport = $this->gponOltInterfaceDecode($vportIndex);
+                /*
+                // It's real data from OLT
+                // c025.2fac.ff3c   3701   Dynamic   vport-1/3/1.5:1
+                $interfaceVport =  str_replace('gpon-onu_', 'vport-', $this->gponOltInterfaceDecode($vportIndex));
+                $interfaceVport =  str_replace(':', '.', $interfaceVport);
+                $interfaceVportDecode = $this->getDecodeTypeC6XX(decbin((int) $devIndex));
+                $interfaceName = $interfaceVport . $interfaceVportDecode[3] . ':' . $interfaceVportDecode[4];
+                $interfaceVportDecode = $this->getDecodeTypeC6XX(decbin((int) $devIndex));
+                $interfaceName = $interfaceVport . $interfaceVportDecode[3] . ':' . $interfaceVportDecode[4];
+                */
+                $interfaceVportDecode = $this->getDecodeTypeC6XX(decbin((int) $devIndex));
+                $interfaceName = $interfaceVport . $interfaceVportDecode[2];
+
+                if ($interfaceName) {
+                    if (isset($decParts[0])) {
+                        $fdbVlan = trim($decParts[0]);
+                        $fdbMac = trim(str_replace('Hex-STRING:', '', $line[1]));
+                        $fdbMac = strtolower(str_replace(' ', ':', $fdbMac));
+                        $result[$interfaceName][$counter]['mac'] = $fdbMac;
+                        $result[$interfaceName][$counter]['vlan'] = $fdbVlan;
+                    }
+                }
+            }
+        }
+        return $result;
+    }
+
+    /**
+    * Parses & stores in cache OLT ONU interfaces
+    *
+    * @return void
+    */
     protected function fdbParseGpon() {
         $counter = 1;
         $fdbTmp = array();
@@ -991,33 +1035,8 @@ class PonZte {
                 $devOid = trim($line[0]);
                 $decParts = explode('.', $devOid);
                 if ($this->currentSnmpTemplate['onu_reg']['VERSION'] == 'C6XX') {
-                    if (trim($decParts[2]) != 0) {
-                        $vportIndex = trim($decParts[1]);
-                        $devIndex = trim($decParts[2]);
-                        $interfaceVport = $this->gponOltInterfaceDecode($vportIndex);
-                        /*
-                          // It's real data from OLT
-                          // c025.2fac.ff3c   3701   Dynamic   vport-1/3/1.5:1
-                          $interfaceVport =  str_replace('gpon-onu_', 'vport-', $this->gponOltInterfaceDecode($vportIndex));
-                          $interfaceVport =  str_replace(':', '.', $interfaceVport);
-                          $interfaceVportDecode = $this->getDecodeTypeC6XX(decbin((int) $devIndex));
-                          $interfaceName = $interfaceVport . $interfaceVportDecode[3] . ':' . $interfaceVportDecode[4];
-                          $interfaceVportDecode = $this->getDecodeTypeC6XX(decbin((int) $devIndex));
-                          $interfaceName = $interfaceVport . $interfaceVportDecode[3] . ':' . $interfaceVportDecode[4];
-                         */
-                        $interfaceVportDecode = $this->getDecodeTypeC6XX(decbin((int) $devIndex));
-                        $interfaceName = $interfaceVport . $interfaceVportDecode[2];
-                        if ($interfaceName) {
-                            if (isset($decParts[0])) {
-                                $fdbVlan = trim($decParts[0]);
-                                $fdbMac = trim(str_replace('Hex-STRING:', '', $line[1]));
-                                $fdbMac = strtolower(str_replace(' ', ':', $fdbMac));
-                                $fdbTmp[$interfaceName][$counter]['mac'] = $fdbMac;
-                                $fdbTmp[$interfaceName][$counter]['vlan'] = $fdbVlan;
-                                $counter++;
-                            }
-                        }
-                    }
+                    $fdbTmp += $this->fdbParseC6XX($line, $decParts, $counter);
+                    $counter++;
                 } else {
                     $devIndex = trim($decParts[0]);
                     $interfaceName = $this->interfaceDecode($devIndex);
