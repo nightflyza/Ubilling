@@ -660,7 +660,9 @@ class OnuRegister {
             'ETTOK' => 8,
             'ETGH' => 16,
             'ETGHG' => 16,
-            'ETGHK' => 16
+            'ETGHK' => 16,
+            'EFTL' => 16,
+            'EFTM' => 16
         );
 
         $customCards = self::injectCustomCards(self::OPT_ZTE_CUST_EPON);
@@ -975,6 +977,7 @@ class OnuRegister {
             $this->onuArray = array();
             if (isset($this->allZteOlt[$this->currentOltSwId])) {
                 $customGponCards = self::injectCustomCards(self::OPT_ZTE_CUST_GPON);
+                $customEponCards = self::injectCustomCards(self::OPT_ZTE_CUST_EPON);
                 $inherit = @$this->avidity['Z']['LSD'];
                 foreach ($cards as $index => $value) {
                     if (
@@ -987,6 +990,18 @@ class OnuRegister {
                         or $value['description'] == 'A01GFBT'
                         or $value['description'] == 'GVGO'
                         or (isset($customGponCards[$value['description']]))
+                        or ($this->currentPonType == 'EPON'
+                            and isset($customEponCards[$value['description']])
+                            and $this->currentPonVersion == "C6XX"
+                            )
+                        or ($this->currentPonType == 'EPON'
+                            and $value['description'] == 'EFTM'
+                            and $this->currentPonVersion == "C6XX"
+                            )
+                        or ($this->currentPonType == 'EPON'
+                            and $value['description'] == 'EFTL'
+                            and $this->currentPonVersion == "C6XX"
+                            )
                     ) {
                         $oltInterface = @snmp2_real_walk($this->currentOltIp, $this->currentSnmpCommunity, $this->currentSnmpTemplate[self::SNMP_TEMPLATE_SECTION]['INTERFACENAME']);
                         if (!empty($oltInterface)) {
@@ -1160,6 +1175,7 @@ class OnuRegister {
             $this->currentPonType = $this->currentSnmpTemplate[self::SNMP_TEMPLATE_SECTION]['TYPE'];
             $this->currentOltIp = $this->allOlt[$this->currentOltSwId]['ip'];
             $this->currentSnmpCommunity = $this->allOlt[$this->currentOltSwId]['snmp'];
+            $this->currentPonVersion = isset($this->currentSnmpTemplate[self::SNMP_TEMPLATE_SECTION]['VERSION']) ? $this->currentSnmpTemplate[self::SNMP_TEMPLATE_SECTION]['VERSION'] : '';
             $this->vendorSet();
             $this->loadCalculatedData();
             $pollMethod = 'getAllUnauth_' . $this->currentPonType . '_' . $this->vendor;
@@ -1348,11 +1364,15 @@ class OnuRegister {
 
     /**
      * Magic constant returns function name to concat it with pon type
-     * 
+     *
      * @return void
      */
     protected function checkRegisteredOnu() {
-        $callable = __FUNCTION__ . $this->currentPonType;
+        if ($this->currentPonType == 'EPON' and $this->currentPonVersion == 'C6XX') {
+            $callable = __FUNCTION__ . 'GPON';
+        } else {
+            $callable = __FUNCTION__ . $this->currentPonType;
+        }
         $this->$callable();
     }
 
@@ -1483,8 +1503,6 @@ class OnuRegister {
             $this->currentSnmpCommunity = $this->allOlt[$this->currentOltSwId]['snmp'];
             $snmpTemplateName = $this->allOlt[$this->currentOltSwId]['snmptemplate'];
 
-            $this->loadCalculatedData();
-
             if (!empty($this->allSwLogin) and isset($this->allSwLogin[$this->currentOltSwId])) {
                 if (file_exists(CONFIG_PATH . '/snmptemplates/' . $snmpTemplateName)) {
                     $this->currentSnmpTemplate = rcms_parse_ini_file(CONFIG_PATH . '/snmptemplates/' . $snmpTemplateName, true);
@@ -1500,6 +1518,7 @@ class OnuRegister {
                         $this->onuIdentifier = strtoupper($this->onuIdentifier);
                         $this->serial = $this->onuIdentifier;
                     }
+                    $this->loadCalculatedData();
                     $this->checkRegisteredOnu();
 
                     //Exit if onu number is 65+ for epon and 128+ for gpon.
@@ -1602,6 +1621,11 @@ class OnuRegister {
                                 return (false);
                             }
                         }
+                    } elseif ($io['card_name'] == "EFTM" or $io['card_name'] == "EFTL") {
+                        if (count($this->existId) >= 128) {
+                            $this->error = self::ERROR_TOO_MANY_REGISTERED_ONU;
+                            return (false);
+                        }
                     } else {
                         if (count($this->existId) >= 64) {
                             $this->error = self::ERROR_TOO_MANY_REGISTERED_ONU;
@@ -1697,7 +1721,7 @@ class OnuRegister {
             if ($this->currentPonVersion == 2) {
                 $scriptPath .= 'v2/';
             } elseif ($this->currentPonVersion == "C6XX") {
-                $this->vportInterface = str_replace('gpon_olt', 'vport', $this->currentOltInterface);
+                $this->vportInterface = str_replace(array('gpon_olt', 'epon_olt'), 'vport', $this->currentOltInterface);
                 $scriptPath .= 'C6XX/';
             } else {
                 $scriptPath .= 'v1.2.5/';
@@ -2678,8 +2702,6 @@ $(".changeType").change(function () {
         $result = wf_TableBody($tablerows, '100%', '0', 'sortable');
         $result .= wf_delimiter();
         $result .= wf_Link(self::UNREG_MASS_FIX_RUN_URL . $oltlist, __('Register'), true, 'ubButton', 'id="Form_register_submit');
-
-        //debarr($list);
     }
 
     protected function getFixable() {
