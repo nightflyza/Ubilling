@@ -697,8 +697,21 @@ class ProfileDocuments {
             } else {
                 $this->customFields['CUSTSUMPDV'] = 0;
             }
+    // ДОБАВЛЕННЫЙ БЛОК ДЛЯ PLUSPDV
+    if (is_numeric($this->customFields['CUSTSUM'])) {
+        // Расчет: CUSTSUM * 20 / 120
+        $plusPdvValue = ($this->customFields['CUSTSUM'] * $pdvPercent) / (100 + $pdvPercent);
+        // Округление и форматирование с двумя знаками после запятой
+        @$this->customFields['PLUSPDV'] = number_format(round($plusPdvValue, 2), 2, '.', '');
+    } else {
+        @$this->customFields['PLUSPDV'] = '0.00';
+    }
+    // КОНЕЦ ДОБАВЛЕННОГО БЛОКА
+
             @$this->customFields['CUSTSUMPDVLIT'] = $morph->sum2str($this->customFields['CUSTSUMPDV']);
             @$this->customFields['CUSTSUMLIT'] = $morph->sum2str($this->customFields['CUSTSUM']);
+            @$this->customFields['PLUSPDVLIT'] = $morph->sum2str($this->customFields['PLUSPDV']);
+
 
             if ($this->altcfg['CORPS_ENABLED']) {
                 //corporate user fields
