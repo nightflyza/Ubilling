@@ -127,9 +127,9 @@ function em_EmployeeSave($editemployee) {
         $employeeDb = new NyanORM('employee');
         $actFlag = (ubRouting::checkPost('editactive')) ? 1 : 0;
         $amountLim = (ubRouting::checkPost('amountLimit')) ? ubRouting::post('amountLimit') : 0;
-        $birthdate = (ubRouting::checkPost('editbirthdate')) ? ubRouting::post('editbirthdate', 'mres') : '';
+        $birthdate = (ubRouting::checkPost('editbirthdate')) ? ubRouting::post('editbirthdate', 'mres') : '0000-00-00';
         if (!zb_checkDate($birthdate)) {
-            $birthdate = '';
+            $birthdate = '0000-00-00';
         }
         $employeeDb->data('name', ubRouting::post('editname', 'mres'));
         $employeeDb->data('appointment', ubRouting::post('editappointment', 'mres'));
@@ -160,7 +160,6 @@ function em_EmployeeGetTodayBirthdays($allEmployeeData = array()) {
     $allData = array();
     if (empty($allEmployeeData)) {
         $employeeDb = new NyanORM('employee');
-        $employeeDb->where('birthdate', '!=', '');
         $employeeDb->where('birthdate', '!=', '0000-00-00');
         $allData = $employeeDb->getAll();
     } else {
@@ -209,7 +208,8 @@ function em_employeeEditForm($editemployee) {
     $editinputs .= wf_TextInput('editadmlogin', __('Administrator'), $employeedata['admlogin'], true, 20);
     $editinputs .= em_TagSelector('editadtagid', __('Tag'), $employeedata['tagid'], true);
     $editinputs .= wf_TextInput('amountLimit', __('Monthly top up limit'), $employeedata['amountLimit'], true, 20, 'finance');
-    $editinputs .= wf_DatePickerPreset('editbirthdate', $employeedata['birthdate'], true) . ' ' . __('Birth date') . wf_delimiter(0);
+    $curBirthDate = ($employeedata['birthdate'] != '0000-00-00') ? $employeedata['birthdate'] : '';
+    $editinputs .= wf_DatePickerPreset('editbirthdate', $curBirthDate, true) . ' ' . __('Birth date') . wf_delimiter(0);
     $editinputs .= wf_CheckInput('editactive', 'Active', true, $actflag);
     $editinputs .= wf_delimiter(0);
     $editinputs .= wf_Submit('Save');
@@ -334,9 +334,9 @@ function em_EmployeeAdd($name, $job, $mobile = '', $telegram = '', $admlogin = '
     $admlogin = mysql_real_escape_string($admlogin);
     $tagid = mysql_real_escape_string($tagid);
     $amountLimit = (empty($amountLimit)) ? 0 : $amountLimit;
-    $birthdate = (empty($birthdate)) ? '' : mysql_real_escape_string($birthdate);
+    $birthdate = (empty($birthdate)) ? '0000-00-00' : mysql_real_escape_string($birthdate);
     if (!zb_checkDate($birthdate)) {
-        $birthdate = '';
+        $birthdate = '0000-00-00';
     }
     $query = "INSERT INTO `employee` (`id` , `name` , `appointment`, `mobile`, `telegram`, `admlogin`, `active`, `tagid`, `amountLimit`, `birthdate`)
               VALUES (NULL , '" . $name . "', '" . $job . "','" . $mobile . "','" . $telegram . "' ,'" . $admlogin . "' , '1', " . $tagid . ", " . $amountLimit . ", '" . $birthdate . "'); ";
@@ -1271,7 +1271,7 @@ function ts_JGetAllTasks() {
             $result .= "
                       {
                         id: " . $eachtask['id'] . ",
-                        title: '" . $startTime . $branchName . $eachtask['address'] .$userRealName. " - " . @$alljobdata[$eachtask['jobtype']]['jobname'] . $adcText . "',
+                        title: '" . $startTime . $branchName . $eachtask['address'] . $userRealName . " - " . @$alljobdata[$eachtask['jobtype']]['jobname'] . $adcText . "',
                         start: new Date(" . $startdate . $startTimeTimestamp . "),
                         end: new Date(" . $enddate . "),
                         " . $coloring . "
