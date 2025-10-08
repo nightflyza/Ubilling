@@ -2478,7 +2478,7 @@ class PONizer {
 
             $result .= wf_delimiter();
             if (!$limitedControls) {
-                $result .= wf_BackLink(self::URL_ONULIST);
+                $result .= wf_BackLinkAuto(self::URL_ONULIST);
             }
 
             //back to primary user profile control

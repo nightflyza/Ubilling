@@ -2138,15 +2138,15 @@ function wf_Graph($data, $width = '500', $height = '300', $errorbars = false, $G
     $result .= $objectId . ' = new Dygraph(';
     $result .= 'document.getElementById("' . $randomId . '"),' . "\n";
     $result .= $cleandata;
-  
+
     $result .= ', {  errorBars: ' . $errorbars;
     $result .= (!empty($GraphTitle)) ? ', title: \'' . $GraphTitle . '\'' : '';
     $result .= (!empty($XLabel)) ? ', xlabel: \'' . $XLabel . '\'' : '';
     $result .= (!empty($YLabel)) ? ', ylabel: \'' . $YLabel . '\'' : '';
-   
+
     $result .= (!empty($RangeSelector)) ? ', showRangeSelector: true' : '';
     $result .= ' }' . "\n";
-   
+
     $result .= ');';
     $result .= wf_tag('script', true);
     $result .= wf_tag('style');
@@ -3350,7 +3350,7 @@ var dataView = new google.visualization.DataView(data);
  *
  * @param string $url Link URL
  * @param string $title Link title
- * @param bool $br Line break line after link
+ * @param bool   $br Line break line after link
  * @param string $class Link class name
  * @param string $opts Link style or attributes
  *
@@ -3359,6 +3359,37 @@ var dataView = new google.visualization.DataView(data);
 function wf_BackLink($url, $title = '', $br = false, $class = 'ubButton', $opts = '') {
     $title = (empty($title)) ? __('Back') : __($title);
     $result = wf_Link($url, wf_img('skins/back.png') . ' ' . $title, $br, $class, $opts);
+    return ($result);
+}
+
+/**
+ * Returns default back control with automatic custom backURL detection
+ *
+ * @param string $url Default back link URL. Used if no valid custom backURL received
+ * @param string $title Link title
+ * @param bool   $br Line break line after link
+ * @param string $class Link class name
+ * @param string $opts Link style or attributes
+ *
+ * @return string
+ */
+function wf_BackLinkAuto($url, $title = '', $br = false, $class = 'ubButton', $opts = '') {
+    $title = (empty($title)) ? __('Back') : __($title);
+    if (wf_CheckGet(array('backurl'))) {
+        $url = base64_decode($_GET['backurl']);
+    }
+    $result = wf_Link($url, wf_img('skins/back.png') . ' ' . $title, $br, $class, $opts);
+    return ($result);
+}
+
+/**
+ * Generates valid backURL encoded substring for wf_BackLinkAuto
+ *
+ * @param string $url
+ * @return void
+ */
+function wf_GenBackUrl($url) {
+    $result = '&backurl=' . base64_encode($url);
     return ($result);
 }
 
@@ -4588,7 +4619,7 @@ function wf_AjaxSelectorSearchableAC($container, $params, $label, $selected = ''
  * 
  * @return string 
  */
-function wf_ShowHide($content, $title = '', $class = '', $contentClass='', $initialState=false) {
+function wf_ShowHide($content, $title = '', $class = '', $contentClass = '', $initialState = false) {
     $result = '';
     $inputId = 'showhide' . wf_InputId();
     $contentId = 'content' . wf_InputId();

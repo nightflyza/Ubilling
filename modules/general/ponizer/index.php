@@ -40,7 +40,7 @@ if ($altCfg['PON_ENABLED']) {
         //creating new ONU device
         if (ubRouting::checkPost(array('createnewonu', 'newoltid'))) {
             //MAC or Serial is required
-            if (ubRouting::checkPost('newmac') OR ubRouting::checkPost('newserial')) {
+            if (ubRouting::checkPost('newmac') or ubRouting::checkPost('newserial')) {
                 if (cfr('PONEDIT')) {
                     $onuCreateResult = $pon->onuCreate(ubRouting::post('newonumodelid'), ubRouting::post('newoltid'), ubRouting::post('newip'), ubRouting::post('newmac'), ubRouting::post('newserial'), ubRouting::post('newlogin'));
                     if ($onuCreateResult) {
@@ -145,7 +145,7 @@ if ($altCfg['PON_ENABLED']) {
         //force single OLT polling
         if (ubRouting::checkGet('forceoltidpoll')) {
             $pon->pollOltSignal(ubRouting::get('forceoltidpoll'));
-            if (!ubRouting::checkGet('IndividualRefresh') OR ! wf_getBoolFromVar(ubRouting::get('IndividualRefresh'), true)) {
+            if (!ubRouting::checkGet('IndividualRefresh') or ! wf_getBoolFromVar(ubRouting::get('IndividualRefresh'), true)) {
                 ubRouting::nav($pon::URL_ME);
             }
         }
@@ -163,7 +163,8 @@ if ($altCfg['PON_ENABLED']) {
                     show_window('', web_UserControls(ubRouting::get('username')));
                 } else {
                     //redirecting to single assigned ONU
-                    ubRouting::nav($pon::URL_ONU . $userOnuIds[0]);
+                    $backUrl = wf_GenBackUrl(UserProfile::URL_PROFILE . $login);
+                    ubRouting::nav($pon::URL_ONU . $userOnuIds[0] . $backUrl);
                 }
             } else {
                 //rendering assign form
@@ -265,7 +266,7 @@ if ($altCfg['PON_ENABLED']) {
         }
 
         //ONU assigment check
-        if (ubRouting::get('action') == 'checkONUAssignment' AND ubRouting::checkGet('onumac')) {
+        if (ubRouting::get('action') == 'checkONUAssignment' and ubRouting::checkGet('onumac')) {
             $pon->checkONUAssignmentReply();
         }
 
@@ -330,7 +331,7 @@ if ($altCfg['PON_ENABLED']) {
         }
 
         //no extra routes or extra post data received
-        if (sizeof(ubRouting::rawGet()) == 1 AND sizeof(ubRouting::rawPost()) == 1) {
+        if (sizeof(ubRouting::rawGet()) == 1 and sizeof(ubRouting::rawPost()) == 1) {
             show_error(__('Strange exception'));
             show_window('', wf_img('skins/ponywrong.png'));
         }
@@ -340,4 +341,3 @@ if ($altCfg['PON_ENABLED']) {
 } else {
     show_error(__('This module disabled'));
 }
-    

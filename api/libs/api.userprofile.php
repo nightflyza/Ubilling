@@ -406,27 +406,27 @@ class UserProfile {
                     $result = ' ' . $commentsIndicator;
                 }
 
-                    if ($adcomments->haveComments($this->login)) {
-                        $allAdComments = $adcomments->getCommentsAll($this->login);
-                        if (!empty($allAdComments)) {
-                            $commentsContent = '';
-                            $commentsRows = '';
-                            foreach ($allAdComments as $eachComment) {
-                                $commentsCells = wf_TableCell(nl2br($eachComment['text']));
-                                $commentsRows .= wf_TableRow($commentsCells, 'row2');
-                            }
-                            $commentsContent.= wf_TableBody($commentsRows, '100%', 0, '');
-                            $initialState=false;
-                            $myLogin=whoami();
-                            if (isset($this->alterCfg['EXPAND_ADCOMMENTS_IN_PROFILE'])) {
-                            $expandedFor=explode(',', $this->alterCfg['EXPAND_ADCOMMENTS_IN_PROFILE']);
-                                if (in_array($myLogin, $expandedFor)) {
-                                    $initialState=true;
-                                }
-                            }
-                            $result.=wf_ShowHide($commentsContent, __('Show all'),'','fullwidthcontainer', $initialState);
+                if ($adcomments->haveComments($this->login)) {
+                    $allAdComments = $adcomments->getCommentsAll($this->login);
+                    if (!empty($allAdComments)) {
+                        $commentsContent = '';
+                        $commentsRows = '';
+                        foreach ($allAdComments as $eachComment) {
+                            $commentsCells = wf_TableCell(nl2br($eachComment['text']));
+                            $commentsRows .= wf_TableRow($commentsCells, 'row2');
                         }
+                        $commentsContent .= wf_TableBody($commentsRows, '100%', 0, '');
+                        $initialState = false;
+                        $myLogin = whoami();
+                        if (isset($this->alterCfg['EXPAND_ADCOMMENTS_IN_PROFILE'])) {
+                            $expandedFor = explode(',', $this->alterCfg['EXPAND_ADCOMMENTS_IN_PROFILE']);
+                            if (in_array($myLogin, $expandedFor)) {
+                                $initialState = true;
+                            }
+                        }
+                        $result .= wf_ShowHide($commentsContent, __('Show all'), '', 'fullwidthcontainer', $initialState);
                     }
+                }
             } else {
                 $result = '';
             }
@@ -1274,7 +1274,8 @@ class UserProfile {
                         }
 
                         if (cfr('PON')) {
-                            $signalLabel = wf_Link(PONizer::URL_ONU . $onuId, $signalLabel);
+                            $backUrl = wf_GenBackUrl(self::URL_PROFILE . $this->login);
+                            $signalLabel = wf_Link(PONizer::URL_ONU . $onuId . $backUrl, $signalLabel);
                         }
 
                         //profile row here
@@ -1432,10 +1433,11 @@ class UserProfile {
                 if (!empty($signal)) {
                     $searched = zb_PonSignalColorize($signal);
                 }
+                $backUrl=wf_GenBackUrl(self::URL_PROFILE.$this->login);
 
                 $cells = wf_TableCell(__('ONU Signal') . $realtimeStr, '30%', 'row2');
                 $cells .= wf_TableCell(wf_tag('strong') . $searched . wf_tag('strong', true)
-                    . wf_nbsp(2) . wf_Link('?module=ponizer&editonu=' . $onuData['id'], web_edit_icon()));
+                    . wf_nbsp(2) . wf_Link('?module=ponizer&editonu=' . $onuData['id'].$backUrl, web_edit_icon()));
                 $rows .= wf_TableRow($cells, 'row3');
 
                 if ($curOLTAlive and $this->ubConfig->getAlterParam('PON_REALTIME_EXTEN_INFO_IN_PROFILE')) {
