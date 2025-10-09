@@ -3375,9 +3375,18 @@ function wf_BackLink($url, $title = '', $br = false, $class = 'ubButton', $opts 
  */
 function wf_BackLinkAuto($url, $title = '', $br = false, $class = 'ubButton', $opts = '') {
     $title = (empty($title)) ? __('Back') : __($title);
+
     if (wf_CheckGet(array('backurl'))) {
-        $url = base64_decode($_GET['backurl']);
+        $decoded = base64_decode($_GET['backurl'], true);
+        if ($decoded !== false) {
+            $isAbsolute = filter_var($decoded, FILTER_VALIDATE_URL);
+            $isRelative = preg_match('#^(?:/|\.{1,2}/|\?)#', $decoded);
+            if ($isAbsolute or $isRelative) {
+                $url = $decoded;
+            }
+        }
     }
+
     $result = wf_Link($url, wf_img('skins/back.png') . ' ' . $title, $br, $class, $opts);
     return ($result);
 }

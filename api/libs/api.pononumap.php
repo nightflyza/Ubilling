@@ -216,7 +216,28 @@ class PONONUMap {
     protected function getONUControls($onuId, $login, $buildGeo) {
         $result = '';
         if (!empty($onuId)) {
-            $result .= wf_Link(PONizer::URL_ME . '&editonu=' . $onuId, wf_img('skins/switch_models.png', __('Edit') . ' ' . __('ONU')));
+            $onuLink = PONizer::URL_ME . '&editonu=' . $onuId;
+
+            $pmBackUrl = '?module=ponmap';
+            if (ubRouting::checkGet(self::ROUTE_BACKLINK)) {
+                $pmBackUrl .= '&' . self::ROUTE_BACKLINK . '=' . ubRouting::get(self::ROUTE_BACKLINK);
+            }
+            if (ubRouting::checkGet(self::ROUTE_FILTER_OLT)) {
+                $pmBackUrl .= '&' . self::ROUTE_FILTER_OLT . '=' . ubRouting::get(self::ROUTE_FILTER_OLT);
+            }
+            if (ubRouting::checkGet(self::ROUTE_FILTER_DEREG)) {
+                $pmBackUrl .= '&' . self::ROUTE_FILTER_DEREG . '=' . ubRouting::get(self::ROUTE_FILTER_DEREG);
+            }
+            if (ubRouting::checkGet(self::ROUTE_FILTER_SIGNAL)) {
+                $pmBackUrl .= '&' . self::ROUTE_FILTER_SIGNAL . '=' . ubRouting::get(self::ROUTE_FILTER_SIGNAL);
+            }
+            if (ubRouting::checkGet(self::ROUTE_CLUSTER_BUILDS)) {
+                $pmBackUrl .= '&' . self::ROUTE_CLUSTER_BUILDS . '=' . ubRouting::get(self::ROUTE_CLUSTER_BUILDS);
+            }
+            $pmBackUrl = wf_GenBackUrl($pmBackUrl);
+
+            $onuLink .= $pmBackUrl;
+            $result .= wf_Link($onuLink, wf_img('skins/switch_models.png', __('Edit') . ' ' . __('ONU')));
             $result = trim($result) . wf_nbsp();
             $result .= wf_Link('?module=userprofile&username=' . $login, wf_img('skins/icons/userprofile.png', __('User profile')));
             $result = trim($result) . wf_nbsp();
