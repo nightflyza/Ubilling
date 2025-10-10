@@ -616,7 +616,9 @@ class WolfDispatcher {
      */
     public function listen() {
         //may be automatic setup required?
-        $this->installWebHook();
+        if ($this->hookAutoSetup) {
+            $this->installWebHook();
+        }
         //is something here?
         $this->receivedData = $this->telegram->getHookData();
         if (!empty($this->receivedData)) {
@@ -996,49 +998,58 @@ class WolfDispatcher {
 
     /**
      * Automatically registers new web-hook URL for bot if isnt registered yet.
+     * 
+     * @param string $customUrl custom web-hook listener URL
      *
-     * @return void
+     * @return string
      */
-    protected function installWebHook() {
-        if ($this->hookAutoSetup) {
+    public function installWebHook($customUrl = '') {
+        $result = '';
+        if (empty($customUrl)) {
+            //automatic current listener URL detection
             $listenerUrl = 'https://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
-            $tokenHash = md5($this->botToken . $listenerUrl);
-            $hookPidName = self::HOOK_PID_PATH . $this->botImplementation . $tokenHash . '.hook';
-            //need to be installed?
-            if (!file_exists($hookPidName)) {
-                $hookInfo = json_decode($this->telegram->getWebHookInfo(), true);
-                $hookInfo = $hookInfo['result'];
-                $hookAllowedUpdates = isset($hookInfo['allowed_updates']) ? $hookInfo['allowed_updates'] : array();
+        } else {
+            //overriding with explict custom URL
+            $listenerUrl = $customUrl;
+        }
 
-                if ($hookInfo['url'] != $listenerUrl or $hookAllowedUpdates != $this->allowedUpdates or $hookInfo['max_connections'] != $this->maxConnections) {
-                    //need to be installed new URL with new params
-                    $this->telegram->setWebHook($listenerUrl, $this->maxConnections, $this->allowedUpdates);
-                    if (function_exists('show_success')) {
-                        show_success($this->botImplementation . 'installed web-hook URL: ' . $hookInfo['url']);
-                    }
-                } else {
-                    //already set, but no PID
-                    if (function_exists('show_warning')) {
-                        show_warning($this->botImplementation . ' PID saved for web-hook URL: ' . $hookInfo['url']);
-                    }
-                }
-                //write hook pid
-                file_put_contents($hookPidName, $listenerUrl);
-                //some logging
-                if ($this->debugFlag) {
-                    $logFileName = strtolower($this->botImplementation) . '_debug.log';
-                    $logData = $this->botImplementation . ': ' . curdatetime() . PHP_EOL;
-                    $logData .= 'INSTALLED WEB HOOK: ' . $listenerUrl . PHP_EOL;
-                    $logData .= 'HOOK PID: ' . $hookPidName . PHP_EOL;
-                    file_put_contents(self::LOG_PATH . $logFileName, $logData, FILE_APPEND);
+        $tokenHash = md5($this->botToken . $listenerUrl);
+        $hookPidName = self::HOOK_PID_PATH . $this->botImplementation . $tokenHash . '.hook';
+        //need to be installed?
+        if (!file_exists($hookPidName)) {
+            $hookInfo = json_decode($this->telegram->getWebHookInfo(), true);
+            $hookInfo = $hookInfo['result'];
+            $hookAllowedUpdates = isset($hookInfo['allowed_updates']) ? $hookInfo['allowed_updates'] : array();
+
+            if ($hookInfo['url'] != $listenerUrl or $hookAllowedUpdates != $this->allowedUpdates or $hookInfo['max_connections'] != $this->maxConnections) {
+                //need to be installed new URL with new params
+                $result = $this->telegram->setWebHook($listenerUrl, $this->maxConnections, $this->allowedUpdates);
+                if (function_exists('show_success')) {
+                    show_success($this->botImplementation . 'installed web-hook URL: ' . $hookInfo['url']);
                 }
             } else {
-                //ok, hook is already installed
-                $currentHookUrl = file_get_contents($hookPidName);
-                if (function_exists('show_info')) {
-                    show_info($this->botImplementation . ' web-hook URL: ' . $currentHookUrl);
+                //already set, but no PID
+                if (function_exists('show_warning')) {
+                    show_warning($this->botImplementation . ' PID saved for web-hook URL: ' . $hookInfo['url']);
                 }
             }
+            //write hook pid
+            file_put_contents($hookPidName, $listenerUrl);
+            //some logging
+            if ($this->debugFlag) {
+                $logFileName = strtolower($this->botImplementation) . '_debug.log';
+                $logData = $this->botImplementation . ': ' . curdatetime() . PHP_EOL;
+                $logData .= 'INSTALLED WEB HOOK: ' . $listenerUrl . PHP_EOL;
+                $logData .= 'HOOK PID: ' . $hookPidName . PHP_EOL;
+                file_put_contents(self::LOG_PATH . $logFileName, $logData, FILE_APPEND);
+            }
+        } else {
+            //ok, hook is already installed
+            $currentHookUrl = file_get_contents($hookPidName);
+            if (function_exists('show_info')) {
+                show_info($this->botImplementation . ' web-hook URL: ' . $currentHookUrl);
+            }
         }
+        return ($result);
     }
 }
