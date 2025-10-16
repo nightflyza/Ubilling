@@ -136,14 +136,31 @@ class ClapTrapBot extends WolfDispatcher {
     protected $systemCurrency='';
 
     /**
+     * Contains limit of requests per minute (APM)
+     *
+     * @var int
+     */
+    protected $throttleLimit=0;
+    
+    /**
+     * Contains throttle ban time in seconds
+     *
+     * @var int
+     */
+    protected $throttleBanTime=0;
+
+    /**
      * Some predefined stuff
      */
     const TABLE_AUTH = 'ct_auth';
     const KEY_CONTEXT = 'CT_CONTEXT';
+    const KEY_THROTTLE = 'CT_THROTTLE';
     const OPTION_PKBD_COUNT='CLAPTRAPBOT_PKBD_ROW';
     const OPTION_FEATURES='CLAPTRAPBOT_FEATURES';
     const OPTION_SYSTEM_CURRENCY='TEMPLATE_CURRENCY';
-    
+    const OPTION_THROTTLE_LIMIT='CLAPTRAPBOT_THROTTLE_LIMIT';
+    const OPTION_THROTTLE_BAN_TIME='CLAPTRAPBOT_THROTTLE_BAN_TIME';
+
     public function __construct($token) {
         $this->setBotName();
         $this->loadConfigs();
@@ -191,6 +208,14 @@ class ClapTrapBot extends WolfDispatcher {
         if (isset($this->altCfg[self::OPTION_SYSTEM_CURRENCY])) {
             $this->systemCurrency = $this->altCfg[self::OPTION_SYSTEM_CURRENCY];
         }
+
+        if (isset($this->altCfg[self::OPTION_THROTTLE_LIMIT])) {
+            $this->throttleLimit = ubRouting::filters($this->altCfg[self::OPTION_THROTTLE_LIMIT], 'int');
+        }
+
+        if (isset($this->altCfg[self::OPTION_THROTTLE_BAN_TIME])) {
+            $this->throttleBanTime = ubRouting::filters($this->altCfg[self::OPTION_THROTTLE_BAN_TIME], 'int');
+        }
     }
 
     /**
@@ -222,6 +247,12 @@ class ClapTrapBot extends WolfDispatcher {
                 'label' => __('Profile'),
                 'command' => 'actionProfile',
             );
+
+        $this->featuresAvailable['announcements'] = array(
+            'icon' => $this->icons['ANNOUNCEMENT'],
+            'label' => __('Announcements'),
+            'command' => 'actionAnnouncements',
+        );
 
         $this->featuresAvailable['credit'] = array(
             'icon' => $this->icons['CREDIT'],
@@ -304,6 +335,8 @@ class ClapTrapBot extends WolfDispatcher {
             'LI'=>'🔹',
             'DOWN'=>'🔽',
             'UNKNOWN' => '🤷',
+            'TELEVISION' => '📺',
+            'ANNOUNCEMENT' => '📢',
         );
     }
 
@@ -505,6 +538,8 @@ class ClapTrapBot extends WolfDispatcher {
         return($result);
     }
 
+
+
      /**
      * Just sends some string content to current conversation
      * 
@@ -520,7 +555,73 @@ class ClapTrapBot extends WolfDispatcher {
         return($result);
     }
 
- 
+    /**
+     * Gets remaining ban time in seconds for current user
+     * 
+     * @return int
+     */
+    protected function getThrottleBanTime() {
+        $result = 0;
+        if (!empty($this->chatId)) {
+            $throttleData = $this->cache->get(self::KEY_THROTTLE, $this->cacheTimeout);
+            if (!empty($throttleData[$this->chatId]['banned_until'])) {
+                $banTimeLeft = $throttleData[$this->chatId]['banned_until'] - time();
+                if ($banTimeLeft > 0) {
+                    $result = $banTimeLeft;
+                }
+            }
+        }
+        return($result);
+    }
+
+    /**
+     * Checks if user is throttled by APM limit
+     * 
+     * @return bool
+     */
+    protected function checkThrottle() {
+        $result = true;
+        if (!empty($this->chatId)) {
+            if ($this->throttleLimit > 0 and $this->throttleBanTime > 0) {
+                $throttleData = $this->cache->get(self::KEY_THROTTLE, $this->cacheTimeout);
+                if (empty($throttleData)) {
+                    $throttleData = array();
+                }
+                
+                $currentTime = time();
+                $chatIdKey = $this->chatId;
+                
+                if (!isset($throttleData[$chatIdKey])) {
+                    $throttleData[$chatIdKey] = array(
+                        'actions' => array(),
+                        'banned_until' => 0
+                    );
+                }
+                
+                if ($throttleData[$chatIdKey]['banned_until'] > $currentTime) {
+                    $result = false;
+                } else {
+                    $throttleData[$chatIdKey]['actions'] = array_filter(
+                        $throttleData[$chatIdKey]['actions'],
+                        function($timestamp) use ($currentTime) {
+                            return ($currentTime - $timestamp) < 60;
+                        }
+                    );
+                    
+                    if (count($throttleData[$chatIdKey]['actions']) >= $this->throttleLimit) {
+                        $throttleData[$chatIdKey]['banned_until'] = $currentTime + $this->throttleBanTime;
+                        $result = false;
+                    } else {
+                        $throttleData[$chatIdKey]['actions'][] = $currentTime;
+                    }
+                }
+                
+                $this->cache->set(self::KEY_THROTTLE, $throttleData, $this->cacheTimeout);
+            }
+        }
+        return($result);
+    }
+
 
     /**
      * Just hook input data listener
@@ -535,23 +636,31 @@ class ClapTrapBot extends WolfDispatcher {
                     @$this->messageId = $this->receivedData['message_id'];
                     @$this->chatType = $this->receivedData['chat']['type'];
 
-                //user auth subroutine
-                $this->loadAuthData();
-                if ($this->checkAuth($this->myLogin, $this->myPassword)) {
-                    $this->loggedIn = true;
-                }
-                if (!$this->loggedIn and (empty($this->myLogin) or empty($this->myPassword))) {
-                    $this->actionLogIn();
-                }
+                    if ($this->checkThrottle()) {
+                            //user auth subroutine
+                            $this->loadAuthData();
+                            if ($this->checkAuth($this->myLogin, $this->myPassword)) {
+                                $this->loggedIn = true;
+                            }
+                            if (!$this->loggedIn and (empty($this->myLogin) or empty($this->myPassword))) {
+                                $this->actionLogIn();
+                            }
 
-                //wow, some separate group commands here. They overrides all another actions.
-                    if (!empty($this->groupChatCommands)) {
-                        if ($this->chatType != 'private') {
-                            //override actions with another group set
-                            $this->setActions($this->groupChatCommands);
-                        }
-                    }
-                    $this->reactInput();
+                            //wow, some separate group commands here. They overrides all another actions.
+                                if (!empty($this->groupChatCommands)) {
+                                    if ($this->chatType != 'private') {
+                                        //override actions with another group set
+                                        $this->setActions($this->groupChatCommands);
+                                    }
+                                }
+                                $this->reactInput();
+                            } else {
+                                $banTimeLeft = $this->getThrottleBanTime();
+                                $banTimeLabel=zb_formatTime($banTimeLeft);
+                                $banLabel = $this->icons['ERROR'].' '.__('To many requests').'! '.__('Not so fast please').'. ';
+                                $banLabel .= PHP_EOL.__('Wait for').' '.$banTimeLabel.' '.__('to continue');
+                                $this->sendToUser($banLabel);
+                            }
                 }
                 $this->writeDebugLog();
                 return ($this->receivedData);
@@ -744,14 +853,11 @@ class ClapTrapBot extends WolfDispatcher {
         // buttons set used if user is logged in
         if ($this->loggedIn) {
             $oneTime = false;
-            $buttonsArray = $this->primaryKbdLoggedIn;
-            $buttonsArray = $this->rearrangeButtons($buttonsArray, $this->primaryKbdInRow);
+            $buttonsArray = $this->rearrangeButtons($this->primaryKbdLoggedIn, $this->primaryKbdInRow);
         } else {
             // buttons set used if user is not logged and unknown
             $oneTime = true;
-            $buttonsArray = $this->primaryKbdLoggedOut;
-            $buttonsArray = $this->rearrangeButtons($buttonsArray, $this->primaryKbdInRow);
-            
+            $buttonsArray = $this->rearrangeButtons($this->primaryKbdLoggedOut, $this->primaryKbdInRow);
         }
 
         $keyboard = $this->telegram->makeKeyboard($buttonsArray, false, true, $oneTime);

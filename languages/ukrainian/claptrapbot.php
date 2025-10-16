@@ -41,3 +41,7 @@ $lang['def']['My payments'] = 'Мої платежі';
 $lang['def']['Deposited to account'] = 'Поповнено рахунок';
 $lang['def']['Balance BEFORE'] = 'Баланс ДО';
 $lang['def']['Balance AFTER'] = 'Баланс ПІСЛЯ';
+$lang['def']['To many requests'] = 'Забагато запитів';
+$lang['def']['Not so fast please'] = 'Не так швидко, будь ласка';
+$lang['def']['Wait for'] = 'Зачекайте';
+$lang['def']['to continue'] = 'для продовження';
