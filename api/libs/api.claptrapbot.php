@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * ClapTrapBot API implementation class
+ */
 class ClapTrapBot extends WolfDispatcher {
 
      /**
@@ -170,6 +173,11 @@ class ClapTrapBot extends WolfDispatcher {
     const OPTION_THROTTLE_BAN_TIME='CLAPTRAPBOT_THROTTLE_BAN_TIME';
     const OPTION_PAY_LIMIT='CLAPTRAPBOT_MY_PAYMENTS_LIMIT';
     
+    /**
+     * STAIRS?! NOOOOOOOOOOOOOOOOO!
+     *
+     * @param string $token
+     */
     public function __construct($token) {
         $this->setBotName();
         $this->loadConfigs();
@@ -406,6 +414,7 @@ class ClapTrapBot extends WolfDispatcher {
         $this->primaryKbdLoggedOut[]= $this->icons['SIGN_OUT'].' '.__('Sign out');
 
 
+        // Minion, you've gotta go on without me! Do your master proud!
         if (!empty($commandsAvailable)) {
             $this->commandsEnabled = $commandsAvailable;
             $this->setActions($commandsAvailable);
@@ -715,6 +724,20 @@ class ClapTrapBot extends WolfDispatcher {
         }
         return ($result);
     }
+
+//
+//       ,
+//       |
+//    ]  |.-._
+//     \|"(0)"| _]
+//     `|=\#/=|\/
+//      :  _  :
+//       \/_\/ 
+//        |=| 
+//        `-' 
+//  LET'S TEAR THIS PLANET A NEW ASSHOLE! YAAAAAAGHHHHH! 
+//
+
 
     /**
      * Setups some user auth data and stores it into cache/database
@@ -1170,6 +1193,8 @@ class ClapTrapBot extends WolfDispatcher {
         }
     }
 
-
+//
+//    AND I AM GOING TO TEABAG YOUR COOOOOOORPSE!!!!
+//
 
 }
