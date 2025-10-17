@@ -576,6 +576,32 @@ class XMLAgent {
         return ($payments);
     }
 
+    /**
+     * Sanitizes Telegram tags
+     * 
+     * @param string $text
+     * 
+     * @return string
+     */
+    protected function sanitizeTgTags($text) {
+        $telegramAllowedTags = array(
+            '<b>',
+            '<strong>',
+            '<i>',
+            '<em>',
+            '<u>',
+            '<ins>',
+            '<s>',
+            '<strike>',
+            '<del>',
+            '<span>',
+            '<code>',
+            '<pre>',
+            '<a>'
+        );
+        $text = strip_tags($text, $telegramAllowedTags);
+        return ($text);
+    }
 
     /**
      * Data collector for "announcements" request
@@ -591,8 +617,15 @@ class XMLAgent {
 
         if (!empty($allAnnouncements)) {
             foreach ($allAnnouncements as $ian => $eachAnnouncement) {
-                $annText = strip_tags($eachAnnouncement['text']);
                 $allTitle = strip_tags($eachAnnouncement['title']);
+                $annText = $eachAnnouncement['text'];
+                if ( $eachAnnouncement['type'] != 'html') {
+                    $annText = strip_tags($annText);
+                } else {
+                    $annText = $this->sanitizeTgTags($annText);
+                }
+                
+                
                 $readFlag=($eachAnnouncement['annid']) ? 1 : 0;
 
                 $annArr[] = array(
