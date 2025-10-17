@@ -15,7 +15,7 @@ class XMLAgent {
     /**
      * Placeholder for Ubilling UserStats config instance
      *
-     * @var null
+     * @var object
      */
     protected $usConfig = null;
 
@@ -437,7 +437,12 @@ class XMLAgent {
         if (ubRouting::checkGet('announcements') and $this->uscfgAnnouncementsON) {
             $messages       = true;
             $restapiMethod  = 'announcements';
-            $resultToRender = $this->getAnnouncements();
+            $resultToRender = $this->getAnnouncements($user_login);
+        }
+
+        if (ubRouting::checkGet('annreadall')) {
+            $restapiMethod  = 'annreadall';
+            $resultToRender = $this->markAllAnnouncementsAsRead($user_login);
         }
 
         if (ubRouting::checkGet('activetariffsvservices')) {
@@ -574,22 +579,26 @@ class XMLAgent {
 
     /**
      * Data collector for "announcements" request
+     * 
+     * @param string $login
      *
      * @return array
      */
-    protected function getAnnouncements() {
+    protected function getAnnouncements($login='') {
+        $login = ubRouting::filters($login, 'login');
         $annArr     = array();
-        $annTable   = new NyanORM('zbsannouncements');
-        $annTable->where('public', '=', '1');
-        $annTable->orderBy('id', 'DESC');
-        $allAnnouncements = $annTable->getAll();
+        $allAnnouncements = zbs_AnnouncementsGetAll($login);
 
         if (!empty($allAnnouncements)) {
             foreach ($allAnnouncements as $ian => $eachAnnouncement) {
                 $annText = strip_tags($eachAnnouncement['text']);
                 $allTitle = strip_tags($eachAnnouncement['title']);
+                $readFlag=($eachAnnouncement['annid']) ? 1 : 0;
+
                 $annArr[] = array(
                     'unic' => $eachAnnouncement['id'],
+                    'read' => $readFlag,
+                    'type' => $eachAnnouncement['type'],
                     'title' => $allTitle,
                     'text' => $annText
                 );
@@ -597,6 +606,40 @@ class XMLAgent {
         }
 
         return ($annArr);
+    }
+
+    /**
+     * Data collector for "annreadall" request
+     * 
+     * @param string $login
+     *
+     * @return array
+     */
+    protected function markAllAnnouncementsAsRead($login='') {
+        $login = ubRouting::filters($login, 'login');
+        $allUnreadAnnouncements = $this->getAnnouncements($login);
+        if (!empty($allUnreadAnnouncements)) {
+            foreach ($allUnreadAnnouncements as $io => $eachUnreadAnnouncement) {
+                if ($eachUnreadAnnouncement['read'] == 0) {
+                    $this->markAnnouncementAsRead($eachUnreadAnnouncement['unic'],$login);
+                }
+            }
+        }
+        return (array());
+    }
+
+    /**
+     * Marks an announcement as read
+     * 
+     * @param int $announcementId
+     * @param string $login
+     *
+     * @return void
+     */
+    protected function markAnnouncementAsRead($announcementId,$login) {
+        $announcementId = ubRouting::filters($announcementId, 'int');
+        $login = ubRouting::filters($login, 'login');
+        zbs_AnnouncementsLogPush($login, $announcementId);
     }
 
 

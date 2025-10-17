@@ -65,6 +65,7 @@ class ClapTrapBot extends WolfDispatcher {
      */
     protected $cacheTimeout=3600;
 
+
     /**
      * Contains available emoji icons as name=>icon
      *
@@ -150,6 +151,13 @@ class ClapTrapBot extends WolfDispatcher {
     protected $throttleBanTime=0;
 
     /**
+     * Contains limit of payments to show in mypayments list by default
+     *
+     * @var int
+     */
+    protected $myPaymentsLimit=4;
+
+    /**
      * Some predefined stuff
      */
     const TABLE_AUTH = 'ct_auth';
@@ -160,7 +168,8 @@ class ClapTrapBot extends WolfDispatcher {
     const OPTION_SYSTEM_CURRENCY='TEMPLATE_CURRENCY';
     const OPTION_THROTTLE_LIMIT='CLAPTRAPBOT_THROTTLE_LIMIT';
     const OPTION_THROTTLE_BAN_TIME='CLAPTRAPBOT_THROTTLE_BAN_TIME';
-
+    const OPTION_PAY_LIMIT='CLAPTRAPBOT_MY_PAYMENTS_LIMIT';
+    
     public function __construct($token) {
         $this->setBotName();
         $this->loadConfigs();
@@ -215,6 +224,10 @@ class ClapTrapBot extends WolfDispatcher {
 
         if (isset($this->altCfg[self::OPTION_THROTTLE_BAN_TIME])) {
             $this->throttleBanTime = ubRouting::filters($this->altCfg[self::OPTION_THROTTLE_BAN_TIME], 'int');
+        }
+
+        if (isset($this->altCfg[self::OPTION_PAY_LIMIT])) {
+            $this->myPaymentsLimit = ubRouting::filters($this->altCfg[self::OPTION_PAY_LIMIT], 'int');
         }
     }
 
@@ -315,6 +328,7 @@ class ClapTrapBot extends WolfDispatcher {
             'INFO' => 'ℹ️',
             'WARNING' => '⚠️',
             'QUESTION' => '❓',
+            'ALERT'=>'🚨',
             'CLOCK' => '⏳',
             'BALANCE' => '💰',
             'ACCOUNT' => '💵',
@@ -337,6 +351,8 @@ class ClapTrapBot extends WolfDispatcher {
             'UNKNOWN' => '🤷',
             'TELEVISION' => '📺',
             'ANNOUNCEMENT' => '📢',
+            'READ' => '✅',
+            'SEARCH' => '🔍',
         );
     }
 
@@ -353,6 +369,17 @@ class ClapTrapBot extends WolfDispatcher {
             $this->icons['SIGN_OUT'].' '.__('Sign out') => 'actionLogOut',
             $this->icons['SIGN_IN'].' '.__('Sign in') => 'actionLogIn',
         );
+
+        //custom and optional commands here
+        if (in_array('announcements', $this->featuresEnabled)) {
+            $commandsAvailable[$this->icons['READ'].' '.__('Mark all as read')] = 'actionAnnouncements';
+        }
+
+        if (in_array('mypayments', $this->featuresEnabled)) {
+            $commandsAvailable[$this->icons['SEARCH'].' '.__('Show all payments')] = 'actionMyPayments';
+            $commandsAvailable[$this->icons['SEARCH'].' '.__('Show more payments')] = 'actionMyPayments';
+        }
+
         
         //enabled features commands
         if (!empty($this->featuresEnabled)) {
@@ -872,7 +899,7 @@ class ClapTrapBot extends WolfDispatcher {
      */
     protected function actionBack() {
         $this->setContext('');
-        $this->actionKeyboard();
+        $this->actionKeyboard(__('Select an action').' '. $this->icons['DOWN']);
     }
 
     /**
@@ -1036,22 +1063,107 @@ class ClapTrapBot extends WolfDispatcher {
         if ($this->loggedIn) {
             $allPayments = $this->getApiData('&payments=true');
             if (!empty($allPayments)) {
-                $paymentsReply= $this->icons['INFO']. ' ' .__('My payments') . PHP_EOL;
+                $limitLabel='';
+                $limitCount=$this->myPaymentsLimit;
+                if ($this->receivedData['text'] == $this->icons['SEARCH'].' '.__('Show more payments')) {
+                    $limitCount=$limitCount*2;
+                }
+
+                if ($this->receivedData['text'] == $this->icons['SEARCH'].' '.__('Show all payments')) {
+                    $limitCount=0;
+                }
+
+                if ($limitCount > 0) {
+                    $limitLabel=' ('.__('latest') . ' ' . $limitCount . ')';
+                }
+
+                $paymentsReply= $this->icons['INFO']. ' ' .__('My payments') . $limitLabel . PHP_EOL;
                 $paymentsReply .= $this->icons['DELIMITER']. ' ' . PHP_EOL;
+                
+                //limit payments to show
+                if ($limitCount > 0) {
+                    $allPayments = array_slice($allPayments, 0, $limitCount);
+                }
+
+                //newer payments at the end
                 $allPayments = array_reverse($allPayments);
-              
+
                 foreach ($allPayments as $io => $each) {
-                 $paymentsReply .= $this->icons['CALENDAR']. ' ' . __('Date') . ': ' . $each['date'] . PHP_EOL;
-                 $paymentsReply .= $this->icons['BALANCE']. ' ' . __('Deposited to account') . ': ' . $each['summ'] . ' ' . $this->systemCurrency . PHP_EOL;
-                 $paymentsReply .= $this->icons['COIN']. ' ' . __('Balance BEFORE') . ': ' . $each['balance'] . ' ' . $this->systemCurrency . PHP_EOL;
-                 $paymentsReply .= $this->icons['CHART']. ' ' . __('Balance AFTER') . ': ' . ($each['balance'] + $each['summ']) . ' ' . $this->systemCurrency . PHP_EOL;
-                 $paymentsReply .= PHP_EOL;
-                 $paymentsReply .= PHP_EOL;
+                    $paymentsReply .= $this->icons['CALENDAR']. ' ' . __('Date') . ': ' . $each['date'] . PHP_EOL;
+                    $paymentsReply .= $this->icons['BALANCE']. ' ' . __('Deposited to account') . ': ' . $each['summ'] . ' ' . $this->systemCurrency . PHP_EOL;
+                    $paymentsReply .= $this->icons['COIN']. ' ' . __('Balance BEFORE') . ': ' . $each['balance'] . ' ' . $this->systemCurrency . PHP_EOL;
+                    $paymentsReply .= $this->icons['CHART']. ' ' . __('Balance AFTER') . ': ' . ($each['balance'] + $each['summ']) . ' ' . $this->systemCurrency . PHP_EOL;
+                    $paymentsReply .= PHP_EOL;
+                    $paymentsReply .= PHP_EOL;
                 }
 
                 $this->sendToUser($paymentsReply);
+
+                //custom mypayments keyboard
+                if ($this->myPaymentsLimit > 0) {
+                    $myPaymentsButtons = array();
+                    $myPaymentsButtons[] = array($this->icons['BACK'].' '.__('Back'));
+                    $myPaymentsButtons[] = array($this->icons['SEARCH'].' '.__('Show more payments'));
+                    $myPaymentsButtons[] = array($this->icons['SEARCH'].' '.__('Show all payments'));
+                    $keyboard = $this->telegram->makeKeyboard($myPaymentsButtons, false, true, false);
+                    $this->telegram->directPushMessage($this->chatId, $this->icons['DOWN'].' '.__('Select an action'), $keyboard);
+                }
+
+            
             } else {
                 $this->sendToUser($this->icons['UNKNOWN']. ' ' .__('No payments found'));
+            }
+        } else {
+            $this->sendToUser($this->icons['ERROR']. ' ' .__('You are not logged in'));
+        }
+    }
+
+    /**
+     * Renders announcements list
+     * 
+     * @return void
+     */
+    protected function actionAnnouncements() {
+        if ($this->loggedIn) {
+            if ($this->receivedData['text'] == $this->icons['READ'].' '.__('Mark all as read')) {
+                $this->setContext('annreadall');
+                $this->getApiData('&annreadall=true');
+                $this->sendToUser($this->icons['INFO'].' '.__('All announcements marked as read'));
+            } else {
+                $this->setContext('annlist');
+            }
+
+            $allAnnouncements = $this->getApiData('&announcements=true');
+            if (!empty($allAnnouncements)) {
+                $unreadCount=0;
+                $announcementsReply = $this->icons['ANNOUNCEMENT']. ' ' .__('Announcements available').': ' . PHP_EOL.PHP_EOL;
+                foreach ($allAnnouncements as $io => $each) {
+                    $readFlag=($each['read']) ? $this->icons['READ'] : $this->icons['ALERT'];
+                    if ($each['read'] == 0) {
+                        $unreadCount++;
+                    }
+                    $announcementsReply .= $readFlag. ' '.wf_tag('b') . $each['title'].wf_tag('b', true) . PHP_EOL;
+                    $announcementsReply .= $each['text'] . PHP_EOL;
+                    $announcementsReply .= $this->icons['DELIMITER'].PHP_EOL;
+                }
+
+                $announcementsReply .= 'parseMode:{html}';
+                $this->sendToUser($announcementsReply);
+                
+                //custom keyboard for announcements list
+                $announcementsButtons = array();
+                $announcementsButtons[] = array($this->icons['BACK'].' '.__('Back'));
+                    if ($this->context == 'annlist') {
+                        if ($unreadCount > 0) {
+                            $announcementsButtons[] = array($this->icons['READ'].' '.__('Mark all as read'));
+                    }
+                }
+
+                    $keyboard = $this->telegram->makeKeyboard($announcementsButtons, false, true, false);
+                    $this->telegram->directPushMessage($this->chatId, $this->icons['DOWN'].' '.__('Select an action'), $keyboard);
+                
+            } else {
+                $this->sendToUser($this->icons['UNKNOWN']. ' ' .__('No important announcements found'));
             }
         } else {
             $this->sendToUser($this->icons['ERROR']. ' ' .__('You are not logged in'));

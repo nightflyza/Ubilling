@@ -55,7 +55,6 @@ if ($user_ip) {
 
             // XMLAgent SUPPORT:
             if (ubRouting::checkGet('xmlagent')) {
-                //zbs_UserShowXmlAgentData($user_login);
                 new XMLAgent($user_login);
             }
         } else {
@@ -65,7 +64,6 @@ if ($user_ip) {
                 if (ubRouting::checkGet('json')) {
                     $errorOutputFormat = 'json';
                 }
-                //zbs_XMLAgentRender(array(array('reason' => 'disabled')), 'error', '', $errorOutputFormat, false);
                 XMLAgent::renderResponse(array(array('reason' => 'disabled')), 'error', '', $errorOutputFormat);
             }
         }
