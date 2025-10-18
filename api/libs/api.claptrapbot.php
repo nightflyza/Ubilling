@@ -1,7 +1,7 @@
 <?php
 
 /**
- * ClapTrapBot API implementation class
+ * CL4P-TP implementation
  */
 class ClapTrapBot extends WolfDispatcher {
 
@@ -1203,6 +1203,11 @@ class ClapTrapBot extends WolfDispatcher {
         }
     }
 
+    /**
+     * Renders CaTV user profile
+     * 
+     * @return void
+     */
     protected function actionCATV() {
         if ($this->loggedIn) {
             $this->setContext('catv');
@@ -1230,6 +1235,20 @@ class ClapTrapBot extends WolfDispatcher {
             } else {
                 $this->sendToUser($this->icons['UNKNOWN']. ' ' .__('No CaTV account found'));
             }
+        } else {
+            $this->sendToUser($this->icons['ERROR']. ' ' .__('You are not logged in'));
+        }
+    }
+
+    /**
+     * Handles support action
+     * 
+     * @return void
+     */
+    protected function actionSupport() {
+        if ($this->loggedIn) {
+            $this->setContext('support');
+            //TODO: implement support action
         } else {
             $this->sendToUser($this->icons['ERROR']. ' ' .__('You are not logged in'));
         }
