@@ -75,7 +75,7 @@ class UBMorph {
             array('', __('one female'), __('two female'), __('three female'), __('four female'), __('five female'), __('six female'), __('seven female'), __('eight female'), __('nine female')) // f
         );
 
-        if ($this->currencyType == 'UAH') {
+        if ($this->currencyType == 'UAH' or $this->currencyType == 'грн') {
             $nowCurrency = array(__('hryvna'), __('hryvnax'), __('hryvnas'), 0);
         }
 
