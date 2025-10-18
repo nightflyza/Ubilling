@@ -118,6 +118,13 @@ class XMLAgent {
     protected $uscfgTariffCahngeAllowedFrom = '';
 
     /**
+     * Placeholder for UKV_ENABLED "userstats.ini" option
+     *
+     * @var bool
+     */
+    protected $uscfgUKVEnabled = false;
+
+    /**
      * Placeholder for AF_ENABLED "userstats.ini" option
      *
      * @var bool
@@ -288,6 +295,7 @@ class XMLAgent {
         $this->debugDeep                        = $this->usConfig->getUstasParam('XMLAGENT_DEBUG_DEEP_ON', false);
         $this->extendedAuthON                   = $this->usConfig->getUstasParam('XMLAGENT_EXTENDED_AUTH_ON', false);
         $this->selfUnFreezeAllowed              = $this->usConfig->getUstasParam('XMLAGENT_SELF_UNFREEZE_ALLOWED', false);
+        $this->uscfgUKVEnabled                  = $this->usConfig->getUstasParam('UKV_ENABLED', false);
 
         $this->uscfgFreezeSelfON                = $this->usConfig->getUstasParam('AF_ENABLED', false);
         $this->uscfgFreezeSelfPrice             = $this->usConfig->getUstasParam('AF_FREEZPRICE', 0);
@@ -359,7 +367,8 @@ class XMLAgent {
                                     'ticketcreate',
                                     'freezedata',
                                     'dofreeze',
-                                    'dounfreeze'
+                                    'dounfreeze',
+                                    'ukv'
                                     ),
                                 true, true)
                             );
@@ -383,6 +392,11 @@ class XMLAgent {
                 if (ubRouting::checkGet('opayz') and $this->uscfgOpenPayzON) {
                     $subSection     = 'paysys';
                     $resultToRender = $this->getUserOpenPayz($user_login);
+                }
+
+                if (ubRouting::checkGet('ukv') and $this->uscfgUKVEnabled) {
+                    $restapiMethod  = 'ukv';
+                    $resultToRender = $this->getUKVUserData($user_login);
                 }
 
                 if (ubRouting::checkGet('agentassigned')) {
@@ -747,6 +761,22 @@ class XMLAgent {
         }
 
         return ($opayzArr);
+    }
+
+    /**
+     * Data collector for "ukv" request
+     *
+     * @param $login
+     *
+     * @return array
+     */
+    protected function getUKVUserData($login) {
+        $result = array();
+        $ukv=new UserstatsUkv();
+        $userData=$ukv->getUserDataShort($login);
+        $result=(!empty($userData)) ? array('ukvuserdata' => $userData) : array();
+       
+        return ($result);
     }
 
 

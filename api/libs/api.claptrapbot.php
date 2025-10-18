@@ -310,6 +310,12 @@ class ClapTrapBot extends WolfDispatcher {
             'label' => __('Support'),
             'command' => 'actionSupport',
         );
+
+        $this->featuresAvailable['catv'] = array(
+            'icon' => $this->icons['TELEVISION'],
+            'label' => __('CaTV'),
+            'command' => 'actionCATV',
+        );
     }
 
     /**
@@ -361,6 +367,7 @@ class ClapTrapBot extends WolfDispatcher {
             'ANNOUNCEMENT' => '📢',
             'READ' => '✅',
             'SEARCH' => '🔍',
+            'CONTRACT' => '📄',
         );
     }
 
@@ -963,6 +970,9 @@ class ClapTrapBot extends WolfDispatcher {
             $reply .= $this->profileRow('ADDRESS', __('Address'), $userData['address']);
             $reply .= $this->profileRow('MOBILE', __('Mobile'), $userData['mobile']);
             $reply .= $this->profileRow('TARIFF', __('Your') . ' ' . __('tariff'), $userData['tariff']);
+            if (!empty($userData['tariffnm'])) {
+                $reply .= $this->profileRow('TARIFF', __('Planned tariff change'), $userData['tariffnm']);
+            }
             $reply .= $this->profileRow('BALANCE', __('Your') . ' ' . __('balance'), $userData['cash'] . ' ' . $userData['currency']);
             $reply .= $this->profileRow('GLOBE', __('IP'), $userData['ip']);
             $reply .= $this->profileRow('CREDIT', __('Your') . ' ' . __('credit'), $userData['credit'] . ' ' . $userData['currency']);
@@ -1187,6 +1197,38 @@ class ClapTrapBot extends WolfDispatcher {
                 
             } else {
                 $this->sendToUser($this->icons['UNKNOWN']. ' ' .__('No important announcements found'));
+            }
+        } else {
+            $this->sendToUser($this->icons['ERROR']. ' ' .__('You are not logged in'));
+        }
+    }
+
+    protected function actionCATV() {
+        if ($this->loggedIn) {
+            $this->setContext('catv');
+            $catvData = $this->getApiData('&ukv=true');
+            if (!empty($catvData)) {
+                $catvReply = $this->icons['TELEVISION'].' '.__('User profile').' '.__('CaTV').' ' .PHP_EOL;
+                $catvReply .= $this->icons['DELIMITER'].' ' . PHP_EOL;
+
+                $catvReply.= $this->profileRow('ADDRESS', __('Address'), $catvData['address']);
+                $catvReply.= $this->profileRow('REALNAME', __('RealName'), $catvData['realname']);
+                $catvReply.= $this->profileRow('CONTRACT', __('Contract'), $catvData['contract']);
+                $catvReply.= $this->profileRow('PHONE', __('Phone'), $catvData['phone']);
+                $catvReply.= $this->profileRow('MOBILE', __('Mobile'), $catvData['mobile']);
+                $catvReply.= $this->profileRow('TARIFF', __('Your') . ' ' . __('tariff'), $catvData['tariff']);
+                if (!empty($catvData['tariffnm'])) {
+               $catvReply.= $this->profileRow('TARIFF', __('Planned tariff change'), $catvData['tariffnm']);
+                    if (!empty($catvData['tariffnmdate'])) {
+                        $catvReply .= $this->profileRow('CALENDAR', __('Move tariff after'), $catvData['tariffnmdate']);
+                    }
+                }
+                $catvReply.= $this->profileRow('BALANCE', __('Your') . ' ' . __('balance'), $catvData['cash'] . ' ' . $catvData['currency']);
+                
+                
+                $this->sendToUser($catvReply);
+            } else {
+                $this->sendToUser($this->icons['UNKNOWN']. ' ' .__('No CaTV account found'));
             }
         } else {
             $this->sendToUser($this->icons['ERROR']. ' ' .__('You are not logged in'));
