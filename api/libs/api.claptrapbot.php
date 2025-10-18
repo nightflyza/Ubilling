@@ -1249,6 +1249,7 @@ class ClapTrapBot extends WolfDispatcher {
         if ($this->loggedIn) {
             $this->setContext('support');
             //TODO: implement support action
+            $this->sendToUser($this->icons['INFO'].' '.__('Under heavy development'));
         } else {
             $this->sendToUser($this->icons['ERROR']. ' ' .__('You are not logged in'));
         }
