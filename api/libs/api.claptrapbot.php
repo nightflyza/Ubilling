@@ -370,6 +370,7 @@ class ClapTrapBot extends WolfDispatcher {
             'CONTRACT' => '📄',
             'REDC'=>'🔴',
             'GREENC'=>'🟢',
+            'SOS'=>'🆘',
         );
     }
 
@@ -714,6 +715,26 @@ class ClapTrapBot extends WolfDispatcher {
                 }
                 $this->writeDebugLog();
                 return ($this->receivedData);
+    }
+
+
+    /**
+     * Magic middleware to handle raw-text inputs from user
+     *
+     * @return void
+     */
+    public function handleEmptyAction() {
+        $currentContext=$this->getContext();
+        if (!empty($currentContext)) {
+
+            //handling new support requests or existing tickets threads
+            if (in_array('support', $this->featuresEnabled)) {
+                if ($currentContext=='support' or ispos($currentContext, 'viewsupportthread_')) {
+                    //TODO: create new support ticket or reply to lates open thread
+                    $this->sendToUser($currentContext); 
+                }
+            }
+        }
     }
 
     /**
@@ -1248,7 +1269,30 @@ class ClapTrapBot extends WolfDispatcher {
     }
 
     /**
-     * Renders support request thread by its ID
+     * Checks is given ticket ID existing thread ID?
+     *
+     * @param array $allTickets
+     * @param int $ticketId
+     * 
+     * @return bool
+     */
+    protected function isThreadId($allTickets, $ticketId) {
+        $result=false;
+        $ticketId=ubRouting::filters($ticketId,'int');
+        if (!empty($allTickets) and !empty($ticketId)) {
+            foreach ($allTickets as $io => $each) {
+                if ($each['id'] == $ticketId and empty($each['replyid'])) {
+                    $result=true;
+                    break;
+                }
+            }
+
+        }
+        return ($result);
+    }
+
+    /**
+     * Renders support request thread by its ID only if its not reply
      *
      * @param array $allTickets
      * @param int $ticketId
@@ -1261,6 +1305,7 @@ class ClapTrapBot extends WolfDispatcher {
         $threadData=array();
         $threadOpen=false;
         if (!empty($allTickets) and !empty($ticketId)) {
+            if ($this->isThreadId($allTickets, $ticketId)) {
             foreach ($allTickets as $io => $each) {
                 if ($each['id'] == $ticketId or $each['replyid'] == $ticketId) {
                     $threadData[]=$each;
@@ -1291,6 +1336,9 @@ class ClapTrapBot extends WolfDispatcher {
             } else {
                 $result=$this->icons['ERROR'].' '.__('Something went wrong');    
             }
+        } else {
+            $result=$this->icons['ERROR'].' '.__('No such ticket');
+        }
         } else {
             $result=$this->icons['ERROR'].' '.__('Nothing to show');
         }
@@ -1326,6 +1374,7 @@ class ClapTrapBot extends WolfDispatcher {
                     $cleanTicketId=str_replace($viewCommandMark,'',$this->receivedData['text']);
                     $cleanTicketId=ubRouting::filters($cleanTicketId,'int');
                     $supportReply.=$this->renderTicketThread($allTickets,$cleanTicketId);
+                    $this->setContext('viewsupportthread_'.$cleanTicketId);
                 }
 
                 //here we render available tickets list
@@ -1338,7 +1387,7 @@ class ClapTrapBot extends WolfDispatcher {
                         $textPreview=zb_cutString($each['text'], 20);
                         $supportReply.= $ticketStatus.' ' . $each['id'] . ': ' . $each['date'] . ' (' . $textPreview.')'. PHP_EOL;
                         //appending view button for each ticket
-                        $ticketsButtons[] = array($this->icons['SEARCH'].' ' .__('View request').'# '. $each['id']);
+                        $ticketsButtons[] = array($this->icons['SEARCH'].' ' .__('View request').'# '. $each['id'].' '.$ticketStatus);
                         }
                     }
 

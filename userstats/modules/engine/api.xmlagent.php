@@ -820,7 +820,7 @@ class XMLAgent {
         $email = zbs_UserGetEmail($login);
         $mobile = zbs_UserGetMobile($login);
         $phone = zbs_UserGetPhone($login);
-        $apiVer = '1';
+        $apiVer = '2';
 
         $passive = $userdata['Passive'];
         $down = $userdata['Down'];
