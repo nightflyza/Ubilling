@@ -368,6 +368,8 @@ class ClapTrapBot extends WolfDispatcher {
             'READ' => '✅',
             'SEARCH' => '🔍',
             'CONTRACT' => '📄',
+            'REDC'=>'🔴',
+            'GREENC'=>'🟢',
         );
     }
 
@@ -393,6 +395,11 @@ class ClapTrapBot extends WolfDispatcher {
         if (in_array('mypayments', $this->featuresEnabled)) {
             $commandsAvailable[$this->icons['SEARCH'].' '.__('Show all payments')] = 'actionMyPayments';
             $commandsAvailable[$this->icons['SEARCH'].' '.__('Show more payments')] = 'actionMyPayments';
+        }
+
+        if (in_array('support', $this->featuresEnabled)) {
+            $commandsAvailable[$this->icons['SEARCH'].' '.__('View request').'# '] = 'actionSupport';
+            $commandsAvailable[$this->icons['BACK'].' '.__('Back to requests')] = 'actionSupport';
         }
 
         
@@ -973,9 +980,9 @@ class ClapTrapBot extends WolfDispatcher {
             if (!empty($userData['tariffnm'])) {
                 $reply .= $this->profileRow('TARIFF', __('Planned tariff change'), $userData['tariffnm']);
             }
-            $reply .= $this->profileRow('BALANCE', __('Your') . ' ' . __('balance'), $userData['cash'] . ' ' . $userData['currency']);
+            $reply .= $this->profileRow('BALANCE', __('Your') . ' ' . __('balance'), $userData['cash'] . ' ' . $this->systemCurrency);
             $reply .= $this->profileRow('GLOBE', __('IP'), $userData['ip']);
-            $reply .= $this->profileRow('CREDIT', __('Your') . ' ' . __('credit'), $userData['credit'] . ' ' . $userData['currency']);
+            $reply .= $this->profileRow('CREDIT', __('Your') . ' ' . __('credit'), $userData['credit'] . ' ' . $this->systemCurrency);
             
             if ($userData['creditexpire'] != 'No') {
                 $reply .= $this->profileRow('CALENDAR', __('Credit') . ' ' . __('till'), $userData['creditexpire']);
@@ -1228,7 +1235,7 @@ class ClapTrapBot extends WolfDispatcher {
                         $catvReply .= $this->profileRow('CALENDAR', __('Move tariff after'), $catvData['tariffnmdate']);
                     }
                 }
-                $catvReply.= $this->profileRow('BALANCE', __('Your') . ' ' . __('balance'), $catvData['cash'] . ' ' . $catvData['currency']);
+                $catvReply.= $this->profileRow('BALANCE', __('Your') . ' ' . __('balance'), $catvData['cash'] . ' ' . $this->systemCurrency);
                 
                 
                 $this->sendToUser($catvReply);
@@ -1241,6 +1248,56 @@ class ClapTrapBot extends WolfDispatcher {
     }
 
     /**
+     * Renders support request thread by its ID
+     *
+     * @param array $allTickets
+     * @param int $ticketId
+     * 
+     * @return string
+     */
+    protected function renderTicketThread($allTickets,$ticketId) {
+        $ticketId=ubRouting::filters($ticketId, 'int');
+        $result='';
+        $threadData=array();
+        $threadOpen=false;
+        if (!empty($allTickets) and !empty($ticketId)) {
+            foreach ($allTickets as $io => $each) {
+                if ($each['id'] == $ticketId or $each['replyid'] == $ticketId) {
+                    $threadData[]=$each;
+                }
+            }
+
+            if (!empty($threadData)) {
+                $result.=$this->icons['PHONE'].' '.__('Support request').'#  '.$ticketId . PHP_EOL;
+                
+                $result.=$this->icons['DELIMITER'].PHP_EOL;
+                foreach ($threadData as $io => $each) {
+                    if (empty($each['replyid'])) {
+                        //initial ticket
+                        $ticketStatus=($each['status']) ? $this->icons['GREENC'] : $this->icons['REDC'];
+                        if ($each['status']==1) {
+                            $threadOpen=true;
+                        }
+                    } else {
+                        $ticketStatus='';
+                    }
+                    $messageAuthor=($each['from']==$this->myLogin) ? __('User') : __('Support');
+                    $result.=$this->icons['CALENDAR'] .' '. $each['date'] .' ('.$messageAuthor.') '.$ticketStatus. PHP_EOL;
+                    $ticketText=strip_tags($each['text']);
+                    $ticketText=ubRouting::filters($ticketText,'safe');
+                    $result.= $each['text'].PHP_EOL;
+                    $result.= $this->icons['DELIMITER'].PHP_EOL;
+                }
+            } else {
+                $result=$this->icons['ERROR'].' '.__('Something went wrong');    
+            }
+        } else {
+            $result=$this->icons['ERROR'].' '.__('Nothing to show');
+        }
+        return($result);
+    }
+
+    /**
      * Handles support action
      * 
      * @return void
@@ -1248,8 +1305,62 @@ class ClapTrapBot extends WolfDispatcher {
     protected function actionSupport() {
         if ($this->loggedIn) {
             $this->setContext('support');
-            //TODO: implement support action
-            $this->sendToUser($this->icons['INFO'].' '.__('Under heavy development'));
+            $allTickets=$this->getApiData('&tickets=true');
+            $supportReply='';
+            $viewCommandMark=$this->icons['SEARCH'].' '.__('View request').'# ';
+            $supportButtons=array();
+
+            $supportButtons[] = array($this->icons['BACK'].' '.__('Back'));
+
+            
+            if (!empty($allTickets)) {
+                //from oldest to newest
+                $allTickets=array_reverse($allTickets);
+
+                //here we show exact ticket thread
+                if (ispos($this->receivedData['text'], $viewCommandMark)) {
+                    $this->setContext('viewsupportthread');
+                    //override thread back button with requests back control
+                    $supportButtons=array();
+                    $supportButtons[] = array($this->icons['BACK'].' '.__('Back to requests'));
+                    $cleanTicketId=str_replace($viewCommandMark,'',$this->receivedData['text']);
+                    $cleanTicketId=ubRouting::filters($cleanTicketId,'int');
+                    $supportReply.=$this->renderTicketThread($allTickets,$cleanTicketId);
+                }
+
+                //here we render available tickets list
+                if ($this->getContext()=='support') {
+                $supportReply.=$this->icons['PHONE'].' '.__('Your previous technical support requests').': '.PHP_EOL;
+                $supportReply.=$this->icons['DELIMITER'].PHP_EOL;
+                foreach ($allTickets as $io => $each) {
+                    if ($each['from'] == $this->myLogin and empty($each['to']) and $each['replyid']==0) {
+                        $ticketStatus=($each['status']) ? $this->icons['GREENC'] : $this->icons['REDC'];
+                        $textPreview=zb_cutString($each['text'], 20);
+                        $supportReply.= $ticketStatus.' ' . $each['id'] . ': ' . $each['date'] . ' (' . $textPreview.')'. PHP_EOL;
+                        //appending view button for each ticket
+                        $ticketsButtons[] = array($this->icons['SEARCH'].' ' .__('View request').'# '. $each['id']);
+                        }
+                    }
+
+                     //reversing tickets buttons array
+                    if (!empty($ticketsButtons) and $this->getContext()=='support') {
+                        $ticketsButtons=array_reverse($ticketsButtons);
+                        $supportButtons=array_merge($supportButtons, $ticketsButtons);
+                    }
+                }
+
+               
+            } else {
+                $supportReply.= $this->icons['UNKNOWN'].' '.__('No previous support requests found');
+            }
+
+            $this->sendToUser($supportReply);
+            
+            //here some support custom keyboard
+            $keyboard = $this->telegram->makeKeyboard($supportButtons, false, true, false);
+            $this->telegram->directPushMessage($this->chatId, $this->icons['DOWN'].' '.__('Select an action'), $keyboard);
+
+            
         } else {
             $this->sendToUser($this->icons['ERROR']. ' ' .__('You are not logged in'));
         }
