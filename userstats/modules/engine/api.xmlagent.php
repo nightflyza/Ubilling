@@ -441,7 +441,7 @@ class XMLAgent {
                 if (ubRouting::checkGet(array('ticketcreate', 'tickettext', 'tickettype'))
                     and ubRouting::get('tickettype') == self::TICKET_TYPE_SUPPORT
                 ) {
-                    $text           = base64_decode(ubRouting::get('tickettext'));
+                    $text           = base64_decode(ubRouting::get('tickettext','raw'));
                     $replyID        = ubRouting::checkGet('reply_id') ? ubRouting::get('reply_id') : 0;
                     $debugData      = empty($replyID) ? 'replyID: ' . $replyID . '  ' . $text : $text;
                     $restapiMethod  = 'supportticketcreate';
@@ -1252,6 +1252,7 @@ class XMLAgent {
      *
      * @param $login
      * @param $tickettext
+     * @param $replyID
      *
      * @return array[]
      * @throws Exception

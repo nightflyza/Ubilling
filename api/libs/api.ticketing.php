@@ -436,6 +436,7 @@ function web_TicketsTAPLister() {
 function web_TicketReplyForm($ticketid) {
     $ticketid = vf($ticketid, 3);
     $ticketdata = zb_TicketGetData($ticketid);
+    if (!empty($ticketdata)) {
     $ticketstate = $ticketdata['status'];
     if (!$ticketstate) {
         $replyinputs = wf_HiddenInput('postreply', $ticketid);
@@ -459,7 +460,9 @@ function web_TicketReplyForm($ticketid) {
     $replyform .= wf_delimiter();
     $replyform .= wf_AjaxLink('?module=ticketing&showticket=' . $ticketid . '&ajevents=true', wf_img('skins/log_icon_small.png') . ' ' . __('Show ticket events'), 'ajticketevents', false, 'ubButton');
     $replyform .= wf_AjaxContainer('ajticketevents', '', '');
-
+    } else {
+        $replyform = __('Something went wrong').': '.__('Not existing ticket');
+    }
     return ($replyform);
 }
 
@@ -494,16 +497,17 @@ function web_TicketReplyEditForm($replyid) {
  */
 function web_TicketDialogue($ticketid) {
     global $ubillingConfig;
+    $result = '';
     $ticketid = ubRouting::filters($ticketid, 'int');
     $ticketdata = zb_TicketGetData($ticketid);
+    $result .= wf_tag('p', false, '', 'align="right"') . wf_BackLink('?module=ticketing', 'Back to tickets list', true) . wf_tag('p', true);
+    if (!empty($ticketdata)) {
     $ticketreplies = zb_TicketGetReplies($ticketid);
     @$employeeNames = unserialize(ts_GetAllEmployeeLoginsCached());
     $dialog = array();
     $lastUserPrompt = '';
     $moreContextFlag = $ubillingConfig->getAlterParam('HIVE_MORE_CONTEXT', 0);
 
-    $result = wf_tag('p', false, '', 'align="right"') . wf_BackLink('?module=ticketing', 'Back to tickets list', true) . wf_tag('p', true);
-    if (!empty($ticketdata)) {
         $userLogin = $ticketdata['from'];
         //this data not used cache, to be 100% actual
         $userData = zb_UserGetAllData($userLogin);
@@ -628,7 +632,7 @@ function web_TicketDialogue($ticketid) {
             'role' => 'user',
             'content' => $lastUserPrompt
         );
-    }
+    
 
 
     if (!empty($ticketreplies)) {
@@ -727,6 +731,10 @@ function web_TicketDialogue($ticketid) {
 
     $result .= wf_TableBody($tablerows, '100%', '0', 'glamour');
     $result .= wf_CleanDiv();
+    } else {
+      $messages = new UbillingMessageHelper();
+      $result .= $messages->getStyledMessage(__('Something went wrong').': '.__('Not existing ticket'), 'error');
+    }
     return ($result);
 }
 

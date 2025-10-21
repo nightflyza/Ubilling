@@ -35,8 +35,13 @@ if ($us_config['TICKETING_ENABLED']) {
         if (!empty($ticketid)) {
             //ok thats my ticket
             if (zbs_TicketIsMy($ticketid, $user_login)) {
+                $ticketdata = zbs_TicketGetData($ticketid);
+                //preventing access to reply tickets
+                if (empty($ticketdata['replyid'])) {
                 //mb post reply?
                 if (ubRouting::checkPost('replyticket')) {
+                    //preventing posting reply to reply tickets
+                    if ($ticketdata['status']==0) {
                     $replytickettext = ubRouting::post('replyticket', 'raw');
                     if (!empty($replytickettext)) {
                         if (zbs_spamCheck()) {
@@ -44,11 +49,18 @@ if ($us_config['TICKETING_ENABLED']) {
                         }
                         ubRouting::nav("?module=ticketing&showticket=" . $ticketid);
                     }
+                    
+                    } else {
+                        show_window(__('Error'), __('This ticket is already closed'));
+                    }
                 }
 
                 //let view it
                 show_window(__('Help request') . ': ' . $ticketid, zbs_TicketShowWithReplies($ticketid));
                 show_window(__('Reply'), zbs_TicketReplyForm($ticketid));
+             } else {
+                show_window(__('Error'), __('No such ticket'));
+             }
             } else {
                 show_window(__('Error'), __('No such ticket'));
             }

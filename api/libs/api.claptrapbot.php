@@ -161,6 +161,13 @@ class ClapTrapBot extends WolfDispatcher {
     protected $myPaymentsLimit=4;
 
     /**
+     * Contains limit of ticket text length
+     *
+     * @var int
+     */
+    protected $ticketTextLimit=1000;
+
+    /**
      * Some predefined stuff
      */
     const TABLE_AUTH = 'ct_auth';
@@ -1366,7 +1373,7 @@ class ClapTrapBot extends WolfDispatcher {
                 $result=$this->icons['ERROR'].' '.__('Something went wrong');    
             }
         } else {
-            $result=$this->icons['ERROR'].' '.__('No such ticket');
+            $result=$this->icons['ERROR'].' '.__('Not existing ticket');
         }
         } else {
             $result=$this->icons['ERROR'].' '.__('Nothing to show');
@@ -1503,8 +1510,11 @@ class ClapTrapBot extends WolfDispatcher {
                 $newTicketText=strip_tags($newTicketText);
                 $newTicketText=ubRouting::filters($newTicketText,'safe');
                 if (!empty($newTicketText)) {
+                    //text length check now is limited by GET request size limit
+                    if (mb_strlen($newTicketText, 'UTF-8') <= $this->ticketTextLimit) {
                     //subroutine for new ticket creation or reply to current or any existing opened thread
                     $textEnc=base64_encode($newTicketText);
+                    $textEnc=urlencode($textEnc);
                     $callback='&ticketcreate=true&tickettype=support_request&tickettext='.$textEnc;
                     if (!empty($replyToTicketId)) {
                         $callback.='&reply_id='.$replyToTicketId;
@@ -1523,6 +1533,9 @@ class ClapTrapBot extends WolfDispatcher {
                     } else {
                         $this->sendToUser($this->icons['ERROR'].' '.__('Ticket creation failed'));
                     }
+                } else {
+                    $this->sendToUser($this->icons['ERROR'].' '.__('Sorry').', '.__('Message text is too long'));
+                }
                 } else {
                     $this->sendToUser($this->icons['ERROR'].' '.__('Message text is empty'));
                 }
