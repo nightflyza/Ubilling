@@ -164,6 +164,7 @@ class ClapTrapBot extends WolfDispatcher {
      * Some predefined stuff
      */
     const TABLE_AUTH = 'ct_auth';
+    const KEY_AUTH_TMP='CT_AUTH_TMP';
     const KEY_CONTEXT = 'CT_CONTEXT';
     const KEY_THROTTLE = 'CT_THROTTLE';
     const OPTION_PKBD_COUNT='CLAPTRAPBOT_PKBD_ROW';
@@ -371,7 +372,26 @@ class ClapTrapBot extends WolfDispatcher {
             'REDC'=>'🔴',
             'GREENC'=>'🟢',
             'SOS'=>'🆘',
+            'KEYBOARD'=>'⌨️',
         );
+    }
+
+    /**
+     * Checks if feature is enabled
+     * 
+     * @param string $featureId
+     * 
+     * @return bool
+     */
+    protected function isFeatureEnabled($featureId) {
+        $result = false;
+        if (!empty($featureId)) {
+            if (in_array($featureId, $this->featuresEnabled)) {
+                $result = true;
+            }
+        }
+
+        return($result);
     }
 
     /**
@@ -389,16 +409,16 @@ class ClapTrapBot extends WolfDispatcher {
         );
 
         //custom and optional commands here
-        if (in_array('announcements', $this->featuresEnabled)) {
+        if ($this->isFeatureEnabled('announcements')) {
             $commandsAvailable[$this->icons['READ'].' '.__('Mark all as read')] = 'actionAnnouncements';
         }
 
-        if (in_array('mypayments', $this->featuresEnabled)) {
+        if ($this->isFeatureEnabled('mypayments')) {
             $commandsAvailable[$this->icons['SEARCH'].' '.__('Show all payments')] = 'actionMyPayments';
             $commandsAvailable[$this->icons['SEARCH'].' '.__('Show more payments')] = 'actionMyPayments';
         }
 
-        if (in_array('support', $this->featuresEnabled)) {
+        if ($this->isFeatureEnabled('support')) {
             $commandsAvailable[$this->icons['SEARCH'].' '.__('View request').'# '] = 'actionSupport';
             $commandsAvailable[$this->icons['BACK'].' '.__('Back to requests')] = 'actionSupport';
         }
@@ -468,7 +488,7 @@ class ClapTrapBot extends WolfDispatcher {
     }
 
     /**
-     * Pushes some request to Ubilling userstats XMLAgent API
+     * Pushes some request to Ubilling userstats XMLAgent API and returns response
      * 
      * @param string $request
      * 
@@ -477,7 +497,7 @@ class ClapTrapBot extends WolfDispatcher {
     protected function getApiData($request = '') {
         $result = array();
         if ($this->loggedIn) {
-            $fullUrl = $this->apiUrl . '?xmlagent=true&json=true&uberlogin=' . $this->myLogin . '&uberpassword=' . $this->myPassword . $request;
+            $fullUrl = $this->apiUrl . '/?xmlagent=true&json=true&uberlogin=' . $this->myLogin . '&uberpassword=' . $this->myPassword . $request;
             $remoteApi = new OmaeUrl($fullUrl);
             $requestData = $remoteApi->response();
             if (!empty($requestData)) {
@@ -498,7 +518,7 @@ class ClapTrapBot extends WolfDispatcher {
      */
     protected function loadAuthData() {
         if (!empty($this->chatId)) {
-            $cacheKey = 'CTB_AUTH_' . $this->chatId;
+            $cacheKey = self::KEY_AUTH_TMP . $this->chatId;
             $authData = $this->cache->get($cacheKey, $this->cacheTimeout);
             
             if (empty($authData)) {
@@ -547,7 +567,7 @@ class ClapTrapBot extends WolfDispatcher {
                 $this->authDb->create();
             }
             
-            $cacheKey = 'CTB_AUTH_' . $this->chatId;
+            $cacheKey = self::KEY_AUTH_TMP . $this->chatId;
             $this->cache->delete($cacheKey);
         }
     }
@@ -730,10 +750,16 @@ class ClapTrapBot extends WolfDispatcher {
         if (!empty($currentContext)) {
 
             //handling new support requests or existing tickets threads
-            if (in_array('support', $this->featuresEnabled)) {
+            if ($this->isFeatureEnabled('support')) {
                 if ($currentContext=='support' or ispos($currentContext, 'viewsupportthread_')) {
-                    //TODO: create new support ticket or reply to lates open thread
-                    $this->sendToUser($currentContext); 
+                    //calling subrouting for new ticket creation or reply to current or any existing opened thread
+                    $this->actionCreateSupportTicket();
+                } else {
+                    if ($this->loggedIn) {
+                        if ($currentContext!='auth') {
+                         $this->sendToUser($this->icons['WARNING'].' '.__('This will not work').': '.__('Unknown command'));
+                        }
+                    }
                 }
             }
         }
@@ -789,7 +815,7 @@ class ClapTrapBot extends WolfDispatcher {
 
         if (!empty($this->chatId)) {
             if (!$this->loggedIn) {
-                $cacheKey = 'CTB_AUTH_' . $this->chatId;
+                $cacheKey = self::KEY_AUTH_TMP . $this->chatId;
                 $authData = $this->cache->get($cacheKey, $this->cacheTimeout);
                 if (empty($authData)) {
                     $authData = array('login' => '', 'password' => '');
@@ -834,6 +860,7 @@ class ClapTrapBot extends WolfDispatcher {
                                                 $userData = $this->getApiData();
                                                 $this->sendToUser($this->icons['GOOD'].' '.__('Welcome') . ', ' . $userData['realname']);
                                                 $this->actionKeyboard(__('Whats next') . '?');
+                                                $this->setContext('auth');
                                             } else {
                                                 $this->cache->delete($cacheKey);
                                                 $this->sendToUser($this->icons['ERROR'].' '.__('Incorrect login or password'));
@@ -866,7 +893,7 @@ class ClapTrapBot extends WolfDispatcher {
             $this->authDb->data('active', '0');
             $this->authDb->save();
             
-            $cacheKey = 'CTB_AUTH_' . $this->chatId;
+            $cacheKey = self::KEY_AUTH_TMP . $this->chatId;
             $this->cache->delete($cacheKey);
             
             $this->loggedIn = false;
@@ -910,7 +937,7 @@ class ClapTrapBot extends WolfDispatcher {
         if (!$this->loggedIn) {
             if (!empty($this->receivedData['text'])) {
                 if (ispos($this->receivedData['text'], '/start') and ispos($this->receivedData['text'], '-')) {
-                    $cacheKey = 'CTB_AUTH_' . $this->chatId;
+                    $cacheKey = self::KEY_AUTH_TMP . $this->chatId;
                     $rawAuth = str_replace('/start', '', $this->receivedData['text']);
                     $rawAuth = explode('-', $rawAuth);
                     if (!empty($rawAuth[0]) and !empty($rawAuth[1])) {
@@ -958,7 +985,7 @@ class ClapTrapBot extends WolfDispatcher {
      * @return void
      */
     protected function actionBack() {
-        $this->setContext('');
+        $this->setContext('mainmenu');
         $this->actionKeyboard(__('Select an action').' '. $this->icons['DOWN']);
     }
 
@@ -1409,9 +1436,99 @@ class ClapTrapBot extends WolfDispatcher {
             
             //here some support custom keyboard
             $keyboard = $this->telegram->makeKeyboard($supportButtons, false, true, false);
-            $this->telegram->directPushMessage($this->chatId, $this->icons['DOWN'].' '.__('Select an action'), $keyboard);
+            $supportKbdLabel=$this->icons['DOWN'].' '.__('Select an action').', '.__('or write message for techsupport');
+            $this->telegram->directPushMessage($this->chatId, $supportKbdLabel, $keyboard);
 
             
+        } else {
+            $this->sendToUser($this->icons['ERROR']. ' ' .__('You are not logged in'));
+        }
+    }
+
+
+    /**
+     * Returns ticket thread ID from context or lates opened thread ID or 0 if not found
+     *
+     * @return int
+     */
+    protected function getTicketReplyId() {
+        $result=0;
+        if ($this->loggedIn) {
+            $currentContext=$this->getContext();
+            $availableOpenThreads=array();
+
+            $allTickets=$this->getApiData('&tickets=true');
+            if (!empty($allTickets)) {
+                foreach ($allTickets as $io => $each) {
+                    if ($each['from'] == $this->myLogin and empty($each['to']) and $each['replyid']==0 and $each['status']==0) {
+                        $availableOpenThreads[$each['id']]=$each['id'];
+                    }
+                }
+
+                //any open tickets found?
+                if (!empty($availableOpenThreads)) {
+                    //try to detect current opened thread
+                    if (ispos($currentContext, 'viewsupportthread_')) {
+                        $currentThreadId=str_replace('viewsupportthread_','',$currentContext);
+                        if (isset($availableOpenThreads[$currentThreadId])) {
+                            $result=$currentThreadId;
+                        } else {
+                            //current opened thread not found or closed - getting first available open thread
+                            $result=array_shift($availableOpenThreads);
+                        }
+                    } else {
+                        //getting first available open thread
+                        $result=array_shift($availableOpenThreads);
+                    }
+                }
+            }
+        }
+        
+        return($result);
+    }
+
+
+    /**
+     * Handles support ticket creation or reply
+     * 
+     * @return void
+     */
+    protected function actionCreateSupportTicket() {
+        if ($this->loggedIn) {
+
+            $currentContext=$this->getContext();
+            if ($currentContext=='support' or ispos($currentContext, 'viewsupportthread_')) {
+                $replyToTicketId=$this->getTicketReplyId();
+                $newTicketText=$this->receivedData['text']; 
+                $newTicketText=strip_tags($newTicketText);
+                $newTicketText=ubRouting::filters($newTicketText,'safe');
+                if (!empty($newTicketText)) {
+                    //subroutine for new ticket creation or reply to current or any existing opened thread
+                    $textEnc=base64_encode($newTicketText);
+                    $callback='&ticketcreate=true&tickettype=support_request&tickettext='.$textEnc;
+                    if (!empty($replyToTicketId)) {
+                        $callback.='&reply_id='.$replyToTicketId;
+                    }
+                    $ticketCreationResult=$this->getApiData($callback);
+                    if (!empty($ticketCreationResult['created']) and $ticketCreationResult['created']=='success') {
+                        $newTicketId=$ticketCreationResult['id'];
+                        $creationLabel='';
+                        if (empty($replyToTicketId)) {
+                            $creationLabel=__('A new technical support request has been created').'# '.$newTicketId;
+                        } else {
+                            $creationLabel=__('Ticket created').', '.__('as reply to').'# '.$replyToTicketId;
+                        }
+                        $this->sendToUser($this->icons['GOOD'].' '.$creationLabel);
+                        $this->actionSupport();
+                    } else {
+                        $this->sendToUser($this->icons['ERROR'].' '.__('Ticket creation failed'));
+                    }
+                } else {
+                    $this->sendToUser($this->icons['ERROR'].' '.__('Message text is empty'));
+                }
+            }
+            
+          
         } else {
             $this->sendToUser($this->icons['ERROR']. ' ' .__('You are not logged in'));
         }

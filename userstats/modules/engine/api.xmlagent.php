@@ -1260,7 +1260,9 @@ class XMLAgent {
         $ticketID = 0;
         $replyID  = empty($replyID) ? 'NULL' : $replyID;
         $result   = array();
+        $ticketDeniedUsers=zbs_GetHelpdeskDeniedAll();
 
+        if (!isset($ticketDeniedUsers[$login])) {
         if (!empty($login) and !empty($tickettext)) {
             $from = mysql_real_escape_string($login);
             $text = mysql_real_escape_string(strip_tags($tickettext));
@@ -1294,8 +1296,11 @@ class XMLAgent {
             }
 
             log_register($logEvent);
-            log_register('XMLAGENT: REST API is the source of previous action');
+            //log_register('XMLAGENT: REST API is the source of previous action');
         }
+    } else {
+        $result = array('ticket' => array('created' => 'error', 'id' => 0));
+    }
 
         return ($result);
     }
