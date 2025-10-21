@@ -2787,6 +2787,8 @@ function web_UserArrayShower($usersarr) {
         $tablerows = wf_TableRow($tablecells, 'row1');
 
         foreach ($usersarr as $eachlogin) {
+            if (isset($allUserData[$eachlogin])) {
+            
             $thisUserData = @$allUserData[$eachlogin];
 
             $usercash = @$thisUserData['Cash'];
@@ -2812,7 +2814,7 @@ function web_UserArrayShower($usersarr) {
                 $financelink = '';
             }
 
-            $profilelink = $financelink . wf_Link('?module=userprofile&username=' . $eachlogin, web_profile_icon() . ' ' . $eachlogin);
+            $profilelink = $financelink . wf_Link(UserProfile::URL_PROFILE . $eachlogin, web_profile_icon() . ' ' . $eachlogin);
             $tablecells = wf_TableCell($profilelink);
             $tablecells .= wf_TableCell(@$thisUserData['fulladress']);
             $tablecells .= wf_TableCell(@$thisUserData['realname']);
@@ -2851,6 +2853,26 @@ function web_UserArrayShower($usersarr) {
                 case -1:
                     $frozenCount++;
                     break;
+            }
+        } else {
+            //not existent user found Oo
+            $profileLink=wf_link(UserProfile::URL_PROFILE . $eachlogin, web_profile_icon() . ' ' . $eachlogin);
+                $tablecells = wf_TableCell($profileLink.' - '.__('User not exists').'!');
+                $tablecells .= wf_TableCell('-');
+                $tablecells .= wf_TableCell('-');
+                $tablecells .= wf_TableCell('-');
+                $tablecells .= wf_TableCell('-');
+                if ($alterconf['ONLINE_LAT']) {
+                    $tablecells .= wf_TableCell('-');
+                }
+                $tablecells .= wf_TableCell('-');
+                if ($alterconf['DN_ONLINE_DETECT']) {
+                    $tablecells .= wf_TableCell('-');
+                }
+                $tablecells .= wf_TableCell('-');
+                $tablecells .= wf_TableCell('-');
+
+                $tablerows .= wf_TableRow($tablecells, 'row5');
             }
         }
 
