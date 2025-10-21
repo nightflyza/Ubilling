@@ -450,14 +450,16 @@ class ClapTrapBot extends WolfDispatcher {
     protected function checkAuth($login, $password) {
         $result = false;
         if (!empty($login) and !empty($password)) {
-            $url = $this->apiUrl . '/?xmlagent=true&json=true&uberlogin=' . $login . '&uberpassword=' . $password;
+            $url = $this->apiUrl . '/?xmlagent=true&json=true&justauth=true&uberlogin=' . $login . '&uberpassword=' . $password;
             $api = new OmaeUrl($url);
             $reply = $api->response();
             if (!empty($reply)) {
                 $replyDec = json_decode($reply, true);
                 if (is_array($replyDec)) {
                     if (!empty($replyDec)) {
-                        $result = true;
+                        if ($replyDec['auth'] and $replyDec['login'] == $login) {
+                            $result = true;
+                        }
                     }
                 }
             }

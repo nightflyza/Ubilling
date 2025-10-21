@@ -368,7 +368,9 @@ class XMLAgent {
                                     'freezedata',
                                     'dofreeze',
                                     'dounfreeze',
-                                    'ukv'
+                                    'ukv',
+                                    'annreadall',
+                                    'justauth',
                                     ),
                                 true, true)
                             );
@@ -446,6 +448,11 @@ class XMLAgent {
                     $resultToRender = $this->createSupportTicket($user_login, $text, $replyID);
                 }
             }
+        }
+
+        if (ubRouting::checkGet('justauth')) {
+            $restapiMethod  = 'justauth';
+            $resultToRender = $this->justAuth($user_login);
         }
 
         if (ubRouting::checkGet('announcements') and $this->uscfgAnnouncementsON) {
@@ -615,6 +622,24 @@ class XMLAgent {
         );
         $text = strip_tags($text, $telegramAllowedTags);
         return ($text);
+    }
+
+    /**
+     * Data collector for "justauth" request
+     * 
+     * @param string $login
+     *
+     * @return array
+     */
+    protected function justAuth($login) {
+        $login = ubRouting::filters($login, 'login');
+        $result = array();
+        $result[] = array(
+            'auth' => true,
+            'login' => $login,
+            'message' => __('Authentication successful')
+        );
+        return ($result);
     }
 
     /**

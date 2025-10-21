@@ -39,7 +39,7 @@ function zbs_UserDetectIp($debug = false) {
 
     //force REST API auth
     if (ubRouting::checkGet('uberlogin', 'uberpassword')) {
-        $ip = zbs_UserCheckLoginAuth(vf(ubRouting::get('uberlogin')), vf(ubRouting::get('uberpassword')));
+        $ip = zbs_UserCheckLoginAuth(ubRouting::get('uberlogin','login'), ubRouting::get('uberpassword','gigasafe'));
         if (!empty($ip)) {
             return ($ip);
         } else {
