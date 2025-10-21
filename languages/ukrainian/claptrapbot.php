@@ -66,4 +66,5 @@ $lang['def']['Ticket creation failed'] = 'Створення запиту не �
 $lang['def']['A new technical support request has been created'] = 'Новий запит в техпідтримку успішно створений';
 $lang['def']['as reply to'] = 'як відповідь на';
 $lang['def']['or write message for techsupport'] = 'або напишіть повідомлення для техпідтримки';
-$lang['def']['Not existing ticket'] = 'Немає такого тікету';
+$lang['def']['Not existing ticket'] = 'Такий тікет не існує';
+$lang['def']['No such ticket'] = 'Немає такого тікету';
