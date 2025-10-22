@@ -341,6 +341,13 @@ class ClapTrapBot extends WolfDispatcher {
             'label' => __('CaTV'),
             'command' => 'actionCATV',
         );
+
+
+        $this->featuresAvailable['testing'] = array(
+            'icon' => $this->icons['SEARCH'],
+            'label' => __('Testing'),
+            'command' => 'actionTesting',
+        );
     }
 
     /**
@@ -478,6 +485,8 @@ class ClapTrapBot extends WolfDispatcher {
             $this->commandsEnabled = $commandsAvailable;
             $this->setActions($commandsAvailable);
         }
+
+        $this->setCallbackQueryMethod('testCB');
     }
 
  
@@ -951,23 +960,6 @@ class ClapTrapBot extends WolfDispatcher {
             $this->sendToUser(__('You are logged off now'). $this->icons['SIGN_OUT']);
             $this->actionKeyboard($this->icons['SIGN_IN'].' '.__('Sign in') . '?');
         }
-    }
-
-    /**
-     * Rearranges flat buttons array into 2D array with specified buttons per row
-     * 
-     * 
-     * @param array $buttonsArray
-     * @param int $inRow
-     * 
-     * @return array
-     */
-    protected function rearrangeButtons($buttonsArray, $inRow = 2) {
-        $result = array();
-        if (!empty($buttonsArray)) {
-            $result = array_chunk($buttonsArray, $inRow);
-        }
-        return($result);
     }
 
 
@@ -1588,6 +1580,32 @@ class ClapTrapBot extends WolfDispatcher {
             $this->sendToUser($this->icons['ERROR']. ' ' .__('You are not logged in'));
         }
     }
+
+
+    /**
+     * Handles testing action
+     * 
+     * @return void
+     */
+    protected function actionTesting() {
+        $buttonsArray = array();
+
+        $buttonsArray[] = array('text' => $this->icons['GOOD'].' '.__('Yes'), 'callback_data' => 'cb1');
+        $buttonsArray[] = array('text' => 'button name2', 'callback_data' => 'cb2');
+        $buttonsArray[] = array('text' => 'button name3', 'callback_data' => 'cb3');
+        $buttonsArray[] = array('text' => 'button name4', 'callback_data' => 'cb4');
+
+        $buttonsArray=$this->rearrangeButtons($buttonsArray, 2);
+        $inlineKeyboard = $this->telegram->makeKeyboard($buttonsArray, true, false, false);
+        $this->telegram->directPushMessage($this->chatId, __('Testing action'), $inlineKeyboard);
+    }
+
+    protected function testCB() {
+             
+        $this->confirmCallbackQuery('perfect! ' . $this->receivedData['callback_query']['data'], false);
+    }
+
+ 
 
 //
 //    AND I AM GOING TO TEABAG YOUR COOOOOOORPSE!!!!

@@ -97,6 +97,13 @@ class WolfDispatcher {
     protected $chatType = '';
 
     /**
+     * Method name which will be executed on any callback query receive
+     * 
+     * @var string
+     */
+    protected $callbackQueryMethod = '';
+
+    /**
      * Method name which will be executed on any image receive
      *
      * @var string
@@ -316,6 +323,19 @@ class WolfDispatcher {
     }
 
     /**
+     * Sets method name which will be executed on any callback query received
+     * 
+     * @param string $method
+     * 
+     * @return void
+     */
+    public function setCallbackQueryMethod($method) {
+        if (!empty($method)) {
+            $this->callbackQueryMethod = $method;
+        }
+    }
+
+    /**
      * Sets method name which will be executed on any image input
      * 
      * @param string $name existing method name to process received images
@@ -514,6 +534,7 @@ class WolfDispatcher {
                         $this->handleEmptyText();
                     }
 
+
                     //this method will be executed on image receive if set
                     if (!empty($this->photoHandleMethod)) {
                         if ($this->isPhotoReceived()) {
@@ -533,13 +554,20 @@ class WolfDispatcher {
                             $this->runAction($this->chatMemberLeftMethod);
                         }
                     }
-
-                    //this will be executed if some image received anyway
-                    if ($this->isPhotoReceived()) {
-                        $this->handlePhotoReceived();
-                    }
                 }
             }
+
+            //callback query processing
+            if (!empty($this->callbackQueryMethod)) {
+                if ($this->isCallbackQueryReceived()) {
+                        $this->runAction($this->callbackQueryMethod);
+                    }
+            }
+
+            //this will be executed while any callback query received
+            if ($this->isCallbackQueryReceived()) {
+                    $this->handleCallbackQuery();
+            }            
 
             //this shall be executed on any non empty data recieve
             $this->handleAnyWay();
@@ -580,6 +608,15 @@ class WolfDispatcher {
      */
     protected function handlePhotoReceived() {
         //will be executed if any image received
+    }
+
+    /**
+     * Dummy method which will be executed on receive any callback query
+     * 
+     * @return void
+     */
+    protected function handleCallbackQuery() {
+        //will be executed if any callback query received
     }
 
     /**
@@ -639,6 +676,19 @@ class WolfDispatcher {
     }
 
     /**
+     * Checks is any callback query received?
+     * 
+     * @return array|bool
+     */
+    protected function isCallbackQueryReceived() {
+        $result = false;
+        if (isset($this->receivedData['callback_query'])) {
+            $result = $this->receivedData;
+        } 
+        return ($result);
+    }
+
+    /**
      * Checks is any image received?
      * 
      * @return bool
@@ -668,7 +718,7 @@ class WolfDispatcher {
      *   id, is_bot, first_name, username, language_code, is_premium - normal users
      *   id, is_bot, first_name, username - bots
      * 
-     * @return array/bool
+     * @return array|bool
      */
     protected function isNewChatMemberAppear() {
         $result = false;
@@ -684,7 +734,7 @@ class WolfDispatcher {
      *   id, is_bot, first_name, username, language_code, is_premium - normal users
      *   id, is_bot, first_name, username - bots
      * 
-     * @return array/bool
+     * @return array|bool
      */
     protected function isChatMemberLeft() {
         $result = false;
@@ -933,6 +983,24 @@ class WolfDispatcher {
     }
 
     /**
+     * Edits a message by its ID in a specified chat.
+     *
+     * @param string $message The new text of the message.
+     * @param int $chatId The ID of the chat in which the message will be edited.
+     * @param int $messageId The ID of the message to be edited.
+     * 
+     * @return array
+     */
+    protected function editMessageText($messageId, $chatId, $messageText) {
+        $result = array();
+        $editResult = $this->telegram->directPushMessage($chatId, 'editMessageText:[' . $messageId . '@' . $chatId . ']'. $messageText);
+        if ($editResult) {
+            $result = json_decode($editResult, true);
+        }
+        return ($result);
+    }
+
+    /**
      * Bans a member from a specified group.
      *
      * This function sends a direct push message to the Telegram API to ban a member from a group.
@@ -971,6 +1039,22 @@ class WolfDispatcher {
     }
 
     /**
+     * Rearranges flat buttons array into 2D array with specified buttons per row
+     * 
+     * @param array $buttonsArray flat buttons array
+     * @param int $inRow buttons per row
+     * 
+     * @return array
+     */
+    protected function rearrangeButtons($buttonsArray, $inRow = 2) {
+        $result = array();
+        if (!empty($buttonsArray)) {
+            $result = array_chunk($buttonsArray, $inRow);
+        }
+        return($result);
+    }
+
+    /**
      * Sends some keyboard to current chat
      * 
      * @param array $buttons
@@ -982,6 +1066,21 @@ class WolfDispatcher {
         if (!empty($buttons)) {
             $keyboard = $this->telegram->makeKeyboard($buttons);
             $this->reply($text, $keyboard);
+        }
+    }
+
+
+    /**
+     * Confirms a current callback query with some text and optional show alert flag
+     * 
+     * @param string $text text to show in callback query balloon or alert text
+     * @param bool $showAlert show alert flag
+     * 
+     * @return void
+     */
+    protected function confirmCallbackQuery($text = '', $showAlert = false) {
+        if (!empty($this->receivedData['callback_query']['id'])) {
+            $this->telegram->answerCallbackQuery($this->receivedData['callback_query']['id'], $text, $showAlert);
         }
     }
 

@@ -670,6 +670,17 @@ class UbillingTelegram {
             }
         }
 
+        //editing message by its id
+        if (ispos($message, 'editMessageText:')) {
+            if (preg_match('!\[(.*?)\]!si', $message, $tmpEditString)) {
+                $cleanEditString = explode('@', $tmpEditString[1]);
+                $editMessageId = $cleanEditString[0];
+                $editChatId = $cleanEditString[1];
+                $newMessageText = str_replace('editMessageText:[' . $editMessageId . '@' . $editChatId . ']', '', $message);
+                $editParams = '?chat_id=' . $editChatId . '&message_id=' . $editMessageId.'&text='.urlencode($newMessageText);
+                $method = 'editMessageText' . $editParams;
+            }
+        }
 
         //POST data encoding
         $data_json = json_encode($data);
@@ -1057,6 +1068,43 @@ class UbillingTelegram {
             curl_close($ch);
         } else {
             throw new Exception('EX_TOKEN_EMPTY');
+        }
+        return ($result);
+    }
+
+    /**
+     * Answers a callback query
+     * 
+     * @param string $callbackQueryId The ID of the callback query.
+     * @param string $text The text of the answer.
+     * @param bool $showAlert Whether to show an alert to the user.
+     * 
+     * @return string The result of the API request.
+     */
+    public function answerCallbackQuery($callbackQueryId, $text = '', $showAlert = false) {
+        $result = '';
+        $method = 'answerCallbackQuery';
+        $data['callback_query_id'] = $callbackQueryId;
+        if (!empty($text)) {
+            $data['text'] = $text;
+        }
+        if ($showAlert) {
+            $data['show_alert'] = true;
+        }
+        
+        if (!empty($this->botToken)) {
+            $url = $this->apiUrl . $this->botToken . '/' . $method;
+            if ($this->debug) {
+                deb($url);
+            }
+            $ch = curl_init();
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+            curl_setopt($ch, CURLOPT_URL, $url);
+            curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json'));
+            curl_setopt($ch, CURLOPT_POST, 1);
+            curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
+            $result = curl_exec($ch);
+            curl_close($ch);
         }
         return ($result);
     }
