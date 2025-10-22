@@ -168,6 +168,13 @@ class ClapTrapBot extends WolfDispatcher {
     protected $ticketTextLimit=1000;
 
     /**
+     * Contains existing tag type ID to mark authorized users
+     *
+     * @var int
+     */
+    protected $userTagId=0;
+
+    /**
      * Some predefined stuff
      */
     const TABLE_AUTH = 'ct_auth';
@@ -180,6 +187,7 @@ class ClapTrapBot extends WolfDispatcher {
     const OPTION_THROTTLE_LIMIT='CLAPTRAPBOT_THROTTLE_LIMIT';
     const OPTION_THROTTLE_BAN_TIME='CLAPTRAPBOT_THROTTLE_BAN_TIME';
     const OPTION_PAY_LIMIT='CLAPTRAPBOT_MY_PAYMENTS_LIMIT';
+    const OPTION_TAG_ID='CLAPTRAPBOT_USERS_TAGID';
     
     /**
      * STAIRS?! NOOOOOOOOOOOOOOOOO!
@@ -244,6 +252,10 @@ class ClapTrapBot extends WolfDispatcher {
 
         if (isset($this->altCfg[self::OPTION_PAY_LIMIT])) {
             $this->myPaymentsLimit = ubRouting::filters($this->altCfg[self::OPTION_PAY_LIMIT], 'int');
+        }
+
+        if (isset($this->altCfg[self::OPTION_TAG_ID])) {
+            $this->userTagId = ubRouting::filters($this->altCfg[self::OPTION_TAG_ID], 'int');
         }
     }
 
@@ -576,6 +588,7 @@ class ClapTrapBot extends WolfDispatcher {
             
             $cacheKey = self::KEY_AUTH_TMP . $this->chatId;
             $this->cache->delete($cacheKey);
+            $this->setUserTag(true);
         }
     }
 
@@ -701,6 +714,28 @@ class ClapTrapBot extends WolfDispatcher {
         }
         return($result);
     }
+
+
+    /**
+     * Sets user tag for current user on authorization or logout
+     * 
+     * @param bool $loggedIn
+     * 
+     * @return void
+     */
+    protected function setUserTag($loggedIn) {
+        if (!empty($this->userTagId)) {
+            if (!empty($this->chatId)) {
+                    if (!empty($this->myLogin)) {
+                        if ($loggedIn) {
+                            stg_add_user_tag($this->myLogin, $this->userTagId);
+                        } else {
+                            stg_del_user_tagid($this->myLogin, $this->userTagId);
+                        }
+                    } 
+              }
+            }
+        }
 
 
     /**
@@ -896,9 +931,11 @@ class ClapTrapBot extends WolfDispatcher {
      */
     protected function actionLogout() {
         if (!empty($this->chatId)) {
+            $this->setUserTag(false);
             $this->authDb->where('chatid', '=', $this->chatId);
             $this->authDb->data('active', '0');
             $this->authDb->save();
+            
             
             $cacheKey = self::KEY_AUTH_TMP . $this->chatId;
             $this->cache->delete($cacheKey);
