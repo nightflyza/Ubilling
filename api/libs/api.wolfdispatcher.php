@@ -329,7 +329,7 @@ class WolfDispatcher {
      * 
      * @return void
      */
-    public function setCallbackQueryMethod($method) {
+    public function setCallbackQueryHandler($method) {
         if (!empty($method)) {
             $this->callbackQueryMethod = $method;
         }

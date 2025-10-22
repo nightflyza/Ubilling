@@ -486,7 +486,7 @@ class ClapTrapBot extends WolfDispatcher {
             $this->setActions($commandsAvailable);
         }
 
-        $this->setCallbackQueryMethod('testCB');
+        $this->setCallbackQueryHandler('testCB');
     }
 
  
