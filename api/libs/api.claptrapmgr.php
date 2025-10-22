@@ -104,13 +104,34 @@ class ClapTrapMgr  {
         return($result);
     }
 
+
     protected function isHookUrlValid($hookUrl) {
-        $result = false;
+        $result = '';
         if (!empty($hookUrl)) {
             //only https allowed
-            if (strpos($hookUrl, 'https://') === 0) {
-                $result = true;
+            if (!strpos($hookUrl, 'https://') === 0) {
+                $result = __('Only HTTPS allowed');
             }
+
+            //check if hook URL is already to accept requests
+            $urlHandle=new OmaeUrl($hookUrl);
+            $urlHandle->setTimeout(10);
+            $urlHandle->setUserAgent('Ubilling/ClapTrapMgr');
+            $urlHandle->dataPost(ClapTrapBot::PROUTE_VALIDATE,'true');
+            $handlerReply=$urlHandle->response();
+            if ($urlHandle->error() or $urlHandle->httpCode() != 200) {
+                $result = __('Hook URL is not accepting requests').': '.__('Connection error');
+            } else {
+                    //check if hook URL is valid ClapTrapBot hook URL
+                    if (!ispos($handlerReply, ClapTrapBot::VALIDATION_RESULT)) {
+                        $result = __('Not valid ClapTrapBot hook URL');
+                    }
+            }
+
+           
+
+        } else {
+            $result = __('Hook URL is empty');
         }
         return($result);
     }
@@ -132,7 +153,8 @@ class ClapTrapMgr  {
     public function installHook($hookUrl) {
         $result = '';
         if (!empty($this->token) and !empty($hookUrl)) {
-            if ($this->isHookUrlValid($hookUrl)) {
+            $validationError = $this->isHookUrlValid($hookUrl);
+            if (empty($validationError)) {
                 //removing all old hook pids
                 $allHookPids = rcms_scandir(ClapTrapBot::HOOK_PID_PATH,'*.hook');
                 if (!empty($allHookPids)) {
@@ -143,9 +165,9 @@ class ClapTrapMgr  {
                     }
                 }
                 
-                $result = $this->botInstance->installWebHook($hookUrl);
+                $this->botInstance->installWebHook($hookUrl);
             } else {
-                $result = __('Invalid hook URL').': '.__('only HTTPS allowed');
+                $result = $this->messages->getStyledMessage($validationError, 'error');
             }
         }
         return($result);

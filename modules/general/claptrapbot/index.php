@@ -20,9 +20,12 @@ if ($clapTrapEnabled) {
                 $botDebugFlag = $ubillingConfig->getAlterParam('CLAPTRAPBOT_DEBUG');
                 $botDebugFlag = ($botDebugFlag) ? true : false;
                 $clapTrap = new ClapTrapBot($botToken);
+                //hook validation
+                if (ubRouting::checkPost($clapTrap::PROUTE_VALIDATE)) {
+                    die($clapTrap::VALIDATION_RESULT);
+                }
+
                 $clapTrap->setDebug($botDebugFlag);
-    
-               
                 $clapTrap->listen();
                 die();
             } else {

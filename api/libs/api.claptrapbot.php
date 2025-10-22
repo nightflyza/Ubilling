@@ -191,6 +191,8 @@ class ClapTrapBot extends WolfDispatcher {
     const OPTION_TOKEN='CLAPTRAPBOT_TOKEN';
     const OPTION_AUTH_STRING='CLAPTRAPBOT_AUTH_STRING';
     const OPTION_HOOK_URL='CLAPTRAPBOT_HOOK_URL';
+    const PROUTE_VALIDATE='ctbvalidator';
+    const VALIDATION_RESULT='HA! I was MADE to open doors!';
     
     /**
      * STAIRS?! NOOOOOOOOOOOOOOOOO!
