@@ -1589,15 +1589,17 @@ class ClapTrapBot extends WolfDispatcher {
      */
     protected function actionTesting() {
         $buttonsArray = array();
-
-        $buttonsArray[] = array('text' => $this->icons['GOOD'].' '.__('Yes'), 'callback_data' => 'cb1');
+        /**
+        $buttonsArray[] = array('text' => 'button name1', 'callback_data' => 'cb1');
         $buttonsArray[] = array('text' => 'button name2', 'callback_data' => 'cb2');
         $buttonsArray[] = array('text' => 'button name3', 'callback_data' => 'cb3');
         $buttonsArray[] = array('text' => 'button name4', 'callback_data' => 'cb4');
+ */
 
+        $buttonsArray[] = array('text' => 'Google', 'url' => 'https://www.google.com');
+        $buttonsArray[] = array('text' => 'Facebook', 'url' => 'https://www.facebook.com');
         $buttonsArray=$this->rearrangeButtons($buttonsArray, 2);
-        $inlineKeyboard = $this->telegram->makeKeyboard($buttonsArray, true, false, false);
-        $this->telegram->directPushMessage($this->chatId, __('Testing action'), $inlineKeyboard);
+        $this->castKeyboard($buttonsArray,'wow',true);
     }
 
     protected function testCB() {

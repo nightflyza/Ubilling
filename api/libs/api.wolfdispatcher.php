@@ -1062,9 +1062,9 @@ class WolfDispatcher {
      * 
      * @return void
      */
-    protected function castKeyboard($buttons, $text = '⌨️') {
+    protected function castKeyboard($buttons, $text = '⌨️', $inline = false) {
         if (!empty($buttons)) {
-            $keyboard = $this->telegram->makeKeyboard($buttons);
+            $keyboard = $this->telegram->makeKeyboard($buttons, $inline);
             $this->reply($text, $keyboard);
         }
     }
