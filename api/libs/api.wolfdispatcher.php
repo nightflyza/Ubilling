@@ -905,7 +905,7 @@ class WolfDispatcher {
      * 
      * @param string $savePath
      * 
-     * @return string/void
+     * @return string|void
      */
     protected function savePhoto($savePath) {
         $result = '';
@@ -929,7 +929,7 @@ class WolfDispatcher {
      * @param string $message
      * @param array $keyboard
      * 
-     * @return string/bool
+     * @return string|bool
      */
     protected function reply($message = '', $keyboard = array()) {
         $result = '';
@@ -949,7 +949,7 @@ class WolfDispatcher {
      * @param array $keyboard
      * @param int $replyToMsg
      * 
-     * @return string/bool
+     * @return string|bool
      */
     protected function replyTo($message = '', $keyboard = array(), $replyToMsg = '') {
         $result = '';
@@ -999,6 +999,48 @@ class WolfDispatcher {
         }
         return ($result);
     }
+
+    /**
+     * Pins a message by its ID in a specified chat.
+     *
+     * @param int $messageId
+     * @param int $chatId
+     * @param bool $disableNotification
+     *
+     * @return array
+     */
+    protected function pinChatMessage($messageId, $chatId, $disableNotification = false) {
+        $result = array();
+        $disableFlag = $disableNotification ? '@1' : '';
+        $pinResult = $this->telegram->directPushMessage($chatId, 'pinChatMessage:[' . $messageId . '@' . $chatId . $disableFlag . ']');
+        if ($pinResult) {
+            $result = json_decode($pinResult, true);
+        }
+        return ($result);
+    }
+
+    /**
+     * Unpins a message by its ID in a specified chat or unpins all messages if messageId is empty.
+     *
+     * @param int $chatId
+     * @param int $messageId
+     *
+     * @return array
+     */
+    protected function unpinChatMessage($chatId, $messageId = '') {
+        $result = array();
+        if (empty($messageId)) {
+            $unpinResult = $this->telegram->directPushMessage($chatId, 'unpinChatMessage:[' . $chatId . ']');
+        } else {
+            $unpinResult = $this->telegram->directPushMessage($chatId, 'unpinChatMessage:[' . $messageId . '@' . $chatId . ']');
+        }
+        if ($unpinResult) {
+            $result = json_decode($unpinResult, true);
+        }
+        return ($result);
+    }
+
+    
 
     /**
      * Bans a member from a specified group.

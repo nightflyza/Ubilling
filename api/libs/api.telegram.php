@@ -682,6 +682,44 @@ class UbillingTelegram {
             }
         }
 
+        // pinning message by its id
+        if (ispos($message, 'pinChatMessage:')) {
+            if (preg_match('!\[(.*?)\]!si', $message, $tmpPinString)) {
+                $parts = explode('@', $tmpPinString[1]);
+                // format: [messageId@chatId] або [messageId@chatId@disable]
+                $pinMessageId = isset($parts[0]) ? $parts[0] : null;
+                $pinChatId = isset($parts[1]) ? $parts[1] : null;
+                $disableNotification = (isset($parts[2]) && ($parts[2] == '1' || strtolower($parts[2]) === 'true')) ? '&disable_notification=true' : '';
+                if ($pinMessageId && $pinChatId) {
+                    $pinParams = '?chat_id=' . $pinChatId . '&message_id=' . $pinMessageId . $disableNotification;
+                    $method = 'pinChatMessage' . $pinParams;
+                }
+            }
+        }
+
+        // unpinning message (single) or all messages (when only chatId provided)
+        // accepted formats:
+        //  - [messageId@chatId]  -> unpin specific message
+        //  - [@chatId] or [chatId] -> unpin all messages in chat
+        if (ispos($message, 'unpinChatMessage:')) {
+            if (preg_match('!\[(.*?)\]!si', $message, $tmpUnpinString)) {
+                $raw = $tmpUnpinString[1];
+                // допускаємо формати "messageId@chatId" або просто "chatId"
+                $parts = explode('@', $raw);
+                if (count($parts) == 1) {
+                    $unpinChatId = $parts[0];
+                    $unpinParams = '?chat_id=' . $unpinChatId;
+                    $method = 'unpinAllChatMessages' . $unpinParams;
+                } else {
+                    $unpinMessageId = $parts[0];
+                    $unpinChatId = $parts[1];
+                    $unpinParams = '?chat_id=' . $unpinChatId . '&message_id=' . $unpinMessageId;
+                    $method = 'unpinChatMessage' . $unpinParams;
+                }
+            }
+        }
+
+
         //POST data encoding
         $data_json = json_encode($data);
 
