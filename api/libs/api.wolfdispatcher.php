@@ -554,6 +554,11 @@ class WolfDispatcher {
                             $this->runAction($this->chatMemberLeftMethod);
                         }
                     }
+
+                    //this will be executed if some image received anyway
+                    if ($this->isPhotoReceived()) {
+                        $this->handlePhotoReceived();
+                    }
                 }
             }
 
