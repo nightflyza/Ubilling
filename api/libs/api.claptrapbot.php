@@ -1583,7 +1583,7 @@ class ClapTrapBot extends WolfDispatcher {
 
 
     protected function actionTesting() {
- 
+        
     }
 
 

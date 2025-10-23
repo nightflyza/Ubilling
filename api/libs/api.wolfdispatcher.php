@@ -966,6 +966,73 @@ class WolfDispatcher {
     }
 
     /**
+     * Universal method for sending different types of media and files to chat.
+     * 
+     * Usage examples:
+     *   $this->sendMedia('photo', 'https://example.com/image.jpg', 'Photo caption');
+     *   $this->sendMedia('video', 'https://example.com/video.mp4', 'Video description');
+     *   $this->sendMedia('audio', 'https://example.com/audio.mp3', 'Song title');
+     *   $this->sendMedia('document', 'https://example.com/file.pdf', 'Document name');
+     *   $this->sendMedia('location', '48.253449, 24.926184');
+     *   $this->sendMedia('venue', '48.253449, 24.926184', '', '', '', array('address' => 'Mountain', 'title' => 'Jesus lives here'));
+     *
+     * @param string $type media type: photo, video, audio, document, location, venue
+     * @param string $urlOrData media URL or data
+     * @param string $caption media caption
+     * @param int $chatId chat ID (optional, default is current chat ID)
+     * @param int $replyToMsgId reply to message ID 
+     * @param array $additionalData additional data for venue (optional, default is empty array)
+     *
+     * @return array
+     */
+    protected function sendMedia($type, $urlOrData, $caption = '', $chatId = '', $replyToMsgId = '', $additionalData = array()) {
+        $result = array();
+        $message = '';
+        if (empty($chatId)) {
+            $chatId = $this->chatId;
+        }
+
+        $allowedTypes = array('photo', 'video', 'audio', 'document', 'location', 'venue');
+        if (!in_array($type, $allowedTypes)) {
+            return ($result);
+        }
+
+        switch ($type) {
+            case 'photo':
+            case 'video':
+            case 'audio':
+            case 'document':
+                if (!empty($urlOrData)) {
+                    $captionPart = !empty($caption) ? '{' . $caption . '}' : '';
+                    $methodName = 'send' . ucfirst($type);
+                    $message = $methodName . ':[' . $urlOrData . ']' . $captionPart;
+                }
+                break;
+
+            case 'location':
+                if (!empty($urlOrData)) {
+                    $message = 'sendLocation:' . $urlOrData;
+                }
+                break;
+
+            case 'venue':
+                if (!empty($urlOrData) and isset($additionalData['address']) and isset($additionalData['title'])) {
+                    $message = 'sendVenue:[' . $urlOrData . '](' . $additionalData['address'] . '){' . $additionalData['title'] . '}';
+                }
+                break;
+        }
+
+        if (!empty($message)) {
+            $sendResult = $this->telegram->directPushMessage($chatId, $message, array(), false, $replyToMsgId);
+            if ($sendResult) {
+                $result = json_decode($sendResult, true);
+            }
+        }
+
+        return ($result);
+    }
+
+    /**
      * Removes a chat message by its ID from a specified chat.
      *
      * @param int $messageId The ID of the message to be removed.
@@ -1040,6 +1107,7 @@ class WolfDispatcher {
         return ($result);
     }
 
+    
     
 
     /**

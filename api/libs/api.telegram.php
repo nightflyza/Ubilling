@@ -603,6 +603,69 @@ class UbillingTelegram {
             $method = 'sendPhoto' . $photoParams;
         }
 
+        // video sending (mp4, mov, gif)
+        if (ispos($message, 'sendVideo:')) {
+            if (preg_match('!\[(.*?)\]!si', $message, $tmpVideo)) {
+                $cleanVideo = $tmpVideo[1];
+            }
+
+            if (preg_match('!\{(.*?)\}!si', $message, $tmpCaption)) {
+                $cleanCaption = urlencode($tmpCaption[1]);
+            }
+
+            $videoParams = '?chat_id=' . $chatid . '&video=' . $cleanVideo;
+            if (!empty($cleanCaption)) {
+                $videoParams .= '&caption=' . $cleanCaption;
+            }
+            if ($replyToMsgId) {
+                $videoParams .= '&reply_to_message_id=' . $replyToMsgId;
+            }
+            $method = 'sendVideo' . $videoParams;
+        }
+
+
+        // audio sending (mp3, m4a, ogg)
+        if (ispos($message, 'sendAudio:')) {
+            if (preg_match('!\[(.*?)\]!si', $message, $tmpAudio)) {
+                $cleanAudio = $tmpAudio[1];
+            }
+
+            if (preg_match('!\{(.*?)\}!si', $message, $tmpCaption)) {
+                $cleanCaption = urlencode($tmpCaption[1]);
+            }
+
+            $audioParams = '?chat_id=' . $chatid . '&audio=' . $cleanAudio;
+            if (!empty($cleanCaption)) {
+                $audioParams .= '&caption=' . $cleanCaption;
+            }
+            if ($replyToMsgId) {
+                $audioParams .= '&reply_to_message_id=' . $replyToMsgId;
+            }
+            $method = 'sendAudio' . $audioParams;
+        }
+
+
+        // document sending (any random file)
+        if (ispos($message, 'sendDocument:')) {
+            if (preg_match('!\[(.*?)\]!si', $message, $tmpDoc)) {
+                $cleanDoc = $tmpDoc[1];
+            }
+
+            if (preg_match('!\{(.*?)\}!si', $message, $tmpCaption)) {
+                $cleanCaption = urlencode($tmpCaption[1]);
+            }
+
+            $docParams = '?chat_id=' . $chatid . '&document=' . $cleanDoc;
+            if (!empty($cleanCaption)) {
+                $docParams .= '&caption=' . $cleanCaption;
+            }
+            if ($replyToMsgId) {
+                $docParams .= '&reply_to_message_id=' . $replyToMsgId;
+            }
+            $method = 'sendDocument' . $docParams;
+        }
+
+
         //sending keyboard
         if (!empty($keyboard)) {
             if (isset($keyboard['type'])) {
