@@ -677,7 +677,7 @@ class UbillingTelegram {
                 $editMessageId = $cleanEditString[0];
                 $editChatId = $cleanEditString[1];
                 $newMessageText = str_replace('editMessageText:[' . $editMessageId . '@' . $editChatId . ']', '', $message);
-                $editParams = '?chat_id=' . $editChatId . '&message_id=' . $editMessageId.'&text='.urlencode($newMessageText);
+                $editParams = '?chat_id=' . $editChatId . '&message_id=' . $editMessageId . '&text=' . urlencode($newMessageText);
                 $method = 'editMessageText' . $editParams;
             }
         }
@@ -1091,7 +1091,7 @@ class UbillingTelegram {
         if ($showAlert) {
             $data['show_alert'] = true;
         }
-        
+
         if (!empty($this->botToken)) {
             $url = $this->apiUrl . $this->botToken . '/' . $method;
             if ($this->debug) {

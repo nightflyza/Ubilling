@@ -560,14 +560,14 @@ class WolfDispatcher {
             //callback query processing
             if (!empty($this->callbackQueryMethod)) {
                 if ($this->isCallbackQueryReceived()) {
-                        $this->runAction($this->callbackQueryMethod);
-                    }
+                    $this->runAction($this->callbackQueryMethod);
+                }
             }
 
             //this will be executed while any callback query received
             if ($this->isCallbackQueryReceived()) {
-                    $this->handleCallbackQuery();
-            }            
+                $this->handleCallbackQuery();
+            }
 
             //this shall be executed on any non empty data recieve
             $this->handleAnyWay();
@@ -684,7 +684,7 @@ class WolfDispatcher {
         $result = false;
         if (isset($this->receivedData['callback_query'])) {
             $result = $this->receivedData;
-        } 
+        }
         return ($result);
     }
 
@@ -993,7 +993,7 @@ class WolfDispatcher {
      */
     protected function editMessageText($messageId, $chatId, $messageText) {
         $result = array();
-        $editResult = $this->telegram->directPushMessage($chatId, 'editMessageText:[' . $messageId . '@' . $chatId . ']'. $messageText);
+        $editResult = $this->telegram->directPushMessage($chatId, 'editMessageText:[' . $messageId . '@' . $chatId . ']' . $messageText);
         if ($editResult) {
             $result = json_decode($editResult, true);
         }
@@ -1051,7 +1051,7 @@ class WolfDispatcher {
         if (!empty($buttonsArray)) {
             $result = array_chunk($buttonsArray, $inRow);
         }
-        return($result);
+        return ($result);
     }
 
     /**

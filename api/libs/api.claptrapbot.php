@@ -1582,30 +1582,7 @@ class ClapTrapBot extends WolfDispatcher {
     }
 
 
-    /**
-     * Handles testing action
-     * 
-     * @return void
-     */
-    protected function actionTesting() {
-        $buttonsArray = array();
-        /**
-        $buttonsArray[] = array('text' => 'button name1', 'callback_data' => 'cb1');
-        $buttonsArray[] = array('text' => 'button name2', 'callback_data' => 'cb2');
-        $buttonsArray[] = array('text' => 'button name3', 'callback_data' => 'cb3');
-        $buttonsArray[] = array('text' => 'button name4', 'callback_data' => 'cb4');
- */
 
-        $buttonsArray[] = array('text' => 'Google', 'url' => 'https://www.google.com');
-        $buttonsArray[] = array('text' => 'Facebook', 'url' => 'https://www.facebook.com');
-        $buttonsArray=$this->rearrangeButtons($buttonsArray, 2);
-        $this->castKeyboard($buttonsArray,'wow',true);
-    }
-
-    protected function testCB() {
-             
-        $this->confirmCallbackQuery('perfect! ' . $this->receivedData['callback_query']['data'], false);
-    }
 
  
 
