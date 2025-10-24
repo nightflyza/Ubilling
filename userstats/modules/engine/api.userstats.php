@@ -2208,11 +2208,21 @@ function zbs_UserShowProfile($login) {
     $profile .= la_tag('tr', true);
 
     if (@$us_config['TG_BOTNAME']) {
+        $tgBotQr='';
         $tgBotName = $us_config['TG_BOTNAME'];
         $tgBotUrl = 'https://t.me/' . $tgBotName . '/?start=' . $login . '-' . md5($userdata['Password']);
+        
+        if (@$us_config['TG_BOT_QR']) {
+            if ($us_config['TG_BOT_QR']) {
+                $qrGenerator='modules/jsc/qrgen.php?data=';
+                $qrUrl =  $qrGenerator . base64_encode($tgBotUrl).'&be=true';
+                $qrTitle = __('Connect to bot');
+                $tgBotQr = la_modalAuto(la_img($iconsPath . 'qrcode.png', 'QR-code'), $qrTitle, la_tag('center') . la_img($qrUrl) . la_tag('center', true), '', '300', '250');
+            }
+        }
         $profile .= la_tag('tr');
         $profile .= la_TableCell(__('Telegram bot'), '', 'row1');
-        $profile .= la_TableCell(la_Link($tgBotUrl, __('Connect to bot') . '!'));
+        $profile .= la_TableCell(la_Link($tgBotUrl, __('Connect to bot') . '!').$tgBotQr);
         $profile .= la_tag('tr', true);
     }
 

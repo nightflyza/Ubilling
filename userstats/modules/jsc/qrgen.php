@@ -2,7 +2,7 @@
 
 if (isset($_GET['data'])) {
     $usConfig = parse_ini_file('../../config/userstats.ini');
-    if ($usConfig['PAYMENTID_QR']) {
+    if (@$usConfig['PAYMENTID_QR'] or @$usConfig['TG_BOT_QR']) {
         require_once('../engine/api.qrcode.php');
         require_once('../engine/api.ubrouting.php');
         $data = ubRouting::get('data');
