@@ -1067,9 +1067,9 @@ class ClapTrapBot extends WolfDispatcher {
             $reply .= $this->profileRow('REALNAME', __('RealName'), $userData['realname']);
             $reply .= $this->profileRow('ADDRESS', __('Address'), $userData['address']);
             $reply .= $this->profileRow('MOBILE', __('Mobile'), $userData['mobile']);
-            $reply .= $this->profileRow('TARIFF', __('Your') . ' ' . __('tariff'), $userData['tariff']);
-            if (!empty($userData['tariffnm'])) {
-                $reply .= $this->profileRow('TARIFF', __('Planned tariff change'), $userData['tariffnm']);
+            $reply .= $this->profileRow('TARIFF', __('Your') . ' ' . __('tariff'), __($userData['tariff']));
+            if (!empty($userData['tariffnm']) and $userData['tariffnm'] != 'No') {
+                $reply .= $this->profileRow('TARIFF', __('Planned tariff change'), __($userData['tariffnm']));
             }
             $reply .= $this->profileRow('BALANCE', __('Your') . ' ' . __('balance'), $userData['cash'] . ' ' . $this->systemCurrency);
             $reply .= $this->profileRow('GLOBE', __('IP'), $userData['ip']);

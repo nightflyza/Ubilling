@@ -68,3 +68,4 @@ $lang['def']['as reply to'] = 'як відповідь на';
 $lang['def']['or write message for techsupport'] = 'або напишіть повідомлення для техпідтримки';
 $lang['def']['Not existing ticket'] = 'Такий тікет не існує';
 $lang['def']['No such ticket'] = 'Немає такого тікету';
+$lang['def']['frozen + disabled'] = 'заморожений + вимкнений';

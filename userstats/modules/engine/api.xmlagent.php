@@ -870,7 +870,10 @@ class XMLAgent {
         if ($userdata['TariffChange']) {
             $tariffNm = $userdata['TariffChange'];
         } else {
-            $tariffNm = 'No';
+            $tariffNm = zbs_TariffLookupDWI($login);
+            if (empty($tariffNm)) {
+                $tariffNm = 'No';
+            }
         }
         $traffdown = 0;
         $traffup = 0;
