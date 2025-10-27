@@ -103,6 +103,7 @@ class PONBoxes {
     const ROUTE_SPLITTERADD = 'addboxsplitters';
     const ROUTE_SPLITTERDEL = 'delboxsplitters';
     const ROUTE_PLACEBOX = 'plcmapboxid';
+    const ROUTE_PLACEFIND = 'plcmapfind';
     const TABLE_BOXES = 'ponboxes';
     const TABLE_LINKS = 'ponboxeslinks';
     const TABLE_SPLITTERSLINKS = 'ponboxes_splitters';
@@ -278,12 +279,17 @@ class PONBoxes {
         $json = new wf_JqDtHelper();
         if (!empty($this->allBoxes)) {
             foreach ($this->allBoxes as $io => $each) {
+                $geoLink='';
+                if (!empty($each['geo'])) {
+                    $geoLink = wf_Link(self::URL_ME . '&' . self::ROUTE_MAP . '=true&' . self::ROUTE_PLACEFIND . '=' . $each['geo'], wf_img_sized('skins/icon_search_small.gif', __('Find on map')));
+                }
                 $data[] = $each['id'];
                 $data[] = $each['name'];
                 $data[] = $each['exten_info'];
                 $data[] = $each['geo'];
                 $boxActs = '';
                 $boxActs .= wf_Link(self::URL_ME . '&' . self::ROUTE_BOXEDIT . '=' . $each['id'], web_edit_icon());
+                $boxActs .= $geoLink;
                 $data[] = $boxActs;
                 $json->addRow($data);
                 unset($data);
@@ -320,11 +326,20 @@ class PONBoxes {
         $result = '';
         if (isset($this->allBoxes[$boxId])) {
             $boxData = $this->allBoxes[$boxId];
+            $mapPlaceUrl = self::URL_ME . '&' . self::ROUTE_MAP . '=true&' . self::ROUTE_PLACEBOX . '=' . $boxId;
+            $smallGeoLocControls = '';
+            if (!empty($boxData['geo'])) {
+                $mapFindUrl = self::URL_ME . '&' . self::ROUTE_MAP . '=true&' . self::ROUTE_PLACEFIND . '=' . $boxData['geo'];
+                $smallGeoLocControls .= wf_Link($mapFindUrl, wf_img_sized('skins/icon_search_small.gif', __('Find on map'), '10'));
+            } else {
+                $smallGeoLocControls .= wf_link($mapPlaceUrl, wf_img_sized('skins/ymaps/target.png', __('Place on map'), '10'));
+            }
+            
             $sup = wf_tag('sup') . '*' . wf_tag('sup', true);
             $inputs = wf_HiddenInput('editboxid', $boxId);
             $inputs .= wf_TextInput('editboxname', __('Name') . $sup, $boxData['name'], true, 20);
             $inputs .= wf_TextInput('editboxexteninfo', __('Additional info'), $boxData['exten_info'], true, 20);
-            $inputs .= wf_TextInput('editboxgeo', __('Location'), $boxData['geo'], true, 20, 'geo');
+            $inputs .= wf_TextInput('editboxgeo', $smallGeoLocControls . ' ' . __('Location'), $boxData['geo'], true, 20, 'geo');
             $inputs .= wf_Submit(__('Save'));
             $result .= wf_Form('', 'POST', $inputs, 'glamour');
             $result .= wf_delimiter(0);
@@ -335,8 +350,10 @@ class PONBoxes {
                 $result .= wf_ConfirmDialogJS($boxDelControlUrl, web_delete_icon() . ' ' . __('Delete'), $this->messages->getDeleteAlert(), 'ubButton', $boxDelCancelUrl) . ' ';
             }
             if (empty($boxData['geo'])) {
-                $mapPlaceUrl = self::URL_ME . '&' . self::ROUTE_MAP . '=true&' . self::ROUTE_PLACEBOX . '=' . $boxId;
                 $result .= wf_Link($mapPlaceUrl, wf_img('skins/ymaps/target.png') . ' ' . __('Place on map'), false, 'ubButton');
+            } else {
+                $result.=wf_delimiter(1);
+                $result .= $this->renderBoxesMiniMap($boxData['geo']);
             }
         } else {
             $result .= $this->messages->getStyledMessage(__('Something went wrong') . ': ' . __('box') . ' [' . $boxId . '] ' . __('Not exists'), 'error');
@@ -590,9 +607,62 @@ class PONBoxes {
         $result = '';
         if (!empty($this->allBoxes)) {
             $mapContainer = 'ponboxmap';
+            $mapCenter = $mapsCfg['CENTER'];
             $result .= generic_MapContainer('100%', '800px', $mapContainer);
             $placemarks = '';
             $editor = '';
+            if (ubRouting::checkGet(self::ROUTE_PLACEBOX)) {
+                $placeBoxId = ubRouting::get(self::ROUTE_PLACEBOX, 'int');
+                $editor .= $this->getBoxPlaceForm($placeBoxId);
+            }
+
+            if (ubRouting::checkGet(self::ROUTE_PLACEFIND)) {
+                $findBoxGeo = ubRouting::get(self::ROUTE_PLACEFIND);
+                $radius = 30;
+                $mapCenter = $findBoxGeo;
+                $placemarks .= generic_mapAddCircle($findBoxGeo, $radius, __('Search area radius') . ' ' . $radius . ' ' . __('meters'), __('Search area'));
+            }
+
+            foreach ($this->allBoxes as $io => $each) {
+                if (!empty($each['geo'])) {
+                    $boxLink = trim(wf_Link(self::URL_ME . '&' . self::ROUTE_BOXEDIT . '=' . $each['id'], web_edit_icon()));
+                    $placemarks .= generic_mapAddMark($each['geo'], '', $each['name'] . ' ' . $boxLink, '', '', '', true);
+                }
+            }
+            $result .= generic_MapInit($mapCenter, $mapsCfg['ZOOM'], $mapsCfg['TYPE'], $placemarks, $editor, $mapsCfg['LANG'], $mapContainer);
+        } else {
+            $result .= $this->messages->getStyledMessage(__('Nothing to show'), 'warning');
+        }
+        return ($result);
+    }
+
+
+    /**
+     * Renders mini-map for boxes
+     * 
+     * @param string $boxGeo
+     * 
+     * @return string
+     */
+    public function renderBoxesMiniMap($boxGeo='') {
+        $result = '';
+        global $ubillingConfig;
+        $mapsCfg = $ubillingConfig->getYmaps();
+        $result = '';
+        if (!empty($this->allBoxes)) {
+            $mapContainer = 'ponboxmap';
+            $result .= generic_MapContainer('100%', '300px', $mapContainer);
+            $placemarks = '';
+            $editor = '';
+
+            if (!empty($boxGeo)) {
+                $mapCenter = $boxGeo;
+                $radius = 30;
+                $placemarks.=generic_MapAddCircle($boxGeo, $radius, __('Search area radius') . ' ' . $radius . ' ' . __('meters'), __('Search area'));
+            } else {
+                $mapCenter = $mapsCfg['CENTER'];
+            }
+
             if (ubRouting::checkGet(self::ROUTE_PLACEBOX)) {
                 $placeBoxId = ubRouting::get(self::ROUTE_PLACEBOX, 'int');
                 $editor .= $this->getBoxPlaceForm($placeBoxId);
@@ -603,7 +673,8 @@ class PONBoxes {
                     $placemarks .= generic_mapAddMark($each['geo'], '', $each['name'] . ' ' . $boxLink, '', '', '', true);
                 }
             }
-            $result .= generic_MapInit($mapsCfg['CENTER'], $mapsCfg['ZOOM'], $mapsCfg['TYPE'], $placemarks, $editor, $mapsCfg['LANG'], $mapContainer);
+
+            $result .= generic_MapInit($mapCenter, $mapsCfg['ZOOM'], $mapsCfg['TYPE'], $placemarks, $editor, $mapsCfg['LANG'], $mapContainer);
         } else {
             $result .= $this->messages->getStyledMessage(__('Nothing to show'), 'warning');
         }
