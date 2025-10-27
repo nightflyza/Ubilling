@@ -904,7 +904,11 @@ class PONBoxes {
                     $boxesTmp[$eachBoxData['id']] = $eachBoxData['name'];
                 }
                 $inputs .= wf_HiddenInput(self::PROUTE_NEWLINKONU, $onuId);
-                $inputs .= wf_Selector(self::PROUTE_NEWLINKBOX, $boxesTmp, __('box'), '', false, false) . ' ';
+                if ($this->altCfg['PONBOXES_SEARCHBL']) {
+                    $inputs .= wf_SelectorSearchable(self::PROUTE_NEWLINKBOX, $boxesTmp, __('box'), '', false, false) . ' ';
+                } else {
+                    $inputs .= wf_Selector(self::PROUTE_NEWLINKBOX, $boxesTmp, __('box'), '', false, false) . ' ';
+                }
                 $inputs .= wf_nbsp(2);
 
                 if (!empty($onuUserName)) {
