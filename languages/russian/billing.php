@@ -3602,3 +3602,4 @@ $lang['def']['right to control contrahens geo assigns'] = 'Право контр
 $lang['def']['right to control contrahens assign overrides'] = 'Право контролировать переназначения агентов';
 $lang['def']['Show all'] = 'Показать все';
 $lang['def']['all'] = 'все';
+$lang['def']['Custom location'] = 'Собственная локация';

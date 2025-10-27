@@ -3460,3 +3460,5 @@ CREATE TABLE IF NOT EXISTS `ct_auth` (
   KEY `idx_login` (`login`),
   KEY `idx_active` (`active`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
+
+ALTER TABLE `pononu` ADD `geo` VARCHAR(64) NULL DEFAULT NULL AFTER `login`;

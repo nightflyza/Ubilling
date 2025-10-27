@@ -83,6 +83,10 @@ function lm_GetIconUrl($icon) {
         case 'yellowCar':
             $result = 'skins/mapmarks/yellowcar.png';
             break;
+        case 'twirl#blackIcon':
+            $result = 'skins/mapmarks/black.png';
+            break;
+
 
         //unknown icon fallback
         default:

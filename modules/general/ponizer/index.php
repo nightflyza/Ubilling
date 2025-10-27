@@ -76,7 +76,16 @@ if ($altCfg['PON_ENABLED']) {
 
         //edits existing ONU in database
         if (ubRouting::checkPost(array('editonu', 'editoltid', 'editmac'))) {
-            $pon->onuSave(ubRouting::post('editonu'), ubRouting::post('editonumodelid'), ubRouting::post('editoltid'), ubRouting::post('editip'), ubRouting::post('editmac'), ubRouting::post('editserial'), ubRouting::post('editlogin'));
+            $pon->onuSave(
+                ubRouting::post('editonu'),
+                ubRouting::post('editonumodelid'),
+                ubRouting::post('editoltid'),
+                ubRouting::post('editip'),
+                ubRouting::post('editmac'),
+                ubRouting::post('editserial'),
+                ubRouting::post('editlogin'),
+                ubRouting::post('editgeo')
+                );
             if ($ubillingConfig->getAlterParam('OPT82_ENABLED')) {
                 multinet_rebuild_all_handlers();
             }

@@ -16,6 +16,13 @@ if (@$altCfg['PONMAP_ENABLED']) {
             }
             
             $ponMap = new PONONUMap($oltIdFilter);
+            if (ubRouting::checkGet(PONONUMap::ROUTE_PLACEONU)) {
+                if (ubRouting::checkPost(array(PONONUMap::PROUTE_MAPONUCOORDS, PONONUMap::PROUTE_MAPONUID))) {
+                    $ponMap->setOnuGeo(ubRouting::post(PONONUMap::PROUTE_MAPONUID), ubRouting::post(PONONUMap::PROUTE_MAPONUCOORDS));
+                    ubRouting::nav(PONizer::URL_ONU . ubRouting::post(PONONUMap::PROUTE_MAPONUID));
+                }
+            }
+
             show_window(__('ONU Map') . $ponMap->getFilteredOLTLabel(), $ponMap->renderOnuMap());
             zb_BillingStats(true);
         } else {

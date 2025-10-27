@@ -79,6 +79,10 @@ class PONONUMap {
     const PROUTE_OLTSELECTOR = 'renderoltidonus';
     const ROUTE_BACKLINK = 'bl';
     const ROUTE_CLUSTER_BUILDS = 'showbuilds';
+    const ROUTE_PLACEFIND = 'findcoord';
+    const ROUTE_PLACEONU = 'placeonuid';
+    const PROUTE_MAPONUID = 'newonumapidgeo';
+    const PROUTE_MAPONUCOORDS = 'newonumapcoordsgeo';
 
     /**
      * Creates new ONU MAP instance
@@ -204,6 +208,28 @@ class PONONUMap {
         return ($result);
     }
 
+     /**
+     * Returns MAP icon type due signal level
+     * 
+     * @param string $onuSignal
+     * 
+     * @return string
+     */
+    protected function getIconCustom($onuSignal) {
+        $result = 'twirl#nightDotIcon';
+        if ((($onuSignal > -27) and ($onuSignal < -25))) {
+            $result = 'twirl#yellowIcon';
+        }
+        if ((($onuSignal > 0) or ($onuSignal < -27))) {
+            $result = 'twirl#pinkDotIcon';
+        }
+        if ($onuSignal == 'NO' or $onuSignal == 'Offline' or $onuSignal == '-9000' or $onuSignal == __('No')) {
+            $result = 'twirl#blackIcon';
+        }
+        return ($result);
+    }
+    
+
     /**
      * Returns ONU controls
      * 
@@ -213,7 +239,7 @@ class PONONUMap {
      * 
      * @return string
      */
-    protected function getONUControls($onuId, $login, $buildGeo) {
+    protected function getONUControls($onuId, $login='', $buildGeo='') {
         $result = '';
         if (!empty($onuId)) {
             $onuLink = PONizer::URL_ME . '&editonu=' . $onuId;
@@ -239,9 +265,14 @@ class PONONUMap {
             $onuLink .= $pmBackUrl;
             $result .= wf_Link($onuLink, wf_img('skins/switch_models.png', __('Edit') . ' ' . __('ONU')));
             $result = trim($result) . wf_nbsp();
-            $result .= wf_Link('?module=userprofile&username=' . $login, wf_img('skins/icons/userprofile.png', __('User profile')));
-            $result = trim($result) . wf_nbsp();
-            $result .= wf_Link('?module=usersmap&findbuild=' . $buildGeo, wf_img('skins/icon_build.gif', __('Build')));
+            if (!empty($login)) {
+                $result .= wf_Link('?module=userprofile&username=' . $login, wf_img('skins/icons/userprofile.png', __('User profile')));
+                $result = trim($result) . wf_nbsp();
+            }
+            if (!empty($buildGeo)) {
+                $result .= wf_Link('?module=usersmap&findbuild=' . $buildGeo, wf_img('skins/icon_build.gif', __('Build')));
+                $result = trim($result) . wf_nbsp();
+            }
             $result = trim($result) . wf_nbsp();
         }
         return ($result);
@@ -455,8 +486,14 @@ class PONONUMap {
 
                             //48.470554, 24.422853
                             if ($renderAllowedFlag) {
-                                $renderBuilds[$userData['geo']][] = array(
-                                    'geo' => $userData['geo'],
+                                $onuGeo = $userData['geo'];
+                                if (!empty($eachOnu['geo'])) {
+                                    //override geo location with custom one
+                                    $onuGeo = $eachOnu['geo'];
+                                }
+
+                                $renderBuilds[$onuGeo][] = array(
+                                    'geo' => $onuGeo,
                                     'streetbuild' => $userData['streetname'] . ' ' . $userData['buildnum'],
                                     'apt' => $userData['apt'],
                                     'buildtitle' => $onuTitle,
@@ -481,6 +518,52 @@ class PONONUMap {
                     }
                 } else {
                     $marksNoUser++;
+                    //may be some custom geo location set for this ONU?
+                    if (!empty($eachOnu['geo'])) {
+                        //rendering unassigned ONU with custom geo location
+                        $onuSignalData=$this->ponizer->getOnuSignalLevelData($eachOnu['id']);
+                        $onuGeo = $eachOnu['geo'];
+                        $onuTitle = __('ONU').' '.$eachOnu['id'];
+                        $onuSignal = (!empty($onuSignalData)) ? $onuSignalData['raw'] : 'NO';
+                        $onuIcon = $this->getIconCustom($onuSignal);
+                        $onuControls = $this->getONUControls($eachOnu['id'], '', '');
+
+                        if ($onuSignal == 'NO' or $onuSignal == 'Offline' or $onuSignal == '-9000') {
+                            $signalLabel = __('No signal');
+                            if (isset($allDeregReasons[$eachOnu['login']])) {
+                                $deregLabel = $allDeregReasons[$eachOnu['login']]['styled'];
+                                $deregState = $allDeregReasons[$eachOnu['login']]['raw'];
+                                $signalLabel .= ' - ' . $deregLabel;
+                                if ($this->onuDeregFilter) {
+                                    if (ispos($deregState, $this->onuDeregFilter)) {
+                                        $renderAllowedFlag = true;
+                                    }
+                                }
+                            }
+                        } else {
+                            $signalLabel = $onuSignal;
+                            if ($this->onuSignalFilter) {
+                                $renderAllowedFlag = false;
+                                if ($onuSignal != 'NO') {
+                                    if ($onuSignal < -27) {
+                                        $renderAllowedFlag = true;
+                                    }
+                                }
+                            }
+                        }
+
+                        $renderBuilds[$onuGeo][] = array(
+                            'geo' => $onuGeo,
+                            'streetbuild' => '',
+                            'apt' => '',
+                            'buildtitle' => $onuTitle,
+                            'login' => '',
+                            'ip' => '',
+                            'signal' => $signalLabel,
+                            'controls' => $onuControls,
+                            'icon' => $onuIcon,
+                        );
+                    }
                 }
                 $totalOnuCount++;
             }
@@ -488,7 +571,22 @@ class PONONUMap {
         }
 
         //rendering map
-        $result .= generic_MapInit($this->mapsCfg['CENTER'], $this->mapsCfg['ZOOM'], $this->mapsCfg['TYPE'], $placemarks, '', $this->mapsCfg['LANG'], 'ponmap');
+        $editor = '';
+        $mapCenter = $this->mapsCfg['CENTER'];
+        if (ubRouting::checkGet(self::ROUTE_PLACEFIND)) {
+            $mapCenter = ubRouting::get(self::ROUTE_PLACEFIND);
+            $placemarks.=generic_MapAddCircle($mapCenter, 30, __('Search area radius') . ' 30 ' . __('meters'), __('Search area'));
+        }
+
+        if (ubRouting::checkGet(self::ROUTE_PLACEONU)) {
+            if (cfr('PONEDIT')) {
+             $onuLocationEditForm=$this->getOnuPlaceForm(ubRouting::get(self::ROUTE_PLACEONU,'int'));
+             $editor = generic_MapEditor(self::PROUTE_MAPONUCOORDS, __('Place on map'), $onuLocationEditForm);
+            }
+        }
+
+
+        $result .= generic_MapInit($mapCenter, $this->mapsCfg['ZOOM'], $this->mapsCfg['TYPE'], $placemarks, $editor, $this->mapsCfg['LANG'], 'ponmap');
         //some stats here
         $result .= $this->messages->getStyledMessage(__('Total') . ' ' . __('ONU') . ': ' . $totalOnuCount, 'info');
         $result .= $this->messages->getStyledMessage(__('ONU rendered on map') . ': ' . $marksRendered, 'success');
@@ -500,6 +598,34 @@ class PONONUMap {
             $result .= $this->messages->getStyledMessage(__('ONU without assigned user') . ': ' . $marksNoUser, 'warning');
         }
 
+        return ($result);
+    }
+
+
+    /**
+     * Returns form for setting location of the ONU custom geo location on map
+     * 
+     * @param int $onuId
+     * 
+     * @return string
+     */
+    protected function getOnuPlaceForm($onuId) {
+        $result = '';
+        $onuId = ubRouting::filters($onuId, 'int');
+        $allOnu = $this->ponizer->getAllOnu();
+        
+        if (isset($allOnu[$onuId])) {
+            $onuData = $allOnu[$onuId];
+            $inputs = wf_hiddenInput(self::PROUTE_MAPONUID, $onuId);
+            $inputs .= wf_delimiter(1);
+            $inputs .= __('ONU') . ': [' . $onuData['id'].'] '.$onuData['mac'].' '.$onuData['serial'];
+            $inputs .= wf_delimiter(1);
+            $inputs .= wf_Submit('Save');
+            $result .= wf_Form('', 'POST', $inputs, '');
+        } else {
+            $result .= __('ONU') . ' [' . $onuId . '] ' . __('Not found');
+        }
+        
         return ($result);
     }
 
@@ -540,5 +666,24 @@ class PONONUMap {
             $result .= ' : ' . $onuFilterLabel;
         }
         return ($result);
+    }
+
+    /**
+     * Sets some new geo coords for existing ONU
+     * 
+     * @param int $onuId
+     * @param string $coords
+     * 
+     * @return void
+     */
+    public function setOnuGeo($onuId, $coords = '') {
+        $onuId = ubRouting::filters($onuId, 'int');
+        $coords = ubRouting::filters($coords, 'mres');
+        $allOnu = $this->ponizer->getAllOnu();
+        if (isset($allOnu[$onuId])) {
+            $onuData = $allOnu[$onuId];
+            $this->ponizer->onuSave($onuId, $onuData['onumodelid'], $onuData['oltid'], $onuData['ip'], $onuData['mac'], $onuData['serial'], $onuData['login'], $coords);
+            log_register('PON ONU MAP SET GEO [' . $onuId . '] GEO `' . $coords . '`');
+        }
     }
 }

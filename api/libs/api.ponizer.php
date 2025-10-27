@@ -1603,10 +1603,11 @@ class PONizer {
      * @param string $mac
      * @param string $serial
      * @param string $login
+     * @param string $geo
      *
      * @return void
      */
-    public function onuSave($onuId, $onumodelid, $oltid, $ip, $mac, $serial, $login) {
+    public function onuSave($onuId, $onumodelid, $oltid, $ip, $mac, $serial, $login, $geo='') {
         $macF = strtolower($mac);
         $macF = trim($macF);
         $macF = ubRouting::filters($macF, 'mres');
@@ -1628,6 +1629,8 @@ class PONizer {
         $this->onuDb->data('onumodelid', $onumodelid);
         $this->onuDb->data('oltid', $oltid);
         $this->onuDb->data('ip', $ip);
+        $this->onuDb->data('geo', $geo);
+        
 
         if (!empty($macF)) {
             if (check_mac_format($macF)) {
@@ -2368,7 +2371,7 @@ class PONizer {
     }
 
     /**
-     * Returns ONU edit form
+     * Returns ONU edit form aka "ONU profile"
      *
      * @param int $onuId
      * @param bool $limitedControls
@@ -2418,6 +2421,17 @@ class PONizer {
             $inputs .= wf_TextInput('editserial', __('Serial number'), $this->allOnu[$onuId]['serial'], true, 20);
             $burialLabel = ($this->allOnu[$onuId]['login'] == 'dead') ? ' ' . wf_img('skins/skull.png', __('Buried')) : '';
             $inputs .= wf_TextInput('editlogin', __('Login') . $burialLabel, $this->allOnu[$onuId]['login'], true, 20);
+            if (@$this->altCfg['PON_ONU_CUSTOM_GEO']) {
+                $geoMiniControls = '';
+                if (!empty($this->allOnu[$onuId]['geo'])) {
+                    $geoMiniControls .= wf_Link(PONONUMap::URL_ME . '&' . PONONUMap::ROUTE_PLACEFIND . '=' . $this->allOnu[$onuId]['geo'], wf_img_sized('skins/icon_search_small.gif', __('Find on map'), '10'));
+                } else {
+                    if (cfr('PONEDIT')) {
+                        $geoMiniControls .= wf_link(PONONUMap::URL_ME . '&' . PONONUMap::ROUTE_PLACEONU . '=' . $onuId, wf_img_sized('skins/ymaps/target.png', __('Place on map'), '10'));
+                    }
+                }
+                $inputs .= wf_TextInput('editgeo', $geoMiniControls . ' ' . __('Custom location'), $this->allOnu[$onuId]['geo'], true, 20, 'geo');
+            }
 
             if (!empty($onuExtUsers)) {
                 foreach ($onuExtUsers as $io => $each) {
@@ -4258,7 +4272,24 @@ class PONizer {
     }
 
     /**
-     * Returns array like: $userLogin => $onuSignal
+     * Returns ONU signals array like: $onuId => $onuSignal
+     *
+     * @return array
+     */
+    public function getAllONUSignalsById() {
+        $result = array();
+        $allOnu = $this->getAllOnu();
+    
+        if (!empty($allOnu)) {
+            foreach ($allOnu as $eachOnu) {
+                $result[$eachOnu['id']] = $eachOnu['signal'];
+            }
+        }
+        return ($result);
+    }
+
+    /**
+     * Returns ONU signals array like: $userLogin => $onuSignal
      *
      * @return array
      */

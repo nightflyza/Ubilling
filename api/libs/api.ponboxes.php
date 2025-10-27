@@ -194,6 +194,7 @@ class PONBoxes {
             'Splitter 1 x 8' => __('Splitter') . ' 1 x 8',
             'Splitter 1 x 12' => __('Splitter') . ' 1 x 12',
             'Splitter 1 x 16' => __('Splitter') . ' 1 x 16',
+            'Splitter 1 x 24' => __('Splitter') . ' 1 x 24',
             'Splitter 1 x 32' => __('Splitter') . ' 1 x 32',
             'Splitter 1 x 64' => __('Splitter') . ' 1 x 64'
         );
