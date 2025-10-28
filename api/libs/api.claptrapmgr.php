@@ -186,6 +186,7 @@ class ClapTrapMgr  {
         if (!empty($hookInfo) and !empty($hookInfo['ok'])) {
             if (!empty($hookInfo['result'])) {
                 $hData=$hookInfo['result'];
+                if (!empty($hData['url'])) {
                 $cells = wf_TableCell(__('Hook URL'));
                 $cells .= wf_TableCell($hData['url']);
                 $rows = wf_TableRow($cells, 'row3');
@@ -209,6 +210,11 @@ class ClapTrapMgr  {
                 $rows .= wf_TableRow($cells, 'row3');
 
                 $result = wf_TableBody($rows, '100%', 0);
+                } else {
+                    $result=$this->messages->getStyledMessage(__('No web hook URL has been set up for this bot'),'warning');
+                }
+            } else {
+                $result = $this->messages->getStyledMessage(__('Empty hook info received'), 'error');    
             }
         } else {
             $result = $this->messages->getStyledMessage(__('Invalid hook info'), 'error');
