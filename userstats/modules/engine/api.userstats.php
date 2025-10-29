@@ -2249,12 +2249,21 @@ function zbs_UserShowProfile($login) {
  * 
  * @return array
  */
-function zbs_CashGetUserPayments($login, $onlyPositive = false) {
+function zbs_CashGetUserPayments($login, $onlyPositive = false, $depthLimit = 0) {
     $login = vf($login);
     $additionalFilters = '';
     if ($onlyPositive) {
         $additionalFilters .= " AND `summ`>'0' ";
     }
+
+    if ($depthLimit) {
+        // Calculate the start date based on depth limit
+        // depth limit of 1 means current month only
+        // depth limit of 2 means current month + 1 previous month, etc.
+        $startDate = date("Y-m-01", strtotime("-" . ($depthLimit - 1) . " months"));
+        $additionalFilters .= " AND `date`>='" . $startDate . "' ";
+    }
+
     $query = "SELECT * from `payments` WHERE `login`='" . $login . "' " . $additionalFilters . " ORDER BY `id` DESC";
     $allpayments = simple_queryall($query);
     return ($allpayments);

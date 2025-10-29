@@ -140,7 +140,7 @@ class ClapTrapMgr  {
         $result = '';
         if (!empty($this->token) and !empty($this->hookUrl)) {
             $newHookUrl = $this->hookUrl;
-            $inputs = wf_TextInput(self::PROUTE_HOOK_URL, __('Hook URL'), $newHookUrl, false, 50, 'url').' ';
+            $inputs = wf_TextInput(self::PROUTE_HOOK_URL, __('Hook URL'), $newHookUrl, false, 38, 'url').' ';
             $inputs .= wf_Submit(__('Install'));
             $result = wf_Form('', 'POST', $inputs, 'glamour');
         } else {

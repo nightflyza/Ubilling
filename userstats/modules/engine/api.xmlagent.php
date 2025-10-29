@@ -27,6 +27,20 @@ class XMLAgent {
     protected $uscfgPaymentsON = 0;
 
     /**
+     * Placeholder for PAYMENTS_ONLYPOSITIVE "userstats.ini" option
+     *
+     * @var int
+     */
+    protected $uscfgPaymentsOnlyPositive = 0;
+
+    /**
+     * Placeholder for PAYMENTS_DEPTH_LIMIT "userstats.ini" option
+     *
+     * @var int
+     */
+    protected $uscfgPaymentsDepthLimit = 0;
+
+    /**
      * Placeholder for AN_ENABLED "userstats.ini" option
      *
      * @var int
@@ -278,6 +292,8 @@ class XMLAgent {
         $this->usTariffMatrixCfg                = $this->usConfig->getTariffMatrixCfg();
 
         $this->uscfgPaymentsON                  = $this->usConfig->getUstasParam('PAYMENTS_ENABLED', 0);
+        $this->uscfgPaymentsOnlyPositive        = $this->usConfig->getUstasParam('PAYMENTS_ONLYPOSITIVE', 0);
+        $this->uscfgPaymentsDepthLimit          = $this->usConfig->getUstasParam('PAYMENTS_DEPTH_LIMIT', 0);
         $this->uscfgAnnouncementsON             = $this->usConfig->getUstasParam('AN_ENABLED', 0);
         $this->uscfgTicketingON                 = $this->usConfig->getUstasParam('TICKETING_ENABLED', 0);
         $this->uscfgAddressStructON             = $this->usConfig->getUstasParam('UBA_XML_ADDRESS_STRUCT', 0);
@@ -584,13 +600,16 @@ class XMLAgent {
      */
     protected function getUserPayments($login) {
         $payments = array();
-        $allpayments = zbs_CashGetUserPayments($login);
+        $positiveFilter =$this->uscfgPaymentsOnlyPositive;
+        $depthLimit = $this->uscfgPaymentsDepthLimit;
+
+        $allpayments = zbs_CashGetUserPayments($login, $positiveFilter, $depthLimit);
 
         if (!empty($allpayments)) {
             foreach ($allpayments as $io => $eachpayment) {
-                $payments[$eachpayment['id']]['date']    = $eachpayment['date'];
-                $payments[$eachpayment['id']]['summ']    = $eachpayment['summ'];
-                $payments[$eachpayment['id']]['balance'] = $eachpayment['balance'];
+                    $payments[$eachpayment['id']]['date']    = $eachpayment['date'];
+                    $payments[$eachpayment['id']]['summ']    = $eachpayment['summ'];
+                    $payments[$eachpayment['id']]['balance'] = $eachpayment['balance'];
             }
         }
 

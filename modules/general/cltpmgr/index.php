@@ -13,8 +13,8 @@ if ($clapTrapEnabled) {
             }
         }
 
-        show_window('Actual bot hook state', $clapTrapMgr->renderHookInfo($clapTrapMgr->getActualHookInfo()));
-        show_window('Install hook', $clapTrapMgr->renderInstallHookForm());
+        show_window(__('Actual bot hook state'), $clapTrapMgr->renderHookInfo($clapTrapMgr->getActualHookInfo()));
+        show_window(__('Install hook'), $clapTrapMgr->renderInstallHookForm());
         zb_BillingStats();
     } else {
         show_error(__('Access denied'));

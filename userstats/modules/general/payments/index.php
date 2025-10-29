@@ -4,10 +4,17 @@ function zbs_ShowUserPayments($login) {
     $usConfig = zbs_LoadConfig();
     if ($usConfig['PAYMENTS_ENABLED']) {
         $positiveFilter = false;
+        $depthLimit = 0;
+
         if (isset($usConfig['PAYMENTS_ONLYPOSITIVE']) AND $usConfig['PAYMENTS_ONLYPOSITIVE']) {
             $positiveFilter = true;
         }
-        $allpayments = zbs_CashGetUserPayments($login, $positiveFilter);
+
+        if (isset($usConfig['PAYMENTS_DEPTH_LIMIT']) AND $usConfig['PAYMENTS_DEPTH_LIMIT']) {
+            $depthLimit = $usConfig['PAYMENTS_DEPTH_LIMIT'];
+        }
+
+        $allpayments = zbs_CashGetUserPayments($login, $positiveFilter, $depthLimit);
 
         $cells = la_TableCell(__('Date'));
         $cells .= la_TableCell(__('Sum'));
