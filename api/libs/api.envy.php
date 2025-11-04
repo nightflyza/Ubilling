@@ -995,7 +995,7 @@ class Envy {
                 $recordData = $this->allConfigs[$recordId];
                 $this->archive->where('id', '=', $recordId);
                 $this->archive->delete();
-                log_register('ENVY DELETE ARCHIVE RECORD [' . $recordId . '] SWITCHID [' . $recordData['switchid'] . '] DATE `' . $recordData['date'] . '`');
+                log_register('ENVY DELETE ARCHIVE RECORD FOR SWITCHID [' . $recordData['switchid'] . '] DATE `' . $recordData['date'] . '`');
             } else {
                 $result .= __('Something went wrong') . ': EX_WRONGRECORDID [' . $recordId . ']';
             }
@@ -1197,7 +1197,7 @@ class Envy {
                 if ($archiveData['date'] != $lastConfigDate) {
                     $this->archive->where('id', '=', $recordId);
                     $this->archive->delete();
-                    log_register('ENVY CLEANUP ARCHIVE RECORD [' . $recordId . '] SWITCHID [' . $switchId . '] DATE `' . $archiveData['date'] . '`');
+                    log_register('ENVY CLEANUP ARCHIVE RECORD FOR SWITCHID [' . $switchId . '] DATE `' . $archiveData['date'] . '`');
                     $cleanupCounter++;
                 }
             }
