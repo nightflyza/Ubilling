@@ -181,11 +181,19 @@ class Warehouse {
     protected $sup = '';
 
     /**
-     * Recommended price flag
-     *
-     * @var bool
+     * Recommended price calculation mode 
+     *  0 - disabled, 1 - enabled, 2 - latest income price only, 3 - latest outcome price, 
+     *  4 - latest outcome price, if empty - latest income price
+     * @var int
      */
-    protected $recPriceFlag = false;
+    protected $recPriceFlag = 0;
+
+    /**
+     * Recommended or average prices caching timeout
+     *
+     * @var int
+     */
+    protected $pricesCachingTimeout = 86400;
 
     /**
      * Contains array of cached middle itemtype prices as itemtypeId=>price
@@ -289,7 +297,7 @@ class Warehouse {
         }
 
         if (isset($this->altCfg['WAREHOUSE_RECPRICE']) and $this->altCfg['WAREHOUSE_RECPRICE']) {
-            $this->recPriceFlag = true;
+            $this->recPriceFlag = $this->altCfg['WAREHOUSE_RECPRICE'];
         }
     }
 
@@ -1316,6 +1324,7 @@ class Warehouse {
                     $rows = wf_TableRow($cells, 'row1');
 
                     foreach ($employeeInventory as $eachInvId => $eachInvData) {
+                        $midPriceNotice = '';
                         $itemTypeId = $eachInvData['itemtypeid'];
                         $itemTypeCategory = $this->allCategories[$this->allItemTypes[$itemTypeId]['categoryid']];
                         $itemTypeName = $this->allItemTypeNames[$itemTypeId];
@@ -1323,15 +1332,29 @@ class Warehouse {
                         $itemTypeUnit = $this->allItemTypes[$itemTypeId]['unit'];
                         $itemTypeRecPrice = $this->getIncomeMiddlePrice($itemTypeId);
                         $midPriceLabel = ($this->recPriceFlag) ? __('recommended') : __('middle price');
-                        $midPriceNotice = wf_tag('abbr', false, '', 'title="' . $midPriceLabel . ': ' . $itemTypeRecPrice . '"') . '?' . wf_tag('abbr', true);
+                        $priceInputId = wf_InputId() . '_price_' . $itemTypeId;
+                        if ($this->recPriceFlag) {
+                            $priceClickValue = addcslashes((string) $itemTypeRecPrice, "\\'\"");
+                            $priceClickOptions = 'href="#" ';
+                            $priceClickOptions .= 'onclick="';
+                            $priceClickOptions .= 'event.preventDefault(); ';
+                            $priceClickOptions .= 'var priceInput = document.getElementById(\'' . $priceInputId . '\'); ';
+                            $priceClickOptions .= 'if (priceInput) { ';
+                            $priceClickOptions .= "priceInput.value = '{$priceClickValue}'; ";
+                            $priceClickOptions .= 'priceInput.focus(); ';
+                            $priceClickOptions .= '}"';
+                            $midPriceNotice .= wf_tag('a', false, '', $priceClickOptions) . $itemTypeRecPrice . wf_tag('a', true) . ' ';
+                        }
+                        $midPriceNotice .= wf_tag('abbr', false, '', 'title="' . $midPriceLabel . ': ' . $itemTypeRecPrice . '"') . '?' . wf_tag('abbr', true);
 
                         $cells = wf_TableCell($this->reserveGetCreationDate($eachInvId));
                         $cells .= wf_TableCell($itemTypeStorageId);
                         $cells .= wf_TableCell($itemTypeCategory);
                         $cells .= wf_TableCell($itemTypeName);
                         $cells .= wf_TableCell($eachInvData['count'] . ' ' . __($itemTypeUnit));
+                        $priceInput=wf_TextInput(self::PROUTE_MASSRESERVEOUT . '[' . $eachInvId . '][price]', $midPriceNotice, '', false, 3, 'finance', '', $priceInputId);
                         $cells .= wf_TableCell(wf_TextInput(self::PROUTE_MASSRESERVEOUT . '[' . $eachInvId . '][count]', $itemTypeUnit, '', false, 5, 'float'));
-                        $cells .= wf_TableCell(wf_TextInput(self::PROUTE_MASSRESERVEOUT . '[' . $eachInvId . '][price]', $midPriceNotice, '', false, 3, 'finance'));
+                        $cells .= wf_TableCell($priceInput);
                         $defaultNotePreset = '';
                         $cells .= wf_TableCell(wf_TextInput(self::PROUTE_MASSRESERVEOUT . '[' . $eachInvId . '][note]', '', $defaultNotePreset, false, 15));
                         $rows .= wf_TableRow($cells, 'row5');
@@ -4516,7 +4539,7 @@ class Warehouse {
      * @return float
      */
     public function getIncomeMiddlePrice($itemtypeId) {
-        $cacheTimeout = 2592000;
+        $cacheTimeout = $this->pricesCachingTimeout;
         if (empty($this->cachedPrices)) {
             $this->cachedPrices = $this->cache->get('WH_ITMPRICES', $cacheTimeout);
             if (empty($this->cachedPrices)) {
@@ -4531,6 +4554,8 @@ class Warehouse {
             //cache update is required
             $itemsCount = 0;
             $totalSumm = 0;
+            $latestIncomePrice = 0;
+            $latestOutcomePrice = 0;
             if (!empty($this->allIncoming)) {
                 foreach ($this->allIncoming as $io => $each) {
                     if ($each['itemtypeid'] == $itemtypeId) {
@@ -4538,19 +4563,22 @@ class Warehouse {
                             if ($each['contractorid'] != 0) { //ignoring move ops
                                 $totalSumm += ($each['price'] * $each['count']);
                                 $itemsCount += $each['count'];
+                                $latestIncomePrice = $each['price'];
                             }
                         }
                     }
                 }
             }
 
-            if ($this->recPriceFlag) {
+            //if recommended price calculation mode is enabled, we need to subtract outcome prices from total sum
+            if ($this->recPriceFlag==1 or $this->recPriceFlag==3 or $this->recPriceFlag==4) {
                 if (!empty($this->allOutcoming)) {
                     foreach ($this->allOutcoming as $io => $each) {
                         if ($each['itemtypeid'] == $itemtypeId) {
                             if ($each['price'] != 0) {
                                 $totalSumm -= (abs($each['price']) * $each['count']);
                                 $itemsCount -= $each['count'];
+                                $latestOutcomePrice = $each['price'];
                             }
                         }
                     }
@@ -4561,6 +4589,24 @@ class Warehouse {
                 $result = round($totalSumm / $itemsCount, 2);
             } else {
                 $result = round($totalSumm, 2);
+            }
+
+
+            // if recommended price calculation mode is set to latest income price only, 
+            // we need to return latest income price instead of calculated middle price
+            if ($this->recPriceFlag==2) {
+                $result = $latestIncomePrice;
+            }
+
+            // if recommended price calculation mode is set to latest outcome price only, 
+            // we need to return latest outcome price instead of calculated middle price
+            if ($this->recPriceFlag==3) {
+                $result = $latestOutcomePrice;
+            }
+
+            // if recommended price set to latest outcome price, if empty - latest income price
+            if ($this->recPriceFlag==4) {
+                $result = ($latestOutcomePrice != 0) ? $latestOutcomePrice : $latestIncomePrice;
             }
 
             $this->cachedPrices[$itemtypeId] = $result;
