@@ -1332,6 +1332,7 @@ class Warehouse {
                         $itemTypeUnit = $this->allItemTypes[$itemTypeId]['unit'];
                         $itemTypeRecPrice = $this->getIncomeMiddlePrice($itemTypeId);
                         $midPriceLabel = ($this->recPriceFlag) ? __('recommended') : __('middle price');
+                        $hintTitle = $midPriceLabel . ': ' . $itemTypeRecPrice;
                         $priceInputId = wf_InputId() . '_price_' . $itemTypeId;
                         if ($this->recPriceFlag) {
                             $priceClickValue = addcslashes((string) $itemTypeRecPrice, "\\'\"");
@@ -1342,18 +1343,21 @@ class Warehouse {
                             $priceClickOptions .= 'if (priceInput) { ';
                             $priceClickOptions .= "priceInput.value = '{$priceClickValue}'; ";
                             $priceClickOptions .= 'priceInput.focus(); ';
-                            $priceClickOptions .= '}"';
-                            $midPriceNotice .= wf_tag('a', false, '', $priceClickOptions) . $itemTypeRecPrice . wf_tag('a', true) . ' ';
+                            $priceClickOptions .= '}" ';
+                            $priceClickOptions .= 'title="' . $hintTitle . '"';
+                            $midPriceNotice .= wf_delimiter(0);
+                            $midPriceNotice .= wf_tag('a', false, '', $priceClickOptions) . $itemTypeRecPrice . wf_tag('a', true);
+                        } else {
+                            $midPriceNotice .= wf_tag('abbr', false, '', 'title="' . $hintTitle . '"') . '?' . wf_tag('abbr', true);
                         }
-                        $midPriceNotice .= wf_tag('abbr', false, '', 'title="' . $midPriceLabel . ': ' . $itemTypeRecPrice . '"') . '?' . wf_tag('abbr', true);
 
                         $cells = wf_TableCell($this->reserveGetCreationDate($eachInvId));
                         $cells .= wf_TableCell($itemTypeStorageId);
                         $cells .= wf_TableCell($itemTypeCategory);
                         $cells .= wf_TableCell($itemTypeName);
                         $cells .= wf_TableCell($eachInvData['count'] . ' ' . __($itemTypeUnit));
-                        $priceInput=wf_TextInput(self::PROUTE_MASSRESERVEOUT . '[' . $eachInvId . '][price]', $midPriceNotice, '', false, 3, 'finance', '', $priceInputId);
-                        $cells .= wf_TableCell(wf_TextInput(self::PROUTE_MASSRESERVEOUT . '[' . $eachInvId . '][count]', $itemTypeUnit, '', false, 5, 'float'));
+                        $priceInput=wf_TextInput(self::PROUTE_MASSRESERVEOUT . '[' . $eachInvId . '][price]', $midPriceNotice, '', false, 6, 'finance', '', $priceInputId);
+                        $cells .= wf_TableCell(wf_TextInput(self::PROUTE_MASSRESERVEOUT . '[' . $eachInvId . '][count]', $itemTypeUnit, '', false, 4, 'float'));
                         $cells .= wf_TableCell($priceInput);
                         $defaultNotePreset = '';
                         $cells .= wf_TableCell(wf_TextInput(self::PROUTE_MASSRESERVEOUT . '[' . $eachInvId . '][note]', '', $defaultNotePreset, false, 15));
