@@ -463,6 +463,7 @@ class PONizer {
     const URL_ONULIST = '?module=ponizer&onulist=true';
     const URL_USERPROFILE = '?module=userprofile&username=';
     const URL_ONU = '?module=ponizer&editonu=';
+    const ROUTE_GOTO_OLT='gotosomeoltid';
 
     /**
      * Views/stats coloring
@@ -2404,11 +2405,20 @@ class PONizer {
             $onuCurrentExtUsers = sizeof($onuExtUsers);
 
             $inputs = wf_HiddenInput('editonu', $onuId);
-            if ($this->altCfg['OLTSEL_SEARCHBL']) {
-                $inputs .= wf_SelectorSearchable('editoltid', $this->allOltDevices, __('OLT device') . $this->sup, $this->allOnu[$onuId]['oltid'], true, false);
-            } else {
-                $inputs .= wf_Selector('editoltid', $this->allOltDevices, __('OLT device') . $this->sup, $this->allOnu[$onuId]['oltid'], true, false);
+            $oltNavControl='';
+            if ($this->ponizerUseTabUI) {
+                if (isset($this->allOltDevices[$this->allOnu[$onuId]['oltid']])) {
+                    $oltNavIcon= wf_img('skins/pon_icon.gif', __('Go to OLT'), '16', '16');
+                    $oltNavControl =' '. wf_Link(self::URL_ONULIST . '&' . self::ROUTE_GOTO_OLT . '=' . $this->allOnu[$onuId]['oltid'], $oltNavIcon, false, '');
+                }
             }
+            if ($this->altCfg['OLTSEL_SEARCHBL']) {
+                $inputs .= wf_SelectorSearchable('editoltid', $this->allOltDevices, __('OLT device') . $this->sup, $this->allOnu[$onuId]['oltid'], false, false);
+            } else {
+                $inputs .= wf_Selector('editoltid', $this->allOltDevices, __('OLT device'). $this->sup, $this->allOnu[$onuId]['oltid'], false, false);
+            }
+            $inputs.= $oltNavControl;
+            $inputs .= wf_delimiter(0);
 
             $inputs .= wf_Selector('editonumodelid', $models, __('ONU model') . $this->sup, $this->allOnu[$onuId]['onumodelid'], true);
             if (@$this->altCfg['PON_ONUIPASIF']) {
@@ -2538,6 +2548,7 @@ class PONizer {
                 $delConfirmUrl = self::URL_ME . '&deleteonu=' . $onuId;
                 $result .= wf_ConfirmDialog($delConfirmUrl, web_delete_icon() . ' ' . __('Delete') . ' ' . __('ONU'), $messages->getDeleteAlert(), 'ubButton', $delCancelUrl);
             }
+
         } else {
             $result = wf_tag('div', false, 'alert_error') . __('Strange exeption') . ': ONUID_NOT_EXISTS' . wf_tag('div', true);
         }
@@ -2868,6 +2879,7 @@ class PONizer {
         $intCacheAvail = $this->oltData->isInterfacesAvailable();
         $lastDeregCacheAvail = $this->oltData->isDeregsAvailable();
         $oltOnuCounters = $this->getOltOnuCounts();
+        $gotoOltId = ubRouting::get(self::ROUTE_GOTO_OLT, 'int');
 
         $opts = '"order": [[ 0, "desc" ]]';
         if ($this->deferredLoadingFlag) {
@@ -3026,6 +3038,13 @@ class PONizer {
             $ponizerGrid .= wf_TabsCarouselInitLinking();
             $ponizerGrid .= wf_TabsGen('ui-tabs', $tabsList, $tabsData, $tabsDivOpts, $tabsLstOpts, true);
             $ponizerGrid .= $QuickOLTLinkInput;
+
+            //get route navigtion to specific OLT
+            if (!empty($gotoOltId) and isset($this->allOltDevices[$gotoOltId])) {
+                $ponizerGrid .= wf_tag('script', false, '', 'type="text/javascript"');
+                $ponizerGrid .= '$(function(){var t=$(\'a[href="#QuickOLTLinkID_' . $gotoOltId . '"]\');if(t.length){t.click();}});';
+                $ponizerGrid .= wf_tag('script', true);
+            }
             //rendering it
             show_window('', $ponizerGrid);
         } else {

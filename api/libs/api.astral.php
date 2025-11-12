@@ -3395,7 +3395,8 @@ function wf_BackLinkAuto($url, $title = '', $br = false, $class = 'ubButton', $o
  * Generates valid backURL encoded substring for wf_BackLinkAuto
  *
  * @param string $url
- * @return void
+ * 
+ * @return string
  */
 function wf_GenBackUrl($url) {
     $result = '&backurl=' . base64_encode($url);
