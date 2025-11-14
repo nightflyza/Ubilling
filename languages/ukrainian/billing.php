@@ -3623,3 +3623,6 @@ $lang['def']['Show all'] = 'Показати всі';
 $lang['def']['all'] = 'всі';
 $lang['def']['Move tariff after'] = 'Замінити тариф після';
 $lang['def']['Custom location'] = 'Власне розташування';
+$lang['def']['Deep search'] = 'Глибокий пошук';
+$lang['def']['latest'] = 'останні';
+$lang['def']['events'] = 'події';

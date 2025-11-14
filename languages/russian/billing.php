@@ -3603,3 +3603,6 @@ $lang['def']['right to control contrahens assign overrides'] = 'Право ко�
 $lang['def']['Show all'] = 'Показать все';
 $lang['def']['all'] = 'все';
 $lang['def']['Custom location'] = 'Собственная локация';
+$lang['def']['Deep search'] = 'Глубокий поиск';
+$lang['def']['latest'] = 'последние';
+$lang['def']['events'] = 'событий';

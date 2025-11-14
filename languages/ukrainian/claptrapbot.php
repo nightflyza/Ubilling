@@ -47,7 +47,6 @@ $lang['def']['Wait for'] = 'Зачекайте';
 $lang['def']['to continue'] = 'для продовження';
 $lang['def']['Announcements available'] = 'Наявні оголошення';
 $lang['def']['No important announcements found'] = 'Немає важливих оголошень';
-$lang['def']['latest'] = 'останні';
 $lang['def']['Mark all as read'] = 'Відмітити всі як прочитані';
 $lang['def']['All announcements marked as read'] = 'Всі оголошення відмічені як прочитані';
 $lang['def']['Show more payments'] = 'Показати більше платежів';

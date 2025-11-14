@@ -5,8 +5,8 @@ if (cfr('LIFESTORY')) {
         $login = ubRouting::get('username', 'login');
 
 //weblogs user parsing    
-        $searchType = (ubRouting::checkGet('strict')) ? true : false;
-        $form = web_GrepLogByUser($login, $searchType);
+        $deepSearch = (ubRouting::checkGet('deep')) ? true : false;
+        $form = web_GrepLogByUser($login, $deepSearch);
 
 //raw database fields display
         if (cfr('ROOT')) {
@@ -34,15 +34,26 @@ if (cfr('LIFESTORY')) {
             }
         }
 
-        if (ubRouting::checkGet('strict')) {
-            $form .= wf_Link('?module=lifestory&username=' . $login, wf_img('skins/icon_search_small.gif') . ' ' . __('Normal search'), false, 'ubButton');
-        } else {
-            $form .= wf_Link('?module=lifestory&username=' . $login . '&strict=true', wf_img('skins/track_icon.png') . ' ' . __('Strict search'), false, 'ubButton');
+        $lifestoryDefaultDepth = $ubillingConfig->getAlterParam('LIFESTORY_DEFAULT_DEPTH', 0);
+        if ($lifestoryDefaultDepth > 0) {
+            if (!ubRouting::checkGet('deep')) {
+                $form .= wf_Link('?module=lifestory&username=' . $login . '&deep=true', wf_img('skins/track_icon.png') . ' ' . __('Deep search'), false, 'ubButton');
+            } else {
+                $form .= wf_Link('?module=lifestory&username=' . $login , wf_img('skins/icon_search_small.gif') . ' ' . __('Normal search'), false, 'ubButton');
+            }
         }
 
         $form .= wf_delimiter() . web_UserControls($login);
 
-        show_window(__('User lifestory'), $form);
+        $wTitle=__('User lifestory');
+        if ($lifestoryDefaultDepth > 0) {
+            if ($deepSearch) {
+                $wTitle .= ', '.__('all').' '.__('events');
+            } else {
+                $wTitle .= ', '.__('latest') . ' ' . $lifestoryDefaultDepth . ' '.__('events');
+            }
+        }
+        show_window($wTitle, $form);
     } else {
         show_error(__('Strange exception') . ': GET_NO_USERNAME');
     }

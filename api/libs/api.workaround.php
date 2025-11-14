@@ -1267,13 +1267,24 @@ function web_PaymentsByUser($login) {
  * Returns actions performed on user parsed from log
  * 
  * @param string $login
- * @param bool   $strict
+ * @param bool   $deepSearch
+ * 
  * @return string
  */
-function web_GrepLogByUser($login, $strict = false) {
-    $login = ($strict) ? '(' . $login . ')' : $login;
-    @$employeeNames = unserialize(ts_GetAllEmployeeLoginsCached());
-    $query = 'SELECT * from `weblogs` WHERE `event` LIKE "%' . $login . '%" ORDER BY `date` DESC';
+function web_GrepLogByUser($login, $deepSearch = false) {
+    global $ubillingConfig;
+    $defaultDepth = $ubillingConfig->getAlterParam('LIFESTORY_DEFAULT_DEPTH', 0);
+    $login = ubRouting::filters($login, 'login');
+    $login = '(' . $login . ')';
+    @$employeeNames = ts_GetAllEmployeeLoginsAssocCached();
+    $query = 'SELECT * FROM `weblogs` 
+        WHERE MATCH(`event`) AGAINST ("+'.$login.'" IN BOOLEAN MODE)
+        ORDER BY `date` DESC';
+
+        if ($defaultDepth > 0 and !$deepSearch) {
+            $query .= ' LIMIT '.$defaultDepth;
+        }
+
     $allevents = simple_queryall($query);
     $cells = wf_TableCell(__('ID'));
     $cells .= wf_TableCell(__('Who?'));
