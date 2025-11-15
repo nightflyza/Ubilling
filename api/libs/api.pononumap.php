@@ -382,7 +382,7 @@ class PONONUMap {
      * 
      * @return string
      */
-    protected function getPlacemarks($geoArray, $buildsClusterer = false) {
+    public function getPlacemarks($geoArray, $buildsClusterer = false) {
         $result = '';
         if (!empty($geoArray)) {
             foreach ($geoArray as $eachGeo => $geoData) {
@@ -426,9 +426,11 @@ class PONONUMap {
     /**
      * Renders ONU signals Map 
      * 
-     * @return string
+     * @param bool $getOnlyPlacemarks If true, only placemarks will be returned, without map and controls
+     * 
+     * @return string|array
      */
-    public function renderOnuMap() {
+    public function renderOnuMap($getOnlyPlacemarks = false) {
         $result = '';
         $allOnu = $this->ponizer->getAllOnu();
         $allOnuSignals = $this->ponizer->getAllONUSignals();
@@ -443,7 +445,6 @@ class PONONUMap {
         $renderBuilds = array();
         $result .= generic_MapContainer('', '', 'ponmap');
         if (!empty($allOnu)) {
-
             foreach ($allOnu as $io => $eachOnu) {
                 if (!empty($eachOnu['login'])) {
                     if (isset($this->allUserData[$eachOnu['login']])) {
@@ -460,8 +461,10 @@ class PONONUMap {
                             $onuControls = $this->getONUControls($eachOnu['id'], $eachOnu['login'], $userData['geo']);
                             $onuTitle = $userData['fulladress'];
                             $deregState = '';
-                            if ($onuSignal == 'NO' or $onuSignal == 'Offline' or $onuSignal == '-9000') {
+                            $signalState= true;
+                            if ($onuSignal == 'NO' or $onuSignal == 'Offline' or $onuSignal == '-9000' or $onuSignal == __('No')) {
                                 $signalLabel = __('No signal');
+                                $signalState = false;
                                 if (isset($allDeregReasons[$eachOnu['login']])) {
                                     $deregLabel = $allDeregReasons[$eachOnu['login']]['styled'];
                                     $deregState = $allDeregReasons[$eachOnu['login']]['raw'];
@@ -493,6 +496,8 @@ class PONONUMap {
                                 }
 
                                 $renderBuilds[$onuGeo][] = array(
+                                    'onuid' => $eachOnu['id'],
+                                    'signalstate' => $signalState,
                                     'geo' => $onuGeo,
                                     'streetbuild' => $userData['streetname'] . ' ' . $userData['buildnum'],
                                     'apt' => $userData['apt'],
@@ -527,8 +532,10 @@ class PONONUMap {
                         $onuSignal = (!empty($onuSignalData)) ? $onuSignalData['raw'] : 'NO';
                         $onuIcon = $this->getIconCustom($onuSignal);
                         $onuControls = $this->getONUControls($eachOnu['id'], '', '');
-
-                        if ($onuSignal == 'NO' or $onuSignal == 'Offline' or $onuSignal == '-9000') {
+                        $signalState= true;
+                        
+                        if ($onuSignal == 'NO' or $onuSignal == 'Offline' or $onuSignal == '-9000' or $onuSignal == __('No')) {
+                            $signalState = false;
                             $signalLabel = __('No signal');
                             if (isset($allDeregReasons[$eachOnu['login']])) {
                                 $deregLabel = $allDeregReasons[$eachOnu['login']]['styled'];
@@ -553,6 +560,8 @@ class PONONUMap {
                         }
 
                         $renderBuilds[$onuGeo][] = array(
+                            'onuid' => $eachOnu['id'],
+                            'signalstate' => $signalState,
                             'geo' => $onuGeo,
                             'streetbuild' => '',
                             'apt' => '',
@@ -586,16 +595,22 @@ class PONONUMap {
         }
 
 
-        $result .= generic_MapInit($mapCenter, $this->mapsCfg['ZOOM'], $this->mapsCfg['TYPE'], $placemarks, $editor, $this->mapsCfg['LANG'], 'ponmap');
-        //some stats here
-        $result .= $this->messages->getStyledMessage(__('Total') . ' ' . __('ONU') . ': ' . $totalOnuCount, 'info');
-        $result .= $this->messages->getStyledMessage(__('ONU rendered on map') . ': ' . $marksRendered, 'success');
-        if ($marksNoGeo > 0) {
-            $result .= $this->messages->getStyledMessage(__('User builds not placed on map') . ': ' . $marksNoGeo, 'warning');
-        }
+        if (!$getOnlyPlacemarks) {
+            $result .= generic_MapInit($mapCenter, $this->mapsCfg['ZOOM'], $this->mapsCfg['TYPE'], $placemarks, $editor, $this->mapsCfg['LANG'], 'ponmap');
+            //some stats here
+            $result .= $this->messages->getStyledMessage(__('Total') . ' ' . __('ONU') . ': ' . $totalOnuCount, 'info');
+            $result .= $this->messages->getStyledMessage(__('ONU rendered on map') . ': ' . $marksRendered, 'success');
+            if ($marksNoGeo > 0) {
+                $result .= $this->messages->getStyledMessage(__('User builds not placed on map') . ': ' . $marksNoGeo, 'warning');
+            }
 
-        if ($marksNoUser > 0) {
-            $result .= $this->messages->getStyledMessage(__('ONU without assigned user') . ': ' . $marksNoUser, 'warning');
+            if ($marksNoUser > 0) {
+                $result .= $this->messages->getStyledMessage(__('ONU without assigned user') . ': ' . $marksNoUser, 'warning');
+            }
+        } else {
+            $result = array();
+            $result['placemarks'] = $placemarks;
+            $result['builds'] = $renderBuilds;
         }
 
         return ($result);

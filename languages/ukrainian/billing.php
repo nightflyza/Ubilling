@@ -3626,3 +3626,4 @@ $lang['def']['Custom location'] = 'Власне розташування';
 $lang['def']['Deep search'] = 'Глибокий пошук';
 $lang['def']['latest'] = 'останні';
 $lang['def']['events'] = 'події';
+$lang['def']['Just'] = 'Просто';
