@@ -1244,7 +1244,7 @@ class FundsFlow {
      * 
      * @return string
      */
-    public function getOnlineLeftCount($login, $rawDays = false, $includeVServices = false) {
+    public function getOnlineLeftCount($login, $rawDays = false, $includeVServices = false, $backControl = false) {
         $userData = zb_UserGetStargazerData($login);
         $balanceExpire = '';
         if (!empty($userData)) {
@@ -1261,6 +1261,10 @@ class FundsFlow {
                 $tariffData['name'] = '*_NO_TARIFF_*';
                 $tariffData['Fee'] = 0;
                 $tariffData['period'] = 'month';
+            }
+
+            if ($backControl) {
+                $balanceExpire .= wf_BackLink(UserProfile::URL_PROFILE . $login);
             }
 
             $tariffFee = $tariffData['Fee'];
@@ -1347,14 +1351,14 @@ class FundsFlow {
                 }
 
 
-                $balanceExpire = wf_tag('span', false, 'alert_info');
+                $balanceExpire .= wf_tag('span', false, 'alert_info');
                 $balanceExpire .= __('Current Cash state') . ': ' . wf_tag('b') . $userBalanceRaw . wf_tag('b', true) . ', ' . __('which should be enough for another');
                 $balanceExpire .= ' ' . $daysLabel . ' ' . __('days') . ' ' . __('of service usage') . ' ';
                 $balanceExpire .= __('or enought till the') . ' ' . $dateLabel . ' ';
                 $balanceExpire .= __('according to the tariff') . ' ' . $userTariff . (($includeVServices) ? ' + ' . __('virtual services') : '') . ' (' . $tariffFee . ' / ' . __($tariffPeriod) . ')';
                 $balanceExpire .= wf_tag('span', true);
             } else {
-                $balanceExpire = wf_tag('span', false, 'alert_warning') . __('Current Cash state') . ': ' . wf_tag('b') . $userBalanceRaw . wf_tag('b', true);
+                $balanceExpire .= wf_tag('span', false, 'alert_warning') . __('Current Cash state') . ': ' . wf_tag('b') . $userBalanceRaw . wf_tag('b', true);
                 $balanceExpire .= ', ' . __('indebtedness') . '!' . ' ' . wf_tag('span', true);
             }
 

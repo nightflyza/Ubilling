@@ -1273,6 +1273,8 @@ function web_PaymentsByUser($login) {
  */
 function web_GrepLogByUser($login, $deepSearch = false) {
     global $ubillingConfig;
+    $result = '';
+    $messages = new UbillingMessageHelper();
     $defaultDepth = $ubillingConfig->getAlterParam('LIFESTORY_DEFAULT_DEPTH', 0);
     $login = ubRouting::filters($login, 'login');
     $login = '(' . $login . ')';
@@ -1286,13 +1288,14 @@ function web_GrepLogByUser($login, $deepSearch = false) {
         }
 
     $allevents = simple_queryall($query);
-    $cells = wf_TableCell(__('ID'));
-    $cells .= wf_TableCell(__('Who?'));
-    $cells .= wf_TableCell(__('When?'));
-    $cells .= wf_TableCell(__('What happen?'));
-    $rows = wf_TableRow($cells, 'row1');
-
+    
     if (!empty($allevents)) {
+        $cells = wf_TableCell(__('ID'));
+        $cells .= wf_TableCell(__('Who?'));
+        $cells .= wf_TableCell(__('When?'));
+        $cells .= wf_TableCell(__('What happen?'));
+        $rows = wf_TableRow($cells, 'row1');
+
         foreach ($allevents as $io => $eachevent) {
             $adminName = (isset($employeeNames[$eachevent['admin']])) ? $employeeNames[$eachevent['admin']] : $eachevent['admin'];
             $idLabel = wf_tag('abbr', false, '', 'title="' . $eachevent['ip'] . '"') . $eachevent['id'] . wf_tag('abbr', true);
@@ -1303,8 +1306,78 @@ function web_GrepLogByUser($login, $deepSearch = false) {
             $cells .= wf_TableCell($eachevent['event']);
             $rows .= wf_TableRow($cells, 'row5');
         }
+        $result .= wf_TableBody($rows, '100%', 0, 'sortable');
+    } else {
+        $result = $messages->getStyledMessage(__('Nothing to show'), 'warning');
     }
-    $result = wf_TableBody($rows, '100%', 0, 'sortable');
+    
+    return ($result);
+}
+
+/**
+ * Renders recursively some array with some key=>value pairs as HTML table
+ *
+ * @param array $dataArray
+ * @param bool $renderHeaders
+ * 
+ * @return string
+ */
+function web_RenderSomeArrayAsTable($dataArray, $renderHeaders = false) {
+    static $renderDepth = 0;
+    $renderDepth++;
+    $result = '';
+
+    if (!empty($dataArray) and is_array($dataArray)) {
+        $rows = '';
+
+        if ($renderHeaders) {
+            $headerCells = wf_TableCell(__('Key'));
+            $headerCells .= wf_TableCell(__('Value'));
+            $rows .= wf_TableRow($headerCells, 'row1');
+        }
+
+        foreach ($dataArray as $key => $value) {
+            $cells = wf_TableCell($key);
+
+            if (is_array($value)) {
+                $cellValue = web_RenderSomeArrayAsTable($value, $renderHeaders);
+            } else {
+                if (is_bool($value)) {
+                    $cellValue = ($value) ? __('Yes') : __('No');
+                } elseif (is_null($value)) {
+                    $cellValue = 'NULL';
+                } elseif (is_object($value)) {
+                    $cellValue = json_encode($value);
+                    if ($cellValue === false) {
+                        $cellValue = get_class($value);
+                    }
+                } elseif (is_resource($value)) {
+                    $cellValue = __('Resource');
+                } else {
+                    $cellValue = (string) $value;
+                }
+
+                if ($cellValue === '') {
+                    $cellValue = wf_nbsp();
+                }
+            }
+
+            $cells .= wf_TableCell($cellValue);
+            $rows .= wf_TableRow($cells, 'row3');
+        }
+
+        $tableClass = ($renderHeaders) ? 'sortable' : 'empty';
+        $result = wf_TableBody($rows, '100%', 0, $tableClass);
+    } else {
+        if ($renderDepth === 1) {
+            $messages = new UbillingMessageHelper();
+            $result = $messages->getStyledMessage(__('Nothing to show'), 'warning');
+        } else {
+            $result = __('Nothing to show');
+        }
+    }
+
+    $renderDepth--;
     return ($result);
 }
 
