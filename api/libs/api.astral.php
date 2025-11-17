@@ -4868,3 +4868,61 @@ function wf_SliderInput($name, $label = '', $value = '', $min = 0, $max = 100, $
 
     return ($result);
 }
+
+
+/**
+ * Generates responsive flex layout grid for content elements
+ *
+ * @param array $contentArray array of content elements to display
+ * @param int $inRow number of elements per row on desktop screens
+ * @param string $maxWidth maximum width of the grid
+ *
+ * @return string
+ */
+function wf_FlexContentGrid($contentArray, $inRow = 2,$maxWidth = '1280px') {
+    $result = '';
+    $containerId = 'flexgrid_' . wf_InputId();
+    
+    $gap = 10;
+    $gapsCount = $inRow - 1;
+    $totalGaps = $gap * $gapsCount;
+    $flexBasis = 'calc((100% - ' . $totalGaps . 'px) / ' . $inRow . ')';
+    
+    $result .= wf_tag('style');
+    $result .= '
+        #' . $containerId . ' {
+            display: flex;
+            flex-wrap: wrap;
+            gap: ' . $gap . 'px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        
+        #' . $containerId . ' .flexgrid-item {
+            flex: 0 0 ' . $flexBasis . ';
+            max-width: ' . $flexBasis . ';
+            min-width: 0;
+            box-sizing: border-box;
+        }
+        
+        @media (max-width: ' . $maxWidth . ') {
+            #' . $containerId . ' .flexgrid-item {
+                flex: 0 0 100% !important;
+                max-width: 100% !important;
+            }
+        }
+    ';
+    $result .= wf_tag('style', true);
+    
+    $result .= wf_tag('div', false, '', 'id="' . $containerId . '"');
+    
+    foreach ($contentArray as $eachContent) {
+        $result .= wf_tag('div', false, '', 'class="flexgrid-item"');
+        $result .= $eachContent;
+        $result .= wf_tag('div', true);
+    }
+    
+    $result .= wf_tag('div', true);
+    
+    return ($result);
+}

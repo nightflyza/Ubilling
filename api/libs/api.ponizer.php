@@ -2464,12 +2464,19 @@ class PONizer {
                 $inputs .= wf_Submit(__('Save'));
             }
 
-            $onuEditForm = wf_Form('', 'POST', $inputs, 'glamour');
+            $onuEditForm = wf_Form('', 'POST', $inputs, 'onueditsbig');
+
+            /**
             $gridCells = wf_TableCell($onuEditForm . wf_CleanDiv(), '50%', '');
             $gridCells .= wf_TableCell($this->renderOnuSignalBig($onuId));
             $gridRows = wf_TableRow($gridCells);
-
             $result = wf_TableBody($gridRows, '100%', 0, '');
+            
+            */
+
+            $contentGrid=array($onuEditForm, $this->renderOnuSignalBig($onuId));
+            
+            $result .= wf_FlexContentGrid($contentGrid,2);
             $result .= wf_CleanDiv();
 
             ///ponboxes here. We hope.
@@ -2572,7 +2579,12 @@ class PONizer {
      */
     protected function onuSignalHistory($onuId, $ShowTitle = false, $ShowXLabel = false, $ShowYLabel = false, $ShowRangeSelector = false) {
         $billCfg = $this->ubConfig->getBilling();
-        $onuId = vf($onuId, 3);
+        $chartsWidth = '90%';
+        $chartsHeight = '300';
+        if ($this->ONUChartsSpoilerClosed) {
+            $chartsWidth = '800';
+        }
+        $onuId = ubRouting::filters($onuId, 'int');
         $result = '';
         if (isset($this->allOnu[$onuId])) {
             //not empty MAC
@@ -2610,7 +2622,7 @@ class PONizer {
                     $GraphTitle = ($ShowTitle) ? __('Today') : '';
                     $GraphXLabel = ($ShowXLabel) ? __('Time') : '';
                     $GraphYLabel = ($ShowYLabel) ? __('Signal') : '';
-                    $result .= wf_Graph($todaySignal, '800', '300', false, $GraphTitle, $GraphXLabel, $GraphYLabel, $ShowRangeSelector);
+                    $result .= wf_Graph($todaySignal, $chartsWidth, $chartsHeight, false, $GraphTitle, $GraphXLabel, $GraphYLabel, $ShowRangeSelector);
                     $result .= wf_delimiter(2);
 
                     //current month signal levels
@@ -2630,12 +2642,12 @@ class PONizer {
                     $GraphTitle = ($ShowTitle) ? __('Monthly graph') : '';
                     $GraphXLabel = ($ShowXLabel) ? __('Date') : '';
                     file_put_contents($historyKeyMonth, $monthSignal);
-                    $result .= wf_GraphCSV($historyKeyMonth, '800', '300', false, $GraphTitle, $GraphXLabel, $GraphYLabel, $ShowRangeSelector);
+                    $result .= wf_GraphCSV($historyKeyMonth, $chartsWidth, $chartsHeight, false, $GraphTitle, $GraphXLabel, $GraphYLabel, $ShowRangeSelector);
                     $result .= wf_delimiter(2);
 
                     //all time signal history
                     $GraphTitle = ($ShowTitle) ? __('All time graph') : '';
-                    $result .= wf_GraphCSV($historyKey, '800', '300', false, $GraphTitle, $GraphXLabel, $GraphYLabel, $ShowRangeSelector);
+                    $result .= wf_GraphCSV($historyKey, $chartsWidth, $chartsHeight, false, $GraphTitle, $GraphXLabel, $GraphYLabel, $ShowRangeSelector);
                     $result .= wf_delimiter();
                 }
             }
@@ -2856,12 +2868,13 @@ class PONizer {
      * Returns ONU signal history chart
      *
      * @param int $onuId
+     * 
      * @return string
      */
-    public function loadonuSignalHistory($onuId, $ReturnInSpoiler) {
-        $result = $this->onuSignalHistory($onuId, true, true, true, true);
+    public function loadonuSignalHistory($onuId) {
+        $result = $this->onuSignalHistory($onuId, true, true, false, true);
 
-        if ($ReturnInSpoiler) {
+        if ($this->ONUChartsSpoilerClosed) {
             $result = wf_Spoiler($result, __('Signal levels history graphs'), $this->ONUChartsSpoilerClosed, '', '', '', '', 'style="margin: 10px auto;display: table;"');
         }
 

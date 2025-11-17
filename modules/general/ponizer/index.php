@@ -328,7 +328,7 @@ if ($altCfg['PON_ENABLED']) {
             //show ONU editing interface aka ONU profile
             show_window(__('Edit'), $pon->onuEditForm(ubRouting::get('editonu')));
             show_window(__('ONU FDB'), $pon->renderOltFdbList(ubRouting::get('editonu')));
-            $pon->loadonuSignalHistory(ubRouting::get('editonu'), true);
+            $pon->loadonuSignalHistory(ubRouting::get('editonu'));
         }
 
         //Rendering all OLTs ONUs list and main module controls

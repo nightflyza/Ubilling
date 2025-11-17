@@ -99,7 +99,7 @@ if (cfr('BRANCHESONUVIEW')) {
                             //show ONU editing interface aka ONU profile
                             show_window(__('Edit'), $pon->onuEditForm(ubRouting::get('editonu'), true));
                             show_window(__('ONU FDB'), $pon->renderOltFdbList(ubRouting::get('editonu'), '?module=pl_branchesonuview&ajaxoltfdb=true&onuid='));
-                            $pon->loadonuSignalHistory(ubRouting::get('editonu'), true);
+                            $pon->loadonuSignalHistory(ubRouting::get('editonu'));
                             zb_BillingStats(true);
                         } else {
                             show_error(__('Access denied'));

@@ -358,6 +358,7 @@ class UBMessenger {
      */
     public function pinContact($adminLogin) {
         $myLogin = $this->myLogin;
+        $adminLogin = ubRouting::filters($adminLogin, 'mres');
         $this->pinnedDb->data('login', $myLogin);
         $this->pinnedDb->data('pinned', $adminLogin);
         $this->pinnedDb->create();
@@ -374,6 +375,7 @@ class UBMessenger {
      */
     public function unpinContact($adminLogin) {
         $myLogin = $this->myLogin;
+        $adminLogin = ubRouting::filters($adminLogin, 'mres');
         $this->pinnedDb->where('login', '=', $myLogin);
         $this->pinnedDb->where('pinned', '=', $adminLogin);
         $this->pinnedDb->delete();

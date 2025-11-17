@@ -202,11 +202,14 @@ class ADcomments {
      */
     protected function commentAddForm() {
         $result = '';
-        $inputs = wf_TextArea(self::PROUTE_NEW_TEXT, '', '', true, $this->textAreaSize);
+
+        $inputs = wf_tag('textarea', false, '', 'name="' . self::PROUTE_NEW_TEXT . '" id="' . self::PROUTE_NEW_TEXT . '"');
+        $inputs .= wf_tag('textarea', true);
+        $inputs .= wf_delimiter(0);
         $inputs .= wf_Submit(__('Save'));
 
-        $result .= wf_tag('div', false, '', 'style="float:left;"');
-        $result .= wf_Form('', 'POST', $inputs, 'glamour');
+        $result .= wf_tag('div', false, '', 'style="float:left; width: 100%;"');
+        $result .= wf_Form('', 'POST', $inputs, 'flatform');
         $result .= wf_tag('div', true);
 
         //princess fast reply form if its enabled?
