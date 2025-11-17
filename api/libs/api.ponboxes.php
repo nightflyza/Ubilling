@@ -345,7 +345,12 @@ class PONBoxes {
             $inputs .= wf_Submit(__('Save'));
             $result .= wf_Form('', 'POST', $inputs, 'glamour');
             $result .= wf_delimiter(0);
-            $result .= wf_BackLink(self::URL_ME);
+            $result .= wf_BackLink(self::URL_ME).' ';
+            //maps navigation controls
+            if (!empty($boxData['geo'])) {
+                $result .= wf_Link(self::URL_ME . '&' . self::ROUTE_MAP . '=true&' . self::ROUTE_PLACEFIND . '=' . $boxData['geo'], wf_img_sized('skins/icon_search_small.gif').' '.__('Find on map'), false, 'ubButton').' ';
+                $result .= wf_Link(self::URL_ME . '&' . self::ROUTE_MAP . '=true&' . self::ROUTE_PLACEFIND . '=' . $boxData['geo'].'&' . self::ROUTE_ONULINKS . '=true', wf_img('skins/ymaps/uplinks.png') . ' ' . __('Show links'), false, 'ubButton');
+            }
             if (!$this->isBoxProtected($boxId)) {
                 $boxDelControlUrl = self::URL_ME . '&' . self::ROUTE_BOXDEL . '=' . $boxId;
                 $boxDelCancelUrl = self::URL_ME . '&' . self::ROUTE_BOXEDIT . '=' . $boxId;
@@ -355,7 +360,7 @@ class PONBoxes {
                 $result .= wf_Link($mapPlaceUrl, wf_img('skins/ymaps/target.png') . ' ' . __('Place on map'), false, 'ubButton');
             } else {
                 $result.=wf_delimiter(1);
-                $result .= $this->renderBoxesMiniMap($boxData['geo']);
+                $result .= $this->renderBoxesMiniMap($boxData['geo'], $boxId);
             }
         } else {
             $result .= $this->messages->getStyledMessage(__('Something went wrong') . ': ' . __('box') . ' [' . $boxId . '] ' . __('Not exists'), 'error');
@@ -603,9 +608,11 @@ class PONBoxes {
     /**
      * Renders ONU links placemarks for map
      * 
+     * @param int $ponBoxIdFilter
+     * 
      * @return string
      */
-    protected function renderOnuLinks() {
+    protected function renderOnuLinks($ponBoxIdFilter=0) {
         $result = '';
         $ponOnu = new NyanORM(self::TABLE_PONONU);
         $allOnuData = $ponOnu->getAll('id');
@@ -617,6 +624,10 @@ class PONBoxes {
         $onuBuilds = $onuPlacemarksRaw['builds'];
         $placemarks = $onuPlacemarksRaw['placemarks'];
        
+        if ($ponBoxIdFilter > 0) {
+            $filteredBuilds = array();
+        }
+       
         if (!empty($onuBuilds)) {
             foreach ($onuBuilds as $eachGeo => $eachBuild) {
                 if (!empty($eachBuild)) {
@@ -625,27 +636,41 @@ class PONBoxes {
                             $onuId = $eachBuildOnu['onuid'];
                             $onuData = @$allOnuData[$onuId];
                             if (!empty($onuData)) {
-                            $signalState = $eachBuildOnu['signalstate'];
-                            $linkedBoxes = $this->getLinkedBoxes($onuData);
-                            if (!empty($linkedBoxes) and $onuData) {
-                            
-                            if ($signalState) {
-                                $linkColor= PONizer::COLOR_OK;
-                            } else {
-                                $linkColor= PONizer::COLOR_BAD;
-                            }
+                                $signalState = $eachBuildOnu['signalstate'];
+                                $linkedBoxes = $this->getLinkedBoxes($onuData);
+                                if (!empty($linkedBoxes) and $onuData) {
+                                    
+                                    if ($ponBoxIdFilter > 0) {
+                                        if (!isset($linkedBoxes[$ponBoxIdFilter])) {
+                                            continue;
+                                        }
+                                        if (!isset($filteredBuilds[$eachGeo])) {
+                                            $filteredBuilds[$eachGeo] = array();
+                                        }
+                                        $filteredBuilds[$eachGeo][] = $eachBuildOnu;
+                                    }
+                                    
+                                    if ($signalState) {
+                                        $linkColor= PONizer::COLOR_OK;
+                                    } else {
+                                        $linkColor= PONizer::COLOR_BAD;
+                                    }
 
-                            foreach ($linkedBoxes as $eachLinkedBoxId => $eachLinkedBoxId) {
-                                $linkedBoxData = @$this->allBoxes[$eachLinkedBoxId];
-                                $onuGeo = $eachBuildOnu['geo'];
-                                if (!empty($linkedBoxData)) {
-                                    $boxGeo = $linkedBoxData['geo'];
-                                    if ($boxGeo and $onuGeo) {
-                                     $linkHint= __('Box') . ': ' . $linkedBoxData['name'].' ➜ '.__('ONU').': '.$eachBuildOnu['buildtitle'];
-                                     $linkMarks.=generic_mapAddLine($onuGeo, $boxGeo, $linkColor, $linkHint, 2);
+                                    foreach ($linkedBoxes as $eachLinkedBoxId => $eachLinkedBoxId) {
+                                        if ($ponBoxIdFilter > 0 and $eachLinkedBoxId != $ponBoxIdFilter) {
+                                            continue;
+                                        }
+                                        $linkedBoxData = @$this->allBoxes[$eachLinkedBoxId];
+                                        $onuGeo = $eachBuildOnu['geo'];
+                                        if (!empty($linkedBoxData)) {
+                                            $boxGeo = $linkedBoxData['geo'];
+                                            if ($boxGeo and $onuGeo) {
+                                                $linkHint= __('Box') . ': ' . $linkedBoxData['name'].' ➜ '.__('ONU').': '.$eachBuildOnu['buildtitle'];
+                                                $linkMarks.=generic_mapAddLine($onuGeo, $boxGeo, $linkColor, $linkHint, 2);
+                                            }
+                                        }
                                     }
                                 }
-                            }
                             }
                         }
                     }
@@ -653,7 +678,10 @@ class PONBoxes {
                 }
             }
         }
-    }
+
+        if ($ponBoxIdFilter > 0 and !empty($filteredBuilds)) {
+            $placemarks = $pononumap->getPlacemarks($filteredBuilds, false);
+        }
 
         $result.=$linkMarks;
         $result.=$placemarks;
@@ -675,6 +703,7 @@ class PONBoxes {
         if (!empty($this->allBoxes)) {
             $mapContainer = 'ponboxmap';
             $mapCenter = $mapsCfg['CENTER'];
+            $mapZoom = $mapsCfg['ZOOM'];
             $result .= generic_MapContainer('100%', '800px', $mapContainer);
             $placemarks = '';
             $editor = '';
@@ -691,18 +720,22 @@ class PONBoxes {
             if (ubRouting::checkGet(self::ROUTE_PLACEFIND)) {
                 $findBoxGeo = ubRouting::get(self::ROUTE_PLACEFIND);
                 $radius = 30;
+                $mapZoom = $mapsCfg['FINDING_ZOOM'];
                 $mapCenter = $findBoxGeo;
                 $placemarks .= generic_mapAddCircle($findBoxGeo, $radius, __('Search area radius') . ' ' . $radius . ' ' . __('meters'), __('Search area'));
             }
 
             foreach ($this->allBoxes as $io => $each) {
                 if (!empty($each['geo'])) {
-                    $boxLink = trim(wf_Link(self::URL_ME . '&' . self::ROUTE_BOXEDIT . '=' . $each['id'], web_edit_icon()));
-                    $placemarks .= generic_mapAddMark($each['geo'], '', $each['name'] . ' ' . $boxLink, '', '', '', true);
+                    $boxLinks = '';
+                    $boxLinks = trim(wf_Link(self::URL_ME . '&' . self::ROUTE_BOXEDIT . '=' . $each['id'], web_edit_icon())).' ';
+                    $boxLinks .= trim(wf_Link(self::URL_ME . '&' . self::ROUTE_MAP . '=true&' . self::ROUTE_PLACEFIND . '=' . $each['geo'], wf_img_sized('skins/icon_search_small.gif',__('Find on map')))).' ';
+                    $boxLinks .= trim(wf_Link(self::URL_ME . '&' . self::ROUTE_MAP . '=true&' . self::ROUTE_PLACEFIND . '=' . $each['geo'].'&' . self::ROUTE_ONULINKS . '=true', wf_img('skins/ymaps/uplinks.png',__('Show links')))).' ';
+                    $placemarks .= generic_mapAddMark($each['geo'], '', $each['name'] , $boxLinks, '', '', true);
                 }
             }
 
-            $result .= generic_MapInit($mapCenter, $mapsCfg['ZOOM'], $mapsCfg['TYPE'], $placemarks, $editor, $mapsCfg['LANG'], $mapContainer);
+            $result .= generic_MapInit($mapCenter, $mapZoom, $mapsCfg['TYPE'], $placemarks, $editor, $mapsCfg['LANG'], $mapContainer);
         } else {
             $result .= $this->messages->getStyledMessage(__('Nothing to show'), 'warning');
         }
@@ -714,10 +747,11 @@ class PONBoxes {
      * Renders mini-map for boxes
      * 
      * @param string $boxGeo
+     * @param int $boxId
      * 
      * @return string
      */
-    public function renderBoxesMiniMap($boxGeo='') {
+    public function renderBoxesMiniMap($boxGeo='', $boxId=0) {
         $result = '';
         global $ubillingConfig;
         $mapsCfg = $ubillingConfig->getYmaps();
@@ -727,6 +761,15 @@ class PONBoxes {
             $result .= generic_MapContainer('100%', '300px', $mapContainer);
             $placemarks = '';
             $editor = '';
+
+            if ($boxId > 0 and isset($this->allBoxes[$boxId])) {
+                $filteredBoxData = $this->allBoxes[$boxId];
+                if (!empty($filteredBoxData['geo'])) {
+                    if (empty($boxGeo)) {
+                        $boxGeo = $filteredBoxData['geo'];
+                    }
+                }
+            }
 
             if (!empty($boxGeo)) {
                 $mapCenter = $boxGeo;
@@ -740,14 +783,22 @@ class PONBoxes {
                 $placeBoxId = ubRouting::get(self::ROUTE_PLACEBOX, 'int');
                 $editor .= $this->getBoxPlaceForm($placeBoxId);
             }
+
             foreach ($this->allBoxes as $io => $each) {
+                if ($boxId > 0 and $each['id'] != $boxId) {
+                    continue;
+                }
                 if (!empty($each['geo'])) {
-                    $boxLink = trim(wf_Link(self::URL_ME . '&' . self::ROUTE_BOXEDIT . '=' . $each['id'], web_edit_icon()));
-                    $placemarks .= generic_mapAddMark($each['geo'], '', $each['name'] . ' ' . $boxLink, '', '', '', true);
+                    $boxLinks = trim(wf_Link(self::URL_ME . '&' . self::ROUTE_BOXEDIT . '=' . $each['id'], web_edit_icon())).' ';
+                    $boxLinks .= trim(wf_Link(self::URL_ME . '&' . self::ROUTE_MAP . '=true&' . self::ROUTE_PLACEFIND . '=' . $each['geo'], wf_img_sized('skins/icon_search_small.gif',__('Find on map')))).' ';
+                    $boxLinks .= trim(wf_Link(self::URL_ME . '&' . self::ROUTE_MAP . '=true&' . self::ROUTE_PLACEFIND . '=' . $each['geo'].'&' . self::ROUTE_ONULINKS . '=true', wf_img('skins/ymaps/uplinks.png',__('Show links')))).' ';
+                    $placemarks .= generic_mapAddMark($each['geo'], '', $each['name'] , $boxLinks, '', '', true);
                 }
             }
 
-            $result .= generic_MapInit($mapCenter, $mapsCfg['ZOOM'], $mapsCfg['TYPE'], $placemarks, $editor, $mapsCfg['LANG'], $mapContainer);
+            $placemarks.=$this->renderOnuLinks($boxId);
+
+            $result .= generic_MapInit($mapCenter, $mapsCfg['FINDING_ZOOM'], $mapsCfg['TYPE'], $placemarks, $editor, $mapsCfg['LANG'], $mapContainer);
         } else {
             $result .= $this->messages->getStyledMessage(__('Nothing to show'), 'warning');
         }
