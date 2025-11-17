@@ -125,6 +125,41 @@ class MapOn {
     }
 
     /**
+     * Returns array of all unit routes between selected dates
+     * 
+     * @param string $dateFrom
+     * @param string $dateTo
+     * 
+     * @return array
+     */
+    public function getDatesRoutes($dateFrom, $dateTo) {
+        $result = array();
+        if (!zb_checkDate($dateFrom) or !zb_checkDate($dateTo)) {
+            $dateFrom = curdate();
+            $dateTo = curdate();
+        }
+
+        $routes = $this->getRoutes($dateFrom. 'T00:00:00Z', $dateTo. 'T23:59:59Z');
+
+        if ($routes) {
+            if (isset($routes->data)) {
+                foreach ($routes->data->units as $io => $each) {
+                    $unitId = $each->unit_id;
+                    foreach ($each->routes as $route) {
+                        if ($route->type == 'route') {
+                            if (@$route->speed) {
+                                $points = $this->api->decodePolyline($route->polyline, $route->speed, strtotime($route->start->time));
+                                $result[$unitId][] = $points;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return ($result);
+    }
+
+    /**
      * Reuturns current units state
      * 
      * @return array

@@ -5,14 +5,21 @@ if ($altCfg['MAPON_ENABLED']) {
     if (cfr('MAPON')) {
         $mapsConfig = $ubillingConfig->getYmaps();
         $mapon = new MapOn();
+
         try {
+            $unitIdFilter = (ubRouting::checkGet('filterunit')) ? ubRouting::get('filterunit') : '';
             $lastRouteFlag = ubRouting::checkGet('alldayroutes') ? false : true;
+            $dateFrom = (ubRouting::checkPost('datefrom')) ? ubRouting::post('datefrom') : curdate();
+            $dateTo = (ubRouting::checkPost('dateto')) ?  ubRouting::post('dateto') : curdate();
             $units = $mapon->getUnits();
             $unitDrivers = array();
 
             if (!empty($units)) {
                 $placemarks = '';
                 foreach ($units as $io => $each) {
+                    if (!empty($unitIdFilter) and $each['unitid'] != $unitIdFilter) {
+                        continue;
+                    }
                     if ($mapsConfig['MAPS_SERVICE'] != 'yandex') {
                         //extended iconset
                         switch ($each['state']) {
@@ -54,16 +61,25 @@ if ($altCfg['MAPON_ENABLED']) {
                     $carParams .= __('Voltage') . ': ' . $voltage . ' ' . __('Volt');
                     $carParams .= wf_delimiter(1) . $each['lat'] . ',' . $each['lng'];
                     $carLabel = $mileage . wf_tag('br') . $carParams;
+                    $carLinkLast = '?module=mapon&filterunit=' . $each['unitid'];
+                    $carLinkToday = '?module=mapon&filterunit=' . $each['unitid'] . '&alldayroutes=true';
+                    $carSearchControls = trim(wf_Link($carLinkLast, wf_img('skins/icon_search_small.gif',__('Last trip')))) . ' ';
+                    $carSearchControls .= trim(wf_Link($carLinkToday, wf_img('skins/icon_time_small.png',__('All trips'))));
+                    
+                    $carLabel.= wf_delimiter(0).$carSearchControls;
                     $placemarks .= generic_mapAddMark($each['lat'] . ',' . $each['lng'], $state, $carName, $carLabel, $icon, '', true);
                 }
 
-                $todayRoutes = $mapon->getTodayRoutes();
+                $filteredRoutes = $mapon->getDatesRoutes($dateFrom, $dateTo);
 
                 $todayStarts = array();
 
 
-                if (!empty($todayRoutes)) {
-                    foreach ($todayRoutes as $io => $route) {
+                if (!empty($filteredRoutes)) {
+                    foreach ($filteredRoutes as $io => $route) {
+                        if (!empty($unitIdFilter) and $io != $unitIdFilter) {
+                            continue;
+                        }
 
                         $prevCoords = '';
                         $unitId = $io;
@@ -132,6 +148,8 @@ if ($altCfg['MAPON_ENABLED']) {
                     }
                 }
 
+                
+
 
                 //render map
                 $container = generic_MapContainer('100%', '650px');
@@ -141,15 +159,30 @@ if ($altCfg['MAPON_ENABLED']) {
 
                 //render controls
                 $controls = '';
+                 //date selection form
+                 $dateInputs = '<!--ugly hack to prevent datepicker autoopen --> <input type="text" name="shittyhack" style="width: 0; height: 0; top: -100px; position: absolute;"/>';
+                 $dateInputs .= wf_DatePickerPreset('datefrom', $dateFrom) . ' ' .__('Date from').' ';
+                 $dateInputs .= wf_DatePickerPreset('dateto', $dateTo) . ' ' .__('Date to').' ';
+                 $dateInputs .= wf_Submit(__('Show'));
+                 $dateForm = wf_Form('', 'POST', $dateInputs, 'glamour');
+                 $controls .= wf_modalAuto(web_icon_calendar() . ' ' . __('Date'), __('Date'), $dateForm, 'ubButton');
+                 
+                if (ubRouting::checkGet('filterunit')) {
+                    $controls .= wf_Link('?module=mapon', wf_img('skins/car_small.png') . ' ' . __('All').' '.__('Cars'), false, 'ubButton') . ' ';
+                }
                 $controls .= wf_Link('?module=mapon', wf_img('skins/icon_last_small.png') . ' ' . __('Last trip'), false, 'ubButton') . ' ';
-                $controls .= wf_Link('?module=mapon&alldayroutes=true', wf_img('skins/icon_routes_small.png') . ' ' . __('Today trips'), false, 'ubButton');
+                $controls .= wf_Link('?module=mapon&alldayroutes=true', wf_img('skins/icon_routes_small.png') . ' ' . __('All trips'), false, 'ubButton');
                 $controls .= wf_Link('?module=mapon&layerswitches=true', wf_img('skins/ymaps/network.png') . ' ' . __('Switches map'), false, 'ubButton');
                 $controls .= wf_Link('?module=mapon&layerbuilds=true', wf_img('skins/ymaps/build.png') . ' ' . __('Builds map'), false, 'ubButton');
                 $controls .= wf_Link('?module=mapon&layertasks=true', wf_img('skins/track_icon.png') . ' ' . __('Tasks map'), false, 'ubButton');
+             
                 //tasks for anyone optional control here
                 if ($ubillingConfig->getAlterParam('TASKMAN_ANYONE_EMPLOYEEID')) {
                     $controls .= wf_Link('?module=mapon&layeranyonetasks=true', wf_img('skins/backprofile.png') . ' ' . __('Unallocated tasks'), false, 'ubButton');
                 }
+
+               
+                
 
                 show_window('', $controls);
                 zb_BillingStats(true);
