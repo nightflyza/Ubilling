@@ -5,6 +5,16 @@ if (cfr('UBIM')) {
 
     $threadContent = '';
 
+    //pinning or unpinning contacts
+    if (ubRouting::checkGet($ubIm::ROUTE_PIN)) {
+        $ubIm->pinContact(ubRouting::get($ubIm::ROUTE_PIN));
+        ubRouting::nav($ubIm::URL_ME . '&' . $ubIm::ROUTE_THREAD . '=' . ubRouting::get($ubIm::ROUTE_PIN));
+    }
+    if (ubRouting::checkGet($ubIm::ROUTE_UNPIN)) {
+        $ubIm->unpinContact(ubRouting::get($ubIm::ROUTE_UNPIN));
+        ubRouting::nav($ubIm::URL_ME . '&' . $ubIm::ROUTE_THREAD . '=' . ubRouting::get($ubIm::ROUTE_UNPIN));
+    }
+
     //thread data filling
     if (ubRouting::checkGet($ubIm::ROUTE_THREAD)) {
         $threadToRender = ubRouting::get($ubIm::ROUTE_THREAD);

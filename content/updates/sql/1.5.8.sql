@@ -13,4 +13,12 @@ CREATE TABLE IF NOT EXISTS `ct_auth` (
 
 ALTER TABLE `pononu` ADD `geo` VARCHAR(64) NULL DEFAULT NULL AFTER `login`;
 
+CREATE TABLE IF NOT EXISTS `ub_im_pinned` (
+  `id` INT(11) NOT NULL AUTO_INCREMENT,
+  `login` VARCHAR(64) NOT NULL,
+  `pinned` VARCHAR(64) NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_login` (`login`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
+
 ALTER TABLE `weblogs` ADD FULLTEXT INDEX `ft_event` (`event`);

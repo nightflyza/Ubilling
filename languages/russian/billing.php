@@ -3606,3 +3606,6 @@ $lang['def']['Custom location'] = 'Собственная локация';
 $lang['def']['Deep search'] = 'Глубокий поиск';
 $lang['def']['latest'] = 'последние';
 $lang['def']['events'] = 'событий';
+$lang['def']['Just'] = 'Просто';
+$lang['def']['Unpin contact'] = 'Открепить контакт';
+$lang['def']['Pin contact'] = 'Закрепить контакт';

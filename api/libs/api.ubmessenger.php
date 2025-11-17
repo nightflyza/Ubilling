@@ -19,6 +19,13 @@ class UBMessenger {
     protected $messagesDb = '';
 
     /**
+     * Pinned contacts database abstraction layer
+     *
+     * @var object
+     */
+    protected $pinnedDb = '';
+
+    /**
      * Constains system alter config as key=>value
      *
      * @var array
@@ -38,6 +45,13 @@ class UBMessenger {
      * @var array
      */
     protected $allAdmins = array();
+
+    /**
+     * Contains all pinned contacts as login=>loginsArray
+     *
+     * @var array
+     */
+    protected $allPinnedContacts = array();
 
     /**
      * Threads refresh interval in ms.
@@ -139,12 +153,15 @@ class UBMessenger {
 
     //some predefined stuff like routes and keys here
     const TABLE_MESSAGES = 'ub_im';
+    const TABLE_PINNED='ub_im_pinned';
     const URL_ME = '?module=ubim';
     const URL_AVATAR_CONTROL = '?module=avacontrol';
 
     const ROUTE_THREAD = 'showthread';
     const ROUTE_GOTHREAD = 'gothread';
     const ROUTE_REFRESH = 'checknew';
+    const ROUTE_PIN = 'pincontact';
+    const ROUTE_UNPIN = 'unpincontact';
 
     const PROUTE_MSG_TO = 'im_message_to';
     const PROUTE_MSG_TEXT = 'im_message_text';
@@ -156,6 +173,7 @@ class UBMessenger {
     const KEY_MSG_COUNT = 'UBIM_MSGCOUNT_';
     const KEY_MSG_THREADS = 'UBIM_MSG_TH_';
     const KEY_ADMS_LIST = 'UBIM_ADM_LIST';
+    const KEY_PINNED_CONTACTS = 'UBIM_PINNED_CONTACTS';
 
     const OPT_NOLINKIFY = 'UBIM_NO_LINKIFY';
     const OPT_NOAJAXSEND = 'UBIM_MSGSEND_NATIVE';
@@ -170,6 +188,7 @@ class UBMessenger {
         $this->initCache();
         $this->initMessages();
         $this->loadAdmins();
+        $this->loadPinnedContacts();
         $this->loadEmployeeNames();
     }
 
@@ -287,6 +306,7 @@ class UBMessenger {
      */
     protected function initDb() {
         $this->messagesDb = new NyanORM(self::TABLE_MESSAGES);
+        $this->pinnedDb = new NyanORM(self::TABLE_PINNED);
     }
 
     /**
@@ -307,6 +327,75 @@ class UBMessenger {
         } else {
             $this->allAdmins = $cachedData;
         }
+    }
+
+    /**
+     * Loads all pinned contacts into protected property
+     *
+     * @return void
+     */
+    protected function loadPinnedContacts() {
+        $cachedData = $this->cache->get(self::KEY_PINNED_CONTACTS, $this->cachingTimeout);
+        if (!is_array($cachedData)) {
+            $all=$this->pinnedDb->getAll();
+            if (!empty($all)) {
+                foreach ($all as $io => $each) {
+                    $this->allPinnedContacts[$each['login']][] = $each['pinned'];
+                }
+            }
+            $this->cache->set(self::KEY_PINNED_CONTACTS, $this->allPinnedContacts, $this->cachingTimeout);
+        } else {
+            $this->allPinnedContacts = $cachedData;
+        }
+    }
+
+    /**
+     * Pins some contact
+     * 
+     * @param string $adminLogin
+     * 
+     * @return void
+     */
+    public function pinContact($adminLogin) {
+        $myLogin = $this->myLogin;
+        $this->pinnedDb->data('login', $myLogin);
+        $this->pinnedDb->data('pinned', $adminLogin);
+        $this->pinnedDb->create();
+        $this->cache->delete(self::KEY_PINNED_CONTACTS);
+        log_register('UBIM PIN CONTACT {' . $adminLogin . '}');
+    }
+
+    /**
+     * Unpins some contact
+     * 
+     * @param string $adminLogin
+     * 
+     * @return void
+     */
+    public function unpinContact($adminLogin) {
+        $myLogin = $this->myLogin;
+        $this->pinnedDb->where('login', '=', $myLogin);
+        $this->pinnedDb->where('pinned', '=', $adminLogin);
+        $this->pinnedDb->delete();
+        $this->cache->delete(self::KEY_PINNED_CONTACTS);
+        log_register('UBIM UNPIN CONTACT {' . $adminLogin . '}');
+    }
+
+    /**
+     * Checks if some contact is pinned
+     * 
+     * @param string $adminLogin
+     * 
+     * @return bool
+     */
+    protected function isContactPinned($adminLogin) {
+        $result = false;
+        if (isset($this->allPinnedContacts[$this->myLogin])) {
+            if (in_array($adminLogin, $this->allPinnedContacts[$this->myLogin])) {
+                $result = true;
+            }
+        }
+        return ($result);
     }
 
     /**
@@ -463,13 +552,22 @@ class UBMessenger {
                     if (isset($haveUnread[$eachadmin])) {
                         $admListOrdered[$order] = $eachadmin;
                     } else {
-                        $admListOrdered[($order + 9000)] = $eachadmin; // It`s Over 9000!
+                        if ($this->isContactPinned($eachadmin)) {
+                            //pinned contacts are at the top
+                            $orderOffset=$order-9000; 
+                        } else {
+                            //normal order shifted to the bottom
+                            $orderOffset=$order+9000; //it`s over 9000!
+                        }
+
+                        $admListOrdered[$orderOffset] = $eachadmin;
+                        
                     }
                 }
             }
 
             if (!empty($admListOrdered)) {
-                ksort($admListOrdered);
+                ksort($admListOrdered); //reverse order
                 foreach ($admListOrdered as $io => $eachadmin) {
                     $unreadCounter = (isset($haveUnread[$eachadmin])) ? $haveUnread[$eachadmin] : 0;
                     if ($eachadmin != $this->myLogin) {
@@ -484,6 +582,9 @@ class UBMessenger {
                             $contactClass .= ' ubim-open ';
                         }
 
+                        if ($this->isContactPinned($eachadmin)) {
+                            $contactClass .= ' ubim-pinned ';
+                        }
 
                         if ($unreadCounter != 0) {
                             $contactClass .= ' ubim-unread ';
@@ -778,6 +879,17 @@ class UBMessenger {
         $baseTitle .= ' ' . __('Instant messaging service');
         if ($this->currentThread) {
             $baseTitle .= ': ' . @$this->allEmployeeNames[$this->currentThread];
+
+            if ($this->isContactPinned($this->currentThread)) {
+                $pinIcon = wf_img('skins/unpin_icon.png', __('Unpin contact'));
+                $pinUrl = self::URL_ME . '&' .self::ROUTE_THREAD.'='.$this->currentThread.  '&' . self::ROUTE_UNPIN . '=' . $this->currentThread;
+            } else {
+                $pinIcon = wf_img('skins/pin_icon.png', __('Pin contact'));
+                $pinUrl = self::URL_ME . '&' .self::ROUTE_THREAD.'='.$this->currentThread.  '&' . self::ROUTE_PIN . '=' . $this->currentThread;
+                
+            }
+            $pinControl = wf_Link($pinUrl, $pinIcon);
+            $baseTitle .= ' ' . $pinControl;
         }
         $result .= $baseTitle;
         return ($result);

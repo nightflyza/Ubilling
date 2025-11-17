@@ -116,6 +116,13 @@
 }
 
 
+.ubim-pinned {
+    background-image: url('../../../skins/pinned_icon.png');
+    background-size: 16px 16px;
+    background-position: right 10px center;
+    background-repeat: no-repeat;
+}
+
 /* chat */
 .ubim-chat-container {
     width: 100%;
