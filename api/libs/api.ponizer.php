@@ -2466,14 +2466,6 @@ class PONizer {
 
             $onuEditForm = wf_Form('', 'POST', $inputs, 'onueditsbig');
 
-            /**
-            $gridCells = wf_TableCell($onuEditForm . wf_CleanDiv(), '50%', '');
-            $gridCells .= wf_TableCell($this->renderOnuSignalBig($onuId));
-            $gridRows = wf_TableRow($gridCells);
-            $result = wf_TableBody($gridRows, '100%', 0, '');
-            
-            */
-
             $contentGrid=array($onuEditForm, $this->renderOnuSignalBig($onuId));
             
             $result .= wf_FlexContentGrid($contentGrid,2);
@@ -2515,7 +2507,7 @@ class PONizer {
             //back to primary user profile control
             if (!empty($this->allOnu[$onuId]['login'])) {
                 if ($this->allOnu[$onuId]['login'] != 'dead') {
-                    $result .= wf_Link(self::URL_USERPROFILE . $this->allOnu[$onuId]['login'], wf_img('skins/icon_user.gif') . ' ' . __('User profile'), false, 'ubButton');
+                    $result .= wf_Link(self::URL_USERPROFILE . $this->allOnu[$onuId]['login'], wf_img('skins/icon_user_16.gif') . ' ' . __('User profile'), false, 'ubButton');
                 }
             }
 
