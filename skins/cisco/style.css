@@ -1125,18 +1125,43 @@ div.dhtml_menu div.vert_menu a.active:hover
     color: #b10808;
 }
 
+
 .onusignalbig {
     float: left;
     font-size: x-large;
-    text-align:center; 
+    text-align: center;
     border-style: solid;
     border-color: #ededed;
     border-width: 1px;
-    box-shadow: 0 0 10px rgba(0,0,0,0.5);
-    padding:10px;
-    width: 90%;
-    height: 200px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    padding: 10px;
+    margin: 5px;
+    width: 95%;
+    min-height: 250px;
 }
+
+
+.onueditsbig {
+    float: left;
+    border-style: solid;
+    border-color: #ededed;
+    border-width: 1px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    padding: 10px;
+    margin: 5px;
+    width: 95%;
+    min-height: 250px;
+    
+}
+
+.onueditsbig input {
+    margin-bottom: 10px !important;
+}
+
+.onueditsbig select {
+    margin-bottom: 10px !important;
+}
+
 
 .hiddentbelem {
     opacity: 0;
@@ -1264,4 +1289,38 @@ div.dhtml_menu div.vert_menu a.active:hover
 
 .lightcontainerborder {
  border: 1px solid #ccc;
+}
+
+.flatform {
+    float: left;
+    width: 100%;
+    border: 1px solid #ddd;
+    background: #fff;
+    -webkit-border-radius: 10px;
+    -moz-border-radius: 10px;
+    border-radius: 10px;
+    background: -webkit-gradient(linear, 0% 0%, 0% 40%, from(#EEE), to(#FFFFFF));
+    -webkit-box-shadow: 0px 0 50px #ccc;
+    -moz-box-shadow: 0px 0 50px #ccc;
+    box-shadow: 0px 0 50px #ccc;
+}
+
+.flatform input {
+    margin: 5px;
+}
+
+.flatform select {
+    margin: 5px;
+}
+
+.flatform textarea {
+   width: 99%;
+   max-width: 100%;
+   min-height: 120px;
+   max-height: 200px;
+   resize: vertical;
+   padding: 12px;
+   margin: 5px;
+   box-sizing: border-box;
+   border: 1px solid #DDDDDD; border-radius: 4px;
 }
