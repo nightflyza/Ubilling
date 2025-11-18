@@ -28,7 +28,7 @@ $lifestoryControls .= wf_BackLink(UserProfile::URL_PROFILE . $login);
                     $nethostdump = print_r($nethostRaw, true);
                     $nethostdump = wf_tag('pre') . ($nethostdump) . wf_tag('pre', true);
                     $nethostdump=web_RenderSomeArrayAsTable($nethostRaw);
-                    $lifestoryControls .= wf_modal(wf_img('skins/menuicons/multinet.png') . ' ' . __('User Networking'), __('User Networking'), $nethostdump, 'ubButton', '400', '400') . ' ';
+                    $lifestoryControls .= wf_modal(wf_img('skins/menuicons/multinet.png') . ' ' . __('Network'), __('User Networking'), $nethostdump, 'ubButton', '400', '400') . ' ';
                 } else {
                     show_error(__('Strange exception') . ': EMPTY_NETHOST_DATA');
                 }
