@@ -179,6 +179,37 @@ class JunBGP {
     }
 
     /**
+     * Extracts remote IP addresses from raw SNMP data OID itself
+     *
+     * @param string $rawData Raw SNMP data
+     * @param string $oid OID to search for
+     * 
+     * @return array
+     */
+    protected function parseRemoteIp($rawData, $oid) {
+        $result=array();
+        $idx=0;
+        if (!empty($rawData)) {
+            $rawData = explodeRows($rawData);
+            foreach ($rawData as $io => $each) {
+                if (!empty($each)) {
+                    if (ispos($each, $oid)) {
+                        $index = $idx;
+                        $oidPart = trim(explode('=', $each)[0]);
+                        $oidSuffix = str_replace($oid, '', $oidPart);
+                        $oidParts = explode('.', trim($oidSuffix, '.'));
+                        $ipParts = array_slice($oidParts, -4);
+                        $remoteIp = implode('.', $ipParts);
+                        $result[$index] = $remoteIp;
+                        $idx++;
+                    } 
+                }
+            }
+        }
+        return ($result);
+    }
+
+    /**
      * Retrieves BGP peer data
      *
      * @return array BGP peer data
@@ -187,9 +218,14 @@ class JunBGP {
         $result = array();
         $rawData = $this->pollFullTable();
         $index = $this->parseData($rawData, self::OID_INDEX);
+        
         if (!empty($index)) {
             $as = $this->parseData($rawData, self::OID_AS);
             $remoteIp = $this->parseData($rawData, self::OID_REMOTEIP, true);
+            // remote IP oid is empty by some reason?
+            if (empty($remoteIp)) {
+                $remoteIp=$this->parseRemoteIp($rawData, self::OID_INDEX);
+            }
             $states = $this->parseData($rawData, self::OID_STATE);
             $status = $this->parseData($rawData, self::OID_STATUS);
             $timers = $this->parseData($rawData, self::OID_TIMERS);
