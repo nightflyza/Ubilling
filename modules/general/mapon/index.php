@@ -83,7 +83,7 @@ if ($altCfg['MAPON_ENABLED']) {
 
                         $prevCoords = '';
                         $unitId = $io;
-                        $unitRouteColor = '#' . wf_genColorCodeFromText($unitId, 'Wrooom');
+                        $unitRouteColor = '#' . wf_genColorCodeFromText($unitId, 'Wrooom!');
                         $routesCount = sizeof($route);
                         $i = 1;
                         if (!empty($route)) {
@@ -124,8 +124,6 @@ if ($altCfg['MAPON_ENABLED']) {
                     }
                 }
 
-
-
                 //additional layers here
                 if (ubRouting::checkGet('layerswitches')) {
                     $placemarks .= sm_MapDrawSwitches();
@@ -149,14 +147,6 @@ if ($altCfg['MAPON_ENABLED']) {
                 }
 
                 
-
-
-                //render map
-                $container = generic_MapContainer('100%', '650px');
-                $editor = generic_MapEditor('maponpointlocation', __('Place coordinates'), '');
-                $container .= generic_MapInit($mapsConfig['CENTER'], $mapsConfig['ZOOM'], $mapsConfig['TYPE'], $placemarks, $editor, $mapsConfig['LANG']);
-                show_window(__('Cars'), $container);
-
                 //render controls
                 $controls = '';
                  //date selection form
@@ -174,17 +164,22 @@ if ($altCfg['MAPON_ENABLED']) {
                 $controls .= wf_Link('?module=mapon&alldayroutes=true', wf_img('skins/icon_routes_small.png') . ' ' . __('All trips'), false, 'ubButton');
                 $controls .= wf_Link('?module=mapon&layerswitches=true', wf_img('skins/ymaps/network.png') . ' ' . __('Switches map'), false, 'ubButton');
                 $controls .= wf_Link('?module=mapon&layerbuilds=true', wf_img('skins/ymaps/build.png') . ' ' . __('Builds map'), false, 'ubButton');
-                $controls .= wf_Link('?module=mapon&layertasks=true', wf_img('skins/track_icon.png') . ' ' . __('Tasks map'), false, 'ubButton');
+                $controls .= wf_Link('?module=mapon&layertasks=true', wf_img('skins/track_icon.png') . ' ' . __('Tasks'), false, 'ubButton');
              
                 //tasks for anyone optional control here
                 if ($ubillingConfig->getAlterParam('TASKMAN_ANYONE_EMPLOYEEID')) {
                     $controls .= wf_Link('?module=mapon&layeranyonetasks=true', wf_img('skins/backprofile.png') . ' ' . __('Unallocated tasks'), false, 'ubButton');
                 }
 
-               
-                
-
                 show_window('', $controls);
+
+                //render map
+                $container = generic_MapContainer('100%', '650px');
+                $editor = generic_MapEditor('maponpointlocation', __('Place coordinates'), '');
+                $container .= generic_MapInit($mapsConfig['CENTER'], $mapsConfig['ZOOM'], $mapsConfig['TYPE'], $placemarks, $editor, $mapsConfig['LANG']);
+                
+                show_window(__('Cars'), $container);
+
                 zb_BillingStats(true);
             } else {
                 show_warning(__('Nothing to show'));

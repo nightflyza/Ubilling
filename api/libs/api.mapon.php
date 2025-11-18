@@ -134,9 +134,25 @@ class MapOn {
      */
     public function getDatesRoutes($dateFrom, $dateTo) {
         $result = array();
+        //wrong date format?
         if (!zb_checkDate($dateFrom) or !zb_checkDate($dateTo)) {
             $dateFrom = curdate();
             $dateTo = curdate();
+            show_error(__('Wrong date format'));
+        }
+
+        //date from is greater than date to?
+        if (strtotime($dateFrom) > strtotime($dateTo)) {
+            $dateFrom = curdate();
+            $dateTo = curdate();
+            show_error(__('Start date is greater than end date'));
+        }
+
+        //between dates range is too long?
+        if (strtotime($dateTo) - strtotime($dateFrom) > 60 * 60 * 24 * 30) {
+            $dateFrom = curdate();
+            $dateTo = curdate();
+            show_error(__('Between dates range is too long'));
         }
 
         $routes = $this->getRoutes($dateFrom. 'T00:00:00Z', $dateTo. 'T23:59:59Z');
