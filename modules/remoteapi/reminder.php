@@ -10,7 +10,8 @@ if (ubRouting::get('action') == 'reminder') {
     if ($ubillingConfig->getAlterParam('REMINDER_ENABLED')) {
         if ($ubillingConfig->getAlterParam('SENDDOG_ENABLED')) {
             $sms = new Reminder();
-            log_register('');   // just a visual separation of processing in weblogs
+            // why?!
+            //log_register('');   // just a visual separation of processing in weblogs
 
             if (wf_CheckGet(array('param'))) {
                 if ($_GET['param'] == 'force') {
@@ -26,7 +27,8 @@ if (ubRouting::get('action') == 'reminder') {
                 log_register('REMINDER: REGULAR processing FINISHED');
             }
 
-            log_register('');   // just a visual separation of processing in weblogs
+          // why?!
+          //  log_register('');   // just a visual separation of processing in weblogs
             die('OK:SEND REMIND SMS');
         } else {
             die('ERROR:SENDDOG_REQUIRED');
