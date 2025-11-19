@@ -545,7 +545,7 @@ class USReminder {
         $inputs.= la_tag('span', false, '', 'style="text-align: right;"');
         $inputs.= $this->uscfgReminderPrefix . ' ';
         $inputs.= la_tag('span', true);
-        $inputs.= la_TextInput('mobile', '', '', '', '', 'digits');
+        $inputs.= la_TextInput('mobile', '', '', '', '', 'mobile');
         $inputs.= la_Submit(__('Change main cell phone number'), 'full-width-occupy');
         $form   = la_Form("", 'POST', $inputs, 'form-grid-2cols', '', '', 'style="justify-content: center;"');
 
