@@ -13,7 +13,7 @@
   ExpiresByType image/png "access plus 2592000 seconds"
   ExpiresByType image/gif "access plus 2592000 seconds"
   ExpiresByType application/x-shockwave-flash "access plus 2592000 seconds"
-  ExpiresByType text/css "access plus 604800 seconds"
+  ExpiresByType text/css "access plus 86400 seconds"
   ExpiresByType text/javascript "access plus 216000 seconds"
   ExpiresByType application/javascript "access plus 216000 seconds"
   ExpiresByType application/x-javascript "access plus 216000 seconds"
@@ -26,7 +26,7 @@
     Header set Cache-Control "max-age=2592000, public"
   </filesMatch>
   <filesMatch "\.(css)$">
-    Header set Cache-Control "max-age=604800, public"
+    Header set Cache-Control "max-age=86400, public"
   </filesMatch>
   <filesMatch "\.(js)$">
     Header set Cache-Control "max-age=216000, private"
