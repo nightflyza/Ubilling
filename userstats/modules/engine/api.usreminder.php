@@ -772,7 +772,7 @@ class USReminder {
             if (strlen($mobile) == 10 or strlen($mobile) == 12) {
                 $this->changeUserMobile($userLogin, $this->uscfgReminderPrefix . $mobile);
                 $logMessage = 'US_REMINDER: user (' . $userLogin . ') changed his cell phone number to: ' . $this->uscfgReminderPrefix . $mobile;
-            else {
+            } else {
                 $logMessage = 'US_REMINDER: user (' . $userLogin . ') used invalid data: ' . ubRouting::post('mobile') . ' while trying to change his cell phone number';
             }
         }
