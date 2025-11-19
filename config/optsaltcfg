@@ -266,7 +266,6 @@ STREETS_ALIAS_AUTOGEN=TRIGGER|New streets alias autogeneration
 NASMON_ENABLED=TRIGGER|Is NAS monitoring enabled
 WIFICPE_ENABLED=TRIGGER|Is client side wifi equipment accounting enabled
 RESETHARD=TRIGGER|Hard reset is enabled
-SORM_ENABLED=TRIGGER|SORM integration enabled
 POLLS_ENABLED=TRIGGER|Polls enabled
 LDAPMGR_ENABLED=TRIGGER|Is LDAP manager enabled
 FREEZE_DAYS_CHARGE_ENABLED=TRIGGER|Freeze days charge enabled
