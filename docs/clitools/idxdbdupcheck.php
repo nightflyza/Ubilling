@@ -44,9 +44,20 @@ function connectToDatabase($config) {
 }
 
 function checkTableIndexes($mysqli, $table) {
+    $ignoredTables = array(
+        'cardbank',
+        'nethosts'
+    );
+
+    if (in_array($table, $ignoredTables)) {
+        return array();
+    }
+    
     $indexes = array();
     $duplicates = array();
     $cleanupQueries = array();
+
+    
     
     $result = $mysqli->query("SHOW INDEX FROM `$table`");
     if (!$result) {
