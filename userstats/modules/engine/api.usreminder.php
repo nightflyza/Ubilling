@@ -457,7 +457,7 @@ class USReminder {
      * @return void
      */
     protected function changeUserMobile($userLogin, $mobile) {
-        $login    = ubRouting::filters($userLogin, 'vf');
+        $login    = ubRouting::filters($userLogin, 'login');
         $phonesDB = new NyanORM('phones');
         $phonesDB->data('mobile', $mobile);
         $phonesDB->where('login', '=', $login);
@@ -473,7 +473,7 @@ class USReminder {
      * @return void
      */
     protected function changeUserEmail($userLogin, $email) {
-        $login    = ubRouting::filters($userLogin, 'vf');
+        $login    = ubRouting::filters($userLogin, 'login');
         $phonesDB = new NyanORM('emails');
         $phonesDB->data('email', $email);
         $phonesDB->where('login', '=', $login);
@@ -545,7 +545,7 @@ class USReminder {
         $inputs.= la_tag('span', false, '', 'style="text-align: right;"');
         $inputs.= $this->uscfgReminderPrefix . ' ';
         $inputs.= la_tag('span', true);
-        $inputs.= la_TextInput('mobile');
+        $inputs.= la_TextInput('mobile', '', '', '', '', 'digits');
         $inputs.= la_Submit(__('Change main cell phone number'), 'full-width-occupy');
         $form   = la_Form("", 'POST', $inputs, 'form-grid-2cols', '', '', 'style="justify-content: center;"');
 
@@ -559,7 +559,7 @@ class USReminder {
      */
     protected function renderChangeEmailForm() {
         $inputs = la_HiddenInput('changemail', 'true');
-        $inputs.= la_TextInput('email', '', '', '', '', '', 'full-width-occupy');
+        $inputs.= la_TextInput('email', '', '', '', '', 'email', 'full-width-occupy');
         $inputs.= la_Submit(__('Change E-mail'), 'full-width-occupy');
         $form = la_Form("", 'POST', $inputs, 'form-grid-2cols', '', '', 'style="justify-content: center;"');
 
@@ -766,14 +766,22 @@ class USReminder {
 
         // user cell phone number change
         if (ubRouting::checkPost(array('changemobile', 'mobile'))) {
-            $this->changeUserMobile($userLogin, $this->uscfgReminderPrefix . ubRouting::post('mobile'));
-            $logMessage = 'US_REMINDER: user (' . $userLogin . ') changed his cell phone number to: ' . $this->uscfgReminderPrefix . ubRouting::post('mobile');
+            $mobile = ubRouting::filters(ubRouting::post('mobile'), 'int');
+            $mobile = preg_replace('/^(\+38|38)/Ui', '', $mobile);
+
+            if (strlen($mobile) == 10 or strlen($mobile) == 12) {
+                $this->changeUserMobile($userLogin, $this->uscfgReminderPrefix . $mobile);
+                $logMessage = 'US_REMINDER: user (' . $userLogin . ') changed his cell phone number to: ' . $this->uscfgReminderPrefix . $mobile;
+            else {
+                $logMessage = 'US_REMINDER: user (' . $userLogin . ') used invalid data: ' . ubRouting::post('mobile') . ' while trying to change his cell phone number';
+            }
         }
 
         // user email change
         if (ubRouting::checkPost(array('changemail', 'email'))) {
-            $this->changeUserEmail($userLogin, ubRouting::post('email'));
-            $logMessage = 'US_REMINDER: user (' . $userLogin . ') changed his E-mail to: ' . ubRouting::post('mobile');
+            $email = ubRouting::filters(ubRouting::post('email'), 'fi', 'FILTER_VALIDATE_EMAIL');
+            $this->changeUserEmail($userLogin, $email);
+            $logMessage = 'US_REMINDER: user (' . $userLogin . ') changed his E-mail to: ' . $email;
         }
 
         // user change service state

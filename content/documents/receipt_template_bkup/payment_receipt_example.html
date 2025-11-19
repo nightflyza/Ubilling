@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no" />
+    <script type="text/javascript" src="../../../modules/jsc/jquery.min.js"></script>
+    <script type="text/javascript" src="../../../modules/jsc/qr_gen_inpage/qrcode.min.js"></script>
+    <!--<script type="text/javascript" src="/modules/jsc/jquery.min.js"></script>
+    <script type="text/javascript" src="/modules/jsc/qr_gen_inpage/qrcode.min.js"></script>-->
+    <title>{TITLE}</title>
+    <style>
+        td.brdr-bottom {
+            border-bottom: 1px solid #000;
+        }
+
+        td.brdr-bottom-right {
+            border-bottom: 1px solid #000;
+            border-right: 1px solid #000;
+        }
+
+        td.brdr-bottom-right-top {
+            border-bottom: 1px solid #000;
+            border-right: 1px solid #000;
+            border-top: 1px solid #000;
+        }
+
+        td.brdr-bottom-left {
+            border-bottom: 1px solid #000;
+            border-left: 1px solid #000;
+        }
+
+        td.brdr-bottom-right-left {
+            border-bottom: 1px solid #000;
+            border-right: 1px solid #000;
+            border-left: 1px solid #000;
+        }
+
+        td.brdr-bottom-right-left-top {
+            border-bottom: 1px solid #000;
+            border-right: 1px solid #000;
+            border-left: 1px solid #000;
+            border-top: 1px solid #000;
+        }
+
+        td.brdr-top {
+            border-top: 1px solid #000;
+        }
+
+        td.brdr-top-right {
+            border-top: 1px solid #000;
+            border-right: 1px solid #000;
+        }
+
+        td.brdr-top-left {
+            border-top: 1px solid #000;
+            border-left: 1px solid #000;
+        }
+
+        td.brdr-left {
+            border-left: 1px solid #000;
+        }
+
+        td.brdr-right {
+            border-right: 1px solid #000;
+        }
+
+        td {
+            padding-left: 5px;
+            padding-bottom: 1px;
+            padding-top: 2px;
+        }
+    </style>
+</head>
+<body>
+<script type="text/javascript">
+    $(document).ready(function() {
+       //var qrCode = new QRCode("qrcode");
+       var qrCodesCount = $('#qr_count').val();
+
+        for (i = 1; i <= qrCodesCount; i++) {
+            var qrContent = $('#qr_content_' + i).val();
+            console.log(qrContent);
+            //$('[name ^= "qr' + i + '"]').text(qrCode.makeCode(qrContent));
+            new QRCode($('[name ^= "qr' + i + '"]')[0], {
+                        text: qrContent,
+                        width: 150,
+                        height: 150,
+                      });
+        }
+    });
+</script>
+
+<div>
+    <input id="qr_count" type="hidden" value="2" />
+    <input id="qr_content_1" type="hidden" value="QR-CODE 11" />
+
+    <table border="0" cellpadding="0" cellspacing="0" style="width: 19.5cm; font-size: 9pt; margin-top: 40px;">
+        <tr>
+            <td rowspan="10" style="width: 25%">
+                <span name="qr1" style="text-align: center"></span>
+            </td>
+            <tr>
+                <td class="brdr-bottom-right">Дата счета:</td><td class="brdr-bottom-right">{CURDATE}</td><td class="brdr-bottom-right">Оплатить до:</td><td class="brdr-bottom">05.{PAYTILLMONTHYEAR}</td>
+            </tr>
+            <tr>
+                <td class="brdr-bottom-right">Оплата услуги:</td><td class="brdr-bottom" colspan="3">{SERVICENAME}</td>
+            </tr>
+            <tr>
+                <td class="brdr-bottom-right">Получатель:</td><td class="brdr-bottom" colspan="3">ООО "Рога&Копыта"&nbsp&nbsp&nbsp&nbspИНН&nbsp456789213&nbsp&nbsp&nbsp&nbspР/С&nbsp204087899521005<br />+38(50)125-26-15&nbsp&nbspг. Аркхэм, ул. Вязов, 51, офис №1</td>
+            </tr>
+            <tr>
+                <td class="brdr-bottom-right">Банк&nbspполучателя:</td><td class="brdr-bottom" colspan="3">ОАО "НяшМяшТяжБанк" г. Аркхэм <br />МФО&nbsp301018&nbsp&nbsp&nbsp&nbspБИК&nbsp0123544</td>
+            </tr>
+            <tr>
+                <td class="brdr-bottom-right">Номер&nbspдоговора:</td><td class="brdr-bottom" colspan="3">{CONTRACT}</td>
+            </tr>
+            <tr>
+                <td class="brdr-bottom-right">Абонент:</td><td class="brdr-bottom" colspan="3">{REALNAME}</td>
+            </tr>
+            <tr>
+                <td class="brdr-bottom-right">Адрес:</td><td class="brdr-bottom" colspan="3">{STREET} {BUILD} {APT}</td>
+            </tr>
+            <tr>
+                <td class="brdr-bottom-right">Тариф:</td><td class="brdr-bottom-right">{TARIFF} {TARIFFPRICE}</td><td class="brdr-bottom-right">Сумма к оплате:</td><td class="brdr-bottom">{SUMM}</td>
+            </tr>
+            <tr>
+                <td class="brdr-bottom" colspan="2" style="padding-top: 10px;">Кассир:</td><td class="brdr-bottom" colspan="2" style="padding-top: 10px;">Плательщик:</td>
+            </tr>
+        </tr>
+    </table>
+
+    <p style="border-bottom: 1px dashed #000; margin: 5px 0"></p>
+
+    <table border="0" cellpadding="0" cellspacing="0" style="width: 19.5cm; font-size: 9pt;">
+        <tr>
+            <td rowspan="10" style="width: 25%">
+                <!--<span name="{QR-NAME}"></span>-->
+            </td>
+            <tr>
+                <td class="brdr-bottom-right-left-top">Дата счета:</td><td class="brdr-bottom-right-top">{CURDATE}</td><td class="brdr-bottom-right-top">Оплатить до:</td><td class="brdr-bottom-right-top">05.{PAYTILLMONTHYEAR}</td>
+            </tr>
+            <tr>
+                <td class="brdr-bottom-right-left">Оплата услуги:</td><td class="brdr-bottom-right" colspan="3">{SERVICENAME}</td>
+            </tr>
+            <tr>
+                <td class="brdr-bottom-right-left">Получатель:</td><td class="brdr-bottom-right" colspan="3">ООО "Рога&Копыта"&nbsp&nbsp&nbsp&nbspИНН&nbsp456789213&nbsp&nbsp&nbsp&nbspР/С&nbsp204087899521005<br />+38(50)125-26-15&nbsp&nbspг. Аркхэм, ул. Вязов, 51, офис №1</td>
+            </tr>
+            <tr>
+                <td class="brdr-bottom-right-left">Банк&nbspполучателя:</td><td class="brdr-bottom-right" colspan="3">ОАО "НяшМяшТяжБанк" г. Аркхэм <br />МФО&nbsp301018&nbsp&nbsp&nbsp&nbspБИК&nbsp0123544</td>
+            </tr>
+            <tr>
+                <td class="brdr-bottom-right-left">Номер&nbspдоговора:</td><td class="brdr-bottom-right" colspan="3">{CONTRACT}</td>
+            </tr>
+            <tr>
+                <td class="brdr-bottom-right-left">Абонент:</td><td class="brdr-bottom-right" colspan="3">{REALNAME}</td>
+            </tr>
+            <tr>
+                <td class="brdr-bottom-right-left">Адрес:</td><td class="brdr-bottom-right" colspan="3">{STREET} {BUILD} {APT}</td>
+            </tr>
+            <tr>
+                <td class="brdr-bottom-right-left">Тариф:</td><td class="brdr-bottom-right">{TARIFF} {TARIFFPRICE}</td><td class="brdr-bottom-right">Сумма к оплате:</td><td class="brdr-bottom-right">{SUMM}</td>
+            </tr>
+            <tr>
+                <td class="brdr-bottom-left" colspan="2" style="padding-top: 10px;">Кассир:</td><td class="brdr-bottom-right" colspan="2" style="padding-top: 10px;">Плательщик:</td>
+            </tr>
+        </tr>
+    </table>
+    <p style="margin: 45px 0 5px 100px">Адрес: {STREET} {BUILD} {APT}&nbsp&nbsp&nbsp&nbspОплата услуги:&nbsp{SERVICENAME}</p>
+
+
+    <p style="border-bottom: 4px dashed #000; margin: 10px 0 0 0"></p>
+
+
+    <!--<table border="0" cellpadding="0" cellspacing="0" style="width: 19.5cm; font-size: 9pt; margin-top: 40px;">
+        <tr>
+            <td rowspan="10" style="width: 25%">
+                <span name="qr2">QR-CODE</span>
+            </td>
+            <tr>
+                <td class="brdr-top-left">Дата счета:</td><td class="brdr-top">{CURDATE}</td><td class="brdr-top">Оплатить до:</td><td class="brdr-top-right">{PAYTILL}</td>
+            </tr>
+            <tr>
+                <td class="brdr-left">Оплата услуги:</td><td class="brdr-right" colspan="3">{SERVICENAME}</td>
+            </tr>
+            <tr>
+                <td class="brdr-bottom-right">Получатель:</td><td class="brdr-bottom" colspan="3">ООО "Рога&Копыта"&nbsp&nbsp&nbsp&nbspИНН&nbsp456789213&nbsp&nbsp&nbsp&nbspР/С&nbsp204087899521005<br />+7(48456)5-26-15&nbsp&nbspг. Киров, ул. Ленина, 7, офис №1</td>
+            </tr>
+            <tr>
+                <td class="brdr-left">Банк&nbspполучателя:</td><td class="brdr-right" colspan="3">ОАО "Газэнергобанк" г. Калуга <br /> к/&nbsp30101810600000000701&nbsp&nbsp&nbsp&nbspБИК&nbsp042908701</td>
+            </tr>
+            <tr>
+                <td class="brdr-left">Номер&nbspдоговора:</td><td class="brdr-right" colspan="3">{CONTRACT}</td>
+            </tr>
+            <tr>
+                <td class="brdr-left">Абонент:</td><td class="brdr-right" colspan="3">{REALNAME}</td>
+            </tr>
+            <tr>
+                <td class="brdr-left">Адрес:</td><td class="brdr-right" colspan="3">{ADDRESS}</td>
+            </tr>
+            <tr>
+                <td class="brdr-left">Тариф:</td><td>{TARIFF}</td><td>Сумма к оплате:</td><td class="brdr-right">{SUMM}</td>
+            </tr>
+            <tr>
+                <td class="brdr-bottom-left" colspan="2" style="padding-top: 10px;">Кассир:</td><td class="brdr-bottom-right" colspan="2" style="padding-top: 10px;">Плательщик:</td>
+            </tr>
+        </tr>
+    </table>
+
+    <p style="border-bottom: 1px dashed #000; margin: 5px 0"></p>
+
+    <table border="0" cellpadding="0" cellspacing="0" style="width: 19.5cm; font-size: 9pt;">
+        <tr>
+            <td rowspan="10" style="width: 25%">
+                <span name="qr2"></span>
+            </td>
+            <tr>
+                <td>Дата счета:</td><td>{CURDATE}</td><td>Оплатить до:</td><td>{PAYTILL}</td>
+            </tr>
+            <tr>
+                <td>Оплата услуги:</td><td colspan="3">{SERVICENAME}</td>
+            </tr>
+            <tr>
+                <td>Получатель:</td><td colspan="3">ООО "Интеркомсервис" <br /> ИНН&nbsp4023007472&nbsp&nbsp&nbsp&nbspР/С&nbsp40702810708140021124</td>
+            </tr>
+            <tr>
+                <td>Банк&nbspполучателя:</td><td colspan="3">ОАО "Газэнергобанк" г. Калуга <br /> к/&nbsp30101810600000000701&nbsp&nbsp&nbsp&nbspБИК&nbsp042908701</td>
+            </tr>
+            <tr>
+                <td>Номер&nbspдоговора:</td><td colspan="3">{CONTRACT}</td>
+            </tr>
+            <tr>
+                <td>Абонент:</td><td colspan="3">{REALNAME}</td>
+            </tr>
+            <tr>
+                <td>Адрес:</td><td colspan="3">{ADDRESS}</td>
+            </tr>
+            <tr>
+                <td>Тариф:</td><td>{TARIFF}</td><td>Сумма к оплате:</td><td>{SUMM}</td>
+            </tr>
+            <tr>
+                <td colspan="2" style="padding-top: 10px;">Кассир:</td><td colspan="2" style="padding-top: 10px;">Плательщик:</td>
+            </tr>
+        </tr>
+    </table>
+    <p style="margin: 45px 0 5px 100px">Адрес: {ADDRESS}</p>
+    <p style="border-bottom: 4px dashed #000; margin: 10px 0 0 0"></p>-->
+</div>
+</body>
+</html>
