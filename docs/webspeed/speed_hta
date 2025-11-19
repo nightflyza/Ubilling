@@ -12,24 +12,23 @@
   ExpiresByType image/jpeg "access plus 2592000 seconds"
   ExpiresByType image/png "access plus 2592000 seconds"
   ExpiresByType image/gif "access plus 2592000 seconds"
-  ExpiresByType application/x-shockwave-flash "access plus 2592000 seconds"
   ExpiresByType text/css "access plus 86400 seconds"
-  ExpiresByType text/javascript "access plus 216000 seconds"
-  ExpiresByType application/javascript "access plus 216000 seconds"
-  ExpiresByType application/x-javascript "access plus 216000 seconds"
+  ExpiresByType text/javascript "access plus 86400 seconds"
+  ExpiresByType application/javascript "access plus 86400 seconds"
+  ExpiresByType application/x-javascript "access plus 86400 seconds"
   ExpiresByType text/html "access plus 600 seconds"
   ExpiresByType application/xhtml+xml "access plus 600 seconds"
 </ifModule>
 
 <ifModule mod_headers.c>
-  <filesMatch "\.(ico|jpeg|jpg|png|gif|swf)$">
+  <filesMatch "\.(ico|jpeg|jpg|png|gif)$">
     Header set Cache-Control "max-age=2592000, public"
   </filesMatch>
   <filesMatch "\.(css)$">
     Header set Cache-Control "max-age=86400, public"
   </filesMatch>
   <filesMatch "\.(js)$">
-    Header set Cache-Control "max-age=216000, private"
+    Header set Cache-Control "max-age=86400, private"
   </filesMatch>
   <filesMatch "\.(x?html?|php)$">
     Header set Cache-Control "max-age=1, no-store, no-cache, private, must-revalidate"
