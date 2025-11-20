@@ -88,21 +88,29 @@ function la_TextInput($name, $label = '', $value = '', $br = false, $size = '', 
     } else {
         $newline = '';
     }
-    // We will verify that we correctly enter data by input type
-    $pattern = ($pattern == 'geo') ? 'pattern="-?\d{1,2}(\.\d+)\s?,\s?-?\d{1,3}(\.\d+)" placeholder="0.00000,0.00000" title="' . __('The format of geographic data can be') . ': 40.7143528,-74.0059731 ; 41.40338, 2.17403 ; -14.235004 , 51.92528"' : $pattern;
-    $pattern = ($pattern == 'mobile') ? 'pattern="\+?(\d{1,3})?\d{2,3}\d{7}" placeholder="(+)(38)0500000000" title="' . __('The mobile number format can be') . ': +38026121104, 0506430501, 375295431122"' : $pattern;
-    $pattern = ($pattern == 'finance') ? 'pattern="\d+(\.\d+)?" placeholder="0(.00)" title="' . __('The financial input format can be') . ': 1 ; 4.01 ; 2 ; 0.001"' : $pattern;
-    // For this pattern IP adress also can be 0.0.0.0
-    $pattern = ($pattern == 'ip') ? 'pattern="^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$" placeholder="0.0.0.0" title="' . __('The IP address format can be') . ': 192.1.1.1"' : $pattern;
-    // For this pattern exclude cidr /31
-    $pattern = ($pattern == 'net-cidr') ? 'pattern="^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\/([0-9]|[1-2][0-9]|30|32)$" placeholder="0.0.0.0/0" title="' . __('The format of IP address with mask can be') . ': 192.1.1.1/32 ' . __('and the mask can not be /31') . '"' : $pattern;
-    $pattern = ($pattern == 'digits') ? 'pattern="^\d+$" placeholder="0" title="' . __('This field can only contain digits') . '"' : $pattern;
-    $pattern = ($pattern == 'email') ? 'pattern="^([\w\._-]+)@([\w\._-]+)\.([a-z]{2,6}\.?)$" placeholder="bobrik@bobrik.com" title="' . __('This field can only contain email address') . '"' : $pattern;
-    $pattern = ($pattern == 'alpha') ? 'pattern="[a-zA-Z]+" placeholder="aZ" title="' . __('This field can only contain Latin letters') . '"' : $pattern;
-    $pattern = ($pattern == 'alphanumeric') ? 'pattern="[a-zA-Z0-9]+" placeholder="aZ09" title="' . __('This field can only contain Latin letters and numbers') . '"' : $pattern;
-    $pattern = ($pattern == 'mac') ? 'pattern="^[a-fA-F0-9]{2}:[a-fA-F0-9]{2}:[a-fA-F0-9]{2}:[a-fA-F0-9]{2}:[a-fA-F0-9]{2}:[a-fA-F0-9]{2}$|^[a-fA-F0-9]{2}-[a-fA-F0-9]{2}-[a-fA-F0-9]{2}-[a-fA-F0-9]{2}-[a-fA-F0-9]{2}-[a-fA-F0-9]{2}$" placeholder="00:02:02:34:72:a5" title="' . __('This MAC have wrong format') . '"' : $pattern;
-
-    $result = '<input type="text" name="' . $name . '" value="' . $value . '" ' . $input_size . ' id="' . $inputid . '" class="' . $class . '" ' . $opts . ' ' . $pattern . '>' . "\n";
+      // We will verify that we correctly enter data by input type
+      $pattern = ($pattern == 'alpha') ? 'pattern="[a-zA-Z]+" placeholder="aZ" title="' . __('This field can only contain Latin letters') . '"' : $pattern;
+      $pattern = ($pattern == 'alphanumeric') ? 'pattern="[a-zA-Z0-9]+" placeholder="aZ09" title="' . __('This field can only contain Latin letters and numbers') . '"' : $pattern;
+      $pattern = ($pattern == 'digits') ? 'pattern="^\d+$" placeholder="0" title="' . __('This field can only contain digits') . '"' : $pattern;
+      $pattern = ($pattern == 'finance') ? 'pattern="\d+(\.\d+)?" placeholder="0(.00)" title="' . __('The financial input format can be') . ': 1 ; 4.01 ; 2 ; 0.001"' : $pattern;
+      $pattern = ($pattern == 'float') ? 'pattern="\d+(\.\d+)?" placeholder="0.00" title="' . __('This field can only contain digits') . ': 1 ; 4.01 ; 2 ; 0.001"' : $pattern;
+      $pattern = ($pattern == 'sigint') ? 'pattern="^-?\d+$" placeholder="0" title="' . __('This field can only contain digits') . ' ' . __('and') . ' - "' : $pattern;
+      // For this pattern IP adress also can be 0.0.0.0
+      $pattern = ($pattern == 'ip') ? 'pattern="^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$" placeholder="0.0.0.0" title="' . __('The IP address format can be') . ': 192.1.1.1"' : $pattern;
+      // For this pattern exclude cidr /31
+      $pattern = ($pattern == 'net-cidr') ? 'pattern="^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\/([0-9]|[1-2][0-9]|30|32)$" placeholder="0.0.0.0/0" title="' . __('The format of IP address with mask can be') . ': 192.1.1.1/32 ' . __('and the mask can not be /31') . '"' : $pattern;
+      $pattern = ($pattern == 'email') ? 'pattern="[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}" placeholder="bobrik@bobrik.com" title="' . __('This field can only contain email address') . '"' : $pattern;
+      $pattern = ($pattern == 'login') ? 'pattern="[a-zA-Z0-9_]+" placeholder="aZ09_" title="' . __('This field can only contain Latin letters and numbers') . ' ' . __('and') . ' _' . '"' : $pattern;
+      $pattern = ($pattern == 'mac') ? 'pattern="^[a-fA-F0-9]{2}:[a-fA-F0-9]{2}:[a-fA-F0-9]{2}:[a-fA-F0-9]{2}:[a-fA-F0-9]{2}:[a-fA-F0-9]{2}$|^[a-fA-F0-9]{2}-[a-fA-F0-9]{2}-[a-fA-F0-9]{2}-[a-fA-F0-9]{2}-[a-fA-F0-9]{2}-[a-fA-F0-9]{2}$" placeholder="00:02:02:34:72:a5" title="' . __('This MAC have wrong format') . '"' : $pattern;
+      $pattern = ($pattern == 'url') ? 'pattern="https?:\/\/[A-Za-z0-9][A-Za-z0-9\.\\-]*\.[A-Za-z]{2,}(:[0-9]+)?(\/.*)?" placeholder="http://ubilling.net.ua/" title="' . __('URL') . ': http://host.domain/ ' . __('or') . ' https://host.domain/ ' . __('or') . ' http://host.domain:port"' : $pattern;
+      $pattern = ($pattern == 'geo') ? 'pattern="-?\d{1,2}(\.\d+)\s?,\s?-?\d{1,3}(\.\d+)" placeholder="0.00000,0.00000" title="' . __('The format of geographic data can be') . ': 40.7143528,-74.0059731 ; 41.40338, 2.17403 ; -14.235004 , 51.92528"' : $pattern;
+      $pattern = ($pattern == 'mobile') ? 'pattern="\+?(\d{1,3})?\d{2,3}\d{7}" placeholder="(+)(38)0500000000" title="' . __('The mobile number format can be') . ': +380800100102, 0506430501, 375295431122"' : $pattern;
+      $pattern = ($pattern == 'filepath') ? 'pattern="^\/?(?:[^\/ ]+\/)*[^\/ ]+$" placeholder="some/dir/file" title="' . __('This field can contain relative or absolute paths') . ': some/dir/file, dir/file.txt, file.txt"' : $pattern;
+      $pattern = ($pattern == 'dirpath') ? 'pattern="^\/?(?:[^\/ ]+\/)*[^\/ ]*\/?$" placeholder="some/dir/" title="' . __('This field can contain relative or absolute directories paths') . ': some/dir/, dir/"' : $pattern;
+      $pattern = ($pattern == 'fullpath') ? 'pattern="^\/(?:[^\/ ]+\/?)+$" placeholder="/some/dir/file" title="' . __('This field can only contain absolute Unix-style paths starting with /') . ': /some/dir/file ' . __('or') . ' /some/dir/"' : $pattern;
+      $pattern = ($pattern == 'pathorurl') ? 'pattern="^(https?://[^ ]+|/[^ ]*|[^ ]+/[^ ]*)$" placeholder="some/path or http://domain.com/path" title="' . __('This field can accept URLs or paths') . ': http://someurl.com/, some/dir/file, /some/dir/"' : $pattern;
+    
+      $result = '<input type="text" name="' . $name . '" value="' . $value . '" ' . $input_size . ' id="' . $inputid . '" class="' . $class . '" ' . $opts . ' ' . $pattern . '>' . "\n";
     if ($label != '') {
         $result .= ' <label for="' . $inputid . '">' . __($label) . '</label>' . "\n";
     }
