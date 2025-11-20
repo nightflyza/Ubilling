@@ -20,7 +20,7 @@ CREATE TABLE IF NOT EXISTS `weblogs` (
   `ip` varchar(64) default NULL,
   `event` varchar(255) default NULL,
   PRIMARY KEY  (`id`),
-  KEY `date` (`date`),
+  KEY `date` (`date`)
 ) ENGINE=MyISAM  DEFAULT CHARSET=utf8;
 
 
@@ -396,7 +396,7 @@ CREATE TABLE IF NOT EXISTS `taskman` (
   `startdate` date NOT NULL,
   `enddate` date default NULL,
   `admin` varchar(255) default NULL,
-  PRIMARY KEY  (`id`),
+  PRIMARY KEY  (`id`)
 ) ENGINE=MyISAM  DEFAULT CHARSET=UTF8;
 
 CREATE TABLE  IF NOT EXISTS `userspeeds` (
@@ -445,7 +445,7 @@ CREATE TABLE IF NOT EXISTS `vcashlog` (
   `note` varchar(45) default NULL,
   PRIMARY KEY  (`id`),
   KEY `login` (`login`),
-  KEY `date` (`date`),
+  KEY `date` (`date`)
 ) ENGINE=MyISAM  DEFAULT CHARSET=utf8;
 
 
