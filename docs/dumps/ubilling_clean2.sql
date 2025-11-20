@@ -19,6 +19,7 @@ CREATE TABLE `address` (
   KEY `login` (`login`),
   KEY `aptid` (`aptid`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
+
 CREATE TABLE `address_extended` (
   `id` int NOT NULL AUTO_INCREMENT,
   `login` varchar(50) NOT NULL,
