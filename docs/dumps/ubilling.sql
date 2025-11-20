@@ -1317,65 +1317,6 @@ CREATE TABLE `mg_tariffs` (
   PRIMARY KEY (`id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
-CREATE TABLE `mlg_acct` (
-  `radacctid` bigint NOT NULL AUTO_INCREMENT,
-  `acctsessionid` varchar(64) NOT NULL DEFAULT '',
-  `acctuniqueid` varchar(32) NOT NULL DEFAULT '',
-  `username` varchar(64) NOT NULL DEFAULT '',
-  `groupname` varchar(64) NOT NULL DEFAULT '',
-  `realm` varchar(64) DEFAULT '',
-  `nasipaddress` varchar(15) NOT NULL DEFAULT '',
-  `nasportid` varchar(120) DEFAULT NULL,
-  `nasporttype` varchar(32) DEFAULT NULL,
-  `acctstarttime` datetime DEFAULT NULL,
-  `acctupdatetime` datetime DEFAULT NULL,
-  `acctstoptime` datetime DEFAULT NULL,
-  `acctinterval` int DEFAULT NULL,
-  `acctsessiontime` int DEFAULT NULL,
-  `acctauthentic` varchar(32) DEFAULT NULL,
-  `connectinfo_start` varchar(50) DEFAULT NULL,
-  `connectinfo_stop` varchar(50) DEFAULT NULL,
-  `acctinputoctets` bigint DEFAULT NULL,
-  `acctoutputoctets` bigint DEFAULT NULL,
-  `calledstationid` varchar(50) NOT NULL DEFAULT '',
-  `callingstationid` varchar(50) NOT NULL DEFAULT '',
-  `acctterminatecause` varchar(32) NOT NULL DEFAULT '',
-  `servicetype` varchar(32) DEFAULT NULL,
-  `framedprotocol` varchar(32) DEFAULT NULL,
-  `framedipaddress` varchar(15) NOT NULL DEFAULT '',
-  `acctstartdelay` int DEFAULT NULL,
-  `acctstopdelay` int DEFAULT NULL,
-  `xascendsessionsvrkey` varchar(10) DEFAULT NULL,
-  PRIMARY KEY (`radacctid`),
-  UNIQUE KEY `acctuniqueid` (`acctuniqueid`),
-  KEY `username` (`username`),
-  KEY `framedipaddress` (`framedipaddress`),
-  KEY `acctsessionid` (`acctsessionid`),
-  KEY `acctsessiontime` (`acctsessiontime`),
-  KEY `acctstarttime` (`acctstarttime`),
-  KEY `acctstoptime` (`acctstoptime`),
-  KEY `nasipaddress` (`nasipaddress`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
-
-CREATE TABLE `mlg_check` (
-  `id` int unsigned NOT NULL AUTO_INCREMENT,
-  `username` varchar(64) NOT NULL DEFAULT '',
-  `attribute` varchar(64) NOT NULL DEFAULT '',
-  `op` char(2) NOT NULL DEFAULT '==',
-  `value` varchar(253) NOT NULL DEFAULT '',
-  PRIMARY KEY (`id`),
-  KEY `username` (`username`(32))
-) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
-
-SET @saved_cs_client     = @@character_set_client;
- 1 AS `nasname`,
- 1 AS `shortname`,
- 1 AS `type`,
- 1 AS `ports`,
- 1 AS `secret`,
- 1 AS `server`*/;
-SET character_set_client = @saved_cs_client;
-
 
 CREATE TABLE `mlg_culpas` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -1384,26 +1325,6 @@ CREATE TABLE `mlg_culpas` (
   PRIMARY KEY (`id`),
   KEY `login` (`login`),
   KEY `culpa` (`culpa`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
-
-CREATE TABLE `mlg_groupcheck` (
-  `id` int unsigned NOT NULL AUTO_INCREMENT,
-  `groupname` varchar(64) NOT NULL DEFAULT '',
-  `attribute` varchar(64) NOT NULL DEFAULT '',
-  `op` char(2) NOT NULL DEFAULT '==',
-  `value` varchar(253) NOT NULL DEFAULT '',
-  PRIMARY KEY (`id`),
-  KEY `groupname` (`groupname`(32))
-) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
-
-CREATE TABLE `mlg_groupreply` (
-  `id` int unsigned NOT NULL AUTO_INCREMENT,
-  `username` varchar(64) NOT NULL DEFAULT '',
-  `attribute` varchar(64) NOT NULL DEFAULT '',
-  `op` char(2) NOT NULL DEFAULT '=',
-  `value` varchar(253) NOT NULL DEFAULT '',
-  PRIMARY KEY (`id`),
-  KEY `username` (`username`(32))
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `mlg_ishimura` (
@@ -1416,87 +1337,6 @@ CREATE TABLE `mlg_ishimura` (
   KEY `login` (`login`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
-CREATE TABLE `mlg_nasattributes` (
-  `id` int NOT NULL AUTO_INCREMENT,
-  `nasid` int NOT NULL,
-  `scenario` varchar(30) NOT NULL,
-  `modifier` varchar(15) NOT NULL DEFAULT 'all',
-  `attribute` varchar(255) NOT NULL,
-  `operator` varchar(10) NOT NULL,
-  `content` varchar(255) NOT NULL,
-  PRIMARY KEY (`id`),
-  KEY `nasid` (`nasid`,`scenario`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
-
-CREATE TABLE `mlg_nascustom` (
-  `id` int NOT NULL AUTO_INCREMENT,
-  `ip` varchar(32) NOT NULL,
-  `name` varchar(64) NOT NULL,
-  `secret` varchar(64) NOT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
-
-CREATE TABLE `mlg_nasoptions` (
-  `id` int NOT NULL AUTO_INCREMENT,
-  `nasid` int NOT NULL,
-  `usernametype` varchar(30) NOT NULL,
-  `service` varchar(255) NOT NULL,
-  `onlyactive` int NOT NULL,
-  `port` int NOT NULL DEFAULT '3799',
-  PRIMARY KEY (`id`),
-  KEY `nasid` (`nasid`,`usernametype`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
-
-CREATE TABLE `mlg_postauth` (
-  `id` int NOT NULL AUTO_INCREMENT,
-  `username` varchar(64) NOT NULL DEFAULT '',
-  `pass` varchar(64) NOT NULL DEFAULT '',
-  `reply` varchar(32) NOT NULL DEFAULT '',
-  `authdate` timestamp NOT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
-
-CREATE TABLE `mlg_reply` (
-  `id` int unsigned NOT NULL AUTO_INCREMENT,
-  `username` varchar(64) NOT NULL DEFAULT '',
-  `attribute` varchar(64) NOT NULL DEFAULT '',
-  `op` char(2) NOT NULL DEFAULT '=',
-  `value` varchar(253) NOT NULL DEFAULT '',
-  PRIMARY KEY (`id`),
-  KEY `username` (`username`(32))
-) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
-
-CREATE TABLE `mlg_services` (
-  `id` int NOT NULL AUTO_INCREMENT,
-  `nasid` int NOT NULL,
-  `pod` text,
-  `coaconnect` text,
-  `coadisconnect` text,
-  PRIMARY KEY (`id`),
-  KEY `nasid` (`nasid`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
-
-CREATE TABLE `mlg_traffic` (
-  `login` varchar(100) NOT NULL,
-  `down` bigint DEFAULT NULL,
-  `up` bigint DEFAULT NULL,
-  `act` int DEFAULT NULL,
-  PRIMARY KEY (`login`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
-
-CREATE TABLE `mlg_usergroup` (
-  `username` varchar(64) NOT NULL DEFAULT '',
-  `groupname` varchar(64) NOT NULL DEFAULT '',
-  `priority` int NOT NULL DEFAULT '1',
-  KEY `username` (`username`(32))
-) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
-
-CREATE TABLE `mlg_userstates` (
-  `id` int NOT NULL AUTO_INCREMENT,
-  `login` varchar(64) NOT NULL,
-  `state` int NOT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `mobileext` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -1654,12 +1494,6 @@ CREATE TABLE `om_users` (
   PRIMARY KEY (`id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
-SET @saved_cs_client     = @@character_set_client;
- 1 AS `realid`,
- 1 AS `virtualid`*/;
-SET character_set_client = @saved_cs_client;
-
-
 CREATE TABLE `op_denied` (
   `id` int NOT NULL AUTO_INCREMENT,
   `login` varchar(200) NOT NULL,
@@ -1680,28 +1514,6 @@ CREATE TABLE `op_sms_notifications` (
   KEY `login` (`login`),
   KEY `date` (`date`),
   KEY `summ` (`summ`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
-
-CREATE TABLE `op_static` (
-  `id` int NOT NULL AUTO_INCREMENT,
-  `realid` varchar(255) NOT NULL,
-  `virtualid` varchar(255) NOT NULL,
-  PRIMARY KEY (`id`),
-  KEY `realid` (`realid`),
-  KEY `virtualid` (`virtualid`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
-
-CREATE TABLE `op_transactions` (
-  `id` int NOT NULL AUTO_INCREMENT,
-  `hash` varchar(255) NOT NULL,
-  `date` datetime NOT NULL,
-  `summ` double NOT NULL,
-  `customerid` varchar(255) NOT NULL,
-  `paysys` varchar(255) NOT NULL,
-  `processed` tinyint(1) NOT NULL,
-  `note` text NOT NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `hash` (`hash`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `ophtraff` (
