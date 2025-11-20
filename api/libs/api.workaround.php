@@ -1297,13 +1297,14 @@ function web_GrepLogByUser($login, $deepSearch = false) {
         $rows = wf_TableRow($cells, 'row1');
 
         foreach ($allevents as $io => $eachevent) {
+            $eventText = htmlspecialchars($eachevent['event']);
             $adminName = (isset($employeeNames[$eachevent['admin']])) ? $employeeNames[$eachevent['admin']] : $eachevent['admin'];
             $idLabel = wf_tag('abbr', false, '', 'title="' . $eachevent['ip'] . '"') . $eachevent['id'] . wf_tag('abbr', true);
             $cells = wf_TableCell($idLabel);
 
             $cells .= wf_TableCell($adminName);
             $cells .= wf_TableCell($eachevent['date']);
-            $cells .= wf_TableCell($eachevent['event']);
+            $cells .= wf_TableCell($eventText);
             $rows .= wf_TableRow($cells, 'row5');
         }
         $result .= wf_TableBody($rows, '100%', 0, 'sortable');

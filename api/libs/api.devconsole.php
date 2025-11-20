@@ -279,7 +279,7 @@ class DevConsole {
                     $recCount = count($query_result);
                     if (!ubRouting::checkPost(self::PROUTE_TABLE) and !ubRouting::checkPost(self::PROUTE_TRUETABLE)) {
                         //raw array result
-                        $vdump = var_export($query_result, true);
+                        $vdump = htmlspecialchars(var_export($query_result, true));
                     } elseif (ubRouting::checkPost(self::PROUTE_TRUETABLE)) {
                         //show query result as table with fields
                         $tablecells = '';
@@ -303,7 +303,7 @@ class DevConsole {
                                 $tablecells = '';
 
                                 foreach ($eachresult as $io => $key) {
-                                    $tablecells .= wf_TableCell($key);
+                                    $tablecells .= wf_TableCell(htmlspecialchars($key));
                                 }
                                 $tablerows .= wf_TableRow($tablecells, 'row3');
                                 $tablecells = '';
@@ -320,7 +320,7 @@ class DevConsole {
                             $tablerows .= wf_TableRow($tablecells, 'row1');
                             foreach ($eachresult as $io => $key) {
                                 $tablecells = wf_TableCell($io);
-                                $tablecells .= wf_TableCell($key);
+                                $tablecells .= wf_TableCell(htmlspecialchars($key));
                                 $tablerows .= wf_TableRow($tablecells, 'row3');
                             }
                         }
