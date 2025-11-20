@@ -773,7 +773,7 @@ class USReminder {
                 $this->changeUserMobile($userLogin, $this->uscfgReminderPrefix . $mobile);
                 $logMessage = 'US_REMINDER: user (' . $userLogin . ') changed his cell phone number to: ' . $this->uscfgReminderPrefix . $mobile;
             } else {
-                $logMessage = 'US_REMINDER: user (' . $userLogin . ') provided invalid or empty cell phone number: ' . ubRouting::filters(ubRouting::post('mobile'), 'vf');
+                $logMessage = 'US_REMINDER: user (' . $userLogin . ') provided invalid or empty cell phone number: ' . strip_tags(ubRouting::filters(ubRouting::post('mobile'), 'vf'));
             }
         }
 
@@ -785,7 +785,7 @@ class USReminder {
                 $this->changeUserEmail($userLogin, $email);
                 $logMessage = 'US_REMINDER: user (' . $userLogin . ') changed his E-mail to: ' . $email;
             } else {
-                $logMessage = 'US_REMINDER: user (' . $userLogin . ') provided invalid or empty E-mail: ' . ubRouting::filters(ubRouting::post('email'), 'vf');
+                $logMessage = 'US_REMINDER: user (' . $userLogin . ') provided invalid or empty E-mail: ' . strip_tags(ubRouting::filters(ubRouting::post('email'), 'vf'));
             }
         }
 
