@@ -9,7 +9,7 @@ CREATE TABLE `adcomments` (
   KEY `scope` (`scope`),
   KEY `item` (`item`),
   KEY `date` (`date`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `address` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -18,7 +18,7 @@ CREATE TABLE `address` (
   PRIMARY KEY (`id`),
   KEY `login` (`login`),
   KEY `aptid` (`aptid`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 CREATE TABLE `address_extended` (
   `id` int NOT NULL AUTO_INCREMENT,
   `login` varchar(50) NOT NULL,
@@ -27,7 +27,7 @@ CREATE TABLE `address_extended` (
   `address_exten` varchar(250) NOT NULL DEFAULT '',
   PRIMARY KEY (`id`),
   UNIQUE KEY `login` (`login`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `admacquainted` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -36,14 +36,14 @@ CREATE TABLE `admacquainted` (
   `annid` int DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `date` (`date`,`admin`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `admannouncements` (
   `id` int NOT NULL AUTO_INCREMENT,
   `title` varchar(255) DEFAULT NULL,
   `text` text NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 
 CREATE TABLE `ahenassign` (
@@ -51,7 +51,7 @@ CREATE TABLE `ahenassign` (
   `ahenid` int NOT NULL,
   `streetname` varchar(255) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `ahenassignstrict` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -59,7 +59,7 @@ CREATE TABLE `ahenassignstrict` (
   `login` varchar(255) NOT NULL,
   PRIMARY KEY (`id`),
   KEY `login` (`login`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `apt` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -70,14 +70,14 @@ CREATE TABLE `apt` (
   PRIMARY KEY (`id`),
   KEY `apt` (`apt`),
   KEY `buildid` (`buildid`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `askcalls` (
   `id` int NOT NULL AUTO_INCREMENT,
   `filename` varchar(250) DEFAULT NULL,
   `login` varchar(250) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `banksta2` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -97,7 +97,7 @@ CREATE TABLE `banksta2` (
   `service_type` varchar(100) NOT NULL DEFAULT '',
   `payid` int DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `banksta2_presets` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -143,7 +143,7 @@ CREATE TABLE `banksta2_presets` (
   `payment_type_id` int NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`),
   UNIQUE KEY `presetname` (`presetname`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `bankstamd` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -160,7 +160,7 @@ CREATE TABLE `bankstamd` (
   `ptime` varchar(42) DEFAULT NULL,
   `processed` tinyint NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `bankstaparsed` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -173,14 +173,14 @@ CREATE TABLE `bankstaparsed` (
   `state` int NOT NULL,
   `login` varchar(255) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `bankstaraw` (
   `id` int NOT NULL AUTO_INCREMENT,
   `filename` varchar(255) NOT NULL,
   `rawdata` text NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `bgppeers` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -189,48 +189,48 @@ CREATE TABLE `bgppeers` (
   `short` varchar(16) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `ip` (`ip`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `branches` (
   `id` int NOT NULL AUTO_INCREMENT,
   `name` varchar(40) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `branchesadmins` (
   `id` int NOT NULL AUTO_INCREMENT,
   `branchid` int NOT NULL,
   `admin` varchar(40) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `branchescities` (
   `id` int NOT NULL AUTO_INCREMENT,
   `branchid` int NOT NULL,
   `cityid` int NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `branchesservices` (
   `id` int NOT NULL AUTO_INCREMENT,
   `branchid` int NOT NULL,
   `serviceid` int NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `branchestariffs` (
   `id` int NOT NULL AUTO_INCREMENT,
   `branchid` int NOT NULL,
   `tariff` varchar(50) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `branchesusers` (
   `id` int NOT NULL AUTO_INCREMENT,
   `branchid` int NOT NULL,
   `login` varchar(50) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `build` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -240,7 +240,7 @@ CREATE TABLE `build` (
   PRIMARY KEY (`id`),
   KEY `buildnum` (`buildnum`),
   KEY `streetid` (`streetid`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `buildpassport` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -260,7 +260,7 @@ CREATE TABLE `buildpassport` (
   `anthill` tinyint DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `buildid` (`buildid`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `callmeback` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -271,7 +271,7 @@ CREATE TABLE `callmeback` (
   `admin` varchar(200) DEFAULT NULL,
   `userlogin` varchar(64) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `callshist` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -280,7 +280,7 @@ CREATE TABLE `callshist` (
   `login` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `login` (`login`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `capab` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -295,7 +295,7 @@ CREATE TABLE `capab` (
   PRIMARY KEY (`id`),
   KEY `date` (`date`),
   KEY `state` (`stateid`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `capabhist` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -305,14 +305,14 @@ CREATE TABLE `capabhist` (
   `type` varchar(40) NOT NULL,
   `event` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `capabstates` (
   `id` int NOT NULL AUTO_INCREMENT,
   `state` varchar(255) NOT NULL,
   `color` varchar(40) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `capdata` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -321,7 +321,7 @@ CREATE TABLE `capdata` (
   `days` int DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `login` (`login`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `cardbank` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -340,7 +340,7 @@ CREATE TABLE `cardbank` (
   PRIMARY KEY (`id`),
   KEY `serial` (`serial`),
   KEY `part` (`part`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `cardbrute` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -349,14 +349,14 @@ CREATE TABLE `cardbrute` (
   `login` varchar(45) NOT NULL,
   `ip` varchar(45) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `cashtype` (
   `id` int NOT NULL AUTO_INCREMENT,
   `cashtype` varchar(50) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `cashtype` (`cashtype`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 
 CREATE TABLE `cemetery` (
@@ -365,7 +365,7 @@ CREATE TABLE `cemetery` (
   `state` tinyint(1) NOT NULL DEFAULT '0',
   `date` datetime NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `cfitems` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -374,14 +374,14 @@ CREATE TABLE `cfitems` (
   `content` text NOT NULL,
   PRIMARY KEY (`id`),
   KEY `login` (`login`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `cftypes` (
   `id` int NOT NULL AUTO_INCREMENT,
   `type` varchar(15) NOT NULL,
   `name` varchar(255) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `city` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -389,7 +389,7 @@ CREATE TABLE `city` (
   `cityalias` varchar(45) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `cityname` (`cityname`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `condet` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -400,14 +400,14 @@ CREATE TABLE `condet` (
   `term` int DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `login` (`login`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `contacts` (
   `id` int NOT NULL AUTO_INCREMENT,
   `phone` varchar(255) NOT NULL,
   `name` varchar(255) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `contractdates` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -416,7 +416,7 @@ CREATE TABLE `contractdates` (
   `from` date DEFAULT NULL,
   `till` date DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `contracts` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -424,7 +424,7 @@ CREATE TABLE `contracts` (
   `contract` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `login` (`login`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `contrahens` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -445,7 +445,7 @@ CREATE TABLE `contrahens` (
   `agmail` varchar(100) DEFAULT NULL,
   `siteurl` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `contrahens_extinfo` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -460,7 +460,7 @@ CREATE TABLE `contrahens_extinfo` (
   `payment_fee_info` varchar(100) NOT NULL DEFAULT '',
   `paysys_callback_url` varchar(255) NOT NULL DEFAULT '',
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `corp_data` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -483,7 +483,7 @@ CREATE TABLE `corp_data` (
   `corpbasis` varchar(255) DEFAULT NULL,
   `corpemail` varchar(100) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `corp_persons` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -495,20 +495,20 @@ CREATE TABLE `corp_persons` (
   `appointment` varchar(255) DEFAULT NULL,
   `notes` text,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `corp_taxtypes` (
   `id` int NOT NULL AUTO_INCREMENT,
   `type` varchar(255) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `corp_users` (
   `id` int NOT NULL AUTO_INCREMENT,
   `login` varchar(255) NOT NULL,
   `corpid` int NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `cpe` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -519,13 +519,13 @@ CREATE TABLE `cpe` (
   `snmp` varchar(45) DEFAULT NULL,
   `netid` int DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `cpetypes` (
   `id` int NOT NULL AUTO_INCREMENT,
   `cpemodel` varchar(45) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `crm_activities` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -537,7 +537,7 @@ CREATE TABLE `crm_activities` (
   `notes` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `leadid` (`leadid`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `crm_leads` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -554,7 +554,7 @@ CREATE TABLE `crm_leads` (
   `notes` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `login` (`login`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `crm_stateslog` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -567,7 +567,7 @@ CREATE TABLE `crm_stateslog` (
   PRIMARY KEY (`id`),
   KEY `scope` (`scope`),
   KEY `itemid` (`itemid`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `ct_auth` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -580,7 +580,7 @@ CREATE TABLE `ct_auth` (
   KEY `idx_chatid` (`chatid`),
   KEY `idx_login` (`login`),
   KEY `idx_active` (`active`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `cudiscounts` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -590,13 +590,13 @@ CREATE TABLE `cudiscounts` (
   `days` int DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `login` (`login`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `custmaps` (
   `id` int NOT NULL AUTO_INCREMENT,
   `name` varchar(255) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `custmapsitems` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -607,7 +607,7 @@ CREATE TABLE `custmapsitems` (
   `location` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `mapid` (`mapid`,`type`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `ddt_chargeopts` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -617,7 +617,7 @@ CREATE TABLE `ddt_chargeopts` (
   `absolute` int DEFAULT NULL,
   `creditdays` int NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `ddt_charges` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -626,7 +626,7 @@ CREATE TABLE `ddt_charges` (
   `tariff` varchar(40) NOT NULL,
   `summ` double NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `ddt_options` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -641,7 +641,7 @@ CREATE TABLE `ddt_options` (
   `chargeabsolute` int DEFAULT '0',
   `creditcustom` int DEFAULT '0',
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `ddt_users` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -653,7 +653,7 @@ CREATE TABLE `ddt_users` (
   `nexttariff` varchar(40) NOT NULL,
   `dwiid` int NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `dealwithit` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -663,7 +663,7 @@ CREATE TABLE `dealwithit` (
   `param` varchar(45) DEFAULT NULL,
   `note` varchar(45) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `dealwithithist` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -678,14 +678,14 @@ CREATE TABLE `dealwithithist` (
   `admin` varchar(50) DEFAULT NULL,
   `done` tinyint(1) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `deathtime` (
   `id` int NOT NULL AUTO_INCREMENT,
   `ip` varchar(255) NOT NULL,
   `date` datetime NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `dhcp` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -693,7 +693,7 @@ CREATE TABLE `dhcp` (
   `dhcpconfig` text,
   `confname` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `directions` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -702,7 +702,7 @@ CREATE TABLE `directions` (
   PRIMARY KEY (`id`),
   KEY `rulenumber` (`rulenumber`),
   KEY `rulename` (`rulename`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 
 CREATE TABLE `discounts` (
@@ -711,7 +711,7 @@ CREATE TABLE `discounts` (
   `percent` double DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `login` (`login`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `districtdata` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -720,13 +720,13 @@ CREATE TABLE `districtdata` (
   `streetid` int DEFAULT NULL,
   `buildid` int DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `districtnames` (
   `id` int NOT NULL AUTO_INCREMENT,
   `name` varchar(255) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `docxdocuments` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -738,7 +738,7 @@ CREATE TABLE `docxdocuments` (
   PRIMARY KEY (`id`),
   KEY `public` (`public`),
   KEY `path` (`path`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `docxtemplates` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -750,7 +750,7 @@ CREATE TABLE `docxtemplates` (
   PRIMARY KEY (`id`),
   KEY `name` (`name`),
   KEY `path` (`path`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `dreamkas_banksta2_relations` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -760,7 +760,7 @@ CREATE TABLE `dreamkas_banksta2_relations` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `bs2_rec_id` (`bs2_rec_id`),
   UNIQUE KEY `operation_id` (`operation_id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `dreamkas_operations` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -777,7 +777,7 @@ CREATE TABLE `dreamkas_operations` (
   `repeat_count` tinyint NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`),
   UNIQUE KEY `operation_id` (`operation_id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `dreamkas_services_relations` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -790,7 +790,7 @@ CREATE TABLE `dreamkas_services_relations` (
   `goods_vendorcode` varchar(255) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `service` (`service`,`goods_id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `dshape_time` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -799,7 +799,7 @@ CREATE TABLE `dshape_time` (
   `threshold2` time NOT NULL,
   `speed` int NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `emails` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -807,7 +807,7 @@ CREATE TABLE `emails` (
   `email` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `login` (`login`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `employee` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -821,7 +821,7 @@ CREATE TABLE `employee` (
   `amountLimit` varchar(45) NOT NULL DEFAULT '0',
   `birthdate` date DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `envydata` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -830,7 +830,7 @@ CREATE TABLE `envydata` (
   `config` mediumtext,
   PRIMARY KEY (`id`),
   KEY `switchid` (`switchid`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `envydevices` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -844,14 +844,14 @@ CREATE TABLE `envydevices` (
   `cutend` int DEFAULT NULL,
   `port` int DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `envyscripts` (
   `id` int NOT NULL AUTO_INCREMENT,
   `modelid` int NOT NULL,
   `data` text,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `exhorse` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -903,7 +903,7 @@ CREATE TABLE `exhorse` (
   `a_outtotalcallsduration` int DEFAULT NULL,
   `a_outaveragecallduration` int DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `extcontras` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -919,7 +919,7 @@ CREATE TABLE `extcontras` (
   KEY `address_id` (`address_id`),
   KEY `period_id` (`period_id`),
   KEY `payday` (`payday`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `extcontras_address` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -928,7 +928,7 @@ CREATE TABLE `extcontras_address` (
   `contract_notes` varchar(255) DEFAULT NULL,
   `notes` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `extcontras_contracts` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -945,7 +945,7 @@ CREATE TABLE `extcontras_contracts` (
   KEY `date_end` (`date_end`),
   KEY `subject` (`subject`),
   KEY `full_sum` (`full_sum`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `extcontras_invoices` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -963,7 +963,7 @@ CREATE TABLE `extcontras_invoices` (
   KEY `invoice_number` (`invoice_number`),
   KEY `date` (`date`),
   KEY `summ` (`summ`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `extcontras_missed_payms` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -986,7 +986,7 @@ CREATE TABLE `extcontras_missed_payms` (
   KEY `date_payment` (`date_payment`),
   KEY `date_payed` (`date_payed`),
   KEY `summ_payment` (`summ_payment`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `extcontras_money` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -1014,13 +1014,13 @@ CREATE TABLE `extcontras_money` (
   KEY `date_edit` (`date_edit`),
   KEY `summ_accrual` (`summ_accrual`),
   KEY `summ_payment` (`summ_payment`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `extcontras_periods` (
   `id` int NOT NULL AUTO_INCREMENT,
   `period_name` varchar(100) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `extcontras_profiles` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -1032,7 +1032,7 @@ CREATE TABLE `extcontras_profiles` (
   KEY `name` (`name`),
   KEY `edrpo` (`edrpo`),
   KEY `contact` (`contact`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `fdbarchive` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -1046,7 +1046,7 @@ CREATE TABLE `fdbarchive` (
   PRIMARY KEY (`id`),
   KEY `devid` (`devid`,`devip`),
   KEY `pon` (`pon`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `fees` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -1062,7 +1062,7 @@ CREATE TABLE `fees` (
   PRIMARY KEY (`id`),
   KEY `login` (`login`),
   KEY `date` (`date`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `filestorage` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -1075,7 +1075,7 @@ CREATE TABLE `filestorage` (
   KEY `scope` (`scope`),
   KEY `item` (`item`),
   KEY `date` (`date`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `friendship` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -1083,7 +1083,7 @@ CREATE TABLE `friendship` (
   `parent` varchar(255) NOT NULL,
   PRIMARY KEY (`id`),
   KEY `friend` (`friend`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `frozen_charge_days` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -1096,7 +1096,7 @@ CREATE TABLE `frozen_charge_days` (
   `last_workdays_upd_dt` datetime NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `login` (`login`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `garage_cars` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -1112,21 +1112,21 @@ CREATE TABLE `garage_cars` (
   `gastank` int DEFAULT NULL,
   `weight` int DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `garage_drivers` (
   `id` int NOT NULL AUTO_INCREMENT,
   `employeeid` int NOT NULL,
   `carid` int DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `garage_mapon` (
   `id` int NOT NULL AUTO_INCREMENT,
   `carid` int NOT NULL,
   `unitid` int NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `garage_mileage` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -1134,14 +1134,14 @@ CREATE TABLE `garage_mileage` (
   `carid` int NOT NULL,
   `mileage` int DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `genocide` (
   `id` int NOT NULL AUTO_INCREMENT,
   `tariff` varchar(255) NOT NULL,
   `speed` int NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `gr_spec` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -1151,7 +1151,7 @@ CREATE TABLE `gr_spec` (
   `value` int DEFAULT NULL,
   `customdata` text,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `gr_strat` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -1161,7 +1161,7 @@ CREATE TABLE `gr_strat` (
   `maxamount` int DEFAULT NULL,
   `tariff` varchar(64) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 CREATE TABLE `ins_homereq` (
   `id` int NOT NULL AUTO_INCREMENT,
   `date` datetime NOT NULL,
@@ -1172,7 +1172,7 @@ CREATE TABLE `ins_homereq` (
   `email` varchar(64) NOT NULL,
   `state` tinyint(1) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `invoices` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -1183,14 +1183,14 @@ CREATE TABLE `invoices` (
   `invoice_body` text NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `invoice_num` (`invoice_num`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `ipauth_denied` (
   `id` int NOT NULL AUTO_INCREMENT,
   `login` varchar(200) NOT NULL,
   PRIMARY KEY (`id`),
   KEY `login` (`login`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `jobs` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -1200,7 +1200,7 @@ CREATE TABLE `jobs` (
   `login` varchar(45) NOT NULL,
   `note` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `jobtypes` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -1208,7 +1208,7 @@ CREATE TABLE `jobtypes` (
   `jobcolor` varchar(40) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `jobcolor` (`jobcolor`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `katottg` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -1219,7 +1219,7 @@ CREATE TABLE `katottg` (
   `type` varchar(2) DEFAULT NULL,
   `name` varchar(255) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `katottg_cities` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -1227,7 +1227,7 @@ CREATE TABLE `katottg_cities` (
   `cityid` int NOT NULL,
   PRIMARY KEY (`id`),
   KEY `cityid` (`cityid`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `katottg_streets` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -1236,20 +1236,20 @@ CREATE TABLE `katottg_streets` (
   `cd` varchar(64) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `streetid` (`streetid`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `ldap_groups` (
   `id` int NOT NULL AUTO_INCREMENT,
   `name` varchar(255) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `ldap_queue` (
   `id` int NOT NULL AUTO_INCREMENT,
   `task` varchar(255) NOT NULL,
   `param` text,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `ldap_users` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -1258,13 +1258,13 @@ CREATE TABLE `ldap_users` (
   `groups` text,
   `changed` tinyint(1) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `lousytariffs` (
   `id` int NOT NULL AUTO_INCREMENT,
   `tariff` varchar(255) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 
 
@@ -1275,7 +1275,7 @@ CREATE TABLE `mg_credentials` (
   `email` varchar(255) NOT NULL,
   `password` varchar(255) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `mg_history` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -1284,7 +1284,7 @@ CREATE TABLE `mg_history` (
   `actdate` datetime NOT NULL,
   `freeperiod` tinyint(1) NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `mg_queue` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -1293,7 +1293,7 @@ CREATE TABLE `mg_queue` (
   `action` varchar(45) NOT NULL,
   `tariffid` int NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `mg_subscribers` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -1304,7 +1304,7 @@ CREATE TABLE `mg_subscribers` (
   `primary` tinyint(1) NOT NULL DEFAULT '0',
   `freeperiod` tinyint(1) NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `mg_tariffs` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -1314,7 +1314,7 @@ CREATE TABLE `mg_tariffs` (
   `primary` tinyint(1) NOT NULL DEFAULT '0',
   `freeperiod` tinyint(1) NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `mlg_acct` (
   `radacctid` bigint NOT NULL AUTO_INCREMENT,
@@ -1354,7 +1354,7 @@ CREATE TABLE `mlg_acct` (
   KEY `acctstarttime` (`acctstarttime`),
   KEY `acctstoptime` (`acctstoptime`),
   KEY `nasipaddress` (`nasipaddress`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `mlg_check` (
   `id` int unsigned NOT NULL AUTO_INCREMENT,
@@ -1364,7 +1364,7 @@ CREATE TABLE `mlg_check` (
   `value` varchar(253) NOT NULL DEFAULT '',
   PRIMARY KEY (`id`),
   KEY `username` (`username`(32))
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 SET @saved_cs_client     = @@character_set_client;
  1 AS `nasname`,
@@ -1383,7 +1383,7 @@ CREATE TABLE `mlg_culpas` (
   PRIMARY KEY (`id`),
   KEY `login` (`login`),
   KEY `culpa` (`culpa`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `mlg_groupcheck` (
   `id` int unsigned NOT NULL AUTO_INCREMENT,
@@ -1393,7 +1393,7 @@ CREATE TABLE `mlg_groupcheck` (
   `value` varchar(253) NOT NULL DEFAULT '',
   PRIMARY KEY (`id`),
   KEY `groupname` (`groupname`(32))
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `mlg_groupreply` (
   `id` int unsigned NOT NULL AUTO_INCREMENT,
@@ -1403,7 +1403,7 @@ CREATE TABLE `mlg_groupreply` (
   `value` varchar(253) NOT NULL DEFAULT '',
   PRIMARY KEY (`id`),
   KEY `username` (`username`(32))
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `mlg_ishimura` (
   `login` varchar(50) DEFAULT NULL,
@@ -1413,7 +1413,7 @@ CREATE TABLE `mlg_ishimura` (
   `D0` bigint DEFAULT NULL,
   `cash` double DEFAULT NULL,
   KEY `login` (`login`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `mlg_nasattributes` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -1425,7 +1425,7 @@ CREATE TABLE `mlg_nasattributes` (
   `content` varchar(255) NOT NULL,
   PRIMARY KEY (`id`),
   KEY `nasid` (`nasid`,`scenario`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `mlg_nascustom` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -1433,7 +1433,7 @@ CREATE TABLE `mlg_nascustom` (
   `name` varchar(64) NOT NULL,
   `secret` varchar(64) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `mlg_nasoptions` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -1444,7 +1444,7 @@ CREATE TABLE `mlg_nasoptions` (
   `port` int NOT NULL DEFAULT '3799',
   PRIMARY KEY (`id`),
   KEY `nasid` (`nasid`,`usernametype`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `mlg_postauth` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -1453,7 +1453,7 @@ CREATE TABLE `mlg_postauth` (
   `reply` varchar(32) NOT NULL DEFAULT '',
   `authdate` timestamp NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `mlg_reply` (
   `id` int unsigned NOT NULL AUTO_INCREMENT,
@@ -1463,7 +1463,7 @@ CREATE TABLE `mlg_reply` (
   `value` varchar(253) NOT NULL DEFAULT '',
   PRIMARY KEY (`id`),
   KEY `username` (`username`(32))
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `mlg_services` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -1473,7 +1473,7 @@ CREATE TABLE `mlg_services` (
   `coadisconnect` text,
   PRIMARY KEY (`id`),
   KEY `nasid` (`nasid`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `mlg_traffic` (
   `login` varchar(100) NOT NULL,
@@ -1481,21 +1481,21 @@ CREATE TABLE `mlg_traffic` (
   `up` bigint DEFAULT NULL,
   `act` int DEFAULT NULL,
   PRIMARY KEY (`login`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `mlg_usergroup` (
   `username` varchar(64) NOT NULL DEFAULT '',
   `groupname` varchar(64) NOT NULL DEFAULT '',
   `priority` int NOT NULL DEFAULT '1',
   KEY `username` (`username`(32))
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `mlg_userstates` (
   `id` int NOT NULL AUTO_INCREMENT,
   `login` varchar(64) NOT NULL,
   `state` int NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `mobileext` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -1504,14 +1504,14 @@ CREATE TABLE `mobileext` (
   `notes` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `login` (`login`,`mobile`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `modem_templates` (
   `id` int NOT NULL AUTO_INCREMENT,
   `name` varchar(50) NOT NULL,
   `body` text NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `modems` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -1524,14 +1524,14 @@ CREATE TABLE `modems` (
   `nic` varchar(100) NOT NULL,
   `note` varchar(255) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `mtnasifaces` (
   `id` int NOT NULL AUTO_INCREMENT,
   `nasid` int NOT NULL,
   `iface` varchar(255) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `nas` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -1543,14 +1543,14 @@ CREATE TABLE `nas` (
   `options` text,
   PRIMARY KEY (`id`),
   KEY `netid` (`netid`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `nastemplates` (
   `id` int NOT NULL AUTO_INCREMENT,
   `nasid` int NOT NULL,
   `template` text NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `netextips` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -1563,7 +1563,7 @@ CREATE TABLE `netextips` (
   `port` varchar(40) DEFAULT NULL,
   `vlan` varchar(40) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `netextpools` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -1576,7 +1576,7 @@ CREATE TABLE `netextpools` (
   `vlan` varchar(255) DEFAULT NULL,
   `login` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `nethosts` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -1588,7 +1588,7 @@ CREATE TABLE `nethosts` (
   UNIQUE KEY `net-ip` (`netid`,`ip`),
   KEY `netid` (`netid`),
   KEY `ip` (`ip`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `networks` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -1598,7 +1598,7 @@ CREATE TABLE `networks` (
   `nettype` varchar(20) NOT NULL,
   `use_radius` tinyint(1) NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `notes` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -1606,7 +1606,7 @@ CREATE TABLE `notes` (
   `note` varchar(255) NOT NULL,
   PRIMARY KEY (`id`),
   KEY `login` (`login`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `olt_qinq` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -1617,7 +1617,7 @@ CREATE TABLE `olt_qinq` (
   PRIMARY KEY (`id`),
   KEY `svlan_id` (`svlan_id`),
   KEY `cvlan` (`cvlan`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `om_queue` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -1625,13 +1625,13 @@ CREATE TABLE `om_queue` (
   `tariffid` int DEFAULT NULL,
   `action` varchar(64) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `om_suspend` (
   `id` int NOT NULL AUTO_INCREMENT,
   `login` varchar(255) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `om_tariffs` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -1640,7 +1640,7 @@ CREATE TABLE `om_tariffs` (
   `type` varchar(64) NOT NULL,
   `fee` double DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `om_users` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -1651,7 +1651,7 @@ CREATE TABLE `om_users` (
   `active` int DEFAULT NULL,
   `actdate` datetime NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 SET @saved_cs_client     = @@character_set_client;
  1 AS `realid`,
@@ -1664,7 +1664,7 @@ CREATE TABLE `op_denied` (
   `login` varchar(200) NOT NULL,
   PRIMARY KEY (`id`),
   KEY `login` (`login`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `op_sms_notifications` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -1679,7 +1679,7 @@ CREATE TABLE `op_sms_notifications` (
   KEY `login` (`login`),
   KEY `date` (`date`),
   KEY `summ` (`summ`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `op_static` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -1688,7 +1688,7 @@ CREATE TABLE `op_static` (
   PRIMARY KEY (`id`),
   KEY `realid` (`realid`),
   KEY `virtualid` (`virtualid`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `op_transactions` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -1701,7 +1701,7 @@ CREATE TABLE `op_transactions` (
   `note` text NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `hash` (`hash`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `ophtraff` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -1712,7 +1712,7 @@ CREATE TABLE `ophtraff` (
   `D0` bigint DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `login` (`login`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `ot_tariffs` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -1723,7 +1723,7 @@ CREATE TABLE `ot_tariffs` (
   `percent` double DEFAULT NULL,
   `main` tinyint(1) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `ot_users` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -1738,7 +1738,7 @@ CREATE TABLE `ot_users` (
   `active` tinyint(1) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `login` (`login`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `passportdata` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -1754,7 +1754,7 @@ CREATE TABLE `passportdata` (
   `pinn` varchar(15) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `login` (`login`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `payments` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -1768,7 +1768,7 @@ CREATE TABLE `payments` (
   PRIMARY KEY (`id`),
   KEY `login` (`login`),
   KEY `date` (`date`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `paymentscorr` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -1782,7 +1782,7 @@ CREATE TABLE `paymentscorr` (
   PRIMARY KEY (`id`),
   KEY `login` (`login`),
   KEY `date` (`date`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `pbxcalls` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -1797,7 +1797,7 @@ CREATE TABLE `pbxcalls` (
   KEY `idx_login` (`login`),
   KEY `idx_date` (`date`),
   KEY `idx_number` (`number`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `phones` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -1808,7 +1808,7 @@ CREATE TABLE `phones` (
   KEY `phone` (`phone`),
   KEY `mobile` (`mobile`),
   KEY `login` (`login`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `photostorage` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -1821,7 +1821,7 @@ CREATE TABLE `photostorage` (
   KEY `scope` (`scope`),
   KEY `item` (`item`),
   KEY `date` (`date`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `policedog` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -1830,7 +1830,7 @@ CREATE TABLE `policedog` (
   `notes` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `date` (`date`,`mac`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `policedogalerts` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -1839,7 +1839,7 @@ CREATE TABLE `policedogalerts` (
   `login` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `date` (`date`,`mac`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `polls` (
   `id` int unsigned NOT NULL AUTO_INCREMENT,
@@ -1851,7 +1851,7 @@ CREATE TABLE `polls` (
   `admin` varchar(255) NOT NULL DEFAULT '',
   `voting` varchar(255) NOT NULL DEFAULT 'Users',
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `polls_options` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -1859,7 +1859,7 @@ CREATE TABLE `polls_options` (
   `text` text NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `poll_id` (`id`,`poll_id`) USING BTREE
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `polls_votes` (
   `id` bigint NOT NULL AUTO_INCREMENT,
@@ -1870,7 +1870,7 @@ CREATE TABLE `polls_votes` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `login_poll` (`poll_id`,`login`) USING BTREE,
   UNIQUE KEY `login_poll_option` (`option_id`,`poll_id`,`login`) USING BTREE
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `ponboxes` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -1878,14 +1878,14 @@ CREATE TABLE `ponboxes` (
   `exten_info` varchar(250) DEFAULT NULL,
   `geo` varchar(64) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `ponboxes_splitters` (
   `id` int NOT NULL AUTO_INCREMENT,
   `boxid` int NOT NULL,
   `splitter` varchar(200) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `ponboxeslinks` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -1894,7 +1894,7 @@ CREATE TABLE `ponboxeslinks` (
   `address` varchar(200) DEFAULT NULL,
   `onuid` int DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `ponifdesc` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -1903,7 +1903,7 @@ CREATE TABLE `ponifdesc` (
   `desc` varchar(200) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `oltid` (`oltid`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `pononu` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -1916,14 +1916,14 @@ CREATE TABLE `pononu` (
   `geo` varchar(64) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `login` (`login`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `pononuextusers` (
   `id` int NOT NULL AUTO_INCREMENT,
   `onuid` int NOT NULL,
   `login` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `print_card` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -1936,7 +1936,7 @@ CREATE TABLE `print_card` (
   `text` text,
   PRIMARY KEY (`id`),
   UNIQUE KEY `title` (`title`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 
 CREATE TABLE `pt_log` (
@@ -1946,21 +1946,21 @@ CREATE TABLE `pt_log` (
   `tariff` varchar(40) NOT NULL,
   `day` int DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `pt_tariffs` (
   `id` int NOT NULL AUTO_INCREMENT,
   `tariff` varchar(40) NOT NULL,
   `fee` double DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `pt_users` (
   `id` int NOT NULL AUTO_INCREMENT,
   `login` varchar(64) NOT NULL,
   `day` int DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `ptv_subscribers` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -1971,7 +1971,7 @@ CREATE TABLE `ptv_subscribers` (
   `maintariff` int DEFAULT NULL,
   `addtariffs` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `ptv_tariffs` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -1981,7 +1981,7 @@ CREATE TABLE `ptv_tariffs` (
   `chans` varchar(42) DEFAULT NULL,
   `fee` double NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `punchscripts` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -1990,7 +1990,7 @@ CREATE TABLE `punchscripts` (
   `content` text,
   PRIMARY KEY (`id`),
   KEY `alias` (`alias`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `qinq_bindings` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -1999,7 +1999,7 @@ CREATE TABLE `qinq_bindings` (
   `cvlan` int DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `login` (`login`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `qinq_svlan` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -2009,7 +2009,7 @@ CREATE TABLE `qinq_svlan` (
   PRIMARY KEY (`id`),
   KEY `realm_id` (`realm_id`),
   KEY `svlan` (`svlan`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `radattr` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -2017,7 +2017,7 @@ CREATE TABLE `radattr` (
   `attr` varchar(255) NOT NULL,
   `value` varchar(255) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `realms` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -2025,7 +2025,7 @@ CREATE TABLE `realms` (
   `description` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `realm` (`realm`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 
 CREATE TABLE `realname` (
@@ -2035,7 +2035,7 @@ CREATE TABLE `realname` (
   PRIMARY KEY (`id`),
   KEY `login` (`login`),
   KEY `realname` (`realname`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `salary_jobprices` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -2044,7 +2044,7 @@ CREATE TABLE `salary_jobprices` (
   `unit` varchar(255) NOT NULL,
   `time` float DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `salary_jobs` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -2058,7 +2058,7 @@ CREATE TABLE `salary_jobs` (
   `note` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `taskid` (`taskid`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `salary_paid` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -2067,7 +2067,7 @@ CREATE TABLE `salary_paid` (
   `paid` double DEFAULT NULL,
   `date` datetime NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `salary_timesheets` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -2077,7 +2077,7 @@ CREATE TABLE `salary_timesheets` (
   `holiday` tinyint(1) NOT NULL DEFAULT '0',
   `hospital` tinyint(1) NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `salary_wages` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -2086,7 +2086,7 @@ CREATE TABLE `salary_wages` (
   `bounty` double NOT NULL,
   `worktime` int DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `selling` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -2097,7 +2097,7 @@ CREATE TABLE `selling` (
   `count_cards` int DEFAULT NULL,
   `comment` text,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `services` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -2105,26 +2105,26 @@ CREATE TABLE `services` (
   `desc` varchar(45) NOT NULL,
   PRIMARY KEY (`id`),
   KEY `netid` (`netid`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `servtariff` (
   `id` int NOT NULL AUTO_INCREMENT,
   `serviceid` int NOT NULL,
   `tariffs` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `signup_prices_tariffs` (
   `tariff` varchar(40) NOT NULL,
   `price` double NOT NULL,
   PRIMARY KEY (`tariff`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `signup_prices_users` (
   `login` varchar(50) NOT NULL,
   `price` double NOT NULL,
   PRIMARY KEY (`login`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `sigreq` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -2139,7 +2139,7 @@ CREATE TABLE `sigreq` (
   `service` varchar(255) NOT NULL,
   `notes` text,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `sigreqconf` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -2148,7 +2148,7 @@ CREATE TABLE `sigreqconf` (
   PRIMARY KEY (`id`),
   KEY `key` (`key`),
   FULLTEXT KEY `value` (`value`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `sms_history` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -2170,7 +2170,7 @@ CREATE TABLE `sms_history` (
   KEY `smssrvid` (`smssrvid`),
   KEY `srvmsgself_id` (`srvmsgself_id`) USING BTREE,
   KEY `date_statuschk` (`date_statuschk`) USING BTREE
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `sms_services` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -2184,7 +2184,7 @@ CREATE TABLE `sms_services` (
   `api_file_name` varchar(255) NOT NULL DEFAULT '',
   PRIMARY KEY (`id`),
   UNIQUE KEY `name` (`name`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `sms_services_relations` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -2194,26 +2194,26 @@ CREATE TABLE `sms_services_relations` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `user_login` (`user_login`),
   UNIQUE KEY `employee_id` (`employee_id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `smz_excl` (
   `id` int NOT NULL AUTO_INCREMENT,
   `mobile` varchar(40) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `smz_filters` (
   `id` int NOT NULL AUTO_INCREMENT,
   `name` varchar(255) NOT NULL,
   `filters` text NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `smz_lists` (
   `id` int NOT NULL AUTO_INCREMENT,
   `name` varchar(255) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `smz_nums` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -2221,14 +2221,14 @@ CREATE TABLE `smz_nums` (
   `mobile` varchar(40) NOT NULL,
   `notes` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `smz_templates` (
   `id` int NOT NULL AUTO_INCREMENT,
   `name` varchar(255) NOT NULL,
   `text` varchar(255) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `speeds` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -2243,13 +2243,13 @@ CREATE TABLE `speeds` (
   KEY `tariff` (`tariff`),
   KEY `speeddown` (`speeddown`),
   KEY `speedup` (`speedup`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `stealthtariffs` (
   `id` int NOT NULL AUTO_INCREMENT,
   `tariff` varchar(64) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `stickynotes` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -2264,7 +2264,7 @@ CREATE TABLE `stickynotes` (
   KEY `reminddate` (`reminddate`),
   KEY `active` (`active`),
   KEY `remindtime` (`remindtime`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `stickyrevelations` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -2281,7 +2281,7 @@ CREATE TABLE `stickyrevelations` (
   KEY `dayfrom` (`dayfrom`),
   KEY `dayto` (`dayto`),
   KEY `active` (`active`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `stigma` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -2293,7 +2293,7 @@ CREATE TABLE `stigma` (
   PRIMARY KEY (`id`),
   KEY `scope` (`scope`),
   KEY `itemid` (`itemid`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `street` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -2303,7 +2303,7 @@ CREATE TABLE `street` (
   PRIMARY KEY (`id`),
   KEY `cityid` (`cityid`),
   KEY `streetname` (`streetname`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `swcash` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -2318,7 +2318,7 @@ CREATE TABLE `swcash` (
   `switchdate` date DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `switchid` (`switchid`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `switch_groups` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -2326,7 +2326,7 @@ CREATE TABLE `switch_groups` (
   `groupdescr` varchar(500) NOT NULL DEFAULT '',
   PRIMARY KEY (`id`),
   UNIQUE KEY `groupname` (`groupname`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `switch_groups_relations` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -2334,7 +2334,7 @@ CREATE TABLE `switch_groups_relations` (
   `sw_group_id` int NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `switch_id` (`switch_id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `switch_login` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -2346,7 +2346,7 @@ CREATE TABLE `switch_login` (
   `enable` varchar(3) DEFAULT NULL,
   `snmptemplate` varchar(32) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `switchauth` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -2356,7 +2356,7 @@ CREATE TABLE `switchauth` (
   `enable` varchar(64) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `switchid` (`swid`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `switchdeadlog` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -2365,7 +2365,7 @@ CREATE TABLE `switchdeadlog` (
   `swdead` text NOT NULL,
   PRIMARY KEY (`id`),
   KEY `date` (`date`,`timestamp`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `switches` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -2380,7 +2380,7 @@ CREATE TABLE `switches` (
   `snmpwrite` varchar(45) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `parentid` (`parentid`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `switches_qinq` (
   `switchid` int NOT NULL,
@@ -2388,7 +2388,7 @@ CREATE TABLE `switches_qinq` (
   `cvlan` int NOT NULL,
   PRIMARY KEY (`switchid`),
   KEY `svlan_id` (`svlan_id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `switchmodels` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -2396,7 +2396,7 @@ CREATE TABLE `switchmodels` (
   `ports` int DEFAULT NULL,
   `snmptemplate` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `switchportassign` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -2404,7 +2404,7 @@ CREATE TABLE `switchportassign` (
   `switchid` int NOT NULL,
   `port` int NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `switchuplinks` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -2414,14 +2414,14 @@ CREATE TABLE `switchuplinks` (
   `speed` varchar(10) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `switchid` (`switchid`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `tags` (
   `id` int NOT NULL AUTO_INCREMENT,
   `tagid` int NOT NULL,
   `login` varchar(45) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `tagtypes` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -2429,7 +2429,7 @@ CREATE TABLE `tagtypes` (
   `tagcolor` varchar(15) NOT NULL,
   `tagsize` int NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `taskman` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -2455,14 +2455,14 @@ CREATE TABLE `taskman` (
   KEY `starttime` (`starttime`),
   KEY `address` (`address`),
   KEY `startdate` (`startdate`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `taskmandone` (
   `id` int NOT NULL AUTO_INCREMENT,
   `taskid` int DEFAULT NULL,
   `date` datetime NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `taskmanlogs` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -2475,7 +2475,7 @@ CREATE TABLE `taskmanlogs` (
   PRIMARY KEY (`id`),
   KEY `taskid` (`taskid`) USING BTREE,
   KEY `date` (`date`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `taskmantrack` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -2483,7 +2483,7 @@ CREATE TABLE `taskmantrack` (
   `admin` varchar(255) NOT NULL,
   PRIMARY KEY (`id`),
   KEY `taskid` (`taskid`,`admin`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `taskstates` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -2492,7 +2492,7 @@ CREATE TABLE `taskstates` (
   `date` datetime NOT NULL,
   PRIMARY KEY (`id`),
   KEY `taskid` (`taskid`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `taxsup` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -2500,7 +2500,7 @@ CREATE TABLE `taxsup` (
   `fee` double DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `login` (`login`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `ticketing` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -2512,7 +2512,7 @@ CREATE TABLE `ticketing` (
   `text` text,
   `admin` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `traptypes` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -2520,7 +2520,7 @@ CREATE TABLE `traptypes` (
   `name` varchar(255) NOT NULL,
   `color` varchar(20) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `trinitytv_devices` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -2529,7 +2529,7 @@ CREATE TABLE `trinitytv_devices` (
   `mac` varchar(128) NOT NULL,
   `created_at` datetime DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `trinitytv_subscribers` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -2539,13 +2539,13 @@ CREATE TABLE `trinitytv_subscribers` (
   `actdate` datetime NOT NULL,
   `active` tinyint(1) NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `trinitytv_suspend` (
   `id` int NOT NULL AUTO_INCREMENT,
   `login` varchar(255) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `trinitytv_tariffs` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -2554,7 +2554,7 @@ CREATE TABLE `trinitytv_tariffs` (
   `fee` double DEFAULT '0',
   `serviceid` varchar(45) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `ub_im` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -2564,7 +2564,7 @@ CREATE TABLE `ub_im` (
   `text` text NOT NULL,
   `read` tinyint DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `ub_im_pinned` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -2572,14 +2572,14 @@ CREATE TABLE `ub_im_pinned` (
   `pinned` varchar(64) NOT NULL,
   PRIMARY KEY (`id`),
   KEY `idx_login` (`login`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `ubstats` (
   `id` int NOT NULL AUTO_INCREMENT,
   `key` varchar(40) DEFAULT NULL,
   `value` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 
 CREATE TABLE `ubstorage` (
@@ -2589,7 +2589,7 @@ CREATE TABLE `ubstorage` (
   PRIMARY KEY (`id`),
   KEY `key` (`key`),
   FULLTEXT KEY `value` (`value`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `uhw_brute` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -2598,7 +2598,7 @@ CREATE TABLE `uhw_brute` (
   `login` varchar(255) NOT NULL,
   `mac` varchar(255) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `uhw_log` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -2610,7 +2610,7 @@ CREATE TABLE `uhw_log` (
   `oldmac` varchar(255) DEFAULT NULL,
   `newmac` varchar(255) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `ukv_banksta` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -2628,14 +2628,14 @@ CREATE TABLE `ukv_banksta` (
   `processed` tinyint NOT NULL,
   `payid` int DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `ukv_fees` (
   `id` int NOT NULL AUTO_INCREMENT,
   `yearmonth` varchar(42) NOT NULL,
   PRIMARY KEY (`id`),
   KEY `yearmonth` (`yearmonth`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `ukv_payments` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -2649,21 +2649,21 @@ CREATE TABLE `ukv_payments` (
   `note` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `userid` (`userid`,`date`,`visible`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `ukv_tags` (
   `id` int NOT NULL AUTO_INCREMENT,
   `tagtypeid` int NOT NULL,
   `userid` int NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `ukv_tariffs` (
   `id` int NOT NULL AUTO_INCREMENT,
   `tariffname` varchar(255) NOT NULL,
   `price` double NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `ukv_users` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -2695,7 +2695,7 @@ CREATE TABLE `ukv_users` (
   KEY `cash` (`cash`),
   KEY `active` (`active`),
   KEY `regdate` (`regdate`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `user_dataexport_allowed` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -2703,7 +2703,7 @@ CREATE TABLE `user_dataexport_allowed` (
   `export_allowed` tinyint DEFAULT '0',
   PRIMARY KEY (`id`),
   UNIQUE KEY `login` (`login`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `userreg` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -2714,7 +2714,7 @@ CREATE TABLE `userreg` (
   PRIMARY KEY (`id`),
   KEY `date` (`date`),
   KEY `login` (`login`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 
 CREATE TABLE `userspeeds` (
@@ -2724,14 +2724,14 @@ CREATE TABLE `userspeeds` (
   PRIMARY KEY (`id`),
   KEY `speed` (`speed`),
   KEY `login` (`login`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `vcash` (
   `id` int NOT NULL AUTO_INCREMENT,
   `login` varchar(255) NOT NULL,
   `cash` int NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `vcashlog` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -2744,7 +2744,7 @@ CREATE TABLE `vcashlog` (
   PRIMARY KEY (`id`),
   KEY `login` (`login`),
   KEY `date` (`date`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `visor_cams` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -2758,7 +2758,7 @@ CREATE TABLE `visor_cams` (
   `dvrlogin` varchar(250) DEFAULT NULL,
   `dvrpassword` varchar(250) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `visor_chans` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -2766,7 +2766,7 @@ CREATE TABLE `visor_chans` (
   `dvrid` int NOT NULL,
   `chan` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `visor_dvrs` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -2781,7 +2781,7 @@ CREATE TABLE `visor_dvrs` (
   `camlimit` int DEFAULT '0',
   `customurl` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `visor_secrets` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -2789,7 +2789,7 @@ CREATE TABLE `visor_secrets` (
   `login` varchar(64) NOT NULL,
   `password` varchar(64) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `visor_users` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -2800,7 +2800,7 @@ CREATE TABLE `visor_users` (
   `primarylogin` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `primarylogin` (`primarylogin`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `vlan_mac_history` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -2809,7 +2809,7 @@ CREATE TABLE `vlan_mac_history` (
   `mac` varchar(45) DEFAULT NULL,
   `date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `vlan_pools` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -2819,7 +2819,7 @@ CREATE TABLE `vlan_pools` (
   `qinq` int DEFAULT NULL,
   `svlan` int DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `vlan_terminators` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -2833,7 +2833,7 @@ CREATE TABLE `vlan_terminators` (
   `interface` varchar(50) DEFAULT NULL,
   `relay` varchar(50) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `vlanhosts` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -2841,7 +2841,7 @@ CREATE TABLE `vlanhosts` (
   `login` varchar(32) DEFAULT '*',
   `vlan` int DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `vlanhosts_qinq` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -2850,7 +2850,7 @@ CREATE TABLE `vlanhosts_qinq` (
   `svlan` int DEFAULT NULL,
   `cvlan` int DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `vols_docs` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -2860,7 +2860,7 @@ CREATE TABLE `vols_docs` (
   `mark_id` int DEFAULT NULL,
   `path` varchar(128) NOT NULL DEFAULT '/',
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `vols_lines` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -2874,7 +2874,7 @@ CREATE TABLE `vols_lines` (
   `param_width` int NOT NULL,
   `geo` text,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `vols_marks` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -2884,7 +2884,7 @@ CREATE TABLE `vols_marks` (
   `description` varchar(255) DEFAULT NULL,
   `geo` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `vols_marks_types` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -2894,7 +2894,7 @@ CREATE TABLE `vols_marks_types` (
   `icon_color` varchar(255) NOT NULL DEFAULT 'blue',
   `icon_style` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `vservices` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -2907,7 +2907,7 @@ CREATE TABLE `vservices` (
   `exclude_tags` varchar(255) NOT NULL DEFAULT '',
   `archived` tinyint(1) NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `watchdog` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -2924,7 +2924,7 @@ CREATE TABLE `watchdog` (
   KEY `name` (`name`),
   KEY `oldresult` (`oldresult`),
   KEY `param` (`param`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `wcpedevices` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -2938,14 +2938,14 @@ CREATE TABLE `wcpedevices` (
   `uplinkcpeid` int DEFAULT NULL,
   `geo` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `wcpeusers` (
   `id` int NOT NULL AUTO_INCREMENT,
   `cpeid` int NOT NULL,
   `login` varchar(255) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `wdycinfo` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -2956,7 +2956,7 @@ CREATE TABLE `wdycinfo` (
   `missednumbers` text,
   `totaltrytime` int DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `weblogs` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -2967,19 +2967,19 @@ CREATE TABLE `weblogs` (
   PRIMARY KEY (`id`),
   KEY `date` (`date`),
   FULLTEXT KEY `ft_event` (`event`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `wh_categories` (
   `id` int NOT NULL AUTO_INCREMENT,
   `name` varchar(255) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `wh_contractors` (
   `id` int NOT NULL AUTO_INCREMENT,
   `name` varchar(255) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `wh_in` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -2994,7 +2994,7 @@ CREATE TABLE `wh_in` (
   `admin` varchar(100) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `date` (`date`,`itemtypeid`,`contractorid`,`storageid`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `wh_itemtypes` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -3004,7 +3004,7 @@ CREATE TABLE `wh_itemtypes` (
   `reserve` double DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `categoryid` (`categoryid`,`name`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `wh_out` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -3022,7 +3022,7 @@ CREATE TABLE `wh_out` (
   KEY `date` (`date`,`storageid`,`itemtypeid`),
   KEY `desttype` (`desttype`),
   KEY `destparam` (`destparam`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `wh_reserve` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -3033,7 +3033,7 @@ CREATE TABLE `wh_reserve` (
   PRIMARY KEY (`id`),
   KEY `storageid` (`storageid`),
   KEY `itemtypeid` (`itemtypeid`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `wh_reshist` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -3047,7 +3047,7 @@ CREATE TABLE `wh_reshist` (
   `admin` varchar(100) NOT NULL,
   PRIMARY KEY (`id`),
   KEY `date` (`date`,`storageid`,`itemtypeid`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `wh_returns` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -3061,7 +3061,7 @@ CREATE TABLE `wh_returns` (
   `note` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `outid` (`outid`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `wh_salesitems` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -3069,19 +3069,19 @@ CREATE TABLE `wh_salesitems` (
   `itemtypeid` int NOT NULL,
   PRIMARY KEY (`id`),
   KEY `reportid` (`reportid`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `wh_salesreports` (
   `id` int NOT NULL AUTO_INCREMENT,
   `name` varchar(255) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `wh_storages` (
   `id` int NOT NULL AUTO_INCREMENT,
   `name` varchar(255) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `whiteboard` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -3094,7 +3094,7 @@ CREATE TABLE `whiteboard` (
   `name` varchar(255) NOT NULL,
   `text` text,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `youtv_subscribers` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -3105,7 +3105,7 @@ CREATE TABLE `youtv_subscribers` (
   `maintariff` int DEFAULT NULL,
   `addtariffs` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `youtv_tariffs` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -3115,7 +3115,7 @@ CREATE TABLE `youtv_tariffs` (
   `chans` varchar(42) DEFAULT NULL,
   `fee` double NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `zbsannhist` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -3124,7 +3124,7 @@ CREATE TABLE `zbsannhist` (
   `login` varchar(255) NOT NULL,
   PRIMARY KEY (`id`),
   KEY `annid` (`annid`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `zbsannouncements` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -3134,7 +3134,7 @@ CREATE TABLE `zbsannouncements` (
   `text` text NOT NULL,
   PRIMARY KEY (`id`),
   KEY `public` (`public`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `zbssclog` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -3142,7 +3142,7 @@ CREATE TABLE `zbssclog` (
   `login` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `date` (`date`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `zte_cards` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -3152,7 +3152,7 @@ CREATE TABLE `zte_cards` (
   `chasis_number` int NOT NULL,
   PRIMARY KEY (`id`),
   KEY `swid` (`swid`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `zte_qinq` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -3164,7 +3164,7 @@ CREATE TABLE `zte_qinq` (
   PRIMARY KEY (`id`),
   KEY `svlan_id` (`svlan_id`),
   KEY `cvlan` (`cvlan`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `zte_vlan_bind` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -3174,7 +3174,7 @@ CREATE TABLE `zte_vlan_bind` (
   `vlan` int NOT NULL,
   PRIMARY KEY (`id`),
   KEY `swid` (`swid`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 -- after patch
 INSERT INTO `cashtype` (`Id`, `cashtype`) VALUES (1, 'Cash money');
