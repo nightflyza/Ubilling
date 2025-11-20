@@ -1,7 +1,7 @@
 <?php
 set_time_limit(0);
 
-$targetEncoding = 'utf8_general_ci';
+$targetEncoding = 'utf8mb3_general_ci';
 $targetEngine='MyISAM';
 
 function showHelp() {
@@ -46,6 +46,14 @@ function connectToDatabase($config) {
     return $mysqli;
 }
 
+function isUtf8Encoding($collation) {
+    if (empty($collation)) {
+        return false;
+    }
+    $collationLower = strtolower($collation);
+    return (strpos($collationLower, 'utf8') === 0);
+}
+
 function checkTableEncoding($mysqli, $table, $targetEncoding, $targetEngine) {
     $ignoredTables = array(
         'cardbank',
@@ -83,7 +91,7 @@ function checkTableEncoding($mysqli, $table, $targetEncoding, $targetEngine) {
         $currentEngine = '';
     }
     
-    $needsEncodingFix = ($currentCollation !== $targetEncoding);
+    $needsEncodingFix = !isUtf8Encoding($currentCollation);
     $needsEngineFix = (strtoupper(trim($currentEngine)) !== strtoupper(trim($targetEngine)));
     
     if ($needsEncodingFix or $needsEngineFix) {
@@ -94,7 +102,8 @@ function checkTableEncoding($mysqli, $table, $targetEncoding, $targetEngine) {
         
         if ($needsEncodingFix) {
             $issues[] = "encoding: $currentCollation (target: $targetEncoding)";
-            $encodingQueries[] = "ALTER TABLE `$table` CONVERT TO CHARACTER SET utf8 COLLATE $targetEncoding;";
+            $targetCharset = (strpos(strtolower($targetEncoding), 'utf8mb4') === 0) ? 'utf8mb4' : 'utf8';
+            $encodingQueries[] = "ALTER TABLE `$table` CONVERT TO CHARACTER SET $targetCharset COLLATE $targetEncoding;";
         }
         
         print("⚠️ Table '$table' has issues: " . implode(', ', $issues) . PHP_EOL);
