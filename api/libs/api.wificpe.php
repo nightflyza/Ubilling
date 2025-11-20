@@ -280,7 +280,7 @@ class WifiCPE {
      * 
      * @return void/string on error
      */
-    public function createCPE($modelId, $ip, $mac, $snmp, $location, $bridgeMode = false, $uplinkApId, $geo) {
+    public function createCPE($modelId, $ip, $mac, $snmp, $location, $bridgeMode, $uplinkApId, $geo) {
         $result = '';
         $modelId = vf($modelId, 3);
         $ipF = mysql_real_escape_string($ip);

@@ -1039,7 +1039,7 @@ class ClapTrapBot extends WolfDispatcher {
      * 
      * @return string
      */
-    protected function profileRow($icon='',$label,$data) {
+    protected function profileRow($icon='',$label='',$data='') {
         $result = '';
         if (!empty($icon)) {
             if (isset($this->icons[$icon])) {

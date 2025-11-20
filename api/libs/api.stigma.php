@@ -404,7 +404,7 @@ class Stigma {
      * 
      * @return string 
      */
-    protected function rendererIconic($itemId, $size = '', $readOnly = false, $currentStates, $containerName) {
+    protected function rendererIconic($itemId, $size = '', $readOnly = false, $currentStates=array(), $containerName='') {
         $result = '';
         foreach ($this->states as $stateId => $stateName) {
             $stateLabel = __($stateName);
@@ -444,7 +444,7 @@ class Stigma {
      * 
      * @return string 
      */
-    protected function rendererSelector($itemId, $size = '', $readOnly = false, $currentStates, $containerName) {
+    protected function rendererSelector($itemId, $size = '', $readOnly = false, $currentStates=array(), $containerName='') {
         $result = '';
         $params = array();
         $disabled = '';
@@ -476,7 +476,7 @@ class Stigma {
      * 
      * @return string 
      */
-    protected function rendererTextlink($itemId, $size = '', $readOnly = false, $currentStates, $containerName) {
+    protected function rendererTextlink($itemId, $size = '', $readOnly = false, $currentStates=array(), $containerName='') {
         $result = '';
         foreach ($this->states as $stateId => $stateName) {
             $stateLabel = __($stateName);
@@ -507,7 +507,7 @@ class Stigma {
      * 
      * @return string 
      */
-    protected function rendererImagelink($itemId, $size = '', $readOnly = false, $currentStates, $containerName) {
+    protected function rendererImagelink($itemId, $size = '', $readOnly = false, $currentStates=array(), $containerName='') {
         $result = '';
         foreach ($this->states as $stateId => $stateName) {
             $stateLabel = __($stateName);

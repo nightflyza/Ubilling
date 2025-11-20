@@ -67,7 +67,7 @@ class TrinityTvApi {
      * @param $subscrid
      * @return bool|mixed
      */
-    public function createUser($localid = 0, $subscrid) {
+    public function createUser($localid, $subscrid) {
         $requestid = $this->getRequestId();
 
         $hash = md5($requestid . $this->partnerId . $localid . $subscrid . $this->salt);

@@ -1515,7 +1515,7 @@ function web_DirectionsEditForm($ruleid) {
  * 
  * @return string
  */
-function web_FinRepControls($title = '', $content) {
+function web_FinRepControls($title = '', $content='') {
     $result = '';
     $style = 'style="float:left; display:block; height:90px; margin-right: 20px;"';
     $result .= wf_tag('div', false, '', $style);

@@ -1026,7 +1026,7 @@ class OllTv {
 
         // prepare phone
         if (!empty($addParams['phone']) && is_string($addParams['phone']) &&
-                preg_match('/^\d{10,}$/', $addParams['phone']) && $addParams['phone']{0} === '0'
+                preg_match('/^\d{10,}$/', $addParams['phone']) && $addParams['phone'][0] === '0'
         ) {
             $args['phone'] = $addParams['phone'];
         }
