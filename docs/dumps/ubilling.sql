@@ -21,7 +21,6 @@ CREATE TABLE IF NOT EXISTS `weblogs` (
   `event` varchar(255) default NULL,
   PRIMARY KEY  (`id`),
   KEY `date` (`date`),
-  KEY `date_2` (`date`)
 ) ENGINE=MyISAM  DEFAULT CHARSET=utf8;
 
 
@@ -398,7 +397,6 @@ CREATE TABLE IF NOT EXISTS `taskman` (
   `enddate` date default NULL,
   `admin` varchar(255) default NULL,
   PRIMARY KEY  (`id`),
-  KEY `id` (`id`)
 ) ENGINE=MyISAM  DEFAULT CHARSET=UTF8;
 
 CREATE TABLE  IF NOT EXISTS `userspeeds` (
@@ -448,8 +446,6 @@ CREATE TABLE IF NOT EXISTS `vcashlog` (
   PRIMARY KEY  (`id`),
   KEY `login` (`login`),
   KEY `date` (`date`),
-  KEY `login_2` (`login`),
-  KEY `date_2` (`date`)
 ) ENGINE=MyISAM  DEFAULT CHARSET=utf8;
 
 
@@ -539,7 +535,6 @@ ALTER TABLE `street` ADD INDEX ( `streetname` );
 ALTER TABLE `userreg` ADD INDEX ( `date` );
 ALTER TABLE `userspeeds` ADD INDEX ( `speed` );
 ALTER TABLE `userspeeds` ADD INDEX ( `login` );
-ALTER TABLE `weblogs` ADD INDEX ( `date` ); 
 
 
 -- 0.0.9 fixes
@@ -2855,7 +2850,6 @@ CREATE TABLE IF NOT EXISTS `ponboxes_splitters` (
 ALTER TABLE `ponboxes` MODIFY `name` varchar(200) NULL DEFAULT NULL;
 ALTER TABLE `ponboxes` ADD `exten_info` varchar(250) NULL DEFAULT NULL AFTER `name`;
 
-ALTER TABLE sms_history ADD INDEX (srvmsgself_id) USING BTREE;
 ALTER TABLE sms_history ADD INDEX (srvmsgself_id) USING BTREE;
 ALTER TABLE sms_history ADD INDEX (date_statuschk) USING BTREE;
 
