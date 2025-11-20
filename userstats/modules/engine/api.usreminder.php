@@ -4,7 +4,7 @@ class USReminder {
     /**
      * Placeholder for Ubilling UserStats config instance
      *
-     * @var null
+     * @var object
      */
     protected $usConfig = null;
 
@@ -754,6 +754,30 @@ class USReminder {
     }
 
     /**
+     * Checks if email is valid and returns it already filtered if valid or empty string if not
+     *
+     * @param string $email
+     * 
+     * @return string
+     */
+    protected function checkEmailValid($email) {
+        $result='';
+        if (!empty($email)) {
+            $email= ubRouting::filters($email, 'nb');
+            $email = trim($email);
+            $email = strip_tags($email);
+            $email = ubRouting::filters($email, 'mres');
+            $deniedChars=array('%', '+', '=','"',"'",'`',';',' ',':','<','>','[',']','\\','/','(',')','?','|','!','{','}','-','#',"\n","\r","\t");
+            $email = str_replace($deniedChars, '', $email);
+            $email = ubRouting::filters($email, 'fi', FILTER_VALIDATE_EMAIL);
+            if (!empty($email)) {
+                $result = $email;
+            }
+        }
+        return ($result);
+    }
+
+    /**
      * Router method to process the changes
      *
      * @return void
@@ -779,7 +803,7 @@ class USReminder {
 
         // user email change
         if (ubRouting::checkPost(array('changemail', 'email'))) {
-            $email = ubRouting::filters(ubRouting::post('email'), 'fi', FILTER_VALIDATE_EMAIL);
+            $email = $this->checkEmailValid(ubRouting::post('email'));
             
             if (!empty($email)) {
                 $this->changeUserEmail($userLogin, $email);
