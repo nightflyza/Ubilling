@@ -769,19 +769,24 @@ class USReminder {
             $mobile = ubRouting::filters(ubRouting::post('mobile'), 'int');
             $mobile = preg_replace('/^(\+38|38)/Ui', '', $mobile);
 
-            if (strlen($mobile) == 10 or strlen($mobile) == 12) {
+            if (!empty($mobile) and (strlen($mobile) == 10 or strlen($mobile) == 12)) {
                 $this->changeUserMobile($userLogin, $this->uscfgReminderPrefix . $mobile);
                 $logMessage = 'US_REMINDER: user (' . $userLogin . ') changed his cell phone number to: ' . $this->uscfgReminderPrefix . $mobile;
             } else {
-                $logMessage = 'US_REMINDER: user (' . $userLogin . ') used invalid data: ' . ubRouting::post('mobile') . ' while trying to change his cell phone number';
+                $logMessage = 'US_REMINDER: user (' . $userLogin . ') provided invalid or empty cell phone number: ' . ubRouting::filters(ubRouting::post('mobile'), 'vf');
             }
         }
 
         // user email change
         if (ubRouting::checkPost(array('changemail', 'email'))) {
-            $email = ubRouting::filters(ubRouting::post('email'), 'fi', 'FILTER_VALIDATE_EMAIL');
-            $this->changeUserEmail($userLogin, $email);
-            $logMessage = 'US_REMINDER: user (' . $userLogin . ') changed his E-mail to: ' . $email;
+            $email = ubRouting::filters(ubRouting::post('email'), 'fi', FILTER_VALIDATE_EMAIL);
+            
+            if (!empty($email)) {
+                $this->changeUserEmail($userLogin, $email);
+                $logMessage = 'US_REMINDER: user (' . $userLogin . ') changed his E-mail to: ' . $email;
+            } else {
+                $logMessage = 'US_REMINDER: user (' . $userLogin . ') provided invalid or empty E-mail: ' . ubRouting::filters(ubRouting::post('email'), 'vf');
+            }
         }
 
         // user change service state
