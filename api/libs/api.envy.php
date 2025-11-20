@@ -6,6 +6,13 @@
 class Envy {
 
     /**
+     * Contains system ubillingConfig object instance
+     *
+     * @var object
+     */
+    protected $ubConfig = '';
+
+    /**
      * Contains system billing.ini config as key=>value
      *
      * @var array
