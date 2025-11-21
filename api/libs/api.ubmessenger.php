@@ -153,7 +153,7 @@ class UBMessenger {
 
     //some predefined stuff like routes and keys here
     const TABLE_MESSAGES = 'ub_im';
-    const TABLE_PINNED='ub_im_pinned';
+    const TABLE_PINNED = 'ub_im_pinned';
     const URL_ME = '?module=ubim';
     const URL_AVATAR_CONTROL = '?module=avacontrol';
 
@@ -335,17 +335,19 @@ class UBMessenger {
      * @return void
      */
     protected function loadPinnedContacts() {
-        $cachedData = $this->cache->get(self::KEY_PINNED_CONTACTS, $this->cachingTimeout);
-        if (!is_array($cachedData)) {
-            $all=$this->pinnedDb->getAll();
-            if (!empty($all)) {
-                foreach ($all as $io => $each) {
-                    $this->allPinnedContacts[$each['login']][] = $each['pinned'];
+        if (ubRouting::get('module') == 'ubim') {
+            $cachedData = $this->cache->get(self::KEY_PINNED_CONTACTS, $this->cachingTimeout);
+            if (!is_array($cachedData)) {
+                $all = $this->pinnedDb->getAll();
+                if (!empty($all)) {
+                    foreach ($all as $io => $each) {
+                        $this->allPinnedContacts[$each['login']][] = $each['pinned'];
+                    }
                 }
+                $this->cache->set(self::KEY_PINNED_CONTACTS, $this->allPinnedContacts, $this->cachingTimeout);
+            } else {
+                $this->allPinnedContacts = $cachedData;
             }
-            $this->cache->set(self::KEY_PINNED_CONTACTS, $this->allPinnedContacts, $this->cachingTimeout);
-        } else {
-            $this->allPinnedContacts = $cachedData;
         }
     }
 
@@ -556,14 +558,13 @@ class UBMessenger {
                     } else {
                         if ($this->isContactPinned($eachadmin)) {
                             //pinned contacts are at the top
-                            $orderOffset=$order-9000; 
+                            $orderOffset = $order - 9000;
                         } else {
                             //normal order shifted to the bottom
-                            $orderOffset=$order+9000; //it`s over 9000!
+                            $orderOffset = $order + 9000; //it`s over 9000!
                         }
 
                         $admListOrdered[$orderOffset] = $eachadmin;
-                        
                     }
                 }
             }
@@ -884,11 +885,10 @@ class UBMessenger {
 
             if ($this->isContactPinned($this->currentThread)) {
                 $pinIcon = wf_img('skins/unpin_icon.png', __('Unpin contact'));
-                $pinUrl = self::URL_ME . '&' .self::ROUTE_THREAD.'='.$this->currentThread.  '&' . self::ROUTE_UNPIN . '=' . $this->currentThread;
+                $pinUrl = self::URL_ME . '&' . self::ROUTE_THREAD . '=' . $this->currentThread .  '&' . self::ROUTE_UNPIN . '=' . $this->currentThread;
             } else {
                 $pinIcon = wf_img('skins/pin_icon.png', __('Pin contact'));
-                $pinUrl = self::URL_ME . '&' .self::ROUTE_THREAD.'='.$this->currentThread.  '&' . self::ROUTE_PIN . '=' . $this->currentThread;
-                
+                $pinUrl = self::URL_ME . '&' . self::ROUTE_THREAD . '=' . $this->currentThread .  '&' . self::ROUTE_PIN . '=' . $this->currentThread;
             }
             $pinControl = wf_Link($pinUrl, $pinIcon);
             $baseTitle .= ' ' . $pinControl;
