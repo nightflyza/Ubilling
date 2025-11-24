@@ -213,16 +213,6 @@ class UnicornTeleport {
         }
     }
 
-    protected function archiveTeleport($sourcePath, $targetAchive) {
-        if (file_exists($sourcePath)) {
-            $command=$this->sudoPath.' '.$this->tarPath.' -c -C '.$sourcePath.' -f - . | '.$this->gzipPath.' > '.$targetAchive;
-            shell_exec($command);
-        } else {
-            $this->errorMessages[$sourcePath]=__('Source path is not available');
-            return false;
-        }
-    }
-
     public function catchFileDownload() {
         if (ubRouting::checkGet(self::ROUTE_DOWNLOAD)) {
             zb_DownloadFile($this->teleportExportPath.$this->teleportDownloadName);
@@ -252,8 +242,7 @@ class UnicornTeleport {
         $result .= 'To migrate your Ubilling '.$this->currentRelease.' with serial '.$serial.' as it was by '.$currentDateTime.' to another host, make following actions:'.PHP_EOL;
         $result .= PHP_EOL;
         $result .= '## Step 1: Extract teleport package'.PHP_EOL;
-        $result .= 'mkdir -p /usr/local/unicornteleport'.PHP_EOL;
-        $result .= 'tar xzf '.$this->teleportDownloadName.' -C /usr/local/unicornteleport'.PHP_EOL;
+        $result .= 'tar zxvf '.$this->teleportDownloadName.' -C /usr/local/'.PHP_EOL;
         $result .= 'cd /usr/local/unicornteleport'.PHP_EOL;
         $result .= PHP_EOL;
         $result .= '## Step 2: Install base system'.PHP_EOL;
@@ -290,19 +279,19 @@ class UnicornTeleport {
         }
         
         if (ubRouting::checkPost(self::PROUTE_PACK_WWWDATA)) {
-            $result .= 'tar xzf wwwdata.tgz -C '.dirname($this->saveApacheDataPath).PHP_EOL;
+            $result .= 'tar zxvf wwwdata.tgz -C '.dirname($this->saveApacheDataPath).PHP_EOL;
         }
         if (ubRouting::checkPost(self::PROUTE_PACK_APACHE_CONF)) {
-            $result .= 'tar xzf apache_conf.tgz -C '.dirname($this->saveApacheConfPath).PHP_EOL;
+            $result .= 'tar zxvf apache_conf.tgz -C '.dirname($this->saveApacheConfPath).PHP_EOL;
         }
         if (ubRouting::checkPost(self::PROUTE_PACK_RC_CONF)) {
-            $result .= 'tar xzf rcconf.tgz -C '.dirname($this->saveRcConfPath).PHP_EOL;
+            $result .= 'tar zxvf rcconf.tgz -C '.dirname($this->saveRcConfPath).PHP_EOL;
         }
         if (ubRouting::checkPost(self::PROUTE_PACK_FIREWALL_CONF)) {
-            $result .= 'tar xzf firewallconf.tgz -C '.dirname($this->saveFirewallConf).PHP_EOL;
+            $result .= 'tar zxvf firewallconf.tgz -C '.dirname($this->saveFirewallConf).PHP_EOL;
         }
         if (ubRouting::checkPost(self::PROUTE_PACK_STGCONFIG)) {
-            $result .= 'tar xzf stgconfig.tgz -C '.dirname($this->saveStargazerDirPath).PHP_EOL;
+            $result .= 'tar zxvf stgconfig.tgz -C '.dirname($this->saveStargazerDirPath).PHP_EOL;
         }
         if (ubRouting::checkPost(self::PROUTE_PACK_CRONTAB)) {
             $result .= '/usr/bin/crontab crontab'.PHP_EOL;
@@ -414,7 +403,7 @@ class UnicornTeleport {
             }
 
             //packing whole teleport package
-            $this->archiveTeleport($this->tmpPath, $this->teleportExportPath.$this->teleportDownloadName);
+            $this->archivePath($this->tmpPath, $this->teleportExportPath.$this->teleportDownloadName);
             if (file_exists($this->teleportExportPath.$this->teleportDownloadName)) {
                 $result .= $this->messages->getStyledMessage(__('Unicorn Teleport exported').': '.$this->teleportExportPath.$this->teleportDownloadName, 'success');
             } else {
