@@ -250,12 +250,15 @@ class UnicornTeleport {
         if (empty($arch) and !empty($this->packagesAvailable)) {
             $result .= PHP_EOL.'# Available architectures: '.implode(', ', array_keys($this->packagesAvailable)).PHP_EOL;
         }
-        $batchInstallerCmd='sh Batchinstaller.sh MIG CURRENT';
+
+        // <type> <arch> <channel> <internal_interface> [external_interface] [mysql_pass] [stargazer_pass] [rscriptd_pass] [ubilling_serial]
+        $batchInstallerCmd='sh Batchinstaller.sh MIG';
         if (!empty($arch)) {
             $batchInstallerCmd.=' '.$arch;
         } else {
             $batchInstallerCmd.=' [TARGET_ARCH]';
         }
+        $batchInstallerCmd.=' CURRENT';
         if (!empty($intIf)) {
             $batchInstallerCmd.=' '.$intIf;
         } else {
