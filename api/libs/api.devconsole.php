@@ -95,6 +95,7 @@ class DevConsole {
         $result .= wf_Link(self::URL_ME, wf_img('skins/icon_restoredb.png') . ' ' . __('SQL Console'), false, 'ubButton');
         $result .= wf_Link(self::URL_ME . '&' . self::ROUTE_PHP_CON . '=true', wf_img('skins/icon_php.png') . ' ' . __('PHP Console'), false, 'ubButton');
         if (cfr('ROOT')) {
+            $migrationControls .= wf_Link("?module=unicornteleport", wf_img('skins/teleport16.png') . ' ' . __('Unicorn Teleport'), false, 'ubButton');
             $migrationControls .= wf_Link("?module=migration", wf_img('skins/icon_puzzle.png') . ' ' . __('Migration'), false, 'ubButton');
             $migrationControls .= wf_Link("?module=migration2", wf_img('skins/icon_puzzle.png') . ' ' . __('Migration') . ' 2', false, 'ubButton');
             $migrationControls .= wf_Link("?module=migration2_exten", wf_img('skins/icon_puzzle.png') . ' ' . __('Migration live (occupancy & tags)'), false, 'ubButton');

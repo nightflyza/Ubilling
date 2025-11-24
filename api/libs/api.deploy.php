@@ -97,18 +97,21 @@ class Avarice {
     }
 
     /**
-     * sets ubilling system key into private key prop
+     * Returns ubilling system key and sets into private key prop
      * 
-     * @return void
+     * @return string|void
      */
-    protected function getSerial() {
+    public function getSerial() {
+        $result='';
         $hostid_q = "SELECT * from `ubstats` WHERE `key`='ubid'";
         $hostid = simple_query($hostid_q);
         if (!empty($hostid)) {
             if (isset($hostid['value'])) {
+                $result=$hostid['value'];
                 $this->serial = $hostid['value'];
             }
         }
+        return ($result);
     }
 
     /**
