@@ -47,7 +47,7 @@ function zb_PasswordGenerate($len = 8) {
     $length = $len - 2; // Makes room for a two-digit number on the end
     $conso = array('b', 'c', 'd', 'f', 'g', 'h', 'j', 'k', 'm', 'n', 'p', 'r', 's', 't', 'v', 'w', 'x', 'y', 'z');
     $vocal = array('a', 'e', 'i', 'u');
-    srand((double) microtime() * 1000000);
+    srand((float) microtime() * 1000000);
     $max = $length / 2;
     for ($i = 1; $i <= $max; $i++) {
         $result .= $conso[rand(0, sizeof($conso) - 1)];
