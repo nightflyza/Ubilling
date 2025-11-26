@@ -1106,7 +1106,6 @@ class PONizer {
     public function renderPollingLog() {
         $result = '';
         $renderLimit = 100;
-        //$result .= wf_BackLink(self::URL_ME . '&oltstats=true');
         if (file_exists(self::POLL_LOG)) {
             $rawLog = zb_ReadLastLines(self::POLL_LOG, $renderLimit);
             if (!empty($rawLog)) {
@@ -1766,12 +1765,10 @@ class PONizer {
 
                 $result .= wf_Form('', 'POST', $inputs, 'glamour');
             } else {
-                $messages = new UbillingMessageHelper();
-                $result .= $messages->getStyledMessage(__('Any available ONU models exist'), 'error');
+                $result .= $this->messages->getStyledMessage(__('Any available ONU models exist'), 'error');
             }
         } else {
-            $messages = new UbillingMessageHelper();
-            $result .= $messages->getStyledMessage(__('Any available OLT devices exist'), 'error');
+            $result .= $this->messages->getStyledMessage(__('Any available OLT devices exist'), 'error');
         }
 
         return ($result);
@@ -1884,12 +1881,10 @@ class PONizer {
                     ';
                 $result .= wf_tag('script', true);
             } else {
-                $messages = new UbillingMessageHelper();
-                $result .= $messages->getStyledMessage(__('Any available ONU models exist'), 'error');
+                $result .= $this->messages->getStyledMessage(__('Any available ONU models exist'), 'error');
             }
         } else {
-            $messages = new UbillingMessageHelper();
-            $result .= $messages->getStyledMessage(__('Any available OLT devices exist'), 'error');
+            $result .= $this->messages->getStyledMessage(__('Any available OLT devices exist'), 'error');
         }
         return ($result);
     }

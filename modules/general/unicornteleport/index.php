@@ -16,6 +16,7 @@ if (cfr('ROOT')) {
         show_error(__('Sorry your system is currently unsupported'));
     }
     show_window('', wf_BackLink(DevConsole::URL_ME));
+    zb_billingStats(true);
 } else {
     show_error(__('Access denied'));
 }

@@ -286,11 +286,18 @@ class PONONUMap {
     protected function renderControls() {
         $result = '';
 
+        $result = wf_BackLink(UbillingTaskbar::URL_ME);
         if (ubRouting::get(self::ROUTE_BACKLINK) == 'ponizer') {
-            $result .= wf_BackLink(PONizer::URL_ONULIST) . ' ';
-        } else {
-            $result .= wf_BackLink(UbillingTaskbar::URL_ME);
-        }
+            $result = wf_BackLink(PONizer::URL_ONULIST) . ' ';
+        } 
+
+        if (ubRouting::checkGet(self::ROUTE_FILTER_OLT)) {
+            $blOltId = ubRouting::get(self::ROUTE_FILTER_OLT,'int');
+            $oltStatsBackUrl = PONizer::URL_ME.'&oltstats=true&'.self::ROUTE_FILTER_OLT.'='.$blOltId.'#go'.$blOltId;
+            $result =wf_BackLink($oltStatsBackUrl);
+        } 
+
+
         if ($this->filterOltId) {
             $result .= wf_Link(self::URL_ME, wf_img('skins/ponmap_icon.png') . ' ' . __('All') . ' ' . __('OLT'), false, 'ubButton');
         } else {
