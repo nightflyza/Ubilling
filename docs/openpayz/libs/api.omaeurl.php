@@ -449,7 +449,11 @@ class OmaeUrl {
             if ($this->errorCode OR $this->errorMessage) {
                 $this->error = true;
             }
-            curl_close($ch);
+
+            //PHP 8.0+ has no need to close curl resource anymore
+            if (PHP_VERSION_ID < 80000) {
+             curl_close($ch); // Deprecated in PHP 8.5
+            }
 
             if ($this->verboseLogON) {
                 rewind($this->verboseLogStream);
