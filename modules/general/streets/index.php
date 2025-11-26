@@ -36,6 +36,7 @@ if (cfr('STREETS')) {
                 die();
             } else {
                 $errormes = $messages->getStyledMessage(__('Street with such name already exists in this city with ID: ') . $FoundStreetID, 'error', $errorStyling);
+                log_register('STREET CREATE FAILED CITYID [' . $newstreetcityid . '] NAME `' . $newstreetname . '` EXISTS');
                 die(wf_modalAutoForm(__('Error'), $errormes, ubRouting::post('errfrmid'), '', true));
             }
         }
@@ -51,6 +52,7 @@ if (cfr('STREETS')) {
                     die();
                 } else {
                     $errormes = $messages->getStyledMessage(__('You can not delete the street if it has existing buildings'), 'error', $errorStyling);
+                    log_register('STREET DELETE FAILED PROTECTED [' . $streetid . ']');
                     die(wf_modalAutoForm(__('Error'), $errormes, $_GET['errfrmid'], '', true));
                 }
             }
@@ -66,6 +68,7 @@ if (cfr('STREETS')) {
                             zb_AddressChangeStreetName($streetid, $editstreetname);
                         } else {
                             $errormes = $messages->getStyledMessage(__('Street with such name already exists in this city with ID: ') . $FoundStreetID, 'error', $errorStyling);
+                            log_register('STREET CHANGE NAME FAILED [' . $streetid . '] NAME `' . $editstreetname . '` EXISTS');
                             die(wf_modalAutoForm(__('Error'), $errormes, ubRouting::post('errfrmid'), '', true));
                         }
                     }

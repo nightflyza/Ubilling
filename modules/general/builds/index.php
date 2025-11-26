@@ -21,6 +21,7 @@ if (cfr('BUILDS')) {
                     } else {
                         $messages = new UbillingMessageHelper();
                         $errormes = $messages->getStyledMessage(__('Build with such number already exists on this street with ID: ') . $FoundBuildID, 'error', 'style="margin: auto 0; padding: 10px 3px; width: 100%;"');
+                        log_register('BUILD CREATE FAILED STREETID [' . $streetid . '] NUM `' . trim(ubRouting::post('newbuildnum')) . '` EXISTS');
                         die(wf_modalAutoForm(__('Error'), $errormes, ubRouting::post('errfrmid'), '', true));
                     }
                 }
@@ -45,6 +46,7 @@ if (cfr('BUILDS')) {
                 } else {
                     $messages = new UbillingMessageHelper();
                     $errormes = $messages->getStyledMessage(__('You can not delete a building if there are users of the apartment'), 'error', 'style="margin: auto 0; padding: 10px 3px; width: 100%;"');
+                    log_register('BUILD DELETE FAILED PROTECTED [' . ubRouting::get('buildid', 'int') . ']');
                     die(wf_modalAutoForm(__('Error'), $errormes, ubRouting::get('errfrmid'), '', true));
                 }
             }
@@ -64,11 +66,12 @@ if (cfr('BUILDS')) {
                     if (empty($FoundBuildID)) {
                         simple_update_field('build', 'buildnum', trim(ubRouting::post('editbuildnum')), "WHERE `id`='" . $buildid . "'");
                         zb_AddressChangeBuildGeo($buildid, ubRouting::post('editbuildgeo'));
-                        log_register("CHANGE AddressBuild [" . $buildid . "] NUM `" . trim(ubRouting::post('editbuildnum')) . "`");
+                        log_register("BUILD CHANGE [" . $buildid . "] NUM `" . trim(ubRouting::post('editbuildnum')) . "`");
                         die();
                     } else {
                         $messages = new UbillingMessageHelper();
                         $errormes = $messages->getStyledMessage(__('Build with such number already exists on this street with ID: ') . $FoundBuildID, 'error', 'style="margin: auto 0; padding: 10px 3px; width: 100%;"');
+                        log_register('BUILD CHANGE FAILED [' . $buildid . '] NUM `' . trim(ubRouting::post('editbuildnum')) . '` EXISTS');
                         die(wf_modalAutoForm(__('Error'), $errormes, ubRouting::post('errfrmid'), '', true));
                     }
                 }

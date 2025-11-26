@@ -32,7 +32,8 @@ function zb_AddressCreateCity($cityname, $cityalias) {
         $cityalias = ubRouting::filters($cityalias, 'gigasafe');
         $query = "INSERT INTO `city` (`id`,`cityname`,`cityalias`) VALUES (NULL, '" . $citynameF . "','" . $cityalias . "'); ";
         nr_query($query);
-        log_register('CREATE AddressCity `' . $cityname . '` `' . $cityalias . '`');
+        $newCityId =simple_get_lastid('city');
+        log_register('CITY CREATE [' . $newCityId . '] `' . $cityname . '` `' . $cityalias . '`');
         zb_AddressCleanAddressCache();
         zb_UserGetAllDataCacheClean();
     } else {
@@ -52,7 +53,7 @@ function zb_AddressDeleteCity($cityid) {
     $cityid = vf($cityid, 3);
     $query = "DELETE from `city` WHERE `id` = '" . $cityid . "';";
     nr_query($query);
-    log_register('DELETE AddressCity [' . $cityid . ']');
+    log_register('CITY DELETE [' . $cityid . ']');
     zb_AddressCleanAddressCache();
     zb_UserGetAllDataCacheClean();
 }
@@ -74,7 +75,7 @@ function zb_AddressChangeCityName($cityid, $cityname) {
     if (!empty($citynameF)) {
         $query = "UPDATE `city` SET `cityname` = '" . $citynameF . "' WHERE `id`= '" . $cityid . "' ;";
         nr_query($query);
-        log_register('CHANGE AddressCityName [' . $cityid . '] `' . $cityname . '`');
+        log_register('CITY CHANGE NAME [' . $cityid . '] `' . $cityname . '`');
         zb_AddressCleanAddressCache();
         zb_UserGetAllDataCacheClean();
     } else {
@@ -96,7 +97,7 @@ function zb_AddressChangeCityAlias($cityid, $cityalias) {
     $cityalias = ubRouting::filters($cityalias, 'gigasafe');
     $query = "UPDATE `city` SET `cityalias` = '" . $cityalias . "' WHERE `id`= '" . $cityid . "' ;";
     nr_query($query);
-    log_register('CHANGE AddressCityAlias [' . $cityid . '] `' . $cityalias . '`');
+    log_register('CITY CHANGE ALIAS [' . $cityid . '] `' . $cityalias . '`');
 }
 
 /**
@@ -213,7 +214,8 @@ function zb_AddressCreateStreet($cityid, $streetname, $streetalias) {
 
     $query = "INSERT INTO `street` (`id`,`cityid`,`streetname`,`streetalias`) VALUES  (NULL, '" . $cityid . "','" . $streetnameF . "','" . $streetalias . "');";
     nr_query($query);
-    log_register('CREATE AddressStreet [' . $cityid . '] `' . $streetname . '` `' . $streetalias . '`');
+    $newStreetId =simple_get_lastid('street');
+    log_register('STREET CREATE CITYID [' . $cityid . '] STREETID [' . $newStreetId . '] `' . $streetname . '` `' . $streetalias . '`');
     zb_AddressCleanAddressCache();
     zb_UserGetAllDataCacheClean();
 }
@@ -229,7 +231,7 @@ function zb_AddressDeleteStreet($streetid) {
     $streetid = vf($streetid, 3);
     $query = "DELETE from `street` WHERE `id` = '" . $streetid . "';";
     nr_query($query);
-    log_register('DELETE AddressStreet [' . $streetid . ']');
+    log_register('STREET DELETE [' . $streetid . ']');
     zb_AddressCleanAddressCache();
     zb_UserGetAllDataCacheClean();
 }
@@ -250,7 +252,7 @@ function zb_AddressChangeStreetName($streetid, $streetname) {
 
     $query = "UPDATE `street` SET `streetname` = '" . $streetnameF . "' WHERE `id`= '" . $streetid . "' ;";
     nr_query($query);
-    log_register('CHANGE AddressStreetName [' . $streetid . '] `' . $streetname . '`');
+    log_register('STREET CHANGE NAME [' . $streetid . '] `' . $streetname . '`');
     zb_AddressCleanAddressCache();
     zb_UserGetAllDataCacheClean();
 }
@@ -271,7 +273,7 @@ function zb_AddressChangeStreetAlias($streetid, $streetalias) {
 
     $query = "UPDATE `street` SET `streetalias` = '" . $streetaliasF . "' WHERE `id`= '" . $streetid . "' ;";
     nr_query($query);
-    log_register('CHANGE AddressStreetAlias [' . $streetid . '] `' . $streetalias . '`');
+    log_register('STREET CHANGE ALIAS [' . $streetid . '] `' . $streetalias . '`');
 }
 
 /**
@@ -359,7 +361,8 @@ function zb_AddressCreateBuild($streetid, $buildnum) {
     $streetid = vf($streetid, 3);
     $query = "INSERT INTO `build` (`id`,`streetid`,`buildnum`) VALUES (NULL, '" . $streetid . "','" . $buildnum . "');";
     nr_query($query);
-    log_register('CREATE AddressBuild [' . $streetid . '] NUM `' . $buildnum . '`');
+    $newBuildId =simple_get_lastid('build');
+    log_register('BUILD CREATE STREETID [' . $streetid . '] BUILDID [' . $newBuildId . '] NUM `' . $buildnum . '`');
     zb_AddressCleanAddressCache();
     zb_UserGetAllDataCacheClean();
 }
@@ -375,7 +378,7 @@ function zb_AddressDeleteBuild($buildid) {
     $buildid = vf($buildid, 3);
     $query = "DELETE from `build` WHERE `id` = '" . $buildid . "';";
     nr_query($query);
-    log_register('DELETE AddressBuild [' . $buildid . ']');
+    log_register('BUILD DELETE [' . $buildid . ']');
     zb_AddressCleanAddressCache();
     zb_UserGetAllDataCacheClean();
 }
@@ -447,7 +450,7 @@ function zb_AddressChangeBuildNum($buildid, $buildnum) {
     $buildnum = mysql_real_escape_string($buildnum);
     $query = "UPDATE `build` SET `buildnum` = '" . $buildnum . "' WHERE `id`= '" . $buildid . "' ;";
     nr_query($query);
-    log_register('CHANGE AddressBuildNum [' . $buildid . '] `' . $buildnum . '`');
+    log_register('BUILD CHANGE NUM [' . $buildid . '] `' . $buildnum . '`');
     zb_AddressCleanAddressCache();
     zb_UserGetAllDataCacheClean();
 }
@@ -465,7 +468,7 @@ function zb_AddressChangeBuildGeo($buildId, $geo) {
     $buildGeo = ubRouting::filters($geo, 'mres');
     $buildGeo = preg_replace('/[^0-9\.,]/i', '', $buildGeo);
     simple_update_field('build', 'geo', $buildGeo, "WHERE `id`='" . $buildId . "'");
-    log_register('BUILD CHANGE [' . $buildId . ']' . ' GEO `' . $buildGeo . '`');
+    log_register('BUILD CHANGE GEO [' . $buildId . ']  `' . $buildGeo . '`');
 }
 
 /**
@@ -626,7 +629,8 @@ function zb_AddressCreateApartment($buildid, $entrance, $floor, $apt) {
          (NULL,'" . $buildid . "','" . $entrance . "','" . $floor . "','" . $apt . "');
         ";
     nr_query($query);
-    log_register('CREATE AddressApartment [' . $buildid . '] `' . $entrance . '` `' . $floor . '` `' . $apt . '`');
+    $newAptId =simple_get_lastid('apt');
+    log_register('APARTMENT CREATE BUILDID [' . $buildid . '] APTID [' . $newAptId . '] `' . $entrance . '` `' . $floor . '` `' . $apt . '`');
     zb_AddressCleanAddressCache();
     zb_UserGetAllDataCacheClean();
 }
@@ -642,7 +646,7 @@ function zb_AddressDeleteApartment($aptid) {
     $aptid = vf($aptid, 3);
     $query = "DELETE from `apt` WHERE `id` = '" . $aptid . "';";
     nr_query($query);
-    log_register('DELETE AddressApartment [' . $aptid . ']');
+    log_register('APARTMENT DELETE [' . $aptid . ']');
     zb_AddressCleanAddressCache();
     zb_UserGetAllDataCacheClean();
 }
@@ -674,7 +678,7 @@ function zb_AddressChangeApartment($aptid, $buildid, $entrance, $floor, $apt) {
         WHERE `id` ='" . $aptid . "';
         ";
     nr_query($query);
-    log_register('CHANGE AddressApartment [' . $aptid . '] [' . $buildid . '] `' . $entrance . '` `' . $floor . '` `' . $apt . '`');
+    log_register('APARTMENT CHANGE [' . $aptid . '] [' . $buildid . '] `' . $entrance . '` `' . $floor . '` `' . $apt . '`');
     zb_AddressCleanAddressCache();
     zb_UserGetAllDataCacheClean();
 }
@@ -699,7 +703,7 @@ function zb_AddressCreateAddress($login, $aptid) {
     (NULL, '" . $login . "','" . $aptid . "');
     ";
     nr_query($query);
-    log_register('CREATE AddressOccupancy (' . $login . ') [' . $aptid . ']');
+    log_register('ADDRESS CREATE OCCUPANCY APTID [' . $aptid . '] LOGIN (' . $login . ')');
     zb_AddressCleanAddressCache();
     zb_UserGetAllDataCacheClean();
 }
@@ -715,7 +719,7 @@ function zb_AddressDeleteAddress($addrid) {
     $addrid = vf($addrid, 3);
     $query = "DELETE from `address` WHERE `id` = '" . $addrid . "';";
     nr_query($query);
-    log_register('DELETE AddressOccupancy [' . $addrid . ']');
+    log_register('ADDRESS DELETE OCCUPANCY [' . $addrid . ']');
     zb_AddressCleanAddressCache();
     zb_UserGetAllDataCacheClean();
 }
@@ -731,7 +735,7 @@ function zb_AddressOrphanUser($login) {
     $login = vf($login);
     $query = "DELETE from `address` WHERE `login` = '" . $login . "';";
     nr_query($query);
-    log_register('ORPHAN AddressOccupancy (' . $login . ')');
+    log_register('ADDRESS ORPHAN OCCUPANCY (' . $login . ')');
     zb_AddressCleanAddressCache();
     zb_UserGetAllDataCacheClean();
 }

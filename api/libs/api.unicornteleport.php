@@ -772,6 +772,7 @@ class UnicornTeleport {
         }
     } else {
         $result=$this->messages->getStyledMessage(__('Teleport process is already running'), 'error');
+        log_register('UNICORNTELEPORT ALREADY RUNNING SKIPPED');
     }
         return ($result);
     }

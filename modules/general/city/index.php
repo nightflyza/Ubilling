@@ -20,6 +20,7 @@ if (cfr('CITY')) {
                 }
             } else {
                 $errormes = $messages->getStyledMessage(__('City with such name already exists with ID: ') . $FoundCityID, 'error', $errorStyling);
+                log_register('CITY CREATE FAILED NAME `' . $newcityname . '` EXISTS');
                 die(wf_modalAutoForm(__('Error'), $errormes, ubRouting::post('errfrmid'), '', true));
             }
         }
@@ -35,6 +36,7 @@ if (cfr('CITY')) {
                     die();
                 } else {
                     $errormes = $messages->getStyledMessage(__('You can not just remove a city where there are streets and possibly survivors'), 'error', $errorStyling);
+                    log_register('CITY DELETE FAILED PROTECTED [' . $cityid . ']');
                     die(wf_modalAutoForm(__('Error'), $errormes, ubRouting::get('errfrmid'), '', true));
                 }
             }
@@ -52,6 +54,7 @@ if (cfr('CITY')) {
                             }
                         } else {
                             $errormes = $messages->getStyledMessage(__('City with such name already exists with ID: ') . $FoundCityID, 'error', $errorStyling);
+                            log_register('CITY CHANGE NAME FAILED [' . $cityid . '] NAME `' . ubRouting::post('editcityname', 'safe') . '` EXISTS');
                             die(wf_modalAutoForm(__('Error'), $errormes, ubRouting::post('errfrmid'), '', true));
                         }
                     }
