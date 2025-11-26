@@ -192,7 +192,6 @@ FINREP_TARIFF=TRIGGER|Show tariff column in finance report
 SIGREP_CONTRACT=TRIGGER|Show users contract in signup report
 TARIFFCHGAUTOCREDIT=TRIGGER|Automatically set the credit limit when you change the tariff
 MIKROTIK_SUPPORT=TRIGGER|MikroTik extended support enabled
-ASKOZIA_ENABLED=TRIGGER|AskoziaPBX support enabled
 ASTERISK_ENABLED=TRIGGER|Asterisk support enabled
 NMAP_PATH=VARCHAR|Path to installed nmap
 CONTRACT_GENERATION_DEFAULT=TRIGGER|Contracts default generation mode

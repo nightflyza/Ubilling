@@ -110,12 +110,6 @@ class ExistentialHorse {
      */
     protected $teleponyFlag = false;
 
-    /**
-     * Is Askozia PBX integration enabled?
-     *
-     * @var bool
-     */
-    protected $askoziaFlag = false;
 
     /**
      * PON enabled flag
@@ -272,12 +266,7 @@ class ExistentialHorse {
             $this->ukvDebtLimit = $this->altCfg['UKV_MONTH_DEBTLIMIT'];
         }
 
-        //Askozia PBX integration
-        if ($this->altCfg['ASKOZIA_ENABLED']) {
-            $this->askoziaFlag = true;
-            $this->pbxFlag = true;
-        }
-
+        
         //Asterisk integration (?)
         if ($this->altCfg['ASTERISK_ENABLED']) {
             $this->pbxFlag = true;
@@ -724,139 +713,6 @@ class ExistentialHorse {
     }
 
     /**
-     * Askozia PBX data fetching and processing
-     * 
-     * @return void
-     */
-    protected function preprocessAskoziaData() {
-        if ($this->askoziaFlag) {
-            //gettin Askozia config
-            $askoziaUrl = zb_StorageGet('ASKOZIAPBX_URL');
-            $askoziaLogin = zb_StorageGet('ASKOZIAPBX_LOGIN');
-            $askoziaPassword = zb_StorageGet('ASKOZIAPBX_PASSWORD');
-
-            if ((!empty($askoziaUrl)) AND (!empty($askoziaLogin)) AND (!empty($askoziaPassword))) {
-                $callsTmp = array();
-                $normalCalls = array();
-                $callFlows = array();
-                //working time setup
-                $rawWorkTime = $this->altCfg['WORKING_HOURS'];
-                $rawWorkTime = explode('-', $rawWorkTime);
-                $workStartTime = $rawWorkTime[0];
-                $workEndTime = $rawWorkTime[1];
-
-                $fields = array(
-                    'extension_number' => 'all',
-                    'cdr_filter' => 'incomingoutgoing',
-                    'period_from' => $this->curmonth . '-01',
-                    'period_to' => curdate(),
-                    'date_format' => 'Y-m-d',
-                    'time_format' => 'H:i:s',
-                    'page_format' => 'A4',
-                    'SubmitCSVCDR' => 'Download CSV');
-
-                $ch = curl_init();
-                curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-                curl_setopt($ch, CURLOPT_URL, $askoziaUrl . '/status_cdr.php');
-                curl_setopt($ch, CURLOPT_USERPWD, $askoziaLogin . ":" . $askoziaPassword);
-                curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
-                curl_setopt($ch, CURLOPT_POSTFIELDS, $fields);
-                $rawResult = curl_exec($ch);
-
-                curl_close($ch);
-
-                if (!empty($rawResult)) {
-                    $callsTmp = explodeRows($rawResult);
-                    if (!empty($callsTmp)) {
-                        foreach ($callsTmp as $eachline) {
-                            $explode = explode(';', $eachline); //in 2.2.8 delimiter changed from ," to ;
-                            if (!empty($eachline)) {
-                                $normalCalls[] = str_replace('"', '', $explode);
-                            }
-                        }
-                    }
-
-                    if (!empty($normalCalls)) {
-                        unset($normalCalls[0]);
-                        foreach ($normalCalls as $io => $each) {
-
-                            //Askozia CFE fix
-                            if (sizeof($each) > 25) {
-                                array_splice($each, 3, 1);
-                            }
-                            if (@!ispos($each[16], 'out')) {
-                                @$startTime = explode(' ', $each[9]);
-                                @$startTime = $startTime[1];
-                                //only working time
-                                if (zb_isTimeBetween($workStartTime, $workEndTime, $startTime)) {
-                                    //calls with less then 24 hours duration
-                                    if ($each['13'] < 86400) {
-                                        if (ispos($each[14], 'ANSWERED') AND (!ispos($each[7], 'VoiceMail'))) {
-                                            $this->storeTmp['a_totalanswered']++;
-                                        }
-                                        $this->storeTmp['a_totalcalls']++;
-                                        //call duration in seconds increment
-                                        $this->storeTmp['a_totalcallsduration'] += $each[13];
-                                    }
-                                }
-                            }
-
-                            /*
-                             * CFLOWS FIX
-                             * ************** */
-                            //some flow started for income call
-                            if (@!ispos($each['16'], 'out')) {
-                                $incomeNumber = $each[1];
-                                if ($each[2] == 'CALLFLOW-START' OR ispos($each[8], 'CALLFLOW-START')) {
-                                    $callFlows[$incomeNumber . '|' . $each[11]] = 'NO ANSWER';
-                                } else {
-                                    if (isset($callFlows[$incomeNumber . '|' . @$each[11]])) {
-                                        $callFlows[$incomeNumber . '|' . $each[11]] = $each[14];
-                                    } else {
-                                        foreach ($callFlows as $cflowid => $cflowdata) {
-                                            if (ispos($cflowid, $incomeNumber)) {
-                                                $flowtime = explode('|', $cflowid);
-                                                $flowtime = $flowtime[1];
-                                                $flowtime = strtotime($flowtime);
-                                                $callTimeTmp = strtotime($each[11]);
-                                                if (($callTimeTmp - $flowtime) <= 10) {
-                                                    if (ispos($each[14], 'ANS')) {
-                                                        $callFlows[$cflowid] = $each[14];
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-
-                        if (!empty($callFlows)) {
-                            $this->storeTmp['a_totalanswered'] = 0;
-                            $this->storeTmp['a_totalcalls'] = sizeof($callFlows);
-
-                            foreach ($callFlows as $cflowid => $cflowdata) {
-                                $flowTime = explode('|', $cflowid);
-                                $flowTime = explode(' ', $flowTime[1]);
-                                $flowTime = $flowTime[1];
-
-                                if ($cflowdata == 'ANSWERED') {
-                                    if (zb_isTimeBetween($workStartTime, $workEndTime, $flowTime)) {
-                                        $this->storeTmp['a_totalanswered']++;
-                                    }
-                                }
-                            }
-                        }
-
-                        //average calls duration
-                        $this->storeTmp['a_averagecallduration'] = $this->storeTmp['a_totalcallsduration'] / $this->storeTmp['a_totalanswered'];
-                    }
-                }
-            }
-        }
-    }
-
-    /**
      * Telepony CDR data fetching and processing
      * 
      * @return void
@@ -991,7 +847,6 @@ class ExistentialHorse {
         $this->preprocessFinanceData();
         $this->preprocessUkvData();
         $this->preprocessEquipmentData();
-        $this->preprocessAskoziaData();
         $this->preprocessTeleponyData();
         $this->preprocessWdycData();
         $this->preprocessMisc();
