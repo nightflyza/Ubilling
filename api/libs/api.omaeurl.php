@@ -452,7 +452,7 @@ class OmaeUrl {
 
             //PHP 8.0+ has no need to close curl resource anymore
             if (PHP_VERSION_ID < 80000) {
-             curl_close($ch);
+             curl_close($ch); // Deprecated in PHP 8.5
             }
 
             if ($this->verboseLogON) {

@@ -109,6 +109,60 @@ class UbillingTelegram {
     }
 
     /**
+     * Performs HTTP request to Telegram API using curl
+     * 
+     * @param string $url
+     * @param array $data
+     * @param bool $isPost
+     * @param string $debugContext
+     * 
+     * @return string
+     */
+    protected function makeCurlRequest($url, $data = array(), $isPost = true, $debugContext = 'API request') {
+        $result = '';
+        
+        if ($this->debug) {
+            deb($url);
+            if (!empty($data)) {
+                debarr($data);
+            }
+        }
+
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json'));
+        
+        if ($isPost) {
+            curl_setopt($ch, CURLOPT_POST, 1);
+            if (!empty($data)) {
+                curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
+            }
+        }
+
+        $result = curl_exec($ch);
+        
+        if ($this->debug) {
+            if (!empty($result)) {
+                deb($result);
+            }
+            $curlError = curl_error($ch);
+            if (!empty($curlError)) {
+                show_error(__('Error') . ' ' . __('Telegram') . ': ' . $curlError);
+            } else {
+                show_success(__('Telegram') . ' ' . $debugContext . ' ' . __('success'));
+            }
+        }
+
+        //PHP 8.0+ has no need to close curl resource anymore
+        if (PHP_VERSION_ID < 80000) {
+            curl_close($ch); // Deprecated in PHP 8.5
+        }
+
+        return $result;
+    }
+
+    /**
      * Setter of custom API URL (legacy fallback)
      * 
      * @param string $url
@@ -242,22 +296,13 @@ class UbillingTelegram {
         if (!empty($this->botToken)) {
             $options = '?timeout=' . $timeout . '&limit=' . $limit . $offset;
             $url = $this->apiUrl . $this->botToken . '/getUpdates' . $options;
-            $ch = curl_init();
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-            curl_setopt($ch, CURLOPT_URL, $url);
-            curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json'));
-            curl_setopt($ch, CURLOPT_POST, 1);
-            @$reply = curl_exec($ch);
+            
             if ($this->debug) {
-                $curlError = curl_error($ch);
                 show_info($url);
-                if (!empty($curlError)) {
-                    show_error(__('Error') . ' ' . __('Telegram') . ': ' . $curlError);
-                } else {
-                    show_success(__('Telegram API connection to') . ' ' . $this->apiUrl . ' ' . __('success'));
-                }
             }
-            curl_close($ch);
+            
+            $reply = $this->makeCurlRequest($url, array(), true, 'API connection to ' . $this->apiUrl);
+            
             if (!empty($reply)) {
                 $result = json_decode($reply, true);
             }
@@ -783,33 +828,10 @@ class UbillingTelegram {
         }
 
 
-        //POST data encoding
-        $data_json = json_encode($data);
-
         if (!empty($this->botToken)) {
             $url = $this->apiUrl . $this->botToken . '/' . $method;
-            if ($this->debug) {
-                deb($url);
-            }
-            $ch = curl_init();
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-            curl_setopt($ch, CURLOPT_URL, $url);
-            curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json'));
-            curl_setopt($ch, CURLOPT_POST, 1);
-            curl_setopt($ch, CURLOPT_POSTFIELDS, $data_json);
-            if ($this->debug) {
-                $result = curl_exec($ch);
-                deb($result);
-                $curlError = curl_error($ch);
-                if (!empty($curlError)) {
-                    show_error(__('Error') . ' ' . __('Telegram') . ': ' . $curlError);
-                } else {
-                    show_success(__('Telegram API sending via') . ' ' . $this->apiUrl . ' ' . __('success'));
-                }
-            } else {
-                $result = curl_exec($ch);
-            }
-            curl_close($ch);
+            $result = $this->makeCurlRequest($url, $data, true, 'API sending via ' . $this->apiUrl);
+            
         } else {
             throw new Exception('EX_TOKEN_EMPTY');
         }
@@ -845,33 +867,11 @@ class UbillingTelegram {
             }
 
             $url = $this->apiUrl . $this->botToken . '/' . $method;
-            if ($this->debug) {
-                deb($url);
+            $result = $this->makeCurlRequest($url, $data, true, 'API Hook');
+            
+            if ($this->debug and !empty($data)) {
+                show_success($url);
             }
-            $ch = curl_init();
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-            curl_setopt($ch, CURLOPT_URL, $url);
-            curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json'));
-            curl_setopt($ch, CURLOPT_POST, 1);
-            if (!empty($data)) {
-                $data_json = json_encode($data);
-                curl_setopt($ch, CURLOPT_POSTFIELDS, $data_json);
-            }
-
-            if ($this->debug) {
-                $result = curl_exec($ch);
-                deb($result);
-                $curlError = curl_error($ch);
-                if (!empty($curlError)) {
-                    show_error(__('Error') . ' ' . __('Telegram') . ': ' . $curlError);
-                } else {
-                    show_success(__('Telegram API Hook') . ' ' . $this->apiUrl . ' =>' . print_r($data, true) . '|' . $data_json . __('success'));
-                    show_success($url);
-                }
-            } else {
-                $result = curl_exec($ch);
-            }
-            curl_close($ch);
         } else {
             throw new Exception('EX_TOKEN_EMPTY');
         }
@@ -888,26 +888,7 @@ class UbillingTelegram {
         if (!empty($this->botToken)) {
             $method = 'getWebhookInfo';
             $url = $this->apiUrl . $this->botToken . '/' . $method;
-            if ($this->debug) {
-                deb($url);
-            }
-            $ch = curl_init();
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-            curl_setopt($ch, CURLOPT_URL, $url);
-            curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json'));
-            if ($this->debug) {
-                $result = curl_exec($ch);
-                deb($result);
-                $curlError = curl_error($ch);
-                if (!empty($curlError)) {
-                    show_error(__('Error') . ' ' . __('Telegram') . ': ' . $curlError);
-                } else {
-                    show_success(__('Telegram API sending via') . ' ' . $this->apiUrl . ' ' . __('success'));
-                }
-            } else {
-                $result = curl_exec($ch);
-            }
-            curl_close($ch);
+            $result = $this->makeCurlRequest($url, array(), false, 'API sending via ' . $this->apiUrl);
         }
 
         return ($result);
@@ -925,30 +906,10 @@ class UbillingTelegram {
         if (!empty($this->botToken) and (!empty($chatId))) {
             $method = 'getChat';
             $url = $this->apiUrl . $this->botToken . '/' . $method . '?chat_id=' . $chatId;
-            if ($this->debug) {
-                deb($url);
-            }
-            $ch = curl_init();
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-            curl_setopt($ch, CURLOPT_URL, $url);
-            curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json'));
-            if ($this->debug) {
-                $result = curl_exec($ch);
-                deb($result);
-                $curlError = curl_error($ch);
-                if (!empty($curlError)) {
-                    show_error(__('Error') . ' ' . __('Telegram') . ': ' . $curlError);
-                } else {
-                    show_success(__('Telegram API sending via') . ' ' . $this->apiUrl . ' ' . __('success'));
-                }
-            } else {
-                $result = curl_exec($ch);
-            }
+            $reply = $this->makeCurlRequest($url, array(), false, 'API sending via ' . $this->apiUrl);
 
-            curl_close($ch);
-
-            if (!empty($result)) {
-                $result = json_decode($result, true);
+            if (!empty($reply)) {
+                $result = json_decode($reply, true);
             }
         }
 
@@ -967,30 +928,10 @@ class UbillingTelegram {
         if (!empty($this->botToken)) {
             $method = 'getFile';
             $url = $this->apiUrl . $this->botToken . '/' . $method . '?file_id=' . $fileId;
-            if ($this->debug) {
-                deb($url);
-            }
-            $ch = curl_init();
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-            curl_setopt($ch, CURLOPT_URL, $url);
-            curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json'));
-            if ($this->debug) {
-                $result = curl_exec($ch);
-                deb($result);
-                $curlError = curl_error($ch);
-                if (!empty($curlError)) {
-                    show_error(__('Error') . ' ' . __('Telegram') . ': ' . $curlError);
-                } else {
-                    show_success(__('Telegram API sending via') . ' ' . $this->apiUrl . ' ' . __('success'));
-                }
-            } else {
-                $result = curl_exec($ch);
-            }
+            $reply = $this->makeCurlRequest($url, array(), false, 'API sending via ' . $this->apiUrl);
 
-            curl_close($ch);
-
-            if (!empty($result)) {
-                $result = json_decode($result, true);
+            if (!empty($reply)) {
+                $result = json_decode($reply, true);
                 if (@$result['ok']) {
                     //we got it!
                     $result = $result['result']['file_path'];
@@ -1015,12 +956,7 @@ class UbillingTelegram {
         if (!empty($this->botToken)) {
             $cleanApiUrl = str_replace('bot', '', $this->apiUrl);
             $url = $cleanApiUrl . 'file/bot' . $this->botToken . '/' . $filePath;
-            $ch = curl_init();
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-            curl_setopt($ch, CURLOPT_URL, $url);
-            curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json'));
-            $result = curl_exec($ch);
-            curl_close($ch);
+            $result = $this->makeCurlRequest($url, array(), false, 'file download');
         }
         return ($result);
     }
@@ -1141,32 +1077,9 @@ class UbillingTelegram {
             debarr($data);
         }
 
-        $data_json = json_encode($data);
-
         if (!empty($this->botToken)) {
             $url = $this->apiUrl . $this->botToken . '/' . $method;
-            if ($this->debug) {
-                deb($url);
-            }
-            $ch = curl_init();
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-            curl_setopt($ch, CURLOPT_URL, $url);
-            curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json'));
-            curl_setopt($ch, CURLOPT_POST, 1);
-            curl_setopt($ch, CURLOPT_POSTFIELDS, $data_json);
-            if ($this->debug) {
-                $result = curl_exec($ch);
-                deb($result);
-                $curlError = curl_error($ch);
-                if (!empty($curlError)) {
-                    show_error(__('Error') . ' ' . __('Telegram') . ': ' . $curlError);
-                } else {
-                    show_success(__('Telegram API sending via') . ' ' . $this->apiUrl . ' ' . __('success'));
-                }
-            } else {
-                $result = curl_exec($ch);
-            }
-            curl_close($ch);
+            $result = $this->makeCurlRequest($url, $data, true, 'API sending via ' . $this->apiUrl);
         } else {
             throw new Exception('EX_TOKEN_EMPTY');
         }
@@ -1195,17 +1108,7 @@ class UbillingTelegram {
 
         if (!empty($this->botToken)) {
             $url = $this->apiUrl . $this->botToken . '/' . $method;
-            if ($this->debug) {
-                deb($url);
-            }
-            $ch = curl_init();
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-            curl_setopt($ch, CURLOPT_URL, $url);
-            curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json'));
-            curl_setopt($ch, CURLOPT_POST, 1);
-            curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
-            $result = curl_exec($ch);
-            curl_close($ch);
+            $result = $this->makeCurlRequest($url, $data, true, 'callback query answer');
         }
         return ($result);
     }
