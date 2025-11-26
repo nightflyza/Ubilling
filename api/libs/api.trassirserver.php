@@ -308,15 +308,8 @@ class TrassirServer {
     protected function checkConnection() {
         $status = false;
         $url = 'https://' . trim($this->ip) . ':' . $this->port . '/';
-        $curlInit = curl_init($url);
-        curl_setopt($curlInit, CURLOPT_CONNECTTIMEOUT, 2);
-        curl_setopt($curlInit, CURLOPT_HEADER, true);
-        curl_setopt($curlInit, CURLOPT_NOBODY, false);
-        curl_setopt($curlInit, CURLOPT_SSL_VERIFYHOST, 0);
-        curl_setopt($curlInit, CURLOPT_SSL_VERIFYPEER, 0);
-        curl_setopt($curlInit, CURLOPT_RETURNTRANSFER, true);
-        $response = curl_exec($curlInit);
-        curl_close($curlInit);
+        $apiHandler=new OmaeUrl($url);
+        $response = $apiHandler->response();
         if ($response) {
             $status = true;
         }
@@ -629,7 +622,10 @@ class TrassirServer {
         curl_setopt($curl, CURLOPT_POSTFIELDS, $post);
 
         $response = curl_exec($curl);
-        curl_close($curl);
+        //PHP 8.0+ has no need to close curl resource anymore
+        if (PHP_VERSION_ID < 80000) {
+            curl_close($curl); // Deprecated in PHP 8.5
+        }
         $response = $this->clearReply($response);
         if (!empty($response)) {
             $result = json_decode($response, true);
@@ -792,7 +788,10 @@ class TrassirServer {
         if ($response['success'] === 0) {
             //return ($response['error_code']);
         } else {
-            curl_close($curl);
+            //PHP 8.0+ has no need to close curl resource anymore
+            if (PHP_VERSION_ID < 80000) {
+                curl_close($curl); // Deprecated in PHP 8.5
+            }
             if (file_exists($path)) {
                 unlink($path);
             }

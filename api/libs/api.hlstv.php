@@ -142,7 +142,10 @@ class HlsTV {
         if ($status != 200) {
             show_error('Error: call to URL ' . self::URL_API . ' failed with status ' . $status . ', response ' . $jsonResponse . ', curl_error ' . curl_error($curl) . ', curl_errno ' . curl_errno($curl));
         }
-        curl_close($curl);
+        //PHP 8.0+ has no need to close curl resource anymore
+        if (PHP_VERSION_ID < 80000) {
+            curl_close($curl); // Deprecated in PHP 8.5
+        }
         if (!$raw) {
             $result = json_decode($jsonResponse, true);
         } else {
