@@ -1,6 +1,6 @@
 <?php
 
-//askozia number telepathy
+//telepony number telepathy
 if (ubRouting::get('action') == 'telepony') {
     if ($alterconf['TELEPONY_ENABLED']) {
         if (ubRouting::checkGet('number')) {
