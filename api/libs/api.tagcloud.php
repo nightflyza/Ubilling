@@ -394,7 +394,7 @@ class TagCloud {
 
             $cells = wf_TableCell($year);
             $cells .= wf_TableCell(__('Month'));
-            $cells .= wf_TableCell($this->allnames[$tagid]);
+            $cells .= wf_TableCell(@$this->allnames[$tagid]);
             $cells .= wf_TableCell(__('Visual'));
             $rows = wf_TableRow($cells, 'row1');
 
