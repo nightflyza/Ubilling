@@ -1,39 +1,188 @@
 <?php
 
+/**
+ * Can unicorns teleport? I hope so.
+ */
 class UnicornTeleport {
     
+    /**
+     * Ubinstaller download URL
+     *
+     * @var string
+     */
     protected $ubinstallerUrl='http://snaps.ubilling.net.ua/';
+    
+    /**
+     * Ubinstaller package filename
+     *
+     * @var string
+     */
     protected $ubinstllerName='ubinstaller_current.tar.gz';
+    
+    /**
+     * Apache web data directory path
+     *
+     * @var string
+     */
     protected $saveApacheDataPath='/usr/local/www/apache24/data/';
+    
+    /**
+     * Apache configuration directory path
+     *
+     * @var string
+     */
     protected $saveApacheConfPath='/usr/local/etc/apache24/';
+    
+    /**
+     * SQL backups directory path
+     *
+     * @var string
+     */
     protected $backupsPath='content/backups/sql/';
+    
+    /**
+     * RC configuration file path
+     *
+     * @var string
+     */
     protected $saveRcConfPath='/etc/rc.conf';
+    
+    /**
+     * Firewall configuration file path
+     *
+     * @var string
+     */
     protected $saveFirewallConf='/etc/firewall.conf';
+    
+    /**
+     * Stargazer configuration directory path
+     *
+     * @var string
+     */
     protected $saveStargazerDirPath='/etc/stargazer/';
+    
+    /**
+     * Stargazer configuration file path
+     *
+     * @var string
+     */
     protected $saveStargazerConfPath='/etc/stargazer/stargazer.conf';
+    
+    /**
+     * Temporary directory path for teleport operations
+     *
+     * @var string
+     */
     protected $tmpPath='/tmp/unicornteleport/';
+    
+    /**
+     * Export directory path for teleport packages
+     *
+     * @var string
+     */
     protected $teleportExportPath='exports/';
+    
+    /**
+     * Teleport package filename
+     *
+     * @var string
+     */
     protected $teleportDownloadName='unicornteleport.tgz';
+    
+    /**
+     * Database dump filename
+     *
+     * @var string
+     */
     protected $teleportDumpName='unicornteleport.sql';
+    
+    /**
+     * Sudo binary path
+     *
+     * @var string
+     */
     protected $sudoPath='';
+    
+    /**
+     * Tar binary path
+     *
+     * @var string
+     */
     protected $tarPath='';
+    
+    /**
+     * Gzip binary path
+     *
+     * @var string
+     */
     protected $gzipPath='';
+    
+    /**
+     * Grep binary path
+     *
+     * @var string
+     */
     protected $grepPath='';
+    
+    /**
+     * MySQL binary path
+     *
+     * @var string
+     */
     protected $mysqlPath='';
+    
+    /**
+     * Crontab binary path
+     *
+     * @var string
+     */
     protected $crontabPath='/usr/bin/crontab';
+    
+    /**
+     * Current Ubilling release version
+     *
+     * @var string
+     */
     protected $currentRelease='';
     
+    /**
+     * Teleport migration data array
+     *
+     * @var array
+     */
     protected $teleportData=array(
         'serial'=>'',
         'myspass'=>'',
         'stgpass'=>'',
         'rsdpass'=>'',
-
     );
 
+    /**
+     * Available packages array
+     *
+     * @var array
+     */
     protected $packagesAvailable=array();
+    
+    /**
+     * Alternative configuration array
+     *
+     * @var array
+     */
     protected $altCfg = array();
+    
+    /**
+     * Billing configuration array
+     *
+     * @var array
+     */
     protected $billCfg = array();
+    
+    /**
+     * MySQL configuration array
+     *
+     * @var array
+     */
     protected $mySqlCfg = array();
     /**
      * StarDust object placeholder
@@ -42,6 +191,11 @@ class UnicornTeleport {
      */
     protected $startDust='';
 
+    /**
+     * Error messages array
+     *
+     * @var array
+     */
     protected $errorMessages=array();
 
     /**
@@ -51,22 +205,75 @@ class UnicornTeleport {
      */
     protected $messages='';
 
+    /**
+     * Process ID for teleport operations
+     */
     const PID_TELEPORT='UNICORNTELEPORT';
+    
+    /**
+     * POST route parameter for architecture
+     */
     const PROUTE_ARCH='defaultarch';
+    
+    /**
+     * POST route parameter for internal interface
+     */
     const PROUTE_INT_IF='defaultintif';
+    
+    /**
+     * POST route parameter for external interface
+     */
     const PROUTE_EXT_IF='defaultextif';
+    
+    /**
+     * GET route parameter for download
+     */
     const ROUTE_DOWNLOAD='download';
+    
+    /**
+     * POST route parameter for database packing
+     */
     const PROUTE_PACK_DATABASE='packdatabase';
+    
+    /**
+     * POST route parameter for www data packing
+     */
     const PROUTE_PACK_WWWDATA='packwwwdata';
+    
+    /**
+     * POST route parameter for Apache configuration packing
+     */
     const PROUTE_PACK_APACHE_CONF='packapacheconf';
+    
+    /**
+     * POST route parameter for RC configuration packing
+     */
     const PROUTE_PACK_RC_CONF='packrcconf';
+    
+    /**
+     * POST route parameter for firewall configuration packing
+     */
     const PROUTE_PACK_FIREWALL_CONF='packfirewallconf';
+    
+    /**
+     * POST route parameter for Stargazer configuration packing
+     */
     const PROUTE_PACK_STGCONFIG='packstgconfig';
+    
+    /**
+     * POST route parameter for crontab packing
+     */
     const PROUTE_PACK_CRONTAB='packcrontab';
 
+    /**
+     * Module URL
+     */
     const URL_ME='?module=unicornteleport';
     
 
+    /**
+     * Creates new UnicornTeleport instance
+     */
     public function __construct() {
         $this->initMessages();
         $this->initConfigs();
@@ -75,14 +282,29 @@ class UnicornTeleport {
         $this->initStartDust();
     }
 
+    /**
+     * Initializes system messages helper
+     *
+     * @return void
+     */
     protected function initMessages() {
         $this->messages=new UbillingMessageHelper();
     }
 
+    /**
+     * Initializes StarDust process manager
+     *
+     * @return void
+     */
     protected function initStartDust() {
-        $this->startDust=new StarDust(self::PID_TELEPORT);
+        $this->startDust=new StarDust(self::PID_TELEPORT, false, true);
     }
 
+    /**
+     * Initializes configuration arrays and system paths
+     *
+     * @return void
+     */
     protected function initConfigs() {
         global $ubillingConfig;
         $this->altCfg = $ubillingConfig->getAlter();
@@ -96,6 +318,11 @@ class UnicornTeleport {
     }
 
 
+    /**
+     * Checks system binary paths availability
+     *
+     * @return bool
+     */
     protected function checkSysPaths() {
         $this->errorMessages = array();
         $result = true;
@@ -130,6 +357,11 @@ class UnicornTeleport {
 
     
 
+    /**
+     * Loads available packages from remote API
+     *
+     * @return void
+     */
     protected function loadPackagesAvailable() {
         $packagesApiUrl='http://ubilling.net.ua/packages/fbsdavail.php';
         $remotePackages=new OmaeUrl($packagesApiUrl);
@@ -141,6 +373,11 @@ class UnicornTeleport {
         }
     }
 
+    /**
+     * Loads migration data including serial and passwords
+     *
+     * @return void
+     */
     protected function loadMigrationData() {
         $avarice = new Avarice();
         $this->teleportData['serial']=$avarice->getSerial();
@@ -154,6 +391,11 @@ class UnicornTeleport {
         $this->currentRelease=trim(file_get_contents('RELEASE'));
     }
 
+    /**
+     * Validates teleport migration data
+     *
+     * @return bool
+     */
     protected function checkTeleportData() {
         $this->errorMessages = array();
         $result = true;
@@ -181,6 +423,11 @@ class UnicornTeleport {
         return ($result);
     }
 
+    /**
+     * Prepares temporary directory for teleport operations
+     *
+     * @return void
+     */
     protected function prepareTempDir() {
         if (file_exists($this->tmpPath)) {
             rcms_delete_files($this->tmpPath,true);
@@ -189,18 +436,36 @@ class UnicornTeleport {
         rcms_mkdir($this->tmpPath);
     }
 
+    /**
+     * Removes temporary directory and its contents
+     *
+     * @return void
+     */
     protected function flushTempDir() {
         if (file_exists($this->tmpPath)) {
             rcms_delete_files($this->tmpPath,true);
         } 
     }
 
+    /**
+     * Creates database backup
+     *
+     * @return string
+     */
     protected function backupDatabase() {
       $result='';
       $result=zb_BackupDatabase(true);
       return ($result);
     }
 
+    /**
+     * Archives specified path to target archive
+     *
+     * @param string $sourcePath
+     * @param string $targetAchive
+     *
+     * @return bool
+     */
     protected function archivePath($sourcePath, $targetAchive) {
         if (file_exists($sourcePath)) {
             $parentDir = dirname($sourcePath);
@@ -213,12 +478,22 @@ class UnicornTeleport {
         }
     }
 
+    /**
+     * Handles file download request
+     *
+     * @return void
+     */
     public function catchFileDownload() {
         if (ubRouting::checkGet(self::ROUTE_DOWNLOAD)) {
             zb_DownloadFile($this->teleportExportPath.$this->teleportDownloadName);
         }
     }
 
+    /**
+     * Renders teleport README content
+     *
+     * @return string
+     */
     protected function renderTeleportReadme() {
         $result='';
         $arch=(ubRouting::checkPost(self::PROUTE_ARCH)) ? ubRouting::post(self::PROUTE_ARCH) : '';
@@ -299,9 +574,13 @@ class UnicornTeleport {
         return ($result);
     }
 
+    /**
+     * Executes teleport export process
+     *
+     * @return string
+     */
     protected function runTeleportExport() {
         $result='';
-        if ($this->startDust->notRunning()) {
             $this->startDust->start();
             log_register('UNICORNTELEPORT EXPORT STARTED');
             $this->prepareTempDir();
@@ -310,68 +589,68 @@ class UnicornTeleport {
                 $dbBackupName=$this->backupDatabase();
                 if ($dbBackupName) {
                     rcms_rename_file($dbBackupName, $this->tmpPath.$this->teleportDumpName);
-                    $result .= $this->messages->getStyledMessage(__('Database backup saved'), 'success');
+                    $result .= $this->messages->getStyledMessage(__('Database backup').' '.__('saved'), 'success');
                 } else {
-                    $this->errorMessages['database']=__('Database backup failed');
+                    $this->errorMessages['database']=__('Database backup').' '.__('failed');
                 }
             } else {
-                $result .= $this->messages->getStyledMessage(__('Database backup skipped'), 'warning');
+                $result .= $this->messages->getStyledMessage(__('Database backup').' '.__('skipped'), 'warning');
             }
 
             if (ubRouting::checkPost(self::PROUTE_PACK_WWWDATA)) {
             $this->archivePath($this->saveApacheDataPath, $this->tmpPath.'wwwdata.tgz');
             if (file_exists($this->tmpPath.'wwwdata.tgz')) {
-                $result .= $this->messages->getStyledMessage(__('Apache data backup saved'), 'success');
+                $result .= $this->messages->getStyledMessage(__('Apache data backup').' '.__('saved'), 'success');
             } else {
-                $this->errorMessages['wwwdata']=__('Apache data backup failed');
+                $this->errorMessages['wwwdata']=__('Apache data backup').' '.__('failed');
             }
             } else {
-                $result .= $this->messages->getStyledMessage(__('Apache data backup skipped'), 'info');
+                $result .= $this->messages->getStyledMessage(__('Apache data backup').' '.__('skipped'), 'info');
             }
 
             if (ubRouting::checkPost(self::PROUTE_PACK_APACHE_CONF)) {
                 $this->archivePath($this->saveApacheConfPath, $this->tmpPath.'apache_conf.tgz');
                 if (file_exists($this->tmpPath.'apache_conf.tgz')) {
-                    $result .= $this->messages->getStyledMessage(__('Apache configuration backup saved'), 'success');
+                    $result .= $this->messages->getStyledMessage(__('Apache configuration backup').' '.__('saved'), 'success');
                 } else {
-                    $this->errorMessages['apache_conf']=__('Apache configuration backup failed');
+                    $this->errorMessages['apache_conf']=__('Apache configuration backup').' '.__('failed');
                 }
             } else {
-                $result .= $this->messages->getStyledMessage(__('Apache configuration backup skipped'), 'info');
+                $result .= $this->messages->getStyledMessage(__('Apache configuration backup').' '.__('skipped'), 'info');
             }
 
             
             if (ubRouting::checkPost(self::PROUTE_PACK_RC_CONF)) {
                 $this->archivePath($this->saveRcConfPath, $this->tmpPath.'rcconf.tgz');
                 if (file_exists($this->tmpPath.'rcconf.tgz')) {
-                    $result .= $this->messages->getStyledMessage(__('RC configuration backup saved'), 'success');
+                    $result .= $this->messages->getStyledMessage(__('RC configuration backup').' '.__('saved'), 'success');
                 } else {
-                    $this->errorMessages['rcconf']=__('RC configuration backup failed');
+                    $this->errorMessages['rcconf']=__('RC configuration backup').' '.__('failed');
                 }
             } else {
-                $result .= $this->messages->getStyledMessage(__('RC configuration backup skipped'), 'info');
+                $result .= $this->messages->getStyledMessage(__('RC configuration backup').' '.__('skipped'), 'info');
             }
 
             if (ubRouting::checkPost(self::PROUTE_PACK_FIREWALL_CONF)) {
                 $this->archivePath($this->saveFirewallConf, $this->tmpPath.'firewallconf.tgz');
                 if (file_exists($this->tmpPath.'firewallconf.tgz')) {
-                    $result .= $this->messages->getStyledMessage(__('Firewall configuration backup saved'), 'success');
+                    $result .= $this->messages->getStyledMessage(__('Firewall configuration backup').' '.__('saved'), 'success');
                 } else {
-                    $this->errorMessages['firewallconf']=__('Firewall configuration backup failed');
+                    $this->errorMessages['firewallconf']=__('Firewall configuration backup').' '.__('failed');
                 }
             } else {
-                $result .= $this->messages->getStyledMessage(__('Firewall configuration backup skipped'), 'info');
+                $result .= $this->messages->getStyledMessage(__('Firewall configuration backup').' '.__('skipped'), 'info');
             }
 
             if (ubRouting::checkPost(self::PROUTE_PACK_STGCONFIG)) {
                 $this->archivePath($this->saveStargazerDirPath, $this->tmpPath.'stgconfig.tgz');
                 if (file_exists($this->tmpPath.'stgconfig.tgz')) {
-                    $result .= $this->messages->getStyledMessage(__('Stargazer configuration backup saved'), 'success');
+                    $result .= $this->messages->getStyledMessage(__('Stargazer configuration backup').' '.__('saved'), 'success');
                 } else {
-                    $this->errorMessages['stgconfig']=__('Stargazer configuration backup failed');
+                    $this->errorMessages['stgconfig']=__('Stargazer configuration backup').' '.__('failed');
                 }
             } else {
-                $result .= $this->messages->getStyledMessage(__('Stargazer configuration backup skipped'), 'info');
+                $result .= $this->messages->getStyledMessage(__('Stargazer configuration backup').' '.__('skipped'), 'info');
             }
 
             //getting crontab file
@@ -381,33 +660,33 @@ class UnicornTeleport {
             $crontabOutput.=PHP_EOL;
                 file_put_contents($this->tmpPath.'crontab', $crontabOutput);
                 if (file_exists($this->tmpPath.'crontab')) {
-                    $result .= $this->messages->getStyledMessage(__('Crontab file saved to temp directory'), 'success');
+                    $result .= $this->messages->getStyledMessage(__('Crontab file').' '.__('saved to temp directory'), 'success');
                 } else {
-                    $this->errorMessages['crontab_saving']=__('Crontab file saving failed');
+                    $this->errorMessages['crontab_saving']=__('Crontab file').' '.__('saving failed');
                 }
             } else {
-                $result .= $this->messages->getStyledMessage(__('Crontab backup skipped'), 'info');
+                $result .= $this->messages->getStyledMessage(__('Crontab backup').' '.__('skipped'), 'info');
             }
 
             //saving readme file to temp directory
             $readmeContent=$this->renderTeleportReadme();
             file_put_contents($this->tmpPath.'README', $readmeContent);
             if (file_exists($this->tmpPath.'README')) {
-                $result .= $this->messages->getStyledMessage(__('Readme file saved to temp directory'), 'success');
+                $result .= $this->messages->getStyledMessage(__('Readme file').' '.__('saved to temp directory'), 'success');
                 $result .= wf_delimiter();
                 $result .= wf_tag('textarea', false, 'fileeditorarea', 'name="readmepreview" cols="145" rows="30" spellcheck="false"');
                 $result .= $readmeContent;
                 $result .= wf_tag('textarea', true);
             } else {
-                $this->errorMessages['readme_saving']=__('Readme file saving failed');
+                $this->errorMessages['readme_saving']=__('Readme file').' '.__('saving failed');
             }
 
             //packing whole teleport package
             $this->archivePath($this->tmpPath, $this->teleportExportPath.$this->teleportDownloadName);
             if (file_exists($this->teleportExportPath.$this->teleportDownloadName)) {
-                $result .= $this->messages->getStyledMessage(__('Unicorn Teleport exported').': '.$this->teleportExportPath.$this->teleportDownloadName, 'success');
+                $result .= $this->messages->getStyledMessage(__('Unicorn Teleport').' '.__('exported').': '.$this->teleportExportPath.$this->teleportDownloadName, 'success');
             } else {
-                $this->errorMessages['teleport_export']=__('Unicorn Teleport export failed');
+                $this->errorMessages['teleport_export']=__('Unicorn Teleport').' '.__('export failed');
             }
 
             if (empty($this->errorMessages)) {
@@ -417,7 +696,7 @@ class UnicornTeleport {
             $exportedFsizeLabel=round($exportedFileSize/1024/1024, 2).' Mb'; 
             log_register('UNICORNTELEPORT EXPORTED: `'.$this->teleportExportPath.$this->teleportDownloadName.'` size: '.$exportedFsizeLabel);
             } else {
-                $result=$this->messages->getStyledMessage(__('Unicorn Teleport export failed'), 'error');
+                $result=$this->messages->getStyledMessage(__('Unicorn Teleport').' '.__('export failed'), 'error');
                 foreach ($this->errorMessages as $key=>$value) {
                     $result .= $this->messages->getStyledMessage($key.': '.$value, 'error');
                 }
@@ -428,12 +707,15 @@ class UnicornTeleport {
             $this->flushTempDir();
             $this->startDust->stop();
             log_register('UNICORNTELEPORT EXPORT FINISHED');
-        } else {
-            $this->errorMessages['teleport_process']=__('Teleport process is already running');
-        }
+        
         return ($result);
     }
 
+    /**
+     * Renders teleport configuration form
+     *
+     * @return string
+     */
     protected function getTeleportForm() {
         $result='';
         $archParams=array('' => '-');
@@ -453,15 +735,20 @@ class UnicornTeleport {
         $inputs .= wf_delimiter(0);
         $inputs .= wf_Submit(__('Build Teleport'));
         $result .= wf_Form('', 'POST', $inputs, 'glamour');
+        $result .= wf_FormDisabler();
         
         return ($result);
     }
 
 
+    /**
+     * Renders main teleport form with validation
+     *
+     * @return string
+     */
     public function renderTeleportForm() { 
         $result='';
         if ($this->startDust->notRunning()) {
-        
         if ($this->checkSysPaths()) {
             if ($this->checkTeleportData()) {
                 $formSubmitted=ubRouting::checkPost(self::PROUTE_PACK_DATABASE) or ubRouting::checkPost(self::PROUTE_PACK_WWWDATA) or ubRouting::checkPost(self::PROUTE_PACK_APACHE_CONF) or ubRouting::checkPost(self::PROUTE_PACK_RC_CONF) or ubRouting::checkPost(self::PROUTE_PACK_FIREWALL_CONF) or ubRouting::checkPost(self::PROUTE_PACK_STGCONFIG) or ubRouting::checkPost(self::PROUTE_PACK_CRONTAB);
@@ -483,9 +770,6 @@ class UnicornTeleport {
                 $result .= $this->messages->getStyledMessage($path.': '.$value, 'error');
             }
         }
-
-        
-        
     } else {
         $result=$this->messages->getStyledMessage(__('Teleport process is already running'), 'error');
     }
