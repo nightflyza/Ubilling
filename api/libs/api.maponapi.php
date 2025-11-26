@@ -75,23 +75,18 @@ class MaponAPI {
     private function getUrlContent($urlDomain, $requestMethod, array $queryData = array(), array $postData = array()) {
         $isPost = $requestMethod == 'post';
         $urlDomain .= '?' . http_build_query($queryData);
-
-        $ch = curl_init();
-
-        curl_setopt($ch, CURLOPT_URL, $urlDomain);
-        curl_setopt($ch, CURLOPT_POST, $isPost ? 1 : 0);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-
+        $apiHandler=new OmaeUrl($urlDomain);
+  
         if ($isPost) {
-            curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($postData));
+            if (!empty($postData)) {
+                foreach ($postData as $key => $value) {
+                    $apiHandler->dataPost($key, $value);
+                }
+            }
         }
-
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-
-        $output = curl_exec($ch);
-        $error = curl_error($ch);
-
-        curl_close($ch);
+        
+        $output = $apiHandler->response();
+        $error = $apiHandler->error();
 
         if (!$output) {
             throw new ApiException('Could not HTTP request: ' . var_export($error, true));
