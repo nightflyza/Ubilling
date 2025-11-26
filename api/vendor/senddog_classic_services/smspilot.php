@@ -58,7 +58,9 @@ class smspilot extends SendDogProto {
                 curl_setopt($ch, CURLOPT_TIMEOUT, 10);
                 curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
                 $json = curl_exec($ch);
-                curl_close($ch);
+                if (PHP_VERSION_ID < 80000) {
+                    curl_close($ch); // Deprecated in PHP 8.5
+                }
 
                 $j = json_decode($json);
                 if ($j && isset($j->error)) {

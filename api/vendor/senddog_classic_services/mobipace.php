@@ -235,8 +235,9 @@ class mobipace extends SendDogProto {
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($curl, CURLOPT_POSTFIELDS, $postFileds);
         $result = curl_exec($curl);
-        curl_close($curl);
-
+        if (PHP_VERSION_ID < 80000) {
+            curl_close($curl); // Deprecated in PHP 8.5
+        }
         return ($result);
     }
 

@@ -86,7 +86,9 @@ class redsms extends SendDogProto {
                 curl_setopt($curl, CURLOPT_MAXREDIRS, 10);
                 curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
                 $response = curl_exec($curl);
-                curl_close($curl);
+                if (PHP_VERSION_ID < 80000) {
+                    curl_close($curl); // Deprecated in PHP 8.5
+                }
 
 //remove old sent message
                 $this->smsQueue->deleteSms($eachsms['filename']);
@@ -118,7 +120,9 @@ class redsms extends SendDogProto {
         curl_setopt($curl, CURLOPT_URL, $query);
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
         $response = curl_exec($curl);
-        curl_close($curl);
+        if (PHP_VERSION_ID < 80000) {
+            curl_close($curl); // Deprecated in PHP 8.5
+        }
 
         $result .= wf_BackLink(self::URL_ME, '', true);
         $result .= $this->messages->getStyledMessage(__('Current account balance') . ': ' . $response . ' RUR', 'info');

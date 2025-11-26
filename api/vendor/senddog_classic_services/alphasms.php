@@ -125,7 +125,9 @@ class alphasms extends SendDogProto {
                 curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
                 curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
                 $response = @curl_exec($ch);
-                curl_close($ch);
+                if (PHP_VERSION_ID < 80000) {
+                    curl_close($ch); // Deprecated in PHP 8.5
+                }
 
                 //remove old sent message
                 $this->smsQueue->deleteSms($sms['filename']);
@@ -159,7 +161,9 @@ class alphasms extends SendDogProto {
         curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
         curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, false);
         $response = curl_exec($curl);
-        curl_close($curl);
+        if (PHP_VERSION_ID < 80000) {
+            curl_close($curl); // Deprecated in PHP 8.5
+        }
 
         $response = @unserialize($this->base64_url_decode($response));
 

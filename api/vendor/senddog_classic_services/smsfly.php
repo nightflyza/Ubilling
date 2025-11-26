@@ -94,7 +94,9 @@ class smsfly extends SendDogProto {
                 curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
                 curl_setopt($ch, CURLOPT_POSTFIELDS, $myXML);
                 $result .= curl_exec($ch);
-                curl_close($ch);
+                if (PHP_VERSION_ID < 80000) {
+                    curl_close($ch); // Deprecated in PHP 8.5
+                }
 
 //remove old sent message
                 $this->smsQueue->deleteSms($eachsms['filename']);
@@ -124,7 +126,9 @@ class smsfly extends SendDogProto {
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
         curl_setopt($ch, CURLOPT_POSTFIELDS, $myXML);
         $response = curl_exec($ch);
-        curl_close($ch);
+        if (PHP_VERSION_ID < 80000) {
+            curl_close($ch); // Deprecated in PHP 8.5
+        }
 
         $result .= wf_BackLink(self::URL_ME, '', true);
         $result .= $this->messages->getStyledMessage(__('Current account balance') . ': ' . $response, 'info');

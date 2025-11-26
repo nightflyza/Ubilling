@@ -135,7 +135,9 @@ class skyriver extends SendDogProto {
             curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
             curl_setopt($curl, CURLOPT_POSTFIELDS, $xmlPacket);
             $result = curl_exec($curl);
-            curl_close($curl);
+            if (PHP_VERSION_ID < 80000) {
+                curl_close($curl); // Deprecated in PHP 8.5
+            }
 
             $parsedResult = zb_xml2array($result);
 
@@ -225,7 +227,9 @@ class skyriver extends SendDogProto {
                 curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
                 curl_setopt($curl, CURLOPT_POSTFIELDS, $xmlPacket);
                 $result = curl_exec($curl);
-                curl_close($curl);
+                if (PHP_VERSION_ID < 80000) {
+                    curl_close($curl); // Deprecated in PHP 8.5
+                }
 
                 $parsedResult = zb_xml2array($result);
 

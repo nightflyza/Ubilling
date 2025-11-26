@@ -109,7 +109,9 @@ class smsflyapi2 extends SendDogProto {
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
         curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($params, 256));
         $result = curl_exec($ch);
-        curl_close($ch);
+        if (PHP_VERSION_ID < 80000) {
+            curl_close($ch); // Deprecated in PHP 8.5
+        }
 
         if (!empty($result)) {
             $response = json_decode($result, true);
