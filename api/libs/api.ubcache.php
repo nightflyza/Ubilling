@@ -73,6 +73,14 @@ class UbillingCache {
      */
     protected $memcached = ''; // single memcached object
 
+
+    /**
+     * Single instance of redis object
+     *
+     * @var object
+     */
+    protected $redis = '';
+
     /**
      * Cache keys prefix
      */
