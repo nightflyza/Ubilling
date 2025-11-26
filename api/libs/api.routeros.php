@@ -321,7 +321,10 @@ class RouterOS {
             curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 10);
             curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
             $Result = curl_exec($curl);
-            curl_close($curl);
+            //PHP 8.0+ has no need to close curl resource anymore
+            if (PHP_VERSION_ID < 80000) {
+                curl_close($curl); // Deprecated in PHP 8.5
+            }
 
             if ( !empty($Result) ) {
                 preg_match('/RouterOS v(.*?)</', $Result, $Match);

@@ -571,7 +571,10 @@ class OllTv {
 
         // execute curl
         $response = curl_exec($ch);
-        curl_close($ch);
+        //PHP 8.0+ has no need to close curl resource anymore
+        if (PHP_VERSION_ID < 80000) {
+            curl_close($ch); // Deprecated in PHP 8.5
+        }
 
         // read result
         $this->_readResult($response);

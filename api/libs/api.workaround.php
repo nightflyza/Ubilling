@@ -3469,7 +3469,10 @@ function zb_BillingStats($quiet = true, $modOverride = '') {
             }
             $output = curl_exec($curlStats);
             $httpCode = curl_getinfo($curlStats, CURLINFO_HTTP_CODE);
-            curl_close($curlStats);
+            //PHP 8.0+ has no need to close curl resource anymore
+            if (PHP_VERSION_ID < 80000) {
+                curl_close($curlStats); // Deprecated in PHP 8.5
+            }
 
             if ($output !== false and $httpCode == 200) {
                 $output = trim($output);

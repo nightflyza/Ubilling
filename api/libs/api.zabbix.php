@@ -9,7 +9,7 @@ class ZabbixAPI {
     /**
      * Placeholder for $this->ubConfig object
      *
-     * @var null
+     * @var object
      */
     protected $ubConfig = null;
 
@@ -37,7 +37,7 @@ class ZabbixAPI {
     /**
      * Zabbix connection token for communication after successful auth
      *
-     * @var
+     * @var string
      */
     protected $authToken = '';
 
@@ -78,7 +78,10 @@ class ZabbixAPI {
             curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
             curl_setopt($curl, CURLOPT_POSTFIELDS, $authJSON);
             $curlResult = curl_exec($curl);
-            curl_close($curl);
+            //PHP 8.0+ has no need to close curl resource anymore
+            if (PHP_VERSION_ID < 80000) {
+                curl_close($curl); // Deprecated in PHP 8.5
+            }
 
             if (!empty($curlResult)) {
                 $authArr = json_decode($curlResult, true);
@@ -119,7 +122,10 @@ class ZabbixAPI {
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($curl, CURLOPT_POSTFIELDS, $requestJSON);
         $curlResult = curl_exec($curl);
-        curl_close($curl);
+        //PHP 8.0+ has no need to close curl resource anymore
+        if (PHP_VERSION_ID < 80000) {
+            curl_close($curl); // Deprecated in PHP 8.5
+        }
 
         if (!empty($curlResult)) {
             $reqResult = $curlResult;

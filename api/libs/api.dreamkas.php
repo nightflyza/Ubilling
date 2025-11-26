@@ -8,21 +8,21 @@ class DreamKas {
     /**
      * UbillingConfig object placeholder
      *
-     * @var null
+     * @var object
      */
     protected $ubConfig = null;
 
     /**
      * System message helper object placeholder
      *
-     * @var null
+     * @var object
      */
     protected $messages = null;
 
     /**
      * UbillingCache instance placeholder
      *
-     * @var null
+     * @var object
      */
     protected $ubCache = null;
 
@@ -344,7 +344,10 @@ class DreamKas {
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
         $result = curl_exec($curl);
         $httpCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
-        curl_close($curl);
+        //PHP 8.0+ has no need to close curl resource anymore
+        if (PHP_VERSION_ID < 80000) {
+            curl_close($curl); // Deprecated in PHP 8.5
+        }
 
         $result = json_decode($result, true);
 
@@ -370,7 +373,10 @@ class DreamKas {
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
         $result = curl_exec($curl);
         $httpCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
-        curl_close($curl);
+        //PHP 8.0+ has no need to close curl resource anymore
+        if (PHP_VERSION_ID < 80000) {
+            curl_close($curl);
+        }
 
         $tCMArr = json_decode($result, true);
         $result = array();
@@ -420,7 +426,10 @@ class DreamKas {
         //curl_setopt($curl, CURLOPT_TIMEOUT, 12);
         $result = curl_exec($curl);
         $httpCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
-        curl_close($curl);
+        //PHP 8.0+ has no need to close curl resource anymore
+        if (PHP_VERSION_ID < 80000) {
+            curl_close($curl);
+        }
 
         $result = json_decode($result, true);
 
@@ -531,7 +540,10 @@ class DreamKas {
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
         $result = curl_exec($curl);
         $httpCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
-        curl_close($curl);
+        //PHP 8.0+ has no need to close curl resource anymore
+        if (PHP_VERSION_ID < 80000) {
+            curl_close($curl);
+        }
 
         $tSelPosArr = json_decode($result, true);
         $result = array();
@@ -579,7 +591,10 @@ class DreamKas {
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
         $result = curl_exec($curl);
         $httpCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
-        curl_close($curl);
+        //PHP 8.0+ has no need to close curl resource anymore
+        if (PHP_VERSION_ID < 80000) {
+            curl_close($curl);
+        }
 
         $result = json_decode($result, true);
 
@@ -605,7 +620,10 @@ class DreamKas {
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
         $result = curl_exec($curl);
         $httpCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
-        curl_close($curl);
+        //PHP 8.0+ has no need to close curl resource anymore
+        if (PHP_VERSION_ID < 80000) {
+            curl_close($curl);
+        }
 
         return (json_decode($result, true));
     }
@@ -634,7 +652,10 @@ class DreamKas {
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
         $result = curl_exec($curl);
         $httpCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
-        curl_close($curl);
+        //PHP 8.0+ has no need to close curl resource anymore
+        if (PHP_VERSION_ID < 80000) {
+            curl_close($curl);
+        }
 
         $tWebHookArr = json_decode($result, true);
         $result = array();
@@ -1102,7 +1123,10 @@ class DreamKas {
             $result = curl_exec($curl);
 
             $httpCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
-            curl_close($curl);
+            //PHP 8.0+ has no need to close curl resource anymore
+            if (PHP_VERSION_ID < 80000) {
+                curl_close($curl);
+            }
 
             $result = json_decode($result, true);
 
@@ -2299,7 +2323,10 @@ class DreamKas {
 
             $result = curl_exec($curl);
             $httpCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
-            curl_close($curl);
+            //PHP 8.0+ has no need to close curl resource anymore
+            if (PHP_VERSION_ID < 80000) {
+                curl_close($curl);
+            }
 
             $result = json_decode($result, true);
 
