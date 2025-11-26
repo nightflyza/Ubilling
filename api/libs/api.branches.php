@@ -482,8 +482,8 @@ class UbillingBranches {
     /**
      * Assigns user login with existing branch ID
      * 
-     * @param type $branchId
-     * @param type $login
+     * @param int $branchId
+     * @param string $login
      * @throws Exception
      * 
      * @return void

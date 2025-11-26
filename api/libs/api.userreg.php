@@ -872,11 +872,11 @@ function zb_UserRegister($user_data, $goprofile = true) {
 
 // registration subroutine
     $billing->createuser($login);
-    log_register("StgUser REGISTER (" . $login . ")");
+    log_register("USER STG REGISTER (" . $login . ")");
     $billing->setpassword($login, $password);
-    log_register("StgUser (" . $login . ") PASSWORD `" . $password . "`");
+    log_register("USER STG (" . $login . ") PASSWORD `" . $password . "`");
     $billing->setip($login, $ip);
-    log_register("StgUser (" . $login . ") IP `" . $ip . "`");
+    log_register("USER STG (" . $login . ") IP `" . $ip . "`");
     zb_AddressCreateApartment($buildid, $entrance, $floor, $apt);
     zb_AddressCreateAddress($login, zb_AddressGetLastid());
     multinet_add_host($netid, $ip, $mac);
@@ -891,21 +891,21 @@ function zb_UserRegister($user_data, $goprofile = true) {
     if ($billingconf['REGALWONLINE']) {
         $alwaysonline = 1;
         $billing->setao($login, $alwaysonline);
-        log_register('CHANGE AlwaysOnline (' . $login . ') ON ' . $alwaysonline);
+        log_register('USER ALWAYSONLINE CHANGE (' . $login . ') ON `' . $alwaysonline . '`');
     }
 
 // if we want to disable detailed stats to new user by default
     if ($billingconf['REGDISABLEDSTAT']) {
         $dstat = 1;
         $billing->setdstat($login, $dstat);
-        log_register('CHANGE dstat (' . $login . ') ON ' . $dstat);
+        log_register('USER DSTAT CHANGE (' . $login . ') ON `' . $dstat . '`');
     }
 
 // new users registers as frozen by default
     if (isset($billingconf['REGFROZEN'])) {
         if ($billingconf['REGFROZEN']) {
             $billing->setpassive($login, 1);
-            log_register('CHANGE Passive (' . $login . ') ON 1');
+            log_register('USER PASSIVE CHANGE (' . $login . ') ON `1`');
         }
     }
 

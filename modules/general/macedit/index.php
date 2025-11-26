@@ -33,11 +33,11 @@ if (cfr('MAC')) {
                             $mlg->podOnExternalEvent($login, $newUserData);
                         }
                     }
-                    log_register("MAC CHANGE (" . $login . ") " . $ip . " FROM  " . $old_mac . " ON " . $mac);
+                    log_register("MAC CHANGE (" . $login . ") " . $ip . " FROM  `" . $old_mac . "` ON `" . $mac . "`");
                     multinet_rebuild_all_handlers();
                     // need reset after mac change
                     $billing->resetuser($login);
-                    log_register("RESET User (" . $login . ")");
+                    log_register("USER RESET (" . $login . ")");
                     //ressurect user if required
                     if (@$altCfg['RESETHARD']) {
                         zb_UserResurrect($login);
@@ -45,7 +45,7 @@ if (cfr('MAC')) {
                     if (isset($altCfg['MACCHGDOUBLEKILL'])) {
                         if ($altCfg['MACCHGDOUBLEKILL']) {
                             $billing->resetuser($login);
-                            log_register("RESET User (" . $login . ") DOUBLEKILL");
+                            log_register("USER RESET (" . $login . ") DOUBLEKILL");
                         }
                     }
                 } else {

@@ -31,14 +31,14 @@ if (cfr('CREDIT')) {
                 if ($creditLimitOpt != 'DISABLED') {
                     if ($credit <= $creditLimitOpt) {
                         $billing->setcredit($login, $credit);
-                        log_register('CHANGE Credit (' . $login . ') ON ' . $credit);
+                        log_register('USER CREDIT CHANGE (' . $login . ') ON `' . $credit . '`');
                     } else {
-                        log_register('FAIL Credit (' . $login . ') LIMIT `' . $credit . '` HAWK TUAH `' . $creditLimitOpt . '`');
+                        log_register('USER CREDIT CHANGE FAIL (' . $login . ') LIMIT `' . $credit . '` HAWK TUAH `' . $creditLimitOpt . '`');
                         show_error(__('The amount of allowed credit limit has been exceeded'));
                     }
                 } else {
                     $billing->setcredit($login, $credit);
-                    log_register('CHANGE Credit (' . $login . ') ON ' . $credit);
+                    log_register('USER CREDIT CHANGE (' . $login . ') ON `' . $credit . '`');
                     ubRouting::nav('?module=creditedit&username=' . $login);
                 }
             } else {

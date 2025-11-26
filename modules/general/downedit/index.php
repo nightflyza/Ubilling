@@ -7,7 +7,7 @@ if (isset ($_GET['username'])) {
        if (isset ($_POST['newdown'])) {
         $down=$_POST['newdown'];
         $billing->setdown($login,$down);
-        log_register('CHANGE Down ('.$login.') ON '.$down);
+        log_register('USER DOWN CHANGE ('.$login.') ON `'.$down.'`');
         rcms_redirect("?module=downedit&username=".$login);
     }
 

@@ -97,7 +97,7 @@ if (cfr('CORPORATE')) {
                     //optional user reset
                     if ($alter_conf['TARIFFCHGRESET']) {
                       $billing->resetuser($parent_login);
-                      log_register('RESET User '.$parent_login);
+                      log_register('USER RESET (' . $parent_login . ')');
                      } 
                     } else {
                     // next month parent user tariff change
@@ -114,7 +114,7 @@ if (cfr('CORPORATE')) {
                     //optional user reset
                     if ($alter_conf['TARIFFCHGRESET']) {
                       $billing->resetuser($eachchild);
-                      log_register('RESET User '.$eachchild);
+                      log_register('USER RESET (' . $eachchild . ')');
                      } 
                     } else {
                     // next month child user tariff change

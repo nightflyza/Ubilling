@@ -369,7 +369,7 @@ function stg_add_user_tag($login, $tagid) {
     $tagsDb->data('tagid', $tagid);
     $tagsDb->create();
 
-    log_register('TAGADD (' . $login . ') TAGID [' . $tagid . ']');
+    log_register('USER TAG ADD (' . $login . ') TAGID [' . $tagid . ']');
 }
 
 /**
@@ -389,9 +389,9 @@ function stg_del_user_tag($tagid) {
         $tagType = $tagData[0]['tagid'];
         $tagsDb->where('id', '=', $tagid);
         $tagsDb->delete();
-        log_register('TAGDEL (' . $tagLogin . ') TAGID [' . $tagType . ']');
+        log_register('USER TAG DELETE (' . $tagLogin . ') TAGID [' . $tagType . ']');
     } else {
-        log_register('TAGDEL TAGID [' . $tagid . '] FAIL_NOT_EXISTS');
+        log_register('USER TAG DELETE TAGID [' . $tagid . '] FAIL_NOT_EXISTS');
     }
 }
 
@@ -470,5 +470,5 @@ function zb_FlushAllUserTags($login) {
     $login = mysql_real_escape_string($login);
     $query = "DELETE from `tags` WHERE `login`='" . $login . "'";
     nr_query($query);
-    log_register("TAG FLUSH (" . $login . ")");
+    log_register("USER TAG FLUSH (" . $login . ")");
 }

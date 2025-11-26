@@ -703,7 +703,7 @@ function zb_AddressCreateAddress($login, $aptid) {
     (NULL, '" . $login . "','" . $aptid . "');
     ";
     nr_query($query);
-    log_register('ADDRESS CREATE OCCUPANCY APTID [' . $aptid . '] LOGIN (' . $login . ')');
+    log_register('USER ADDRESS CREATE OCCUPANCY APTID [' . $aptid . '] LOGIN (' . $login . ')');
     zb_AddressCleanAddressCache();
     zb_UserGetAllDataCacheClean();
 }
@@ -735,7 +735,7 @@ function zb_AddressOrphanUser($login) {
     $login = vf($login);
     $query = "DELETE from `address` WHERE `login` = '" . $login . "';";
     nr_query($query);
-    log_register('ADDRESS ORPHAN OCCUPANCY (' . $login . ')');
+    log_register('USER ADDRESS ORPHAN OCCUPANCY (' . $login . ')');
     zb_AddressCleanAddressCache();
     zb_UserGetAllDataCacheClean();
 }

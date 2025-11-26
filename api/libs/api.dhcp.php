@@ -452,7 +452,7 @@ class UbillingDHCP {
                   VALUES (NULL , '" . $netid . "', '', '" . $dhcpconfname . "');";
         nr_query($query);
         $newID = simple_get_lastid('dhcp');
-        log_register('CREATE DHCPNet [' . $newID . '] NETWORK [' . $netid . ']');
+        log_register('DHCP NET CREATE [' . $newID . '] NETWORK [' . $netid . ']');
     }
 
     /**
@@ -472,7 +472,7 @@ class UbillingDHCP {
         $query = "UPDATE `dhcp` SET `dhcpconfig` = '" . $dhcpconfig . "',"
                 . "`confname` = '" . $dhcpconfname . "' WHERE `id` ='" . $dhcpid . "';";
         nr_query($query);
-        log_register('CHANGE DHCPNet [' . $dhcpid . ']');
+        log_register('DHCP NET CHANGE [' . $dhcpid . ']');
     }
 
     /**
@@ -486,7 +486,7 @@ class UbillingDHCP {
         $dhcpid = vf($dhcpid, 3);
         $query = "DELETE from `dhcp` WHERE `id`='" . $dhcpid . "'";
         nr_query($query);
-        log_register('DELETE DHCPNet [' . $dhcpid . ']');
+        log_register('DHCP NET DELETE [' . $dhcpid . ']');
     }
 
     /**
@@ -500,4 +500,3 @@ class UbillingDHCP {
 
 }
 
-?>

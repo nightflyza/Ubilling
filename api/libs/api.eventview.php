@@ -69,30 +69,12 @@ class EventView {
     protected $profileLinksFlag = false;
 
     /**
-     * System caching object placeholder
-     *
-     * @var object
-     */
-    protected $cache = '';
-
-    /**
-     * Database stats caching timeout in seconds
-     *
-     * @var int
-     */
-    protected $cacheTimeout = 3600;
-
-    /**
      * Predefined tables,routes, URLs, etc...
      */
     const TABLE_DATASOURCE = 'weblogs';
-    const TABLE_USERREG = 'userreg';
-    const CACHE_KEY = 'EVENTVIEWSTATS';
     const URL_ME = '?module=eventview';
     const ROUTE_LIMIT = 'onpage';
-    const ROUTE_STATS = 'eventstats';
     const ROUTE_ZEN = 'zenmode';
-    const ROUTE_DROPCACHE = 'forcecache';
     const ROUTE_ZENPROFILES = 'zenprofiles';
     const PROUTE_FILTERADMIN = 'eventadmin';
     const PROUTE_FILTEREVENTTEXT = 'eventsearch';
@@ -128,7 +110,6 @@ class EventView {
      */
     public function __construct() {
         $this->initMessages();
-        $this->initCache();
         $this->setRenderLimits();
         $this->setLimit();
         $this->setFilterDate();
@@ -148,14 +129,6 @@ class EventView {
         $this->messages = new UbillingMessageHelper();
     }
 
-    /**
-     * Inits system cahe instance for further usage
-     * 
-     * @return void
-     */
-    protected function initCache() {
-        $this->cache = new UbillingCache();
-    }
 
     /**
      * Sets events render limit if required
@@ -414,188 +387,8 @@ class EventView {
     public function renderControls() {
         $result = '';
         $result .= wf_Link(self::URL_ME, wf_img('skins/log_icon_small.png', __('Events')) . ' ' . __('Events'), false, 'ubButton') . ' ';
-        $result .= wf_Link(self::URL_ME . '&' . self::ROUTE_STATS . '=true', web_icon_charts() . ' ' . __('Stats'), false, 'ubButton') . ' ';
         $result .= wf_Link(self::URL_ME . '&' . self::ROUTE_ZEN . '=true', wf_img('skins/zen.png', __('Zen')) . ' ' . __('Zen'), false, 'ubButton') . ' ';
         return ($result);
     }
 
-    /**
-     * Returns database stats and performs it caching
-     * 
-     * @return array
-     */
-    protected function getEventStats() {
-        $result = array();
-
-        $cmonth = date("Y-m-");
-        $cday = date("d");
-
-        //force cache cleanup
-        if (ubRouting::checkGet(self::ROUTE_DROPCACHE)) {
-            $this->cache->delete(self::CACHE_KEY);
-            ubRouting::nav(self::URL_ME . '&' . self::ROUTE_STATS . '=true');
-        }
-
-        $cachedStats = $this->cache->get(self::CACHE_KEY, $this->cacheTimeout);
-        //is cache expired?
-        if (empty($cachedStats)) {
-            $rawData = array();
-            /**
-             * Using direct MySQL queries here instead of NyanORM - due memory economy purposes and preventing
-             * of multiple arrays reordering overheads. And laziness of course :P
-             */
-            $reg_q = "SELECT COUNT(`id`) from `userreg` WHERE `date` LIKE '" . $cmonth . "%'";
-            $regc = simple_query($reg_q);
-            $regc = $regc['COUNT(`id`)'];
-
-            $mac_q = "SELECT COUNT(`id`) from `weblogs` WHERE `date` LIKE '" . $cmonth . "%' AND `event` LIKE 'CHANGE MultiNetHostMac%'";
-            $macc = simple_query($mac_q);
-            $macc = $macc['COUNT(`id`)'];
-
-            $events_q = "SELECT COUNT(`id`) from `weblogs` WHERE `date` LIKE '" . $cmonth . "%'";
-            $eventsc = simple_query($events_q);
-            $eventsc = $eventsc['COUNT(`id`)'];
-
-            $switch_q = "SELECT COUNT(`id`) from `weblogs` WHERE `date` LIKE '" . $cmonth . "%' AND `event` LIKE 'SWITCH ADD%'";
-            $switchc = simple_query($switch_q);
-            $switchc = $switchc['COUNT(`id`)'];
-
-            $switchch_q = "SELECT COUNT(`id`) from `weblogs` WHERE `date` LIKE '" . $cmonth . "%' AND `event` LIKE 'SWITCH REPLACE%'";
-            $switchcch = simple_query($switchch_q);
-            $switchcch = $switchcch['COUNT(`id`)'];
-
-            $credit_q = "SELECT COUNT(`id`) from `weblogs` WHERE `date` LIKE '" . $cmonth . "%' AND `event` LIKE 'CHANGE Credit%' AND `event` NOT LIKE '%CreditExpire%'";
-            $creditc = simple_query($credit_q);
-            $creditc = $creditc['COUNT(`id`)'];
-
-            $pay_q = "SELECT COUNT(`id`) from `payments` WHERE `date` LIKE '" . $cmonth . "%' AND `summ`>0";
-            $payc = simple_query($pay_q);
-            $payc = $payc['COUNT(`id`)'];
-
-            $tarch_q = "SELECT COUNT(`id`) from`weblogs` WHERE `date` LIKE '" . $cmonth . "%' AND `event` LIKE 'CHANGE TariffNM%'";
-            $tarchc = simple_query($tarch_q);
-            $tarchc = $tarchc['COUNT(`id`)'];
-
-            $current_monthlog = "logs_" . date("m") . "_" . date("Y") . "";
-
-            //is current month logs table exists?
-            if (zb_CheckTableExists($current_monthlog)) {
-                $stg_q = "SELECT COUNT(`unid`) from `logs_" . date("m") . "_" . date("Y") . "`";
-                $stgc = simple_query($stg_q);
-                $stgc = $stgc['COUNT(`unid`)'];
-            } else {
-                $stgc = 0;
-            }
-
-            $sms_q = "SELECT COUNT(`id`) from`weblogs` WHERE `date` LIKE '" . $cmonth . "%' AND `event` LIKE 'USMS SEND SMS %'";
-            $smsc = simple_query($sms_q);
-            $smsc = $smsc['COUNT(`id`)'];
-
-            $rawData['regc'] = $regc;
-            $rawData['macc'] = $macc;
-            $rawData['eventsc'] = $eventsc;
-            $rawData['switchc'] = $switchc;
-            $rawData['switchcch'] = $switchcch;
-            $rawData['creditc'] = $creditc;
-            $rawData['payc'] = $payc;
-            $rawData['tarchc'] = $tarchc;
-            $rawData['stgc'] = $stgc;
-            $rawData['smsc'] = $smsc;
-            //put new data to cache
-            $result = $rawData;
-            $this->cache->set(self::CACHE_KEY, $rawData, $this->cacheTimeout);
-        } else {
-            //just returning cached data
-            $result = $cachedStats;
-        }
-
-
-        return ($result);
-    }
-
-    /**
-     * Renders event stats by current month
-     * 
-     * @return string
-     */
-    public function renderEventStats() {
-        $result = '';
-        $eventStats = $this->getEventStats();
-        if (!empty($eventStats)) {
-            $cmonth = date("Y-m-");
-            $cday = date("d");
-            // workdays fix
-            $weeks = ($cday / 7);
-            $weeks = intval($weeks);
-
-            if ($weeks >= 1) {
-                $cday = $cday - (2 * $weeks);
-            }
-
-            $cells = wf_TableCell(__('What done') . '?');
-            $cells .= wf_TableCell(__('Current month'));
-            $cells .= wf_TableCell(__('Average per day'));
-            $rows = wf_TableRow($cells, 'row1');
-
-            $cells = wf_TableCell(__('Current month signups'));
-            $cells .= wf_TableCell($eventStats['regc']);
-            $cells .= wf_TableCell(round($eventStats['regc'] / $cday, 2));
-            $rows .= wf_TableRow($cells, 'row3');
-
-            $cells = wf_TableCell(__('MAC changes'));
-            $cells .= wf_TableCell(($eventStats['macc'] - $eventStats['regc']));
-            $cells .= wf_TableCell(round((($eventStats['macc'] - $eventStats['regc']) / $cday), 2));
-            $rows .= wf_TableRow($cells, 'row3');
-
-            $cells = wf_TableCell(__('Switches added'));
-            $cells .= wf_TableCell(($eventStats['switchc']));
-            $cells .= wf_TableCell(round(($eventStats['switchc'] / $cday), 2));
-            $rows .= wf_TableRow($cells, 'row3');
-
-            $cells = wf_TableCell(__('Switches replaced'));
-            $cells .= wf_TableCell(($eventStats['switchcch']));
-            $cells .= wf_TableCell(round(($eventStats['switchcch'] / $cday), 2));
-            $rows .= wf_TableRow($cells, 'row3');
-
-            $cells = wf_TableCell(__('Credits set'));
-            $cells .= wf_TableCell($eventStats['creditc']);
-            $cells .= wf_TableCell(round(($eventStats['creditc'] / $cday), 2));
-            $rows .= wf_TableRow($cells, 'row3');
-
-            $cells = wf_TableCell(__('Payments processed'));
-            $cells .= wf_TableCell($eventStats['payc']);
-            $cells .= wf_TableCell(round(($eventStats['payc'] / $cday), 2));
-            $rows .= wf_TableRow($cells, 'row3');
-
-            $cells = wf_TableCell(__('Planned changes to tariffs'));
-            $cells .= wf_TableCell($eventStats['tarchc']);
-            $cells .= wf_TableCell(round(($eventStats['tarchc'] / $cday), 2));
-            $rows .= wf_TableRow($cells, 'row3');
-
-            $cells = wf_TableCell(__('SMS sended'));
-            $cells .= wf_TableCell($eventStats['smsc']);
-            $cells .= wf_TableCell(round(($eventStats['smsc'] / $cday), 2));
-            $rows .= wf_TableRow($cells, 'row3');
-
-            $cells = wf_TableCell(__('External billing events'));
-            $cells .= wf_TableCell($eventStats['eventsc']);
-            $cells .= wf_TableCell(round(($eventStats['eventsc'] / $cday), 2));
-            $rows .= wf_TableRow($cells, 'row3');
-
-            if ($eventStats['stgc'] != 0) {
-                $cells = wf_TableCell(__('Internal billing events'));
-                $cells .= wf_TableCell($eventStats['stgc']);
-                $cells .= wf_TableCell(round(($eventStats['stgc'] / $cday), 2));
-                $rows .= wf_TableRow($cells, 'row3');
-            }
-
-            $result = wf_TableBody($rows, '100%', 0);
-            $cacheCleanRoute = self::URL_ME . '&' . self::ROUTE_STATS . '=true' . '&' . self::ROUTE_DROPCACHE . '=true';
-            $result .= __('From cache') . ' ' . wf_Link($cacheCleanRoute, wf_img('skins/icon_cleanup.png', __('Renew')));
-        } else {
-            $result .= $this->messages->getStyledMessage(__('Something went wrong'), 'error');
-        }
-
-        return ($result);
-    }
 }

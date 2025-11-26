@@ -6,7 +6,7 @@ if (isset ($_GET['username'])) {
        if (isset ($_POST['newcreditexpire'])) {
         $creditexpire=$_POST['newcreditexpire'];
         $billing->setcreditexpire($login,$creditexpire);
-        log_register('CHANGE CreditExpire ('.$login.') ON '.$creditexpire);
+        log_register('USER CREDITEXPIRE CHANGE (' . $login . ') ON `' . $creditexpire . '`');
         rcms_redirect("?module=creditexpireedit&username=".$login);
     }
 

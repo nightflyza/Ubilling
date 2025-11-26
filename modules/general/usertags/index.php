@@ -62,7 +62,7 @@ if ((cfr('TAGS')) OR ( cfr('TAGSDIR'))) {
                 //reset user if required
                 if ($alter_conf['RESETONTAGCHANGE']) {
                     $billing->resetuser($uname);
-                    log_register('RESET User (' . $uname . ')');
+                    log_register('USER RESET (' . $uname . ')');
                 }
                 if (!$alter_conf['CEMETERY_ENABLED']) {
                     //normal tag addition
@@ -83,7 +83,7 @@ if ((cfr('TAGS')) OR ( cfr('TAGSDIR'))) {
                 //reset user if needed
                 if ($alter_conf['RESETONTAGCHANGE']) {
                     $billing->resetuser($uname);
-                    log_register("RESET User (" . $uname . ")");
+                    log_register("USER RESET (" . $uname . ")");
                 }
 
                 if (!$alter_conf['CEMETERY_ENABLED']) {

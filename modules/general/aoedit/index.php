@@ -7,7 +7,7 @@ if (isset ($_GET['username'])) {
        if (isset ($_POST['newalwaysonline'])) {
         $alwaysonline=$_POST['newalwaysonline'];
         $billing->setao($login,$alwaysonline);
-        log_register('CHANGE AlwaysOnline ('.$login.') ON '.$alwaysonline);
+        log_register('USER ALWAYSONLINE CHANGE ('.$login.') ON `'.$alwaysonline.'`');
         rcms_redirect("?module=aoedit&username=".$login);
     }
 
@@ -29,4 +29,4 @@ show_window(__('Edit AlwaysOnline'), $form);
       show_error(__('You cant control this module'));
 }
 
-?>
+

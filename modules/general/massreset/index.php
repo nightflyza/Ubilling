@@ -34,7 +34,7 @@ if(cfr('MASSRESET')) {
                     sleep(2);
                     $billing->resetuser($eachuser['login']);
                     if (!isset($altcfg['MASSRESET_NOLOG'])) {
-                    log_register("MASSRESET User (".$eachuser['login'].")");
+                    log_register("MASSRESET USER (".$eachuser['login'].")");
                     }
                 }
                 //preventing F5

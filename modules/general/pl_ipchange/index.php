@@ -38,4 +38,4 @@ if (cfr('PLIPCHANGE')) {
 } else {
     show_error(__('You cant control this module'));
 }
-?>
+

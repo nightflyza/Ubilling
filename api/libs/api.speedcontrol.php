@@ -179,7 +179,7 @@ class SpeedControl {
 
         // Reset user if needed
         $billing->resetuser($login);
-        log_register('RESET User (' . $login . ')');
+        log_register('USER RESET (' . $login . ')');
 
         // Resurrect user if they are disconnected
         if ($ubillingConfig->getAlterParam('RESETHARD')) {

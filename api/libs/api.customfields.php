@@ -592,7 +592,7 @@ class CustomFields {
             //is user reset required after field change?
             if ($this->altCfg['RESETONCFCHANGE']) {
                 $billing->resetuser($this->login);
-                log_register('RESET User (' . $this->login . ')');
+                log_register('USER RESET (' . $this->login . ')');
             }
             ubRouting::nav(self::URL_EDIT_BACK . $this->login);
         }

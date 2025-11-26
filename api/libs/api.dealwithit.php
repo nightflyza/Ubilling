@@ -982,19 +982,19 @@ class DealWithIt {
                                 break;
                             case 'credit':
                                 $billing->setcredit($login, $param);
-                                log_register('CHANGE Credit (' . $login . ') ON ' . $param);
+                                log_register('USER CREDIT CHANGE (' . $login . ') ON ' . $param);
                                 break;
                             case 'creditexpire':
                                 $billing->setcreditexpire($login, $param);
-                                log_register('CHANGE CreditExpire (' . $login . ') ON ' . $param);
+                                log_register('USER CREDIT EXPIRE CHANGE (' . $login . ') ON ' . $param);
                                 break;
                             case 'tariffchange':
                                 $billing->settariff($login, $param);
-                                log_register('CHANGE Tariff (' . $login . ') ON `' . $param . '`');
+                                log_register('USER TARIFF CHANGE (' . $login . ') ON `' . $param . '`');
                                 //optional user reset
                                 if ($this->altCfg['TARIFFCHGRESET']) {
                                     $billing->resetuser($login);
-                                    log_register('RESET User (' . $login . ')');
+                                    log_register('USER RESET (' . $login . ')');
                                 }
                                 break;
                             case 'tagadd':
@@ -1005,41 +1005,41 @@ class DealWithIt {
                                 break;
                             case 'freeze':
                                 $billing->setpassive($login, 1);
-                                log_register('CHANGE Passive (' . $login . ') ON 1');
+                                log_register('USER PASSIVE CHANGE (' . $login . ') ON 1');
                                 break;
                             case 'unfreeze':
                                 $billing->setpassive($login, 0);
-                                log_register('CHANGE Passive (' . $login . ') ON 0');
+                                log_register('USER PASSIVE CHANGE (' . $login . ') ON 0');
                                 break;
                             case 'reset':
                                 $billing->resetuser($login);
-                                log_register('RESET User (' . $login . ')');
+                                log_register('USER RESET (' . $login . ')');
                                 break;
                             case 'setspeed':
                                 zb_UserDeleteSpeedOverride($login);
                                 zb_UserCreateSpeedOverride($login, $param);
                                 $billing->resetuser($login);
-                                log_register("RESET User (" . $login . ")");
+                                log_register("USER RESET (" . $login . ")");
                                 break;
                             case 'down':
                                 $billing->setdown($login, 1);
-                                log_register('CHANGE Down (' . $login . ') ON 1');
+                                log_register('USER DOWN CHANGE (' . $login . ') ON 1');
                                 break;
                             case 'undown':
                                 $billing->setdown($login, 0);
-                                log_register('CHANGE Down (' . $login . ') ON 0');
+                                log_register('USER DOWN CHANGE (' . $login . ') ON 0');
                                 break;
                             case 'ao':
                                 $billing->setao($login, 1);
-                                log_register('CHANGE AlwaysOnline (' . $login . ') ON 1');
+                                log_register('USER ALWAYSONLINE CHANGE (' . $login . ') ON 1');
                                 break;
                             case 'unao':
                                 $billing->setao($login, 0);
-                                log_register('CHANGE AlwaysOnline (' . $login . ') ON 0');
+                                log_register('USER ALWAYSONLINE CHANGE (' . $login . ') ON 0');
                                 break;
                             case 'setdiscount':
                                 $this->discounts->setDiscount($login, $param);
-                                log_register('CHANGE Discount (' . $login . ') PERCENT `' . $param . '`');
+                                log_register('USER DISCOUNT CHANGE (' . $login . ') PERCENT `' . $param . '`');
                                 break;
                         }
 

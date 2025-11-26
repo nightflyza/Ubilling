@@ -3,9 +3,8 @@
 if (cfr('RESET')) {
     if (ubRouting::checkGet('username')) {
         $login = ubRouting::get('username');
-        // reset user if need
         $billing->resetuser($login);
-        log_register('RESET User (' . $login . ')');
+        log_register('USER RESET (' . $login . ')');
         //resurrect if user is disconnected
         if ($ubillingConfig->getAlterParam('RESETHARD')) {
             zb_UserResurrect($login);

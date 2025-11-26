@@ -23,17 +23,17 @@ if (cfr('TARIFFEDIT')) {
                 //next month tariff change
                 if ($changeNextMonthFlag) {
                     $billing->settariffnm($login, $tariff);
-                    log_register('CHANGE TariffNM (' . $login . ') ON `' . $tariff . '`');
+                    log_register('USER TARIFF CHANGE NM (' . $login . ') ON `' . $tariff . '`');
                 } else {
                     //or just right now
                     $billing->settariff($login, $tariff);
-                    log_register('CHANGE Tariff (' . $login . ') ON `' . $tariff . '`');
+                    log_register('USER TARIFF CHANGE (' . $login . ') ON `' . $tariff . '`');
                     //cache cleanup
                     zb_UserGetAllDataCacheClean();
                     //optional user reset
                     if ($altCfg['TARIFFCHGRESET']) {
                         $billing->resetuser($login);
-                        log_register('RESET User (' . $login . ')');
+                        log_register('USER RESET (' . $login . ')');
                     }
                 }
 
@@ -42,7 +42,7 @@ if (cfr('TARIFFEDIT')) {
                 if ($altCfg['TARIFFCHGAUTOCREDIT']) {
                     $newtariffprice = zb_TariffGetPrice($tariff);
                     $billing->setcredit($login, $newtariffprice);
-                    log_register("CHANGE AutoCredit (" . $login . ") ON `" . $newtariffprice . '`');
+                    log_register("USER AUTO CREDIT CHANGE (" . $login . ") ON `" . $newtariffprice . '`');
                 }
 
                 //signup payments processing
@@ -61,7 +61,7 @@ if (cfr('TARIFFEDIT')) {
                             $cash = $old_price - $new_price[$tariff];
                             zb_UserChangeSignupPrice($login, $new_price[$tariff]);
                             $billing->addcash($login, $cash);
-                            log_register("CHARGE SignupPriceFee(" . $login . ") " . $cash . " ACCORDING TO " . $tariff);
+                            log_register("SIGNUP PRICE FEE CHARGE (" . $login . ") " . $cash . " ACCORDING TO " . $tariff);
                         } else {
                             show_window('', wf_modalOpened(__('Error'), __('You may not setup connection payment less then user has already paid!'), '400', '150'));
                         }

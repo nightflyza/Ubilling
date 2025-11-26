@@ -244,7 +244,7 @@ function multinet_show_serviceeditform($serviceid) {
 function multinet_delete_host($ip) {
     $query = "DELETE from `nethosts` WHERE `ip`='" . $ip . "'";
     nr_query($query);
-    log_register("DELETE MultiNetHost " . $ip);
+    log_register("MULTINET DELETE HOST `" . $ip . "`");
 }
 
 /**
@@ -1225,7 +1225,7 @@ function multinet_add_host($netid, $ip, $mac = 'NULL', $option = 'NULL') {
     $query = "INSERT INTO `nethosts` (`id` ,`ip` ,`mac` ,`netid` ,`option`) VALUES
              (NULL , '" . $ip . "', '" . $mac . "', '" . $netid . "', '" . $option . "');";
     nr_query($query);
-    log_register("ADD MultiNetHost `" . $ip . '`');
+    log_register("MULTINET CREATE HOST  `" . $ip . '`');
 }
 
 /**
@@ -1240,7 +1240,7 @@ function multinet_change_mac($ip, $newmac) {
     $newmac = strtolower($newmac);
     $query = "UPDATE `nethosts` SET `mac` = '" . $newmac . "' WHERE `ip` = '" . $ip . "' ;";
     nr_query($query);
-    log_register("CHANGE MultiNetHostMac " . $ip . " " . $newmac);
+    log_register("MULTINET CHANGE HOST `" . $ip . "` MAC `" . $newmac . "`");
     zb_UserGetAllDataCacheClean();
 }
 
@@ -1511,7 +1511,7 @@ function zb_TariffCreateSpeed($tariff, $speeddown, $speedup, $burstdownload = ''
     $query = "INSERT INTO `speeds` (`id` , `tariff` , `speeddown` , `speedup` , `burstdownload` , `burstupload` , `bursttimedownload` , `burstimetupload`) VALUES
     (NULL , '" . $tariff . "', '" . $speeddown . "', '" . $speedup . "', '" . $burstdownload . "', '" . $burstupload . "', '" . $bursttimedownload . "', '" . $burstimetupload . "');";
     nr_query($query);
-    log_register('CREATE TariffSpeed `' . $tariff . '` ' . $speeddown . ' ' . $speedup . ' ' . $burstdownload . ' ' . $burstupload . ' ' . $bursttimedownload . ' ' . $burstimetupload);
+    log_register('TARIFF CREATE `' . $tariff . '` SPEEDDOWN `' . $speeddown . '` SPEEDUP `' . $speedup . '`');
 }
 
 /**
@@ -1863,7 +1863,7 @@ function multinet_RestartDhcp() {
         $dhcpd = $config['RC_DHCPD'];
         $command = $sudo . ' ' . $dhcpd . ' restart';
         shell_exec($command);
-        log_register('RESTART DHCPD');
+        log_register('DHCPD RESTART');
     }
 }
 

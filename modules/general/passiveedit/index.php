@@ -13,13 +13,13 @@ if (cfr('PASSIVE')) {
         if ($FreezeDaysChargeEnabled) {
             if (wf_CheckPost(array('newfreezedaysamnt'))) {
                 simple_update_field('frozen_charge_days', 'freeze_days_amount', $_POST['newfreezedaysamnt'], "WHERE `login`='" . $login . "' ");
-                log_register('CHANGE Freeze days amount (' . $login . ') ON ' . $_POST['newfreezedaysamnt']);
+                log_register('USER FREEZE DAYS AMOUNT CHANGE (' . $login . ') ON `' . $_POST['newfreezedaysamnt'] . '`');
                 $makeRedirect = true;
             }
 
             if (wf_CheckPost(array('newwrkdaystorestorefrzdays'))) {
                 simple_update_field('frozen_charge_days', 'work_days_restore', $_POST['newwrkdaystorestorefrzdays'], "WHERE `login`='" . $login . "' ");
-                log_register('CHANGE Workdays amount to restore freeze days (' . $login . ') ON ' . $_POST['newwrkdaystorestorefrzdays']);
+                log_register('USER WORKDAYS AMOUNT TO RESTORE FREEZE DAYS CHANGE (' . $login . ') ON `' . $_POST['newwrkdaystorestorefrzdays'] . '`');
                 $makeRedirect = true;
             }
         }
@@ -28,7 +28,7 @@ if (cfr('PASSIVE')) {
         if (isset($_POST['newpassive'])) {
             $passive = $_POST['newpassive'];
             $billing->setpassive($login, $passive);
-            log_register('CHANGE Passive (' . $login . ') ON ' . $passive);
+            log_register('USER PASSIVE CHANGE (' . $login . ') ON `' . $passive . '`');
             $makeRedirect = true;
         }
 

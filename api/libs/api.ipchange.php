@@ -304,7 +304,7 @@ class IpChange {
                         $billing->setip($this->login, $newIp);
                         multinet_delete_host($this->currentIp);
                         multinet_add_host($networkId, $newIp, $this->currentMac);
-                        log_register("CHANGE MultiNetIP (" . $this->login . ") FROM " . $this->currentIp . " ON " . $newIp . "");
+                        log_register("MULTINET IP CHANGE (" . $this->login . ") FROM `" . $this->currentIp . "` ON `" . $newIp . "`");
                         multinet_rebuild_all_handlers();
                         multinet_RestartDhcp();
                         zb_UserGetAllDataCacheClean();
@@ -340,19 +340,19 @@ class IpChange {
                             shell_exec($command);
                         }
                     } else {
-                        log_register("CHANGE FAIL MultiNetIP (" . $this->login . ") FROM " . $this->currentIp . " ON " . $newIp . " NO_NETHOST");
+                        log_register("MULTINET IP CHANGE FAIL (" . $this->login . ") FROM `" . $this->currentIp . "` ON `" . $newIp . "` NO_NETHOST");
                         $result = __('No existing nethost for current IP');
                     }
                 } else {
-                    log_register("CHANGE FAIL MultiNetIP (" . $this->login . ") FROM " . $this->currentIp . " ON " . $newIp . " EMPTY_IP");
+                    log_register("MULTINET IP CHANGE FAIL (" . $this->login . ") FROM `" . $this->currentIp . "` ON `" . $newIp . "` EMPTY_IP");
                     $result = __('Something went wrong') . ': ' . __('empty current IP');
                 }
             } else {
-                log_register("CHANGE FAIL MultiNetIP (" . $this->login . ") FROM " . $this->currentIp . " ON " . $newIp . " IP_DUPLICATE");
+                log_register("MULTINET IP CHANGE FAIL (" . $this->login . ") FROM `" . $this->currentIp . "` ON `" . $newIp . "` IP_DUPLICATE");
                 $result = __('This IP is already used by another user');
             }
         } else {
-            log_register("CHANGE FAIL MultiNetIP (" . $this->login . ") FROM " . $this->currentIp . " ON " . $newIp . " NO_SERVICE");
+            log_register("MULTINET IP CHANGE FAIL (" . $this->login . ") FROM `" . $this->currentIp . "` ON `" . $newIp . "` NO_SERVICE");
             $result = __('Unexistent service');
         }
         //release lock
