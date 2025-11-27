@@ -46,7 +46,7 @@ if (cfr('ANNIHILATION')) {
 
         //flushing vcash
         zb_VserviceCashClear($login);
-        log_register('USER VCASH DELETE (' . $login . ')');
+        log_register('VCASH DELETE (' . $login . ')');
 
         //custom fields and tags
         $cf = new CustomFields($login);
@@ -75,7 +75,7 @@ if (cfr('ANNIHILATION')) {
         if ($altCfg['CONDET_ENABLED']) {
             $condet = new ConnectionDetails();
             $condet->delete($login);
-            log_register('USER CONDET FLUSH (' . $login . ')');
+            log_register('CONDET FLUSH (' . $login . ')');
         }
 
         //switch port bindings deletion
@@ -101,7 +101,7 @@ if (cfr('ANNIHILATION')) {
         //destroing stargazer user
         $billing->deleteuser($login);
 
-        log_register('USER STG DELETE (' . $login . ')');
+        log_register('STG USER DELETE (' . $login . ')');
     }
 
     /**

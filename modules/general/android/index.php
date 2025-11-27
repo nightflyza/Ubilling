@@ -207,7 +207,7 @@ if ($ubillingConfig->getAlterParam('ANDROID_ENABLED')) {
                 // use wf_CheckPost(array('reset')) - because POST input can be only TRUE
                 if (wf_CheckPost(array('reset')) and $android->checkRight('RESET')) {
                     $billing->resetuser($android->login);
-                    log_register("ANDROID USER RESET (" . $android->login . ")");
+                    log_register("ANDROID RESET (" . $android->login . ")");
                     //resurrect if user is disconnected
                     if ($ubillingConfig->getAlterParam('RESETHARD')) {
                         zb_UserResurrect($android->login);
@@ -242,14 +242,14 @@ if ($ubillingConfig->getAlterParam('ANDROID_ENABLED')) {
                         multinet_rebuild_all_handlers();
                         // need reset after mac change
                         $billing->resetuser($android->login);
-                        log_register("ANDROID USER RESET (" . $android->login . ")");
+                        log_register("ANDROID RESET (" . $android->login . ")");
                         //ressurect user if required
                         if ($ubillingConfig->getAlterParam('RESETHARD')) {
                             zb_UserResurrect($android->login);
                         }
                             if ($ubillingConfig->getAlterParam('MACCHGDOUBLEKILL')) {
                                 $billing->resetuser($android->login);
-                                log_register("ANDROID USER RESET (" . $android->login . ") DOUBLEKILL");
+                                log_register("ANDROID RESET (" . $android->login . ") DOUBLEKILL");
                             }
 
                     } else {

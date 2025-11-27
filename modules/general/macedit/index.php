@@ -37,7 +37,7 @@ if (cfr('MAC')) {
                     multinet_rebuild_all_handlers();
                     // need reset after mac change
                     $billing->resetuser($login);
-                    log_register("USER RESET (" . $login . ")");
+                    log_register("RESET (" . $login . ")");
                     //ressurect user if required
                     if (@$altCfg['RESETHARD']) {
                         zb_UserResurrect($login);
@@ -45,7 +45,7 @@ if (cfr('MAC')) {
                     if (isset($altCfg['MACCHGDOUBLEKILL'])) {
                         if ($altCfg['MACCHGDOUBLEKILL']) {
                             $billing->resetuser($login);
-                            log_register("USER RESET (" . $login . ") DOUBLEKILL");
+                            log_register("RESET (" . $login . ") DOUBLEKILL");
                         }
                     }
                 } else {

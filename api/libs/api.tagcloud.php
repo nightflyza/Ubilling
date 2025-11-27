@@ -362,7 +362,7 @@ class TagCloud {
             $tagid = vf($_POST['reporttagid'], 3);
             $year = vf($_POST['reportyear'], 3);
             $datemask = $year . '-%';
-            $query = "SELECT * from `weblogs` WHERE `date` LIKE '" . $datemask . "' AND `event` LIKE 'USER TAG ADD (%TAGID [%'";
+            $query = "SELECT * from `weblogs` WHERE `date` LIKE '" . $datemask . "' AND `event` LIKE 'TAG ADD (%TAGID [%'";
             $raw = simple_queryall($query);
 
 

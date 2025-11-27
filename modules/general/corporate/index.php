@@ -93,16 +93,16 @@ if (cfr('CORPORATE')) {
                        $tariff=$_POST['newtariff'];
                     if (!isset($_POST['nextmonth'])) {
                     $billing->settariff($parent_login,$tariff);
-                    log_register('CHANGE Tariff '.$parent_login.' ON '.$tariff);
+                    log_register('TARIFF CHANGE ('.$parent_login.') ON `'.$tariff.'`');
                     //optional user reset
                     if ($alter_conf['TARIFFCHGRESET']) {
                       $billing->resetuser($parent_login);
-                      log_register('USER RESET (' . $parent_login . ')');
+                      log_register('RESET (' . $parent_login . ')');
                      } 
                     } else {
                     // next month parent user tariff change
                     $billing->settariffnm($parent_login,$tariff);
-                    log_register('CHANGE TariffNM '.$parent_login.' ON '.$tariff);
+                    log_register('TARIFF CHANGE NM ('.$parent_login.') ON `'.$tariff.'`');
                     }
                     
                     //the same for all childs users
@@ -110,16 +110,16 @@ if (cfr('CORPORATE')) {
                       foreach ($allchildusers as $eachchild) {
                     if (!isset($_POST['nextmonth'])) {
                     $billing->settariff($eachchild,$tariff);
-                    log_register('CHANGE Tariff '.$eachchild.' ON '.$tariff);
+                    log_register('TARIFF CHANGE ('.$eachchild.') ON `'.$tariff.'`');
                     //optional user reset
                     if ($alter_conf['TARIFFCHGRESET']) {
                       $billing->resetuser($eachchild);
-                      log_register('USER RESET (' . $eachchild . ')');
+                      log_register('RESET (' . $eachchild . ')');
                      } 
                     } else {
                     // next month child user tariff change
                     $billing->settariffnm($eachchild,$tariff);
-                    log_register('CHANGE TariffNM '.$eachchild.' ON '.$tariff);
+                    log_register('TARIFF CHANGE NM ('.$eachchild.') ON `'.$tariff.'`');
                     }
                        }
                       }

@@ -23,17 +23,17 @@ if (cfr('TARIFFEDIT')) {
                 //next month tariff change
                 if ($changeNextMonthFlag) {
                     $billing->settariffnm($login, $tariff);
-                    log_register('USER TARIFF CHANGE NM (' . $login . ') ON `' . $tariff . '`');
+                    log_register('TARIFF CHANGE NM (' . $login . ') ON `' . $tariff . '`');
                 } else {
                     //or just right now
                     $billing->settariff($login, $tariff);
-                    log_register('USER TARIFF CHANGE (' . $login . ') ON `' . $tariff . '`');
+                    log_register('TARIFF CHANGE (' . $login . ') ON `' . $tariff . '`');
                     //cache cleanup
                     zb_UserGetAllDataCacheClean();
                     //optional user reset
                     if ($altCfg['TARIFFCHGRESET']) {
                         $billing->resetuser($login);
-                        log_register('USER RESET (' . $login . ')');
+                        log_register('RESET (' . $login . ')');
                     }
                 }
 
@@ -42,7 +42,7 @@ if (cfr('TARIFFEDIT')) {
                 if ($altCfg['TARIFFCHGAUTOCREDIT']) {
                     $newtariffprice = zb_TariffGetPrice($tariff);
                     $billing->setcredit($login, $newtariffprice);
-                    log_register("USER AUTO CREDIT CHANGE (" . $login . ") ON `" . $newtariffprice . '`');
+                    log_register("AUTOCREDIT CHANGE (" . $login . ") ON `" . $newtariffprice . '`');
                 }
 
                 //signup payments processing

@@ -9,7 +9,7 @@ if (isset ($_GET['username'])) {
         zb_UserDeleteSpeedOverride($login);
         zb_UserCreateSpeedOverride($login, $speed);
         $billing->resetuser($login);
-        log_register("USER RESET (" . $login . ")");
+        log_register("RESET (" . $login . ")");
         rcms_redirect("?module=speededit&username=".$login);
     }
 

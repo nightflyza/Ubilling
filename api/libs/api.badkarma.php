@@ -208,7 +208,7 @@ class BadKarma {
                 if (!$this->isUserOnlineRightNow($userLogin)) {
                     //trying to just reset user
                     $billing->resetuser($userLogin);
-                    log_register("USER RESET (" . $userLogin . ")");
+                    log_register("RESET (" . $userLogin . ")");
                     sleep($this->waitTimeout);
                     //thats doesnt work?
                     if (!$this->isUserOnlineRightNow($userLogin)) {
@@ -220,13 +220,13 @@ class BadKarma {
                                 if (!$this->isUserOnlineRightNow($userLogin)) {
                                     //trying to reset user after cash correction
                                     $billing->resetuser($userLogin);
-                                    log_register("USER RESET (" . $userLogin . ")");
+                                    log_register("RESET (" . $userLogin . ")");
                                     sleep($this->waitTimeout);
                                     if (!$this->isUserOnlineRightNow($userLogin)) {
                                         //may be credit limit have not real zero value?
                                         if ($userData['Credit'] == 0) {
                                             $billing->setcredit($userLogin, 0);
-                                            log_register('CHANGE Credit (' . $userLogin . ') ON 0');
+                                            log_register('CREDIT CHANGE (' . $userLogin . ') ON `0`');
                                             sleep($this->waitTimeout);
                                             //we give up :(
                                             if (!$this->isUserOnlineRightNow($userLogin)) {

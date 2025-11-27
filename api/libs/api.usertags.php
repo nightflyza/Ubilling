@@ -369,7 +369,7 @@ function stg_add_user_tag($login, $tagid) {
     $tagsDb->data('tagid', $tagid);
     $tagsDb->create();
 
-    log_register('USER TAG ADD (' . $login . ') TAGID [' . $tagid . ']');
+    log_register('TAG ADD (' . $login . ') TAGID [' . $tagid . ']');
 }
 
 /**
@@ -389,9 +389,9 @@ function stg_del_user_tag($tagid) {
         $tagType = $tagData[0]['tagid'];
         $tagsDb->where('id', '=', $tagid);
         $tagsDb->delete();
-        log_register('USER TAG DELETE (' . $tagLogin . ') TAGID [' . $tagType . ']');
+        log_register('TAG DELETE (' . $tagLogin . ') TAGID [' . $tagType . ']');
     } else {
-        log_register('USER TAG DELETE TAGID [' . $tagid . '] FAIL_NOT_EXISTS');
+        log_register('TAG DELETE TAGID [' . $tagid . '] FAIL_NOT_EXISTS');
     }
 }
 
@@ -408,7 +408,7 @@ function stg_del_user_tagid($login, $tagid) {
     $tagid = vf($tagid, 3);
     $query = "DELETE from `tags` WHERE `login`='" . $login . "' AND `tagid`='" . $tagid . "'";
     nr_query($query);
-    stg_putlogevent('TAGDEL LOGIN (' . $login . ') TAGID [' . $tagid . ']');
+    stg_putlogevent('TAG DELETE (' . $login . ') TAGID [' . $tagid . ']');
 }
 
 /**

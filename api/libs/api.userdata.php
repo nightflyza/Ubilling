@@ -13,7 +13,7 @@ function zb_UserCreateRealName($login, $realname) {
     $realname = mysql_real_escape_string($realname);
     $query = "INSERT INTO `realname`  (`id`,`login`,`realname`) VALUES   (NULL, '" . $login . "','" . $realname . "'); ";
     nr_query($query);
-    log_register('USER REALNAME CREATE (' . $login . ')  `' . $realname . '`');
+    log_register('REALNAME CREATE (' . $login . ')  `' . $realname . '`');
     zb_UserGetAllDataCacheClean();
 }
 
@@ -26,7 +26,7 @@ function zb_UserDeleteRealName($login) {
     $login = vf($login);
     $query = "DELETE from `realname` WHERE `login` = '" . $login . "';";
     nr_query($query);
-    log_register('USER REALNAME DELETE (' . $login . ')');
+    log_register('REALNAME DELETE (' . $login . ')');
     zb_UserGetAllDataCacheClean();
 }
 
@@ -58,7 +58,7 @@ function zb_UserChangeRealName($login, $realname) {
 
     $query = "UPDATE `realname` SET `realname` = '" . $realname . "' WHERE `login`= '" . $login . "' ;";
     nr_query($query);
-    log_register('USER REALNAME CHANGE (' . $login . ')   `' . $realname . '`');
+    log_register('REALNAME CHANGE (' . $login . ')   `' . $realname . '`');
     zb_UserGetAllDataCacheClean();
 }
 
@@ -262,7 +262,7 @@ function zb_UserCreatePhone($login, $phone, $mobile) {
     $mobile = mysql_real_escape_string($mobile);
     $query = "INSERT INTO `phones`  (`id`,`login`,`phone`,`mobile`)  VALUES  (NULL, '" . $login . "','" . $phone . "','" . $mobile . "');";
     nr_query($query);
-    log_register('USER PHONE CREATE (' . $login . ') `' . $phone . '` `' . $mobile . '`');
+    log_register('PHONE CREATE (' . $login . ') `' . $phone . '` `' . $mobile . '`');
     zb_UserGetAllDataCacheClean();
 }
 
@@ -275,7 +275,7 @@ function zb_UserDeletePhone($login) {
     $login = vf($login);
     $query = "DELETE from `phones` WHERE `login` = '" . $login . "';";
     nr_query($query);
-    log_register('USER PHONE DELETE (' . $login . ')');
+    log_register('PHONE DELETE (' . $login . ')');
     zb_UserGetAllDataCacheClean();
 }
 
@@ -314,7 +314,7 @@ function zb_UserChangePhone($login, $phone) {
     $phone = mysql_real_escape_string($phone);
     $query = "UPDATE `phones` SET `phone` = '" . $phone . "' WHERE `login`= '" . $login . "' ;";
     nr_query($query);
-    log_register('USER PHONE CHANGE (' . $login . ') `' . $phone . '`');
+    log_register('PHONE CHANGE (' . $login . ') `' . $phone . '`');
     zb_UserGetAllDataCacheClean();
 }
 
@@ -329,7 +329,7 @@ function zb_UserChangeMobile($login, $mobile) {
     $mobile = mysql_real_escape_string($mobile);
     $query = "UPDATE `phones` SET `mobile` = '" . $mobile . "' WHERE `login`= '" . $login . "' ;";
     nr_query($query);
-    log_register('USER MOBILE CHANGE (' . $login . ') `' . $mobile . '`');
+    log_register('MOBILE CHANGE (' . $login . ') `' . $mobile . '`');
     zb_UserGetAllDataCacheClean();
 }
 
@@ -362,7 +362,7 @@ function zb_UserCreateEmail($login, $email) {
     $email = mysql_real_escape_string($email);
     $query = "INSERT INTO `emails`  (`id`,`login`,`email`) VALUES  (NULL, '" . $login . "','" . $email . "');";
     nr_query($query);
-    log_register('USER EMAIL CREATE (' . $login . ') `' . $email . '`');
+    log_register('EMAIL CREATE (' . $login . ') `' . $email . '`');
     zb_UserGetAllDataCacheClean();
 }
 
@@ -375,7 +375,7 @@ function zb_UserDeleteEmail($login) {
     $login = vf($login);
     $query = "DELETE from `emails` WHERE `login` = '" . $login . "';";
     nr_query($query);
-    log_register('USER EMAIL DELETE (' . $login . ')');
+    log_register('EMAIL DELETE (' . $login . ')');
     zb_UserGetAllDataCacheClean();
 }
 
@@ -403,7 +403,7 @@ function zb_UserChangeEmail($login, $email) {
     $email = mysql_real_escape_string($email);
     $query = "UPDATE `emails` SET `email` = '" . $email . "' WHERE `login`= '" . $login . "' ;";
     nr_query($query);
-    log_register('USER EMAIL CHANGE (' . $login . ') `' . $email . '`');
+    log_register('EMAIL CHANGE (' . $login . ') `' . $email . '`');
     zb_UserGetAllDataCacheClean();
 }
 
@@ -418,7 +418,7 @@ function zb_UserCreateContract($login, $contract) {
     $contract = mysql_real_escape_string($contract);
     $query = "INSERT INTO `contracts` (`id`,`login`,`contract`)  VALUES  (NULL, '" . $login . "','" . $contract . "');";
     nr_query($query);
-    log_register('USER CONTRACT CREATE (' . $login . ') `' . $contract . '`');
+    log_register('CONTRACT CREATE (' . $login . ') `' . $contract . '`');
     zb_UserGetAllDataCacheClean();
 }
 
@@ -431,7 +431,7 @@ function zb_UserDeleteContract($login) {
     $login = vf($login);
     $query = "DELETE from `contracts` WHERE `login` = '" . $login . "';";
     nr_query($query);
-    log_register('USER CONTRACT DELETE (' . $login . ')');
+    log_register('CONTRACT DELETE (' . $login . ')');
     zb_UserGetAllDataCacheClean();
 }
 
@@ -459,7 +459,7 @@ function zb_UserChangeContract($login, $contract) {
     $contract = mysql_real_escape_string($contract);
     $query = "UPDATE `contracts` SET `contract` = '" . $contract . "' WHERE `login`= '" . $login . "' ;";
     nr_query($query);
-    log_register('USER CONTRACT CHANGE (' . $login . ') `' . $contract . '`');
+    log_register('CONTRACT CHANGE (' . $login . ') `' . $contract . '`');
     zb_UserGetAllDataCacheClean();
 }
 
@@ -618,7 +618,7 @@ function zb_UserCreateSpeedOverride($login, $speed) {
     $speed = vf($speed, 3);
     $query = "INSERT INTO `userspeeds` (`id` ,`login` ,`speed`) VALUES (NULL , '" . $login . "', '" . $speed . "');";
     nr_query($query);
-    log_register('USER SPEED OVERRIDE CREATE (' . $login . ') `' . $speed . '`');
+    log_register('SPEEDOVERRIDE CREATE (' . $login . ') `' . $speed . '`');
 }
 
 /**
@@ -630,7 +630,7 @@ function zb_UserDeleteSpeedOverride($login) {
     $login = vf($login);
     $query = "DELETE from `userspeeds` WHERE `login`='" . $login . "'";
     nr_query($query);
-    log_register('USER SPEED OVERRIDE DELETE (' . $login . ')');
+    log_register('SPEEDOVERRIDE DELETE (' . $login . ')');
 }
 
 /**
@@ -644,7 +644,7 @@ function zb_UserSetSpeedOverride($login, $speed) {
     $speed = vf($speed, 3);
     $query = "UPDATE `userspeeds` SET `speed`='".$speed."' WHERE `login`='" . $login . "'";
     nr_query($query);
-    log_register('USER SPEED OVERRIDE SET (' . $login . ') `' . $speed . '`');
+    log_register('SPEEDOVERRIDE SET (' . $login . ') `' . $speed . '`');
 }
 
 /**
@@ -658,7 +658,7 @@ function zb_UserCreateNotes($login, $notes) {
     $notes = mysql_real_escape_string($notes);
     $query = "INSERT INTO `notes` (`id` , `login` ,`note`) VALUES (NULL , '" . $login . "', '" . $notes . "');";
     nr_query($query);
-    log_register('USER NOTE CREATE (' . $login . ') `' . $notes . '`');
+    log_register('NOTE CREATE (' . $login . ') `' . $notes . '`');
 }
 
 /**
@@ -670,7 +670,7 @@ function zb_UserDeleteNotes($login) {
     $login = vf($login);
     $query = "DELETE FROM `notes` WHERE `login`='" . $login . "'";
     nr_query($query);
-    log_register('USER NOTE DELETE (' . $login . ')');
+    log_register('NOTE DELETE (' . $login . ')');
 }
 
 /**
@@ -896,7 +896,7 @@ function zb_UserResurrect($login) {
                 $billing->setcredit($login, $currentCreditValue);
             }
 
-            log_register('USER RESURRECT (' . $login . ') ' . implode(',', $resurrectType));
+            log_register('RESURRECT (' . $login . ') ' . implode(',', $resurrectType));
         }
     }
 }
@@ -1454,7 +1454,7 @@ function zb_UserPassportDataCreate($login, $birthdate, $passportnum, $passportda
                                 );
         ";
     nr_query($query);
-    log_register("USER PASSPORTDATA CREATE (" . $login . ")");
+    log_register("PASSPORTDATA CREATE (" . $login . ")");
 }
 
 /**
@@ -1499,7 +1499,7 @@ function zb_UserPassportDataSet($login, $birthdate, $passportnum, $passportdate,
                      WHERE `login`='" . $login . "'
         ";
     nr_query($query);
-    log_register("USER PASSPORTDATA CHANGE (" . $login . ")");
+    log_register("PASSPORTDATA CHANGE (" . $login . ")");
 }
 
 /**

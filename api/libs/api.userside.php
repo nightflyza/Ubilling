@@ -1596,7 +1596,7 @@ class UserSideApi {
                         log_register('CHANGE Tariff (' . $changeParams['customerid'] . ') ON `' . $newTariff . '`');
                         if ($this->altCfg['TARIFFCHGRESET']) {
                             $billing->resetuser($changeParams['customerid']);
-                            log_register('USER RESET (' . $changeParams['customerid'] . ')');
+                            log_register('RESET (' . $changeParams['customerid'] . ')');
                         }
                         $result = array('result' => 'ok');
                     } else {

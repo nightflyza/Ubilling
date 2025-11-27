@@ -59,7 +59,7 @@ class ContractDates {
 
 
             $this->contractDatesDb->create();
-            log_register('USER CONTRACT DATE CREATE [' . $contract . '] D`' . $date . '` F`' . $from . '` T`' . $till . '`');
+            log_register('CONTRACT DATE CREATE [' . $contract . '] D`' . $date . '` F`' . $from . '` T`' . $till . '`');
         }
     }
 
@@ -87,7 +87,7 @@ class ContractDates {
 
             $this->contractDatesDb->where('contract', '=', $contract);
             $this->contractDatesDb->save();
-            log_register('USER CONTRACT DATE CHANGE [' . $contract . '] D`' . $date . '` F`' . $from . '` T`' . $till . '`');
+            log_register('CONTRACT DATE CHANGE [' . $contract . '] D`' . $date . '` F`' . $from . '` T`' . $till . '`');
         }
     }
 
