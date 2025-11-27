@@ -194,7 +194,7 @@ if (cfr('REPORTAUTOFREEZE')) {
             $showDate = $showYear . '-' . $showMonth;
             $weblogs = new NyanORM('weblogs');
             $weblogs->where('date', 'LIKE', $showDate . '-%');
-            $weblogs->where('event', 'LIKE', 'CHANGE Passive%ON 0');
+            $weblogs->where('event', 'LIKE', 'PASSIVE CHANGE%ON `0`');
             $dataRaw = $weblogs->getAll();
             if (!empty($dataRaw)) {
                 foreach ($dataRaw as $io => $each) {

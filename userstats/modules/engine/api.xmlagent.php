@@ -1149,7 +1149,7 @@ class XMLAgent {
 
         $weblogsTable = new NyanORM('weblogs');
         $weblogsTable->selectable('date');
-        $weblogsTable->whereRaw("`event` = 'CHANGE Passive (" . $login . ") ON 1'");
+        $weblogsTable->whereRaw("`event` = 'PASSIVE CHANGE (" . $login . ") ON `1`'");
         $weblogsTable->orderBy('id', 'DESC');
         $weblogsTable->limit(1);
         $freezeDateFrom = $weblogsTable->getAll();
