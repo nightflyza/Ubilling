@@ -76,6 +76,13 @@ class ApacheZen {
     protected $tail = '';
 
     /**
+     * Contains sudo command path
+     *
+     * @var string
+     */
+    protected $sudo = '';
+
+    /**
      * Contains system cat path
      *
      * @var string
@@ -129,6 +136,7 @@ class ApacheZen {
         $this->grep = $this->billCfg['GREP'];
         $this->tail = $this->billCfg['TAIL'];
         $this->cat = $this->billCfg['CAT'];
+        $this->sudo = $this->billCfg['SUDO'];
     }
 
     /**
@@ -200,7 +208,7 @@ class ApacheZen {
             $this->currentSource = $readSource;
             $filters = $this->grep . ' -v ' . $this->flowId; //ignore itself
             $filters .= '| ' . $this->grep . ' -v fwtbt'; //ignore For Whom The Bell Tolls
-            $command = $this->tail . ' -n ' . $this->linesRead . ' ' . $readSource . ' | ' . $filters . ' | ' . $this->tail . ' -n ' . $this->linesRender;
+            $command = $this->sudo.' '.$this->tail . ' -n ' . $this->linesRead . ' ' . $readSource . ' | ' . $filters . ' | ' . $this->tail . ' -n ' . $this->linesRender;
             $resultRaw = shell_exec($command);
             if (!empty($resultRaw)) {
                 $rows = '';
@@ -237,7 +245,7 @@ class ApacheZen {
         if ($this->dataSourceExists(true)) {
             $this->currentSource = $readSource;
             $filters = ' ' . $this->grep . ' "' . self::ERROR_FILTER . '"';
-            $command = $this->tail . ' -n ' . ($this->linesRead * 10) . ' ' . $readSource . ' | ' . $filters . ' | ' . $this->tail . ' -n ' . $this->linesRender;
+            $command = $this->sudo.' '.$this->tail . ' -n ' . ($this->linesRead * 10) . ' ' . $readSource . ' | ' . $filters . ' | ' . $this->tail . ' -n ' . $this->linesRender;
             $resultRaw = shell_exec($command);
             $stripPaths = array(
                 '/usr/local/www/apache22',
