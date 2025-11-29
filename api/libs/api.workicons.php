@@ -172,7 +172,7 @@ function web_red_led($title = '') {
  * @param string $title
  * @return string
  */
-function web_star($title = NULL) {
+function web_star($title = '') {
     $icon = wf_img('skins/icon_star.gif', __($title));
     return ($icon);
 }
@@ -194,7 +194,7 @@ function web_star_black() {
  * @param string $title
  * @return string
  */
-function web_icon_extended($title = NULL) {
+function web_icon_extended($title = '') {
     $icon = wf_img('skins/icon_extended.png', __($title));
     return $icon;
 }
@@ -205,7 +205,7 @@ function web_icon_extended($title = NULL) {
  * @param string $title
  * @return string
  */
-function web_icon_create($title = NULL) {
+function web_icon_create($title = '') {
     $icon = wf_img('skins/add_icon.png', __($title));
     return $icon;
 }
@@ -260,7 +260,7 @@ function web_icon_print($title = 'Print') {
  * @param string $title
  * @return string
  */
-function web_icon_freeradius($title = NULL) {
+function web_icon_freeradius($title = '') {
     $icon = wf_img('skins/icon_freeradius_small.png', __($title));
     return $icon;
 }
