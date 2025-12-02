@@ -8,8 +8,17 @@
 
 ######################## CONFIG SECTION ########################
 
-#dialog
-DIALOG="/usr/bin/dialog"
+#dialog gnu-dialog or bsddialog
+if [ -z "$DIALOG" ]; then
+    if command -v dialog >/dev/null 2>&1; then
+        DIALOG=/usr/bin/dialog
+    elif command -v bsddialog >/dev/null 2>&1; then
+        DIALOG=/usr/bin/bsddialog
+    else
+        echo "ERROR: no gnu-dialog or bsddialog is available."
+        exit 1
+    fi
+fi
 
 #fetch software
 FETCH="/usr/bin/fetch"
