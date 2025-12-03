@@ -962,7 +962,9 @@ class ChartMancer {
             //browser output
             header('Content-Type: image/png');
             $result = imagepng($chart);
-            imagedestroy($chart);
+            if (phpversion() < '8.0.0') {
+                imagedestroy($chart);
+            }
             die();
         } else {
             if (strpos($fileName, 'base64') !== false) {
@@ -972,7 +974,9 @@ class ChartMancer {
             } else {
                 //just save as PNG file
                 $result = imagepng($chart, $fileName);
-                imagedestroy($chart);
+                if (phpversion() < '8.0.0') {
+                    imagedestroy($chart);
+                }
             }
         }
 
@@ -1060,7 +1064,7 @@ class ChartMancer {
         }
 
         foreach ($sectorInfo as $sector) {
-            imagefilledarc($chart, $centerX, $centerY, $radius * 2, $radius * 2, $sector['startAngle'], $sector['endAngle'], $customColors[$sector['colorIndex']], IMG_ARC_PIE);
+            imagefilledarc($chart, (int) $centerX, (int) $centerY, (int) $radius * 2, (int) $radius * 2, (int) $sector['startAngle'], (int) $sector['endAngle'], $customColors[$sector['colorIndex']], IMG_ARC_PIE);
 
             $labelAngle = $sector['centerAngle'];
             $labelRadius = $radius + 25;
@@ -1133,8 +1137,11 @@ class ChartMancer {
 
         if (empty($fileName)) {
             header('Content-Type: image/png');
+            
             $result = imagepng($chart);
-            imagedestroy($chart);
+            if (phpversion() < '8.0.0') {
+                imagedestroy($chart);
+            }
             die();
         } else {
             if (strpos($fileName, 'base64') !== false) {
@@ -1142,7 +1149,9 @@ class ChartMancer {
                 $result = $this->getChartBase($chart, $htmlOutput);
             } else {
                 $result = imagepng($chart, $fileName);
-                imagedestroy($chart);
+                if (phpversion() < '8.0.0') {
+                    imagedestroy($chart);
+                }
             }
         }
 
@@ -1165,7 +1174,9 @@ class ChartMancer {
             ob_start();
             imagesavealpha($image, true);
             $result = imagepng($image, null, $quality);
-            imagedestroy($image);
+            if (phpversion() < '8.0.0') {
+                imagedestroy($image);
+            }
             $imageBody = ob_get_contents();
             ob_end_clean();
             if (!empty($imageBody)) {

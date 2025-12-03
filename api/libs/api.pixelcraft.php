@@ -371,8 +371,9 @@ class PixelCraft {
                     $result = $saveFunctionName($this->image, $fileName);
                 }
 
-                //memory free
-                imagedestroy($this->image);
+                if (phpversion() < '8.0.0') {
+                    imagedestroy($this->image);
+                }
 
                 //droppin image props
                 $this->imageWidth = 0;
@@ -412,8 +413,9 @@ class PixelCraft {
                 }
                 $result = $saveFunctionName($this->image, null, $this->quality);
 
-                //memory free
-                imagedestroy($this->image);
+                if (phpversion() < '8.0.0') {
+                    imagedestroy($this->image);
+                }
 
                 //droppin image props
                 $this->imageWidth = 0;
@@ -569,7 +571,7 @@ class PixelCraft {
             if (isset($this->colorsAllocated[$colorName])) {
                 $result = $this->colorsAllocated[$colorName];
             } else {
-                $result = imagecolorallocate($this->image, $colorData['r'], $colorData['g'], $colorData['b']);
+                $result = imagecolorallocate($this->image, (int) $colorData['r'], (int) $colorData['g'], (int) $colorData['b']);
                 $this->colorsAllocated[$colorName] = $result;
             }
         } else {
@@ -746,6 +748,10 @@ class PixelCraft {
      * @return void
      */
     public function drawLine($x1, $y1, $x2, $y2, $colorName) {
+        $x1 = (int)$x1;
+        $y1 = (int)$y1;
+        $x2 = (int)$x2;
+        $y2 = (int)$y2;
         imageline($this->image, $x1, $y1, $x2, $y2, $this->allocateColor($colorName));
     }
 
@@ -965,6 +971,12 @@ class PixelCraft {
      * @return void
      */
     public function drawArcFilled($x, $y, $width, $height, $startAngle, $endAngle, $colorName, $style = IMG_ARC_PIE) {
+        $x = (int) $x;
+        $y = (int) $y;
+        $width = (int) $width;
+        $height = (int) $height;
+        $startAngle = (int) $startAngle;
+        $endAngle = (int) $endAngle;
         imagefilledarc($this->image, $x, $y, $width, $height, $startAngle, $endAngle, $this->allocateColor($colorName), $style);
     }
 
