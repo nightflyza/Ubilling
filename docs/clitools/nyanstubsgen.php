@@ -1,7 +1,7 @@
 <?php
 
 $projectRoot = __DIR__ . '/../../';
-$stubFilename='exports/ide-stubs-nyanorm.php';
+$stubFilename='api/vendor/stubs/ide-stubs-nyanorm.php';
 $stubFile    = $projectRoot . $stubFilename;
 
 $classes = array();

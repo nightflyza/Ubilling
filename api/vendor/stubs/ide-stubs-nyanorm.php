@@ -1,0 +1,19 @@
+<?php
+class nya_tags extends NyanORM {}
+class nya_address_extended extends NyanORM {}
+class nya_invoices extends NyanORM {}
+class nya_qinq_bindings extends NyanORM {}
+class nya_realms extends NyanORM {}
+class nya_qinq_svlan extends NyanORM {}
+class nya_switches_qinq extends NyanORM {}
+class nya_switches extends NyanORM {}
+class nya_switchmodels extends NyanORM {}
+class nya_pononu extends NyanORM {}
+class nya_switchportassign extends NyanORM {}
+class nya_zte_qinq extends NyanORM {}
+class nya_olt_qinq extends NyanORM {}
+class nya_zte_cards extends NyanORM {}
+class nya_dealwithit extends NyanORM {}
+class nya_payments extends NyanORM {}
+class nya_mg_subscribers extends NyanORM {}
+class nya_trinitytv_subscribers extends NyanORM {}
