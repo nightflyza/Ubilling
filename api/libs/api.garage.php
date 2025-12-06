@@ -71,7 +71,7 @@ class Garage {
     /**
      * Database abstraction layer placeholder for cars mileage counters
      *
-     * @var array
+     * @var object
      */
     protected $mileage = '';
 
