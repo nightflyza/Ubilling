@@ -1,0 +1,25 @@
+<?php
+
+$lang['def']['Tank volume'] = 'Об`єм бака';
+$lang['def']['Motohours'] = 'Мотогодини';
+$lang['def']['Service interval'] = 'Сервісний інтервал';
+$lang['def']['Running'] = 'У роботі';
+$lang['def']['Create new'] = 'Створити новий';
+$lang['def']['Available generators'] = 'Наявні генератори';
+$lang['def']['Start'] = 'Запустити';
+$lang['def']['Stop'] = 'Зупинити';
+$lang['def']['Generators'] = 'Генератори';
+$lang['def']['Maintenance'] = 'Технічне обслуговування';
+$lang['def']['Next maintenance'] = 'Наступне обслуговування';
+$lang['def']['In tank'] = 'В баку';
+$lang['def']['Refuel'] = 'Заправка';
+$lang['def']['Litre'] = 'Літр';
+$lang['def']['Liters'] = 'Літрів';
+$lang['def']['Overdue'] = 'Перевищено';
+$lang['def']['maintenance'] = 'обслуговування';
+$lang['def']['All previous maintenances'] = 'Всі попередні обслуговування';
+$lang['def']['All previous refuels'] = 'Всі попередні заправки';
+$lang['def']['Refuels'] = 'Заправки';
+$lang['def']['Generators running now'] = 'Генератори зараз запущені';
+$lang['def']['Stopped'] = 'Зупинений';
+

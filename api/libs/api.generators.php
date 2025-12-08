@@ -22,7 +22,6 @@ class Generators {
      */
     protected $devicesDb = '';
 
-
     /**
      * Contains services database abstraction layer
      *
@@ -43,6 +42,13 @@ class Generators {
      * @var object
      */
     protected $refuelsDb = '';
+
+    /**
+     * OnePunch object placeholder
+     *
+     * @var object
+     */
+    protected $onePunch = '';
 
     /**
      * Contains available fuel types
@@ -96,6 +102,10 @@ class Generators {
     const ROUTE_STOP_DEVICE = 'stopdeviceid';
     const ROUTE_VIEW_EVENTS = 'viewevents';
     const ROUTE_VIEW_SERVICES_ALL='servicesall';
+    const ROUTE_EDIT_SERVICE = 'editserviceid';
+    const ROUTE_VIEW_REFUELS_ALL='refuelsall';
+    const ROUTE_EDIT_REFUEL = 'editrefuelid';
+    const ROUTE_VIEW_MAP='rendermap';
 
     //some form routes here
     const PROUTE_NEW_DEVICE = 'createdevice';
@@ -112,6 +122,15 @@ class Generators {
     const PROUTE_REFUEL_DEVICE = 'refueldevice';
     const PROUTE_REFUEL_LITERS = 'refuelliters';
     const PROUTE_REFUEL_PRICE = 'refuelprice';
+    const PROUTE_EDIT_REFUEL = 'editrefuel';
+    const PROUTE_SERVICE_DEVICE = 'servicedevice';
+    const PROUTE_SERVICE_MOTO_HOURS = 'servicemotohours';
+    const PROUTE_SERVICE_NOTES = 'servicenotes';
+    const PROUTE_SERVICE_DATE = 'servicedate';
+    const PROUTE_SERVICE_TIME = 'servicetime';
+    const PROUTE_EDIT_SERVICE = 'editservice';
+
+    const WATCHER_PID='GENERATORS';
 
     /**
      * Creates new Generators instance
@@ -123,6 +142,7 @@ class Generators {
         $this->initMessages();
         $this->setFuelTypes();
         $this->initDb();
+        $this->initOnePunch();
 
         $this->loadDevices();
         $this->loadServices();
@@ -147,6 +167,16 @@ class Generators {
      */
     protected function initMessages() { 
         $this->messages = new UbillingMessageHelper();
+    }
+
+
+    /**
+     * Initializes onepunch object
+     *
+     * @return void
+     */
+    protected function initOnePunch() {
+        $this->onePunch = new OnePunch();
     }
 
     /**
@@ -229,7 +259,103 @@ class Generators {
                 }
             }
         }
-        return $result;
+        return ($result);
+    }
+
+    /**
+     * Gets next maintenance date in motohours remaining
+     *
+     * @param int $deviceId
+     * @param int $runningSeconds
+     *
+     * @return string
+     */
+    protected function getNextMaintenanceDate($deviceId, $runningSeconds = 0) {
+        $result = '-';
+        $deviceId = ubRouting::filters($deviceId, 'int');
+        $runningSeconds = ubRouting::filters($runningSeconds, 'int');
+        
+        if (isset($this->allDevices[$deviceId])) {
+            $device = $this->allDevices[$deviceId];
+            $serviceInterval = $device['serviceinterval'];
+            $currentMotohours = $device['motohours'];
+            
+            if ($runningSeconds > 0) {
+                $currentMotohours += $runningSeconds / 3600;
+            }
+            
+            if ($serviceInterval > 0) {
+                $lastServiceMotohours = 0;
+                
+                if (!empty($this->allServices)) {
+                    foreach ($this->allServices as $io => $service) {
+                        if ($service['genid'] == $deviceId) {
+                            if ($service['motohours'] > $lastServiceMotohours) {
+                                $lastServiceMotohours = $service['motohours'];
+                            }
+                        }
+                    }
+                }
+                
+                $nextMaintenanceMotohours = $lastServiceMotohours + $serviceInterval;
+                $remainingMotohours = $nextMaintenanceMotohours - $currentMotohours;
+                
+                if ($remainingMotohours > 0) {
+                    $result = round($remainingMotohours, 2) . ' ' . __('hours');
+                } else {
+                    $result = __('Overdue') . '! (' . round(abs($remainingMotohours), 2) . ' ' . __('hours') . ')';
+                }
+            }
+        }
+        
+        return ($result);
+    }
+
+    /**
+     * Creates service record for device
+     *
+     * @param int $deviceId
+     *
+     * @return string
+     */
+    public function createService($deviceId) {
+        $result = '';
+        $deviceId = ubRouting::filters($deviceId, 'int');
+        
+        if (isset($this->allDevices[$deviceId])) {
+            $requiredFields = array(self::PROUTE_SERVICE_DEVICE, self::PROUTE_SERVICE_MOTO_HOURS);
+            if (ubRouting::checkPost($requiredFields)) {
+                $motohours = ubRouting::post(self::PROUTE_SERVICE_MOTO_HOURS, 'float');
+                $notes = ubRouting::post(self::PROUTE_SERVICE_NOTES, 'safe');
+                $notes= ubRouting::filters($notes, 'mres');
+                $serviceDate = ubRouting::post(self::PROUTE_SERVICE_DATE, 'mres');
+                $serviceTime = ubRouting::post(self::PROUTE_SERVICE_TIME, 'mres');
+                
+                if ($motohours >= 0) {
+                    $serviceDateTime = curdatetime();
+                    if (!empty($serviceDate) AND !empty($serviceTime)) {
+                        $serviceDateTime = $serviceDate . ' ' . $serviceTime . ':00';
+                    } elseif (!empty($serviceDate)) {
+                        $serviceDateTime = $serviceDate . ' ' . date('H:i:s');
+                    }
+                    
+                    $this->servicesDb->data('genid', $deviceId);
+                    $this->servicesDb->data('date', $serviceDateTime);
+                    $this->servicesDb->data('motohours', $motohours);
+                    $this->servicesDb->data('notes', $notes);
+                    $this->servicesDb->create();
+                    $this->loadServices();
+                    
+                    log_register('GENERATORS DEVICE MAINTENANCE [' . $deviceId . '] MOTOHOURS `' . $motohours . '`');
+                } else {
+                    $result = __('Invalid motohours value');
+                }
+            }
+        } else {
+            $result = __('Something went wrong') . ': [' . $deviceId . '] ' . __('Not exists');
+        }
+        
+        return ($result);
     }
 
     /**
@@ -284,7 +410,7 @@ class Generators {
             }
         }
         
-        return $result;
+        return ($result);
     }
 
     /**
@@ -294,19 +420,19 @@ class Generators {
      */
     public function renderControls() {
         $result = '';
-        if (ubRouting::checkGet(self::ROUTE_DEVICES)) {
-        if (cfr('GENERATORSMGMT')) {
-            $result .= wf_modalAuto(web_icon_create() . ' ' . __('Create new'), __('Create new'), $this->renderDeviceCreateForm(), 'ubButton');
-        }
-        }
-
+        
         $devicesUrl = self::URL_ME . '&' . self::ROUTE_DEVICES . '=true';
         $result .= wf_Link($devicesUrl, wf_img('skins/icon_generators.png') . ' ' . __('Devices'), false, 'ubButton') . ' ';
-        if (cfr('GENERATORSMGMT')) {
-            $servicesUrl = self::URL_ME . '&' . self::ROUTE_VIEW_SERVICES_ALL . '=true';
-            $result .= wf_Link($servicesUrl, wf_img('skins/icon_repair.gif') . ' ' . __('Maintenances'), false, 'ubButton') . ' ';
-            }
+        
+        $servicesUrl = self::URL_ME . '&' . self::ROUTE_VIEW_SERVICES_ALL . '=true';
+        $result .= wf_Link($servicesUrl, wf_img('skins/icon_repair.gif') . ' ' . __('Maintenance'), false, 'ubButton') . ' ';
 
+        $refuelsUrl = self::URL_ME . '&' . self::ROUTE_VIEW_REFUELS_ALL . '=true';
+        $result .= wf_Link($refuelsUrl, wf_img('skins/icon_fuel.png') . ' ' . __('Refuels'), false, 'ubButton') . ' ';
+
+        $mapUrl = self::URL_ME . '&' . self::ROUTE_VIEW_MAP . '=true';
+        $result .= wf_Link($mapUrl, wf_img('skins/icon_map_small.png') . ' ' . __('Map'), false, 'ubButton') . ' ';
+        
         return ($result);
     }
     /**
@@ -323,6 +449,7 @@ class Generators {
             $cells.= wf_TableCell(__('Running'));
             $cells .= wf_TableCell(__('Motohours'));
             $cells .= wf_TableCell(__('In tank'));
+            $cells .= wf_TableCell(__('Next maintenance'));
             $cells.= wf_TableCell(__('Events'));
 
             if (cfr('GENERATORSMGMT')) {
@@ -335,6 +462,7 @@ class Generators {
                 $runningDisplay = web_bool_led($device['running']);
                 $fuelConsumed=0;
                 $deviceMotohours=$device['motohours'];
+                $runningSeconds=0;
                 if ($device['running']) {
                     $runningSeconds = $this->getDeviceRunningTime($device['id']);
                     if ($runningSeconds > 0) {
@@ -350,6 +478,8 @@ class Generators {
                 $cells .= wf_TableCell($runningDisplay);
                 $cells .= wf_TableCell(round($deviceMotohours, 2));
                 $cells .= wf_TableCell(round($device['intank']-$fuelConsumed, 2) . ' ' . __('litre'));
+                $nextMaintenanceDate=$this->getNextMaintenanceDate($device['id'], $runningSeconds);
+                $cells .= wf_TableCell($nextMaintenanceDate);
                 $eventsCount = $this->getDeviceEventsCount($device['id']);
                 $eventsUrl = self::URL_ME . '&' . self::ROUTE_VIEW_EVENTS . '=' . $device['id'];
                 $eventsLink = wf_Link($eventsUrl, $eventsCount, false, '');
@@ -358,6 +488,7 @@ class Generators {
                 $deviceControls='';
          
                 if (cfr('GENERATORSMGMT')) {
+              
                     $deletionUrl = self::URL_ME . '&' . self::ROUTE_DELETE_DEVICE . '=' . $device['id'];
                     $cancelUrl=self::URL_ME . '&' . self::ROUTE_DEVICES . '=true';
                     $deletionDialog=wf_ConfirmDialog($deletionUrl, web_delete_icon(), $this->messages->getDeleteAlert(), '', $cancelUrl, __('Delete').'?');
@@ -375,6 +506,9 @@ class Generators {
                     
                 }
 
+                $serviceForm = $this->renderServiceForm($device['id']);
+                $deviceControls .= $serviceForm;
+
                 $refuelForm=$this->renderRefuelForm($device['id']);
                 $deviceControls .= $refuelForm;
                 
@@ -386,6 +520,42 @@ class Generators {
             $result .= wf_TableBody($rows, '100%', 0, 'sortable');
         } else {
             $result .= $this->messages->getStyledMessage(__('Nothing to show'), 'warning');
+        }
+        return ($result);
+    }
+
+    /**
+     * Renders service form for device
+     *
+     * @param int $deviceId
+     *
+     * @return string
+     */
+    protected function renderServiceForm($deviceId) {
+        $result = '';
+        $deviceId = ubRouting::filters($deviceId, 'int');
+        if (isset($this->allDevices[$deviceId])) {
+            $device = $this->allDevices[$deviceId];
+            $deviceMotohours = $device['motohours'];
+            if ($device['running']) {
+                $runningSeconds = $this->getDeviceRunningTime($deviceId);
+                if ($runningSeconds > 0) {
+                    $deviceMotohours += $runningSeconds / 3600;
+                }
+            }
+            $currentDate = date('Y-m-d');
+            $currentTime = date('H:i');
+
+            $inputs = wf_HiddenInput(self::PROUTE_SERVICE_DEVICE, $deviceId);
+            $inputs .= wf_TextInput(self::PROUTE_SERVICE_MOTO_HOURS, __('Motohours'), round($deviceMotohours, 2), false, 8, 'float').' ';
+            $inputs .= wf_DatePickerPreset(self::PROUTE_SERVICE_DATE, $currentDate, true);
+            $inputs .= wf_tag('label') . __('Date') . wf_tag('label', true).' ';
+            $inputs .= wf_TimePickerPreset(self::PROUTE_SERVICE_TIME, $currentTime, __('Time'), true).' ';
+            
+            $inputs .= wf_TextArea(self::PROUTE_SERVICE_NOTES, '', '', true, '50x5');
+            $inputs .= wf_Submit(__('Create'). ' '.__('maintenance'));
+            $form = wf_Form('', 'POST', $inputs, 'glamour');
+            $result = wf_modalAuto(wf_img('skins/icon_repair.gif',__('Maintenance')), __('Maintenance'), $form, '');
         }
         return ($result);
     }
@@ -410,7 +580,7 @@ class Generators {
             $form = wf_Form('', 'POST', $inputs, 'glamour');
             $result = wf_modalAuto(wf_img('skins/icon_fuel.png',__('Refuel')), __('Refuel'), $form, '');
         }
-        return $result;
+        return ($result);
     }
 
     /**
@@ -430,7 +600,7 @@ class Generators {
                 }
             }
         }
-        return $result;
+        return ($result);
     }
 
     /**
@@ -477,7 +647,7 @@ class Generators {
             $result = __('Something went wrong') . ': [' . $deviceId . '] ' . __('Not exists');
         }
         
-        return $result;
+        return ($result);
     }
 
     /**
@@ -519,7 +689,7 @@ class Generators {
         $inputs .= wf_TextInput(self::PROUTE_DEV_OP_ALIAS, __('One-punch').' '.__('script'), '', true, 10);
         $inputs .= wf_Submit(__('Create'));
         $result .= wf_Form('', 'POST', $inputs, 'glamour');
-        return $result;
+        return ($result);
     }
 
     /**
@@ -618,7 +788,7 @@ class Generators {
         } else {
             $result .= $this->messages->getStyledMessage(__('Something went wrong') . ': ' . __('Not exists'), 'error');
         }
-        return $result;
+        return ($result);
     }
 
     /**
@@ -809,7 +979,7 @@ class Generators {
         if (isset($this->allDevices[$deviceId])) {
             $result = $this->allDevices[$deviceId];
         }
-        return $result;
+        return ($result);
     }
 
     /**
@@ -878,13 +1048,9 @@ class Generators {
                         if ($stopTime > 0) {
                             $seconds = $stopTime - $eventTime;
                             $timeDisplay = zb_formatTime($seconds);
-                            $fuelConsumption = $this->calculateFuelConsumption($deviceId, $seconds);
-                            $fuelDisplay = round($fuelConsumption, 2) . ' ' . __('litre');
                         } elseif ($deviceRunning) {
                             $seconds = $currentTime - $eventTime;
                             $timeDisplay = zb_formatTime($seconds);
-                            $fuelConsumption = $this->calculateFuelConsumption($deviceId, $seconds);
-                            $fuelDisplay = round($fuelConsumption, 2) . ' ' . __('litre');
                         }
                     }
                     
@@ -907,6 +1073,416 @@ class Generators {
             $result .= $this->messages->getStyledMessage(__('Something went wrong') . ': ' . __('Not exists'), 'error');
         }
         
-        return $result;
+        return ($result);
+    }
+
+    /**
+     * Renders all maintenances report for all devices
+     *
+     * @return string
+     */
+    public function renderAllServices() {
+        $result = '';
+        
+        if (!empty($this->allServices)) {
+            usort($this->allServices, function($a, $b) {
+                return strtotime($b['date']) - strtotime($a['date']);
+            });
+            
+            $cells = wf_TableCell(__('Date'));
+            $cells .= wf_TableCell(__('Device'));
+            $cells .= wf_TableCell(__('Motohours'));
+            $cells .= wf_TableCell(__('Notes'));
+            if (cfr('GENERATORSMGMT')) {
+                $cells .= wf_TableCell(__('Actions'));
+            }
+            $rows = wf_TableRow($cells, 'row1');
+            
+            foreach ($this->allServices as $io => $service) {
+                $deviceId = $service['genid'];
+                $deviceName = __('Unknown');
+                if (isset($this->allDevices[$deviceId])) {
+                    $device = $this->allDevices[$deviceId];
+                    $deviceName = $device['model'] . ' - ' . $device['address'];
+                }
+                
+                $cells = wf_TableCell($service['date']);
+                $cells .= wf_TableCell($deviceName);
+                $cells .= wf_TableCell(round($service['motohours'], 2));
+                $cells .= wf_TableCell($service['notes']);
+                if (cfr('GENERATORSMGMT')) {
+                    $editDialog = wf_modalAuto(web_edit_icon(), __('Edit'), $this->renderServiceEditForm($service['id']));
+                    $cells .= wf_TableCell($editDialog);
+                }
+                $rows .= wf_TableRow($cells, 'row5');
+            }
+            
+            $result .= wf_TableBody($rows, '100%', 0, 'sortable');
+        } else {
+            $result .= $this->messages->getStyledMessage(__('Nothing to show'), 'warning');
+        }
+        
+        $backUrl = self::URL_ME . '&' . self::ROUTE_DEVICES . '=true';
+        $result .= wf_delimiter();
+        $result .= wf_BackLink($backUrl);
+        
+        return ($result);
+    }
+
+    /**
+     * Renders service edit form
+     *
+     * @param int $serviceId
+     *
+     * @return string
+     */
+    protected function renderServiceEditForm($serviceId) {
+        $result = '';
+        $serviceId = ubRouting::filters($serviceId, 'int');
+        
+        $service = null;
+        if (!empty($this->allServices)) {
+            foreach ($this->allServices as $io => $svc) {
+                if ($svc['id'] == $serviceId) {
+                    $service = $svc;
+                    break;
+                }
+            }
+        }
+        
+        if ($service) {
+            $serviceDate = date('Y-m-d', strtotime($service['date']));
+            $serviceTime = date('H:i', strtotime($service['date']));
+            
+            $inputs = wf_HiddenInput(self::PROUTE_EDIT_SERVICE, $serviceId);
+            $inputs .= wf_TextInput(self::PROUTE_SERVICE_MOTO_HOURS, __('Motohours'), round($service['motohours'], 2), false, 8, 'float') . ' ';
+            $inputs .= wf_DatePickerPreset(self::PROUTE_SERVICE_DATE, $serviceDate, true);
+            $inputs .= wf_tag('label') . __('Date') . wf_tag('label', true) . ' ';
+            $inputs .= wf_TimePickerPreset(self::PROUTE_SERVICE_TIME, $serviceTime, __('Time'), true) . ' ';
+            $inputs .= wf_TextArea(self::PROUTE_SERVICE_NOTES, '', $service['notes'], true, '50x5');
+            $inputs .= wf_Submit(__('Save'));
+            $result = wf_Form('', 'POST', $inputs, 'glamour');
+        }
+        
+        return ($result);
+    }
+
+    /**
+     * Updates service record
+     *
+     * @param int $serviceId
+     *
+     * @return string
+     */
+    public function updateService($serviceId) {
+        $result = '';
+        $serviceId = ubRouting::filters($serviceId, 'int');
+        
+        $service = null;
+        if (!empty($this->allServices)) {
+            foreach ($this->allServices as $io => $svc) {
+                if ($svc['id'] == $serviceId) {
+                    $service = $svc;
+                    break;
+                }
+            }
+        }
+        
+        if ($service) {
+            $requiredFields = array(self::PROUTE_EDIT_SERVICE, self::PROUTE_SERVICE_MOTO_HOURS);
+            if (ubRouting::checkPost($requiredFields)) {
+                $motohours = ubRouting::post(self::PROUTE_SERVICE_MOTO_HOURS, 'float');
+                $notes = ubRouting::post(self::PROUTE_SERVICE_NOTES, 'safe');
+                $notes = ubRouting::filters($notes, 'mres');
+                $serviceDate = ubRouting::post(self::PROUTE_SERVICE_DATE, 'mres');
+                $serviceTime = ubRouting::post(self::PROUTE_SERVICE_TIME, 'mres');
+                
+                if ($motohours >= 0) {
+                    $serviceDateTime = $service['date'];
+                    if (!empty($serviceDate) AND !empty($serviceTime)) {
+                        $serviceDateTime = $serviceDate . ' ' . $serviceTime . ':00';
+                    } elseif (!empty($serviceDate)) {
+                        $serviceDateTime = $serviceDate . ' ' . date('H:i:s');
+                    }
+                    
+                    $this->servicesDb->where('id', '=', $serviceId);
+                    $this->servicesDb->data('date', $serviceDateTime);
+                    $this->servicesDb->data('motohours', $motohours);
+                    $this->servicesDb->data('notes', $notes);
+                    $this->servicesDb->save();
+                    $this->loadServices();
+                    
+                    log_register('GENERATORS DEVICE MAINTENANCE UPDATE [' . $service['genid'] . '] SERVICE [' . $serviceId . '] MOTOHOURS `' . $motohours . '`');
+                } else {
+                    $result = __('Invalid motohours value');
+                }
+            }
+        } else {
+            $result = __('Something went wrong') . ': [' . $serviceId . '] ' . __('Not exists');
+        }
+        
+        return ($result);
+    }
+
+
+    /**
+     * Runs generators watcher scripts for all devices
+     *
+     * @return void
+     */
+    public function runGeneratorsWatcher() {
+        $result = '';
+        if (!empty($this->allDevices)) {
+            foreach ($this->allDevices as $io=>$device) {
+                if (!empty($device['opalias'])) {
+                    $scriptContent=$this->onePunch->getScriptContent($device['opalias']);
+                    if (!empty($scriptContent)) {
+                        $currentGeneratorStatus=$device['running'];
+                        eval($scriptContent);
+                        if (isset($generatorState)) {
+                            if ($generatorState == 1 or $generatorState == 0) {
+                            if ($generatorState != $currentGeneratorStatus) {
+                                if ($generatorState) {
+                                    $this->startDevice($device['id']);
+                                } else {
+                                    $this->stopDevice($device['id']);
+                                }
+                                
+                            }
+                        } else {
+                            log_register('GENERATORS WATCHER ['.$device['id'].'] FAIL OPSCRIPT `' . $device['opalias'] . '` GENERATOR STATE WRONG FORMAT');
+                        }
+
+                        //cleanup generator state variable
+                        unset($generatorState);
+                        } else {
+                            log_register('GENERATORS WATCHER ['.$device['id'].'] FAIL OPSCRIPT `' . $device['opalias'] . '` NOT SET GENERATOR STATE');
+                        }
+                    } else {
+                        log_register('GENERATORS WATCHER ['.$device['id'].'] FAIL OPSCRIPT `' . $device['opalias'] . '` NOT FOUND');
+                    }
+                }
+            }
+        }
+        return ($result);
+    }
+
+    /**
+     * Renders all refuels report for all devices
+     *
+     * @return string
+     */
+    public function renderAllRefuels() {
+        $result = '';
+        
+        if (!empty($this->allRefuels)) {
+            usort($this->allRefuels, function($a, $b) {
+                return strtotime($b['date']) - strtotime($a['date']);
+            });
+            
+            $cells = wf_TableCell(__('Date'));
+            $cells .= wf_TableCell(__('Device'));
+            $cells .= wf_TableCell(__('Liters'));
+            $cells .= wf_TableCell(__('Price'));
+            if (cfr('GENERATORSMGMT')) {
+                $cells .= wf_TableCell(__('Actions'));
+            }
+            $rows = wf_TableRow($cells, 'row1');
+            
+            foreach ($this->allRefuels as $io => $refuel) {
+                $deviceId = $refuel['genid'];
+                $deviceName = __('Unknown');
+                if (isset($this->allDevices[$deviceId])) {
+                    $device = $this->allDevices[$deviceId];
+                    $deviceName = $device['model'] . ' - ' . $device['address'];
+                }
+                
+                $cells = wf_TableCell($refuel['date']);
+                $cells .= wf_TableCell($deviceName);
+                $cells .= wf_TableCell(round($refuel['liters'], 2) . ' ' . __('litre'));
+                $cells .= wf_TableCell(round($refuel['price'], 2));
+                if (cfr('GENERATORSMGMT')) {
+                    $editDialog = wf_modalAuto(web_edit_icon(), __('Edit'), $this->renderRefuelEditForm($refuel['id']));
+                    $cells .= wf_TableCell($editDialog);
+                }
+                $rows .= wf_TableRow($cells, 'row5');
+            }
+            
+            $result .= wf_TableBody($rows, '100%', 0, 'sortable');
+        } else {
+            $result .= $this->messages->getStyledMessage(__('Nothing to show'), 'warning');
+        }
+        
+        $backUrl = self::URL_ME . '&' . self::ROUTE_DEVICES . '=true';
+        $result .= wf_delimiter();
+        $result .= wf_BackLink($backUrl);
+        
+        return ($result);
+    }
+
+    /**
+     * Renders refuel edit form
+     *
+     * @param int $refuelId
+     *
+     * @return string
+     */
+    protected function renderRefuelEditForm($refuelId) {
+        $result = '';
+        $refuelId = ubRouting::filters($refuelId, 'int');
+        
+        $refuel = null;
+        if (!empty($this->allRefuels)) {
+            foreach ($this->allRefuels as $io => $rf) {
+                if ($rf['id'] == $refuelId) {
+                    $refuel = $rf;
+                    break;
+                }
+            }
+        }
+        
+        if ($refuel) {
+            $refuelDate = date('Y-m-d', strtotime($refuel['date']));
+            $refuelTime = date('H:i', strtotime($refuel['date']));
+            
+            $inputs = wf_HiddenInput(self::PROUTE_EDIT_REFUEL, $refuelId);
+            $inputs .= wf_TextInput(self::PROUTE_REFUEL_LITERS, __('Litre'), round($refuel['liters'], 2), false, 6, 'float') . ' ';
+            $inputs .= wf_TextInput(self::PROUTE_REFUEL_PRICE, __('Price'), round($refuel['price'], 2), false, 4, 'finance') . ' ';
+            $inputs .= wf_DatePickerPreset('refueldate', $refuelDate, true);
+            $inputs .= wf_tag('label') . __('Date') . wf_tag('label', true) . ' ';
+            $inputs .= wf_TimePickerPreset('refueltime', $refuelTime, __('Time'), true) . ' ';
+            $inputs .= wf_Submit(__('Save'));
+            $result = wf_Form('', 'POST', $inputs, 'glamour');
+        }
+        
+        return ($result);
+    }
+
+    /**
+     * Updates refuel record
+     *
+     * @param int $refuelId
+     *
+     * @return string
+     */
+    public function updateRefuel($refuelId) {
+        $result = '';
+        $refuelId = ubRouting::filters($refuelId, 'int');
+        
+        $refuel = null;
+        if (!empty($this->allRefuels)) {
+            foreach ($this->allRefuels as $io => $rf) {
+                if ($rf['id'] == $refuelId) {
+                    $refuel = $rf;
+                    break;
+                }
+            }
+        }
+        
+        if ($refuel) {
+            $requiredFields = array(self::PROUTE_EDIT_REFUEL, self::PROUTE_REFUEL_LITERS, self::PROUTE_REFUEL_PRICE);
+            if (ubRouting::checkPost($requiredFields)) {
+                $liters = ubRouting::post(self::PROUTE_REFUEL_LITERS, 'float');
+                $price = ubRouting::post(self::PROUTE_REFUEL_PRICE, 'float');
+                $refuelDate = ubRouting::post('refueldate', 'mres');
+                $refuelTime = ubRouting::post('refueltime', 'mres');
+                
+                if ($liters > 0 AND $price >= 0) {
+                    $refuelDateTime = $refuel['date'];
+                    if (!empty($refuelDate) AND !empty($refuelTime)) {
+                        $refuelDateTime = $refuelDate . ' ' . $refuelTime . ':00';
+                    } elseif (!empty($refuelDate)) {
+                        $refuelDateTime = $refuelDate . ' ' . date('H:i:s');
+                    }
+                    
+                    $deviceId = $refuel['genid'];
+                    $oldLiters = $refuel['liters'];
+                    $litersDiff = $liters - $oldLiters;
+                    
+                    if (isset($this->allDevices[$deviceId])) {
+                        $currentIntank = $this->allDevices[$deviceId]['intank'];
+                        $tankVolume = $this->allDevices[$deviceId]['tankvolume'];
+                        $newIntank = $currentIntank + $litersDiff;
+                        
+                        if ($newIntank >= 0 AND $newIntank <= $tankVolume) {
+                            $this->refuelsDb->where('id', '=', $refuelId);
+                            $this->refuelsDb->data('date', $refuelDateTime);
+                            $this->refuelsDb->data('liters', $liters);
+                            $this->refuelsDb->data('price', $price);
+                            $this->refuelsDb->save();
+                            
+                            $this->setDeviceIntank($deviceId, $newIntank);
+                            $this->loadDevices();
+                            $this->loadRefuels();
+                            
+                            log_register('GENERATORS DEVICE REFUEL UPDATE [' . $deviceId . '] REFUEL [' . $refuelId . '] LITERS `' . $liters . '` PRICE `' . $price . '`');
+                        } else {
+                            $result = __('Invalid tank level') . ': ' . __('Minimum') . ' 0, ' . __('Maximum') . ' ' . $tankVolume . ' ' . __('litre');
+                        }
+                    } else {
+                        $result = __('Device not found');
+                    }
+                } else {
+                    $result = __('Invalid values');
+                }
+            }
+        } else {
+            $result = __('Something went wrong') . ': [' . $refuelId . '] ' . __('Not exists');
+        }
+        
+        return ($result);
+    }
+
+
+    /**
+     * Renders devices map
+     *
+     * @return string
+     */
+    public function renderDevicesMap() {
+        $result = '';
+        global $ubillingConfig;
+        $mapsCfg = $ubillingConfig->getYmaps();
+        $mapCenter = $mapsCfg['CENTER'];
+        $mapZoom = $mapsCfg['ZOOM'];
+        
+        $editor = '';
+        $result.=generic_MapContainer('100%', '600px', 'ubmap');
+        if (!empty($this->allDevices)) {
+            $placemarks='';
+            foreach ($this->allDevices as $io => $device) {
+                if (!empty($device['geo'])) {
+                    $deviceLabel=$device['model'] . ' - ' . $device['address'];
+                    $deviceIcon=($device['running']) ? sm_MapGoodIcon() : sm_MapBadIcon();
+                    $deviceState=($device['running']) ? __('Running') : __('Stopped');
+                    $deviceInTankPercent=__('In tank').': '.$this->calculateInTankPercent($device['id']).'%';
+                    $placemarks.= sm_MapAddMark($device['geo'], $deviceLabel, $deviceState .', '. $deviceInTankPercent, '', $deviceIcon);
+                }
+            }
+            
+        }
+
+        $result .= generic_MapInit($mapCenter, $mapZoom, $mapsCfg['TYPE'], $placemarks, $editor, $mapsCfg['LANG']);
+        $result.= wf_delimiter();
+        $result.= wf_BackLink(self::URL_ME.'&'.self::ROUTE_DEVICES.'=true');
+        return ($result);
+    }
+
+    /**
+     * Calculates in tank percent for device
+     *
+     * @param int $deviceId
+     *
+     * @return float
+     */
+    public function calculateInTankPercent($deviceId) {
+        $result = 0;
+        $deviceId = ubRouting::filters($deviceId, 'int');
+        if (isset($this->allDevices[$deviceId])) {
+            $device = $this->allDevices[$deviceId];
+            $inTankPercent = ($device['intank'] / $device['tankvolume']) * 100;
+            $result = round($inTankPercent, 2);
+        }
+        return ($result);
     }
 }

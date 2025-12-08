@@ -3017,7 +3017,8 @@ CREATE TABLE IF NOT EXISTS `gen_devices` (
   `serviceinterval` INT NOT NULL DEFAULT 0,
   `intank` FLOAT NOT NULL DEFAULT 0,
   `opalias` varchar(64) DEFAULT NULL,
-  PRIMARY KEY (`id`)
+  PRIMARY KEY (`id`),
+  KEY `running` (`running`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 

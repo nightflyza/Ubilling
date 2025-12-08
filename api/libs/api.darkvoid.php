@@ -470,6 +470,22 @@ class DarkVoid {
             }
         }
 
+        //running generators alerts
+        if ($this->ubConfig->getAlterParam('GENERATORS_ENABLED')) {
+            if ($this->ubConfig->getAlterParam('TB_GENERATORS_NOTIFY')) {
+            $generatorsDevicesDb=new NyanORM(Generators::TABLE_DEVICES);
+            $generatorsDevicesDb->where('running', '=', 1);
+
+            $generatorsDevices=$generatorsDevicesDb->getAll();
+            if (!empty($generatorsDevices)) {
+                $runningGeneratorsCount=sizeof($generatorsDevices);
+                if ($runningGeneratorsCount > 0) {
+                    $this->alerts .= wf_Link(Generators::URL_ME.'&'.Generators::ROUTE_DEVICES.'=true', wf_img('skins/generator32.png', __('Generators running now').': '.$runningGeneratorsCount));
+                }
+            }
+         }
+        }
+
         //appending some debug string to validate cache expire
         $this->alerts .= '<!-- DarkVoid saved: ' . curdatetime() . ' -->';
 
