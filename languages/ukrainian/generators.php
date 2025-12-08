@@ -22,4 +22,7 @@ $lang['def']['All previous refuels'] = 'Всі попередні заправк
 $lang['def']['Refuels'] = 'Заправки';
 $lang['def']['Generators running now'] = 'Генератори зараз запущені';
 $lang['def']['Stopped'] = 'Зупинений';
+$lang['def']['right to use generators monitoring'] = 'Право використовувати моніторинг генераторів';
+$lang['def']['right to manage generators'] = 'Право керувати генераторами';
+
 

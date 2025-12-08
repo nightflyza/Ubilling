@@ -1,5 +1,5 @@
 <?php
 $this->registerModule($module, 'main', __('Generators'), 'Nightfly', array(
-    'GENERATORS' => __('right to use generators'),
+    'GENERATORS' => __('right to use generators monitoring'),
     'GENERATORSMGMT' => __('right to manage generators'),
 ));
