@@ -22,12 +22,6 @@ class Generators {
      */
     protected $devicesDb = '';
 
-    /**
-     * Contains service types database abstraction layer
-     *
-     * @var object
-     */
-    protected $serviceTypesDb = '';
 
     /**
      * Contains services database abstraction layer
@@ -64,12 +58,6 @@ class Generators {
      */
     protected $allDevices = array();
 
-    /**
-     * Contains all generator service types
-     *
-     * @var array
-     */
-    protected $allServiceTypes = array();
 
     /**
      * Contains all generator services
@@ -107,7 +95,7 @@ class Generators {
     const ROUTE_START_DEVICE = 'startdeviceid';
     const ROUTE_STOP_DEVICE = 'stopdeviceid';
     const ROUTE_VIEW_EVENTS = 'viewevents';
-    
+    const ROUTE_VIEW_SERVICES_ALL='servicesall';
 
     //some form routes here
     const PROUTE_NEW_DEVICE = 'createdevice';
@@ -121,6 +109,9 @@ class Generators {
     const PROUTE_DEV_MOTO_HOURS = 'devmotohours';
     const PROUTE_DEV_SERVICE_INTERVAL = 'devserviceinterval';
     const PROUTE_DEV_OP_ALIAS = 'devopalias';
+    const PROUTE_REFUEL_DEVICE = 'refueldevice';
+    const PROUTE_REFUEL_LITERS = 'refuelliters';
+    const PROUTE_REFUEL_PRICE = 'refuelprice';
 
     /**
      * Creates new Generators instance
@@ -134,7 +125,6 @@ class Generators {
         $this->initDb();
 
         $this->loadDevices();
-        $this->loadServiceTypes();
         $this->loadServices();
         $this->loadEvents();
         $this->loadRefuels();
@@ -166,7 +156,6 @@ class Generators {
      */
     protected function initDb() {
         $this->devicesDb = new NyanORM(self::TABLE_DEVICES);
-        $this->serviceTypesDb = new NyanORM(self::TABLE_SERVICE_TYPES);
         $this->servicesDb = new NyanORM(self::TABLE_SERVICES);
         $this->eventsDb = new NyanORM(self::TABLE_EVENTS);
         $this->refuelsDb = new NyanORM(self::TABLE_REFUELS);
@@ -196,14 +185,6 @@ class Generators {
         $this->allDevices = $this->devicesDb->getAll('id');
     }
 
-    /**
-     * Loads all service types from database
-     *
-     * @return void
-     */
-    protected function loadServiceTypes() {
-        $this->allServiceTypes = $this->serviceTypesDb->getAll('id');
-    }
     
     /**
      * Loads all services from database
@@ -317,19 +298,23 @@ class Generators {
         if (cfr('GENERATORSMGMT')) {
             $result .= wf_modalAuto(web_icon_create() . ' ' . __('Create new'), __('Create new'), $this->renderDeviceCreateForm(), 'ubButton');
         }
-    }
+        }
+
         $devicesUrl = self::URL_ME . '&' . self::ROUTE_DEVICES . '=true';
         $result .= wf_Link($devicesUrl, wf_img('skins/icon_generators.png') . ' ' . __('Devices'), false, 'ubButton') . ' ';
-     
-        return $result;
-    }
+        if (cfr('GENERATORSMGMT')) {
+            $servicesUrl = self::URL_ME . '&' . self::ROUTE_VIEW_SERVICES_ALL . '=true';
+            $result .= wf_Link($servicesUrl, wf_img('skins/icon_repair.gif') . ' ' . __('Maintenances'), false, 'ubButton') . ' ';
+            }
 
+        return ($result);
+    }
     /**
      * Renders generator devices list with actions
      *
      * @return string
      */
-    public function renderDeviceList() {
+    public function renderDevicesList() {
         $result = '';
         
         if (!empty($this->allDevices)) {
@@ -337,25 +322,34 @@ class Generators {
             $cells .= wf_TableCell(__('Address'));
             $cells.= wf_TableCell(__('Running'));
             $cells .= wf_TableCell(__('Motohours'));
+            $cells .= wf_TableCell(__('In tank'));
             $cells.= wf_TableCell(__('Events'));
-            $cells .= wf_TableCell(__('Actions'));
+
+            if (cfr('GENERATORSMGMT')) {
+                $cells .= wf_TableCell(__('Actions'));
+            }
             $rows = wf_TableRow($cells, 'row1');
             foreach ($this->allDevices as $io=>$device) {
                 $cells = wf_TableCell($device['model']);
                 $cells .= wf_TableCell($device['address']);
                 $runningDisplay = web_bool_led($device['running']);
+                $fuelConsumed=0;
+                $deviceMotohours=$device['motohours'];
                 if ($device['running']) {
                     $runningSeconds = $this->getDeviceRunningTime($device['id']);
                     if ($runningSeconds > 0) {
                         $fuelConsumption = $this->calculateFuelConsumption($device['id'], $runningSeconds);
+                        $fuelConsumed += $fuelConsumption;
                         $runningDisplay .= ' (';
                         $runningDisplay .= zb_formatTime($runningSeconds);
                         $runningDisplay .= ', ' . round($fuelConsumption, 2) . ' ' . __('litre');
                         $runningDisplay .= ')';
+                        $deviceMotohours += $runningSeconds / 3600;
                     }
                 }
                 $cells .= wf_TableCell($runningDisplay);
-                $cells .= wf_TableCell($device['motohours']);
+                $cells .= wf_TableCell(round($deviceMotohours, 2));
+                $cells .= wf_TableCell(round($device['intank']-$fuelConsumed, 2) . ' ' . __('litre'));
                 $eventsCount = $this->getDeviceEventsCount($device['id']);
                 $eventsUrl = self::URL_ME . '&' . self::ROUTE_VIEW_EVENTS . '=' . $device['id'];
                 $eventsLink = wf_Link($eventsUrl, $eventsCount, false, '');
@@ -370,7 +364,7 @@ class Generators {
                     $deviceControls .= $deletionDialog;
                     $editDialog = wf_modalAuto(web_edit_icon(), __('Edit'), $this->renderDeviceEditForm($device['id']));
                     $deviceControls .= $editDialog;
-                }
+                
 
                 if ($device['running']) {
                     $stopUrl = self::URL_ME . '&' . self::ROUTE_STOP_DEVICE . '=' . $device['id'];
@@ -380,8 +374,13 @@ class Generators {
                     $deviceControls .= wf_Link($startUrl, wf_img('skins/play.png',__('Start')), false, '');
                     
                 }
+
+                $refuelForm=$this->renderRefuelForm($device['id']);
+                $deviceControls .= $refuelForm;
                 
                 $cells .= wf_TableCell($deviceControls);
+            }
+
                 $rows .= wf_TableRow($cells, 'row5');
             }
             $result .= wf_TableBody($rows, '100%', 0, 'sortable');
@@ -389,6 +388,114 @@ class Generators {
             $result .= $this->messages->getStyledMessage(__('Nothing to show'), 'warning');
         }
         return ($result);
+    }
+
+    /**
+     * Renders refuel form for device
+     *
+     * @param int $deviceId
+     *
+     * @return string
+     */
+    protected function renderRefuelForm($deviceId) {
+        $result = '';
+        $deviceId = ubRouting::filters($deviceId, 'int');
+        if (isset($this->allDevices[$deviceId])) {
+            $device = $this->allDevices[$deviceId];
+            $latestResuelPrice=$this->getLatestRefuelPrice($deviceId);
+            $inputs = wf_HiddenInput(self::PROUTE_REFUEL_DEVICE, $deviceId);
+            $inputs .= wf_TextInput(self::PROUTE_REFUEL_LITERS, __('Litre'), '', true, 6, 'float');
+            $inputs .= wf_TextInput(self::PROUTE_REFUEL_PRICE, __('Price'), $latestResuelPrice, true, 4, 'finance');
+            $inputs .= wf_Submit(__('Refuel'));
+            $form = wf_Form('', 'POST', $inputs, 'glamour');
+            $result = wf_modalAuto(wf_img('skins/icon_fuel.png',__('Refuel')), __('Refuel'), $form, '');
+        }
+        return $result;
+    }
+
+    /**
+     * Gets latest refuel price for device
+     *
+     * @param int $deviceId
+     *
+     * @return float
+     */
+    protected function getLatestRefuelPrice($deviceId) {
+        $result = 0;
+        $deviceId = ubRouting::filters($deviceId, 'int');
+        if (isset($this->allRefuels[$deviceId])) {
+            foreach ($this->allRefuels as $io => $refuel) {
+                if ($refuel['genid'] == $deviceId) {
+                    $result = $refuel['price'];
+                }
+            }
+        }
+        return $result;
+    }
+
+    /**
+     * Creates refuel record and updates device intank
+     *
+     * @param int $deviceId
+     *
+     * @return string
+     */
+    public function createRefuel($deviceId) {
+        $result = '';
+        $deviceId = ubRouting::filters($deviceId, 'int');
+        
+        if (isset($this->allDevices[$deviceId])) {
+            $requiredFields = array(self::PROUTE_REFUEL_DEVICE, self::PROUTE_REFUEL_LITERS, self::PROUTE_REFUEL_PRICE);
+            if (ubRouting::checkPost($requiredFields)) {
+                $liters = ubRouting::post(self::PROUTE_REFUEL_LITERS, 'float');
+                $price = ubRouting::post(self::PROUTE_REFUEL_PRICE, 'float');
+                
+                if ($liters > 0 AND $price >= 0) {
+                    $currentIntank = $this->allDevices[$deviceId]['intank'];
+                    $tankVolume = $this->allDevices[$deviceId]['tankvolume'];
+                    $newIntank = $currentIntank + $liters;
+                    
+                    if ($newIntank <= $tankVolume) {
+                        $this->refuelsDb->data('genid', $deviceId);
+                        $this->refuelsDb->data('date', curdatetime());
+                        $this->refuelsDb->data('liters', $liters);
+                        $this->refuelsDb->data('price', $price);
+                        $this->refuelsDb->create();
+                        
+                        $this->setDeviceIntank($deviceId, $newIntank);
+                        $this->loadDevices();
+                        
+                        log_register('GENERATORS DEVICE REFUEL [' . $deviceId . '] LITERS `' . $liters . '` PRICE `' . $price . '`');
+                    } else {
+                        $result = __('Tank overflow') . ': ' . __('Maximum') . ' ' . $tankVolume . ' ' . __('litre');
+                    }
+                } else {
+                    $result = __('Invalid values');
+                }
+            }
+        } else {
+            $result = __('Something went wrong') . ': [' . $deviceId . '] ' . __('Not exists');
+        }
+        
+        return $result;
+    }
+
+    /**
+     * Sets device intank value
+     *
+     * @param int $deviceId
+     * @param float $liters
+     *
+     * @return void
+     */
+    protected function setDeviceIntank($deviceId, $liters) {
+        $deviceId = ubRouting::filters($deviceId, 'int');
+        $liters = ubRouting::filters($liters, 'float');
+        if (isset($this->allDevices[$deviceId])) {
+            $this->devicesDb->where('id', '=', $deviceId);
+            $this->devicesDb->data('intank', $liters);
+            $this->devicesDb->save();
+        }
     }
 
     /**
@@ -450,8 +557,6 @@ class Generators {
             }
         }
     }
-
-
 
 
     /**
@@ -634,6 +739,29 @@ class Generators {
     }
 
     /**
+     * Updates device fuel lefts counter
+     *
+     * @param int $deviceId
+     * @param int $timePassed
+     *
+     * @return int
+     */
+    protected function updateDeviceIntank($deviceId, $timePassed) {
+        $result = 0;
+        $deviceId = ubRouting::filters($deviceId, 'int');
+        $timePassed = ubRouting::filters($timePassed, 'int');
+        if (isset($this->allDevices[$deviceId])) {
+            $fuelConsumption = $this->calculateFuelConsumption($deviceId, $timePassed);
+            $newIntank = $this->allDevices[$deviceId]['intank'] - $fuelConsumption;
+            $this->devicesDb->where('id', '=', $deviceId);
+            $this->devicesDb->data('intank', $newIntank);
+            $this->devicesDb->save();
+            $result = $newIntank;
+        }
+        return ($result);
+    }
+
+    /**
      * Stops generator device
      *
      * @param int $deviceId
@@ -653,7 +781,11 @@ class Generators {
                 $this->eventsDb->data('date', curdatetime());
                 $this->eventsDb->create();
                 $this->loadDevices();
+                //updating device motorhours counter
                 $timePassed=$this->updateDeviceMotohours($deviceId);
+                //updating device fuel lefts counter
+                $this->updateDeviceIntank($deviceId, $timePassed);
+
                 log_register('GENERATORS DEVICE STOP [' . $deviceId . '] AFTER `' . $timePassed . '` SEC');
             } else {
                 $result = __('Generator is already stopped');

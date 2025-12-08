@@ -20,6 +20,16 @@ if (cfr('GENERATORS')) {
             }
         }
 
+        if (ubRouting::checkPost($generators::PROUTE_REFUEL_DEVICE)) {
+            $refuelDeviceId = ubRouting::post($generators::PROUTE_REFUEL_DEVICE, 'int');
+            $refuelResult = $generators->createRefuel($refuelDeviceId);
+            if ($refuelResult) {
+                show_error($refuelResult);
+            } else {
+                ubRouting::nav($generators::URL_ME . '&' . $generators::ROUTE_DEVICES . '=true');
+            }
+        }
+
         if (ubRouting::checkGet($generators::ROUTE_START_DEVICE)) {
             $startResult = $generators->startDevice(ubRouting::get($generators::ROUTE_START_DEVICE));
             if ($startResult) {
@@ -49,6 +59,7 @@ if (cfr('GENERATORS')) {
 
         show_window('', $generators->renderControls());
 
+        //events view
         if (ubRouting::checkGet($generators::ROUTE_VIEW_EVENTS)) {
             $deviceId = ubRouting::get($generators::ROUTE_VIEW_EVENTS, 'int');
             $deviceInfo = $generators->getDeviceInfo($deviceId);
@@ -59,8 +70,9 @@ if (cfr('GENERATORS')) {
             show_window(__('Events') . ': ' . $deviceName, $generators->renderDeviceEvents($deviceId));
         } 
         
+        //devices list view
         if (ubRouting::checkGet($generators::ROUTE_DEVICES)) {
-            show_window(__('Available generators'), $generators->renderDeviceList());
+            show_window(__('Available generators'), $generators->renderDevicesList());
         }
         
     } else {
