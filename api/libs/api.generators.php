@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * Electrical generators management and accounting
+ */
 class Generators {
     /**
      * Contains system alter.ini config as key=>value

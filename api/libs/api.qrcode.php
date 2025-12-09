@@ -1,8 +1,11 @@
 <?php
 
-/****************************************************************************\
-
-qrcode.php - Generate QR Codes. MIT license.
+/**
+* QRCode class - Generate QR Codes. What did you expect?
+*/
+class QRCode {
+/**
+MIT license.
 
 Copyright for portions of this project are held by Kreative Software, 2016-2018.
 All other copyright for the project are held by Donald Becker, 2019
@@ -27,9 +30,8 @@ DEALINGS IN THE SOFTWARE.
 
 https://github.com/psyon/php-qrcode
 
-\****************************************************************************/
+**/
 
-class QRCode {
     /**
      * Data to render
      *
@@ -91,7 +93,9 @@ class QRCode {
 
         header('Content-Type: image/png');
         imagepng($image);
-        imagedestroy($image);
+        if (phpversion() < '8.0.0') {
+            imagedestroy($image);
+        }
     }
 
     /**

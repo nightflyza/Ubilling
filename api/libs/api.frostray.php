@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * FrostRay draft implementation
+ */
 class FrostRay {
     protected $enableFlag = false;
     protected $tagId = 0;
