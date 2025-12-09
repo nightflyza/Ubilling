@@ -88,6 +88,13 @@ class Generators {
      * @var array
      */
     protected $allRefuels = array();
+
+    /**
+     * Contains filtered OnePunch punch scripts for generators state monitoring as alias=>name
+     *
+     * @var array
+     */
+    protected $availScripts = array();
     
 
     // some predefined stuff here
@@ -133,7 +140,9 @@ class Generators {
     const PROUTE_SERVICE_TIME = 'servicetime';
     const PROUTE_EDIT_SERVICE = 'editservice';
 
+    //other stuff
     const WATCHER_PID='GENERATORS';
+    const OP_MON_MARK='$generatorState';
 
     /**
      * Creates new Generators instance
@@ -146,7 +155,7 @@ class Generators {
         $this->setFuelTypes();
         $this->initDb();
         $this->initOnePunch();
-
+        $this->loadOnePunchScripts();
         $this->loadDevices();
         $this->loadServices();
         $this->loadEvents();
@@ -180,6 +189,25 @@ class Generators {
      */
     protected function initOnePunch() {
         $this->onePunch = new OnePunch();
+    }
+
+
+    /**
+     * Preloads all one punch scripts and filters them for generators state monitoring
+     *
+     * @return void
+     */
+    protected function loadOnePunchScripts() {
+        $allScripts= $this->onePunch->getAllScripts();
+      
+        if (!empty($allScripts)) {
+            foreach ($allScripts as $io => $each) {
+                if (ispos($each['content'], self::OP_MON_MARK)) {
+                    $this->availScripts[$each['alias']] = $each['name'];
+                }
+                
+            }
+        }
     }
 
     /**
@@ -618,12 +646,12 @@ class Generators {
         $deviceId = ubRouting::filters($deviceId, 'int');
         
         if (isset($this->allDevices[$deviceId])) {
-            $requiredFields = array(self::PROUTE_REFUEL_DEVICE, self::PROUTE_REFUEL_LITERS, self::PROUTE_REFUEL_PRICE);
+            $requiredFields = array(self::PROUTE_REFUEL_DEVICE, self::PROUTE_REFUEL_LITERS);
             if (ubRouting::checkPost($requiredFields)) {
                 $liters = ubRouting::post(self::PROUTE_REFUEL_LITERS, 'float');
                 $price = ubRouting::post(self::PROUTE_REFUEL_PRICE, 'float');
                 
-                if ($liters > 0 AND $price >= 0) {
+                if ($liters > 0) {
                     $currentIntank = $this->allDevices[$deviceId]['intank'];
                     $tankVolume = $this->allDevices[$deviceId]['tankvolume'];
                     $newIntank = $currentIntank + $liters;
@@ -689,7 +717,9 @@ class Generators {
         $inputs .= wf_TextInput(self::PROUTE_DEV_FUEL_CONSUMPTION, __('Fuel consumption'), '', true, 4, 'float');
         $inputs .= wf_TextInput(self::PROUTE_DEV_MOTO_HOURS, __('Motohours'), '', true, 8, 'float');
         $inputs .= wf_TextInput(self::PROUTE_DEV_SERVICE_INTERVAL, __('Service interval'), '', true, 4, 'digits');
-        $inputs .= wf_TextInput(self::PROUTE_DEV_OP_ALIAS, __('One-punch').' '.__('script'), '', true, 10);
+        $availScripts=array(''=>'-');
+        $availScripts=array_merge($availScripts, $this->availScripts);
+        $inputs .= wf_Selector(self::PROUTE_DEV_OP_ALIAS, $availScripts, __('One-punch').' '.__('script'), '', true);
         $inputs .= wf_Submit(__('Create'));
         $result .= wf_Form('', 'POST', $inputs, 'glamour');
         return ($result);
@@ -784,7 +814,9 @@ class Generators {
             $inputs .= wf_TextInput(self::PROUTE_DEV_FUEL_CONSUMPTION, __('Fuel consumption'), $device['consumption'], true, 4, 'float');
             $inputs .= wf_TextInput(self::PROUTE_DEV_MOTO_HOURS, __('Motohours'), $device['motohours'], true, 8, 'float');
             $inputs .= wf_TextInput(self::PROUTE_DEV_SERVICE_INTERVAL, __('Service interval'), $device['serviceinterval'], true, 4, 'digits');
-            $inputs .= wf_TextInput(self::PROUTE_DEV_OP_ALIAS, __('One-punch').' '.__('script'), $device['opalias'], true, 10);
+            $availScripts=array(''=>'-');
+            $availScripts=array_merge($availScripts, $this->availScripts);
+            $inputs .= wf_Selector(self::PROUTE_DEV_OP_ALIAS, $availScripts, __('One-punch').' '.__('script'), $device['opalias'], true);
             
             $inputs .= wf_Submit(__('Save'));
             $result .= wf_Form('', 'POST', $inputs, 'glamour');
@@ -1353,7 +1385,7 @@ class Generators {
             $inputs .= wf_TextInput(self::PROUTE_REFUEL_PRICE, __('Price'), round($refuel['price'], 2), false, 4, 'finance') . ' ';
             $inputs .= wf_DatePickerPreset('refueldate', $refuelDate, true);
             $inputs .= wf_tag('label') . __('Date') . wf_tag('label', true) . ' ';
-            $inputs .= wf_TimePickerPreset('refueltime', $refuelTime, __('Time'), true) . ' ';
+            $inputs .= wf_TimePickerPreset('refueltime', $refuelTime, __('Time'), false) . ' ';
             $inputs .= wf_Submit(__('Save'));
             $result = wf_Form('', 'POST', $inputs, 'glamour');
         }
@@ -1383,14 +1415,14 @@ class Generators {
         }
         
         if ($refuel) {
-            $requiredFields = array(self::PROUTE_EDIT_REFUEL, self::PROUTE_REFUEL_LITERS, self::PROUTE_REFUEL_PRICE);
+            $requiredFields = array(self::PROUTE_EDIT_REFUEL, self::PROUTE_REFUEL_LITERS);
             if (ubRouting::checkPost($requiredFields)) {
                 $liters = ubRouting::post(self::PROUTE_REFUEL_LITERS, 'float');
                 $price = ubRouting::post(self::PROUTE_REFUEL_PRICE, 'float');
                 $refuelDate = ubRouting::post('refueldate', 'mres');
                 $refuelTime = ubRouting::post('refueltime', 'mres');
                 
-                if ($liters > 0 AND $price >= 0) {
+                if ($liters > 0) {
                     $refuelDateTime = $refuel['date'];
                     if (!empty($refuelDate) AND !empty($refuelTime)) {
                         $refuelDateTime = $refuelDate . ' ' . $refuelTime . ':00';

@@ -24,5 +24,8 @@ $lang['def']['Generators running now'] = 'Генератори зараз зап
 $lang['def']['Stopped'] = 'Зупинений';
 $lang['def']['right to use generators monitoring'] = 'Право використовувати моніторинг генераторів';
 $lang['def']['right to manage generators'] = 'Право керувати генераторами';
-
+$lang['def']['Tank overflow'] = 'Переповнення баку';
+$lang['def']['Maximum'] = 'Максимальний';
+$lang['def']['Invalid tank level'] = 'Неправильний рівень баку';
+$lang['def']['Minimum'] = 'Мінімальний';
 
