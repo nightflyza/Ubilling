@@ -144,6 +144,22 @@ class Generators {
     const WATCHER_PID='GENERATORS';
     const OP_MON_MARK='$generatorState';
 
+
+//
+//        .----------.
+//        |   ~ON~   |
+//        |   ____   |
+//        |  |.--.|  |
+//        |  ||  ||  |
+//        |  ||__||  |
+//        |  ||\ \|  |
+//        |  |\ \_\  |
+//        |  |_\[_]  |
+//        |          |
+//        |  ~OFF~   |
+//        '----------'
+//
+
     /**
      * Creates new Generators instance
      *
@@ -1123,15 +1139,19 @@ class Generators {
             usort($this->allServices, function($a, $b) {
                 return strtotime($b['date']) - strtotime($a['date']);
             });
+
+            $columns=array(
+                __('Date'),
+                __('Device'),
+                __('Motohours'),
+                __('Notes')
+            );
             
-            $cells = wf_TableCell(__('Date'));
-            $cells .= wf_TableCell(__('Device'));
-            $cells .= wf_TableCell(__('Motohours'));
-            $cells .= wf_TableCell(__('Notes'));
             if (cfr('GENERATORSMGMT')) {
-                $cells .= wf_TableCell(__('Actions'));
+                $columns[] = __('Actions');
             }
-            $rows = wf_TableRow($cells, 'row1');
+
+            $data=array();
             
             foreach ($this->allServices as $io => $service) {
                 $deviceId = $service['genid'];
@@ -1146,13 +1166,25 @@ class Generators {
                 $cells .= wf_TableCell(round($service['motohours'], 2));
                 $cells .= wf_TableCell($service['notes']);
                 if (cfr('GENERATORSMGMT')) {
-                    $editDialog = wf_modalAuto(web_edit_icon(), __('Edit'), $this->renderServiceEditForm($service['id']));
-                    $cells .= wf_TableCell($editDialog);
+                
                 }
-                $rows .= wf_TableRow($cells, 'row5');
+                
+
+                $dataRow=array($service['date'],
+                $deviceName,
+                round($service['motohours'], 2),
+                $service['notes'],
+                );
+
+                if (cfr('GENERATORSMGMT')) {
+                    $editDialog = wf_modalAuto(web_edit_icon(), __('Edit'), $this->renderServiceEditForm($service['id']));
+                    array_push($dataRow, $editDialog);
+                }
+                $data[]=$dataRow;
             }
             
-            $result .= wf_TableBody($rows, '100%', 0, 'sortable');
+            $opts='"dom": \'<"F"lfB>rti<"F"ps>\',  buttons: [\'csv\', \'excel\', \'pdf\', \'print\']';
+            $result=wf_JqDtEmbed($columns, $data, false, __('Maintenance'),50, $opts);
         } else {
             $result .= $this->messages->getStyledMessage(__('Nothing to show'), 'warning');
         }
@@ -1315,15 +1347,19 @@ class Generators {
                 return strtotime($b['date']) - strtotime($a['date']);
             });
             
-            $cells = wf_TableCell(__('Date'));
-            $cells .= wf_TableCell(__('Device'));
-            $cells .= wf_TableCell(__('Liters'));
-            $cells .= wf_TableCell(__('Price'));
+            $columns=array(
+                __('Date'),
+                __('Device'),
+                __('Liters'),
+                __('Price'),
+                __('Total')
+            );
+
             if (cfr('GENERATORSMGMT')) {
-                $cells .= wf_TableCell(__('Actions'));
+                $columns[] = __('Actions');
             }
-            $rows = wf_TableRow($cells, 'row1');
-            
+
+            $data=array();
             foreach ($this->allRefuels as $io => $refuel) {
                 $deviceId = $refuel['genid'];
                 $deviceName = __('Unknown');
@@ -1332,18 +1368,24 @@ class Generators {
                     $deviceName = $device['model'] . ' - ' . $device['address'];
                 }
                 
-                $cells = wf_TableCell($refuel['date']);
-                $cells .= wf_TableCell($deviceName);
-                $cells .= wf_TableCell(round($refuel['liters'], 2) . ' ' . __('litre'));
-                $cells .= wf_TableCell(round($refuel['price'], 2));
+                $editDialog='';
+
+                $dataRow=array($refuel['date'],
+                $deviceName,
+                round($refuel['liters'], 2) . ' ' . __('litre'),
+                round($refuel['price'], 2),
+                round($refuel['liters'] * $refuel['price'], 2)
+                );
+
                 if (cfr('GENERATORSMGMT')) {
                     $editDialog = wf_modalAuto(web_edit_icon(), __('Edit'), $this->renderRefuelEditForm($refuel['id']));
-                    $cells .= wf_TableCell($editDialog);
+                    array_push($dataRow, $editDialog);
                 }
-                $rows .= wf_TableRow($cells, 'row5');
+                $data[]=$dataRow;
             }
             
-            $result .= wf_TableBody($rows, '100%', 0, 'sortable');
+            $opts='"dom": \'<"F"lfB>rti<"F"ps>\',  buttons: [\'csv\', \'excel\', \'pdf\', \'print\']';
+            $result=wf_JqDtEmbed($columns, $data, false, __('Refuels'),50, $opts);
         } else {
             $result .= $this->messages->getStyledMessage(__('Nothing to show'), 'warning');
         }
