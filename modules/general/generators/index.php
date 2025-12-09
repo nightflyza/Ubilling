@@ -113,6 +113,7 @@ if (cfr('GENERATORS')) {
                 $genCreationDialog = wf_modalAuto(web_icon_create() . ' ' . __('Create new'), __('Create new'), $generators->renderDeviceCreateForm(), 'ubButton');
                 show_window('', $genCreationDialog);
             }
+            zb_billingStats(true);
         }
 
 
