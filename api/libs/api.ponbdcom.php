@@ -5,6 +5,21 @@
  */
 class PONBdcom extends PONProto {
 
+
+    /**
+     * Contains system UbillingConfig object instance
+     *
+     * @var object
+     */
+    protected $ubConfig = '';
+    
+    /**
+     * Contains flag that enables UNI port oper status polling
+     *
+     * @var bool
+     */
+    protected $onuUniStatusEnabled = false;
+
     /**
      * Receives, preprocess and stores all required data from BDCOM 36xx/33xx or Eltex OLT device
      * 

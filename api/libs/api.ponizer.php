@@ -2169,7 +2169,7 @@ class PONizer {
                 $result .= wf_tag('div', false, 'onusignalbig');
                 $result .= $sigTypeLabel . ' ' . __('Signal') . ' ' . __('ONU');
                 $result .= wf_delimiter();
-                $result .= wf_tag('font', false, '', 'color="' . $onuSignal['color'] . '" size="16pt"') . $onuSignal['raw'] . wf_tag('font', true);
+                $result .= wf_tag('font', false, '', 'color="' . $onuSignal['color'] . '" size="8pt"') . $onuSignal['raw'] . wf_tag('font', true);
                 $result .= wf_delimiter();
                 if ($deadOltFlag) {
                     $result .= wf_img('skins/skull.png') . ' ' . __('OLT is dead now');
@@ -2178,7 +2178,9 @@ class PONizer {
                 }
 
                 $result .= $this->renderOnuMiscStats($onuId, $onuSignal);
-                $result .= ($this->onuUniStatusEnabled) ? $this->renderONUUniStats($onuId, $onuSignal) : '';
+                if ($this->onuUniStatusEnabled)  {
+                    $result .= $this->renderONUUniStats($onuId, $onuSignal);
+                }
                 $result .= wf_tag('div', true);
             }
         }
@@ -2251,7 +2253,7 @@ class PONizer {
             $pollTimeIcon = ($signalStatsData['pollnow']) ? self::POLL_RUNNING : wf_img_sized('skins/icon_time_small.png', $fullTime, '12');
             $onuMiscStats .= $pollTimeIcon . ' ' . $shortTime;
 
-            $containerStyle = 'style="font-size:10pt; padding:10px;"';
+            $containerStyle = 'style="font-size:10pt; padding-top:10px;"';
             $result .= wf_tag('div', false, '', $containerStyle);
             $result .= $onuMiscStats;
             $result .= wf_tag('div', true);
@@ -2306,17 +2308,17 @@ class PONizer {
 
                     if ($curEtherStatus) {
                         $interfaceIcon = wf_img_sized('skins/icon_ether.gif', __('Interface')) . wf_nbsp()
-                            . wf_img_sized('skins/rise_icon.png', __('Up'), '8', '10') . ' ' . $curEtherSpeed;
+                            . wf_img_sized('skins/rise_icon.png', __('Connected'), '8', '10') . ' ' . $curEtherSpeed;
                     } else {
 
                         $interfaceIcon = wf_img_sized('skins/icon_ether_down.png', __('Interface')) . wf_nbsp()
-                            . wf_img_sized('skins/drain_icon.png', __('Down'), '8', '10');
+                            . wf_img_sized('skins/drain_icon.png', __('Disconnected'), '8', '10');
                     }
 
                     $onuUniOperStats .= $eachPort . ': ' . $interfaceIcon . wf_nbsp(4);
                 }
 
-                $containerStyle = 'style="font-size:10pt; padding:10px;"';
+                $containerStyle = 'style="font-size:10pt; padding-top:10px;"';
                 $result .= wf_tag('div', false, '', $containerStyle);
                 $result .= $onuUniOperStats;
                 $result .= wf_tag('div', true);
