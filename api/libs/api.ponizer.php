@@ -2878,7 +2878,6 @@ class PONizer {
         $distCacheAvail = $this->oltData->isDistancesAvailable();
         $intCacheAvail = $this->oltData->isInterfacesAvailable();
         $lastDeregCacheAvail = $this->oltData->isDeregsAvailable();
-        $oltOnuCounters = $this->getOltOnuCounts();
         $gotoOltId = ubRouting::get(self::ROUTE_GOTO_OLT, 'int');
 
         $opts = '"order": [[ 0, "desc" ]]';
@@ -3881,8 +3880,17 @@ class PONizer {
                         }
 
                         if ($lastDeregCacheAvail) {
+                            $ONUIsOffline=true;
                             if ($ONUIsOffline) {
-                                $data[] = @$this->lastDeregCache[$each['mac']];
+                                $deregReason='';
+                                if (isset($this->lastDeregCache[$each['mac']])) {
+                                    $deregReason = $this->lastDeregCache[$each['mac']];
+                                } else {
+                                    if (isset($this->lastDeregCache[$each['serial']])) {
+                                        $deregReason = $this->lastDeregCache[$each['serial']];
+                                    }
+                                }
+                                $data[] = $deregReason;
                             } else {
                                 $data[] = '';
                             }
