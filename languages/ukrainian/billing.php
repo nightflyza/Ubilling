@@ -3630,3 +3630,4 @@ $lang['def']['Just'] = 'Просто';
 $lang['def']['Unpin contact'] = 'Відкріпити контакт';
 $lang['def']['Pin contact'] = 'Закріпити контакт';
 $lang['def']['All trips'] = 'Всі поїздки';
+$lang['def']['LAN ports'] = 'LAN порти';

@@ -2276,6 +2276,7 @@ class PONizer {
         $uniStatsData = '';
         $onuUniOperStats = '';
         $offlineFlag = ($signalStatsData['isoffline']) ? true : false;
+        $compactMode = $this->ubConfig->getAlterParam('PON_ONU_UNI_STATUS_COMPACT', false);
 
         if (isset($this->allOnu[$onuId]) and !$offlineFlag) {
             $this->loadUniOperStatsCache();
@@ -2306,20 +2307,34 @@ class PONizer {
                         $curEtherStatus = $eachStatus;
                     }
 
-                    if ($curEtherStatus) {
-                        $interfaceIcon = wf_img_sized('skins/icon_ether.gif', __('Interface')) . wf_nbsp()
-                            . wf_img_sized('skins/rise_icon.png', __('Connected'), '8', '10') . ' ' . $curEtherSpeed;
+                    if ($compactMode) {
+                        if ($curEtherStatus) {
+                            $interfaceIcon =  wf_img_sized('skins/rise_icon.png', __('Connected'), '8', '10') . ' ' . $curEtherSpeed;
+                        } else {
+                            $interfaceIcon =  wf_img_sized('skins/drain_icon.png', __('Disconnected'), '8', '10').' ';
+                        }
                     } else {
-
-                        $interfaceIcon = wf_img_sized('skins/icon_ether_down.png', __('Interface')) . wf_nbsp()
-                            . wf_img_sized('skins/drain_icon.png', __('Disconnected'), '8', '10');
+                        if ($curEtherStatus) {
+                            $interfaceIcon = wf_img_sized('skins/icon_ether.gif', __('Interface')) . wf_nbsp();
+                            $interfaceIcon .=  wf_img_sized('skins/rise_icon.png', __('Connected'), '8', '10') . ' ' . $curEtherSpeed;
+                        } else {
+                            $interfaceIcon = wf_img_sized('skins/icon_ether_down.png', __('Interface')) . wf_nbsp();
+                            $interfaceIcon .=  wf_img_sized('skins/drain_icon.png', __('Disconnected'), '8', '10');
+                        }
                     }
 
-                    $onuUniOperStats .= $eachPort . ': ' . $interfaceIcon . wf_nbsp(4);
+                    if ($compactMode) {
+                        $onuUniOperStats .= ubRouting::filters($eachPort, 'int') .' ' . $interfaceIcon . wf_nbsp();
+                    } else {
+                        $onuUniOperStats .= $eachPort . ': ' . $interfaceIcon . wf_nbsp(4);
+                    }
                 }
 
                 $containerStyle = 'style="font-size:10pt; padding-top:10px;"';
                 $result .= wf_tag('div', false, '', $containerStyle);
+                if ($compactMode) {
+                    $result .= wf_img_sized('skins/linkcopper.png', __('Copper'), '12').' '.__('LAN ports').': ';
+                }
                 $result .= $onuUniOperStats;
                 $result .= wf_tag('div', true);
             }
