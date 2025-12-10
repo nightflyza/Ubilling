@@ -540,7 +540,8 @@ class Generators {
                     $cancelUrl=self::URL_ME . '&' . self::ROUTE_DEVICES . '=true';
                     $deletionDialog=wf_ConfirmDialog($deletionUrl, web_delete_icon(), $this->messages->getDeleteAlert(), '', $cancelUrl, __('Delete').'?');
                     $deviceControls .= $deletionDialog;
-                    $editDialog = wf_modalAuto(web_edit_icon(), __('Edit'), $this->renderDeviceEditForm($device['id']));
+                    $editTitle = __('Edit').' ID:' . $device['id'] . ', '.$device['address'];
+                    $editDialog = wf_modalAuto(web_edit_icon(), $editTitle, $this->renderDeviceEditForm($device['id']));
                     $deviceControls .= $editDialog;
                 
 
