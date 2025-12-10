@@ -3882,7 +3882,6 @@ class PONizer {
                         }
 
                         if ($lastDeregCacheAvail) {
-                            $ONUIsOffline=true;
                             if ($ONUIsOffline) {
                                 $deregReason='';
                                 if (isset($this->lastDeregCache[$each['mac']])) {
