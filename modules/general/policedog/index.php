@@ -12,7 +12,7 @@ if (cfr('POLICEDOG')) {
             show_window('', $policedog->$avidity_m_face());
 
             //create new MAC records
-            if (wf_CheckPost(array($avidity['P']['PULL']))) {
+            if (ubRouting::checkPost(array($avidity['P']['PULL']))) {
                 $avidity_m_save = $avidity['M']['SAVE'];
                 $createResult = $policedog->$avidity_m_save();
                 if (empty($createResult)) {
@@ -31,27 +31,28 @@ if (cfr('POLICEDOG')) {
              * Pure black magic that we cannot control
              */
             //mac deletion
-            if (wf_CheckGet(array($avidity['P']['MDEL']))) {
+            if (ubRouting::checkGet(array($avidity['P']['MDEL']))) {
                 $avidity_m_kill = $avidity['M']['KILL'];
                 $policedog->$avidity_m_kill($_GET[$avidity['P']['MDEL']]);
-                rcms_redirect($policedog::URL_ME);
+                ubRouting::nav($policedog::URL_ME);
             }
 
             //alert deletion
-            if (wf_CheckGet(array($avidity['P']['ADEL']))) {
+            if (ubRouting::checkGet(array($avidity['P']['ADEL']))) {
                 $dVoid = new DarkVoid();
                 $dVoid->flushCache();
                 $avidity_m_killa = $avidity['M']['KILLA'];
                 $policedog->$avidity_m_killa($_GET[$avidity['P']['ADEL']]);
-                rcms_redirect($policedog::URL_ME . '&show=fastscan');
+                ubRouting::nav($policedog::URL_ME . '&show=fastscan');
             }
 
 
-            if (!wf_CheckGet(array('show'))) {
+            if (!ubRouting::checkGet(array('show'))) {
                 //rendering database list
                 show_window(__('Wanted MAC database'), $policedog->renderWandedMacList());
+                zb_billingStats(true);
             } else {
-                $showOpt = $_GET['show'];
+                $showOpt = ubRouting::get('show');
                 switch ($showOpt) {
                     case 'ajwlist':
                         $policedog->renderWantedMacListAjaxReply();
@@ -79,4 +80,3 @@ if (cfr('POLICEDOG')) {
 } else {
     show_error(__('Access denied'));
 }
-?>

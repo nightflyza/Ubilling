@@ -54,13 +54,58 @@ class PoliceDog {
      */
     protected $usersMacs = array();
 
+    /**
+     * Contains police dog database abstraction layer
+     * 
+     * @var object
+     */
+    protected $policeDogDb='';
+    
+    /**
+     * Contains police dog alerts database abstraction layer
+     * 
+     * @var object
+     */
+    protected $policeDogAlertsDb='';
+    
+    /**
+     * Contains weblogs database abstraction layer
+     * 
+     * @var object
+     */
+    protected $weblogsDb='';
+
+    /**
+     * Contains pononu database abstraction layer
+     * 
+     * @var object
+     */
+    protected $pononuDb='';
+
+    /**
+     * Contains fdbarchive database abstraction layer
+     * 
+     * @var object
+     */
+    protected $fdbArchiveDb='';
+
+
+    // some predefined stuff here
     const URL_ME = '?module=policedog';
+    const TABLE_POLICEDOG = 'policedog';
+    const TABLE_POLICEDOGALERTS = 'policedogalerts';
+    const TABLE_WEBLOGS = 'weblogs';
+    const TABLE_PONONU = 'pononu';
+    const TABLE_FDBARCHIVE = 'fdbarchive';
+    const OPTION_DHCP='DHCP_ENABLED';
+    const OPTION_PON='PON_ENABLED';
 
     /**
      * Creates new PoliceDog instance
      */
     public function __construct() {
         $this->loadConfig();
+        $this->initDbs();
         $this->loadMacData();
         $this->loadUsersMacs();
         $this->loadAlerts();
@@ -90,13 +135,25 @@ class PoliceDog {
     }
 
     /**
+     * Inits database abstraction layers
+     * 
+     * @return void
+     */
+    protected function initDbs() {
+        $this->policeDogDb = new NyanORM(self::TABLE_POLICEDOG);
+        $this->policeDogAlertsDb = new NyanORM(self::TABLE_POLICEDOGALERTS);
+        $this->weblogsDb = new NyanORM(self::TABLE_WEBLOGS);
+        $this->pononuDb = new NyanORM(self::TABLE_PONONU);
+        $this->fdbArchiveDb = new NyanORM(self::TABLE_FDBARCHIVE);
+    }
+
+    /**
      * Loads current MAC-s data into protected property
      * 
      * @return void
      */
     protected function loadMacData() {
-        $query = "SELECT * from `policedog`";
-        $all = simple_queryall($query);
+        $all = $this->policeDogDb->getAll();
         if (!empty($all)) {
             foreach ($all as $io => $each) {
                 $this->macData[$each['id']] = $each;
@@ -111,13 +168,7 @@ class PoliceDog {
      * @return void
      */
     protected function loadAlerts() {
-        $query = "SELECT * from `policedogalerts`";
-        $all = simple_queryall($query);
-        if (!empty($all)) {
-            foreach ($all as $io => $each) {
-                $this->alerts[$each['id']] = $each;
-            }
-        }
+        $this->alerts = $this->policeDogAlertsDb->getAll('id');
     }
 
     /**
@@ -182,11 +233,11 @@ class PoliceDog {
      * @return void
      */
     public function deleteWantedMac($id) {
-        $id = vf($id, 3);
+        $id = ubRouting::filters($id, 'int');
         if (isset($this->macData[$id])) {
             $deleteMac = $this->macData[$id]['mac'];
-            $query = "DELETE from `policedog` WHERE `id`='" . $id . "';";
-            nr_query($query);
+            $this->policeDogDb->where('id','=',$id);
+            $this->policeDogDb->delete();
             log_register('POLICEDOG DELETE MAC `' . $deleteMac . '`');
         }
     }
@@ -226,26 +277,26 @@ class PoliceDog {
     public function catchCreateMacRequest() {
         $result = '';
         $count = 0;
-        if (wf_CheckPost(array('newmacupload'))) {
-            if (!empty($_POST['newmacupload'])) {
-                $macsRaw = explodeRows($_POST['newmacupload']);
+        if (ubRouting::checkPost('newmacupload')) {
+                $macsRaw = explodeRows(ubRouting::post('newmacupload'));
                 if (!empty($macsRaw)) {
                     $curDate = curdatetime();
-                    if (wf_CheckPost(array('newnotes'))) {
-                        $newNotes = mysql_real_escape_string($_POST['newnotes']);
-                    } else {
-                        $newNotes = '';
+                    $newNotes = '';
+                    if (ubRouting::checkPost('newnotes')) {
+                        $newNotes = ubRouting::post('newnotes', 'mres');
                     }
+
                     foreach ($macsRaw as $io => $eachmac) {
                         $insertMac = trim($eachmac);
-                        $insertMac = mysql_real_escape_string($insertMac);
+                        $insertMac = ubRouting::filters($insertMac, 'mres');
                         $insertMac = strtolower_utf8($insertMac);
                         if (!empty($insertMac)) {
                             if (check_mac_format($insertMac)) {
                                 if (!isset($this->allMacs[$insertMac])) {
-                                    $query = "INSERT INTO `policedog` (`id`,`date`,`mac`,`notes`) VALUES ";
-                                    $query.= "(NULL,'" . $curDate . "','" . $insertMac . "','" . $newNotes . "');";
-                                    nr_query($query);
+                                    $this->policeDogDb->data('date', $curDate);
+                                    $this->policeDogDb->data('mac', $insertMac);
+                                    $this->policeDogDb->data('notes', $newNotes);
+                                    $this->policeDogDb->create();
                                     $count++;
                                 } else {
                                     $result.= $this->messages->getStyledMessage(__('MAC duplicate') . ': ' . $insertMac, 'warning');
@@ -257,7 +308,7 @@ class PoliceDog {
                     }
                     log_register('POLICEDOG UPLOAD `' . $count . '` MAC');
                 }
-            }
+            
         }
         return ($result);
     }
@@ -294,9 +345,10 @@ class PoliceDog {
                 if (isset($this->usersMacs[$eachmac])) {
                     $detectedLogin = $this->usersMacs[$eachmac];
                     if ($this->isNotAlertedYet($eachmac)) {
-                        $query = "INSERT INTO `policedogalerts` (`id`,`date`,`mac`,`login`) VALUES ";
-                        $query.= "(NULL, '" . $curDate . "', '" . $eachmac . "', '" . $detectedLogin . "');";
-                        nr_query($query);
+                        $this->policeDogAlertsDb->data('date', $curDate);
+                        $this->policeDogAlertsDb->data('mac', $eachmac);
+                        $this->policeDogAlertsDb->data('login', $detectedLogin);
+                        $this->policeDogAlertsDb->create();
                         log_register('POLICEDOG MAC `' . $eachmac . '` ALERT `' . $detectedLogin . '`');
                     }
                 }
@@ -311,7 +363,7 @@ class PoliceDog {
      */
     public function renderFastScan() {
         $result = '';
-        $result.=wf_Link(self::URL_ME . '&show=fastscan&forcefast=true', wf_img('skins/refresh.gif') . ' ' . __('Renew'), true, 'ubButton');
+        
         if (!empty($this->alerts)) {
             $cells = wf_TableCell(__('ID'));
             $cells.= wf_TableCell(__('Date'));
@@ -323,8 +375,11 @@ class PoliceDog {
                 $cells = wf_TableCell($each['id']);
                 $cells.= wf_TableCell($each['date']);
                 $cells.= wf_TableCell($each['mac']);
-                $profileLink = wf_Link('?module=userprofile&username=' . $each['login'], web_profile_icon() . ' ' . $each['login'], false, '');
-                $cells.= wf_TableCell($profileLink);
+                $assignedLabel ='';
+                if (!empty($each['login'])) {
+                 $assignedLabel = wf_Link(UserProfile::URL_PROFILE . $each['login'], web_profile_icon() . ' ' . $each['login'], false, '');
+                }
+                $cells.= wf_TableCell($assignedLabel);
                 $actLinks = wf_JSAlertStyled(self::URL_ME . '&delalertid=' . $each['id'], web_delete_icon(), $this->messages->getDeleteAlert(), '');
                 $cells.= wf_TableCell($actLinks);
                 $rows.= wf_TableRow($cells, 'row3');
@@ -334,6 +389,9 @@ class PoliceDog {
         } else {
             $result.= $this->messages->getStyledMessage(__('Nothing found'), 'info');
         }
+
+        $result.=wf_delimiter();
+        $result.=wf_Link(self::URL_ME . '&show=fastscan&forcefast=true', wf_img('skins/refresh.gif') . ' ' . __('Renew'), true, 'ubButton');
         return ($result);
     }
 
@@ -348,8 +406,8 @@ class PoliceDog {
         $id = vf($id, 3);
         if (isset($this->alerts[$id])) {
             $alertData = $this->alerts[$id];
-            $query = "DELETE from `policedogalerts` WHERE `id`='" . $id . "';";
-            nr_query($query);
+            $this->policeDogAlertsDb->where('id','=',$id);
+            $this->policeDogAlertsDb->delete();
             log_register('POLICEDOG DELETE ALERT [' . $id . '] MAC `' . $alertData['mac'] . '`');
         }
     }
@@ -384,6 +442,7 @@ class PoliceDog {
             }
 
             //DHCP logs parsing
+            if ($this->altCfg[self::OPTION_DHCP]) {
             $cat_path = $this->billCfg['CAT'];
             $sudo_path = $this->billCfg['SUDO'];
             $tail_path = $this->billCfg['TAIL'];
@@ -413,6 +472,7 @@ class PoliceDog {
                 } else {
                     $result.=$this->messages->getStyledMessage(__('No wanted MAC DHCP requests detected'), 'success');
                 }
+            }
             }
 
             //FDB cache processing
@@ -450,11 +510,35 @@ class PoliceDog {
                 $result.= $this->messages->getStyledMessage(__('No wanted MAC in FDB cache detected'), 'success');
             }
 
+
+            //FDB archive processing
+            $fdbArchiveAlerts = '';
+            $fdbArchiveRaw = $this->fdbArchiveDb->getAll();
+            if (!empty($fdbArchiveRaw)) {
+                foreach ($fdbArchiveRaw as $io => $eachFdbArchiveRec) {
+                    foreach ($this->allMacs as $eachMac => $eachId) {
+                        if (ispos($eachFdbArchiveRec['data'], $eachMac)) {
+                            $occurParams='';
+                            $occurParams.= '('.$eachFdbArchiveRec['date'].' '.__('on').' '.$eachFdbArchiveRec['devip'].')';
+                            $fdbArchiveAlerts.= $this->messages->getStyledMessage(__('Wanted MAC occurs in').' '.__('FDB').' '.__('Archive')  . ': ' . $eachMac . ' ' . $occurParams, 'error');
+                        }
+                    }
+                }
+            }
+
+            if (!empty($fdbArchiveAlerts)) {
+                $result.= $fdbArchiveAlerts;
+            } else {
+                $result.= $this->messages->getStyledMessage(__('No wanted MAC dectected in').' '.__('FDB').' '.__('Archive'), 'success');
+            }
+
             //weblogs assigns parsing
             $logAlerts = '';
             $logAlertsTmp = array();
-            $weblogs_q = "SELECT `event` from `weblogs` WHERE `event` NOT LIKE '%POLICEDOG%' AND `event` LIKE '%MAC%'";
-            $weblogsRaw = simple_queryall($weblogs_q);
+            $this->weblogsDb->where('event','not like','%POLICEDOG%');
+            $this->weblogsDb->where('event','like','%MAC%');
+            $this->weblogsDb->selectable('event');
+            $weblogsRaw = $this->weblogsDb->getAll();
             if (!empty($weblogsRaw)) {
                 foreach ($weblogsRaw as $io => $eachEvent) {
                     $macExtract = zb_ExtractMacAddress($eachEvent['event']);
@@ -475,12 +559,11 @@ class PoliceDog {
             }
 
             //PON devices processing
-            if ($this->altCfg['PON_ENABLED']) {
+            if ($this->altCfg[self::OPTION_PON]) {
                 $ponAlerts = '';
                 $ponAlertsTmp = array();
-                $pon_q = "SELECT `mac` from `pononu`";
-                $ponRaw = simple_queryall($pon_q);
-                if (!empty($pon_q)) {
+                $ponRaw = $this->pononuDb->getAll();
+                if (!empty($ponRaw)) {
                     foreach ($ponRaw as $io => $eachPonMac) {
                         $eachPonMac = $eachPonMac['mac'];
                         if (isset($this->allMacs[$eachPonMac])) {
@@ -505,4 +588,3 @@ class PoliceDog {
 
 }
 
-?>

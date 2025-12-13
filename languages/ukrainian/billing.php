@@ -3631,3 +3631,5 @@ $lang['def']['Unpin contact'] = 'Відкріпити контакт';
 $lang['def']['Pin contact'] = 'Закріпити контакт';
 $lang['def']['All trips'] = 'Всі поїздки';
 $lang['def']['LAN ports'] = 'LAN порти';
+$lang['def']['Wanted MAC occurs in'] = 'Розшукуваний MAC помічено в';
+$lang['def']['No wanted MAC dectected in'] = 'Розшукуваний MAC не знайдено в';
