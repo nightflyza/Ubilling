@@ -255,6 +255,11 @@ class PONBoxes {
         $this->allLinks = $this->links->getAll('id');
     }
 
+    /**
+     * Loads all available splitters links from database
+     *
+     * @return void
+     */
     protected function loadSplittersLinks() {
         $this->allSplittersLinks = $this->splittersLinks->getAll('id');
     }
@@ -359,8 +364,10 @@ class PONBoxes {
             if (empty($boxData['geo'])) {
                 $result .= wf_Link($mapPlaceUrl, wf_img('skins/ymaps/target.png') . ' ' . __('Place on map'), false, 'ubButton');
             } else {
-                $result.=wf_delimiter(1);
-                $result .= $this->renderBoxesMiniMap($boxData['geo'], $boxId);
+                if (@$this->altCfg['PONBOXES_MINIMAP']) {    
+                    $result .= wf_delimiter(1);
+                    $result .= $this->renderBoxesMiniMap($boxData['geo'], $boxId);
+                }
             }
         } else {
             $result .= $this->messages->getStyledMessage(__('Something went wrong') . ': ' . __('box') . ' [' . $boxId . '] ' . __('Not exists'), 'error');
@@ -624,6 +631,10 @@ class PONBoxes {
         $onuBuilds = $onuPlacemarksRaw['builds'];
         $placemarks = $onuPlacemarksRaw['placemarks'];
        
+        // Build indexes once before the loop for O(1) lookups instead of O(n) iterations
+        // This dramatically improves performance when processing many ONUs
+        $linksIndexes = $this->buildLinksIndexes();
+       
         if ($ponBoxIdFilter > 0) {
             $filteredBuilds = array();
         }
@@ -637,9 +648,9 @@ class PONBoxes {
                             $onuData = @$allOnuData[$onuId];
                             if (!empty($onuData)) {
                                 $signalState = $eachBuildOnu['signalstate'];
-                                $linkedBoxes = $this->getLinkedBoxes($onuData);
+                                // Use optimized version with pre-built indexes
+                                $linkedBoxes = $this->getLinkedBoxesOptimized($onuData, $linksIndexes);
                                 if (!empty($linkedBoxes) and $onuData) {
-                                    
                                     if ($ponBoxIdFilter > 0) {
                                         if (!isset($linkedBoxes[$ponBoxIdFilter])) {
                                             continue;
@@ -707,6 +718,9 @@ class PONBoxes {
             $result .= generic_MapContainer('100%', '800px', $mapContainer);
             $placemarks = '';
             $editor = '';
+            $editTitle=__('Edit');
+            $findTitle=__('Find on map');
+            $onuLinksTitle=__('Show links');
 
             if (ubRouting::checkGet(self::ROUTE_ONULINKS)) {
                 $placemarks .= $this->renderOnuLinks();
@@ -728,9 +742,13 @@ class PONBoxes {
             foreach ($this->allBoxes as $io => $each) {
                 if (!empty($each['geo'])) {
                     $boxLinks = '';
-                    $boxLinks = trim(wf_Link(self::URL_ME . '&' . self::ROUTE_BOXEDIT . '=' . $each['id'], web_edit_icon())).' ';
-                    $boxLinks .= trim(wf_Link(self::URL_ME . '&' . self::ROUTE_MAP . '=true&' . self::ROUTE_PLACEFIND . '=' . $each['geo'], wf_img_sized('skins/icon_search_small.gif',__('Find on map')))).' ';
-                    $boxLinks .= trim(wf_Link(self::URL_ME . '&' . self::ROUTE_MAP . '=true&' . self::ROUTE_PLACEFIND . '=' . $each['geo'].'&' . self::ROUTE_ONULINKS . '=true', wf_img('skins/ymaps/uplinks.png',__('Show links')))).' ';
+                    $editURL = self::URL_ME . '&' . self::ROUTE_BOXEDIT . '=' . $each['id'];
+                    $findURL = self::URL_ME . '&' . self::ROUTE_MAP . '=true&' . self::ROUTE_PLACEFIND . '=' . $each['geo'];
+                    $onuLinksURL = self::URL_ME . '&' . self::ROUTE_MAP . '=true&' . self::ROUTE_PLACEFIND . '=' . $each['geo'].'&' . self::ROUTE_ONULINKS . '=true';
+                    //not using wf_link/wf_tag here to avoid multiple recursion callbacks of __()
+                    $boxLinks = '<a href="'.$editURL.'"><img src="skins/icon_edit.gif" alt="'.$editTitle.'" title="'.$editTitle.'"></a> ';
+                    $boxLinks .= '<a href="'.$findURL.'"><img src="skins/icon_search_small.gif" alt="'.$findTitle.'"></a> ';
+                    $boxLinks .= '<a href="'.$onuLinksURL.'"><img src="skins/ymaps/uplinks.png" alt="'.$onuLinksTitle.'"></a>';
                     $placemarks .= generic_mapAddMark($each['geo'], '', $each['name'] , $boxLinks, '', '', true);
                 }
             }
@@ -860,7 +878,98 @@ class PONBoxes {
     }
 
     /**
+     * Builds optimized indexes for link lookups
+     * This method creates lookup arrays indexed by onuid, login, and address
+     * to avoid iterating through all links for each ONU lookup
+     *
+     * @return array Array with keys: 'byOnuid', 'byLogin', 'byAddress'
+     */
+    protected function buildLinksIndexes() {
+        $indexes = array(
+            'byOnuid' => array(),
+            'byLogin' => array(),
+            'byAddress' => array()
+        );
+
+        if (!empty($this->allLinks)) {
+            foreach ($this->allLinks as $io => $eachLink) {
+                // Index by ONU ID
+                if (!empty($eachLink['onuid'])) {
+                    $onuId = $eachLink['onuid'];
+                    if (!isset($indexes['byOnuid'][$onuId])) {
+                        $indexes['byOnuid'][$onuId] = array();
+                    }
+                    $indexes['byOnuid'][$onuId][$eachLink['boxid']] = $eachLink['boxid'];
+                }
+
+                // Index by login
+                if (!empty($eachLink['login'])) {
+                    $login = $eachLink['login'];
+                    if (!isset($indexes['byLogin'][$login])) {
+                        $indexes['byLogin'][$login] = array();
+                    }
+                    $indexes['byLogin'][$login][$eachLink['boxid']] = $eachLink['id'];
+                }
+
+                // Index by address
+                if (!empty($eachLink['address'])) {
+                    $address = $eachLink['address'];
+                    if (!isset($indexes['byAddress'][$address])) {
+                        $indexes['byAddress'][$address] = array();
+                    }
+                    $indexes['byAddress'][$address][$eachLink['boxid']] = $eachLink['id'];
+                }
+            }
+        }
+
+        return $indexes;
+    }
+
+    /**
+     * Search some linked boxes for this ONU using pre-built indexes
+     *
+     * @param array $onuData
+     * @param array $linksIndexes Pre-built indexes from buildLinksIndexes()
+     *
+     * @return array
+     */
+    protected function getLinkedBoxesOptimized($onuData, $linksIndexes) {
+        $result = array();
+        if (!empty($onuData)) {
+            $onuId = $onuData['id'];
+            $onuUser = $onuData['login'];
+
+            // ONU ID link search
+            if (!empty($linksIndexes['byOnuid'][$onuId])) {
+                foreach ($linksIndexes['byOnuid'][$onuId] as $boxId => $linkId) {
+                    $result[$boxId] = $boxId;
+                }
+            }
+
+            if (!empty($onuUser)) {
+                // Address search
+                $onuUserAddress = @$this->allUserAddress[$onuUser];
+                if (!empty($onuUserAddress) && !empty($linksIndexes['byAddress'][$onuUserAddress])) {
+                    foreach ($linksIndexes['byAddress'][$onuUserAddress] as $boxId => $linkId) {
+                        $result[$boxId] = $linkId;
+                    }
+                }
+
+                // Direct login search
+                if (!empty($linksIndexes['byLogin'][$onuUser])) {
+                    foreach ($linksIndexes['byLogin'][$onuUser] as $boxId => $linkId) {
+                        $result[$boxId] = $linkId;
+                    }
+                }
+            }
+        }
+        return ($result);
+    }
+
+    /**
      * Search some linked boxes for this ONU
+     * Original method kept for backward compatibility
+     * For performance-critical code, use getLinkedBoxesOptimized() with pre-built indexes
      *
      * @param array $onuData
      *
@@ -1242,6 +1351,15 @@ class PONBoxes {
         $inputs = $photoStorage->renderUploadForm(true, base64_encode(self::URL_ME . '&' . self::ROUTE_BOXEDIT . '=' . $boxID));
         $inputs .= $photoStorage->renderImagesList();
         return ($inputs);
+    }
+
+    /**
+     * Returns all available boxes as id=>boxdata
+     *
+     * @return array
+     */
+    public function getAllBoxes() {
+        return ($this->allBoxes);
     }
 
 }
