@@ -34,7 +34,7 @@ $user_login = zbs_UserGetLoginByIp($user_ip);
 $us_config = zbs_LoadConfig();
 $us_access = zbs_GetUserStatsDeniedAll();
 
-if (!empty($us_access)) {
+if (!empty($us_access) and !empty($user_login)) {
     if (isset($us_access[$user_login])) {
         $accDeniedBody = file_get_contents('modules/jsc/youshallnotpass.html');
         die($accDeniedBody);
