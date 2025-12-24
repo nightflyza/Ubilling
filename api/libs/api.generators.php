@@ -1204,7 +1204,7 @@ class Generators {
                 $data[]=$dataRow;
             }
             
-            $opts='"dom": \'<"F"lfB>rti<"F"ps>\',  buttons: [\'csv\', \'excel\', \'pdf\', \'print\']';
+            $opts='order: [[ 0, "desc" ]], "dom": \'<"F"lfB>rti<"F"ps>\',  buttons: [\'csv\', \'excel\', \'pdf\', \'print\']';
             $result=wf_JqDtEmbed($columns, $data, false, __('Maintenance'),50, $opts);
         } else {
             $result .= $this->messages->getStyledMessage(__('Nothing to show'), 'warning');
@@ -1405,7 +1405,7 @@ class Generators {
                 $data[]=$dataRow;
             }
             
-            $opts='"dom": \'<"F"lfB>rti<"F"ps>\',  buttons: [\'csv\', \'excel\', \'pdf\', \'print\']';
+            $opts='"order": [[ 0, "desc" ]], "dom": \'<"F"lfB>rti<"F"ps>\',  buttons: [\'csv\', \'excel\', \'pdf\', \'print\']';
             $result=wf_JqDtEmbed($columns, $data, false, __('Refuels'),50, $opts);
         } else {
             $result .= $this->messages->getStyledMessage(__('Nothing to show'), 'warning');
