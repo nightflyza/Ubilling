@@ -28,4 +28,4 @@ $lang['def']['Tank overflow'] = 'Переповнення баку';
 $lang['def']['Maximum'] = 'Максимальний';
 $lang['def']['Invalid tank level'] = 'Неправильний рівень баку';
 $lang['def']['Minimum'] = 'Мінімальний';
-
+$lang['def']['generator'] = 'генератор';

@@ -482,6 +482,35 @@ class Generators {
         
         return ($result);
     }
+
+    /**
+     * Renders device start stop dialog
+     *
+     * @param int $deviceId
+     *
+     * @return string
+     */
+    protected function renderDeviceStartStopDialog($deviceId) {
+        $result = '';
+        $deviceId = ubRouting::filters($deviceId, 'int');
+            if (isset($this->allDevices[$deviceId])) {
+                $device = $this->allDevices[$deviceId];
+                $cancelUrl=self::URL_ME.'&'.self::ROUTE_DEVICES.'=true';
+
+            if ($device['running']) {
+                $stopUrl = self::URL_ME . '&' . self::ROUTE_STOP_DEVICE . '=' . $device['id'];
+                $shutdownText=__('Stop').' '.__('generator').': '.$device['address'].'?';
+                $result.=wf_ConfirmDialog($stopUrl, wf_img('skins/pause.png',__('Stop')), $shutdownText, '', $cancelUrl, __('Stop').'?');
+            } else {
+                $startUrl = self::URL_ME . '&' . self::ROUTE_START_DEVICE . '=' . $device['id'];
+                $startText=__('Start').' '.__('generator').': '.$device['address'].'?';
+                $result.=wf_ConfirmDialog($startUrl, wf_img('skins/play.png',__('Start')), $startText, '', $cancelUrl, __('Start').'?');
+            }
+        }
+        return ($result);
+    }
+
+
     /**
      * Renders generator devices list with actions
      *
@@ -543,16 +572,7 @@ class Generators {
                     $editTitle = __('Edit').' ID:' . $device['id'] . ', '.$device['address'];
                     $editDialog = wf_modalAuto(web_edit_icon(), $editTitle, $this->renderDeviceEditForm($device['id']));
                     $deviceControls .= $editDialog;
-                
-
-                if ($device['running']) {
-                    $stopUrl = self::URL_ME . '&' . self::ROUTE_STOP_DEVICE . '=' . $device['id'];
-                    $deviceControls .= wf_Link($stopUrl, wf_img('skins/pause.png',__('Stop')), false, '');
-                } else {
-                    $startUrl = self::URL_ME . '&' . self::ROUTE_START_DEVICE . '=' . $device['id'];
-                    $deviceControls .= wf_Link($startUrl, wf_img('skins/play.png',__('Start')), false, '');
-                    
-                }
+                    $deviceControls .= $this->renderDeviceStartStopDialog($device['id']);
 
                 $serviceForm = $this->renderServiceForm($device['id']);
                 $deviceControls .= $serviceForm;
@@ -1558,7 +1578,17 @@ class Generators {
         $deviceId = ubRouting::filters($deviceId, 'int');
         if (isset($this->allDevices[$deviceId])) {
             $device = $this->allDevices[$deviceId];
-            $inTankPercent = ($device['intank'] / $device['tankvolume']) * 100;
+            $runningSeconds=0;
+            $fuelConsumed=0;
+            if ($device['running']) {
+            $runningSeconds = $this->getDeviceRunningTime($device['id']);
+                if ($runningSeconds > 0) {
+                    $fuelConsumption = $this->calculateFuelConsumption($device['id'], $runningSeconds);
+                    $fuelConsumed += $fuelConsumption;
+                
+                }
+            }
+            $inTankPercent = (($device['intank']-$fuelConsumed) / $device['tankvolume']) * 100;
             $result = round($inTankPercent, 2);
         }
         return ($result);
