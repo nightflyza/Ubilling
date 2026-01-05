@@ -1656,7 +1656,7 @@ class UserProfile {
     protected function getPbFastUrlControls() {
         $result = '';
         if (@$this->alterCfg['PB_FASTURL_TOKEN']) {
-            $pbFastUrl = new PBFastURL();
+            $pbFastUrl = new PBFastURL($this->login);
             $allUserPhones = array();
             $defaultAmount = 0;
             if (!empty($this->mobile)) {

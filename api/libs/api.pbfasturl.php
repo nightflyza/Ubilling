@@ -67,6 +67,13 @@ class PBFastURL {
      */
     protected $mobilePrefix = '';
 
+    /**
+     * Contains optional user login
+     *
+     * @var string
+     */
+    protected $userLogin = '';
+
 
     //some predefined stuff here
     const BASE_URL = 'https://next.privat24.ua/payments/form/';
@@ -100,9 +107,10 @@ class PBFastURL {
     //                    ||  |_____|_|_|_|__|_|_|__|_|_|_|_____|  ||
     //                 ~ ~^^ @@@@@@@@@@@@@@/=======\@@@@@@@@@@@@@@ ^^~ ~
     //                      ^~^~                                ~^~^
-    public function __construct() {
+    public function __construct($login = '') {
         $this->initMessages();
         $this->setOptions();
+        $this->setLogin($login);
     }
 
     /**
@@ -131,6 +139,19 @@ class PBFastURL {
             if (substr($this->shortener, -1) != '/') {
                 $this->shortener .= '/';
             }
+        }
+    }
+
+    /**
+     * Sets user login property
+     *
+     * @param string $login
+     * 
+     * @return void
+     */
+    protected function setLogin($login = '') {
+        if (!empty($login)) {
+            $this->userLogin = ubRouting::filters($login, 'login');
         }
     }
 
@@ -245,6 +266,9 @@ class PBFastURL {
                             $smsQueue = new UbillingSMS();
                             $smsQueue->sendSMS($mobileNumber, $smsText, false, 'PBFASTURL');
                             $result .= $this->messages->getStyledMessage($mobileNumber . ' ' . __('SMS') . ': ' . $smsText, 'success');
+                            if (!empty($this->userLogin)) {
+                                log_register('PBFASTURL SMS (' . $this->userLogin . ') NUM `' . $mobileNumber . '`');
+                            }
                         } else {
                             //rendering preview
                             $result .= $this->renderLinkPreview($smsText);
@@ -254,6 +278,11 @@ class PBFastURL {
                     }
                 } else {
                     $result .= $this->messages->getStyledMessage(__('Something went wrong') . ': ' . __('URL') . ' ' . __('is empty'), 'error');
+                }
+
+                if (!empty($this->userLogin)) {
+                    $result .= wf_delimiter();
+                    $result .= wf_BackLink(UserProfile::URL_PROFILE . $this->userLogin, __('Back to user profile'), false, 'ubButton');
                 }
             }
         }
