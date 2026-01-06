@@ -463,7 +463,7 @@ class PONizer {
     const URL_ONULIST = '?module=ponizer&onulist=true';
     const URL_USERPROFILE = '?module=userprofile&username=';
     const URL_ONU = '?module=ponizer&editonu=';
-    const ROUTE_GOTO_OLT='gotosomeoltid';
+    const ROUTE_GOTO_OLT = 'gotosomeoltid';
 
     /**
      * Views/stats coloring
@@ -852,9 +852,9 @@ class PONizer {
                                     }
                                     break;
                                 /**
-                                     * Following cases is legacy for old or custom device templates 
-                                     * without collector hardware abstraction layer specified explictly
-                                     */
+                                 * Following cases is legacy for old or custom device templates 
+                                 * without collector hardware abstraction layer specified explictly
+                                 */
                                 case 'BDCOM':
                                     /**
                                      * BDCOM/Eltex/Extralink devices polling
@@ -887,8 +887,8 @@ class PONizer {
                                     break;
 
                                 /**
-                                     * ZTE-like EPON OLTs polling
-                                     */
+                                 * ZTE-like EPON OLTs polling
+                                 */
                                 case 'ZTE':
                                     $collectorName = 'PonZte';
                                     $collectorMethod = 'pollEpon';
@@ -896,16 +896,16 @@ class PONizer {
 
                                     break;
                                 /**
-                                     * ZTE GPON OLTs polling
-                                     */
+                                 * ZTE GPON OLTs polling
+                                 */
                                 case 'ZTE_GPON':
                                     $collectorName = 'PonZte';
                                     $collectorMethod = 'pollGpon';
                                     $oltParameters['TYPE'] = 'GPON';
                                     break;
                                 /**
-                                     * Huawei EPON OLTs polling
-                                     */
+                                 * Huawei EPON OLTs polling
+                                 */
                                 case 'HUAWEI_GPON':
                                     $collectorName = 'PonZte';
                                     $collectorMethod = 'huaweiPollGpon';
@@ -1607,7 +1607,7 @@ class PONizer {
      *
      * @return void
      */
-    public function onuSave($onuId, $onumodelid, $oltid, $ip, $mac, $serial, $login, $geo='') {
+    public function onuSave($onuId, $onumodelid, $oltid, $ip, $mac, $serial, $login, $geo = '') {
         $macF = strtolower($mac);
         $macF = trim($macF);
         $macF = ubRouting::filters($macF, 'mres');
@@ -1630,7 +1630,7 @@ class PONizer {
         $this->onuDb->data('oltid', $oltid);
         $this->onuDb->data('ip', $ip);
         $this->onuDb->data('geo', $geo);
-        
+
 
         if (!empty($macF)) {
             if (check_mac_format($macF)) {
@@ -2178,7 +2178,7 @@ class PONizer {
                 }
 
                 $result .= $this->renderOnuMiscStats($onuId, $onuSignal);
-                if ($this->onuUniStatusEnabled)  {
+                if ($this->onuUniStatusEnabled) {
                     $result .= $this->renderONUUniStats($onuId, $onuSignal);
                 }
                 $result .= wf_tag('div', true);
@@ -2311,7 +2311,7 @@ class PONizer {
                         if ($curEtherStatus) {
                             $interfaceIcon =  wf_img_sized('skins/rise_icon.png', __('Connected'), '8', '10') . ' ' . $curEtherSpeed;
                         } else {
-                            $interfaceIcon =  wf_img_sized('skins/drain_icon.png', __('Disconnected'), '8', '10').' ';
+                            $interfaceIcon =  wf_img_sized('skins/drain_icon.png', __('Disconnected'), '8', '10') . ' ';
                         }
                     } else {
                         if ($curEtherStatus) {
@@ -2324,7 +2324,7 @@ class PONizer {
                     }
 
                     if ($compactMode) {
-                        $onuUniOperStats .= ubRouting::filters($eachPort, 'int') .' ' . $interfaceIcon . wf_nbsp();
+                        $onuUniOperStats .= ubRouting::filters($eachPort, 'int') . ' ' . $interfaceIcon . wf_nbsp();
                     } else {
                         $onuUniOperStats .= $eachPort . ': ' . $interfaceIcon . wf_nbsp(4);
                     }
@@ -2333,7 +2333,7 @@ class PONizer {
                 $containerStyle = 'style="font-size:10pt; padding-top:10px;"';
                 $result .= wf_tag('div', false, '', $containerStyle);
                 if ($compactMode) {
-                    $result .= wf_img_sized('skins/linkcopper.png', __('Copper'), '12').' '.__('LAN ports').': ';
+                    $result .= wf_img_sized('skins/linkcopper.png', __('Copper'), '12') . ' ' . __('LAN ports') . ': ';
                 }
                 $result .= $onuUniOperStats;
                 $result .= wf_tag('div', true);
@@ -2417,19 +2417,19 @@ class PONizer {
             $onuCurrentExtUsers = sizeof($onuExtUsers);
 
             $inputs = wf_HiddenInput('editonu', $onuId);
-            $oltNavControl='';
+            $oltNavControl = '';
             if ($this->ponizerUseTabUI) {
                 if (isset($this->allOltDevices[$this->allOnu[$onuId]['oltid']])) {
-                    $oltNavIcon= wf_img('skins/pon_icon.gif', __('Go to OLT'), '16', '16');
-                    $oltNavControl =' '. wf_Link(self::URL_ONULIST . '&' . self::ROUTE_GOTO_OLT . '=' . $this->allOnu[$onuId]['oltid'], $oltNavIcon, false, '');
+                    $oltNavIcon = wf_img('skins/pon_icon.gif', __('Go to OLT'), '16', '16');
+                    $oltNavControl = ' ' . wf_Link(self::URL_ONULIST . '&' . self::ROUTE_GOTO_OLT . '=' . $this->allOnu[$onuId]['oltid'], $oltNavIcon, false, '');
                 }
             }
             if ($this->altCfg['OLTSEL_SEARCHBL']) {
                 $inputs .= wf_SelectorSearchable('editoltid', $this->allOltDevices, __('OLT device') . $this->sup, $this->allOnu[$onuId]['oltid'], false, false);
             } else {
-                $inputs .= wf_Selector('editoltid', $this->allOltDevices, __('OLT device'). $this->sup, $this->allOnu[$onuId]['oltid'], false, false);
+                $inputs .= wf_Selector('editoltid', $this->allOltDevices, __('OLT device') . $this->sup, $this->allOnu[$onuId]['oltid'], false, false);
             }
-            $inputs.= $oltNavControl;
+            $inputs .= $oltNavControl;
             $inputs .= wf_delimiter(0);
 
             $inputs .= wf_Selector('editonumodelid', $models, __('ONU model') . $this->sup, $this->allOnu[$onuId]['onumodelid'], true);
@@ -2478,9 +2478,9 @@ class PONizer {
 
             $onuEditForm = wf_Form('', 'POST', $inputs, 'onueditsbig');
 
-            $contentGrid=array($onuEditForm, $this->renderOnuSignalBig($onuId));
-            
-            $result .= wf_FlexContentGrid($contentGrid,2);
+            $contentGrid = array($onuEditForm, $this->renderOnuSignalBig($onuId));
+
+            $result .= wf_FlexContentGrid($contentGrid, 2);
             $result .= wf_CleanDiv();
 
             ///ponboxes here. We hope.
@@ -2559,7 +2559,6 @@ class PONizer {
                 $delConfirmUrl = self::URL_ME . '&deleteonu=' . $onuId;
                 $result .= wf_ConfirmDialog($delConfirmUrl, web_delete_icon() . ' ' . __('Delete') . ' ' . __('ONU'), $messages->getDeleteAlert(), 'ubButton', $delCancelUrl);
             }
-
         } else {
             $result = wf_tag('div', false, 'alert_error') . __('Strange exeption') . ': ONUID_NOT_EXISTS' . wf_tag('div', true);
         }
@@ -3181,6 +3180,14 @@ class PONizer {
                 $result .= wf_tag('h3');
                 $result .= $this->allOltDevices[$oltId] . ' ' . __('filled on') . ' ' . $oltFilledPercent . '%';
                 $result .= ' (' . $oltOnuCounters[$oltId] . ' ' . __('ONU') . ' ' . __('Registered') . ')';
+
+
+                if ($this->ponizerUseTabUI) {
+                    if (isset($this->allOltDevices[$oltId])) {
+                        $oltNavIcon = wf_img('skins/pon_icon.gif', __('Go to OLT'), '16', '16');
+                        $oltControls = ' ' . wf_Link(self::URL_ONULIST . '&' . self::ROUTE_GOTO_OLT . '=' . $oltId, $oltNavIcon, false, '');
+                    }
+                }
 
                 if (@$this->altCfg['PONMAP_ENABLED']) {
                     $oltControls .= ' ' . wf_Link(PONONUMap::URL_ME . '&' . PONONUMap::ROUTE_FILTER_OLT . '=' . $oltId, wf_img('skins/ponmap_icon.png', __('ONU Map')), false);
@@ -3898,7 +3905,7 @@ class PONizer {
 
                         if ($lastDeregCacheAvail) {
                             if ($ONUIsOffline) {
-                                $deregReason='';
+                                $deregReason = '';
                                 if (isset($this->lastDeregCache[$each['mac']])) {
                                     $deregReason = $this->lastDeregCache[$each['mac']];
                                 } else {
@@ -4322,7 +4329,7 @@ class PONizer {
     public function getAllONUSignalsById() {
         $result = array();
         $allOnu = $this->getAllOnu();
-    
+
         if (!empty($allOnu)) {
             foreach ($allOnu as $eachOnu) {
                 $result[$eachOnu['id']] = $eachOnu['signal'];
