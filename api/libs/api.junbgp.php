@@ -62,10 +62,10 @@ class JunBGP {
      */
     const OID_PEER_TABLE = '.1.3.6.1.4.1.2636.5.1.1.2';
     const OID_INDEX = '.1.3.6.1.4.1.2636.5.1.1.2.1.1.1.14';
-    const OID_REMOTEIP = '.1.3.6.1.4.1.2636.5.1.1.2.1.1.1.11.0.1';
+    const OID_REMOTEIP = '.1.3.6.1.4.1.2636.5.1.1.2.1.1.1.11';
     const OID_AS = '.1.3.6.1.4.1.2636.5.1.1.2.1.1.1.13';
     const OID_STATE = '.1.3.6.1.4.1.2636.5.1.1.2.1.1.1.2';
-    const OID_STATUS = '1.3.6.1.4.1.2636.5.1.1.2.1.1.1.3';
+    const OID_STATUS = '.1.3.6.1.4.1.2636.5.1.1.2.1.1.1.3';
     const OID_TIMERS = '.1.3.6.1.4.1.2636.5.1.1.2.4.1.1.1';
     const OID_PREF_IN = '.1.3.6.1.4.1.2636.5.1.1.2.6.2.1.7';
     const OID_PREF_OUT = '.1.3.6.1.4.1.2636.5.1.1.2.6.2.1.10';
@@ -221,10 +221,9 @@ class JunBGP {
         
         if (!empty($index)) {
             $as = $this->parseData($rawData, self::OID_AS);
-            $remoteIp = $this->parseData($rawData, self::OID_REMOTEIP, true);
-            // remote IP oid is empty by some reason?
+            $remoteIp = $this->parseRemoteIp($rawData, self::OID_INDEX);
             if (empty($remoteIp)) {
-                $remoteIp=$this->parseRemoteIp($rawData, self::OID_INDEX);
+                $remoteIp = $this->parseData($rawData, self::OID_REMOTEIP, true);
             }
             $states = $this->parseData($rawData, self::OID_STATE);
             $status = $this->parseData($rawData, self::OID_STATUS);

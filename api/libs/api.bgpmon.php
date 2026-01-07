@@ -6,7 +6,13 @@
  * This class is responsible for monitoring BGP peers states. 
  */
 class BGPMon {
+    /**
+     * Contains all switch devices that shall be polled
+     *
+     * @var array
+     */
     protected $allDevices = array();
+
     /**
      * System messages helper instance
      *
