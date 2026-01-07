@@ -348,6 +348,7 @@ class BGPMon {
                     if (sizeof($this->allRoutersStats) > 1) {
                         $result .= '';
                         $result .= wf_tag('b') . @$this->allDevices[$routerId]['ip'] . ' ' . @$this->allDevices[$routerId]['location'] . wf_tag('b', true);
+                        $result.=wf_delimiter(0);
                     }
                     $result .= wf_delimiter(0);
                 }
