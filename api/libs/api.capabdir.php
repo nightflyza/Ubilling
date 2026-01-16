@@ -410,9 +410,22 @@ class CapabilitiesDirectory {
      * @return string
      */
     public function createForm($address = '', $phone = '', $notes = '') {
+        global $ubillingConfig;
+        $autoCompleteMode = $ubillingConfig->getAlterParam('CAPABDIR_AUTOCOMPLETE', 0);
         $sup = wf_tag('sup') . '*' . wf_tag('sup', true);
-        //$allAddress = zb_AddressGetFulladdresslistCached();
-        $allAddress= zb_AddressGetBuildAllAddress(false);
+        $allAddress = array();
+        switch ($autoCompleteMode) {
+            case 1:
+                $allAddress = zb_AddressGetFulladdresslistCached();
+                break;
+            case 2:
+                $allAddress = zb_AddressGetBuildAllAddress(false);
+                break;
+            case 3:
+                $allAddress = zb_AddressGetStreets();
+                break;
+        }
+
         natsort($allAddress);
         $inputs = wf_AutocompleteTextInput('newaddress', $allAddress, __('Address') . $sup, $address, false);
         $inputs .= wf_TextInput('newphone', __('Phone') . $sup, $phone, true);
