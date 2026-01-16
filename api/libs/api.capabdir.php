@@ -411,7 +411,8 @@ class CapabilitiesDirectory {
      */
     public function createForm($address = '', $phone = '', $notes = '') {
         $sup = wf_tag('sup') . '*' . wf_tag('sup', true);
-        $allAddress = zb_AddressGetFulladdresslistCached();
+        //$allAddress = zb_AddressGetFulladdresslistCached();
+        $allAddress= zb_AddressGetBuildAllAddress(false);
         natsort($allAddress);
         $inputs = wf_AutocompleteTextInput('newaddress', $allAddress, __('Address') . $sup, $address, false);
         $inputs .= wf_TextInput('newphone', __('Phone') . $sup, $phone, true);
