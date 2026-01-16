@@ -29,3 +29,6 @@ $lang['def']['Maximum'] = 'Максимальний';
 $lang['def']['Invalid tank level'] = 'Неправильний рівень баку';
 $lang['def']['Minimum'] = 'Мінімальний';
 $lang['def']['generator'] = 'генератор';
+$lang['def']['right to refuel generators'] = 'Право заправляти генератори';
+$lang['def']['right to service generators'] = 'Право обслуговувати генератори';
+$lang['def']['right to start/stop generators'] = 'Право запускати/зупиняти генератори';

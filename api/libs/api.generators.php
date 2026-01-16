@@ -518,7 +518,11 @@ class Generators {
      */
     public function renderDevicesList() {
         $result = '';
-        
+        $anyActionsAvailable = false;
+        if (cfr('GENERATORSMGMT') or cfr('GENERATORSREFUEL') or cfr('GENERATORSSERVICE') or cfr('GENERATORSRUN')) {
+            $anyActionsAvailable = true;
+        }
+
         if (!empty($this->allDevices)) {
             $cells = wf_TableCell(__('Model'));
             $cells .= wf_TableCell(__('Address'));
@@ -528,7 +532,7 @@ class Generators {
             $cells .= wf_TableCell(__('Next maintenance'));
             $cells.= wf_TableCell(__('Events'));
 
-            if (cfr('GENERATORSMGMT')) {
+            if ($anyActionsAvailable) {
                 $cells .= wf_TableCell(__('Actions'));
             }
             $rows = wf_TableRow($cells, 'row1');
@@ -563,8 +567,8 @@ class Generators {
 
                 $deviceControls='';
          
-                if (cfr('GENERATORSMGMT')) {
-              
+                if ($anyActionsAvailable) {
+                    if (cfr('GENERATORSMGMT')) {
                     $deletionUrl = self::URL_ME . '&' . self::ROUTE_DELETE_DEVICE . '=' . $device['id'];
                     $cancelUrl=self::URL_ME . '&' . self::ROUTE_DEVICES . '=true';
                     $deletionDialog=wf_ConfirmDialog($deletionUrl, web_delete_icon(), $this->messages->getDeleteAlert(), '', $cancelUrl, __('Delete').'?');
@@ -572,13 +576,21 @@ class Generators {
                     $editTitle = __('Edit').' ID:' . $device['id'] . ', '.$device['address'];
                     $editDialog = wf_modalAuto(web_edit_icon(), $editTitle, $this->renderDeviceEditForm($device['id']));
                     $deviceControls .= $editDialog;
-                    $deviceControls .= $this->renderDeviceStartStopDialog($device['id']);
+                    }
 
+                    if (cfr('GENERATORSRUN')) {
+                    $deviceControls .= $this->renderDeviceStartStopDialog($device['id']);
+                    }
+
+                if (cfr('GENERATORSSERVICE')) {
                 $serviceForm = $this->renderServiceForm($device['id']);
                 $deviceControls .= $serviceForm;
+                }
 
+                if (cfr('GENERATORSREFUEL')) {
                 $refuelForm=$this->renderRefuelForm($device['id']);
                 $deviceControls .= $refuelForm;
+                }
                 
                 $cells .= wf_TableCell($deviceControls);
             }
