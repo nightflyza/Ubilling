@@ -283,7 +283,18 @@ if ($altCfg['PON_ENABLED']) {
         // background ONU creation form callback
         if (ubRouting::checkGet(array('renderCreateForm'))) {
             if (ubRouting::checkGet('renderDynamically') && wf_getBoolFromVar(ubRouting::get('renderDynamically'), true)) {
-                $CPECreateForm = $pon->onuRegisterForm(ubRouting::get('oltid'), ubRouting::get('onumac'), ubRouting::get('userLogin'), ubRouting::get('userIP'), wf_getBoolFromVar(ubRouting::get('renderedOutside'), true), wf_getBoolFromVar(ubRouting::get('reloadPageAfterDone'), true), ubRouting::get('ActionCtrlID'), ubRouting::get('ModalWID'));
+                $CPECreateForm = $pon->onuRegisterForm(
+                    ubRouting::get('oltid'),
+                    ubRouting::get('onumac'),
+                    ubRouting::get('userLogin'),
+                    ubRouting::get('userIP'),
+                    wf_getBoolFromVar(ubRouting::get('renderedOutside'), true),
+                    wf_getBoolFromVar(ubRouting::get('reloadPageAfterDone'), true),
+                    ubRouting::get('ActionCtrlID'),
+                    ubRouting::get('ModalWID'),
+                    ubRouting::get('onulogin')
+                );
+
                 die(wf_modalAutoForm(__('Register new ONU'), $CPECreateForm, ubRouting::get('ModalWID'), ubRouting::get('ModalWBID'), true));
             } else {
                 die($pon->onuRegisterForm(ubRouting::get('oltid'), ubRouting::get('onumac'), ubRouting::get('userLogin'), ubRouting::get('userIP'), wf_getBoolFromVar(ubRouting::get('renderedOutside'), true), wf_getBoolFromVar(ubRouting::get('reloadPageAfterDone'), true), ubRouting::get('ActionCtrlID'), ubRouting::get('ModalWID')));

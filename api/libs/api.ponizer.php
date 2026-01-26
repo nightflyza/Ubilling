@@ -3624,6 +3624,31 @@ class PONizer {
                     $userIP = $login ? @$allUserData[$login]['ip'] : '';
                     $LnkID = wf_InputId();
 
+                    if ($this->altCfg['PON_ONU_FDB_REGDETECT']) {
+                        $availOnuFdbCache = $this->oltData->isFdbAvailable();
+                        if (!empty($availOnuFdbCache)) {
+                        $allUserMac = zb_UserGetAllMACs();
+                        $allUserMac = array_map('strtolower', $allUserMac);
+                        $allUserMac = array_flip($allUserMac);
+
+                        $availOnuFdbCache = $this->oltData->getFdbOLTAll();
+                        if (isset($availOnuFdbCache[$oltId])) {
+                            if (isset($availOnuFdbCache[$oltId][$onuMac])) {
+                                $onuFdbRecords=$availOnuFdbCache[$oltId][$onuMac];
+                                if (!empty($onuFdbRecords)) {
+                                    foreach ($onuFdbRecords as $someId => $onuData) {
+                                        if (!empty($onuData)) {
+                                            if (isset($allUserMac[$onuData['mac']])) {
+                                                $userLogin = $allUserMac[$onuData['mac']];
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                  }
+
                     if ($this->llidColVisibleUnknownONU) {
                         $onuLLID = (empty($this->interfaceCache[$onuMac]) ? '' : $this->interfaceCache[$onuMac]);
                     }
