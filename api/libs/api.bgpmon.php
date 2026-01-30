@@ -326,8 +326,16 @@ class BGPMon {
                         $cells .= wf_TableCell(__('Actions'));
                     }
                     $rows = wf_TableRow($cells, 'row1');
+                    $peersCount = 0;
+                    $aliveCount = 0;
                     foreach ($eachRouterStats as $io => $each) {
-                        $stateIcon = ($each['state'] == 6) ? web_bool_led(true) : web_bool_led(false);
+                        if($each['state'] == 6) {
+                            $stateIcon = web_bool_led(true);
+                            $aliveCount++;
+                        } else {
+                            $stateIcon = web_bool_led(false);
+                        }
+
                         if ($each['status'] == 1) {
                             $stateIcon = web_yellow_led(__('Disabled'));
                         }
@@ -343,8 +351,11 @@ class BGPMon {
                             $cells .= wf_TableCell($actLinks);
                         }
                         $rows .= wf_TableRow($cells, 'row5');
+                        $peersCount++;
                     }
                     $result .= wf_TableBody($rows, '100%', 0, 'sortable');
+                    $result .= wf_tag('b') . __('Total') . ': '. $peersCount . ' (' . $aliveCount. '/'.($peersCount-$aliveCount) . ')'. wf_tag('b', true) .wf_delimiter(0);
+
                     if (sizeof($this->allRoutersStats) > 1) {
                         $result .= '';
                         $result .= wf_tag('b') . @$this->allDevices[$routerId]['ip'] . ' ' . @$this->allDevices[$routerId]['location'] . wf_tag('b', true);
