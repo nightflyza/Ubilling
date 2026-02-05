@@ -34,40 +34,33 @@ function zbs_AgentAssignCheckLoginFast($login, $allassigns, $address, $allassign
     global $us_config;
     $alter_cfg = $us_config;
     $result = array();
-    //быстренько проверяем нету ли принудительной привязки по логину
+    $assignMode= (isset($alter_cfg['AGENTS_ASSIGN'])) ? $alter_cfg['AGENTS_ASSIGN'] : 1;
+    $defaultAgent = (isset($alter_cfg['DEFAULT_ASSIGN_AGENT'])) ? $alter_cfg['DEFAULT_ASSIGN_AGENT'] : 1;
+
     if (isset($allassignsstrict[$login])) {
         $result = $allassignsstrict[$login];
         return ($result);
     }
 
-
-    // если пользователь куда-то заселен
     if (!empty($address)) {
-        // возвращаем дефолтного агента если присваиваний нет вообще
         if (empty($allassigns)) {
-            $result = $alter_cfg['DEFAULT_ASSIGN_AGENT'];
+            $result = $defaultAgent;
         } else {
-            //если какие-то присваивалки есть
             $useraddress = $address;
-
-            // проверяем для каждой присваивалки попадает ли она под нашего абонента
             foreach ($allassigns as $io => $eachassign) {
                 if (strpos($useraddress, $eachassign['streetname']) !== false) {
                     $result = $eachassign['ahenid'];
                     break;
                 } else {
-                    // и если не нашли - возвращаем  умолчательного
-                    $result = $alter_cfg['DEFAULT_ASSIGN_AGENT'];
+                        $result = $defaultAgent;
                 }
             }
         }
     } else {
-        //если пользователь бомжует - возвращаем тоже умолчательного
-        $result = $alter_cfg['DEFAULT_ASSIGN_AGENT'];
+        $result = $defaultAgent;
     }
-    // если присваивание выключено возвращаем умолчального
-    if (!$alter_cfg['AGENTS_ASSIGN']) {
-        $result = $alter_cfg['DEFAULT_ASSIGN_AGENT'];
+    if ($assignMode == 0) {
+        $result = $defaultAgent;
     }
 
     return($result);
@@ -79,6 +72,5 @@ function zbs_AgentAssignCheckLoginFast($login, $allassigns, $address, $allassign
         $query="SELECT * from `contrahens` WHERE `id`='".$id."'";
         $result=simple_query($query);
         return($result);
-     }
+}
 
-?>
