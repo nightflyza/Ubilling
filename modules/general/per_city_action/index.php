@@ -57,8 +57,8 @@ if ($altcfg['PER_CITY_ACTION']) {
 
             if ($action == 'city_payments') {
                 if (cfr('CITYPAYMENTS')) {
-                    show_window(__('Change month'), web_MonthSelector());
-                    show_window(__('Change year'), web_YearSelector());
+                    show_window(__('Change month'), $pca->web_MonthSelector());
+                    show_window(__('Change year'), $pca->web_YearSelector());
                     show_window(__('Payments'), $pca->CitySelector($admin, $action));
                     if (ubRouting::checkGet('citysearch')) {
                         $cityId = ubRouting::get('citysearch', 'int');

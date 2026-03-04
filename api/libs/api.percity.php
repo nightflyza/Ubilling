@@ -1214,120 +1214,132 @@ class PerCityAction {
 	}
     }
 
-}
-
-function GetAllCreditedUsers() {
-    $date		 = date("Y-m");
-    $query		 = "SELECT * FROM `zbssclog` WHERE `date` LIKE '" . $date . "%';";
-    $allCredited	 = simple_queryall($query);
-    if (!empty($allCredited)) {
-	foreach ($allCredited as $eachCredited) {
-	    $creditedUsers[$eachCredited['login']] = $eachCredited['date'];
+    /**
+     * Get credited users for current month (login => date)
+     *
+     * @return array|false
+     */
+    public function GetAllCreditedUsers() {
+	$creditedUsers = array();
+	$date = date("Y-m");
+	$query = "SELECT * FROM `zbssclog` WHERE `date` LIKE '" . $date . "%';";
+	$allCredited = simple_queryall($query);
+	if (!empty($allCredited)) {
+	    foreach ($allCredited as $eachCredited) {
+		$creditedUsers[$eachCredited['login']] = $eachCredited['date'];
+	    }
+	    return ($creditedUsers);
 	}
-	return($creditedUsers);
-    } else {
-	return(false);
+	return (false);
     }
-}
 
-/**
- * Get all data from tables `notes` and `adcomments` and place it into $this->allNotes
- * 
- * @return array
- */
-function GetAllNotes() {
-    $result		 = array();
-    $query		 = "SELECT * FROM `notes`";
-    $allNotes	 = simple_queryall($query);
-    if (!empty($allNotes)) {
-	foreach ($allNotes as $ia => $eachnote) {
-	    $result[$eachnote['login']] = $eachnote['note'];
-	}
-    }
-    $query		 = "SELECT * FROM `adcomments`";
-    $allComments	 = simple_queryall($query);
-    if (!empty($allComments)) {
-	foreach ($allComments as $ia => $eachcomment) {
-	    if (isset($result[$eachcomment['item']])) {
-		$result[$eachcomment['item']].= "  " . $eachcomment['text'];
-	    } else {
-		$result[$eachcomment['item']] = $eachcomment['text'];
+    /**
+     * Get all data from tables `notes` and `adcomments` (login => note text)
+     *
+     * @return array
+     */
+    public function GetAllNotes() {
+	$result = array();
+	$query = "SELECT * FROM `notes`";
+	$allNotes = simple_queryall($query);
+	if (!empty($allNotes)) {
+	    foreach ($allNotes as $ia => $eachnote) {
+		$result[$eachnote['login']] = $eachnote['note'];
 	    }
 	}
-    }
-    return $result;
-}
-
-/**
- * Get all users pon Data (mac onu, oltid) and load into $this->allOnu
- * 
- * @return void
- */
-function GetAllOnu() {
-    $query	 = "SELECT * FROM `pononu`";
-    $allonu	 = simple_queryall($query);
-    $result	 = array();
-    if (!empty($allonu)) {
-	foreach ($allonu as $io => $each) {
-	    $result[$each['login']] = $each['mac'];
-	}
-    }
-    return $result;
-}
-
-
-
-function web_MonthSelector() {
-    $mcells		 = '';
-    $allmonth	 = months_array_localized();
-    foreach ($allmonth as $io => $each) {
-	if (isset($_GET['citysel'])) {
-	    if (isset($_GET['year'])) {
-		$mcells.= wf_TableCell(wf_Link("?module=per_city_action&action=city_payments&monthsel=" . $io . "&year=" . $_GET['year'] . "&citysel=" . $_GET['citysel'], $each, false, 'ubButton'));
-	    } else {
-		$mcells.= wf_TableCell(wf_Link("?module=per_city_action&action=city_payments&monthsel=" . $io . "&citysel=" . $_GET['citysel'], $each, false, 'ubButton'));
-	    }
-	} elseif (isset($_GET['citysearch'])) {
-	    if (isset($_GET['year'])) {
-		$mcells.= wf_TableCell(wf_Link("?module=per_city_action&action=city_payments&monthsel=" . $io . "&year=" . $_GET['year'] . "&citysearch=" . $_GET['citysearch'], $each, false, 'ubButton'));
-	    } else {
-		$mcells.= wf_TableCell(wf_Link("?module=per_city_action&action=city_payments&monthsel=" . $io . "&citysearch=" . $_GET['citysearch'], $each, false, 'ubButton'));
-	    }
-	} else {
-	    if (isset($_GET['year'])) {
-		$mcells.= wf_TableCell(wf_Link("?module=per_city_action&action=city_payments&monthsel=" . $io . "&year=" . $_GET['year'], $each, false, 'ubButton'));
-	    } else {
-		$mcells.= wf_TableCell(wf_Link("?module=per_city_action&action=city_payments&monthsel=" . $io, $each, false, 'ubButton'));
+	$query = "SELECT * FROM `adcomments`";
+	$allComments = simple_queryall($query);
+	if (!empty($allComments)) {
+	    foreach ($allComments as $ia => $eachcomment) {
+		if (isset($result[$eachcomment['item']])) {
+		    $result[$eachcomment['item']].= "  " . $eachcomment['text'];
+		} else {
+		    $result[$eachcomment['item']] = $eachcomment['text'];
+		}
 	    }
 	}
+	return ($result);
     }
-    return ($mcells);
-}
 
-function web_YearSelector() {
-    $currentYear	 = date('Y');
-    $years		 = '';
-    for ($year = 2010; $year <= $currentYear; $year++) {
-	if (isset($_GET['citysel'])) {
-	    if (isset($_GET['monthsel'])) {
-		$years.= wf_TableCell(wf_Link("?module=per_city_action&action=city_payments&monthsel=" . $_GET['monthsel'] . "&citysel=" . $_GET['citysel'] . "&year=" . $year, $year, false, 'ubButton'));
-	    } else {
-		$years.= wf_TableCell(wf_Link("?module=per_city_action&action=city_payments" . "&citysel=" . $_GET['citysel'] . "&year=" . $year, $year, false, 'ubButton'));
-	    }
-	} elseif (isset($_GET['citysearch'])) {
-	    if (isset($_GET['monthsel'])) {
-		$years.= wf_TableCell(wf_Link("?module=per_city_action&action=city_payments&monthsel=" . $_GET['monthsel'] . "&year=" . $year . "&citysearch=" . $_GET['citysearch'], $year, false, 'ubButton'));
-	    } else {
-		$years.= wf_TableCell(wf_Link("?module=per_city_action&action=city_payments" . "&year=" . $year . "&citysearch=" . $_GET['citysearch'], $year, false, 'ubButton'));
-	    }
-	} else {
-	    if (isset($_GET['monthsel'])) {
-		$years.= wf_TableCell(wf_Link("?module=per_city_action&action=city_payments&monthsel=" . $_GET['monthsel'] . "&year=" . $year, $year, false, 'ubButton'));
-	    } else {
-		$years.= wf_TableCell(wf_Link("?module=per_city_action&action=city_payments&year=" . $year, $year, false, 'ubButton'));
+    /**
+     * Get all users PON data (login => mac)
+     *
+     * @return array
+     */
+    public function GetAllOnu() {
+	$query = "SELECT * FROM `pononu`";
+	$allonu = simple_queryall($query);
+	$result = array();
+	if (!empty($allonu)) {
+	    foreach ($allonu as $io => $each) {
+		$result[$each['login']] = $each['mac'];
 	    }
 	}
+	return ($result);
     }
-    return ($years);
-}
 
+    /**
+     * Renders month selector links for city_payments action
+     *
+     * @return string
+     */
+    public function web_MonthSelector() {
+	$mcells = '';
+	$allmonth = months_array_localized();
+	$citysel = ubRouting::get('citysel', 'int');
+	$citysearch = ubRouting::get('citysearch', 'int');
+	$year = ubRouting::get('year', 'int');
+	$baseUrl = "?module=per_city_action&action=city_payments";
+	foreach ($allmonth as $io => $each) {
+	    $params = "monthsel=" . $io;
+	    if (ubRouting::checkGet('citysel')) {
+		$params .= "&citysel=" . $citysel;
+		if (ubRouting::checkGet('year')) {
+		    $params .= "&year=" . $year;
+		}
+	    } elseif (ubRouting::checkGet('citysearch')) {
+		$params .= "&citysearch=" . $citysearch;
+		if (ubRouting::checkGet('year')) {
+		    $params .= "&year=" . $year;
+		}
+	    } elseif (ubRouting::checkGet('year')) {
+		$params .= "&year=" . $year;
+	    }
+	    $mcells .= wf_TableCell(wf_Link($baseUrl . "&" . $params, $each, false, 'ubButton'));
+	}
+	return ($mcells);
+    }
+
+    /**
+     * Renders year selector links for city_payments action
+     *
+     * @return string
+     */
+    public function web_YearSelector() {
+	$currentYear = date('Y');
+	$years = '';
+	$citysel = ubRouting::get('citysel', 'int');
+	$citysearch = ubRouting::get('citysearch', 'int');
+	$monthsel = ubRouting::get('monthsel');
+	$baseUrl = "?module=per_city_action&action=city_payments";
+	for ($year = 2010; $year <= $currentYear; $year++) {
+	    $params = "year=" . $year;
+	    if (ubRouting::checkGet('citysel')) {
+		$params .= "&citysel=" . $citysel;
+		if (ubRouting::checkGet('monthsel')) {
+		    $params .= "&monthsel=" . $monthsel;
+		}
+	    } elseif (ubRouting::checkGet('citysearch')) {
+		$params .= "&citysearch=" . $citysearch;
+		if (ubRouting::checkGet('monthsel')) {
+		    $params .= "&monthsel=" . $monthsel;
+		}
+	    } elseif (ubRouting::checkGet('monthsel')) {
+		$params .= "&monthsel=" . $monthsel;
+	    }
+	    $years .= wf_TableCell(wf_Link($baseUrl . "&" . $params, $year, false, 'ubButton'));
+	}
+	return ($years);
+    }
+
+}
