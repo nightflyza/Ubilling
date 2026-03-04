@@ -23,9 +23,6 @@ if ($altcfg['PER_CITY_ACTION']) {
                         $cityId = $_GET['citysearch'];
                         if ($perCityAction->CheckRigts($cityId, $admin)) {
                             $perCityAction->LoadAllData('', $cityId, 'debtors');
-                            if (isset($_GET['ajax'])) {
-                                die($perCityAction->ajaxData());
-                            }
                             $report_name = __('Debtors by city') . wf_Link(PerCityAction::MODULE_NAME . "&action=debtors&citysel=$cityId&printable=true", wf_img("skins/printer_small.gif"));
                             show_window(__($report_name), $perCityAction->PerCityDataShow());
                         } else {
@@ -146,6 +143,7 @@ if ($altcfg['PER_CITY_ACTION']) {
                 }
             }
         }
+        
     } else {
         show_error(__('You cant control this module'));
     }
