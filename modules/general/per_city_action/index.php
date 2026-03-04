@@ -1,16 +1,16 @@
 <?php
 
-$altcfg = rcms_parse_ini_file(CONFIG_PATH . 'alter.ini');
+$altcfg = $ubillingConfig->getAlter();
 if ($altcfg['PER_CITY_ACTION']) {
     if (cfr('CITYACTION')) {
         $admin = whoami();
-        $form = wf_Link(PerCityAction::MODULE_NAME, __('Clear'), true, 'ubButton');
+        $form = wf_Link(PerCityAction::MODULE_NAME, wf_img('skins/icon_cleanup.png') .' '. __('Clear'), true, 'ubButton');
         $form.= wf_tag('br');
-        $form.= wf_Link(PerCityAction::MODULE_NAME . "&action=debtors", __('Debtors'), false, 'ubButton');
-        $form.= wf_Link(PerCityAction::MODULE_NAME . "&action=city_payments", __('Payments per city'), false, 'ubButton');
-        $form.= wf_Link(PerCityAction::MODULE_NAME . "&action=usersearch", __('User search'), false, 'ubButton');
-        $form.= wf_Link(PerCityAction::MODULE_NAME . "&action=permission", __('Permission'), false, 'ubButton');
-        $form.= wf_Link(PerCityAction::MODULE_NAME . "&action=analytics", __('Analytics'), true, 'ubButton');
+        $form.= wf_Link(PerCityAction::MODULE_NAME . "&action=debtors", wf_img('skins/icon_debtor.png') .' '.__('Debtors'), false, 'ubButton');
+        $form.= wf_Link(PerCityAction::MODULE_NAME . "&action=city_payments", wf_img('skins/icon_dollar_16.gif') .' '.__('Payments per city'), false, 'ubButton');
+        $form.= wf_Link(PerCityAction::MODULE_NAME . "&action=usersearch",  wf_img('skins/icon_search.png') .' '.__('User search'), false, 'ubButton');
+        $form.= wf_Link(PerCityAction::MODULE_NAME . "&action=permission", web_icon_extended().' '.__('Permission'), false, 'ubButton');
+        $form.= wf_Link(PerCityAction::MODULE_NAME . "&action=analytics", web_icon_charts().' '.__('Analytics'), true, 'ubButton');
         show_window(__('Actions'), $form);
 
         $perCityAction = new PerCityAction();
