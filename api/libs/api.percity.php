@@ -122,6 +122,7 @@ class PerCityAction {
     const MODULE_NAME	 = "?module=per_city_action";
     const PERMISSION_PATH	 = "content/documents/per_city_permission/";
 	const ROUTE_SHOW_LP = 'showlatestpayment';
+	const ROUTE_PRINTABLE = 'printable';
 
     /**
      * Contains all addresses array as login=>address
@@ -423,6 +424,23 @@ class PerCityAction {
 	}
     }
 
+	/**
+	 * Renders module controls
+	 * 
+	 * @return string
+	 */
+	public function renderControls() {
+		$result = '';
+		$result .= wf_Link(self::MODULE_NAME, wf_img('skins/icon_cleanup.png') .' '. __('Clear'), true, 'ubButton');
+        $result .= wf_tag('br');
+        $result .= wf_Link(self::MODULE_NAME . "&action=debtors", wf_img('skins/icon_debtor.png') .' '.__('Debtors'), false, 'ubButton');
+        $result .= wf_Link(self::MODULE_NAME . "&action=city_payments", wf_img('skins/icon_dollar_16.gif') .' '.__('Payments per city'), false, 'ubButton');
+        $result .= wf_Link(self::MODULE_NAME . "&action=usersearch",  wf_img('skins/icon_search.png') .' '.__('User search'), false, 'ubButton');
+        $result .= wf_Link(self::MODULE_NAME . "&action=permission", web_icon_extended().' '.__('Permission'), false, 'ubButton');
+        $result .= wf_Link(self::MODULE_NAME . "&action=analytics", web_icon_charts().' '.__('Analytics'), true, 'ubButton');
+		return($result);
+	}
+
     /**
      * Loading data depended from user choice in reports to $this->allData
      * 
@@ -650,8 +668,8 @@ class PerCityAction {
 	$cells.= wf_TableCell(wf_tag('h2', false) . wf_Link($this->SaveGetParams('sort') . 'sort=' . $signal_sort, __('Signal')) . wf_tag('h2', true));
 	$cells.= wf_TableCell(wf_tag('h2', false) . wf_Link($this->SaveGetParams('sort') . 'sort=' . $mac_onu_sort, __('MAC ONU/ONT')) . wf_tag('h2', true));
 	if ($this->showLatestPayment) {
-	    $cells.= wf_TableCell(wf_tag('h2', false) . __('Last payment').' '.__('Date') . wf_tag('h2', true));
-	    $cells.= wf_TableCell(wf_tag('h2', false) . __('Last payment').' '.__('Sum') . wf_tag('h2', true));
+	    $cells.= wf_TableCell(wf_tag('h2', false) . __('Date') . wf_tag('h2', true));
+	    $cells.= wf_TableCell(wf_tag('h2', false) . __('Sum') . wf_tag('h2', true));
 	}
 	$cells.= wf_TableCell(wf_tag('h2', false) . __('Login') . wf_tag('h2', true));
 	$rows = wf_TableRow($cells, 'row1');
