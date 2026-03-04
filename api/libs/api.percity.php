@@ -1003,7 +1003,7 @@ class PerCityAction {
      * 
      * @return boolean
      */
-    public function CheckRigts($cityID, $admin) {
+    public function CheckRights($cityID, $admin) {
 	$result = false;
 	if (file_exists(self::PERMISSION_PATH . $admin)) {
 	    $data	 = file_get_contents(self::PERMISSION_PATH . $admin);

@@ -15,7 +15,7 @@ if ($altcfg['PER_CITY_ACTION']) {
                     show_window(__('Payments'), $pca->CitySelector($admin, $action));
                     if (ubRouting::checkGet('citysearch')) {
                         $cityId = ubRouting::get('citysearch', 'int');
-                        if ($pca->CheckRigts($cityId, $admin)) {
+                        if ($pca->CheckRights($cityId, $admin)) {
                             $pca->LoadAllData('', $cityId, 'debtors');
                             $report_name = __('Debtors by city');
                             $report_name.= wf_Link($pca::MODULE_NAME . "&action=debtors&citysearch=$cityId&printable=true", wf_img("skins/printer_small.gif",__('Print')));
@@ -38,7 +38,7 @@ if ($altcfg['PER_CITY_ACTION']) {
                     show_window(__('User search'), $pca->CitySelector($admin, $action));
                     if (ubRouting::checkGet('citysearch')) {
                         $cityId = ubRouting::get('citysearch', 'int');
-                        if ($pca->CheckRigts($cityId, $admin)) {
+                        if ($pca->CheckRights($cityId, $admin)) {
                             $pca->LoadAllData('', $cityId, 'usersearch');
                             $report_name = __('Search results') . wf_link($pca::MODULE_NAME . "&action=usersearch&printable=true&citysearch=$cityId", wf_img("skins/printer_small.gif"));
                             $reportData=$pca->PerCityDataShow();
@@ -62,7 +62,7 @@ if ($altcfg['PER_CITY_ACTION']) {
                     show_window(__('Payments'), $pca->CitySelector($admin, $action));
                     if (ubRouting::checkGet('citysearch')) {
                         $cityId = ubRouting::get('citysearch', 'int');
-                        if ($pca->CheckRigts($cityId, $admin)) {
+                        if ($pca->CheckRights($cityId, $admin)) {
                             if (!ubRouting::checkGet('monthsel')) {
                                 $cur_month = $pca->GetCurrentDate(true);
                                 ubRouting::nav($pca::MODULE_NAME . "&action=city_payments&citysearch=" . ubRouting::get('citysearch', 'int') . "&monthsel=" . $cur_month);
