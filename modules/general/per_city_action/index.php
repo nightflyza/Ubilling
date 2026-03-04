@@ -14,13 +14,13 @@ if ($altcfg['PER_CITY_ACTION']) {
         show_window(__('Actions'), $form);
 
         $perCityAction = new PerCityAction();
-        if (isset($_GET['action'])) {
-            $action = $_GET['action'];
+        if (ubRouting::checkGet('action')) {
+            $action = ubRouting::get('action');
             if ($action == 'debtors') {
                 if (cfr('REPORTCITYDEBTORS')) {
                     show_window(__('Payments'), $perCityAction->CitySelector($admin, $action));
-                    if (isset($_GET['citysearch'])) {
-                        $cityId = $_GET['citysearch'];
+                    if (ubRouting::checkGet('citysearch')) {
+                        $cityId = ubRouting::get('citysearch', 'int');
                         if ($perCityAction->CheckRigts($cityId, $admin)) {
                             $perCityAction->LoadAllData('', $cityId, 'debtors');
                             $report_name = __('Debtors by city') . wf_Link(PerCityAction::MODULE_NAME . "&action=debtors&citysel=$cityId&printable=true", wf_img("skins/printer_small.gif"));
@@ -29,9 +29,10 @@ if ($altcfg['PER_CITY_ACTION']) {
                             show_error(__('You cant control this module'));
                         }
                     }
-                    if (isset($_GET['printable'])) {
-                        if ($_GET['printable']) {
-                            $query = "SELECT `address`.`login`,`users`.`cash` FROM `address` INNER JOIN users USING (login) WHERE `address`.`aptid` IN ( SELECT `id` FROM `apt` WHERE `buildid` IN ( SELECT `id` FROM `build` WHERE `streetid` IN ( SELECT `id` FROM `street` WHERE `cityid`='" . $_GET['citysel'] . "'))) and `users`.`cash`<0";
+                    if (ubRouting::checkGet('printable')) {
+                        if (ubRouting::get('printable')) {
+                            $citysel = ubRouting::get('citysel', 'int');
+                            $query = "SELECT `address`.`login`,`users`.`cash` FROM `address` INNER JOIN users USING (login) WHERE `address`.`aptid` IN ( SELECT `id` FROM `apt` WHERE `buildid` IN ( SELECT `id` FROM `build` WHERE `streetid` IN ( SELECT `id` FROM `street` WHERE `cityid`='" . $citysel . "'))) and `users`.`cash`<0";
                             $keys = array('cash', 'login');
                             $titles = array('tariff', "Comment", 'Mac ONU', "Credited", "Cash", 'Login');
                             $alldata = simple_queryall($query);
@@ -44,8 +45,8 @@ if ($altcfg['PER_CITY_ACTION']) {
             if ($action == 'usersearch') {
                 if (cfr('CITYUSERSEARCH')) {
                     show_window(__('User search'), $perCityAction->CitySelector($admin, $action));
-                    if (isset($_GET['citysearch'])) {
-                        $cityId = $_GET['citysearch'];
+                    if (ubRouting::checkGet('citysearch')) {
+                        $cityId = ubRouting::get('citysearch', 'int');
                         if ($perCityAction->CheckRigts($cityId, $admin)) {
                             $perCityAction->LoadAllData('', $cityId, 'usersearch');
                             $report_name = __('Search results') . wf_link(PerCityAction::MODULE_NAME . "&action=usersearch&printable=true&citysel=$cityId", wf_img("skins/printer_small.gif"));
@@ -54,8 +55,8 @@ if ($altcfg['PER_CITY_ACTION']) {
                             show_error(__('You cant control this module'));
                         }
                     }
-                    if (isset($_GET['printable'])) {
-                        $City = $_GET['citysel'];
+                    if (ubRouting::checkGet('printable')) {
+                        $City = ubRouting::get('citysel', 'int');
                         $query = "SELECT `login` FROM `address` WHERE `aptid` IN (SELECT `id` FROM `apt` WHERE `buildid` IN (SELECT `id` FROM `build` WHERE `streetid` IN (SELECT `id` FROM `street` WHERE `cityid`='" . $City . "')))";
                         $keys = array('login');
                         $titles = array('tariff', 'Comment', 'MAC ONU', 'Credited', 'Login');
@@ -70,17 +71,17 @@ if ($altcfg['PER_CITY_ACTION']) {
                     show_window(__('Change month'), web_MonthSelector());
                     show_window(__('Change year'), web_YearSelector());
                     show_window(__('Payments'), $perCityAction->CitySelector($admin, $action));
-                    if (isset($_GET['citysearch'])) {
-                        $cityId = $_GET['citysearch'];
+                    if (ubRouting::checkGet('citysearch')) {
+                        $cityId = ubRouting::get('citysearch', 'int');
                         if ($perCityAction->CheckRigts($cityId, $admin)) {
-                            if (!isset($_GET['monthsel'])) {
+                            if (!ubRouting::checkGet('monthsel')) {
                                 $cur_month = $perCityAction->GetCurrentDate(true);
-                                rcms_redirect(PerCityAction::MODULE_NAME . "&action=city_payments&citysearch=" . $_GET['citysearch'] . "&monthsel=" . $cur_month);
+                                ubRouting::nav(PerCityAction::MODULE_NAME . "&action=city_payments&citysearch=" . ubRouting::get('citysearch', 'int') . "&monthsel=" . $cur_month);
                             } else {
-                                $cur_month = $_GET['monthsel'];
+                                $cur_month = ubRouting::get('monthsel');
                             }
-                            if (isset($_GET['year'])) {
-                                $year = $_GET['year'];
+                            if (ubRouting::checkGet('year')) {
+                                $year = ubRouting::get('year', 'int');
                             } else {
                                 $year = $perCityAction->GetCurrentDate(false, true);
                             }
@@ -96,35 +97,38 @@ if ($altcfg['PER_CITY_ACTION']) {
             }
             if ($action == 'permission') {
                 if (cfr('CITYPERMISSION')) {
-                    if (isset($_GET['edit'])) {
-                        show_window(__('Cities'), $perCityAction->CityChecker($_GET['edit']));
-                        if (isset($_POST['city'])) {
+                    if (ubRouting::checkGet('edit')) {
+                        $editParam = ubRouting::get('edit');
+                        show_window(__('Cities'), $perCityAction->CityChecker($editParam));
+                        if (ubRouting::checkPost('city')) {
                             $adminsPermission = '';
-                            foreach ($_POST['city'] as $eachCity) {
-                                if ($eachCity == end($_POST['city'])) {
+                            $cityArr = ubRouting::post('city');
+                            foreach ($cityArr as $eachCity) {
+                                if ($eachCity == end($cityArr)) {
                                     $adminsPermission.= $eachCity;
                                 } else {
                                     $adminsPermission.= $eachCity . ",";
                                 }
                             }
-                            file_put_contents(PerCityAction::PERMISSION_PATH . $_GET['edit'], $adminsPermission);
-                            rcms_redirect(PerCityAction::MODULE_NAME . "&action=permission&edit=" . $_GET['edit']);
+                            file_put_contents(PerCityAction::PERMISSION_PATH . $editParam, $adminsPermission);
+                            ubRouting::nav(PerCityAction::MODULE_NAME . "&action=permission&edit=" . $editParam);
                         }
                     } else {
                         show_window(__('Admins'), $perCityAction->ListAdmins());
                     }
 
-                    if (isset($_GET['delete'])) {
-                        if (!empty($_GET['delete'])) {
+                    if (ubRouting::checkGet('delete')) {
+                        $deleteParam = ubRouting::get('delete');
+                        if (!empty($deleteParam)) {
 
-                            if (file_exists(PerCityAction::PERMISSION_PATH . $_GET['delete'])) {
-                                unlink(PerCityAction::PERMISSION_PATH . $_GET['delete']);
-                                rcms_redirect(PerCityAction::MODULE_NAME . "&action=permission");
+                            if (file_exists(PerCityAction::PERMISSION_PATH . $deleteParam)) {
+                                unlink(PerCityAction::PERMISSION_PATH . $deleteParam);
+                                ubRouting::nav(PerCityAction::MODULE_NAME . "&action=permission");
                             } else {
-                                rcms_redirect(PerCityAction::MODULE_NAME . "&action=permission");
+                                ubRouting::nav(PerCityAction::MODULE_NAME . "&action=permission");
                             }
                         } else {
-                            rcms_redirect(PerCityAction::MODULE_NAME . "&action=permission");
+                            ubRouting::nav(PerCityAction::MODULE_NAME . "&action=permission");
                         }
                     }
                 } else {
@@ -134,16 +138,16 @@ if ($altcfg['PER_CITY_ACTION']) {
             if ($action == 'analytics') {
                 show_window(__('By date'), $perCityAction->CitySelector($admin, $action));
                 show_window('', $perCityAction->ChooseDateForm($action));
-                if (isset($_GET['from_date']) && isset($_GET['to_date']) && isset($_GET['citysearch'])) {
-                    $perCityAction->LoadAllData('', $_GET['citysearch'], 'analytics', $_GET['from_date'], $_GET['to_date']);
+                if (ubRouting::checkGet(array('from_date', 'to_date', 'citysearch'))) {
+                    $perCityAction->LoadAllData('', ubRouting::get('citysearch', 'int'), 'analytics', ubRouting::get('from_date'), ubRouting::get('to_date'));
                     show_window(__('Analytics'), $perCityAction->AnalyticsShow());
-                } elseif (isset($_GET['by_day']) && isset($_GET['citysearch'])) {
-                    $perCityAction->LoadAllData('', $_GET['citysearch'], 'analytics', '', '', $_GET['by_day']);
+                } elseif (ubRouting::checkGet(array('by_day', 'citysearch'))) {
+                    $perCityAction->LoadAllData('', ubRouting::get('citysearch', 'int'), 'analytics', '', '', ubRouting::get('by_day'));
                     show_window(__('Analytics'), $perCityAction->AnalyticsShow());
                 }
             }
         }
-        
+        zb_BillingStats(true);
     } else {
         show_error(__('You cant control this module'));
     }
