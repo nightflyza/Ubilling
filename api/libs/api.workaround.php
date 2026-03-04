@@ -5954,7 +5954,7 @@ function zb_array_insert(&$array, $position, $insert) {
 function zb_ReportPrintable($title, $data) {
     $style = file_get_contents(CONFIG_PATH . "ukvprintable.css");
     $header = wf_tag('!DOCTYPE', false, '', 'html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"');
-    $header .= wf_tag('html', false, '', 'xmlns="http://www.w3.org/1999/xhtml" xml:lang="ru" lang="ru"');
+    $header .= wf_tag('html', false, '', 'xmlns="http://www.w3.org/1999/xhtml" xml:lang="uk" lang="uk"');
     $header .= wf_tag('head', false);
     $header .= wf_tag('title') . $title . wf_tag('title', true);
     $header .= wf_tag('meta', false, '', 'http-equiv="Content-Type" content="text/html; charset=UTF-8" /');

@@ -23,20 +23,17 @@ if ($altcfg['PER_CITY_ACTION']) {
                         $cityId = ubRouting::get('citysearch', 'int');
                         if ($perCityAction->CheckRigts($cityId, $admin)) {
                             $perCityAction->LoadAllData('', $cityId, 'debtors');
-                            $report_name = __('Debtors by city') . wf_Link(PerCityAction::MODULE_NAME . "&action=debtors&citysel=$cityId&printable=true", wf_img("skins/printer_small.gif"));
-                            show_window(__($report_name), $perCityAction->PerCityDataShow());
+                            $report_name = __('Debtors by city');
+                            $report_name.= wf_Link(PerCityAction::MODULE_NAME . "&action=debtors&citysearch=$cityId&printable=true", wf_img("skins/printer_small.gif",__('Print')));
+                            $report_name.= wf_Link(PerCityAction::MODULE_NAME . "&action=debtors&citysearch=$cityId&" . PerCityAction::ROUTE_SHOW_LP . "=true", wf_img_sized("skins/icon_dollar_16.gif", __('Last payment'), 10));
+                            $reportData=$perCityAction->PerCityDataShow();
+                            show_window(__($report_name), $reportData);
+                            if (ubRouting::checkGet('printable')) {
+                                $reportData = zb_ReportPrintable(__('Debtors by city'), $reportData);
+                                die($reportData);
+                            }
                         } else {
                             show_error(__('You cant control this module'));
-                        }
-                    }
-                    if (ubRouting::checkGet('printable')) {
-                        if (ubRouting::get('printable')) {
-                            $citysel = ubRouting::get('citysel', 'int');
-                            $query = "SELECT `address`.`login`,`users`.`cash` FROM `address` INNER JOIN users USING (login) WHERE `address`.`aptid` IN ( SELECT `id` FROM `apt` WHERE `buildid` IN ( SELECT `id` FROM `build` WHERE `streetid` IN ( SELECT `id` FROM `street` WHERE `cityid`='" . $citysel . "'))) and `users`.`cash`<0";
-                            $keys = array('cash', 'login');
-                            $titles = array('tariff', "Comment", 'Mac ONU', "Credited", "Cash", 'Login');
-                            $alldata = simple_queryall($query);
-                            web_ReportDebtorsShowPrintable($titles, $keys, $alldata, '1', '1', '1');
                         }
                     }
                 }
@@ -49,20 +46,18 @@ if ($altcfg['PER_CITY_ACTION']) {
                         $cityId = ubRouting::get('citysearch', 'int');
                         if ($perCityAction->CheckRigts($cityId, $admin)) {
                             $perCityAction->LoadAllData('', $cityId, 'usersearch');
-                            $report_name = __('Search results') . wf_link(PerCityAction::MODULE_NAME . "&action=usersearch&printable=true&citysel=$cityId", wf_img("skins/printer_small.gif"));
-                            show_window(__($report_name), $perCityAction->PerCityDataShow());
+                            $report_name = __('Search results') . wf_link(PerCityAction::MODULE_NAME . "&action=usersearch&printable=true&citysearch=$cityId", wf_img("skins/printer_small.gif"));
+                            $reportData=$perCityAction->PerCityDataShow();
+                            show_window(__($report_name), $reportData);
+                            if (ubRouting::checkGet('printable')) {
+                                $reportData = zb_ReportPrintable(__('Search results'), $reportData);
+                                die($reportData);
+                            }
                         } else {
                             show_error(__('You cant control this module'));
                         }
                     }
-                    if (ubRouting::checkGet('printable')) {
-                        $City = ubRouting::get('citysel', 'int');
-                        $query = "SELECT `login` FROM `address` WHERE `aptid` IN (SELECT `id` FROM `apt` WHERE `buildid` IN (SELECT `id` FROM `build` WHERE `streetid` IN (SELECT `id` FROM `street` WHERE `cityid`='" . $City . "')))";
-                        $keys = array('login');
-                        $titles = array('tariff', 'Comment', 'MAC ONU', 'Credited', 'Login');
-                        $alldata = simple_queryall($query);
-                        web_ReportCityShowPrintable($titles, $keys, $alldata, '1', '1', '1');
-                    }
+                
                 }
             }
 

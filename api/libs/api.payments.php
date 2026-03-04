@@ -374,3 +374,30 @@ function zb_UserChangeSignupPrice($login, $new_price) {
     zb_UserCreateSignupPrice($login, $new_price);
     log_register('CHANGE SignupPrice (' . $login . ') FROM ' . $old_price . ' TO ' . $new_price);
 }
+
+
+/**
+ * Returns array of all users last payments with login=>date/summ as key
+ * 
+ * TODO: ALTER TABLE payments ADD INDEX idx_login_id (login, id); ?
+ *
+ * @return array
+ */
+function zb_UserGetLatestPaymentsAll() {
+    $result = array();
+    $query = "SELECT p.*
+              FROM `payments` p
+              INNER JOIN (
+                  SELECT `login`, MAX(`id`) AS maxid
+                  FROM `payments`
+                  GROUP BY `login`
+              ) t ON p.`login` = t.`login` AND p.`id` = t.maxid";
+              
+    $all = simple_queryall($query);
+    if (!empty($all)) {
+        foreach ($all as $io => $each) {
+            $result[$each['login']] = $each;
+        }
+    }
+    return ($result);
+}
