@@ -2816,13 +2816,14 @@ function zb_NumUnEncode($data) {
 
 /**
  * Returns user array in table view
- * 
+ *
  * @global object $ubillingConfig
  * @param array $usersarr as index=>login or login=>login
- * 
+ * @param array $extraColumns optional extra columns: array( 'Column name' => array( login => value, ... ), ... )
+ *
  * @return string
  */
-function web_UserArrayShower($usersarr) {
+function web_UserArrayShower($usersarr, $extraColumns = array()) {
     global $ubillingConfig;
     $alterconf = $ubillingConfig->getAlter();
     $useCacheFlag = (@$alterconf['USERLISTS_USE_CACHE']) ? true : false;
@@ -2868,6 +2869,9 @@ function web_UserArrayShower($usersarr) {
         }
         $tablecells .= wf_TableCell(__('Balance'));
         $tablecells .= wf_TableCell(__('Credit'));
+        foreach ($extraColumns as $colName => $colData) {
+            $tablecells .= wf_TableCell(__($colName));
+        }
 
         $tablerows = wf_TableRow($tablecells, 'row1');
 
@@ -2924,6 +2928,9 @@ function web_UserArrayShower($usersarr) {
             }
             $tablecells .= wf_TableCell($usercash);
             $tablecells .= wf_TableCell($usercredit);
+            foreach ($extraColumns as $colName => $colData) {
+                $tablecells .= wf_TableCell(isset($colData[$eachlogin]) ? $colData[$eachlogin] : '');
+            }
 
             $tablerows .= wf_TableRow($tablecells, 'row5');
             $totalCount++;
@@ -2956,6 +2963,9 @@ function web_UserArrayShower($usersarr) {
                 }
                 $tablecells .= wf_TableCell('-');
                 $tablecells .= wf_TableCell('-');
+                foreach ($extraColumns as $colName => $colData) {
+                    $tablecells .= wf_TableCell('-');
+                }
 
                 $tablerows .= wf_TableRow($tablecells, 'row5');
             }

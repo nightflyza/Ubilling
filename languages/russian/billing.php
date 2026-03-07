@@ -3619,3 +3619,7 @@ $lang['def']['By year'] = 'По годам';
 $lang['def']['By month'] = 'По месяцам';
 $lang['def']['Lost'] = 'Потеряно';
 $lang['def']['Still active'] = 'Еще активен';
+$lang['def']['by time of day'] = 'по времени суток';
+$lang['def']['by day of week'] = 'по дню недели';
+$lang['def']['Split'] = 'Разделить';
+$lang['def']['Signup'] = 'Подключение';

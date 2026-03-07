@@ -3642,3 +3642,7 @@ $lang['def']['By month'] = 'За місяцями';
 $lang['def']['Lost'] = 'Втрачено';
 $lang['def']['Still active'] = 'Ще активний';
 $lang['def']['Average user lifetime'] = 'Середня тривалість життя користувача';
+$lang['def']['by time of day'] = 'по часу доби';
+$lang['def']['by day of week'] = 'по дню тижня';
+$lang['def']['Split'] = 'Розділити';
+$lang['def']['Signup'] = 'Підключення';
