@@ -115,10 +115,11 @@ if (cfr('PAYFIND')) {
 
     /**
      * Returns payment system selector - used in search form
-     * 
+     *
+     * @param string $selected preselected value (e.g. from POST)
      * @return string
      */
-    function web_PaySysPercentSelector() {
+    function web_PaySysPercentSelector($selected = '') {
         $allpaysys = zb_PaySysPercentGetAll();
         $prepared = array();
         if (!empty($allpaysys)) {
@@ -126,16 +127,17 @@ if (cfr('PAYFIND')) {
                 $prepared[$marker] = $each['name'];
             }
         }
-        $result = wf_Selector('paysys', $prepared, __('Payment system'), '', false);
+        $result = wf_Selector('paysys', $prepared, __('Payment system'), $selected, false);
         return ($result);
     }
 
     /**
      * Returns available cashier accounts selector
-     * 
+     *
+     * @param string $selected preselected value (e.g. from POST)
      * @return string
      */
-    function web_PayFindCashierSelector() {
+    function web_PayFindCashierSelector($selected = '') {
         $alladmins = rcms_scandir(USERS_PATH);
         $adminlist = array();
         @$employeeLogins = unserialize(ts_GetAllEmployeeLoginsCached());
@@ -146,17 +148,18 @@ if (cfr('PAYFIND')) {
                 $adminlist[$login] = $administratorName;
             }
             $adminlist['openpayz'] = __('OpenPayz');
-            $result = wf_Selector('cashier', $adminlist, __('Cashier'), '', true, true);
+            $result = wf_Selector('cashier', $adminlist, __('Cashier'), $selected, true, true);
         }
         return ($result);
     }
 
     /**
      * Returns available tags selector
-     * 
+     *
+     * @param string $selected preselected value (e.g. from POST)
      * @return string
      */
-    function web_PayFindTagidSelector() {
+    function web_PayFindTagidSelector($selected = '') {
         $query = "SELECT `id`,`tagname` from `tagtypes`";
         $result = '';
         $tags = array();
@@ -166,7 +169,7 @@ if (cfr('PAYFIND')) {
                 $tags[$eachtag['id']] = $eachtag['tagname'];
             }
         }
-        $result = wf_Selector('tagid', $tags, __('Tags'), '', true, true);
+        $result = wf_Selector('tagid', $tags, __('Tags'), $selected, true, true);
         return ($result);
     }
 
@@ -198,13 +201,15 @@ if (cfr('PAYFIND')) {
 
     /**
      * Returns search table selector
-     * 
+     *
+     * @param string|null $selected preselected value (e.g. from POST); if null, reads from POST
      * @return string
      */
-    function web_PayFindTableSelect() {
-        if (wf_CheckPost(array('searchtable'))) {
+    function web_PayFindTableSelect($selected = null) {
+        if ($selected === null && ubRouting::checkPost(array('searchtable'))) {
             $selected = $_POST['searchtable'];
-        } else {
+        }
+        if ($selected === null) {
             $selected = '';
         }
 
@@ -219,58 +224,134 @@ if (cfr('PAYFIND')) {
 
     /**
      * Returns payment search form
-     * 
+     * Preserves state of all checkboxes, inputs and selectors between submissions.
+     *
      * @return string
      */
     function web_PayFindForm() {
-        //try to save calendar states
-        if (wf_CheckPost(array('datefrom', 'dateto'))) {
-            $curdate = $_POST['dateto'];
-            $yesterday = $_POST['datefrom'];
+        $isPost = ubRouting::checkPost(array('dosearch'));
+
+        // dates
+        if ($isPost && ubRouting::checkPost(array('datefrom', 'dateto'))) {
+            $yesterday = ubRouting::post('datefrom');
+            $curdate = ubRouting::post('dateto');
         } else {
-            $curdate = date("Y-m-d", time() + 60 * 60 * 24);
             $yesterday = curdate();
+            $curdate = date("Y-m-d", time() + 60 * 60 * 24);
         }
+
+        // text fields (restore from POST)
+        $payid = $isPost ? ubRouting::post('payid') : '';
+        if ($payid === false) {
+            $payid = '';
+        }
+        $contract = $isPost ? ubRouting::post('contract') : '';
+        if ($contract === false) {
+            $contract = '';
+        }
+        $login = $isPost ? ubRouting::post('login') : '';
+        if ($login === false) {
+            $login = '';
+        }
+        $loginwildcard = $isPost ? ubRouting::post('loginwildcard') : '';
+        if ($loginwildcard === false) {
+            $loginwildcard = '';
+        }
+        $summ = $isPost ? ubRouting::post('summ') : '';
+        if ($summ === false) {
+            $summ = '';
+        }
+        $payidenc = $isPost ? ubRouting::post('payidenc') : '';
+        if ($payidenc === false) {
+            $payidenc = '';
+        }
+        $paysummgreater = $isPost ? ubRouting::post('paysummgreater') : '';
+        if ($paysummgreater === false) {
+            $paysummgreater = '';
+        }
+        $paynotescontains = $isPost ? ubRouting::post('paynotescontains') : '';
+        if ($paynotescontains === false) {
+            $paynotescontains = '';
+        }
+        $payaddrcontains = $isPost ? ubRouting::post('payaddrcontains') : '';
+        if ($payaddrcontains === false) {
+            $payaddrcontains = '';
+        }
+
+        // selectors (restore from POST)
+        $cashtype = $isPost ? ubRouting::post('cashtype') : '';
+        if ($cashtype === false) {
+            $cashtype = '';
+        }
+        $cashier = $isPost ? ubRouting::post('cashier') : '';
+        if ($cashier === false) {
+            $cashier = '';
+        }
+        $tagid = $isPost ? ubRouting::post('tagid') : '';
+        if ($tagid === false) {
+            $tagid = '';
+        }
+        $paysys = $isPost ? ubRouting::post('paysys') : '';
+        if ($paysys === false) {
+            $paysys = '';
+        }
+        $citysel = $isPost ? ubRouting::post('citysel') : '';
+        if ($citysel === false) {
+            $citysel = '';
+        }
+        $ahentsel = $isPost ? ubRouting::post('ahentsel') : '';
+        if ($ahentsel === false) {
+            $ahentsel = '';
+        }
+        $searchtable = $isPost ? ubRouting::post('searchtable') : '';
+        if ($searchtable === false) {
+            $searchtable = '';
+        }
+
+        // checkboxes (present in POST only when checked)
+        $chk = function ($name) use ($isPost) {
+            return $isPost && isset($_POST[$name]);
+        };
 
         $inputs = __('Date');
         $inputs .= wf_DatePickerPreset('datefrom', $yesterday) . ' ' . __('From');
         $inputs .= wf_DatePickerPreset('dateto', $curdate) . ' ' . __('To');
         $inputs .= wf_delimiter();
-        $inputs .= wf_CheckInput('type_payid', '', false, false);
-        $inputs .= wf_TextInput('payid', __('Search by payment ID'), '', true, '10');
-        $inputs .= wf_CheckInput('type_contract', '', false, false);
-        $inputs .= wf_TextInput('contract', __('Search by users contract'), '', true, '10');
-        $inputs .= wf_CheckInput('type_login', '', false, false);
-        $inputs .= wf_TextInput('login', __('Search by users login'), '', true, '10');
-        $inputs .= wf_CheckInput('type_loginwildcard', '', false, false);
-        $inputs .= wf_TextInput('loginwildcard', __('Login contains'), '', true, '10');
-        $inputs .= wf_CheckInput('type_summ', '', false, false);
-        $inputs .= wf_TextInput('summ', __('Search by payment sum'), '', true, '10');
-        $inputs .= wf_CheckInput('type_payidenc', '', false, false);
-        $inputs .= wf_TextInput('payidenc', __('IDENC'), '', true, '10');
-        $inputs .= wf_CheckInput('type_summgreater', '', false, false);
-        $inputs .= wf_TextInput('paysummgreater', __('Payment summ greater then'), '', true, '10');
-        $inputs .= wf_CheckInput('type_notescontains', '', false, false);
-        $inputs .= wf_TextInput('paynotescontains', __('Notes contains'), '', true, '10');
-        $inputs .= wf_CheckInput('type_cashtype', '', false, false);
-        $inputs .= web_CashTypeSelector() . wf_tag('label', false, '', 'for="cashtype"') . __('Search by cash type') . wf_tag('label', true) . wf_tag('br');
-        $inputs .= wf_CheckInput('type_cashier', '', false, false);
-        $inputs .= web_PayFindCashierSelector();
-        $inputs .= wf_CheckInput('type_tagid', '', false, false);
-        $inputs .= web_PayFindTagidSelector();
-        $inputs .= wf_CheckInput('type_paysys', '', false, false);
-        $inputs .= web_PaySysPercentSelector();
+        $inputs .= wf_CheckInput('type_payid', '', false, $chk('type_payid'));
+        $inputs .= wf_TextInput('payid', __('Search by payment ID'), $payid, true, '10','digits');
+        $inputs .= wf_CheckInput('type_contract', '', false, $chk('type_contract'));
+        $inputs .= wf_TextInput('contract', __('Search by users contract'), $contract, true, '10','alphanumeric');
+        $inputs .= wf_CheckInput('type_login', '', false, $chk('type_login'));
+        $inputs .= wf_TextInput('login', __('Search by users login'), $login, true, '10','login');
+        $inputs .= wf_CheckInput('type_loginwildcard', '', false, $chk('type_loginwildcard'));
+        $inputs .= wf_TextInput('loginwildcard', __('Login contains'), $loginwildcard, true, '10','login');
+        $inputs .= wf_CheckInput('type_summ', '', false, $chk('type_summ'));
+        $inputs .= wf_TextInput('summ', __('Search by payment sum'), $summ, true, '10','sigfinance');
+        $inputs .= wf_CheckInput('type_payidenc', '', false, $chk('type_payidenc'));
+        $inputs .= wf_TextInput('payidenc', __('IDENC'), $payidenc, true, '10','alpha');
+        $inputs .= wf_CheckInput('type_summgreater', '', false, $chk('type_summgreater'));
+        $inputs .= wf_TextInput('paysummgreater', __('Payment summ greater then'), $paysummgreater, true, '10','sigfinance');
+        $inputs .= wf_CheckInput('type_notescontains', '', false, $chk('type_notescontains'));
+        $inputs .= wf_TextInput('paynotescontains', __('Notes contains'), $paynotescontains, true, '10');
+        $inputs .= wf_CheckInput('type_cashtype', '', false, $chk('type_cashtype'));
+        $inputs .= web_CashTypeSelector($cashtype) . wf_tag('label', false, '', 'for="cashtype"') . __('Search by cash type') . wf_tag('label', true) . wf_tag('br');
+        $inputs .= wf_CheckInput('type_cashier', '', false, $chk('type_cashier'));
+        $inputs .= web_PayFindCashierSelector($cashier);
+        $inputs .= wf_CheckInput('type_tagid', '', false, $chk('type_tagid'));
+        $inputs .= web_PayFindTagidSelector($tagid);
+        $inputs .= wf_CheckInput('type_paysys', '', false, $chk('type_paysys'));
+        $inputs .= web_PaySysPercentSelector($paysys);
         $inputs .= wf_Link("?module=payfind&confpaysys=true", __('Settings')) . wf_tag('br');
-        $inputs .= wf_CheckInput('type_city', '', false, false);
-        $inputs .= web_CitySelector() . ' ' . __('City') . wf_delimiter(0);
-        $inputs .= wf_CheckInput('type_address', '', false, false);
-        $inputs .= wf_TextInput('payaddrcontains', __('Address contains'), '', true, 20);
-        $inputs .= wf_CheckInput('type_contragent', '', false, false);
-        $inputs .= zb_ContrAhentSelectPreset() . ' ' . __('Service provider') . wf_delimiter(0);
-        $inputs .= wf_CheckInput('only_positive', __('Show only positive payments'), true, false);
-        $inputs .= wf_CheckInput('numeric_notes', __('Show payments with numeric notes'), true, false);
-        $inputs .= wf_CheckInput('numericonly_notes', __('Show payments with only numeric notes'), true, false);
-        $inputs .= wf_nbsp(8) . web_PayFindTableSelect() . wf_delimiter();
+        $inputs .= wf_CheckInput('type_city', '', false, $chk('type_city'));
+        $inputs .= web_CitySelector(0, $citysel) . ' ' . __('City') . wf_delimiter(0);
+        $inputs .= wf_CheckInput('type_address', '', false, $chk('type_address'));
+        $inputs .= wf_TextInput('payaddrcontains', __('Address contains'), $payaddrcontains, true, 20);
+        $inputs .= wf_CheckInput('type_contragent', '', false, $chk('type_contragent'));
+        $inputs .= zb_ContrAhentSelectPreset($ahentsel) . ' ' . __('Service provider') . wf_delimiter(0);
+        $inputs .= wf_CheckInput('only_positive', __('Show only positive payments'), true, $chk('only_positive'));
+        $inputs .= wf_CheckInput('numeric_notes', __('Show payments with numeric notes'), true, $chk('numeric_notes'));
+        $inputs .= wf_CheckInput('numericonly_notes', __('Show payments with only numeric notes'), true, $chk('numericonly_notes'));
+        $inputs .= wf_nbsp(8) . web_PayFindTableSelect($searchtable) . wf_delimiter();
         $inputs .= wf_HiddenInput('dosearch', 'true');
         $inputs .= wf_Submit(__('Search'));
 
@@ -587,8 +668,8 @@ if (cfr('PAYFIND')) {
     }
 
     //summ is greater search
-    if (wf_CheckPost(array('type_summgreater', 'paysummgreater'))) {
-        $markers .= "AND `summ` > " . mysql_real_escape_string($_POST['paysummgreater']) . " ";
+    if (ubRouting::checkPost(array('type_summgreater', 'paysummgreater'),false)) {
+        $markers .= "AND `summ` > " . ubRouting::post('paysummgreater') . " ";
     }
 
     //payment notes contains search

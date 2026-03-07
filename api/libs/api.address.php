@@ -804,11 +804,12 @@ function zb_AddressGetAptDataById($aptid) {
 
 /**
  * Returns available cities selector
- * @param int $FilterByCityId
+ * @param int    $FilterByCityId  filter cities by city id (for zb_AddressGetCityAllData)
+ * @param string $selectedPreset  preselected city id (e.g. from POST); when set, overrides GET citypreset
  *
  * @return string
  */
-function web_CitySelector($FilterByCityId = 0) {
+function web_CitySelector($FilterByCityId = 0, $selectedPreset = '') {
     $allcity = array();
 
     if (empty($FilterByCityId)) {
@@ -823,7 +824,11 @@ function web_CitySelector($FilterByCityId = 0) {
         }
     }
 
-    $selected = (wf_CheckGet(array('citypreset'))) ? vf($_GET['citypreset'], 3) : '';
+    if ($selectedPreset !== '') {
+        $selected = vf($selectedPreset, 3);
+    } else {
+        $selected = (wf_CheckGet(array('citypreset'))) ? vf($_GET['citypreset'], 3) : '';
+    }
 
     $selector = wf_Selector('citysel', $allcity, '', $selected, false);
     return ($selector);

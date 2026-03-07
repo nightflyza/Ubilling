@@ -75,7 +75,9 @@ function wf_Form($action, $method, $inputs, $class = '', $legend = '', $CtrlID =
  *         - digits: only digits [0-9] (e.g., "12345")
  *         - email: valid email address format (e.g., "user@domain.com")
  *         - finance: decimal numbers with optional decimal point (e.g., "123.45", "100", "0.99")
+ *         - sigfinance: signed decimal numbers with optional decimal point (e.g., "-123.45", "100", "0.99")
  *         - float: floating point numbers (e.g., "123.45", "0.001")
+ *         - sigfloat: signed floating point numbers (e.g., "-123.45", "0.001")
  *         - geo: geographic coordinates (e.g., "40.7143528,-74.0059731")
  *         - ip: IPv4 address format (e.g., "192.168.1.1")
  *         - login: username format with letters, numbers and underscore (e.g., "user_123")
@@ -116,7 +118,9 @@ function wf_TextInput($name, $label = '', $value = '', $br = false, $size = '', 
     $pattern = ($pattern == 'alphanumeric') ? 'pattern="[a-zA-Z0-9]+" placeholder="aZ09" title="' . __('This field can only contain Latin letters and numbers') . '"' : $pattern;
     $pattern = ($pattern == 'digits') ? 'pattern="^\d+$" placeholder="0" title="' . __('This field can only contain digits') . '"' : $pattern;
     $pattern = ($pattern == 'finance') ? 'pattern="\d+(\.\d+)?" placeholder="0(.00)" title="' . __('The financial input format can be') . ': 1 ; 4.01 ; 2 ; 0.001"' : $pattern;
+    $pattern = ($pattern == 'sigfinance') ? 'pattern="^-?\d+(\.\d+)?" placeholder="0(.00)" title="' . __('The financial input format can be') . ': 1 ; 4.01 ; -2 ; 0.001"' : $pattern;
     $pattern = ($pattern == 'float') ? 'pattern="\d+(\.\d+)?" placeholder="0.00" title="' . __('This field can only contain digits') . ': 1 ; 4.01 ; 2 ; 0.001"' : $pattern;
+    $pattern = ($pattern == 'sigfloat') ? 'pattern="^-?\d+(\.\d+)?" placeholder="0.00" title="' . __('This field can only contain digits') . ': 1 ; 4.01 ; 2 ; 0.001"' : $pattern;
     $pattern = ($pattern == 'sigint') ? 'pattern="^-?\d+$" placeholder="0" title="' . __('This field can only contain digits') . ' ' . __('and') . ' - "' : $pattern;
     // For this pattern IP adress also can be 0.0.0.0
     $pattern = ($pattern == 'ip') ? 'pattern="^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$" placeholder="0.0.0.0" title="' . __('The IP address format can be') . ': 192.1.1.1"' : $pattern;
