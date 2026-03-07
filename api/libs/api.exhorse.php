@@ -973,21 +973,13 @@ class ExistentialHorse {
         $ukvChartData = array(0 => array(__('Month'), __('Total'), __('Active'), __('Inactive'), __('Illegal'), __('Complex'), __('Social'), __('Signups')));
         $ukvfChartData = array(0 => array(__('Month'), __('Money'), __('Payments count'), __('Debt')));
         $ukvarpuChartData = array(0 => array(__('Month'), __('ARPU'), __('ARPAU')));
-        $universeChartData = array(0 => array(__('Month'), __('Signup requests'), __('Tickets'), __('Tasks'), __('Signup capabilities'), __('Undone')));
+        $universeChartData = array(0 => array(__('Month'), __('Signup requests'), __('Tickets'), __('Signup capabilities'), __('Undone')));
+        $tasksChartData = array(0 => array(__('Month'), __('Tasks')));
         $telephonyChartData = array(0 => array(__('Month'), __('Total calls'), __('Total answered'), __('No answer')));
-        $equipChartData = array(0 => array(__('Month'), __('Switches')));
+        $equipSwitchesChartData = array(0 => array(__('Month'), __('Switches')));
+        $equipPonChartData = array(0 => array(__('Month'), __('PON ONU')));
+        $equipDocsisChartData = array(0 => array(__('Month'), __('DOCSIS modems')));
         $citySignupsTmp = array();
-
-        if ($this->ponFlag AND $this->docsisFlag) {
-            $equipChartData = array(0 => array(__('Month'), __('Switches'), __('PON ONU'), __('DOCSIS modems')));
-        }
-
-        if (!$this->docsisFlag AND $this->ponFlag) {
-            $equipChartData = array(0 => array(__('Month'), __('Switches'), __('PON ONU')));
-        }
-        if ($this->docsisFlag AND !$this->ponFlag) {
-            $equipChartData = array(0 => array(__('Month'), __('Switches'), __('DOCSIS modems')));
-        }
 
 
         if (!empty($yearData)) {
@@ -1357,7 +1349,8 @@ class ExistentialHorse {
                     $rows .= wf_TableRow($cells, 'row3');
                     //chart data
                     $yearDisplay = ($monthNum == '01') ? $yearDisplay : '';
-                    $universeChartData[] = array($yearDisplay . $months[$monthNum], $each['t_sigreq'], $each['t_tickets'], $each['t_tasks'], $each['t_capabtotal'], $each['t_capabundone']);
+                    $universeChartData[] = array($yearDisplay . $months[$monthNum], $each['t_sigreq'], $each['t_tickets'], $each['t_capabtotal'], $each['t_capabundone']);
+                    $tasksChartData[] = array($yearDisplay . $months[$monthNum], $each['t_tasks']);
                 }
             }
             $result .= wf_TableBody($rows, '100%', 0, '');
@@ -1375,6 +1368,14 @@ class ExistentialHorse {
                     }
                 }
                 $result .= wf_gchartsLine($universeChartData, __('Relationships with the universe'), '100%', '300px', $chartsOptions);
+                if (!empty($tasksChartData)) {
+                    foreach ($tasksChartData as $io => $row) {
+                        if (!empty($row) && isset($row[1]) && $row[1] === NULL) {
+                            $tasksChartData[$io][1] = 0;
+                        }
+                    }
+                }
+                $result .= wf_gchartsLine($tasksChartData, __('Tasks'), '100%', '300px', $chartsOptions);
             }
 
             //Equipment
@@ -1409,27 +1410,24 @@ class ExistentialHorse {
                     $rows .= wf_TableRow($cells, 'row3');
                     //chart data
                     $yearDisplay = ($monthNum == '01') ? $yearDisplay : '';
-
-                    $equipChartRow = array($yearDisplay . $months[$monthNum], $each['e_switches']);
-
-                    if ($this->ponFlag AND $this->docsisFlag) {
-                        $equipChartRow = array($yearDisplay . $months[$monthNum], $each['e_switches'], $each['e_pononu'], $each['e_docsis']);
+                    $equipSwitchesChartData[] = array($yearDisplay . $months[$monthNum], $each['e_switches']);
+                    if ($this->ponFlag) {
+                        $equipPonChartData[] = array($yearDisplay . $months[$monthNum], $each['e_pononu']);
                     }
-
-                    if ($this->ponFlag AND !$this->docsisFlag) {
-                        $equipChartRow = array($yearDisplay . $months[$monthNum], $each['e_switches'], $each['e_pononu']);
+                    if ($this->docsisFlag) {
+                        $equipDocsisChartData[] = array($yearDisplay . $months[$monthNum], $each['e_docsis']);
                     }
-
-                    if ($this->docsisFlag AND !$this->ponFlag) {
-                        $equipChartRow = array($yearDisplay . $months[$monthNum], $each['e_switches'], $each['e_docsis']);
-                    }
-
-                    $equipChartData[] = $equipChartRow;
                 }
             }
             $result .= wf_TableBody($rows, '100%', 0, '');
             if ($chartsFlag) {
-                $result .= wf_gchartsLine($equipChartData, __('Equipment'), '100%', '300px', $chartsOptions);
+                $result .= wf_gchartsLine($equipSwitchesChartData, __('Switches'), '100%', '300px', $chartsOptions);
+                if ($this->ponFlag) {
+                    $result .= wf_gchartsLine($equipPonChartData, __('PON ONU'), '100%', '300px', $chartsOptions);
+                }
+                if ($this->docsisFlag) {
+                    $result .= wf_gchartsLine($equipDocsisChartData, __('DOCSIS modems'), '100%', '300px', $chartsOptions);
+                }
             }
         } else {
             $result .= $this->messages->getStyledMessage(__('Nothing found'), 'info');
