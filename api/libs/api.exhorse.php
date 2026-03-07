@@ -253,7 +253,7 @@ class ExistentialHorse {
                     }
                 }
             } else {
-                throw new Exception(self::CPL_EMPTY_EX);
+                throw new Exception('CPL_EMPTY_EX');
             }
         }
 
