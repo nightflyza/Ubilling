@@ -2161,8 +2161,14 @@ class PONizer {
         if (isset($this->allOnu[$onuId])) {
             $allDeadSwitches = zb_SwitchesGetAllDead();
             $oltId = $this->allOnu[$onuId]['oltid'];
-            $oltIp = $this->allOltIps[$oltId];
-            $deadOltFlag = (isset($allDeadSwitches[$oltIp])) ? true : false;
+            if (isset($this->allOltIps[$oltId])) {
+                $oltIp = $this->allOltIps[$oltId];
+                $deadOltFlag = (isset($allDeadSwitches[$oltIp])) ? true : false;
+                $oltMissingFlag = false;
+            } else {
+                $deadOltFlag = true;
+                $oltMissingFlag = true;
+            }
             $onuSignal = $this->getOnuSignalLevelData($onuId);
             if (!empty($onuSignal)) {
                 $sigTypeLabel = ($deadOltFlag) ? __('Latest') :  __('Current');
@@ -2172,7 +2178,11 @@ class PONizer {
                 $result .= wf_tag('font', false, '', 'color="' . $onuSignal['color'] . '" size="8pt"') . $onuSignal['raw'] . wf_tag('font', true);
                 $result .= wf_delimiter();
                 if ($deadOltFlag) {
-                    $result .= wf_img('skins/skull.png') . ' ' . __('OLT is dead now');
+                    if ($oltMissingFlag) {
+                        $result .= wf_img('skins/icon_minus.png') . ' ' . __('OLT').' '.__('not exists');
+                    } else {
+                        $result .= wf_img('skins/skull.png') . ' ' . __('OLT is dead now');
+                    }
                 } else {
                     $result .= __($onuSignal['type']);
                 }
@@ -3627,19 +3637,20 @@ class PONizer {
                     if ($this->altCfg['PON_ONU_FDB_REGDETECT']) {
                         $availOnuFdbCache = $this->oltData->isFdbAvailable();
                         if (!empty($availOnuFdbCache)) {
-                        $allUserMac = zb_UserGetAllMACs();
-                        $allUserMac = array_map('strtolower', $allUserMac);
-                        $allUserMac = array_flip($allUserMac);
+                            $allUserMac = zb_UserGetAllMACs();
+                            $allUserMac = array_map('strtolower', $allUserMac);
+                            $allUserMac = array_flip($allUserMac);
 
-                        $availOnuFdbCache = $this->oltData->getFdbOLTAll();
-                        if (isset($availOnuFdbCache[$oltId])) {
-                            if (isset($availOnuFdbCache[$oltId][$onuMac])) {
-                                $onuFdbRecords=$availOnuFdbCache[$oltId][$onuMac];
-                                if (!empty($onuFdbRecords)) {
-                                    foreach ($onuFdbRecords as $someId => $onuData) {
-                                        if (!empty($onuData)) {
-                                            if (isset($allUserMac[$onuData['mac']])) {
-                                                $userLogin = $allUserMac[$onuData['mac']];
+                            $availOnuFdbCache = $this->oltData->getFdbOLTAll();
+                            if (isset($availOnuFdbCache[$oltId])) {
+                                if (isset($availOnuFdbCache[$oltId][$onuMac])) {
+                                    $onuFdbRecords = $availOnuFdbCache[$oltId][$onuMac];
+                                    if (!empty($onuFdbRecords)) {
+                                        foreach ($onuFdbRecords as $someId => $onuData) {
+                                            if (!empty($onuData)) {
+                                                if (isset($allUserMac[$onuData['mac']])) {
+                                                    $userLogin = $allUserMac[$onuData['mac']];
+                                                }
                                             }
                                         }
                                     }
@@ -3647,7 +3658,6 @@ class PONizer {
                             }
                         }
                     }
-                  }
 
                     if ($this->llidColVisibleUnknownONU) {
                         $onuLLID = (empty($this->interfaceCache[$onuMac]) ? '' : $this->interfaceCache[$onuMac]);
