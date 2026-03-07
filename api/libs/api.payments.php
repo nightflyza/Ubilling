@@ -401,3 +401,28 @@ function zb_UserGetLatestPaymentsAll() {
     }
     return ($result);
 }
+
+/**
+ * Returns array of all users last positive payments with login=>date/summ as key
+ * 
+ * @return array
+ */
+function zb_UserGetLatestPaymentsPositiveAll() {
+    $result = array();
+    $query = "SELECT p.*
+                FROM `payments` p
+                INNER JOIN (
+                    SELECT `login`, MAX(`id`) AS maxid
+                    FROM `payments`
+                    WHERE `summ` > 0
+                    GROUP BY `login`
+                ) t ON p.`login` = t.`login` AND p.`id` = t.maxid";
+              
+    $all = simple_queryall($query);
+    if (!empty($all)) {
+        foreach ($all as $io => $each) {
+            $result[$each['login']] = $each;
+        }
+    }
+    return ($result);
+}

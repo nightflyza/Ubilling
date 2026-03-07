@@ -21,9 +21,7 @@ if (cfr('REPORTFINANCE')) {
     if (cfr('PAYFIND')) {
         $controlgrid .= web_FinRepControls(__('Payment search'), wf_Link("?module=payfind", web_icon_search() . ' ' . __('Find'), false, 'ubButton'));
     }
-    if (cfr('REPORTSIGNUP')) {
-        $controlgrid .= web_FinRepControls(__('Metabolism'), wf_Link("?module=metabolism", web_icon_charts() . ' ' . __('Show'), false, 'ubButton'));
-    }
+    
     $controlgrid .= web_FinRepControls(__('ARPU'), wf_Link("?module=report_arpu", wf_img('skins/ukv/report.png') . ' ' . __('Show'), false, 'ubButton'));
 
     if ($ubillingConfig->getAlterParam('AGENTS_ASSIGN') == '2') {
