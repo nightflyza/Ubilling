@@ -564,13 +564,21 @@ class Metabolism {
 
             if (!isset($stats[$signupY][$signupM])) {
                 $stats[$signupY][$signupM] = array(
-                    'connected' => 0, 'dead_souls' => 0, 'lost' => 0, 'active' => 0, 'lifetime_sum' => 0,
-                    'connected_logins' => array(), 'dead_souls_logins' => array(), 'lost_logins' => array(), 'active_logins' => array()
+                    'connected'        => 0,
+                    'dead_souls'       => 0,
+                    'lost'             => 0,
+                    'active'           => 0,
+                    'lifetime_sum'     => 0,
+                    'connected_logins'  => array(),
+                    'dead_souls_logins' => array(),
+                    'lost_logins'      => array(),
+                    'active_logins'    => array()
                 );
             }
             $stats[$signupY][$signupM]['connected'] += 1;
             $stats[$signupY][$signupM]['connected_logins'][] = $login;
-            if ($lastPaymentDate === null) {
+            // Dead souls: no payments at all and not active (excludes active free-tariff/service accounts)
+            if ($lastPaymentDate === null and !$isActive) {
                 $stats[$signupY][$signupM]['dead_souls'] += 1;
                 $stats[$signupY][$signupM]['dead_souls_logins'][] = $login;
             }
@@ -586,8 +594,15 @@ class Metabolism {
                     $churnM = date('m', strtotime($lastPaymentDate));
                     if (!isset($stats[$churnY][$churnM])) {
                         $stats[$churnY][$churnM] = array(
-                            'connected' => 0, 'dead_souls' => 0, 'lost' => 0, 'active' => 0, 'lifetime_sum' => 0,
-                            'connected_logins' => array(), 'dead_souls_logins' => array(), 'lost_logins' => array(), 'active_logins' => array()
+                            'connected'        => 0,
+                            'dead_souls'       => 0,
+                            'lost'             => 0,
+                            'active'           => 0,
+                            'lifetime_sum'     => 0,
+                            'connected_logins' => array(),
+                            'dead_souls_logins' => array(),
+                            'lost_logins'      => array(),
+                            'active_logins'    => array()
                         );
                     }
                     $stats[$churnY][$churnM]['lost'] += 1;
@@ -666,11 +681,15 @@ class Metabolism {
             $avgLifetime = $row['connected'] > 0 ? (int) round($row['lifetime_sum'] / $row['connected']) : 0;
             $lifecycleUrlBase = self::URL_ME . '&' . self::ROUTE_RENDER . '=' . self::R_LIFECYCLE . '&' . self::ROUTE_LIFECYCLE_USERS . '=1&' . self::ROUTE_LIFECYCLE_YEAR . '=' . $year;
             $deadSouls = isset($row['dead_souls']) ? (int) $row['dead_souls'] : 0;
+            $connectedCell = $row['connected'] ? wf_Link($lifecycleUrlBase . '&' . self::ROUTE_LIFECYCLE_TYPE . '=connected', $row['connected']) : '0';
+            $deadSoulsCell = $deadSouls ? wf_Link($lifecycleUrlBase . '&' . self::ROUTE_LIFECYCLE_TYPE . '=dead_souls', $deadSouls) : '0';
+            $lostCell = $row['lost'] ? wf_Link($lifecycleUrlBase . '&' . self::ROUTE_LIFECYCLE_TYPE . '=lost', $row['lost']) : $row['lost'];
+            $activeCell = $row['active'] ? wf_Link($lifecycleUrlBase . '&' . self::ROUTE_LIFECYCLE_TYPE . '=active', $row['active']) : $row['active'];
             $tablecells = wf_TableCell($year);
-            $tablecells .= wf_TableCell($row['connected'] ? wf_Link($lifecycleUrlBase . '&' . self::ROUTE_LIFECYCLE_TYPE . '=connected', $row['connected']) : '0');
-            $tablecells .= wf_TableCell($deadSouls ? wf_Link($lifecycleUrlBase . '&' . self::ROUTE_LIFECYCLE_TYPE . '=dead_souls', $deadSouls) : '0');
-            $tablecells .= wf_TableCell($row['lost'] ? wf_Link($lifecycleUrlBase . '&' . self::ROUTE_LIFECYCLE_TYPE . '=lost', $row['lost']) : $row['lost']);
-            $tablecells .= wf_TableCell($row['active'] ? wf_Link($lifecycleUrlBase . '&' . self::ROUTE_LIFECYCLE_TYPE . '=active', $row['active']) : $row['active']);
+            $tablecells .= wf_TableCell($connectedCell);
+            $tablecells .= wf_TableCell($deadSoulsCell);
+            $tablecells .= wf_TableCell($lostCell);
+            $tablecells .= wf_TableCell($activeCell);
             $tablecells .= wf_TableCell($pct);
             $tablecells .= wf_TableCell(zb_formatTimeDays($avgLifetime));
             $tablerows .= wf_TableRow($tablecells, 'row5');
@@ -699,12 +718,16 @@ class Metabolism {
                 $avgLifetime = $row['connected'] > 0 ? (int) round($lifetimeSum / $row['connected']) : 0;
                 $lifecycleUrlBase = self::URL_ME . '&' . self::ROUTE_RENDER . '=' . self::R_LIFECYCLE . '&' . self::ROUTE_LIFECYCLE_USERS . '=1&' . self::ROUTE_LIFECYCLE_YEAR . '=' . $year . '&' . self::ROUTE_LIFECYCLE_MONTH . '=' . $month;
                 $deadSouls = isset($row['dead_souls']) ? (int) $row['dead_souls'] : 0;
+                $connectedCell = $row['connected'] ? wf_Link($lifecycleUrlBase . '&' . self::ROUTE_LIFECYCLE_TYPE . '=connected', $row['connected']) : '0';
+                $deadSoulsCell = $deadSouls ? wf_Link($lifecycleUrlBase . '&' . self::ROUTE_LIFECYCLE_TYPE . '=dead_souls', $deadSouls) : '0';
+                $lostCell = $row['lost'] ? wf_Link($lifecycleUrlBase . '&' . self::ROUTE_LIFECYCLE_TYPE . '=lost', $row['lost']) : $row['lost'];
+                $activeCell = $row['active'] ? wf_Link($lifecycleUrlBase . '&' . self::ROUTE_LIFECYCLE_TYPE . '=active', $row['active']) : $row['active'];
                 $tablecells = wf_TableCell($year);
                 $tablecells .= wf_TableCell($monthName);
-                $tablecells .= wf_TableCell($row['connected'] ? wf_Link($lifecycleUrlBase . '&' . self::ROUTE_LIFECYCLE_TYPE . '=connected', $row['connected']) : '0');
-                $tablecells .= wf_TableCell($deadSouls ? wf_Link($lifecycleUrlBase . '&' . self::ROUTE_LIFECYCLE_TYPE . '=dead_souls', $deadSouls) : '0');
-                $tablecells .= wf_TableCell($row['lost'] ? wf_Link($lifecycleUrlBase . '&' . self::ROUTE_LIFECYCLE_TYPE . '=lost', $row['lost']) : $row['lost']);
-                $tablecells .= wf_TableCell($row['active'] ? wf_Link($lifecycleUrlBase . '&' . self::ROUTE_LIFECYCLE_TYPE . '=active', $row['active']) : $row['active']);
+                $tablecells .= wf_TableCell($connectedCell);
+                $tablecells .= wf_TableCell($deadSoulsCell);
+                $tablecells .= wf_TableCell($lostCell);
+                $tablecells .= wf_TableCell($activeCell);
                 $tablecells .= wf_TableCell($pct);
                 $tablecells .= wf_TableCell(zb_formatTimeDays($avgLifetime));
                 $tablerows .= wf_TableRow($tablecells, 'row5');
