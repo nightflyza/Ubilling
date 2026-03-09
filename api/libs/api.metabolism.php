@@ -222,11 +222,13 @@ class Metabolism {
         }
         
         $result .= wf_CleanDiv();
-        
-        // Date form for payments (default) and signups, hide only for lifecycle
-        if (ubRouting::get(self::ROUTE_RENDER) != self::R_LIFECYCLE) {
-            $result .= wf_tag('br');
-            $result .= $this->renderDateForm();
+
+        if (ubRouting::checkGet(self::ROUTE_RENDER)) {
+            $render = ubRouting::get(self::ROUTE_RENDER);
+            if ($render == self::R_PAYMENTS or $render == self::R_SIGNUPS) {
+                $result .= wf_tag('br');
+                $result .= $this->renderDateForm();
+            }
         }
         
         return($result);
