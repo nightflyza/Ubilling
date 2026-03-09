@@ -686,10 +686,17 @@ class Metabolism {
             $avgLifetime = $row['connected'] > 0 ? (int) round($row['lifetime_sum'] / $row['connected']) : 0;
             $lifecycleUrlBase = self::URL_ME . '&' . self::ROUTE_RENDER . '=' . self::R_LIFECYCLE . '&' . self::ROUTE_LIFECYCLE_USERS . '=1&' . self::ROUTE_LIFECYCLE_YEAR . '=' . $year;
             $deadSouls = isset($row['dead_souls']) ? (int) $row['dead_souls'] : 0;
-            $connectedCell = $row['connected'] ? wf_Link($lifecycleUrlBase . '&' . self::ROUTE_LIFECYCLE_TYPE . '=connected', $row['connected']) : '0';
-            $deadSoulsCell = $deadSouls ? wf_Link($lifecycleUrlBase . '&' . self::ROUTE_LIFECYCLE_TYPE . '=dead_souls', $deadSouls) : '0';
-            $lostCell = $row['lost'] ? wf_Link($lifecycleUrlBase . '&' . self::ROUTE_LIFECYCLE_TYPE . '=lost', $row['lost']) : $row['lost'];
-            $activeCell = $row['active'] ? wf_Link($lifecycleUrlBase . '&' . self::ROUTE_LIFECYCLE_TYPE . '=active', $row['active']) : $row['active'];
+            if (cfr('USERPROFILE')) {
+                $connectedCell = $row['connected'] ? wf_Link($lifecycleUrlBase . '&' . self::ROUTE_LIFECYCLE_TYPE . '=connected', $row['connected']) : '0';
+                $deadSoulsCell = $deadSouls ? wf_Link($lifecycleUrlBase . '&' . self::ROUTE_LIFECYCLE_TYPE . '=dead_souls', $deadSouls) : '0';
+                $lostCell = $row['lost'] ? wf_Link($lifecycleUrlBase . '&' . self::ROUTE_LIFECYCLE_TYPE . '=lost', $row['lost']) : $row['lost'];
+                $activeCell = $row['active'] ? wf_Link($lifecycleUrlBase . '&' . self::ROUTE_LIFECYCLE_TYPE . '=active', $row['active']) : $row['active'];
+            } else {
+                $connectedCell = $row['connected'] ? $row['connected'] : '0';
+                $deadSoulsCell = $deadSouls ? $deadSouls : '0';
+                $lostCell = $row['lost'];
+                $activeCell = $row['active'];
+            }
             $tablecells = wf_TableCell($year);
             $tablecells .= wf_TableCell($connectedCell);
             $tablecells .= wf_TableCell($deadSoulsCell);
@@ -723,10 +730,17 @@ class Metabolism {
                 $avgLifetime = $row['connected'] > 0 ? (int) round($lifetimeSum / $row['connected']) : 0;
                 $lifecycleUrlBase = self::URL_ME . '&' . self::ROUTE_RENDER . '=' . self::R_LIFECYCLE . '&' . self::ROUTE_LIFECYCLE_USERS . '=1&' . self::ROUTE_LIFECYCLE_YEAR . '=' . $year . '&' . self::ROUTE_LIFECYCLE_MONTH . '=' . $month;
                 $deadSouls = isset($row['dead_souls']) ? (int) $row['dead_souls'] : 0;
-                $connectedCell = $row['connected'] ? wf_Link($lifecycleUrlBase . '&' . self::ROUTE_LIFECYCLE_TYPE . '=connected', $row['connected']) : '0';
-                $deadSoulsCell = $deadSouls ? wf_Link($lifecycleUrlBase . '&' . self::ROUTE_LIFECYCLE_TYPE . '=dead_souls', $deadSouls) : '0';
-                $lostCell = $row['lost'] ? wf_Link($lifecycleUrlBase . '&' . self::ROUTE_LIFECYCLE_TYPE . '=lost', $row['lost']) : $row['lost'];
-                $activeCell = $row['active'] ? wf_Link($lifecycleUrlBase . '&' . self::ROUTE_LIFECYCLE_TYPE . '=active', $row['active']) : $row['active'];
+                if (cfr('USERPROFILE')) {
+                    $connectedCell = $row['connected'] ? wf_Link($lifecycleUrlBase . '&' . self::ROUTE_LIFECYCLE_TYPE . '=connected', $row['connected']) : '0';
+                    $deadSoulsCell = $deadSouls ? wf_Link($lifecycleUrlBase . '&' . self::ROUTE_LIFECYCLE_TYPE . '=dead_souls', $deadSouls) : '0';
+                    $lostCell = $row['lost'] ? wf_Link($lifecycleUrlBase . '&' . self::ROUTE_LIFECYCLE_TYPE . '=lost', $row['lost']) : $row['lost'];
+                    $activeCell = $row['active'] ? wf_Link($lifecycleUrlBase . '&' . self::ROUTE_LIFECYCLE_TYPE . '=active', $row['active']) : $row['active'];
+                } else {
+                    $connectedCell = $row['connected'] ? $row['connected'] : '0';
+                    $deadSoulsCell = $deadSouls ? $deadSouls : '0';
+                    $lostCell = $row['lost'];
+                    $activeCell = $row['active'];
+                }
                 $tablecells = wf_TableCell($year);
                 $tablecells .= wf_TableCell($monthName);
                 $tablecells .= wf_TableCell($connectedCell);
