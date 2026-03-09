@@ -219,15 +219,10 @@ class Metabolism {
         $result .= wf_Link(self::URL_ME . '&' . self::ROUTE_RENDER . '=' . self::R_LIFECYCLE, wf_img('skins/icon_lifecycle.png') . ' ' . __('Lifecycle'), false, 'ubButton') . ' ';
         $result .= wf_CleanDiv();
         
-        //dateform required for payments and signups
-        if (ubRouting::checkGet(self::ROUTE_RENDER)) {
-            switch (ubRouting::get(self::ROUTE_RENDER)) {
-                case self::R_PAYMENTS:
-                case self::R_SIGNUPS:
-                    $result .= wf_tag('br');
-                    $result .= $this->renderDateForm();
-                    break;
-            }
+        // Date form for payments (default) and signups, hide only for lifecycle
+        if (ubRouting::get(self::ROUTE_RENDER) != self::R_LIFECYCLE) {
+            $result .= wf_tag('br');
+            $result .= $this->renderDateForm();
         }
         
         return($result);
@@ -467,7 +462,6 @@ class Metabolism {
             }
 
             if (!empty($chartDates)) {
-                $extendedCharts = $sigreqEnabled or $capabEnabled;
                 // One combined chart by default; three separate charts only when form was submitted and checkbox is checked
                 $splitCharts = ubRouting::checkPost(self::PROUTE_SPLITCHARTS);
 
@@ -751,8 +745,22 @@ class Metabolism {
         $result .= wf_tag('b', false) . __('Average user lifetime') . ': ' . zb_formatTimeDays($overallAvgLifetimeSec) . wf_tag('b', true);
         $result .= wf_tag('br');
         $result .= wf_tag('b', false) . __('Average lifetime').' ('. __('Lost') . '): ' . zb_formatTimeDays($avgLifetimeLostSec);
-       
         $result .= wf_tag('b', true);
+        $result .= wf_tag('br');
+        
+        $totalRegistered = 0;
+        $totalLost = 0;
+        $totalSurvived = 0;
+        foreach ($byYear as $row) {
+            $totalRegistered += $row['connected'];
+            $totalLost += $row['lost'];
+            $totalSurvived += $row['active'];
+        }
+        $result .= wf_tag('b', false) . __('Total registered') . ': ' . $totalRegistered . wf_tag('b', true);
+        $result .= wf_tag('br');
+        $result .= wf_tag('b', false) . __('Total lost') . ': ' . $totalLost . wf_tag('b', true);
+        $result .= wf_tag('br');
+        $result .= wf_tag('b', false) . __('Survived') . ': ' . $totalSurvived . wf_tag('b', true);
         } else {
             $result .= $this->messages->getStyledMessage(__('Nothing to show'), 'warning');
         }
