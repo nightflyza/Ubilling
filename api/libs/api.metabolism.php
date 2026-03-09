@@ -679,10 +679,12 @@ class Metabolism {
         $tablecells .= wf_TableCell(__('Lost'));
         $tablecells .= wf_TableCell(__('Still active'));
         $tablecells .= wf_TableCell(__('Survival rate'));
+        $tablecells .= wf_TableCell('CR');
         $tablecells .= wf_TableCell(__('Average lifetime'));
         $tablerows = wf_TableRow($tablecells, 'row1');
         foreach ($byYear as $year => $row) {
             $pct = $row['connected'] > 0 ? zb_PercentValue($row['connected'], $row['active']) . '%' : '0%';
+            $churnPct = $row['connected'] > 0 ? zb_PercentValue($row['connected'], $row['lost']) . '%' : '0%';
             $avgLifetime = $row['connected'] > 0 ? (int) round($row['lifetime_sum'] / $row['connected']) : 0;
             $lifecycleUrlBase = self::URL_ME . '&' . self::ROUTE_RENDER . '=' . self::R_LIFECYCLE . '&' . self::ROUTE_LIFECYCLE_USERS . '=1&' . self::ROUTE_LIFECYCLE_YEAR . '=' . $year;
             $deadSouls = isset($row['dead_souls']) ? (int) $row['dead_souls'] : 0;
@@ -703,6 +705,7 @@ class Metabolism {
             $tablecells .= wf_TableCell($lostCell);
             $tablecells .= wf_TableCell($activeCell);
             $tablecells .= wf_TableCell($pct);
+            $tablecells .= wf_TableCell($churnPct);
             $tablecells .= wf_TableCell(zb_formatTimeDays($avgLifetime));
             $tablerows .= wf_TableRow($tablecells, 'row5');
         }
@@ -718,6 +721,7 @@ class Metabolism {
         $tablecells .= wf_TableCell(__('Lost'));
         $tablecells .= wf_TableCell(__('Still active'));
         $tablecells .= wf_TableCell(__('Survival rate'));
+        $tablecells .= wf_TableCell('CR');
         $tablecells .= wf_TableCell(__('Average lifetime'));
         $tablerows = wf_TableRow($tablecells, 'row1');
 
@@ -726,6 +730,7 @@ class Metabolism {
             foreach ($byMonth as $month => $row) {
                 $monthName = isset($months[$month]) ? rcms_date_localise($months[$month]) : $month;
                 $pct = $row['connected'] > 0 ? zb_PercentValue($row['connected'], $row['active']) . '%' : '0%';
+                $churnPct = $row['connected'] > 0 ? zb_PercentValue($row['connected'], $row['lost']) . '%' : '0%';
                 $lifetimeSum = isset($row['lifetime_sum']) ? $row['lifetime_sum'] : 0;
                 $avgLifetime = $row['connected'] > 0 ? (int) round($lifetimeSum / $row['connected']) : 0;
                 $lifecycleUrlBase = self::URL_ME . '&' . self::ROUTE_RENDER . '=' . self::R_LIFECYCLE . '&' . self::ROUTE_LIFECYCLE_USERS . '=1&' . self::ROUTE_LIFECYCLE_YEAR . '=' . $year . '&' . self::ROUTE_LIFECYCLE_MONTH . '=' . $month;
@@ -748,6 +753,7 @@ class Metabolism {
                 $tablecells .= wf_TableCell($lostCell);
                 $tablecells .= wf_TableCell($activeCell);
                 $tablecells .= wf_TableCell($pct);
+                $tablecells .= wf_TableCell($churnPct);
                 $tablecells .= wf_TableCell(zb_formatTimeDays($avgLifetime));
                 $tablerows .= wf_TableRow($tablecells, 'row5');
             }
