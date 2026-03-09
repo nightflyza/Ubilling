@@ -385,6 +385,9 @@ class Metabolism {
             $this->signups->orderBy('date', 'asc');
             $this->signups->where('date', 'LIKE', $dateFilter);
             $allSignups = $this->signups->getAll();
+            if (!is_array($allSignups)) {
+                $allSignups = array();
+            }
 
             // prefill days of month for signups chart
             if ($this->month != '1488') {
@@ -416,6 +419,9 @@ class Metabolism {
                 }
                 $this->sigreqDb->where('date', 'LIKE', $dateFilter);
                 $allSigreq = $this->sigreqDb->getAll();
+                if (!is_array($allSigreq)) {
+                    $allSigreq = array();
+                }
                 foreach ($allSigreq as $io => $each) {
                     $date = date("Y-m-d", strtotime($each['date']));
                     if (isset($tmpArrSigreq[$date])) {
@@ -434,6 +440,9 @@ class Metabolism {
                 }
                 $this->capabsDb->where('date', 'LIKE', $dateFilter);
                 $allCapab = $this->capabsDb->getAll();
+                if (!is_array($allCapab)) {
+                    $allCapab = array();
+                }
                 foreach ($allCapab as $io => $each) {
                     $date = date("Y-m-d", strtotime($each['date']));
                     if (isset($tmpArrCapab[$date])) {
