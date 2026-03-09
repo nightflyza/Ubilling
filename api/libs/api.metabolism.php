@@ -213,13 +213,14 @@ class Metabolism {
      */
     public function renderPanel() {
         $result = '';
+        $result .= wf_Link(self::URL_ME . '&' . self::ROUTE_RENDER . '=' . self::R_LIFECYCLE, wf_img('skins/icon_lifecycle.png') . ' ' . __('Lifecycle'), false, 'ubButton') . ' ';
         if (cfr('REPORTFINANCE')) {
         $result .= wf_Link(self::URL_ME . '&' . self::ROUTE_RENDER . '=' . self::R_PAYMENTS, wf_img_sized('skins/icon_dollar.gif', '', '16', '16') . ' ' . __('Payments'), false, 'ubButton') . ' ';
         }
         if (cfr('REPORTSIGNUP')) {
             $result .= wf_Link(self::URL_ME . '&' . self::ROUTE_RENDER . '=' . self::R_SIGNUPS, web_icon_charts() . ' ' . __('Signups'), false, 'ubButton') . ' ';
         }
-        $result .= wf_Link(self::URL_ME . '&' . self::ROUTE_RENDER . '=' . self::R_LIFECYCLE, wf_img('skins/icon_lifecycle.png') . ' ' . __('Lifecycle'), false, 'ubButton') . ' ';
+        
         $result .= wf_CleanDiv();
         
         // Date form for payments (default) and signups, hide only for lifecycle
@@ -645,7 +646,12 @@ class Metabolism {
             }
             $extraColumns = array('Registered' => $signupDateColumn);
             $result .= wf_BackLink(self::URL_ME . '&' . self::ROUTE_RENDER . '=' . self::R_LIFECYCLE) . wf_delimiter();
-            $result .= web_UserArrayShower($loginsArr, $extraColumns);
+            if (cfr('USERPROFILE')) {
+              $result .= web_UserArrayShower($loginsArr, $extraColumns);
+            } else {
+                
+                $result.= $this->messages->getStyledMessage(__('Access denied'), 'error');
+            }
             return ($result);
         }
 

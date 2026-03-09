@@ -9,11 +9,15 @@ if (cfr('METABOLISM')) {
             case Metabolism::R_PAYMENTS:
                 if (cfr('REPORTFINANCE')) {
                  show_window(__('Payments'), $metabolism->renderPayments());
+                } else {
+                    log_register('METABOLISM PAYMENTS ACCESS VIOLATION');
                 }
                 break;
             case Metabolism::R_SIGNUPS:
                 if (cfr('REPORTSIGNUP')) {
                     show_window(__('Signups'), $metabolism->renderSignups());
+                } else {
+                    log_register('METABOLISM SIGNUPS ACCESS VIOLATION');
                 }
                 break;
             case Metabolism::R_LIFECYCLE:
