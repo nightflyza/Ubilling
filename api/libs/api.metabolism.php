@@ -213,9 +213,12 @@ class Metabolism {
      */
     public function renderPanel() {
         $result = '';
-        
+        if (cfr('REPORTFINANCE')) {
         $result .= wf_Link(self::URL_ME . '&' . self::ROUTE_RENDER . '=' . self::R_PAYMENTS, wf_img_sized('skins/icon_dollar.gif', '', '16', '16') . ' ' . __('Payments'), false, 'ubButton') . ' ';
-        $result .= wf_Link(self::URL_ME . '&' . self::ROUTE_RENDER . '=' . self::R_SIGNUPS, web_icon_charts() . ' ' . __('Signups'), false, 'ubButton') . ' ';
+        }
+        if (cfr('REPORTSIGNUP')) {
+            $result .= wf_Link(self::URL_ME . '&' . self::ROUTE_RENDER . '=' . self::R_SIGNUPS, web_icon_charts() . ' ' . __('Signups'), false, 'ubButton') . ' ';
+        }
         $result .= wf_Link(self::URL_ME . '&' . self::ROUTE_RENDER . '=' . self::R_LIFECYCLE, wf_img('skins/icon_lifecycle.png') . ' ' . __('Lifecycle'), false, 'ubButton') . ' ';
         $result .= wf_CleanDiv();
         

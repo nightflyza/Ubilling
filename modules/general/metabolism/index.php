@@ -7,10 +7,14 @@ if (cfr('METABOLISM')) {
     if (ubRouting::checkGet(Metabolism::ROUTE_RENDER)) {
         switch (ubRouting::get(Metabolism::ROUTE_RENDER)) {
             case Metabolism::R_PAYMENTS:
-                show_window(__('Payments'), $metabolism->renderPayments());
+                if (cfr('REPORTFINANCE')) {
+                 show_window(__('Payments'), $metabolism->renderPayments());
+                }
                 break;
             case Metabolism::R_SIGNUPS:
-                show_window(__('Signups'), $metabolism->renderSignups());
+                if (cfr('REPORTSIGNUP')) {
+                    show_window(__('Signups'), $metabolism->renderSignups());
+                }
                 break;
             case Metabolism::R_LIFECYCLE:
                 show_window(__('Lifecycle'), $metabolism->renderLifecycle());
@@ -20,7 +24,7 @@ if (cfr('METABOLISM')) {
                 break;
         }
     } else {
-        show_window(__('Payments'), $metabolism->renderPayments());
+        show_window(__('Lifecycle'), $metabolism->renderLifecycle());
     }
 
     
