@@ -26,8 +26,57 @@ class CMIRR {
     protected $mode = 'text/x-php';
 
     /**
+     * CodeMirror theme name
+     *
+     * @var string
+     */
+    protected $theme = 'dracula';
+
+    /**
+     * Enable line wrapping
+     *
+     * @var bool
+     */
+    protected $lineWrapping = true;
+
+    /**
+     * Show line numbers
+     *
+     * @var bool
+     */
+    protected $lineNumbers = true;
+
+    /**
+     * Highlight matching brackets
+     *
+     * @var bool
+     */
+    protected $matchBrackets = true;
+
+    /**
+     * Auto-close brackets
+     *
+     * @var bool
+     */
+    protected $autoCloseBrackets = true;
+
+    /**
+     * Hint function for autocomplete (JS expression, e.g. CodeMirror.hint.anyword)
+     *
+     * @var string
+     */
+    protected $hintOptions = 'CodeMirror.hint.anyword';
+
+    /**
+     * When true, autocomplete (Ctrl-Space) and hintOptions are not applied.
+     *
+     * @var bool
+     */
+    protected $disableAutocomplete = false;
+
+    /**
      * Contains the necessary stylesheets and scripts for CodeMirror integration.
-     * 
+     *
      * @var string
      */
     protected $headers = '
@@ -68,6 +117,91 @@ class CMIRR {
     }
 
     /**
+     * Sets CodeMirror theme (e.g. dracula, default).
+     *
+     * @param string $theme
+     * @return void
+     */
+    public function setTheme($theme) {
+        $this->theme = $theme;
+    }
+
+    /**
+     * Enables or disables line wrapping in the editor.
+     *
+     * @param bool $lineWrapping
+     * @return void
+     */
+    public function setLineWrapping($lineWrapping) {
+        $this->lineWrapping = (bool) $lineWrapping;
+    }
+
+    /**
+     * Shows or hides line numbers in the gutter.
+     *
+     * @param bool $lineNumbers
+     * @return void
+     */
+    public function setLineNumbers($lineNumbers) {
+        $this->lineNumbers = (bool) $lineNumbers;
+    }
+
+    /**
+     * Enables or disables highlighting of matching brackets.
+     *
+     * @param bool $matchBrackets
+     * @return void
+     */
+    public function setMatchBrackets($matchBrackets) {
+        $this->matchBrackets = (bool) $matchBrackets;
+    }
+
+    /**
+     * Enables or disables auto-closing of brackets and quotes.
+     *
+     * @param bool $autoCloseBrackets
+     * @return void
+     */
+    public function setAutoCloseBrackets($autoCloseBrackets) {
+        $this->autoCloseBrackets = (bool) $autoCloseBrackets;
+    }
+
+    /**
+     * Sets the hint function used for autocomplete (e.g. CodeMirror.hint.anyword).
+     *
+     * @param string $hintOptions
+     * @return void
+     */
+    public function setHintOptions($hintOptions) {
+        $this->hintOptions = $hintOptions;
+    }
+
+    /**
+     * Disables or enables autocomplete (Ctrl-Space and hint dropdown).
+     *
+     * @param bool $disableAutocomplete
+     * @return void
+     */
+    public function setDisableAutocomplete($disableAutocomplete) {
+        $this->disableAutocomplete = (bool) $disableAutocomplete;
+    }
+
+    /**
+     * Sets the editor language mode (syntax highlighting and parsing).
+     * Supported values 
+     * - text/x-php 
+     * - text/javascript 
+     * - text/css
+     * - text/html, htmlmixed 
+     *
+     * @param string $mode
+     * @return void
+     */
+    public function setMode($mode) {
+        $this->mode = $mode;
+    }
+
+    /**
      * Sets the editor ID.
      *
      * @return void
@@ -83,29 +217,46 @@ class CMIRR {
      * @return void
      */
     protected function setScript() {
+        $lineWrapping = ($this->lineWrapping) ? 'true' : 'false';
+        $lineNumbers = ($this->lineNumbers) ? 'true' : 'false';
+        $matchBrackets = ($this->matchBrackets) ? 'true' : 'false';
+        $autoCloseBrackets = ($this->autoCloseBrackets) ? 'true' : 'false';
+
+        $options = array(
+            'mode: "' . $this->mode . '"',
+            'theme: "' . $this->theme . '"',
+            'lineWrapping: ' . $lineWrapping,
+            'lineNumbers: ' . $lineNumbers,
+            'matchBrackets: ' . $matchBrackets,
+            'autoCloseBrackets: ' . $autoCloseBrackets
+        );
+        if (!$this->disableAutocomplete) {
+            $options[] = 'extraKeys: { "Ctrl-Space": "autocomplete" }';
+            $options[] = 'hintOptions: { hint: ' . $this->hintOptions . ' }';
+        }
+        $optionsStr = implode(', ', $options);
+
         $this->script = wf_tag('script', false);
         $this->script .= '
             var editor' . $this->editorId . ' = CodeMirror.fromTextArea(document.getElementById("codeEditor' . $this->editorId . '"), {
-                mode: "' . $this->mode . '",
-                theme: "dracula",
-                lineWrapping: true,
-                lineNumbers: true,
-                matchBrackets: true,
-                autoCloseBrackets: true,
-                extraKeys: { "Ctrl-Space": "autocomplete" },
-                hintOptions: { hint: CodeMirror.hint.anyword }
+                ' . $optionsStr . '
             });
         ';
         $this->script .= wf_tag('script', true);
     }
 
     /**
-     * Sets some custom editor styling
+     * Sets or overrides some custom editor styling
+     * 
+     * @param string $customStyle
      *
      * @return void
      */
-    protected function setStyle() {
+    public function setStyle($customStyle = '') {
         $this->style = wf_tag('style', false);
+        if (!empty($customStyle)) {
+            $this->style .= $customStyle;
+        } else {
         $this->style .= '
             #editor-container {
                 width: 100% !important;
@@ -119,6 +270,7 @@ class CMIRR {
                 font-size: 16px;
             }
         ';
+        }
         $this->style .= wf_tag('style', true);
     }
 
@@ -127,10 +279,12 @@ class CMIRR {
      *
      * @param string $name
      * @param string $contentPreset
+     * @param int $cols
+     * @param int $rows
      * 
      * @return string
      */
-    public function getEditorArea($name, $contentPreset = '') {
+    public function getEditorArea($name, $contentPreset = '', $cols = 145, $rows = 30) {
         //setting new editor properties
         $this->setEditorId();
         $this->setScript();

@@ -50,6 +50,10 @@ class DevConsole {
     const PROUTE_HLIGHT = 'phphightlight';
     const PROUTE_TABLE = 'tableresult';
     const PROUTE_TRUETABLE = 'truetableresult';
+    const PROUTE_SQL_DISPLAY = 'sqldisplay';
+    const SQL_DISPLAY_RAW = 'raw';
+    const SQL_DISPLAY_TABLE = 'table';
+    const SQL_DISPLAY_TRUETABLE = 'truetable';
 
 
     /**
@@ -123,8 +127,10 @@ class DevConsole {
         $startQuery = '';
         $result = '';
         $sqlinputs = $this->renderControls();
-        $tableResultFlag = (ubRouting::checkPost(self::PROUTE_TABLE)) ? true : false;
-        $trueTableResultFlag = (ubRouting::checkPost(self::PROUTE_TRUETABLE)) ? true : false;
+        $displayMode = ubRouting::post(self::PROUTE_SQL_DISPLAY);
+        if ($displayMode !== self::SQL_DISPLAY_TABLE and $displayMode !== self::SQL_DISPLAY_TRUETABLE) {
+            $displayMode = self::SQL_DISPLAY_RAW;
+        }
         if (ubRouting::checkPost(self::PROUTE_SQL)) {
             if ($this->altCfg[self::OPTION_KEEP]) {
                 $startQuery = ubRouting::post(self::PROUTE_SQL, 'callback', 'trim');
@@ -132,8 +138,12 @@ class DevConsole {
         }
 
         $sqlinputs .= wf_TextArea(self::PROUTE_SQL, '', $startQuery, true, '80x10');
-        $sqlinputs .= wf_CheckInput(self::PROUTE_TABLE, 'Display query result as table', true, $tableResultFlag);
-        $sqlinputs .= wf_CheckInput(self::PROUTE_TRUETABLE, 'Display query result as table with fields', true, $trueTableResultFlag);
+       // $cmirr = new CMIRR();
+       // $sqlinputs .= $cmirr->getEditorArea(self::PROUTE_SQL, $startQuery, 80, 10);
+
+        $sqlinputs .= wf_RadioInput(self::PROUTE_SQL_DISPLAY, __('Show as raw array'), self::SQL_DISPLAY_RAW, true, ($displayMode === self::SQL_DISPLAY_RAW));
+        $sqlinputs .= wf_RadioInput(self::PROUTE_SQL_DISPLAY, __('Display query result as table'), self::SQL_DISPLAY_TABLE, true, ($displayMode === self::SQL_DISPLAY_TABLE));
+        $sqlinputs .= wf_RadioInput(self::PROUTE_SQL_DISPLAY, __('Display query result as table with fields'), self::SQL_DISPLAY_TRUETABLE, true, ($displayMode === self::SQL_DISPLAY_TRUETABLE));
         $sqlinputs .= wf_Submit('Process query');
         $result = wf_Form('', 'POST', $sqlinputs, 'glamour');
         return ($result);
@@ -274,14 +284,15 @@ class DevConsole {
                         show_window(__('Console debug data'), $sqlDebugData);
                     }
                 }
-
-                // trying to render SQL query execution results depends on selected options
+                    // trying to render SQL query execution results depends on selected options
                 if (!empty($query_result)) {
                     $recCount = count($query_result);
-                    if (!ubRouting::checkPost(self::PROUTE_TABLE) and !ubRouting::checkPost(self::PROUTE_TRUETABLE)) {
-                        //raw array result
+                    $displayMode = ubRouting::post(self::PROUTE_SQL_DISPLAY);
+                    if ($displayMode !== self::SQL_DISPLAY_TABLE and $displayMode !== self::SQL_DISPLAY_TRUETABLE) {
+                        //raw array result (default)
                         $vdump = htmlspecialchars(var_export($query_result, true));
-                    } elseif (ubRouting::checkPost(self::PROUTE_TRUETABLE)) {
+                    } else {
+                        if ($displayMode === self::SQL_DISPLAY_TRUETABLE) {
                         //show query result as table with fields
                         $tablecells = '';
                         $tablerows = '';
@@ -291,7 +302,7 @@ class DevConsole {
                             $fieldsCnt = count($fieldNames);
 
                             foreach ($fieldNames as $fieldName) {
-                                $tablecells .= wf_TableCell($fieldName);
+                                $tablecells .= wf_TableCell($fieldName,'','row1');
                             }
                             $tablerows .= $tablecells;
                             $tablecells = '';
@@ -300,13 +311,13 @@ class DevConsole {
                                 for ($k = 0; $k < $fieldsCnt; $k++) {
                                     $tablecells .= wf_TableCell('');
                                 }
-                                $tablerows .= wf_TableRow($tablecells, 'row1');
+                               // $tablerows .= wf_TableRow($tablecells, 'row2');
                                 $tablecells = '';
 
                                 foreach ($eachresult as $io => $key) {
                                     $tablecells .= wf_TableCell(htmlspecialchars($key));
                                 }
-                                $tablerows .= wf_TableRow($tablecells, 'row3');
+                                $tablerows .= wf_TableRow($tablecells, 'row5');
                                 $tablecells = '';
                             }
                         }
@@ -328,11 +339,10 @@ class DevConsole {
                         $vdump = wf_TableBody($tablerows, '100%', '0', '');
                     }
                 }
+                }
             }
 
-            //rendering records if available
-            show_window(__('Result'), wf_tag('pre') . $vdump . wf_tag('pre', 'true'));
-
+            
             //rendering query status here
             if (empty($newquery)) {
                 show_warning(__('Empty query'));
@@ -347,6 +357,10 @@ class DevConsole {
                     show_success(__('Returned records count') . ': ' . $recCount);
                 }
             }
+
+            //rendering records if available
+            show_window(__('Result'), wf_tag('pre') . $vdump . wf_tag('pre', 'true'));
+
         }
     }
 
@@ -359,7 +373,7 @@ class DevConsole {
      */
     public function showDebugData($debugData) {
         if ($this->altCfg[self::OPTION_DEBUG]) {
-            show_window(__('Console debug data'), wf_tag('pre') . $debugData) . wf_tag('pre', true);
+            show_window(__('Console debug data'), wf_tag('pre') . $debugData . wf_tag('pre', true));
         }
     }
 

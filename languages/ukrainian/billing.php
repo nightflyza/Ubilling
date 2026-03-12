@@ -3650,3 +3650,4 @@ $lang['def']['by day of week'] = 'по дню тижня';
 $lang['def']['Split'] = 'Розділити';
 $lang['def']['Signup'] = 'Підключення';
 $lang['def']['Previous result'] = 'Попередній результат';
+$lang['def']['Show as raw array'] = 'Показати як масив';

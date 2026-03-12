@@ -3624,3 +3624,4 @@ $lang['def']['by day of week'] = 'по дню недели';
 $lang['def']['Split'] = 'Разделить';
 $lang['def']['Signup'] = 'Подключение';
 $lang['def']['Previous result'] = 'Предыдущий результат';
+$lang['def']['Show as raw array'] = 'Показать как массив';
