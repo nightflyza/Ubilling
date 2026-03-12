@@ -32,3 +32,5 @@ $lang['def']['generator'] = 'генератор';
 $lang['def']['right to refuel generators'] = 'Право заправляти генератори';
 $lang['def']['right to service generators'] = 'Право обслуговувати генератори';
 $lang['def']['right to start/stop generators'] = 'Право запускати/зупиняти генератори';
+$lang['def']['Fuel level'] = 'Рівень пального';
+$lang['def']['All events'] = 'Всі події';

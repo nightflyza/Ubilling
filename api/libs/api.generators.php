@@ -111,6 +111,7 @@ class Generators {
     const ROUTE_START_DEVICE = 'startdeviceid';
     const ROUTE_STOP_DEVICE = 'stopdeviceid';
     const ROUTE_VIEW_EVENTS = 'viewevents';
+    const ROUTE_VIEW_EVENTS_ALL = 'eventsall';
     const ROUTE_VIEW_SERVICES_ALL='servicesall';
     const ROUTE_EDIT_SERVICE = 'editserviceid';
     const ROUTE_VIEW_REFUELS_ALL='refuelsall';
@@ -470,6 +471,9 @@ class Generators {
         
         $devicesUrl = self::URL_ME . '&' . self::ROUTE_DEVICES . '=true';
         $result .= wf_Link($devicesUrl, wf_img('skins/icon_generators.png') . ' ' . __('Devices'), false, 'ubButton') . ' ';
+
+        $eventsAllUrl = self::URL_ME . '&' . self::ROUTE_VIEW_EVENTS_ALL . '=true';
+        $result .= wf_Link($eventsAllUrl, wf_img('skins/log_icon_small.png') . ' ' . __('Events'), false, 'ubButton') . ' ';
         
         $servicesUrl = self::URL_ME . '&' . self::ROUTE_VIEW_SERVICES_ALL . '=true';
         $result .= wf_Link($servicesUrl, wf_img('skins/icon_repair.gif') . ' ' . __('Maintenance'), false, 'ubButton') . ' ';
@@ -529,6 +533,7 @@ class Generators {
             $cells.= wf_TableCell(__('Running'));
             $cells .= wf_TableCell(__('Motohours'));
             $cells .= wf_TableCell(__('In tank'));
+            $cells .= wf_TableCell(__('Fuel level')); // in percent
             $cells .= wf_TableCell(__('Next maintenance'));
             $cells.= wf_TableCell(__('Events'));
 
@@ -556,8 +561,10 @@ class Generators {
                     }
                 }
                 $cells .= wf_TableCell($runningDisplay);
+
                 $cells .= wf_TableCell(round($deviceMotohours, 2));
                 $cells .= wf_TableCell(round($device['intank']-$fuelConsumed, 2) . ' ' . __('litre'));
+                $cells .= wf_TableCell($this->calculateInTankPercent($device['id']) . '%');
                 $nextMaintenanceDate=$this->getNextMaintenanceDate($device['id'], $runningSeconds);
                 $cells .= wf_TableCell($nextMaintenanceDate);
                 $eventsCount = $this->getDeviceEventsCount($device['id']);
@@ -1067,96 +1074,131 @@ class Generators {
     }
 
     /**
-     * Renders device events table
+     * Renders device events like start or stop
      *
-     * @param int $deviceId
+     * @param int|null $deviceId optional device ID filter
      *
      * @return string
      */
-    public function renderDeviceEvents($deviceId) {
+    public function renderDeviceEvents($deviceId = null) {
         $result = '';
-        $deviceId = ubRouting::filters($deviceId, 'int');
-        
-        if (isset($this->allDevices[$deviceId])) {
-            $deviceEvents = array();
-            
+        $deviceId = ($deviceId !== null) ? ubRouting::filters($deviceId, 'int') : null;
+
+        if ($deviceId !== null and !isset($this->allDevices[$deviceId])) {
+            $result .= $this->messages->getStyledMessage(__('Something went wrong') . ': ' . __('Not exists'), 'error');
+        } else {
+            $eventsToShow = array();
             if (!empty($this->allEvents)) {
                 foreach ($this->allEvents as $io => $event) {
-                    if ($event['genid'] == $deviceId) {
-                        $deviceEvents[] = $event;
+                    if ($deviceId === null or $event['genid'] == $deviceId) {
+                        $eventsToShow[] = $event;
                     }
                 }
             }
-            
-            if (!empty($deviceEvents)) {
-                usort($deviceEvents, function($a, $b) {
+
+            if (empty($eventsToShow)) {
+                $result .= $this->messages->getStyledMessage(__('Nothing to show'), 'warning');
+                $backUrl = self::URL_ME . '&' . self::ROUTE_DEVICES . '=true';
+                $result .= wf_delimiter();
+                $result .= wf_BackLink($backUrl);
+            } else {
+                usort($eventsToShow, function ($a, $b) {
                     return strtotime($b['date']) - strtotime($a['date']);
                 });
-                
-                $cells = wf_TableCell(__('Date'));
-                $cells .= wf_TableCell(__('Event'));
-                $cells .= wf_TableCell(__('Duration'));
-                $cells .= wf_TableCell(__('Fuel consumption'));
-                $rows = wf_TableRow($cells, 'row1');
-                
-                $deviceRunning = isset($this->allDevices[$deviceId]) AND $this->allDevices[$deviceId]['running'];
+
+                $eventsByDevice = array();
+                foreach ($eventsToShow as $event) {
+                    $genid = $event['genid'];
+                    if (!isset($eventsByDevice[$genid])) {
+                        $eventsByDevice[$genid] = array();
+                    }
+                    $eventsByDevice[$genid][] = $event;
+                }
+                foreach ($eventsByDevice as $genid => $list) {
+                    usort($eventsByDevice[$genid], function ($a, $b) {
+                        return strtotime($b['date']) - strtotime($a['date']);
+                    });
+                }
+
+                $columns = array(
+                    __('Date'),
+                    __('Device'),
+                    __('Event'),
+                    __('Duration'),
+                    __('Fuel consumption')
+                );
+
+                $data = array();
                 $currentTime = strtotime(curdatetime());
-                
-                foreach ($deviceEvents as $io => $event) {
+
+                foreach ($eventsToShow as $event) {
+                    $genid = $event['genid'];
+                    $deviceEvents = $eventsByDevice[$genid];
+                    $deviceRunning = isset($this->allDevices[$genid]) and $this->allDevices[$genid]['running'];
+
+                    $deviceName = __('Unknown');
+                    if (isset($this->allDevices[$genid])) {
+                        $device = $this->allDevices[$genid];
+                        $deviceName = $device['model'] . ' - ' . $device['address'];
+                    }
+
                     $timeDisplay = '-';
                     $fuelDisplay = '-';
                     $eventTime = strtotime($event['date']);
-                    
+
                     if ($event['event'] == 'stop') {
                         $startTime = 0;
                         foreach ($deviceEvents as $prevEvent) {
                             $prevTime = strtotime($prevEvent['date']);
-                            if ($prevEvent['event'] == 'start' AND $prevTime < $eventTime AND $prevTime > $startTime) {
+                            if ($prevEvent['event'] == 'start' and $prevTime < $eventTime and $prevTime > $startTime) {
                                 $startTime = $prevTime;
                             }
                         }
                         if ($startTime > 0) {
                             $seconds = $eventTime - $startTime;
                             $timeDisplay = zb_formatTime($seconds);
-                            $fuelConsumption = $this->calculateFuelConsumption($deviceId, $seconds);
+                            $fuelConsumption = $this->calculateFuelConsumption($genid, $seconds);
                             $fuelDisplay = round($fuelConsumption, 2) . ' ' . __('litre');
                         }
-                    } elseif ($event['event'] == 'start') {
-                        $stopTime = 0;
-                        foreach ($deviceEvents as $nextEvent) {
-                            $nextTime = strtotime($nextEvent['date']);
-                            if ($nextEvent['event'] == 'stop' AND $nextTime > $eventTime AND ($stopTime == 0 OR $nextTime < $stopTime)) {
-                                $stopTime = $nextTime;
+                    } else {
+                        if ($event['event'] == 'start') {
+                            $stopTime = 0;
+                            foreach ($deviceEvents as $nextEvent) {
+                                $nextTime = strtotime($nextEvent['date']);
+                                if ($nextEvent['event'] == 'stop' and $nextTime > $eventTime and ($stopTime == 0 or $nextTime < $stopTime)) {
+                                    $stopTime = $nextTime;
+                                }
+                            }
+                            if ($stopTime > 0) {
+                                $seconds = $stopTime - $eventTime;
+                                $timeDisplay = zb_formatTime($seconds);
+                            } else {
+                                if ($deviceRunning) {
+                                    $seconds = $currentTime - $eventTime;
+                                    $timeDisplay = zb_formatTime($seconds);
+                                }
                             }
                         }
-                        if ($stopTime > 0) {
-                            $seconds = $stopTime - $eventTime;
-                            $timeDisplay = zb_formatTime($seconds);
-                        } elseif ($deviceRunning) {
-                            $seconds = $currentTime - $eventTime;
-                            $timeDisplay = zb_formatTime($seconds);
-                        }
                     }
-                    
-                    $cells = wf_TableCell($event['date']);
-                    $cells .= wf_TableCell($event['event']);
-                    $cells .= wf_TableCell($timeDisplay);
-                    $cells .= wf_TableCell($fuelDisplay);
-                    $rows .= wf_TableRow($cells, 'row5');
+
+                    $data[] = array(
+                        $event['date'],
+                        $deviceName,
+                        $event['event'],
+                        $timeDisplay,
+                        $fuelDisplay
+                    );
                 }
-                
-                $result .= wf_TableBody($rows, '100%', 0, 'sortable');
-            } else {
-                $result .= $this->messages->getStyledMessage(__('Nothing to show'), 'warning');
+
+                $opts = 'order: [[ 0, "desc" ]], "dom": \'<"F"lfB>rti<"F"ps>\',  buttons: [\'csv\', \'excel\', \'pdf\', \'print\']';
+                $result .= wf_JqDtEmbed($columns, $data, false, __('Events'), 50, $opts);
+
+                $backUrl = self::URL_ME . '&' . self::ROUTE_DEVICES . '=true';
+                $result .= wf_delimiter();
+                $result .= wf_BackLink($backUrl);
             }
-            
-            $backUrl = self::URL_ME . '&' . self::ROUTE_DEVICES . '=true';
-            $result .= wf_delimiter();
-            $result .= wf_BackLink($backUrl);
-        } else {
-            $result .= $this->messages->getStyledMessage(__('Something went wrong') . ': ' . __('Not exists'), 'error');
         }
-        
+
         return ($result);
     }
 
@@ -1201,7 +1243,6 @@ class Generators {
                 if (cfr('GENERATORSMGMT')) {
                 
                 }
-                
 
                 $dataRow=array($service['date'],
                 $deviceName,

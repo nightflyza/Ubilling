@@ -89,6 +89,10 @@ if (cfr('GENERATORS')) {
 
         show_window('', $generators->renderControls());
 
+        if (ubRouting::checkGet($generators::ROUTE_VIEW_EVENTS_ALL)) {
+            show_window(__('All events'), $generators->renderDeviceEvents());
+        }
+
         if (ubRouting::checkGet($generators::ROUTE_VIEW_EVENTS)) {
             $deviceId = ubRouting::get($generators::ROUTE_VIEW_EVENTS, 'int');
             $deviceInfo = $generators->getDeviceInfo($deviceId);
