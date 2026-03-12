@@ -31,4 +31,5 @@ exports/pondata/uptime/*
 exports/pondata/races/*
 exports/pondata/unioperstats/*
 .idea
+.cursor/
 DEMO_MODE
