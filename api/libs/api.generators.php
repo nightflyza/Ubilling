@@ -564,7 +564,7 @@ class Generators {
 
                 $cells .= wf_TableCell(round($deviceMotohours, 2));
                 $cells .= wf_TableCell(round($device['intank']-$fuelConsumed, 2) . ' ' . __('litre'));
-                $cells .= wf_TableCell($this->calculateInTankPercent($device['id']) . '%');
+                $cells .= wf_TableCell(round($this->calculateInTankPercent($device['id']),2). '%');
                 $nextMaintenanceDate=$this->getNextMaintenanceDate($device['id'], $runningSeconds);
                 $cells .= wf_TableCell($nextMaintenanceDate);
                 $eventsCount = $this->getDeviceEventsCount($device['id']);
