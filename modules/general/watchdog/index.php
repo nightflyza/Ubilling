@@ -62,25 +62,29 @@ if (cfr('WATCHDOG')) {
         //show watchdog main control panel
         show_window('', $interface->panel());
 
-        if (!ubRouting::checkGet(array('edit'))) {
-            //show previous detections
-            if (ubRouting::checkGet(array('previousalerts'))) {
-                $interface->loadAllPreviousAlerts();
+        if (ubRouting::checkGet('viewtaskid')) {
+            show_window(__('Watchdog task') . ' #' . ubRouting::get('viewtaskid'), $interface->renderTaskView(ubRouting::get('viewtaskid')));
+        } else {
+            if (!ubRouting::checkGet(array('edit'))) {
+                //show previous detections
+                if (ubRouting::checkGet(array('previousalerts'))) {
+                    $interface->loadAllPreviousAlerts();
 
-                if (ubRouting::checkPost(array('previousalertsearch'))) {
-                    //do the search
-                    show_window(__('Search results'), $interface->alertSearchResults($_POST['previousalertsearch']));
+                    if (ubRouting::checkPost(array('previousalertsearch'))) {
+                        //do the search
+                        show_window(__('Search results'), $interface->alertSearchResults($_POST['previousalertsearch']));
+                    } else {
+                        //calendar
+                        show_window(__('Previous alerts'), $interface->renderAlertsCalendar());
+                    }
                 } else {
-                    //calendar
-                    show_window(__('Previous alerts'), $interface->renderAlertsCalendar());
+                    //or list of existing tasks
+                    show_window(__('Available Watchdog tasks'), $interface->listAllTasks());
                 }
             } else {
-                //or list of existing tasks
-                show_window(__('Available Watchdog tasks'), $interface->listAllTasks());
+                //show task edit form
+                show_window(__('Edit task'), $interface->editTaskForm($_GET['edit']));
             }
-        } else {
-            //show task edit form
-            show_window(__('Edit task'), $interface->editTaskForm($_GET['edit']));
         }
     } else {
         show_error(__('This module is disabled'));

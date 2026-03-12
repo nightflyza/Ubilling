@@ -180,6 +180,48 @@ class WatchDogInterface {
     }
 
     /**
+     * Renders single task view
+     *
+     * @param int $taskID task id
+     *
+     * @return string
+     */
+    public function renderTaskView($taskID) {
+        $result = '';
+        $taskID = vf($taskID, 3);
+        if (empty($taskID) or !isset($this->allTasks[$taskID])) {
+            $result .= wf_tag('div', false, 'alert alert-danger') . __('Task not found') . wf_tag('div', true);
+        } else {
+            $task = $this->allTasks[$taskID];
+            $rows = '';
+            $fields = array(
+                'id' => __('ID'),
+                'active' => __('Active'),
+                'name' => __('Name'),
+                'checktype' => __('Check type'),
+                'param' => __('Parameter'),
+                'operator' => __('Operator'),
+                'condition' => __('Condition'),
+                'action' => __('Actions'),
+                'oldresult' => __('Previous result')
+            );
+            foreach ($fields as $key => $label) {
+                $value = isset($task[$key]) ? $task[$key] : '';
+                if ($key === 'active') {
+                    $value = web_bool_led($value);
+                }
+                $cells=wf_TableCell($label, '30%', 'row2');
+                $cells.=wf_TableCell($value, '', 'row3');
+                $rows .= wf_TableRow($cells);
+            }
+            $result .= wf_TableBody($rows, '100%', '0', '');
+            $result .= wf_delimiter(0);
+            $result .= wf_BackLink('?module=watchdog');
+        }
+        return ($result);
+    }
+
+    /**
      * shows all available tasks list
      * 
      * @return string
@@ -198,8 +240,8 @@ class WatchDogInterface {
 
         if (!empty($this->allTasks)) {
             foreach ($this->allTasks as $io => $eachtask) {
-                $details = wf_tag('pre') . print_r($eachtask, true) . wf_tag('pre', true);
-                $detailLink = wf_modal($eachtask['id'], $eachtask['name'], $details, '', '600', '400');
+                $viewUrl = '?module=watchdog&viewtaskid=' . $eachtask['id'];
+                $detailLink = wf_Link($viewUrl, $eachtask['id'], false, '');
                 $cells = wf_TableCell($detailLink, '', '', 'sorttable_customkey="' . $eachtask['id'] . '"');
                 $cells .= wf_TableCell(web_bool_led($eachtask['active']), '', '', 'sorttable_customkey="' . $eachtask['active'] . '"');
                 $cells .= wf_TableCell($eachtask['name']);
@@ -229,12 +271,12 @@ class WatchDogInterface {
      * @return string
      */
     public function newTaskForm() {
-        $inputs = wf_TextInput('newname', __('Name'), '', true);
+        $inputs = wf_TextInput('newname', __('Name'), '', true, 20);
         $inputs .= wf_Selector('newchecktype', $this->checktypes, __('Check type'), '', true);
-        $inputs .= wf_TextInput('newparam', __('Parameter'), '', true);
+        $inputs .= wf_TextInput('newparam', __('Parameter'), '', true, 25);
         $inputs .= wf_Selector('newoperator', $this->operators, __('Operator'), '', true);
-        $inputs .= wf_TextInput('newcondition', __('Condition'), '', true);
-        $inputs .= wf_TextInput('newaction', __('Actions'), '', true);
+        $inputs .= wf_TextInput('newcondition', __('Condition'), '', true, 25);
+        $inputs .= wf_TextInput('newaction', __('Actions'), '', true, 25);
         $inputs .= wf_CheckInput('newactive', __('Active'), true, true);
         $inputs .= wf_Submit(__('Create'));
 
@@ -256,16 +298,17 @@ class WatchDogInterface {
             throw new Exception(self::TASKID_EX);
         }
 
-        $inputs = wf_TextInput('editname', __('Name'), $this->allTasks[$taskID]['name'], true);
+        $inputs = wf_TextInput('editname', __('Name'), $this->allTasks[$taskID]['name'], true, 20);
         $inputs .= wf_Selector('editchecktype', $this->checktypes, __('Check type'), $this->allTasks[$taskID]['checktype'], true);
-        $inputs .= wf_TextInput('editparam', __('Parameter'), $this->allTasks[$taskID]['param'], true);
+        $inputs .= wf_TextInput('editparam', __('Parameter'), $this->allTasks[$taskID]['param'], true, 25);
         $inputs .= wf_Selector('editoperator', $this->operators, __('Operator'), $this->allTasks[$taskID]['operator'], true);
-        $inputs .= wf_TextInput('editcondition', __('Condition'), $this->allTasks[$taskID]['condition'], true);
-        $inputs .= wf_TextInput('editaction', __('Actions'), $this->allTasks[$taskID]['action'], true);
+        $inputs .= wf_TextInput('editcondition', __('Condition'), $this->allTasks[$taskID]['condition'], true, 25);
+        $inputs .= wf_TextInput('editaction', __('Actions'), $this->allTasks[$taskID]['action'], true, 25);
         $inputs .= wf_CheckInput('editactive', __('Active'), true, $this->allTasks[$taskID]['active']);
         $inputs .= wf_Submit(__('Save'));
 
         $form = wf_Form("", 'POST', $inputs, 'glamour');
+        $form .= wf_delimiter(0);
         $form .= wf_BackLink("?module=watchdog");
         return ($form);
     }

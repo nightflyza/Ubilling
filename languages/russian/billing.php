@@ -3623,3 +3623,4 @@ $lang['def']['by time of day'] = 'по времени суток';
 $lang['def']['by day of week'] = 'по дню недели';
 $lang['def']['Split'] = 'Разделить';
 $lang['def']['Signup'] = 'Подключение';
+$lang['def']['Previous result'] = 'Предыдущий результат';

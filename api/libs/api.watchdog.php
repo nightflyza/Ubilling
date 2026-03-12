@@ -339,6 +339,9 @@ class WatchDog {
                     if (!empty($this->taskData[$taskID]['param'])) {
                         $onePunchScriptData = $this->onePunch->getScriptContent($this->taskData[$taskID]['param']);
                         eval($onePunchScriptData);
+                        if (!isset($watchdogCallbackResult)) {
+                            $watchdogCallbackResult='watchdogCallbackResult not defined';
+                        }
                         $result = @$watchdogCallbackResult;
                         $this->setOldValue($taskID, $result);
                         $this->setCurValue($taskID, $result);

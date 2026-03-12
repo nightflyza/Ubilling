@@ -3649,3 +3649,4 @@ $lang['def']['by time of day'] = 'по часу доби';
 $lang['def']['by day of week'] = 'по дню тижня';
 $lang['def']['Split'] = 'Розділити';
 $lang['def']['Signup'] = 'Підключення';
+$lang['def']['Previous result'] = 'Попередній результат';
