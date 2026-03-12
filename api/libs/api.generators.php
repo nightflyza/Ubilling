@@ -61,7 +61,7 @@ class Generators {
     protected $fuelTypes = array();
 
     /**
-     * Contains all generator devices
+     * Contains all generator devices as id=>data
      *
      * @var array
      */
@@ -1579,7 +1579,7 @@ class Generators {
     }
 
     /**
-     * Calculates in tank percent for device
+     * Calculates in tank percent for device (in percent)
      *
      * @param int $deviceId
      *
@@ -1602,6 +1602,67 @@ class Generators {
             }
             $inTankPercent = (($device['intank']-$fuelConsumed) / $device['tankvolume']) * 100;
             $result = round($inTankPercent, 2);
+        }
+        return ($result);
+    }
+
+    /**
+     * Calculates in tank level for device (in liters)
+     *
+     * @param int $deviceId
+     * 
+     * @return float
+     */
+    public function calculateInTankLevel($deviceId) {
+        $result = 0;
+        $deviceId = ubRouting::filters($deviceId, 'int');
+        if (isset($this->allDevices[$deviceId])) {
+            $device = $this->allDevices[$deviceId];
+            $fuelConsumed = 0;
+            if ($device['running']) {
+                $fuelConsumed += $this->calculateFuelConsumption($device['id'], $this->getDeviceRunningTime($device['id']));
+            }
+            $result=$device['intank'] - $fuelConsumed;
+        }
+        return ($result);
+    }
+
+    /**
+     * Returns all devices as id=>deviceData
+     *
+     * @return array
+     */
+    public function getAllDevices() {
+        return ($this->allDevices);
+    }
+
+    /**
+     * Returns all devices fuel levels as id=>fuelLevel (in percent)
+     *
+     * @return array
+     */
+    public function getAllDevicesFuelPercent() {
+        $result = array();
+        if (!empty($this->allDevices)) {
+            foreach ($this->allDevices as $io => $device) {
+                $result[$device['id']] = $this->calculateInTankPercent($device['id']);
+            }
+        }
+        return ($result);
+    }
+    
+
+    /**
+     * Returns all devices fuel levels as id=>fuelLevel (in liters)
+     *
+     * @return array
+     */
+    public function getAllDevicesFuelLevel() {
+        $result = array();
+        if (!empty($this->allDevices)) {
+            foreach ($this->allDevices as $io => $device) {
+                $result[$device['id']] = $this->calculateInTankLevel($device['id']);
+            }
         }
         return ($result);
     }
