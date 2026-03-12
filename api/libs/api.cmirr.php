@@ -79,24 +79,7 @@ class CMIRR {
      *
      * @var string
      */
-    protected $headers = '
-        <link rel="stylesheet" href="modules/jsc/cmirr/codemirror.min.css">
-        <link rel="stylesheet" href="modules/jsc/cmirr/dracula.min.css">
-        <link rel="stylesheet" href="modules/jsc/cmirr/show-hint.min.css">
-        
-        <script src="modules/jsc/cmirr/codemirror.min.js"></script>
-        <script src="modules/jsc/cmirr/clike.min.js"></script>
-        <script src="modules/jsc/cmirr/htmlmixed.min.js"></script>
-        <script src="modules/jsc/cmirr/javascript.min.js"></script>
-        <script src="modules/jsc/cmirr/css.min.js"></script>
-        <script src="modules/jsc/cmirr/php.min.js"></script>
-        
-        <script src="modules/jsc/cmirr/matchbrackets.min.js"></script>
-        <script src="modules/jsc/cmirr/closebrackets.min.js"></script>
-        <script src="modules/jsc/cmirr/show-hint.min.js"></script>
-        <script src="modules/jsc/cmirr/anyword-hint.min.js"></script>
-        <script src="modules/jsc/cmirr/javascript-hint.min.js"></script>
-    ';
+    protected $headers = '';
 
     /**
      * Contains code mirror init JS script with some unique ID
@@ -167,7 +150,14 @@ class CMIRR {
     }
 
     /**
-     * Sets the hint function used for autocomplete (e.g. CodeMirror.hint.anyword).
+     * Sets the hint function used for autocomplete 
+     * 
+     * Examples: CodeMirror.hint.anyword
+     *           CodeMirror.hint.sql
+     *           CodeMirror.hint.javascript
+     *           CodeMirror.hint.css
+     *           CodeMirror.hint.html
+     *           CodeMirror.hint.php
      *
      * @param string $hintOptions
      * @return void
@@ -187,12 +177,43 @@ class CMIRR {
     }
 
     /**
+     * Sets the editor headers.
+     *
+     * @return void
+     */
+    public function setHeaders() {
+        $this->headers = '
+        <link rel="stylesheet" href="modules/jsc/cmirr/codemirror.min.css">
+        <link rel="stylesheet" href="modules/jsc/cmirr/theme/'.$this->theme.'.css">
+        <link rel="stylesheet" href="modules/jsc/cmirr/show-hint.min.css">
+        
+        <script src="modules/jsc/cmirr/codemirror.min.js"></script>
+        <script src="modules/jsc/cmirr/mode/clike/clike.js"></script>
+        <script src="modules/jsc/cmirr/mode/htmlmixed/htmlmixed.js"></script>
+        <script src="modules/jsc/cmirr/mode/javascript/javascript.js"></script>
+        <script src="modules/jsc/cmirr/mode/css/css.js"></script>
+        <script src="modules/jsc/cmirr/mode/php/php.js"></script>
+        <script src="modules/jsc/cmirr/mode/sql/sql.js"></script>
+        
+        <script src="modules/jsc/cmirr/matchbrackets.min.js"></script>
+        <script src="modules/jsc/cmirr/closebrackets.min.js"></script>
+        <script src="modules/jsc/cmirr/show-hint.min.js"></script>
+        <script src="modules/jsc/cmirr/anyword-hint.min.js"></script>
+        <script src="modules/jsc/cmirr/javascript-hint.min.js"></script>
+        <script src="modules/jsc/cmirr/sql-hint.js"></script>
+        <script src="modules/jsc/cmirr/css-hint.js"></script>
+        
+        ';
+    }
+
+    /**
      * Sets the editor language mode (syntax highlighting and parsing).
      * Supported values 
      * - text/x-php 
      * - text/javascript 
      * - text/css
      * - text/html, htmlmixed 
+     * - text/x-sql
      *
      * @param string $mode
      * @return void
@@ -287,7 +308,10 @@ class CMIRR {
     public function getEditorArea($name, $contentPreset = '', $cols = 145, $rows = 30) {
         //setting new editor properties
         $this->setEditorId();
+        $this->setHeaders();
         $this->setScript();
+
+
 
         //rendering result
         $result = '';
@@ -298,7 +322,8 @@ class CMIRR {
         $result .= $this->style;
 
         $result .= wf_tag('div', false, '', 'id="editor-container"');
-        $result .= wf_tag('textarea', false, '', 'id="codeEditor' . $this->editorId . '" name="' . $name . '" cols="145" rows="30" spellcheck="false"');
+        $options='id="codeEditor' . $this->editorId . '" name="' . $name . '" cols="'.$cols.'" rows="'.$rows.'" spellcheck="false"';
+        $result .= wf_tag('textarea', false, '', $options);
         $result .= $contentPreset;
         $result .= wf_tag('textarea', true);
 
