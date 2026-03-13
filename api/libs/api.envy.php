@@ -97,6 +97,13 @@ class Envy {
     protected $stardust = '';
 
     /**
+     * Is CodeMirror editor enabled flag
+     *
+     * @var bool
+     */
+    protected $cmirrFlag=false;
+
+    /**
      * Some other required consts for routing etc
      */
     const URL_ME = '?module=envy';
@@ -106,6 +113,10 @@ class Envy {
     const ROUTE_SCRIPTS = 'scriptsmgr';
     const ROUTE_DEVICES = 'devicesmgr';
     const ROUTE_DIFF = 'diff';
+    const ROUTE_SCRIPT_CREATE = 'scriptcreate';
+    const ROUTE_SCRIPT_EDIT = 'scriptedit';
+    const ROUTE_DEVICE_CREATE = 'devicecreate';
+    const ROUTE_DEVICE_EDIT = 'deviceedit';
     const ROUTE_ARCHVIEW = 'viewarchiveid';
     const ROUTE_ARCHALL = 'archiveall';
     const ROUTE_ARCHIVE_AJ = 'ajarchive';
@@ -154,12 +165,16 @@ class Envy {
     }
 
     /**
-     * Loads system alter.ini config into private data property
+     * Loads system alter.ini config into private data property and sets some flags
      *
      * @return void
      */
     protected function loadAlter() {
         $this->altCfg = $this->ubConfig->getAlter();
+
+        if (isset($this->altCfg['ENVY_CM'])) {
+            $this->cmirrFlag = ($this->altCfg['ENVY_CM']) ? true : false;
+        }
     }
 
     /**
@@ -301,7 +316,7 @@ class Envy {
      * 
      * @return string
      */
-    protected function renderScriptCreateForm() {
+    public function renderScriptCreateForm() {
         $result = '';
         if (!empty($this->allModels)) {
             $inputs = '';
@@ -316,10 +331,15 @@ class Envy {
              */
             $inputs .= wf_Selector('newscriptmodel', $modelsTmp, __('Model'), '', true);
             $inputs .= __('Script') . wf_tag('br');
-            $inputs .= wf_TextArea('newscriptdata', '', '', true, '60x20');
+            if ($this->cmirrFlag) {
+                $cmirr=new CMIRR();
+                $inputs .= $cmirr->getEditorArea('newscriptdata', '');
+            } else {
+                $inputs .= wf_TextArea('newscriptdata', '', '', true, '145x30');
+            }
             $inputs .= wf_Submit(__('Create'));
 
-            $result .= wf_Form('', 'POST', $inputs, 'glamour');
+            $result .= wf_Form('', 'POST', $inputs, '');
         } else {
             show_error(__('Available switch models') . ': ' . __('No'));
         }
@@ -329,9 +349,10 @@ class Envy {
     /**
      * Renders envy-script editing form 
      * 
+     * @param int $modelId
      * @return string
      */
-    protected function renderScriptEditForm($modelId) {
+    public function renderScriptEditForm($modelId) {
         $result = '';
         $modelId = ubRouting::filters($modelId, 'int');
         if (isset($this->allScripts[$modelId])) {
@@ -339,11 +360,16 @@ class Envy {
             $inputs = '';
             $inputs .= wf_HiddenInput('editscriptid', $scriptData['id']);
             $inputs .= wf_HiddenInput('editscriptmodel', $scriptData['modelid'], __('Model'), '', true);
-            $inputs .= __('Script') . wf_tag('br');
-            $inputs .= wf_TextArea('editscriptdata', '', $scriptData['data'], true, '60x20');
+            
+            if ($this->cmirrFlag) {
+                $cmirr=new CMIRR();
+                $inputs .= $cmirr->getEditorArea('editscriptdata', $scriptData['data']);
+            } else {
+                $inputs .= wf_TextArea('editscriptdata', '', $scriptData['data'], true, '145x30');
+            }
             $inputs .= wf_Submit(__('Save'));
 
-            $result .= wf_Form('', 'POST', $inputs, 'glamour');
+            $result .= wf_Form('', 'POST', $inputs, '');
         }
         return($result);
     }
@@ -448,7 +474,7 @@ class Envy {
                 $cells = wf_TableCell(@$allModelNames[$each['modelid']]);
                 $scriptControls = '';
                 $scriptControls .= wf_JSAlert(self::URL_ME . '&deletescript=' . $each['modelid'], web_delete_icon(), $this->messages->getDeleteAlert()) . ' ';
-                $scriptControls .= wf_modalAuto(web_edit_icon(), __('Edit') . ' ' . @$allModelNames[$each['modelid']], $this->renderScriptEditForm($each['modelid']));
+                $scriptControls .= wf_Link(self::URL_ME . '&' . self::ROUTE_SCRIPT_EDIT . '=' . $each['modelid'], web_edit_icon(), false, '') . ' ';
                 $cells .= wf_TableCell($scriptControls);
                 $rows .= wf_TableRow($cells, 'row5');
             }
@@ -482,11 +508,11 @@ class Envy {
         }
 
         if (ubRouting::checkGet(self::ROUTE_SCRIPTS)) {
-            $result .= wf_modalAuto(web_icon_create() . ' ' . __('Create new script'), __('Create new script'), $this->renderScriptCreateForm(), 'ubButton') . ' ';
+            $result .= wf_Link(self::URL_ME . '&' . self::ROUTE_SCRIPT_CREATE . '=true', web_icon_create() . ' ' . __('Create new script'), false, 'ubButton') . ' ';
         }
 
         if (ubRouting::checkGet(self::ROUTE_DEVICES)) {
-            $result .= wf_modalAuto(web_icon_create() . ' ' . __('Create new device'), __('Create new device'), $this->renderDeviceCreateForm(), 'ubButton') . ' ';
+            $result .= wf_Link(self::URL_ME . '&' . self::ROUTE_DEVICE_CREATE . '=true', web_icon_create() . ' ' . __('Create new device'), false, 'ubButton') . ' ';
             $saveAllNotice = $this->messages->getEditAlert() . ' ' . __('Store all devices configs into archive') . '?';
             $result .= wf_JSAlert(self::URL_ME . '&' . self::ROUTE_ARCHALL . '=true', wf_img('skins/icon_restoredb.png') . ' ' . __('Store all'), $saveAllNotice, '', 'ubButton');
         }
@@ -540,7 +566,7 @@ class Envy {
      * 
      * @return string
      */
-    protected function renderDeviceEditForm($switchId) {
+    public function renderDeviceEditForm($switchId) {
         $result = '';
         $deviceId = ubRouting::filters($switchId, 'int');
         if (isset($this->allDevices[$switchId])) {
@@ -759,10 +785,10 @@ class Envy {
                 $cells .= wf_TableCell(web_bool_led($each['active']));
                 $devControls = '';
                 $devControls .= wf_JSAlert(self::URL_ME . '&deletedevice=' . $each['switchid'], web_delete_icon(), $this->messages->getDeleteAlert()) . ' ';
-                $devControls .= wf_modalAuto(web_edit_icon(), __('Edit') . ' ' . $switchData['ip'], $this->renderDeviceEditForm($each['switchid'])) . ' ';
+                $devControls .= wf_Link(self::URL_ME . '&' . self::ROUTE_DEVICE_EDIT . '=' . $each['switchid'], web_edit_icon(), false, '') . ' ';
                 $devControls .= wf_Link(self::URL_ME . '&previewdevice=' . $each['switchid'], web_icon_search('Preview')) . ' ';
                 $storeAlert = $this->messages->getEditAlert() . ' ' . __('Backup device configuration to archive') . '?';
-                $devControls .= wf_JSAlert(self::URL_ME . '&' . self::ROUTE_DEVICES . '&=true' . '&storedevice=' . $each['switchid'], wf_img('skins/icon_restoredb.png', __('Backup device configuration to archive')), $storeAlert) . ' ';
+                $devControls .= wf_JSAlert(self::URL_ME . '&' . self::ROUTE_DEVICES . '=true&storedevice=' . $each['switchid'], wf_img('skins/icon_restoredb.png', __('Backup device configuration to archive')), $storeAlert) . ' ';
                 $devControls .= wf_Link('?module=switches&edit=' . $each['switchid'], wf_img('skins/menuicons/switches.png', __('Go to switch'))) . ' ';
                 $devControls .= wf_Link(self::URL_ME . '&' . self::ROUTE_DIFF . '=true' . '&devfilter=' . $each['switchid'], wf_img('skins/diff_icon.png', __('Changes')));
                 $cells .= wf_TableCell($devControls);
@@ -847,10 +873,17 @@ class Envy {
     public function previewScriptsResult($data) {
         $result = '';
         if (!empty($data)) {
-            $inputs = wf_tag('textarea', false, 'fileeditorarea', 'name="envypreview" cols="145" rows="30" spellcheck="false"');
-            $inputs .= $data;
-            $inputs .= wf_tag('textarea', true);
-            $result .= wf_Form('', 'POST', $inputs, 'glamour');
+            if ($this->cmirrFlag) {
+                $cmirr=new CMIRR();
+                $cmirr->setMode('text');
+                $inputs=$cmirr->getEditorArea('envypreview', $data);
+            } else {
+                $inputs = wf_tag('textarea', false, 'fileeditorarea', 'name="envypreview" cols="145" rows="30" spellcheck="false"');
+                $inputs .= $data;
+                $inputs .= wf_tag('textarea', true);
+                
+            }
+            $result .= wf_Form('', 'POST', $inputs, '');
         } else {
             $result .= $this->messages->getStyledMessage(__('Empty reply received'), 'warning');
         }
@@ -924,7 +957,7 @@ class Envy {
                     $archControls .= wf_JSAlert(self::URL_ME . '&deletearchiveid=' . $each['id'], web_delete_icon(), $this->messages->getDeleteAlert() . ' ' . $each['date']) . ' ';
                     $archControls .= wf_Link(self::URL_ME . '&' . self::ROUTE_ARCHVIEW . '=' . $each['id'], web_icon_search('Config')) . ' ';
                     $storeAlert = $this->messages->getEditAlert() . ' ' . __('Backup device configuration to archive') . '?';
-                    $archControls .= wf_JSAlert(self::URL_ME . '&' . self::ROUTE_DEVICES . '&=true' . '&storedevice=' . $each['switchid'] . '&resave=true', wf_img('skins/icon_envy_resave.png', __('Backup device configuration to archive')), $storeAlert) . ' ';
+                    $archControls .= wf_JSAlert(self::URL_ME . '&' . self::ROUTE_DEVICES . '=true&storedevice=' . $each['switchid'] . '&resave=true', wf_img('skins/icon_envy_resave.png', __('Backup device configuration to archive')), $storeAlert) . ' ';
                     $archControls .= wf_Link(self::URL_ME . '&downloadarchiveid=' . $each['id'], web_icon_download());
 
                     $data[] = $archControls;

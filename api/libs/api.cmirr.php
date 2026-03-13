@@ -233,6 +233,7 @@ class CMIRR {
         <script src="'.$this->cmLibPath.'mode/php/php.js"></script>
         <script src="'.$this->cmLibPath.'mode/sql/sql.js"></script>
         <script src="'.$this->cmLibPath.'mode/shell/shell.js"></script>
+        <script src="'.$this->cmLibPath.'mode/properties/properties.js"></script>
         
         <script src="'.$this->cmLibPath.'addon/edit/matchbrackets.js"></script>
         <script src="'.$this->cmLibPath.'addon/edit/closebrackets.js"></script>
@@ -255,6 +256,8 @@ class CMIRR {
      * - text/css
      * - text/html, htmlmixed 
      * - text/x-sql
+     * - text/x-shell
+     * - text/x-properties, text/x-ini
      *
      * @param string $mode
      * @return void

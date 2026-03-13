@@ -31,7 +31,7 @@ if (cfr('ENVY')) {
         if (ubRouting::checkPost('editscriptid')) {
             $savingResult = $envy->saveScript();
             if (empty($savingResult)) {
-                ubRouting::nav($envy::URL_ME . '&' . $envy::ROUTE_SCRIPTS . '=true');
+                ubRouting::nav($envy::URL_ME . '&' . $envy::ROUTE_SCRIPT_EDIT . '=' . ubRouting::post('editscriptmodel','int'));
             } else {
                 show_error($savingResult);
             }
@@ -65,7 +65,7 @@ if (cfr('ENVY')) {
                 if (ubRouting::checkGet('resave')) {
                     $returnUrl = $envy::URL_ME;
                 } else {
-                    $returnUrl = $envy::URL_ME . '&' . $envy::ROUTE_DEVICES . ' = true';
+                    $returnUrl = $envy::URL_ME . '&' . $envy::ROUTE_DEVICES . '=true';
                 }
                 ubRouting::nav($returnUrl);
             } else {
@@ -76,14 +76,14 @@ if (cfr('ENVY')) {
         //all existing devices config backup
         if (ubRouting::checkGet($envy::ROUTE_ARCHALL)) {
             $envy->storeArchiveAllDevices();
-            ubRouting::nav($envy::URL_ME . '&' . $envy::ROUTE_DEVICES . ' = true');
+            ubRouting::nav($envy::URL_ME . '&' . $envy::ROUTE_DEVICES . '=true');
         }
 
         //device deletion
         if (ubRouting::checkGet('deletedevice')) {
             $devDeletionResult = $envy->deleteDevice(ubRouting::get('deletedevice'));
             if (empty($devDeletionResult)) {
-                ubRouting::nav($envy::URL_ME . '&' . $envy::ROUTE_DEVICES . ' = true');
+                ubRouting::nav($envy::URL_ME . '&' . $envy::ROUTE_DEVICES . '=true');
             } else {
                 show_error($devDeletionResult);
             }
@@ -115,10 +115,12 @@ if (cfr('ENVY')) {
             $envy->getAjArchive();
         }
 
-        if (ubRouting::checkGet('previewdevice') or ubRouting::checkGet('viewarchiveid')) {
+        if (ubRouting::checkGet('previewdevice') or ubRouting::checkGet('viewarchiveid')
+            or ubRouting::checkGet($envy::ROUTE_SCRIPT_CREATE) or ubRouting::checkGet($envy::ROUTE_SCRIPT_EDIT)
+            or ubRouting::checkGet($envy::ROUTE_DEVICE_CREATE) or ubRouting::checkGet($envy::ROUTE_DEVICE_EDIT)) {
             //device preview
             if (ubRouting::checkGet('previewdevice')) {
-                show_window('', wf_BackLink($envy::URL_ME . '&' . $envy::ROUTE_DEVICES . ' = true'));
+                show_window('', wf_BackLink($envy::URL_ME . '&' . $envy::ROUTE_DEVICES . '=true'));
                 show_window(__('Preview'), $envy->previewScriptsResult($envy->runDeviceScript(ubRouting::get('previewdevice'))));
             }
 
@@ -126,6 +128,32 @@ if (cfr('ENVY')) {
             if (ubRouting::checkGet('viewarchiveid')) {
                 show_window('', wf_BackLink($envy::URL_ME));
                 show_window(__('Preview'), $envy->previewScriptsResult($envy->renderArchiveRecordConfig(ubRouting::get('viewarchiveid'))));
+            }
+
+            //script creation form
+            if (ubRouting::checkGet($envy::ROUTE_SCRIPT_CREATE)) {
+                show_window('', wf_BackLink($envy::URL_ME . '&' . $envy::ROUTE_SCRIPTS . '=true'));
+                show_window(__('Create new script'), $envy->renderScriptCreateForm());
+            }
+
+            //script editing form
+            if (ubRouting::checkGet($envy::ROUTE_SCRIPT_EDIT)) {
+                $modelId = ubRouting::get($envy::ROUTE_SCRIPT_EDIT, 'int');
+                show_window('', wf_BackLink($envy::URL_ME . '&' . $envy::ROUTE_SCRIPTS . '=true'));
+                show_window(__('Edit script'), $envy->renderScriptEditForm($modelId));
+            }
+
+            //device creation form
+            if (ubRouting::checkGet($envy::ROUTE_DEVICE_CREATE)) {
+                show_window('', wf_BackLink($envy::URL_ME . '&' . $envy::ROUTE_DEVICES . '=true'));
+                show_window(__('Create new device'), $envy->renderDeviceCreateForm());
+            }
+
+            //device editing form
+            if (ubRouting::checkGet($envy::ROUTE_DEVICE_EDIT)) {
+                $switchId = ubRouting::get($envy::ROUTE_DEVICE_EDIT, 'int');
+                show_window('', wf_BackLink($envy::URL_ME . '&' . $envy::ROUTE_DEVICES . '=true'));
+                show_window(__('Edit device'), $envy->renderDeviceEditForm($switchId));
             }
         } else {
 

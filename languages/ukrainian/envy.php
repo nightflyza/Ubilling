@@ -26,3 +26,5 @@ $lang['def']['Lines to cut at start'] = 'Відкусити рядків на п
 $lang['def']['Lines to cut at end'] = 'Відкусити рядків наприкінці';
 $lang['def']['Envy script available'] = 'Скрипт заздрості наявний';
 $lang['def']['Envy script unavailable'] = 'Немає скрипта заздрості';
+$lang['def']['Edit script'] = 'Редагувати скрипт';
+$lang['def']['Edit device'] = 'Редагувати пристрій';
