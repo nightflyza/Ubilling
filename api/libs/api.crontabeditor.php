@@ -20,6 +20,13 @@ class CrontabEditor {
     protected $currentCrontab = '';
 
     /**
+     * Is CodeMirror editor enabled flag
+     *
+     * @var bool
+     */
+    protected $cmirrFlag=false;
+
+    /**
      * Contains temporary file path used for crontab IO
      */
     const TMP_FILE_PATH = 'exports/crontab_tmp';
@@ -52,6 +59,7 @@ class CrontabEditor {
     protected function loadConfigs() {
         global $ubillingConfig;
         $this->billingCfg = $ubillingConfig->getBilling();
+        $this->cmirrFlag = $ubillingConfig->getAlterParam('CRONTABEDITOR_CM', false);
     }
 
     /**
@@ -106,7 +114,7 @@ class CrontabEditor {
      */
     public function renderEditForm() {
         $result = '';
-        $result .= web_FileEditorForm(self::TMP_FILE_PATH, htmlentities($this->currentCrontab, ENT_COMPAT, "UTF-8")); // OMG OMG OMG!!!!!
+        $result .= web_FileEditorForm(self::TMP_FILE_PATH, htmlentities($this->currentCrontab, ENT_COMPAT, "UTF-8"), $this->cmirrFlag,''); // OMG OMG OMG!!!!!
         return ($result);
     }
 

@@ -100,7 +100,9 @@ if (cfr('SYSCONF')) {
                 }
             }
             $editingConfigContent = file_get_contents($editingConfigPath);
-            show_window(__('Change') . ' ' . basename($editingConfigPath), web_FileEditorForm($editingConfigPath, $editingConfigContent));
+            $cmirrFlag=$ubillingConfig->getAlterParam('SYSCONF_CM',false);
+            $editingConfigForm=web_FileEditorForm($editingConfigPath, $editingConfigContent, $cmirrFlag,'text/x-ini');
+            show_window(__('Change') . ' ' . basename($editingConfigPath), $editingConfigForm);
         } else {
             show_error(__('File not exist') . ': ' . $editingConfigPath);
         }

@@ -3609,18 +3609,29 @@ function web_ConfigEditorShow($prefix, $configdata, $optsdata) {
  * 
  * @param string $path
  * @param string $content
+ * @param bool $cmirrFlag
+ * @param string $mode
  * 
  * @return string
  */
-function web_FileEditorForm($path, $content) {
+function web_FileEditorForm($path, $content, $cmirrFlag=false, $mode='') {
     $result = '';
+    $formStyle = ($cmirrFlag) ? '' : 'glamour';
     $inputs = wf_HiddenInput('editfilepath', $path);
-    $inputs .= wf_tag('textarea', false, 'fileeditorarea', 'name="editfilecontent" cols="145" rows="30" spellcheck="false"');
-    $inputs .= $content;
-    $inputs .= wf_tag('textarea', true);
+    if ($cmirrFlag) {
+        $cmirr=new CMIRR();
+        if (!empty($mode)) {
+            $cmirr->setMode($mode);
+        }
+        $inputs .= $cmirr->getEditorArea('editfilecontent', $content);
+    } else {    
+        $inputs .= wf_tag('textarea', false, 'fileeditorarea', 'name="editfilecontent" cols="145" rows="30" spellcheck="false"');
+        $inputs .= $content;
+        $inputs .= wf_tag('textarea', true);
+    }
     $inputs .= wf_tag('br');
     $inputs .= wf_Submit(__('Save'));
-    $result .= wf_Form('', 'POST', $inputs, 'glamour');
+    $result .= wf_Form('', 'POST', $inputs, $formStyle);
     return ($result);
 }
 
