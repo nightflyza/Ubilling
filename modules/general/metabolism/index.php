@@ -1,6 +1,7 @@
 <?php
 
 if (cfr('METABOLISM')) {
+    set_time_limit(0);
     $metabolism = new Metabolism();
     show_window('', $metabolism->renderPanel());
 
