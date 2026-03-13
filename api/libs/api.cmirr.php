@@ -61,11 +61,18 @@ class CMIRR {
     protected $autoCloseBrackets = true;
 
     /**
-     * Hint function for autocomplete (JS expression, e.g. CodeMirror.hint.anyword)
+     * Highlight the line where the cursor is.
+     *
+     * @var bool
+     */
+    protected $styleActiveLine = true;
+
+    /**
+     * Hint function for autocomplete (short name, e.g. anyword, sql, javascript, css).
      *
      * @var string
      */
-    protected $hintOptions = 'CodeMirror.hint.anyword';
+    protected $hintOptions = 'anyword';
 
     /**
      * When true, autocomplete (Ctrl-Space) and hintOptions are not applied.
@@ -73,6 +80,13 @@ class CMIRR {
      * @var bool
      */
     protected $disableAutocomplete = false;
+
+    /**
+     * Enable F11 fullscreen and Esc to exit.
+     *
+     * @var bool
+     */
+    protected $enableFullscreen = true;
 
     /**
      * Contains the necessary stylesheets and scripts for CodeMirror integration.
@@ -116,7 +130,7 @@ class CMIRR {
      * @return void
      */
     public function setLineWrapping($lineWrapping) {
-        $this->lineWrapping = (bool) $lineWrapping;
+        $this->lineWrapping = $lineWrapping;
     }
 
     /**
@@ -126,7 +140,7 @@ class CMIRR {
      * @return void
      */
     public function setLineNumbers($lineNumbers) {
-        $this->lineNumbers = (bool) $lineNumbers;
+        $this->lineNumbers = $lineNumbers;
     }
 
     /**
@@ -136,7 +150,7 @@ class CMIRR {
      * @return void
      */
     public function setMatchBrackets($matchBrackets) {
-        $this->matchBrackets = (bool) $matchBrackets;
+        $this->matchBrackets = $matchBrackets;
     }
 
     /**
@@ -146,20 +160,24 @@ class CMIRR {
      * @return void
      */
     public function setAutoCloseBrackets($autoCloseBrackets) {
-        $this->autoCloseBrackets = (bool) $autoCloseBrackets;
+        $this->autoCloseBrackets = $autoCloseBrackets;
     }
 
     /**
-     * Sets the hint function used for autocomplete 
-     * 
-     * Examples: CodeMirror.hint.anyword
-     *           CodeMirror.hint.sql
-     *           CodeMirror.hint.javascript
-     *           CodeMirror.hint.css
-     *           CodeMirror.hint.html
-     *           CodeMirror.hint.php
+     * Enables or disables highlighting of the current line.
      *
-     * @param string $hintOptions
+     * @param bool $styleActiveLine
+     * @return void
+     */
+    public function setStyleActiveLine($styleActiveLine) {
+        $this->styleActiveLine = $styleActiveLine;
+    }
+
+    /**
+     * Sets the hint function used for autocomplete by short name.
+     * Available (loaded): anyword, javascript, sql, css.
+     *
+     * @param string $hintOptions Short name, e.g. anyword, sql, javascript, css
      * @return void
      */
     public function setHintOptions($hintOptions) {
@@ -173,7 +191,17 @@ class CMIRR {
      * @return void
      */
     public function setDisableAutocomplete($disableAutocomplete) {
-        $this->disableAutocomplete = (bool) $disableAutocomplete;
+        $this->disableAutocomplete = $disableAutocomplete;
+    }
+
+    /**
+     * Enables or disables fullscreen (F11 / Esc).
+     *
+     * @param bool $enableFullscreen
+     * @return void
+     */
+    public function setEnableFullscreen($enableFullscreen) {
+        $this->enableFullscreen = $enableFullscreen;
     }
 
     /**
@@ -183,25 +211,30 @@ class CMIRR {
      */
     public function setHeaders() {
         $this->headers = '
-        <link rel="stylesheet" href="modules/jsc/cmirr/codemirror.min.css">
+        <link rel="stylesheet" href="modules/jsc/cmirr/lib/codemirror.css">
         <link rel="stylesheet" href="modules/jsc/cmirr/theme/'.$this->theme.'.css">
-        <link rel="stylesheet" href="modules/jsc/cmirr/show-hint.min.css">
+        <link rel="stylesheet" href="modules/jsc/cmirr/addon/hint/show-hint.css">
+        <link rel="stylesheet" href="modules/jsc/cmirr/addon/display/fullscreen.css">
         
-        <script src="modules/jsc/cmirr/codemirror.min.js"></script>
+        <script src="modules/jsc/cmirr/lib/codemirror.js"></script>
         <script src="modules/jsc/cmirr/mode/clike/clike.js"></script>
+        <script src="modules/jsc/cmirr/mode/htmlembedded/htmlembedded.js"></script>
         <script src="modules/jsc/cmirr/mode/htmlmixed/htmlmixed.js"></script>
         <script src="modules/jsc/cmirr/mode/javascript/javascript.js"></script>
         <script src="modules/jsc/cmirr/mode/css/css.js"></script>
         <script src="modules/jsc/cmirr/mode/php/php.js"></script>
         <script src="modules/jsc/cmirr/mode/sql/sql.js"></script>
+        <script src="modules/jsc/cmirr/mode/shell/shell.js"></script>
         
-        <script src="modules/jsc/cmirr/matchbrackets.min.js"></script>
-        <script src="modules/jsc/cmirr/closebrackets.min.js"></script>
-        <script src="modules/jsc/cmirr/show-hint.min.js"></script>
-        <script src="modules/jsc/cmirr/anyword-hint.min.js"></script>
-        <script src="modules/jsc/cmirr/javascript-hint.min.js"></script>
-        <script src="modules/jsc/cmirr/sql-hint.js"></script>
-        <script src="modules/jsc/cmirr/css-hint.js"></script>
+        <script src="modules/jsc/cmirr/addon/edit/matchbrackets.js"></script>
+        <script src="modules/jsc/cmirr/addon/edit/closebrackets.js"></script>
+        <script src="modules/jsc/cmirr/addon/selection/active-line.js"></script>
+        <script src="modules/jsc/cmirr/addon/display/fullscreen.js"></script>
+        <script src="modules/jsc/cmirr/addon/hint/show-hint.js"></script>
+        <script src="modules/jsc/cmirr/addon/hint/anyword-hint.js"></script>
+        <script src="modules/jsc/cmirr/addon/hint/javascript-hint.js"></script>
+        <script src="modules/jsc/cmirr/addon/hint/sql-hint.js"></script>
+        <script src="modules/jsc/cmirr/addon/hint/css-hint.js"></script>
         
         ';
     }
@@ -242,6 +275,7 @@ class CMIRR {
         $lineNumbers = ($this->lineNumbers) ? 'true' : 'false';
         $matchBrackets = ($this->matchBrackets) ? 'true' : 'false';
         $autoCloseBrackets = ($this->autoCloseBrackets) ? 'true' : 'false';
+        $styleActiveLine = ($this->styleActiveLine) ? 'true' : 'false';
 
         $options = array(
             'mode: "' . $this->mode . '"',
@@ -249,11 +283,23 @@ class CMIRR {
             'lineWrapping: ' . $lineWrapping,
             'lineNumbers: ' . $lineNumbers,
             'matchBrackets: ' . $matchBrackets,
-            'autoCloseBrackets: ' . $autoCloseBrackets
+            'autoCloseBrackets: ' . $autoCloseBrackets,
+            'styleActiveLine: ' . $styleActiveLine
         );
+        $extraKeysParts = array();
+        if ($this->enableFullscreen) {
+            $extraKeysParts[] = '"F11": function(cm) { cm.setOption("fullScreen", !cm.getOption("fullScreen")); }';
+            $extraKeysParts[] = '"Esc": function(cm) { if (cm.getOption("fullScreen")) cm.setOption("fullScreen", false); }';
+        }
         if (!$this->disableAutocomplete) {
-            $options[] = 'extraKeys: { "Ctrl-Space": "autocomplete" }';
-            $options[] = 'hintOptions: { hint: ' . $this->hintOptions . ' }';
+            $hintRef = (strpos($this->hintOptions, 'CodeMirror.hint.') === 0)
+                ? $this->hintOptions
+                : 'CodeMirror.hint.' . $this->hintOptions;
+            $extraKeysParts[] = '"Ctrl-Space": "autocomplete"';
+            $options[] = 'hintOptions: { hint: ' . $hintRef . ' }';
+        }
+        if (!empty($extraKeysParts)) {
+            $options[] = 'extraKeys: { ' . implode(', ', $extraKeysParts) . ' }';
         }
         $optionsStr = implode(', ', $options);
 
@@ -310,8 +356,6 @@ class CMIRR {
         $this->setEditorId();
         $this->setHeaders();
         $this->setScript();
-
-
 
         //rendering result
         $result = '';
