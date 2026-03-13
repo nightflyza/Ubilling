@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Fast and dirty wrapper for codemirror editor
+ * Wrapper for CodeMirror editor
  */
 class CMIRR {
     /**
@@ -109,6 +109,14 @@ class CMIRR {
     protected $style = '';
 
 
+    /**
+     * Path to CodeMirror library
+     *
+     * @var string
+     */
+    protected $cmLibPath='modules/jsc/cmirr/';
+
+
     public function __construct() {
         $this->setStyle();
     }
@@ -211,30 +219,30 @@ class CMIRR {
      */
     public function setHeaders() {
         $this->headers = '
-        <link rel="stylesheet" href="modules/jsc/cmirr/lib/codemirror.css">
-        <link rel="stylesheet" href="modules/jsc/cmirr/theme/'.$this->theme.'.css">
-        <link rel="stylesheet" href="modules/jsc/cmirr/addon/hint/show-hint.css">
-        <link rel="stylesheet" href="modules/jsc/cmirr/addon/display/fullscreen.css">
+        <link rel="stylesheet" href="'.$this->cmLibPath.'lib/codemirror.css">
+        <link rel="stylesheet" href="'.$this->cmLibPath.'theme/'.$this->theme.'.css">
+        <link rel="stylesheet" href="'.$this->cmLibPath.'addon/hint/show-hint.css">
+        <link rel="stylesheet" href="'.$this->cmLibPath.'addon/display/fullscreen.css">
         
-        <script src="modules/jsc/cmirr/lib/codemirror.js"></script>
-        <script src="modules/jsc/cmirr/mode/clike/clike.js"></script>
-        <script src="modules/jsc/cmirr/mode/htmlembedded/htmlembedded.js"></script>
-        <script src="modules/jsc/cmirr/mode/htmlmixed/htmlmixed.js"></script>
-        <script src="modules/jsc/cmirr/mode/javascript/javascript.js"></script>
-        <script src="modules/jsc/cmirr/mode/css/css.js"></script>
-        <script src="modules/jsc/cmirr/mode/php/php.js"></script>
-        <script src="modules/jsc/cmirr/mode/sql/sql.js"></script>
-        <script src="modules/jsc/cmirr/mode/shell/shell.js"></script>
+        <script src="'.$this->cmLibPath.'lib/codemirror.js"></script>
+        <script src="'.$this->cmLibPath.'mode/clike/clike.js"></script>
+        <script src="'.$this->cmLibPath.'mode/htmlembedded/htmlembedded.js"></script>
+        <script src="'.$this->cmLibPath.'mode/htmlmixed/htmlmixed.js"></script>
+        <script src="'.$this->cmLibPath.'mode/javascript/javascript.js"></script>
+        <script src="'.$this->cmLibPath.'mode/css/css.js"></script>
+        <script src="'.$this->cmLibPath.'mode/php/php.js"></script>
+        <script src="'.$this->cmLibPath.'mode/sql/sql.js"></script>
+        <script src="'.$this->cmLibPath.'mode/shell/shell.js"></script>
         
-        <script src="modules/jsc/cmirr/addon/edit/matchbrackets.js"></script>
-        <script src="modules/jsc/cmirr/addon/edit/closebrackets.js"></script>
-        <script src="modules/jsc/cmirr/addon/selection/active-line.js"></script>
-        <script src="modules/jsc/cmirr/addon/display/fullscreen.js"></script>
-        <script src="modules/jsc/cmirr/addon/hint/show-hint.js"></script>
-        <script src="modules/jsc/cmirr/addon/hint/anyword-hint.js"></script>
-        <script src="modules/jsc/cmirr/addon/hint/javascript-hint.js"></script>
-        <script src="modules/jsc/cmirr/addon/hint/sql-hint.js"></script>
-        <script src="modules/jsc/cmirr/addon/hint/css-hint.js"></script>
+        <script src="'.$this->cmLibPath.'addon/edit/matchbrackets.js"></script>
+        <script src="'.$this->cmLibPath.'addon/edit/closebrackets.js"></script>
+        <script src="'.$this->cmLibPath.'addon/selection/active-line.js"></script>
+        <script src="'.$this->cmLibPath.'addon/display/fullscreen.js"></script>
+        <script src="'.$this->cmLibPath.'addon/hint/show-hint.js"></script>
+        <script src="'.$this->cmLibPath.'addon/hint/anyword-hint.js"></script>
+        <script src="'.$this->cmLibPath.'addon/hint/javascript-hint.js"></script>
+        <script src="'.$this->cmLibPath.'addon/hint/sql-hint.js"></script>
+        <script src="'.$this->cmLibPath.'addon/hint/css-hint.js"></script>
         
         ';
     }
