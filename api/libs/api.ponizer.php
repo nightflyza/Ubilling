@@ -342,6 +342,13 @@ class PONizer {
     protected $onuUniStatusEnabled = false;
 
     /**
+     * Shows user login in ONU FDB flag
+     *
+     * @var bool
+     */
+    protected $onuFDBShowLoginFlag = false;
+
+    /**
      * Placeholder for PON_ONU_SERIAL_CASE_MODE alter.ini option
      *  0 - no case convert
      *  1 - lowercase
@@ -520,6 +527,7 @@ class PONizer {
         $this->llidColVisibleUnknownONU = $this->ubConfig->getAlterParam('PON_UKNKOWN_ONU_LLID_SHOW', false);
         $this->onuUniStatusEnabled = $this->ubConfig->getAlterParam('PON_ONU_UNI_STATUS_ENABLED', false);
         $this->onuSerialCaseMode = $this->ubConfig->getAlterParam('PON_ONU_SERIAL_CASE_MODE', 0);
+        $this->onuFDBShowLoginFlag = $this->ubConfig->getAlterParam('PON_ONU_FDB_SHOWLOGIN', false);
 
         if ($this->ponIfDescribe) {
             $this->ponInterfaces = new PONIfDesc();
@@ -3473,7 +3481,7 @@ class PONizer {
         }
 
         $result .= wf_delimiter();
-        $columns = array('OLT', 'ONU', 'ID', 'Vlan', 'MAC', 'Address', 'Login', 'Real Name', 'Tariff');
+        $columns = array('OLT', 'ONU', 'ID', 'Vlan', 'MAC', 'Login', 'Address', 'Real Name', 'Tariff');
         $opts = '"order": [[ 0, "desc" ]]';
         $result .= wf_JqDtLoader($columns, self::URL_ME . '&fdbcachelist=true&ajaxfdblist=true', false, 'ONU', 100, $opts);
         return ($result);
@@ -3489,7 +3497,12 @@ class PONizer {
      */
     public function renderOltFdbList($onuid = '', $customDataSource = '') {
         $result = '';
-        $columns = array('ID', 'Vlan', 'MAC', 'Address', 'Real Name', 'Tariff');
+        if ($this->onuFDBShowLoginFlag) {
+            $columns = array('ID', 'Vlan', 'MAC', 'Login', 'Address', 'Real Name', 'Tariff');
+        } else {
+            $columns = array('ID', 'Vlan', 'MAC', 'Address', 'Real Name', 'Tariff');
+        }
+
         $opts = '"order": [[ 0, "desc" ]]';
         if ($customDataSource) {
             $dataSource = $customDataSource . $onuid;
@@ -3988,6 +4001,7 @@ class PONizer {
         $fdbPointer = '';
         $selfFilterFlag = (@$this->altCfg['PON_ONU_FDB_SELFFILTER']) ? true : false;
 
+
         if (!empty($onuId)) {
             $allUserTariffs = zb_TariffsGetAllUsers();
             $onuMacId = @$this->allOnu[$onuId]['mac'];
@@ -4008,7 +4022,7 @@ class PONizer {
                 $fdbPointer = $this->FDBCache[$onuSerialId];
             }
 
-            if ($fdbCacheAvail && $fdbPointer) {
+            if ($fdbCacheAvail and $fdbPointer) {
                 $getLoginMac = zb_UserGetAllMACs();
                 $allAddress = zb_AddressGetFulladdresslistCached();
                 $allRealnames = zb_UserGetAllRealnames();
@@ -4031,6 +4045,9 @@ class PONizer {
                         $data[] = $id;
                         $data[] = $fdbData['vlan'];
                         $data[] = $fdbData['mac'];
+                        if ($this->onuFDBShowLoginFlag) {
+                            $data[] = $login;
+                        }
                         $data[] = @$userLink;
                         $data[] = @$userRealnames;
                         $data[] = $userTariff;
@@ -4180,8 +4197,8 @@ class PONizer {
                                     $data[] = $onuLink;
                                     $data[] = $onuData['vlan'];
                                     $data[] = $onuData['mac'] . $userCheck;
-                                    $data[] = $userLink;
                                     $data[] = $associatedUserLogin;
+                                    $data[] = $userLink;
                                     $data[] = $userRealName;
                                     $data[] = $userTariff;
 
