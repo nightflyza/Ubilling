@@ -3471,7 +3471,7 @@ class PONizer {
     public function renderOnuFdbCache() {
         $result = wf_BackLink(self::URL_ONULIST);
 
-        if (cfr('ROOT')) {
+        if (cfr('PONSTUFF')) {
             //auto OLT associtation fixing interface
             $fixCancelUrl = self::URL_ME . '&fdbcachelist=true';
             $fixConfirmUrl = self::URL_ME . '&fdbcachelist=true&fixonuoltassings=true';

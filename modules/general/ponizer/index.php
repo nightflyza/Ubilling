@@ -202,7 +202,7 @@ if ($altCfg['PON_ENABLED']) {
                 $pon->ajaxFdbCacheList();
             }
             if (ubRouting::checkGet('fixonuoltassings')) {
-                if (cfr('ROOT')) {
+                if (cfr('PONSTUFF')) {
                     show_window(__('Fix OLT inconsistencies'), $pon->fixOnuOltAssigns());
                 } else {
                     show_error(__('Access denied'));
