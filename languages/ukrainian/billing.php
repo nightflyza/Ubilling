@@ -3652,3 +3652,4 @@ $lang['def']['Signup'] = 'Підключення';
 $lang['def']['Previous result'] = 'Попередній результат';
 $lang['def']['Show as raw array'] = 'Показати як масив';
 $lang['def']['right to manage other PON stuff'] = 'Право керувати іншими PON-штуками';
+$lang['def']['Users funds flow'] = 'Рух коштів користувача';

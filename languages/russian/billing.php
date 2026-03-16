@@ -3625,3 +3625,5 @@ $lang['def']['Split'] = 'Разделить';
 $lang['def']['Signup'] = 'Подключение';
 $lang['def']['Previous result'] = 'Предыдущий результат';
 $lang['def']['Show as raw array'] = 'Показать как массив';
+$lang['def']['right to manage other PON stuff'] = 'Право управлять другими PON-штуками';
+$lang['def']['Users funds flow'] = 'Движение средств пользователя';

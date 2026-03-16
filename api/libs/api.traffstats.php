@@ -680,7 +680,7 @@ class TraffStats {
 
         if (!empty($bwd)) {
             $icon = wf_img_sized('skins/icon_stats.gif', '', '16', '16');
-            $result .= wf_delimiter();
+            $result .= wf_delimiter(0);
             $result .= wf_tag('h3') . __('Graphs') . wf_tag('h3', true);
 
             $bwcells = '';
@@ -897,8 +897,10 @@ class TraffStats {
             $this->loadTraffStats();
             $this->loadIshimuraStats();
 
+
             // Current month traffic stats
             $result .= $this->renderCurMonthStats();
+
 
             // Some charts here
             $result .= $this->renderCharts();
