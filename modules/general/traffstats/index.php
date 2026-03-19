@@ -22,7 +22,7 @@ if (cfr('TRAFFSTATS')) {
             $reportBody = $traffStats->renderUserTraffStats();
         }
 
-        $userLink = wf_Link(UserProfile::URL_PROFILE . '=' . $login, web_profile_icon() . ' ' . $userAddress);
+        $userLink = wf_Link(UserProfile::URL_PROFILE  . $login, web_profile_icon() . ' ' . $userAddress);
         show_window(__('User traffic stats') . ' ' . $userLink, $reportBody);
         zb_BillingStats();
     }

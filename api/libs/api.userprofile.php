@@ -270,7 +270,6 @@ class UserProfile {
         $this->mobile = $this->AllUserData[$this->login]['mobile'];
         $this->contract = $this->AllUserData[$this->login]['contract'];
         $this->mail = $this->AllUserData[$this->login]['email'];
-        //$this->apt = $this->AllUserData[$this->login]['apt'];
         $this->mac = $this->AllUserData[$this->login]['mac'];
         $this->buildgeo = $this->AllUserData[$this->login]['geo'];
     }
@@ -478,6 +477,150 @@ class UserProfile {
     }
 
     /**
+     * Normalizes plugin config and checks if it can be rendered.
+     * 
+     * @param string $modulename
+     * @param array $eachplugin
+     * 
+     * @return array
+     */
+    protected function parsePluginConfig($modulename, $eachplugin) {
+        $result = array(
+            'renderable' => true,
+            'linkTarget' => '',
+            'customAnchor' => '',
+            'linkModuleName' => $modulename
+        );
+
+        //checks for required plugin rights
+        if (isset($eachplugin['need_right']) and !empty($eachplugin['need_right'])) {
+            if (!cfr($eachplugin['need_right'])) {
+                $result['renderable'] = false;
+            }
+        }
+
+        //checking for required options
+        if ($result['renderable']) { //avoiding additional check
+            if (isset($eachplugin['need_option']) and !empty($eachplugin['need_option'])) {
+                if (!@$this->alterCfg[$eachplugin['need_option']]) {
+                    $result['renderable'] = false;
+                }
+            }
+        }
+
+        //optional link target
+        if (isset($eachplugin['link_target'])) {
+            if (!empty($eachplugin['link_target'])) {
+                $result['linkTarget'] = 'target="' . $eachplugin['link_target'] . '"';
+            }
+        }
+
+        //optional custom module name
+        if (isset($eachplugin['custom_module_name'])) {
+            if (!empty($eachplugin['custom_module_name'])) {
+                $result['linkModuleName'] = $eachplugin['custom_module_name'];
+            }
+        }
+
+        //optional custom anchor
+        if (isset($eachplugin['custom_anchor'])) {
+            if (!empty($eachplugin['custom_anchor'])) {
+                $result['customAnchor'] .= $eachplugin['custom_anchor'];
+            }
+        }
+
+        return ($result);
+    }
+
+    /**
+     * Returns true when ping charts should be appended to ping plugin URLs.
+     * 
+     * @return bool
+     */
+    protected function isGraphPingEnabled() {
+        $result = false;
+        if (@$this->alterCfg['PINGCHARTS_DEFAULT']) {
+            $result = true;
+        }
+        return ($result);
+    }
+
+    /**
+     * Builds plugin URL for current user.
+     * 
+     * @param array $pluginData
+     * @param bool $graphPing
+     * 
+     * @return string
+     */
+    protected function buildPluginUrl($pluginData, $graphPing) {
+        $result = '?module=' . $pluginData['linkModuleName'] . '&username=' . $this->login . $pluginData['customAnchor'];
+
+        //appending optional graphical ping if required
+        if ($graphPing) {
+            if (ispos($pluginData['linkModuleName'], 'ping')) {
+                $result .= '&charts=true';
+            }
+        }
+
+        return ($result);
+    }
+
+    /**
+     * Builds UI-ready plugin data for rendering.
+     * 
+     * @param array $pluginData
+     * @param array $eachplugin
+     * @param bool $graphPing
+     * 
+     * @return array
+     */
+    protected function buildPluginViewData($pluginData, $eachplugin, $graphPing) {
+        $result = array(
+            'name' => __($eachplugin['name']),
+            'url' => $this->buildPluginUrl($pluginData, $graphPing),
+            'iconMain' => wf_img_sized('skins/' . $eachplugin['icon'], __($eachplugin['name']), '', self::MAIN_PLUGINS_SIZE),
+            'iconOverlay' => wf_img_sized('skins/' . $eachplugin['icon'], __($eachplugin['name']), '', '')
+        );
+        return ($result);
+    }
+
+
+    /**
+     * loads profile plugins if enabled into private plugins property
+     * 
+     * @return void
+     */
+    protected function loadPlugins() {
+        if (!empty($this->login)) {
+            $rawPlugins = $this->loadPluginsRaw('plugins.ini');
+            if (!empty($rawPlugins)) {
+                $graphPing = $this->isGraphPingEnabled();
+
+                foreach ($rawPlugins as $modulename => $eachplugin) {
+                    $pluginData = $this->parsePluginConfig($modulename, $eachplugin);
+                    $pluginViewData = $this->buildPluginViewData($pluginData, $eachplugin, $graphPing);
+
+                    if (isset($eachplugin['overlay'])) {
+                        $overlaydata = $this->loadPluginsOverlay($eachplugin['overlaydata']);
+                        //any overlay plugins loaded for current user?
+                        if (!empty($overlaydata)) {
+                            $overlaydata = $overlaydata . wf_delimiter();
+                            if ($pluginData['renderable']) {
+                                $this->plugins .= wf_modal($pluginViewData['iconMain'], $pluginViewData['name'], $overlaydata, '', 850, 650);
+                            }
+                        }
+                    } else {
+                        if ($pluginData['renderable']) {
+                            $this->plugins .= wf_Link($pluginViewData['url'], $pluginViewData['iconMain'], false, '', $pluginData['linkTarget']) . wf_delimiter();
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /**
      * load plugins overlay data
      * 
      * @return string
@@ -486,42 +629,17 @@ class UserProfile {
         $plugins = $this->loadPluginsRaw($filename);
         $result = '';
         $pluginsTmp = '';
+        $graphPing = $this->isGraphPingEnabled();
 
         if (!empty($plugins)) {
             foreach ($plugins as $modulename => $eachplugin) {
-                $renderable = true;
-                $linkTarget = '';
-                //checks for required pluging rights
-                if (isset($eachplugin['need_right']) and !empty($eachplugin['need_right'])) {
-                    if (cfr($eachplugin['need_right'])) {
-                        $renderable = true;
-                    } else {
-                        $renderable = false;
-                    }
-                }
+                $pluginData = $this->parsePluginConfig($modulename, $eachplugin);
+                $pluginViewData = $this->buildPluginViewData($pluginData, $eachplugin, $graphPing);
 
-                //checking for required options
-                if ($renderable) { //avoiding additional check
-                    if (isset($eachplugin['need_option'])) {
-                        if (@$this->alterCfg[$eachplugin['need_option']]) {
-                            $renderable = true;
-                        } else {
-                            $renderable = false;
-                        }
-                    }
-                }
-
-                //optional link target
-                if (isset($eachplugin['link_target'])) {
-                    if (!empty($eachplugin['link_target'])) {
-                        $linkTarget = 'target="' . $eachplugin['link_target'] . '"';
-                    }
-                }
-
-                if ($renderable) {
+                if ($pluginData['renderable']) {
                     $pluginsTmp .= wf_tag('div', false, '', 'style="width: ' . self::MAIN_OVERLAY_DISTANCE . '; height: ' . self::MAIN_OVERLAY_DISTANCE . '; float: left; font-size: 8pt;"');
-                    $pluginsTmp .= wf_Link('?module=' . $modulename . '&username=' . $this->login, wf_img_sized('skins/' . $eachplugin['icon'], __($eachplugin['name']), '', ''), false, '', $linkTarget);
-                    $pluginsTmp .= wf_tag('br') . __($eachplugin['name']);
+                    $pluginsTmp .= wf_Link($pluginViewData['url'], $pluginViewData['iconOverlay'], false, '', $pluginData['linkTarget']);
+                    $pluginsTmp .= wf_tag('br') . $pluginViewData['name'];
                     $pluginsTmp .= wf_tag('div', true);
                 }
             }
@@ -542,71 +660,6 @@ class UserProfile {
         return ($result);
     }
 
-    /**
-     * loads pofile plugins if enabled into private plugins property
-     * 
-     * @return void
-     */
-    protected function loadPlugins() {
-        if (!empty($this->login)) {
-            $rawPlugins = $this->loadPluginsRaw('plugins.ini');
-            if (!empty($rawPlugins)) {
-                $graphPing = (@$this->alterCfg['PINGCHARTS_DEFAULT']) ? true : false;
-                foreach ($rawPlugins as $modulename => $eachplugin) {
-                    $linkTarget = '';
-                    $renderable = true;
-                    //checks for required pluging rights
-                    if (isset($eachplugin['need_right']) and !empty($eachplugin['need_right'])) {
-                        if (cfr($eachplugin['need_right'])) {
-                            $renderable = true;
-                        } else {
-                            $renderable = false;
-                        }
-                    }
-
-                    //checking for required options
-                    if ($renderable) { //avoiding additional check
-                        if (isset($eachplugin['need_option'])) {
-                            if (@$this->alterCfg[$eachplugin['need_option']]) {
-                                $renderable = true;
-                            } else {
-                                $renderable = false;
-                            }
-                        }
-                    }
-
-                    if (isset($eachplugin['link_target'])) {
-                        if (!empty($eachplugin['link_target'])) {
-                            $linkTarget = 'target="' . $eachplugin['link_target'] . '"';
-                        }
-                    }
-
-                    if (isset($eachplugin['overlay'])) {
-                        $overlaydata = $this->loadPluginsOverlay($eachplugin['overlaydata']);
-                        //any overlay plugins loaded for current user?
-                        if (!empty($overlaydata)) {
-                            $overlaydata = $overlaydata . wf_delimiter();
-                            if ($renderable) {
-                                $this->plugins .= wf_modal(wf_img_sized('skins/' . $eachplugin['icon'], __($eachplugin['name']), '', self::MAIN_PLUGINS_SIZE), __($eachplugin['name']), $overlaydata, '', 850, 650);
-                            }
-                        }
-                    } else {
-                        $pluginUrl = '?module=' . $modulename . '&username=' . $this->login;
-                        //appenging optional graphical ping if required
-                        if ($graphPing) {
-                            if (ispos($modulename, 'ping')) {
-                                $pluginUrl .= '&charts=true';
-                            }
-                        }
-
-                        if ($renderable) {
-                            $this->plugins .= wf_Link($pluginUrl, wf_img_sized('skins/' . $eachplugin['icon'], __($eachplugin['name']), '', self::MAIN_PLUGINS_SIZE), false, '', $linkTarget) . wf_delimiter();
-                        }
-                    }
-                }
-            }
-        }
-    }
 
     /**
       Give a little try, give a little more try

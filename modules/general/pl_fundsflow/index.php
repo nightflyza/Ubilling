@@ -19,7 +19,7 @@ if (cfr('PLFUNDS')) {
 
         $fundsflow = $funds->transformArray($fundsflow);
         $userAddress = zb_UserGetFullAddress($login);
-        $userLink = wf_Link(UserProfile::URL_PROFILE . '=' . $login, web_profile_icon() . ' ' . $userAddress);
+        $userLink = wf_Link(UserProfile::URL_PROFILE . $login, web_profile_icon() . ' ' . $userAddress);
 
         show_window('', $funds->getOnlineLeftCount($login, false, $considerVServices, false));
         show_window(__('Users funds flow') . ' ' . $userLink, $funds->renderArray($fundsflow));
