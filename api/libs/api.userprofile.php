@@ -576,11 +576,11 @@ class UserProfile {
      * @return array
      */
     protected function buildPluginViewData($pluginData, $eachplugin, $graphPing) {
+        $iconSize = self::MAIN_PLUGINS_SIZE;
         $result = array(
             'name' => __($eachplugin['name']),
             'url' => $this->buildPluginUrl($pluginData, $graphPing),
-            'iconMain' => wf_img_sized('skins/' . $eachplugin['icon'], __($eachplugin['name']), '', self::MAIN_PLUGINS_SIZE),
-            'iconOverlay' => wf_img_sized('skins/' . $eachplugin['icon'], __($eachplugin['name']), '', '')
+            'iconMain' => wf_img_sized('skins/' . $eachplugin['icon'], __($eachplugin['name']), $iconSize, $iconSize),
         );
         return ($result);
     }
@@ -638,7 +638,7 @@ class UserProfile {
 
                 if ($pluginData['renderable']) {
                     $pluginsTmp .= wf_tag('div', false, '', 'style="width: ' . self::MAIN_OVERLAY_DISTANCE . '; height: ' . self::MAIN_OVERLAY_DISTANCE . '; float: left; font-size: 8pt;"');
-                    $pluginsTmp .= wf_Link($pluginViewData['url'], $pluginViewData['iconOverlay'], false, '', $pluginData['linkTarget']);
+                    $pluginsTmp .= wf_Link($pluginViewData['url'], $pluginViewData['iconMain'], false, '', $pluginData['linkTarget']);
                     $pluginsTmp .= wf_tag('br') . $pluginViewData['name'];
                     $pluginsTmp .= wf_tag('div', true);
                 }
