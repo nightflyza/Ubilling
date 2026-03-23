@@ -18,12 +18,38 @@ class DevConsole {
     protected $onePunch = '';
 
     /**
+     * CodeMirror editor enabled flag
+     *
+     * @var bool
+     */
+    protected $cmirrFlag = false;
+
+    /**
+     * CodeMirror editor default style
+     *
+     * @var string
+     */
+    protected $cmirrStyle = '
+    #editor-container {
+                width: 100% !important;
+                border: 1px solid #ccc;
+            }
+
+            .CodeMirror {
+                width: 100% !important;
+                font-size: 16px;
+            }
+    ';
+
+    /**
      * Some predefined stuff like routes here
      */
     const URL_ME = '?module=sqlconsole';
     const URL_DEVCON = '?module=sqlconsole&devconsole=true';
+    const URL_OP_MANAGE = '?module=sqlconsole&devconsole=true&manageonepunch=true';
     const OPTION_KEEP = 'DEVCON_SQL_KEEP';
     const OPTION_DEBUG = 'DEVCON_VERBOSE_DEBUG';
+    const OPTION_CM = 'DEVCON_CM';
 
     const ROUTE_PHP_CON = 'devconsole';
     const ROUTE_OP_RUN = 'runscript';
@@ -31,6 +57,7 @@ class DevConsole {
     const ROUTE_OP_DELETE = 'delscript';
     const ROUTE_OP_EDIT = 'editscript';
     const ROUTE_OP_IMPORT = 'importoldcodetemplates';
+    const ROUTE_OP_MANAGE = 'manageonepunch';
 
 
     /**
@@ -63,8 +90,14 @@ class DevConsole {
      */
     public function __construct() {
         $this->loadConfigs();
-        if (ubRouting::checkGet(self::ROUTE_PHP_CON)) {
+        if (ubRouting::checkGet(self::ROUTE_PHP_CON) or ubRouting::checkGet(self::ROUTE_OP_MANAGE) or ubRouting::checkGet(array(self::ROUTE_OP_RUN, self::ROUTE_OP_CREATE, self::ROUTE_OP_DELETE, self::ROUTE_OP_EDIT, self::ROUTE_OP_IMPORT))) {
             $this->initOnePunch();
+        }
+
+        if (isset($this->altCfg[self::OPTION_CM])) {
+            if ($this->altCfg[self::OPTION_CM]) {
+                $this->cmirrFlag = true;
+            } 
         }
     }
 
@@ -98,6 +131,7 @@ class DevConsole {
         $migrationControls = '';
         $result .= wf_Link(self::URL_ME, wf_img('skins/icon_restoredb.png') . ' ' . __('SQL Console'), false, 'ubButton');
         $result .= wf_Link(self::URL_ME . '&' . self::ROUTE_PHP_CON . '=true', wf_img('skins/icon_php.png') . ' ' . __('PHP Console'), false, 'ubButton');
+        $result .= wf_Link(self::URL_OP_MANAGE, wf_img('skins/script16.png') . __('One-Punch scripts'), false, 'ubButton');
         if (cfr('ROOT')) {
             $migrationControls .= wf_Link("?module=unicornteleport", wf_img('skins/teleport16.png') . ' ' . __('Unicorn Teleport'), false, 'ubButton');
             $migrationControls .= wf_Link("?module=migration", wf_img('skins/icon_puzzle.png') . ' ' . __('Migration'), false, 'ubButton');
@@ -137,15 +171,24 @@ class DevConsole {
             }
         }
 
-        $sqlinputs .= wf_TextArea(self::PROUTE_SQL, '', $startQuery, true, '80x10');
-       // $cmirr = new CMIRR();
-       // $sqlinputs .= $cmirr->getEditorArea(self::PROUTE_SQL, $startQuery, 80, 10);
+        $formClass = ($this->cmirrFlag) ? '' : 'glamour';
 
+        if ($this->cmirrFlag) {
+            $cmirr = new CMIRR();
+            $cmirr->setStyle($this->cmirrStyle);
+            $cmirr->setMode('text/x-sql');
+            $cmirr->setHintOptions('sql');
+            $sqlinputs .= $cmirr->getEditorArea(self::PROUTE_SQL, $startQuery, 40, 5);
+        } else {
+            $sqlinputs .= wf_TextArea(self::PROUTE_SQL, '', $startQuery, true, '110x10');
+        }
+
+        
         $sqlinputs .= wf_RadioInput(self::PROUTE_SQL_DISPLAY, __('Show as raw array'), self::SQL_DISPLAY_RAW, true, ($displayMode === self::SQL_DISPLAY_RAW));
         $sqlinputs .= wf_RadioInput(self::PROUTE_SQL_DISPLAY, __('Display query result as table'), self::SQL_DISPLAY_TABLE, true, ($displayMode === self::SQL_DISPLAY_TABLE));
         $sqlinputs .= wf_RadioInput(self::PROUTE_SQL_DISPLAY, __('Display query result as table with fields'), self::SQL_DISPLAY_TRUETABLE, true, ($displayMode === self::SQL_DISPLAY_TRUETABLE));
         $sqlinputs .= wf_Submit('Process query');
-        $result = wf_Form('', 'POST', $sqlinputs, 'glamour');
+        $result = wf_Form('', 'POST', $sqlinputs, $formClass);
         return ($result);
     }
 
@@ -176,10 +219,19 @@ class DevConsole {
             }
         }
 
-        $phpinputs .= wf_TextArea(self::PROUTE_PHP, '', $runCode, true, '80x10');
+        $formClass = ($this->cmirrFlag) ? '' : 'glamour';
+        if ($this->cmirrFlag) {
+            $cmirr = new CMIRR();
+            $cmirr->setStyle($this->cmirrStyle);
+            $cmirr->setMode('text/x-php');
+            $phpinputs .= $cmirr->getEditorArea(self::PROUTE_PHP, $runCode, 40, 5);
+        } else {
+            $phpinputs .= wf_TextArea(self::PROUTE_PHP, '', $runCode, true, '110x10');
+        }
+
         $phpinputs .= wf_CheckInput(self::PROUTE_HLIGHT, 'Hightlight this PHP code', true, $phphightlightFlag);
         $phpinputs .= wf_Submit('Run this code inside framework');
-        $result .= wf_Form(self::URL_DEVCON, 'POST', $phpinputs, 'glamour');
+        $result .= wf_Form(self::URL_DEVCON, 'POST', $phpinputs, $formClass);
         return ($result);
     }
 
@@ -191,35 +243,35 @@ class DevConsole {
      */
     public function renderPhpInterfaces() {
         $result = '';
-        $phpForm = $this->renderPhpForm();
-
-        //php console grid assemble
-        $phpcells = wf_TableCell($phpForm, '50%', '', 'valign="top"');
-        if (ubRouting::checkGet(array(self::ROUTE_OP_CREATE))) {
-            //show script creation form
-            $punchCreateForm = $this->onePunch->renderCreateForm();
-
-            //override devconsole forms with script creation interface
-            $phpcells = wf_TableCell($punchCreateForm, '100%', '', 'valign="top"');
-        } else {
-            if (ubRouting::checkGet(self::ROUTE_OP_EDIT)) {
-                //show scripts edit form
-                $punchEditForm = $this->onePunch->renderEditForm($_GET['editscript']);
-
-                //override devconsole forms with script editing interface
-                $phpcells = wf_TableCell($punchEditForm, '100%', '', 'valign="top"');
+        if (ubRouting::checkGet(self::ROUTE_OP_MANAGE)) {
+            if (ubRouting::checkGet(array(self::ROUTE_OP_CREATE))) {
+                $result .= $this->onePunch->renderCreateForm(self::URL_OP_MANAGE);
             } else {
-                //show scripts list
-                $punchScriptsList = $this->onePunch->renderScriptsList();
-                $punchScriptsList .= wf_tag('br');
-                $punchScriptsList .= wf_Link(self::URL_DEVCON . '&scriptadd=true', web_icon_create() . ' ' . __('Create') . ' ' . __('One-Punch') . ' ' . __('Script'), true, 'ubButton');
+                if (ubRouting::checkGet(self::ROUTE_OP_EDIT)) {
+                    $result .= $this->onePunch->renderEditForm($_GET['editscript'], self::URL_OP_MANAGE);
+                } else {
+                    $result .= wf_BackLink(self::URL_DEVCON);
+                    $result .= wf_Link(self::URL_OP_MANAGE . '&scriptadd=true', web_icon_create() . ' ' . __('Create') . ' ' . __('One-Punch') . ' ' . __('Script'), true, 'ubButton');
+                    $result .= wf_delimiter(0);
 
-                $phpcells .= wf_TableCell($punchScriptsList, '50%', '', 'valign="top"');
+                    $result .= $this->onePunch->renderScriptsList(self::URL_OP_MANAGE);
+                    
+                }
             }
+        } else {
+            $result .= $this->renderPhpForm();
         }
+        return ($result);
+    }
 
-        $phprows = wf_TableRow($phpcells);
-        $result .= wf_TableBody($phprows, '100%', '0', '');
+    /**
+     * Renders quick one-punch scripts list for PHP console page
+     *
+     * @return string
+     */
+    public function renderPhpScriptsQuickList() {
+        $result = '';
+        $result .= $this->onePunch->renderScriptsLauncher(self::URL_DEVCON);
         return ($result);
     }
 

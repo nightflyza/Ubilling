@@ -3627,3 +3627,5 @@ $lang['def']['Previous result'] = 'Предыдущий результат';
 $lang['def']['Show as raw array'] = 'Показать как массив';
 $lang['def']['right to manage other PON stuff'] = 'Право управлять другими PON-штуками';
 $lang['def']['Users funds flow'] = 'Движение средств пользователя';
+$lang['def']['Manage One-Punch scripts'] = 'Управление One-Punch скриптами';
+$lang['def']['One-Punch scripts'] = 'One-Punch скрипты';

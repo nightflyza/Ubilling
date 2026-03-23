@@ -162,9 +162,12 @@ class OnePunch {
      * 
      * @return string
      */
-    public function renderCreateForm() {
+    public function renderCreateForm($devConUrl = '') {
         $result = '';
         $inputs = '';
+        if (empty($devConUrl)) {
+            $devConUrl = self::URL_DEVCON;
+        }
 
         $namePreset = (ubRouting::checkPost('newscriptname')) ? ubRouting::post('newscriptname') : '';
         $aliasPreset = (ubRouting::checkPost('newscriptalias')) ? ubRouting::post('newscriptalias') : '';
@@ -185,7 +188,7 @@ class OnePunch {
         $formStyle = ($this->cmFlag) ? '' : 'glamour';
         $result .= wf_Form('', 'POST', $inputs, $formStyle);
         $result .= wf_delimiter();
-        $result .= wf_BackLink(self::URL_DEVCON) . ' ';
+        $result .= wf_BackLink($devConUrl) . ' ';
         $result .= wf_Link(self::URL_HELPER, wf_img('skins/question.png') . ' ' . __('Available classes and functions directory'), false, 'ubButton', 'target="_blank"');
         return ($result);
     }
@@ -197,8 +200,11 @@ class OnePunch {
      * 
      * @return string
      */
-    public function renderEditForm($alias) {
+    public function renderEditForm($alias, $devConUrl = '') {
         $result = '';
+        if (empty($devConUrl)) {
+            $devConUrl = self::URL_DEVCON;
+        }
         $alias = ubRouting::filters($alias, 'callback', 'vf');
         if (isset($this->punchScripts[$alias])) {
             $inputs = '';
@@ -224,7 +230,7 @@ class OnePunch {
             $formStyle = ($this->cmFlag) ? '' : 'glamour';
             $result .= wf_Form('', 'POST', $inputs, $formStyle);
             $result .= wf_delimiter();
-            $result .= wf_BackLink(self::URL_DEVCON) . ' ';
+            $result .= wf_BackLink($devConUrl) . ' ';
             $result .= wf_Link(self::URL_HELPER, wf_img('skins/question.png') . ' ' . __('Available classes and functions directory'), false, 'ubButton', 'target="_blank"');
         }
         return ($result);
@@ -354,8 +360,11 @@ class OnePunch {
      * 
      * @return string
      */
-    public function renderScriptsList() {
+    public function renderScriptsList($devConUrl = '') {
         $result = '';
+        if (empty($devConUrl)) {
+            $devConUrl = self::URL_DEVCON;
+        }
         if (!empty($this->punchScripts)) {
             $cells = wf_TableCell(__('Name'));
             $cells .= wf_TableCell(__('Alias'));
@@ -363,11 +372,11 @@ class OnePunch {
             $rows = wf_TableRow($cells, 'row1');
 
             foreach ($this->punchScripts as $io => $each) {
-                $runLink = wf_JSAlert(self::URL_DEVCON . '&runscript=' . $each['alias'], $each['name'], 'Insert this template into PHP console');
+                $runLink = wf_JSAlert(DevConsole::URL_DEVCON . '&runscript=' . $each['alias'], $each['name'], 'Insert this template into PHP console');
                 $cells = wf_TableCell($runLink);
                 $cells .= wf_TableCell($each['alias']);
-                $actLinks = wf_JSAlert(self::URL_DEVCON . '&delscript=' . $each['alias'], web_delete_icon(), $this->messages->getDeleteAlert()) . ' ';
-                $actLinks .= wf_JSAlert(self::URL_DEVCON . '&editscript=' . $each['alias'], web_edit_icon(), $this->messages->getEditAlert());
+                $actLinks = wf_JSAlert($devConUrl . '&delscript=' . $each['alias'], web_delete_icon(), $this->messages->getDeleteAlert()) . ' ';
+                $actLinks .= wf_JSAlert($devConUrl . '&editscript=' . $each['alias'], web_edit_icon(), $this->messages->getEditAlert());
                 $cells .= wf_TableCell($actLinks);
                 $rows .= wf_TableRow($cells, 'row5');
             }
@@ -375,8 +384,43 @@ class OnePunch {
         } else {
             $result .= $this->messages->getStyledMessage(__('No available code templates'), 'warning');
             $result .= wf_tag('br');
-            $result .= wf_JSAlertStyled(self::URL_DEVCON . '&importoldcodetemplates=true', wf_img('skins/shovel.png') . ' ' . __('Import old code templates if available'), $this->messages->getEditAlert(), 'ubButton');
+            $result .= wf_JSAlertStyled($devConUrl . '&importoldcodetemplates=true', wf_img('skins/shovel.png') . ' ' . __('Import old code templates if available'), $this->messages->getEditAlert(), 'ubButton');
             $result .= wf_tag('br');
+        }
+        return ($result);
+    }
+
+    /**
+     * Renders compact launch controls for available punch scripts
+     *
+     * @param string $devConUrl
+     *
+     * @return string
+     */
+    public function renderScriptsLauncher($devConUrl = '') {
+        $result = '';
+        if (empty($devConUrl)) {
+            $devConUrl = self::URL_DEVCON;
+        }
+        if (!empty($this->punchScripts)) {
+            $launchStyle='style="width:130px; min-height:96px; padding:8px 6px; border:1px solid #d7d7d7; border-radius:4px; background:#fff;"';
+            $result .= wf_tag('div', false, '', 'style="display:flex; flex-wrap:wrap; gap:12px;"');
+            foreach ($this->punchScripts as $io => $each) {
+                $iconData = '';
+                $iconData .= wf_tag('div', false, '', 'style="text-align:center; min-height:48px;"');
+                $iconData .= wf_Link($devConUrl . '&runscript=' . $each['alias'], wf_img_sized('skins/script.png', $each['name'], '64'), false, '');
+                $iconData .= wf_tag('div', true);
+                $iconData .= wf_tag('div', false, '', 'style="text-align:center; margin-top:4px;"');
+                $iconData .= wf_Link($devConUrl . '&runscript=' . $each['alias'], $each['name'], false, '');
+                $iconData .= wf_tag('div', true);
+
+                $result .= wf_tag('div', false, '', $launchStyle);
+                $result .= $iconData;
+                $result .= wf_tag('div', true);
+            }
+            $result .= wf_tag('div', true);
+        } else {
+            $result .= $this->messages->getStyledMessage(__('No available code templates'), 'warning');
         }
         return ($result);
     }

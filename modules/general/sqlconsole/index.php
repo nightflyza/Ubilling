@@ -15,7 +15,7 @@ if (cfr('SQLCONSOLE')) {
         if (!empty($punchCreateResult)) {
             show_error($punchCreateResult);
         } else {
-            ubRouting::nav($devCon::URL_DEVCON);
+            ubRouting::nav($devCon::URL_OP_MANAGE);
         }
     }
 
@@ -26,7 +26,7 @@ if (cfr('SQLCONSOLE')) {
         if (!empty($punchDeleteResult)) {
             show_error($punchDeleteResult);
         } else {
-            ubRouting::nav($devCon::URL_DEVCON);
+            ubRouting::nav($devCon::URL_OP_MANAGE);
         }
     }
 
@@ -34,14 +34,14 @@ if (cfr('SQLCONSOLE')) {
     if (ubRouting::checkPost(array($devCon::PROUTE_OPE_ID, $devCon::PROUTE_OPE_OLDALIAS, $devCon::PROUTE_OPE_NAME, $devCon::PROUTE_OPE_ALIAS, $devCon::PROUTE_OPE_CONTENT))) {
         $onePunch = new OnePunch();
         $onePunch->saveScript();
-        ubRouting::nav($devCon::URL_DEVCON . '&' . $devCon::ROUTE_OP_EDIT . '=' . ubRouting::post($devCon::PROUTE_OPE_ALIAS));
+        ubRouting::nav($devCon::URL_OP_MANAGE . '&' . $devCon::ROUTE_OP_EDIT . '=' . ubRouting::post($devCon::PROUTE_OPE_ALIAS));
     }
 
     //migrating old code templates from storage
     if (ubRouting::checkGet($devCon::ROUTE_OP_IMPORT)) {
         $onePunch = new OnePunch();
         $onePunch->importOldTemplates();
-        ubRouting::nav($devCon::URL_DEVCON);
+        ubRouting::nav($devCon::URL_OP_MANAGE);
     }
 
     /**
@@ -50,7 +50,7 @@ if (cfr('SQLCONSOLE')) {
     if (!ubRouting::checkGet($devCon::ROUTE_PHP_CON)) {
         show_window(__('SQL Console'), $devCon->renderSqlForm());
     } else {
-        $devConWindowTitle = __('Developer Console');
+        $devConWindowTitle = (ubRouting::checkGet($devCon::ROUTE_OP_MANAGE)) ? __('Manage One-Punch scripts') : __('Developer Console');
         if (ubRouting::checkGet($devCon::ROUTE_OP_EDIT)) {
             $devConWindowTitle .= ': ' . __('Edit') . ' ' . __('One-Punch') . ' ' . __('Script');
         }
@@ -61,6 +61,10 @@ if (cfr('SQLCONSOLE')) {
 
         $phpgrid = $devCon->renderPhpInterfaces();
         show_window($devConWindowTitle, $phpgrid);
+        // showing available one-punch scripts list
+        if (!ubRouting::checkGet($devCon::ROUTE_OP_MANAGE) and !ubRouting::checkPost($devCon::PROUTE_PHP)) {
+            show_window(__('Available One-Punch scripts'), $devCon->renderPhpScriptsQuickList());
+        }
     }
 
     /**
@@ -95,6 +99,11 @@ if (cfr('SQLCONSOLE')) {
             log_register('DEVCONSOLE DONE');
         } else {
             show_window(__('Result'), __('Empty code part received'));
+        }
+
+        // showing available one-punch scripts list after PHP code execution
+        if (ubRouting::checkGet($devCon::ROUTE_PHP_CON) and !ubRouting::checkGet($devCon::ROUTE_OP_MANAGE)) {
+            show_window(__('Available One-Punch scripts'), $devCon->renderPhpScriptsQuickList());
         }
     }
 

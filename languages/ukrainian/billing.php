@@ -3653,3 +3653,6 @@ $lang['def']['Previous result'] = 'Попередній результат';
 $lang['def']['Show as raw array'] = 'Показати як масив';
 $lang['def']['right to manage other PON stuff'] = 'Право керувати іншими PON-штуками';
 $lang['def']['Users funds flow'] = 'Рух коштів користувача';
+$lang['def']['Manage One-Punch scripts'] = 'Керування One-Punch скриптами';
+$lang['def']['Available One-Punch scripts'] = 'Наявні One-Punch скрипти';
+$lang['def']['One-Punch scripts'] = 'One-Punch скрипти';
