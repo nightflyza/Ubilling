@@ -364,7 +364,7 @@ function um_MapDrawBuilds($buildIdFilter = '') {
             $content = '';
             $cells = wf_TableCell(__('apt.'));
             $cells .= wf_TableCell(__('User'));
-            $cells .= wf_TableCell(__('Status'));
+            $cells .= wf_TableCell(__('Online'));
             $rows = wf_tag('tr', false, 'row1', 'bgcolor=#DCDCDC') . $cells . wf_tag('tr', true);
             $iconlabel = '';
             $footer = '';
@@ -395,11 +395,11 @@ function um_MapDrawBuilds($buildIdFilter = '') {
                                 $userIp = $alluserips[$eachapt['login']];
                                 $usersCount++;
                                 if (isset($dnUsers[$userLogin])) {
-                                    $aliveFlag = web_bool_led(true);
+                                    $aliveFlag = web_bool_star(true);
                                     $aliveUsers++;
                                     $aliveKey = 'live';
                                 } else {
-                                    $aliveFlag = web_bool_led(false);
+                                    $aliveFlag = web_bool_star(false);
                                     $aliveKey = 'dead';
                                 }
 
@@ -418,7 +418,7 @@ function um_MapDrawBuilds($buildIdFilter = '') {
                 }
             }
 
-            $footer = __('Active') . ' ' . $aliveUsers . '/' . $usersCount;
+            $footer = __('Online') . ' ' . $aliveUsers . '/' . $usersCount;
             $icon = um_MapBuildIcon($usersCount);
 
             $content = json_encode(wf_TableBody($rows, '', 0));
