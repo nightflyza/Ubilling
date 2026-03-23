@@ -89,6 +89,17 @@ class CMIRR {
     protected $enableFullscreen = true;
 
     /**
+     * Enables read-only mode for syntax-highlighted content viewing.
+     * Allowed values:
+     * - false (editable)
+     * - true (read-only with cursor)
+     * - nocursor (read-only without cursor)
+     *
+     * @var bool|string
+     */
+    protected $readOnly = false;
+
+    /**
      * Contains the necessary stylesheets and scripts for CodeMirror integration.
      *
      * @var string
@@ -213,6 +224,20 @@ class CMIRR {
     }
 
     /**
+     * Enables or disables read-only mode.
+     * Supported values:
+     * - false: editable editor
+     * - true: read-only with cursor
+     * - nocursor: read-only viewer without cursor
+     *
+     * @param bool|string $readOnly
+     * @return void
+     */
+    public function setReadOnly($readOnly) {
+        $this->readOnly = $readOnly;
+    }
+
+    /**
      * Sets the editor headers.
      *
      * @return void
@@ -287,6 +312,15 @@ class CMIRR {
         $matchBrackets = ($this->matchBrackets) ? 'true' : 'false';
         $autoCloseBrackets = ($this->autoCloseBrackets) ? 'true' : 'false';
         $styleActiveLine = ($this->styleActiveLine) ? 'true' : 'false';
+        $readOnly = 'false';
+
+        if ($this->readOnly === true) {
+            $readOnly = 'true';
+        } else {
+            if ($this->readOnly === 'nocursor') {
+                $readOnly = '"nocursor"';
+            }
+        }
 
         $options = array(
             'mode: "' . $this->mode . '"',
@@ -295,14 +329,15 @@ class CMIRR {
             'lineNumbers: ' . $lineNumbers,
             'matchBrackets: ' . $matchBrackets,
             'autoCloseBrackets: ' . $autoCloseBrackets,
-            'styleActiveLine: ' . $styleActiveLine
+            'styleActiveLine: ' . $styleActiveLine,
+            'readOnly: ' . $readOnly
         );
         $extraKeysParts = array();
         if ($this->enableFullscreen) {
             $extraKeysParts[] = '"F11": function(cm) { cm.setOption("fullScreen", !cm.getOption("fullScreen")); }';
             $extraKeysParts[] = '"Esc": function(cm) { if (cm.getOption("fullScreen")) cm.setOption("fullScreen", false); }';
         }
-        if (!$this->disableAutocomplete) {
+        if (!$this->disableAutocomplete and $readOnly === 'false') {
             $hintRef = (strpos($this->hintOptions, 'CodeMirror.hint.') === 0)
                 ? $this->hintOptions
                 : 'CodeMirror.hint.' . $this->hintOptions;
