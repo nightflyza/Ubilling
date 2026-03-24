@@ -387,8 +387,8 @@ function um_MapDrawBuilds($buildIdFilter = '') {
                     $cachePrev = $cachedData[$each['id']];
 
                     $rows = $cachePrev['rows'];
-                    $usersCount = $cachePrev['userscount'];
-                    $onlineUsers = $cachePrev['onlineusers'];
+                    $usersCount = @$cachePrev['userscount'];
+                    $onlineUsers = @$cachePrev['onlineusers'];
                     $activeUsers = @$cachePrev['activeusers'];
                 } else {
                     //all cache need to be updated
@@ -506,7 +506,7 @@ function um_GetBuildData($buildId) {
             $buildData = $cachedData[$buildId];
             $result .= wf_TableBody($buildData['rows'], '', 0);
             $result .= wf_delimiter(0);
-            $result .= __('Active') . '/' . __('Online') . '/' . __('Total') . ': ' . $buildData['activeusers'] . '/' . $buildData['onlineusers'] . '/' . $buildData['userscount'];
+            $result .= __('Active') . '/' . __('Online') . '/' . __('Total') . ': ' . $buildData['activeusers'] . '/' . @$buildData['onlineusers'] . '/' . @$buildData['userscount'];
         }
     }
 

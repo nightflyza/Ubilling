@@ -987,7 +987,8 @@ class UserProfile {
                             }
 
                             $inbuildNeigborsStat .= wf_TableBody($inbuildNeigbors_raw['rows'], '100%', '0', 'sortable');
-                            $inbuildNeigborsStat .= wf_tag('br') . __('Active').'/'.__('Online').'/'.__('Total').': ' . $inbuildNeigbors_raw['activeusers'] . '/' . $inbuildNeigbors_raw['onlineusers'] . '/' . $inbuildNeigbors_raw['userscount'];
+                            $inbuildNeigborsStat .= wf_tag('br') . __('Active').'/'.__('Online').'/'.__('Total').': ';
+                            $inbuildNeigborsStat.= @$inbuildNeigbors_raw['activeusers'] . '/' . @$inbuildNeigbors_raw['onlineusers'] .'/' . @$inbuildNeigbors_raw['userscount'];
 
                             $buildNeighborsIcon = wf_img_sized('skins/icon_build.gif', __('Neighbours'), 12);
                             $fullUserData = $this->AllUserData[$this->login];
