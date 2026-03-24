@@ -100,24 +100,20 @@ if (cfr('USEREDIT')) {
                 }
 
                 if ($altCfg['CORPS_ENABLED']) {
-                    $greed = new Avarice();
-                    $corpsRuntime = $greed->runtime('CORPS');
-                    if (!empty($corpsRuntime)) {
-                        $corps = new Corps();
-                        $corpsCheck = $corps->userIsCorporate($login);
-                        $cells = wf_TableCell(__('User type'));
-                        $corpControls = zb_rightControl('CORPS', wf_Link(Corps::URL_USER_MANAGE . $login, wf_img('skins/corporate_small.gif') . ' ' . __('Change') . ' ' . __('user type')));
+                    $corps = new Corps();
+                    $corpsCheck = $corps->userIsCorporate($login);
+                    $cells = wf_TableCell(__('User type'));
+                    $corpControls = zb_rightControl('CORPS', wf_Link(Corps::URL_USER_MANAGE . $login, wf_img('skins/corporate_small.gif') . ' ' . __('Change') . ' ' . __('user type')));
 
-                        if ($corpsCheck) {
-                            $cells .= wf_TableCell(__('Corporate user'));
-                            $cells .= wf_TableCell($corpControls);
-                        } else {
-                            $cells .= wf_TableCell(__('Private user'));
+                    if ($corpsCheck) {
+                        $cells .= wf_TableCell(__('Corporate user'));
+                        $cells .= wf_TableCell($corpControls);
+                    } else {
+                        $cells .= wf_TableCell(__('Private user'));
 
-                            $cells .= wf_TableCell($corpControls);
-                        }
-                        $rows .= wf_TableRow($cells, 'row3');
+                        $cells .= wf_TableCell($corpControls);
                     }
+                    $rows .= wf_TableRow($cells, 'row3');
                 }
 
                 $cells = wf_TableCell(__('Email'));

@@ -3,11 +3,8 @@
 if (cfr('CORPS')) {
     $altcfg = $ubillingConfig->getAlter();
     if ($altcfg['CORPS_ENABLED']) {
-        $greed = new Avarice();
-        $beggar = $greed->runtime('CORPS');
-        if (!empty($beggar)) {
-            $corps = new Corps();
-            $funds = new FundsFlow();
+        $corps = new Corps();
+        $funds = new FundsFlow();
 
             //all that we need
             $corpsData = $corps->getCorps();
@@ -74,9 +71,6 @@ if (cfr('CORPS')) {
             } else {
                 show_warning(__('Nothing found'));
             }
-        } else {
-            show_error(__('No license key available'));
-        }
     } else {
         show_error(__('This module is disabled'));
     }

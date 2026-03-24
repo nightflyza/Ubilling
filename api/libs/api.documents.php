@@ -628,37 +628,31 @@ class ProfileDocuments {
         $inputs .= wf_TextInput('customsum', __('Sum'), @$this->userData[$this->userLogin]['TARIFFPRICE'], true, '10');
         if ($this->altcfg['CORPS_ENABLED']) {
             $inputs .= wf_tag('br') . wf_tag('span', false, 'row3') . ' ' . __('Corporate users') . ' ' . wf_tag('span', true) . wf_tag('br');
-            $greed = new Avarice();
-            $corpsRuntime = $greed->runtime('CORPS');
-            if (!empty($corpsRuntime)) {
-                $corps = new Corps();
-                if ($corps->userIsCorporate($this->userLogin)) {
-                    //this is realy corp user
-                    $corpData = $corps->corpGetDataByLogin($this->userLogin);
+            $corps = new Corps();
+            if ($corps->userIsCorporate($this->userLogin)) {
+                //this is realy corp user
+                $corpData = $corps->corpGetDataByLogin($this->userLogin);
 
-                    $inputs .= wf_TextInput('corpname', __('Corp name'), htmlspecialchars(@$corpData['corpname'], ENT_QUOTES), true, '50');
-                    $inputs .= wf_TextInput('corpaddress', __('Address'), @$corpData['address'], true, '30');
-                    $inputs .= wf_TextInput('corpdoctype', __('Document type'), @$corpData['doctype'], true, '30');
-                    $inputs .= wf_TextInput('corpdocnum', __('Document number'), @$corpData['docnum'], true, '30');
-                    $inputs .= wf_TextInput('corpdocdate', __('Document date'), @$corpData['docdate'], true, '30');
-                    $inputs .= wf_TextInput('corpbankacc', __('Bank account'), @$corpData['bankacc'], true, '30');
-                    $inputs .= wf_TextInput('corpbankname', __('Bank name'), htmlspecialchars(@$corpData['bankname'], ENT_QUOTES), true, '30');
-                    $inputs .= wf_TextInput('corpbankmfo', __('Bank MFO'), @$corpData['bankmfo'], true, '30');
-                    $inputs .= wf_TextInput('corpedrpou', __('EDRPOU'), @$corpData['edrpou'], true, '30');
-                    $inputs .= wf_TextInput('corpndstaxnum', __('NDS number'), @$corpData['ndstaxnum'], true, '30');
-                    $inputs .= wf_TextInput('corpinncode', __('INN code'), @$corpData['inncode'], true, '30');
-                    $inputs .= wf_TextInput('corptaxtype', __('Tax type'), @$corpData['taxtype'], true, '30');
-                    $inputs .= wf_TextInput('corpnameabbr', __('Short name'), @$corpData['corpnameabbr'], true, '30');
-                    $inputs .= wf_TextInput('corpsignatory', __('Signatory'), @$corpData['corpsignatory'], true, '30');
-                    $inputs .= wf_TextInput('corpsignatory2', __('Signatory') . ' 2', @$corpData['corpsignatory2'], true, '30');
-                    $inputs .= wf_TextInput('corpbasis', __('Basis'), @$corpData['corpbasis'], true, '30');
-                    $inputs .= wf_TextInput('corpemail', __('Email'), @$corpData['corpemail'], true, '30');
-                    $inputs .= wf_TextInput('corpnotes', __('Notes'), @$corpData['notes'], true, '30');
-                } else {
-                    $inputs .= __('Private user');
-                }
+                $inputs .= wf_TextInput('corpname', __('Corp name'), htmlspecialchars(@$corpData['corpname'], ENT_QUOTES), true, '50');
+                $inputs .= wf_TextInput('corpaddress', __('Address'), @$corpData['address'], true, '30');
+                $inputs .= wf_TextInput('corpdoctype', __('Document type'), @$corpData['doctype'], true, '30');
+                $inputs .= wf_TextInput('corpdocnum', __('Document number'), @$corpData['docnum'], true, '30');
+                $inputs .= wf_TextInput('corpdocdate', __('Document date'), @$corpData['docdate'], true, '30');
+                $inputs .= wf_TextInput('corpbankacc', __('Bank account'), @$corpData['bankacc'], true, '30');
+                $inputs .= wf_TextInput('corpbankname', __('Bank name'), htmlspecialchars(@$corpData['bankname'], ENT_QUOTES), true, '30');
+                $inputs .= wf_TextInput('corpbankmfo', __('Bank MFO'), @$corpData['bankmfo'], true, '30');
+                $inputs .= wf_TextInput('corpedrpou', __('EDRPOU'), @$corpData['edrpou'], true, '30');
+                $inputs .= wf_TextInput('corpndstaxnum', __('NDS number'), @$corpData['ndstaxnum'], true, '30');
+                $inputs .= wf_TextInput('corpinncode', __('INN code'), @$corpData['inncode'], true, '30');
+                $inputs .= wf_TextInput('corptaxtype', __('Tax type'), @$corpData['taxtype'], true, '30');
+                $inputs .= wf_TextInput('corpnameabbr', __('Short name'), @$corpData['corpnameabbr'], true, '30');
+                $inputs .= wf_TextInput('corpsignatory', __('Signatory'), @$corpData['corpsignatory'], true, '30');
+                $inputs .= wf_TextInput('corpsignatory2', __('Signatory') . ' 2', @$corpData['corpsignatory2'], true, '30');
+                $inputs .= wf_TextInput('corpbasis', __('Basis'), @$corpData['corpbasis'], true, '30');
+                $inputs .= wf_TextInput('corpemail', __('Email'), @$corpData['corpemail'], true, '30');
+                $inputs .= wf_TextInput('corpnotes', __('Notes'), @$corpData['notes'], true, '30');
             } else {
-                $inputs .= __('No license key available');
+                $inputs .= __('Private user');
             }
         }
         $inputs .= wf_HiddenInput('customfields', 'true');
