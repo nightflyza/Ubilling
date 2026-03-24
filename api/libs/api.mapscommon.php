@@ -306,6 +306,7 @@ function sm_MapDrawSwitches() {
 function um_MapDrawBuilds($buildIdFilter = '') {
     global $ubillingConfig;
     $result = '';
+    $allUserData=zb_UserGetAllDataCache();
     $buildIdFilter = ubRouting::filters($buildIdFilter, 'int');
     $defferedLoading = ($ubillingConfig->getAlterParam('BUILDMAP_DEFERRED')) ? true : false;
     if ($defferedLoading) {
@@ -364,12 +365,14 @@ function um_MapDrawBuilds($buildIdFilter = '') {
             $content = '';
             $cells = wf_TableCell(__('apt.'));
             $cells .= wf_TableCell(__('User'));
+            $cells .= wf_TableCell(__('Active'));
             $cells .= wf_TableCell(__('Online'));
             $rows = wf_tag('tr', false, 'row1', 'bgcolor=#DCDCDC') . $cells . wf_tag('tr', true);
             $iconlabel = '';
             $footer = '';
 
-            $aliveUsers = 0;
+            $onlineUsers = 0;
+            $activeUsers = 0;
             $usersCount = 0;
             if (!empty($aptData)) {
                 //is current build in cache
@@ -385,28 +388,56 @@ function um_MapDrawBuilds($buildIdFilter = '') {
 
                     $rows = $cachePrev['rows'];
                     $usersCount = $cachePrev['userscount'];
-                    $aliveUsers = $cachePrev['aliveusers'];
+                    $onlineUsers = $cachePrev['onlineusers'];
+                    $activeUsers = @$cachePrev['activeusers'];
                 } else {
                     //all cache need to be updated
                     foreach ($aptData as $ib => $eachapt) {
                         if ($eachapt['buildid'] == $each['id']) {
                             if (isset($alluserips[$eachapt['login']])) {
+                                $usersCount++;
                                 $userLogin = $eachapt['login'];
                                 $userIp = $alluserips[$eachapt['login']];
-                                $usersCount++;
+
+                                //online flag
                                 if (isset($dnUsers[$userLogin])) {
-                                    $aliveFlag = web_bool_star(true);
-                                    $aliveUsers++;
-                                    $aliveKey = 'live';
+                                    $onlineFlag = web_bool_star(true);
+                                    $onlineUsers++;
+                                    $onlineKey = 'l';
                                 } else {
-                                    $aliveFlag = web_bool_star(false);
-                                    $aliveKey = 'dead';
+                                    $onlineFlag = web_bool_star(false);
+                                    $onlineKey = 'd';
                                 }
+
+                                //activity flag
+                                $activeFlag = web_bool_led(false);
+                                $activeKey = '0';
+
+                                if (isset($allUserData[$userLogin])) {
+                                   $activityState=zb_UserIsAlive($allUserData[$userLogin]);
+                                   switch ($activityState) {
+                                    case -1:
+                                        $activeFlag = web_yellow_led();
+                                        $activeKey = '-1';
+                                        break;
+                                    case 1:
+                                        $activeFlag = web_bool_led(true);
+                                        $activeKey = '1';
+                                        $activeUsers++;
+                                        break;
+                                    case 0:
+                                        $activeFlag = web_bool_led(false);
+                                        $activeKey = '0';
+                                        break;
+                                }
+
+                                } 
 
 
                                 $cells = wf_TableCell($eachapt['apt']);
                                 $cells .= wf_TableCell(wf_Link('?module=userprofile&username=' . $userLogin, $userIp, false));
-                                $cells .= wf_TableCell($aliveFlag, '', '', 'sorttable_customkey="' . $aliveKey . '"');
+                                $cells .= wf_TableCell($activeFlag, '', '', 'sorttable_customkey="' . $activeKey . '"');
+                                $cells .= wf_TableCell($onlineFlag, '', '', 'sorttable_customkey="' . $onlineKey . '"');
                                 $rows .= wf_TableRow($cells, 'row5');
                             }
                         }
@@ -414,11 +445,13 @@ function um_MapDrawBuilds($buildIdFilter = '') {
 
                     $cachedData[$each['id']]['rows'] = $rows;
                     $cachedData[$each['id']]['userscount'] = $usersCount;
-                    $cachedData[$each['id']]['aliveusers'] = $aliveUsers;
+                    $cachedData[$each['id']]['onlineusers'] = $onlineUsers;
+                    $cachedData[$each['id']]['activeusers'] = $activeUsers;
                 }
             }
 
-            $footer = __('Online') . ' ' . $aliveUsers . '/' . $usersCount;
+            $footer = __('Active').'/'.__('Online').'/'.__('Total').': ' . $activeUsers . '/' . $onlineUsers . '/' . $usersCount;
+            
             $icon = um_MapBuildIcon($usersCount);
 
             $content = json_encode(wf_TableBody($rows, '', 0));
@@ -473,7 +506,7 @@ function um_GetBuildData($buildId) {
             $buildData = $cachedData[$buildId];
             $result .= wf_TableBody($buildData['rows'], '', 0);
             $result .= wf_delimiter(0);
-            $result .= __('Active') . ' ' . $buildData['aliveusers'] . '/' . $buildData['userscount'];
+            $result .= __('Active') . '/' . __('Online') . '/' . __('Total') . ': ' . $buildData['activeusers'] . '/' . $buildData['onlineusers'] . '/' . $buildData['userscount'];
         }
     }
 
