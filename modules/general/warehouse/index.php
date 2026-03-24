@@ -4,60 +4,47 @@ if (cfr('WAREHOUSE')) {
 
     $altcfg = $ubillingConfig->getAlter();
     if ($altcfg['WAREHOUSE_ENABLED']) {
-        $greed = new Avarice();
-        $avidity = $greed->runtime('WAREHOUSE');
-        if (!empty($avidity)) {
-            $warehouse = new Warehouse();
-            $avidity_m = $avidity['M']['WARLOCK'];
-            show_window('', $warehouse->$avidity_m());
+        $warehouse = new Warehouse();
+        show_window('', $warehouse->renderPanel());
             //categories    
-            if (wf_CheckGet(array($avidity['S']['C']))) {
-                if (wf_CheckPost(array($avidity['S']['CC']))) {
-                    $avidity_m = $avidity['M']['CC'];
-                    $warehouse->$avidity_m($_POST[$avidity['S']['CC']]);
-                    rcms_redirect($warehouse::URL_ME . '&' . $warehouse::URL_CATEGORIES);
+            if (ubRouting::checkGet(array('categories'))) {
+                if (ubRouting::checkPost(array('newcategory'))) {
+                    $warehouse->categoriesCreate(ubRouting::post('newcategory'));
+                    ubRouting::nav($warehouse::URL_ME . '&' . $warehouse::URL_CATEGORIES);
                 }
-                if (wf_CheckGet(array($avidity['S']['CD']))) {
-                    $avidity_m = $avidity['M']['CD'];
-                    $deletionResult = $warehouse->$avidity_m($_GET[$avidity['S']['CD']]);
+                if (ubRouting::checkGet(array('deletecategory'))) {
+                    $deletionResult = $warehouse->categoriesDelete(ubRouting::get('deletecategory'));
                     if ($deletionResult) {
-                        rcms_redirect($warehouse::URL_ME . '&' . $warehouse::URL_CATEGORIES);
+                        ubRouting::nav($warehouse::URL_ME . '&' . $warehouse::URL_CATEGORIES);
                     } else {
                         show_error(__('You cant do this'));
                     }
                 }
-                if (wf_CheckPost(array($avidity['S']['CE1'], $avidity['S']['CE2']))) {
-                    $avidity_m = $avidity['M']['CS'];
-                    $warehouse->$avidity_m();
-                    rcms_redirect($warehouse::URL_ME . '&' . $warehouse::URL_CATEGORIES);
+                if (ubRouting::checkPost(array('editcategoryname', 'editcategoryid'))) {
+                    $warehouse->categoriesSave();
+                    ubRouting::nav($warehouse::URL_ME . '&' . $warehouse::URL_CATEGORIES);
                 }
-                $avidity_m = $avidity['M']['CF'];
-                show_window(__('Categories'), $warehouse->$avidity_m());
-                $avidity_m = $avidity['M']['CL'];
-                show_window(__('Available categories'), $warehouse->$avidity_m());
-                $avidity_m = $avidity['M']['FALL'];
-                $warehouse->$avidity_m();
+                show_window(__('Categories'), $warehouse->categoriesCreateForm());
+                show_window(__('Available categories'), $warehouse->categoriesRenderList());
+                $warehouse->backControl();
             }
             //itemtypes
-            if (wf_CheckGet(array('itemtypes'))) {
-                if (wf_CheckPost(array('newitemtypecetegoryid', 'newitemtypename', 'newitemtypeunit'))) {
-                    $avidity_m = $avidity['M']['XC'];
-                    $warehouse->$avidity_m($_POST['newitemtypecetegoryid'], $_POST['newitemtypename'], $_POST['newitemtypeunit'], @$_POST['newitemtypereserve']);
-                    rcms_redirect($warehouse::URL_ME . '&' . $warehouse::URL_ITEMTYPES);
+            if (ubRouting::checkGet(array('itemtypes'))) {
+                if (ubRouting::checkPost(array('newitemtypecetegoryid', 'newitemtypename', 'newitemtypeunit'))) {
+                    $warehouse->itemtypesCreate(ubRouting::post('newitemtypecetegoryid'), ubRouting::post('newitemtypename'), ubRouting::post('newitemtypeunit'), ubRouting::post('newitemtypereserve'));
+                    ubRouting::nav($warehouse::URL_ME . '&' . $warehouse::URL_ITEMTYPES);
                 }
-                if (wf_CheckGet(array($avidity['S']['XD']))) {
-                    $avidity_m = $avidity['M']['XD'];
-                    $deletionResult = $warehouse->$avidity_m($_GET[$avidity['S']['XD']]);
+                if (ubRouting::checkGet(array('deleteitemtype'))) {
+                    $deletionResult = $warehouse->itemtypesDelete(ubRouting::get('deleteitemtype'));
                     if ($deletionResult) {
-                        rcms_redirect($warehouse::URL_ME . '&' . $warehouse::URL_ITEMTYPES);
+                        ubRouting::nav($warehouse::URL_ME . '&' . $warehouse::URL_ITEMTYPES);
                     } else {
                         show_error(__('You cant do this'));
                     }
                 }
-                if (wf_CheckPost(array($avidity['S']['XS']))) {
-                    $avidity_m = $avidity['M']['XS'];
-                    $warehouse->$avidity_m();
-                    rcms_redirect($warehouse::URL_ME . '&' . $warehouse::URL_ITEMTYPES);
+                if (ubRouting::checkPost(array('edititemtypeid'))) {
+                    $warehouse->itemtypesSave();
+                    ubRouting::nav($warehouse::URL_ME . '&' . $warehouse::URL_ITEMTYPES);
                 }
 
                 if (ubRouting::checkGet('edititemtype')) {
@@ -66,109 +53,100 @@ if (cfr('WAREHOUSE')) {
                     show_window(__('Edit') . ' ' . $itemtypeEditingName, $warehouse->itemtypesEditForm($editingItemtypeId));
                     show_window('', wf_BackLink($warehouse::URL_ME . '&' . $warehouse::URL_ITEMTYPES));
                 } else {
-                    $avidity_m = $avidity['M']['XCF'];
-                    show_window(__('Warehouse item types'), $warehouse->$avidity_m());
-                    $avidity_m = $avidity['M']['XL'];
-                    show_window(__('Available item types'), $warehouse->$avidity_m());
-                    $avidity_m = $avidity['M']['FALL'];
-                    $warehouse->$avidity_m();
+                    show_window(__('Warehouse item types'), $warehouse->itemtypesCreateForm());
+                    show_window(__('Available item types'), $warehouse->itemtypesRenderList());
+                    $warehouse->backControl();
                 }
             }
 
             //storages
-            if (wf_CheckGet(array('storages'))) {
-                if (wf_CheckPost(array('newstorage'))) {
-                    $warehouse->storagesCreate($_POST['newstorage']);
-                    rcms_redirect($warehouse::URL_ME . '&' . $warehouse::URL_STORAGES);
+            if (ubRouting::checkGet(array('storages'))) {
+                if (ubRouting::checkPost(array('newstorage'))) {
+                    $warehouse->storagesCreate(ubRouting::post('newstorage'));
+                    ubRouting::nav($warehouse::URL_ME . '&' . $warehouse::URL_STORAGES);
                 }
 
-                if (wf_CheckGet(array('deletestorage'))) {
-                    $deletionResult = $warehouse->storagesDelete($_GET['deletestorage']);
+                if (ubRouting::checkGet(array('deletestorage'))) {
+                    $deletionResult = $warehouse->storagesDelete(ubRouting::get('deletestorage'));
                     if ($deletionResult) {
-                        rcms_redirect($warehouse::URL_ME . '&' . $warehouse::URL_STORAGES);
+                        ubRouting::nav($warehouse::URL_ME . '&' . $warehouse::URL_STORAGES);
                     } else {
                         show_error(__('You cant do this'));
                     }
                 }
 
-                if (wf_CheckPost(array('editstorageid', 'editstoragename'))) {
+                if (ubRouting::checkPost(array('editstorageid', 'editstoragename'))) {
                     $warehouse->storagesSave();
-                    rcms_redirect($warehouse::URL_ME . '&' . $warehouse::URL_STORAGES);
+                    ubRouting::nav($warehouse::URL_ME . '&' . $warehouse::URL_STORAGES);
                 }
 
                 show_window(__('Warehouse storage'), $warehouse->storagesCreateForm());
                 show_window(__('Available warehouse storages'), $warehouse->storagesRenderList());
-                $avidity_m = $avidity['M']['FALL'];
-                $warehouse->$avidity_m();
+                    $warehouse->backControl();
             }
 
 
             //contractors
-            if (wf_CheckGet(array('contractors'))) {
-                if (wf_CheckPost(array('newcontractor'))) {
-                    $warehouse->contractorCreate($_POST['newcontractor']);
-                    rcms_redirect($warehouse::URL_ME . '&' . $warehouse::URL_CONTRACTORS);
+            if (ubRouting::checkGet(array('contractors'))) {
+                if (ubRouting::checkPost(array('newcontractor'))) {
+                    $warehouse->contractorCreate(ubRouting::post('newcontractor'));
+                    ubRouting::nav($warehouse::URL_ME . '&' . $warehouse::URL_CONTRACTORS);
                 }
 
-                if (wf_CheckGet(array('deletecontractor'))) {
-                    $deletionResult = $warehouse->contractorsDelete($_GET['deletecontractor']);
+                if (ubRouting::checkGet(array('deletecontractor'))) {
+                    $deletionResult = $warehouse->contractorsDelete(ubRouting::get('deletecontractor'));
                     if ($deletionResult) {
-                        rcms_redirect($warehouse::URL_ME . '&' . $warehouse::URL_CONTRACTORS);
+                        ubRouting::nav($warehouse::URL_ME . '&' . $warehouse::URL_CONTRACTORS);
                     } else {
                         show_error(__('You cant do this'));
                     }
                 }
-                if (wf_CheckPost(array('editcontractorid', 'editcontractorname'))) {
+                if (ubRouting::checkPost(array('editcontractorid', 'editcontractorname'))) {
                     $warehouse->contractorsSave();
-                    rcms_redirect($warehouse::URL_ME . '&' . $warehouse::URL_CONTRACTORS);
+                    ubRouting::nav($warehouse::URL_ME . '&' . $warehouse::URL_CONTRACTORS);
                 }
 
                 show_window(__('Contractors'), $warehouse->contractorsCreateForm());
                 show_window(__('Available contractors'), $warehouse->contractorsRenderList());
-                $avidity_m = $avidity['M']['FALL'];
-                $warehouse->$avidity_m();
+                    $warehouse->backControl();
             }
 
-            if (wf_CheckGet(array('in'))) {
-                if (wf_CheckGet(array('ajits'))) {
-                    die($warehouse->itemtypesCategorySelector('newinitemtypeid', $_GET['ajits']));
+            if (ubRouting::checkGet(array('in'))) {
+                if (ubRouting::checkGet(array('ajits'))) {
+                    die($warehouse->itemtypesCategorySelector('newinitemtypeid', ubRouting::get('ajits')));
                 }
-                if (wf_CheckGet(array('ajaxinlist'))) {
-                    $avidity_a = $avidity['A']['CINDERELLA'];
-                    $warehouse->$avidity_a();
+                if (ubRouting::checkGet(array('ajaxinlist'))) {
+                    $warehouse->incomingListAjaxReply();
                 }
-                if (wf_CheckPost(array('newindate', 'newinitemtypeid', 'newincontractorid', 'newinstorageid', 'newincount'))) {
-                    $warehouse->incomingCreate($_POST['newindate'], $_POST['newinitemtypeid'], $_POST['newincontractorid'], $_POST['newinstorageid'], $_POST['newincount'], @$_POST['newinprice'], @$_POST['newinbarcode'], $_POST['newinnotes']);
-                    rcms_redirect($warehouse::URL_ME . '&' . $warehouse::URL_IN);
+                if (ubRouting::checkPost(array('newindate', 'newinitemtypeid', 'newincontractorid', 'newinstorageid', 'newincount'))) {
+                    $warehouse->incomingCreate(ubRouting::post('newindate'), ubRouting::post('newinitemtypeid'), ubRouting::post('newincontractorid'), ubRouting::post('newinstorageid'), ubRouting::post('newincount'), ubRouting::post('newinprice'), ubRouting::post('newinbarcode'), ubRouting::post('newinnotes'));
+                    ubRouting::nav($warehouse::URL_ME . '&' . $warehouse::URL_IN);
                 }
                 show_window(__('Create new incoming operation'), $warehouse->incomingCreateForm());
                 show_window(__('Available incoming operations'), $warehouse->incomingOperationsList());
-                $avidity_m = $avidity['M']['FALL'];
-                $warehouse->$avidity_m();
+                    $warehouse->backControl();
             }
 
 
             //outcoming
-            if (wf_CheckGet(array('out'))) {
-                if (wf_CheckGet(array('ajods'))) {
-                    $avidity_a = $avidity['A']['CHAINSAW'];
-                    die($warehouse->$avidity_a($_GET['ajods']));
+            if (ubRouting::checkGet(array('out'))) {
+                if (ubRouting::checkGet(array('ajods'))) {
+                                        die($warehouse->outcomindAjaxDestSelector(ubRouting::get('ajods')));
                 }
 
-                if (wf_CheckGet(array('ajaxoutlist'))) {
-                    $avidity_a = $avidity['A']['ALICE'];
-                    $warehouse->$avidity_a();
+                if (ubRouting::checkGet(array('ajaxoutlist'))) {
+                    $warehouse->outcomingListAjaxReply();
                 }
 
-                if (wf_CheckPost(array('newoutdate', 'newoutdesttype', 'newoutdestparam', 'newoutitemtypeid', 'newoutstorageid', 'newoutcount'))) {
-                    $outCreateResult = $warehouse->outcomingCreate($_POST['newoutdate'], $_POST['newoutdesttype'], $_POST['newoutdestparam'], $_POST['newoutstorageid'], $_POST['newoutitemtypeid'], $_POST['newoutcount'], @$_POST['newoutprice'], @$_POST['newoutnotes'], @$_POST['newoutfromreserve'], @$_POST['newoutnetw']);
+                if (ubRouting::checkPost(array('newoutdate', 'newoutdesttype', 'newoutdestparam', 'newoutitemtypeid', 'newoutstorageid', 'newoutcount'))) {
+                    $outCreateResult = $warehouse->outcomingCreate(ubRouting::post('newoutdate'), ubRouting::post('newoutdesttype'), ubRouting::post('newoutdestparam'), ubRouting::post('newoutstorageid'), ubRouting::post('newoutitemtypeid'), ubRouting::post('newoutcount'), ubRouting::post('newoutprice'), ubRouting::post('newoutnotes'), ubRouting::post('newoutfromreserve'), ubRouting::post('newoutnetw'));
                     if (!empty($outCreateResult)) {
                         show_window(__('Something went wrong'), $outCreateResult);
                     } else {
-                        rcms_redirect($warehouse::URL_ME . '&' . $warehouse::URL_OUT);
+                        ubRouting::nav($warehouse::URL_ME . '&' . $warehouse::URL_OUT);
                     }
                 }
-                if (!wf_CheckGet(array('storageid'))) {
+                if (!ubRouting::checkGet(array('storageid'))) {
                     show_window(__('Warehouse storages'), $warehouse->outcomingStoragesList());
                     if (!ubRouting::checkGet('withnotes')) {
                         $notesControl = ' ' . wf_Link($warehouse::URL_ME . '&' . $warehouse::URL_OUT . '&withnotes=true', wf_img_sized('skins/icon_note.gif', __('Show notes'), '12', '12'));
@@ -176,69 +154,64 @@ if (cfr('WAREHOUSE')) {
                         $notesControl = ' ' . wf_Link($warehouse::URL_ME . '&' . $warehouse::URL_OUT, wf_img_sized('skins/icon_note.gif', __('Hide notes'), '12', '12'));
                     }
                     show_window(__('Available outcoming operations') . $notesControl, $warehouse->outcomingOperationsList());
-                    $avidity_m = $avidity['M']['FALL'];
-                    $warehouse->$avidity_m();
+                    $warehouse->backControl();
                 } else {
-                    if (wf_CheckGet(array('storageid', 'ajaxremains'))) {
-                        $avidity_a = $avidity['A']['FRIDAY'];
-                        $warehouse->$avidity_a($_GET['storageid']);
+                    if (ubRouting::checkGet(array('storageid', 'ajaxremains'))) {
+                    $warehouse->outcomingRemainsAjaxReply(ubRouting::get('storageid'));
                     }
 
-                    if (!wf_CheckGet(array('outitemid'))) {
-                        $storageId = $_GET['storageid'];
+                    if (!ubRouting::checkGet(array('outitemid'))) {
+                        $storageId = ubRouting::get('storageid');
                         $remainsPrintControls = ' ' . wf_Link($warehouse::URL_ME . '&' . $warehouse::URL_VIEWERS . '&printremainsstorage=' . $storageId, wf_img('skins/icon_print.png', __('Print')));
                         show_window(__('The remains in the warehouse storage') . ': ' . $warehouse->storageGetName($storageId) . $remainsPrintControls, $warehouse->outcomingItemsList($storageId));
-                        $avidity_m = $avidity['M']['FALL'];
-                        $warehouse->$avidity_m($warehouse::URL_ME . '&' . $warehouse::URL_OUT);
+                    $warehouse->backControl($warehouse::URL_ME . '&' . $warehouse::URL_OUT);
                     } else {
-                        show_window(__('New outcoming operation') . ' ' . $warehouse->itemtypeGetName($_GET['outitemid']), $warehouse->outcomingCreateForm($_GET['storageid'], $_GET['outitemid'], @$_GET['reserveid']));
-                        $avidity_m = $avidity['M']['FALL'];
-                        $warehouse->$avidity_m($warehouse::URL_ME . '&' . $warehouse::URL_OUT);
+                        show_window(__('New outcoming operation') . ' ' . $warehouse->itemtypeGetName(ubRouting::get('outitemid')), $warehouse->outcomingCreateForm(ubRouting::get('storageid'), ubRouting::get('outitemid'), @ubRouting::get('reserveid')));
+                    $warehouse->backControl($warehouse::URL_ME . '&' . $warehouse::URL_OUT);
                     }
                 }
             }
 
             //reservation
-            if (wf_CheckGet(array('reserve'))) {
-                if (wf_CheckGet(array('itemtypeid', 'storageid'))) {
-                    if (wf_CheckPost(array('newreserveitemtypeid', 'newreservestorageid', 'newreserveemployeeid', 'newreservecount'))) {
-                        $creationResult = $warehouse->reserveCreate($_POST['newreservestorageid'], $_POST['newreserveitemtypeid'], $_POST['newreservecount'], $_POST['newreserveemployeeid']);
+            if (ubRouting::checkGet(array('reserve'))) {
+                if (ubRouting::checkGet(array('itemtypeid', 'storageid'))) {
+                    if (ubRouting::checkPost(array('newreserveitemtypeid', 'newreservestorageid', 'newreserveemployeeid', 'newreservecount'))) {
+                        $creationResult = $warehouse->reserveCreate(ubRouting::post('newreservestorageid'), ubRouting::post('newreserveitemtypeid'), ubRouting::post('newreservecount'), ubRouting::post('newreserveemployeeid'));
                         //succefull
                         if (!$creationResult) {
-                            rcms_redirect($warehouse::URL_ME . '&' . $warehouse::URL_RESERVE);
+                            ubRouting::nav($warehouse::URL_ME . '&' . $warehouse::URL_RESERVE);
                         } else {
                             show_window('', $creationResult);
                         }
                     }
-                    $reservationTitle = __('Reservation') . ' ' . $warehouse->itemtypeGetName($_GET['itemtypeid']) . ' ' . __('from') . ' ' . $warehouse->storageGetName($_GET['storageid']);
-                    show_window($reservationTitle, $warehouse->reserveCreateForm($_GET['storageid'], $_GET['itemtypeid']));
-                    $avidity_m = $avidity['M']['FALL'];
-                    $warehouse->$avidity_m($warehouse::URL_ME . '&' . $warehouse::URL_REPORTS . '&' . 'totalremains=true');
+                    $reservationTitle = __('Reservation') . ' ' . $warehouse->itemtypeGetName(ubRouting::get('itemtypeid')) . ' ' . __('from') . ' ' . $warehouse->storageGetName(ubRouting::get('storageid'));
+                    show_window($reservationTitle, $warehouse->reserveCreateForm(ubRouting::get('storageid'), ubRouting::get('itemtypeid')));
+                    $warehouse->backControl($warehouse::URL_ME . '&' . $warehouse::URL_REPORTS . '&' . 'totalremains=true');
                 } else {
-                    if (wf_CheckGet(array('deletereserve'))) {
-                        $warehouse->reserveDelete($_GET['deletereserve']);
-                        rcms_redirect($warehouse::URL_ME . '&' . $warehouse::URL_RESERVE);
+                    if (ubRouting::checkGet(array('deletereserve'))) {
+                    $warehouse->reserveDelete(ubRouting::get('deletereserve'));
+                        ubRouting::nav($warehouse::URL_ME . '&' . $warehouse::URL_RESERVE);
                     }
 
-                    if (wf_CheckPost(array('editreserveid'))) {
-                        $warehouse->reserveSave();
-                        rcms_redirect($warehouse::URL_ME . '&' . $warehouse::URL_RESERVE);
+                    if (ubRouting::checkPost(array('editreserveid'))) {
+                    $warehouse->reserveSave();
+                        ubRouting::nav($warehouse::URL_ME . '&' . $warehouse::URL_RESERVE);
                     }
 
-                    if (wf_CheckGet(array('reshistajlist'))) {
-                        $warehouse->reserveHistoryAjaxReply();
+                    if (ubRouting::checkGet(array('reshistajlist'))) {
+                    $warehouse->reserveHistoryAjaxReply();
                     }
 
-                    if (wf_CheckPost(array('reshistfilterfrom'))) {
-                        $warehouse->reserveHistoryPrintFiltered();
+                    if (ubRouting::checkPost(array('reshistfilterfrom'))) {
+                    $warehouse->reserveHistoryPrintFiltered();
                     }
 
-                    if (wf_CheckGet(array('reserveajlist'))) {
+                    if (ubRouting::checkGet(array('reserveajlist'))) {
                         $resEmpFilter = ubRouting::checkGet('empidfilter') ? ubRouting::get('empidfilter') : '';
-                        $warehouse->reserveListAjaxReply($resEmpFilter);
+                    $warehouse->reserveListAjaxReply($resEmpFilter);
                     }
 
-                    if (wf_CheckPost(array('newmassemployeeid', 'newmassstorageid', 'newmasscreation'))) {
+                    if (ubRouting::checkPost(array('newmassemployeeid', 'newmassstorageid', 'newmasscreation'))) {
                         $massReserveResult = $warehouse->reserveMassCreate();
                         //rendering mass reserve results
                         show_window('', $massReserveResult);
@@ -262,11 +235,11 @@ if (cfr('WAREHOUSE')) {
                     $reserveControls .= wf_Link($warehouse::URL_ME . '&' . $warehouse::URL_RESERVE . '&mass=true', web_icon_create(__('Mass reservation')), false) . ' ';
 
                     if (!ubRouting::checkGet('mass') and !ubRouting::checkGet('massoutemployee')) {
-                        if (wf_CheckGet(array('reshistory'))) {
+                        if (ubRouting::checkGet(array('reshistory'))) {
                             show_window(__('Reserve') . ': ' . __('History'), $warehouse->reserveRenderHistory());
                         } else {
                             if (ubRouting::checkGet('empinventory')) {
-                                $warehouse->reportEmployeeInventrory(ubRouting::get('empinventory'));
+                    $warehouse->reportEmployeeInventrory(ubRouting::get('empinventory'));
                             } else {
                                 show_window(__('Reserved') . ' ' . $reserveControls, $warehouse->reserveRenderList());
                             }
@@ -294,8 +267,7 @@ if (cfr('WAREHOUSE')) {
                             }
                         }
                     }
-                    $avidity_m = $avidity['M']['FALL'];
-                    $warehouse->$avidity_m($warehouse::URL_ME);
+                    $warehouse->backControl($warehouse::URL_ME);
                 }
             }
 
@@ -331,76 +303,68 @@ if (cfr('WAREHOUSE')) {
                     }
                     //rendering income op itself
                     show_window(__('Incoming operation') . ': ' . ubRouting::get('showinid'), $warehouse->incomingView(ubRouting::get('showinid')));
-                    $avidity_m = $avidity['M']['FALL'];
-                    $warehouse->$avidity_m($warehouse::URL_ME . '&' . $warehouse::URL_IN);
+                    $warehouse->backControl($warehouse::URL_ME . '&' . $warehouse::URL_IN);
                 }
 
                 if (ubRouting::checkGet('showoutid')) {
                     if (ubRouting::checkGet($warehouse::ROUTE_DELOUT)) {
-                        $warehouse->outcomingDelete(ubRouting::get($warehouse::ROUTE_DELOUT));
+                    $warehouse->outcomingDelete(ubRouting::get($warehouse::ROUTE_DELOUT));
                         ubRouting::nav($warehouse::URL_ME . '&' . $warehouse::URL_VIEWERS . '&showoutid=' . ubRouting::get($warehouse::ROUTE_DELOUT));
                     }
                     show_window(__('Outcoming operation') . ': ' . ubRouting::get('showoutid'), $warehouse->outcomingView(ubRouting::get('showoutid')));
-                    $avidity_m = $avidity['M']['FALL'];
-                    $warehouse->$avidity_m($warehouse::URL_ME . '&' . $warehouse::URL_OUT);
+                    $warehouse->backControl($warehouse::URL_ME . '&' . $warehouse::URL_OUT);
                 }
 
-                if (wf_CheckGet(array('showremains'))) {
-                    show_window(__('The remains in the warehouse storage'), $warehouse->reportAllStoragesRemainsView($_GET['showremains']));
-                    $avidity_m = $avidity['M']['FALL'];
-                    $warehouse->$avidity_m($warehouse::URL_ME . '&' . $warehouse::URL_REPORTS . '&totalremains=true');
+                if (ubRouting::checkGet(array('showremains'))) {
+                    show_window(__('The remains in the warehouse storage'), $warehouse->reportAllStoragesRemainsView(ubRouting::get('showremains')));
+                    $warehouse->backControl($warehouse::URL_ME . '&' . $warehouse::URL_REPORTS . '&totalremains=true');
                 }
 
-                if (wf_CheckGet(array('qrcode', 'renderid'))) {
-                    $warehouse->qrCodeDraw($_GET['qrcode'], $_GET['renderid']);
+                if (ubRouting::checkGet(array('qrcode', 'renderid'))) {
+                    $warehouse->qrCodeDraw(ubRouting::get('qrcode'), ubRouting::get('renderid'));
                 }
 
-                if (wf_CheckGet(array('printremainsstorage'))) {
-                    $warehouse->reportStorageRemainsPrintable($_GET['printremainsstorage']);
+                if (ubRouting::checkGet(array('printremainsstorage'))) {
+                    $warehouse->reportStorageRemainsPrintable(ubRouting::get('printremainsstorage'));
                 }
 
-                if (wf_CheckGet(array('itemhistory'))) {
-                    $warehouse->renderItemHistory($_GET['itemhistory']);
+                if (ubRouting::checkGet(array('itemhistory'))) {
+                    $warehouse->renderItemHistory(ubRouting::get('itemhistory'));
                 }
             }
 
             //reports
-            if (wf_CheckGet(array('reports'))) {
-                if (wf_CheckGet(array('ajaxtremains'))) {
-                    $avidity_a = $avidity['A']['SEENOEVIL'];
-                    $warehouse->$avidity_a();
+            if (ubRouting::checkGet(array('reports'))) {
+                if (ubRouting::checkGet(array('ajaxtremains'))) {
+                    $warehouse->reportAllStoragesRemainsAjaxReply();
                 }
 
-                if (wf_CheckGet(array('calendarops'))) {
+                if (ubRouting::checkGet(array('calendarops'))) {
                     if (cfr('WAREHOUSEREPORTS')) {
                         show_window(__('Operations in the context of time'), $warehouse->reportCalendarOps());
                     } else {
                         show_error(__('Access denied'));
                     }
-                    $avidity_m = $avidity['M']['FALL'];
-                    $warehouse->$avidity_m($warehouse::URL_ME . '&' . $warehouse::URL_REPORTS . '&' . 'totalremains=true');
+                    $warehouse->backControl($warehouse::URL_ME . '&' . $warehouse::URL_REPORTS . '&' . 'totalremains=true');
                 }
-                if (wf_CheckGet(array('totalremains'))) {
+                if (ubRouting::checkGet(array('totalremains'))) {
                     show_window(__('The remains in all storages'), $warehouse->reportAllStoragesRemains());
-                    $avidity_m = $avidity['M']['FALL'];
-                    $warehouse->$avidity_m();
+                    $warehouse->backControl();
                 }
 
-                if (wf_CheckGet(array('dateremains'))) {
+                if (ubRouting::checkGet(array('dateremains'))) {
                     if (cfr('WAREHOUSEREPORTS')) {
                         show_window(__('Date remains'), $warehouse->reportDateRemains());
                     } else {
                         show_error(__('Access denied'));
                     }
-                    $avidity_m = $avidity['M']['FALL'];
-                    $warehouse->$avidity_m($warehouse::URL_ME . '&' . $warehouse::URL_REPORTS . '&' . 'totalremains=true');
+                    $warehouse->backControl($warehouse::URL_ME . '&' . $warehouse::URL_REPORTS . '&' . 'totalremains=true');
                 }
 
-                if (wf_CheckGet(array('storagesremains'))) {
+                if (ubRouting::checkGet(array('storagesremains'))) {
                     if (cfr('WAREHOUSEREPORTS')) {
                         show_window(__('The remains in the warehouse storage'), $warehouse->reportStoragesRemains());
-                        $avidity_m = $avidity['M']['FALL'];
-                        $warehouse->$avidity_m($warehouse::URL_ME . '&' . $warehouse::URL_REPORTS . '&' . 'totalremains=true');
+                    $warehouse->backControl($warehouse::URL_ME . '&' . $warehouse::URL_REPORTS . '&' . 'totalremains=true');
                     } else {
                         show_error(__('Access denied'));
                     }
@@ -409,8 +373,7 @@ if (cfr('WAREHOUSE')) {
                 if (ubRouting::checkGet('itemtypeoutcomes')) {
                     if (cfr('WAREHOUSEREPORTS')) {
                         show_window(__('Sales'), $warehouse->renderItemtypeOutcomesHistory());
-                        $avidity_m = $avidity['M']['FALL'];
-                        $warehouse->$avidity_m($warehouse::URL_ME . '&' . $warehouse::URL_REPORTS . '&' . 'totalremains=true');
+                    $warehouse->backControl($warehouse::URL_ME . '&' . $warehouse::URL_REPORTS . '&' . 'totalremains=true');
                     } else {
                         show_error(__('Access denied'));
                     }
@@ -419,8 +382,7 @@ if (cfr('WAREHOUSE')) {
                 if (ubRouting::checkGet('purchases')) {
                     if (cfr('WAREHOUSEREPORTS')) {
                         show_window(__('Purchases'), $warehouse->renderPurchasesReport());
-                        $avidity_m = $avidity['M']['FALL'];
-                        $warehouse->$avidity_m($warehouse::URL_ME . '&' . $warehouse::URL_REPORTS . '&' . 'totalremains=true');
+                    $warehouse->backControl($warehouse::URL_ME . '&' . $warehouse::URL_REPORTS . '&' . 'totalremains=true');
                     } else {
                         show_error(__('Access denied'));
                     }
@@ -429,8 +391,7 @@ if (cfr('WAREHOUSE')) {
                 if (ubRouting::checkGet('contractorincomes')) {
                     if (cfr('WAREHOUSEREPORTS')) {
                         show_window(__('Income') . ' ' . __('from') . ' ' . __('Contractor'), $warehouse->renderContractorIncomesReport());
-                        $avidity_m = $avidity['M']['FALL'];
-                        $warehouse->$avidity_m($warehouse::URL_ME . '&' . $warehouse::URL_REPORTS . '&' . 'totalremains=true');
+                    $warehouse->backControl($warehouse::URL_ME . '&' . $warehouse::URL_REPORTS . '&' . 'totalremains=true');
                     } else {
                         show_error(__('Access denied'));
                     }
@@ -439,11 +400,10 @@ if (cfr('WAREHOUSE')) {
                 if (ubRouting::checkGet('returns')) {
                     if (cfr('WAREHOUSEREPORTS')) {
                         if (ubRouting::checkGet('ajreturnslist')) {
-                            $warehouse->ajReturnsList();
+                    $warehouse->ajReturnsList();
                         }
                         show_window(__('Returns'), $warehouse->renderReturnsReport());
-                        $avidity_m = $avidity['M']['FALL'];
-                        $warehouse->$avidity_m($warehouse::URL_ME . '&' . $warehouse::URL_REPORTS . '&' . 'totalremains=true');
+                    $warehouse->backControl($warehouse::URL_ME . '&' . $warehouse::URL_REPORTS . '&' . 'totalremains=true');
                     } else {
                         show_error(__('Access denied'));
                     }
@@ -452,8 +412,7 @@ if (cfr('WAREHOUSE')) {
                 if (ubRouting::checkGet('netwupgrade')) {
                     if (cfr('WAREHOUSEREPORTS')) {
                         show_window(__('Item types spent on network upgrade'), $warehouse->renderNetwUpgradeReport());
-                        $avidity_m = $avidity['M']['FALL'];
-                        $warehouse->$avidity_m($warehouse::URL_ME);
+                    $warehouse->backControl($warehouse::URL_ME);
                     } else {
                         show_error(__('Access denied'));
                     }
@@ -461,11 +420,7 @@ if (cfr('WAREHOUSE')) {
             }
 
 
-            $avidity = $avidity['M']['FRONT'];
-            $warehouse->$avidity();
-        } else {
-            show_error(__('No license key available'));
-        }
+            $warehouse->summaryReport();
     } else {
         show_error(__('This module is disabled'));
     }
