@@ -3,20 +3,15 @@
 if (cfr('POLICEDOG')) {
     $altCfg = $ubillingConfig->getAlter();
     if ($altCfg['POLICEDOG_ENABLED']) {
-        $greed = new Avarice();
-        $avidity = $greed->runtime('POLICEDOG');
-        if (!empty($avidity)) {
-            $policedog = new $avidity['O']['INIT']();
-            //render interface
-            $avidity_m_face = $avidity['M']['FACE'];
-            show_window('', $policedog->$avidity_m_face());
+        $policedog = new PoliceDog();
+        //render interface
+        show_window('', $policedog->panel());
 
             //create new MAC records
-            if (ubRouting::checkPost(array($avidity['P']['PULL']))) {
-                $avidity_m_save = $avidity['M']['SAVE'];
-                $createResult = $policedog->$avidity_m_save();
+            if (ubRouting::checkPost(array('newmacupload'))) {
+                $createResult = $policedog->catchCreateMacRequest();
                 if (empty($createResult)) {
-                    rcms_redirect($policedog::URL_ME);
+                    ubRouting::nav($policedog::URL_ME);
                 } else {
                     show_window(__('Something went wrong'), $createResult);
                 }
@@ -31,18 +26,16 @@ if (cfr('POLICEDOG')) {
              * Pure black magic that we cannot control
              */
             //mac deletion
-            if (ubRouting::checkGet(array($avidity['P']['MDEL']))) {
-                $avidity_m_kill = $avidity['M']['KILL'];
-                $policedog->$avidity_m_kill($_GET[$avidity['P']['MDEL']]);
+            if (ubRouting::checkGet(array('delmacid'))) {
+                $policedog->deleteWantedMac(ubRouting::get('delmacid'));
                 ubRouting::nav($policedog::URL_ME);
             }
 
             //alert deletion
-            if (ubRouting::checkGet(array($avidity['P']['ADEL']))) {
+            if (ubRouting::checkGet(array('delalertid'))) {
                 $dVoid = new DarkVoid();
                 $dVoid->flushCache();
-                $avidity_m_killa = $avidity['M']['KILLA'];
-                $policedog->$avidity_m_killa($_GET[$avidity['P']['ADEL']]);
+                $policedog->deleteAlert(ubRouting::get('delalertid'));
                 ubRouting::nav($policedog::URL_ME . '&show=fastscan');
             }
 
@@ -58,22 +51,17 @@ if (cfr('POLICEDOG')) {
                         $policedog->renderWantedMacListAjaxReply();
                         break;
                     case 'fastscan':
-                        if (wf_CheckGet(array('forcefast'))) {
+                        if (ubRouting::checkGet(array('forcefast'))) {
                             $policedog->fastScan();
-                            rcms_redirect($policedog::URL_ME . '&show=fastscan');
+                            ubRouting::nav($policedog::URL_ME . '&show=fastscan');
                         }
-                        $avidity_l_run = $avidity['L']['RUN'];
-                        show_window(__('Fast scan'), $policedog->$avidity_l_run());
+                        show_window(__('Fast scan'), $policedog->renderFastScan());
                         break;
                     case 'deepscan':
-                        $avidity_m_slow = $avidity['M']['SLOW'];
-                        show_window(__('Deep scan'), $policedog->$avidity_m_slow());
+                        show_window(__('Deep scan'), $policedog->RenderDeepScan());
                         break;
                 }
             }
-        } else {
-            show_error(__('No license key available'));
-        }
     } else {
         show_error(__('This module is disabled'));
     }
