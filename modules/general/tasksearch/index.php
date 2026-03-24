@@ -259,28 +259,22 @@ if (cfr('TASKMANSEARCH')) {
                 //salary no jobs processing/excluding
                 if (wf_CheckPost(array('cb_nosalsaryjobs'))) {
                     $salaryTasks = array();
-                    $greed = new Avarice();
-                    $beggar = $greed->runtime('SALARY');
-                    if (!empty($beggar)) {
-                        $querySalaryJobs = "SELECT `id`,`taskid` from `salary_jobs`";
-                        $salaryJobsRaw = simple_queryall($querySalaryJobs);
-                        if (!empty($salaryJobsRaw)) {
-                            foreach ($salaryJobsRaw as $io => $each) {
-                                if (!empty($each['taskid'])) {
-                                    $salaryTasks[$each['taskid']] = $each['id'];
-                                }
+                    $querySalaryJobs = "SELECT `id`,`taskid` from `salary_jobs`";
+                    $salaryJobsRaw = simple_queryall($querySalaryJobs);
+                    if (!empty($salaryJobsRaw)) {
+                        foreach ($salaryJobsRaw as $io => $each) {
+                            if (!empty($each['taskid'])) {
+                                $salaryTasks[$each['taskid']] = $each['id'];
                             }
                         }
+                    }
 
-                        if (!empty($salaryTasks)) {
-                            foreach ($salaryTasks as $jobTaskid => $eachJobId) {
-                                if (isset($result[$jobTaskid])) {
-                                    unset($result[$jobTaskid]);
-                                }
+                    if (!empty($salaryTasks)) {
+                        foreach ($salaryTasks as $jobTaskid => $eachJobId) {
+                            if (isset($result[$jobTaskid])) {
+                                unset($result[$jobTaskid]);
                             }
                         }
-                    } else {
-                        show_error(__('No license key available'));
                     }
                 }
             }

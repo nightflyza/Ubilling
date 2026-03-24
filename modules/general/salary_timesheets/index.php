@@ -3,10 +3,7 @@
 if (cfr('SALARYTSHEETS')) {
     $altcfg = $ubillingConfig->getAlter();
     if ($altcfg['SALARY_ENABLED']) {
-        $greed = new Avarice();
-        $beggar = $greed->runtime('SALARY');
-        if (!empty($beggar)) {
-            $salary = new Salary();
+        $salary = new Salary();
 
 
 
@@ -44,9 +41,6 @@ if (cfr('SALARYTSHEETS')) {
             } else {
                 show_warning(__('No available workers for timesheets'));
             }
-        } else {
-            show_error(__('No license key available'));
-        }
     } else {
         show_error(__('This module is disabled'));
     }
