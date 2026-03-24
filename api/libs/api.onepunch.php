@@ -408,7 +408,8 @@ class OnePunch {
             foreach ($this->punchScripts as $io => $each) {
                 $iconData = '';
                 $iconData .= wf_tag('div', false, '', 'style="text-align:center; min-height:48px;"');
-                $iconData .= wf_Link($devConUrl . '&runscript=' . $each['alias'], wf_img_sized('skins/script.png', $each['name'], '64'), false, '');
+                $scriptLabel = $each['name'].' ('.$each['alias'].')';
+                $iconData .= wf_Link($devConUrl . '&runscript=' . $each['alias'], wf_img_sized('skins/script.png', $scriptLabel, '64'), false, '');
                 $iconData .= wf_tag('div', true);
                 $iconData .= wf_tag('div', false, '', 'style="text-align:center; margin-top:4px;"');
                 $iconData .= wf_Link($devConUrl . '&runscript=' . $each['alias'], $each['name'], false, '');
