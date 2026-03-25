@@ -110,7 +110,9 @@ class Metabolism {
     const ROUTE_LIFECYCLE_TYPE = 'lifecycle_type';
     const PROUTE_SPLITCHARTS = 'splitcharts';
 
-    const KEY_LATEST_POSITIVE_PAYMENTS = 'LATEST_PPAYMENTS';
+    const KEY_LATEST_POSITIVE_PAYMENTS = 'METABOLISM_LATEST_PPAYMENTS';
+    const KEY_ALL_SIGNUPS_USERREG = 'METABOLISM_USERREG_ALL';
+    const KEY_LIFECYCLE_STATS = 'METABOLISM_LIFECYCLE_STATS';
 
     /**
      * Creates new metabolism instance
@@ -220,7 +222,17 @@ class Metabolism {
      * @return void
      */
     protected function loadSignups() {
-        $this->allSignups = $this->signups->getAll('login');
+        $cachedData = $this->cache->get(self::KEY_ALL_SIGNUPS_USERREG, $this->cacheTimeout);
+        if (empty($cachedData)) {
+            $this->allSignups = $this->signups->getAll('login');
+            if (!is_array($this->allSignups)) {
+                $this->allSignups = array();
+            }
+            $this->cache->set(self::KEY_ALL_SIGNUPS_USERREG, $this->allSignups, $this->cacheTimeout);
+            $this->cache->delete(self::KEY_LIFECYCLE_STATS);
+        } else {
+            $this->allSignups = $cachedData;
+        }
     }
 
     /**
@@ -233,6 +245,7 @@ class Metabolism {
         if (empty($cachedData)) {
             $this->lastPayments = zb_UserGetLatestPaymentsPositiveAll();
             $this->cache->set(self::KEY_LATEST_POSITIVE_PAYMENTS,$this->lastPayments,$this->cacheTimeout);
+            $this->cache->delete(self::KEY_LIFECYCLE_STATS);
         } else {
             $this->lastPayments = $cachedData;
         }
@@ -573,84 +586,133 @@ class Metabolism {
      */
     public function renderLifecycle() {
         $result = '';
-        $this->loadUserData();
-        $this->loadSignups();
-        $this->loadLastPayments();
-
-        if (!empty($this->allUserData) or !empty($this->allSignups)) {
-
-        // [year][month] => connected, lost, active
         $stats = array();
         $totalLifetimeSumLost = 0;
         $totalLostCount = 0;
 
-        foreach ($this->allUserData as $login => $userData) {
-            if (!isset($this->allSignups[$login])) {
-                continue;
-            }
-            $signupDate = $this->allSignups[$login]['date'];
-            if (empty($signupDate)) {
-                continue;
-            }
-            $signupTs = strtotime($signupDate);
-            $signupY = date('Y', $signupTs);
-            $signupM = date('m', $signupTs);
+        $this->loadSignups();
+        $this->loadLastPayments();
 
-            $lastPaymentDate = isset($this->lastPayments[$login]['date']) ? $this->lastPayments[$login]['date'] : null;
-            $isActive = zb_UserIsActive($userData);
+        $cachedLifecycle = $this->cache->get(self::KEY_LIFECYCLE_STATS, $this->cacheTimeout);
+        $lifecycleFromCache = false;
+        if (!empty($cachedLifecycle) and is_array($cachedLifecycle) and isset($cachedLifecycle['stats'])) {
+            $stats = $cachedLifecycle['stats'];
+            $totalLifetimeSumLost = $cachedLifecycle['totalLifetimeSumLost'];
+            $totalLostCount = $cachedLifecycle['totalLostCount'];
+            $lifecycleFromCache = true;
+        }
 
-            $endTs = $isActive ? time() : ($lastPaymentDate !== null ? strtotime($lastPaymentDate) : $signupTs);
-            $lifetimeSeconds = max(0, $endTs - $signupTs);
+        if (!$lifecycleFromCache) {
+            $this->loadUserData();
+            if (!empty($this->allUserData) and !empty($this->allSignups)) {
 
-            if (!isset($stats[$signupY][$signupM])) {
-                $stats[$signupY][$signupM] = array(
-                    'connected'        => 0,
-                    'dead_souls'       => 0,
-                    'lost'             => 0,
-                    'active'           => 0,
-                    'lifetime_sum'     => 0,
-                    'connected_logins'  => array(),
-                    'dead_souls_logins' => array(),
-                    'lost_logins'      => array(),
-                    'active_logins'    => array()
-                );
-            }
-            $stats[$signupY][$signupM]['connected'] += 1;
-            $stats[$signupY][$signupM]['connected_logins'][] = $login;
-            // Dead souls: no payments at all and not active (excludes active free-tariff/service accounts)
-            if ($lastPaymentDate === null and !$isActive) {
-                $stats[$signupY][$signupM]['dead_souls'] += 1;
-                $stats[$signupY][$signupM]['dead_souls_logins'][] = $login;
-            }
-            $stats[$signupY][$signupM]['lifetime_sum'] += $lifetimeSeconds;
-            if ($isActive) {
-                $stats[$signupY][$signupM]['active'] += 1;
-                $stats[$signupY][$signupM]['active_logins'][] = $login;
-            } else {
-                if ($lastPaymentDate !== null) {
-                    $totalLifetimeSumLost += $lifetimeSeconds;
-                    $totalLostCount++;
-                    $churnY = date('Y', strtotime($lastPaymentDate));
-                    $churnM = date('m', strtotime($lastPaymentDate));
-                    if (!isset($stats[$churnY][$churnM])) {
-                        $stats[$churnY][$churnM] = array(
-                            'connected'        => 0,
-                            'dead_souls'       => 0,
-                            'lost'             => 0,
-                            'active'           => 0,
-                            'lifetime_sum'     => 0,
-                            'connected_logins' => array(),
-                            'dead_souls_logins' => array(),
-                            'lost_logins'      => array(),
-                            'active_logins'    => array()
-                        );
-                    }
-                    $stats[$churnY][$churnM]['lost'] += 1;
-                    $stats[$churnY][$churnM]['lost_logins'][] = $login;
-                } else {
-                    $stats[$signupY][$signupM]['lost'] += 1;
-                    $stats[$signupY][$signupM]['lost_logins'][] = $login;
+            // [year][month] => connected, lost, active
+            $nowTs = time();
+            $signupParsedCache = array();
+            $lastPayTsCache = array();
+
+            foreach ($this->allUserData as $login => $userData) {
+                if (!isset($this->allSignups[$login])) {
+                    continue;
                 }
+                $signupDate = $this->allSignups[$login]['date'];
+                if (empty($signupDate)) {
+                    continue;
+                }
+                if (isset($signupParsedCache[$signupDate])) {
+                    $signupCached = $signupParsedCache[$signupDate];
+                    $signupTs = $signupCached['ts'];
+                    $signupY = $signupCached['y'];
+                    $signupM = $signupCached['m'];
+                } else {
+                    $signupTs = strtotime($signupDate);
+                    $signupY = date('Y', $signupTs);
+                    $signupM = date('m', $signupTs);
+                    $signupParsedCache[$signupDate] = array(
+                        'ts' => $signupTs,
+                        'y'  => $signupY,
+                        'm'  => $signupM
+                    );
+                }
+
+                $lastPaymentDate = isset($this->lastPayments[$login]['date']) ? $this->lastPayments[$login]['date'] : null;
+                $isActive = zb_UserIsActive($userData);
+
+                if ($isActive) {
+                    $endTs = $nowTs;
+                } else {
+                    if ($lastPaymentDate !== null) {
+                        if (isset($lastPayTsCache[$lastPaymentDate])) {
+                            $endTs = $lastPayTsCache[$lastPaymentDate];
+                        } else {
+                            $endTs = strtotime($lastPaymentDate);
+                            $lastPayTsCache[$lastPaymentDate] = $endTs;
+                        }
+                    } else {
+                        $endTs = $signupTs;
+                    }
+                }
+                $lifetimeSeconds = max(0, $endTs - $signupTs);
+
+                if (!isset($stats[$signupY][$signupM])) {
+                    $stats[$signupY][$signupM] = array(
+                        'connected'        => 0,
+                        'dead_souls'       => 0,
+                        'lost'             => 0,
+                        'active'           => 0,
+                        'lifetime_sum'     => 0,
+                        'connected_logins'  => array(),
+                        'dead_souls_logins' => array(),
+                        'lost_logins'      => array(),
+                        'active_logins'    => array()
+                    );
+                }
+                $stats[$signupY][$signupM]['connected'] += 1;
+                $stats[$signupY][$signupM]['connected_logins'][] = $login;
+                // Dead souls: no payments at all and not active (excludes active free-tariff/service accounts)
+                if ($lastPaymentDate === null and !$isActive) {
+                    $stats[$signupY][$signupM]['dead_souls'] += 1;
+                    $stats[$signupY][$signupM]['dead_souls_logins'][] = $login;
+                }
+                $stats[$signupY][$signupM]['lifetime_sum'] += $lifetimeSeconds;
+                if ($isActive) {
+                    $stats[$signupY][$signupM]['active'] += 1;
+                    $stats[$signupY][$signupM]['active_logins'][] = $login;
+                } else {
+                    if ($lastPaymentDate !== null) {
+                        $totalLifetimeSumLost += $lifetimeSeconds;
+                        $totalLostCount++;
+                        $churnY = date('Y', $endTs);
+                        $churnM = date('m', $endTs);
+                        if (!isset($stats[$churnY][$churnM])) {
+                            $stats[$churnY][$churnM] = array(
+                                'connected'        => 0,
+                                'dead_souls'       => 0,
+                                'lost'             => 0,
+                                'active'           => 0,
+                                'lifetime_sum'     => 0,
+                                'connected_logins' => array(),
+                                'dead_souls_logins' => array(),
+                                'lost_logins'      => array(),
+                                'active_logins'    => array()
+                            );
+                        }
+                        $stats[$churnY][$churnM]['lost'] += 1;
+                        $stats[$churnY][$churnM]['lost_logins'][] = $login;
+                    } else {
+                        $stats[$signupY][$signupM]['lost'] += 1;
+                        $stats[$signupY][$signupM]['lost_logins'][] = $login;
+                    }
+                }
+            }
+
+            if (!empty($stats)) {
+                $this->cache->set(self::KEY_LIFECYCLE_STATS, array(
+                    'stats' => $stats,
+                    'totalLifetimeSumLost' => $totalLifetimeSumLost,
+                    'totalLostCount' => $totalLostCount
+                ), $this->cacheTimeout);
+            }
             }
         }
 
@@ -832,9 +894,6 @@ class Metabolism {
         $result .= wf_tag('b', false) . __('Total lost') . ': ' . $totalLost . wf_tag('b', true);
         $result .= wf_tag('br');
         $result .= wf_tag('b', false) . __('Survived') . ': ' . $totalSurvived . wf_tag('b', true);
-        } else {
-            $result .= $this->messages->getStyledMessage(__('Nothing to show'), 'warning');
-        }
         return ($result);
     }
 }
