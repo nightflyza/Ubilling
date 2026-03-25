@@ -183,7 +183,7 @@ function generic_MapAddMarkDynamic($coords, $title = '', $contentUrl = '', $icon
 
     if (!empty($contentUrl)) {
         $js .= "
-        marker_$markerId.bindPopup('" . __('Loading') . "...');
+        marker_$markerId.bindPopup('" . __('Loading') . "...', {maxWidth: 320, minWidth: 50, maxHeight: 600, closeButton: true, closeOnEscapeKey: true});
         marker_$markerId._popupHtml = null;
 
         marker_$markerId.on('click', function (e) {
