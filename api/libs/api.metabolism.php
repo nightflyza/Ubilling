@@ -83,7 +83,21 @@ class Metabolism {
     protected $allUserData = array();
 
     /**
-     * Routes etc.
+     * System caching object placeholder
+     *
+     * @var object
+     */
+    protected $cache='';
+
+    /**
+     * caching timeout
+     *
+     * @var int
+     */
+    protected $cacheTimeout=86400;
+
+    /**
+     * Routes and other predefined stuff
      */
     const URL_ME = '?module=metabolism';
     const ROUTE_RENDER = 'render';
@@ -96,6 +110,8 @@ class Metabolism {
     const ROUTE_LIFECYCLE_TYPE = 'lifecycle_type';
     const PROUTE_SPLITCHARTS = 'splitcharts';
 
+    const KEY_LATEST_POSITIVE_PAYMENTS = 'LATEST_PPAYMENTS';
+
     /**
      * Creates new metabolism instance
      */
@@ -103,6 +119,7 @@ class Metabolism {
         $this->initMessages();
         $this->loadAlter();
         $this->setDate();
+        $this->initCache();
         $this->initPayments();
         $this->initSignups();
         $this->initSigreq();
@@ -132,6 +149,15 @@ class Metabolism {
             $this->year = curyear();
             $this->month = date("m");
         }
+    }
+
+    /**
+     * Inits system caching engine
+     * 
+     * @return void
+     */
+    protected function initCache() {
+        $this->cache = new UbillingCache();
     }
 
     /**
@@ -198,12 +224,18 @@ class Metabolism {
     }
 
     /**
-     * Loads all users last payments from database into protected prop for further usage
+     * Loads all users last positive payments from database into protected prop for further usage
      *
      * @return void
      */
     protected function loadLastPayments() {
-        $this->lastPayments = zb_UserGetLatestPaymentsPositiveAll();
+        $cachedData = $this->cache->get(self::KEY_LATEST_POSITIVE_PAYMENTS,$this->cacheTimeout);
+        if (empty($cachedData)) {
+            $this->lastPayments = zb_UserGetLatestPaymentsPositiveAll();
+            $this->cache->set(self::KEY_LATEST_POSITIVE_PAYMENTS,$this->lastPayments,$this->cacheTimeout);
+        } else {
+            $this->lastPayments = $cachedData;
+        }
     }
 
     /**
@@ -536,7 +568,6 @@ class Metabolism {
 
     /**
      * Renders users lifecycle report.
-     * For each year-month: connected (signed up), lost (churned in that period), still active (signed up then, active now).
      *
      * @return string
      */

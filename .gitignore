@@ -30,6 +30,9 @@ exports/pondata/temp/*
 exports/pondata/uptime/*
 exports/pondata/races/*
 exports/pondata/unioperstats/*
+modules/foreign/xhprof/index.html
+modules/foreign/xhprof/xhprof_html/*
+modules/foreign/xhprof/xhprof_lib/*
 .idea
 .cursor/
 DEMO_MODE
