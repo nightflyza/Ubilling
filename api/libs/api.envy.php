@@ -876,6 +876,8 @@ class Envy {
             if ($this->cmirrFlag) {
                 $cmirr=new CMIRR();
                 $cmirr->setMode('text');
+                $cmirr->setEnableSearch(true);
+                $cmirr->setReadOnly(true);
                 $inputs=$cmirr->getEditorArea('envypreview', $data);
             } else {
                 $inputs = wf_tag('textarea', false, 'fileeditorarea', 'name="envypreview" cols="145" rows="30" spellcheck="false"');
