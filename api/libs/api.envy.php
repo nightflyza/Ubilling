@@ -333,6 +333,7 @@ class Envy {
             $inputs .= __('Script') . wf_tag('br');
             if ($this->cmirrFlag) {
                 $cmirr=new CMIRR();
+                $cmirr->setEnableSearch(true);
                 $inputs .= $cmirr->getEditorArea('newscriptdata', '');
             } else {
                 $inputs .= wf_TextArea('newscriptdata', '', '', true, '145x30');
@@ -363,6 +364,7 @@ class Envy {
             
             if ($this->cmirrFlag) {
                 $cmirr=new CMIRR();
+                $cmirr->setEnableSearch(true);
                 $inputs .= $cmirr->getEditorArea('editscriptdata', $scriptData['data']);
             } else {
                 $inputs .= wf_TextArea('editscriptdata', '', $scriptData['data'], true, '145x30');
