@@ -195,7 +195,7 @@ class Providex extends PaySysProto {
         } else {
             $moneyAmount = $this->receivedJSON['amount'];
         }
-
+        
         $this->writeDebugLog(self::DEBUG_IDENT6 . 'preOrder()', $this->debugModeON, 1);
         $this->writeDebugLog(self::DEBUG_IDENT8 . 'method:           ' . $this->receivedJSON['method'], $this->debugModeON);
         $this->writeDebugLog(self::DEBUG_IDENT8 . 'payment_fee_info: ' . $this->merchantCreds['payment_fee_info'], $this->debugModeON);
@@ -248,16 +248,24 @@ class Providex extends PaySysProto {
             $pvdxTransactID = $this->tranzzoTransactData['transaction_id'];
             //$pvdxPaymentSum = $this->tranzzoTransactData['amount'];
 
-            if ($this->merchantCreds['payment_fee_info'] == 'subscriber' and !empty($this->tranzzoTransactData['fee']['amount'])) {
-                $pvdxPaymentSum = $this->tranzzoTransactData['processed_amount'] - $this->tranzzoTransactData['fee']['amount'];
+            $processedAmount = round((float)$this->tranzzoTransactData['processed_amount'], 2);
+            $transactSumm    = round((float)$transactSumm, 2);
+
+            if ($this->merchantCreds['payment_fee_info'] == 'subscriber') {
+                if (!empty($this->tranzzoTransactData['fee']['amount'])) {
+                    $feeAmount = round((float)$this->tranzzoTransactData['fee']['amount'], 2);
+                    $pvdxPaymentSum = round($processedAmount - $feeAmount, 2);
+                } else {
+                    $pvdxPaymentSum = ($processedAmount >= $transactSumm) ? $transactSumm : $processedAmount;
+                }
             } else {
-                $pvdxPaymentSum = $this->tranzzoTransactData['processed_amount'];
+                $pvdxPaymentSum = $processedAmount;
             }
 
             $this->writeDebugLog(self::DEBUG_IDENT8 . 'pvdxPaymentSum:  ' . $pvdxPaymentSum, $this->debugModeON);
             $this->writeDebugLog(self::DEBUG_IDENT8 . 'transactSumm:    ' . $transactSumm, $this->debugModeON);
 
-            if ($pvdxPaymentSum == $transactSumm) {
+            if (round((float)$pvdxPaymentSum, 2) == round((float)$transactSumm, 2)) {
                 if ($this->validateSign()) {
                     $opHash     = self::HASH_PREFIX . $billingTransactID;
                     $opHashData = $this->getOPTransactDataByHash($opHash);
