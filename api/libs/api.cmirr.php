@@ -89,6 +89,13 @@ class CMIRR {
     protected $enableFullscreen = true;
 
     /**
+     * Enable editor search dialog and related hotkeys.
+     *
+     * @var bool
+     */
+    protected $enableSearch = false;
+
+    /**
      * Enables read-only mode for syntax-highlighted content viewing.
      * Allowed values:
      * - false (editable)
@@ -224,6 +231,16 @@ class CMIRR {
     }
 
     /**
+     * Enables or disables search feature (Ctrl-F / Ctrl-G / Shift-Ctrl-G).
+     *
+     * @param bool $enableSearch
+     * @return void
+     */
+    public function setEnableSearch($enableSearch) {
+        $this->enableSearch = $enableSearch;
+    }
+
+    /**
      * Enables or disables read-only mode.
      * Supported values:
      * - false: editable editor
@@ -271,6 +288,14 @@ class CMIRR {
         <script src="'.$this->cmLibPath.'addon/hint/css-hint.js"></script>
         
         ';
+        if ($this->enableSearch) {
+            $this->headers .= '
+            <link rel="stylesheet" href="'.$this->cmLibPath.'addon/dialog/dialog.css">
+            <script src="'.$this->cmLibPath.'addon/search/searchcursor.js"></script>
+            <script src="'.$this->cmLibPath.'addon/search/search.js"></script>
+            <script src="'.$this->cmLibPath.'addon/dialog/dialog.js"></script>
+            ';
+        }
     }
 
     /**
@@ -336,6 +361,11 @@ class CMIRR {
         if ($this->enableFullscreen) {
             $extraKeysParts[] = '"F11": function(cm) { cm.setOption("fullScreen", !cm.getOption("fullScreen")); }';
             $extraKeysParts[] = '"Esc": function(cm) { if (cm.getOption("fullScreen")) cm.setOption("fullScreen", false); }';
+        }
+        if ($this->enableSearch) {
+            $extraKeysParts[] = '"Ctrl-F": "findPersistent"';
+            $extraKeysParts[] = '"Ctrl-G": "findNext"';
+            $extraKeysParts[] = '"Shift-Ctrl-G": "findPrev"';
         }
         if (!$this->disableAutocomplete and $readOnly === 'false') {
             $hintRef = (strpos($this->hintOptions, 'CodeMirror.hint.') === 0)

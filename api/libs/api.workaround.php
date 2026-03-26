@@ -3611,10 +3611,11 @@ function web_ConfigEditorShow($prefix, $configdata, $optsdata) {
  * @param string $content
  * @param bool $cmirrFlag
  * @param string $mode
+ * @param bool $searchFlag
  * 
  * @return string
  */
-function web_FileEditorForm($path, $content, $cmirrFlag=false, $mode='') {
+function web_FileEditorForm($path, $content, $cmirrFlag=false, $mode='', $searchFlag=false) {
     $result = '';
     $formStyle = ($cmirrFlag) ? '' : 'glamour';
     $inputs = wf_HiddenInput('editfilepath', $path);
@@ -3622,6 +3623,9 @@ function web_FileEditorForm($path, $content, $cmirrFlag=false, $mode='') {
         $cmirr=new CMIRR();
         if (!empty($mode)) {
             $cmirr->setMode($mode);
+        }
+        if ($searchFlag) {
+            $cmirr->setEnableSearch(true);
         }
         $inputs .= $cmirr->getEditorArea('editfilecontent', $content);
     } else {    
