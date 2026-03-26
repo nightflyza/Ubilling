@@ -178,6 +178,7 @@ class OnePunch {
         $inputs .= wf_TextInput('newscriptalias', __('Alias'), $aliasPreset, true, 15, 'alphanumeric');
         if ($this->cmFlag) {
             $cmirr = new CMIRR();
+            $cmirr->setEnableSearch(true);
             $inputs .= $cmirr->getEditorArea('newscriptcontent', $contentPreset);
         } else {
             $inputs .= wf_tag('textarea', false, 'fileeditorarea', 'name="newscriptcontent" cols="145" rows="30" spellcheck="false"');
@@ -219,6 +220,7 @@ class OnePunch {
             $inputs .= wf_TextInput('editscriptalias', __('Alias'), $aliasPreset, true, 15, 'alphanumeric');
             if ($this->cmFlag) {
                 $cmirr = new CMIRR();
+                $cmirr->setEnableSearch(true);
                 $inputs .= $cmirr->getEditorArea('editscriptcontent', $contentPreset);
             } else {
                 $inputs .= wf_tag('textarea', false, 'fileeditorarea', 'name="editscriptcontent" cols="145" rows="30" spellcheck="false"');

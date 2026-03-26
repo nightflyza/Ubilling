@@ -293,6 +293,8 @@ class CMIRR {
             <link rel="stylesheet" href="'.$this->cmLibPath.'addon/dialog/dialog.css">
             <script src="'.$this->cmLibPath.'addon/search/searchcursor.js"></script>
             <script src="'.$this->cmLibPath.'addon/search/search.js"></script>
+            <script src="'.$this->cmLibPath.'addon/search/jump-to-line.js"></script>
+            <script src="'.$this->cmLibPath.'addon/comment/comment.js"></script>
             <script src="'.$this->cmLibPath.'addon/dialog/dialog.js"></script>
             ';
         }
@@ -363,9 +365,45 @@ class CMIRR {
             $extraKeysParts[] = '"Esc": function(cm) { if (cm.getOption("fullScreen")) cm.setOption("fullScreen", false); }';
         }
         if ($this->enableSearch) {
-            $extraKeysParts[] = '"Ctrl-F": "findPersistent"';
+            if (function_exists('__')) {
+                $phrases = array(
+                    'Search:' => __('Search:'),
+                    '(Use /re/ syntax for regexp search)' => __('(Use /re/ syntax for regexp search)'),
+                    'Jump to line:' => __('Jump to line:'),
+                    '(Use line:column or scroll% syntax)' => __('(Use line:column or scroll% syntax)'),
+                    'Replace all:' => __('Replace all:'),
+                    'Replace:' => __('Replace:'),
+                    'Replace with:' => __('Replace with:'),
+                    'With:' => __('With:'),
+                    'Replace?' => __('Replace?'),
+                    'Yes' => __('Yes'),
+                    'No' => __('No'),
+                    'All' => __('All'),
+                    'Stop' => __('Stop'),
+                );
+                $options[] = 'phrases: ' . json_encode($phrases);
+            }
+
+            // Search dialog
+            // Ctrl-F / Cmd-F: start searching (auto-closing dialog)
+            $extraKeysParts[] = '"Ctrl-F": "find"';
             $extraKeysParts[] = '"Ctrl-G": "findNext"';
             $extraKeysParts[] = '"Shift-Ctrl-G": "findPrev"';
+            
+            // Alt-F: persistent search dialog (does not auto-close)
+            $extraKeysParts[] = '"Alt-F": "findPersistent"';
+            // Alt-G: jump to line
+            $extraKeysParts[] = '"Alt-G": "jumpToLine"';
+
+            // Ctrl-H / Cmd-H: open replace dialog
+            $extraKeysParts[] = '"Ctrl-H": "replace"';
+            $extraKeysParts[] = '"Cmd-H": "replace"';
+
+            // Ctrl-/ / Cmd-/: toggle line comment
+            if ($readOnly === 'false') {
+                $extraKeysParts[] = '"Ctrl-/": function(cm) { cm.toggleComment({indent: true}); }';
+                $extraKeysParts[] = '"Cmd-/": function(cm) { cm.toggleComment({indent: true}); }';
+            }
         }
         if (!$this->disableAutocomplete and $readOnly === 'false') {
             $hintRef = (strpos($this->hintOptions, 'CodeMirror.hint.') === 0)
