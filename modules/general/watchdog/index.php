@@ -63,7 +63,7 @@ if (cfr('WATCHDOG')) {
         show_window('', $interface->panel());
 
         if (ubRouting::checkGet('viewtaskid')) {
-            show_window(__('Watchdog task') . ' #' . ubRouting::get('viewtaskid'), $interface->renderTaskView(ubRouting::get('viewtaskid')));
+            show_window(__('Task') . ' #' . ubRouting::get('viewtaskid'), $interface->renderTaskView(ubRouting::get('viewtaskid')));
         } else {
             if (!ubRouting::checkGet(array('edit'))) {
                 //show previous detections
