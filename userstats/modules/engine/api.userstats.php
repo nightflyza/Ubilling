@@ -2343,19 +2343,19 @@ function zbs_UserTraffStats($login) {
 
             $cells = '';
             if ($renderClassColumns) {
-                $cells .= la_TableCell($eachdir['rulename']);
+                $cells .= la_TableCell($eachdir['rulename'], '', '', 'data-label="' . __('Traffic classes') . '"');
             }
-            $cells .= la_TableCell(zbs_convert_size($downup['D' . $eachdir['rulenumber']]));
-            $cells .= la_TableCell(zbs_convert_size($downup['U' . $eachdir['rulenumber']]));
-            $cells .= la_TableCell(zbs_convert_size(($downup['U' . $eachdir['rulenumber']] + $downup['D' . $eachdir['rulenumber']])));
+            $cells .= la_TableCell(zbs_convert_size($downup['D' . $eachdir['rulenumber']]), '', '', 'data-label="' . __('Downloaded') . '"');
+            $cells .= la_TableCell(zbs_convert_size($downup['U' . $eachdir['rulenumber']]), '', '', 'data-label="' . __('Uploaded') . '"');
+            $cells .= la_TableCell(zbs_convert_size(($downup['U' . $eachdir['rulenumber']] + $downup['D' . $eachdir['rulenumber']])), '', '', 'data-label="' . __('Total') . '"');
             $rows .= la_TableRow($cells, 'row3');
         }
     }
 
-    $result .= la_TableBody($rows, '100%', 0, '');
+    $result .= la_TableBody($rows, '100%', 0, 'mobile-table');
     $result .= la_delimiter();
 
-    /*
+    /**
      * traffic stats by previous months
      */
     
@@ -2419,21 +2419,21 @@ function zbs_UserTraffStats($login) {
 
             if (!empty($allprevmonth)) {
                 foreach ($allprevmonth as $io2 => $eachprevmonth) {
-                    $cells = la_TableCell($eachprevmonth['year']);
-                    $cells .= la_TableCell(__($monthnames[$eachprevmonth['month']]));
+                    $cells = la_TableCell($eachprevmonth['year'], '', '', 'data-label="' . __('Year') . '"');
+                    $cells .= la_TableCell(__($monthnames[$eachprevmonth['month']]), '', '', 'data-label="' . __('Month') . '"');
                     if ($renderClassColumns) {
-                        $cells .= la_TableCell($eachdir['rulename']);
+                        $cells .= la_TableCell($eachdir['rulename'], '', '', 'data-label="' . __('Traffic classes') . '"');
                     }
-                    $cells .= la_TableCell(zbs_convert_size($eachprevmonth['D' . $eachdir['rulenumber']]));
-                    $cells .= la_TableCell(zbs_convert_size($eachprevmonth['U' . $eachdir['rulenumber']]));
-                    $cells .= la_TableCell(zbs_convert_size(($eachprevmonth['U' . $eachdir['rulenumber']] + $eachprevmonth['D' . $eachdir['rulenumber']])));
-                    $cells .= la_TableCell(round($eachprevmonth['cash'], 2));
+                    $cells .= la_TableCell(zbs_convert_size($eachprevmonth['D' . $eachdir['rulenumber']]), '', '', 'data-label="' . __('Downloaded') . '"');
+                    $cells .= la_TableCell(zbs_convert_size($eachprevmonth['U' . $eachdir['rulenumber']]), '', '', 'data-label="' . __('Uploaded') . '"');
+                    $cells .= la_TableCell(zbs_convert_size(($eachprevmonth['U' . $eachdir['rulenumber']] + $eachprevmonth['D' . $eachdir['rulenumber']])), '', '', 'data-label="' . __('Total') . '"');
+                    $cells .= la_TableCell(round($eachprevmonth['cash'], 2), '', '', 'data-label="' . __('Cash') . '"');
                     $rows .= la_TableRow($cells, 'row3');
                 }
             }
         }
     }
-    $result .= la_TableBody($rows, '100%', 0, '');
+    $result .= la_TableBody($rows, '100%', 0, 'mobile-table');
 
     return ($result);
 }

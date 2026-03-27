@@ -1054,3 +1054,51 @@ sub, sup {
 .opbackend {
     box-sizing: initial;
 }
+
+
+@media (max-width: 767px) {
+    .mobile-table,
+    .mobile-table tbody,
+    .mobile-table tr,
+    .mobile-table td {
+        display: block;
+        width: 100%;
+    }
+
+    .mobile-table tr.row1 {
+        display: none;
+    }
+
+    .mobile-table tr.row3 {
+        margin: 0 0 12px 0;
+        padding: 8px 10px;
+        border: 1px solid #e5e5e5;
+        border-radius: 8px;
+        background: #fff;
+    }
+
+    .mobile-table td {
+        position: relative;
+        padding-left: 44%;
+        min-height: 28px;
+        white-space: normal;
+        word-break: break-word;
+        border: 0;
+        border-bottom: 1px dashed #eee;
+    }
+
+    .mobile-table td:last-child {
+        border-bottom: 0;
+    }
+
+    .mobile-table td:before {
+        content: attr(data-label);
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 40%;
+        font-weight: 600;
+        color: #666;
+        white-space: normal;
+    }
+}
