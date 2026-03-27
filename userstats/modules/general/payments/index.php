@@ -53,4 +53,4 @@ function zbs_ShowUserPayments($login) {
 $user_ip = zbs_UserDetectIp('debug');
 $user_login = zbs_UserGetLoginByIp($user_ip);
 zbs_ShowUserPayments($user_login);
-?>
+

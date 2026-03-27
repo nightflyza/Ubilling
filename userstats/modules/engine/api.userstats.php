@@ -2284,12 +2284,20 @@ function zbs_UserTraffStats($login) {
     $ishimuraTable = 'mlg_ishimura';
     $ophanimOption = 'OPHANIM_ENABLED';
     $ophanimTable = 'ophtraff';
-    /*
+    $renderClassColumns = false;
+    if (sizeof($alldirs) > 1) {
+        $renderClassColumns = true;
+    }
+    $result='';
+    /**
      * Current month traffic stats
      */
-    $result = la_tag('h3') . __('Current month traffic stats') . la_tag('h3', true);
+    $result .= la_tag('h3') . __('Current month traffic stats') . la_tag('h3', true);
 
-    $cells = la_TableCell(__('Traffic classes'));
+    $cells = '';
+    if ($renderClassColumns) {
+        $cells .= la_TableCell(__('Traffic classes'));
+    }
     $cells .= la_TableCell(__('Downloaded'));
     $cells .= la_TableCell(__('Uploaded'));
     $cells .= la_TableCell(__('Total'));
@@ -2333,8 +2341,10 @@ function zbs_UserTraffStats($login) {
                 }
             }
 
-
-            $cells = la_TableCell($eachdir['rulename']);
+            $cells = '';
+            if ($renderClassColumns) {
+                $cells .= la_TableCell($eachdir['rulename']);
+            }
             $cells .= la_TableCell(zbs_convert_size($downup['D' . $eachdir['rulenumber']]));
             $cells .= la_TableCell(zbs_convert_size($downup['U' . $eachdir['rulenumber']]));
             $cells .= la_TableCell(zbs_convert_size(($downup['U' . $eachdir['rulenumber']] + $downup['D' . $eachdir['rulenumber']])));
@@ -2348,12 +2358,14 @@ function zbs_UserTraffStats($login) {
     /*
      * traffic stats by previous months
      */
-    $prevStatsTmp = array();
+    
     $result .= la_tag('h3') . __('Previous month traffic stats') . la_tag('h3', true);
 
     $cells = la_TableCell(__('Year'));
     $cells .= la_TableCell(__('Month'));
-    $cells .= la_TableCell(__('Traffic classes'));
+    if ($renderClassColumns) {
+        $cells .= la_TableCell(__('Traffic classes'));
+    }
     $cells .= la_TableCell(__('Downloaded'));
     $cells .= la_TableCell(__('Uploaded'));
     $cells .= la_TableCell(__('Total'));
@@ -2376,7 +2388,6 @@ function zbs_UserTraffStats($login) {
                                 if ($stgEach['year'] == $each['year'] and $stgEach['month'] == $each['month']) {
                                     $allprevmonth[$ia]['D0'] += $each['D0'];
                                     $allprevmonth[$ia]['U0'] += $each['U0'];
-                                    //$allprevmonth[$ia]['cash'] += $each['cash'];
                                 }
                             }
                         }
@@ -2410,7 +2421,9 @@ function zbs_UserTraffStats($login) {
                 foreach ($allprevmonth as $io2 => $eachprevmonth) {
                     $cells = la_TableCell($eachprevmonth['year']);
                     $cells .= la_TableCell(__($monthnames[$eachprevmonth['month']]));
-                    $cells .= la_TableCell($eachdir['rulename']);
+                    if ($renderClassColumns) {
+                        $cells .= la_TableCell($eachdir['rulename']);
+                    }
                     $cells .= la_TableCell(zbs_convert_size($eachprevmonth['D' . $eachdir['rulenumber']]));
                     $cells .= la_TableCell(zbs_convert_size($eachprevmonth['U' . $eachdir['rulenumber']]));
                     $cells .= la_TableCell(zbs_convert_size(($eachprevmonth['U' . $eachdir['rulenumber']] + $eachprevmonth['D' . $eachdir['rulenumber']])));
@@ -2497,8 +2510,6 @@ function zbs_ModulesMenuShow($icons = false) {
         } else {
             $result .= la_tag('li') . la_Link($afuUrl, __('Support AFU')) . la_tag('li', true);
         }
-    } else {
-        $result .= '<!-- pidar detected -->';
     }
 
     if (!empty($all_modules)) {
@@ -2550,6 +2561,9 @@ function zbs_ModulesMenuShow($icons = false) {
         }
     }
 
+    if (@$globconf['IM_JUST_PIDAR']) {
+        $result .= '<!-- PDDTCD -->'; //pidar detected
+    }
 
     return ($result);
 }

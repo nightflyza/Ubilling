@@ -9,4 +9,4 @@ if ($usConfig['TRAFFIC_ENABLED']) {
 } else {
     show_window(__('Sorry'), __('This module is disabled'));
 }
-?>
+

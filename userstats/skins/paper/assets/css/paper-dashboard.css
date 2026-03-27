@@ -6338,6 +6338,10 @@ License - nucleoapp.com/license/
         hyphens: auto;
         margin-bottom: 20px;
     }
+
+    h3, .h3 {
+        font-size: 1.5em;
+    }
     .card-stats [class*="col-"] .statistics::after {
         display: none;
     }
@@ -6420,6 +6424,11 @@ License - nucleoapp.com/license/
         hyphens: auto;
         margin-bottom: 15px;
     }
+
+    h3, .h3 {
+        font-size: 1.2em;
+    }
+    
     .navbar[class*='navbar-toggleable-'] .container {
         margin-left: 0;
         margin-right: 0;
