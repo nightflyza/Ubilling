@@ -251,6 +251,7 @@ class Metabolism {
         }
     }
 
+
     /**
      * Renders default module controls panel
      * 
