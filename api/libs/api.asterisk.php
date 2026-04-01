@@ -109,6 +109,14 @@ class Asterisk {
      * @var bool
      */
     protected $extMobilesON = false;
+
+    /**
+     * Queue support on CDR reports
+     *
+     * @var bool
+     */
+    protected $useQueue = false;
+
     // Database's vars:
     private $connected;
     private $AsteriskDB;
@@ -127,9 +135,9 @@ class Asterisk {
 
     /**
      * Loads system alter config into private property for further usage
-     * 
+     *
      * @global object $ubillingConfig
-     * 
+     *
      * @return void
      */
     protected function loadAlter() {
@@ -140,11 +148,12 @@ class Asterisk {
         $this->recordingsFormat = ($ubillingConfig->getAlterParam('ASTERISK_CALLRECS_FORMAT')) ? $ubillingConfig->getAlterParam('ASTERISK_CALLRECS_FORMAT') : '';
         $this->getFullCDRCELData = $ubillingConfig->getAlterParam('ASTERISK_GET_FULL_CDR_CEL_DATA');
         $this->extMobilesON = $ubillingConfig->getAlterParam('MOBILES_EXT');
+        $this->useQueue = $ubillingConfig->getAlterParam('ASTERISK_QUEUE_SUPPORT');
     }
 
     /**
      * Load Asterisk config
-     * 
+     *
      * @return array
      */
     protected function AsteriskLoadConf() {
@@ -154,7 +163,7 @@ class Asterisk {
 
     /**
      * Inits system messages helper object for further usage
-     * 
+     *
      * @return void
      */
     protected function initMessages() {
@@ -163,7 +172,7 @@ class Asterisk {
 
     /**
      * Initalizes system cache object for further usage
-     * 
+     *
      * @return void
      */
     protected function initCache() {
@@ -172,12 +181,16 @@ class Asterisk {
 
     /**
      * Check for last cache data and if need clean
-     * 
+     *
      * @return void
      */
     protected function AsterikCacheInfoClean($asteriskTable, $from, $to) {
         if (!empty($from) and ! empty($to)) {
-            $query = "select uniqueid from `" . $asteriskTable . "` where `calldate` BETWEEN '" . $from . " 00:00:00' AND '" . $to . " 23:59:59' AND (`lastapp`='dial' OR `lastapp`='queue') ORDER BY `calldate` DESC LIMIT 1";
+            $appCondition = $this->useQueue ? "(`lastapp`='dial' OR `lastapp`='queue')" : "`lastapp`='dial'";
+            $query = "SELECT uniqueid FROM `" . $asteriskTable . "`
+                      WHERE `calldate` BETWEEN '" . $from . " 00:00:00' AND '" . $to . " 23:59:59'
+                      AND " . $appCondition . " ORDER BY `calldate` DESC
+                      LIMIT 1";
             $cacheName = $from . $to;
             $cache_uniqueid_key = 'ASTERISK_UNI_' . $cacheName;
             $last_db_uniqueid = $this->AsteriskQuery($query);
@@ -192,7 +205,7 @@ class Asterisk {
 
     /**
      * Gets Asterisk config from DB, or sets default values
-     * 
+     *
      * @return array
      */
     protected function AsteriskGetConf() {
@@ -271,9 +284,9 @@ class Asterisk {
 
     /**
      * Another database query execution
-     * 
+     *
      * @param string $query - query to execute
-     * 
+     *
      * @return array
      */
     public function AsteriskQuery($query) {
@@ -294,7 +307,7 @@ class Asterisk {
 
     /**
      * Load numbers aliases
-     * 
+     *
      * @return array
      */
     protected function AsteriskLoadNumAliases() {
@@ -303,7 +316,7 @@ class Asterisk {
 
     /**
      * Get numbers aliases from database, or set default empty array
-     * 
+     *
      * @return array
      */
     protected function AsteriskGetNumAliases() {
@@ -323,7 +336,7 @@ class Asterisk {
 
     /**
      * Returns Asterisk module configuration form
-     * 
+     *
      * @return string
      */
     public function AsteriskConfigForm() {
@@ -352,8 +365,8 @@ class Asterisk {
 
     /**
      * Returns number aliases aka phonebook form
-     * 
-     * @return string 
+     *
+     * @return string
      */
     public function AsteriskAliasesForm() {
         $result = '';
@@ -382,7 +395,7 @@ class Asterisk {
 
     /**
      * Delete aliase for number on Ubstorage
-     * 
+     *
      * @return void
      */
     public function AsteriskDeleteAlias($deleteAliasNum) {
@@ -400,7 +413,7 @@ class Asterisk {
 
     /**
      * Create aliases for number on Ubstorage
-     * 
+     *
      * @return void
      */
     public function AsteriskCreateAlias($newAliasNum, $newAliasName) {
@@ -417,7 +430,7 @@ class Asterisk {
 
     /**
      * Update parametrs for Asterisk configs on Ubstorage
-     * 
+     *
      * @return void
      */
     public function AsteriskUpdateConfig($newhost, $newdb, $newtable, $newlogin, $newpassword, $newcachetime = '2592000', $dopmobile = '') {
@@ -434,7 +447,7 @@ class Asterisk {
 
     /**
      * Returns CDR date selection form
-     * 
+     *
      * @return string
      */
     public function panel() {
@@ -494,9 +507,9 @@ class Asterisk {
 
     /**
      * Get status switch and other for user, if his bumber have database. Use only in remote API.
-     * 
+     *
      * @param int $number, $param
-     * 
+     *
      * @return mixed
      */
     public function AsteriskGetInfoApi($number, $param) {
@@ -527,9 +540,9 @@ class Asterisk {
 
     /**
      * Converts per second time values to human-readable format
-     * 
+     *
      * @param int $seconds - time interval in seconds
-     * 
+     *
      * @return string
      */
     protected function AsteriskFormatTime($seconds) {
@@ -556,7 +569,7 @@ class Asterisk {
 
     /**
      * Gets Login by caller number from DB
-     * 
+     *
      * @return void
      */
     protected function AsteriskGetLoginByNumberQuery() {
@@ -629,7 +642,7 @@ class Asterisk {
 
     /**
      * Returns all of users realnames records as login=>realname array
-     * 
+     *
      * @return void
      */
     protected function AsteriskGetUserAllRealnames() {
@@ -638,7 +651,7 @@ class Asterisk {
 
     /**
      * Returns user address by some user login
-     * 
+     *
      * @return void
      */
     protected function AsteriskGetFulladdress() {
@@ -647,9 +660,9 @@ class Asterisk {
 
     /**
      * Returns human readable alias from phone book by phone number
-     * 
+     *
      * @param string $number - phone number
-     * 
+     *
      * @return string
      */
     protected function AsteriskGetNumAlias($number) {
@@ -666,9 +679,9 @@ class Asterisk {
 
     /**
      * Gets Ubilling user login by number mobile
-     * 
+     *
      * @param string $number - number
-     * 
+     *
      * @return array
      */
     protected function AsteriskGetLoginByNumber($number) {
@@ -702,7 +715,7 @@ class Asterisk {
     /**
      * Gets Asterisk CDR data from database and manage cache
      * Load AsteriskGetLoginByNumberQuery,  AsteriskGetUserAllRealnames, AsteriskGetFulladdress
-     * 
+     *
      * @return mixed
      */
     protected function AsteriskGetCDR() {
@@ -716,6 +729,7 @@ class Asterisk {
         $to = isset($_GET['dateto']) ? mysql_real_escape_string($_GET['dateto']) : curdate();
         $asteriskTable = mysql_real_escape_string($this->config['table']);
         $user_login = isset($_GET['username']) ? vf($_GET['username']) : '';
+        $appCondition = $this->useQueue ? "(`lastapp`='dial' OR `lastapp`='queue')" : "`lastapp`='dial'";
 
         if (!empty($this->recordingsPath) and ! empty($this->recordingsCELTab)) {
             $cel = $this->recordingsCELTab;
@@ -737,7 +751,7 @@ class Asterisk {
 
             // Building a query to the database
             $where_part = '';
-            $query = "select " . $query_flds . " from `" . $asteriskTable . "` " . $query_voice_join . " where `calldate` BETWEEN '" . $from . " 00:00:00' AND '" . $to . " 23:59:59' AND (";
+            $query = "SELECT " . $query_flds . " FROM `" . $asteriskTable . "` " . $query_voice_join . " WHERE `calldate` BETWEEN '" . $from . " 00:00:00' AND '" . $to . " 23:59:59' AND (";
             if (!empty($phone) AND empty($where_part)) {
                 $where_part .= "`src` LIKE '%" . $phone . "' OR `dst` LIKE '%" . $phone . "'";
             } elseif (!empty($phone) AND ! empty($where_part)) {
@@ -767,19 +781,19 @@ class Asterisk {
                 $where_part .= " OR `src` LIKE '%" . $dop_mobile . "' OR `dst` LIKE '%" . $dop_mobile . "'";
             }
             $query .= $where_part;
-            $query .= ") AND (`lastapp`='dial' OR `lastapp`='queue') ORDER BY `calldate` DESC";
+            $query .= ") AND " . $appCondition . " ORDER BY `calldate` DESC";
 
             if (!empty($where_part)) {
                 $rawResult = $this->AsteriskQuery($query);
             }
         } elseif (wf_CheckGet(array('countnum')) and empty($user_login)) {
-            $query = "select *,count(`src`) as `countnum`  from `" . $asteriskTable . "` where `calldate` BETWEEN '" . $from . " 00:00:00' AND '" . $to . " 23:59:59' AND (`lastapp`='dial' OR `lastapp`='queue') GROUP BY `src`";
+            $query = "select *,count(`src`) as `countnum`  from `" . $asteriskTable . "` where `calldate` BETWEEN '" . $from . " 00:00:00' AND '" . $to . " 23:59:59' AND " . $appCondition . " GROUP BY `src`";
             $rawResult = $this->AsteriskQuery($query);
         } else {
-            // check if need clean cache 
+            // check if need clean cache
             $this->AsterikCacheInfoClean($asteriskTable, $from, $to);
             // Start check cache and get result
-            $query = "select " . $query_flds . " from `" . $asteriskTable . "` " . $query_voice_join . " where `calldate` BETWEEN '" . $from . " 00:00:00' AND '" . $to . " 23:59:59' AND (`lastapp`='dial' OR `lastapp`='queue') ORDER BY `calldate` DESC";
+            $query = "select " . $query_flds . " from `" . $asteriskTable . "` " . $query_voice_join . " where `calldate` BETWEEN '" . $from . " 00:00:00' AND '" . $to . " 23:59:59' AND " . $appCondition . " ORDER BY `calldate` DESC";
 
             $obj = $this;
             $cacheName = $from . $to;
@@ -1136,9 +1150,9 @@ class Asterisk {
             $whereStr = "WHERE `users`.`login` = '" . $login . "'";
         }
 
-        $query = "SELECT `login`, `Password`, `Cash`, `Credit`, `CreditExpire`, `Passive`, `Down`, `AlwaysOnline`, `Tariff`, 
-                         `tariffs`.`Fee`, `tariffs`.`period`, `contracts`.`contract`, `phones`.`mobile`, `tAgents`.`agentid`, `tAgents`.`contrname`  
-                    FROM `users` 
+        $query = "SELECT `login`, `Password`, `Cash`, `Credit`, `CreditExpire`, `Passive`, `Down`, `AlwaysOnline`, `Tariff`,
+                         `tariffs`.`Fee`, `tariffs`.`period`, `contracts`.`contract`, `phones`.`mobile`, `tAgents`.`agentid`, `tAgents`.`contrname`
+                    FROM `users`
                         LEFT JOIN `tariffs` ON (`users`.`Tariff` = `tariffs`.`name`)
                         LEFT JOIN `contracts` USING(`login`)
                         LEFT JOIN `phones` USING(`login`)
