@@ -89,3 +89,5 @@ $lang['def']['Signup date'] = 'Дата підключення';
 $lang['def']['Telegram active'] = 'Активний Telegram';
 $lang['def']['To contact us, go to the Support section'] = 'Для спілкування, перейдіть до розділу «Підтримка»';
 $lang['def']['Telegram bot'] = 'Telegram бот';
+$lang['def']['Send to Telegram'] = 'Надіслати в Telegram';
+$lang['def']['Send also to Telegram'] = 'Надіслати також в Telegram';

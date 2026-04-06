@@ -153,7 +153,7 @@ function zb_TicketUpdateReply($replyid, $newtext) {
  * @param int $replyto
  * @param string $admin
  * 
- * @return void
+ * @return int
  */
 function zb_TicketCreate($from, $to, $text, $replyto = 'NULL', $admin = '') {
     $from = mysql_real_escape_string($from);
@@ -167,7 +167,34 @@ function zb_TicketCreate($from, $to, $text, $replyto = 'NULL', $admin = '') {
     nr_query($query);
 
     $logreplyto = (empty($replyto)) ? '' : 'REPLY TO [' . $replyto . ']';
-    log_register("TICKET CREATE (" . $to . ") " . $logreplyto);
+    $newticketid = simple_get_lastid('ticketing');
+    log_register('TICKET CREATE [' . $to . '] ' . $logreplyto);
+    return ($newticketid);
+}
+
+
+/**
+ * Sends message to Telegram chat
+ * 
+ * @param int $ticketId
+ * @param string $message
+ * @param int $chatId
+ * 
+ * @return void
+ */
+function zb_TicketSendCTTGMessage($ticketId, $message, $chatId) {
+    global $ubillingConfig;
+    $ticketId = ubRouting::filters($ticketId, 'int');
+    $chatId = ubRouting::filters($chatId, 'int');
+    $message = strip_tags($message);
+    $message = ubRouting::filters($message, 'safe');
+    
+    if ($ubillingConfig->getAlterParam('CLAPTRAPBOT_HELPDESK_INTEGRATION')) {
+        $clapTrapBot = new ClapTrapBot($ubillingConfig->getAlterParam('CLAPTRAPBOT_TOKEN'));
+        $sendingResult = $clapTrapBot->directSendToChatId($chatId, $message);
+        log_register('REPLY SEND TO TG [' . $ticketId . '] `' . $chatId . '`');
+    }
+    
 }
 
 /**
@@ -430,17 +457,24 @@ function web_TicketsTAPLister() {
  * Returns ticket reply form with typical answer presets if its available
  * 
  * @param int $ticketid
+ * @param int $clapTrapEnableFlag 0 - disabled, 1 - enabled, 2 - checkbox checked
+ * @param int $claptrapChatId 
  * 
  * @return string
  */
-function web_TicketReplyForm($ticketid) {
+function web_TicketReplyForm($ticketid, $clapTrapEnableFlag = 0, $claptrapChatId = 0) {
     $ticketid = vf($ticketid, 3);
     $ticketdata = zb_TicketGetData($ticketid);
     if (!empty($ticketdata)) {
     $ticketstate = $ticketdata['status'];
     if (!$ticketstate) {
         $replyinputs = wf_HiddenInput('postreply', $ticketid);
-        $replyinputs .= wf_tag('textarea', false, '', 'name="replytext" cols="60" rows="10"  id="ticketreplyarea"') . wf_tag('textarea', true) . wf_tag('br');;
+        $replyinputs .= wf_tag('textarea', false, '', 'name="replytext" cols="60" rows="10"  id="ticketreplyarea"') . wf_tag('textarea', true) . wf_tag('br');
+        if ($clapTrapEnableFlag and !empty($claptrapChatId)) {
+            $tgCheckBoxState = ($clapTrapEnableFlag == 2) ? true : false;
+            $replyinputs .= wf_CheckInput('cttgsendmsg', __('Send also to Telegram'), true, $tgCheckBoxState);
+            $replyinputs .= wf_HiddenInput('cttgchatid', $claptrapChatId);
+        }
         $replyinputs .= wf_Submit('Reply');
         $replyform = wf_Form('', 'POST', $replyinputs, 'glamour');
         $replyform .= web_TicketsTAPLister();
@@ -489,6 +523,87 @@ function web_TicketReplyEditForm($replyid) {
 
 
 /**
+ * Renders all ticket replies block
+ * 
+ * @param int $ticketid
+ * @param array $ticketreplies
+ * 
+ * @return string
+ */
+function web_TicketReplies($ticketid, $ticketreplies = array()) {
+    $result = '';
+    $ticketid = ubRouting::filters($ticketid, 'int');
+    $ticketdata = zb_TicketGetData($ticketid);
+    @$employeeNames = unserialize(ts_GetAllEmployeeLoginsCached());
+    $userRealName = __('Unknown');
+
+    if (empty($ticketreplies)) {
+        $ticketreplies = zb_TicketGetReplies($ticketid);
+    }
+
+    if (!empty($ticketdata)) {
+        $userLogin = $ticketdata['from'];
+        //this data not used cache, to be 100% actual
+        $userData = zb_UserGetAllData($userLogin);
+        $userData = $userData[$userLogin];
+        if (!empty($userData)) {
+            $userRealName = $userData['realname'];
+        }
+
+        if (!empty($ticketreplies)) {
+            $result .= wf_tag('h2') . __('Replies') . wf_tag('h2', true);
+            $result .= wf_CleanDiv();
+            foreach ($ticketreplies as $io => $eachreply) {
+                //reply
+                if ($eachreply['admin']) {
+                    $adminRealName = (isset($employeeNames[$eachreply['admin']])) ? $employeeNames[$eachreply['admin']] : $eachreply['admin'];
+                    $replyauthor = wf_tag('center') . wf_tag('b') . $adminRealName . wf_tag('b', true) . wf_tag('center', true);
+                    $replyavatar = wf_tag('center') . FaceKit::getAvatar($eachreply['admin'], '64') . wf_tag('center', true);
+                } else {
+                    $replyauthor = wf_tag('center') . wf_tag('b') . $userRealName . wf_tag('b', true) . wf_tag('center', true);
+                    $replyavatar = wf_tag('center') . wf_img('skins/userava.png') . wf_tag('center', true);
+                }
+
+                $replyactions = wf_tag('center');
+                $replyactions .= wf_JSAlert('?module=ticketing&showticket=' . $ticketdata['id'] . '&deletereply=' . $eachreply['id'], web_delete_icon(), 'Removing this may lead to irreparable results') . ' ';
+                $replyactions .= wf_JSAlert('?module=ticketing&showticket=' . $ticketdata['id'] . '&editreply=' . $eachreply['id'], web_edit_icon(), 'Are you serious');
+                $replyactions .= wf_tag('center', true);
+
+                // reply body 
+                if (ubRouting::checkGet('editreply')) {
+                    if (ubRouting::get('editreply', 'int') == $eachreply['id']) {
+                        //is this reply editing?
+                        $replytext = web_TicketReplyEditForm($eachreply['id']);
+                    } else {
+                        //not this ticket edit
+                        $replytext = strip_tags($eachreply['text']);
+                    }
+                } else {
+                    //normal text by default
+                    $replytext = strip_tags($eachreply['text']);
+                    $replytext = nl2br($replytext);
+                }
+
+                $replypanel = $replyauthor . wf_tag('br') . $replyavatar . wf_tag('br') . $replyactions;
+
+                $tablecells = wf_TableCell('', '20%');
+                $tablecells .= wf_TableCell($eachreply['date']);
+                $tablerows = wf_TableRow($tablecells, 'row2');
+
+                $tablecells = wf_TableCell($replypanel);
+                $tablecells .= wf_TableCell($replytext);
+                $tablerows .= wf_TableRow($tablecells, 'row3');
+
+                $result .= wf_TableBody($tablerows, '100%', '0', 'glamour');
+                $result .= wf_CleanDiv();
+            }
+        }
+    }
+
+    return ($result);
+}
+
+/**
  * Renders ticket, all of replies and all needed controls/forms for they
  * 
  * @param int $ticketid
@@ -504,11 +619,10 @@ function web_TicketDialogue($ticketid) {
 
     if (!empty($ticketdata)) {
     $ticketreplies = zb_TicketGetReplies($ticketid);
-    @$employeeNames = unserialize(ts_GetAllEmployeeLoginsCached());
     $dialog = array();
     $lastUserPrompt = '';
     $moreContextFlag = $ubillingConfig->getAlterParam('HIVE_MORE_CONTEXT', 0);
-    $clapTrapEnableFlag = $ubillingConfig->getAlterParam('CLAPTRAPBOT_HELPDESK_INTEGRATION', false);
+    $clapTrapEnableFlag = $ubillingConfig->getAlterParam('CLAPTRAPBOT_HELPDESK_INTEGRATION', 0);
     $clapTrapAuthData =array();
     $claptrapChatId = 0;
     $claptrapActive = 0;
@@ -660,62 +774,31 @@ function web_TicketDialogue($ticketid) {
 
 
     if (!empty($ticketreplies)) {
-        $result .= wf_tag('h2') . __('Replies') . wf_tag('h2', true);
-        $result .= wf_CleanDiv();
         foreach ($ticketreplies as $io => $eachreply) {
-            //reply
             if ($eachreply['admin']) {
-                $adminRealName = (isset($employeeNames[$eachreply['admin']])) ? $employeeNames[$eachreply['admin']] : $eachreply['admin'];
-                $replyauthor = wf_tag('center') . wf_tag('b') . $adminRealName . wf_tag('b', true) . wf_tag('center', true);
-                $replyavatar = wf_tag('center') . FaceKit::getAvatar($eachreply['admin'], '64') . wf_tag('center', true);
                 $dialog[] = array(
                     'role' => 'assistant',
                     'content' => $eachreply['text']
                 );
             } else {
-                $replyauthor = wf_tag('center') . wf_tag('b') . $userRealName . wf_tag('b', true) . wf_tag('center', true);
-                $replyavatar = wf_tag('center') . wf_img('skins/userava.png') . wf_tag('center', true);
                 $lastUserPrompt = $eachreply['text'];
                 $dialog[] = array(
                     'role' => 'user',
                     'content' => $eachreply['text']
                 );
             }
-
-            $replyactions = wf_tag('center');
-            $replyactions .= wf_JSAlert('?module=ticketing&showticket=' . $ticketdata['id'] . '&deletereply=' . $eachreply['id'], web_delete_icon(), 'Removing this may lead to irreparable results') . ' ';
-            $replyactions .= wf_JSAlert('?module=ticketing&showticket=' . $ticketdata['id'] . '&editreply=' . $eachreply['id'], web_edit_icon(), 'Are you serious');
-            $replyactions .= wf_tag('center', true);
-
-            // reply body 
-            if (ubRouting::checkGet('editreply')) {
-                if (ubRouting::get('editreply', 'int') == $eachreply['id']) {
-                    //is this reply editing?
-                    $replytext = web_TicketReplyEditForm($eachreply['id']);
-                } else {
-                    //not this ticket edit
-                    $replytext = strip_tags($eachreply['text']);
-                }
-            } else {
-                //normal text by default
-                $replytext = strip_tags($eachreply['text']);
-                $replytext = nl2br($replytext);
-            }
-
-            $replypanel = $replyauthor . wf_tag('br') . $replyavatar . wf_tag('br') . $replyactions;
-
-            $tablecells = wf_TableCell('', '20%');
-            $tablecells .= wf_TableCell($eachreply['date']);
-            $tablerows = wf_TableRow($tablecells, 'row2');
-
-            $tablecells = wf_TableCell($replypanel);
-            $tablecells .= wf_TableCell($replytext);
-            $tablerows .= wf_TableRow($tablecells, 'row3');
-
-            $result .= wf_TableBody($tablerows, '100%', '0', 'glamour');
-            $result .= wf_CleanDiv();
         }
     }
+
+    //replies list block
+    if (!empty($ticketreplies) and !$ticketdata['status']) {
+        $ticketRepliesZen=new ZenFlow('ticketreplies_'.$ticketid, web_TicketReplies($ticketid),3000);
+        $ticketRepliesZen->setSoundOnChange('modules/jsc/sounds/message.mp3');
+        $result .= $ticketRepliesZen->render();
+    } else {
+        $result .= web_TicketReplies($ticketid, $ticketreplies);
+    }
+    
 
     // Add AI chat button and functionality
     if (!empty($userData)) {
@@ -749,7 +832,13 @@ function web_TicketDialogue($ticketid) {
         }
     }
 
-    $tablecells = wf_TableCell(web_TicketReplyForm($ticketid), '50%', '', 'valign="top"');
+    if ($claptrapActive and !empty($claptrapChatId) and $clapTrapEnableFlag) {
+        $ticketReplyForm = web_TicketReplyForm($ticketid, $clapTrapEnableFlag, $claptrapChatId);
+    } else {
+        $ticketReplyForm = web_TicketReplyForm($ticketid);
+    }
+
+    $tablecells = wf_TableCell($ticketReplyForm, '50%', '', 'valign="top"');
     $tablecells .= wf_TableCell($previoustickets, '50%', '', 'valign="top"');
     $tablerows = wf_TableRow($tablecells);
 

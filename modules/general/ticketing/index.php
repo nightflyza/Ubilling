@@ -55,7 +55,12 @@ if (cfr('TICKETING')) {
                 $originaladdress = zb_TicketGetData(ubRouting::post('postreply', 'int'));
                 $originaladdress = $originaladdress['from'];
                 $admin = whoami();
-                zb_TicketCreate('NULL', $originaladdress, ubRouting::post('replytext', 'safe'), ubRouting::post('postreply', 'int'), $admin);
+                $newTicketId = zb_TicketCreate('NULL', $originaladdress, ubRouting::post('replytext', 'safe'), ubRouting::post('postreply', 'int'), $admin);
+                
+                //posting message also to Telegram
+                if (ubRouting::checkPost(array('cttgsendmsg', 'cttgchatid'))) {
+                    zb_TicketSendCTTGMessage($newTicketId, ubRouting::post('replytext'), ubRouting::post('cttgchatid'));
+                }
                 ubRouting::nav("?module=ticketing&showticket=" . ubRouting::post('postreply', 'int'));
             }
 

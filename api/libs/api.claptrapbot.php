@@ -175,6 +175,13 @@ class ClapTrapBot extends WolfDispatcher {
     protected $userTagId=0;
 
     /**
+     * Contains helpdesk integration flag
+     *
+     * @var int
+     */
+    protected $helpdeskIntegrationFlag=0;
+
+    /**
      * Some predefined stuff
      */
     const TABLE_AUTH = 'ct_auth';
@@ -191,6 +198,7 @@ class ClapTrapBot extends WolfDispatcher {
     const OPTION_TOKEN='CLAPTRAPBOT_TOKEN';
     const OPTION_AUTH_STRING='CLAPTRAPBOT_AUTH_STRING';
     const OPTION_HOOK_URL='CLAPTRAPBOT_HOOK_URL';
+    const OPTION_HELPDESK='CLAPTRAPBOT_HELPDESK_INTEGRATION';
     const PROUTE_VALIDATE='ctbvalidator';
     const VALIDATION_RESULT='HA! I was MADE to open doors!';
     
@@ -261,6 +269,10 @@ class ClapTrapBot extends WolfDispatcher {
 
         if (isset($this->altCfg[self::OPTION_TAG_ID])) {
             $this->userTagId = ubRouting::filters($this->altCfg[self::OPTION_TAG_ID], 'int');
+        }
+
+        if (isset($this->altCfg[self::OPTION_HELPDESK])) {
+            $this->helpdeskIntegrationFlag = ubRouting::filters($this->altCfg[self::OPTION_HELPDESK], 'int');
         }
     }
 
@@ -857,6 +869,23 @@ class ClapTrapBot extends WolfDispatcher {
             }
         }
         return ($result);
+    }
+
+
+    /**
+     * Sends message to some chat id via Telegram API
+     * 
+     * @param int $chatId remote chatId
+     * @param string $message text message to send
+     * 
+     * @return string
+     */
+    public function directSendToChatId($chatId, $message) {
+        $result = '';
+        if (!empty($chatId)) {
+            $result = $this->telegram->directPushMessage($chatId, $message);
+        }
+        return($result);
     }
 
 //
@@ -1575,10 +1604,24 @@ class ClapTrapBot extends WolfDispatcher {
                         if (empty($replyToTicketId)) {
                             $creationLabel=__('A new technical support request has been created').'# '.$newTicketId;
                         } else {
-                            $creationLabel=__('Ticket created').', '.__('as reply to').'# '.$replyToTicketId;
+                             $creationLabel=__('Ticket created').', '.__('as reply to').'# '.$replyToTicketId;
                         }
-                        $this->sendToUser($this->icons['GOOD'].' '.$creationLabel);
-                        $this->actionSupport();
+
+                        
+                        //message creation confirmation
+                        if (!$this->helpdeskIntegrationFlag) {
+                         $this->sendToUser($this->icons['GOOD'].' '.$creationLabel);
+                        } else {
+                            if (empty($replyToTicketId)) {
+                                $this->sendToUser($this->icons['GOOD'].' '.$creationLabel);
+                            }
+                        }
+
+                        //force tickets list update on new ticket creation
+                        if (empty($replyToTicketId)) {
+                          $this->actionSupport();
+                        }
+                        
                     } else {
                         $this->sendToUser($this->icons['ERROR'].' '.__('Ticket creation failed'));
                     }
