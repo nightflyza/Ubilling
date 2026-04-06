@@ -501,12 +501,28 @@ function web_TicketDialogue($ticketid) {
     $ticketid = ubRouting::filters($ticketid, 'int');
     $ticketdata = zb_TicketGetData($ticketid);
     $result .= wf_tag('p', false, '', 'align="right"') . wf_BackLink('?module=ticketing', 'Back to tickets list', true) . wf_tag('p', true);
+
     if (!empty($ticketdata)) {
     $ticketreplies = zb_TicketGetReplies($ticketid);
     @$employeeNames = unserialize(ts_GetAllEmployeeLoginsCached());
     $dialog = array();
     $lastUserPrompt = '';
     $moreContextFlag = $ubillingConfig->getAlterParam('HIVE_MORE_CONTEXT', 0);
+    $clapTrapEnableFlag = $ubillingConfig->getAlterParam('CLAPTRAPBOT_HELPDESK_INTEGRATION', false);
+    $clapTrapAuthData =array();
+    $claptrapChatId = 0;
+    $claptrapActive = 0;
+
+    if ($clapTrapEnableFlag) {
+        $botToken = $ubillingConfig->getAlterParam('CLAPTRAPBOT_TOKEN');
+        $clapTrapBot = new ClapTrapBot($botToken);
+        $allAuthData = $clapTrapBot->getAuthDataAll();
+        if (isset($allAuthData[$ticketdata['from']])) {
+            $clapTrapAuthData = $allAuthData[$ticketdata['from']];
+            $claptrapChatId = $clapTrapAuthData['chatid'];
+            $claptrapActive = $clapTrapAuthData['active'];
+        }
+    }
 
         $userLogin = $ticketdata['from'];
         //this data not used cache, to be 100% actual
@@ -546,6 +562,10 @@ function web_TicketDialogue($ticketid) {
         $tablecells .= wf_TableCell(__('Tariff'));
         $tablecells .= wf_TableCell(__('Balance'));
         $tablecells .= wf_TableCell(__('Credit'));
+        if ($clapTrapEnableFlag) {
+            $tablecells .= wf_TableCell(__('Telegram bot'));
+        }
+
         $tablecells .= wf_TableCell(__('Processed'));
         $tablerows = wf_TableRow($tablecells, 'row1');
 
@@ -559,6 +579,10 @@ function web_TicketDialogue($ticketid) {
         $tablecells .= wf_TableCell($userTariff);
         $tablecells .= wf_TableCell($userCash);
         $tablecells .= wf_TableCell($userCredit);
+        if ($clapTrapEnableFlag) {
+            $tablecells .= wf_TableCell(web_bool_led($claptrapActive));
+        }
+
         $tablecells .= wf_TableCell(web_bool_led($ticketdata['status']));
         $tablerows .= wf_TableRow($tablecells, 'row3');
         $result .= wf_TableBody($tablerows, '100%', '0');

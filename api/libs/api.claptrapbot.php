@@ -814,7 +814,6 @@ class ClapTrapBot extends WolfDispatcher {
     public function handleEmptyAction() {
         $currentContext=$this->getContext();
         if (!empty($currentContext)) {
-
             //handling new support requests or existing tickets threads
             if ($this->isFeatureEnabled('support')) {
                 if ($currentContext=='support' or ispos($currentContext, 'viewsupportthread_')) {
@@ -823,8 +822,14 @@ class ClapTrapBot extends WolfDispatcher {
                 } else {
                     if ($this->loggedIn) {
                         if ($currentContext!='auth') {
-                         $this->sendToUser($this->icons['WARNING'].' '.__('This will not work').': '.__('Unknown command'));
+                         $this->sendToUser($this->icons['WARNING'].' '.__('This will not work').': '.__('To contact us, go to the Support section'));
                         }
+                    }
+                }
+            } else {
+                if ($this->loggedIn) {
+                    if ($currentContext!='auth') {
+                     $this->sendToUser($this->icons['WARNING'].' '.__('This will not work').': '.__('Unknown command'));
                     }
                 }
             }

@@ -87,3 +87,5 @@ $lang['def']['Install hook'] = 'Встановити хук';
 $lang['def']['Actual bot hook state'] = 'Актуальний стан хуку бота';
 $lang['def']['Signup date'] = 'Дата підключення';
 $lang['def']['Telegram active'] = 'Активний Telegram';
+$lang['def']['To contact us, go to the Support section'] = 'Для спілкування, перейдіть до розділу «Підтримка»';
+$lang['def']['Telegram bot'] = 'Telegram бот';
