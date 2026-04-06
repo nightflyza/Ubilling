@@ -4979,14 +4979,16 @@ class Warehouse {
             if (!empty($tmpArr)) {
                 krsort($tmpArr);
                 $employeeLogins = unserialize(ts_GetAllEmployeeLoginsCached());
-                $cells = wf_TableCell(__('Date'));
-                $cells .= wf_TableCell(__('Type'));
-                $cells .= wf_TableCell(__('Warehouse storage'));
-                $cells .= wf_TableCell(__('Count'));
-                $cells .= wf_TableCell(__('Price'));
-                $cells .= wf_TableCell(__('Actions'));
-                $cells .= wf_TableCell(__('Admin'));
-                $rows = wf_TableRow($cells, 'row1');
+                $columns = array(
+                    __('Date'),
+                    __('Type'),
+                    __('Warehouse storage'),
+                    __('Count'),
+                    __('Price'),
+                    __('Actions'),
+                    __('Admin')
+                );
+                $data = array();
 
                 foreach ($tmpArr as $io => $eachDate) {
                     if (!empty($eachDate)) {
@@ -5047,14 +5049,15 @@ class Warehouse {
                                         $opPrice = 0;
                                     }
 
-                                    $cells = wf_TableCell(wf_tag('font', false, '', 'color="' . $rowColor . '"') . $eachOp['date'] . wf_tag('font', true));
-                                    $cells .= wf_TableCell(wf_tag('font', false, '', 'color="' . $rowColor . '"') . $opTypeName . wf_tag('font', true) . ' ' . $opLink);
-                                    $cells .= wf_TableCell(@$this->allStorages[$eachOp['storageid']]);
-                                    $cells .= wf_TableCell($eachOp['count'] . ' ' . $itemUnitType);
-                                    $cells .= wf_TableCell($opPrice);
-                                    $cells .= wf_TableCell($from . ' ' . wf_img('skins/arrow_right_green.png') . ' ' . $to);
-                                    $cells .= wf_TableCell($administratorName);
-                                    $rows .= wf_TableRow($cells, 'row3');
+                                    $data[] = array(
+                                        wf_tag('font', false, '', 'color="' . $rowColor . '"') . $eachOp['date'] . wf_tag('font', true),
+                                        wf_tag('font', false, '', 'color="' . $rowColor . '"') . $opTypeName . wf_tag('font', true) . ' ' . $opLink,
+                                        @$this->allStorages[$eachOp['storageid']],
+                                        $eachOp['count'] . ' ' . $itemUnitType,
+                                        $opPrice,
+                                        $from . ' ' . wf_img('skins/arrow_right_green.png') . ' ' . $to,
+                                        $administratorName
+                                    );
                                 }
                             }
                         }
@@ -5062,7 +5065,8 @@ class Warehouse {
                 }
 
 
-                $result = wf_TableBody($rows, '100%', 0, 'sortable');
+                $opts = 'order: [[ 0, "desc" ]], "dom": \'<"F"lfB>rti<"F"ps>\',  buttons: [\'csv\', \'excel\', \'pdf\', \'print\']';
+                $result = wf_JqDtEmbed($columns, $data, false, __('History'), 25, $opts);
 
                 if ($this->altCfg['PHOTOSTORAGE_ENABLED']) {
                     $photoStorage = new PhotoStorage(self::PHOTOSTORAGE_SCOPE, $itemtypeId);
