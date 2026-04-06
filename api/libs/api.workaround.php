@@ -2820,10 +2820,11 @@ function zb_NumUnEncode($data) {
  * @global object $ubillingConfig
  * @param array $usersarr as index=>login or login=>login
  * @param array $extraColumns optional extra columns: array( 'Column name' => array( login => value, ... ), ... )
+ * @param bool $dataTables optional use DataTable for output
  *
  * @return string
  */
-function web_UserArrayShower($usersarr, $extraColumns = array()) {
+function web_UserArrayShower($usersarr, $extraColumns = array(), $dataTables = false) {
     global $ubillingConfig;
     $alterconf = $ubillingConfig->getAlter();
     $useCacheFlag = (@$alterconf['USERLISTS_USE_CACHE']) ? true : false;
@@ -2853,6 +2854,27 @@ function web_UserArrayShower($usersarr, $extraColumns = array()) {
             $fastcash = false;
         }
 
+        $columns = array(
+            __('Login'),
+            __('Address'),
+            __('Real Name'),
+            __('IP'),
+            __('Tariff')
+        );
+        if ($alterconf['ONLINE_LAT']) {
+            $columns[] = __('LAT');
+        }
+        $columns[] = __('Active');
+        if ($alterconf['DN_ONLINE_DETECT']) {
+            $columns[] = __('Users online');
+        }
+        $columns[] = __('Balance');
+        $columns[] = __('Credit');
+        foreach ($extraColumns as $colName => $colData) {
+            $columns[] = __($colName);
+        }
+
+        $tableData = array();
         $tablecells = wf_TableCell(__('Login'));
         $tablecells .= wf_TableCell(__('Address'));
         $tablecells .= wf_TableCell(__('Real Name'));
@@ -2909,6 +2931,13 @@ function web_UserArrayShower($usersarr, $extraColumns = array()) {
             $tablecells .= wf_TableCell(@$thisUserData['realname']);
             $tablecells .= wf_TableCell(@$thisUserData['ip'], '', '', 'sorttable_customkey="' . ip2int(@$thisUserData['ip']) . '"');
             $tablecells .= wf_TableCell(@$thisUserData['Tariff']);
+            $rowData = array(
+                $profilelink,
+                @$thisUserData['fulladress'],
+                @$thisUserData['realname'],
+                @$thisUserData['ip'],
+                @$thisUserData['Tariff']
+            );
             if ($alterconf['ONLINE_LAT']) {
                 if (isset($allUserLat[$eachlogin])) {
                     $cUserLat = date("Y-m-d H:i:s", $allUserLat[$eachlogin]);
@@ -2916,23 +2945,32 @@ function web_UserArrayShower($usersarr, $extraColumns = array()) {
                     $cUserLat = __('No');
                 }
                 $tablecells .= wf_TableCell($cUserLat);
+                $rowData[] = $cUserLat;
             }
             $tablecells .= wf_TableCell($activity, '', '', 'sorttable_customkey="' . $activity_flag . '"');
+            $rowData[] = $activity;
             if ($alterconf['DN_ONLINE_DETECT']) {
                 if (file_exists(DATA_PATH . 'dn/' . $eachlogin)) {
                     $online_flag = 1;
                 } else {
                     $online_flag = 0;
                 }
-                $tablecells .= wf_TableCell(web_bool_star($online_flag), '', '', 'sorttable_customkey="' . $online_flag . '"');
+                $onlineValue = web_bool_star($online_flag);
+                $tablecells .= wf_TableCell($onlineValue, '', '', 'sorttable_customkey="' . $online_flag . '"');
+                $rowData[] = $onlineValue;
             }
             $tablecells .= wf_TableCell($usercash);
             $tablecells .= wf_TableCell($usercredit);
+            $rowData[] = $usercash;
+            $rowData[] = $usercredit;
             foreach ($extraColumns as $colName => $colData) {
-                $tablecells .= wf_TableCell(isset($colData[$eachlogin]) ? $colData[$eachlogin] : '');
+                $extraValue = isset($colData[$eachlogin]) ? $colData[$eachlogin] : '';
+                $tablecells .= wf_TableCell($extraValue);
+                $rowData[] = $extraValue;
             }
 
             $tablerows .= wf_TableRow($tablecells, 'row5');
+            $tableData[] = $rowData;
             $totalCount++;
             $userState = zb_UserIsAlive($thisUserData);
             switch ($userState) {
@@ -2968,10 +3006,35 @@ function web_UserArrayShower($usersarr, $extraColumns = array()) {
                 }
 
                 $tablerows .= wf_TableRow($tablecells, 'row5');
+                $rowData = array(
+                    $profileLink . ' - ' . __('User not exists') . '!',
+                    '-',
+                    '-',
+                    '-',
+                    '-'
+                );
+                if ($alterconf['ONLINE_LAT']) {
+                    $rowData[] = '-';
+                }
+                $rowData[] = '-';
+                if ($alterconf['DN_ONLINE_DETECT']) {
+                    $rowData[] = '-';
+                }
+                $rowData[] = '-';
+                $rowData[] = '-';
+                foreach ($extraColumns as $colName => $colData) {
+                    $rowData[] = '-';
+                }
+                $tableData[] = $rowData;
             }
         }
 
-        $result = wf_TableBody($tablerows, '100%', '0', 'sortable');
+        if ($dataTables) {
+            $opts = 'order: [[ 0, "asc" ]]';
+            $result = wf_JqDtEmbed($columns, $tableData, false, __('Users'), 100, $opts);
+        } else {
+            $result = wf_TableBody($tablerows, '100%', '0', 'sortable');
+        }
 
         $totalsIcon = ($useCacheFlag) ? wf_img_sized('skins/icon_cache.png', __('From cache'), '12') : wf_img_sized('skins/icon_stats_16.gif', '', '12');
         $result .= $totalsIcon . ' ' . __('Total') . ': ' . $totalCount . wf_tag('br');

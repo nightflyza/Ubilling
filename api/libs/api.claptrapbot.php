@@ -575,6 +575,16 @@ class ClapTrapBot extends WolfDispatcher {
     }
 
     /**
+     * Returns all users auth data from database as login=>authData
+     * 
+     * @return array
+     */
+    public function getAuthDataAll() {
+        $result = $this->authDb->getAll('login');
+        return($result);
+    }
+
+    /**
      * Saves auth data to database with active flag and clears cache
      * 
      * @return void

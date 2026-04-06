@@ -85,3 +85,5 @@ $lang['def']['Hook URL is not accepting requests'] = 'URL хуку не прий
 $lang['def']['Not valid ClapTrapBot hook URL'] = 'Невірний URL хуку ClapTrapBot';
 $lang['def']['Install hook'] = 'Встановити хук';
 $lang['def']['Actual bot hook state'] = 'Актуальний стан хуку бота';
+$lang['def']['Signup date'] = 'Дата підключення';
+$lang['def']['Telegram active'] = 'Активний Telegram';

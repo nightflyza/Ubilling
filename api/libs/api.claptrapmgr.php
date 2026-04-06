@@ -4,9 +4,32 @@
  * CL4P-TP management interface
  */    
 class ClapTrapMgr  {
+    /**
+     * Contains system alter config as key=>value
+     *
+     * @var array
+     */
     protected $altCfg = array();
+
+    /**
+     * Contains current instance bot token
+     *
+     * @var string
+     */
     protected $token = '';
+
+    /**
+     * Contains current instance hook URL
+     *
+     * @var string
+     */
     protected $hookUrl = '';
+
+    /**
+     * Contains current instance authentication string
+     *
+     * @var string
+     */
     protected $authString = '';
 
     /**
@@ -32,6 +55,7 @@ class ClapTrapMgr  {
 
     //other predefined stuff
     const URL_ME = '?module=cltpmgr';
+    const ROUTE_CONFIG='hookconfig';
     const ROUTE_INSTALL='install';
     const PROUTE_HOOK_URL = 'newhookinstall';
     
@@ -44,32 +68,66 @@ class ClapTrapMgr  {
         $this->initBotInstance();
     }
 
+    /**
+     * Loads system alter config into protected property for further usage
+     * 
+     * @global object $ubillingConfig
+     * 
+     * @return void
+     */
     protected function loadAlter() {
         global $ubillingConfig;
         $this->altCfg = $ubillingConfig->getAlter();
     }
 
 
+    /**
+     * Sets current instance options from config values
+     * 
+     * @return void
+     */
     protected function setOptions() {
         $this->token = $this->altCfg[ClapTrapBot::OPTION_TOKEN];
         $this->hookUrl = $this->altCfg[ClapTrapBot::OPTION_HOOK_URL];
         $this->authString = $this->altCfg[ClapTrapBot::OPTION_AUTH_STRING];
     }
 
+    /**
+     * Initializes Telegram object instance
+     * 
+     * @return void
+     */
     protected function initTelegram() {
         if (!empty($this->token)) {
             $this->telegram = new UbillingTelegram($this->token);
         }
     }
 
+    /**
+     * Initializes message helper object instance
+     * 
+     * @return void
+     */
     protected function initMessages() {
         $this->messages = new UbillingMessageHelper();
     }
 
+    /**
+     * Initializes ClapTrapBot object instance
+     * 
+     * @return void
+     */
     protected function initBotInstance() {
         if (!empty($this->token)) { 
             $this->botInstance = new ClapTrapBot($this->token);
         }
+    }
+
+    public function renderControls() {
+        $result = '';
+        $result .= wf_Link(self::URL_ME, web_icon_search() . ' ' . __('Users'), false, 'ubButton') . ' ';
+        $result.= wf_Link(self::URL_ME . '&' . self::ROUTE_CONFIG.'=true', web_icon_extended() . ' ' . __('Configuration'), false, 'ubButton') . ' ';
+        return($result);
     }
 
 
@@ -105,6 +163,13 @@ class ClapTrapMgr  {
     }
 
 
+    /**
+     * Checks if hook URL is valid
+     * 
+     * @param string $hookUrl
+     * 
+     * @return string
+     */
     protected function isHookUrlValid($hookUrl) {
         $result = '';
         if (!empty($hookUrl)) {
@@ -136,6 +201,11 @@ class ClapTrapMgr  {
         return($result);
     }
 
+    /**
+     * Renders install hook form
+     * 
+     * @return string
+     */
     public function renderInstallHookForm() {
         $result = '';
         if (!empty($this->token) and !empty($this->hookUrl)) {
@@ -150,6 +220,13 @@ class ClapTrapMgr  {
         return($result);
     }
 
+    /**
+     * Installs hook for ClapTrapBot
+     * 
+     * @param string $hookUrl
+     * 
+     * @return string
+     */
     public function installHook($hookUrl) {
         $result = '';
         if (!empty($this->token) and !empty($hookUrl)) {
@@ -220,6 +297,39 @@ class ClapTrapMgr  {
             $result = $this->messages->getStyledMessage(__('Invalid hook info'), 'error');
         }
         return($result); 
+    }
+
+
+    /**
+     * Renders auth data as users list with additional columns
+     * 
+     * @return string
+     */
+    public function renderAuthData() {
+        $result = '';
+        $authData = $this->botInstance->getAuthDataAll();
+        if (!empty($authData)) {
+            $userLogins=array();
+            $extraColumns=array();
+            $allChatIds=array();
+            $allRegDates=array();
+            $allTgActive=array();
+            foreach ($authData as $eachLogin => $eachData) {
+                $userLogins[] = $eachLogin;
+                $allChatIds[$eachLogin]= $eachData['chatid'];
+                $allRegDates[$eachLogin]= $eachData['date'];
+                $allTgActive[$eachLogin]= web_bool_led($eachData['active']);
+            }
+
+            $extraColumns['Chat ID'] = $allChatIds;
+            $extraColumns['Signup date'] = $allRegDates;
+            $extraColumns['Telegram active'] = $allTgActive;
+            
+            $result.=web_UserArrayShower($userLogins, $extraColumns, true);
+        } else {
+            $result = $this->messages->getStyledMessage(__('Nothing to show'), 'warning');
+        }
+        return($result);
     }
 
 }
