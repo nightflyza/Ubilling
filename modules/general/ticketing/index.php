@@ -41,6 +41,7 @@ if (cfr('TICKETING')) {
             if (!ubRouting::checkGet('calendarview')) {
                 $viewControl =  wf_Link('?module=ticketing&calendarview=true', wf_img('skins/icon_calendar.gif', __('As calendar')), false, '');
                 show_window($configControl . __('Available user tickets') . ' ' . $viewControl, web_TicketsShow());
+                zb_BillingStats();
             } else {
                 $viewControl =  wf_Link('?module=ticketing', wf_img('skins/icon_table.png', __('Grid view')), false, '');
                 show_window($configControl . __('Available user tickets') . ' ' . $viewControl, web_TicketsCalendar());
