@@ -835,6 +835,7 @@ class ClapTrapBot extends WolfDispatcher {
                     if ($this->loggedIn) {
                         if ($currentContext!='auth') {
                          $this->sendToUser($this->icons['WARNING'].' '.__('This will not work').': '.__('To contact us, go to the Support section'));
+                         $this->actionKeyboard(__('Select an action').' '. $this->icons['DOWN']);
                         }
                     }
                 }
