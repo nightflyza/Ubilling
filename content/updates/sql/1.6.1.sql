@@ -1,0 +1,22 @@
+CREATE TABLE IF NOT EXISTS `ticketing_tgmap` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `ticket_reply_id` int(11) NOT NULL DEFAULT '0',
+  `ticket_thread_id` int(11) NOT NULL DEFAULT '0',
+  `chat_id` bigint(20) NOT NULL DEFAULT '0',
+  `message_id` int(11) NOT NULL DEFAULT '0',
+  `action` varchar(32) NOT NULL DEFAULT '',
+  `status` varchar(16) NOT NULL DEFAULT '',
+  `request_payload` mediumtext,
+  `response_payload` mediumtext,
+  `error_text` text,
+  `is_current` tinyint(1) NOT NULL DEFAULT '0',
+  `admin` varchar(255) NOT NULL DEFAULT '',
+  `created_at` datetime NOT NULL,
+  `updated_at` datetime NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_reply` (`ticket_reply_id`),
+  KEY `idx_thread` (`ticket_thread_id`),
+  KEY `idx_chat_msg` (`chat_id`,`message_id`),
+  KEY `idx_current` (`ticket_reply_id`,`is_current`),
+  KEY `idx_created` (`created_at`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;

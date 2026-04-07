@@ -75,6 +75,54 @@ function zb_TicketGetData($ticketid) {
 }
 
 /**
+ * Returns thread ID for ticket/reply record.
+ *
+ * @param array $ticketData
+ *
+ * @return int
+ */
+function zb_TicketGetThreadIdByData($ticketData = array()) {
+    $result = 0;
+    if (!empty($ticketData)) {
+        $ticketId = ubRouting::filters($ticketData['id'], 'int');
+        $replyId = ubRouting::filters($ticketData['replyid'], 'int');
+        if (!empty($replyId)) {
+            $result = $replyId;
+        } else {
+            $result = $ticketId;
+        }
+    }
+    return ($result);
+}
+
+/**
+ * Returns safe ticket user login as formatted suffix.
+ *
+ * @param array $ticketData
+ *
+ * @return string
+ */
+function zb_TicketGetUserLoginSuffix($ticketData = array()) {
+    $result = '()';
+    if (!empty($ticketData)) {
+        $userLogin = '';
+        if (isset($ticketData['from'])) {
+            $userLogin = trim($ticketData['from']);
+        }
+        if (empty($userLogin) or strtoupper($userLogin) == 'NULL') {
+            if (isset($ticketData['to'])) {
+                $userLogin = trim($ticketData['to']);
+            }
+        }
+        if (!empty($userLogin) and strtoupper($userLogin) != 'NULL') {
+            $userLogin = ubRouting::filters($userLogin, 'safe');
+            $result = '(' . $userLogin . ')';
+        }
+    }
+    return ($result);
+}
+
+/**
  * Returns array of replies by some existing ticket
  * 
  * @param int $ticketid
@@ -124,9 +172,11 @@ function zb_TicketDeleteReplies($ticketid) {
  */
 function zb_TicketDeleteReply($replyid) {
     $replyid = vf($replyid, 3);
+    $replyData = zb_TicketGetData($replyid);
+    $threadId = zb_TicketGetThreadIdByData($replyData);
     $query = "DELETE FROM `ticketing` WHERE `id`='" . $replyid . "'";
     nr_query($query);
-    log_register("TICKET REPLY DELETE [" . $replyid . "]");
+    log_register("TICKET REPLY DELETE [" . $replyid . "] [" . $threadId . "]");
 }
 
 /**
@@ -139,9 +189,12 @@ function zb_TicketDeleteReply($replyid) {
  */
 function zb_TicketUpdateReply($replyid, $newtext) {
     $replyid = vf($replyid, 3);
+    $replyData = zb_TicketGetData($replyid);
+    $threadId = zb_TicketGetThreadIdByData($replyData);
+    $userLoginSuffix = zb_TicketGetUserLoginSuffix($replyData);
     $newtext = strip_tags($newtext);
     simple_update_field('ticketing', 'text', $newtext, "WHERE `id`='" . $replyid . "'");
-    log_register("TICKET REPLY EDIT [" . $replyid . "]");
+    log_register("TICKET REPLY EDIT [" . $replyid . "] " . $userLoginSuffix . " [" . $threadId . "]");
 }
 
 /**
@@ -168,7 +221,10 @@ function zb_TicketCreate($from, $to, $text, $replyto = 'NULL', $admin = '') {
 
     $logreplyto = (empty($replyto)) ? '' : 'REPLY TO [' . $replyto . ']';
     $newticketid = simple_get_lastid('ticketing');
-    log_register('TICKET CREATE [' . $to . '] ' . $logreplyto);
+    log_register('TICKET CREATE (' . $to . ') ' . $logreplyto);
+    if (!empty($replyto)) {
+        log_register("TICKET REPLY CREATE [" . $newticketid . "] [" . $replyto . "]");
+    }
     return ($newticketid);
 }
 
@@ -180,21 +236,417 @@ function zb_TicketCreate($from, $to, $text, $replyto = 'NULL', $admin = '') {
  * @param string $message
  * @param int $chatId
  * 
- * @return void
+ * @return array
  */
 function zb_TicketSendCTTGMessage($ticketId, $message, $chatId) {
     global $ubillingConfig;
+    $result = array(
+        'ok' => false,
+        'message_id' => 0,
+        'raw_response' => '',
+        'error' => ''
+    );
     $ticketId = ubRouting::filters($ticketId, 'int');
     $chatId = ubRouting::filters($chatId, 'int');
     $message = strip_tags($message);
     $message = ubRouting::filters($message, 'safe');
     
     if ($ubillingConfig->getAlterParam('CLAPTRAPBOT_HELPDESK_INTEGRATION')) {
+        $ticketData = zb_TicketGetData($ticketId);
+        $threadId = zb_TicketGetThreadIdByData($ticketData);
+        $userLoginSuffix = zb_TicketGetUserLoginSuffix($ticketData);
+
         $clapTrapBot = new ClapTrapBot($ubillingConfig->getAlterParam('CLAPTRAPBOT_TOKEN'));
-        $sendingResult = $clapTrapBot->directSendToChatId($chatId, $message);
-        log_register('REPLY SEND TO TG [' . $ticketId . '] `' . $chatId . '`');
+        $sendingResultRaw = $clapTrapBot->directSendToChatId($chatId, $message);
+        $result = zb_TicketCTTGParseApiResult($sendingResultRaw);
+        $result['raw_response'] = $sendingResultRaw;
+
+        $isCurrent = 0;
+        if ($result['ok'] and !empty($result['message_id'])) {
+            zb_TicketCTTGMapSetCurrent($ticketId, 0);
+            $isCurrent = 1;
+            log_register('TICKET TG SEND OK REPLY [' . $ticketId . '] ' . $userLoginSuffix . ' CHAT `' . $chatId . '` MSGID `' . $result['message_id'] . '` [' . $threadId . ']');
+        } else {
+            log_register('TICKET TG SEND FAIL REPLY [' . $ticketId . '] ' . $userLoginSuffix . ' CHAT `' . $chatId . '` [' . $threadId . ']');
+        }
+
+        zb_TicketCTTGMapLogAction(
+            $ticketId,
+            $threadId,
+            $chatId,
+            $result['message_id'],
+            'send',
+            ($result['ok']) ? 'ok' : 'fail',
+            $message,
+            $sendingResultRaw,
+            $result['error'],
+            whoami(),
+            $isCurrent
+        );
     }
-    
+
+    return ($result);
+}
+
+/**
+ * Parses Telegram API JSON response.
+ *
+ * @param string $rawResult
+ *
+ * @return array
+ */
+function zb_TicketCTTGParseApiResult($rawResult) {
+    $result = array(
+        'ok' => false,
+        'message_id' => 0,
+        'error' => ''
+    );
+    if (!empty($rawResult)) {
+        $decoded = json_decode($rawResult, true);
+        if (is_array($decoded)) {
+            if (!empty($decoded['ok'])) {
+                $result['ok'] = true;
+            }
+
+            if (isset($decoded['result'])) {
+                if (is_array($decoded['result'])) {
+                    if (isset($decoded['result']['message_id'])) {
+                        $result['message_id'] = ubRouting::filters($decoded['result']['message_id'], 'int');
+                    }
+                }
+            }
+
+            if (isset($decoded['description'])) {
+                $result['error'] = ubRouting::filters($decoded['description'], 'safe');
+            }
+        } else {
+            $result['error'] = 'Invalid telegram JSON reply';
+        }
+    } else {
+        $result['error'] = 'Empty telegram reply';
+    }
+    return ($result);
+}
+
+/**
+ * Writes Telegram sync action into dedicated ticketing map table.
+ *
+ * @param int $ticketReplyId
+ * @param int $ticketThreadId
+ * @param int $chatId
+ * @param int $messageId
+ * @param string $action
+ * @param string $status
+ * @param string $requestPayload
+ * @param string $responsePayload
+ * @param string $errorText
+ * @param string $admin
+ * @param int $isCurrent
+ *
+ * @return void
+ */
+function zb_TicketCTTGMapLogAction($ticketReplyId, $ticketThreadId, $chatId, $messageId, $action, $status, $requestPayload = '', $responsePayload = '', $errorText = '', $admin = '', $isCurrent = 0) {
+    $ticketReplyId = ubRouting::filters($ticketReplyId, 'int');
+    $ticketThreadId = ubRouting::filters($ticketThreadId, 'int');
+    $chatId = ubRouting::filters($chatId, 'int');
+    $messageId = ubRouting::filters($messageId, 'int');
+    $isCurrent = ubRouting::filters($isCurrent, 'int');
+    $action = mysql_real_escape_string($action);
+    $status = mysql_real_escape_string($status);
+    $admin = mysql_real_escape_string($admin);
+    $requestPayload = mysql_real_escape_string($requestPayload);
+    $responsePayload = mysql_real_escape_string($responsePayload);
+    $errorText = mysql_real_escape_string($errorText);
+    $mapDb = new NyanORM('ticketing_tgmap');
+    $mapDb->data('ticket_reply_id', $ticketReplyId);
+    $mapDb->data('ticket_thread_id', $ticketThreadId);
+    $mapDb->data('chat_id', $chatId);
+    $mapDb->data('message_id', $messageId);
+    $mapDb->data('action', $action);
+    $mapDb->data('status', $status);
+    $mapDb->data('request_payload', $requestPayload);
+    $mapDb->data('response_payload', $responsePayload);
+    $mapDb->data('error_text', $errorText);
+    $mapDb->data('is_current', $isCurrent);
+    $mapDb->data('admin', $admin);
+    $mapDb->data('created_at', curdatetime());
+    $mapDb->data('updated_at', curdatetime());
+    $mapDb->create();
+}
+
+/**
+ * Sets current state flag for all Telegram map records by reply ID.
+ *
+ * @param int $ticketReplyId
+ * @param int $state
+ *
+ * @return void
+ */
+function zb_TicketCTTGMapSetCurrent($ticketReplyId, $state = 0) {
+    $ticketReplyId = ubRouting::filters($ticketReplyId, 'int');
+    $state = ubRouting::filters($state, 'int');
+    $mapDb = new NyanORM('ticketing_tgmap');
+    $mapDb->where('ticket_reply_id', '=', $ticketReplyId);
+    $mapDb->data('is_current', $state);
+    $mapDb->data('updated_at', curdatetime());
+    $mapDb->save(true, true);
+}
+
+/**
+ * Returns latest current Telegram map record for reply.
+ *
+ * @param int $ticketReplyId
+ *
+ * @return array
+ */
+function zb_TicketCTTGMapGetCurrent($ticketReplyId) {
+    $result = array();
+    $ticketReplyId = ubRouting::filters($ticketReplyId, 'int');
+    $mapDb = new NyanORM('ticketing_tgmap');
+    $mapDb->where('ticket_reply_id', '=', $ticketReplyId);
+    $mapDb->where('is_current', '=', '1');
+    $mapDb->orderBy('id', 'DESC');
+    $mapDb->limit(1);
+    $mapData = $mapDb->getAll();
+    if (!empty($mapData)) {
+        $result = $mapData[0];
+    }
+    return ($result);
+}
+
+/**
+ * Returns latest statuses for Telegram actions by reply ID.
+ *
+ * @param int $ticketReplyId
+ *
+ * @return array
+ */
+function zb_TicketCTTGMapGetStatusByReply($ticketReplyId) {
+    $result = array(
+        'has_records' => false,
+        'send' => '',
+        'edit' => '',
+        'delete' => ''
+    );
+    $ticketReplyId = ubRouting::filters($ticketReplyId, 'int');
+    $mapDb = new NyanORM('ticketing_tgmap');
+    $mapDb->selectable('action,status');
+    $mapDb->where('ticket_reply_id', '=', $ticketReplyId);
+    $mapDb->orderBy('id', 'DESC');
+    $rawData = $mapDb->getAll();
+    if (!empty($rawData)) {
+        $result['has_records'] = true;
+        foreach ($rawData as $io => $eachRecord) {
+            if ($eachRecord['action'] == 'send' and empty($result['send'])) {
+                $result['send'] = $eachRecord['status'];
+            } else {
+                if ($eachRecord['action'] == 'edit' and empty($result['edit'])) {
+                    $result['edit'] = $eachRecord['status'];
+                } else {
+                    if ($eachRecord['action'] == 'delete' and empty($result['delete'])) {
+                        $result['delete'] = $eachRecord['status'];
+                    }
+                }
+            }
+        }
+    }
+    return ($result);
+}
+
+/**
+ * Returns textual status label for Telegram action.
+ *
+ * @param string $status
+ *
+ * @return string
+ */
+function zb_TicketCTTGMapStatusLabel($status = '') {
+    $result = 'n/a';
+    if (!empty($status)) {
+        $result = strtoupper($status);
+    }
+
+    $result = __($result);
+    return ($result);
+}
+
+/**
+ * Renders compact Telegram delivery status for ticket reply.
+ *
+ * @param int $replyId
+ * @param bool $isAdminReply
+ *
+ * @return string
+ */
+function web_TicketReplyCTTGState($replyId, $isAdminReply = false) {
+    $result = '';
+    $replyId = ubRouting::filters($replyId, 'int');
+    if ($isAdminReply) {
+        $tgStatus = zb_TicketCTTGMapGetStatusByReply($replyId);
+        if (!empty($tgStatus['has_records'])) {
+            $hasCriticalError = false;
+            if ($tgStatus['send'] == 'fail' or $tgStatus['edit'] == 'fail') {
+                $hasCriticalError = true;
+            }
+            $iconPath = 'skins/icon_telegram_16.png';
+            if ($hasCriticalError) {
+                $iconPath = 'skins/icon_telegram_black_16.png';
+            }
+            $title = 'Telegram: '.__('Sended').': ' . zb_TicketCTTGMapStatusLabel($tgStatus['send']);
+            $title .= ', '.__('Edited').': ' . zb_TicketCTTGMapStatusLabel($tgStatus['edit']);
+            $title .= ', '.__('Deleted').': ' . zb_TicketCTTGMapStatusLabel($tgStatus['delete']);
+            $result .= wf_img($iconPath, $title);
+        }
+    }
+    return ($result);
+}
+
+/**
+ * Updates previously sent Telegram message for selected reply.
+ *
+ * @param int $replyId
+ * @param string $newMessage
+ *
+ * @return array
+ */
+function zb_TicketCTTGMessageEdit($replyId, $newMessage) {
+    global $ubillingConfig;
+    $result = array(
+        'ok' => false,
+        'message_id' => 0,
+        'raw_response' => '',
+        'error' => ''
+    );
+    $replyId = ubRouting::filters($replyId, 'int');
+    $newMessage = strip_tags($newMessage);
+    $newMessage = ubRouting::filters($newMessage, 'safe');
+    $mapData = zb_TicketCTTGMapGetCurrent($replyId);
+    $ticketData = zb_TicketGetData($replyId);
+    $threadId = 0;
+    $userLoginSuffix = zb_TicketGetUserLoginSuffix($ticketData);
+    if (!empty($ticketData)) {
+        $threadId = ubRouting::filters($ticketData['replyid'], 'int');
+    }
+
+    if ($ubillingConfig->getAlterParam('CLAPTRAPBOT_HELPDESK_INTEGRATION')) {
+        if (!empty($mapData) and !empty($mapData['chat_id']) and !empty($mapData['message_id'])) {
+            $chatId = ubRouting::filters($mapData['chat_id'], 'int');
+            $messageId = ubRouting::filters($mapData['message_id'], 'int');
+            $editRequest = 'editMessageText:[' . $messageId . '@' . $chatId . ']' . $newMessage;
+            $clapTrapBot = new ClapTrapBot($ubillingConfig->getAlterParam('CLAPTRAPBOT_TOKEN'));
+            $editResultRaw = $clapTrapBot->directSendToChatId($chatId, $editRequest);
+            $result = zb_TicketCTTGParseApiResult($editResultRaw);
+            $result['raw_response'] = $editResultRaw;
+            $result['message_id'] = $messageId;
+            zb_TicketCTTGMapLogAction(
+                $replyId,
+                $threadId,
+                $chatId,
+                $messageId,
+                'edit',
+                ($result['ok']) ? 'ok' : 'fail',
+                $newMessage,
+                $editResultRaw,
+                $result['error'],
+                whoami(),
+                1
+            );
+            if ($result['ok']) {
+                log_register('TICKET TG EDIT OK REPLY [' . $replyId . '] ' . $userLoginSuffix . ' CHAT `' . $chatId . '` MSGID `' . $messageId . '` [' . $threadId . ']');
+            } else {
+                log_register('TICKET TG EDIT FAIL REPLY [' . $replyId . '] ' . $userLoginSuffix . ' CHAT `' . $chatId . '` MSGID `' . $messageId . '` [' . $threadId . ']');
+            }
+        } else {
+            $result['error'] = 'Telegram message mapping not found';
+            zb_TicketCTTGMapLogAction(
+                $replyId,
+                $threadId,
+                0,
+                0,
+                'edit',
+                'skip',
+                $newMessage,
+                '',
+                $result['error'],
+                whoami(),
+                0
+            );
+        }
+    }
+    return ($result);
+}
+
+/**
+ * Deletes previously sent Telegram message for selected reply.
+ *
+ * @param int $replyId
+ *
+ * @return array
+ */
+function zb_TicketCTTGMessageDelete($replyId) {
+    global $ubillingConfig;
+    $result = array(
+        'ok' => false,
+        'message_id' => 0,
+        'raw_response' => '',
+        'error' => ''
+    );
+    $replyId = ubRouting::filters($replyId, 'int');
+    $mapData = zb_TicketCTTGMapGetCurrent($replyId);
+    $ticketData = zb_TicketGetData($replyId);
+    $threadId = 0;
+    $userLoginSuffix = zb_TicketGetUserLoginSuffix($ticketData);
+    if (!empty($ticketData)) {
+        $threadId = ubRouting::filters($ticketData['replyid'], 'int');
+    }
+
+    if ($ubillingConfig->getAlterParam('CLAPTRAPBOT_HELPDESK_INTEGRATION')) {
+        if (!empty($mapData) and !empty($mapData['chat_id']) and !empty($mapData['message_id'])) {
+            $chatId = ubRouting::filters($mapData['chat_id'], 'int');
+            $messageId = ubRouting::filters($mapData['message_id'], 'int');
+            $deleteRequest = 'removeChatMessage:[' . $messageId . '@' . $chatId . ']';
+            $clapTrapBot = new ClapTrapBot($ubillingConfig->getAlterParam('CLAPTRAPBOT_TOKEN'));
+            $deleteResultRaw = $clapTrapBot->directSendToChatId($chatId, $deleteRequest);
+            $result = zb_TicketCTTGParseApiResult($deleteResultRaw);
+            $result['raw_response'] = $deleteResultRaw;
+            $result['message_id'] = $messageId;
+            zb_TicketCTTGMapLogAction(
+                $replyId,
+                $threadId,
+                $chatId,
+                $messageId,
+                'delete',
+                ($result['ok']) ? 'ok' : 'fail',
+                '',
+                $deleteResultRaw,
+                $result['error'],
+                whoami(),
+                0
+            );
+            if ($result['ok']) {
+                zb_TicketCTTGMapSetCurrent($replyId, 0);
+                log_register('TICKET TG DELETE OK REPLY [' . $replyId . '] ' . $userLoginSuffix . ' CHAT `' . $chatId . '` MSGID `' . $messageId . '` [' . $threadId . ']');
+            } else {
+                log_register('TICKET TG DELETE FAIL REPLY [' . $replyId . '] ' . $userLoginSuffix . ' CHAT `' . $chatId . '` MSGID `' . $messageId . '` [' . $threadId . ']');
+            }
+        } else {
+            $result['error'] = 'Telegram message mapping not found';
+            zb_TicketCTTGMapLogAction(
+                $replyId,
+                $threadId,
+                0,
+                0,
+                'delete',
+                'skip',
+                '',
+                '',
+                $result['error'],
+                whoami(),
+                0
+            );
+        }
+    }
+    return ($result);
 }
 
 /**
@@ -555,6 +1007,7 @@ function web_TicketReplies($ticketid, $ticketreplies = array()) {
             $result .= wf_CleanDiv();
             foreach ($ticketreplies as $io => $eachreply) {
                 //reply
+                $isAdminReply = (!empty($eachreply['admin'])) ? true : false;
                 if ($eachreply['admin']) {
                     $adminRealName = (isset($employeeNames[$eachreply['admin']])) ? $employeeNames[$eachreply['admin']] : $eachreply['admin'];
                     $replyauthor = wf_tag('center') . wf_tag('b') . $adminRealName . wf_tag('b', true) . wf_tag('center', true);
@@ -564,14 +1017,21 @@ function web_TicketReplies($ticketid, $ticketreplies = array()) {
                     $replyavatar = wf_tag('center') . wf_img('skins/userava.png') . wf_tag('center', true);
                 }
 
-                $replyactions = wf_tag('center');
-                $replyactions .= wf_JSAlert('?module=ticketing&showticket=' . $ticketdata['id'] . '&deletereply=' . $eachreply['id'], web_delete_icon(), 'Removing this may lead to irreparable results') . ' ';
-                $replyactions .= wf_JSAlert('?module=ticketing&showticket=' . $ticketdata['id'] . '&editreply=' . $eachreply['id'], web_edit_icon(), 'Are you serious');
-                $replyactions .= wf_tag('center', true);
+                $replyactions = '';
+                if ($isAdminReply) {
+                    $replyactions = wf_tag('center');
+                    $replyactions .= wf_JSAlert('?module=ticketing&showticket=' . $ticketdata['id'] . '&deletereply=' . $eachreply['id'], web_delete_icon(), 'Removing this may lead to irreparable results') . ' ';
+                    $replyactions .= wf_JSAlert('?module=ticketing&showticket=' . $ticketdata['id'] . '&editreply=' . $eachreply['id'], web_edit_icon(), 'Are you serious');
+                    $tgStateControl = web_TicketReplyCTTGState($eachreply['id'], $isAdminReply);
+                    if (!empty($tgStateControl)) {
+                        $replyactions .= ' ' . $tgStateControl;
+                    }
+                    $replyactions .= wf_tag('center', true);
+                }
 
                 // reply body 
                 if (ubRouting::checkGet('editreply')) {
-                    if (ubRouting::get('editreply', 'int') == $eachreply['id']) {
+                    if (ubRouting::get('editreply', 'int') == $eachreply['id'] and $isAdminReply) {
                         //is this reply editing?
                         $replytext = web_TicketReplyEditForm($eachreply['id']);
                     } else {
@@ -584,7 +1044,10 @@ function web_TicketReplies($ticketid, $ticketreplies = array()) {
                     $replytext = nl2br($replytext);
                 }
 
-                $replypanel = $replyauthor . wf_tag('br') . $replyavatar . wf_tag('br') . $replyactions;
+                $replypanel = $replyauthor . wf_tag('br') . $replyavatar;
+                if (!empty($replyactions)) {
+                    $replypanel .= wf_tag('br') . $replyactions;
+                }
 
                 $tablecells = wf_TableCell('', '20%');
                 $tablecells .= wf_TableCell($eachreply['date']);
@@ -791,7 +1254,7 @@ function web_TicketDialogue($ticketid) {
     }
 
     //replies list block
-    if (!empty($ticketreplies) and !$ticketdata['status']) {
+    if (!ubRouting::checkGet('editreply') and !empty($ticketreplies) and !$ticketdata['status']) {
         $ticketRepliesZen=new ZenFlow('ticketreplies_'.$ticketid, web_TicketReplies($ticketid),3000);
         $ticketRepliesZen->setSoundOnChange('modules/jsc/sounds/message.mp3');
         $result .= $ticketRepliesZen->render();

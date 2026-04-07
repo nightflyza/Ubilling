@@ -66,13 +66,24 @@ if (cfr('TICKETING')) {
 
             //maybe someone deleting reply
             if (ubRouting::checkGet('deletereply')) {
-                zb_TicketDeleteReply(ubRouting::get('deletereply', 'int'));
+                $replyId = ubRouting::get('deletereply', 'int');
+                $replyData = zb_TicketGetData($replyId);
+                if (!empty($replyData) and !empty($replyData['admin'])) {
+                    zb_TicketCTTGMessageDelete($replyId);
+                    zb_TicketDeleteReply($replyId);
+                }
                 ubRouting::nav("?module=ticketing&showticket=" . $ticketid);
             }
 
             //reply editing sub 
             if (ubRouting::checkPost('editreply')) {
-                zb_TicketUpdateReply(ubRouting::post('editreply', 'int'), ubRouting::post('editreplytext', 'safe'));
+                $replyId = ubRouting::post('editreply', 'int');
+                $replyText = ubRouting::post('editreplytext', 'safe');
+                $replyData = zb_TicketGetData($replyId);
+                if (!empty($replyData) and !empty($replyData['admin'])) {
+                    zb_TicketUpdateReply($replyId, $replyText);
+                    zb_TicketCTTGMessageEdit($replyId, $replyText);
+                }
                 ubRouting::nav("?module=ticketing&showticket=" . $ticketid);
             }
         }
