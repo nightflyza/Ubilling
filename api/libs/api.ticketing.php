@@ -1021,12 +1021,14 @@ function web_TicketReplies($ticketid, $ticketreplies = array()) {
                 if ($isAdminReply) {
                     $replyactions = wf_tag('center');
                     $replyactions .= wf_JSAlert('?module=ticketing&showticket=' . $ticketdata['id'] . '&deletereply=' . $eachreply['id'], web_delete_icon(), 'Removing this may lead to irreparable results') . ' ';
-                    $replyactions .= wf_JSAlert('?module=ticketing&showticket=' . $ticketdata['id'] . '&editreply=' . $eachreply['id'], web_edit_icon(), 'Are you serious');
+                    $replyactions .= wf_JSAlert('?module=ticketing&showticket=' . $ticketdata['id'] . '&editreply=' . $eachreply['id'], web_edit_icon(), 'Are you serious').' ';
                     $tgStateControl = web_TicketReplyCTTGState($eachreply['id'], $isAdminReply);
                     if (!empty($tgStateControl)) {
                         $replyactions .= ' ' . $tgStateControl;
                     }
                     $replyactions .= wf_tag('center', true);
+                } else {
+                    $replyactions = wf_delimiter(0);
                 }
 
                 // reply body 
