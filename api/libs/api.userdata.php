@@ -80,6 +80,28 @@ function zb_UserGetAllRealnames() {
 }
 
 /**
+ * Returns all of users realnames records as login=>realname array from cache
+ * 
+ * @return array
+ */
+function zb_UserGetAllRealnamesCache() {
+    global $ubillingConfig;
+    $result = array();
+    $cachingTimeout = 86400;
+    $optionalCachingTimeout = $ubillingConfig->getAlterParam('USERALLDATA_CACHETIME');
+    if ($optionalCachingTimeout) {
+        if (is_numeric($optionalCachingTimeout)) {
+            $cachingTimeout = $optionalCachingTimeout * 60; //option in minutes
+        }
+    }
+    $cache = new UbillingCache();
+    $result = $cache->getCallback('USER_ALL_REALNAMES', function () {
+        return (zb_UserGetAllRealnames());
+    }, $cachingTimeout);
+    return ($result);
+}
+
+/**
  * Selects all users' IP addresses from database as login=>ip array
  * 
  * @return  array
@@ -124,6 +146,7 @@ function zb_UserGetAllDataCacheClean() {
     global $ubillingConfig;
     $cache = new UbillingCache();
     $cache->delete('USER_ALL_DATA');
+    $cache->delete('USER_ALL_REALNAMES');
     if ($ubillingConfig->getAlterParam('SMARTUP_ENABLED')) {
         $cache->delete('SMARTUP_USERDATA');
         $cache->delete('SMARTUP_PAYIDS');

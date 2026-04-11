@@ -717,25 +717,18 @@ function web_TicketsShow() {
     $tablerows = wf_TableRow($tablecells, 'row1');
 
     if (!empty($alltickets)) {
-        $allrealnames = zb_UserGetAllRealnames();
-        $alladdress = zb_AddressGetFulladdresslist();
-        $alltariffs = zb_TariffsGetAllUsers();
-        $allcash = zb_CashGetAllUsers();
-        $allcredits = zb_CreditGetAllUsers();
-        $alluserips = zb_UserGetAllIPs();
-
+        $allUserData=zb_UserGetAllDataCache();
         foreach ($alltickets as $io => $eachticket) {
-
             $tablecells = wf_TableCell($eachticket['id']);
             $tablecells .= wf_TableCell($eachticket['date']);
             $fromlink = wf_Link('?module=userprofile&username=' . $eachticket['from'], web_profile_icon() . ' ' . $eachticket['from']);
             $tablecells .= wf_TableCell($fromlink);
-            $tablecells .= wf_TableCell(@$allrealnames[$eachticket['from']]);
-            $tablecells .= wf_TableCell(@$alladdress[$eachticket['from']]);
-            $tablecells .= wf_TableCell(@$alluserips[$eachticket['from']]);
-            $tablecells .= wf_TableCell(@$alltariffs[$eachticket['from']]);
-            $tablecells .= wf_TableCell(@$allcash[$eachticket['from']]);
-            $tablecells .= wf_TableCell(@$allcredits[$eachticket['from']]);
+            $tablecells .= wf_TableCell(@$allUserData[$eachticket['from']]['realname']);
+            $tablecells .= wf_TableCell(@$allUserData[$eachticket['from']]['fulladress']);
+            $tablecells .= wf_TableCell(@$allUserData[$eachticket['from']]['ip']);
+            $tablecells .= wf_TableCell(@$allUserData[$eachticket['from']]['Tariff']);
+            $tablecells .= wf_TableCell(@$allUserData[$eachticket['from']]['Cash']);
+            $tablecells .= wf_TableCell(@$allUserData[$eachticket['from']]['Credit']);
             $tablecells .= wf_TableCell(web_bool_led($eachticket['status']), '', '', 'sorttable_customkey="' . $eachticket['status'] . '"');
             $actionlink = wf_Link('?module=ticketing&showticket=' . $eachticket['id'], wf_img_sized('skins/icon_search_small.gif', '', '12') . ' ' . __('Show'), false, 'ubButton');
             $tablecells .= wf_TableCell($actionlink);
@@ -995,11 +988,10 @@ function web_TicketReplies($ticketid, $ticketreplies = array()) {
 
     if (!empty($ticketdata)) {
         $userLogin = $ticketdata['from'];
-        //this data not used cache, to be 100% actual
-        $userData = zb_UserGetAllData($userLogin);
-        $userData = $userData[$userLogin];
-        if (!empty($userData)) {
-            $userRealName = $userData['realname'];
+      
+        $allUserRealNames = zb_UserGetAllRealnamesCache();
+        if (isset($allUserRealNames[$userLogin])) {
+            $userRealName = $allUserRealNames[$userLogin];
         }
 
         if (!empty($ticketreplies)) {

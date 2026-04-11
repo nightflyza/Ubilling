@@ -47,7 +47,7 @@ if (cfr('TICKETING')) {
                 show_window($configControl . __('Available user tickets') . ' ' . $viewControl, web_TicketsCalendar());
             }
         } else {
-            //or view ticket data and replies
+            //or view ticket data and replies as thread
             $ticketid = ubRouting::get('showticket', 'int');
             show_window(__('Ticket') . ':' . $ticketid, web_TicketDialogue($ticketid));
 
