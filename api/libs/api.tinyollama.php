@@ -252,4 +252,172 @@ class TinyOllama {
         }
         return ($result);
     }
+
+    /**
+     * Sends a chat message with optional images to the API.
+     *
+     * Images should be passed either as local file paths or as base64-encoded strings.
+     *
+     * @param string $message The message content.
+     * @param array $images Array of local file paths or base64 image strings.
+     * @param string $role The role of the message sender. Default is 'user'.
+     * @param array $allMessages An array of all previous messages. Default is an empty array.
+     *
+     * @return array|string The API response.
+     *
+     * @throws Exception If model is empty or both message and images are empty.
+     */
+    public function chatWithImages($message = '', $images = array(), $role = 'user', $allMessages = array()) {
+        $result = array();
+        $request = array();
+        $messages = $allMessages;
+        $endPoint = 'chat';
+        $preparedImages = $this->prepareChatImages($images);
+        if (!empty($this->model)) {
+            $request['model'] = $this->model;
+            if (!empty($message) or !empty($preparedImages)) {
+                $currentMessage = array(
+                    'role' => $role,
+                    'content' => $message
+                );
+                if (!empty($preparedImages)) {
+                    $currentMessage['images'] = $preparedImages;
+                }
+                $messages[] = $currentMessage;
+                $request['messages'] = $messages;
+                $request['stream'] = $this->streamingFlag;
+
+                $requestBody = json_encode($request);
+                $this->api->dataPostRaw($requestBody);
+                $rawReply = $this->api->response($this->baseUrl . $endPoint);
+                if ($rawReply) {
+                    if ($this->streamingFlag) {
+                        $result = $rawReply;
+                    } else {
+                        $result = json_decode($rawReply, true);
+                    }
+                }
+            } else {
+                throw new Exception('EX_EMPTY_MESSAGE');
+            }
+        } else {
+            throw new Exception('EX_EMPTY_MODEL');
+        }
+        return ($result);
+    }
+
+    /**
+     * Generates image using selected model via /api/generate endpoint.
+     *
+     * @param string $prompt Text prompt for image generation.
+     * @param int $width Optional image width in pixels.
+     * @param int $height Optional image height in pixels.
+     * @param array $options Optional additional request params.
+     *
+     * @return array|string API response.
+     *
+     * @throws Exception If model or prompt is empty.
+     */
+    public function generateImage($prompt, $width = 0, $height = 0, $options = array()) {
+        $result = array();
+        $request = array();
+        $endPoint = 'generate';
+        if (!empty($this->model)) {
+            $request['model'] = $this->model;
+            if (!empty($prompt)) {
+                $request['prompt'] = $prompt;
+                $request['stream'] = false;
+
+                $width = preg_replace("#[^0-9]#Uis", '', $width);
+                $height = preg_replace("#[^0-9]#Uis", '', $height);
+                if (!empty($width)) {
+                    $request['width'] = (int) $width;
+                }
+                if (!empty($height)) {
+                    $request['height'] = (int) $height;
+                }
+
+                if (!empty($options)) {
+                    foreach ($options as $optionKey => $optionValue) {
+                        $request[$optionKey] = $optionValue;
+                    }
+                }
+
+                $requestBody = json_encode($request);
+                $this->api->dataPostRaw($requestBody);
+                $rawReply = $this->api->response($this->baseUrl . $endPoint);
+                if ($rawReply) {
+                    if (!empty($request['stream'])) {
+                        $result = $rawReply;
+                    } else {
+                        $result = json_decode($rawReply, true);
+                    }
+                }
+            } else {
+                throw new Exception('EX_EMPTY_POMPT');
+            }
+        } else {
+            throw new Exception('EX_EMPTY_MODEL');
+        }
+        return ($result);
+    }
+
+    /**
+     * Prepares an array of images for chat request payload.
+     *
+     * @param array|string $images
+     *
+     * @return array
+     */
+    protected function prepareChatImages($images) {
+        $result = array();
+        if (!is_array($images)) {
+            $images = array($images);
+        }
+
+        if (!empty($images)) {
+            foreach ($images as $io => $rawImage) {
+                $preparedImage = $this->prepareSingleImage($rawImage);
+                if (!empty($preparedImage)) {
+                    $result[] = $preparedImage;
+                }
+            }
+        }
+        return ($result);
+    }
+
+    /**
+     * Converts single image source into base64 payload item.
+     *
+     * @param string $imageData
+     *
+     * @return string
+     */
+    protected function prepareSingleImage($imageData) {
+        $result = '';
+        if (is_string($imageData)) {
+            $imageData = trim($imageData);
+            if (!empty($imageData)) {
+                if (is_file($imageData) and is_readable($imageData)) {
+                    $rawImage = file_get_contents($imageData);
+                    if ($rawImage !== false) {
+                        $result = base64_encode($rawImage);
+                    }
+                } else {
+                    if (strpos($imageData, 'base64,') !== false) {
+                        $parts = explode('base64,', $imageData, 2);
+                        if (isset($parts[1])) {
+                            $imageData = $parts[1];
+                        }
+                    }
+                    $imageData = str_replace(array("\r", "\n", ' '), '', $imageData);
+                    $decodedData = base64_decode($imageData, true);
+                    if ($decodedData !== false and !empty($decodedData)) {
+                        $result = $imageData;
+                    }
+                }
+            }
+        }
+        return ($result);
+    }
 }
