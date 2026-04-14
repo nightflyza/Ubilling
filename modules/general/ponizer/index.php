@@ -239,7 +239,7 @@ if ($altCfg['PON_ENABLED']) {
 
         //pondata cache cleanup
         if (ubRouting::checkGet('pondatacleanup')) {
-            if (cfr('ROOT')) {
+            if (cfr('PONSTUFF')) {
                 $oltData = new OLTAttractor();
                 $ponDataCleanupResult = $oltData->flushAllCacheData();
                 log_register('PON DATACACHE FLUSHED `' . $ponDataCleanupResult . '` CONTAINERS');

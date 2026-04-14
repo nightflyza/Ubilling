@@ -3119,7 +3119,7 @@ class PONizer {
         }
         $statsControls .= wf_Link(self::URL_ME . '&oltstats=true&pollstats=true', wf_img('skins/icon_time_small.png') . ' ' . __('Devices polling stats'), false, 'ubButton') . ' ';
         $statsControls .= wf_Link(self::URL_ME . '&polllogs=true', wf_img('skins/log_icon_small.png') . ' ' . __('OLT polling log'), false, 'ubButton') . ' ';
-        if (cfr('ROOT')) {
+        if (cfr('PONSTUFF')) {
             $cleanupUrl = self::URL_ME . '&oltstats=true&pondatacleanup=true';
             $cleanupCancel = self::URL_ME . '&oltstats=true';
             $cleanupLabel = wf_img('skins/icon_cleanup.png') . ' ' . __('Cache cleanup');
