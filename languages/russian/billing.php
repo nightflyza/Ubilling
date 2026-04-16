@@ -3629,3 +3629,5 @@ $lang['def']['right to manage other PON stuff'] = 'Право управлять
 $lang['def']['Users funds flow'] = 'Движение средств пользователя';
 $lang['def']['Manage One-Punch scripts'] = 'Управление One-Punch скриптами';
 $lang['def']['One-Punch scripts'] = 'One-Punch скрипты';
+$lang['def']['right to renew BGP peers report'] = 'Право обновлять отчет по BGP пирам';
+$lang['def']['right to edit BGP peers names'] = 'Право редактировать названия BGP пиров';

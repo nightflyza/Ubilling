@@ -322,7 +322,7 @@ class BGPMon {
                     $cells .= wf_TableCell(__('Connection'));
                     $cells .= wf_TableCell(__('Time'));
                     $cells .= wf_TableCell(__('Notes'));
-                    if (cfr('ROOT')) {
+                    if (cfr('BGPMONEDIT')) {
                         $cells .= wf_TableCell(__('Actions'));
                     }
                     $rows = wf_TableRow($cells, 'row1');
@@ -346,7 +346,7 @@ class BGPMon {
                         $cells .= wf_TableCell(__($each['stateName']));
                         $cells .= wf_TableCell(zb_formatTime($each['timer']), '', '', 'sorttable_customkey="' . $each['timer'] . '"');
                         $cells .= wf_TableCell($this->getPeerLabel($each['ip']));
-                        if (cfr('ROOT')) {
+                        if (cfr('BGPMONEDIT')) {
                             $actLinks = wf_Link(self::URL_ME . '&' . self::ROUTE_EDIT_NAMES . '=' . $each['ip'], web_edit_icon());
                             $cells .= wf_TableCell($actLinks);
                         }

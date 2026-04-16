@@ -3656,3 +3656,5 @@ $lang['def']['Users funds flow'] = 'Рух коштів користувача';
 $lang['def']['Manage One-Punch scripts'] = 'Керування One-Punch скриптами';
 $lang['def']['Available One-Punch scripts'] = 'Наявні One-Punch скрипти';
 $lang['def']['One-Punch scripts'] = 'One-Punch скрипти';
+$lang['def']['right to renew BGP peers report'] = 'Право оновлювати звіт по BGP';
+$lang['def']['right to edit BGP peers names'] = 'Право редагувати опис BGP пірів';

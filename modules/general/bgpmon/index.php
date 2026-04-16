@@ -5,7 +5,7 @@ if (cfr('BGPMON')) {
         $bgpMon = new BGPMon();
         //forced polling
         if (ubRouting::checkGet($bgpMon::ROUTE_REFRESH)) {
-            if (cfr('ROOT')) {
+            if (cfr('BGPMONRENEW')) {
                 $bgpMon->flushCache();
                 $bgpMon->pollAllDevsStats();
                 ubRouting::nav($bgpMon::URL_ME);
@@ -14,13 +14,13 @@ if (cfr('BGPMON')) {
 
         //editing peers name/description
         if (ubRouting::checkPost($bgpMon::PROUTE_PEER_IP)) {
-            if (cfr('ROOT')) {
+            if (cfr('BGPMONEDIT')) {
                 $bgpMon->savePeerName();
                 ubRouting::nav($bgpMon::URL_ME . '&' . $bgpMon::ROUTE_EDIT_NAMES . '=' . ubRouting::post($bgpMon::PROUTE_PEER_IP));
             }
         }
 
-        if (cfr('ROOT')) {
+        if (cfr('BGPMONRENEW')) {
             show_window('', $bgpMon->renderControls());
         }
 
