@@ -52,7 +52,7 @@ class PTV {
     /**
      * Contains all tariffs data as serviceid=>tariffData
      *
-     * @var string
+     * @var array
      */
     protected $allTariffs = array();
 

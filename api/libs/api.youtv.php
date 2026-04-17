@@ -55,66 +55,101 @@ class YouTV {
     protected $url = 'https://api.youtv.com.ua';
 
     /**
+     * low level debug flag
+     *
+     * @var bool
+     */
+    protected $debugFlag=false;
+
+    /**
+     * Some predefined stuff
+     */
+    const LOG_PATH = 'exports/ytv_debug.log';
+
+    /**
      * Thats constructor. What did you expect there?
      * 
      * @param string $login
      * @param string $password
      * @param string $url
+     * @param bool $debugFlag
      */
-    public function __construct($login, $password, $dealerID) {
+    public function __construct($login, $password, $dealerID, $debugFlag=false) {
 
+        $this->debugFlag = $debugFlag;
         $this->dealerID = $dealerID;
         $this->login = $login;
         $this->password = $password;
+        
 
-        // Получим токен
+        // Getting auth token
         $this->getToken();
     }
 
-
+    /**
+     * Sending request to API
+     * 
+     * @param string $method
+     * @param string $resource
+     * @param array $data
+     * 
+     * @return mixed
+     */
     public function sendRequest($method, $resource, $data = array())
     {
 
         $url = $this->url . $resource;
+        $remote = new OmaeUrl($url);
+        $remote->setTimeout(3);
+        $ubVer = @file_get_contents('RELEASE');
+        $agent = 'UbillingYouTVClient/' . trim($ubVer);
+        $remote->setUserAgent($agent);
+        $remote->setOpt(CURLOPT_VERBOSE, false);
+        $remote->setOpt(CURLOPT_CUSTOMREQUEST, $method);
+        $remote->setOpt(CURLINFO_HEADER_OUT, true);
 
-        $headers = array(
-            "Accept: application/vnd.youtv.v8+json",
-            "Device-UUID: 98765432100",
-            "Accept-Language: ru"
-        );
+        $remote->dataHeader('Accept', 'application/vnd.youtv.v9+json');
+        $remote->dataHeader('Device-UUID', '98765432100');
+        $remote->dataHeader('Accept-Language', 'uk');
 
         if (!empty($this->token)) {
-            $headers[] = "Authorization: Bearer " . $this->token;
+            $remote->dataHeader('Authorization', 'Bearer ' . $this->token);
         }
-
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_VERBOSE, FALSE);
-        curl_setopt($ch, CURLOPT_URL, $url);
-        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 3);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
-        curl_setopt($ch, CURLINFO_HEADER_OUT, TRUE);
-        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $method);
 
         if ($method == 'POST') {
-            curl_setopt($ch, CURLOPT_POST, TRUE);
-            curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
+            $remote->setOpt(CURLOPT_POST, true);
+            $remote->setOpt(CURLOPT_POSTFIELDS, $data);
         }
 
-        $result = curl_exec($ch);
+        $result = $remote->response();
         $response = json_decode($result, true);
+        $httpCode = $remote->httpCode();
+        $httpError = '';
+        $remoteError = $remote->error();
+        if (!empty($remoteError)) {
+            if (isset($remoteError['errormessage'])) {
+                $httpError = $remoteError['errormessage'];
+            }
+        }
 
-        //PHP 8.0+ has no need to close curl resource anymore
-        if (PHP_VERSION_ID < 80000) {
-            curl_close($ch); // Deprecated in PHP 8.5
+        $this->status = $httpCode;
+        $this->error = $httpError;
+
+
+        //low level debug logging
+        if ($this->debugFlag) {
+            $logString=curdatetime().' => ';
+            $logString.='URL: '.$url. ' LOGIN: '.$this->login. ' HTTP CODE: '.$httpCode . ' HTTP ERROR: '.$httpError;
+            file_put_contents(self::LOG_PATH, $logString.PHP_EOL, FILE_APPEND);
+            file_put_contents(self::LOG_PATH, json_encode($response, JSON_PRETTY_PRINT).PHP_EOL, FILE_APPEND);
+            file_put_contents(self::LOG_PATH, '==================' . PHP_EOL, FILE_APPEND);
         }
 
         return $response;
     }
 
     /**
-     * Получаем токен
+     * Retreiving auth token
      */
     private function getToken()
     {
@@ -122,16 +157,21 @@ class YouTV {
             'email'    => $this->login,
             'password' => $this->password
         );
-        $response = $this->sendRequest('POST', '/auth/login', $data);
+
+        $response = $this->sendRequest('POST', '/dealer/auth', $data);
 
         if (isset($response['token'])) {
             $this->token = $response['token'];
+        } else {
+            if (isset($response['data']) and isset($response['data']['token'])) {
+                $this->token = $response['data']['token'];
+            }
         }
     }
 
 
     /**
-     * Список тарифов
+     * Getting tariffs list
      *
      * @return mixed
      */
@@ -144,7 +184,7 @@ class YouTV {
 
 
     /**
-     * Создание пользователя.
+     * New user creation
      *
      * @param $external_id
      * @param $name
@@ -168,7 +208,7 @@ class YouTV {
 
 
     /**
-     * Получение всех пользователей дилера
+     * Getting all dealer users list
      *
      * @return mixed
      */
@@ -180,7 +220,7 @@ class YouTV {
     }
 
     /**
-     * Получение абонента
+     * Getting user by id
      *
      * @param $user_id
      * @return mixed
@@ -193,9 +233,10 @@ class YouTV {
     }
 
     /**
-     * Поиск абонента по external_id
+     * Searching user by external_id
      *
      * @param $user_id
+     * 
      * @return mixed
      */
     public function getUserByExternalId($external_id)
@@ -207,7 +248,13 @@ class YouTV {
 
 
     /**
-     * Активация подписки для пользователя.
+     * Subscription activation for user
+     * 
+     * @param $user_id
+     * @param $price_id
+     * @param $days
+     * 
+     * @return mixed
      */
     public function subscriptions($user_id, $price_id, $days = 365)
     {
@@ -223,11 +270,12 @@ class YouTV {
     }
 
     /**
-     * Блокировка пользователя
-     *     Результат 1 - всё ок
-     *     Результат 0 - уже заблокирован
+     * User blocking
+     *     Result 1 - everything is ok
+     *     Result 0 - already blocked
      *
      * @param $user_id
+     * 
      * @return mixed
      */
     public function blockUser($user_id)

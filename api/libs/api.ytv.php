@@ -3,7 +3,7 @@
 /**
  * YouTV Ubilling abstraction layer
  *
- * https://documenter.getpostman.com/view/13165103/TVYAhgRP#4807007c-a159-4210-9f61-d51807aa36ee
+ * https://documenter.getpostman.com/view/13165103/TVYAhgRP
  */
 class YTV {
 
@@ -60,7 +60,7 @@ class YTV {
     /**
      * Contains all tariffs data as serviceid=>tariffData
      *
-     * @var string
+     * @var array
      */
     protected $allTariffs = array();
 
@@ -86,13 +86,31 @@ class YTV {
     protected $messages = '';
 
     /**
+     * Contains ISP domain preloaded from config
+     *
+     * @var string
+     */
+    protected $ispDomain = '';
+
+    /**
+     * Low level debug flag
+     *
+     * @var bool
+     */
+    protected $debugFlag=false;
+
+    /**
      * Predefined routes, options etc.
      */
     const OPTION_LOGIN = 'YOUTV_LOGIN';
     const OPTION_PASSWORD = 'YOUTV_PASSWORD';
     const OPTION_DEALER_ID = 'YOUTV_DEALER_ID';
+    const OPTION_DEBUG = 'YOUTV_DEBUG';
+    const OPTION_ISPDOMAIN='YOUTV_ISP_DOMAIN';
+
     const TABLE_SUBSCRIBERS = 'youtv_subscribers';
     const TABLE_TARIFFS = 'youtv_tariffs';
+
     const UNDEF = 'undefined_';
     const NEW_WINDOW = 'TARGET="_BLANK"';
     const URL_ME = '?module=youtv';
@@ -119,13 +137,8 @@ class YTV {
     const PROUTE_SETADDTARIFFID = 'changeaddionaltariffs';
 
     /**
-     * I keep my eyes low, looking for my rival
-     * Eyes Low
-     * Playing with the rifle
-     * White dope
-     * Feeling homicidal
-     * Ride slow
-     * Fucking up your spinal
+     * Njegova vatra nit je vodilja
+     * Njegova volja put do uništenja
      */
     public function __construct() {
         $this->initMessages();
@@ -160,6 +173,11 @@ class YTV {
         $this->login = $this->altCfg[self::OPTION_LOGIN];
         $this->password = $this->altCfg[self::OPTION_PASSWORD];
         $this->dealerID = $this->altCfg[self::OPTION_DEALER_ID];
+        $this->ispDomain = $this->altCfg[self::OPTION_ISPDOMAIN];
+        $this->debugFlag = (!empty($this->altCfg[self::OPTION_DEBUG])) ? true : false;
+        if (empty($this->ispDomain)) {
+            $this->ispDomain = 'ubillingisp.ua';
+        }
     }
 
     /**
@@ -178,7 +196,8 @@ class YTV {
      */
     protected function initApi() {
         require_once ('api/libs/api.youtv.php');
-        $this->api = new YouTV($this->login, $this->password, $this->dealerID);
+        $this->api = new YouTV($this->login, $this->password, $this->dealerID, $this->debugFlag);
+    
     }
 
     /**
@@ -226,6 +245,36 @@ class YTV {
         $this->allUserData = zb_UserGetAllData();
     }
 
+    /**
+     * Returns pseudo email for some user login generated from ISP domain
+     *
+     * @param string $userLogin
+     * 
+     * @return void
+     */
+    protected function getPseudoEmail($userLogin) {
+        $result = false;
+        if (!empty($userLogin)) {
+            $result = $userLogin . '@' . $this->ispDomain;
+        }
+        return($result);
+    }
+
+    /**
+     * Returns pseudo password for some user login
+     *
+     * @param string $userLogin
+     * 
+     * @return void
+     */
+    protected function getPseudoPassword($userLogin) {
+        $result = false;
+        if (!empty($userLogin)) {
+            $result = crc32(($userLogin.$userLogin));
+        }
+        return($result);
+    }
+
 
     /**
      *  Registers a new user
@@ -241,15 +290,17 @@ class YTV {
         //user exists
         if (isset($this->allUserData[$userLogin])) {
 
-            //email no empty
-            if(!empty($this->allUserData[$userLogin]['email'])){
+            $userEmail = $this->getPseudoEmail($userLogin);
+
+            //email not empty
+            if(!empty($userEmail)){
 
                 //not registered yet
                 if (!isset($this->allSubscribers[$userLogin])) {
                     $userData = $this->allUserData[$userLogin];
-                    $newPassword = $userData['Password'];
+                    $newPassword = $this->getPseudoPassword($userLogin);
                     $userRealName = $userData['realname'];
-                    $userEmail = $userData['email'];
+                    
 
                     $response = $this->api->createUser($userLogin, $userRealName, $userEmail, $newPassword);
 
@@ -455,11 +506,19 @@ class YTV {
                 $userData = $this->allUserData[$userLogin];
 
                 if ($subData != false) {
+                    $userEmail=$this->getPseudoEmail($userLogin);
+                    $userPassword=$this->getPseudoPassword($userLogin);
                     $cells = wf_TableCell(__('Address'), '', 'row2');
                     $cells .= wf_TableCell(wf_Link(self::URL_USERPROFILE . $userLogin, web_profile_icon() . ' ' . $userData['fulladress']));
                     $rows = wf_TableRow($cells, 'row3');
                     $cells = wf_TableCell(__('ID'), '30%', 'row2');
                     $cells .= wf_TableCell($subData['id']);
+                    $rows .= wf_TableRow($cells, 'row3');
+                    $cells = wf_TableCell(__('Email'), '', 'row2');
+                    $cells .= wf_TableCell($userEmail);
+                    $rows .= wf_TableRow($cells, 'row3');
+                    $cells = wf_TableCell(__('Password'), '', 'row2');
+                    $cells .= wf_TableCell($userPassword);
                     $rows .= wf_TableRow($cells, 'row3');
                     $cells = wf_TableCell(__('Cash'), '', 'row2');
                     $cells .= wf_TableCell($userData['Cash']);
@@ -592,8 +651,7 @@ class YTV {
      */
     protected function renderUserRegisterForm() {
         $result = '';
-        $inputs = wf_TextInput(self::PROUTE_SUBREG, __('Login'), '', false, 20);
-
+        $inputs = wf_TextInput(self::PROUTE_SUBREG, __('Login'), '', false, 20,'login');
         $inputs .= wf_Submit(__('Register'));
         $result .= wf_Form("", 'POST', $inputs, 'glamour');
         return($result);
@@ -640,13 +698,13 @@ class YTV {
      */
     public function createTariff() {
         $result = '';
-        if (ubRouting::checkPost(array(self::PROUTE_CREATETARIFFNAME, self::PROUTE_CREATETARIFFID))) {
+        if (ubRouting::checkPost(self::PROUTE_CREATETARIFFNAME) and ubRouting::checkPost(self::PROUTE_CREATETARIFFID,false)) {
             $tariffId = ubRouting::post(self::PROUTE_CREATETARIFFID, 'int');
             $tariffName = ubRouting::post(self::PROUTE_CREATETARIFFNAME, 'mres');
             $tariffMain = (ubRouting::checkPost(self::PROUTE_CREATETARIFFMAIN)) ? 1 : 0;
             $tariffChans = ubRouting::post(self::PROUTE_CREATETARIFFCHANS, 'mres');
             $tariffFee = ubRouting::post(self::PROUTE_CREATETARIFFFEE);
-            if ($tariffId) {
+            if (is_numeric($tariffId)) {
                 if (!isset($this->allTariffs[$tariffId])) {
                     if ($tariffName) {
                         if (zb_checkMoney($tariffFee)) {
@@ -659,9 +717,11 @@ class YTV {
                             log_register('PTV TARIFF CREATE `' . $tariffName . '` AS [' . $tariffId . '] FEE `' . $tariffFee . '`');
                         } else {
                             $result .= __('Wrong format of money sum');
+                            log_register('PTV TARIFF CREATE `' . $tariffName . '` AS [' . $tariffId . '] WRONG FEE FAIL');
                         }
                     } else {
                         $result .= __('Wrong tariff name');
+                        log_register('PTV TARIFF CREATE `' . $tariffName . '` AS [' . $tariffId . '] WRONG NAME FAIL');
                     }
                 } else {
                     $result .= __('Duplicate element ID');
@@ -669,6 +729,7 @@ class YTV {
                 }
             } else {
                 $result .= __('Wrong tariff id');
+                log_register('PTV TARIFF CREATE `' . $tariffName . '` AS [' . $tariffId . '] WRONG ID FAIL');
             }
         }
         return($result);
@@ -917,5 +978,23 @@ class YTV {
             //charge tariff fee after
             $this->chargeUserFee($userLogin, $tariffId);
         }
+    }
+
+
+    /**
+     * Returns credentials for some user authentication as json reply
+     *
+     * @param string $userLogin
+     * 
+     * @return void
+     */
+    public function getCredentials($userLogin) {
+        $reply = array();
+        $userEmail = $this->getPseudoEmail($userLogin);
+        $userPassword = $this->getPseudoPassword($userLogin);
+
+        $reply['email'] = $userEmail;
+        $reply['password'] = $userPassword;
+        $this->jsonRenderReply($reply);
     }
 }

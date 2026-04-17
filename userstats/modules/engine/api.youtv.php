@@ -109,7 +109,7 @@ class YTVInterface {
      *
      * @param string $request
      *
-     * @return array/bool on error
+     * @return array|bool on error
      */
     protected function getRemoteData($request) {
         $result = false;
@@ -303,16 +303,34 @@ class YTVInterface {
         return ($result);
     }
 
+    /**
+     * Renders information form
+     *
+     * @return string
+     */
     public function renderInfoForm(){
-
         $result = '';
-
-
         if (!empty($this->subscriberData) AND $this->subscriberData['active'] == 1) {
 
-            $result .= la_tag('b') . __('Authorization data') . ': ' . la_tag('b', true) . la_tag('br');
-            $result .= __('Login') . ': ' . zbs_UserGetEmail($this->myLogin) . la_tag('br');
-            $result .= __('Password') . ': ' . $this->allUsers[$this->myLogin]['Password'] . la_delimiter();;
+            $userCredentials = $this->getCredentials($this->myLogin);
+            $userEmail = isset($userCredentials['email']) ? $userCredentials['email'] : '';
+            $userPassword = isset($userCredentials['password']) ? $userCredentials['password'] : '';
+
+            // User auth data:
+            $result .= la_tag('div', false, '', 'style="width:100%; border:1px solid #d8dee9; border-radius:6px; padding:12px; box-sizing:border-box;"');
+            $result .= la_tag('div', false, 'youtv-red s','style="text-align:center;"') . __('Authorization data') . la_tag('div', true);
+
+            $cells = la_TableCell(__('Login'), '25%', '', 'style="font-weight:bold; vertical-align:top;"');
+            $cells .= la_TableCell(htmlentities($userEmail, ENT_QUOTES, 'UTF-8'), '', '', 'style="font-family:monospace;"');
+            $rows = la_TableRow($cells, 'row1');
+
+            $cells = la_TableCell(__('Password'), '25%', '', 'style="font-weight:bold; vertical-align:top;"');
+            $cells .= la_TableCell(htmlentities($userPassword, ENT_QUOTES, 'UTF-8'), '', '', 'style="font-family:monospace;"');
+            $rows .= la_TableRow($cells, 'row1');
+
+            $result .= la_TableBody($rows, '100%', 0, 'resp-table');
+            $result .= la_tag('div', true);
+            $result .= la_delimiter();
 
             // youtv promo start
             $result .= la_tag('div', false, 'text-center', 'style="background: url(//youtv.ua/assets/images/svg/components/abstract-shapes-19.svg) center no-repeat;"');
@@ -323,10 +341,10 @@ class YTVInterface {
                 . la_Link('https://apps.apple.com/us/app/you-tv-onlajn-tv/id1176282993?l=uk', la_img('skins/paper/iconz/app_store.png'))
                 . la_tag('div', true);
             $result .= la_tag('div', false, 'mt-2 mx-n8')
-                . la_Link('#', la_img('skins/paper/iconz/smart_tv.png'))
+                . la_Link('https://play.google.com/store/apps/details?id=ua.youtv.androidtv&hl=uk', la_img('skins/paper/iconz/smart_tv.png'))
                 . la_Link('https://appgallery.huawei.com/#/app/C103041047', la_img('skins/paper/iconz/app_gallery.png'))
                 . la_tag('div', true);
-            $result .= la_tag('div', true); // end youtv promo
+            $result .= la_tag('div', true); 
 
         } else {
             $result = '';
@@ -397,6 +415,23 @@ class YTVInterface {
         return($result);
     }
 
+    /**
+     * Returns pseudo email for some user login
+     *
+     * @param string $userLogin
+     * 
+     * @return array|void
+     */
+    protected function getCredentials($userLogin) {
+        $result = array();
+        if (!empty($userLogin)) {
+            $resultRaw = $this->getRemoteData('getcredentials=' . $userLogin);
+            if (!empty($resultRaw)) {
+                $result = $resultRaw;
+            }
+        }
+        return($result);
+    }
 
     /**
      * Deactivates user service due deleting of tariff

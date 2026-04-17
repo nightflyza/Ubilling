@@ -4,7 +4,6 @@ if (cfr('YOUTV')) {
     if ($ubillingConfig->getAlterParam('YOUTV_ENABLED')) {
         $youtv = new YTV();
 
-
         //new subscriber register
         if (ubRouting::checkPost($youtv::PROUTE_SUBREG)) {
             $userLogin = ubRouting::post($youtv::PROUTE_SUBREG, 'mres');
@@ -22,7 +21,7 @@ if (cfr('YOUTV')) {
         }
 
         //new tariff creation
-        if (ubRouting::checkPost(array($youtv::PROUTE_CREATETARIFFNAME, $youtv::PROUTE_CREATETARIFFID))) {
+        if (ubRouting::checkPost($youtv::PROUTE_CREATETARIFFNAME) and ubRouting::checkPost($youtv::PROUTE_CREATETARIFFID,false)) {
             $tariffCreateResult = $youtv->createTariff();
             if (!$tariffCreateResult) {
                 ubRouting::nav($youtv::URL_ME . '&' . $youtv::ROUTE_TARIFFS . '=true');
@@ -32,8 +31,8 @@ if (cfr('YOUTV')) {
         }
 
         //deleting existing tariff
-        if (ubRouting::checkGet($youtv::ROUTE_TARDEL)) {
-            $tariffDeletionResult = $youtv->deleteTariff(ubRouting::get($youtv::ROUTE_TARDEL));
+        if (ubRouting::checkGet($youtv::ROUTE_TARDEL,false)) {
+            $tariffDeletionResult = $youtv->deleteTariff(ubRouting::get($youtv::ROUTE_TARDEL, 'int'));
             if (!$tariffDeletionResult) {
                 ubRouting::nav($youtv::URL_ME . '&' . $youtv::ROUTE_TARIFFS . '=true');
             } else {
