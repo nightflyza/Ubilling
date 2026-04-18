@@ -2,6 +2,8 @@
 
 /**
  * YouTV API PHP client
+ * 
+ * https://documenter.getpostman.com/view/13165103/TVYAhgRP
  */
 class YouTV {
 
@@ -81,8 +83,6 @@ class YouTV {
         $this->login = $login;
         $this->password = $password;
         
-
-        // Getting auth token
         $this->getToken();
     }
 
@@ -150,23 +150,26 @@ class YouTV {
 
     /**
      * Retreiving auth token
+     * 
+     * @return void
      */
-    private function getToken()
-    {
-        $data = array(
-            'email'    => $this->login,
-            'password' => $this->password
-        );
+    protected function getToken() {
+        if (empty($this->token)) {
+            $data = array(
+                'email'    => $this->login,
+                'password' => $this->password
+            );
 
-        $response = $this->sendRequest('POST', '/dealer/auth', $data);
+            $response = $this->sendRequest('POST', '/dealer/auth', $data);
 
-        if (isset($response['token'])) {
-            $this->token = $response['token'];
-        } else {
-            if (isset($response['data']) and isset($response['data']['token'])) {
-                $this->token = $response['data']['token'];
+            if (isset($response['token'])) {
+                $this->token = $response['token'];
+            } else {
+                if (isset($response['data']) and isset($response['data']['token'])) {
+                    $this->token = $response['data']['token'];
+                }
             }
-        }
+     }
     }
 
 

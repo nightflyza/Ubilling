@@ -20,3 +20,7 @@ CREATE TABLE IF NOT EXISTS `ticketing_tgmap` (
   KEY `idx_current` (`ticket_reply_id`,`is_current`),
   KEY `idx_created` (`created_at`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
+
+ALTER TABLE `youtv_subscribers` ADD `email` VARCHAR(200) NULL AFTER `addtariffs`;
+ALTER TABLE `youtv_subscribers` ADD `password` VARCHAR(42) NULL AFTER `email`;
+ALTER TABLE `youtv_subscribers` ADD INDEX(`login`);

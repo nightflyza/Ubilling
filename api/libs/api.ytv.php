@@ -2,8 +2,6 @@
 
 /**
  * YouTV Ubilling abstraction layer
- *
- * https://documenter.getpostman.com/view/13165103/TVYAhgRP
  */
 class YTV {
 
@@ -115,6 +113,7 @@ class YTV {
     const NEW_WINDOW = 'TARGET="_BLANK"';
     const URL_ME = '?module=youtv';
     const URL_USERPROFILE = '?module=userprofile&username=';
+
     const ROUTE_SUBLIST = 'subscribers';
     const ROUTE_SUBAJ = 'ajaxlist';
     const ROUTE_SUBVIEW = 'showsubscriber';
@@ -126,6 +125,11 @@ class YTV {
     const ROUTE_DEVDEL = 'deletedevice';
     const ROUTE_SUBLOOKUP = 'username';
     const ROUTE_TARDEL = 'deletetariff';
+    const ROUTE_SUBACTIVATE = 'subactivate';
+    const ROUTE_SUBDEACTIVATE = 'subdeactivate';
+    const ROUTE_SUBTARIFFID = 'subsetariffid';
+    const ROUTE_UNSUBTARIFFID = 'unsubsetariffid';
+
     const PROUTE_SUBREG = 'registersubscriber';
     const PROUTE_CREATETARIFFID = 'newtariffserviceid';
     const PROUTE_CREATETARIFFMAIN = 'newtariffmainflag';
@@ -270,7 +274,7 @@ class YTV {
     protected function getPseudoPassword($userLogin) {
         $result = false;
         if (!empty($userLogin)) {
-            $result = crc32(($userLogin.$userLogin));
+            $result = crc32(zb_rand_string(8)); // numeric
         }
         return($result);
     }
@@ -305,12 +309,17 @@ class YTV {
                     $response = $this->api->createUser($userLogin, $userRealName, $userEmail, $newPassword);
 
                     if(isset($response['data']['id'])){
+                        $emailF=ubRouting::filters($userEmail, 'mres');
+                        $passwordF=ubRouting::filters($newPassword, 'mres');
+
                         //log subscriber
                         $newId = $response['data']['id'];
                         $this->subscribersDb->data('date', curdatetime());
                         $this->subscribersDb->data('subscriberid', $newId);
                         $this->subscribersDb->data('login', $userLogin);
                         $this->subscribersDb->data('active', '1');
+                        $this->subscribersDb->data('email', $emailF);
+                        $this->subscribersDb->data('password', $passwordF);
                         $this->subscribersDb->create();
 
                         log_register('YouTV SUB REGISTER (' . $userLogin . ') AS [' . $newId . ']');
@@ -414,9 +423,6 @@ class YTV {
     }
 
 
-
-
-
     /**
      * Renders available subscribers JSON list
      *
@@ -433,10 +439,13 @@ class YTV {
                     $userRealName = @$this->allUserData[$userLogin]['realname'];
                     $profileLink = wf_Link(self::URL_USERPROFILE . $userLogin, web_profile_icon());
                     $subViewUrl = self::URL_ME . '&' . self::ROUTE_SUBVIEW . '=' . $userLogin;
+                    $actLabel= ($eachSub['active']) ? web_bool_led(true) . ' ' . __('Yes') : web_bool_led(false) . ' ' . __('No');
                     $actLinks = wf_Link($subViewUrl, web_edit_icon());
+                    $tariffName=(isset($this->allTariffs[$eachSub['maintariff']])) ? $this->allTariffs[$eachSub['maintariff']]['name'] : __('None');
                     $data[] = $profileLink . ' ' . $userAddress;
                     $data[] = $userRealName;
-                    $data[] = $userLogin;
+                    $data[] = $tariffName;
+                    $data[] = $actLabel;
                     $data[] = $actLinks;
                     $json->addRow($data);
                     unset($data);
@@ -453,7 +462,7 @@ class YTV {
      */
     public function renderSubscribersList() {
         $result = '';
-        $columns = array('ID', 'Date', 'Address', 'Real Name', 'Login','Actions');
+        $columns = array('ID', 'Date', 'Address', 'Real Name', 'Tariff', 'Active','Actions');
         $opts = '"order": [[ 1, "desc" ]]';
         $result .= wf_JqDtLoader($columns, self::URL_ME . '&' . self::ROUTE_SUBAJ . '=true', false, __('Subscriptions'), 50, $opts);
         return($result);
@@ -506,8 +515,14 @@ class YTV {
                 $userData = $this->allUserData[$userLogin];
 
                 if ($subData != false) {
-                    $userEmail=$this->getPseudoEmail($userLogin);
-                    $userPassword=$this->getPseudoPassword($userLogin);
+                    $userEmail=__('None');
+                    $userPassword=__('None');
+                    if (!empty($this->allSubscribers[$userLogin]['email'])) {
+                        $userEmail=$this->allSubscribers[$userLogin]['email'];
+                    }
+                    if (!empty($this->allSubscribers[$userLogin]['password'])) {
+                        $userPassword=$this->allSubscribers[$userLogin]['password'];
+                    }
                     $cells = wf_TableCell(__('Address'), '', 'row2');
                     $cells .= wf_TableCell(wf_Link(self::URL_USERPROFILE . $userLogin, web_profile_icon() . ' ' . $userData['fulladress']));
                     $rows = wf_TableRow($cells, 'row3');
@@ -531,6 +546,10 @@ class YTV {
                     $rows .= wf_TableRow($cells, 'row3');
                     $cells = wf_TableCell(__('Tariffs'), '', 'row2');
                     $cells .= wf_TableCell($this->renderServices($subData));
+                    $rows .= wf_TableRow($cells, 'row3');
+                    $cells = wf_TableCell(__('Active'), '', 'row2');
+                    $actLabel= ($this->allSubscribers[$userLogin]['active']) ? web_bool_led(true) . ' ' . __('Yes') : web_bool_led(false) . ' ' . __('No');
+                    $cells .= wf_TableCell($actLabel);
                     $rows .= wf_TableRow($cells, 'row3');
                     $result .= wf_TableBody($rows, '100%', 0, '');
 
@@ -637,8 +656,18 @@ class YTV {
             $result .= wf_modalAuto(wf_img('skins/icon_tariff.gif') . ' ' . __('Edit tariff'), __('Tariff'), $this->renderUserTariffEditForm($subscriberId), 'ubButton');
 
             if (!empty($subData)) {
+                $userLogin = $this->getSubscriberLogin($subscriberId);
                 $userScheme = wf_tag('pre') . print_r($subData, true) . wf_tag('pre', true);
                 $result .= wf_modal(wf_img('skins/brain.png') . ' ' . __('User inside'), __('User inside'), $userScheme, 'ubButton', '800', '600');
+                
+
+                if ($this->allSubscribers[$userLogin]['active']) {  
+                    $currTariffId=$this->allSubscribers[$userLogin]['maintariff'];
+                    $result.=wf_Link(self::URL_ME . '&' . self::ROUTE_SUBDEACTIVATE . '=' . $subscriberId . '&' . self::ROUTE_UNSUBTARIFFID . '=' . $currTariffId, web_bool_led(false) . ' ' . __('Block user'), false, 'ubButton') . ' ';
+                } else {
+                    $currTariffId=$subData['subscriptions'][0]['price'];
+                    $result.=wf_Link(self::URL_ME . '&' . self::ROUTE_SUBACTIVATE . '=' . $userLogin . '&' . self::ROUTE_SUBTARIFFID . '=' . $currTariffId, web_bool_led(true) . ' ' . __('Unblock user'), false, 'ubButton') . ' ';
+                }
             }
         }
         return($result);
@@ -934,10 +963,11 @@ class YTV {
      *
      * @param int $subscriberId
      * @param int $tariffId
+     * @param bool $noReply
      *
      * @return void
      */
-    public function usUnsubscribe($subscriberId, $tariffId) {
+    public function usUnsubscribe($subscriberId, $tariffId, $noReply=false) {
         $reply = array();
         $userLogin = $this->getSubscriberLogin($subscriberId);
 
@@ -948,7 +978,10 @@ class YTV {
         $this->subscribersDb->where('subscriberid', '=', $subscriberId);
         $this->subscribersDb->save();
         log_register('YouTV SUB (' . $userLogin . ') UNSET TARIFF [' . $tariffId . '] AS [' . $subscriberId . ']');
-        $this->jsonRenderReply($reply);
+        
+        if (!$noReply) {
+            $this->jsonRenderReply($reply);
+        }
     }
 
     /**
@@ -990,11 +1023,21 @@ class YTV {
      */
     public function getCredentials($userLogin) {
         $reply = array();
-        $userEmail = $this->getPseudoEmail($userLogin);
-        $userPassword = $this->getPseudoPassword($userLogin);
 
+        $userEmail='-';
+        $userPassword='-';
+        if (isset($this->allSubscribers[$userLogin])) {
+            if (!empty($this->allSubscribers[$userLogin]['email'])) {
+                $userEmail=$this->allSubscribers[$userLogin]['email'];
+            }
+            if (!empty($this->allSubscribers[$userLogin]['password'])) {
+                $userPassword=$this->allSubscribers[$userLogin]['password'];
+            }
+       
+        }
         $reply['email'] = $userEmail;
         $reply['password'] = $userPassword;
         $this->jsonRenderReply($reply);
     }
+
 }

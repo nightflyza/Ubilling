@@ -48,6 +48,23 @@ if (cfr('YOUTV')) {
             ubRouting::nav($youtv::URL_ME . '&' . $youtv::ROUTE_SUBVIEW . '=' . $userLogin);
         }
 
+        //manual user activation 
+        if (ubRouting::checkGet($youtv::ROUTE_SUBACTIVATE)) {
+            $userLogin = ubRouting::get($youtv::ROUTE_SUBACTIVATE,'login');
+            $subTariffId = ubRouting::get($youtv::ROUTE_SUBTARIFFID);
+            $youtv->usSubscribe($userLogin, $subTariffId);
+            ubRouting::nav($youtv::URL_ME . '&' . $youtv::ROUTE_SUBVIEW . '=' . $userLogin);
+        }
+
+        //manual user deactivation
+        if (ubRouting::checkGet($youtv::ROUTE_SUBDEACTIVATE)) {
+            $userId = ubRouting::get($youtv::ROUTE_SUBDEACTIVATE, 'int');
+            $userLogin = $youtv->getSubscriberLogin($userId);
+            $unsubTariffId = ubRouting::get($youtv::ROUTE_UNSUBTARIFFID);
+            $youtv->usUnsubscribe($userId, $unsubTariffId, true);
+            ubRouting::nav($youtv::URL_ME . '&' . $youtv::ROUTE_SUBVIEW . '=' . $userLogin);
+        }
+
         //black magic redirect here
         if (ubRouting::checkGet($youtv::ROUTE_SUBLOOKUP)) {
             $userLogin = ubRouting::get($youtv::ROUTE_SUBLOOKUP);
