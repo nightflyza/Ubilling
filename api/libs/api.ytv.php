@@ -177,10 +177,10 @@ class YTV {
         $this->login = $this->altCfg[self::OPTION_LOGIN];
         $this->password = $this->altCfg[self::OPTION_PASSWORD];
         $this->dealerID = $this->altCfg[self::OPTION_DEALER_ID];
-        $this->ispDomain = $this->altCfg[self::OPTION_ISPDOMAIN];
+        $this->ispDomain = @$this->altCfg[self::OPTION_ISPDOMAIN];
         $this->debugFlag = (!empty($this->altCfg[self::OPTION_DEBUG])) ? true : false;
         if (empty($this->ispDomain)) {
-            $this->ispDomain = 'ubillingisp.ua';
+            throw new Exception('EX_EMPTY_ISPDOMAIN');
         }
     }
 
@@ -978,7 +978,7 @@ class YTV {
         $this->subscribersDb->where('subscriberid', '=', $subscriberId);
         $this->subscribersDb->save();
         log_register('YouTV SUB (' . $userLogin . ') UNSET TARIFF [' . $tariffId . '] AS [' . $subscriberId . ']');
-        
+
         if (!$noReply) {
             $this->jsonRenderReply($reply);
         }
