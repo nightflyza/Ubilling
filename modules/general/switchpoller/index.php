@@ -32,102 +32,69 @@ if (cfr('SWITCHPOLL')) {
     if (ubRouting::checkGet('switchid')) {
         $switchId = ubRouting::get('switchid', 'int');
         if (!empty($allDevices)) {
-            foreach ($allDevices as $ia => $eachDevice) {
-                if ($eachDevice['id'] == $switchId) {
+                if (isset($allDevices[$switchId])) {
+                    $deviceData = $allDevices[$switchId];
                     //detecting device template
                     if (!empty($allTemplatesAssoc)) {
-                        if (isset($allTemplatesAssoc[$eachDevice['modelid']])) {
-                            if (!isset($alldeadswitches[$eachDevice['ip']])) {
-                                //cache cleanup
-                                if (wf_CheckGet(array('forcecache'))) {
-                                    $deviceRawSnmpCache = rcms_scandir('./exports/', $eachDevice['ip'] . '_*');
+                        if (isset($allTemplatesAssoc[$deviceData['modelid']])) {
+                                $switchIsAlive=(!isset($alldeadswitches[$deviceData['ip']])) ? true : false;
+
+                                $deviceTemplate = $allTemplatesAssoc[$deviceData['modelid']];
+                                //force cache cleanup
+                                if (ubRouting::checkGet('forcecache')) {
+                                    $deviceRawSnmpCache = rcms_scandir('./exports/', $deviceData['ip'] . '_*');
                                     if (!empty($deviceRawSnmpCache)) {
                                         foreach ($deviceRawSnmpCache as $ir => $fileToDelete) {
                                             unlink('./exports/' . $fileToDelete);
                                         }
                                     }
-                                    rcms_redirect('?module=switchpoller&switchid=' . $eachDevice['id']);
+                                    sp_SnmpPollDevice($deviceData['ip'], $deviceData['snmp'], $allTemplates, $deviceTemplate, $allusermacs, $alladdress, $deviceData['snmpwrite'], false, $allswitchmacs);
+                                    ubRouting::nav('?module=switchpoller&switchid=' . $deviceData['id']);
                                 }
-                                $deviceTemplate = $allTemplatesAssoc[$eachDevice['modelid']];
+
+                                
                                 $modActions = wf_BackLink('?module=switches');
                                 $modActions .= wf_Link('?module=switches&edit=' . $switchId, web_edit_icon() . ' ' . __('Edit') . ' ' . __('Switch'), false, 'ubButton');
+                                 //is device alive?
+                                if ($switchIsAlive) {
                                 if (cfr('SWITCHSONIC')) {
                                     if ($ubillingConfig->getAlterParam('SWITCHSONIC_ENABLED')) {
-                                        if (!empty($eachDevice['snmp'])) {
+                                        if (!empty($deviceData['snmp'])) {
                                             $ssonicUrl = '?module=switchsonic';
-                                            $ssonicUrl .= '&swid=' . $eachDevice['id'];
-                                            $ssonicUrl .= '&swip=' . $eachDevice['ip'];
-                                            $ssonicUrl .= '&swcomm=' . $eachDevice['snmp'];
+                                            $ssonicUrl .= '&swid=' . $deviceData['id'];
+                                            $ssonicUrl .= '&swip=' . $deviceData['ip'];
+                                            $ssonicUrl .= '&swcomm=' . $deviceData['snmp'];
 
                                             $modActions .= wf_Link($ssonicUrl, wf_img('skins/sonic_icon.png') . ' ' . __('Realtime traffic'), false, 'ubButton');
                                         }
                                     }
                                 }
-                                $modActions .= wf_Link('?module=switchpoller&switchid=' . $eachDevice['id'] . '&forcecache=true', wf_img('skins/refresh.gif') . ' ' . __('Force query'), false, 'ubButton');
-                                $deviceModel = (isset($allModels[$eachDevice['modelid']])) ? $allModels[$eachDevice['modelid']] : __('Model') . ' ' . __('Unknown');
-                                show_window($deviceModel . ', ' . $eachDevice['ip'] . ' - ' . $eachDevice['location'], $modActions);
-                                sp_SnmpPollDevice($eachDevice['ip'], $eachDevice['snmp'], $allTemplates, $deviceTemplate, $allusermacs, $alladdress, $eachDevice['snmpwrite'], false, $allswitchmacs);
-                            } else {
-                                show_error(__('Switch dead since') . ' ' . @$deathTime[$eachDevice['ip']]);
-                                show_window('', wf_BackLink('?module=switches') . ' ' . wf_Link('?module=switches&edit=' . $switchId, web_edit_icon() . ' ' . __('Edit switch'), false, 'ubButton'));
-                            }
+                                
+                                $modActions .= wf_Link('?module=switchpoller&switchid=' . $deviceData['id'] . '&forcecache=true', wf_img('skins/refresh.gif') . ' ' . __('Force query'), false, 'ubButton');
+                                }
+                                $deviceModel = (isset($allModels[$deviceData['modelid']])) ? $allModels[$deviceData['modelid']] : __('Model') . ' ' . __('Unknown');
+                                
+                                show_window($deviceModel . ', ' . $deviceData['ip'] . ' - ' . $deviceData['location'], $modActions);
+                                if (!$switchIsAlive) {
+                                    show_error(__('Switch dead since') . ' ' . @$deathTime[$deviceData['ip']]);
+                                }
+                                web_SnmpRenderDevCache($deviceData['ip'], $allTemplates, $deviceTemplate, $allusermacs, $alladdress, $allswitchmacs);
                         } else {
                             show_error(__('No') . ' ' . __('SNMP template'));
-                        }
+                        } 
+                    } else {
+                        show_error(__('SNMP template').' '.__('not found'));
                     }
+                } else {
+                    show_error(__('Switch').' '.__('not exists').' ['.$switchId.']');
+                    show_window('', wf_BackLink('?module=switches'));
                 }
-            }
+            
+        } else {
+            show_error(__('No switches found'));
         }
     } else {
-        //display all of available fdb tables
-        $fdbData_raw = rcms_scandir('./exports/', '*_fdb');
-        if (!empty($fdbData_raw)) {
-            //// mac filters setup
-            if (wf_CheckPost(array('setmacfilters'))) {
-                //setting new MAC filters
-                if (!empty($_POST['newmacfilters'])) {
-                    $newFilters = base64_encode($_POST['newmacfilters']);
-                    zb_StorageSet('FDBCACHEMACFILTERS', $newFilters);
-                }
-                //deleting old filters
-                if (isset($_POST['deletemacfilters'])) {
-                    zb_StorageDelete('FDBCACHEMACFILTERS');
-                }
-            }
 
-            //log download
-            if (wf_CheckGet(array('dlswpolllog'))) {
-                zb_FDBTableLogDownload();
-            }
-
-            //push ajax data
-            if (wf_CheckGet(array('ajax'))) {
-                if (wf_CheckGet(array('swfilter'))) {
-                    $fdbData_raw = array($_GET['swfilter'] . '_fdb');
-                }
-                if (wf_CheckGet(array('macfilter'))) {
-                    $macFilter = $_GET['macfilter'];
-                } else {
-                    $macFilter = '';
-                }
-                sn_SnmpParseFdbCacheJson($fdbData_raw, $macFilter);
-            } else {
-                if (wf_CheckGet(array('fdbfor'))) {
-                    $fdbSwitchFilter = $_GET['fdbfor'];
-                } else {
-                    $fdbSwitchFilter = '';
-                }
-                if (wf_CheckGet(array('macfilter'))) {
-                    $fdbMacFilter = $_GET['macfilter'];
-                } else {
-                    $fdbMacFilter = '';
-                }
-
-                web_FDBTableShowDataTable($fdbSwitchFilter, $fdbMacFilter);
-            }
-        } else {
-            show_warning(__('Nothing found'));
-        }
     }
 } else {
     show_error(__('Access denied'));

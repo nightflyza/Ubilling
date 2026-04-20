@@ -905,13 +905,15 @@ function sp_SnmpPollData($ip, $community, $oid, $cache = true) {
 }
 
 /**
- * Returns list of all monitored devices
+ * Returns list of all SWPOLL monitored devices as id=>switchData
  * 
  * @return array
  */
 function sp_SnmpGetAllDevices() {
-    $query = "SELECT * from `switches` WHERE `snmp`!='' AND `desc` LIKE '%SWPOLL%'";
-    $result = simple_queryall($query);
+    $switchesDb = new NyanORM('switches');
+    $switchesDb->where('snmp', '!=', '');
+    $switchesDb->where('desc', 'LIKE', '%SWPOLL%');
+    $result = $switchesDb->getAll('id');
     return ($result);
 }
 
@@ -1226,7 +1228,7 @@ function sp_SnmpParseFdbCumulative($portTable, $statusTable, $portOID, $statusOI
 }
 
 /**
- * Poll/Show data for some device
+ * Polls data for some device and updates cache
  * 
  * @global object $ubillingConfig
  * @param string $ip
@@ -1236,7 +1238,6 @@ function sp_SnmpParseFdbCumulative($portTable, $statusTable, $portOID, $statusOI
  * @param array $allusermacs
  * @param array $alladdress
  * @param string $communitywrite
- * @param bool $quiet
  * @param array $allswitchmacs
  * 
  * @return void
@@ -1250,7 +1251,6 @@ function sp_SnmpPollDevice($ip, $community, $alltemplates, $deviceTemplate, $all
         if (isset($alltemplates[$deviceTemplate])) {
             $currentTemplate = $alltemplates[$deviceTemplate];
             if (!empty($currentTemplate)) {
-                $deviceDescription = $currentTemplate['define']['DEVICE'];
                 $deviceFdb = (isset($currentTemplate['define']['FDB'])) ? $currentTemplate['define']['FDB'] : 'false';
                 $deviceMAC = (isset($currentTemplate['define']['MAC'])) ? $currentTemplate['define']['MAC'] : 'false';
                 $pollMode = (isset($currentTemplate['define']['POLLMODE'])) ? $currentTemplate['define']['POLLMODE'] : '';
@@ -1258,9 +1258,6 @@ function sp_SnmpPollDevice($ip, $community, $alltemplates, $deviceTemplate, $all
                 $sfpEndPort = (empty($currentTemplate['define']['SFPENDPORT'])) ? '' : $currentTemplate['define']['SFPENDPORT'];
                 $poeStartPort = (empty($currentTemplate['define']['POESTARTPORT'])) ? 1 : $currentTemplate['define']['POESTARTPORT'];
                 $poeEndPort = (empty($currentTemplate['define']['POEENDPORT'])) ? '' : $currentTemplate['define']['POEENDPORT'];
-                $sectionResult = '';
-                $sectionName = '';
-                $finalResult = '';
                 $tempArray = array();
                 $portIdxArr = array();
                 $portDescrArr = array();
@@ -1362,11 +1359,6 @@ function sp_SnmpPollDevice($ip, $community, $alltemplates, $deviceTemplate, $all
                 //parse each section of template
                 foreach ($alltemplates[$deviceTemplate] as $section => $eachpoll) {
                     if ($section != 'define' and $section != 'portiface') {
-                        if (!$quiet) {
-                            $finalResult .= wf_tag('div', false, 'dashboard', '');
-                        }
-
-                        @$sectionName = $eachpoll['NAME'];
                         $sectionPollMode = (empty($eachpoll['SECTPOLLMODE'])) ? '' : $eachpoll['SECTPOLLMODE'];
 
                         if ($pollMode == 'cumulative') {
@@ -1380,11 +1372,6 @@ function sp_SnmpPollDevice($ip, $community, $alltemplates, $deviceTemplate, $all
                         } else {
                             $sectionSetOids = array();
                         }
-
-                        $sectionDivBy = (empty($eachpoll['DIV'])) ? ', ""' : ', "' . $eachpoll['DIV'] . '"';
-                        $sectionUnits = (empty($eachpoll['UNITS'])) ? ', ""' : ', "' . $eachpoll['UNITS'] . '"';
-                        @$sectionParser = $eachpoll['PARSER'];
-                        $sectionResult = '';
 
                         //yeah, lets set some oids to this shit
                         if (!empty($sectionSetOids)) {
@@ -1402,88 +1389,45 @@ function sp_SnmpPollDevice($ip, $community, $alltemplates, $deviceTemplate, $all
                         }
 
 
-                        if ($section == 'portdesc' and $pollMode == 'cumulative' and ! empty($portDescrArr)) {
-                            $sectionResult = sp_parse_sw_port_descr($portDescrArr);
-                        } else {
-                            //now parse each oid
-                            if (!empty($sectionOids)) {
-                                // in cumulative mode we are not aware of ports amount
-                                // so, need to fulfill each section OID with port number
-                                // and populate $sectionOids array with OID for each port, like in conservative mode
-                                if ($pollMode == 'cumulative' and $sectionPollMode != 'noncumulative' and ! empty($portIdxArr)) {
-                                    $tmpOID = $sectionOids[0];
-                                    $sectionOids = array();
-                                    $isSFPSection = ispos($section, 'sfp');
-                                    $sfpEndPort = ($isSFPSection and empty($sfpEndPort)) ? $portIdxArr[count($portIdxArr)] : $sfpEndPort;
-                                    $isPOESection = ispos($section, 'poe');
-                                    $poeEndPort = ($isPOESection and empty($poeEndPort)) ? $portIdxArr[count($portIdxArr)] : $poeEndPort;
+                        //now cache each oid
+                        if (!empty($sectionOids)) {
+                            // in cumulative mode we are not aware of ports amount
+                            // so, need to fulfill each section OID with port number
+                            // and populate $sectionOids array with OID for each port, like in conservative mode
+                            if ($pollMode == 'cumulative' and $sectionPollMode != 'noncumulative' and ! empty($portIdxArr)) {
+                                $tmpOID = $sectionOids[0];
+                                $sectionOids = array();
+                                $isSFPSection = ispos($section, 'sfp');
+                                $sfpEndPort = ($isSFPSection and empty($sfpEndPort)) ? $portIdxArr[count($portIdxArr)] : $sfpEndPort;
+                                $isPOESection = ispos($section, 'poe');
+                                $poeEndPort = ($isPOESection and empty($poeEndPort)) ? $portIdxArr[count($portIdxArr)] : $poeEndPort;
 
-                                    foreach ($portIdxArr as $eachPort) {
-                                        if (empty($eachPort)) {
-                                            continue;
-                                        }
-
-                                        if ($isSFPSection and ($eachPort < $sfpStartPort or $eachPort > $sfpEndPort)) {
-                                            continue;
-                                        }
-
-                                        if ($isPOESection and ($eachPort < $poeStartPort or $eachPort > $poeEndPort)) {
-                                            continue;
-                                        }
-
-                                        $sectionOids[] = $tmpOID . '.' . $eachPort;
+                                foreach ($portIdxArr as $eachPort) {
+                                    if (empty($eachPort)) {
+                                        continue;
                                     }
-                                }
 
-                                if ($section == 'cablediag') {
-                                    if (!empty($sectionParser)) {
-                                        $sectionResult .= $sectionParser($ip, $community, $currentTemplate['cablediag']);
-                                    } else {
-                                        $sectionResult = '';
+                                    if ($isSFPSection and ($eachPort < $sfpStartPort or $eachPort > $sfpEndPort)) {
+                                        continue;
                                     }
-                                } else {
-                                    foreach ($sectionOids as $eachOid) {
-                                        $eachOid = trim($eachOid);
-                                        $rawData = $snmp->walk($ip, $community, $eachOid, true);
-                                        $rawData = str_replace('"', '`', $rawData);
 
-                                        if (!empty($sectionParser)) {
-                                            if (function_exists($sectionParser)) {
-                                                if (empty($sectionDivBy) and empty($sectionUnits)) {
-                                                    $parseCode = '$sectionResult.=' . $sectionParser . '("' . $rawData . '");';
-                                                } else {
-                                                    $parseCode = '$sectionResult.=' . $sectionParser . '("' . $rawData . '"' . $sectionDivBy . $sectionUnits . ');';
-                                                }
-
-                                                // actual parser processing
-                                                eval($parseCode);
-                                            } else {
-                                                $sectionResult = __('Parser') . ' "' . $sectionParser . '" ' . __('Not exists');
-                                            }
-                                        } else {
-
-                                            $sectionResult = '';
-                                        }
+                                    if ($isPOESection and ($eachPort < $poeStartPort or $eachPort > $poeEndPort)) {
+                                        continue;
                                     }
+
+                                    $sectionOids[] = $tmpOID . '.' . $eachPort;
                                 }
                             }
-                        }
 
-                        if (!$quiet) {
-                            if (!empty($sectionResult)) {
-                                $finalResult .= wf_tag('div', false, 'dashtask', '') . wf_tag('strong') . __($sectionName) . wf_tag('strong', true) . '<br>';
-                                $finalResult .= $sectionResult . wf_tag('div', true);
+                            if ($section != 'cablediag') {
+                                foreach ($sectionOids as $eachOid) {
+                                    $eachOid = trim($eachOid);
+                                    $rawData = $snmp->walk($ip, $community, $eachOid, true);
+                                    $rawData = str_replace('"', '`', $rawData);
+                                }
                             }
                         }
                     }
-                }
-
-                $finalResult .= wf_tag('div', true);
-                $finalResult .= wf_tag('div', false, '', 'style="clear:both;"');
-                $finalResult .= wf_tag('div', true);
-
-                if (!$quiet) {
-                    show_window('', $finalResult);
                 }
 
                 //
@@ -1650,107 +1594,6 @@ function sp_SnmpPollDevice($ip, $community, $alltemplates, $deviceTemplate, $all
                             file_put_contents('exports/' . $ip . '_fdb_vlan', $fdbVLANCache);
                         }
                     }
-
-
-                    //show port data User friendly :)
-                    if (!empty($portData)) {
-                        $fdbExtenInfo = $ubillingConfig->getAlterParam('SW_FDB_EXTEN_INFO');
-
-                        //extracting all needed data for switchport control
-                        if ($alterCfg['SWITCHPORT_IN_PROFILE']) {
-                            $allswitchesArray = zb_SwitchesGetAll();
-                            $allportassigndata = array();
-                            $allportassigndata_q = "SELECT * from `switchportassign`;";
-                            $allportassigndata_raw = simple_queryall($allportassigndata_q);
-                            if (!empty($allportassigndata_raw)) {
-                                foreach ($allportassigndata_raw as $iopd => $eachpad) {
-                                    $allportassigndata[$eachpad['login']] = $eachpad;
-                                }
-                            }
-                        }
-
-                        $allusermacs = array_flip($allusermacs);
-                        $recordsCounter = 0;
-
-                        $cells = wf_TableCell(__('User') . ' / ' . __('Device'), '30%');
-                        $cells .= wf_TableCell(__('MAC'));
-                        $cells .= wf_TableCell(__('Ports'));
-
-                        if ($fdbExtenInfo) {
-                            $cells .= wf_TableCell(__('Port description'));
-                            $cells .= wf_TableCell(__('VLAN'));
-                        }
-
-                        $rows = wf_TableRow($cells, 'row1');
-
-                        foreach ($portData as $eachMac => $eachPort) {
-                            // if we have MACs stored along with VLANs - we need to extract MAC portion
-                            $eachMAC_VLAN = '';
-
-                            if (ispos($eachMac, '_')) {
-                                $eachMAC_VLAN = $eachMac;
-                                $eachMac = substr($eachMac, 0, stripos($eachMac, '_'));
-                            }
-
-                            //user detection
-                            if (isset($allusermacs[$eachMac])) {
-                                $userLogin = $allusermacs[$eachMac];
-                                @$useraddress = $alladdress[$userLogin];
-                                $userlink = wf_Link('?module=userprofile&username=' . $userLogin, web_profile_icon() . ' ' . $useraddress, false);
-
-                                //switch port assing form
-                                if ($alterCfg['SWITCHPORT_IN_PROFILE']) {
-                                    $assignForm = wf_modal(web_edit_icon(__('Switch port assign')), __('Switch port assign'), web_SnmpSwitchControlForm($userLogin, $allswitchesArray, $allportassigndata, @$_GET['switchid'], $eachPort), '', '500', '250');
-
-                                    if (isset($allportassigndata[$userLogin])) {
-                                        $assignForm .= wf_img('skins/arrow_right_green.png') . @$allportassigndata[$userLogin]['port'];
-                                    }
-                                } else {
-                                    $assignForm = '';
-                                }
-                            } else {
-                                if (isset($allswitchmacs[$eachMac])) {
-                                    @$switchAddress = $allswitchmacs[$eachMac]['location'];
-                                    @$switchId = $allswitchmacs[$eachMac]['id'];
-                                    @$switchIp = $allswitchmacs[$eachMac]['ip'];
-                                    $switchLabel = (!empty($switchAddress)) ? $switchAddress : $switchIp;
-                                    $userlink = wf_Link('?module=switches&edit=' . $switchId, wf_img_sized('skins/menuicons/switches.png', __('Switch'), 11, 13) . ' ' . $switchLabel);
-                                    $assignForm = '';
-                                } else {
-                                    $userlink = '';
-                                    $assignForm = '';
-                                }
-                            }
-
-                            $cells = wf_TableCell($userlink . $assignForm, '', '', 'sorttable_customkey="' . $eachPort . '"');
-                            $cells .= wf_TableCell($eachMac);
-                            $cells .= wf_TableCell($eachPort);
-
-                            if ($fdbExtenInfo) {
-                                $eachPortDescr = '';
-                                $eachVLAN = '';
-
-                                if (!empty($portDescrArr[$eachPort])) {
-                                    $eachPortDescr = $portDescrArr[$eachPort];
-                                }
-
-                                if (!empty($vlanData[$eachMAC_VLAN])) {
-                                    $eachVLAN = $vlanData[$eachMAC_VLAN];
-                                }
-
-                                $cells .= wf_TableCell($eachPortDescr);
-                                $cells .= wf_TableCell($eachVLAN);
-                            }
-
-                            $rows .= wf_TableRow($cells, 'row5');
-                            $recordsCounter++;
-                        }
-                        if (!$quiet) {
-                            $fdbTableResult = wf_TableBody($rows, '100%', '0', 'sortable');
-                            $fdbTableResult .= wf_tag('b') . __('Total') . ': ' . $recordsCounter . wf_tag('b', true);
-                            show_window(__('FDB'), $fdbTableResult);
-                        }
-                    }
                 }
                 //
                 //parsing data of DEVICE MAC
@@ -1833,6 +1676,287 @@ function sp_SnmpPollDevice($ip, $community, $alltemplates, $deviceTemplate, $all
     $cachedStats['end'] = $pollingEnd;
     $cachedStats = serialize($cachedStats);
     @file_put_contents($statsPath, $cachedStats);
+}
+
+/**
+ * Renders cached SNMP polling data for selected device, if exists
+ *
+ * @param string $ip
+ * @param array $alltemplates
+ * @param string $deviceTemplate
+ * @param array $allusermacs
+ * @param array $alladdress
+ * @param array $allswitchmacs
+ *
+ * @return bool
+ */
+function web_SnmpRenderDevCache($ip, $alltemplates, $deviceTemplate, $allusermacs, $alladdress, $allswitchmacs = array()) {
+    global $ubillingConfig;
+    $result = false;
+    $portIdxArr = array();
+    $portDescrArr = array();
+
+    if (isset($alltemplates[$deviceTemplate])) {
+        $currentTemplate = $alltemplates[$deviceTemplate];
+        $pollMode = (isset($currentTemplate['define']['POLLMODE'])) ? $currentTemplate['define']['POLLMODE'] : '';
+        $sfpStartPort = (empty($currentTemplate['define']['SFPSTARTPORT'])) ? 1 : $currentTemplate['define']['SFPSTARTPORT'];
+        $sfpEndPort = (empty($currentTemplate['define']['SFPENDPORT'])) ? '' : $currentTemplate['define']['SFPENDPORT'];
+        $poeStartPort = (empty($currentTemplate['define']['POESTARTPORT'])) ? 1 : $currentTemplate['define']['POESTARTPORT'];
+        $poeEndPort = (empty($currentTemplate['define']['POEENDPORT'])) ? '' : $currentTemplate['define']['POEENDPORT'];
+        $finalResult = '';
+        $hasSnmpData = false;
+
+        if ($pollMode == 'cumulative' and ! empty($currentTemplate['portiface'])) {
+            $portIdxOID = trim($currentTemplate['portiface']['PORTINDEX']);
+            $portDescrOID = trim($currentTemplate['portiface']['PORTDESCR']);
+            $portAliasOID = trim($currentTemplate['portiface']['PORTALIAS']);
+
+            $portIdxCachePath = 'exports/' . $ip . '_' . $portIdxOID;
+            if (file_exists($portIdxCachePath)) {
+                $rawDataPrtIdx = file_get_contents($portIdxCachePath);
+                $portIdxArr = sp_parse_sw_port_idx($rawDataPrtIdx, $portIdxOID);
+            }
+
+            $portDescrCachePath = 'exports/' . $ip . '_' . $portDescrOID;
+            if (file_exists($portDescrCachePath)) {
+                $rawDataPrtDescr = file_get_contents($portDescrCachePath);
+                if (!empty($rawDataPrtDescr)) {
+                    $rawDataPrtDescr = explodeRows($rawDataPrtDescr);
+                    foreach ($rawDataPrtDescr as $eachRow) {
+                        $tmpArr = trimSNMPOutput($eachRow, $portDescrOID . '.');
+                        if (!empty($tmpArr[1])) {
+                            $portDescrArr[$tmpArr[0]] = $tmpArr[1];
+                        }
+                    }
+                }
+            }
+
+            $portAliasCachePath = 'exports/' . $ip . '_' . $portAliasOID;
+            if (file_exists($portAliasCachePath)) {
+                $rawDataPrtAlias = file_get_contents($portAliasCachePath);
+                if (!empty($rawDataPrtAlias)) {
+                    $rawDataPrtAlias = explodeRows($rawDataPrtAlias);
+                    foreach ($rawDataPrtAlias as $eachRow) {
+                        $tmpAliasArr = trimSNMPOutput($eachRow, $portAliasOID . '.');
+                        if (!empty($tmpAliasArr[0]) and (!isset($portDescrArr[$tmpAliasArr[0]]) or empty($portDescrArr[$tmpAliasArr[0]]))) {
+                            if (!empty($tmpAliasArr[1])) {
+                                $portDescrArr[$tmpAliasArr[0]] = $tmpAliasArr[1];
+                            } elseif (!empty($tmpAliasArr[0])) {
+                                $portDescrArr[$tmpAliasArr[0]] = '';
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        foreach ($alltemplates[$deviceTemplate] as $section => $eachpoll) {
+            if ($section != 'define' and $section != 'portiface') {
+                @$sectionName = $eachpoll['NAME'];
+                $sectionPollMode = (empty($eachpoll['SECTPOLLMODE'])) ? '' : $eachpoll['SECTPOLLMODE'];
+                $sectionResult = '';
+
+                if ($pollMode == 'cumulative') {
+                    @$sectionOids = array($eachpoll['OIDS']);
+                } else {
+                    @$sectionOids = explode(',', $eachpoll['OIDS']);
+                }
+
+                $sectionDivBy = (empty($eachpoll['DIV'])) ? ', ""' : ', "' . $eachpoll['DIV'] . '"';
+                $sectionUnits = (empty($eachpoll['UNITS'])) ? ', ""' : ', "' . $eachpoll['UNITS'] . '"';
+                @$sectionParser = $eachpoll['PARSER'];
+
+                if ($section == 'portdesc' and $pollMode == 'cumulative' and ! empty($portDescrArr)) {
+                    $sectionResult = sp_parse_sw_port_descr($portDescrArr);
+                } else {
+                    if (!empty($sectionOids)) {
+                        if ($pollMode == 'cumulative' and $sectionPollMode != 'noncumulative' and ! empty($portIdxArr)) {
+                            $tmpOID = $sectionOids[0];
+                            $sectionOids = array();
+                            $isSFPSection = ispos($section, 'sfp');
+                            $sfpEndPort = ($isSFPSection and empty($sfpEndPort)) ? $portIdxArr[count($portIdxArr)] : $sfpEndPort;
+                            $isPOESection = ispos($section, 'poe');
+                            $poeEndPort = ($isPOESection and empty($poeEndPort)) ? $portIdxArr[count($portIdxArr)] : $poeEndPort;
+
+                            foreach ($portIdxArr as $eachPort) {
+                                if (empty($eachPort)) {
+                                    continue;
+                                }
+                                if ($isSFPSection and ($eachPort < $sfpStartPort or $eachPort > $sfpEndPort)) {
+                                    continue;
+                                }
+                                if ($isPOESection and ($eachPort < $poeStartPort or $eachPort > $poeEndPort)) {
+                                    continue;
+                                }
+                                $sectionOids[] = $tmpOID . '.' . $eachPort;
+                            }
+                        }
+
+                        if ($section != 'cablediag') {
+                            foreach ($sectionOids as $eachOid) {
+                                $eachOid = trim($eachOid);
+                                $rawDataPath = 'exports/' . $ip . '_' . $eachOid;
+                                $rawData = '';
+                                if (file_exists($rawDataPath)) {
+                                    $rawData = file_get_contents($rawDataPath);
+                                    $rawData = str_replace('"', '`', $rawData);
+                                }
+
+                                if (!empty($rawData)) {
+                                    if (!empty($sectionParser)) {
+                                        if (function_exists($sectionParser)) {
+                                            if (empty($sectionDivBy) and empty($sectionUnits)) {
+                                                $parseCode = '$sectionResult.=' . $sectionParser . '("' . $rawData . '");';
+                                            } else {
+                                                $parseCode = '$sectionResult.=' . $sectionParser . '("' . $rawData . '"' . $sectionDivBy . $sectionUnits . ');';
+                                            }
+                                            eval($parseCode);
+                                        } else {
+                                            $sectionResult = __('Parser') . ' "' . $sectionParser . '" ' . __('Not exists');
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                if (!empty($sectionResult)) {
+                    $finalResult .= wf_tag('div', false, 'dashboard', '');
+                    $finalResult .= wf_tag('div', false, 'dashtask', '') . wf_tag('strong') . __($sectionName) . wf_tag('strong', true) . '<br>';
+                    $finalResult .= $sectionResult . wf_tag('div', true);
+                    $finalResult .= wf_tag('div', true);
+                    $hasSnmpData = true;
+                }
+            }
+        }
+
+        if ($hasSnmpData) {
+            $finalResult .= wf_tag('div', false, '', 'style="clear:both;"');
+            $finalResult .= wf_tag('div', true);
+            show_window('', $finalResult);
+            $result = true;
+        }
+    }
+
+    $fdbPath = 'exports/' . $ip . '_fdb';
+    if (file_exists($fdbPath)) {
+        $fdbRaw = file_get_contents($fdbPath);
+        $portData = unserialize($fdbRaw);
+        if (!empty($portData)) {
+            $fdbExtenInfo = $ubillingConfig->getAlterParam('SW_FDB_EXTEN_INFO');
+            $alterCfg = $ubillingConfig->getAlter();
+            $vlanData = array();
+            $fdbPortDescrArr = array();
+
+            if ($fdbExtenInfo) {
+                $fdbVlanPath = 'exports/' . $ip . '_fdb_vlan';
+                if (file_exists($fdbVlanPath)) {
+                    $vlanRaw = file_get_contents($fdbVlanPath);
+                    $vlanData = unserialize($vlanRaw);
+                }
+
+                $fdbPortDescrPath = 'exports/' . $ip . '_fdb_portdescr';
+                if (file_exists($fdbPortDescrPath)) {
+                    $fdbPortDescrRaw = file_get_contents($fdbPortDescrPath);
+                    $fdbPortDescrArr = unserialize($fdbPortDescrRaw);
+                }
+            }
+
+            if ($alterCfg['SWITCHPORT_IN_PROFILE']) {
+                $allswitchesArray = zb_SwitchesGetAll();
+                $allportassigndata = array();
+                $allportassigndata_q = "SELECT * from `switchportassign`;";
+                $allportassigndata_raw = simple_queryall($allportassigndata_q);
+                if (!empty($allportassigndata_raw)) {
+                    foreach ($allportassigndata_raw as $iopd => $eachpad) {
+                        $allportassigndata[$eachpad['login']] = $eachpad;
+                    }
+                }
+            } else {
+                $allswitchesArray = array();
+                $allportassigndata = array();
+            }
+
+            $allusermacs = array_flip($allusermacs);
+            $recordsCounter = 0;
+            $cells = wf_TableCell(__('User') . ' / ' . __('Device'), '30%');
+            $cells .= wf_TableCell(__('MAC'));
+            $cells .= wf_TableCell(__('Ports'));
+
+            if ($fdbExtenInfo) {
+                $cells .= wf_TableCell(__('Port description'));
+                $cells .= wf_TableCell(__('VLAN'));
+            }
+
+            $rows = wf_TableRow($cells, 'row1');
+
+            foreach ($portData as $eachMac => $eachPort) {
+                $eachMAC_VLAN = '';
+                if (ispos($eachMac, '_')) {
+                    $eachMAC_VLAN = $eachMac;
+                    $eachMac = substr($eachMac, 0, stripos($eachMac, '_'));
+                }
+
+                if (isset($allusermacs[$eachMac])) {
+                    $userLogin = $allusermacs[$eachMac];
+                    @$useraddress = $alladdress[$userLogin];
+                    $userlink = wf_Link('?module=userprofile&username=' . $userLogin, web_profile_icon() . ' ' . $useraddress, false);
+                    if ($alterCfg['SWITCHPORT_IN_PROFILE']) {
+                        $assignForm = wf_modal(web_edit_icon(__('Switch port assign')), __('Switch port assign'), web_SnmpSwitchControlForm($userLogin, $allswitchesArray, $allportassigndata, @$_GET['switchid'], $eachPort), '', '500', '250');
+                        if (isset($allportassigndata[$userLogin])) {
+                            $assignForm .= wf_img('skins/arrow_right_green.png') . @$allportassigndata[$userLogin]['port'];
+                        }
+                    } else {
+                        $assignForm = '';
+                    }
+                } else {
+                    if (isset($allswitchmacs[$eachMac])) {
+                        @$switchAddress = $allswitchmacs[$eachMac]['location'];
+                        @$switchId = $allswitchmacs[$eachMac]['id'];
+                        @$switchIp = $allswitchmacs[$eachMac]['ip'];
+                        $switchLabel = (!empty($switchAddress)) ? $switchAddress : $switchIp;
+                        $userlink = wf_Link('?module=switches&edit=' . $switchId, wf_img_sized('skins/menuicons/switches.png', __('Switch'), 11, 13) . ' ' . $switchLabel);
+                        $assignForm = '';
+                    } else {
+                        $userlink = '';
+                        $assignForm = '';
+                    }
+                }
+
+                $cells = wf_TableCell($userlink . $assignForm, '', '', 'sorttable_customkey="' . $eachPort . '"');
+                $cells .= wf_TableCell($eachMac);
+                $cells .= wf_TableCell($eachPort);
+
+                if ($fdbExtenInfo) {
+                    $eachPortDescr = '';
+                    $eachVLAN = '';
+                    if (!empty($fdbPortDescrArr[$eachPort])) {
+                        $eachPortDescr = $fdbPortDescrArr[$eachPort];
+                    }
+                    if (!empty($vlanData[$eachMAC_VLAN])) {
+                        $eachVLAN = $vlanData[$eachMAC_VLAN];
+                    }
+                    $cells .= wf_TableCell($eachPortDescr);
+                    $cells .= wf_TableCell($eachVLAN);
+                }
+
+                $rows .= wf_TableRow($cells, 'row5');
+                $recordsCounter++;
+            }
+
+            $fdbTableResult = wf_TableBody($rows, '100%', '0', 'sortable');
+            $fdbTableResult .= wf_tag('b') . __('Total') . ': ' . $recordsCounter . wf_tag('b', true);
+            show_window(__('FDB'), $fdbTableResult);
+            $result = true;
+        }
+    }
+
+    if (!$result) {
+        show_warning(__('No previous polling data found'));
+    }
+
+    return ($result);
 }
 
 /**
@@ -2237,7 +2361,7 @@ function web_FDBTableLogControl() {
         $runCmd = $tailCmd . ' -n ' . $recordsLimit . ' ' . $logPath;
         $rawResult = shell_exec($runCmd);
         $renderData .= __('Showing') . ' ' . $recordsLimit . ' ' . __('last events') . wf_tag('br');
-        $renderData .= wf_Link('?module=switchpoller&dlswpolllog=true', wf_img('skins/icon_download.png', __('Download')) . ' ' . __('Download full log'), true);
+        $renderData .= wf_Link('?module=fdbcache&dlswpolllog=true', wf_img('skins/icon_download.png', __('Download')) . ' ' . __('Download full log'), true);
 
         if (!empty($rawResult)) {
             $logData = explodeRows($rawResult);
@@ -2378,7 +2502,7 @@ function web_FDBTableShowDataTable($fdbSwitchFilter = '', $fdbMacFilter = '') {
         $columns = array('Switch IP', 'Port', 'Location', 'MAC', __('User') . ' / ' . __('Device'));
     }
 
-    $result .= wf_JqDtLoader($columns, '?module=switchpoller&ajax=true' . $filter . $macfilter, true, 'Objects', 100);
+    $result .= wf_JqDtLoader($columns, '?module=fdbcache&ajax=true' . $filter . $macfilter, true, 'Objects', 100);
 
     show_window(__('Current FDB cache') . ' ' . $filtersForm . ' ' . $logControls, $result);
 }

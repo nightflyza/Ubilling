@@ -123,7 +123,7 @@ class FDBArchive {
     /**
      * Contains default fdb cache module URL
      */
-    const URL_CACHE = '?module=switchpoller';
+    const URL_CACHE = '?module=fdbcache';
 
     /**
      * Another required URLs for internal routing

@@ -660,7 +660,7 @@ function web_SwitchEditForm($switchid) {
     if (cfr('SWITCHPOLL')) {
         $fdbCacheName = 'exports/' . $switchdata['ip'] . '_fdb';
         if (file_exists($fdbCacheName)) {
-            $fdbControls = wf_Link('?module=switchpoller&fdbfor=' . $switchdata['ip'], wf_img('skins/menuicons/switchpoller.png') . ' ' . __('FDB cache'), false, 'ubButton');
+            $fdbControls = wf_Link('?module=fdbcache&fdbfor=' . $switchdata['ip'], wf_img('skins/menuicons/switchpoller.png') . ' ' . __('FDB cache'), false, 'ubButton');
             $fdbControls .= wf_Link('?module=fdbarchive&switchidfilter=' . $switchid, wf_img('skins/fdbarchive.png') . ' ' . __('FDB') . ' ' . __('Archive'), false, 'ubButton');
             $result .= wf_modalAuto(wf_img('skins/menuicons/switchpoller.png') . ' ' . __('FDB'), __('FDB'), $fdbControls, 'ubButton');
         }
@@ -1043,24 +1043,12 @@ function zb_SwitchesRepingAll() {
 function zb_SwitchesForcePing() {
     global $ubillingConfig;
     $alterconf = $ubillingConfig->getAlter();
-    $allswitches = zb_SwitchesGetAll();
-    $modelnames = zb_SwitchModelsGetAllTag();
     $currenttime = time();
     $reping_timeout = $alterconf['SW_PINGTIMEOUT'];
     $deathTime = zb_SwitchesGetAllDeathTime();
     $fastPingFlag = $ubillingConfig->getAlterParam('FASTPING_ENABLED');
 
-    //counters
-    $countTotal = 0;
-    $countAlive = 0;
-    $countDead = 0;
-    $countNp = 0;
-    $countOnMap = 0;
-    $countSwpoll = 0;
-    $countMtsigmon = 0;
-    $countOlt = 0;
-    $countLinked = 0;
-
+  
     //non realtime switches pinging
     $last_pingtime = zb_StorageGet('SWPINGTIME');
 
@@ -1132,6 +1120,7 @@ function zb_SwitchesForcePing() {
                     $ajaxResult = __('Switches are okay, everything is fine - I guarantee');
                 }
             }
+            
             $ajaxResult .= wf_delimiter() . __('Cache state at time') . ': ' . date("H:i:s");
             print($ajaxResult);
             //darkvoid update
