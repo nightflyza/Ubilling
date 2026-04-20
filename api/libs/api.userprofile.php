@@ -333,7 +333,7 @@ class UserProfile {
         $result = '';
         if (isset($this->alterCfg['FDB_SEARCH_IN_PROFILE'])) {
             if ($this->alterCfg['FDB_SEARCH_IN_PROFILE']) {
-                $result .= wf_Link('?module=switchpoller&macfilter=' . $this->mac, wf_img('skins/fdbmacsearch.png', __('Current FDB cache')), false) . ' ';
+                $result .= wf_Link('?module=fdbcache&macfilter=' . $this->mac, wf_img('skins/fdbmacsearch.png', __('Current FDB cache')), false) . ' ';
                 $result .= wf_Link('?module=fdbarchive&macfilter=' . $this->mac, wf_img_sized('skins/fdbarchive.png', __('FDB') . ' ' . __('Archive'), '10', '10'), false);
             }
         }
