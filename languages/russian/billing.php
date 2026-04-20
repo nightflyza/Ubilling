@@ -3632,3 +3632,5 @@ $lang['def']['One-Punch scripts'] = 'One-Punch скрипты';
 $lang['def']['right to renew BGP peers report'] = 'Право обновлять отчет по BGP пирам';
 $lang['def']['right to edit BGP peers names'] = 'Право редактировать названия BGP пиров';
 $lang['def']['No previous polling data found'] = 'Не найдено данных предыдущих опросов';
+$lang['def']['Device polled'] = 'Устройство опрошено';
+$lang['def']['polling time'] = 'время опроса';

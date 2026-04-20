@@ -39,6 +39,8 @@ require_once('api/libs/api.deploy.php');
 require_once('api/libs/api.help.php');
 require_once('api/libs/api.sqldebug.php');
 require_once('api/libs/api.ubmessenger.php');
+require_once('api/libs/api.swparsers.php');
+require_once('api/libs/api.swfdbparsers.php');
 require_once('api/libs/api.swpoll.php');
 require_once('api/libs/api.routeros.php');
 require_once('api/libs/api.docx.php');
