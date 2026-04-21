@@ -154,7 +154,7 @@ class SwPollStats {
      */
     protected function renderHordeStatsTable() {
         $result = '';
-        $columns = array(__('from'), __('IP'), __('Location'), __('to'), __('time'), __('Actions'));
+        $columns = array(__('from'),  __('to'), __('IP'), __('Location'), __('time'), __('Actions'));
         $tableData = array();
         $allSwitchesByIp = $this->getAllSwitchesByIp();
 
@@ -183,9 +183,10 @@ class SwPollStats {
 
                         $tableData[] = array(
                             date("Y-m-d H:i:s", $statData['start']),
+                            date("Y-m-d H:i:s", $statData['end']),
                             $devIp,
                             $switchLocation,
-                            date("Y-m-d H:i:s", $statData['end']),
+                            
                             zb_formatTime($pollTime),
                             $actions
                         );
