@@ -550,6 +550,7 @@ function web_SnmpRenderDevCache($ip, $alltemplates, $deviceTemplate, $allusermac
     if (isset($alltemplates[$deviceTemplate])) {
         $currentTemplate = $alltemplates[$deviceTemplate];
         $pollMode = (isset($currentTemplate['define']['POLLMODE'])) ? $currentTemplate['define']['POLLMODE'] : '';
+        $portOffsetDefault = (isset($currentTemplate['define']['PORTOFFSET'])) ? trim($currentTemplate['define']['PORTOFFSET']) : '';
         $sfpStartPort = (empty($currentTemplate['define']['SFPSTARTPORT'])) ? 1 : $currentTemplate['define']['SFPSTARTPORT'];
         $sfpEndPort = (empty($currentTemplate['define']['SFPENDPORT'])) ? '' : $currentTemplate['define']['SFPENDPORT'];
         $poeStartPort = (empty($currentTemplate['define']['POESTARTPORT'])) ? 1 : $currentTemplate['define']['POESTARTPORT'];
@@ -615,7 +616,9 @@ function web_SnmpRenderDevCache($ip, $alltemplates, $deviceTemplate, $allusermac
 
                 $sectionDivBy = (empty($eachpoll['DIV'])) ? ', ""' : ', "' . $eachpoll['DIV'] . '"';
                 $sectionUnits = (empty($eachpoll['UNITS'])) ? ', ""' : ', "' . $eachpoll['UNITS'] . '"';
+                $sectionPortOffset = (isset($eachpoll['PORTOFFSET'])) ? trim($eachpoll['PORTOFFSET']) : $portOffsetDefault;
                 @$sectionParser = $eachpoll['PARSER'];
+                $GLOBALS['spSnmpParserPortOffset'] = $sectionPortOffset;
 
                 if ($section == 'portdesc' and $pollMode == 'cumulative' and ! empty($portDescrArr)) {
                     $sectionResult = sp_parse_sw_port_descr($portDescrArr);
@@ -679,6 +682,8 @@ function web_SnmpRenderDevCache($ip, $alltemplates, $deviceTemplate, $allusermac
                     $finalResult .= wf_tag('div', true);
                     $hasSnmpData = true;
                 }
+
+                $GLOBALS['spSnmpParserPortOffset'] = '';
             }
         }
 

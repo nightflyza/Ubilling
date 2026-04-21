@@ -2,6 +2,139 @@
 
 
 /**
+ * Available parsers list:
+ * 
+ * - sp_parse_raw - raw SNMP value output
+ * - sp_parse_raw_sanitized - sanitized raw SNMP value output
+ * - sp_parse_time_seconds - uptime from seconds to readable time
+ * - sp_parse_power - power status lamp icon
+ * - sp_parse_eping_temp - Equicom Ping3 temperature as text
+ * - sp_parse_eping_temp_gauge - Equicom Ping3 temperature gauge
+ * - sp_parse_cpu_gauge - CPU load gauge
+ * - sp_parse_eping_bat - Equicom Ping3 battery status LED
+ * - sp_parse_raw_trim_tab - trimSNMPOutput result value
+ * - sp_parse_raportstates - Raisecom port states table
+ * - sp_parse_zyportstates - Generic port states table
+ * - sp_parse_fxportstates - FoxGate port states table
+ * - sp_parse_cable_tester - switch cable diagnostics table
+ * - sp_parse_zyportbytes - Generic TX/RX bytes table
+ * - sp_parse_raportbytes - Raisecom TX/RX bytes table
+ * - sp_parse_fxportbytes - FoxGate TX/RX bytes table
+ * - sp_parse_zyportdesc - Generic port descriptions table
+ * - sp_parse_ciscomemory - Cisco memory usage percentage
+ * - sp_parse_ciscocpu - Cisco CPU usage percentage
+ * - sp_parse_eltex_acpower - Eltex AC power status LED
+ * - sp_parse_eltex_dcpower - Eltex DC power status LED
+ * - sp_parse_eltex_battery - Eltex battery status LED
+ * - sp_parse_division_units - values with division and units
+ * - sp_parse_division_units_ra - values with thresholds and units
+ * - sp_parse_division_units_noport - non-port value with units
+ * - sp_parse_mikrotik_poe - MikroTik PoE status table
+ * - sp_parse_sw_port_idx - build switch ports index array
+ * - sp_parse_sw_port_descr - switch port descriptions table
+ * - sp_parse_division_temperature - temperature gauge with thresholds
+ */
+
+
+/**
+ * Returns currently configured port transform expression from poller context.
+ *
+ * @return string
+ */
+function sp_parse_get_port_transform() {
+    $result = '';
+    if (isset($GLOBALS['spSnmpParserPortOffset'])) {
+        $result = trim($GLOBALS['spSnmpParserPortOffset']);
+    }
+    return ($result);
+}
+
+/**
+ * Applies transform expression to parsed port number.
+ *
+ * Supported expressions:
+ *  - integer value (legacy behavior): +N or -N offset
+ *  - +N / -N explicit offset
+ *  - *N multiplication
+ *  - /N division
+ *
+ * @param int $portnum
+ * @param string $expr
+ *
+ * @return int
+ */
+function sp_parse_apply_port_transform($portnum, $expr = '') {
+    $result = $portnum;
+    $expr = (!empty($expr)) ? trim($expr) : sp_parse_get_port_transform();
+
+    if ($expr !== '') {
+        if (is_numeric($expr)) {
+            $result = $portnum + (float) $expr;
+        } else {
+            $operator = substr($expr, 0, 1);
+            $value = trim(substr($expr, 1));
+
+            if (
+                in_array($operator, array('+', '-', '*', '/'))
+                and is_numeric($value)
+            ) {
+                $value = (float) $value;
+
+                if ($operator == '+') {
+                    $result = $portnum + $value;
+                } else {
+                    if ($operator == '-') {
+                        $result = $portnum - $value;
+                    } else {
+                        if ($operator == '*') {
+                            $result = $portnum * $value;
+                        } else {
+                            if ($operator == '/' and $value != 0) {
+                                $result = $portnum / $value;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    $result = (int) round($result);
+    return ($result);
+}
+
+/**
+ * Extracts raw port number from OID tail and applies transform.
+ *
+ * @param string $oidRaw
+ *
+ * @return int
+ */
+function sp_parse_get_portnum($oidRaw) {
+    $portnum = substr($oidRaw, -2);
+    $portnum = str_replace('.', '', $portnum);
+    $portnum = sp_parse_apply_port_transform((int) $portnum);
+    return ($portnum);
+}
+
+/**
+ * Extracts raw port number from OID tail and applies custom base shift + transform.
+ *
+ * @param string $oidRaw
+ * @param int $shift
+ *
+ * @return int
+ */
+function sp_parse_get_portnum_shifted($oidRaw, $shift) {
+    $portnum = substr($oidRaw, -2);
+    $portnum = str_replace('.', '', $portnum);
+    $portnum = $portnum + (int) $shift;
+    $portnum = sp_parse_apply_port_transform((int) $portnum);
+    return ($portnum);
+}
+
+
+/**
  * Raw SNMP data parser
  *
  * @return string
@@ -201,9 +334,7 @@ function sp_parse_raportstates($data) {
     if (!empty($data)) {
         $data = explode('=', $data);
         $data[0] = trim($data[0]);
-        $portnum = substr($data[0], -2);
-        $portnum = str_replace('.', '', $portnum);
-        $portnum = $portnum - 32;
+        $portnum = sp_parse_get_portnum_shifted($data[0], -32);
 
         if (ispos($data[1], '1')) {
             $cells = wf_TableCell($portnum, '24', '', 'style="height:20px;"');
@@ -223,7 +354,7 @@ function sp_parse_raportstates($data) {
 }
 
 /**
- * Zyxel Port state data parser
+ * Generic Port state data parser
  * 
  * @return string
  */
@@ -231,8 +362,7 @@ function sp_parse_zyportstates($data) {
     if (!empty($data)) {
         $data = explode('=', $data);
         $data[0] = trim($data[0]);
-        $portnum = substr($data[0], -2);
-        $portnum = str_replace('.', '', $portnum);
+        $portnum = sp_parse_get_portnum($data[0]);
 
         if (ispos($data[1], '1')) {
             $cells = wf_TableCell($portnum, '24', '', 'style="height:20px;"');
@@ -261,9 +391,7 @@ function sp_parse_fxportstates($data) {
     if (!empty($data)) {
         $data = explode('=', $data);
         $data[0] = trim($data[0]);
-        $portnum = substr($data[0], -2);
-        $portnum = str_replace('.', '', $portnum);
-        $portnum = $portnum - 1;
+        $portnum = sp_parse_get_portnum_shifted($data[0], -1);
 
         if ($portnum != 0) {
             if (ispos($data[1], '1')) {
@@ -312,8 +440,7 @@ function sp_parse_cable_tester($ip, $community, $currentTemplate) {
                         $data = explode('=', $data_info);
                         if (isset($data[0]) and isset($data[1])) {
                             $data[0] = trim($data[0]);
-                            $portnum = substr($data[0], -2);
-                            $portnum = str_replace('.', '', $portnum);
+                            $portnum = sp_parse_get_portnum($data[0]);
                             $interger = trim($data[1]);
                             $interger = str_replace('INTEGER: ', '', $interger);
 
@@ -385,7 +512,7 @@ function sp_parse_cable_tester($ip, $community, $currentTemplate) {
 }
 
 /**
- * Zyxel Port byte counters data parser
+ * Generic Port byte counters data parser
  * 
  * @return string
  */
@@ -393,8 +520,7 @@ function sp_parse_zyportbytes($data) {
     if (!empty($data)) {
         $data = explode('=', $data);
         $data[0] = trim($data[0]);
-        $portnum = substr($data[0], -2);
-        $portnum = str_replace('.', '', $portnum);
+        $portnum = sp_parse_get_portnum($data[0]);
 
         $bytes = str_replace(array('Counter32:', 'Counter64:'), '', $data[1]);
         $bytes = trim($bytes);
@@ -425,9 +551,7 @@ function sp_parse_raportbytes($data) {
     if (!empty($data)) {
         $data = explode('=', $data);
         $data[0] = trim($data[0]);
-        $portnum = substr($data[0], -2);
-        $portnum = $portnum - 32;
-        $portnum = str_replace('.', '', $portnum);
+        $portnum = sp_parse_get_portnum_shifted($data[0], -32);
 
         $bytes = str_replace(array('Counter32:', 'Counter64:'), '', $data[1]);
         $bytes = trim($bytes);
@@ -459,9 +583,7 @@ function sp_parse_fxportbytes($data) {
     if (!empty($data)) {
         $data = explode('=', $data);
         $data[0] = trim($data[0]);
-        $portnum = substr($data[0], -2);
-        $portnum = str_replace('.', '', $portnum);
-        $portnum = $portnum - 1; //shitty offset
+        $portnum = sp_parse_get_portnum_shifted($data[0], -1);
 
         $bytes = str_replace(array('Counter32:', 'Counter64:'), '', $data[1]);
         $bytes = trim($bytes);
@@ -486,7 +608,7 @@ function sp_parse_fxportbytes($data) {
 }
 
 /**
- * Zyxel Port description data parser
+ * Generic Port description data parser
  * 
  * @return string
  */
@@ -494,8 +616,7 @@ function sp_parse_zyportdesc($data) {
     if (!empty($data)) {
         $data = explode('=', $data);
         $data[0] = trim($data[0]);
-        $portnum = substr($data[0], -2);
-        $portnum = str_replace('.', '', $portnum);
+        $portnum = sp_parse_get_portnum($data[0]);
         if (ispos($data[1], 'NULL')) {
             $desc = __('No');
         } else {
@@ -635,8 +756,7 @@ function sp_parse_division_units($data, $divBy = '', $units = '') {
 
         $data = trimSNMPOutput($data, '');
 
-        $portnum = substr($data[0], -2);
-        $portnum = str_replace('.', '', $portnum);
+        $portnum = sp_parse_get_portnum($data[0]);
 
         $value = $data[1];
 
@@ -689,9 +809,7 @@ function sp_parse_division_units_ra($data, $divBy = '', $units = '') {
 
         $data = trimSNMPOutput($data, '');
 
-        $portnum = substr($data[0], -2);
-        $portnum = str_replace('.', '', $portnum);
-        $portnum = $portnum - 32;
+        $portnum = sp_parse_get_portnum_shifted($data[0], -32);
 
 
         $value = $data[1];
@@ -779,8 +897,7 @@ function sp_parse_mikrotik_poe($data) {
     ) {
         $data = trimSNMPOutput($data, '');
 
-        $portnum = substr($data[0], -2);
-        $portnum = str_replace('.', '', $portnum);
+        $portnum = sp_parse_get_portnum($data[0]);
 
         $value = $data[1];
 
