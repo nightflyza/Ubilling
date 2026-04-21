@@ -658,4 +658,316 @@ class FDBArchive {
         return($result);
     }
 
+    /**
+     * Handles current FDB cache module workflow
+     *
+     * @return void
+     */
+    public function renderCacheModule() {
+        $fdbDataRaw = rcms_scandir('./exports/', '*' . self::EXT_SWITCHES);
+        $fdbOltRaw = array();
+        if ($this->altCfg['PON_ENABLED']) {
+            $fdbOltRaw = rcms_scandir(self::OLT_PATH_CACHE, '*' . self::EXT_OLTS);
+        }
+        if (!empty($fdbDataRaw) OR !empty($fdbOltRaw)) {
+            $this->handleCacheMacFilters();
+            if (ubRouting::checkGet('ajax')) {
+                $this->renderCacheAjax($fdbDataRaw, $fdbOltRaw);
+            } else {
+                $this->renderCacheContainer();
+            }
+        } else {
+            show_warning(__('Nothing found'));
+        }
+    }
+
+    /**
+     * Handles FDB cache MAC filters setup controls
+     *
+     * @return void
+     */
+    protected function handleCacheMacFilters() {
+        if (ubRouting::checkPost('setmacfilters')) {
+            if (ubRouting::checkPost('newmacfilters')) {
+                $newFilters = base64_encode(ubRouting::post('newmacfilters'));
+                zb_StorageSet('FDBCACHEMACFILTERS', $newFilters);
+            }
+            if (ubRouting::checkPost('deletemacfilters', false)) {
+                zb_StorageDelete('FDBCACHEMACFILTERS');
+            }
+        }
+    }
+
+    /**
+     * Renders FDB cache ajax output
+     *
+     * @param array $fdbDataRaw
+     * @param array $fdbOltRaw
+     *
+     * @return void
+     */
+    protected function renderCacheAjax($fdbDataRaw, $fdbOltRaw = array()) {
+        $switchFilterSet = false;
+        if (ubRouting::checkGet('swfilter')) {
+            $fdbDataRaw = array(ubRouting::get('swfilter') . self::EXT_SWITCHES);
+            $switchFilterSet = true;
+        }
+        $macFilter = '';
+        if (ubRouting::checkGet('macfilter')) {
+            $macFilter = ubRouting::get('macfilter');
+        }
+        $allFilters = $this->loadCacheMacFilters($macFilter);
+
+        $this->loadUserData();
+        if ($this->altCfg['PON_ENABLED']) {
+            $this->loadOnuData();
+        }
+
+        $this->parseCurrentSwitchesCache($fdbDataRaw, $allFilters);
+        if ($this->altCfg['PON_ENABLED'] AND !$switchFilterSet) {
+            $this->parseCurrentOltCache($fdbOltRaw, $allFilters);
+        }
+        $this->json->getJson();
+    }
+
+    /**
+     * Loads and prepares MAC filters list for current cache output
+     *
+     * @param string $macFilter
+     *
+     * @return array
+     */
+    protected function loadCacheMacFilters($macFilter = '') {
+        $allFilters = array();
+        $rawFilters = zb_StorageGet('FDBCACHEMACFILTERS');
+        if (!empty($rawFilters)) {
+            $rawFilters = base64_decode($rawFilters);
+            $rawFilters = explodeRows($rawFilters);
+            if (!empty($rawFilters)) {
+                foreach ($rawFilters as $rawIndex => $rawMac) {
+                    $eachMacFilter = strtolower($rawMac);
+                    $allFilters[trim($eachMacFilter)] = $rawIndex;
+                }
+            }
+        }
+        if (!empty($macFilter)) {
+            $allFilters[trim(strtolower($macFilter))] = '42';
+        }
+        return ($allFilters);
+    }
+
+    /**
+     * Checks does MAC matches current filters set
+     *
+     * @param string $mac
+     * @param array  $allFilters
+     *
+     * @return bool
+     */
+    protected function checkCacheMacFilter($mac, $allFilters) {
+        $result = true;
+        if (!empty($allFilters)) {
+            $result = false;
+            $checkMac = trim(strtolower($mac));
+            if (isset($allFilters[$checkMac])) {
+                $result = true;
+            }
+        }
+        return ($result);
+    }
+
+    /**
+     * Parses current switches FDB cache and stores rows into json helper
+     *
+     * @param array $fdbDataRaw
+     * @param array $allFilters
+     *
+     * @return void
+     */
+    protected function parseCurrentSwitchesCache($fdbDataRaw, $allFilters) {
+        if (!empty($fdbDataRaw)) {
+            foreach ($fdbDataRaw as $cacheIndex => $cacheFile) {
+                $switchIp = $this->extractSwitchIP($cacheFile);
+                $switchId = $this->getSwitchId($switchIp);
+                $switchLink = wf_img('skins/menuicons/switches.png') . ' ' . __('Not exists');
+                if (!empty($switchId)) {
+                    $switchLink = wf_Link(self::URL_SWITCHPROFILE . $switchId, wf_img('skins/menuicons/switches.png') . ' ' . @$this->allSwitches[$switchId]['location']);
+                }
+
+                if (file_exists(self::PATH_CACHE . $cacheFile)) {
+                    $fdbRaw = file_get_contents(self::PATH_CACHE . $cacheFile);
+                    $fdbData = @unserialize($fdbRaw);
+                    if (!empty($fdbData)) {
+                        $fdbDataVLAN = array();
+                        $fdbDataPortDescr = array();
+                        if ($this->fdbExtenInfo) {
+                            if (file_exists(self::PATH_CACHE . $cacheFile . self::EXT_SWITCHES_VLAN)) {
+                                $fdbRawVLAN = file_get_contents(self::PATH_CACHE . $cacheFile . self::EXT_SWITCHES_VLAN);
+                                $fdbDataVLAN = @unserialize($fdbRawVLAN);
+                            }
+                            if (file_exists(self::PATH_CACHE . $cacheFile . self::EXT_SWITCHES_PORTDESCR)) {
+                                $fdbRawPortDescr = file_get_contents(self::PATH_CACHE . $cacheFile . self::EXT_SWITCHES_PORTDESCR);
+                                $fdbDataPortDescr = @unserialize($fdbRawPortDescr);
+                            }
+                        }
+
+                        foreach ($fdbData as $eachMac => $eachPort) {
+                            $eachMAC_VLAN = '';
+                            if (ispos($eachMac, '_')) {
+                                $eachMAC_VLAN = $eachMac;
+                                $eachMac = substr($eachMac, 0, stripos($eachMac, '_'));
+                            }
+                            if ($this->checkCacheMacFilter($eachMac, $allFilters)) {
+                                $data[] = $switchIp;
+                                $data[] = $eachPort;
+
+                                if ($this->fdbExtenInfo) {
+                                    $eachPortDescr = '';
+                                    $eachVLAN = '';
+                                    if (!empty($fdbDataPortDescr[$eachPort])) {
+                                        $eachPortDescr = $fdbDataPortDescr[$eachPort];
+                                    }
+                                    if (!empty($fdbDataVLAN[$eachMAC_VLAN])) {
+                                        $eachVLAN = $fdbDataVLAN[$eachMAC_VLAN];
+                                    }
+                                    $data[] = $eachPortDescr;
+                                    $data[] = $eachVLAN;
+                                }
+
+                                $data[] = $switchLink;
+                                $data[] = $eachMac;
+                                $data[] = $this->getEntityControl($eachMac);
+                                $this->json->addRow($data);
+                                unset($data);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Parses current OLT FDB cache and stores rows into json helper
+     *
+     * @param array $fdbOltRaw
+     * @param array $allFilters
+     *
+     * @return void
+     */
+    protected function parseCurrentOltCache($fdbOltRaw, $allFilters) {
+        if (!empty($fdbOltRaw)) {
+            foreach ($fdbOltRaw as $cacheIndex => $cacheFile) {
+                $oltId = $this->extractOltId($cacheFile);
+                $oltIp = $this->getOltIp($oltId);
+                $switchLink = wf_img('skins/menuicons/switches.png') . ' ' . __('Not exists');
+                if (!empty($oltId)) {
+                    $switchLink = wf_Link(self::URL_SWITCHPROFILE . $oltId, wf_img('skins/menuicons/switches.png') . ' ' . @$this->allSwitches[$oltId]['location']);
+                }
+
+                if (file_exists(self::OLT_PATH_CACHE . $cacheFile)) {
+                    $fdbRaw = file_get_contents(self::OLT_PATH_CACHE . $cacheFile);
+                    $fdbData = @unserialize($fdbRaw);
+                    if (!empty($fdbData)) {
+                        foreach ($fdbData as $onuMac => $onuFdbData) {
+                            if (!empty($onuFdbData)) {
+                                foreach ($onuFdbData as $onuIndex => $onuFdb) {
+                                    if (!empty($onuFdb['mac'])) {
+                                        if ($this->checkCacheMacFilter($onuFdb['mac'], $allFilters)) {
+                                            $data[] = $oltIp;
+                                            $data[] = $this->getOnuHandle($onuMac);
+
+                                            if ($this->fdbExtenInfo) {
+                                                $data[] = '';
+                                                $data[] = @$onuFdb['vlan'];
+                                            }
+
+                                            $data[] = $switchLink;
+                                            $data[] = $onuFdb['mac'];
+                                            $data[] = $this->getEntityControl($onuMac);
+                                            $this->json->addRow($data);
+                                            unset($data);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Renders FDB cache list container
+     *
+     * @return void
+     */
+    protected function renderCacheContainer() {
+        $fdbSwitchFilter = '';
+        $fdbMacFilter = '';
+        if (ubRouting::checkGet('fdbfor')) {
+            $fdbSwitchFilter = ubRouting::get('fdbfor');
+        }
+        if (ubRouting::checkGet('macfilter')) {
+            $fdbMacFilter = ubRouting::get('macfilter');
+        }
+        $this->renderCacheTable($fdbSwitchFilter, $fdbMacFilter);
+    }
+
+    /**
+     * Returns FDB cache lister MAC filters setup form
+     *
+     * @param string $currentFilters
+     *
+     * @return string
+     */
+    protected function renderCacheFiltersForm($currentFilters) {
+        if (!empty($currentFilters)) {
+            $currentFilters = base64_decode($currentFilters);
+        }
+
+        $inputs = __('One MAC address per line') . wf_tag('br');
+        $inputs .= wf_TextArea('newmacfilters', '', $currentFilters, true, '40x10');
+        $inputs .= wf_HiddenInput('setmacfilters', 'true');
+        $inputs .= wf_CheckInput('deletemacfilters', __('Cleanup'), true, false);
+        $inputs .= wf_Submit(__('Save'));
+        $result = wf_Form('', 'POST', $inputs, 'glamour');
+
+        return ($result);
+    }
+
+    /**
+     * Shows current FDB cache list container
+     *
+     * @param string $fdbSwitchFilter
+     * @param string $fdbMacFilter
+     *
+     * @return void
+     */
+    protected function renderCacheTable($fdbSwitchFilter = '', $fdbMacFilter = '') {
+        $filter = '';
+        $macFilter = '';
+        $result = '';
+        $filter = (!empty($fdbSwitchFilter)) ? '&swfilter=' . $fdbSwitchFilter : '';
+        $macFilter = (!empty($fdbMacFilter)) ? '&macfilter=' . $fdbMacFilter : '';
+        $currentFilters = zb_StorageGet('FDBCACHEMACFILTERS');
+
+        $filtersForm = wf_modalAuto(web_icon_search('MAC filters setup'), __('MAC filters setup'), $this->renderCacheFiltersForm($currentFilters), '');
+        if (!empty($currentFilters)) {
+            $filtersForm .= ' ' . wf_img('skins/filter_icon.png', __('Filters'));
+        }
+        $mainControls = self::renderNavigationPanel();
+        show_window('', $mainControls);
+
+        if ($this->fdbExtenInfo) {
+            $columns = array(__('Switch') . ' / ' . __('OLT'), 'Port', __('Port description'), 'VLAN', 'Location', 'MAC', __('User') . ' / ' . __('Device'));
+        } else {
+            $columns = array(__('Switch') . ' / ' . __('OLT'), 'Port', 'Location', 'MAC', __('User') . ' / ' . __('Device'));
+        }
+
+        $result .= wf_JqDtLoader($columns, '?module=fdbcache&ajax=true' . $filter . $macFilter, true, 'Objects', 100);
+        show_window(__('Current FDB cache') . ' ' . $filtersForm, $result);
+    }
+
 }

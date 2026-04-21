@@ -3634,3 +3634,6 @@ $lang['def']['right to edit BGP peers names'] = 'Право редактиров
 $lang['def']['No previous polling data found'] = 'Не найдено данных предыдущих опросов';
 $lang['def']['Device polled'] = 'Устройство опрошено';
 $lang['def']['polling time'] = 'время опроса';
+$lang['def']['View polling log'] = 'Просмотр журнала опроса';
+$lang['def']['View horde stats'] = 'Просмотр статистики орды';
+$lang['def']['devices'] = 'устройства';
