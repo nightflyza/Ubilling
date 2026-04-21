@@ -17,11 +17,6 @@ if (cfr('SWITCHPOLL')) {
             }
         }
 
-        //log download
-        if (ubRouting::checkGet('dlswpolllog')) {
-            zb_FDBTableLogDownload();
-        }
-
         //push ajax data
         if (ubRouting::checkGet('ajax')) {
             if (ubRouting::checkGet('swfilter')) {

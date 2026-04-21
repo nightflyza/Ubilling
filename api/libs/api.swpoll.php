@@ -95,14 +95,11 @@ function sp_SnmpGetAllModelTemplates() {
  * @param string $community
  * @param array $alltemplates
  * @param string $deviceTemplate
- * @param array $allusermacs
- * @param array $alladdress
  * @param string $communitywrite
- * @param array $allswitchmacs
  * 
  * @return void
  */
-function sp_SnmpPollDevice($ip, $community, $alltemplates, $deviceTemplate, $allusermacs, $alladdress, $communitywrite = '', $quiet = false, $allswitchmacs = array()) {
+function sp_SnmpPollDevice($ip, $community, $alltemplates, $deviceTemplate, $communitywrite = '') {
     global $ubillingConfig;
     $devPollProcess = new StarDust('SWPOLL_' . $ip);
     $pollingStart = time();
@@ -504,6 +501,7 @@ function web_SnmpGetDeviceCacheTime($ip) {
     $result = '';
     $hordeStatsPath = 'exports/HORDE_' . $ip;
     if (file_exists($hordeStatsPath)) {
+        $messages = new UbillingMessageHelper();
         $rawHordeStats = file_get_contents($hordeStatsPath);
         if (!empty($rawHordeStats)) {
             $parsedHordeStats = @unserialize($rawHordeStats);
@@ -523,6 +521,8 @@ function web_SnmpGetDeviceCacheTime($ip) {
                 }
                 $result .= ', ' . __('polling time') . ': ' . zb_formatTime($pollingDuration);
             }
+
+            $result = $messages->getStyledMessage($result, 'info');
         }
     }
     return ($result);
@@ -1136,142 +1136,6 @@ function web_FDBTableFiltersForm($currentFilters) {
 }
 
 /**
- * Renders swpoll logs control
- * 
- * @global object $ubillingConfig
- * 
- * @return string
- */
-function web_FDBTableLogControl() {
-    global $ubillingConfig;
-    $messages = new UbillingMessageHelper();
-    $result = '';
-    $logPath = 'exports/swpolldata.log';
-    $logData = array();
-    $renderData = '';
-    $rows = '';
-    $recordsLimit = 200;
-    $prevTime = '';
-    $curTimeTime = '';
-    $diffTime = '';
-
-    if (file_exists($logPath)) {
-        $billCfg = $ubillingConfig->getBilling();
-        $tailCmd = $billCfg['TAIL'];
-        $runCmd = $tailCmd . ' -n ' . $recordsLimit . ' ' . $logPath;
-        $rawResult = shell_exec($runCmd);
-        $renderData .= __('Showing') . ' ' . $recordsLimit . ' ' . __('last events') . wf_tag('br');
-        $renderData .= wf_Link('?module=fdbcache&dlswpolllog=true', wf_img('skins/icon_download.png', __('Download')) . ' ' . __('Download full log'), true);
-
-        if (!empty($rawResult)) {
-            $logData = explodeRows($rawResult);
-            if (!empty($logData)) {
-
-                $cells = wf_TableCell(__('Time') . ' (' . __('seconds') . ')');
-                $cells .= wf_TableCell(__('Date'));
-                $cells .= wf_TableCell(__('IP'));
-                $cells .= wf_TableCell(__('Event'));
-                $rows .= wf_TableRow($cells, 'row1');
-
-                //  $logData = array_reverse($logData);
-                foreach ($logData as $io => $each) {
-                    if (!empty($each)) {
-                        if (!ispos($each, 'SWPOLLSTART')) {
-                            $eachEntry = explode(' ', $each);
-                            $curTime = $eachEntry[0] . ' ' . $eachEntry[1];
-                            $curTime = strtotime($curTime);
-                            if (!empty($prevTime)) {
-                                $diffTime = $curTime - $prevTime;
-                            } else {
-                                $diffTime = 0;
-                            }
-                            $prevTime = $eachEntry[0] . ' ' . $eachEntry[1];
-                            $prevTime = strtotime($prevTime);
-
-                            $cells = wf_TableCell($diffTime);
-                            $cells .= wf_TableCell($eachEntry[0] . ' ' . $eachEntry[1]);
-                            $cells .= wf_TableCell($eachEntry[2]);
-                            $cells .= wf_TableCell($eachEntry[3] . ' ' . @$eachEntry[4] . ' ' . @$eachEntry[5]);
-                            $rows .= wf_TableRow($cells, 'row3');
-                        } else {
-                            $eachEntry = explode(' ', $each);
-                            $prevTime = strtotime($eachEntry[0] . ' ' . $eachEntry[1]);
-                        }
-                    }
-                }
-                $renderData .= wf_TableBody($rows, '100%', 0, 'sortable');
-            }
-        } else {
-            $renderData .= $messages->getStyledMessage(__('Nothing found'), 'warning');
-        }
-
-        $result = wf_modal(wf_img('skins/log_icon_small.png', __('Swpoll log')), __('Swpoll log'), $renderData, '', '800', '600');
-    }
-    return ($result);
-}
-
-/**
- * Performs downloading of switches polling logs
- * 
- * @return void
- */
-function zb_FDBTableLogDownload() {
-    $logPath = 'exports/swpolldata.log';
-    if (file_exists($logPath)) {
-        zb_DownloadFile($logPath);
-    } else {
-        show_error(__('Something went wrong') . ': EX_FILE_NOT_FOUND ' . $logPath);
-    }
-}
-
-/**
- * Renders horde stats control if horde enabled
- * 
- * @return string
- */
-function web_HordeStatsControl() {
-    global $ubillingConfig;
-    $result = '';
-    if ($ubillingConfig->getAlterParam('HORDE_OF_SWITCHES')) {
-        $stats = '';
-        $hordePath = 'exports/';
-        $allHordeStats = rcms_scandir($hordePath, '*HORDE_*');
-        $totalCount = 0;
-        $totalTime = 0;
-        if (!empty($allHordeStats)) {
-            $cells = wf_TableCell(__('IP'));
-            $cells .= wf_TableCell(__('from'));
-            $cells .= wf_TableCell(__('to'));
-            $cells .= wf_TableCell(__('time'));
-            $rows = wf_TableRow($cells, 'row1');
-            foreach ($allHordeStats as $io => $eachStat) {
-                $devIp = zb_ExtractIpAddress($eachStat);
-                $statData = file_get_contents($hordePath . $eachStat);
-                if (!empty($statData)) {
-                    $statData = unserialize($statData);
-                    $pollTime = $statData['end'] - $statData['start'];
-                    $cells = wf_TableCell($devIp);
-                    $cells .= wf_TableCell(date("Y-m-d H:i:s", $statData['start']));
-                    $cells .= wf_TableCell(date("Y-m-d H:i:s", $statData['end']));
-                    $cells .= wf_TableCell(zb_formatTime($pollTime));
-                    $rows .= wf_TableRow($cells, 'row5');
-                    $totalCount++;
-                    $totalTime += $pollTime;
-                }
-            }
-            $stats .= wf_TableBody($rows, '100%', 0, '');
-            $stats .= wf_tag('b') . __('Total') . ' ' . __('time') . ': ' . wf_tag('b', true) . zb_formatTime($totalTime) . wf_delimiter(0);
-            $stats .= wf_tag('b') . __('Devices') . ': ' . wf_tag('b', true) . $totalCount . wf_delimiter(0);
-        } else {
-            $messages = new UbillingMessageHelper();
-            $stats .= $messages->getStyledMessage(__('Nothing to show'), 'warning');
-        }
-        $result .= ' ' . wf_modal(wf_img('skins/orc_small.png', __('Devices polling stats')), __('Devices polling stats'), $stats, '', '800', '600');
-    }
-    return ($result);
-}
-
-/**
  * Shows current FDB cache list container
  * 
  * @param string $fdbSwitchFilter
@@ -1290,9 +1154,6 @@ function web_FDBTableShowDataTable($fdbSwitchFilter = '', $fdbMacFilter = '') {
     if (!empty($currentFilters)) {
         $filtersForm .= ' ' . wf_img('skins/filter_icon.png', __('Filters'));
     }
-    $logControls = web_FDBTableLogControl();
-    $logControls .= web_HordeStatsControl();
-
     $mainControls = FDBArchive::renderNavigationPanel();
     show_window('', $mainControls);
 
@@ -1304,5 +1165,5 @@ function web_FDBTableShowDataTable($fdbSwitchFilter = '', $fdbMacFilter = '') {
 
     $result .= wf_JqDtLoader($columns, '?module=fdbcache&ajax=true' . $filter . $macfilter, true, 'Objects', 100);
 
-    show_window(__('Current FDB cache') . ' ' . $filtersForm . ' ' . $logControls, $result);
+    show_window(__('Current FDB cache') . ' ' . $filtersForm, $result);
 }

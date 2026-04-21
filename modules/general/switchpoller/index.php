@@ -48,7 +48,7 @@ if (cfr('SWITCHPOLL')) {
                                             unlink('./exports/' . $fileToDelete);
                                         }
                                     }
-                                    sp_SnmpPollDevice($deviceData['ip'], $deviceData['snmp'], $allTemplates, $deviceTemplate, $allusermacs, $alladdress, $deviceData['snmpwrite'], false, $allswitchmacs);
+                                    sp_SnmpPollDevice($deviceData['ip'], $deviceData['snmp'], $allTemplates, $deviceTemplate, $deviceData['snmpwrite']);
                                     ubRouting::nav('?module=switchpoller&switchid=' . $deviceData['id']);
                                 }
 
