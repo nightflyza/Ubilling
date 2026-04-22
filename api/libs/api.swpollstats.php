@@ -63,10 +63,8 @@ class SwPollStats {
      */
     protected function renderControls() {
         $result = '';
-        if ($this->isHordeEnabled()) {
         $result .= wf_Link(self::URL_ME, wf_img('skins/log_icon_small.png') . ' ' . __('View polling log'), false, 'ubButton');
         $result .= wf_Link(self::URL_ME . '&' . self::ROUTE_HORDE . '=true', wf_img('skins/orc_small.png') . ' ' . __('View horde stats'), false, 'ubButton');
-        }
         return ($result);
     }
 
@@ -157,74 +155,56 @@ class SwPollStats {
         $columns = array(__('from'),  __('to'), __('IP'), __('Location'), __('time'), __('Actions'));
         $tableData = array();
         $allSwitchesByIp = $this->getAllSwitchesByIp();
+        $hordePath = 'exports/';
+        $allHordeStats = rcms_scandir($hordePath, '*HORDE_*');
 
-        if ($this->isHordeEnabled()) {
-            $hordePath = 'exports/';
-            $allHordeStats = rcms_scandir($hordePath, '*HORDE_*');
+        if (!empty($allHordeStats)) {
+            $totalCount = 0;
+            $totalTime = 0;
 
-            if (!empty($allHordeStats)) {
-                $totalCount = 0;
-                $totalTime = 0;
-
-                foreach ($allHordeStats as $io => $eachStat) {
-                    $devIp = zb_ExtractIpAddress($eachStat);
-                    $statData = file_get_contents($hordePath . $eachStat);
-                    if (!empty($statData)) {
-                        $statData = unserialize($statData);
-                        $pollTime = $statData['end'] - $statData['start'];
-                        $switchLocation = '';
-                        $actions = '';
-                        if (!empty($devIp) and isset($allSwitchesByIp[$devIp])) {
-                            $switchId = $allSwitchesByIp[$devIp]['id'];
-                            $switchLocation = $allSwitchesByIp[$devIp]['location'];
-                            $actions = wf_Link(self::URL_SWITCH_PROFILE . $switchId, web_edit_icon(__('Switch profile'))).' ';
-                            $actions .= wf_Link(self::URL_SNMP_QUERY . $switchId, wf_img('skins/snmp.png', __('SNMP query')));
-                        }
-
-                        $tableData[] = array(
-                            date("Y-m-d H:i:s", $statData['start']),
-                            date("Y-m-d H:i:s", $statData['end']),
-                            $devIp,
-                            $switchLocation,
-                            
-                            zb_formatTime($pollTime),
-                            $actions
-                        );
-                        $totalCount++;
-                        $totalTime += $pollTime;
+            foreach ($allHordeStats as $io => $eachStat) {
+                $devIp = zb_ExtractIpAddress($eachStat);
+                $statData = file_get_contents($hordePath . $eachStat);
+                if (!empty($statData)) {
+                    $statData = unserialize($statData);
+                    $pollTime = $statData['end'] - $statData['start'];
+                    $switchLocation = '';
+                    $actions = '';
+                    if (!empty($devIp) and isset($allSwitchesByIp[$devIp])) {
+                        $switchId = $allSwitchesByIp[$devIp]['id'];
+                        $switchLocation = $allSwitchesByIp[$devIp]['location'];
+                        $actions = wf_Link(self::URL_SWITCH_PROFILE . $switchId, web_edit_icon(__('Switch profile'))).' ';
+                        $actions .= wf_Link(self::URL_SNMP_QUERY . $switchId, wf_img('skins/snmp.png', __('SNMP query')));
                     }
-                }
 
-                if (!empty($tableData)) {
-                    $opts = '"order": [[0, "desc"]]';
-                    $result .= wf_JqDtEmbed($columns, $tableData, false, __('devices'), 100, $opts);
-                    $result .= wf_delimiter(0);
-                    $result .= wf_tag('b') . __('Total') . ' ' . __('time') . ': ' . wf_tag('b', true) . zb_formatTime($totalTime);
-                    $result .= wf_delimiter(0);
-                    $result .= wf_tag('b') . __('Devices') . ': ' . wf_tag('b', true) . $totalCount;
-                } else {
-                    $result .= $this->messages->getStyledMessage(__('Nothing to show'), 'warning');
+                    $tableData[] = array(
+                        date("Y-m-d H:i:s", $statData['start']),
+                        date("Y-m-d H:i:s", $statData['end']),
+                        $devIp,
+                        $switchLocation,
+
+                        zb_formatTime($pollTime),
+                        $actions
+                    );
+                    $totalCount++;
+                    $totalTime += $pollTime;
                 }
+            }
+
+            if (!empty($tableData)) {
+                $opts = '"order": [[0, "desc"]]';
+                $result .= wf_JqDtEmbed($columns, $tableData, false, __('devices'), 100, $opts);
+                $result .= wf_delimiter(0);
+                $result .= wf_tag('b') . __('Total') . ' ' . __('time') . ': ' . wf_tag('b', true) . zb_formatTime($totalTime);
+                $result .= wf_delimiter(0);
+                $result .= wf_tag('b') . __('Devices') . ': ' . wf_tag('b', true) . $totalCount;
             } else {
                 $result .= $this->messages->getStyledMessage(__('Nothing to show'), 'warning');
             }
         } else {
-            $result .= $this->messages->getStyledMessage(__('Horde disabled'), 'warning');
+            $result .= $this->messages->getStyledMessage(__('Nothing to show'), 'warning');
         }
 
-        return ($result);
-    }
-
-    /**
-     * Checks horde polling mode availability
-     *
-     * @return bool
-     */
-    protected function isHordeEnabled() {
-        $result = false;
-        if ($this->ubillingConfig->getAlterParam('HORDE_OF_SWITCHES')) {
-            $result = true;
-        }
         return ($result);
     }
 
