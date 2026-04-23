@@ -469,8 +469,10 @@ class PONizer {
     const URL_ME = '?module=ponizer';
     const URL_ONULIST = '?module=ponizer&onulist=true';
     const URL_USERPROFILE = '?module=userprofile&username=';
+    const URL_SWITCH = '?module=switches&edit=';
     const URL_ONU = '?module=ponizer&editonu=';
     const ROUTE_GOTO_OLT = 'gotosomeoltid';
+    
 
     /**
      * Views/stats coloring
@@ -2439,7 +2441,12 @@ class PONizer {
             if ($this->ponizerUseTabUI) {
                 if (isset($this->allOltDevices[$this->allOnu[$onuId]['oltid']])) {
                     $oltNavIcon = wf_img('skins/pon_icon.gif', __('Go to OLT'), '16', '16');
-                    $oltNavControl = ' ' . wf_Link(self::URL_ONULIST . '&' . self::ROUTE_GOTO_OLT . '=' . $this->allOnu[$onuId]['oltid'], $oltNavIcon, false, '');
+                    $oltSwitchIcon=wf_img_sized('skins/switch16.png', __('Go to switch'), '16', '16');
+                    $oltNavControl = '';
+                    if (cfr('SWITCHES')) {
+                        $oltNavControl .= ' ' . wf_Link(self::URL_SWITCH . $this->allOnu[$onuId]['oltid'], $oltSwitchIcon, false, '').' ';
+                    }
+                    $oltNavControl .= ' ' . wf_Link(self::URL_ONULIST . '&' . self::ROUTE_GOTO_OLT . '=' . $this->allOnu[$onuId]['oltid'], $oltNavIcon, false, '');
                 }
             }
             if ($this->altCfg['OLTSEL_SEARCHBL']) {
@@ -3202,8 +3209,14 @@ class PONizer {
 
                 if ($this->ponizerUseTabUI) {
                     if (isset($this->allOltDevices[$oltId])) {
-                        $oltNavIcon = wf_img('skins/pon_icon.gif', __('Go to OLT'), '16', '16');
-                        $oltControls = ' ' . wf_Link(self::URL_ONULIST . '&' . self::ROUTE_GOTO_OLT . '=' . $oltId, $oltNavIcon, false, '');
+                        $oltSwitchIcon=wf_img_sized('skins/switch16.png', __('Go to switch'), '16', '16');
+                        $oltNavIcon = wf_img_sized('skins/pon_icon.gif', __('Go to OLT'), '16', '16');
+                        $oltControls = '';
+                        if (cfr('SWITCHES')) {
+                            $oltControls .= ' ' . wf_Link(self::URL_SWITCH . $oltId, $oltSwitchIcon, false, '').' ';
+                        }
+                        $oltControls .= ' ' . wf_Link(self::URL_ONULIST . '&' . self::ROUTE_GOTO_OLT . '=' . $oltId, $oltNavIcon, false, '');
+                        
                     }
                 }
 
