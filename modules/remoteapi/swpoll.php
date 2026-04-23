@@ -9,7 +9,6 @@ if (ubRouting::get('action') == 'swpoll') {
     $allTemplates = sp_SnmpGetAllModelTemplates();
     $allTemplatesAssoc = sp_SnmpGetModelTemplatesAssoc();
     $alldeadswitches = zb_SwitchesGetAllDead();
-    $swpollLogData = '';
     $swpollLogPath = 'exports/swpolldata.log';
     $altCfg = $ubillingConfig->getAlter();
     $hordeTimeout = 0;
@@ -28,30 +27,32 @@ if (ubRouting::get('action') == 'swpoll') {
         if ($switchPollingProcess->notRunning()) {
             //start new polling
             $switchPollingProcess->start();
-            file_put_contents($swpollLogPath, date("Y-m-d H:i:s") . ' [SWPOLLSTART]' . PHP_EOL, FILE_APPEND);
+            @file_put_contents($swpollLogPath, '', LOCK_EX);
+            $swpollLogEvent = date("Y-m-d H:i:s") . ' [SWPOLLSTART]' . PHP_EOL;
+            @file_put_contents($swpollLogPath, $swpollLogEvent, FILE_APPEND | LOCK_EX);
             if (!@$altCfg['HORDE_OF_SWITCHES']) {
                 foreach ($allDevices as $io => $eachDevice) {
-                    $swpollLogData = '';
+                    $swpollLogEvent = '';
                     if (!empty($allTemplatesAssoc)) {
                         if (isset($allTemplatesAssoc[$eachDevice['modelid']])) {
                             //dont poll dead devices
                             if (!isset($alldeadswitches[$eachDevice['ip']])) {
                                 $deviceTemplate = $allTemplatesAssoc[$eachDevice['modelid']];
                                 sp_SnmpPollDevice($eachDevice['ip'], $eachDevice['snmp'], $allTemplates, $deviceTemplate, $eachDevice['snmpwrite']);
-                                $swpollLogData = date("Y-m-d H:i:s") . ' ' . $eachDevice['ip'] . ' [OK]' . PHP_EOL;
-                                print($swpollLogData);
+                                $swpollLogEvent = date("Y-m-d H:i:s") . ' ' . $eachDevice['ip'] . ' [OK]' . PHP_EOL;
+                                print($swpollLogEvent);
                             } else {
-                                $swpollLogData = date("Y-m-d H:i:s") . ' ' . $eachDevice['ip'] . ' [SKIP] SWITCH DEAD' . PHP_EOL;
-                                print($swpollLogData);
+                                $swpollLogEvent = date("Y-m-d H:i:s") . ' ' . $eachDevice['ip'] . ' [SKIP] SWITCH DEAD' . PHP_EOL;
+                                print($swpollLogEvent);
                             }
                         } else {
-                            $swpollLogData = date("Y-m-d H:i:s") . ' ' . $eachDevice['ip'] . ' [FAIL] NO TEMPLATE' . PHP_EOL;
-                            print($swpollLogData);
+                            $swpollLogEvent = date("Y-m-d H:i:s") . ' ' . $eachDevice['ip'] . ' [FAIL] NO TEMPLATE' . PHP_EOL;
+                            print($swpollLogEvent);
                         }
                     }
-
-                    //put some log data about polling
-                    @file_put_contents($swpollLogPath, $swpollLogData, FILE_APPEND);
+                    if (!empty($swpollLogEvent)) {
+                        @file_put_contents($swpollLogPath, $swpollLogEvent, FILE_APPEND | LOCK_EX);
+                    }
                 }
             } else {
                 $hordeQueue = array();
@@ -59,6 +60,10 @@ if (ubRouting::get('action') == 'swpoll') {
                 foreach ($allDevices as $io => $eachDevice) {
                     if (!isset($alldeadswitches[$eachDevice['ip']])) {
                         $hordeQueue[] = $eachDevice;
+                    } else {
+                        $swpollLogEvent = date("Y-m-d H:i:s") . ' ' . $eachDevice['ip'] . ' [SKIP] SWITCH DEAD' . PHP_EOL;
+                        @file_put_contents($swpollLogPath, $swpollLogEvent, FILE_APPEND | LOCK_EX);
+                        print($swpollLogEvent);
                     }
                 }
 
@@ -95,6 +100,8 @@ if (ubRouting::get('action') == 'swpoll') {
                 }
             }
 
+            $swpollLogEvent = date("Y-m-d H:i:s") . ' [SWPOLLFINISHED]' . PHP_EOL;
+            @file_put_contents($swpollLogPath, $swpollLogEvent, FILE_APPEND | LOCK_EX);
             $switchPollingProcess->stop();
             die('OK:SWPOLL');
         } else {

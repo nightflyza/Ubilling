@@ -19,6 +19,13 @@ class SwPollStats {
     protected $messages = '';
 
     /**
+     * Event icons
+     *
+     * @var array
+     */
+    protected $eventIcons=array();
+
+    /**
      * Log path
      *
      * @var string
@@ -35,6 +42,20 @@ class SwPollStats {
         global $ubillingConfig;
         $this->ubillingConfig = $ubillingConfig;
         $this->messages = new UbillingMessageHelper();
+        $this->setEventIcons();
+    }
+
+    /**
+     * Sets event icons
+     *
+     * @return void
+     */
+    protected function setEventIcons() {
+        $this->eventIcons = array(
+            '[OK]' => '✅',
+            '[SKIP]' => '⚠️',
+            '[FAIL]' => '❌',
+        );
     }
 
     /**
@@ -95,7 +116,7 @@ class SwPollStats {
 
                 foreach ($logData as $io => $each) {
                     if (!empty($each)) {
-                        if (!ispos($each, 'SWPOLLSTART')) {
+                        if (!ispos($each, 'SWPOLLSTART') and !ispos($each, 'SWPOLLFINISHED')) {
                             $eachEntry = explode(' ', $each);
                             $curTime = strtotime($eachEntry[0] . ' ' . $eachEntry[1]);
                             $diffTime = 0;
@@ -114,12 +135,14 @@ class SwPollStats {
                                 $actions = wf_Link(self::URL_SWITCH_PROFILE . $switchId, web_edit_icon(__('Switch profile'))).' ';
                                 $actions .= wf_Link(self::URL_SNMP_QUERY . $switchId, wf_img('skins/snmp.png', __('SNMP query')));
                             }
+                            $eventData = trim($eachEntry[3] . ' ' . @$eachEntry[4] . ' ' . @$eachEntry[5]);
+                            $eventData = $this->replaceEventTypeWithIcon($eventData);
                             $tableData[] = array(
                                 $eachEntry[0] . ' ' . $eachEntry[1],
                                 $devIp,
                                 $switchLocation,
                                 $diffTime,
-                                trim($eachEntry[3] . ' ' . @$eachEntry[4] . ' ' . @$eachEntry[5]),
+                                $eventData,
                                 $actions
                             );
                         } else {
@@ -142,6 +165,23 @@ class SwPollStats {
             $result .= $this->messages->getStyledMessage(__('Nothing found'), 'warning');
         }
 
+        return ($result);
+    }
+
+    /**
+     * Replaces event type with icon in event text
+     *
+     * @param string $eventData
+     *
+     * @return string
+     */
+    protected function replaceEventTypeWithIcon($eventData) {
+        $result = $eventData;
+        if (!empty($eventData) and !empty($this->eventIcons)) {
+            foreach ($this->eventIcons as $eventType => $eventIcon) {
+                $result = str_replace($eventType, $eventIcon, $result);
+            }
+        }
         return ($result);
     }
 

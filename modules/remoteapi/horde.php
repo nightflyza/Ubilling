@@ -31,8 +31,9 @@ if (ubRouting::get('action') == 'horde') {
             } else {
                 $swpollLogData = date("Y-m-d H:i:s") . ' devid=' . $devId . ' [FAIL] DEVICE NOT FOUND' . PHP_EOL;
             }
+
             if (!empty($swpollLogData)) {
-                @file_put_contents($swpollLogPath, $swpollLogData, FILE_APPEND);
+                @file_put_contents($swpollLogPath, $swpollLogData, FILE_APPEND | LOCK_EX);
             }
             die('OK:HORDE');
         } else {
