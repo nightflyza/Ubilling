@@ -365,7 +365,7 @@ class SwitchPortAssign {
         $switchLocators = '';
 
         if (!empty($currentSwitchId)) {
-            $switchProfileIcon = wf_img_sized('skins/menuicons/switches.png', __('Switch'), 10, 10);
+            $switchProfileIcon = wf_img_sized('skins/switch16.png', __('Switch'), 10, 10);
             $switchLocators .= wf_Link('?module=switches&edit=' . $currentSwitchId, $switchProfileIcon, false, '');
         }
 

@@ -184,7 +184,7 @@ class ArpDiag {
             $result = wf_Link($userUrl . $allUserIps[$ip], web_profile_icon(__('User')) . ' ' . @$allUserAddress[$allUserIps[$ip]], false);
         } else {
             if (isset($allSwitchesIps[$ip])) {
-                $result = wf_Link($switchUrl . $allSwitchesIps[$ip]['id'], wf_img_sized('skins/menuicons/switches.png', __('Switch'), '11', '13') . ' ' . $allSwitchesIps[$ip]['location'], false);
+                $result = wf_Link($switchUrl . $allSwitchesIps[$ip]['id'], wf_img_sized('skins/switch16.png', __('Switch'), '10', '10') . ' ' . $allSwitchesIps[$ip]['location'], false);
             }
         }
         return ($result);

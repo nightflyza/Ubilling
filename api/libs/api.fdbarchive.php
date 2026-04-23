@@ -434,7 +434,7 @@ class FDBArchive {
 
         if (isset($this->allSwitchesMac[$mac])) {
             $switchId = $this->allSwitchesMac[$mac];
-            $switchIcon = wf_img('skins/menuicons/switches.png', __('Switch')) . ' ';
+            $switchIcon = wf_img('skins/switch16.png', __('Switch')) . ' ';
             $result .= wf_Link(self::URL_SWITCHPROFILE . $switchId, $switchIcon . @$this->allSwitches[$switchId]['location']);
             return($result);
         }
@@ -486,7 +486,7 @@ class FDBArchive {
             $recordDate = $archiveRecord['date'];
             $recordId = $archiveRecord['devid'];
             $recordIp = $archiveRecord['devip'];
-            $switchIcon = wf_img('skins/menuicons/switches.png') . ' ';
+            $switchIcon = wf_img('skins/switch16.png') . ' ';
 
             //normal switch data
             if ($archiveRecord['pon'] != 1) {
@@ -789,9 +789,9 @@ class FDBArchive {
             foreach ($fdbDataRaw as $cacheIndex => $cacheFile) {
                 $switchIp = $this->extractSwitchIP($cacheFile);
                 $switchId = $this->getSwitchId($switchIp);
-                $switchLink = wf_img('skins/menuicons/switches.png') . ' ' . __('Not exists');
+                $switchLink = wf_img('skins/switch16.png') . ' ' . __('Not exists');
                 if (!empty($switchId)) {
-                    $switchLink = wf_Link(self::URL_SWITCHPROFILE . $switchId, wf_img('skins/menuicons/switches.png') . ' ' . @$this->allSwitches[$switchId]['location']);
+                    $switchLink = wf_Link(self::URL_SWITCHPROFILE . $switchId, wf_img('skins/switch16.png') . ' ' . @$this->allSwitches[$switchId]['location']);
                 }
 
                 if (file_exists(self::PATH_CACHE . $cacheFile)) {
@@ -860,9 +860,9 @@ class FDBArchive {
             foreach ($fdbOltRaw as $cacheIndex => $cacheFile) {
                 $oltId = $this->extractOltId($cacheFile);
                 $oltIp = $this->getOltIp($oltId);
-                $switchLink = wf_img('skins/menuicons/switches.png') . ' ' . __('Not exists');
+                $switchLink = wf_img('skins/switch16.png') . ' ' . __('Not exists');
                 if (!empty($oltId)) {
-                    $switchLink = wf_Link(self::URL_SWITCHPROFILE . $oltId, wf_img('skins/menuicons/switches.png') . ' ' . @$this->allSwitches[$oltId]['location']);
+                    $switchLink = wf_Link(self::URL_SWITCHPROFILE . $oltId, wf_img('skins/switch16.png') . ' ' . @$this->allSwitches[$oltId]['location']);
                 }
 
                 if (file_exists(self::OLT_PATH_CACHE . $cacheFile)) {

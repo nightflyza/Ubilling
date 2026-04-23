@@ -2942,7 +2942,7 @@ class PONizer {
             $QuickOLTLinkID = 'QuickOLTLinkID_' . $oltId;
             $QuickOLTDDLName = 'QuickOLTDDL_' . wf_InputId();
             $QuickOLTLink = wf_tag('span', false, '', 'id="' . $QuickOLTLinkID . '"') .
-                wf_img('skins/menuicons/switches.png') . wf_tag('span', true);
+                wf_img('skins/switch16.png') . wf_tag('span', true);
             $oltRenderMode = $this->getOltOnuRenderMode($oltId);
 
             $columns = array('ID');
@@ -3037,7 +3037,7 @@ class PONizer {
             if ($this->ponizerUseTabUI) {
                 $tabsList[$QuickOLTLinkID] = array(
                     'options' => '',
-                    'caption' => $refresh_button . wf_nbsp(4) . wf_img('skins/menuicons/switches.png') . wf_nbsp(2) . @$eachOltData,
+                    'caption' => $refresh_button . wf_nbsp(4) . wf_img('skins/switch16.png') . wf_nbsp(2) . @$eachOltData,
                     'additional_data' => $tabClickScript
                 );
 
@@ -4202,7 +4202,7 @@ class PONizer {
                                     $oltCheck = (!$this->checkOnuOLTid($onuMac, $oltId)) ? ' ' . wf_img('skins/createtask.gif', __('Wrong OLT')) . ' ' . __('Oh no') : '';
                                     $userCheck = (!$this->checkOnuUserAssign($onuRealId, $userLogin)) ? ' ' . wf_img('skins/createtask.gif', __('Wrong associated user')) . ' ' . __('Oh no') : '';
                                     if (isset($allSwitchesMacs[$onuData['mac']])) {
-                                        $userCheck = ' ' . wf_img('skins/menuicons/switches.png', __('Switch behind ONU')) . ' ' . __('Switch') . '!';
+                                        $userCheck = ' ' . wf_img('skins/switch16.png', __('Switch behind ONU')) . ' ' . __('Switch') . '!';
                                         $userLink .= $allSwitchesMacs[$onuData['mac']];
                                     }
                                     $data[] = $oltDesc . $oltCheck;

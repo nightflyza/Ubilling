@@ -772,7 +772,7 @@ function web_SnmpRenderDevCache($ip, $alltemplates, $deviceTemplate, $allusermac
                         @$switchId = $allswitchmacs[$eachMac]['id'];
                         @$switchIp = $allswitchmacs[$eachMac]['ip'];
                         $switchLabel = (!empty($switchAddress)) ? $switchAddress : $switchIp;
-                        $userlink = wf_Link('?module=switches&edit=' . $switchId, wf_img_sized('skins/menuicons/switches.png', __('Switch'), 11, 13) . ' ' . $switchLabel);
+                        $userlink = wf_Link('?module=switches&edit=' . $switchId, wf_img_sized('skins/switch16.png', __('Switch'), 12, 12) . ' ' . $switchLabel);
                         $assignForm = '';
                     } else {
                         $userlink = '';
@@ -950,7 +950,7 @@ function sn_SnmpParseFdbCacheJson($fdbData_raw, $macFilter, $fdbVLANData_raw = a
                                 @$switchIdL = $allswitchmacs[$mac]['id'];
                                 @$switchIpL = $allswitchmacs[$mac]['ip'];
                                 $switchLabel = (!empty($switchAddress)) ? $switchAddress : $switchIpL;
-                                $userlink = wf_Link('?module=switches&edit=' . $switchIdL, wf_img_sized('skins/menuicons/switches.png', __('Switch'), 11, 13) . ' ' . $switchLabel);
+                                $userlink = wf_Link('?module=switches&edit=' . $switchIdL, wf_img_sized('skins/switch16.png', __('Switch'), 12, 12) . ' ' . $switchLabel);
                             } else {
                                 $userlink = '';
                             }
@@ -1051,7 +1051,7 @@ function sn_SnmpParseFdbExtract($data) {
             foreach ($data as $io => $each) {
                 $modalContent .= $each . wf_tag('br');
             }
-            $result .= $each . ' ' . wf_modal(wf_img_sized('skins/menuicons/switches.png', __('Switches'), '12', '12'), __('Switches'), $modalContent, '', '600', '400');
+            $result .= $each . ' ' . wf_modal(wf_img_sized('skins/switch16.png', __('Switches'), '12', '12'), __('Switches'), $modalContent, '', '600', '400');
         }
     }
     return ($result);
