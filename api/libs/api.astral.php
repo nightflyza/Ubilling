@@ -90,6 +90,7 @@ function wf_Form($action, $method, $inputs, $class = '', $legend = '', $CtrlID =
  *         - pathorurl: URLs with optional ports or paths (e.g., "http://example.com:8080", "some/dir/")
  *         - sigint: signed integers (e.g., "-123", "456")
  *         - url: HTTP/HTTPS URLs with optional port numbers (e.g., "http://example.com:8080")
+ *         - ipurl: HTTP/HTTPS URLs with domain or IPv4 host and optional port numbers (e.g., "http://192.168.1.1:8080")
  * @param  string $class class of the element
  * @param  string $ctrlID id of the element
  * @param  string $options additional HTML attributes
@@ -130,6 +131,7 @@ function wf_TextInput($name, $label = '', $value = '', $br = false, $size = '', 
     $pattern = ($pattern == 'login') ? 'pattern="[a-zA-Z0-9_]+" placeholder="aZ09_" title="' . __('This field can only contain Latin letters and numbers') . ' ' . __('and') . ' _' . '"' : $pattern;
     $pattern = ($pattern == 'mac') ? 'pattern="^[a-fA-F0-9]{2}:[a-fA-F0-9]{2}:[a-fA-F0-9]{2}:[a-fA-F0-9]{2}:[a-fA-F0-9]{2}:[a-fA-F0-9]{2}$|^[a-fA-F0-9]{2}-[a-fA-F0-9]{2}-[a-fA-F0-9]{2}-[a-fA-F0-9]{2}-[a-fA-F0-9]{2}-[a-fA-F0-9]{2}$" placeholder="00:02:02:34:72:a5" title="' . __('This MAC have wrong format') . '"' : $pattern;
     $pattern = ($pattern == 'url') ? 'pattern="https?:\/\/[A-Za-z0-9][A-Za-z0-9\.\\-]*\.[A-Za-z]{2,}(:[0-9]+)?(\/.*)?" placeholder="http://ubilling.net.ua/" title="' . __('URL') . ': http://host.domain/ ' . __('or') . ' https://host.domain/ ' . __('or') . ' http://host.domain:port"' : $pattern;
+    $pattern = ($pattern == 'ipurl') ? 'pattern="^https?:\/\/(([A-Za-z0-9][A-Za-z0-9\.\-]*\.[A-Za-z]{2,})|(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5]))(:[0-9]+)?(\/.*)?$" placeholder="' . __('http://host.domain/') . ' ' . __('or') . ' ' . __('http://192.168.1.1/') . '" title="' . __('URL') . ': http://host.domain/ ' . __('or') . ' https://host.domain/ ' . __('or') . ' http://host.domain:port ' . __('or') . ' http://192.168.1.1/"' : $pattern;
     $pattern = ($pattern == 'geo') ? 'pattern="-?\d{1,2}(\.\d+)\s?,\s?-?\d{1,3}(\.\d+)" placeholder="0.00000,0.00000" title="' . __('The format of geographic data can be') . ': 40.7143528,-74.0059731 ; 41.40338, 2.17403 ; -14.235004 , 51.92528"' : $pattern;
     $pattern = ($pattern == 'mobile') ? 'pattern="\+?(\d{1,3})?\d{2,3}\d{7}" placeholder="(+)(38)0500000000" title="' . __('The mobile number format can be') . ': +380800100102, 0506430501, 375295431122"' : $pattern;
     $pattern = ($pattern == 'filepath') ? 'pattern="^\/?(?:[^\/ ]+\/)*[^\/ ]+$" placeholder="some/dir/file" title="' . __('This field can contain relative or absolute paths') . ': some/dir/file, dir/file.txt, file.txt"' : $pattern;
