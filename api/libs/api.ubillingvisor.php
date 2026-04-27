@@ -2282,7 +2282,7 @@ class UbillingVisor {
         $inputs .= wf_TextInput('newdvrport', __('Port'), '', true, 5, 'digits');
         $inputs .= wf_TextInput('newdvrlogin', __('Login'), '', true, 20);
         $inputs .= wf_PasswordInput('newdvrpassword', __('Password'), '', true, 20);
-        $inputs .= wf_TextInput('newdvrapiurl', __('API URL'), '', true, 20, 'url');
+        $inputs .= wf_TextInput('newdvrapiurl', __('API URL'), '', true, 20, 'ipurl');
         $inputs .= wf_PasswordInput('newdvrapikey', __('API key'), '', true, 20);
         $inputs .= wf_TextInput('newdvrcamlimit', __('Cameras limit'), '0', true, 3, 'digits');
         $inputs .= wf_TextInput('newdvrcustomurl', __('Custom preview URL'), '', true, 20);
@@ -2350,7 +2350,7 @@ class UbillingVisor {
             $inputs .= wf_TextInput('editdvrport', __('Port'), $dvrData['port'], true, 5, 'digits');
             $inputs .= wf_TextInput('editdvrlogin', __('Login'), $dvrData['login'], true, 12);
             $inputs .= wf_PasswordInput('editdvrpassword', __('Password'), $dvrData['password'], true, 12);
-            $inputs .= wf_TextInput('editdvrapiurl', __('API URL'), $dvrData['apiurl'], true, 20, 'url');
+            $inputs .= wf_TextInput('editdvrapiurl', __('API URL'), $dvrData['apiurl'], true, 20, 'ipurl');
             $inputs .= wf_PasswordInput('editdvrapikey', __('API key'), $dvrData['apikey'], true, 20);
             $inputs .= wf_TextInput('editdvrcamlimit', __('Cameras limit'), $dvrData['camlimit'], true, 20);
             $inputs .= wf_TextInput('editdvrcustomurl', __('Custom preview URL'), $dvrData['customurl'], true, 20);
