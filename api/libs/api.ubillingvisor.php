@@ -1396,7 +1396,7 @@ class UbillingVisor {
     /**
      * Returns default user icon coode
      * 
-     * @param int size
+     * @param int $size
      * 
      * @return string
      */
@@ -1704,6 +1704,7 @@ class UbillingVisor {
                 foreach ($this->allDvrs as $io => $each) {
                     $dvrFull = false;
                     $dvrLabel = $each['ip'];
+                    $dvrCamsNow = '?';
                     if ($each['camlimit'] > 0) {
                         $dvrCamsNow = $this->getDvrCameraCount($each['id']);
                         if ($dvrCamsNow >= $each['camlimit']) {
