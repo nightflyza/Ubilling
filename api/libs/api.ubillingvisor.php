@@ -697,7 +697,7 @@ class UbillingVisor {
      * 
      * @param string $userLogin
      * 
-     * @return int/void
+     * @return int|void
      */
     public function getCameraUser($userLogin) {
         $result = '';
@@ -717,7 +717,7 @@ class UbillingVisor {
      * 
      * @param string $userLogin
      * 
-     * @return int/void
+     * @return int|void
      */
     public function getPrimaryAccountUserId($userLogin) {
         $result = '';
@@ -2576,7 +2576,9 @@ class UbillingVisor {
             $cells .= wf_TableCell(__('Channels') . ' / ' . __('Online'));
             $cells .= wf_TableCell(__('Uptime'));
             $cells .= wf_TableCell(__('CPU load'));
-            $cells .= wf_TableCell(__('Archive days'));
+            if ($this->trassirEnabled) {
+             $cells .= wf_TableCell(__('Archive days'));
+            }
 
             $rows = wf_TableRowStyled($cells, 'row1');
 
@@ -2594,7 +2596,9 @@ class UbillingVisor {
                         $cells .= wf_TableCell($health['channels_total'] . ' / ' . $health['channels_online']);
                         $cells .= wf_TableCell(zb_formatTime($health['uptime']));
                         $cells .= wf_TableCell($health['cpu_load'] . '%');
-                        $cells .= wf_TableCell($health['disks_stat_main_days'] . ' / ' . $health['disks_stat_subs_days']);
+                        if ($this->trassirEnabled) {
+                            $cells .= wf_TableCell($health['disks_stat_main_days'] . ' / ' . $health['disks_stat_subs_days']);
+                        }
 
                         $rows .= wf_TableRow($cells, 'row5');
                     }
@@ -2625,7 +2629,9 @@ class UbillingVisor {
                             $cells .= wf_TableCell($health['channels_total'] . ' / ' . $health['channels_online']);
                             $cells .= wf_TableCell($uptime);
                             $cells .= wf_TableCell($cpuLoad);
-                            $cells .= wf_TableCell('-');
+                            if ($this->trassirEnabled) {
+                             $cells .= wf_TableCell('-');
+                            }
                             $rows .= wf_TableRow($cells, 'row5');
                         } else {
                             $failLabel = __('Connection') . ' ' . __('Failed');
@@ -2638,7 +2644,9 @@ class UbillingVisor {
                             $cells .= wf_TableCell($failLabel);
                             $cells .= wf_TableCell($failLabel);
                             $cells .= wf_TableCell($failLabel);
-                            $cells .= wf_TableCell('-');
+                            if ($this->trassirEnabled) {
+                             $cells .= wf_TableCell('-');
+                            }
                             $rows .= wf_TableRow($cells, 'row5');
                         }
                     }
