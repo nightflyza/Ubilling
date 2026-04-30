@@ -135,9 +135,9 @@ class DebtrsArch {
     public function getArchiveTimePoints() {
         $result = array();
         $this->debtrsDb->orderBy('date', 'DESC');
-        //$this->debtrsDb->selectable('id,date,count');
+        $this->debtrsDb->selectable('id,date,count');
         $result=$this->debtrsDb->getAll('id');
-        //$this->debtrsDb->flushAllStructs();
+        $this->debtrsDb->selectable(); // flush selectable set
         return ($result);
     }
 
@@ -325,5 +325,26 @@ class DebtrsArch {
             
         return ($result);
     }
+
+    /**
+     *                ___
+                    .;___`'.
+                   /_  _ \  |
+                   |a  a  \_/     ,__
+                   | <     _)    _)(_)
+            _,_     \_--' /____.(/   \
+           (_/(/'---/`\_/`\     |  $  |
+           /   \.___\_/`\_| .---'.___.'
+          |  $  |   \\ '   \ \
+          '.___.'    \\_'___\ \
+                    .'   _   \/
+                   /   .' \   \
+                  /   /    \   \
+                 |    |     |   |
+                 \____\    /____/
+                 (__,_|    |_,__)
+
+                 IN DEBT WE TRUST
+     */
 
 }
