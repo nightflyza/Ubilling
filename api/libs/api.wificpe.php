@@ -214,7 +214,8 @@ class WifiCPE {
      * @return void
      */
     protected function loadDeviceModels() {
-        $this->deviceModels = zb_SwitchModelsGetAllTag();
+        $switchModels = new SwitchModels();
+        $this->deviceModels = $switchModels->getAllNames();
     }
 
     public function getAllCPE() {

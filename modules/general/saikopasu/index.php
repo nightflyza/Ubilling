@@ -37,7 +37,8 @@ if (cfr('SWITCHES')) {
     if (ubRouting::checkGet('ajax')) {
         $alllinks = array();
         $allSwitches = array();
-        $switchModels = zb_SwitchModelsGetAllTag();
+        $swModls = new SwitchModels();
+        $switchModels = $swModls->getAllNames();
         $tmpSwitches = zb_SwitchesGetAll();
         $psychoPower = array();
         $json = new wf_JqDtHelper();

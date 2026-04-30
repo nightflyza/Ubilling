@@ -35,7 +35,7 @@ function zb_SwitchesGetAllDeathTime() {
 /**
  * Sets dead switch death time
  * 
- * @param $ip Switch IP
+ * @param string $ip Switch IP
  * 
  * @return void
  */
@@ -51,7 +51,7 @@ function zb_SwitchDeathTimeSet($ip) {
 /**
  * Function than resurrects dead switch :)
  * 
- * @param $ip Switch IP
+ * @param string $ip Switch IP
  * 
  * @return void
  */
@@ -62,165 +62,19 @@ function zb_SwitchDeathTimeResurrection($ip) {
     $deathTimeDb->delete();
 }
 
-/**
- * Returns array of all available snmp model templates as name=>device description
- * 
- * @return array
- */
-function zb_SwitchModelsSnmpTemplatesGetAll() {
-    $allSnmpTemplatesRaw = sp_SnmpGetAllModelTemplates();
-    $allSnmpTemplates = array('' => __('None'));
-    if (!empty($allSnmpTemplatesRaw)) {
-        foreach ($allSnmpTemplatesRaw as $io => $each) {
-            if (isset($each['define'])) {
-                if (isset($each['define']['DEVICE'])) {
-                    $allSnmpTemplates[$io] = $each['define']['DEVICE'];
-                } else {
-                    $allSnmpTemplates[$io] = '⚠️ ' . __('Template') . ' ' . $io . ' - ' . __('is corrupted');
-                }
-            } else {
-                $allSnmpTemplates[$io] = '⚠️ ' . __('Template') . ' ' . $io . ' - ' . __('is corrupted');
-            }
-        }
-    }
-    return ($allSnmpTemplates);
-}
-
-/**
- * Returns switch model add form
- * 
- * @return string
- */
-function web_SwitchModelAddForm() {
-    $allSnmpTemplates = zb_SwitchModelsSnmpTemplatesGetAll();
-    $addinputs = wf_TextInput('newsm', 'Model', '', true);
-    $addinputs .= wf_TextInput('newsmp', 'Ports', '', true, '5');
-    $addinputs .= wf_Selector('newsst', $allSnmpTemplates, 'SNMP template', '');
-    $addinputs .= wf_delimiter() . web_add_icon() . ' ' . wf_Submit('Create');
-    $addform = wf_Form('', 'POST', $addinputs, 'glamour');
-    $result = $addform;
-    return ($result);
-}
-
-/**
- * Returns list of all available switch models
- * 
- * @return string
- */
-function web_SwitchModelsShow() {
-    global $ubillingConfig;
-    $result = '';
-    $allmodels = zb_SwitchModelsGetAll();
-    $allSwitches = zb_SwitchesGetAll();
-    $allSnmpTemplates = zb_SwitchModelsSnmpTemplatesGetAll();
-    $modelsCount = array();
-
-    //switch devices count
-    if (!empty($allSwitches)) {
-        foreach ($allSwitches as $io => $eachSwitchData) {
-            if (isset($modelsCount[$eachSwitchData['modelid']])) {
-                $modelsCount[$eachSwitchData['modelid']]++;
-            } else {
-                $modelsCount[$eachSwitchData['modelid']] = 1;
-            }
-        }
-    }
-
-    //PON devices count
-    if ($ubillingConfig->getAlterParam('PON_ENABLED')) {
-        $onuDevicesDb = new NyanORM('pononu');
-        $onuDevicesDb->selectable(array('id', 'onumodelid'));
-        $allOnu = $onuDevicesDb->getAll();
-        if (!empty($allOnu)) {
-            foreach ($allOnu as $io => $eachOnuData) {
-                if (isset($modelsCount[$eachOnuData['onumodelid']])) {
-                    $modelsCount[$eachOnuData['onumodelid']]++;
-                } else {
-                    $modelsCount[$eachOnuData['onumodelid']] = 1;
-                }
-            }
-        }
-    }
-
-    /**
-     * Now its time to break up with the system
-     * Our reasons are clear and listed
-     * Come on and change the cause of the history
-     * Take off disguise of that rotten mystery
-     */
-    if (!empty($allmodels)) {
-        $tablecells = wf_TableCell(__('ID'));
-        $tablecells .= wf_TableCell(__('Model'));
-        $tablecells .= wf_TableCell(__('Devices'));
-        $tablecells .= wf_TableCell(__('Ports'));
-        $tablecells .= wf_TableCell(__('SNMP template'));
-        $tablecells .= wf_TableCell(__('Actions'));
-        $tablerows = wf_TableRow($tablecells, 'row1');
-
-        foreach ($allmodels as $io => $eachmodel) {
-            $availDevicesCount = (isset($modelsCount[$eachmodel['id']])) ? $modelsCount[$eachmodel['id']] : 0;
-            $snmpLabel = '';
-            $snmpTemplate = $eachmodel['snmptemplate'];
-            if (!empty($snmpTemplate)) {
-                if (isset($allSnmpTemplates[$snmpTemplate])) {
-                    $snmpLabel .= $allSnmpTemplates[$snmpTemplate];
-                } else {
-                    $snmpLabel .= __('Template') . ' ' . $snmpTemplate . ' - ' . __('Not exists');
-                    show_error(__('Template') . ' ' . $snmpTemplate . ' ' . __('for') . ' ' . __('Equipment models') . ' ' . __('ID') . ' [' . $eachmodel['id'] . ']' . ' - ' . __('Not exists'));
-                }
-            }
-            $tablecells = wf_TableCell($eachmodel['id']);
-            $tablecells .= wf_TableCell($eachmodel['modelname']);
-            $tablecells .= wf_TableCell($availDevicesCount);
-            $tablecells .= wf_TableCell($eachmodel['ports']);
-            $tablecells .= wf_TableCell($snmpLabel);
-            $switchmodelcontrols = wf_JSAlert('?module=switchmodels&deletesm=' . $eachmodel['id'], web_delete_icon(), 'Removing this may lead to irreparable results');
-            $switchmodelcontrols .= wf_Link('?module=switchmodels&edit=' . $eachmodel['id'], web_edit_icon());
-            $tablecells .= wf_TableCell($switchmodelcontrols);
-            $tablerows .= wf_TableRow($tablecells, 'row5');
-        }
-        $result .= wf_TableBody($tablerows, '100%', '0', 'sortable');
-    } else {
-        $messages = new UbillingMessageHelper();
-        $result .= $messages->getStyledMessage(__('Nothing to show'), 'warning');
-    }
-
-
-
-    return ($result);
-}
 
 /**
  * Returns array of all available switch models
  * 
+ * @deprecated Use SwitchModels::getAll() instead
  * @return array
  */
 function zb_SwitchModelsGetAll() {
-    global $ubillingConfig;
-    $sortByModelName = $ubillingConfig->getAlterParam('DEVICES_LISTS_SORT_BY_MODELNAME');
-
-    $query = "SELECT * from `switchmodels`";
-    $result = simple_queryall($query);
-
-    if (!empty($result) and $sortByModelName) {
-        $result = zb_sortArray($result, 'modelname');
-    }
-
+    $switchModels = new SwitchModels();
+    $result = $switchModels->getAll();
     return ($result);
 }
 
-/**
- * Return some switch model data by id
- * 
- * @param int $modelid
- * @return array
- */
-function zb_SwitchModelGetData($modelid) {
-    $modelid = vf($modelid, 3);
-    $query = "SELECT * from `switchmodels` where `id`='" . $modelid . "'";
-    $result = simple_query($query);
-    return ($result);
-}
 
 /**
  * Returns switch model selector
@@ -243,69 +97,6 @@ function web_SwitchModelSelector($selectname = 'switchmodelid', $allmodels = arr
     return ($selector);
 }
 
-/**
- * Creates new switch model in database
- * 
- * @param string $name
- * @param string $ports
- * @param string $snmptemplate
- */
-function ub_SwitchModelAdd($name, $ports, $snmptemplate = '') {
-    $ports = vf($ports, 3);
-    $nameClean = mysql_real_escape_string($name);
-    $snmptemplate = mysql_real_escape_string($snmptemplate);
-    if (empty($ports)) {
-        $ports = 'NULL';
-    } else {
-        $ports = "'" . $ports . "'";
-    }
-
-    if (empty($snmptemplate)) {
-        $snmptemplate = 'NULL';
-    } else {
-        $snmptemplate = "'" . $snmptemplate . "'";
-    }
-    $query = "INSERT INTO `switchmodels` (`id` ,`modelname` ,`ports`,`snmptemplate`) VALUES (NULL , '" . $nameClean . "', " . $ports . "," . $snmptemplate . ");";
-    nr_query($query);
-    $newId = simple_get_lastid('switchmodels');
-    log_register('SWITCHMODEL ADD `' . $name . '`  [' . $newId . ']');
-}
-
-/**
- * Deletes switch model from database by its ID
- * 
- * @param integer $modelId
- * 
- * @return void/string on error
- */
-function ub_SwitchModelDelete($modelId) {
-    $modelId = ubRouting::filters($modelId, 'int');
-    $result = '';
-    if (!empty($modelId)) {
-        $switches = new NyanORM('switches');
-        $switches->where('modelid', '=', $modelId);
-        $switches->selectable('id');
-        $switchesUsingThisModel = $switches->getAll();
-
-        $ponOnus = new NyanORM('pononu');
-        $ponOnus->where('onumodelid', '=', $modelId);
-        $ponOnus->selectable('id');
-        $onuUsingThisModel = $ponOnus->getAll();
-        //is this model used by some devices?
-        if (empty($switchesUsingThisModel) and empty($onuUsingThisModel)) {
-            $switchModels = new NyanORM('switchmodels');
-            $switchModels->where('id', '=', $modelId);
-            $switchModels->delete();
-            log_register('SWITCHMODEL DELETE  [' . $modelId . ']');
-        } else {
-            $result .= __('You know, we really would like to let you perform this action, but our conscience does not allow us to do');
-            log_register('SWITCHMODEL DELETE  [' . $modelId . '] FAIL IN_USE');
-        }
-    } else {
-        $result .= __('Model') . ' ' . __('is empty');
-    }
-    return ($result);
-}
 
 /**
  * Returns switch ID selector
@@ -475,7 +266,8 @@ function web_SwitchDownlinksList($switchId) {
     $deathTime = zb_SwitchesGetAllDeathTime();
 
     if (!empty($downlinks)) {
-        $allModels = zb_SwitchModelsGetAllTag();
+        $switchModels = new SwitchModels();
+        $allModels = $switchModels->getAllNames();
         $cells = wf_TableCell(__('ID'));
         $cells .= wf_TableCell(__('IP'));
         if ($switchesExtended) {
@@ -553,7 +345,8 @@ function web_SwitchEditForm($switchid) {
     $result = '';
     $mainForm = '';
     $rightContainer = '';
-    $allswitchmodels = zb_SwitchModelsGetAllTag();
+    $switchModels = new SwitchModels();
+    $allswitchmodels = $switchModels->getAllNames();
     $switchdata = zb_SwitchGetData($switchid);
 
     $editinputs = wf_Selector('editmodel', $allswitchmodels, 'Model', $switchdata['modelid'], true);
@@ -853,17 +646,13 @@ function zb_SwitchGetData($switchid) {
 /**
  * Returns switch models array in format modelid=>name
  * 
+ * @deprecated Use SwitchModels::getAllNames() instead
+ * 
  * @return array
  */
 function zb_SwitchModelsGetAllTag() {
-    $allmodels = zb_SwitchModelsGetAll();
-    $result = array();
-
-    if (!empty($allmodels)) {
-        foreach ($allmodels as $io => $eachmodel) {
-            $result[$eachmodel['id']] = $eachmodel['modelname'];
-        }
-    }
+    $switchModels = new SwitchModels();
+    $result = $switchModels->getAllNames();
     return ($result);
 }
 
@@ -1143,7 +932,8 @@ function web_SwitchesShow() {
     global $ubillingConfig;
     $alterconf = $ubillingConfig->getAlter();
     $allswitches = zb_SwitchesGetAll();
-    $modelnames = zb_SwitchModelsGetAllTag();
+    $switchModels = new SwitchModels();
+    $modelnames = $switchModels->getAllNames();
     $currenttime = time();
     $reping_timeout = $alterconf['SW_PINGTIMEOUT'];
     $deathTime = zb_SwitchesGetAllDeathTime();
@@ -1436,7 +1226,8 @@ function zb_SwitchesRenderAjaxList() {
     }
 
     $allswitches = zb_SwitchesGetAll();
-    $modelnames = zb_SwitchModelsGetAllTag();
+    $switchModels = new SwitchModels(); 
+    $modelnames = $switchModels->getAllNames();
     $deathTime = zb_SwitchesGetAllDeathTime();
     $summaryCache = 'exports/switchcounterssummary.dat';
     $jsonAAData = array();
@@ -1629,6 +1420,8 @@ function zb_SwitchesRenderAjaxList() {
  * 
  * @global object $ubillingConfig
  * 
+ * @param int $switchid
+ * 
  * @return void
  */
 function ub_SwitchSave($switchid) {
@@ -1700,6 +1493,8 @@ function ub_SwitchSave($switchid) {
  * @param string $swid
  * @param string $geo
  * @param int    $parentid
+ * @param string $snmpwrite
+ * @param int    $switchgroupid
  */
 function ub_SwitchAdd($modelid, $ip, $desc, $location, $snmp, $swid, $geo, $parentid = '', $snmpwrite = '', $switchgroupid = '') {
     $modelid = ubRouting::filters($modelid, 'int');
@@ -2007,7 +1802,8 @@ function ub_SwitchesTimeMachineGetByIp($switchIp) {
 /**
  * Do the search in dead switches time machine
  * 
- * @param string $query
+ * @param string $request
+ * 
  * @return string
  */
 function ub_SwitchesTimeMachineSearch($request) {
@@ -2095,7 +1891,7 @@ function zb_SwitchReplaceForm($fromSwitchId) {
  * 
  * @param int $fromId
  * @param int $toId
- * @param int $employeeid
+ * @param int $employeeId
  * 
  * @return void
  */
@@ -2238,6 +2034,8 @@ function zb_SwitchesGetAssignsAll() {
  * Returns background switch ICMP ping
  * 
  * @global object $ubillingConfig
+ * 
+ * @param string $ip
  * 
  * @return void
  */

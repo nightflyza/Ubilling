@@ -1,15 +1,25 @@
 <?php
 
 if (cfr('SWITCHM')) {
+
+    $switchModels = new SwitchModels(); 
+
     //creatin new model
     if (ubRouting::checkPost('newsm')) {
-        ub_SwitchModelAdd(ubRouting::post('newsm'), ubRouting::post('newsmp'), ubRouting::post('newsst'));
-        ubRouting::nav('?module=switchmodels');
+        $modelName = ubRouting::post('newsm');
+        $modelPorts = ubRouting::post('newsmp');
+        $modelSnmpTemplate = ubRouting::post('newsst');
+        $creationResult = $switchModels->create($modelName, $modelPorts, $modelSnmpTemplate);
+        if (empty($creationResult)) {
+            ubRouting::nav('?module=switchmodels');
+        } else {
+            show_error(__('Something went wrong') . ': ' . $creationResult);
+        }
     }
 
     //deleting existing model
     if (ubRouting::checkGet('deletesm')) {
-        $deletionResult = ub_SwitchModelDelete(ubRouting::get('deletesm'));
+        $deletionResult = $switchModels->delete(ubRouting::get('deletesm'));
         if (empty($deletionResult)) {
             ubRouting::nav('?module=switchmodels');
         } else {
@@ -17,42 +27,48 @@ if (cfr('SWITCHM')) {
         }
     }
 
-    //listing available models
-    if (!ubRouting::get('edit')) {
-        $navlinks = wf_modalAuto(wf_img('skins/add_icon.png') . ' ' . __('Create'), __('Create'), web_SwitchModelAddForm(), 'ubButton');
-        $navlinks .= wf_Link('?module=switches', wf_img('skins/ymaps/switchdir.png') . ' ' . __('Available switches'), true, 'ubButton');
+    //changing existing model
+    if (ubRouting::checkPost('editmodelname') and ubRouting::checkGet('edit')) {
+        $editId = ubRouting::get('edit', 'int');
+        $modelName = ubRouting::post('editmodelname');
+        $modelPorts = ubRouting::post('editports');
+        $modelSnmpTemplate = ubRouting::post('editsnmptemplate');
 
-        show_window('', $navlinks);
-        show_window(__('Equipment models'), web_SwitchModelsShow());
-    } else {
+        $updateResult = $switchModels->update($editId, $modelName, $modelPorts, $modelSnmpTemplate);
+        if (empty($updateResult)) {
+            ubRouting::nav('?module=switchmodels&edit=' . $editId);
+        } else {
+            show_error(__('Something went wrong') . ': ' . $updateResult);
+        }
+    }
+
+    //show creation form
+    if(ubRouting::checkGet($switchModels::ROUTE_CREATE)) {
+            $creationForm = $switchModels->renderCreateForm();
+            show_window(__('Create') . ' ' . __('Equipment models'), $creationForm);
+            show_window('', wf_BackLink($switchModels::URL_ME));
+    }
+
+    //show editing form
+    if(ubRouting::checkGet('edit')) {
         //show editing form
         $editId = ubRouting::get('edit', 'int');
+        $modelData = $switchModels->getData($editId);
+        $currentModelName = $modelData['modelname'];
 
-        //if someone post changes
-        if (ubRouting::checkPost('editmodelname')) {
-            simple_update_field('switchmodels', 'modelname', ubRouting::post('editmodelname'), "WHERE `id`='" . $editId . "' ");
-            if (ubRouting::checkPost('editports')) {
-                simple_update_field('switchmodels', 'ports', ubRouting::post('editports'), "WHERE `id`='" . $editId . "' ");
-            }
-
-            simple_update_field('switchmodels', 'snmptemplate', ubRouting::post('editsnmptemplate'), "WHERE `id`='" . $editId . "' ");
-
-            log_register('SWITCHMODEL CHANGE [' . $editId . ']');
-            ubRouting::nav('?module=switchmodels');
-        }
-
-        $modeldata = zb_SwitchModelGetData($editId);
-        $allSnmpTemplates = zb_SwitchModelsSnmpTemplatesGetAll();
-
-        $editinputs = wf_TextInput('editmodelname', 'Model', $modeldata['modelname'], true, '20');
-        $editinputs .= wf_TextInput('editports', 'Ports', $modeldata['ports'], true, '5');
-        $editinputs .= wf_Selector('editsnmptemplate', $allSnmpTemplates, 'SNMP template', $modeldata['snmptemplate']);
-        $editinputs .= wf_delimiter();
-        $editinputs .= wf_Submit('Save');
-        $editform = wf_Form('', 'POST', $editinputs, 'glamour');
-        show_window(__('Edit') . ' ' . __('Equipment models') . ': ' . $modeldata['modelname'], $editform);
+        $editForm = $switchModels->renderEditForm($editId);
+        show_window(__('Edit') . ' ' . __('Equipment models') . ': ' . $currentModelName, $editForm);
         show_window('', wf_BackLink('?module=switchmodels'));
     }
+
+    //listing available models
+    if (!ubRouting::get('edit') and !ubRouting::get($switchModels::ROUTE_CREATE)) {
+        show_window('', $switchModels->renderNavLinks());
+        show_window(__('Equipment models'), $switchModels->renderList());
+    }
+    
+
+
 } else {
     show_error(__('Access denied'));
 }

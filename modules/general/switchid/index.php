@@ -7,7 +7,8 @@ if (cfr('SWITCHID')) {
         $result = wf_BackLink('?module=switches', __('Back'), true, 'ubButton');
         $result .= wf_tag('br');
 
-        $allSwitchModels = zb_SwitchModelsGetAllTag();
+        $switchModels = new SwitchModels();
+        $allSwitchModels = $switchModels->getAllNames();
         $switchesDb = new NyanORM('switches');
         $allsw = $switchesDb->getAll();
 

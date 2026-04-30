@@ -10,7 +10,8 @@ if (cfr('SWITCHPOLL')) {
     $alladdress = zb_AddressGetFullCityaddresslist();
     $alldeadswitches = zb_SwitchesGetAllDead();
     $deathTime = zb_SwitchesGetAllDeathTime();
-    $allModels = zb_SwitchModelsGetAllTag();
+    $switchModels = new SwitchModels();
+    $allModels = $switchModels->getAllNames();
 
     if ($ubillingConfig->getAlterParam('SWITCHES_EXTENDED')) {
         $allswitchmacs = array();
