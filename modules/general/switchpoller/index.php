@@ -43,6 +43,8 @@ if (cfr('SWITCHPOLL')) {
                                 $deviceTemplate = $allTemplatesAssoc[$deviceData['modelid']];
                                 //force cache cleanup
                                 if (ubRouting::checkGet('forcecache')) {
+                                    $pollingProcess = new StarDust('SWPOLL_' . $deviceData['ip']);
+                                    if ($pollingProcess->notRunning()) {
                                     $deviceRawSnmpCache = rcms_scandir('./exports/', $deviceData['ip'] . '_*');
                                     if (!empty($deviceRawSnmpCache)) {
                                         foreach ($deviceRawSnmpCache as $ir => $fileToDelete) {
@@ -51,12 +53,16 @@ if (cfr('SWITCHPOLL')) {
                                     }
                                     sp_SnmpPollDevice($deviceData['ip'], $deviceData['snmp'], $allTemplates, $deviceTemplate, $deviceData['snmpwrite']);
                                     ubRouting::nav('?module=switchpoller&switchid=' . $deviceData['id']);
+                                    } else {
+                                        show_error(__('SNMP query').' '.__('Already running'));
+                                    }
                                 }
 
                                 
                                 $modActions = wf_BackLink('?module=switches');
                                 $modActions .= wf_Link('?module=switches&edit=' . $switchId, web_edit_icon() . ' ' . __('Edit') . ' ' . __('Switch'), false, 'ubButton');
-                                 //is device alive?
+                               
+                                //is device alive?
                                 if ($switchIsAlive) {
                                 if (cfr('SWITCHSONIC')) {
                                     if ($ubillingConfig->getAlterParam('SWITCHSONIC_ENABLED')) {
