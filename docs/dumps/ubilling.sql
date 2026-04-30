@@ -3078,3 +3078,12 @@ CREATE TABLE IF NOT EXISTS `ticketing_tgmap` (
 ALTER TABLE `youtv_subscribers` ADD `email` VARCHAR(200) NULL AFTER `addtariffs`;
 ALTER TABLE `youtv_subscribers` ADD `password` VARCHAR(42) NULL AFTER `email`;
 ALTER TABLE `youtv_subscribers` ADD INDEX(`login`);
+
+CREATE TABLE IF NOT EXISTS `debtrsarch` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `date` DATETIME NOT NULL,
+  `debtors` LONGTEXT DEFAULT NULL,
+  `count` int(11) NOT NULL DEFAULT '0',
+    PRIMARY KEY (`id`),
+    KEY `date` (`date`)
+  ) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;

@@ -2821,10 +2821,11 @@ function zb_NumUnEncode($data) {
  * @param array $usersarr as index=>login or login=>login
  * @param array $extraColumns optional extra columns: array( 'Column name' => array( login => value, ... ), ... )
  * @param bool $dataTables optional use DataTable for output
+ * @param bool $dtOpts optional custom DataTables options
  *
  * @return string
  */
-function web_UserArrayShower($usersarr, $extraColumns = array(), $dataTables = false) {
+function web_UserArrayShower($usersarr, $extraColumns = array(), $dataTables = false, $dtOpts = '') {
     global $ubillingConfig;
     $alterconf = $ubillingConfig->getAlter();
     $useCacheFlag = (@$alterconf['USERLISTS_USE_CACHE']) ? true : false;
@@ -3031,7 +3032,11 @@ function web_UserArrayShower($usersarr, $extraColumns = array(), $dataTables = f
 
         if ($dataTables) {
             $opts = 'order: [[ 0, "asc" ]]';
+            if (!empty($dtOpts)) {
+                $opts = $dtOpts;
+            }
             $result = wf_JqDtEmbed($columns, $tableData, false, __('Users'), 100, $opts);
+            $result .= wf_tag('br');
         } else {
             $result = wf_TableBody($tablerows, '100%', '0', 'sortable');
         }
