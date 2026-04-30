@@ -101,7 +101,8 @@ if (cfr('SWITCHPOLL')) {
             show_error(__('No switches found'));
         }
     } else {
-
+        show_error(__('Strange exception') . ': ' . __('No switch ID specified'));
+        show_window('', wf_tag('center') . wf_img('skins/unicornchainsawwrong.png') . wf_tag('center', true));
     }
 } else {
     show_error(__('Access denied'));
