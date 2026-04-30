@@ -39,8 +39,26 @@ class SwitchModels {
     const ROUTE_EDIT = 'edit';
     const ROUTE_CREATE = 'createsm';
 
+    const PROUTE_NEWNAME = 'newsm';
+    const PROUTE_NEWPORTS = 'newsmp';
+    const PROUTE_NEWSNMPTPL = 'newsst';
+    const PROUTE_EDITNAME = 'editmodelname';
+    const PROUTE_EDITPORTS = 'editports';
+    const PROUTE_EDITSNMPTPL = 'editsnmptemplate';
+
+    /**
+     * U tome je smisao
+     * U tome je ljepota
+     * Tko tebe kamenom
+     * Liši ga života
+     *
+     * 
+     * @return void
+     */
     public function __construct() {
         $this->initDb();
+        $this->initSwitchesDb();
+        $this->initOnuDb();
     }
 
     /**
@@ -82,6 +100,7 @@ class SwitchModels {
     public function create($name, $ports, $snmptemplate = '') {
         $ports = ubRouting::filters($ports, 'int');
         $nameF = ubRouting::filters($name, 'mres');
+        $nameF = ubRouting::filters($nameF,'safe');
         $snmptemplateF = ubRouting::filters($snmptemplate, 'mres');
         $result = '';
 
@@ -152,9 +171,11 @@ public function delete($id) {
 
         //is this model used by any devices?
         if (empty($switchesUsingThisModel) and empty($onuUsingThisModel)) {
+            $currentModelData = $this->getData($id);
+            $modelName = $currentModelData['modelname'];
             $this->modelsDb->where('id', '=', $id);
             $this->modelsDb->delete();
-            log_register('SWITCHMODEL DELETE  [' . $id . ']');
+            log_register('SWITCHMODEL DELETE  [' . $id . '] NAME `' . $modelName . '`');
         } else {
             $result .= __('You know, we really would like to let you perform this action, but our conscience does not allow us to do');
             log_register('SWITCHMODEL DELETE  [' . $id . '] FAIL IN USE');
@@ -180,6 +201,7 @@ public function delete($id) {
 public function update($id, $name='', $ports='', $snmptemplate='') {
     $id = ubRouting::filters($id, 'int');
     $nameF = ubRouting::filters($name, 'mres');
+    $nameF = ubRouting::filters($nameF,'safe');
     $ports = ubRouting::filters($ports, 'int');
     $snmptemplateF = ubRouting::filters($snmptemplate, 'mres');
     $result = '';
@@ -231,12 +253,12 @@ public function renderCreateForm() {
     $allSnmpTemplates = $this->getSnmpTemplatesAll();
     $sup=wf_tag('sup') . '*' . wf_tag('sup', true);
 
-    $inputs = wf_TextInput('newsm', __('Model') . $sup, '', true, 20);
-    $inputs .= wf_TextInput('newsmp', 'Ports', '', true, 5,'digits');
+    $inputs = wf_TextInput(self::PROUTE_NEWNAME, __('Model') . $sup, '', true, 20);
+    $inputs .= wf_TextInput(self::PROUTE_NEWPORTS, 'Ports', '', true, 5,'digits');
     if ($searchableFlag) {
-        $inputs .= wf_SelectorSearchable('newsst', $allSnmpTemplates, 'SNMP template', '');
+        $inputs .= wf_SelectorSearchable(self::PROUTE_NEWSNMPTPL, $allSnmpTemplates, 'SNMP template', '');
     } else {
-        $inputs .= wf_Selector('newsst', $allSnmpTemplates, 'SNMP template', '');
+        $inputs .= wf_Selector(self::PROUTE_NEWSNMPTPL, $allSnmpTemplates, 'SNMP template', '');
     }
     $inputs .= wf_delimiter() . wf_Submit('Create');
 
@@ -260,12 +282,12 @@ public function renderEditForm($id) {
     $modelData = $this->getData($id);
     $allSnmpTemplates = $this->getSnmpTemplatesAll();
     $sup=wf_tag('sup') . '*' . wf_tag('sup', true);
-    $inputs = wf_TextInput('editmodelname', __('Model') . $sup, $modelData['modelname'], true, 20);
-    $inputs .= wf_TextInput('editports', 'Ports', $modelData['ports'], true, 5,'digits');
+    $inputs = wf_TextInput(self::PROUTE_EDITNAME, __('Model') . $sup, $modelData['modelname'], true, 20);
+    $inputs .= wf_TextInput(self::PROUTE_EDITPORTS, 'Ports', $modelData['ports'], true, 5,'digits');
     if ($searchableFlag) {
-        $inputs .= wf_SelectorSearchable('editsnmptemplate', $allSnmpTemplates, 'SNMP template', $modelData['snmptemplate']);
+        $inputs .= wf_SelectorSearchable(self::PROUTE_EDITSNMPTPL, $allSnmpTemplates, 'SNMP template', $modelData['snmptemplate']);
     } else {
-        $inputs .= wf_Selector('editsnmptemplate', $allSnmpTemplates, 'SNMP template', $modelData['snmptemplate']);
+        $inputs .= wf_Selector(self::PROUTE_EDITSNMPTPL, $allSnmpTemplates, 'SNMP template', $modelData['snmptemplate']);
     }
     $inputs .= wf_delimiter() . wf_Submit('Save');
     $result = wf_Form('', 'POST', $inputs, 'glamour');
@@ -280,7 +302,7 @@ public function renderEditForm($id) {
     public function getAll() {
         global $ubillingConfig;
         $sortByModelName = $ubillingConfig->getAlterParam('DEVICES_LISTS_SORT_BY_MODELNAME');
-
+        $this->modelsDb->orderBy('id', 'DESC');
         $result = $this->modelsDb->getAll();
 
         if (!empty($result) and $sortByModelName) {

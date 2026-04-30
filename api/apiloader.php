@@ -29,6 +29,7 @@ require_once('api/libs/api.vservices.php');
 require_once('api/libs/api.cess.php');
 require_once('api/libs/api.cardpay.php');
 require_once('api/libs/api.customfields.php');
+require_once('api/libs/api.switchmodels.php');
 require_once('api/libs/api.switches.php');
 require_once('api/libs/api.ticketing.php');
 require_once('api/libs/api.corporate.php');
