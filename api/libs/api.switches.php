@@ -213,6 +213,7 @@ function web_SwitchFormAdd() {
  * Returns switch mini-map
  * 
  * @param array $switchdata
+ * 
  * @return string
  */
 function web_SwitchMiniMap($switchdata) {
