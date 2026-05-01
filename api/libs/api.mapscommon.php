@@ -163,6 +163,244 @@ function sm_MapDrawSwitchUplinks($traceid = '') {
 }
 
 /**
+ * Returns IDs of all switches linked with selected switch
+ * (both parent and child devices).
+ * 
+ * @param int $switchId
+ * 
+ * @return array
+ */
+function sm_MapGetLinkedSwitchIds($switchId) {
+    $switchId = ubRouting::filters($switchId, 'int');
+    $switchesDb=new NyanORM('switches');
+    $tmpSwitches=$switchesDb->getAll();
+
+    $adjacency = array();
+    $result = array();
+    $queue = array();
+
+    if (!empty($switchId)) {
+        if (!empty($tmpSwitches)) {
+            foreach ($tmpSwitches as $io => $each) {
+                $currentId = (int) $each['id'];
+                if (!isset($adjacency[$currentId])) {
+                    $adjacency[$currentId] = array();
+                }
+                if (!empty($each['parentid'])) {
+                    $parentId = (int) $each['parentid'];
+                    if (!isset($adjacency[$parentId])) {
+                        $adjacency[$parentId] = array();
+                    }
+                    $adjacency[$currentId][$parentId] = $parentId;
+                    $adjacency[$parentId][$currentId] = $currentId;
+                }
+            }
+        }
+
+        $result[$switchId] = $switchId;
+        $queue[] = $switchId;
+        while (!empty($queue)) {
+            $current = array_shift($queue);
+            if (isset($adjacency[$current])) {
+                foreach ($adjacency[$current] as $neighborId) {
+                    if (!isset($result[$neighborId])) {
+                        $result[$neighborId] = $neighborId;
+                        $queue[] = $neighborId;
+                    }
+                }
+            }
+        }
+    }
+
+    return ($result);
+}
+
+/**
+ * Returns map marks for linked switches only
+ * (parent/child devices for selected switch).
+ * 
+ * @param int $switchId
+ * 
+ * @return string
+ */
+function sm_MapDrawLinkedSwitches($switchId) {
+    global $ubillingConfig;
+    $switchId = ubRouting::filters($switchId, 'int');
+    $linkedSwitches = sm_MapGetLinkedSwitchIds($switchId);
+    $ym_conf = $ubillingConfig->getYmaps();
+
+    $switchesDb=new NyanORM('switches');
+    $switchesDb->where('geo', '!=', '');
+    $allswitches=$switchesDb->getAll();
+
+    $uplinkTraceIcon = wf_img('skins/ymaps/uplinks.png', __('Show links'));
+    $switchEditIcon = wf_img('skins/icon_edit.gif', __('Edit'));
+    $switchPollerIcon = wf_img('skins/snmp.png', __('SNMP query'));
+    $switchLocatorIcon = wf_img('skins/icon_search_small.gif', __('Zoom in'));
+
+    $footerDelimiter = wf_tag('br');
+    $result = '';
+    //dead switches detection
+    $dead_raw = zb_StorageGet('SWDEAD');
+    $deadarr = array();
+    if ($dead_raw) {
+        $deadarr = unserialize($dead_raw);
+    }
+
+    if (!empty($allswitches)) {
+        foreach ($allswitches as $io => $each) {
+            if (isset($linkedSwitches[$each['id']])) {
+                $geo = ubRouting::filters($each['geo'], 'mres');
+                $title = ubRouting::filters($each['ip'], 'mres');
+
+                //switch hint content
+                $content = ubRouting::filters($each['location'], 'mres');
+
+
+                $iconlabel = '';
+
+                if (!isset($deadarr[$each['ip']])) {
+                    $footer = __('Switch alive');
+
+                    if ($ym_conf['CANVAS_RENDER']) {
+                        if ($ym_conf['CANVAS_RENDER_IGNORE_LABELED']) {
+                            if ($ym_conf['ALIVE_LABEL']) {
+                                $icon = sm_MapGoodIcon();
+                            } else {
+                                $icon = sm_MapGoodIcon(false);
+                            }
+                        } else {
+                            $icon = sm_MapGoodIcon(false);
+                        }
+                    } else {
+                        $icon = sm_MapGoodIcon();
+                    }
+                    //alive mark labels
+                    if ($ym_conf['ALIVE_LABEL']) {
+                        $iconlabel = $each['location'];
+                    } else {
+                        $iconlabel = '';
+                    }
+                } else {
+                    $footer = __('Switch dead');
+
+                    if ($ym_conf['CANVAS_RENDER']) {
+                        if ($ym_conf['CANVAS_RENDER_IGNORE_LABELED']) {
+                            if ($ym_conf['DEAD_LABEL']) {
+                                $icon = sm_MapBadIcon();
+                            } else {
+                                $icon = sm_MapBadIcon(false);
+                            }
+                        } else {
+                            $icon = sm_MapBadIcon(false);
+                        }
+                    } else {
+                        $icon = sm_MapBadIcon();
+                    }
+                    //dead mark labels
+                    if ($ym_conf['DEAD_LABEL']) {
+                        if (!empty($each['location'])) {
+                            $iconlabel = $each['location'];
+                        } else {
+                            $iconlabel = __('No location set');
+                        }
+                    } else {
+                        $iconlabel = '';
+                    }
+                }
+
+
+                //switch footer controls
+                $footer .= $footerDelimiter;
+                $footer .= wf_tag('a', false, '', 'href="?module=switches&edit=' . $each['id'] . '"') . $switchEditIcon . wf_tag('a', true) . ' ';
+
+
+                if (!empty($each['snmp'])) {
+                    $footer .= wf_tag('a', false, '', 'href="?module=switchpoller&switchid=' . $each['id'] . '"') . $switchPollerIcon . wf_tag('a', true) . ' ';
+                }
+
+                $footer .= wf_tag('a', false, '', 'href="?module=switchmap&finddevice=' . $each['geo'] . '"') . $switchLocatorIcon . wf_tag('a', true) . ' ';
+
+
+                if (!empty($each['parentid'])) {
+                    $uplinkTraceUrl = '?module=switchmap&finddevice=' . $each['geo'] . '&showuplinks=true&traceid=' . $each['id'];
+                    $uplinkTraceLink = wf_tag('a', false, '', 'href="' . $uplinkTraceUrl . '"') . $uplinkTraceIcon . wf_tag('a', true) . ' ';
+                    $footer .= $uplinkTraceLink;
+                }
+
+                if ($ym_conf['CANVAS_RENDER']) {
+                    $result .= sm_MapAddMark($geo, $title, $content, $footer, $icon, $iconlabel, true);
+                } else {
+                    $result .= sm_MapAddMark($geo, $title, $content, $footer, $icon, $iconlabel, false);
+                }
+            }
+        }
+    }
+    return ($result);
+}
+
+/**
+ * Returns map links for all linked switches
+ * (both uplink and downlink links for selected switch).
+ * 
+ * @param int $switchId
+ * 
+ * @return string
+ */
+function sm_MapDrawSwitchAllLinks($switchId) {
+    $switchId = ubRouting::filters($switchId, 'int');
+    $switchesDb=new NyanORM('switches');
+    $tmpSwitches=$switchesDb->getAll();
+    $allswitches = array();
+    $linkedSwitches = sm_MapGetLinkedSwitchIds($switchId);
+    $result = '';
+
+    //dead switches detection
+    $dead_raw = zb_StorageGet('SWDEAD');
+    $deadarr = array();
+    if ($dead_raw) {
+        $deadarr = unserialize($dead_raw);
+    }
+
+    if (!empty($tmpSwitches)) {
+        foreach ($tmpSwitches as $io => $each) {
+            $allswitches[$each['id']] = $each;
+        }
+    }
+
+    if (!empty($allswitches)) {
+        foreach ($allswitches as $io => $each) {
+            if (!empty($each['parentid'])) {
+                if (isset($allswitches[$each['parentid']])) {
+                    if (($allswitches[$each['parentid']]['geo'] != '') and ($each['geo'] != '')) {
+                        if (isset($linkedSwitches[$each['id']]) and isset($linkedSwitches[$each['parentid']])) {
+                            $coord1 = $each['geo'];
+                            $coord2 = $allswitches[$each['parentid']]['geo'];
+                            $hint = $each['location'] . ' ' . $each['ip'] . ' → ' . $allswitches[$each['parentid']]['location'] . ' ' . $allswitches[$each['parentid']]['ip'];
+
+                            if ((!isset($deadarr[$each['ip']])) and (!isset($deadarr[$allswitches[$each['parentid']]['ip']]))) {
+                                $color = '#00FF00';
+                            } else {
+                                $color = '#FF0000';
+                            }
+
+                            if (($each['id'] == $switchId) or ($each['parentid'] == $switchId)) {
+                                $width = 5;
+                            } else {
+                                $width = 3;
+                            }
+                            $result .= sm_MapAddLine($coord1, $coord2, $color, $hint, $width);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    return ($result);
+}
+
+/**
  * Returns indications point to nuclear strikes :)
  * 
  * @return string 

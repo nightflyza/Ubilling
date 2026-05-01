@@ -219,12 +219,18 @@ function web_SwitchFormAdd() {
 function web_SwitchMiniMap($switchdata) {
     global $ubillingConfig;
     $ymconf = $ubillingConfig->getYmaps();
+    $briefMinimap = $ubillingConfig->getAlterParam('BRIEF_MINIMAP');
     $result = '';
     $result .= wf_tag('div', false, '', 'id="ubmap" class="glamour" style="width: 97%; height:300px;"') . wf_tag('div', true);
     $result .= wf_delimiter();
     $placemarks ='';
-    $placemarks .= sm_MapDrawSwitches();
-    $placemarks .= sm_MapDrawSwitchUplinks($switchdata['id']);
+    if ($briefMinimap) {
+        $placemarks .= sm_MapDrawLinkedSwitches($switchdata['id']);
+        $placemarks .= sm_MapDrawSwitchAllLinks($switchdata['id']);
+    } else {
+        $placemarks .= sm_MapDrawSwitches();
+        $placemarks .= sm_MapDrawSwitchUplinks($switchdata['id']);
+    }
     $radius = 30;
     $area = sm_MapAddCircle($switchdata['geo'], $radius, __('Search area radius') . ' ' . $radius . ' ' . __('meters'), __('Search area'));
     $result .= generic_MapInit($switchdata['geo'], $ymconf['FINDING_ZOOM'], $ymconf['TYPE'], $area . $placemarks, '', $ymconf['LANG']);

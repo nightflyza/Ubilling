@@ -2,8 +2,6 @@
 
 if (cfr('SWITCHESEDIT')) {
 
-
-
     /**
      * Renders switches integrity report
      * 
@@ -70,23 +68,29 @@ if (cfr('SWITCHESEDIT')) {
             ///checking uplinks switches possible loop
             if (empty($allDeleted)) {
                 if (empty($selfLoop)) {
-                    $roads = array();
                     $failRoads = array();
                     if (!empty($allLinks)) {
+                        $maxHops = sizeof($allLinks) + 1;
                         foreach ($allLinks as $id => $parentid) {
-
-                            $roads[$id][] = $parentid;
-                            $trace = $parentid;
+                            $trace = $id;
+                            $visited = array();
+                            $hopCounter = 0;
                             while (!empty($trace)) {
-                                if (isset($allLinks[$trace])) {
-                                    if ((array_search($allLinks[$trace], $roads[$id])) == false) {
-                                        $roads[$id][] = $allLinks[$trace];
+                                if (isset($visited[$trace])) {
+                                    $failRoads[$id] = $trace;
+                                    $trace = '';
+                                } else {
+                                    $visited[$trace] = $trace;
+                                    if (isset($allLinks[$trace])) {
+                                        $trace = $allLinks[$trace];
                                     } else {
-                                        $failRoads[$id] = $allLinks[$trace];
                                         $trace = '';
                                     }
-
-                                    $trace = (isset($allLinks[$trace])) ? $allLinks[$trace] : '';
+                                }
+                                $hopCounter++;
+                                if ($hopCounter > $maxHops) {
+                                    $failRoads[$id] = $id;
+                                    $trace = '';
                                 }
                             }
                         }
@@ -94,7 +98,6 @@ if (cfr('SWITCHESEDIT')) {
 
 
                     if (!empty($failRoads)) {
-                        $failRoads = array_flip($failRoads);
                         $resultLoop = '';
                         foreach ($failRoads as $io => $each) {
                             $resultLoop .= web_SwitchProfileLink($io);

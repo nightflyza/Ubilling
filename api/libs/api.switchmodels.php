@@ -20,7 +20,7 @@ class SwitchModels {
     protected $switchesDb = '';
 
     /**
-     * Database abstraction layer for onus
+     * Database abstraction layer for ONUs devices
      * 
      * @var object
      */
