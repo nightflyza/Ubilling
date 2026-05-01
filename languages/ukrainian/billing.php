@@ -3672,3 +3672,5 @@ $lang['def']['Comparison results'] = 'Результати порівняння'
 $lang['def']['between'] = 'між';
 $lang['def']['No differences found'] = 'Жодних відмінностей не знайдено';
 $lang['def']['Time points should be different'] = 'Точки часу повинні бути різними';
+$lang['def']['Full'] = 'Повний';
+$lang['def']['Brief'] = 'Стисло';

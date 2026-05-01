@@ -210,7 +210,8 @@ if (cfr('SWITCHES')) {
             //minimap container
             if ($altCfg['SWYMAP_ENABLED']) {
                 if ((!empty($switchdata['geo'])) and (!ubRouting::checkPost('editmodel'))) {
-                    show_window(__('Mini-map'), wf_delimiter() . web_SwitchMiniMap($switchdata));
+                    $miniMapControls=web_SwitchMiniMapControls($switchid);
+                    show_window(__('Mini-map').' '.$miniMapControls, wf_delimiter() . web_SwitchMiniMap($switchdata));
                 }
             }
 

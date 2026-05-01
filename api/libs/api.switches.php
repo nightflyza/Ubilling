@@ -209,6 +209,46 @@ function web_SwitchFormAdd() {
     return ($addform);
 }
 
+
+/**
+ * Returns current mini-map mode state
+ * with support of BRIEF_MINIMAP config as default.
+ *
+ * @return bool
+ */
+function zb_SwitchIsBriefMinimapEnabled() {
+    global $ubillingConfig;
+    $result = false;
+
+    if (ubRouting::checkGet('briefminimap')) {
+        $result = (ubRouting::get('briefminimap') == 'on') ? true : false;
+    } else {
+        $result = $ubillingConfig->getAlterParam('BRIEF_MINIMAP');
+    }
+
+    return ($result);
+}
+
+/**
+ * Returns switch mini-map controls
+ * 
+ * @param int $switchId
+ * 
+ * @return string
+ */
+function web_SwitchMiniMapControls($switchId) {
+    $result = '';
+    $switchId = ubRouting::filters($switchId, 'int');
+    $briefMinimap = zb_SwitchIsBriefMinimapEnabled();
+
+    if ($briefMinimap) {
+        $result .= wf_Link('?module=switches&edit=' . $switchId . '&briefminimap=off', wf_img('skins/icon_globe_small.png', __('Full')), false, '');
+    } else {
+        $result .= wf_Link('?module=switches&edit=' . $switchId . '&briefminimap=on', wf_img('skins/icon_map_small.png', __('Brief')), false, '');
+    }
+    return ($result);
+}
+
 /**
  * Returns switch mini-map
  * 
@@ -219,7 +259,8 @@ function web_SwitchFormAdd() {
 function web_SwitchMiniMap($switchdata) {
     global $ubillingConfig;
     $ymconf = $ubillingConfig->getYmaps();
-    $briefMinimap = $ubillingConfig->getAlterParam('BRIEF_MINIMAP');
+    $briefMinimap = zb_SwitchIsBriefMinimapEnabled();
+    
     $result = '';
     $result .= wf_tag('div', false, '', 'id="ubmap" class="glamour" style="width: 97%; height:300px;"') . wf_tag('div', true);
     $result .= wf_delimiter();

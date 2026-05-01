@@ -255,58 +255,29 @@ function sm_MapDrawLinkedSwitches($switchId) {
 
                 //switch hint content
                 $content = ubRouting::filters($each['location'], 'mres');
-
+                if (empty($content)) {
+                    $content = __('No location set');
+                }
 
                 $iconlabel = '';
 
                 if (!isset($deadarr[$each['ip']])) {
-                    $footer = __('Switch alive');
-
-                    if ($ym_conf['CANVAS_RENDER']) {
-                        if ($ym_conf['CANVAS_RENDER_IGNORE_LABELED']) {
-                            if ($ym_conf['ALIVE_LABEL']) {
-                                $icon = sm_MapGoodIcon();
-                            } else {
-                                $icon = sm_MapGoodIcon(false);
-                            }
-                        } else {
-                            $icon = sm_MapGoodIcon(false);
-                        }
+                    if (ispos($each['desc'], 'NP')) {
+                        $footer = __('Switch') . ' NP';
+                        $icon = sm_MapNPIcon(false);
                     } else {
-                        $icon = sm_MapGoodIcon();
-                    }
-                    //alive mark labels
-                    if ($ym_conf['ALIVE_LABEL']) {
-                        $iconlabel = $each['location'];
-                    } else {
-                        $iconlabel = '';
+                        $footer = __('Switch alive');
+                        $icon = sm_MapGoodIcon(false);
                     }
                 } else {
                     $footer = __('Switch dead');
+                    $icon = sm_MapBadIcon(false);
+                }
 
-                    if ($ym_conf['CANVAS_RENDER']) {
-                        if ($ym_conf['CANVAS_RENDER_IGNORE_LABELED']) {
-                            if ($ym_conf['DEAD_LABEL']) {
-                                $icon = sm_MapBadIcon();
-                            } else {
-                                $icon = sm_MapBadIcon(false);
-                            }
-                        } else {
-                            $icon = sm_MapBadIcon(false);
-                        }
-                    } else {
-                        $icon = sm_MapBadIcon();
-                    }
-                    //dead mark labels
-                    if ($ym_conf['DEAD_LABEL']) {
-                        if (!empty($each['location'])) {
-                            $iconlabel = $each['location'];
-                        } else {
-                            $iconlabel = __('No location set');
-                        }
-                    } else {
-                        $iconlabel = '';
-                    }
+                if (!empty($each['location'])) {
+                    $iconlabel = $each['location'];
+                } else {
+                    $iconlabel = $each['ip'];
                 }
 
 
@@ -327,12 +298,8 @@ function sm_MapDrawLinkedSwitches($switchId) {
                     $uplinkTraceLink = wf_tag('a', false, '', 'href="' . $uplinkTraceUrl . '"') . $uplinkTraceIcon . wf_tag('a', true) . ' ';
                     $footer .= $uplinkTraceLink;
                 }
-
-                if ($ym_conf['CANVAS_RENDER']) {
-                    $result .= sm_MapAddMark($geo, $title, $content, $footer, $icon, $iconlabel, true);
-                } else {
-                    $result .= sm_MapAddMark($geo, $title, $content, $footer, $icon, $iconlabel, false);
-                }
+                
+                $result .= sm_MapAddMark($geo, $title, $content, $footer, $icon, $iconlabel, true);
             }
         }
     }
@@ -426,9 +393,12 @@ function sm_MapDrawSwitchesCoverage() {
  *  
  */
 function sm_MapDrawSwitches() {
-    $ym_conf = rcms_parse_ini_file(CONFIG_PATH . "ymaps.ini");
-    $query = "SELECT * from `switches` WHERE `geo` != '' ";
-    $allswitches = simple_queryall($query);
+    global $ubillingConfig;
+    $ym_conf = $ubillingConfig->getYmaps();
+    
+    $switchesDb=new NyanORM('switches');
+    $switchesDb->where('geo', '!=', '');
+    $allswitches=$switchesDb->getAll();
 
     $uplinkTraceIcon = wf_img('skins/ymaps/uplinks.png', __('Show links'));
     $switchEditIcon = wf_img('skins/icon_edit.gif', __('Edit'));
@@ -443,6 +413,7 @@ function sm_MapDrawSwitches() {
     if ($dead_raw) {
         $deadarr = unserialize($dead_raw);
     }
+    $canvasRender = ($ym_conf['CANVAS_RENDER']) ? true : false;
 
     if (!empty($allswitches)) {
         foreach ($allswitches as $io => $each) {
@@ -451,60 +422,31 @@ function sm_MapDrawSwitches() {
 
             //switch hint content
             $content = mysql_real_escape_string($each['location']);
+            if (empty($content)) {
+                $content = __('No location set');
+            }
 
 
             $iconlabel = '';
 
             if (!isset($deadarr[$each['ip']])) {
-                $footer = __('Switch alive');
-
-                if ($ym_conf['CANVAS_RENDER']) {
-                    if ($ym_conf['CANVAS_RENDER_IGNORE_LABELED']) {
-                        if ($ym_conf['ALIVE_LABEL']) {
-                            $icon = sm_MapGoodIcon();
-                        } else {
-                            $icon = sm_MapGoodIcon(false);
-                        }
-                    } else {
-                        $icon = sm_MapGoodIcon(false);
-                    }
+                if (ispos($each['desc'], 'NP')) {
+                    $footer = __('Switch') . ' NP';
+                    $icon = sm_MapNPIcon(false);
                 } else {
-                    $icon = sm_MapGoodIcon();
-                }
-                //alive mark labels
-                if ($ym_conf['ALIVE_LABEL']) {
-                    $iconlabel = $each['location'];
-                } else {
-                    $iconlabel = '';
+                    $footer = __('Switch alive');
+                    $icon = sm_MapGoodIcon(false);
                 }
             } else {
                 $footer = __('Switch dead');
-
-                if ($ym_conf['CANVAS_RENDER']) {
-                    if ($ym_conf['CANVAS_RENDER_IGNORE_LABELED']) {
-                        if ($ym_conf['DEAD_LABEL']) {
-                            $icon = sm_MapBadIcon();
-                        } else {
-                            $icon = sm_MapBadIcon(false);
-                        }
-                    } else {
-                        $icon = sm_MapBadIcon(false);
-                    }
-                } else {
-                    $icon = sm_MapBadIcon();
-                }
-                //dead mark labels
-                if ($ym_conf['DEAD_LABEL']) {
-                    if (!empty($each['location'])) {
-                        $iconlabel = $each['location'];
-                    } else {
-                        $iconlabel = __('No location set');
-                    }
-                } else {
-                    $iconlabel = '';
-                }
+                $icon = sm_MapBadIcon(false);
             }
 
+            if (!empty($each['location'])) {
+                $iconlabel = $each['location'];
+            } else {
+                $iconlabel = $each['ip'];
+            }
 
             //switch footer controls
             $footer .= $footerDelimiter;
@@ -524,11 +466,8 @@ function sm_MapDrawSwitches() {
                 $footer .= $uplinkTraceLink;
             }
 
-            if ($ym_conf['CANVAS_RENDER']) {
-                $result .= sm_MapAddMark($geo, $title, $content, $footer, $icon, $iconlabel, true);
-            } else {
-                $result .= sm_MapAddMark($geo, $title, $content, $footer, $icon, $iconlabel, false);
-            }
+         
+            $result .= sm_MapAddMark($geo, $title, $content, $footer, $icon, $iconlabel, true);
         }
     }
     return ($result);
@@ -798,6 +737,21 @@ function sm_MapGoodIcon($stretchy = true) {
         return ('twirl#lightblueStretchyIcon');
     } else {
         return ('twirl#lightblueIcon');
+    }
+}
+
+/**
+ * Returns NP (unknown) icon class
+ * 
+ * @param bool $stretchy - icon resizable by content?
+ * 
+ * @return string
+ */
+function sm_MapNPIcon($stretchy = true) {
+    if ($stretchy) {
+        return ('twirl#orangeStretchyIcon');
+    } else {
+        return ('twirl#orangeIcon');
     }
 }
 
