@@ -70,7 +70,6 @@ function zb_SwitchGetParents($alllinks, $traceid) {
  */
 function sm_CheckLoop($alllinks, $switchId, $setParent) {
     $result = false;
-    $tmpArr = array();
     if (!empty($switchId)) {
         if (sm_MapIsLinked($alllinks, $setParent, $switchId)) {
             $result = false;
@@ -92,7 +91,7 @@ function sm_CheckLoop($alllinks, $switchId, $setParent) {
  */
 function sm_MapDrawSwitchUplinks($traceid = '') {
     global $ubillingConfig;
-    $ym_conf = $ubillingConfig->getYmaps();
+    
     $query = "SELECT * from `switches`";
     $tmpSwitches = simple_queryall($query);
     $allswitches = array();
@@ -163,8 +162,10 @@ function sm_MapDrawSwitchUplinks($traceid = '') {
 }
 
 /**
- * Returns IDs of all switches linked with selected switch
- * (both parent and child devices).
+ * Returns IDs used in brief mini-map mode:
+ * - selected switch
+ * - all its uplinks up to top level
+ * - all its downlink subtree switches.
  * 
  * @param int $switchId
  * 
@@ -172,10 +173,10 @@ function sm_MapDrawSwitchUplinks($traceid = '') {
  */
 function sm_MapGetLinkedSwitchIds($switchId) {
     $switchId = ubRouting::filters($switchId, 'int');
-    $switchesDb=new NyanORM('switches');
-    $tmpSwitches=$switchesDb->getAll();
-
-    $adjacency = array();
+    $switchesDb = new NyanORM('switches');
+    $tmpSwitches = $switchesDb->getAll();
+    $parentMap = array();
+    $childrenMap = array();
     $result = array();
     $queue = array();
 
@@ -183,29 +184,46 @@ function sm_MapGetLinkedSwitchIds($switchId) {
         if (!empty($tmpSwitches)) {
             foreach ($tmpSwitches as $io => $each) {
                 $currentId = (int) $each['id'];
-                if (!isset($adjacency[$currentId])) {
-                    $adjacency[$currentId] = array();
+                $parentId = (int) $each['parentid'];
+                $parentMap[$currentId] = $parentId;
+                if (!isset($childrenMap[$currentId])) {
+                    $childrenMap[$currentId] = array();
                 }
-                if (!empty($each['parentid'])) {
-                    $parentId = (int) $each['parentid'];
-                    if (!isset($adjacency[$parentId])) {
-                        $adjacency[$parentId] = array();
+                if (!empty($parentId)) {
+                    if (!isset($childrenMap[$parentId])) {
+                        $childrenMap[$parentId] = array();
                     }
-                    $adjacency[$currentId][$parentId] = $parentId;
-                    $adjacency[$parentId][$currentId] = $currentId;
+                    $childrenMap[$parentId][$currentId] = $currentId;
                 }
             }
         }
 
+        // selected switch itself
         $result[$switchId] = $switchId;
+
+        // all uplinks (parents chain)
+        $currentParent = isset($parentMap[$switchId]) ? (int) $parentMap[$switchId] : 0;
+        while (!empty($currentParent)) {
+            if (isset($result[$currentParent])) {
+                break;
+            }
+            $result[$currentParent] = $currentParent;
+            if (isset($parentMap[$currentParent])) {
+                $currentParent = (int) $parentMap[$currentParent];
+            } else {
+                $currentParent = 0;
+            }
+        }
+
+        // all downlinks (children subtree)
         $queue[] = $switchId;
         while (!empty($queue)) {
             $current = array_shift($queue);
-            if (isset($adjacency[$current])) {
-                foreach ($adjacency[$current] as $neighborId) {
-                    if (!isset($result[$neighborId])) {
-                        $result[$neighborId] = $neighborId;
-                        $queue[] = $neighborId;
+            if (isset($childrenMap[$current])) {
+                foreach ($childrenMap[$current] as $childId) {
+                    if (!isset($result[$childId])) {
+                        $result[$childId] = $childId;
+                        $queue[] = $childId;
                     }
                 }
             }
@@ -227,8 +245,7 @@ function sm_MapDrawLinkedSwitches($switchId) {
     global $ubillingConfig;
     $switchId = ubRouting::filters($switchId, 'int');
     $linkedSwitches = sm_MapGetLinkedSwitchIds($switchId);
-    $ym_conf = $ubillingConfig->getYmaps();
-
+    
     $switchesDb=new NyanORM('switches');
     $switchesDb->where('geo', '!=', '');
     $allswitches=$switchesDb->getAll();
@@ -263,7 +280,7 @@ function sm_MapDrawLinkedSwitches($switchId) {
 
                 if (!isset($deadarr[$each['ip']])) {
                     if (ispos($each['desc'], 'NP')) {
-                        $footer = __('Switch') . ' NP';
+                        $footer = __('Switch') . ': '.__('Status').' '.__('Unknown');
                         $icon = sm_MapNPIcon(false);
                     } else {
                         $footer = __('Switch alive');
@@ -373,7 +390,6 @@ function sm_MapDrawSwitchAllLinks($switchId) {
  * @return string 
  */
 function sm_MapDrawSwitchesCoverage() {
-    $ym_conf = rcms_parse_ini_file(CONFIG_PATH . "ymaps.ini");
     $query = "SELECT * from `switches` WHERE `geo` != '' ";
     $allswitches = simple_queryall($query);
     $result = '';
@@ -394,7 +410,6 @@ function sm_MapDrawSwitchesCoverage() {
  */
 function sm_MapDrawSwitches() {
     global $ubillingConfig;
-    $ym_conf = $ubillingConfig->getYmaps();
     
     $switchesDb=new NyanORM('switches');
     $switchesDb->where('geo', '!=', '');
@@ -413,7 +428,7 @@ function sm_MapDrawSwitches() {
     if ($dead_raw) {
         $deadarr = unserialize($dead_raw);
     }
-    $canvasRender = ($ym_conf['CANVAS_RENDER']) ? true : false;
+    
 
     if (!empty($allswitches)) {
         foreach ($allswitches as $io => $each) {
@@ -431,7 +446,7 @@ function sm_MapDrawSwitches() {
 
             if (!isset($deadarr[$each['ip']])) {
                 if (ispos($each['desc'], 'NP')) {
-                    $footer = __('Switch') . ' NP';
+                    $footer = __('Switch') . ': '.__('Status').' '.__('Unknown');
                     $icon = sm_MapNPIcon(false);
                 } else {
                     $footer = __('Switch alive');
@@ -749,9 +764,9 @@ function sm_MapGoodIcon($stretchy = true) {
  */
 function sm_MapNPIcon($stretchy = true) {
     if ($stretchy) {
-        return ('twirl#orangeStretchyIcon');
+        return ('twirl#nightDotIcon');
     } else {
-        return ('twirl#orangeIcon');
+        return ('twirl#nightDotIcon');
     }
 }
 
