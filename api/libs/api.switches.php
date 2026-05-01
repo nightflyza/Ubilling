@@ -242,9 +242,9 @@ function web_SwitchMiniMapControls($switchId) {
     $briefMinimap = zb_SwitchIsBriefMinimapEnabled();
 
     if ($briefMinimap) {
-        $result .= wf_Link('?module=switches&edit=' . $switchId . '&briefminimap=off', wf_img('skins/icon_globe_small.png', __('Full')), false, '');
+        $result .= wf_Link('?module=switches&edit=' . $switchId . '&briefminimap=off', wf_img('skins/icon_fullmap16.png', __('Full')), false, '');
     } else {
-        $result .= wf_Link('?module=switches&edit=' . $switchId . '&briefminimap=on', wf_img('skins/icon_map_small.png', __('Brief')), false, '');
+        $result .= wf_Link('?module=switches&edit=' . $switchId . '&briefminimap=on', wf_img('skins/icon_briefmap16.png', __('Brief')), false, '');
     }
     return ($result);
 }
