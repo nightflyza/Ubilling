@@ -66,7 +66,7 @@ function zb_SwitchDeathTimeResurrection($ip) {
 /**
  * Returns array of all available switch models
  * 
- * @deprecated Use SwitchModels::getAll() instead
+ * @todo: Use SwitchModels::getAll() instead in future
  * @return array
  */
 function zb_SwitchModelsGetAll() {
@@ -81,18 +81,24 @@ function zb_SwitchModelsGetAll() {
  * 
  * @param string $selectname Name of input element
  * @param array $allmodels available models array
+ * 
  * @return string
  */
 function web_SwitchModelSelector($selectname = 'switchmodelid', $allmodels = array()) {
     $tmpArr = array();
     if (empty($allmodels)) {
-        $allmodels = zb_SwitchModelsGetAll();
+        $switchModels = new SwitchModels();
+        $allmodels = $switchModels->getAll();
     }
+
     if (!empty($allmodels)) {
         foreach ($allmodels as $io => $each) {
             $tmpArr[$each['id']] = $each['modelname'];
         }
+        
     }
+    
+
     $selector = wf_Selector($selectname, $tmpArr, __('Model'), '', false);
     return ($selector);
 }
@@ -234,7 +240,7 @@ function web_SwitchMiniMap($switchdata) {
  */
 function web_SwitchDownlinksList($switchId) {
     global $ubillingConfig;
-    $alterconf = $ubillingConfig->getAlter();
+    
     $switchesExtended = $ubillingConfig->getAlterParam('SWITCHES_EXTENDED');
 
     if ($switchesExtended) {

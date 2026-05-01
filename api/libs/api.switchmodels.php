@@ -51,9 +51,6 @@ class SwitchModels {
      * U tome je ljepota
      * Tko tebe kamenom
      * Liši ga života
-     *
-     * 
-     * @return void
      */
     public function __construct() {
         $this->initDb();
