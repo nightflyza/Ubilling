@@ -234,7 +234,7 @@ class SwPollStats {
                 $opts = '"order": [[0, "desc"]]';
                 $result .= wf_JqDtEmbed($columns, $tableData, false, __('devices'), 100, $opts);
                 $result .= wf_delimiter(0);
-                $result .= wf_tag('b') . __('Total') . ' ' . __('time') . ' (' . __('seconds') . '): ' . wf_tag('b', true) . $totalTime;
+                $result .= wf_tag('b') . __('Total') . ' ' . __('time') . ': ' . wf_tag('b', true) . zb_formatTime($totalTime);
                 $result .= wf_delimiter(0);
                 $result .= wf_tag('b') . __('Devices') . ': ' . wf_tag('b', true) . $totalCount;
             } else {
