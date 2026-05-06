@@ -97,6 +97,13 @@ class SigMap {
     protected $messages = '';
 
     /**
+     * MapCore instance placeholder
+     *
+     * @var object
+     */
+    protected $mapCore=null;
+
+    /**
      * Creates new report instance
      */
     public function __construct() {
@@ -105,6 +112,7 @@ class SigMap {
         $this->loadMapsConfig();
         $this->loadUsers();
         $this->initDataSource();
+        $this->initMapCore();
     }
 
     /**
@@ -117,6 +125,15 @@ class SigMap {
     protected function loadMapsConfig() {
         global $ubillingConfig;
         $this->mapsCfg = $ubillingConfig->getYmaps();
+    }
+
+    /**
+     * Inits MapCore instance placeholder
+     *
+     * @return void
+     */
+    protected function initMapCore() {
+        $this->mapCore=new MapCore();
     }
 
     /**
@@ -181,16 +198,18 @@ class SigMap {
     }
 
     /**
-     * Returns list of formatted placemarks for map rendering
-     * 
+     * Groups signups by build geo, fills streetsSignups stats, adds markers to mapCore (MapCore API).
+     *
      * @param array $userSignups
-     * 
-     * @return string
+     *
+     * @return void
      */
-    protected function getPlacemarks($userSignups) {
-        $result = '';
+    protected function appendSignupMarkersToMapCore($userSignups) {
+        $this->noGeoBuilds = 0;
+        $this->deletedUsers = 0;
+        $this->registeredUsers = 0;
+        $this->streetsSignups = array();
         $buildsData = array();
-        $buildsCounters = array();
         if (!empty($userSignups)) {
             foreach ($userSignups as $io => $each) {
                 if (isset($this->allUserData[$each['login']])) {
@@ -228,16 +247,20 @@ class SigMap {
 
             if (!empty($buildsData)) {
                 foreach ($buildsData as $coords => $usersInside) {
+                    $placeMarkIcon = 'marker.house';
                     if ($usersInside['count'] > 1) {
-                        $placeMarkIcon = 'twirl#buildingsIcon';
-                    } else {
-                        $placeMarkIcon = 'twirl#houseIcon';
+                        $placeMarkIcon = 'marker.building';
                     }
-                    $result .= generic_mapAddMark($coords, $usersInside['data'], __('Users') . ': ' . $usersInside['count'], '', $placeMarkIcon, '', $this->mapsCfg['CANVAS_RENDER']);
+                    $usersTitle = __('Users') . ': ' . $usersInside['count'];
+                    $markerOptions = array(
+                        'icon' => $placeMarkIcon,
+                        'popupTitle' => $usersInside['data'],
+                        'tooltip' => $usersTitle
+                    );
+                    $this->mapCore->addMarker($coords, $usersTitle, $markerOptions);
                 }
             }
         }
-        return ($result);
     }
 
     /**
@@ -263,9 +286,13 @@ class SigMap {
     public function renderMap() {
         $result = '';
         $allSignups = $this->getRegisteredUsers();
-        $placemarks = $this->getPlacemarks($allSignups);
-        $result .= generic_MapContainer();
-        $result .= generic_MapInit($this->mapsCfg['CENTER'], $this->mapsCfg['ZOOM'], $this->mapsCfg['TYPE'], $placemarks, '', $this->mapsCfg['LANG'], 'ubmap');
+        $this->mapCore->injectPlacemarks('', true);
+        $this->appendSignupMarkersToMapCore($allSignups);
+        $this->mapCore->setCenter($this->mapsCfg['CENTER']);
+        $this->mapCore->setZoom($this->mapsCfg['ZOOM']);
+        $this->mapCore->setType($this->mapsCfg['TYPE']);
+        $result .= $this->mapCore->renderContainer('', '');
+        $result .= $this->mapCore->render();
         return ($result);
     }
 
