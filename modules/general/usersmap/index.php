@@ -11,7 +11,6 @@ if (cfr('USERSMAP')) {
         $ym_center = $ymconf['CENTER'];
         $ym_zoom = $ymconf['ZOOM'];
         $ym_type = $ymconf['TYPE'];
-        $ym_lang = $ymconf['LANG'];
         $area = '';
         $locator = '';
         $searchPrefill = '';
@@ -59,7 +58,7 @@ if (cfr('USERSMAP')) {
 
         //render map container
         um_ShowMapContainer();
-        show_window('', generic_MapInit($ym_center, $ym_zoom, $ym_type, $area . $placemarks, $locator, $ym_lang, 'ubmap', $searchPrefill));
+        show_window('', generic_MapInit($ym_center, $ym_zoom, $ym_type, $area . $placemarks, $locator, '', 'ubmap', $searchPrefill));
     } else {
         show_window(__('Error'), __('This module is disabled'));
     }

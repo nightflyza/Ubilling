@@ -134,6 +134,13 @@ class MapCore {
         'yellowCar' => 'vehicle.yellow'
     );
 
+    /**
+     * Additional attributions for map
+     *
+     * @var string
+     */
+    protected $additionalAttributions='';
+
 
     /**
      * Creates map builder instance
@@ -628,10 +635,20 @@ class MapCore {
                 $tileLayerOSM = $this->mapsCfg['LEAFLET_TILE_LAYER'];
                 if (ispos($tileLayerOSM, 'visicom')) {
                     $tileLayerCustoms = "subdomains: '123', tms: true";
+                    $this->additionalAttributions = '| <a href="https://www.visicom.ua">Visicom</a>';
                 } else {
                     if (ispos($tileLayerOSM, 'google.com')) {
                         $tileLayerCustoms = "subdomains:['mt0','mt1','mt2','mt3']";
+                        $this->additionalAttributions = '| <a href="https://www.google.com">Google</a>';
                     }
+                }
+
+                if (ispos($tileLayerOSM, 'kaminari')) {
+                    $this->additionalAttributions = '| ⚡ <a href="https://github.com/nightflyza/kaminaritile">KaminariTile</a>';
+                }
+
+                if (ispos($tileLayerOSM, 'mapbox')) {
+                    $this->additionalAttributions = '| <a href="https://www.mapbox.com">Mapbox</a>';
                 }
             }
         }
@@ -722,7 +739,7 @@ class MapCore {
 
             var roadmap = L.tileLayer("' . $tileLayerOSM . '", {
                 maxZoom: 18,
-                attribution: \'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors\',
+                attribution: \'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors\ ' . $this->additionalAttributions . '\',
                 ' . $tileLayerCustoms . '
             });
             var satellite = L.tileLayer("' . $tileLayerSatellite . '", {maxZoom: 18, attribution: "© Google"});

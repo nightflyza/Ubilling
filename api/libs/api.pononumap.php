@@ -70,6 +70,13 @@ class PONONUMap {
     protected $clusterBuilds = false;
 
     /**
+     * MapCore instance placeholder
+     *
+     * @var object
+     */
+    protected $mapCore=null;
+
+    /**
      * Predefined routes, URLs etc.
      */
     const URL_ME = '?module=ponmap';
@@ -91,6 +98,7 @@ class PONONUMap {
      */
     public function __construct($oltId = '') {
         $this->loadConfigs();
+        $this->initMapCore();
         $this->setBuildsClusterer();
         $this->setOltIdFilter($oltId);
         $this->setOnuDeregFilter();
@@ -179,6 +187,15 @@ class PONONUMap {
     }
 
     /**
+     * Inits MapCore instance 
+     *
+     * @return void
+     */
+    protected function initMapCore() {
+        $this->mapCore = new MapCore('ponmap');
+    }
+
+    /**
      * Preloads available users data for further usage
      * 
      * @return void
@@ -195,15 +212,15 @@ class PONONUMap {
      * @return string
      */
     protected function getIcon($onuSignal) {
-        $result = 'twirl#greenIcon';
+        $result = 'marker.green';
         if ((($onuSignal > -27) and ($onuSignal < -25))) {
-            $result = 'twirl#orangeIcon';
+            $result = 'marker.orange';
         }
         if ((($onuSignal > 0) or ($onuSignal < -27))) {
-            $result = 'twirl#redIcon';
+            $result = 'marker.red';
         }
         if ($onuSignal == 'NO' or $onuSignal == 'Offline' or $onuSignal == '-9000') {
-            $result = 'twirl#greyIcon';
+            $result = 'marker.grey';
         }
         return ($result);
     }
@@ -216,15 +233,15 @@ class PONONUMap {
      * @return string
      */
     protected function getIconCustom($onuSignal) {
-        $result = 'twirl#nightDotIcon';
+        $result = 'marker.darkblue';
         if ((($onuSignal > -27) and ($onuSignal < -25))) {
-            $result = 'twirl#yellowIcon';
+            $result = 'marker.yellow';
         }
         if ((($onuSignal > 0) or ($onuSignal < -27))) {
-            $result = 'twirl#pinkDotIcon';
+            $result = 'marker.pink';
         }
         if ($onuSignal == 'NO' or $onuSignal == 'Offline' or $onuSignal == '-9000' or $onuSignal == __('No')) {
-            $result = 'twirl#blackIcon';
+            $result = 'marker.black';
         }
         return ($result);
     }
@@ -414,19 +431,34 @@ class PONONUMap {
                             }
                             $concatBuildContent .= wf_TableBody($rows, '100%', 0, '');
                             $concatBuildContent = str_replace("\n", '', $concatBuildContent);
-                            $result .= generic_mapAddMark($eachBuild['geo'], $eachBuild['streetbuild'], $concatBuildContent, '', 'twirl#buildingsIcon', '', true);
+                            $this->mapCore->addMarker($eachBuild['geo'], $concatBuildContent, array(
+                                'popupTitle' => $eachBuild['streetbuild'],
+                                'tooltip' => $concatBuildContent,
+                                'icon' => 'marker.building'
+                            ));
                         } else {
                             $eachBuild = $geoData[0]; //just first element as is
-                            $result .= generic_mapAddMark($eachBuild['geo'], $eachBuild['buildtitle'], $eachBuild['signal'], $eachBuild['controls'], $eachBuild['icon'], '', true);
+                            $this->mapCore->addMarker($eachBuild['geo'], $eachBuild['signal'], array(
+                                'popupTitle' => $eachBuild['buildtitle'],
+                                'popupFooter' => $eachBuild['controls'],
+                                'tooltip' => $eachBuild['signal'],
+                                'icon' => $eachBuild['icon']
+                            ));
                         }
                     } else {
                         foreach ($geoData as $io => $eachBuild) {
-                            $result .= generic_mapAddMark($eachBuild['geo'], $eachBuild['buildtitle'], $eachBuild['signal'], $eachBuild['controls'], $eachBuild['icon'], '', true);
+                            $this->mapCore->addMarker($eachBuild['geo'], $eachBuild['signal'], array(
+                                'popupTitle' => $eachBuild['buildtitle'],
+                                'popupFooter' => $eachBuild['controls'],
+                                'tooltip' => $eachBuild['signal'],
+                                'icon' => $eachBuild['icon']
+                            ));
                         }
                     }
                 }
             }
         }
+        $result = $this->mapCore->getPlacemarks();
         return ($result);
     }
 
@@ -442,7 +474,6 @@ class PONONUMap {
         $allOnu = $this->ponizer->getAllOnu();
         $allOnuSignals = $this->ponizer->getAllONUSignals();
         $allDeregReasons = $this->ponizer->getAllONUDeregReasons();
-        $placemarks = '';
         $marksRendered = 0;
         $marksNoGeo = 0;
         $marksNoUser = 0;
@@ -450,7 +481,8 @@ class PONONUMap {
         $totalOnuCount = 0;
         $result .= $this->renderControls();
         $renderBuilds = array();
-        $result .= generic_MapContainer('', '', 'ponmap');
+        $this->mapCore->injectMapObjects(array(), true);
+        $result .= $this->mapCore->renderContainer('', '');
         if (!empty($allOnu)) {
             foreach ($allOnu as $io => $eachOnu) {
                 if (!empty($eachOnu['login'])) {
@@ -583,27 +615,31 @@ class PONONUMap {
                 }
                 $totalOnuCount++;
             }
-            $placemarks .= $this->getPlacemarks($renderBuilds, $this->clusterBuilds);
+            $this->getPlacemarks($renderBuilds, $this->clusterBuilds);
         }
 
         //rendering map
-        $editor = '';
         $mapCenter = $this->mapsCfg['CENTER'];
         if (ubRouting::checkGet(self::ROUTE_PLACEFIND)) {
             $mapCenter = ubRouting::get(self::ROUTE_PLACEFIND);
-            $placemarks.=generic_MapAddCircle($mapCenter, 30, __('Search area radius') . ' 30 ' . __('meters'), __('Search area'));
+            $this->mapCore->addCircle($mapCenter, 30, __('Search area radius') . ' 30 ' . __('meters'), array(
+                'hint' => __('Search area')
+            ));
         }
 
         if (ubRouting::checkGet(self::ROUTE_PLACEONU)) {
             if (cfr('PONEDIT')) {
-             $onuLocationEditForm=$this->getOnuPlaceForm(ubRouting::get(self::ROUTE_PLACEONU,'int'));
-             $editor = generic_MapEditor(self::PROUTE_MAPONUCOORDS, __('Place on map'), $onuLocationEditForm);
+                $onuLocationEditForm = $this->getOnuPlaceForm(ubRouting::get(self::ROUTE_PLACEONU, 'int'));
+                $this->mapCore->addLocationEditor(self::PROUTE_MAPONUCOORDS, __('Place on map'), $onuLocationEditForm);
             }
         }
 
 
         if (!$getOnlyPlacemarks) {
-            $result .= generic_MapInit($mapCenter, $this->mapsCfg['ZOOM'], $this->mapsCfg['TYPE'], $placemarks, $editor, $this->mapsCfg['LANG'], 'ponmap');
+            $this->mapCore->setCenter($mapCenter);
+            $this->mapCore->setZoom($this->mapsCfg['ZOOM']);
+            $this->mapCore->setType($this->mapsCfg['TYPE']);
+            $result .= $this->mapCore->render();
             //some stats here
             $result .= $this->messages->getStyledMessage(__('Total') . ' ' . __('ONU') . ': ' . $totalOnuCount, 'info');
             $result .= $this->messages->getStyledMessage(__('ONU rendered on map') . ': ' . $marksRendered, 'success');
@@ -616,7 +652,7 @@ class PONONUMap {
             }
         } else {
             $result = array();
-            $result['placemarks'] = $placemarks;
+            $result['placemarks'] = $this->mapCore->getPlacemarks();
             $result['builds'] = $renderBuilds;
         }
 
