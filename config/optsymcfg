@@ -1,6 +1,5 @@
 CHAPTER_YM=Switches map
 CENTER=VARCHAR|Map center latitude and longtitude
-LANG=VARCHAR|Map interface language
 ZOOM=VARCHAR|Default map zoom
 TYPE=VARCHAR|Default map type
 CANVAS_RENDER=TRIGGER|Use fast canvas renderer

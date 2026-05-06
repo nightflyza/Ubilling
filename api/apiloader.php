@@ -94,6 +94,7 @@ require_once('api/libs/api.wdyc.php');
 require_once('api/libs/api.lmaps.php');
 require_once('api/libs/api.mapcore.php');
 require_once('api/libs/api.mapscommon.php');
+require_once('api/libs/api.switchmap.php');
 require_once('api/libs/api.announcements.php');
 require_once('api/libs/api.nasmon.php');
 require_once('api/libs/api.ipchange.php');

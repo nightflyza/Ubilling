@@ -440,7 +440,7 @@ class WifiCPE {
             $inputs .= wf_TextInput('newcpemac', __('MAC'), $CPEMAC, true, 15);
             $inputs .= wf_TextInput('newcpesnmp', __('SNMP community'), '', true, 15);
             $inputs .= wf_TextInput('newcpelocation', __('Location'), '', true, 25);
-            $inputs .= wf_TextInput('newcpegeo', __('Geo location'), '', true, 25);
+            $inputs .= wf_TextInput('newcpegeo', __('Geo location'), '', true, 25,'geo');
             $inputs .= wf_Selector('newcpeuplinkapid', $apTmp, __('Connected to AP'), $APID, true);
 
             if (!empty($userLogin)) {
@@ -691,7 +691,7 @@ class WifiCPE {
                     $inputs .= wf_TextInput('editcpemac', __('MAC'), $cpeData['mac'], true, 15);
                     $inputs .= wf_TextInput('editcpesnmp', __('SNMP community'), $cpeData['snmp'], true, 15);
                     $inputs .= wf_TextInput('editcpelocation', __('Location'), $cpeData['location'], true, 25);
-                    $inputs .= wf_TextInput('editcpegeo', __('Geo location'), $cpeData['geo'], true, 25);
+                    $inputs .= wf_TextInput('editcpegeo', __('Geo location'), $cpeData['geo'], true, 25, 'geo');
                     $inputs .= wf_Selector('editcpeuplinkapid', $apTmp, __('Connected to AP'), $cpeData['uplinkapid'], true);
                     $inputs .= wf_tag('br');
                     $inputs .= wf_Submit(__('Save'));
@@ -1378,10 +1378,15 @@ class WifiCPE {
         $ymconf = $ubillingConfig->getYmaps();
         $this->loadUserData();
         $deadSwitches = zb_SwitchesGetAllDead();
+        $cpeMap = new MapCore('ubmap');
+        $cpeMap->setZoom($ymconf['ZOOM']);
+        $cpeMap->setType($ymconf['TYPE']);
+        if (!empty($ymconf['CENTER'])) {
+            $cpeMap->setCenter($ymconf['CENTER']);
+        }
         $result = '';
-        $placemarks = '';
-        $result = wf_tag('div', false, '', 'id="ubmap" style="width: 100%; height:800px;"');
-        $result .= wf_tag('div', true);
+        $result .= $cpeMap->renderContainer('100%', '650px');
+
 
         if (!empty($this->allAP)) {
             foreach ($this->allAP as $io => $each) {
@@ -1389,11 +1394,12 @@ class WifiCPE {
                     $apName = $each['location'] . ' - ' . $each['ip'] . ' ' . @$this->allSSids[$each['id']];
                     $apLink = trim(wf_Link('?module=switches&edit=' . $each['id'], web_edit_icon() . ' ' . __('Navigate to AP')));
                     $apLink = str_replace('"', '', $apLink);
-                    $apIcon = sm_MapGoodIcon();
+                    $apIcon = 'marker.blue';
                     if (isset($deadSwitches[$each['ip']])) {
-                        $apIcon = sm_MapBadIcon();
+                        $apIcon = 'marker.red';
                     }
-                    $placemarks .= sm_MapAddMark($each['geo'], $apName, $apLink, '', $apIcon);
+
+                    $cpeMap->addMarker($each['geo'], $apName, array('icon' => $apIcon, 'popupTitle' => $apName, 'popupFooter' => $apLink));
                 }
             }
         }
@@ -1416,12 +1422,14 @@ class WifiCPE {
                         }
                     }
                 }
+
                 //drawing CPE on map
                 if (!empty($cpeCoords)) {
                     $cpeName = $each['id'] . ': ' . @$this->deviceModels[$each['modelid']];
                     $cpeLink = trim(wf_Link(self::URL_ME . '&editcpeid=' . $each['id'], web_edit_icon() . ' ' . __('Show') . ' ' . __('CPE')));
                     $cpeLink = str_replace('"', '', $cpeLink);
-                    $placemarks .= sm_MapAddMark($cpeCoords, $cpeName, $cpeLink, '', um_MapBuildIcon(1));
+                    $cpeIcon = 'marker.house';
+                    $cpeMap->addMarker($cpeCoords, $cpeName, array('icon' => $cpeIcon, 'popupTitle' => $cpeName, 'popupFooter' => $cpeLink));
 
                     //drawing CPE uplinks
                     if (!empty($each['uplinkapid'])) {
@@ -1433,7 +1441,7 @@ class WifiCPE {
                                     $lineColor = '#FF0000';
                                     $lineWidth = 3;
                                 }
-                                $placemarks .= sm_MapAddLine($cpeCoords, $this->allAP[$each['uplinkapid']]['geo'], $lineColor, '', $lineWidth);
+                                $cpeMap->addLine($cpeCoords, $this->allAP[$each['uplinkapid']]['geo'], array('color' => $lineColor, 'width' => $lineWidth));
                             }
                         }
                     }
@@ -1442,7 +1450,7 @@ class WifiCPE {
         }
 
 
-        $result .= generic_MapInit($ymconf['CENTER'], $ymconf['ZOOM'], $ymconf['TYPE'], $placemarks, '', $ymconf['LANG']);
+        $result .= $cpeMap->render();
         return ($result);
     }
 

@@ -42,7 +42,7 @@ if (cfr('USERSMAP')) {
 
             if ($ymconf['FINDING_CIRCLE']) {
                 $radius = 30;
-                $area = sm_MapAddCircle($ym_center, $radius, __('Search area radius') . ' ' . $radius . ' ' . __('meters'), __('Search area'));
+                $area = generic_MapAddCircle($ym_center, $radius, __('Search area radius') . ' ' . $radius . ' ' . __('meters'), __('Search area'));
             }
         }
 

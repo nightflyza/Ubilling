@@ -152,7 +152,7 @@ function web_SwitchUplinkSelector($name, $label = '', $selected = '', $currentSw
         }
 
         foreach ($allswitchesRaw as $io => $each) {
-            if ((sm_CheckLoop($alllinks, $currentSwitchId, $each['id'])) and ($each['id'] != $currentSwitchId)) {
+            if ((SwitchMap::isLoopAllowed($alllinks, $currentSwitchId, $each['id'])) and ($each['id'] != $currentSwitchId)) {
                 if (isset($validSwitches[$each['id']])) {
                     $tmpArr[$each['id']] = $each['location'] . ' - ' . $each['ip'];
                 }
@@ -210,24 +210,6 @@ function web_SwitchFormAdd() {
 }
 
 
-/**
- * Returns current mini-map mode state
- * with support of BRIEF_MINIMAP config as default.
- *
- * @return bool
- */
-function zb_SwitchIsBriefMinimapEnabled() {
-    global $ubillingConfig;
-    $result = false;
-
-    if (ubRouting::checkGet('briefminimap')) {
-        $result = (ubRouting::get('briefminimap') == 'on') ? true : false;
-    } else {
-        $result = $ubillingConfig->getAlterParam('BRIEF_MINIMAP');
-    }
-
-    return ($result);
-}
 
 /**
  * Returns switch mini-map controls
@@ -239,7 +221,7 @@ function zb_SwitchIsBriefMinimapEnabled() {
 function web_SwitchMiniMapControls($switchId) {
     $result = '';
     $switchId = ubRouting::filters($switchId, 'int');
-    $briefMinimap = zb_SwitchIsBriefMinimapEnabled();
+    $briefMinimap = SwitchMap::isBriefMinimapEnabled();
 
     if ($briefMinimap) {
         $result .= wf_Link('?module=switches&edit=' . $switchId . '&briefminimap=off', wf_img('skins/icon_fullmap16.png', __('Full')), false, '');
@@ -257,25 +239,8 @@ function web_SwitchMiniMapControls($switchId) {
  * @return string
  */
 function web_SwitchMiniMap($switchdata) {
-    global $ubillingConfig;
-    $ymconf = $ubillingConfig->getYmaps();
-    $briefMinimap = zb_SwitchIsBriefMinimapEnabled();
-    
-    $result = '';
-    $result .= wf_tag('div', false, '', 'id="ubmap" class="glamour" style="width: 97%; height:300px;"') . wf_tag('div', true);
-    $result .= wf_delimiter();
-    $placemarks ='';
-    if ($briefMinimap) {
-        $placemarks .= sm_MapDrawLinkedSwitches($switchdata['id']);
-        $placemarks .= sm_MapDrawSwitchAllLinks($switchdata['id']);
-    } else {
-        $placemarks .= sm_MapDrawSwitches();
-        $placemarks .= sm_MapDrawSwitchUplinks($switchdata['id']);
-    }
-    $radius = 30;
-    $area = sm_MapAddCircle($switchdata['geo'], $radius, __('Search area radius') . ' ' . $radius . ' ' . __('meters'), __('Search area'));
-    $result .= generic_MapInit($switchdata['geo'], $ymconf['FINDING_ZOOM'], $ymconf['TYPE'], $area . $placemarks, '', $ymconf['LANG']);
-    $result .= wf_tag('div', false, '', 'style="clear:both;"') . wf_tag('div', true);
+    $switchMap = new SwitchMap();
+    $result = $switchMap->renderMiniMap($switchdata);
     return ($result);
 }
 
@@ -1511,7 +1476,7 @@ function ub_SwitchSave($switchid) {
                 $alllinks[$each['id']] = $each['parentid'];
             }
         }
-        if (sm_CheckLoop($alllinks, $switchid, ubRouting::post('editparentid'))) {
+        if (SwitchMap::isLoopAllowed($alllinks, $switchid, ubRouting::post('editparentid'))) {
             simple_update_field('switches', 'parentid', ubRouting::post('editparentid'), "WHERE `id`='" . $switchid . "'");
         }
     }

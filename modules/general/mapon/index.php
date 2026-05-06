@@ -15,22 +15,52 @@ if ($altCfg['MAPON_ENABLED']) {
             $unitDrivers = array();
 
             if (!empty($units)) {
-                $placemarks = '';
+                $mapCore = new MapCore('ubmap');
+                $mapCore->setZoom($mapsConfig['ZOOM']);
+                $mapCore->setType($mapsConfig['TYPE']);
+
+                if (!empty($mapsConfig['CENTER'])) {
+                    $mapCore->setCenter($mapsConfig['CENTER']);
+                }
+
+                //additional layers should be rendered first, under vehicles/routes
+                if (ubRouting::checkGet('layerswitches')) {
+                    $switchMap = new SwitchMap($ubillingConfig);
+                    $mapCore->injectPlacemarks($switchMap->getSwitchesPlacemarks());
+                }
+
+                if (ubRouting::checkGet('layerbuilds')) {
+                    $mapCore->injectPlacemarks(um_MapDrawBuilds());
+                }
+
+                if (ubRouting::checkGet('layertasks')) {
+                    $taskmap = new TasksMap();
+                    $mapCore->injectPlacemarks($taskmap->getPlacemarks($taskmap->getTodayTasks()));
+                }
+
+                if (ubRouting::checkGet('layeranyonetasks')) {
+                    if ($ubillingConfig->getAlterParam('TASKMAN_ANYONE_EMPLOYEEID')) {
+                        $anyoneEmployeeId = $ubillingConfig->getAlterParam('TASKMAN_ANYONE_EMPLOYEEID');
+                        $taskmap = new TasksMap();
+                        $mapCore->injectPlacemarks($taskmap->getPlacemarks($taskmap->getTodayTasks($anyoneEmployeeId)));
+                    }
+                }
+
                 foreach ($units as $io => $each) {
                     if (!empty($unitIdFilter) and $each['unitid'] != $unitIdFilter) {
                         continue;
                     }
                   
-                        //extended iconset
-                        switch ($each['state']) {
+                //vehicle state based icon selection
+                  switch ($each['state']) {
                             case 'standing':
-                                $icon = 'redCar';
+                                $icon = 'vehicle.red';
                                 break;
                             case'driving':
-                                $icon = 'greenCar';
+                                $icon = 'vehicle.green';
                                 break;
                             default :
-                                $icon = 'yellowCar';
+                                $icon = 'vehicle.yellow';
                                 break;
                         }
                     
@@ -54,7 +84,12 @@ if ($altCfg['MAPON_ENABLED']) {
                     $carSearchControls .= trim(wf_Link($carLinkToday, wf_img('skins/icon_time_small.png',__('All trips'))));
                     
                     $carLabel.= wf_delimiter(0).$carSearchControls;
-                    $placemarks .= generic_mapAddMark($each['lat'] . ',' . $each['lng'], $state, $carName, $carLabel, $icon, '', true);
+                    $markerOptions = array(
+                        'icon' => $icon,
+                        'popupTitle' => $state,
+                        'popupFooter' => $carLabel
+                    );
+                    $mapCore->addMarker($each['lat'] . ',' . $each['lng'], $carName, $markerOptions);
                 }
 
                 $filteredRoutes = $mapon->getDatesRoutes($dateFrom, $dateTo);
@@ -89,7 +124,7 @@ if ($altCfg['MAPON_ENABLED']) {
                                             $curCoords = $each['lat'] . ',' . $each['lng'];
                                             if (!empty($prevCoords)) {
                                                 $routeLabel = date("Y-m-d H:i:s", $each['time']) . ' ' . @$unitDrivers[$unitId];
-                                                $placemarks .= generic_MapAddLine($curCoords, $prevCoords, $unitRouteColor, $routeLabel, 2);
+                                                $mapCore->addLine($curCoords, $prevCoords, array('color' => $unitRouteColor, 'hint' => $routeLabel, 'width' => 2));
                                             }
                                             $prevCoords = $curCoords;
                                         } else {
@@ -98,7 +133,7 @@ if ($altCfg['MAPON_ENABLED']) {
                                                 $curCoords = $each['lat'] . ',' . $each['lng'];
                                                 if (!empty($prevCoords)) {
                                                     $routeLabel = date("Y-m-d H:i:s", $each['time']) . ' ' . @$unitDrivers[$unitId];
-                                                    $placemarks .= generic_MapAddLine($curCoords, $prevCoords, $unitRouteColor, $routeLabel, 3);
+                                                    $mapCore->addLine($curCoords, $prevCoords, array('color' => $unitRouteColor, 'hint' => $routeLabel, 'width' => 3));
                                                 }
                                                 $prevCoords = $curCoords;
                                             }
@@ -111,29 +146,6 @@ if ($altCfg['MAPON_ENABLED']) {
                     }
                 }
 
-                //additional layers here
-                if (ubRouting::checkGet('layerswitches')) {
-                    $placemarks .= sm_MapDrawSwitches();
-                }
-
-                if (ubRouting::checkGet('layerbuilds')) {
-                    $placemarks .= um_MapDrawBuilds();
-                }
-
-                if (ubRouting::checkGet('layertasks')) {
-                    $taskmap = new TasksMap();
-                    $placemarks .= $taskmap->getPlacemarks($taskmap->getTodayTasks());
-                }
-
-                if (ubRouting::checkGet('layeranyonetasks')) {
-                    if ($ubillingConfig->getAlterParam('TASKMAN_ANYONE_EMPLOYEEID')) {
-                        $anyoneEmployeeId = $ubillingConfig->getAlterParam('TASKMAN_ANYONE_EMPLOYEEID');
-                        $taskmap = new TasksMap();
-                        $placemarks .= $taskmap->getPlacemarks($taskmap->getTodayTasks($anyoneEmployeeId));
-                    }
-                }
-
-                
                 //render controls
                 $controls = '';
                  //date selection form
@@ -161,9 +173,9 @@ if ($altCfg['MAPON_ENABLED']) {
                 show_window('', $controls);
 
                 //render map
-                $container = generic_MapContainer('100%', '650px');
-                $editor = generic_MapEditor('maponpointlocation', __('Place coordinates'), '');
-                $container .= generic_MapInit($mapsConfig['CENTER'], $mapsConfig['ZOOM'], $mapsConfig['TYPE'], $placemarks, $editor, $mapsConfig['LANG']);
+                $mapCore->addLocationEditor('maponpointlocation', __('Place coordinates'), '');
+                $container = $mapCore->renderContainer('100%', '650px');
+                $container .= $mapCore->render();
                 
                 show_window(__('Cars'), $container);
 

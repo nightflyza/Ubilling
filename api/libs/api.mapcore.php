@@ -3,59 +3,7 @@
  * MapCore API implementation
  */
 class MapCore {
-    /**
-     * Canonical icon key => image path
-     *
-     * @var array
-     */
-    protected static $icons = array(
-        'marker.blue' => 'skins/mapmarks/blue.png',
-        'marker.red' => 'skins/mapmarks/red.png',
-        'marker.yellow' => 'skins/mapmarks/yellow.png',
-        'marker.green' => 'skins/mapmarks/green.png',
-        'marker.pink' => 'skins/mapmarks/pink.png',
-        'marker.brown' => 'skins/mapmarks/brown.png',
-        'marker.darkblue' => 'skins/mapmarks/darkblue.png',
-        'marker.orange' => 'skins/mapmarks/orange.png',
-        'marker.grey' => 'skins/mapmarks/grey.png',
-        'marker.black' => 'skins/mapmarks/black.png',
-        'marker.building' => 'skins/mapmarks/build.png',
-        'marker.house' => 'skins/mapmarks/house.png',
-        'marker.camping' => 'skins/mapmarks/camping.png',
-        'vehicle.red' => 'skins/mapmarks/redcar.png',
-        'vehicle.green' => 'skins/mapmarks/greencar.png',
-        'vehicle.yellow' => 'skins/mapmarks/yellowcar.png',
-        'marker.wifi' => 'skins/mapmarks/wifi.png',
-        'marker.camera' => 'skins/mapmarks/camera.png'
-
-    );
-
-    /**
-     * Legacy Yandex-like icon aliases => canonical key
-     *
-     * @var array
-     */
-    protected static $legacyAliases = array(
-        'twirl#lightblueIcon' => 'marker.blue',
-        'twirl#lightblueStretchyIcon' => 'marker.blue',
-        'twirl#redStretchyIcon' => 'marker.red',
-        'twirl#yellowIcon' => 'marker.yellow',
-        'twirl#greenIcon' => 'marker.green',
-        'twirl#pinkDotIcon' => 'marker.pink',
-        'twirl#brownIcon' => 'marker.brown',
-        'twirl#nightDotIcon' => 'marker.darkblue',
-        'twirl#redIcon' => 'marker.red',
-        'twirl#orangeIcon' => 'marker.orange',
-        'twirl#greyIcon' => 'marker.grey',
-        'twirl#buildingsIcon' => 'marker.building',
-        'twirl#houseIcon' => 'marker.house',
-        'twirl#campingIcon' => 'marker.camping',
-        'twirl#blackIcon' => 'marker.black',
-        'redCar' => 'vehicle.red',
-        'greenCar' => 'vehicle.green',
-        'yellowCar' => 'vehicle.yellow'
-    );
-
+  
     /**
      * Map center in "lat,lng" format, empty means geolocation
      *
@@ -132,6 +80,59 @@ class MapCore {
      * @var array
      */
     protected $clusterOptions = array();
+
+      /**
+     * Canonical icon key => image path
+     *
+     * @var array
+     */
+    protected static $icons = array(
+        'marker.blue' => 'skins/mapmarks/blue.png',
+        'marker.red' => 'skins/mapmarks/red.png',
+        'marker.yellow' => 'skins/mapmarks/yellow.png',
+        'marker.green' => 'skins/mapmarks/green.png',
+        'marker.pink' => 'skins/mapmarks/pink.png',
+        'marker.brown' => 'skins/mapmarks/brown.png',
+        'marker.darkblue' => 'skins/mapmarks/darkblue.png',
+        'marker.orange' => 'skins/mapmarks/orange.png',
+        'marker.grey' => 'skins/mapmarks/grey.png',
+        'marker.black' => 'skins/mapmarks/black.png',
+        'marker.building' => 'skins/mapmarks/build.png',
+        'marker.house' => 'skins/mapmarks/house.png',
+        'marker.camping' => 'skins/mapmarks/camping.png',
+        'vehicle.red' => 'skins/mapmarks/redcar.png',
+        'vehicle.green' => 'skins/mapmarks/greencar.png',
+        'vehicle.yellow' => 'skins/mapmarks/yellowcar.png',
+        'marker.wifi' => 'skins/mapmarks/wifi.png',
+        'marker.camera' => 'skins/mapmarks/camera.png'
+
+    );
+
+    /**
+     * Legacy Yandex-like icon aliases => canonical key
+     *
+     * @var array
+     */
+    protected static $legacyAliases = array(
+        'twirl#lightblueIcon' => 'marker.blue',
+        'twirl#lightblueStretchyIcon' => 'marker.blue',
+        'twirl#redStretchyIcon' => 'marker.red',
+        'twirl#yellowIcon' => 'marker.yellow',
+        'twirl#greenIcon' => 'marker.green',
+        'twirl#pinkDotIcon' => 'marker.pink',
+        'twirl#brownIcon' => 'marker.brown',
+        'twirl#nightDotIcon' => 'marker.darkblue',
+        'twirl#redIcon' => 'marker.red',
+        'twirl#orangeIcon' => 'marker.orange',
+        'twirl#greyIcon' => 'marker.grey',
+        'twirl#buildingsIcon' => 'marker.building',
+        'twirl#houseIcon' => 'marker.house',
+        'twirl#campingIcon' => 'marker.camping',
+        'twirl#blackIcon' => 'marker.black',
+        'redCar' => 'vehicle.red',
+        'greenCar' => 'vehicle.green',
+        'yellowCar' => 'vehicle.yellow'
+    );
 
 
     /**
@@ -229,10 +230,94 @@ class MapCore {
     }
 
     /**
+     * Returns raw map overlays payload (markers, shapes and extra JS)
+     *
+     * This payload can be injected into another MapCore instance with
+     * injectMapObjects() method.
+     *
+     * @return array
+     */
+    public function getMapObjects() {
+        $result = array(
+            'placemarks' => $this->placemarks,
+            'extraCode' => $this->extraCode,
+            'usedIcons' => $this->usedIcons
+        );
+        return ($result);
+    }
+
+    /**
+     * Injects map overlays payload exported by getMapObjects()
+     *
+     * Supported payload formats:
+     * - array from getMapObjects()
+     * - MapCore object (payload will be extracted automatically)
+     *
+     * @param array|object $mapObjects
+     * @param bool $replace
+     *
+     * @return object
+     */
+    public function injectMapObjects($mapObjects, $replace = false) {
+        if (is_object($mapObjects)) {
+            if (method_exists($mapObjects, 'getMapObjects')) {
+                $mapObjects = $mapObjects->getMapObjects();
+            }
+        }
+
+        if (is_array($mapObjects)) {
+            if ($replace) {
+                $this->placemarks = '';
+                $this->extraCode = '';
+                $this->usedIcons = array();
+            }
+
+            if (isset($mapObjects['placemarks'])) {
+                $this->placemarks .= $mapObjects['placemarks'];
+            }
+            if (isset($mapObjects['extraCode'])) {
+                $this->extraCode .= $mapObjects['extraCode'];
+            }
+            if (isset($mapObjects['usedIcons'])) {
+                if (is_array($mapObjects['usedIcons'])) {
+                    $this->usedIcons = array_merge($this->usedIcons, $mapObjects['usedIcons']);
+                }
+            }
+        }
+        return ($this);
+    }
+
+    /**
+     * Returns only map placemarks JS buffer
+     *
+     * @return string
+     */
+    public function getPlacemarks() {
+        $result = $this->placemarks;
+        return ($result);
+    }
+
+    /**
+     * Injects raw map placemarks JS into map object
+     *
+     * @param string $placemarks
+     * @param bool $replace
+     *
+     * @return object
+     */
+    public function injectPlacemarks($placemarks, $replace = false) {
+        if ($replace) {
+            $this->placemarks = '';
+        }
+        $this->placemarks .= $placemarks;
+        return ($this);
+    }
+
+    /**
      * Enables or disables markers clustering
      *
-     * @param bool $enabled
-     * @param array $options
+     * @param bool $enabled - true to enable clustering, false to disable
+     * @param array $options - may contain maxClusterRadius, iconCreateFunction, chunkedLoading, chunkInterval, chunkDelay, chunkProgress
      *
      * @return object
      */

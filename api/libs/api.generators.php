@@ -1596,24 +1596,37 @@ class Generators {
         $mapsCfg = $ubillingConfig->getYmaps();
         $mapCenter = $mapsCfg['CENTER'];
         $mapZoom = $mapsCfg['ZOOM'];
+        $generatorsMap=new MapCore('generators');
+        $generatorsMap->setCenter($mapCenter);
+        $generatorsMap->setZoom($mapZoom);
+        $generatorsMap->setType($mapsCfg['TYPE']);
         
-        $editor = '';
-        $result.=generic_MapContainer('100%', '600px', 'ubmap');
+
+
+        $result.= $generatorsMap->renderContainer('100%', '600px');
+
         if (!empty($this->allDevices)) {
-            $placemarks='';
             foreach ($this->allDevices as $io => $device) {
                 if (!empty($device['geo'])) {
                     $deviceLabel=$device['model'] . ' - ' . $device['address'];
-                    $deviceIcon=($device['running']) ? sm_MapGoodIcon() : sm_MapBadIcon();
+                    
+                    $deviceIcon = ($device['running']) ? 'marker.green' : 'marker.red';
+                    
                     $deviceState=($device['running']) ? __('Running') : __('Stopped');
                     $deviceInTankPercent=__('In tank').': '.$this->calculateInTankPercent($device['id']).'%';
-                    $placemarks.= sm_MapAddMark($device['geo'], $deviceLabel, $deviceState .', '. $deviceInTankPercent, '', $deviceIcon);
+
+                    $options=array(
+                        'popupFooter' => $deviceState .', '. $deviceInTankPercent,
+                        'tooltip' => $deviceState .', '. $deviceInTankPercent,
+                        'icon' => $deviceIcon
+                    );
+                    $generatorsMap->addMarker($device['geo'], $deviceLabel, $options);
                 }
             }
             
         }
 
-        $result .= generic_MapInit($mapCenter, $mapZoom, $mapsCfg['TYPE'], $placemarks, $editor, $mapsCfg['LANG']);
+        $result .= $generatorsMap->render();
         $result.= wf_delimiter();
         $result.= wf_BackLink(self::URL_ME.'&'.self::ROUTE_DEVICES.'=true');
         return ($result);

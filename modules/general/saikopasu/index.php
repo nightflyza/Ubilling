@@ -63,7 +63,7 @@ if (cfr('SWITCHES')) {
                     if (isset($allSwitches[$each['parentid']])) {
                         $traceId = $each['id'];
                         if (!empty($traceId)) {
-                            $psychoPower[$traceId] = sizeof(zb_SwitchGetParents($alllinks, $traceId)) - 2; // minus self and last
+                            $psychoPower[$traceId] = sizeof(SwitchMap::getSwitchParents($alllinks, $traceId)) - 2; // minus self and last
                         }
                     }
                 } else {
