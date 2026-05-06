@@ -6,6 +6,4 @@ TYPE=VARCHAR|Default map type
 CANVAS_RENDER=TRIGGER|Use fast canvas renderer
 FINDING_ZOOM=VARCHAR|Device finder zoom
 FINDING_CIRCLE=TRIGGER|Hightlight area with circle when device found
-MAPS_SERVICE=VARCHAR|Default maps service
-GMAPS_APIKEY=VARCHAR|Google maps API key
 CHAPTEREND_YM=true

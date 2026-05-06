@@ -20,7 +20,7 @@ if ($altCfg['MAPON_ENABLED']) {
                     if (!empty($unitIdFilter) and $each['unitid'] != $unitIdFilter) {
                         continue;
                     }
-                    if ($mapsConfig['MAPS_SERVICE'] != 'yandex') {
+                  
                         //extended iconset
                         switch ($each['state']) {
                             case 'standing':
@@ -33,20 +33,7 @@ if ($altCfg['MAPON_ENABLED']) {
                                 $icon = 'yellowCar';
                                 break;
                         }
-                    } else {
-                        //old school yandex icons
-                        switch ($each['state']) {
-                            case 'standing':
-                                $icon = 'twirl#redIcon';
-                                break;
-                            case'driving':
-                                $icon = 'twirl#greenIcon';
-                                break;
-                            default :
-                                $icon = 'twirl#yellowIcon';
-                                break;
-                        }
-                    }
+                    
 
                     if (!isset($unitDrivers[$each['unitid']])) {
                         $unitDrivers[$each['unitid']] = $each['driver'];
