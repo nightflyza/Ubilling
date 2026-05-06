@@ -1042,16 +1042,19 @@ function sn_SnmpParseFdbCacheArray($fdbData_raw) {
 function sn_SnmpParseFdbExtract($data) {
     $result = '';
     $modalContent = '';
+    $style = 'padding: 5px; border: 1px solid #ccc; border-radius: 5px; margin-bottom: 5px;';
     if (!empty($data)) {
-        if (sizeof($data) == 1) {
+        $switchCount = sizeof($data);
+        if ($switchCount == 1) {
             foreach ($data as $io => $each) {
                 $result .= $each;
             }
         } else {
             foreach ($data as $io => $each) {
-                $modalContent .= $each . wf_tag('br');
+                $modalContent .= wf_tag('div',false,'','style="'.$style.'"') . $each . wf_tag('div', true);
             }
-            $result .= $each . ' ' . wf_modal(wf_img_sized('skins/switch16.png', __('Switches'), '12', '12'), __('Switches'), $modalContent, '', '600', '400');
+
+            $result .= $each . ' ' . wf_modalAuto(wf_img_sized('skins/switch16.png', __('Switches').' ('.$switchCount.')', '12', '12'), __('Switches'), $modalContent);
         }
     }
     return ($result);
