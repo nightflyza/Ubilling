@@ -24,7 +24,10 @@ class MapCore {
         'marker.camping' => 'skins/mapmarks/camping.png',
         'vehicle.red' => 'skins/mapmarks/redcar.png',
         'vehicle.green' => 'skins/mapmarks/greencar.png',
-        'vehicle.yellow' => 'skins/mapmarks/yellowcar.png'
+        'vehicle.yellow' => 'skins/mapmarks/yellowcar.png',
+        'marker.wifi' => 'skins/mapmarks/wifi.png',
+        'marker.camera' => 'skins/mapmarks/camera.png'
+
     );
 
     /**
