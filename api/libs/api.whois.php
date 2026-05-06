@@ -119,12 +119,14 @@ class UbillingWhois {
     protected function renderMinimap() {
         $result = '';
         if (!empty($this->ipData[$this->ip])) {
-            global $ubillingConfig;
             $ipData = $this->ipData[$this->ip];
-            $ymconf = $ubillingConfig->getYmaps();
-            $result = generic_MapContainer('100%', '400px', 'whoismap');
-            $placemarks = generic_MapAddMark($ipData['lat'] . ',' . $ipData['lon'], @$ipData['city'], @$ipData['city'] . ' ' . @$ipData['isp']);
-            $result .= generic_MapInit($ipData['lat'] . ',' . $ipData['lon'], 8, $ymconf['TYPE'], $placemarks, '', $ymconf['LANG'], 'whoismap');
+            $miniMap = new MapCore('whoismap');
+            $miniMap->setCenter($ipData['lat'] . ',' . $ipData['lon']);
+            $miniMap->setZoom(8);
+            $miniMap->addMarker($ipData['lat'] . ',' . $ipData['lon'], @$ipData['city'], @$ipData['city'] . ' ' . @$ipData['isp']);
+            
+            $result = $miniMap->renderContainer('100%', '400px');
+            $result .= $miniMap->render();
         }
         return ($result);
     }
