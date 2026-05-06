@@ -271,19 +271,32 @@ class MapCore {
         $safeFormHtml = str_replace("\n", '', $safeFormHtml);
         $safeFormHtml = str_replace("\r", '', $safeFormHtml);
 
+        $fieldId = 'ubMapEditorField_' . $editorId;
+        $coordsLabelId = 'ubMapEditorCoords_' . $editorId;
         $popupPrefix = '<b>' . $safeTitle . '</b><br>';
         $popupPrefix .= '<form action="" method="POST">';
-        $popupPrefix .= '<input type="hidden" name="' . $fieldName . '" value=\'"+e.latlng.lat.toPrecision(' . $precision . ')+\',\'+e.latlng.lng.toPrecision(' . $precision . ')+"\'>' . $safeFormHtml;
-        $popupPrefix .= '</form><br>';
+        $popupPrefix .= '<input type="hidden" name="' . $fieldName . '" id="' . $fieldId . '" value="">' . $safeFormHtml;
+        $popupPrefix .= '</form><br><span id="' . $coordsLabelId . '"></span>';
 
         $jsPrefix = $this->quoteJs($popupPrefix);
         $this->extraCode .= '
             var ubEditorPopup_' . $editorId . ' = L.popup();
             function ubEditorOnMapClick_' . $editorId . '(e) {
+                var ubEditorCoordsValue = e.latlng.lat.toPrecision(' . $precision . ') + "," + e.latlng.lng.toPrecision(' . $precision . ');
                 ubEditorPopup_' . $editorId . '
                     .setLatLng(e.latlng)
-                    .setContent(' . $jsPrefix . ' + e.latlng.lat.toPrecision(' . $precision . ') + "," + e.latlng.lng.toPrecision(' . $precision . '))
+                    .setContent(' . $jsPrefix . ')
                     .openOn(map);
+                setTimeout(function() {
+                    var ubEditorField = document.getElementById(' . $this->quoteJs($fieldId) . ');
+                    if (ubEditorField) {
+                        ubEditorField.value = ubEditorCoordsValue;
+                    }
+                    var ubEditorCoords = document.getElementById(' . $this->quoteJs($coordsLabelId) . ');
+                    if (ubEditorCoords) {
+                        ubEditorCoords.textContent = ubEditorCoordsValue;
+                    }
+                }, 0);
             }
             map.on("click", ubEditorOnMapClick_' . $editorId . ');
         ';

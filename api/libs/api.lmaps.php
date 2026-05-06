@@ -1,5 +1,16 @@
 <?php
 
+/*
+ * Map migration notes (generic_* -> MapCore):
+ * 1) New/updated modules should use MapCore directly and avoid new generic_* usage.
+ * 2) Keep all map state in one shared MapCore instance per rendered map.
+ * 3) Add objects natively via MapCore API: addMarker/addDynamicMarker/addCircle/addLine.
+ * 4) Use canonical icon keys (marker.blue, marker.green, vehicle.red, etc.), not twirl aliases.
+ * 5) Use MapCore::addClickEditor/addLocationEditor for coordinate editor workflows.
+ * 6) Render flow: renderContainer() first, then render() from the same MapCore instance.
+ * 7) This legacy layer remains only as a compatibility bridge for old modules.
+ */
+
 if (!class_exists('MapCore')) {
     include_once 'api.mapcore.php';
 }

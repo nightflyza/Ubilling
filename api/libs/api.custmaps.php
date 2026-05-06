@@ -5,28 +5,101 @@
  */
 class CustomMaps {
 
+    /**
+     * Contains all existing maps as id=>mapData
+     *
+     * @var array
+     */
     protected $allMaps = array();
-    protected $allItems = array();
-    protected $ymapsCfg = array();
-    protected $altCfg = array();
-    protected $itemTypes = array();
-    protected $center = '';
-    protected $zoom = '';
 
-    const UPLOAD_PATH = 'exports/';
+    /**
+     * Contains all existing items as id=>itemData
+     *
+     * @var array
+     */
+    protected $allItems = array();
+
+    /**
+     * Contains Ymaps configuration as key=>value
+     *
+     * @var array
+     */
+    protected $ymapsCfg = array();
+
+    /**
+     * Contains system alter configuration as key=>value
+     *
+     * @var array
+     */
+    protected $altCfg = array();
+
+    /**
+     * Contains available item types as type=>name
+     *
+     * @var array
+     */
+    protected $itemTypes = array();
+    /**
+     * Current map center
+     *
+     * @var string
+     */
+    protected $center = '';
+    /**
+     * Current map zoom
+     *
+     * @var int
+     */
+    protected $zoom = '';
+    /**
+     * Map core instance
+     *
+     * @var object
+     */
+    protected $mapCore = null;
+
+    /**
+     * Database abstraction layer for maps
+     *
+     * @var object
+     */
+    protected $mapsDb = null;
+    /**
+     * Database abstraction layer for items
+     * 
+     * @var object
+     */
+    protected $itemsDb = null;
+
+    // some predefined stuff
     const EX_NO_MAP_ID = 'NOT_EXISTING_MAP_ID';
     const EX_NO_ITM_ID = 'NOT_EXISTING_ITEM_ID';
-    const EX_NO_FILE = 'NOT_EXISTING_FILE';
-    const EX_WRONG_EXT = 'WRONG_FILE_EXTENSION';
-    const EX_WRONG_KML = 'WRONG_KML_FILE_FORMAT';
+    const TABLE_MAPS = 'custmaps';
+    const TABLE_ITEMS = 'custmapsitems';
 
     public function __construct() {
         $this->loadYmapsConfig();
+        $this->initDb();
         $this->loadAlterConfig();
         $this->setDefaults();
+        $this->initMapCore();
         $this->setItemTypes();
         $this->loadMaps();
         $this->loadItems();
+    }
+
+    protected function initDb() {
+        $this->mapsDb = new NyanORM(self::TABLE_MAPS);
+        $this->itemsDb = new NyanORM(self::TABLE_ITEMS);
+    }
+
+    /**
+     * Initializes shared map core instance
+     *
+     * @return void
+     */
+    protected function initMapCore() {
+        $this->mapCore = new MapCore('custmap');
     }
 
     /**
@@ -55,8 +128,8 @@ class CustomMaps {
      * @return void
      */
     protected function loadMaps() {
-        $query = "SELECT * from `custmaps` ORDER by `id` ASC";
-        $all = simple_queryall($query);
+        $this->mapsDb->orderBy('id', 'DESC');
+        $all = $this->mapsDb->getAll('id');
         if (!empty($all)) {
             foreach ($all as $io => $each) {
                 $this->allMaps[$each['id']] = $each;
@@ -87,8 +160,54 @@ class CustomMaps {
             'node' => __('Node'),
             'box' => __('Box'),
             'amplifier' => __('Amplifier'),
-            'optrec' => __('Optical reciever')
+            'optrec' => __('Optical reciever'),
+            'camera' => __('Camera'),
+            'wifi' => __('WiFi'),
         );
+    }
+
+        /**
+     * Returns icon for some item type
+     * 
+     * @param string $type
+     * 
+     * @return string
+     */
+    protected function itemGetIcon($type) {
+
+        switch ($type) {
+            case 'pillar':
+                $result = 'marker.green';
+                break;
+            case 'sump':
+                $result = 'marker.brown';
+                break;
+            case 'coupling':
+                $result = 'marker.yellow';
+                break;
+            case 'node':
+                $result = 'marker.orange';
+                break;
+            case 'box':
+                $result = 'marker.grey';
+                break;
+            case 'amplifier':
+                $result = 'marker.pink';
+                break;
+            case 'optrec':
+                $result = 'marker.darkblue';
+                break;
+            case 'camera':
+                $result = 'marker.camera';
+                break;
+            case 'wifi':
+                $result = 'marker.wifi';
+                break;
+            default :
+                $result = 'marker.blue';
+                break;
+        }
+        return ($result);
     }
 
     /**
@@ -113,8 +232,7 @@ class CustomMaps {
      * @return void
      */
     protected function loadItems() {
-        $query = "SELECT * from `custmapsitems`";
-        $all = simple_queryall($query);
+        $all = $this->itemsDb->getAll('id');
         if (!empty($all)) {
             foreach ($all as $io => $each) {
                 $this->allItems[$each['id']] = $each;
@@ -160,24 +278,17 @@ class CustomMaps {
     protected function mapControls() {
         $result = '';
         $result.=wf_BackLink('?module=custmaps');
-        if (wf_CheckGet(array('showmap'))) {
-            $mapId = $_GET['showmap'];
+        if (ubRouting::checkGet('showmap')) {
+            $mapId = ubRouting::get('showmap', 'int');
             if (cfr('CUSTMAPEDIT')) {
                 $result.=wf_Link('?module=custmaps&showmap=' . $mapId . '&mapedit=true', wf_img('skins/ymaps/edit.png') . ' ' . __('Edit'), false, 'ubButton');
             }
 
             //custom layers
-            if (wf_CheckGet(array('cl'))) {
-                $custLayers = $_GET['cl'];
+            if (ubRouting::checkGet('cl')) {
+                $custLayers = ubRouting::get('cl');
             } else {
                 $custLayers = '';
-            }
-
-            //system layers
-            if (wf_CheckGet(array('layers'))) {
-                $curLayers = $_GET['layers'];
-            } else {
-                $curLayers = '';
             }
 
             $result.=wf_Link('?module=custmaps&showitems=' . $mapId, wf_img('skins/icon_table.png') . ' ' . __('Objects'), false, 'ubButton');
@@ -185,25 +296,12 @@ class CustomMaps {
             $result.=wf_Link('?module=custmaps&showmap=' . $mapId, wf_img('skins/icon_cleanup.png') . ' ' . $this->mapGetName($mapId), false, 'ubButton');
             foreach ($this->allMaps as $cmapId => $cmapData) {
                 if ($cmapId != $mapId) {
-                    $result.=wf_Link('?module=custmaps&showmap=' . $mapId . '&layers=' . $curLayers . '&cl=' . $cmapId . 'z' . $this->filterLayers($custLayers, $cmapId . 'z'), wf_img('skins/swmapsmall.png') . ' ' . $this->mapGetName($cmapId), false, 'ubButton');
+                    $result.=wf_Link('?module=custmaps&showmap=' . $mapId . '&cl=' . $cmapId . 'z' . $this->filterLayers($custLayers, $cmapId . 'z'), wf_img('skins/swmapsmall.png') . ' ' . $this->mapGetName($cmapId), false, 'ubButton');
                 }
             }
-            $result.=wf_Link('?module=custmaps&showmap=' . $mapId . '&layers=bs' . $this->filterLayers($curLayers, 'bs') . '&cl=' . $custLayers, wf_img('skins/ymaps/build.png') . ' ' . __('Builds map'), false, 'ubButton');
-            $result.=wf_Link('?module=custmaps&showmap=' . $mapId . '&layers=sw' . $this->filterLayers($curLayers, 'sw') . '&cl=' . $custLayers, wf_img('skins/ymaps/network.png') . ' ' . __('Switches map'), false, 'ubButton');
-            $result.=wf_Link('?module=custmaps&showmap=' . $mapId . '&layers=ul' . $this->filterLayers($curLayers, 'ul') . '&cl=' . $custLayers, wf_img('skins/ymaps/uplinks.png') . ' ' . __('Show links'), false, 'ubButton');
         }
         $result.=wf_delimiter();
         return ($result);
-    }
-
-    /**
-     * Returns empty map container
-     * 
-     * @return string
-     */
-    protected function mapContainer() {
-        $container = generic_MapContainer('100%', '800px', 'custmap');
-        return ($container);
     }
 
     /**
@@ -225,7 +323,7 @@ class CustomMaps {
             foreach ($this->allMaps as $io => $each) {
                 $cells = wf_TableCell($each['id']);
                 $nameLink = wf_Link('?module=custmaps&showmap=' . $each['id'], $each['name'], false);
-                $cells.= wf_TableCell($nameLink);
+                $cells.= wf_TableCell($nameLink,'80%');
                 $actLinks = '';
                 if (cfr('CUSTMAPEDIT')) {
                     $actLinks.= wf_JSAlertStyled('?module=custmaps&deletemap=' . $each['id'], web_delete_icon(), $messages->getDeleteAlert()) . ' ';
@@ -235,7 +333,7 @@ class CustomMaps {
                 $actLinks.= wf_Link('?module=custmaps&showitems=' . $each['id'], wf_img('skins/icon_table.png', __('Objects')), false);
 
                 $cells.= wf_TableCell($actLinks);
-                $rows.= wf_TableRow($cells, 'row3');
+                $rows.= wf_TableRow($cells, 'row5');
             }
         }
 
@@ -250,7 +348,7 @@ class CustomMaps {
      * @return string
      */
     public function itemEditForm($itemid) {
-        $itemid = vf($itemid, 3);
+        $itemid = ubRouting::filters($itemid, 'int');
         $result = '';
         if (isset($this->allItems[$itemid])) {
             $result.= wf_BackLink('?module=custmaps&showitems=' . $this->allItems[$itemid]['mapid']);
@@ -279,163 +377,21 @@ class CustomMaps {
      * @throws Exception
      */
     public function itemEdit($itemid, $type, $geo, $name, $location) {
-        $itemid = vf($itemid, 3);
+        $itemid = ubRouting::filters($itemid, 'int');
+        $type = ubRouting::filters($type, 'mres');
+        $geo = ubRouting::filters($geo, 'mres');
+        $name = ubRouting::filters($name, 'mres');
+        $location = ubRouting::filters($location, 'mres');
         if (isset($this->allItems[$itemid])) {
-            simple_update_field('custmapsitems', 'name', $name, "WHERE `id`='" . $itemid . "'");
-            simple_update_field('custmapsitems', 'type', $type, "WHERE `id`='" . $itemid . "'");
-            simple_update_field('custmapsitems', 'geo', $geo, "WHERE `id`='" . $itemid . "'");
-            simple_update_field('custmapsitems', 'location', $location, "WHERE `id`='" . $itemid . "'");
+            $this->itemsDb->data('name', $name);
+            $this->itemsDb->data('type', $type);
+            $this->itemsDb->data('geo', $geo);
+            $this->itemsDb->data('location', $location);
+            $this->itemsDb->where('id', '=', $itemid);
+            $this->itemsDb->save(true, true);
             log_register('CUSTMAPS EDIT ITEM [' . $itemid . ']');
         } else {
             throw new Exception(self::EX_NO_ITM_ID);
-        }
-    }
-
-    /**
-     * Returns items import form
-     * 
-     * @return string
-     */
-    protected function itemsImportForm() {
-        $inputs = wf_tag('form', false, 'glamour', 'action="" enctype="multipart/form-data" method="POST"');
-        $inputs.= wf_tag('input', false, '', 'type="file" name="itemsUploadFile"');
-        $inputs.= wf_tag('br');
-        $inputs.= wf_Selector('itemsUploadTypes', $this->itemTypes, __('Type'), '', true);
-        $inputs.= wf_Submit(__('Upload'));
-        $inputs.= wf_tag('form', true);
-
-        $result = $inputs;
-        return ($result);
-    }
-
-    /**
-     * Catches file upload
-     * 
-     * @return string
-     */
-    public function catchFileUpload() {
-        $result = '';
-        $allowedExtensions = array("kml", "txt");
-        $fileAccepted = true;
-        foreach ($_FILES as $file) {
-            if ($file['tmp_name'] > '') {
-                if (@!in_array(end(explode(".", strtolower($file['name']))), $allowedExtensions)) {
-                    $fileAccepted = false;
-                }
-            }
-        }
-
-        if ($fileAccepted) {
-            $newFilename = zb_rand_string(10) . '_custmap.kml';
-            $newSavePath = self::UPLOAD_PATH . $newFilename;
-            move_uploaded_file($_FILES['itemsUploadFile']['tmp_name'], $newSavePath);
-            if (file_exists($newSavePath)) {
-                $uploadResult = wf_tag('span', false, 'alert_success') . __('Upload complete') . wf_tag('span', true);
-                $result = $newFilename;
-            } else {
-                $uploadResult = wf_tag('span', false, 'alert_error') . __('Upload failed') . wf_tag('span', true);
-            }
-        } else {
-            $uploadResult = wf_tag('span', false, 'alert_error') . __('Upload failed') . ': ' . self::EX_WRONG_EXT . wf_tag('span', true);
-        }
-
-        show_window('', $uploadResult);
-        if ($result) {
-            $this->itemsImportKml($newFilename, $_GET['showitems'], $_POST['itemsUploadTypes']);
-        }
-        return ($result);
-    }
-
-    /**
-     * Extract placemarks to import
-     * 
-     * @param array $data
-     * @return array
-     */
-    protected function kmlExtractPlacemarks($data) {
-        $result = array();
-        $i = 0;
-        if (!empty($data)) {
-            foreach ($data as $io => $each) {
-                if (isset($each['Point'])) {
-                    @$result[$i]['name'] = trim($each['name']);
-                    $coordsRaw = trim($each['Point']['coordinates']);
-                    $coordsRaw = explode(',', $coordsRaw);
-                    $result[$i]['geo'] = $coordsRaw[1] . ', ' . $coordsRaw[0];
-                    $i++;
-                }
-            }
-        }
-        return ($result);
-    }
-
-    /**
-     * Performs import of uploaded KML file
-     * 
-     * @param string $filename
-     */
-    protected function itemsImportKml($filename, $mapId, $type) {
-        $mapId = vf($mapId, 3);
-        $type = vf($type);
-        $toImport = array();
-        $importCount = 0;
-
-        if (file_exists(self::UPLOAD_PATH . '/' . $filename)) {
-            $rawData = file_get_contents(self::UPLOAD_PATH . '/' . $filename);
-            if (!empty($rawData)) {
-                $rawData = zb_xml2array($rawData);
-
-                if (isset($this->allMaps[$mapId])) {
-                    if (!empty($rawData)) {
-                        if (isset($rawData['kml'])) {
-                            if (isset($rawData['kml']['Document'])) {
-                                $importDocument = $rawData['kml']['Document'];
-                                if (!empty($importDocument)) {
-                                    //turbo GPS 3 broken format
-                                    foreach ($importDocument as $io => $each) {
-                                        if ($io == 'Placemark') {
-                                            $toImport = $each;
-                                        } else {
-                                            //natural google earth format
-                                            if (is_array($each)) {
-                                                foreach ($each as $ia => $deeper) {
-                                                    if ($ia == 'Placemark') {
-                                                        $toImport = $deeper;
-                                                    }
-                                                }
-                                            }
-                                        }
-                                        //extracting placemarks
-                                        if (!empty($toImport)) {
-                                            $placemarks = $this->kmlExtractPlacemarks($toImport);
-                                            if (!empty($placemarks)) {
-                                                foreach ($placemarks as $ix => $importPm) {
-                                                    $this->itemCreate($mapId, $type, $importPm['geo'], $importPm['name'], '');
-                                                    $importCount++;
-                                                }
-                                                show_info(__('Objects') . ': ' . $importCount);
-                                                show_window('', wf_Link('?module=custmaps&showitems=' . $mapId, wf_img('skins/refresh.gif') . ' ' . __('Renew'), false, 'ubButton'));
-                                            }
-                                        }
-                                    }
-                                }
-                            } else {
-                                show_error(self::EX_WRONG_KML);
-                            }
-                        } else {
-                            show_error(self::EX_WRONG_KML);
-                        }
-                    } else {
-                        show_warning(__('Empty file') . ' ' . self::EX_WRONG_KML);
-                    }
-                } else {
-                    show_error(self::EX_NO_MAP_ID);
-                }
-            } else {
-                show_warning(__('Empty file') . ' (.kml)');
-            }
-        } else {
-            show_error(self::EX_NO_FILE);
         }
     }
 
@@ -447,15 +403,11 @@ class CustomMaps {
      * @return string
      */
     public function renderItemsListFast($mapid) {
-        $mapid = vf($mapid, 3);
+        $mapid = ubRouting::filters($mapid, 'int');
         $opts = '"order": [[ 0, "desc" ]]';
         $columns = array('ID', 'Type', 'Geo location', 'Name', 'Location', 'Actions');
         $result = '';
         $result.= wf_BackLink('?module=custmaps');
-        if (cfr('CUSTMAPEDIT')) {
-            $result.= wf_modalAuto(wf_img('skins/photostorage_upload.png') . ' ' . __('Upload file from HDD'), __('Upload') . ' KML', $this->itemsImportForm(), 'ubButton');
-        }
-
         $result.=wf_Link('?module=custmaps&showitems=' . $mapid . '&duplicates=true', wf_img('skins/duplicate_icon.gif') . ' ' . __('Show duplicates'), true, 'ubButton');
 
         $result.= wf_delimiter();
@@ -471,7 +423,7 @@ class CustomMaps {
      * @return void
      */
     public function renderItemsListJsonData($mapid) {
-        $mapid = vf($mapid, 3);
+        $mapid = ubRouting::filters($mapid, 'int');
         $json = new wf_JqDtHelper();
         $messages = new UbillingMessageHelper();
 
@@ -521,7 +473,7 @@ class CustomMaps {
      * @return string
      */
     public function renderItemDuplicateList($mapid) {
-        $mapid = vf($mapid, 3);
+        $mapid = ubRouting::filters($mapid, 'int');
         $result = '';
         $messages = new UbillingMessageHelper();
         $itemsCount = 0;
@@ -604,12 +556,12 @@ class CustomMaps {
      * @return int
      */
     public function itemDelete($itemid) {
-        $itemid = vf($itemid, 3);
+        $itemid = ubRouting::filters($itemid, 'int');
         $result = '';
         if (isset($this->allItems[$itemid])) {
             $result = $this->allItems[$itemid]['mapid'];
-            $query = "DELETE from `custmapsitems` WHERE `id`='" . $itemid . "';";
-            nr_query($query);
+            $this->itemsDb->where('id', '=', $itemid);
+            $this->itemsDb->delete();
             log_register('CUSTMAPS DELETE ITEM  ID [' . $itemid . ']');
         } else {
             throw new Exception(self::EX_NO_ITM_ID);
@@ -661,10 +613,11 @@ class CustomMaps {
      * @param string $name
      */
     public function mapCreate($name) {
-        $nameFiltered = mysql_real_escape_string($name);
-        $query = "INSERT INTO `custmaps` (`id`, `name`) VALUES (NULL, '" . $nameFiltered . "'); ";
-        nr_query($query);
-        $newId = simple_get_lastid('custmaps');
+        $nameFiltered = ubRouting::filters($name, 'mres');
+        $nameFiltered = ubRouting::filters($nameFiltered, 'safe');
+        $this->mapsDb->data('name', $nameFiltered);
+        $this->mapsDb->create();
+        $newId = $this->mapsDb->getLastId();
         log_register('CUSTMAPS CREATE MAP `' . $name . '` ID [' . $newId . ']');
     }
 
@@ -674,13 +627,13 @@ class CustomMaps {
      * @param int $id
      */
     public function mapDelete($id) {
-        $id = vf($id, 3);
+        $id = ubRouting::filters($id, 'int');
         if (isset($this->allMaps[$id])) {
-            $query = "DELETE from `custmaps` WHERE `id`='" . $id . "';";
-            nr_query($query);
+            $this->mapsDb->where('id', '=', $id);
+            $this->mapsDb->delete();
             log_register('CUSTMAPS DELETE MAP [' . $id . ']');
-            $query = "DELETE from `custmapsitems` WHERE `id`='" . $id . "';";
-            nr_query($query);
+            $this->itemsDb->where('mapid', '=', $id);
+            $this->itemsDb->delete();
             log_register('CUSTMAPS FLUSH ITEMS [' . $id . ']');
         } else {
             throw new Exception(self::EX_NO_MAP_ID);
@@ -690,14 +643,18 @@ class CustomMaps {
     /**
      * Changes existing custom map name in database
      * 
-     * @paramint     $id
+     * @param int  $id
      * @param string $name
      * @throws Exception
      */
     public function mapEdit($id, $name) {
-        $id = vf($id, 3);
+        $id = ubRouting::filters($id, 'int');
+        $name = ubRouting::filters($name, 'mres');
+        $name = ubRouting::filters($name, 'safe');
         if (isset($this->allMaps[$id])) {
-            simple_update_field('custmaps', 'name', $name, "WHERE `id`='" . $id . "'");
+            $this->mapsDb->data('name', $name);
+            $this->mapsDb->where('id', '=', $id);
+            $this->mapsDb->save();
             log_register('CUSTMAPS EDIT MAP [' . $id . '] SET `' . $name . '`');
         } else {
             throw new Exception(self::EX_NO_MAP_ID);
@@ -711,47 +668,11 @@ class CustomMaps {
      * @return string
      */
     public function mapGetName($id) {
-        $id = vf($id, 3);
+        $id = ubRouting::filters($id, 'int');
         return ($this->allMaps[$id]['name']);
     }
 
-    /**
-     * Returns icon for some item type
-     * 
-     * @param string $type
-     * 
-     * @return string
-     */
-    protected function itemGetIcon($type) {
 
-        switch ($type) {
-            case 'pillar':
-                $result = 'twirl#greenIcon';
-                break;
-            case 'sump':
-                $result = 'twirl#brownIcon';
-                break;
-            case 'coupling':
-                $result = 'twirl#yellowIcon';
-                break;
-            case 'node':
-                $result = 'twirl#orangeIcon';
-                break;
-            case 'box':
-                $result = 'twirl#greyIcon';
-                break;
-            case 'amplifier':
-                $result = 'twirl#pinkDotIcon';
-                break;
-            case 'optrec':
-                $result = 'twirl#nightDotIcon';
-                break;
-            default :
-                $result = 'twirl#lightblueIcon';
-                break;
-        }
-        return ($result);
-    }
 
     /**
      * Returns list of map placemarks
@@ -761,17 +682,20 @@ class CustomMaps {
      * @return string
      */
     public function mapGetPlacemarks($id) {
-        $id = vf($id, 3);
+        $id = ubRouting::filters($id, 'int');
         $result = '';
         if (!empty($this->allItems)) {
             foreach ($this->allItems as $io => $each) {
-                if (($each['mapid'] == $id) AND ( !empty($each['geo']))) {
+                if (($each['mapid'] == $id) and (!empty($each['geo']))) {
                     $icon = $this->itemGetIcon($each['type']);
                     $content = $this->itemGetTypeName($each['type']) . ': ' . $each['name'];
                     $controls = wf_Link('?module=custmaps&edititem=' . $each['id'], web_edit_icon(), false);
-                    $controls = str_replace("'", '`', $controls);
-                    $controls = str_replace("\n", '', $controls);
-                    $result.=$this->mapAddMark($each['geo'], $each['location'], $content, $controls, $icon, '');
+                    $this->mapCore->addMarker($each['geo'], $content, array(
+                        'icon' => $icon,
+                        'popupTitle' => $each['location'],
+                        'popupFooter' => $controls,
+                        'tooltip' => $content
+                    ));
                 }
             }
         }
@@ -801,17 +725,20 @@ class CustomMaps {
      * @param string $location
      */
     public function itemCreate($mapid, $type, $geo, $name, $location) {
-        $mapid = vf($mapid, 3);
-        $type = mysql_real_escape_string($type);
-        $geo = mysql_real_escape_string($geo);
-        $nameFiltered = mysql_real_escape_string($name);
-        $location = mysql_real_escape_string($location);
+        $mapid = ubRouting::filters($mapid, 'int');
+        $type = ubRouting::filters($type, 'mres');
+        $geo = ubRouting::filters($geo, 'mres');
+        $nameFiltered = ubRouting::filters($name, 'mres');
+        $location = ubRouting::filters($location, 'mres');
 
         if (isset($this->allMaps[$mapid])) {
-            $query = "INSERT INTO `custmapsitems` (`id`, `mapid`, `type`, `geo`, `name`, `location`) "
-                    . "VALUES (NULL, '" . $mapid . "', '" . $type . "', '" . $geo . "', '" . $nameFiltered . "', '" . $location . "');";
-            nr_query($query);
-            $newId = simple_get_lastid('custmapsitems');
+            $this->itemsDb->data('mapid', $mapid);
+            $this->itemsDb->data('type', $type);
+            $this->itemsDb->data('geo', $geo);
+            $this->itemsDb->data('name', $nameFiltered);
+            $this->itemsDb->data('location', $location);
+            $this->itemsDb->create();
+            $newId = $this->itemsDb->getLastId();
             log_register('CUSTMAPS CREATE ITEM `' . $name . '` ID [' . $newId . ']');
         } else {
             throw new Exception(self::EX_NO_MAP_ID);
@@ -819,45 +746,34 @@ class CustomMaps {
     }
 
     /**
-     * Returns map mark
-     * 
-     * @param string $coords - map coordinates
-     * @param string $title - ballon title
-     * @param string $content - ballon content
-     * @param string $footer - ballon footer content
-     * @param string $icon - YM icon class
-     * @param string $iconlabel - icon label string
-     * 
-     * @return string
-     */
-    protected function mapAddMark($coords, $title = '', $content = '', $footer = '', $icon = 'twirl#lightblueIcon', $iconlabel = '') {
-        return (generic_mapAddMark($coords, $title, $content, $footer, $icon, $this->ymapsCfg['CANVAS_RENDER']));
-    }
-
-    /**
      * Returns map circle
      * 
-     * @param $coords - map coordinates
-     * @param $radius - circle radius in meters
+     * @param string $coords - map coordinates
+     * @param int $radius - circle radius in meters
      * 
      * @return string
      *  
      */
     public function mapAddCircle($coords, $radius, $content = '', $hint = '') {
-        return (generic_MapAddCircle($coords, $radius, $content, $hint));
+        $this->mapCore->addCircle($coords, $radius, $content, array(
+            'hint' => $hint
+        ));
+        $result = '';
+        return ($result);
     }
 
     /**
      * Returns initialized JS map
      * 
-     * @param string $placemarks
-     * @param string $editor
      * @return string
      */
-    public function mapInit($placemarks, $editor = '') {
+    public function mapInit() {
         $result = $this->mapControls();
-        $result.= $this->mapContainer();
-        $result.= generic_MapInit($this->center, $this->zoom, $this->ymapsCfg['TYPE'], $placemarks, $editor, $this->ymapsCfg['LANG'], 'custmap');
+        $result.= $this->mapCore->renderContainer('100%', '800px');
+        $this->mapCore->setCenter($this->center);
+        $this->mapCore->setZoom($this->zoom);
+        $this->mapCore->setType($this->ymapsCfg['TYPE']);
+        $result.= $this->mapCore->render();
         return ($result);
     }
 
@@ -869,10 +785,9 @@ class CustomMaps {
     public function mapLocationEditor() {
         $title = wf_tag('b') . __('Place coordinates') . wf_tag('b', true);
         $data = $this->itemLocationForm();
-        $result = generic_MapEditor('newitemgeo', $title, $data);
+        $this->mapCore->addLocationEditor('newitemgeo', $title, $data);
+        $result = '';
         return ($result);
     }
 
 }
-
-?>
