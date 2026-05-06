@@ -97,6 +97,13 @@ class TasksMap {
     protected $tasksDb = '';
 
     /**
+     * MapCore instance placeholder
+     *
+     * @var object
+     */
+    protected $mapCore=null;
+
+    /**
      * Creates new report instance
      */
     public function __construct() {
@@ -106,6 +113,7 @@ class TasksMap {
         $this->loadConfigs();
         $this->loadUsers();
         $this->loadJobTypes();
+        $this->initMapCore();
     }
 
     /**
@@ -128,6 +136,15 @@ class TasksMap {
      */
     protected function initMessages() {
         $this->messages = new UbillingMessageHelper();
+    }
+
+    /**
+     * Inits MapCore instance placeholder
+     *
+     * @return void
+     */
+    protected function initMapCore() {
+        $this->mapCore=new MapCore();
     }
 
     /**
@@ -215,16 +232,17 @@ class TasksMap {
     }
 
     /**
-     * Returns list of formatted placemarks for map rendering
-     * 
+     * Groups tasks by build geo and adds Leaflet markers to mapCore (MapCore API).
+     *
      * @param array $userTasks
-     * 
-     * @return string
+     *
+     * @return void
      */
-    public function getPlacemarks($userTasks) {
-        $result = '';
+    protected function appendTaskMarkersToMapCore($userTasks) {
+        $this->noGeoBuilds = 0;
+        $this->deletedUsers = 0;
+        $this->tasksExtracted = 0;
         $buildsData = array();
-        $buildsCounters = array();
         if (!empty($userTasks)) {
             foreach ($userTasks as $io => $each) {
                 if (isset($this->allUserData[$each['login']])) {
@@ -254,19 +272,38 @@ class TasksMap {
 
             if (!empty($buildsData)) {
                 foreach ($buildsData as $coords => $usersInside) {
+                    $placeMarkIcon = 'marker.blue';
                     if ($usersInside['count'] > 1) {
                         if ($usersInside['count'] > 3) {
-                            $placeMarkIcon = 'twirl#redIcon';
+                            $placeMarkIcon = 'marker.red';
                         } else {
-                            $placeMarkIcon = 'twirl#yellowIcon';
+                            $placeMarkIcon = 'marker.yellow';
                         }
-                    } else {
-                        $placeMarkIcon = 'twirl#lightblueIcon';
                     }
-                    $result .= generic_mapAddMark($coords, $usersInside['data'], __('Tasks') . ': ' . $usersInside['count'], '', $placeMarkIcon, '', $this->mapsCfg['CANVAS_RENDER']);
+                    $tasksTitle = __('Tasks') . ': ' . $usersInside['count'];
+                    $markerOptions = array(
+                        'icon' => $placeMarkIcon,
+                        'popupTitle' => $usersInside['data'],
+                        'tooltip' => $tasksTitle
+                    );
+                    $this->mapCore->addMarker($coords, $tasksTitle, $markerOptions);
                 }
             }
         }
+    }
+
+    /**
+     * Returns list of formatted placemarks JS for injection into another MapCore (e.g. MapOn layers).
+     *
+     * @param array $userTasks
+     *
+     * @return string
+     */
+    public function getPlacemarks($userTasks) {
+        $result = '';
+        $this->mapCore->injectPlacemarks('', true);
+        $this->appendTaskMarkersToMapCore($userTasks);
+        $result = $this->mapCore->getPlacemarks();
         return ($result);
     }
 
@@ -296,9 +333,13 @@ class TasksMap {
     public function renderMap() {
         $result = '';
         $allTasks = $this->getPlannedTasks();
-        $placemarks = $this->getPlacemarks($allTasks);
-        $result .= generic_MapContainer();
-        $result .= generic_MapInit($this->mapsCfg['CENTER'], $this->mapsCfg['ZOOM'], $this->mapsCfg['TYPE'], $placemarks, '', $this->mapsCfg['LANG'], 'ubmap');
+        $this->mapCore->injectPlacemarks('', true);
+        $this->appendTaskMarkersToMapCore($allTasks);
+        $this->mapCore->setCenter($this->mapsCfg['CENTER']);
+        $this->mapCore->setZoom($this->mapsCfg['ZOOM']);
+        $this->mapCore->setType($this->mapsCfg['TYPE']);
+        $result .= $this->mapCore->renderContainer('', '');
+        $result .= $this->mapCore->render();
         return ($result);
     }
 
