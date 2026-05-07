@@ -30,7 +30,8 @@ if ($altCfg['MAPON_ENABLED']) {
                 }
 
                 if (ubRouting::checkGet('layerbuilds')) {
-                    $mapCore->injectPlacemarks(um_MapDrawBuilds());
+                    $buildsMap = new BuildsMap();
+                    $mapCore->injectPlacemarks($buildsMap->getBuildsPlacemarks());
                 }
 
                 if (ubRouting::checkGet('layertasks')) {

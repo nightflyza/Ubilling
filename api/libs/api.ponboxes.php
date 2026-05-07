@@ -91,6 +91,23 @@ class PONBoxes {
     protected $ponboxesMap=null;
 
     /**
+     * Default clustering options
+     *
+     * @var array
+     */
+    protected $clustringOptions = array(
+        'maxClusterRadius' => 80,
+        'iconCreateFunction' => null,
+        'spiderfyOnMaxZoom' => true,
+        'showCoverageOnHover' => true,
+        'zoomToBoundsOnClick' => true,
+        'singleMarkerMode' => false,
+        'disableClusteringAtZoom' => null,
+        'removeOutsideVisibleBounds' => true,
+        'animate' => true,
+    );
+
+    /**
      * Routes, static defines etc
      */
     const URL_ME = '?module=ponboxes';
@@ -165,6 +182,9 @@ class PONBoxes {
      */
     protected function initMapCore() {
         $this->ponboxesMap=new MapCore('ponboxmap');
+        if (@$this->altCfg['PONBOXES_FORCED_CLUSTERING']) {
+            $this->ponboxesMap->enableClustering(true, $this->clustringOptions);
+        }
     }
 
     /**

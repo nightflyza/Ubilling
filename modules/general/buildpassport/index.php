@@ -49,11 +49,16 @@ if (cfr('BUILDPASSPORT')) {
                 if ($ubillingConfig->getAlterParam('SWYMAP_ENABLED')) {
                     if (!empty($buildData['geo'])) {
                         $mapOptions = $ubillingConfig->getYmaps();
+                        $buildsMap = new BuildsMap();
+                        $mapCore = new MapCore('singlebuildmap');
                         $buildMiniMap = '';
-                        $placemarks = generic_MapAddCircle($buildData['geo'], '30');
-                        $placemarks .= um_MapDrawBuilds($buildData['id']); //only selected build on minimap
-                        $buildMiniMap .= generic_MapContainer('100%', '400px;', 'singlebuildmap');
-                        $buildMiniMap .= generic_MapInit($buildData['geo'], $mapOptions['FINDING_ZOOM'], $mapOptions['TYPE'], $placemarks, '', $mapOptions['LANG'], 'singlebuildmap');
+                        $mapCore->setCenter($buildData['geo']);
+                        $mapCore->setZoom($mapOptions['FINDING_ZOOM']);
+                        $mapCore->setType($mapOptions['TYPE']);
+                        $mapCore->addCircle($buildData['geo'], 30, '');
+                        $mapCore->injectMapObjects($buildsMap->getBuildsMapObjects($buildData['id'])); //only selected build on minimap
+                        $buildMiniMap .= $mapCore->renderContainer('100%', '400px');
+                        $buildMiniMap .= $mapCore->render();
                         show_window(__('Mini-map'), $buildMiniMap);
                     }
                 }

@@ -8,7 +8,12 @@ if (cfr('SWITCHMAP')) {
             $routeSwitches = 'onlyswitches';
             $routeOnu = 'onlyonu';
             $mapsCfg = $ubillingConfig->getYmaps();
-
+            $mapCore= new MapCore('blackoutmap');
+            $mapCore->setZoom($mapsCfg['ZOOM']);
+            $mapCore->setType($mapsCfg['TYPE']);
+            if (!empty($mapsCfg['CENTER'])) {
+                $mapCore->setCenter($mapsCfg['CENTER']);
+            }
 
 
             if ($altCfg['PON_ENABLED'] AND $altCfg['PONMAP_ENABLED']) {
@@ -49,7 +54,15 @@ if (cfr('SWITCHMAP')) {
                                     $radius = 1000;
                                     $opacity = 0.5;
                                 }
-                                $placemarks .= generic_MapAddCircle($eachGeo, $radius, '', '', 'ac0000', $opacity, 'ac0000', $opacity);
+
+                                $options = array(
+                                    'opacity' => $opacity,
+                                    'color' => 'ac0000',
+                                    'fillColor' => 'ac0000',
+                                    'fillOpacity' => $opacity
+                                );
+                                $mapCore->addCircle($eachGeo,$radius,'',$options);
+                                
                             }
                         }
                     }
@@ -67,7 +80,13 @@ if (cfr('SWITCHMAP')) {
                                 if (!empty($userData['geo'])) {
                                     $radius = 20;
                                     $opacity = 1;
-                                    $placemarks .= generic_MapAddCircle($userData['geo'], $radius, '', '', 'ac0000', $opacity, 'ac0000', $opacity);
+                                    $options = array(
+                                        'opacity' => $opacity,
+                                        'color' => 'ac0000',
+                                        'fillColor' => 'ac0000',
+                                        'fillOpacity' => $opacity
+                                    );
+                                    $mapCore->addCircle($userData['geo'],$radius,'',$options);
                                 }
                             }
                         }
@@ -77,8 +96,8 @@ if (cfr('SWITCHMAP')) {
 
 
 
-            $map = generic_MapContainer('100%', '800px;', 'blackoutmap');
-            $map .= generic_MapInit($mapsCfg['CENTER'], $mapsCfg['ZOOM'], 'map', $placemarks, '', $mapsCfg['LANG'], 'blackoutmap');
+            $map = $mapCore->renderContainer('100%', '800px;');
+            $map .= $mapCore->render();
             show_window(__('Power outages') . '?', $map);
         } else {
             show_error(__('This module is disabled'));

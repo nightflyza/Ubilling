@@ -109,32 +109,6 @@ class MapCore {
     );
 
     /**
-     * Legacy Yandex-like icon aliases => canonical key
-     *
-     * @var array
-     */
-    protected static $legacyAliases = array(
-        'twirl#lightblueIcon' => 'marker.blue',
-        'twirl#lightblueStretchyIcon' => 'marker.blue',
-        'twirl#redStretchyIcon' => 'marker.red',
-        'twirl#yellowIcon' => 'marker.yellow',
-        'twirl#greenIcon' => 'marker.green',
-        'twirl#pinkDotIcon' => 'marker.pink',
-        'twirl#brownIcon' => 'marker.brown',
-        'twirl#nightDotIcon' => 'marker.darkblue',
-        'twirl#redIcon' => 'marker.red',
-        'twirl#orangeIcon' => 'marker.orange',
-        'twirl#greyIcon' => 'marker.grey',
-        'twirl#buildingsIcon' => 'marker.building',
-        'twirl#houseIcon' => 'marker.house',
-        'twirl#campingIcon' => 'marker.camping',
-        'twirl#blackIcon' => 'marker.black',
-        'redCar' => 'vehicle.red',
-        'greenCar' => 'vehicle.green',
-        'yellowCar' => 'vehicle.yellow'
-    );
-
-    /**
      * Additional attributions for map
      *
      * @var string
@@ -341,7 +315,7 @@ class MapCore {
     }
 
     /**
-     * Adds click editor with coordinates picker and custom HTML form
+     * Adds location editor with coordinates picker and custom HTML form
      *
      * @param string $fieldName
      * @param string $title
@@ -350,7 +324,7 @@ class MapCore {
      *
      * @return object
      */
-    public function addClickEditor($fieldName, $title, $formHtml, $precision = 8) {
+    public function addLocationEditor($fieldName, $title, $formHtml, $precision = 8) {
         $editorId = wf_InputId();
         $fieldName = trim($fieldName);
         $precision = (int) $precision;
@@ -396,21 +370,6 @@ class MapCore {
     }
 
     /**
-     * Alias for addClickEditor, semantic helper for location workflows
-     *
-     * @param string $fieldName
-     * @param string $title
-     * @param string $formHtml
-     * @param int $precision
-     *
-     * @return object
-     */
-    public function addLocationEditor($fieldName, $title, $formHtml, $precision = 8) {
-        $this->addClickEditor($fieldName, $title, $formHtml, $precision);
-        return ($this);
-    }
-
-    /**
      * Registers custom icon in global map icon registry
      *
      * @param string $iconKey
@@ -424,35 +383,10 @@ class MapCore {
     }
 
     /**
-     * Registers many custom icons in global map icon registry
-     *
-     * @param array $icons
-     *
-     * @return object
-     */
-    public function registerIcons($icons) {
-        self::registerIconDefinitions($icons);
-        return ($this);
-    }
-
-    /**
-     * Registers additional icon alias in global map icon registry
-     *
-     * @param string $alias
-     * @param string $iconKey
-     *
-     * @return object
-     */
-    public function registerIconAlias($alias, $iconKey) {
-        self::registerAlias($alias, $iconKey);
-        return ($this);
-    }
-
-    /**
      * Adds marker to map
      *
      * Supported options:
-     * - icon: canonical or legacy icon key, also you can use custom icon by registering it with registerIcon method
+     * - icon: canonical icon key, also you can use custom icon by registering it with registerIcon method
      * - tooltip: marker tooltip text - will be shown on mouseover
      * - popupTitle: popup title - will be shown in popup
      * - popupFooter: popup footer - will be shown in popup
@@ -888,7 +822,7 @@ class MapCore {
     }
 
     /**
-     * Resolves icon key (canonical or legacy) to icon image path
+     * Resolves icon key to icon image path
      *
      * @param string $iconKey
      *
@@ -906,7 +840,7 @@ class MapCore {
     }
 
     /**
-     * Normalizes canonical or legacy icon key
+     * Normalizes icon key
      *
      * @param string $iconKey
      *
@@ -916,10 +850,6 @@ class MapCore {
         $result = trim($iconKey);
         if (empty($result)) {
             $result = 'marker.blue';
-        } else {
-            if (isset(self::$legacyAliases[$result])) {
-                $result = self::$legacyAliases[$result];
-            }
         }
         return ($result);
     }
@@ -942,43 +872,7 @@ class MapCore {
         }
         return ($result);
     }
+ 
 
-    /**
-     * Registers many icon paths at once
-     *
-     * @param array $icons
-     *
-     * @return int
-     */
-    public static function registerIconDefinitions($icons) {
-        $result = 0;
-        if (!empty($icons)) {
-            foreach ($icons as $iconKey => $iconPath) {
-                if (self::registerIconDefinition($iconKey, $iconPath)) {
-                    $result++;
-                }
-            }
-        }
-        return ($result);
-    }
-
-    /**
-     * Registers legacy alias for custom icon key
-     *
-     * @param string $alias
-     * @param string $iconKey
-     *
-     * @return bool
-     */
-    public static function registerAlias($alias, $iconKey) {
-        $result = false;
-        $alias = trim($alias);
-        $iconKey = trim($iconKey);
-        if (!empty($alias) and !empty($iconKey)) {
-            self::$legacyAliases[$alias] = $iconKey;
-            $result = true;
-        }
-        return ($result);
-    }
 }
 
