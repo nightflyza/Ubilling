@@ -3647,3 +3647,4 @@ $lang['def']['No differences found'] = 'Не найдено различий';
 $lang['def']['Time points should be different'] = 'Точки времени должны быть различными';
 $lang['def']['Full'] = 'Полный';
 $lang['def']['Brief'] = 'Сжатый';
+$lang['def']['Terrain'] = 'Ландшафт';

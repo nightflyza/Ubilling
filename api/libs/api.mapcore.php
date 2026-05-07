@@ -19,7 +19,7 @@ class MapCore {
     protected $zoom = 15;
 
     /**
-     * Base layer type: roadmap, satellite, hybrid
+     * Base layer type: roadmap, satellite, hybrid, terrain
      *
      * @var string
      */
@@ -81,6 +81,27 @@ class MapCore {
      */
     protected $clusterOptions = array();
 
+    /**
+     * Forces placemark markers rendering via leaflet-markers-canvas
+     *
+     * @var bool
+     */
+    protected $forceCanvasMarkers = false;
+
+    /**
+     * Remember zoom level
+     *
+     * @var bool
+     */
+    protected $rememberZoom=false;
+
+    /**
+     * Remember map center position
+     *
+     * @var bool
+     */
+    protected $rememberPosition=false;
+
       /**
      * Canonical icon key => image path
      *
@@ -104,7 +125,8 @@ class MapCore {
         'vehicle.green' => 'skins/mapmarks/greencar.png',
         'vehicle.yellow' => 'skins/mapmarks/yellowcar.png',
         'marker.wifi' => 'skins/mapmarks/wifi.png',
-        'marker.camera' => 'skins/mapmarks/camera.png'
+        'marker.camera' => 'skins/mapmarks/camera.png',
+        'marker.waterfall' => 'skins/mapmarks/waterfall.png'
 
     );
 
@@ -167,6 +189,38 @@ class MapCore {
      */
     public function setZoom($zoom) {
         $this->zoom = (int) $zoom;
+        return ($this);
+    }
+
+    /**
+     * Enables or disables saving/restoring map zoom via localStorage
+     *
+     * @param bool $rememberZoom
+     *
+     * @return object
+     */
+    public function setRememberZoom($rememberZoom = true) {
+        if ($rememberZoom) {
+            $this->rememberZoom = true;
+        } else {
+            $this->rememberZoom = false;
+        }
+        return ($this);
+    }
+
+    /**
+     * Enables or disables saving/restoring map center via localStorage
+     *
+     * @param bool $rememberPosition
+     *
+     * @return object
+     */
+    public function setRememberPosition($rememberPosition = true) {
+        if ($rememberPosition) {
+            $this->rememberPosition = true;
+        } else {
+            $this->rememberPosition = false;
+        }
         return ($this);
     }
 
@@ -315,6 +369,22 @@ class MapCore {
     }
 
     /**
+     * Forces placemark markers rendering via canvas markers layer
+     *
+     * @param bool $enabled
+     *
+     * @return object
+     */
+    public function setForceCanvasMarkers($enabled = true) {
+        if ($enabled) {
+            $this->forceCanvasMarkers = true;
+        } else {
+            $this->forceCanvasMarkers = false;
+        }
+        return ($this);
+    }
+
+    /**
      * Adds location editor with coordinates picker and custom HTML form
      *
      * @param string $fieldName
@@ -450,7 +520,8 @@ class MapCore {
 
         $this->placemarks .= '
             var ubIconDyn_' . $markerId . ' = ubMapGetCachedIcon(' . $jsIconKey . ', ' . $jsIconPath . ');
-            var ubMarkerDyn_' . $markerId . ' = L.marker([' . $coords . '], {icon: ubIconDyn_' . $markerId . '}).addTo(ubMarkerLayer);
+            var ubMarkerDyn_' . $markerId . ' = L.marker([' . $coords . '], {icon: ubIconDyn_' . $markerId . '});
+            ubMapAttachMarker(ubMarkerDyn_' . $markerId . ');
             ubMarkerDyn_' . $markerId . '.bindPopup(' . $jsLoading . ', {maxWidth: 320, minWidth: 50, maxHeight: 600, closeButton: true, closeOnEscapeKey: true});
             ubMarkerDyn_' . $markerId . '._popupHtml = null;
 
@@ -553,16 +624,473 @@ class MapCore {
     }
 
     /**
+     * Adds polyline (open multipoint line) to map
+     *
+     * Supported options:
+     * - color: stroke color (default: #000000)
+     * - weight: stroke width in pixels (default: 2)
+     * - opacity: stroke opacity 0..1 (default: 0.8)
+     * - smoothFactor: line smoothing factor (default: 1)
+     * - dashArray: SVG dash pattern, e.g. "5,5"
+     * - hint: tooltip text shown on mouseover
+     * - popupTitle: popup title shown above popup content
+     *
+     * @param array $points array of "lat,lng" strings
+     * @param string $popupContent
+     * @param array $options
+     *
+     * @return object
+     */
+    public function addPolyline($points, $popupContent = '', $options = array()) {
+        $color = isset($options['color']) ? $options['color'] : '#000000';
+        $weight = isset($options['weight']) ? (int) $options['weight'] : 2;
+        $opacity = isset($options['opacity']) ? $options['opacity'] : 0.8;
+        $smoothFactor = isset($options['smoothFactor']) ? $options['smoothFactor'] : 1;
+        $dashArray = isset($options['dashArray']) ? $options['dashArray'] : '';
+        $hint = isset($options['hint']) ? $options['hint'] : '';
+        $popupTitle = isset($options['popupTitle']) ? $options['popupTitle'] : '';
+
+        $popupHtml = '';
+        if (!empty($popupTitle)) {
+            $popupHtml .= '<b>' . $popupTitle . '</b><br />';
+        }
+        if (!empty($popupContent)) {
+            $popupHtml .= $popupContent;
+        }
+
+        $polylineId = wf_InputId();
+        $latLngsJs = $this->buildLatLngArrayJs($points);
+        $dashArrayJs = '';
+        if (!empty($dashArray)) {
+            $dashArrayJs = ', dashArray: ' . $this->quoteJs($dashArray);
+        }
+        $this->placemarks .= '
+            var ubPolyline_' . $polylineId . ' = L.polyline(' . $latLngsJs . ', {
+                color: "' . $color . '",
+                weight: ' . $weight . ',
+                opacity: ' . $opacity . ',
+                smoothFactor: ' . $smoothFactor . $dashArrayJs . '
+            }).addTo(map);
+        ';
+        if (!empty($popupHtml)) {
+            $this->placemarks .= 'ubPolyline_' . $polylineId . '.bindPopup(' . $this->quoteJs($popupHtml) . ');';
+        }
+        if (!empty($hint)) {
+            $this->placemarks .= 'ubPolyline_' . $polylineId . '.bindTooltip(' . $this->quoteJs($hint) . ', {sticky: true});';
+        }
+        return ($this);
+    }
+
+    /**
+     * Adds polygon (closed multipoint shape) to map
+     *
+     * Supported options:
+     * - color: stroke color hex without # (default: 009d25)
+     * - weight: stroke width in pixels (default: 2)
+     * - opacity: stroke opacity 0..1 (default: 0.8)
+     * - fillColor: fill color hex without # (default: 00a20b)
+     * - fillOpacity: fill opacity 0..1 (default: 0.4)
+     * - dashArray: SVG dash pattern, e.g. "5,5"
+     * - hint: tooltip text shown on mouseover
+     * - popupTitle: popup title shown above popup content
+     *
+     * @param array $points array of "lat,lng" strings
+     * @param string $popupContent
+     * @param array $options
+     *
+     * @return object
+     */
+    public function addPolygon($points, $popupContent = '', $options = array()) {
+        $color = isset($options['color']) ? $options['color'] : '009d25';
+        $weight = isset($options['weight']) ? (int) $options['weight'] : 2;
+        $opacity = isset($options['opacity']) ? $options['opacity'] : 0.8;
+        $fillColor = isset($options['fillColor']) ? $options['fillColor'] : '00a20b';
+        $fillOpacity = isset($options['fillOpacity']) ? $options['fillOpacity'] : 0.4;
+        $dashArray = isset($options['dashArray']) ? $options['dashArray'] : '';
+        $hint = isset($options['hint']) ? $options['hint'] : '';
+        $popupTitle = isset($options['popupTitle']) ? $options['popupTitle'] : '';
+
+        $popupHtml = '';
+        if (!empty($popupTitle)) {
+            $popupHtml .= '<b>' . $popupTitle . '</b><br />';
+        }
+        if (!empty($popupContent)) {
+            $popupHtml .= $popupContent;
+        }
+
+        $polygonId = wf_InputId();
+        $latLngsJs = $this->buildLatLngArrayJs($points);
+        $dashArrayJs = '';
+        if (!empty($dashArray)) {
+            $dashArrayJs = ', dashArray: ' . $this->quoteJs($dashArray);
+        }
+        $this->placemarks .= '
+            var ubPolygon_' . $polygonId . ' = L.polygon(' . $latLngsJs . ', {
+                color: "#' . $color . '",
+                weight: ' . $weight . ',
+                opacity: ' . $opacity . ',
+                fillColor: "#' . $fillColor . '",
+                fillOpacity: ' . $fillOpacity . $dashArrayJs . '
+            }).addTo(map);
+        ';
+        if (!empty($popupHtml)) {
+            $this->placemarks .= 'ubPolygon_' . $polygonId . '.bindPopup(' . $this->quoteJs($popupHtml) . ');';
+        }
+        if (!empty($hint)) {
+            $this->placemarks .= 'ubPolygon_' . $polygonId . '.bindTooltip(' . $this->quoteJs($hint) . ', {sticky: true});';
+        }
+        return ($this);
+    }
+
+    /**
+     * Adds rectangle to map. Rectangle is defined by two opposite corners (south-west and north-east)
+     *
+     * Supported options:
+     * - color: stroke color hex without # (default: 009d25)
+     * - weight: stroke width in pixels (default: 2)
+     * - opacity: stroke opacity 0..1 (default: 0.8)
+     * - fillColor: fill color hex without # (default: 00a20b)
+     * - fillOpacity: fill opacity 0..1 (default: 0.4)
+     * - dashArray: SVG dash pattern, e.g. "5,5"
+     * - hint: tooltip text shown on mouseover
+     * - popupTitle: popup title shown above popup content
+     *
+     * @param string $cornerSW first corner "lat,lng" (south-west)
+     * @param string $cornerNE second corner "lat,lng" (north-east)
+     * @param string $popupContent
+     * @param array $options
+     *
+     * @return object
+     */
+    public function addRectangle($cornerSW, $cornerNE, $popupContent = '', $options = array()) {
+        $color = isset($options['color']) ? $options['color'] : '009d25';
+        $weight = isset($options['weight']) ? (int) $options['weight'] : 2;
+        $opacity = isset($options['opacity']) ? $options['opacity'] : 0.8;
+        $fillColor = isset($options['fillColor']) ? $options['fillColor'] : '00a20b';
+        $fillOpacity = isset($options['fillOpacity']) ? $options['fillOpacity'] : 0.4;
+        $dashArray = isset($options['dashArray']) ? $options['dashArray'] : '';
+        $hint = isset($options['hint']) ? $options['hint'] : '';
+        $popupTitle = isset($options['popupTitle']) ? $options['popupTitle'] : '';
+
+        $popupHtml = '';
+        if (!empty($popupTitle)) {
+            $popupHtml .= '<b>' . $popupTitle . '</b><br />';
+        }
+        if (!empty($popupContent)) {
+            $popupHtml .= $popupContent;
+        }
+
+        $rectId = wf_InputId();
+        $dashArrayJs = '';
+        if (!empty($dashArray)) {
+            $dashArrayJs = ', dashArray: ' . $this->quoteJs($dashArray);
+        }
+        $this->placemarks .= '
+            var ubRect_' . $rectId . ' = L.rectangle([[' . $cornerSW . '], [' . $cornerNE . ']], {
+                color: "#' . $color . '",
+                weight: ' . $weight . ',
+                opacity: ' . $opacity . ',
+                fillColor: "#' . $fillColor . '",
+                fillOpacity: ' . $fillOpacity . $dashArrayJs . '
+            }).addTo(map);
+        ';
+        if (!empty($popupHtml)) {
+            $this->placemarks .= 'ubRect_' . $rectId . '.bindPopup(' . $this->quoteJs($popupHtml) . ');';
+        }
+        if (!empty($hint)) {
+            $this->placemarks .= 'ubRect_' . $rectId . '.bindTooltip(' . $this->quoteJs($hint) . ', {sticky: true});';
+        }
+        return ($this);
+    }
+
+    /**
+     * Adds circle marker (a circle with fixed pixel radius that does not scale with zoom)
+     *
+     * Supported options:
+     * - color: stroke color hex without # (default: 009d25)
+     * - weight: stroke width in pixels (default: 2)
+     * - opacity: stroke opacity 0..1 (default: 0.8)
+     * - fillColor: fill color hex without # (default: 00a20b)
+     * - fillOpacity: fill opacity 0..1 (default: 0.5)
+     * - hint: tooltip text shown on mouseover
+     * - popupTitle: popup title shown above popup content
+     *
+     * @param string $coords "lat,lng" position
+     * @param int $radius circle radius in pixels (default: 10)
+     * @param string $popupContent
+     * @param array $options
+     *
+     * @return object
+     */
+    public function addCircleMarker($coords, $radius = 10, $popupContent = '', $options = array()) {
+        $color = isset($options['color']) ? $options['color'] : '009d25';
+        $weight = isset($options['weight']) ? (int) $options['weight'] : 2;
+        $opacity = isset($options['opacity']) ? $options['opacity'] : 0.8;
+        $fillColor = isset($options['fillColor']) ? $options['fillColor'] : '00a20b';
+        $fillOpacity = isset($options['fillOpacity']) ? $options['fillOpacity'] : 0.5;
+        $hint = isset($options['hint']) ? $options['hint'] : '';
+        $popupTitle = isset($options['popupTitle']) ? $options['popupTitle'] : '';
+
+        $popupHtml = '';
+        if (!empty($popupTitle)) {
+            $popupHtml .= '<b>' . $popupTitle . '</b><br />';
+        }
+        if (!empty($popupContent)) {
+            $popupHtml .= $popupContent;
+        }
+
+        $circleMarkerId = wf_InputId();
+        $this->placemarks .= '
+            var ubCircleMarker_' . $circleMarkerId . ' = L.circleMarker([' . $coords . '], {
+                radius: ' . (int) $radius . ',
+                color: "#' . $color . '",
+                weight: ' . $weight . ',
+                opacity: ' . $opacity . ',
+                fillColor: "#' . $fillColor . '",
+                fillOpacity: ' . $fillOpacity . '
+            }).addTo(map);
+        ';
+        if (!empty($popupHtml)) {
+            $this->placemarks .= 'ubCircleMarker_' . $circleMarkerId . '.bindPopup(' . $this->quoteJs($popupHtml) . ');';
+        }
+        if (!empty($hint)) {
+            $this->placemarks .= 'ubCircleMarker_' . $circleMarkerId . '.bindTooltip(' . $this->quoteJs($hint) . ', {sticky: true});';
+        }
+        return ($this);
+    }
+
+    /**
+     * Adds GeoJSON layer to map
+     *
+     * GeoJSON spec is supported as defined in RFC 7946 - Feature, FeatureCollection,
+     * Point, MultiPoint, LineString, MultiLineString, Polygon, MultiPolygon,
+     * GeometryCollection. Coordinates are in [lng, lat] order (Leaflet handles conversion).
+     *
+     * Supported options:
+     * - style: array of leaflet path style options applied to LineString and Polygon features
+     *          (color, weight, opacity, fillColor, fillOpacity, dashArray, ...)
+     * - rawStyleJs: raw JS string used in place of style. May be a function literal
+     *               like "function(feature) { return {color: feature.properties.color}; }"
+     * - popupProperty: name of the feature property used as popup content
+     * - popupTitleProperty: optional name of the feature property used as popup title (rendered bold)
+     * - popupContent: static popup HTML bound to the entire layer (alternative to popupProperty)
+     * - tooltipProperty: name of the feature property used as tooltip text
+     * - hint: static tooltip text bound to the entire layer (alternative to tooltipProperty)
+     * - pointType: 'marker' (default) or 'circleMarker' - how to render Point features
+     * - icon: canonical icon key for marker rendering when pointType='marker' (default: 'marker.blue')
+     * - iconProperty: name of feature property whose value is used as icon key per-feature.
+     *                 Custom icons should be registered via registerIcon() prior to rendering.
+     * - circleMarkerOptions: array of options for circleMarker rendering
+     *                        (radius, color, weight, opacity, fillColor, fillOpacity)
+     * - rawPointToLayerJs: raw JS function literal that overrides default point rendering
+     * - rawOnEachFeatureJs: raw JS function literal that overrides default popup/tooltip binding
+     *
+     * @param array|string $geoJson GeoJSON data as PHP array or JSON-encoded string
+     * @param array $options
+     *
+     * @return object
+     */
+    public function addGeoJSON($geoJson, $options = array()) {
+        $layerId = wf_InputId();
+
+        if (is_string($geoJson)) {
+            $jsonString = trim($geoJson);
+        } else {
+            $jsonString = json_encode($geoJson);
+            if ($jsonString === false) {
+                $jsonString = '{}';
+            }
+        }
+        if ($jsonString === '') {
+            $jsonString = '{}';
+        }
+
+        $rawStyleJs = isset($options['rawStyleJs']) ? trim($options['rawStyleJs']) : '';
+        if (!empty($rawStyleJs)) {
+            $styleJs = $rawStyleJs;
+        } else {
+            $style = isset($options['style']) ? $options['style'] : array();
+            if (!is_array($style)) {
+                $style = array();
+            }
+            if (!isset($style['color'])) {
+                $style['color'] = '#009d25';
+            }
+            if (!isset($style['weight'])) {
+                $style['weight'] = 2;
+            }
+            if (!isset($style['opacity'])) {
+                $style['opacity'] = 0.8;
+            }
+            if (!isset($style['fillColor'])) {
+                $style['fillColor'] = '#00a20b';
+            }
+            if (!isset($style['fillOpacity'])) {
+                $style['fillOpacity'] = 0.4;
+            }
+            $styleJs = json_encode($style);
+            if ($styleJs === false) {
+                $styleJs = '{}';
+            }
+        }
+
+        $rawPointToLayerJs = isset($options['rawPointToLayerJs']) ? trim($options['rawPointToLayerJs']) : '';
+        if (!empty($rawPointToLayerJs)) {
+            $pointToLayerJs = $rawPointToLayerJs;
+        } else {
+            $pointType = isset($options['pointType']) ? $options['pointType'] : 'marker';
+            if ($pointType === 'circleMarker') {
+                $circleOptions = isset($options['circleMarkerOptions']) ? $options['circleMarkerOptions'] : array();
+                if (!is_array($circleOptions)) {
+                    $circleOptions = array();
+                }
+                if (!isset($circleOptions['radius'])) {
+                    $circleOptions['radius'] = 8;
+                }
+                if (!isset($circleOptions['color'])) {
+                    $circleOptions['color'] = '#009d25';
+                }
+                if (!isset($circleOptions['weight'])) {
+                    $circleOptions['weight'] = 2;
+                }
+                if (!isset($circleOptions['opacity'])) {
+                    $circleOptions['opacity'] = 0.8;
+                }
+                if (!isset($circleOptions['fillColor'])) {
+                    $circleOptions['fillColor'] = '#00a20b';
+                }
+                if (!isset($circleOptions['fillOpacity'])) {
+                    $circleOptions['fillOpacity'] = 0.5;
+                }
+                $circleOptionsJs = json_encode($circleOptions);
+                if ($circleOptionsJs === false) {
+                    $circleOptionsJs = '{}';
+                }
+                $pointToLayerJs = 'function(feature, latlng) { return L.circleMarker(latlng, ' . $circleOptionsJs . '); }';
+            } else {
+                $iconKeyOpt = isset($options['icon']) ? $options['icon'] : 'marker.blue';
+                $iconKey = self::normalizeIconKey($iconKeyOpt);
+                $iconPath = self::resolveIconPath($iconKeyOpt);
+                $this->usedIcons[$iconKey] = $iconPath;
+                $jsDefaultIconKey = $this->quoteJs($iconKey);
+                $jsDefaultIconPath = $this->quoteJs($iconPath);
+
+                $iconProperty = isset($options['iconProperty']) ? trim($options['iconProperty']) : '';
+                if (!empty($iconProperty)) {
+                    $iconsMap = array();
+                    foreach (self::$icons as $regKey => $regPath) {
+                        $iconsMap[$regKey] = $regPath;
+                        $this->usedIcons[$regKey] = $regPath;
+                    }
+                    $iconsMapJs = json_encode($iconsMap);
+                    if ($iconsMapJs === false) {
+                        $iconsMapJs = '{}';
+                    }
+                    $jsIconProp = $this->quoteJs($iconProperty);
+                    $pointToLayerJs = 'function(feature, latlng) {
+                        var ubGeoIcons = ' . $iconsMapJs . ';
+                        var ubGeoKey = ' . $jsDefaultIconKey . ';
+                        if (feature && feature.properties && feature.properties[' . $jsIconProp . ']) {
+                            var ubGeoCustom = String(feature.properties[' . $jsIconProp . ']);
+                            if (ubGeoIcons[ubGeoCustom]) { ubGeoKey = ubGeoCustom; }
+                        }
+                        var ubGeoPath = ubGeoIcons[ubGeoKey] || ' . $jsDefaultIconPath . ';
+                        return L.marker(latlng, {icon: ubMapGetCachedIcon(ubGeoKey, ubGeoPath)});
+                    }';
+                } else {
+                    $pointToLayerJs = 'function(feature, latlng) { return L.marker(latlng, {icon: ubMapGetCachedIcon(' . $jsDefaultIconKey . ', ' . $jsDefaultIconPath . ')}); }';
+                }
+            }
+        }
+
+        $rawOnEachFeatureJs = isset($options['rawOnEachFeatureJs']) ? trim($options['rawOnEachFeatureJs']) : '';
+        $onEachFeatureJs = '';
+        if (!empty($rawOnEachFeatureJs)) {
+            $onEachFeatureJs = $rawOnEachFeatureJs;
+        } else {
+            $popupProperty = isset($options['popupProperty']) ? trim($options['popupProperty']) : '';
+            $popupTitleProperty = isset($options['popupTitleProperty']) ? trim($options['popupTitleProperty']) : '';
+            $tooltipProperty = isset($options['tooltipProperty']) ? trim($options['tooltipProperty']) : '';
+
+            if (!empty($popupProperty) or !empty($popupTitleProperty) or !empty($tooltipProperty)) {
+                $popupBody = '';
+                if (!empty($popupTitleProperty)) {
+                    $popupBody .= '
+                        var ubGeoTitle = feature.properties[' . $this->quoteJs($popupTitleProperty) . '];
+                        if (ubGeoTitle) { ubGeoPopupHtml += "<b>" + String(ubGeoTitle) + "</b><br />"; }';
+                }
+                if (!empty($popupProperty)) {
+                    $popupBody .= '
+                        var ubGeoBody = feature.properties[' . $this->quoteJs($popupProperty) . '];
+                        if (ubGeoBody) { ubGeoPopupHtml += String(ubGeoBody); }';
+                }
+                $popupBind = '';
+                if (!empty($popupBody)) {
+                    $popupBind = '
+                        var ubGeoPopupHtml = "";' . $popupBody . '
+                        if (ubGeoPopupHtml) {
+                            layer.bindPopup(ubGeoPopupHtml, {maxWidth: 320, minWidth: 50, maxHeight: 600, closeButton: true, closeOnEscapeKey: true});
+                        }';
+                }
+                $tooltipBind = '';
+                if (!empty($tooltipProperty)) {
+                    $tooltipBind = '
+                        var ubGeoTip = feature.properties[' . $this->quoteJs($tooltipProperty) . '];
+                        if (ubGeoTip) { layer.bindTooltip(String(ubGeoTip), {sticky: true}); }';
+                }
+                $onEachFeatureJs = 'function(feature, layer) {
+                    if (feature && feature.properties) {' . $popupBind . $tooltipBind . '
+                    }
+                }';
+            }
+        }
+
+        $optsJsParts = array();
+        $optsJsParts[] = 'style: ' . $styleJs;
+        $optsJsParts[] = 'pointToLayer: ' . $pointToLayerJs;
+        if (!empty($onEachFeatureJs)) {
+            $optsJsParts[] = 'onEachFeature: ' . $onEachFeatureJs;
+        }
+
+        $this->placemarks .= '
+            var ubGeoJson_' . $layerId . ' = L.geoJSON(' . $jsonString . ', {
+                ' . implode(",\n                ", $optsJsParts) . '
+            }).addTo(map);
+        ';
+
+        $popupContent = isset($options['popupContent']) ? $options['popupContent'] : '';
+        $hint = isset($options['hint']) ? $options['hint'] : '';
+        if (!empty($popupContent)) {
+            $this->placemarks .= 'ubGeoJson_' . $layerId . '.bindPopup(' . $this->quoteJs($popupContent) . ', {maxWidth: 320, minWidth: 50, maxHeight: 600, closeButton: true, closeOnEscapeKey: true});';
+        }
+        if (!empty($hint)) {
+            $this->placemarks .= 'ubGeoJson_' . $layerId . '.bindTooltip(' . $this->quoteJs($hint) . ', {sticky: true});';
+        }
+        return ($this);
+    }
+
+    /**
      * Renders full map HTML and JS
      *
      * @return string
      */
     public function render() {
+        $lang = curlang();
+        $localeAppend='';
+        $internalLang = '';
+        if (function_exists('curlang')) {
+            $internalLang = $lang;
+            $localeAppend='&hl='.$internalLang;
+        }
+        
         $tileLayerOSM = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
         $tileLayerSatellite = 'https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}';
-        $tileLayerHybrid = 'https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}';
+        $tileLayerHybrid = 'https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}'.$localeAppend;
+        $tileLayerTerrain = 'https://mt1.google.com/vt/lyrs=p&x={x}&y={y}&z={z}'.$localeAppend;
         $tileLayerCustoms = '';
         $searchCode = '';
+        $rememberZoomJs = ($this->rememberZoom) ? 'true' : 'false';
+        $rememberPositionJs = ($this->rememberPosition) ? 'true' : 'false';
 
         if (isset($this->mapsCfg['LEAFLET_TILE_LAYER'])) {
             if ($this->mapsCfg['LEAFLET_TILE_LAYER']) {
@@ -606,14 +1134,14 @@ class MapCore {
         $mapCenter = '';
         if (empty($this->center)) {
             $mapCenter = '
-                map.locate({setView: true, maxZoom: ' . $this->zoom . '});
+                map.locate({setView: true, maxZoom: ubMapInitialZoom});
                 function onLocationError(e) {
                     alert(e.message);
                 }
                 map.on("locationerror", onLocationError);
             ';
         } else {
-            $mapCenter = 'map.setView([' . $this->center . '], ' . $this->zoom . ');';
+            $mapCenter = 'map.setView([' . $this->center . '], ubMapInitialZoom);';
         }
 
         $result = '';
@@ -626,10 +1154,14 @@ class MapCore {
         $result .= wf_tag('script', false, '', 'src="modules/jsc/leaflet-easyprint/dist/bundle.js"') . wf_tag('script', true);
         $result .= wf_tag('link', false, '', 'rel="stylesheet" href="modules/jsc/leaflet-fullscreen/dist/leaflet.fullscreen.css"');
         $result .= wf_tag('script', false, '', 'src="modules/jsc/leaflet-fullscreen/dist/Leaflet.fullscreen.min.js"') . wf_tag('script', true);
-        if ($this->clusteringEnabled) {
+        if ($this->clusteringEnabled and !$this->forceCanvasMarkers) {
             $result .= wf_tag('link', false, '', 'rel="stylesheet" href="modules/jsc/leaflet-markercluster/dist/MarkerCluster.css"');
             $result .= wf_tag('link', false, '', 'rel="stylesheet" href="modules/jsc/leaflet-markercluster/dist/MarkerCluster.Default.css"');
             $result .= wf_tag('script', false, '', 'src="modules/jsc/leaflet-markercluster/dist/leaflet.markercluster-src.js"') . wf_tag('script', true);
+        }
+        if ($this->forceCanvasMarkers) {
+            $result .= wf_tag('script', false, '', 'src="modules/jsc/rbush/rbush.min.js"') . wf_tag('script', true);
+            $result .= wf_tag('script', false, '', 'src="modules/jsc/leaflet-markers-canvas/dist/leaflet-markers-canvas.min.js"') . wf_tag('script', true);
         }
         $clusterOptions = $this->clusterOptions;
         if ($this->clusteringEnabled) {
@@ -642,10 +1174,51 @@ class MapCore {
             $clusterOptionsJs = '{}';
         }
         $clusterEnabledJs = ($this->clusteringEnabled) ? 'true' : 'false';
+        $forceCanvasMarkersJs = ($this->forceCanvasMarkers) ? 'true' : 'false';
         $result .= wf_tag('script', false, '', 'type = "text/javascript"');
         $result .= '
             var map = L.map("' . $this->container . '", {maxZoom: 18});
+            var ubMapZoomStorageKey = "ubilling_lmaps_zoom_' . $this->container . '";
+            var ubMapRememberZoom = ' . $rememberZoomJs . ';
+            var ubMapRequestedZoom = ' . (int) $this->zoom . ';
+            var ubMapInitialZoom = ubMapRequestedZoom;
+            var ubMapPositionStorageKey = "ubilling_lmaps_position_' . $this->container . '";
+            var ubMapRememberPosition = ' . $rememberPositionJs . ';
+            var ubMapRequestedCenter = ' . $this->quoteJs($this->center) . ';
+            var ubMapInitialCenter = ubMapRequestedCenter;
+            if (ubMapRememberZoom) {
+                try {
+                    var ubMapSavedZoom = window.localStorage ? localStorage.getItem(ubMapZoomStorageKey) : null;
+                    if (ubMapSavedZoom !== null) {
+                        var ubMapSavedZoomInt = parseInt(ubMapSavedZoom, 10);
+                        if (!isNaN(ubMapSavedZoomInt)) {
+                            ubMapInitialZoom = ubMapSavedZoomInt;
+                        }
+                    }
+                } catch (err) {
+                }
+            }
+            if (ubMapRememberPosition) {
+                try {
+                    var ubMapSavedCenter = window.localStorage ? localStorage.getItem(ubMapPositionStorageKey) : null;
+                    if (ubMapSavedCenter !== null) {
+                        var ubMapCenterParts = String(ubMapSavedCenter).split(",");
+                        if (ubMapCenterParts.length === 2) {
+                            var ubMapCenterLat = parseFloat(ubMapCenterParts[0]);
+                            var ubMapCenterLng = parseFloat(ubMapCenterParts[1]);
+                            if (!isNaN(ubMapCenterLat) && !isNaN(ubMapCenterLng)) {
+                                ubMapInitialCenter = ubMapCenterLat + "," + ubMapCenterLng;
+                            }
+                        }
+                    }
+                } catch (err) {
+                }
+            }
+            if (ubMapRememberPosition && ubMapInitialCenter) {
+                map.setView(ubMapInitialCenter.split(","), ubMapInitialZoom);
+            } else {
             ' . $mapCenter . '
+            }
             var ubMapIconCache = {};
             function ubMapGetCachedIcon(iconKey, iconUrl) {
                 if (!ubMapIconCache[iconKey]) {
@@ -658,17 +1231,38 @@ class MapCore {
                 }
                 return ubMapIconCache[iconKey];
             }
+            var ubForceCanvasMarkers = ' . $forceCanvasMarkersJs . ';
             var ubMarkerLayer = map;
-            if (' . $clusterEnabledJs . ') {
-                if (typeof L.markerClusterGroup === "function") {
-                    ubMarkerLayer = L.markerClusterGroup(' . $clusterOptionsJs . ');
-                    map.addLayer(ubMarkerLayer);
+            if (ubForceCanvasMarkers) {
+                if (typeof L.MarkersCanvas === "function" && typeof RBush === "function") {
+                    ubMarkerLayer = new L.MarkersCanvas();
+                    ubMarkerLayer.addTo(map);
                 } else {
                     ubMarkerLayer = map;
                     if (window.console && typeof console.warn === "function") {
-                        console.warn("MapCore: local markercluster plugin is unavailable, clustering disabled.");
+                        console.warn("MapCore: leaflet-markers-canvas or RBush is unavailable, canvas markers disabled.");
                     }
                 }
+            } else {
+                if (' . $clusterEnabledJs . ') {
+                    if (typeof L.markerClusterGroup === "function") {
+                        ubMarkerLayer = L.markerClusterGroup(' . $clusterOptionsJs . ');
+                        map.addLayer(ubMarkerLayer);
+                    } else {
+                        ubMarkerLayer = map;
+                        if (window.console && typeof console.warn === "function") {
+                            console.warn("MapCore: local markercluster plugin is unavailable, clustering disabled.");
+                        }
+                    }
+                }
+            }
+            function ubMapAttachMarker(ubMarker) {
+                if (ubForceCanvasMarkers && ubMarkerLayer && typeof ubMarkerLayer.addMarker === "function") {
+                    ubMarkerLayer.addMarker(ubMarker);
+                } else {
+                    ubMarker.addTo(ubMarkerLayer);
+                }
+                return ubMarker;
             }
 
             var roadmap = L.tileLayer("' . $tileLayerOSM . '", {
@@ -678,6 +1272,7 @@ class MapCore {
             });
             var satellite = L.tileLayer("' . $tileLayerSatellite . '", {maxZoom: 18, attribution: "© Google"});
             var hybrid = L.tileLayer("' . $tileLayerHybrid . '", {maxZoom: 18, attribution: "© Google"});
+            var terrain = L.tileLayer("' . $tileLayerTerrain . '", {maxZoom: 18, attribution: "© Google"});
 
             var storageKey = "ubilling_lmaps_base_' . $this->container . '";
             var savedLayerType = null;
@@ -694,16 +1289,24 @@ class MapCore {
                 if (savedLayerType === "satellite") {
                     layerToUse = satellite;
                 } else {
-                    if (savedLayerType === "roadmap") {
-                        layerToUse = roadmap;
+                    if (savedLayerType === "terrain") {
+                        layerToUse = terrain;
                     } else {
-                        if (requestedLayerType === "hybrid") {
-                            layerToUse = hybrid;
+                        if (savedLayerType === "roadmap") {
+                            layerToUse = roadmap;
                         } else {
-                            if (requestedLayerType === "satellite") {
-                                layerToUse = satellite;
+                            if (requestedLayerType === "hybrid") {
+                                layerToUse = hybrid;
                             } else {
-                                layerToUse = roadmap;
+                                if (requestedLayerType === "satellite") {
+                                    layerToUse = satellite;
+                                } else {
+                                    if (requestedLayerType === "terrain") {
+                                        layerToUse = terrain;
+                                    } else {
+                                        layerToUse = roadmap;
+                                    }
+                                }
                             }
                         }
                     }
@@ -714,7 +1317,8 @@ class MapCore {
             var baseMaps = {
                 "' . __('Map') . '": roadmap,
                 "' . __('Hybrid') . '": hybrid,
-                "' . __('Satellite') . '": satellite
+                "' . __('Satellite') . '": satellite,
+                "' . __('Terrain') . '": terrain
             };
             var geoControl = new L.Control.Geocoder({showResultIcons: true, errorMessage: "' . __('Nothing found') . '", placeholder: "' . __('Search') . '"});
             geoControl.addTo(map);
@@ -760,11 +1364,32 @@ class MapCore {
                 } else {
                     if (e && e.layer === satellite) {
                         v = "satellite";
+                    } else {
+                        if (e && e.layer === terrain) {
+                            v = "terrain";
+                        }
                     }
                 }
                 try {
                     localStorage.setItem(storageKey, v);
                 } catch (err) {
+                }
+            });
+            map.on("zoomend", function() {
+                if (ubMapRememberZoom) {
+                    try {
+                        localStorage.setItem(ubMapZoomStorageKey, String(map.getZoom()));
+                    } catch (err) {
+                    }
+                }
+            });
+            map.on("moveend", function() {
+                if (ubMapRememberPosition) {
+                    try {
+                        var ubMapCenterCurrent = map.getCenter();
+                        localStorage.setItem(ubMapPositionStorageKey, String(ubMapCenterCurrent.lat) + "," + String(ubMapCenterCurrent.lng));
+                    } catch (err) {
+                    }
                 }
             });
 
@@ -793,6 +1418,41 @@ class MapCore {
     }
 
     /**
+     * Builds JS LatLng array literal from array of "lat,lng" strings
+     *
+     * Each accepted item may be "lat,lng" string or [lat, lng] array.
+     * Returns string in form "[[lat,lng],[lat,lng],...]" suitable for direct
+     * usage as L.polygon / L.polyline first argument.
+     *
+     * @param array $points
+     *
+     * @return string
+     */
+    protected function buildLatLngArrayJs($points) {
+        $parts = array();
+        if (is_array($points)) {
+            foreach ($points as $point) {
+                if (is_array($point)) {
+                    if (count($point) >= 2) {
+                        $lat = trim((string) $point[0]);
+                        $lng = trim((string) $point[1]);
+                        if ($lat !== '' and $lng !== '') {
+                            $parts[] = '[' . $lat . ',' . $lng . ']';
+                        }
+                    }
+                } else {
+                    $point = trim((string) $point);
+                    if (!empty($point)) {
+                        $parts[] = '[' . $point . ']';
+                    }
+                }
+            }
+        }
+        $result = '[' . implode(',', $parts) . ']';
+        return ($result);
+    }
+
+    /**
      * Builds marker JS with icon cache support
      *
      * @param string $markerId
@@ -812,7 +1472,8 @@ class MapCore {
         $jsIconKey = $this->quoteJs($iconKey);
         $result .= '
             var ubIcon_' . $markerId . ' = ubMapGetCachedIcon(' . $jsIconKey . ', ' . $jsIconPath . ');
-            var ubMarker_' . $markerId . ' = L.marker([' . $coords . '], {icon: ubIcon_' . $markerId . '}).addTo(ubMarkerLayer);
+            var ubMarker_' . $markerId . ' = L.marker([' . $coords . '], {icon: ubIcon_' . $markerId . '});
+            ubMapAttachMarker(ubMarker_' . $markerId . ');
             ubMarker_' . $markerId . '.bindPopup(' . $jsPopup . ', {maxWidth: 320, minWidth: 50, maxHeight: 600, closeButton: true, closeOnEscapeKey: true});
         ';
         if (!empty($tooltip)) {
