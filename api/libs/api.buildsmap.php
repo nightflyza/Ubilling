@@ -64,7 +64,7 @@ class BuildsMap {
      * @return void
      */
     protected function initMapCore() {
-        $this->mapCore = new MapCore();
+        $this->mapCore = new MapCore('buildsmap');
     }
 
     /**
@@ -263,7 +263,7 @@ class BuildsMap {
      * @return void
      */
     public function renderMapContainer() {
-        $container = wf_tag('div', false, '', 'id="ubmap" style="width: 1000; height:800px;"');
+        $container = wf_tag('div', false, '', 'id="buildsmap" style="width: 1000; height:800px;"');
         $container .= wf_tag('div', true);
         $controls = '';
         if (cfr('SWITCHMAP')) {

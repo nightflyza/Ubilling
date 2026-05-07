@@ -144,7 +144,7 @@ class TasksMap {
      * @return void
      */
     protected function initMapCore() {
-        $this->mapCore=new MapCore();
+        $this->mapCore=new MapCore('tasksmap');
     }
 
     /**

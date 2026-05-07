@@ -1378,7 +1378,7 @@ class WifiCPE {
         $ymconf = $ubillingConfig->getYmaps();
         $this->loadUserData();
         $deadSwitches = zb_SwitchesGetAllDead();
-        $cpeMap = new MapCore('ubmap');
+        $cpeMap = new MapCore('wificpemap');
         $cpeMap->setZoom($ymconf['ZOOM']);
         $cpeMap->setType($ymconf['TYPE']);
         if (!empty($ymconf['CENTER'])) {
