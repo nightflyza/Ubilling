@@ -102,6 +102,27 @@ class MapCore {
      */
     protected $rememberPosition=false;
 
+    /**
+     * Enables FPS meter overlay control
+     *
+     * @var bool
+     */
+    protected $fpsMeterEnabled = true;
+
+    /**
+     * FPS meter refresh interval in milliseconds
+     *
+     * @var int
+     */
+    protected $fpsMeterInterval = 1000;
+
+    /**
+     * FPS meter control position
+     *
+     * @var string
+     */
+    protected $fpsMeterPosition = 'bottomleft';
+
       /**
      * Canonical icon key => image path
      *
@@ -154,16 +175,33 @@ class MapCore {
     /**
      * Creates map container markup
      *
-     * @param string $width
-     * @param string $height
+     * @param string $width - width of container in pixels or percentage
+     * @param string $height - height of container in pixels or percentage
+     * @param string $class - class of container
+     * @param string $options - additional raw options for container
      *
      * @return string
      */
-    public function renderContainer($width, $height) {
+    public function renderContainer($width = '100%', $height = '700px', $class = '', $options = '') {
         $result = '';
-        $mapWidth = (!empty($width)) ? $width : '100%';
-        $mapHeight = (!empty($height)) ? $height : '800px';
-        $result .= wf_tag('div', false, '', 'id="' . $this->container . '" style="width:' . $mapWidth . '; height:' . $mapHeight . ';"');
+        $classId='mapcore_style_'.wf_InputId();
+        $containerClass = $classId;
+        if (!empty($class)) {
+            $containerClass .= ' ' . $class;
+        }
+      
+        $containerParams = 'id="' . $this->container . '"';
+        if (!empty($options)) {
+            $containerParams .= ' ' . trim($options);
+        }
+
+        $customStyle = wf_tag('style', false);
+        $customStyle .= '.' . $classId . ' {';
+        $customStyle .= 'width: ' . $width . '; height: ' . $height . ';}';
+        $customStyle .=wf_tag('style', true);
+        
+        $result .= $customStyle;
+        $result .= wf_tag('div', false, $containerClass, $containerParams);
         $result .= wf_tag('div', true);
         return ($result);
     }
@@ -171,7 +209,7 @@ class MapCore {
     /**
      * Sets map center
      *
-     * @param string $center
+     * @param string $center - "lat,lng" coordinates of map center
      *
      * @return object
      */
@@ -183,7 +221,7 @@ class MapCore {
     /**
      * Sets map zoom
      *
-     * @param int $zoom
+     * @param int $zoom - zoom level
      *
      * @return object
      */
@@ -195,7 +233,7 @@ class MapCore {
     /**
      * Enables or disables saving/restoring map zoom via localStorage
      *
-     * @param bool $rememberZoom
+     * @param bool $rememberZoom - true to enable saving/restoring map zoom via localStorage
      *
      * @return object
      */
@@ -211,7 +249,7 @@ class MapCore {
     /**
      * Enables or disables saving/restoring map center via localStorage
      *
-     * @param bool $rememberPosition
+     * @param bool $rememberPosition - true to enable saving/restoring map center via localStorage
      *
      * @return object
      */
@@ -227,7 +265,7 @@ class MapCore {
     /**
      * Sets initial base layer type
      *
-     * @param string $type
+     * @param string $type - type of map (map, satellite, hybrid, terrain)
      *
      * @return object
      */
@@ -243,7 +281,7 @@ class MapCore {
     /**
      * Sets geocoder search prefill
      *
-     * @param string $searchPrefill
+     * @param string $searchPrefill - text to prefill search box
      *
      * @return object
      */
@@ -335,8 +373,8 @@ class MapCore {
     /**
      * Injects raw map placemarks JS into map object
      *
-     * @param string $placemarks
-     * @param bool $replace
+     * @param string $placemarks - raw JS code to inject
+     * @param bool $replace - replace existing placemarks with new ones
      *
      * @return object
      */
@@ -385,12 +423,41 @@ class MapCore {
     }
 
     /**
+     * Enables or disables FPS meter control on map
+     *
+     * @param bool $enabled
+     * @param int $intervalMs - meter refresh interval in milliseconds
+     * @param string $position - topright|topleft|bottomright|bottomleft
+     *
+     * @return object
+     */
+    public function setFpsMeter($enabled = true, $intervalMs = 1000, $position = 'bottomleft') {
+        if ($enabled) {
+            $this->fpsMeterEnabled = true;
+        } else {
+            $this->fpsMeterEnabled = false;
+        }
+        $intervalMs = (int) $intervalMs;
+        if ($intervalMs < 100) {
+            $intervalMs = 100;
+        }
+        $this->fpsMeterInterval = $intervalMs;
+        $position = trim((string) $position);
+        if ($position == 'topright' or $position == 'topleft' or $position == 'bottomright' or $position == 'bottomleft') {
+            $this->fpsMeterPosition = $position;
+        } else {
+            $this->fpsMeterPosition = 'bottomleft';
+        }
+        return ($this);
+    }
+
+    /**
      * Adds location editor with coordinates picker and custom HTML form
      *
-     * @param string $fieldName
-     * @param string $title
-     * @param string $formHtml
-     * @param int $precision
+     * @param string $fieldName - name of field to store coordinates
+     * @param string $title - title of editor
+     * @param string $formHtml - HTML form to display in popup
+     * @param int $precision - precision of coordinates (number of decimal places)
      *
      * @return object
      */
@@ -455,19 +522,17 @@ class MapCore {
     /**
      * Adds marker to map
      *
-     * Supported options:
+     * @param string $coords - "lat,lng" format
+     * @param string $popupContent - popup content
+     * @param array $options - Supported options:
      * - icon: canonical icon key, also you can use custom icon by registering it with registerIcon method
      * - tooltip: marker tooltip text - will be shown on mouseover
      * - popupTitle: popup title - will be shown in popup
      * - popupFooter: popup footer - will be shown in popup
      *
-     * @param string $coords "lat,lng" format
-     * @param string $popupContent popup content
-     * @param array $options  
-     *
      * @return object
      */
-    public function addMarker($coords, $popupContent, $options = array()) {
+    public function addMarker($coords, $popupContent = '', $options = array()) {
         $markerId = wf_InputId();
         $icon = isset($options['icon']) ? $options['icon'] : 'marker.blue';
         $tooltip = isset($options['tooltip']) ? $options['tooltip'] : '';
@@ -496,10 +561,12 @@ class MapCore {
     /**
      * Adds marker with lazy AJAX popup loading
      *
-     * @param string $coords
-     * @param string $title
-     * @param string $contentUrl
-     * @param array $options
+     * @param string $coords - "lat,lng" coordinates of marker
+     * @param string $title - title of marker
+     * @param string $contentUrl - URL of content to load for popup
+     * @param array $options - Supported options:
+     * - icon: canonical icon key, also you can use custom icon by registering it with registerIcon method
+     * - tooltip: marker tooltip text - will be shown on mouseover
      *
      * @return object
      */
@@ -557,10 +624,15 @@ class MapCore {
     /**
      * Adds map circle
      *
-     * @param string $coords
-     * @param int $radius
-     * @param string $popupContent
-     * @param array $options
+     * @param string $coords - "lat,lng" coordinates of center of circle
+     * @param int $radius - radius in meters
+     * @param string $popupContent - content of popup window
+     * @param array $options - Supported options:
+     * - color: stroke color hex without # (default: 009d25)
+     * - opacity: stroke opacity 0..1 (default: 0.8)
+     * - fillColor: fill color hex without # (default: 00a20b)
+     * - fillOpacity: fill opacity 0..1 (default: 0.5)
+     * - hint: tooltip text shown on mouseover
      *
      * @return object
      */
@@ -595,9 +667,12 @@ class MapCore {
     /**
      * Adds line between two points
      *
-     * @param string $coord1
-     * @param string $coord2
-     * @param array $options
+     * @param string $coord1 - first point "lat,lng"
+     * @param string $coord2 - second point "lat,lng"
+     * @param array $options - Supported options:
+     * - color: stroke color hex without # (default: 000000)
+     * - width: stroke width in pixels (default: 1)
+     * - hint: tooltip text shown on mouseover
      *
      * @return object
      */
@@ -626,18 +701,16 @@ class MapCore {
     /**
      * Adds polyline (open multipoint line) to map
      *
-     * Supported options:
-     * - color: stroke color (default: #000000)
+     * @param array $points - array of "lat,lng" strings
+     * @param string $popupContent - content of popup window
+     * @param array $options - Supported options:
+     * - color: stroke color hex without # (default: 000000)
      * - weight: stroke width in pixels (default: 2)
      * - opacity: stroke opacity 0..1 (default: 0.8)
      * - smoothFactor: line smoothing factor (default: 1)
      * - dashArray: SVG dash pattern, e.g. "5,5"
      * - hint: tooltip text shown on mouseover
      * - popupTitle: popup title shown above popup content
-     *
-     * @param array $points array of "lat,lng" strings
-     * @param string $popupContent
-     * @param array $options
      *
      * @return object
      */
@@ -684,7 +757,9 @@ class MapCore {
     /**
      * Adds polygon (closed multipoint shape) to map
      *
-     * Supported options:
+     * @param array $points - array of "lat,lng" strings
+     * @param string $popupContent - content of popup window
+     * @param array $options - Supported options:
      * - color: stroke color hex without # (default: 009d25)
      * - weight: stroke width in pixels (default: 2)
      * - opacity: stroke opacity 0..1 (default: 0.8)
@@ -693,10 +768,6 @@ class MapCore {
      * - dashArray: SVG dash pattern, e.g. "5,5"
      * - hint: tooltip text shown on mouseover
      * - popupTitle: popup title shown above popup content
-     *
-     * @param array $points array of "lat,lng" strings
-     * @param string $popupContent
-     * @param array $options
      *
      * @return object
      */
@@ -745,7 +816,10 @@ class MapCore {
     /**
      * Adds rectangle to map. Rectangle is defined by two opposite corners (south-west and north-east)
      *
-     * Supported options:
+     * @param string $cornerSW - first corner "lat,lng" (south-west)
+     * @param string $cornerNE - second corner "lat,lng" (north-east)
+     * @param string $popupContent - content of popup window
+     * @param array $options - Supported options:
      * - color: stroke color hex without # (default: 009d25)
      * - weight: stroke width in pixels (default: 2)
      * - opacity: stroke opacity 0..1 (default: 0.8)
@@ -754,11 +828,6 @@ class MapCore {
      * - dashArray: SVG dash pattern, e.g. "5,5"
      * - hint: tooltip text shown on mouseover
      * - popupTitle: popup title shown above popup content
-     *
-     * @param string $cornerSW first corner "lat,lng" (south-west)
-     * @param string $cornerNE second corner "lat,lng" (north-east)
-     * @param string $popupContent
-     * @param array $options
      *
      * @return object
      */
@@ -806,7 +875,10 @@ class MapCore {
     /**
      * Adds circle marker (a circle with fixed pixel radius that does not scale with zoom)
      *
-     * Supported options:
+     * @param string $coords - "lat,lng" position
+     * @param int $radius circle radius in pixels (default: 10)
+     * @param string $popupContent - content of popup window
+     * @param array $options - Supported options:
      * - color: stroke color hex without # (default: 009d25)
      * - weight: stroke width in pixels (default: 2)
      * - opacity: stroke opacity 0..1 (default: 0.8)
@@ -814,11 +886,6 @@ class MapCore {
      * - fillOpacity: fill opacity 0..1 (default: 0.5)
      * - hint: tooltip text shown on mouseover
      * - popupTitle: popup title shown above popup content
-     *
-     * @param string $coords "lat,lng" position
-     * @param int $radius circle radius in pixels (default: 10)
-     * @param string $popupContent
-     * @param array $options
      *
      * @return object
      */
@@ -1175,6 +1242,9 @@ class MapCore {
         }
         $clusterEnabledJs = ($this->clusteringEnabled) ? 'true' : 'false';
         $forceCanvasMarkersJs = ($this->forceCanvasMarkers) ? 'true' : 'false';
+        $fpsMeterEnabledJs = ($this->fpsMeterEnabled) ? 'true' : 'false';
+        $fpsMeterIntervalJs = (int) $this->fpsMeterInterval;
+        $fpsMeterPositionJs = $this->quoteJs($this->fpsMeterPosition);
         $result .= wf_tag('script', false, '', 'type = "text/javascript"');
         $result .= '
             var map = L.map("' . $this->container . '", {maxZoom: 18});
@@ -1219,6 +1289,55 @@ class MapCore {
             } else {
             ' . $mapCenter . '
             }
+            if (!L.Control.Fps) {
+                L.Control.Fps = L.Control.extend({
+                    options: {
+                        position: ' . $fpsMeterPositionJs . ',
+                        interval: ' . $fpsMeterIntervalJs . '
+                    },
+                    onAdd: function(map) {
+                        this._map = map;
+                        this._container = L.DomUtil.create("div", "leaflet-control-fps");
+                        L.DomEvent.disableClickPropagation(this._container);
+                        this._container.style.padding = "5px";
+                        this._container.style.background = "rgba(255, 255, 255, 0.5)";
+                        this._container.style.color = "black";
+                        this._container.style.fontFamily = "monospace";
+                        this._container.style.fontSize = "11px";
+                        this._container.style.borderRadius = "3px";
+                        this._container.innerHTML = "FPS: ...";
+                        this._running = true;
+                        this._lastCalledTime = performance.now();
+                        this._frameCount = 0;
+                        this._animateBound = this._animate.bind(this);
+                        requestAnimationFrame(this._animateBound);
+                        return this._container;
+                    },
+                    onRemove: function() {
+                        this._running = false;
+                    },
+                    _animate: function() {
+                        if (!this._running) {
+                            return;
+                        }
+                        this._frameCount++;
+                        var now = performance.now();
+                        var diff = now - this._lastCalledTime;
+                        if (diff >= this.options.interval) {
+                            var fps = (this._frameCount * 1000) / diff;
+                            this._container.innerHTML = "FPS: " + Math.round(fps);
+                            this._lastCalledTime = now;
+                            this._frameCount = 0;
+                        }
+                        requestAnimationFrame(this._animateBound);
+                    }
+                });
+            }
+            if (!L.control.fps) {
+                L.control.fps = function(options) {
+                    return new L.Control.Fps(options);
+                };
+            }
             var ubMapIconCache = {};
             function ubMapGetCachedIcon(iconKey, iconUrl) {
                 if (!ubMapIconCache[iconKey]) {
@@ -1235,8 +1354,13 @@ class MapCore {
             var ubMarkerLayer = map;
             if (ubForceCanvasMarkers) {
                 if (typeof L.MarkersCanvas === "function" && typeof RBush === "function") {
-                    ubMarkerLayer = new L.MarkersCanvas();
+                    // Render canvas markers in markerPane to keep them above vector overlays.
+                    ubMarkerLayer = new L.MarkersCanvas({pane: "markerPane"});
                     ubMarkerLayer.addTo(map);
+                    if (ubMarkerLayer._canvas && ubMarkerLayer._canvas.style) {
+                        // Keep circles/polygons interactive under markerPane canvas layer.
+                        ubMarkerLayer._canvas.style.pointerEvents = "none";
+                    }
                 } else {
                     ubMarkerLayer = map;
                     if (window.console && typeof console.warn === "function") {
@@ -1350,6 +1474,9 @@ class MapCore {
                 }
             };
             L.control.ruler(options).addTo(map);
+            if (' . $fpsMeterEnabledJs . ') {
+                L.control.fps({position: ' . $fpsMeterPositionJs . ', interval: ' . $fpsMeterIntervalJs . '}).addTo(map);
+            }
             map.addControl(new L.Control.Fullscreen({
                 title: {
                     "false": "' . __('Fullscreen') . '",
@@ -1474,8 +1601,10 @@ class MapCore {
             var ubIcon_' . $markerId . ' = ubMapGetCachedIcon(' . $jsIconKey . ', ' . $jsIconPath . ');
             var ubMarker_' . $markerId . ' = L.marker([' . $coords . '], {icon: ubIcon_' . $markerId . '});
             ubMapAttachMarker(ubMarker_' . $markerId . ');
-            ubMarker_' . $markerId . '.bindPopup(' . $jsPopup . ', {maxWidth: 320, minWidth: 50, maxHeight: 600, closeButton: true, closeOnEscapeKey: true});
         ';
+        if (!empty($popupHtml)) {
+            $result .= 'ubMarker_' . $markerId . '.bindPopup(' . $jsPopup . ', {maxWidth: 320, minWidth: 50, maxHeight: 600, closeButton: true, closeOnEscapeKey: true});';
+        }
         if (!empty($tooltip)) {
             $result .= 'ubMarker_' . $markerId . '.bindTooltip(' . $jsTooltip . ', {sticky: true});';
         }
@@ -1485,7 +1614,7 @@ class MapCore {
     /**
      * Resolves icon key to icon image path
      *
-     * @param string $iconKey
+     * @param string $iconKey - canonical icon key
      *
      * @return string
      */
@@ -1518,8 +1647,8 @@ class MapCore {
     /**
      * Registers or overrides icon path by key
      *
-     * @param string $iconKey
-     * @param string $iconPath
+     * @param string $iconKey - canonical icon key
+     * @param string $iconPath - path to icon image
      *
      * @return bool
      */
