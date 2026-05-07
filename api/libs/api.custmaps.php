@@ -71,6 +71,13 @@ class CustomMaps {
      */
     protected $itemsDb = null;
 
+    /**
+     * ID of the map which is currently being shown
+     * 
+     * @var int
+     */
+    protected $showMapId = 0;
+
     // some predefined stuff
     const EX_NO_MAP_ID = 'NOT_EXISTING_MAP_ID';
     const EX_NO_ITM_ID = 'NOT_EXISTING_ITEM_ID';
@@ -78,6 +85,7 @@ class CustomMaps {
     const TABLE_ITEMS = 'custmapsitems';
 
     public function __construct() {
+        $this->setShowMapId();
         $this->loadYmapsConfig();
         $this->initDb();
         $this->loadAlterConfig();
@@ -88,9 +96,28 @@ class CustomMaps {
         $this->loadItems();
     }
 
+    /**
+     * Initializes database abstraction layers
+     * 
+     * @return void
+     */
     protected function initDb() {
         $this->mapsDb = new NyanORM(self::TABLE_MAPS);
         $this->itemsDb = new NyanORM(self::TABLE_ITEMS);
+    }
+
+    /**
+     * Sets ID of the map which is currently being shown
+     * 
+     * @return void
+     */
+    protected function setShowMapId() {
+        if (ubRouting::checkGet('showmap')) {
+            $mapId = ubRouting::get('showmap', 'int');
+            if (!empty($mapId)) {
+                $this->showMapId = ubRouting::filters($mapId, 'int');
+            }
+        }
     }
 
     /**
@@ -99,7 +126,21 @@ class CustomMaps {
      * @return void
      */
     protected function initMapCore() {
-        $this->mapCore = new MapCore('custmap');
+        $containerId = 'custmap';
+            $rememberZoom = false;
+            $rememberPosition = false;
+        if ($this->showMapId) {
+            $containerId = 'custmap_' . $this->showMapId;
+            $rememberZoom = true;
+            $rememberPosition = true;
+        }
+
+        //creating map core instance
+        $this->mapCore = new MapCore($containerId);
+        //saving state of each map
+        $this->mapCore->setRememberZoom($rememberZoom);
+        $this->mapCore->setRememberPosition($rememberPosition);
+        
     }
 
     /**
