@@ -39,6 +39,13 @@ class SwitchMap {
      */
     protected $switchDb = '';
 
+    /**
+     * Active map core instance for current rendering context.
+     *
+     * @var object
+     */
+    protected $mapCore = '';
+
     // some predefined stuff
     const TABLE_SWITCHES = 'switches';
 
@@ -51,6 +58,7 @@ class SwitchMap {
         global $ubillingConfig;
         $this->ubillingConfig = $ubillingConfig;
         $this->initDb();
+        $this->initMapCore();
     }
 
     /**
@@ -60,6 +68,15 @@ class SwitchMap {
      */
     protected function initDb() {
         $this->switchDb = new NyanORM(self::TABLE_SWITCHES);
+    }
+
+    /**
+     * Inits single mapcore instance.
+     *
+     * @return void
+     */
+    protected function initMapCore() {
+        $this->mapCore = new MapCore('switchmap');
     }
 
     /**
@@ -280,15 +297,13 @@ class SwitchMap {
      * Builds uplink lines set for full map or trace mode.
      *
      * @param int|string $traceid
-     * @param object|null $mapCore
      *
-     * @return string
+     * @return void
      */
-    public function drawSwitchUplinks($traceid = '', $mapCore = null) {
+    public function drawSwitchUplinks($traceid = '') {
         $tmpSwitches = $this->getAllSwitches();
         $allswitches = array();
         $alllinks = array();
-        $result = '';
         $dead_raw = zb_StorageGet('SWDEAD');
         $deadarr = array();
         if ($dead_raw) {
@@ -324,35 +339,23 @@ class SwitchMap {
                             if (!empty($traceid)) {
                                 if ($each['id'] == $traceid) {
                                     $width = 5;
-                                    if (is_object($mapCore)) {
-                                        $mapCore->addLine($coord1, $coord2, array('color' => $color, 'hint' => $hint, 'width' => $width));
-                                    } else {
-                                        $result .= $this->buildLineJs($coord1, $coord2, $color, $hint, $width);
-                                    }
+                                    $this->mapCore->addLine($coord1, $coord2, array('color' => $color, 'hint' => $hint, 'width' => $width));
                                 } else {
-                                    if ($this->isLinked($alllinks, $traceid, $each['id'])) {
+                                    if (self::isLinkedSwitch($alllinks, $traceid, $each['id'])) {
                                         $width = 3;
-                                        if (is_object($mapCore)) {
-                                            $mapCore->addLine($coord1, $coord2, array('color' => $color, 'hint' => $hint, 'width' => $width));
-                                        } else {
-                                            $result .= $this->buildLineJs($coord1, $coord2, $color, $hint, $width);
-                                        }
+                                        $this->mapCore->addLine($coord1, $coord2, array('color' => $color, 'hint' => $hint, 'width' => $width));
                                     }
                                 }
                             } else {
                                 $width = 1;
-                                if (is_object($mapCore)) {
-                                    $mapCore->addLine($coord1, $coord2, array('color' => $color, 'hint' => $hint, 'width' => $width));
-                                } else {
-                                    $result .= $this->buildLineJs($coord1, $coord2, $color, $hint, $width);
-                                }
+                                $this->mapCore->addLine($coord1, $coord2, array('color' => $color, 'hint' => $hint, 'width' => $width));
                             }
                         }
                     }
                 }
             }
         }
-        return ($result);
+        return;
     }
 
     /**
@@ -360,9 +363,9 @@ class SwitchMap {
      *
      * @param int $switchId
      *
-     * @return string
+     * @return void
      */
-    public function drawLinkedSwitches($switchId, $mapCore = null) {
+    public function drawLinkedSwitches($switchId) {
         $switchId = ubRouting::filters($switchId, 'int');
         $linkedSwitches = $this->getLinkedSwitchIds($switchId);
         $allswitches = $this->getSwitchesWithGeo();
@@ -373,7 +376,6 @@ class SwitchMap {
         $switchLocatorIcon = wf_img('skins/icon_search_small.gif', __('Zoom in'));
 
         $footerDelimiter = wf_tag('br');
-        $result = '';
         $dead_raw = zb_StorageGet('SWDEAD');
         $deadarr = array();
         if ($dead_raw) {
@@ -425,37 +427,31 @@ class SwitchMap {
                         $footer .= $uplinkTraceLink;
                     }
 
-                    if (is_object($mapCore)) {
-                        $markerOptions = array(
-                            'icon' => $icon,
-                            'tooltip' => $iconlabel,
-                            'popupTitle' => $title,
-                            'popupFooter' => $footer
-                        );
-                        $mapCore->addMarker($geo, $content, $markerOptions);
-                    } else {
-                        $result .= $this->buildMarkerJs($geo, $title, $content, $footer, $icon, $iconlabel);
-                    }
+                    $markerOptions = array(
+                        'icon' => $icon,
+                        'tooltip' => $iconlabel,
+                        'popupTitle' => $title,
+                        'popupFooter' => $footer
+                    );
+                    $this->mapCore->addMarker($geo, $content, $markerOptions);
                 }
             }
         }
-        return ($result);
+        return;
     }
 
     /**
      * Builds links for linked switches only.
      *
      * @param int $switchId
-     * @param object|null $mapCore
      *
-     * @return string
+     * @return void
      */
-    public function drawSwitchAllLinks($switchId, $mapCore = null) {
+    public function drawSwitchAllLinks($switchId) {
         $switchId = ubRouting::filters($switchId, 'int');
         $tmpSwitches = $this->getAllSwitches();
         $allswitches = array();
         $linkedSwitches = $this->getLinkedSwitchIds($switchId);
-        $result = '';
 
         $dead_raw = zb_StorageGet('SWDEAD');
         $deadarr = array();
@@ -490,28 +486,22 @@ class SwitchMap {
                                 } else {
                                     $width = 3;
                                 }
-                                if (is_object($mapCore)) {
-                                    $mapCore->addLine($coord1, $coord2, array('color' => $color, 'hint' => $hint, 'width' => $width));
-                                } else {
-                                    $result .= $this->buildLineJs($coord1, $coord2, $color, $hint, $width);
-                                }
+                                $this->mapCore->addLine($coord1, $coord2, array('color' => $color, 'hint' => $hint, 'width' => $width));
                             }
                         }
                     }
                 }
             }
         }
-        return ($result);
+        return;
     }
 
     /**
      * Builds all switch markers for switch map.
      *
-     * @param object|null $mapCore
-     *
-     * @return string
+     * @return void
      */
-    public function drawSwitches($mapCore = null) {
+    public function drawSwitches() {
         $allswitches = $this->getSwitchesWithGeo();
 
         $uplinkTraceIcon = wf_img('skins/ymaps/uplinks.png', __('Show links'));
@@ -520,7 +510,6 @@ class SwitchMap {
         $switchLocatorIcon = wf_img('skins/icon_search_small.gif', __('Zoom in'));
 
         $footerDelimiter = wf_tag('br');
-        $result = '';
         $dead_raw = zb_StorageGet('SWDEAD');
         $deadarr = array();
         if ($dead_raw) {
@@ -569,20 +558,16 @@ class SwitchMap {
                     $footer .= $uplinkTraceLink;
                 }
 
-                if (is_object($mapCore)) {
-                    $markerOptions = array(
-                        'icon' => $icon,
-                        'tooltip' => $iconlabel,
-                        'popupTitle' => $title,
-                        'popupFooter' => $footer
-                    );
-                    $mapCore->addMarker($geo, $content, $markerOptions);
-                } else {
-                    $result .= $this->buildMarkerJs($geo, $title, $content, $footer, $icon, $iconlabel);
-                }
+                $markerOptions = array(
+                    'icon' => $icon,
+                    'tooltip' => $iconlabel,
+                    'popupTitle' => $title,
+                    'popupFooter' => $footer
+                );
+                $this->mapCore->addMarker($geo, $content, $markerOptions);
             }
         }
-        return ($result);
+        return;
     }
 
     /**
@@ -591,9 +576,8 @@ class SwitchMap {
      * @return array
      */
     public function getSwitchesMapObjects() {
-        $tmpMapCore = new MapCore('ubmap');
-        $this->drawSwitches($tmpMapCore);
-        $result = $tmpMapCore->getMapObjects();
+        $this->drawSwitches();
+        $result = $this->mapCore->getMapObjects();
         return ($result);
     }
 
@@ -603,9 +587,8 @@ class SwitchMap {
      * @return string
      */
     public function getSwitchesPlacemarks() {
-        $tmpMapCore = new MapCore('ubmap');
-        $this->drawSwitches($tmpMapCore);
-        $result = $tmpMapCore->getPlacemarks();
+        $this->drawSwitches();
+        $result = $this->mapCore->getPlacemarks();
         return ($result);
     }
 
@@ -641,19 +624,13 @@ class SwitchMap {
     /**
      * Builds click-to-place editor code for map.
      *
-     * @param object|null $mapCore
-     *
      * @return string
      */
-    public function getLocationFinder($mapCore = null) {
+    public function getLocationFinder() {
         $title = wf_tag('b') . __('Place coordinates') . wf_tag('b', true);
         $data = $this->getLocationSwitchForm();
-        if (is_object($mapCore)) {
-            $mapCore->addLocationEditor('placecoords', $title, $data);
-            $result = '';
-        } else {
-            $result = '';
-        }
+        $this->mapCore->addLocationEditor('placecoords', $title, $data);
+        $result = '';
         return ($result);
     }
 
@@ -663,7 +640,7 @@ class SwitchMap {
      * @return void
      */
     public function renderMapContainer() {
-        $container = wf_tag('div', false, '', 'id="ubmap" style="width: 1000; height:800px;"');
+        $container = wf_tag('div', false, '', 'id="switchmap" style="width: 1000; height:800px;"');
         $container .= wf_tag('div', true);
         $controls = '';
         if (cfr('SWITCHMAP')) {
@@ -693,38 +670,36 @@ class SwitchMap {
         $ymCenter = $ymconf['CENTER'];
         $ymZoom = $ymconf['ZOOM'];
         $ymType = $ymconf['TYPE'];
-        $mapCore = new MapCore('ubmap');
-
         if (ubRouting::checkGet('finddevice')) {
             $ymZoom = $ymconf['FINDING_ZOOM'];
             $ymCenter = ubRouting::get('finddevice', 'vf');
             if ($ymconf['FINDING_CIRCLE']) {
                 $radius = 30;
-                $mapCore->addCircle($ymCenter, $radius, __('Search area radius') . ' ' . $radius . ' ' . __('meters'), array('hint' => __('Search area')));
+                $this->mapCore->addCircle($ymCenter, $radius, __('Search area radius') . ' ' . $radius . ' ' . __('meters'), array('hint' => __('Search area')));
             }
         }
 
-        $mapCore->setZoom($ymZoom);
-        $mapCore->setType($ymType);
+        $this->mapCore->setZoom($ymZoom);
+        $this->mapCore->setType($ymType);
         if (!empty($ymCenter)) {
-            $mapCore->setCenter($ymCenter);
+            $this->mapCore->setCenter($ymCenter);
         }
 
-        $this->drawSwitches($mapCore);
+        $this->drawSwitches();
 
         if (ubRouting::checkGet('showuplinks')) {
             $traceLinks = '';
             if (ubRouting::checkGet('traceid')) {
                 $traceLinks = ubRouting::get('traceid', 'int');
             }
-            $this->drawSwitchUplinks($traceLinks, $mapCore);
+            $this->drawSwitchUplinks($traceLinks);
         }
 
         if (ubRouting::checkGet('locfinder')) {
-            $this->getLocationFinder($mapCore);
+            $this->getLocationFinder();
         }
 
-        return ($mapCore);
+        return ($this->mapCore);
     }
 
     /**
@@ -749,119 +724,23 @@ class SwitchMap {
         $ymconf = $this->ubillingConfig->getYmaps();
         $briefMinimap = self::isBriefMinimapEnabled();
         $result = '';
-        $mapCore = new MapCore('ubmap');
         $radius = 30;
-        $mapCore->setCenter($switchdata['geo']);
-        $mapCore->setZoom($ymconf['FINDING_ZOOM']);
-        $mapCore->setType($ymconf['TYPE']);
-        $mapCore->addCircle($switchdata['geo'], $radius, __('Search area radius') . ' ' . $radius . ' ' . __('meters'), array('hint' => __('Search area')));
-        $result .= wf_tag('div', false, '', 'id="ubmap" class="glamour" style="width: 97%; height:300px;"') . wf_tag('div', true);
+        $this->mapCore->setCenter($switchdata['geo']);
+        $this->mapCore->setZoom($ymconf['FINDING_ZOOM']);
+        $this->mapCore->setType($ymconf['TYPE']);
+        $this->mapCore->addCircle($switchdata['geo'], $radius, __('Search area radius') . ' ' . $radius . ' ' . __('meters'), array('hint' => __('Search area')));
+        $result .= wf_tag('div', false, '', 'id="switchmap" class="glamour" style="width: 97%; height:300px;"') . wf_tag('div', true);
         $result .= wf_delimiter();
         if ($briefMinimap) {
-            $this->drawLinkedSwitches($switchdata['id'], $mapCore);
-            $this->drawSwitchAllLinks($switchdata['id'], $mapCore);
+            $this->drawLinkedSwitches($switchdata['id']);
+            $this->drawSwitchAllLinks($switchdata['id']);
         } else {
-            $this->drawSwitches($mapCore);
-            $this->drawSwitchUplinks($switchdata['id'], $mapCore);
+            $this->drawSwitches();
+            $this->drawSwitchUplinks($switchdata['id']);
         }
-        $result .= $mapCore->render();
+        $result .= $this->mapCore->render();
         $result .= wf_tag('div', false, '', 'style="clear:both;"') . wf_tag('div', true);
         return ($result);
     }
 
-    /**
-     * Builds legacy-compatible marker JS for string mode.
-     *
-     * @param string $coords
-     * @param string $title
-     * @param string $content
-     * @param string $footer
-     * @param string $icon
-     * @param string $iconlabel
-     *
-     * @return string
-     */
-    protected function buildMarkerJs($coords, $title, $content, $footer, $icon, $iconlabel) {
-        $markerId = wf_InputId();
-        $iconPath = MapCore::resolveIconPath($icon);
-        $iconKey = MapCore::normalizeIconKey($icon);
-        $popupHtml = '';
-        if (!empty($title)) {
-            $popupHtml .= '<b>' . $title . '</b><br />';
-        }
-        if (!empty($content)) {
-            $popupHtml .= $content;
-        }
-        if (!empty($footer)) {
-            $popupHtml .= '<br>' . $footer;
-        }
-        $result = '
-            var ubIcon_' . $markerId . ' = ubMapGetCachedIcon(' . $this->quoteJs($iconKey) . ', ' . $this->quoteJs($iconPath) . ');
-            var ubMarker_' . $markerId . ' = L.marker([' . $coords . '], {icon: ubIcon_' . $markerId . '}).addTo(ubMarkerLayer);
-            ubMarker_' . $markerId . '.bindPopup(' . $this->quoteJs($popupHtml) . ', {maxWidth: 320, minWidth: 50, maxHeight: 600, closeButton: true, closeOnEscapeKey: true});
-        ';
-        if (!empty($iconlabel)) {
-            $result .= 'ubMarker_' . $markerId . '.bindTooltip(' . $this->quoteJs($iconlabel) . ', {sticky: true});';
-        }
-        return ($result);
-    }
-
-    /**
-     * Builds legacy-compatible polyline JS for string mode.
-     *
-     * @param string $coord1
-     * @param string $coord2
-     * @param string $color
-     * @param string $hint
-     * @param int $width
-     *
-     * @return string
-     */
-    protected function buildLineJs($coord1, $coord2, $color = '', $hint = '', $width = 1) {
-        $lineId = wf_InputId();
-        $result = '
-            var ubPointA_' . $lineId . ' = new L.LatLng(' . $coord1 . ');
-            var ubPointB_' . $lineId . ' = new L.LatLng(' . $coord2 . ');
-            var ubLine_' . $lineId . ' = new L.Polyline([ubPointA_' . $lineId . ', ubPointB_' . $lineId . '], {
-                color: "' . $color . '",
-                weight: ' . (int) $width . ',
-                opacity: 0.8,
-                smoothFactor: 1
-            });
-            ubLine_' . $lineId . '.addTo(map);
-        ';
-        if (!empty($hint)) {
-            $result .= 'ubLine_' . $lineId . '.bindTooltip(' . $this->quoteJs($hint) . ', {sticky: true});';
-        }
-        return ($result);
-    }
-
-    /**
-     * Quotes string value for safe JS literal embedding.
-     *
-     * @param string $value
-     *
-     * @return string
-     */
-    protected function quoteJs($value) {
-        $result = json_encode((string) $value);
-        if ($result === false) {
-            $result = '""';
-        }
-        return ($result);
-    }
-
-    /**
-     * Checks whether checked switch belongs to traced uplink chain.
-     *
-     * @param array $alllinks
-     * @param int $traceid
-     * @param int $checkid
-     *
-     * @return bool
-     */
-    protected function isLinked($alllinks, $traceid, $checkid) {
-        $result = self::isLinkedSwitch($alllinks, $traceid, $checkid);
-        return ($result);
-    }
 }

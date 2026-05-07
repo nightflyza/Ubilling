@@ -13,19 +13,21 @@ if ($altCfg['MAPON_ENABLED']) {
             $dateTo = (ubRouting::checkPost('dateto')) ?  ubRouting::post('dateto') : curdate();
             $units = $mapon->getUnits();
             $unitDrivers = array();
+            $lastDrivingCoords = '';
 
             if (!empty($units)) {
-                $mapCore = new MapCore('ubmap');
+                $mapCore = new MapCore('maponvehicles');
                 $mapCore->setZoom($mapsConfig['ZOOM']);
                 $mapCore->setType($mapsConfig['TYPE']);
 
                 if (!empty($mapsConfig['CENTER'])) {
                     $mapCore->setCenter($mapsConfig['CENTER']);
                 }
+                
 
                 //additional layers should be rendered first, under vehicles/routes
                 if (ubRouting::checkGet('layerswitches')) {
-                    $switchMap = new SwitchMap($ubillingConfig);
+                    $switchMap = new SwitchMap();
                     $mapCore->injectPlacemarks($switchMap->getSwitchesPlacemarks());
                 }
 
@@ -64,7 +66,7 @@ if ($altCfg['MAPON_ENABLED']) {
                                 $icon = 'vehicle.yellow';
                                 break;
                         }
-                    
+                  
 
                     if (!isset($unitDrivers[$each['unitid']])) {
                         $unitDrivers[$each['unitid']] = $each['driver'];
@@ -91,6 +93,14 @@ if ($altCfg['MAPON_ENABLED']) {
                         'popupFooter' => $carLabel
                     );
                     $mapCore->addMarker($each['lat'] . ',' . $each['lng'], $carName, $markerOptions);
+
+                    if ($each['state'] == 'driving') {
+                        $lastDrivingCoords = array(
+                            'lat' => floatval($each['lat']),
+                            'lng' => floatval($each['lng']),
+                            'name' => $carName
+                        );
+                    }
                 }
 
                 $filteredRoutes = $mapon->getDatesRoutes($dateFrom, $dateTo);
@@ -172,6 +182,24 @@ if ($altCfg['MAPON_ENABLED']) {
                 }
 
                 show_window('', $controls);
+
+                //random cake
+                
+                if (!empty($lastDrivingCoords)) {
+                    $mapCore->registerIcon('marker.cake', 'skins/cake32.png');
+                    $maxOffset = 1000;
+                    $latOffset = mt_rand(-$maxOffset, $maxOffset) / 10000;
+                    $lngOffset = mt_rand(-$maxOffset, $maxOffset) / 10000;
+                    $cakeLat = $lastDrivingCoords['lat'] + $latOffset;
+                    $cakeLng = $lastDrivingCoords['lng'] + $lngOffset;
+                    $cakeCoords = $cakeLat . ',' . $cakeLng;
+                    $cakeTitle = __('Cake nearby') . ': ' . $lastDrivingCoords['name'];
+                    $cakeOptions = array(
+                        'icon' => 'marker.cake',
+                    );
+                    $mapCore->addMarker($cakeCoords, __('The cake is a lie'), $cakeOptions);
+                }
+                
 
                 //render map
                 $mapCore->addLocationEditor('maponpointlocation', __('Place coordinates'), '');
