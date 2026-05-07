@@ -291,7 +291,7 @@ class SigMap {
         $this->mapCore->setCenter($this->mapsCfg['CENTER']);
         $this->mapCore->setZoom($this->mapsCfg['ZOOM']);
         $this->mapCore->setType($this->mapsCfg['TYPE']);
-        $result .= $this->mapCore->renderContainer('', '');
+        $result .= $this->mapCore->renderContainer('100%', '650px');
         $result .= $this->mapCore->render();
         return ($result);
     }

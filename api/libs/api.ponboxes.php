@@ -764,7 +764,7 @@ class PONBoxes {
             $this->ponboxesMap->setType($mapType);
           
 
-            $result .= $this->ponboxesMap->renderContainer('100%', '800px');
+            $result .= $this->ponboxesMap->renderContainer('100%', '650px');
             $placemarks = '';
             $editor = '';
             $editTitle=__('Edit');

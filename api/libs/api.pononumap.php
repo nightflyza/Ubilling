@@ -482,7 +482,7 @@ class PONONUMap {
         $result .= $this->renderControls();
         $renderBuilds = array();
         $this->mapCore->injectMapObjects(array(), true);
-        $result .= $this->mapCore->renderContainer('', '');
+        $result .= $this->mapCore->renderContainer('100%', '650px');
         if (!empty($allOnu)) {
             foreach ($allOnu as $io => $eachOnu) {
                 if (!empty($eachOnu['login'])) {
