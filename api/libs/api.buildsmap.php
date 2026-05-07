@@ -263,8 +263,7 @@ class BuildsMap {
      * @return void
      */
     public function renderMapContainer() {
-        $container = wf_tag('div', false, '', 'id="buildsmap" style="width: 1000; height:800px;"');
-        $container .= wf_tag('div', true);
+        $container = $this->mapCore->renderContainer('100%', '700px');
         $controls = '';
         if (cfr('SWITCHMAP')) {
             $controls .= wf_Link("?module=switchmap", wf_img('skins/ymaps/network.png') . ' ' . __('Switches map'), false, 'ubButton');

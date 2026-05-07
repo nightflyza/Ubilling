@@ -163,6 +163,7 @@ class CustomMaps {
             'optrec' => __('Optical reciever'),
             'camera' => __('Camera'),
             'wifi' => __('WiFi'),
+            'waterfall' => __('Waterfall'),
         );
     }
 
@@ -202,6 +203,9 @@ class CustomMaps {
                 break;
             case 'wifi':
                 $result = 'marker.wifi';
+                break;
+            case 'waterfall':
+                $result = 'marker.waterfall';
                 break;
             default :
                 $result = 'marker.blue';
@@ -769,7 +773,7 @@ class CustomMaps {
      */
     public function mapInit() {
         $result = $this->mapControls();
-        $result.= $this->mapCore->renderContainer('100%', '800px');
+        $result.= $this->mapCore->renderContainer('100%', '650px');
         $this->mapCore->setCenter($this->center);
         $this->mapCore->setZoom($this->zoom);
         $this->mapCore->setType($this->ymapsCfg['TYPE']);

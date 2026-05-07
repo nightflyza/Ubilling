@@ -640,8 +640,8 @@ class SwitchMap {
      * @return void
      */
     public function renderMapContainer() {
-        $container = wf_tag('div', false, '', 'id="switchmap" style="width: 1000; height:800px;"');
-        $container .= wf_tag('div', true);
+        $container = $this->mapCore->renderContainer('100%', '700px');
+
         $controls = '';
         if (cfr('SWITCHMAP')) {
             $controls .= wf_Link("?module=switchmap", wf_img('skins/ymaps/network.png') . ' ' . __('Switches map'), false, 'ubButton');
@@ -729,7 +729,7 @@ class SwitchMap {
         $this->mapCore->setZoom($ymconf['FINDING_ZOOM']);
         $this->mapCore->setType($ymconf['TYPE']);
         $this->mapCore->addCircle($switchdata['geo'], $radius, __('Search area radius') . ' ' . $radius . ' ' . __('meters'), array('hint' => __('Search area')));
-        $result .= wf_tag('div', false, '', 'id="switchmap" class="glamour" style="width: 97%; height:300px;"') . wf_tag('div', true);
+        $result .= $this->mapCore->renderContainer('97%', '300px','glamour');
         $result .= wf_delimiter();
         if ($briefMinimap) {
             $this->drawLinkedSwitches($switchdata['id']);
