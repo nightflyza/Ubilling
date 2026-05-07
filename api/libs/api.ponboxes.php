@@ -185,6 +185,10 @@ class PONBoxes {
         if (@$this->altCfg['PONBOXES_FORCED_CLUSTERING']) {
             $this->ponboxesMap->enableClustering(true, $this->clustringOptions);
         }
+
+        if (@$this->altCfg['PONBOXES_FORCE_CANVAS_MARKERS']) {
+            $this->ponboxesMap->setForceCanvasMarkers(true);
+        }
     }
 
     /**
