@@ -183,7 +183,7 @@ class PONBoxes {
     protected function initMapCore() {
         $this->ponboxesMap=new MapCore('ponboxmap');
         if (@$this->altCfg['PONBOXES_MCLSTR']) {
-            $this->ponboxesMap->enableClustering(true, $this->clustringOptions);
+            $this->ponboxesMap->setClustering(true, $this->clustringOptions);
         }
 
         if (@$this->altCfg['PONBOXES_MCFMRKS']) {

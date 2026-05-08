@@ -103,11 +103,18 @@ class MapCore {
     protected $rememberPosition=false;
 
     /**
+     * Remember last used layer
+     *
+     * @var bool
+     */
+    protected $rememberLayer=false;
+
+    /**
      * Enables FPS meter overlay control
      *
      * @var bool
      */
-    protected $fpsMeterEnabled = true;
+    protected $fpsMeterEnabled = false;
 
     /**
      * FPS meter refresh interval in milliseconds
@@ -158,6 +165,27 @@ class MapCore {
      */
     protected $additionalAttributions='';
 
+    /**
+     * Custom Leaflet tile layer URL template, empty means default OSM
+     *
+     * @var string
+     */
+    protected $tileLayer = '';
+
+    /**
+     * Raw JS options appended to base L.tileLayer (subdomains, tms, etc.)
+     *
+     * @var string
+     */
+    protected $tileLayerCustoms = '';
+
+    /**
+     * Enables canvas rendering for vector layers (Leaflet preferCanvas)
+     *
+     * @var bool
+     */
+    protected $canvasRender = false;
+
 
     /**
      * Creates map builder instance
@@ -166,10 +194,86 @@ class MapCore {
      */
     public function __construct($container = 'ubmap') {
         global $ubillingConfig;
-        $this->container = $container;
+        $this->setContainerName($container);
         if (is_object($ubillingConfig)) {
             $this->mapsCfg = $ubillingConfig->getYmaps();
         }
+        $this->loadConfigOptions();
+    }
+
+ 
+    /**
+     * Loads ymaps.ini options into object properties
+     *
+     * @return void
+     */
+    protected function loadConfigOptions() {
+        $this->preprocessTileLayerOpts();
+
+        if (isset($this->mapsCfg['CANVAS_RENDER'])) {
+            if ($this->mapsCfg['CANVAS_RENDER']) {
+                $this->canvasRender = true;
+            } else {
+                $this->canvasRender = false;
+            }
+        }
+
+        if (isset($this->mapsCfg['METRICS_ENABLED'])) {
+            if ($this->mapsCfg['METRICS_ENABLED']) {
+                $this->fpsMeterEnabled = true;
+            } else {
+                $this->fpsMeterEnabled = false;
+            }
+        }
+
+        if (isset($this->mapsCfg['REMEMBER_LAYER'])) {
+            if ($this->mapsCfg['REMEMBER_LAYER']) {
+                $this->rememberLayer = true;
+            } else {
+                $this->rememberLayer = false;
+            }
+        }
+    }
+
+    /**
+     * Preprocesses tile layer options from maps config: custom tile URL, Leaflet options, attributions
+     *
+     * @return void
+     */
+    protected function preprocessTileLayerOpts() {
+        if (isset($this->mapsCfg['LEAFLET_TILE_LAYER'])) {
+            $tileLayer = trim((string) $this->mapsCfg['LEAFLET_TILE_LAYER']);
+            if (!empty($tileLayer)) {
+                $this->tileLayer = $tileLayer;
+                if (ispos($tileLayer, 'visicom')) {
+                    $this->tileLayerCustoms = "subdomains: '123', tms: true";
+                    $this->additionalAttributions = '| <a href="https://www.visicom.ua">Visicom</a>';
+                } else {
+                    if (ispos($tileLayer, 'google.com')) {
+                        $this->tileLayerCustoms = "subdomains:['mt0','mt1','mt2','mt3']";
+                        $this->additionalAttributions = '| <a href="https://www.google.com">Google</a>';
+                    }
+                }
+                if (ispos($tileLayer, 'kaminari')) {
+                    $this->additionalAttributions = '| ⚡ <a href="https://github.com/nightflyza/kaminaritile">KaminariTile</a>';
+                }
+                if (ispos($tileLayer, 'mapbox')) {
+                    $this->additionalAttributions = '| <a href="https://www.mapbox.com">Mapbox</a>';
+                }
+            }
+        }
+    }
+
+
+    /**
+     * Sets container/instance name
+     *
+     * @param string $containerName - name of container
+     *
+     * @return void
+     */
+    public function setContainerName($containerName) {
+        $this->container = $containerName;
     }
 
     /**
@@ -258,6 +362,22 @@ class MapCore {
             $this->rememberPosition = true;
         } else {
             $this->rememberPosition = false;
+        }
+        return ($this);
+    }
+
+    /**
+     * Enables or disables saving/restoring last used base layer via localStorage
+     *
+     * @param bool $rememberLayer - true to enable saving/restoring last used base layer
+     *
+     * @return object
+     */
+    public function setRememberLayer($rememberLayer = true) {
+        if ($rememberLayer) {
+            $this->rememberLayer = true;
+        } else {
+            $this->rememberLayer = false;
         }
         return ($this);
     }
@@ -394,7 +514,7 @@ class MapCore {
      *
      * @return object
      */
-    public function enableClustering($enabled = true, $options = array()) {
+    public function setClustering($enabled = true, $options = array()) {
         if ($enabled) {
             $this->clusteringEnabled = true;
         } else {
@@ -1158,28 +1278,11 @@ class MapCore {
         $searchCode = '';
         $rememberZoomJs = ($this->rememberZoom) ? 'true' : 'false';
         $rememberPositionJs = ($this->rememberPosition) ? 'true' : 'false';
+        $rememberLayerJs = ($this->rememberLayer) ? 'true' : 'false';
 
-        if (isset($this->mapsCfg['LEAFLET_TILE_LAYER'])) {
-            if ($this->mapsCfg['LEAFLET_TILE_LAYER']) {
-                $tileLayerOSM = $this->mapsCfg['LEAFLET_TILE_LAYER'];
-                if (ispos($tileLayerOSM, 'visicom')) {
-                    $tileLayerCustoms = "subdomains: '123', tms: true";
-                    $this->additionalAttributions = '| <a href="https://www.visicom.ua">Visicom</a>';
-                } else {
-                    if (ispos($tileLayerOSM, 'google.com')) {
-                        $tileLayerCustoms = "subdomains:['mt0','mt1','mt2','mt3']";
-                        $this->additionalAttributions = '| <a href="https://www.google.com">Google</a>';
-                    }
-                }
-
-                if (ispos($tileLayerOSM, 'kaminari')) {
-                    $this->additionalAttributions = '| ⚡ <a href="https://github.com/nightflyza/kaminaritile">KaminariTile</a>';
-                }
-
-                if (ispos($tileLayerOSM, 'mapbox')) {
-                    $this->additionalAttributions = '| <a href="https://www.mapbox.com">Mapbox</a>';
-                }
-            }
+        if (!empty($this->tileLayer)) {
+            $tileLayerOSM = $this->tileLayer;
+            $tileLayerCustoms = $this->tileLayerCustoms;
         }
 
         if (!empty($this->searchPrefill)) {
@@ -1191,12 +1294,7 @@ class MapCore {
             ';
         }
 
-        $canvasRender = 'false';
-        if (isset($this->mapsCfg['CANVAS_RENDER'])) {
-            if ($this->mapsCfg['CANVAS_RENDER']) {
-                $canvasRender = 'true';
-            }
-        }
+        $canvasRender = ($this->canvasRender) ? 'true' : 'false';
 
         $mapCenter = '';
         if (empty($this->center)) {
@@ -1248,11 +1346,11 @@ class MapCore {
         $result .= wf_tag('script', false, '', 'type = "text/javascript"');
         $result .= '
             var map = L.map("' . $this->container . '", {maxZoom: 18});
-            var ubMapZoomStorageKey = "ubilling_lmaps_zoom_' . $this->container . '";
+            var ubMapZoomStorageKey = "ubMapCore_zoom_' . $this->container . '";
             var ubMapRememberZoom = ' . $rememberZoomJs . ';
             var ubMapRequestedZoom = ' . (int) $this->zoom . ';
             var ubMapInitialZoom = ubMapRequestedZoom;
-            var ubMapPositionStorageKey = "ubilling_lmaps_position_' . $this->container . '";
+            var ubMapPositionStorageKey = "ubMapCore_position_' . $this->container . '";
             var ubMapRememberPosition = ' . $rememberPositionJs . ';
             var ubMapRequestedCenter = ' . $this->quoteJs($this->center) . ';
             var ubMapInitialCenter = ubMapRequestedCenter;
@@ -1398,44 +1496,19 @@ class MapCore {
             var hybrid = L.tileLayer("' . $tileLayerHybrid . '", {maxZoom: 18, attribution: "© Google"});
             var terrain = L.tileLayer("' . $tileLayerTerrain . '", {maxZoom: 18, attribution: "© Google"});
 
-            var storageKey = "ubilling_lmaps_base_' . $this->container . '";
+            var ubMapRememberLayer = ' . $rememberLayerJs . ';
+            var ubMapLayerStorageKey = "ubMapCore_layer_' . $this->container . '";
             var savedLayerType = null;
-            try {
-                savedLayerType = window.localStorage ? localStorage.getItem(storageKey) : null;
-            } catch (err) {
-                savedLayerType = null;
-            }
-            var requestedLayerType = "' . $this->type . '";
-            var layerToUse = roadmap;
-            if (savedLayerType === "hybrid") {
-                layerToUse = hybrid;
-            } else {
-                if (savedLayerType === "satellite") {
-                    layerToUse = satellite;
-                } else {
-                    if (savedLayerType === "terrain") {
-                        layerToUse = terrain;
-                    } else {
-                        if (savedLayerType === "roadmap") {
-                            layerToUse = roadmap;
-                        } else {
-                            if (requestedLayerType === "hybrid") {
-                                layerToUse = hybrid;
-                            } else {
-                                if (requestedLayerType === "satellite") {
-                                    layerToUse = satellite;
-                                } else {
-                                    if (requestedLayerType === "terrain") {
-                                        layerToUse = terrain;
-                                    } else {
-                                        layerToUse = roadmap;
-                                    }
-                                }
-                            }
-                        }
-                    }
+            if (ubMapRememberLayer) {
+                try {
+                    savedLayerType = window.localStorage ? localStorage.getItem(ubMapLayerStorageKey) : null;
+                } catch (err) {
+                    savedLayerType = null;
                 }
             }
+            var ubMapBaseLayers = {roadmap: roadmap, hybrid: hybrid, satellite: satellite, terrain: terrain};
+            var requestedLayerType = "' . $this->type . '";
+            var layerToUse = ubMapBaseLayers[savedLayerType] || ubMapBaseLayers[requestedLayerType] || roadmap;
             layerToUse.addTo(map);
 
             var baseMaps = {
@@ -1451,7 +1524,7 @@ class MapCore {
                 title: "' . __('Export') . '",
                 defaultSizeTitles: {Current: "' . __('Current') . '", A4Landscape: "A4 Landscape", A4Portrait: "A4 Portrait"},
                 position: "topright",
-                filename: "ubillingmap_' . date("Y-m-d_H:i:s") . '",
+                filename: "map_' . date("Y-m-d_H:i:s") . '",
                 exportOnly: true,
                 hideControlContainer: true,
                 sizeModes: ["Current", "A4Landscape", "A4Portrait"]
@@ -1485,21 +1558,18 @@ class MapCore {
             }));
             map.addControl(L.control.layers(baseMaps, null, {collapsed: true}));
             map.on("baselayerchange", function(e) {
-                var v = "roadmap";
-                if (e && e.layer === hybrid) {
-                    v = "hybrid";
-                } else {
-                    if (e && e.layer === satellite) {
-                        v = "satellite";
-                    } else {
-                        if (e && e.layer === terrain) {
-                            v = "terrain";
+                if (ubMapRememberLayer) {
+                    var v = "roadmap";
+                    for (var ubMapLayerName in ubMapBaseLayers) {
+                        if (e && e.layer === ubMapBaseLayers[ubMapLayerName]) {
+                            v = ubMapLayerName;
+                            break;
                         }
                     }
-                }
-                try {
-                    localStorage.setItem(storageKey, v);
-                } catch (err) {
+                    try {
+                        localStorage.setItem(ubMapLayerStorageKey, v);
+                    } catch (err) {
+                    }
                 }
             });
             map.on("zoomend", function() {
