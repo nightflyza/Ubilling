@@ -1516,6 +1516,36 @@ class MapCore {
             var requestedLayerType = "' . $this->type . '";
             var layerToUse = ubMapBaseLayers[savedLayerType] || ubMapBaseLayers[requestedLayerType] || roadmap;
             layerToUse.addTo(map);
+            if (' . $fpsMeterEnabledJs . ') {
+                var ubMapCenter = map.getCenter();
+                var ubMapOptionsSnapshot = {
+                    canvasRender: ' . $canvasRender . ',
+                    forceCanvasMarkers: ubForceCanvasMarkers,
+                    clustering: ubClusterEnabled,
+                    rememberZoom: ubMapRememberZoom,
+                    rememberPosition: ubMapRememberPosition,
+                    rememberLayer: ubMapRememberLayer,
+                    requestedLayerType: requestedLayerType,
+                    savedLayerType: savedLayerType,
+                    activeLayerType: savedLayerType || requestedLayerType || "roadmap",
+                    zoom: map.getZoom(),
+                    center: ubMapCenter
+                };
+                window["ubMapOptions_' . $this->container . '"] = ubMapOptionsSnapshot;
+                if (window.console && typeof console.info === "function") {
+                    console.info(
+                        "[MapCore #' . $this->container . '] layer=" + ubMapOptionsSnapshot.activeLayerType +
+                        ", zoom=" + ubMapOptionsSnapshot.zoom +
+                        ", center=" + ubMapCenter.lat.toFixed(6) + "," + ubMapCenter.lng.toFixed(6) +
+                        ", canvasRender=" + ubMapOptionsSnapshot.canvasRender +
+                        ", forceCanvasMarkers=" + ubMapOptionsSnapshot.forceCanvasMarkers +
+                        ", clustering=" + ubMapOptionsSnapshot.clustering +
+                        ", rememberZoom=" + ubMapOptionsSnapshot.rememberZoom +
+                        ", rememberPosition=" + ubMapOptionsSnapshot.rememberPosition +
+                        ", rememberLayer=" + ubMapOptionsSnapshot.rememberLayer
+                    );
+                }
+            }
 
             var baseMaps = {
                 "' . __('Map') . '": roadmap,
