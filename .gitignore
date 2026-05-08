@@ -33,6 +33,7 @@ exports/pondata/unioperstats/*
 modules/foreign/xhprof/index.html
 modules/foreign/xhprof/xhprof_html/*
 modules/foreign/xhprof/xhprof_lib/*
+modules/general/testing/
 .idea
 .cursor/
 DEMO_MODE

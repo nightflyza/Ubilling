@@ -1682,6 +1682,16 @@ class MapCore {
     }
 
     /**
+     * Returns list of canonical icon keys currently registered
+     *
+     * @return array
+     */
+    public static function getIconKeys() {
+        $result = array_keys(self::$icons);
+        return ($result);
+    }
+
+    /**
      * Resolves icon key to icon image path
      *
      * @param string $iconKey - canonical icon key
