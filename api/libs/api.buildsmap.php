@@ -32,6 +32,23 @@ class BuildsMap {
      */
     protected $cache = null;
 
+    /**
+     * Default clustering options.
+     *
+     * @var array
+     */
+    protected $clustringOptions = array(
+        'maxClusterRadius' => 80,
+        'iconCreateFunction' => null,
+        'spiderfyOnMaxZoom' => true,
+        'showCoverageOnHover' => true,
+        'zoomToBoundsOnClick' => true,
+        'singleMarkerMode' => false,
+        'disableClusteringAtZoom' => null,
+        'removeOutsideVisibleBounds' => true,
+        'animate' => true,
+    );
+
     const TABLE_BUILDS = 'build';
     const BUILD_USERS_CACHE = 'INBUILDUSERS';
     const BUILD_USERS_CACHE_TTL = 3600;
@@ -65,6 +82,12 @@ class BuildsMap {
      */
     protected function initMapCore() {
         $this->mapCore = new MapCore('buildsmap');
+        if ($this->ubillingConfig->getAlterParam('BUILDMAP_MCLSTR')) {
+            $this->mapCore->setClustering(true, $this->clustringOptions);
+        }
+        if ($this->ubillingConfig->getAlterParam('BUILDMAP_MCFMRKS')) {
+            $this->mapCore->setForceCanvasMarkers(true);
+        }
     }
 
     /**
