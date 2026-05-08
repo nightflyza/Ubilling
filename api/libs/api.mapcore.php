@@ -1449,6 +1449,12 @@ class MapCore {
                 return ubMapIconCache[iconKey];
             }
             var ubForceCanvasMarkers = ' . $forceCanvasMarkersJs . ';
+            var ubClusterEnabled = ' . $clusterEnabledJs . ';
+            if (ubForceCanvasMarkers && ubClusterEnabled) {
+                if (window.console && typeof console.warn === "function") {
+                    console.warn("MapCore: canvas markers and clustering are both enabled; clustering is ignored because canvas markers mode is active.");
+                }
+            }
             var ubMarkerLayer = map;
             if (ubForceCanvasMarkers) {
                 if (typeof L.MarkersCanvas === "function" && typeof RBush === "function") {
@@ -1466,7 +1472,7 @@ class MapCore {
                     }
                 }
             } else {
-                if (' . $clusterEnabledJs . ') {
+                if (ubClusterEnabled) {
                     if (typeof L.markerClusterGroup === "function") {
                         ubMarkerLayer = L.markerClusterGroup(' . $clusterOptionsJs . ');
                         map.addLayer(ubMarkerLayer);
