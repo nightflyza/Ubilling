@@ -122,7 +122,7 @@ if (cfr('VOLS')) {
 
             // Init code:
             $this->html .= '
-<script src="' . $apiUrl . '?load=package.full&lang=' . $this->config['LANG'] . $yandexApiKey . '"  type="text/javascript"></script>
+<script src="' . $apiUrl . '?load=package.full&lang=ru-RU'  . $yandexApiKey . '"  type="text/javascript"></script>
 <script type="text/javascript">
     ymaps.ready(init);
     function init () {
