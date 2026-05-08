@@ -46,6 +46,23 @@ class SwitchMap {
      */
     protected $mapCore = '';
 
+    /**
+     * Default clustering options.
+     *
+     * @var array
+     */
+    protected $clustringOptions = array(
+        'maxClusterRadius' => 80,
+        'iconCreateFunction' => null,
+        'spiderfyOnMaxZoom' => true,
+        'showCoverageOnHover' => true,
+        'zoomToBoundsOnClick' => true,
+        'singleMarkerMode' => false,
+        'disableClusteringAtZoom' => null,
+        'removeOutsideVisibleBounds' => true,
+        'animate' => true,
+    );
+
     // some predefined stuff
     const TABLE_SWITCHES = 'switches';
 
@@ -77,6 +94,12 @@ class SwitchMap {
      */
     protected function initMapCore() {
         $this->mapCore = new MapCore('switchmap');
+        if ($this->ubillingConfig->getAlterParam('SWYMAP_MCLSTR')) {
+            $this->mapCore->setClustering(true, $this->clustringOptions);
+        }
+        if ($this->ubillingConfig->getAlterParam('SWYMAP_MCFMRKS')) {
+            $this->mapCore->setForceCanvasMarkers(true);
+        }
     }
 
     /**

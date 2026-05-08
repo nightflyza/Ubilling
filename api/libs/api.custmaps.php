@@ -59,6 +59,23 @@ class CustomMaps {
     protected $mapCore = null;
 
     /**
+     * Default clustering options.
+     *
+     * @var array
+     */
+    protected $clustringOptions = array(
+        'maxClusterRadius' => 80,
+        'iconCreateFunction' => null,
+        'spiderfyOnMaxZoom' => true,
+        'showCoverageOnHover' => true,
+        'zoomToBoundsOnClick' => true,
+        'singleMarkerMode' => false,
+        'disableClusteringAtZoom' => null,
+        'removeOutsideVisibleBounds' => true,
+        'animate' => true,
+    );
+
+    /**
      * Database abstraction layer for maps
      *
      * @var object
@@ -137,6 +154,12 @@ class CustomMaps {
 
         //creating map core instance
         $this->mapCore = new MapCore($containerId);
+        if (@$this->altCfg['CUSTMAP_MCLSTR']) {
+            $this->mapCore->setClustering(true, $this->clustringOptions);
+        }
+        if (@$this->altCfg['CUSTMAP_MCFMRKS']) {
+            $this->mapCore->setForceCanvasMarkers(true);
+        }
         //saving state of each map
         $this->mapCore->setRememberZoom($rememberZoom);
         $this->mapCore->setRememberPosition($rememberPosition);
