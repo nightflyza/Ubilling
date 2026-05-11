@@ -54,6 +54,13 @@ class MapCore {
     protected $extraCode = '';
 
     /**
+     * External JS files to load before the main map inline script (relative URLs)
+     *
+     * @var array
+     */
+    protected $extraScriptSrcs = array();
+
+    /**
      * Maps configuration cache
      *
      * @var array
@@ -419,6 +426,21 @@ class MapCore {
      */
     public function addRawJs($jsCode) {
         $this->extraCode .= $jsCode;
+        return ($this);
+    }
+
+    /**
+     * Registers an extra script URL to include before the main map script (deduplicated)
+     *
+     * @param string $url
+     *
+     * @return object
+     */
+    public function addScriptSrc($url) {
+        $url = (string) $url;
+        if ($url !== '' and !in_array($url, $this->extraScriptSrcs, true)) {
+            $this->extraScriptSrcs[] = $url;
+        }
         return ($this);
     }
 
@@ -1356,6 +1378,11 @@ class MapCore {
         $fpsMeterEnabledJs = ($this->fpsMeterEnabled) ? 'true' : 'false';
         $fpsMeterIntervalJs = (int) $this->fpsMeterInterval;
         $fpsMeterPositionJs = $this->quoteJs($this->fpsMeterPosition);
+        if (!empty($this->extraScriptSrcs)) {
+            foreach ($this->extraScriptSrcs as $eachScriptSrc) {
+                $result .= wf_tag('script', false, '', 'src="' . $eachScriptSrc . '"') . wf_tag('script', true);
+            }
+        }
         $result .= wf_tag('script', false, '', 'type = "text/javascript"');
         $result .= '
             var map = L.map("' . $this->container . '", {maxZoom: 18});
