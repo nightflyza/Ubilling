@@ -376,32 +376,54 @@ class CustomMaps {
      */
     protected function mapControls() {
         $result = '';
-        $result.=wf_BackLink('?module=custmaps');
+        $result .= wf_BackLink('?module=custmaps');
         if (ubRouting::checkGet('showmap')) {
             $mapId = ubRouting::get('showmap', 'int');
             if (cfr('CUSTMAPEDIT')) {
-                $result.=wf_Link('?module=custmaps&showmap=' . $mapId . '&mapedit=true', wf_img('skins/ymaps/edit.png') . ' ' . __('Edit markers'), false, 'ubButton');
-                $result.=wf_Link('?module=custmaps&showmap=' . $mapId . '&lineedit=true', wf_img('skins/ymaps/edit.png') . ' ' . __('Edit lines'), false, 'ubButton');
+                $result .= wf_Link('?module=custmaps&showmap=' . $mapId . '&mapedit=true', wf_img('skins/ymaps/target.png') . ' ' . __('Edit markers'), false, 'ubButton');
+                $result .= wf_Link('?module=custmaps&showmap=' . $mapId . '&lineedit=true', wf_img('skins/ymaps/edit.png') . ' ' . __('Edit lines'), false, 'ubButton');
             }
 
-            //custom layers
+            $result .= wf_Link('?module=custmaps&showitems=' . $mapId, wf_img('skins/icon_mapplacemark16.png') . ' ' . __('Markers'), false, 'ubButton');
+            $result .= wf_Link('?module=custmaps&showlines=' . $mapId, wf_img('skins/icon_mapline16.png') . ' ' . __('Lines'), false, 'ubButton');
+        }
+        $result .= wf_delimiter();
+        return ($result);
+    }
+
+    /**
+     * Returns custom map layers selection controls rendered under the map
+     *
+     * @return string
+     */
+    protected function mapLayersControls() {
+        $result = '';
+        if (ubRouting::checkGet('showmap')) {
+            $mapId = ubRouting::get('showmap', 'int');
             if (ubRouting::checkGet('cl')) {
                 $custLayers = ubRouting::get('cl');
             } else {
                 $custLayers = '';
             }
 
-            $result.=wf_Link('?module=custmaps&showitems=' . $mapId, wf_img('skins/icon_table.png') . ' ' . __('Objects'), false, 'ubButton');
-            $result.=wf_Link('?module=custmaps&showlines=' . $mapId, wf_img('skins/icon_table.png') . ' ' . __('Lines'), false, 'ubButton');
-            $result.=wf_delimiter();
-            $result.=wf_Link('?module=custmaps&showmap=' . $mapId, wf_img('skins/icon_cleanup.png') . ' ' . $this->mapGetName($mapId), false, 'ubButton');
-            foreach ($this->allMaps as $cmapId => $cmapData) {
-                if ($cmapId != $mapId) {
-                    $result.=wf_Link('?module=custmaps&showmap=' . $mapId . '&cl=' . $cmapId . 'z' . $this->filterLayers($custLayers, $cmapId . 'z'), wf_img('skins/swmapsmall.png') . ' ' . $this->mapGetName($cmapId), false, 'ubButton');
+            $activeLayers = array();
+            if (!empty($custLayers)) {
+                $activeLayers = array_filter(explode('_', $custLayers), 'strlen');
+            }
+
+            if (!empty($this->allMaps) and count($this->allMaps) > 1) {
+                $result .= wf_delimiter(0);
+                $result .= wf_tag('b') . __('Additional layers') .': '. wf_tag('b', true);
+                if (!empty($activeLayers)) {
+                    $result .= wf_Link('?module=custmaps&showmap=' . $mapId, wf_img('skins/icon_cleanup.png') . ' ' . $this->mapGetName($mapId), false);
+                }
+                foreach ($this->allMaps as $cmapId => $cmapData) {
+                    if ($cmapId != $mapId and !in_array($cmapId, $activeLayers)) {
+                        $result .= ' ' . wf_Link('?module=custmaps&showmap=' . $mapId . '&cl=' . $cmapId . '_' . $this->filterLayers($custLayers, $cmapId . '_'), wf_img('skins/icon_map_small.png') . ' ' . $this->mapGetName($cmapId), false);
+                    }
                 }
             }
         }
-        $result.=wf_delimiter();
         return ($result);
     }
 
@@ -430,8 +452,7 @@ class CustomMaps {
                     $actLinks.= wf_JSAlertStyled('?module=custmaps&deletemap=' . $each['id'], web_delete_icon(), $messages->getDeleteAlert()) . ' ';
                     $actLinks.= wf_modalAuto(web_edit_icon(), __('Edit'), $this->mapEditForm($each['id']));
                 }
-                $actLinks.= wf_Link('?module=custmaps&showmap=' . $each['id'], wf_img('skins/icon_search_small.gif', __('Show')), false);
-                $actLinks.= wf_Link('?module=custmaps&showitems=' . $each['id'], wf_img('skins/icon_table.png', __('Objects')), false);
+                $actLinks.= wf_Link('?module=custmaps&showmap=' . $each['id'], wf_img('skins/icon_map_small.png', __('Show')), false);
 
                 $cells.= wf_TableCell($actLinks);
                 $rows.= wf_TableRow($cells, 'row5');
@@ -497,36 +518,18 @@ class CustomMaps {
     }
 
     /**
-     * Returns existing map items list datatables container
-     *      
+     * Returns existing map items list as embedded datatable
+     *
      * @param int $mapid
-     * 
+     *
      * @return string
      */
-    public function renderItemsListFast($mapid) {
+    public function renderItemsList($mapid) {
         $mapid = ubRouting::filters($mapid, 'int');
         $opts = '"order": [[ 0, "desc" ]]';
         $columns = array('ID', 'Type', 'Geo location', 'Name', 'Location', 'Actions');
-        $result = '';
-        $result.= wf_BackLink('?module=custmaps');
-        $result.=wf_Link('?module=custmaps&showitems=' . $mapid . '&duplicates=true', wf_img('skins/duplicate_icon.gif') . ' ' . __('Show duplicates'), true, 'ubButton');
-
-        $result.= wf_delimiter();
-        $result.=wf_JqDtLoader($columns, '?module=custmaps&ajax=true&showitems=' . $mapid, false, 'Objects', '100', $opts);
-        return ($result);
-    }
-
-    /**
-     * Renders custom map items list JSON data
-     * 
-     * @param int $mapid
-     * 
-     * @return void
-     */
-    public function renderItemsListJsonData($mapid) {
-        $mapid = ubRouting::filters($mapid, 'int');
-        $json = new wf_JqDtHelper();
         $messages = new UbillingMessageHelper();
+        $dataArr = array();
 
         if ($this->altCfg['ADCOMMENTS_ENABLED']) {
             $adcomments = new ADcomments('CUSTMAPITEMS');
@@ -537,115 +540,32 @@ class CustomMaps {
 
         if (!empty($this->allItems)) {
             foreach ($this->allItems as $io => $each) {
-                $indicator = ($adc) ? $adcomments->getCommentsIndicator($each['id']) : '';
                 if ($each['mapid'] == $mapid) {
-
+                    $indicator = ($adc) ? $adcomments->getCommentsIndicator($each['id']) : '';
                     $actLinks = '';
                     if (cfr('CUSTMAPEDIT')) {
-                        $actLinks.= wf_JSAlertStyled('?module=custmaps&deleteitem=' . $each['id'], web_delete_icon(), $messages->getDeleteAlert()) . ' ';
+                        $actLinks .= wf_JSAlertStyled('?module=custmaps&deleteitem=' . $each['id'], web_delete_icon(), $messages->getDeleteAlert()) . ' ';
                     }
-                    $actLinks.= wf_JSAlertStyled('?module=custmaps&edititem=' . $each['id'], web_edit_icon(), $messages->getEditAlert()) . ' ';
-                    $actLinks.= wf_Link('?module=custmaps&showmap=' . $each['mapid'] . '&locateitem=' . $each['geo'] . '&zoom=' . $this->ymapsCfg['FINDING_ZOOM'], wf_img('skins/icon_search_small.gif', __('Find on map')), false) . ' ';
+                    $actLinks .= wf_JSAlertStyled('?module=custmaps&edititem=' . $each['id'], web_edit_icon(), $messages->getEditAlert()) . ' ';
+                    $actLinks .= wf_Link('?module=custmaps&showmap=' . $each['mapid'] . '&locateitem=' . $each['geo'] . '&zoom=' . $this->ymapsCfg['FINDING_ZOOM'], wf_img('skins/icon_search_small.gif', __('Find on map')), false) . ' ';
+                    $actLinks .= $indicator;
 
-                    $actLinks.=$indicator;
-
-
-                    $data[] = $each['id'];
-                    $data[] = $this->itemGetTypeName($each['type']);
-                    $data[] = $each['geo'];
-                    $data[] = $each['name'];
-                    $data[] = $each['location'];
-                    $data[] = $actLinks;
-
-
-                    $json->addRow($data);
-                    unset($data);
+                    $dataArr[] = array(
+                        $each['id'],
+                        $this->itemGetTypeName($each['type']),
+                        $each['geo'],
+                        $each['name'],
+                        $each['location'],
+                        $actLinks,
+                    );
                 }
             }
         }
 
-        $json->getJson();
-    }
-
-    /**
-     * Returns list of duplicate coords/name items for some existing map
-     * 
-     * @param int $mapid
-     * @return string
-     */
-    public function renderItemDuplicateList($mapid) {
-        $mapid = ubRouting::filters($mapid, 'int');
         $result = '';
-        $messages = new UbillingMessageHelper();
-        $itemsCount = 0;
-        $filterArray = array();
-
-        if ($this->altCfg['ADCOMMENTS_ENABLED']) {
-            $adcomments = new ADcomments('CUSTMAPITEMS');
-            $adc = true;
-        } else {
-            $adc = false;
-        }
-
-        //counting unique geo coords
-        if (!empty($this->allItems)) {
-            foreach ($this->allItems as $ia => $eachItem) {
-                if ($eachItem['mapid'] == $mapid) {
-                    if (isset($filterArray[$eachItem['geo']])) {
-                        $filterArray[$eachItem['geo']] ++;
-                    } else {
-                        $filterArray[$eachItem['geo']] = 1;
-                    }
-                }
-            }
-        }
-
-        $result.= wf_BackLink('?module=custmaps&showitems=' . $mapid);
-
-        $result.= wf_delimiter();
-
-        $cells = wf_TableCell(__('ID'));
-        $cells.= wf_TableCell(__('Type'));
-        $cells.= wf_TableCell(__('Geo location'));
-        $cells.= wf_TableCell(__('Name'));
-        $cells.= wf_TableCell(__('Location'));
-        $cells.= wf_TableCell(__('Actions'));
-        $rows = wf_TableRow($cells, 'row1');
-
-        if (!empty($this->allItems)) {
-            foreach ($this->allItems as $io => $each) {
-                $indicator = ($adc) ? $adcomments->getCommentsIndicator($each['id']) : '';
-                if ($each['mapid'] == $mapid) {
-                    if (isset($filterArray[$each['geo']])) {
-                        if ($filterArray[$each['geo']] > 1) {
-
-                            $cells = wf_TableCell($each['id']);
-                            $cells.= wf_TableCell($this->itemGetTypeName($each['type']));
-                            $cells.= wf_TableCell($each['geo']);
-                            $cells.= wf_TableCell($each['name']);
-                            $cells.= wf_TableCell($each['location']);
-                            $actLinks = '';
-                            if (cfr('CUSTMAPEDIT')) {
-                                $actLinks.= wf_JSAlertStyled('?module=custmaps&deleteitem=' . $each['id'], web_delete_icon(), $messages->getDeleteAlert()) . ' ';
-                            }
-                            $actLinks.= wf_JSAlertStyled('?module=custmaps&edititem=' . $each['id'], web_edit_icon(), $messages->getEditAlert()) . ' ';
-                            $actLinks.= wf_Link('?module=custmaps&showmap=' . $each['mapid'] . '&locateitem=' . $each['geo'] . '&zoom=' . $this->ymapsCfg['FINDING_ZOOM'], wf_img('skins/icon_search_small.gif', __('Find on map')), false) . ' ';
-
-                            $actLinks.=$indicator;
-
-                            $cells.= wf_TableCell($actLinks);
-                            $rows.= wf_TableRow($cells, 'row3');
-                            $itemsCount++;
-                        }
-                    }
-                }
-            }
-        }
-
-        $result.= wf_TableBody($rows, '100%', '0', 'sortable');
-        $result.= __('Total') . ': ' . $itemsCount;
-        return ($result);
-
+        $result .= wf_BackLink('?module=custmaps&showmap=' . $mapid);
+        $result .= wf_delimiter();
+        $result .= wf_JqDtEmbed($columns, $dataArr, false, 'Objects', 100, $opts);
         return ($result);
     }
 
@@ -841,7 +761,17 @@ class CustomMaps {
      */
     protected function lineGetRandomColor() {
         $result = self::LINE_DEFAULT_COLOR;
-        $pool = array('#f57601', '#1e88e5', '#43a047', '#8e24aa', '#fb8c00', '#e53935', '#00897b', '#3949ab', '#6d4c41', '#039be5');
+        $pool = array(  '#f57601',
+                        '#1e88e5',
+                        '#43a047',
+                        '#8e24aa',
+                        '#fb8c00',
+                        '#e53935',
+                        '#00897b',
+                        '#3949ab',
+                        '#6d4c41',
+                        '#039be5'
+                    );
         $randKey = array_rand($pool);
         if (isset($pool[$randKey])) {
             $result = $pool[$randKey];
@@ -910,7 +840,7 @@ class CustomMaps {
 
     /**
      * Returns line edit form
-     * 
+     * TODO: make it better later
      * @param int $lineid
      * @return string
      */
@@ -922,15 +852,15 @@ class CustomMaps {
             $result.= wf_BackLink('?module=custmaps&showlines=' . $lineData['mapid']);
             $result.= wf_delimiter();
             $inputs = wf_HiddenInput('editlineid', $lineid);
-            $inputs.= wf_TextInput('editline_name', __('Name'), $lineData['name'], false, '25');
-            $inputs.= wf_TextInput('editline_fibers_amount', __('Fibers amount'), $lineData['fibers_amount'], false, '25');
-            $inputs.= wf_TextInput('editline_length_m', __('Length'), $lineData['length_m'], false, '25');
+            $inputs.= wf_TextInput('editline_name', __('Name'), $lineData['name'], false, 25);
+            $inputs.= wf_Selector('editline_fibers_amount', $this->lineGetFibersAmountOptions(), __('Fibers amount'), $lineData['fibers_amount'], true);
+            $inputs.= wf_TextInput('editline_length_m', __('Length'), $lineData['length_m'], true, 25);
             $inputs.= wf_ColorInput('editline_style_color', __('Color'), $lineData['style_color'], true);
             $inputs.= wf_Selector('editline_style_width', $this->lineGetWidthOptions(), __('Line width'), $lineData['style_width'], true);
-            $inputs.= wf_TextInput('editline_description', __('Description'), $lineData['description'], false, '25');
+            $inputs.= wf_TextInput('editline_description', __('Description'), $lineData['description'], false, 25);
             $inputs.= wf_TextArea('editline_geo', __('Geometry') . ' [[lat,lng],[lat,lng]]', $lineData['geo'], true, '35x4');
             $inputs.= wf_Submit(__('Save'));
-            $result.= wf_Form('', 'POST', $inputs, 'glamour');
+            $result.= wf_Form('', 'POST', $inputs, '');
         } else {
             throw new Exception(self::EX_NO_LINE_ID);
         }
@@ -938,7 +868,7 @@ class CustomMaps {
     }
 
     /**
-     * Renders existing map lines list
+     * Renders existing map lines list as embedded datatable
      *
      * @param int $mapid
      * @return string
@@ -946,33 +876,34 @@ class CustomMaps {
     public function renderLinesList($mapid) {
         $mapid = ubRouting::filters($mapid, 'int');
         $messages = new UbillingMessageHelper();
-        $result = '';
-        $result.= wf_BackLink('?module=custmaps');
-        $result.= wf_delimiter();
-        $cells = wf_TableCell(__('ID'));
-        $cells.= wf_TableCell(__('Name'));
-        $cells.= wf_TableCell(__('Fibers amount'));
-        $cells.= wf_TableCell(__('Length'));
-        $cells.= wf_TableCell(__('Actions'));
-        $rows = wf_TableRow($cells, 'row1');
+        $opts = '"order": [[ 0, "desc" ]]';
+        $columns = array('ID', 'Name', 'Fibers amount', 'Length', 'Actions');
+        $dataArr = array();
+
         if (!empty($this->allLines)) {
             foreach ($this->allLines as $lineId => $lineData) {
                 if ($lineData['mapid'] == $mapid) {
-                    $cells = wf_TableCell($lineId);
-                    $cells.= wf_TableCell($lineData['name']);
-                    $cells.= wf_TableCell($lineData['fibers_amount']);
-                    $cells.= wf_TableCell($lineData['length_m']);
                     $actLinks = '';
                     if (cfr('CUSTMAPEDIT')) {
-                        $actLinks.= wf_JSAlertStyled('?module=custmaps&deleteline=' . $lineId, web_delete_icon(), $messages->getDeleteAlert()) . ' ';
+                        $actLinks .= wf_JSAlertStyled('?module=custmaps&deleteline=' . $lineId, web_delete_icon(), $messages->getDeleteAlert()) . ' ';
                     }
-                    $actLinks.= wf_JSAlertStyled('?module=custmaps&showmap=' . $mapid . '&lineedit=true&editline=' . $lineId, web_edit_icon(), $messages->getEditAlert()) . ' ';
-                    $cells.= wf_TableCell($actLinks);
-                    $rows.= wf_TableRow($cells, 'row5');
+                    $actLinks .= wf_JSAlertStyled('?module=custmaps&showmap=' . $mapid . '&lineedit=true&editline=' . $lineId, web_edit_icon(), $messages->getEditAlert()) . ' ';
+
+                    $dataArr[] = array(
+                        $lineId,
+                        $lineData['name'],
+                        $lineData['fibers_amount'],
+                        $lineData['length_m'],
+                        $actLinks,
+                    );
                 }
             }
         }
-        $result.= wf_TableBody($rows, '100%', '0', 'sortable');
+
+        $result = '';
+        $result .= wf_BackLink('?module=custmaps&showmap=' . $mapid);
+        $result .= wf_delimiter();
+        $result .= wf_JqDtEmbed($columns, $dataArr, false, 'Lines', 100, $opts);
         return ($result);
     }
 
@@ -1177,11 +1108,12 @@ class CustomMaps {
      */
     public function mapInit() {
         $result = $this->mapControls();
-        $result.= $this->mapCore->renderContainer('100%', '650px');
+        $result .= $this->mapCore->renderContainer('100%', '650px');
         $this->mapCore->setCenter($this->center);
         $this->mapCore->setZoom($this->zoom);
         $this->mapCore->setType($this->ymapsCfg['TYPE']);
-        $result.= $this->mapCore->render();
+        $result .= $this->mapCore->render();
+        $result .= $this->mapLayersControls();
         return ($result);
     }
 
@@ -1199,6 +1131,30 @@ class CustomMaps {
     }
 
     /**
+     * Returns fibers amount options for line editor
+     * 
+     * @return array
+     */
+    protected function lineGetFibersAmountOptions() {
+        $result = array(
+            '0'=>'-',
+            '1'=>'1',
+            '2'=>'2',
+            '4'=>'4',
+            '8'=>'8',
+            '12'=>'12',
+            '16'=>'16',
+            '24'=>'24',
+            '32'=>'32',
+            '48'=>'48',
+            '64'=>'64',
+            '96'=>'96',
+            '128'=>'128',
+        );
+        return ($result);
+    }
+
+    /**
      * Returns line location form for map editor
      *
      * @param int $mapid
@@ -1210,9 +1166,9 @@ class CustomMaps {
         $inputs = wf_HiddenInput('newline_mapid', $mapid);
         $inputs.= wf_HiddenInput('newline_lineid', '');
         $inputs.= wf_HiddenInput('newline_geo', '');
-        $inputs.= wf_TextInput('newline_name', __('Name'), '', false, 20);
-        $inputs.= wf_TextInput('newline_fibers_amount', __('Fibers amount'), '0', false, 20);
-        $inputs.= wf_TextInput('newline_length_m', __('Length'), '0', false, 20);
+        $inputs.= wf_TextInput('newline_name', __('Name'), '', true, 20);
+        $inputs.= wf_Selector('newline_fibers_amount', $this->lineGetFibersAmountOptions(), __('Fibers amount'), '0', true);
+        $inputs.= wf_TextInput('newline_length_m', __('Length'), '0', true, 8);
         $inputs.= wf_ColorInput('newline_style_color', __('Color'), $lineColor, true, 'ubLineEditorColor_' . $mapid);
         $inputs.= wf_Selector('newline_style_width', $this->lineGetWidthOptions(), __('Line width'), '2', true);
         $inputs.= wf_TextInput('newline_description', __('Description'), '', false, 20);
@@ -1238,10 +1194,11 @@ class CustomMaps {
         $undoBtnId = 'ubLineEditorUndoBtn_' . $mapid;
         $panelHtml = $title;
         $panelHtml .= '<div style="display:flex; flex-direction:column; gap:4px; margin:8px 0;">';
-        $panelHtml .= '<button type="button" id="' . $drawBtnId . '" class="ubButton" style="width:100%;">' . __('New line') . ' (N)</button>';
-        $panelHtml .= '<button type="button" id="' . $finishBtnId . '" class="ubButton" style="width:100%;">' . __('Finish line') . ' (Ctrl+Enter)</button>';
-        $panelHtml .= '<button type="button" id="' . $cancelBtnId . '" class="ubButton" style="width:100%;">' . __('Cancel drawing') . '</button>';
-        $panelHtml .= '<button type="button" id="' . $undoBtnId . '" class="ubButton" style="width:100%;">' . __('Undo changes') . ' (Ctrl+Z)</button>';
+        $hkLabel = __('Hotkey');
+        $panelHtml .= '<button type="button" id="' . $drawBtnId . '" class="ubButton" style="width:100%;" title="' . $hkLabel . ': N">' . wf_img('skins/add_icon.png') . ' ' . __('New line') . '</button>';
+        $panelHtml .= '<button type="button" id="' . $finishBtnId . '" class="ubButton" style="width:100%;" title="' . $hkLabel . ': Ctrl+Enter">' . wf_img('skins/done_icon.png') . ' ' . __('Finish line') . '</button>';
+        $panelHtml .= '<button type="button" id="' . $cancelBtnId . '" class="ubButton" style="width:100%;" title="' . $hkLabel . ': Esc">' . wf_img('skins/undone_icon.png') . ' ' . __('Cancel drawing') . '</button>';
+        $panelHtml .= '<button type="button" id="' . $undoBtnId . '" class="ubButton" style="width:100%;" title="' . $hkLabel . ': Ctrl+Z">' . wf_img('skins/undo_icon.png') . ' ' . __('Undo changes') . '</button>';
         $panelHtml .= '</div>';
         $panelHtml .= $data;
         $lineEditorJs = '
@@ -1326,7 +1283,7 @@ class CustomMaps {
                     var lineIdField = document.querySelector(\'input[name="newline_lineid"]\');
                     var geoField = document.querySelector(\'input[name="newline_geo"]\');
                     var nameField = document.querySelector(\'input[name="newline_name"]\');
-                    var fibersField = document.querySelector(\'input[name="newline_fibers_amount"]\');
+                    var fibersField = document.querySelector(\'select[name="newline_fibers_amount"]\');
                     var lengthField = document.querySelector(\'input[name="newline_length_m"]\');
                     var colorField = document.querySelector(\'input[name="newline_style_color"]\');
                     var widthField = document.querySelector(\'select[name="newline_style_width"]\');
@@ -1469,27 +1426,50 @@ class CustomMaps {
                     return result;
                 }
 
+                function ubMatchesHotkey(e, codeValue, keyValues) {
+                    var matched = false;
+                    if (e) {
+                        if (e.code && e.code === codeValue) {
+                            matched = true;
+                        } else {
+                            if (e.key && keyValues.indexOf(e.key) !== -1) {
+                                matched = true;
+                            }
+                        }
+                    }
+                    return matched;
+                }
+
                 function ubHotkeysHandler(e) {
                     if (ubIsTypingContext()) {
                         return;
                     }
-                    if (e && !e.ctrlKey && !e.altKey && !e.metaKey && (e.key === "n" || e.key === "N")) {
+                    var noMod = e && !e.ctrlKey && !e.altKey && !e.metaKey;
+                    var ctrlOnly = e && e.ctrlKey && !e.altKey && !e.metaKey;
+                    if (noMod && ubMatchesHotkey(e, "KeyN", ["n", "N"])) {
                         if (typeof e.preventDefault === "function") {
                             e.preventDefault();
                         }
                         ubStartDrawing();
                     } else {
-                        if (e && e.ctrlKey && !e.altKey && !e.metaKey && e.key === "Enter") {
+                        if (ctrlOnly && ubMatchesHotkey(e, "Enter", ["Enter"])) {
                             if (typeof e.preventDefault === "function") {
                                 e.preventDefault();
                             }
                             ubFinishDrawing();
                         } else {
-                            if (e && e.ctrlKey && !e.altKey && !e.metaKey && (e.key === "z" || e.key === "Z")) {
+                            if (ctrlOnly && ubMatchesHotkey(e, "KeyZ", ["z", "Z"])) {
                                 if (typeof e.preventDefault === "function") {
                                     e.preventDefault();
                                 }
                                 ubUndoActiveLineChanges();
+                            } else {
+                                if (noMod && ubMatchesHotkey(e, "Escape", ["Escape", "Esc"])) {
+                                    if (typeof e.preventDefault === "function") {
+                                        e.preventDefault();
+                                    }
+                                    ubCancelDrawing();
+                                }
                             }
                         }
                     }

@@ -108,17 +108,7 @@ if (cfr('CUSTMAP')) {
         if (!ubRouting::checkGet('showmap')) {
             if (ubRouting::checkGet('showitems')) {
                 $showItemsMapId = ubRouting::get('showitems', 'int');
-                if (!ubRouting::checkGet('duplicates')) {
-                    //render items list json data in background
-                    if (ubRouting::checkGet('ajax')) {
-                        $custmaps->renderItemsListJsonData($showItemsMapId);
-                    }
-                    //render map items list container
-                    show_window(__('Objects') . ': ' . $custmaps->mapGetName($showItemsMapId), $custmaps->renderItemsListFast($showItemsMapId));
-                } else {
-                    //show duplicate map objects
-                    show_window(__('Show duplicates') . ': ' . $custmaps->mapGetName($showItemsMapId), $custmaps->renderItemDuplicateList($showItemsMapId));
-                }
+                show_window(__('Objects') . ': ' . $custmaps->mapGetName($showItemsMapId), $custmaps->renderItemsList($showItemsMapId));
             } else {
                 if (ubRouting::checkGet('showlines')) {
                     $showLinesMapId = ubRouting::get('showlines', 'int');
@@ -194,7 +184,7 @@ if (cfr('CUSTMAP')) {
             //custom map layers processing
             if (ubRouting::checkGet('cl')) {
                 if (!empty(ubRouting::get('cl'))) {
-                    $custLayers = explode('z', ubRouting::get('cl'));
+                    $custLayers = explode('_', ubRouting::get('cl'));
                     if (!empty($custLayers)) {
                         foreach ($custLayers as $eachCustLayerId) {
                             if (!empty($eachCustLayerId)) {
