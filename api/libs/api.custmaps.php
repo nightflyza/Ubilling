@@ -497,8 +497,8 @@ class CustMaps {
     }
 
     /**
-     * Marker edit screen: saves POST data or renders edit form, photostorage link, additional comments.
-     * Checks CUSTMAPEDIT; shows permission denied if the right is missing.
+     * Renders marker edit UI: form, optional photostorage link, optional additional comments.
+     * Saving is handled in the module controller (POST edititemid / edititemtype).
      *
      * @param int $itemId
      *
@@ -507,23 +507,14 @@ class CustMaps {
     public function renderMarkerEdit($itemId) {
         $result = '';
         $itemId = ubRouting::filters($itemId, 'int');
-        if (!cfr('CUSTMAPEDIT')) {
-            show_error(__('Permission denied'));
-        } else {
-            if (ubRouting::checkPost(array('edititemid', 'edititemtype'))) {
-                $this->itemEdit($itemId, ubRouting::post('edititemtype'), ubRouting::post('edititemgeo'), ubRouting::post('edititemname'), ubRouting::post('edititemlocation'));
-                ubRouting::nav('?module=custmaps&edititem=' . $itemId);
-            } else {
-                show_window(__('Edit'), $this->itemEditForm($itemId));
-                if (isset($this->altCfg['PHOTOSTORAGE_ENABLED']) and $this->altCfg['PHOTOSTORAGE_ENABLED']) {
-                    $imageControl = wf_Link('?module=photostorage&scope=CUSTMAPSITEMS&itemid=' . $itemId . '&mode=list', wf_img('skins/photostorage.png') . ' ' . __('Upload images'), false, 'ubButton');
-                    show_window('', $imageControl);
-                }
-                if (isset($this->altCfg['ADCOMMENTS_ENABLED']) and $this->altCfg['ADCOMMENTS_ENABLED']) {
-                    $adcomments = new ADcomments('CUSTMAPMARKERS');
-                    show_window(__('Additional comments'), $adcomments->renderComments($itemId));
-                }
-            }
+        show_window(__('Edit'), $this->itemEditForm($itemId));
+        if (isset($this->altCfg['PHOTOSTORAGE_ENABLED']) and $this->altCfg['PHOTOSTORAGE_ENABLED']) {
+            $imageControl = wf_Link('?module=photostorage&scope=CUSTMAPSITEMS&itemid=' . $itemId . '&mode=list', wf_img('skins/photostorage.png') . ' ' . __('Upload images'), false, 'ubButton');
+            show_window('', $imageControl);
+        }
+        if (isset($this->altCfg['ADCOMMENTS_ENABLED']) and $this->altCfg['ADCOMMENTS_ENABLED']) {
+            $adcomments = new ADcomments('CUSTMAPMARKERS');
+            show_window(__('Additional comments'), $adcomments->renderComments($itemId));
         }
         return ($result);
     }

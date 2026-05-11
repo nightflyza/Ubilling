@@ -115,7 +115,16 @@ if (cfr('CUSTMAP')) {
                     show_window(__('Lines') . ': ' . $custmaps->mapGetName($showLinesMapId), $custmaps->renderLinesList($showLinesMapId));
                 } else {
                     if (ubRouting::checkGet('edititem')) {
-                        $custmaps->renderMarkerEdit(ubRouting::get('edititem', 'int'));
+                        if (cfr('CUSTMAPEDIT')) {
+                            $editItemId = ubRouting::get('edititem', 'int');
+                            if (ubRouting::checkPost(array('edititemid', 'edititemtype'))) {
+                                $custmaps->itemEdit($editItemId, ubRouting::post('edititemtype'), ubRouting::post('edititemgeo'), ubRouting::post('edititemname'), ubRouting::post('edititemlocation'));
+                                ubRouting::nav('?module=custmaps&edititem=' . $editItemId);
+                            }
+                            $custmaps->renderMarkerEdit($editItemId);
+                        } else {
+                            show_error(__('Permission denied'));
+                        }
                     } else {
                         if (ubRouting::checkGet('editline')) {
                             if (cfr('CUSTMAPEDIT')) {
