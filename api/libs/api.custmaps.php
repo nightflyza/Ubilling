@@ -108,6 +108,7 @@ class CustomMaps {
     protected $allLines = array();
 
     // some predefined stuff
+    const URL_ME = '?module=custmaps';
     const EX_NO_MAP_ID = 'NOT_EXISTING_MAP_ID';
     const EX_NO_ITM_ID = 'NOT_EXISTING_ITEM_ID';
     const EX_NO_LINE_ID = 'NOT_EXISTING_LINE_ID';
@@ -449,7 +450,11 @@ class CustomMaps {
                 $cells= wf_TableCell($nameLink,'90%');
                 $actLinks = '';
                 if (cfr('CUSTMAPEDIT')) {
-                    $actLinks.= wf_JSAlertStyled('?module=custmaps&deletemap=' . $each['id'], web_delete_icon(), $messages->getDeleteAlert()) . ' ';
+                    $deletionUrl = self::URL_ME . '&deletemap=' . $each['id'];
+                    $cancelUrl = self::URL_ME;
+                    $deleteTitle = __('Delete') . ' ' . $each['name'] . '?';
+                    $deletionDialog = wf_ConfirmDialog($deletionUrl, web_delete_icon(), $messages->getDeleteAlert(), '', $cancelUrl, $deleteTitle);
+                    $actLinks.= $deletionDialog . ' ';
                     $actLinks.= wf_modalAuto(web_edit_icon(), __('Edit'), $this->mapEditForm($each['id']));
                 }
                 $actLinks.= wf_Link('?module=custmaps&showmap=' . $each['id'], wf_img('skins/icon_map_small.png', __('Show')), false);
@@ -511,7 +516,7 @@ class CustomMaps {
             $this->itemsDb->data('location', $location);
             $this->itemsDb->where('id', '=', $itemid);
             $this->itemsDb->save(true, true);
-            log_register('CUSTMAPS EDIT ITEM [' . $itemid . ']');
+            log_register('CUSTMAPS EDIT MARKER [' . $itemid . ']');
         } else {
             throw new Exception(self::EX_NO_ITM_ID);
         }
@@ -583,7 +588,7 @@ class CustomMaps {
             $result = $this->allItems[$itemid]['mapid'];
             $this->itemsDb->where('id', '=', $itemid);
             $this->itemsDb->delete();
-            log_register('CUSTMAPS DELETE ITEM  ID [' . $itemid . ']');
+            log_register('CUSTMAPS DELETE MARKER ID [' . $itemid . ']');
         } else {
             throw new Exception(self::EX_NO_ITM_ID);
         }
@@ -658,7 +663,7 @@ class CustomMaps {
             log_register('CUSTMAPS DELETE MAP [' . $id . ']');
             $this->itemsDb->where('mapid', '=', $id);
             $this->itemsDb->delete();
-            log_register('CUSTMAPS FLUSH ITEMS [' . $id . ']');
+            log_register('CUSTMAPS FLUSH MARKERS [' . $id . ']');
             $this->linesDb->where('mapid', '=', $id);
             $this->linesDb->delete();
             log_register('CUSTMAPS FLUSH LINES [' . $id . ']');
@@ -1086,7 +1091,7 @@ class CustomMaps {
             $this->itemsDb->data('location', $location);
             $this->itemsDb->create();
             $newId = $this->itemsDb->getLastId();
-            log_register('CUSTMAPS CREATE ITEM `' . $name . '` ID [' . $newId . ']');
+            log_register('CUSTMAPS CREATE MARKER `' . $name . '` ID [' . $newId . ']');
         } else {
             throw new Exception(self::EX_NO_MAP_ID);
         }
