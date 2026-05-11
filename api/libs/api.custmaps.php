@@ -3,7 +3,7 @@
 /**
  * Custom users maps class
  */
-class CustomMaps {
+class CustMaps {
 
     /**
      * Contains all existing maps as id=>mapData
@@ -497,6 +497,38 @@ class CustomMaps {
     }
 
     /**
+     * Marker edit screen: saves POST data or renders edit form, photostorage link, additional comments.
+     * Checks CUSTMAPEDIT; shows permission denied if the right is missing.
+     *
+     * @param int $itemId
+     *
+     * @return string
+     */
+    public function renderMarkerEdit($itemId) {
+        $result = '';
+        $itemId = ubRouting::filters($itemId, 'int');
+        if (!cfr('CUSTMAPEDIT')) {
+            show_error(__('Permission denied'));
+        } else {
+            if (ubRouting::checkPost(array('edititemid', 'edititemtype'))) {
+                $this->itemEdit($itemId, ubRouting::post('edititemtype'), ubRouting::post('edititemgeo'), ubRouting::post('edititemname'), ubRouting::post('edititemlocation'));
+                ubRouting::nav('?module=custmaps&edititem=' . $itemId);
+            } else {
+                show_window(__('Edit'), $this->itemEditForm($itemId));
+                if (isset($this->altCfg['PHOTOSTORAGE_ENABLED']) and $this->altCfg['PHOTOSTORAGE_ENABLED']) {
+                    $imageControl = wf_Link('?module=photostorage&scope=CUSTMAPSITEMS&itemid=' . $itemId . '&mode=list', wf_img('skins/photostorage.png') . ' ' . __('Upload images'), false, 'ubButton');
+                    show_window('', $imageControl);
+                }
+                if (isset($this->altCfg['ADCOMMENTS_ENABLED']) and $this->altCfg['ADCOMMENTS_ENABLED']) {
+                    $adcomments = new ADcomments('CUSTMAPMARKERS');
+                    show_window(__('Additional comments'), $adcomments->renderComments($itemId));
+                }
+            }
+        }
+        return ($result);
+    }
+
+    /**
      * Changes existing item properties in database
      * 
      * @param string $itemid
@@ -539,17 +571,12 @@ class CustomMaps {
         $messages = new UbillingMessageHelper();
         $dataArr = array();
 
-        if ($this->altCfg['ADCOMMENTS_ENABLED']) {
-            $adcomments = new ADcomments('CUSTMAPITEMS');
-            $adc = true;
-        } else {
-            $adc = false;
-        }
+        $adcomments = new ADcomments('CUSTMAPMARKERS');
 
         if (!empty($this->allItems)) {
             foreach ($this->allItems as $io => $each) {
                 if ($each['mapid'] == $mapid) {
-                    $indicator = ($adc) ? $adcomments->getCommentsIndicator($each['id']) : '';
+                    $indicator = $adcomments->getCommentsIndicator($each['id']);
                     $actLinks = '';
                     if (cfr('CUSTMAPEDIT')) {
                         $actLinks .= wf_JSAlertStyled('?module=custmaps&deleteitem=' . $each['id'], web_delete_icon(), $messages->getDeleteAlert()) . ' ';

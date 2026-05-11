@@ -35,7 +35,6 @@ require_once('api/libs/api.ticketing.php');
 require_once('api/libs/api.corporate.php');
 require_once('api/libs/api.lousytariffs.php');
 require_once('api/libs/api.templatize.php');
-require_once('api/libs/api.custmaps.php');
 require_once('api/libs/api.deploy.php');
 require_once('api/libs/api.help.php');
 require_once('api/libs/api.sqldebug.php');

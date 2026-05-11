@@ -5,7 +5,7 @@ if (cfr('CUSTMAP')) {
     $altCfg = $ubillingConfig->getAlter();
 
     if ($altCfg['CUSTMAP_ENABLED']) {
-        $custmaps = new CustomMaps();
+        $custmaps = new CustMaps();
 
         // new custom map creation
         if (ubRouting::checkPost('newmapname')) {
@@ -115,30 +115,7 @@ if (cfr('CUSTMAP')) {
                     show_window(__('Lines') . ': ' . $custmaps->mapGetName($showLinesMapId), $custmaps->renderLinesList($showLinesMapId));
                 } else {
                     if (ubRouting::checkGet('edititem')) {
-                        if (cfr('CUSTMAPEDIT')) {
-                            $editItemId = ubRouting::get('edititem', 'int');
-                            //editing item
-                            if (ubRouting::checkPost(array('edititemid', 'edititemtype'))) {
-                                $custmaps->itemEdit($editItemId, ubRouting::post('edititemtype'), ubRouting::post('edititemgeo'), ubRouting::post('edititemname'), ubRouting::post('edititemlocation'));
-                                ubRouting::nav('?module=custmaps&edititem=' . $editItemId);
-                            }
-
-                            //show item edit form
-                            show_window(__('Edit'), $custmaps->itemEditForm($editItemId));
-                            //photostorage link
-                            if ($altCfg['PHOTOSTORAGE_ENABLED']) {
-                                $imageControl = wf_Link('?module=photostorage&scope=CUSTMAPSITEMS&itemid=' . $editItemId . '&mode=list', wf_img('skins/photostorage.png') . ' ' . __('Upload images'), false, 'ubButton');
-                                show_window('', $imageControl);
-                            }
-
-                            //additional comments
-                            if ($altCfg['ADCOMMENTS_ENABLED']) {
-                                $adcomments = new ADcomments('CUSTMAPITEMS');
-                                show_window(__('Additional comments'), $adcomments->renderComments($editItemId));
-                            }
-                        } else {
-                            show_error(__('Permission denied'));
-                        }
+                        $custmaps->renderMarkerEdit(ubRouting::get('edititem', 'int'));
                     } else {
                         if (ubRouting::checkGet('editline')) {
                             if (cfr('CUSTMAPEDIT')) {
