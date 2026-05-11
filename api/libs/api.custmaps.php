@@ -498,7 +498,6 @@ class CustMaps {
 
     /**
      * Renders marker edit UI: form, optional photostorage link, optional additional comments.
-     * Saving is handled in the module controller (POST edititemid / edititemtype).
      *
      * @param int $itemId
      *
@@ -507,11 +506,34 @@ class CustMaps {
     public function renderMarkerEdit($itemId) {
         $result = '';
         $itemId = ubRouting::filters($itemId, 'int');
-        show_window(__('Edit'), $this->itemEditForm($itemId));
+        $itemName=$this->allItems[$itemId]['name'];
+        show_window(__('Edit') . ': ' . $itemName, $this->itemEditForm($itemId));
+
+        $itemAttachControls='';
+        $itemAttachments='';
+
         if (isset($this->altCfg['PHOTOSTORAGE_ENABLED']) and $this->altCfg['PHOTOSTORAGE_ENABLED']) {
-            $imageControl = wf_Link('?module=photostorage&scope=CUSTMAPSITEMS&itemid=' . $itemId . '&mode=list', wf_img('skins/photostorage.png') . ' ' . __('Upload images'), false, 'ubButton');
-            show_window('', $imageControl);
+            $photostorage = new PhotoStorage('CUSTMAPMARKERS', $itemId);
+            $itemAttachControls .= wf_Link('?module=photostorage&scope=CUSTMAPMARKERS&itemid=' . $itemId . '&mode=list', wf_img('skins/photostorage.png') . ' ' . __('Upload images'), false, 'ubButton');
+            $itemAttachments .= $photostorage->renderImagesRaw();
         }
+
+        if (isset($this->altCfg['FILESTORAGE_ENABLED']) and $this->altCfg['FILESTORAGE_ENABLED']) {
+            $fileStorage = new FileStorage('CUSTMAPMARKERS', $itemId);
+            $callbackUrl= base64_encode(self::URL_ME . '&edititem=' . $itemId);
+            $itemAttachControls .= $fileStorage->renderNavigationButton(' '.__('Upload files'), 'ubButton', '&callback=' . $callbackUrl);
+            $itemAttachments .= $fileStorage->renderFilesPreview(false, '', '', 64);
+        }
+
+        if (!empty($itemAttachControls)) {
+            $attachmentsUi=$itemAttachControls;
+            $attachmentsUi.= wf_delimiter();
+            $attachmentsUi.=$itemAttachments;
+
+            show_window('', $attachmentsUi);
+            
+        }
+
         if (isset($this->altCfg['ADCOMMENTS_ENABLED']) and $this->altCfg['ADCOMMENTS_ENABLED']) {
             $adcomments = new ADcomments('CUSTMAPMARKERS');
             show_window(__('Additional comments'), $adcomments->renderComments($itemId));

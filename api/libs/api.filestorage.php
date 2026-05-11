@@ -367,7 +367,7 @@ class FileStorage {
     /**
      * Renders attached files preview with optional navigation button
      * 
-     * @param bool $navbutton
+     * @param bool $navButton
      * @param string $navbuttonText
      * @param string $navbuttonClass
      * @param int $iconSize
@@ -378,7 +378,6 @@ class FileStorage {
      */
     public function renderFilesPreview($navButton = false, $navbuttonText = '', $navbuttonClass = 'ubButton', $iconSize = '32', $urlAppend = '', $targetBlank = false) {
         $result = '';
-        $target = ($targetBlank ? ' target="_blank" ' : '');
 
         if (empty($this->allFiles)) {
             $this->loadAllFiles();
@@ -387,8 +386,7 @@ class FileStorage {
         $result .= wf_tag('div', false, '', '');
 
         if ($navButton) {
-            $mgmtUrl = self::URL_ME . '&scope=' . $this->scope . '&itemid=' . $this->itemId . '&mode=list' . $urlAppend;
-            $result .= wf_Link($mgmtUrl, wf_img('skins/photostorage_upload.png', __('Upload')) . $navbuttonText, false, $navbuttonClass, $target);
+            $result .= $this->renderNavigationButton($navbuttonText, $navbuttonClass, $urlAppend, $targetBlank);
         }
 
         if (!empty($this->allFiles)) {
@@ -410,6 +408,24 @@ class FileStorage {
         $result .= wf_tag('div', true);
         $result .= wf_CleanDiv();
         return($result);
+    }
+
+    /**
+     * Renders link to filestorage file list (upload/management) for current scope/item, without file previews
+     *
+     * @param string $buttonText
+     * @param string $buttonClass
+     * @param string $urlAppend appended to default list URL (same as renderFilesPreview)
+     * @param bool $targetBlank
+     *
+     * @return string
+     */
+    public function renderNavigationButton($buttonText = '', $buttonClass = 'ubButton', $urlAppend = '', $targetBlank = false) {
+        $result = '';
+        $target = ($targetBlank ? ' target="_blank" ' : '');
+        $mgmtUrl = self::URL_ME . '&scope=' . $this->scope . '&itemid=' . $this->itemId . '&mode=list' . $urlAppend;
+        $result .= wf_Link($mgmtUrl, wf_img('skins/photostorage_upload.png', __('Upload')) . $buttonText, false, $buttonClass, $target);
+        return ($result);
     }
 
     /**

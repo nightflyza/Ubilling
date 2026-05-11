@@ -284,7 +284,7 @@ class PhotoStorage {
         if ($this->scope == 'USERPROFILE') {
             $result = web_UserControls($this->itemId);
         }
-        if ($this->scope == 'CUSTMAPSITEMS') {
+        if ($this->scope == 'CUSTMAPMARKERS') {
             $result = wf_BackLink('?module=custmaps&edititem=' . $this->itemId);
         }
         if ($this->scope == 'WAREHOUSEITEMTYPE') {
