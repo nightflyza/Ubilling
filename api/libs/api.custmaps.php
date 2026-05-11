@@ -1212,10 +1212,10 @@ class CustomMaps {
         $panelHtml = $title;
         $panelHtml .= '<div style="display:flex; flex-direction:column; gap:4px; margin:8px 0;">';
         $hkLabel = __('Hotkey');
-        $panelHtml .= '<button type="button" id="' . $drawBtnId . '" class="ubButton" style="width:100%;" title="' . $hkLabel . ': N">' . wf_img('skins/add_icon.png') . ' ' . __('New line') . '</button>';
-        $panelHtml .= '<button type="button" id="' . $finishBtnId . '" class="ubButton" style="width:100%;" title="' . $hkLabel . ': Ctrl+Enter">' . wf_img('skins/done_icon.png') . ' ' . __('Finish line') . '</button>';
-        $panelHtml .= '<button type="button" id="' . $cancelBtnId . '" class="ubButton" style="width:100%;" title="' . $hkLabel . ': Esc">' . wf_img('skins/undone_icon.png') . ' ' . __('Cancel drawing') . '</button>';
-        $panelHtml .= '<button type="button" id="' . $undoBtnId . '" class="ubButton" style="width:100%;" title="' . $hkLabel . ': Ctrl+Z">' . wf_img('skins/undo_icon.png') . ' ' . __('Undo changes') . '</button>';
+        $panelHtml .= '<button type="button" id="' . $drawBtnId . '" class="ubButton" style="width:100%; text-align:left;" title="' . $hkLabel . ': N">' . wf_img('skins/add_icon.png') . ' ' . __('New line') . '</button>';
+        $panelHtml .= '<button type="button" id="' . $finishBtnId . '" class="ubButton" style="width:100%; text-align:left;" title="' . $hkLabel . ': Ctrl+Enter">' . wf_img('skins/done_icon.png') . ' ' . __('Finish line') . '</button>';
+        $panelHtml .= '<button type="button" id="' . $cancelBtnId . '" class="ubButton" style="width:100%; text-align:left;" title="' . $hkLabel . ': Esc">' . wf_img('skins/undone_icon.png') . ' ' . __('Cancel drawing') . '</button>';
+        $panelHtml .= '<button type="button" id="' . $undoBtnId . '" class="ubButton" style="width:100%; text-align:left;" title="' . $hkLabel . ': Ctrl+Z">' . wf_img('skins/undo_icon.png') . ' ' . __('Undo changes') . '</button>';
         $panelHtml .= '</div>';
         $panelHtml .= $data;
         $lineEditorConfig = array(
