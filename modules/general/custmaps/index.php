@@ -108,7 +108,7 @@ if (cfr('CUSTMAP')) {
         if (!ubRouting::checkGet('showmap')) {
             if (ubRouting::checkGet('showitems')) {
                 $showItemsMapId = ubRouting::get('showitems', 'int');
-                show_window(__('Objects') . ': ' . $custmaps->mapGetName($showItemsMapId), $custmaps->renderItemsList($showItemsMapId));
+                show_window(__('Markers') . ': ' . $custmaps->mapGetName($showItemsMapId), $custmaps->renderItemsList($showItemsMapId));
             } else {
                 if (ubRouting::checkGet('showlines')) {
                     $showLinesMapId = ubRouting::get('showlines', 'int');

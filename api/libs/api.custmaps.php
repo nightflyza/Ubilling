@@ -437,16 +437,16 @@ class CustomMaps {
 
         $result = $this->mapListControls();
 
-        $cells = wf_TableCell(__('ID'));
-        $cells.= wf_TableCell(__('Name'));
+        
+        $cells= wf_TableCell(__('Name'));
         $cells.= wf_TableCell(__('Actions'));
         $rows = wf_TableRow($cells, 'row1');
 
         if (!empty($this->allMaps)) {
             foreach ($this->allMaps as $io => $each) {
-                $cells = wf_TableCell($each['id']);
+                
                 $nameLink = wf_Link('?module=custmaps&showmap=' . $each['id'], $each['name'], false);
-                $cells.= wf_TableCell($nameLink,'80%');
+                $cells= wf_TableCell($nameLink,'90%');
                 $actLinks = '';
                 if (cfr('CUSTMAPEDIT')) {
                     $actLinks.= wf_JSAlertStyled('?module=custmaps&deletemap=' . $each['id'], web_delete_icon(), $messages->getDeleteAlert()) . ' ';
