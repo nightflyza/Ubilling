@@ -115,16 +115,18 @@ if (cfr('CUSTMAP')) {
                     show_window(__('Lines') . ': ' . $custmaps->mapGetName($showLinesMapId), $custmaps->renderLinesList($showLinesMapId));
                 } else {
                     if (ubRouting::checkGet('edititem')) {
-                        if (cfr('CUSTMAPEDIT')) {
-                            $editItemId = ubRouting::get('edititem', 'int');
-                            if (ubRouting::checkPost(array('edititemid', 'edititemtype'))) {
+                        $editItemId = ubRouting::get('edititem', 'int');
+                        if (ubRouting::checkPost(array('edititemid', 'edititemtype'))) {
+                            if (cfr('CUSTMAPEDIT')) {
                                 $custmaps->itemEdit($editItemId, ubRouting::post('edititemtype'), ubRouting::post('edititemgeo'), ubRouting::post('edititemname'), ubRouting::post('edititemlocation'));
                                 ubRouting::nav('?module=custmaps&edititem=' . $editItemId);
+                            } else {
+                                show_error(__('Permission denied'));
                             }
-                            $custmaps->renderMarkerEdit($editItemId);
-                        } else {
-                            show_error(__('Permission denied'));
                         }
+
+                        //render marker edit UI aka marker profile
+                        $custmaps->renderMarkerEdit($editItemId);
                     } else {
                         if (ubRouting::checkGet('editline')) {
                             if (cfr('CUSTMAPEDIT')) {
@@ -181,6 +183,7 @@ if (cfr('CUSTMAP')) {
                     }
                 }
             }
+            
             if (ubRouting::checkGet(array('mapedit', 'showmap'))) {
                 if (cfr('CUSTMAPEDIT')) {
                     $custmaps->mapLocationEditor();

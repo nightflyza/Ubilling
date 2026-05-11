@@ -59,30 +59,13 @@ class CustMaps {
     protected $mapCore = null;
 
     /**
-     * Default clustering options.
-     *
-     * @var array
-     */
-    protected $clustringOptions = array(
-        'maxClusterRadius' => 80,
-        'iconCreateFunction' => null,
-        'spiderfyOnMaxZoom' => true,
-        'showCoverageOnHover' => true,
-        'zoomToBoundsOnClick' => true,
-        'singleMarkerMode' => false,
-        'disableClusteringAtZoom' => null,
-        'removeOutsideVisibleBounds' => true,
-        'animate' => true,
-    );
-
-    /**
      * Database abstraction layer for maps
      *
      * @var object
      */
     protected $mapsDb = null;
     /**
-     * Database abstraction layer for items
+     * Database abstraction layer for items aka markers
      * 
      * @var object
      */
@@ -107,14 +90,34 @@ class CustMaps {
      */
     protected $allLines = array();
 
-    // some predefined stuff
+    /**
+     * Default clustering options.
+     *
+     * @var array
+     */
+    protected $clustringOptions = array(
+        'maxClusterRadius' => 80,
+        'iconCreateFunction' => null,
+        'spiderfyOnMaxZoom' => true,
+        'showCoverageOnHover' => true,
+        'zoomToBoundsOnClick' => true,
+        'singleMarkerMode' => false,
+        'disableClusteringAtZoom' => null,
+        'removeOutsideVisibleBounds' => true,
+        'animate' => true,
+    );
+
+    /** 
+     * Some predefined stuff like URLs, routes etc
+     */
     const URL_ME = '?module=custmaps';
-    const EX_NO_MAP_ID = 'NOT_EXISTING_MAP_ID';
-    const EX_NO_ITM_ID = 'NOT_EXISTING_ITEM_ID';
-    const EX_NO_LINE_ID = 'NOT_EXISTING_LINE_ID';
     const TABLE_MAPS = 'custmaps';
     const TABLE_ITEMS = 'custmapsitems';
     const TABLE_LINES = 'custmaps_lines';
+    
+    const EX_NO_MAP_ID = 'NOT_EXISTING_MAP_ID';
+    const EX_NO_ITM_ID = 'NOT_EXISTING_ITEM_ID';
+    const EX_NO_LINE_ID = 'NOT_EXISTING_LINE_ID';
     const LINE_DEFAULT_COLOR = '#f57601';
     const LINE_DEFAULT_FIBERS_AMOUNT = 0;
     const LINE_DEFAULT_WIDTH = 2;
@@ -488,7 +491,10 @@ class CustMaps {
             $inputs.= wf_TextInput('edititemgeo', __('Geo location'), $this->allItems[$itemid]['geo'], true, '20', 'geo');
             $inputs.= wf_TextInput('edititemname', __('Name'), $this->allItems[$itemid]['name'], true, '20');
             $inputs.= wf_TextInput('edititemlocation', __('Location'), $this->allItems[$itemid]['location'], true, '20');
-            $inputs.= wf_Submit(__('Save'));
+            if (cfr('CUSTMAPEDIT')) {
+                $inputs.=wf_delimiter(0);
+                $inputs.= wf_Submit(__('Save'));
+            }
             $result.= wf_Form('', 'POST', $inputs, 'glamour');
         } else {
             throw new Exception(self::EX_NO_ITM_ID);
@@ -525,15 +531,35 @@ class CustMaps {
             $itemAttachments .= $fileStorage->renderFilesPreview(false, '', '', 64);
         }
 
+        //render attachments UI
         if (!empty($itemAttachControls)) {
-            $attachmentsUi=$itemAttachControls;
-            $attachmentsUi.= wf_delimiter();
+            $attachmentsUi='';
+            if (cfr('CUSTMAPEDIT')) {
+              $attachmentsUi.= $itemAttachControls;
+              $attachmentsUi.= wf_delimiter();
+            }
             $attachmentsUi.=$itemAttachments;
-
             show_window('', $attachmentsUi);
-            
         }
 
+        //minimap here if item has geo location
+        if (!empty($this->allItems[$itemId]['geo'])) {
+            $findingZoom = $this->ymapsCfg['FINDING_ZOOM'];
+            $miniMap = new MapCore('custmapmarkerminimap');
+            $miniMap->setCenter($this->allItems[$itemId]['geo']);
+            $miniMap->setZoom($findingZoom);
+            $markerIcon = $this->itemGetIcon($this->allItems[$itemId]['type']);
+            $markerContent = $this->itemGetTypeName($this->allItems[$itemId]['type']) . ': ' . $itemName;
+            $miniMap->addMarker($this->allItems[$itemId]['geo'], $markerContent, array(
+                'icon' => $markerIcon,
+                'popupTitle' => $this->allItems[$itemId]['location'],
+                'tooltip' => $markerContent
+            ));
+            show_window('', $miniMap->renderContainer('100%', '350px'));
+            show_window('', $miniMap->render());
+        }
+
+        //render additional comments
         if (isset($this->altCfg['ADCOMMENTS_ENABLED']) and $this->altCfg['ADCOMMENTS_ENABLED']) {
             $adcomments = new ADcomments('CUSTMAPMARKERS');
             show_window(__('Additional comments'), $adcomments->renderComments($itemId));
@@ -571,7 +597,7 @@ class CustMaps {
     }
 
     /**
-     * Returns existing map items list as embedded datatable
+     * Returns existing map markers list as embedded datatable
      *
      * @param int $mapid
      *
@@ -593,7 +619,9 @@ class CustMaps {
                     $actLinks = '';
                     if (cfr('CUSTMAPEDIT')) {
                         $actLinks .= wf_JSAlertStyled('?module=custmaps&deleteitem=' . $each['id'], web_delete_icon(), $messages->getDeleteAlert()) . ' ';
-                        $actLinks .= wf_JSAlertStyled('?module=custmaps&edititem=' . $each['id'], web_edit_icon(), $messages->getEditAlert()) . ' ';
+                        $actLinks .= wf_Link('?module=custmaps&edititem=' . $each['id'], web_edit_icon()) . ' ';
+                    } else {
+                        $actLinks .= wf_Link('?module=custmaps&edititem=' . $each['id'], web_edit_icon('Show'), false) . ' ';
                     }
                     $actLinks .= wf_Link('?module=custmaps&showmap=' . $each['mapid'] . '&locateitem=' . $each['geo'] . '&zoom=' . $this->ymapsCfg['FINDING_ZOOM'], wf_img('skins/icon_search_small.gif', __('Find on map')), false) . ' ';
                     $actLinks .= $indicator;
@@ -771,6 +799,8 @@ class CustMaps {
                     $controls = '';
                     if (cfr('CUSTMAPEDIT')) {
                         $controls = wf_Link('?module=custmaps&edititem=' . $each['id'], web_edit_icon(), false);
+                    } else {
+                        $controls = wf_Link('?module=custmaps&edititem=' . $each['id'], web_edit_icon('View'), false);
                     }
                     $this->mapCore->addMarker($each['geo'], $content, array(
                         'icon' => $icon,
@@ -941,7 +971,7 @@ class CustMaps {
         $mapid = ubRouting::filters($mapid, 'int');
         $messages = new UbillingMessageHelper();
         $opts = '"order": [[ 0, "desc" ]]';
-        $columns = array('ID', 'Name', 'Fibers amount', 'Length', 'Actions');
+        $columns = array('ID', 'Name', 'Fibers', __('Length'). ' (' . __('m') . ')', 'Actions');
         $dataArr = array();
 
         if (!empty($this->allLines)) {
@@ -957,7 +987,7 @@ class CustMaps {
                         $lineId,
                         $lineData['name'],
                         $lineData['fibers_amount'],
-                        $lineData['length_m'],
+                        round($lineData['length_m']),
                         $actLinks,
                     );
                 }

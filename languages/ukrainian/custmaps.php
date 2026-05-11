@@ -14,4 +14,4 @@ $lang['def']['Line editor'] = 'Редактор ліній';
 $lang['def']['Save line'] = 'Зберегти лінію';
 $lang['def']['Hotkey'] = 'Комбінація клавіш';
 $lang['def']['right to use custom maps'] = 'Право використовувати користувацькі мапи';
-
+$lang['def']['Fibers'] = 'Волокон';
