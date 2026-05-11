@@ -116,6 +116,9 @@ class CustomMaps {
     const TABLE_ITEMS = 'custmapsitems';
     const TABLE_LINES = 'custmaps_lines';
     const LINE_DEFAULT_COLOR = '#f57601';
+    const LINE_DEFAULT_FIBERS_AMOUNT = 0;
+    const LINE_DEFAULT_WIDTH = 2;
+    const LINE_EDITOR_LIB='modules/jsc/custmaps/line-editor.js';
 
     public function __construct() {
         $this->setShowMapId();
@@ -824,9 +827,13 @@ class CustomMaps {
                 if (($lineData['mapid'] == $id) and (!empty($lineData['geo']))) {
                     $points = $this->lineParsePoints($lineData['geo']);
                     if (count($points) > 1) {
-                        $lineColor = !empty($lineData['style_color']) ? $lineData['style_color'] : '#f57601';
-                        $lineWeight = !empty($lineData['style_width']) ? $lineData['style_width'] : 2;
-                        $content = __('Fibers amount') . ': ' . $lineData['fibers_amount'] . '<br>';
+                        $lineColor = !empty($lineData['style_color']) ? $lineData['style_color'] : self::LINE_DEFAULT_COLOR;
+                        $lineWeight = !empty($lineData['style_width']) ? $lineData['style_width'] : self::LINE_DEFAULT_WIDTH;
+                        $lineFibers = self::LINE_DEFAULT_FIBERS_AMOUNT;
+                        if (isset($lineData['fibers_amount']) and $lineData['fibers_amount'] !== '' and $lineData['fibers_amount'] !== null) {
+                            $lineFibers = $lineData['fibers_amount'];
+                        }
+                        $content = __('Fibers amount') . ': ' . $lineFibers . '<br>';
                         $content.= __('Length') . ': ' . $lineData['length_m'] . '<br>';
                         $content.= __('Description') . ': ' . $lineData['description'] . '<br>';
                         if (cfr('CUSTMAPEDIT')) {
@@ -841,7 +848,7 @@ class CustomMaps {
                             'lineId' => $lineId,
                             'meta' => array(
                                 'name' => $lineData['name'],
-                                'fibers_amount' => $lineData['fibers_amount'],
+                                'fibers_amount' => $lineFibers,
                                 'length_m' => $lineData['length_m'],
                                 'style_color' => $lineColor,
                                 'style_width' => $lineWeight,
@@ -1180,10 +1187,10 @@ class CustomMaps {
         $inputs.= wf_HiddenInput('newline_lineid', '');
         $inputs.= wf_HiddenInput('newline_geo', '');
         $inputs.= wf_TextInput('newline_name', __('Name'), '', true, 20);
-        $inputs.= wf_Selector('newline_fibers_amount', $this->lineGetFibersAmountOptions(), __('Fibers amount'), '0', true);
+        $inputs.= wf_Selector('newline_fibers_amount', $this->lineGetFibersAmountOptions(), __('Fibers amount'), strval(self::LINE_DEFAULT_FIBERS_AMOUNT), true);
         $inputs.= wf_TextInput('newline_length_m', __('Length'), '0', true, 8);
         $inputs.= wf_ColorInput('newline_style_color', __('Color'), $lineColor, true, 'ubLineEditorColor_' . $mapid);
-        $inputs.= wf_Selector('newline_style_width', $this->lineGetWidthOptions(), __('Line width'), '2', true);
+        $inputs.= wf_Selector('newline_style_width', $this->lineGetWidthOptions(), __('Line width'), strval(self::LINE_DEFAULT_WIDTH), true);
         $inputs.= wf_TextInput('newline_description', __('Description'), '', false, 20);
         $inputs.= wf_tag('br');
         $inputs.= wf_Submit(__('Save line'));
@@ -1222,17 +1229,19 @@ class CustomMaps {
             'undoBtnId' => $undoBtnId,
             'initialEditLineId' => (ubRouting::checkGet('editline') ? ubRouting::get('editline', 'int') : 0),
             'defaultColor' => self::LINE_DEFAULT_COLOR,
+            'defaultFibersAmount' => self::LINE_DEFAULT_FIBERS_AMOUNT,
+            'defaultWidth' => self::LINE_DEFAULT_WIDTH,
         );
         $lineEditorConfigJs = json_encode($lineEditorConfig, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT);
         if ($lineEditorConfigJs === false) {
             $lineEditorConfigJs = '{}';
         }
-        $this->mapCore->addScriptSrc('modules/jsc/custmaps/ub-custmaps-line-editor.js');
+        $this->mapCore->addScriptSrc(self::LINE_EDITOR_LIB);
         $lineEditorJs = '
             (function() {
                 if (typeof ubCustmapsLineEditorInit !== "function") {
                     if (window.console && typeof console.warn === "function") {
-                        console.warn("CustMaps: ub-custmaps-line-editor.js is not loaded");
+                        console.warn("CustMaps: line-editor.js is not loaded");
                     }
                     return;
                 }

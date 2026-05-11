@@ -10,6 +10,8 @@
  * @param {string} config.undoBtnId
  * @param {number} [config.initialEditLineId]
  * @param {string} [config.defaultColor]
+ * @param {number} [config.defaultFibersAmount]
+ * @param {number} [config.defaultWidth]
  */
 window.ubCustmapsLineEditorInit = function(map, config) {
     if (typeof L.Editable !== "function") {
@@ -33,6 +35,17 @@ window.ubCustmapsLineEditorInit = function(map, config) {
         ubInitialEditLineId = 0;
     }
     var ubDefaultColor = config.defaultColor ? String(config.defaultColor) : "#f57601";
+    var ubDefaultFibersAmountStr = "0";
+    if (typeof config.defaultFibersAmount !== "undefined" && config.defaultFibersAmount !== null) {
+        ubDefaultFibersAmountStr = String(config.defaultFibersAmount);
+    }
+    var ubDefaultWidth = 2;
+    if (typeof config.defaultWidth !== "undefined" && config.defaultWidth !== null && String(config.defaultWidth) !== "") {
+        var ubParsedDefaultWidth = parseInt(String(config.defaultWidth), 10);
+        if (!isNaN(ubParsedDefaultWidth)) {
+            ubDefaultWidth = ubParsedDefaultWidth;
+        }
+    }
 
     var ubActiveLine = null;
     var ubDrawingLine = null;
@@ -152,7 +165,7 @@ window.ubCustmapsLineEditorInit = function(map, config) {
                     nameField.value = "";
                 }
                 if (fibersField) {
-                    fibersField.value = "0";
+                    fibersField.value = ubDefaultFibersAmountStr;
                 }
                 if (colorField) {
                     if (activeLineColor) {
@@ -162,7 +175,7 @@ window.ubCustmapsLineEditorInit = function(map, config) {
                     }
                 }
                 if (widthField) {
-                    widthField.value = "2";
+                    widthField.value = String(ubDefaultWidth);
                 }
                 if (descriptionField) {
                     descriptionField.value = "";
@@ -179,13 +192,13 @@ window.ubCustmapsLineEditorInit = function(map, config) {
         ubLineSnapshots[key] = ubLineToArray(line);
         if (line && line.options) {
             ubLineStyles[key] = {
-                color: line.options.color ? line.options.color : "#f57601",
-                weight: line.options.weight ? line.options.weight : 2
+                color: line.options.color ? line.options.color : ubDefaultColor,
+                weight: line.options.weight ? line.options.weight : ubDefaultWidth
             };
         } else {
             ubLineStyles[key] = {
-                color: "#f57601",
-                weight: 2
+                color: ubDefaultColor,
+                weight: ubDefaultWidth
             };
         }
         if (line && line._ubLineMeta) {
@@ -353,14 +366,14 @@ window.ubCustmapsLineEditorInit = function(map, config) {
         var colorField = document.querySelector('input[name="newline_style_color"]');
         var widthField = document.querySelector('select[name="newline_style_width"]');
         var drawColor = ubGenerateRandomLineColor();
-        var drawWidth = 2;
+        var drawWidth = ubDefaultWidth;
         if (colorField) {
             colorField.value = drawColor;
         }
         if (widthField && widthField.value) {
             drawWidth = parseInt(widthField.value, 10);
             if (isNaN(drawWidth)) {
-                drawWidth = 2;
+                drawWidth = ubDefaultWidth;
             }
         }
         ubIsDrawingMode = true;
