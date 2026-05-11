@@ -842,6 +842,8 @@ class MapCore {
         $dashArray = isset($options['dashArray']) ? $options['dashArray'] : '';
         $hint = isset($options['hint']) ? $options['hint'] : '';
         $popupTitle = isset($options['popupTitle']) ? $options['popupTitle'] : '';
+        $lineId = isset($options['lineId']) ? (int) $options['lineId'] : 0;
+        $lineMeta = isset($options['meta']) ? $options['meta'] : array();
 
         $popupHtml = '';
         if (!empty($popupTitle)) {
@@ -870,6 +872,16 @@ class MapCore {
         }
         if (!empty($hint)) {
             $this->placemarks .= 'ubPolyline_' . $polylineId . '.bindTooltip(' . $this->quoteJs($hint) . ', {sticky: true});';
+        }
+        if ($lineId > 0) {
+            $this->placemarks .= 'ubPolyline_' . $polylineId . '._ubLineId = ' . $lineId . ';';
+        }
+        if (is_array($lineMeta) and !empty($lineMeta)) {
+            $lineMetaJs = json_encode($lineMeta);
+            if ($lineMetaJs === false) {
+                $lineMetaJs = '{}';
+            }
+            $this->placemarks .= 'ubPolyline_' . $polylineId . '._ubLineMeta = ' . $lineMetaJs . ';';
         }
         return ($this);
     }
@@ -1312,6 +1324,7 @@ class MapCore {
         $result = '';
         $result .= wf_tag('link', false, '', 'rel="stylesheet" href="modules/jsc/leaflet/leaflet.css"');
         $result .= wf_tag('script', false, '', 'src="modules/jsc/leaflet/leaflet.js"') . wf_tag('script', true);
+        $result .= wf_tag('script', false, '', 'src="modules/jsc/leaflet-editable/src/Leaflet.Editable.js"') . wf_tag('script', true);
         $result .= wf_tag('link', false, '', 'rel="stylesheet" href="modules/jsc/leaflet-geocoder/Control.Geocoder.css"');
         $result .= wf_tag('script', false, '', 'src="modules/jsc/leaflet-geocoder/Control.Geocoder.min.js"') . wf_tag('script', true);
         $result .= wf_tag('link', false, '', 'rel="stylesheet" href="modules/jsc/leaflet-ruler/src/leaflet-ruler.css"');

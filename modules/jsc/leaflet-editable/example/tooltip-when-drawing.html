@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset='utf-8'>
+  <meta name="viewport" content="width=device-width,height=device-height, user-scalable=no" />
+  <title>Leaflet.Editable demo</title>
+  <link rel="stylesheet" href="https://npmcdn.com/leaflet@1.2.0/dist/leaflet.css" />
+  <script src="https://npmcdn.com/leaflet@1.2.0/dist/leaflet.js"></script>
+  <script src="https://npmcdn.com/leaflet.path.drag/src/Path.Drag.js"></script>
+  <script src="../src/Leaflet.Editable.js"></script>
+
+  <style type='text/css'>
+      body { margin:0; padding:0; }
+      #map { position:absolute; top:0; bottom:0; right: 0; left: 0; width:100%; }
+      #tooltip {
+        display: none;
+        position: absolute;
+        background: #666;
+        color: white;
+        opacity: 0.5;
+        padding: 10px;
+        border: 1px dashed #999;
+        font-family: sans-serif;
+        font-size: 12px;
+        height: 20px;
+        line-height: 20px;
+        z-index: 1000;
+      }
+</style>
+</head>
+<body>
+  <div id='map'></div>
+  <div id='tooltip'></div>
+
+<script type="text/javascript">
+var startPoint = [43.1249, 1.254];
+var map = L.map('map', {editable: true}).setView(startPoint, 16),
+    tilelayer = L.tileLayer('https://a.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png', {maxZoom: 20, attribution: 'Data \u00a9 <a href="https://www.openstreetmap.org/copyright"> OpenStreetMap Contributors </a> Tiles \u00a9 HOT'}).addTo(map);
+
+    L.NewLineControl = L.Control.extend({
+
+        options: {
+            position: 'topleft'
+        },
+
+        onAdd: function (map) {
+            var container = L.DomUtil.create('div', 'leaflet-control leaflet-bar'),
+                link = L.DomUtil.create('a', '', container);
+
+            link.href = '#';
+            link.title = 'Create a new line';
+            link.innerHTML = '/\\/';
+            L.DomEvent.on(link, 'click', L.DomEvent.stop)
+                      .on(link, 'click', function () {
+                        map.editTools.startPolyline();
+                      });
+
+            return container;
+        }
+    });
+    map.addControl(new L.NewLineControl());
+
+    var tooltip = L.DomUtil.get('tooltip');
+    function addTooltip (e) {
+      L.DomEvent.on(document, 'mousemove', moveTooltip);
+      tooltip.innerHTML = 'Click on the map to start a line.';
+      tooltip.style.display = 'block';
+    }
+
+    function removeTooltip (e) {
+      tooltip.innerHTML = '';
+      tooltip.style.display = 'none';
+      L.DomEvent.off(document, 'mousemove', moveTooltip);
+    }
+
+    function moveTooltip (e) {
+      tooltip.style.left = e.clientX + 20 + 'px';
+      tooltip.style.top = e.clientY - 10 + 'px';
+    }
+
+    function updateTooltip (e) {
+      if (e.layer.editor._drawnLatLngs.length < e.layer.editor.MIN_VERTEX) {
+        tooltip.innerHTML = 'Click on the map to continue line.';
+      }
+      else {
+        tooltip.innerHTML = 'Click on last point to finish line.';
+      }
+    }
+    map.on('editable:drawing:start', addTooltip);
+    map.on('editable:drawing:end', removeTooltip);
+    map.on('editable:drawing:click', updateTooltip);
+
+</script>
+</body>
+</html>

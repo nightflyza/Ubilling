@@ -2334,6 +2334,33 @@ function wf_ColPicker($name, $label = '', $value = '', $br = false, $size = '', 
 }
 
 /**
+ * Returns native HTML5 color input
+ *
+ * @param string $name
+ * @param string $label
+ * @param string $value
+ * @param bool $br
+ * @param string $ctrlId
+ *
+ * @return string
+ */
+function wf_ColorInput($name, $label = '', $value = '', $br = false, $ctrlId = '') {
+    $value = trim((string) $value);
+    if (empty($value)) {
+        $value = '#f57601';
+    }
+    if (!preg_match('/^#[0-9a-fA-F]{6}$/', $value)) {
+        $value = '#f57601';
+    }
+    $id = !empty($ctrlId) ? $ctrlId : wf_InputId();
+    $result = '<input type="color" name="' . $name . '" value="' . $value . '" id="' . $id . '">' . "\n";
+    $result .= (!empty($label)) ? '<label for="' . $id . '">' . __($label) . '</label>' : null;
+    $result .= (!empty($br)) ? '<br>' : null;
+    $result .= "\n";
+    return ($result);
+}
+
+/**
  * Return Jquery UI selectable combobox
  *
  * @param string  $name name of element

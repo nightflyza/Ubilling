@@ -60,40 +60,53 @@ if (cfr('CUSTMAP')) {
             }
         }
 
-        if (!ubRouting::checkGet('showmap')) {
-
-            if (!ubRouting::checkGet('showitems')) {
-                if (!ubRouting::checkGet('edititem')) {
-                    //render existing custom maps list
-                    show_window(__('Available custom maps'), $custmaps->renderMapList());
-                    zb_BillingStats(true);
+        //creating new map line
+        if (ubRouting::checkPost(array('newline_mapid', 'newline_style_width', 'newline_style_color', 'newline_geo'))) {
+            if (cfr('CUSTMAPEDIT')) {
+                $lineMapId = ubRouting::post('newline_mapid', 'int');
+                $lineId = ubRouting::post('newline_lineid', 'int');
+                if (!empty($lineId)) {
+                    $custmaps->lineEdit(
+                        $lineId,
+                        ubRouting::post('newline_name'),
+                        ubRouting::post('newline_fibers_amount'),
+                        ubRouting::post('newline_length_m'),
+                        ubRouting::post('newline_style_color'),
+                        ubRouting::post('newline_style_width'),
+                        ubRouting::post('newline_description'),
+                        ubRouting::post('newline_geo')
+                    );
+                    ubRouting::nav('?module=custmaps&showmap=' . $lineMapId . '&lineedit=true&editline=' . $lineId);
                 } else {
-                    $editItemId = ubRouting::get('edititem', 'int');
-                    //editing item
-                    if (ubRouting::checkPost(array('edititemid', 'edititemtype'))) {
-                        if (cfr('CUSTMAPEDIT')) {
-                            $custmaps->itemEdit($editItemId, ubRouting::post('edititemtype'), ubRouting::post('edititemgeo'), ubRouting::post('edititemname'), ubRouting::post('edititemlocation'));
-                            ubRouting::nav('?module=custmaps&edititem=' . $editItemId);
-                        } else {
-                            show_error(__('Permission denied'));
-                        }
-                    }
-
-                    //show item edit form
-                    show_window(__('Edit'), $custmaps->itemEditForm($editItemId));
-                    //photostorage link
-                    if ($altCfg['PHOTOSTORAGE_ENABLED']) {
-                        $imageControl = wf_Link('?module=photostorage&scope=CUSTMAPSITEMS&itemid=' . $editItemId . '&mode=list', wf_img('skins/photostorage.png') . ' ' . __('Upload images'), false, 'ubButton');
-                        show_window('', $imageControl);
-                    }
-
-                    //additional comments
-                    if ($altCfg['ADCOMMENTS_ENABLED']) {
-                        $adcomments = new ADcomments('CUSTMAPITEMS');
-                        show_window(__('Additional comments'), $adcomments->renderComments($editItemId));
-                    }
+                    $custmaps->lineCreate(
+                        $lineMapId,
+                        ubRouting::post('newline_name'),
+                        ubRouting::post('newline_fibers_amount'),
+                        ubRouting::post('newline_length_m'),
+                        ubRouting::post('newline_style_color'),
+                        ubRouting::post('newline_style_width'),
+                        ubRouting::post('newline_description'),
+                        ubRouting::post('newline_geo')
+                    );
+                    ubRouting::nav('?module=custmaps&showmap=' . $lineMapId . '&lineedit=true');
                 }
             } else {
+                show_error(__('Permission denied'));
+            }
+        }
+
+        //deleting map line
+        if (ubRouting::checkGet('deleteline')) {
+            if (cfr('CUSTMAPEDIT')) {
+                $deleteResult = $custmaps->lineDelete(ubRouting::get('deleteline', 'int'));
+                ubRouting::nav('?module=custmaps&showlines=' . $deleteResult);
+            } else {
+                show_error(__('Permission denied'));
+            }
+        }
+
+        if (!ubRouting::checkGet('showmap')) {
+            if (ubRouting::checkGet('showitems')) {
                 $showItemsMapId = ubRouting::get('showitems', 'int');
                 if (!ubRouting::checkGet('duplicates')) {
                     //render items list json data in background
@@ -105,6 +118,64 @@ if (cfr('CUSTMAP')) {
                 } else {
                     //show duplicate map objects
                     show_window(__('Show duplicates') . ': ' . $custmaps->mapGetName($showItemsMapId), $custmaps->renderItemDuplicateList($showItemsMapId));
+                }
+            } else {
+                if (ubRouting::checkGet('showlines')) {
+                    $showLinesMapId = ubRouting::get('showlines', 'int');
+                    show_window(__('Lines') . ': ' . $custmaps->mapGetName($showLinesMapId), $custmaps->renderLinesList($showLinesMapId));
+                } else {
+                    if (ubRouting::checkGet('edititem')) {
+                        $editItemId = ubRouting::get('edititem', 'int');
+                        //editing item
+                        if (ubRouting::checkPost(array('edititemid', 'edititemtype'))) {
+                            if (cfr('CUSTMAPEDIT')) {
+                                $custmaps->itemEdit($editItemId, ubRouting::post('edititemtype'), ubRouting::post('edititemgeo'), ubRouting::post('edititemname'), ubRouting::post('edititemlocation'));
+                                ubRouting::nav('?module=custmaps&edititem=' . $editItemId);
+                            } else {
+                                show_error(__('Permission denied'));
+                            }
+                        }
+
+                        //show item edit form
+                        show_window(__('Edit'), $custmaps->itemEditForm($editItemId));
+                        //photostorage link
+                        if ($altCfg['PHOTOSTORAGE_ENABLED']) {
+                            $imageControl = wf_Link('?module=photostorage&scope=CUSTMAPSITEMS&itemid=' . $editItemId . '&mode=list', wf_img('skins/photostorage.png') . ' ' . __('Upload images'), false, 'ubButton');
+                            show_window('', $imageControl);
+                        }
+
+                        //additional comments
+                        if ($altCfg['ADCOMMENTS_ENABLED']) {
+                            $adcomments = new ADcomments('CUSTMAPITEMS');
+                            show_window(__('Additional comments'), $adcomments->renderComments($editItemId));
+                        }
+                    } else {
+                        if (ubRouting::checkGet('editline')) {
+                            $editLineId = ubRouting::get('editline', 'int');
+                            if (ubRouting::checkPost(array('editlineid', 'editline_style_width', 'editline_style_color', 'editline_geo'))) {
+                                if (cfr('CUSTMAPEDIT')) {
+                                    $custmaps->lineEdit(
+                                        $editLineId,
+                                        ubRouting::post('editline_name'),
+                                        ubRouting::post('editline_fibers_amount'),
+                                        ubRouting::post('editline_length_m'),
+                                        ubRouting::post('editline_style_color'),
+                                        ubRouting::post('editline_style_width'),
+                                        ubRouting::post('editline_description'),
+                                        ubRouting::post('editline_geo')
+                                    );
+                                    ubRouting::nav('?module=custmaps&editline=' . $editLineId);
+                                } else {
+                                    show_error(__('Permission denied'));
+                                }
+                            }
+                            show_window(__('Edit'), $custmaps->lineEditForm($editLineId));
+                        } else {
+                            //render existing custom maps list
+                            show_window(__('Available custom maps'), $custmaps->renderMapList());
+                            zb_BillingStats(true);
+                        }
+                    }
                 }
             }
         } else {
@@ -118,6 +189,7 @@ if (cfr('CUSTMAP')) {
             }
 
             $custmaps->mapGetPlacemarks($mapId);
+            $custmaps->mapGetLines($mapId);
 
             //custom map layers processing
             if (ubRouting::checkGet('cl')) {
@@ -127,6 +199,7 @@ if (cfr('CUSTMAP')) {
                         foreach ($custLayers as $eachCustLayerId) {
                             if (!empty($eachCustLayerId)) {
                                 $custmaps->mapGetPlacemarks($eachCustLayerId);
+                                $custmaps->mapGetLines($eachCustLayerId);
                             }
                         }
                     }
@@ -134,6 +207,10 @@ if (cfr('CUSTMAP')) {
             }
             if (ubRouting::checkGet(array('mapedit', 'showmap'))) {
                 $custmaps->mapLocationEditor();
+            }
+
+            if (ubRouting::checkGet(array('lineedit', 'showmap'))) {
+                $custmaps->mapLineEditor($mapId);
             }
 
             show_window($custmaps->mapGetName($mapId), $custmaps->mapInit());
