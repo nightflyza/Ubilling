@@ -347,24 +347,6 @@ class CustMaps {
     }
 
     /**
-     * Sets override map center
-     * 
-     * @param string $coords
-     */
-    public function setCenter($coords) {
-        $this->center = $coords;
-    }
-
-    /**
-     * Sets map override zoom
-     * 
-     * @param int $zoom
-     */
-    public function setZoom($zoom) {
-        $this->zoom = $zoom;
-    }
-
-    /**
      * Filters some layer from current
      * 
      * @param string $layers
@@ -623,7 +605,6 @@ class CustMaps {
                     } else {
                         $actLinks .= wf_Link('?module=custmaps&edititem=' . $each['id'], web_edit_icon('Show'), false) . ' ';
                     }
-                    $actLinks .= wf_Link('?module=custmaps&showmap=' . $each['mapid'] . '&locateitem=' . $each['geo'] . '&zoom=' . $this->ymapsCfg['FINDING_ZOOM'], wf_img('skins/icon_search_small.gif', __('Find on map')), false) . ' ';
                     $actLinks .= $indicator;
 
                     $dataArr[] = array(
@@ -1176,23 +1157,6 @@ class CustMaps {
         } else {
             throw new Exception(self::EX_NO_MAP_ID);
         }
-    }
-
-    /**
-     * Returns map circle
-     * 
-     * @param string $coords - map coordinates
-     * @param int $radius - circle radius in meters
-     * 
-     * @return string
-     *  
-     */
-    public function mapAddCircle($coords, $radius, $content = '', $hint = '') {
-        $this->mapCore->addCircle($coords, $radius, $content, array(
-            'hint' => $hint
-        ));
-        $result = '';
-        return ($result);
     }
 
     /**

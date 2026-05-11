@@ -158,13 +158,6 @@ if (cfr('CUSTMAP')) {
             }
         } else {
             $mapId = ubRouting::get('showmap', 'int');
-            //additional centering and zoom
-            if (ubRouting::checkGet(array('locateitem', 'zoom'))) {
-                $custmaps->setCenter(ubRouting::get('locateitem'));
-                $custmaps->setZoom(ubRouting::get('zoom', 'int'));
-                $searchRadius = 30;
-                $custmaps->mapAddCircle(ubRouting::get('locateitem'), $searchRadius, __('Search area radius') . ' ' . $searchRadius . ' ' . __('meters'), __('Search area'));
-            }
 
             $custmaps->mapGetPlacemarks($mapId);
             $custmaps->mapGetLines($mapId);
