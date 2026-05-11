@@ -3087,3 +3087,21 @@ CREATE TABLE IF NOT EXISTS `debtrsarch` (
     PRIMARY KEY (`id`),
     KEY `date` (`date`)
   ) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
+
+-- 1.6.2 update
+CREATE TABLE IF NOT EXISTS `custmaps_lines` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `mapid` int(11) NOT NULL DEFAULT '0',
+  `name` varchar(255) NOT NULL DEFAULT '',
+  `geo` longtext,
+  `length_m` decimal(12,2) NOT NULL DEFAULT '0.00',
+  `style_color` varchar(32) NOT NULL DEFAULT '#f57601',
+  `style_width` int(11) NOT NULL DEFAULT '2',
+  `fibers_amount` int(11) NOT NULL DEFAULT '0',
+  `description` text,
+  `created_at` datetime NOT NULL,
+  `updated_at` datetime NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_mapid` (`mapid`),
+  KEY `idx_updated_at` (`updated_at`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
