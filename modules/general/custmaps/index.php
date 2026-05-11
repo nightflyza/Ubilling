@@ -115,35 +115,35 @@ if (cfr('CUSTMAP')) {
                     show_window(__('Lines') . ': ' . $custmaps->mapGetName($showLinesMapId), $custmaps->renderLinesList($showLinesMapId));
                 } else {
                     if (ubRouting::checkGet('edititem')) {
-                        $editItemId = ubRouting::get('edititem', 'int');
-                        //editing item
-                        if (ubRouting::checkPost(array('edititemid', 'edititemtype'))) {
-                            if (cfr('CUSTMAPEDIT')) {
+                        if (cfr('CUSTMAPEDIT')) {
+                            $editItemId = ubRouting::get('edititem', 'int');
+                            //editing item
+                            if (ubRouting::checkPost(array('edititemid', 'edititemtype'))) {
                                 $custmaps->itemEdit($editItemId, ubRouting::post('edititemtype'), ubRouting::post('edititemgeo'), ubRouting::post('edititemname'), ubRouting::post('edititemlocation'));
                                 ubRouting::nav('?module=custmaps&edititem=' . $editItemId);
-                            } else {
-                                show_error(__('Permission denied'));
                             }
-                        }
 
-                        //show item edit form
-                        show_window(__('Edit'), $custmaps->itemEditForm($editItemId));
-                        //photostorage link
-                        if ($altCfg['PHOTOSTORAGE_ENABLED']) {
-                            $imageControl = wf_Link('?module=photostorage&scope=CUSTMAPSITEMS&itemid=' . $editItemId . '&mode=list', wf_img('skins/photostorage.png') . ' ' . __('Upload images'), false, 'ubButton');
-                            show_window('', $imageControl);
-                        }
+                            //show item edit form
+                            show_window(__('Edit'), $custmaps->itemEditForm($editItemId));
+                            //photostorage link
+                            if ($altCfg['PHOTOSTORAGE_ENABLED']) {
+                                $imageControl = wf_Link('?module=photostorage&scope=CUSTMAPSITEMS&itemid=' . $editItemId . '&mode=list', wf_img('skins/photostorage.png') . ' ' . __('Upload images'), false, 'ubButton');
+                                show_window('', $imageControl);
+                            }
 
-                        //additional comments
-                        if ($altCfg['ADCOMMENTS_ENABLED']) {
-                            $adcomments = new ADcomments('CUSTMAPITEMS');
-                            show_window(__('Additional comments'), $adcomments->renderComments($editItemId));
+                            //additional comments
+                            if ($altCfg['ADCOMMENTS_ENABLED']) {
+                                $adcomments = new ADcomments('CUSTMAPITEMS');
+                                show_window(__('Additional comments'), $adcomments->renderComments($editItemId));
+                            }
+                        } else {
+                            show_error(__('Permission denied'));
                         }
                     } else {
                         if (ubRouting::checkGet('editline')) {
-                            $editLineId = ubRouting::get('editline', 'int');
-                            if (ubRouting::checkPost(array('editlineid', 'editline_style_width', 'editline_style_color', 'editline_geo'))) {
-                                if (cfr('CUSTMAPEDIT')) {
+                            if (cfr('CUSTMAPEDIT')) {
+                                $editLineId = ubRouting::get('editline', 'int');
+                                if (ubRouting::checkPost(array('editlineid', 'editline_style_width', 'editline_style_color', 'editline_geo'))) {
                                     $custmaps->lineEdit(
                                         $editLineId,
                                         ubRouting::post('editline_name'),
@@ -155,11 +155,11 @@ if (cfr('CUSTMAP')) {
                                         ubRouting::post('editline_geo')
                                     );
                                     ubRouting::nav('?module=custmaps&editline=' . $editLineId);
-                                } else {
-                                    show_error(__('Permission denied'));
                                 }
+                                show_window(__('Edit'), $custmaps->lineEditForm($editLineId));
+                            } else {
+                                show_error(__('Permission denied'));
                             }
-                            show_window(__('Edit'), $custmaps->lineEditForm($editLineId));
                         } else {
                             //render existing custom maps list
                             show_window(__('Available custom maps'), $custmaps->renderMapList());
@@ -196,11 +196,15 @@ if (cfr('CUSTMAP')) {
                 }
             }
             if (ubRouting::checkGet(array('mapedit', 'showmap'))) {
-                $custmaps->mapLocationEditor();
+                if (cfr('CUSTMAPEDIT')) {
+                    $custmaps->mapLocationEditor();
+                }
             }
 
             if (ubRouting::checkGet(array('lineedit', 'showmap'))) {
-                $custmaps->mapLineEditor($mapId);
+                if (cfr('CUSTMAPEDIT')) {
+                    $custmaps->mapLineEditor($mapId);
+                }
             }
 
             show_window($custmaps->mapGetName($mapId), $custmaps->mapInit());

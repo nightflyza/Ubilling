@@ -545,8 +545,8 @@ class CustomMaps {
                     $actLinks = '';
                     if (cfr('CUSTMAPEDIT')) {
                         $actLinks .= wf_JSAlertStyled('?module=custmaps&deleteitem=' . $each['id'], web_delete_icon(), $messages->getDeleteAlert()) . ' ';
+                        $actLinks .= wf_JSAlertStyled('?module=custmaps&edititem=' . $each['id'], web_edit_icon(), $messages->getEditAlert()) . ' ';
                     }
-                    $actLinks .= wf_JSAlertStyled('?module=custmaps&edititem=' . $each['id'], web_edit_icon(), $messages->getEditAlert()) . ' ';
                     $actLinks .= wf_Link('?module=custmaps&showmap=' . $each['mapid'] . '&locateitem=' . $each['geo'] . '&zoom=' . $this->ymapsCfg['FINDING_ZOOM'], wf_img('skins/icon_search_small.gif', __('Find on map')), false) . ' ';
                     $actLinks .= $indicator;
 
@@ -623,8 +623,11 @@ class CustomMaps {
      * @return string
      */
     protected function mapListControls() {
-        $result = wf_modalAuto(wf_img('skins/add_icon.png') . ' ' . __('Create'), __('Create new map'), $this->mapCreateForm(), 'ubButton');
-        $result.= wf_delimiter();
+        $result = '';
+        if (cfr('CUSTMAPEDIT')) {
+            $result = wf_modalAuto(wf_img('skins/add_icon.png') . ' ' . __('Create'), __('Create new map'), $this->mapCreateForm(), 'ubButton');
+            $result.= wf_delimiter();
+        }
         return ($result);
     }
 
@@ -713,7 +716,10 @@ class CustomMaps {
                 if (($each['mapid'] == $id) and (!empty($each['geo']))) {
                     $icon = $this->itemGetIcon($each['type']);
                     $content = $this->itemGetTypeName($each['type']) . ': ' . $each['name'];
-                    $controls = wf_Link('?module=custmaps&edititem=' . $each['id'], web_edit_icon(), false);
+                    $controls = '';
+                    if (cfr('CUSTMAPEDIT')) {
+                        $controls = wf_Link('?module=custmaps&edititem=' . $each['id'], web_edit_icon(), false);
+                    }
                     $this->mapCore->addMarker($each['geo'], $content, array(
                         'icon' => $icon,
                         'popupTitle' => $each['location'],
@@ -814,7 +820,9 @@ class CustomMaps {
                         $content = __('Fibers amount') . ': ' . $lineData['fibers_amount'] . '<br>';
                         $content.= __('Length') . ': ' . $lineData['length_m'] . '<br>';
                         $content.= __('Description') . ': ' . $lineData['description'] . '<br>';
-                        $content.= wf_Link('?module=custmaps&showmap=' . $id . '&lineedit=true&editline=' . $lineId, web_edit_icon(), false);
+                        if (cfr('CUSTMAPEDIT')) {
+                            $content.= wf_Link('?module=custmaps&showmap=' . $id . '&lineedit=true&editline=' . $lineId, web_edit_icon(), false);
+                        }
                         $title = $lineData['name'];
                         $this->mapCore->addPolyline($points, $content, array(
                             'color' => $lineColor,
@@ -886,8 +894,8 @@ class CustomMaps {
                     $actLinks = '';
                     if (cfr('CUSTMAPEDIT')) {
                         $actLinks .= wf_JSAlertStyled('?module=custmaps&deleteline=' . $lineId, web_delete_icon(), $messages->getDeleteAlert()) . ' ';
+                        $actLinks .= wf_JSAlertStyled('?module=custmaps&showmap=' . $mapid . '&lineedit=true&editline=' . $lineId, web_edit_icon(), $messages->getEditAlert()) . ' ';
                     }
-                    $actLinks .= wf_JSAlertStyled('?module=custmaps&showmap=' . $mapid . '&lineedit=true&editline=' . $lineId, web_edit_icon(), $messages->getEditAlert()) . ' ';
 
                     $dataArr[] = array(
                         $lineId,
