@@ -91,6 +91,13 @@ class CustMaps {
     protected $allLines = array();
 
     /**
+     * System message helper object placeholder
+     *
+     * @var object
+     */
+    protected $messages = null;
+
+    /**
      * Default clustering options.
      *
      * @var array
@@ -125,6 +132,7 @@ class CustMaps {
 
     public function __construct() {
         $this->setShowMapId();
+        $this->initMessages();
         $this->loadYmapsConfig();
         $this->initDb();
         $this->loadAlterConfig();
@@ -134,6 +142,15 @@ class CustMaps {
         $this->loadMaps();
         $this->loadItems();
         $this->loadLines();
+    }
+
+    /**
+     * Initializes system message helper
+     * 
+     * @return void
+     */
+    protected function initMessages() {
+        $this->messages = new UbillingMessageHelper();
     }
 
     /**
@@ -422,8 +439,6 @@ class CustMaps {
      * @return string
      */
     public function renderMapList() {
-        $messages = new UbillingMessageHelper();
-
         $result = $this->mapListControls();
 
         
@@ -441,7 +456,7 @@ class CustMaps {
                     $deletionUrl = self::URL_ME . '&deletemap=' . $each['id'];
                     $cancelUrl = self::URL_ME;
                     $deleteTitle = __('Delete') . ' ' . $each['name'] . '?';
-                    $deletionDialog = wf_ConfirmDialog($deletionUrl, web_delete_icon(), $messages->getDeleteAlert(), '', $cancelUrl, $deleteTitle);
+                    $deletionDialog = wf_ConfirmDialog($deletionUrl, web_delete_icon(), $this->messages->getDeleteAlert(), '', $cancelUrl, $deleteTitle);
                     $actLinks.= $deletionDialog . ' ';
                     $actLinks.= wf_modalAuto(web_edit_icon(), __('Edit'), $this->mapEditForm($each['id']));
                 }
@@ -589,7 +604,6 @@ class CustMaps {
         $mapid = ubRouting::filters($mapid, 'int');
         $opts = '"order": [[ 0, "desc" ]]';
         $columns = array('ID', 'Type', 'Geo location', 'Name', 'Location', 'Actions');
-        $messages = new UbillingMessageHelper();
         $dataArr = array();
 
         $adcomments = new ADcomments('CUSTMAPMARKERS');
@@ -600,7 +614,7 @@ class CustMaps {
                     $indicator = $adcomments->getCommentsIndicator($each['id']);
                     $actLinks = '';
                     if (cfr('CUSTMAPEDIT')) {
-                        $actLinks .= wf_JSAlertStyled('?module=custmaps&deleteitem=' . $each['id'], web_delete_icon(), $messages->getDeleteAlert()) . ' ';
+                        $actLinks .= wf_JSAlertStyled('?module=custmaps&deleteitem=' . $each['id'], web_delete_icon(), $this->messages->getDeleteAlert()) . ' ';
                         $actLinks .= wf_Link('?module=custmaps&edititem=' . $each['id'], web_edit_icon()) . ' ';
                     } else {
                         $actLinks .= wf_Link('?module=custmaps&edititem=' . $each['id'], web_edit_icon('Show'), false) . ' ';
@@ -950,7 +964,6 @@ class CustMaps {
      */
     public function renderLinesList($mapid) {
         $mapid = ubRouting::filters($mapid, 'int');
-        $messages = new UbillingMessageHelper();
         $opts = '"order": [[ 0, "desc" ]]';
         $columns = array('ID', 'Name', 'Fibers', __('Length'). ' (' . __('m') . ')', 'Actions');
         $dataArr = array();
@@ -960,8 +973,8 @@ class CustMaps {
                 if ($lineData['mapid'] == $mapid) {
                     $actLinks = '';
                     if (cfr('CUSTMAPEDIT')) {
-                        $actLinks .= wf_JSAlertStyled('?module=custmaps&deleteline=' . $lineId, web_delete_icon(), $messages->getDeleteAlert()) . ' ';
-                        $actLinks .= wf_JSAlertStyled('?module=custmaps&showmap=' . $mapid . '&lineedit=true&editline=' . $lineId, web_edit_icon(), $messages->getEditAlert()) . ' ';
+                        $actLinks .= wf_JSAlertStyled('?module=custmaps&deleteline=' . $lineId, web_delete_icon(), $this->messages->getDeleteAlert()) . ' ';
+                        $actLinks .= wf_JSAlertStyled('?module=custmaps&showmap=' . $mapid . '&lineedit=true&editline=' . $lineId, web_edit_icon(), $this->messages->getEditAlert()) . ' ';
                     }
 
                     $dataArr[] = array(
