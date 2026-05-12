@@ -106,9 +106,6 @@ if (cfr('CUSTMAP')) {
         }
 
         if (!ubRouting::checkGet($custmaps::ROUTE_SHOWMAP)) {
-            if (!ubRouting::checkGet($custmaps::ROUTE_SHOWITEMS) and !ubRouting::checkGet($custmaps::ROUTE_SHOWLINES) and !ubRouting::checkGet($custmaps::ROUTE_EDITITEM) and !ubRouting::checkGet($custmaps::ROUTE_MODIFYLINE) and !ubRouting::checkGet($custmaps::ROUTE_MAPLIST)) {
-                ubRouting::nav(CustMaps::urlMapList());
-            }
             if (ubRouting::checkGet($custmaps::ROUTE_SHOWITEMS)) {
                 $showItemsMapId = ubRouting::get($custmaps::ROUTE_SHOWITEMS, 'int');
                 show_window(__('Markers') . ': ' . $custmaps->mapGetName($showItemsMapId), $custmaps->renderItemsList($showItemsMapId));
