@@ -147,6 +147,12 @@ class CustMaps {
     const PROUTE_NEWMAPNAME = 'newmapname';
     const PROUTE_EDITMAPID = 'editmapid';
     const PROUTE_EDITMAPNAME = 'editmapname';
+    const PROUTE_NEWMAP_CLUSTERING = 'newmap_clustering';
+    const PROUTE_NEWMAP_CMARKERS = 'newmap_cmarkers';
+    const PROUTE_NEWMAP_METRICS = 'newmap_metrics';
+    const PROUTE_EDITMAP_CLUSTERING = 'editmap_clustering';
+    const PROUTE_EDITMAP_CMARKERS = 'editmap_cmarkers';
+    const PROUTE_EDITMAP_METRICS = 'editmap_metrics';
     const PROUTE_NEWITEMGEO = 'newitemgeo';
     const PROUTE_NEWITEMTYPE = 'newitemtype';
     const PROUTE_NEWITEMNAME = 'newitemname';
@@ -181,11 +187,11 @@ class CustMaps {
         $this->initDb();
         $this->loadAlterConfig();
         $this->setDefaults();
-        $this->initMapCore();
         $this->setItemTypes();
         $this->loadMaps();
         $this->loadItems();
         $this->loadLines();
+        $this->initMapCore();
     }
 
     /**
@@ -247,15 +253,37 @@ class CustMaps {
             $rememberPosition = true;
         }
 
-        //creating map core instance
+        //creating map core instance / global config
         $this->mapCore = new MapCore($containerId);
-        if (@$this->altCfg['CUSTMAP_MCLSTR']) {
+        $useClustering = false;
+        $useCmarkers = false;
+        $useMetrics = false;
+        if ($this->showMapId) {
+            if (isset($this->allMaps[$this->showMapId])) {
+                $mapRow = $this->allMaps[$this->showMapId];
+                if (isset($mapRow['clustering']) and intval($mapRow['clustering'])) {
+                    $useClustering = true;
+                }
+                if (isset($mapRow['cmarkers']) and intval($mapRow['cmarkers'])) {
+                    $useCmarkers = true;
+                }
+                if (isset($mapRow['metrics']) and intval($mapRow['metrics'])) {
+                    $useMetrics = true;
+                }
+            }
+        }
+        
+        if ($useClustering) {
             $this->mapCore->setClustering(true, $this->clustringOptions);
         }
-        if (@$this->altCfg['CUSTMAP_MCFMRKS']) {
+        if ($useCmarkers) {
             $this->mapCore->setForceCanvasMarkers(true);
         }
-        //saving state of each map
+        if ($useMetrics) {
+            $this->mapCore->setFpsMeter(true);
+        }
+
+        //force saving state of each map
         $this->mapCore->setRememberZoom($rememberZoom);
         $this->mapCore->setRememberPosition($rememberPosition);
         
@@ -752,6 +780,9 @@ class CustMaps {
      */
     protected function mapCreateForm() {
         $inputs = wf_TextInput(self::PROUTE_NEWMAPNAME, __('Name'), '', true, '30');
+        $inputs .= wf_CheckInput(self::PROUTE_NEWMAP_CLUSTERING, __('Force clustering'), true, false);
+        $inputs .= wf_CheckInput(self::PROUTE_NEWMAP_CMARKERS, __('Force canvas markers'), true, false);
+        $inputs .= wf_CheckInput(self::PROUTE_NEWMAP_METRICS, __('Force map metrics'), true, false);
         $inputs.= wf_Submit(__('Create'));
         $result = wf_Form('', 'POST', $inputs, 'glamour');
         return ($result);
@@ -765,7 +796,14 @@ class CustMaps {
      * @return string
      */
     protected function mapEditForm($id) {
-        $inputs = wf_TextInput(self::PROUTE_EDITMAPNAME, __('Name'), $this->allMaps[$id]['name'], true, '30');
+        $mapRow = $this->allMaps[$id];
+        $clustChk = (isset($mapRow['clustering']) and intval($mapRow['clustering'])) ? true : false;
+        $cmarkersChk = (isset($mapRow['cmarkers']) and intval($mapRow['cmarkers'])) ? true : false;
+        $metricsChk = (isset($mapRow['metrics']) and intval($mapRow['metrics'])) ? true : false;
+        $inputs = wf_TextInput(self::PROUTE_EDITMAPNAME, __('Name'), $mapRow['name'], true, '30');
+        $inputs .= wf_CheckInput(self::PROUTE_EDITMAP_CLUSTERING, __('Force clustering'), true, $clustChk);
+        $inputs .= wf_CheckInput(self::PROUTE_EDITMAP_CMARKERS, __('Force canvas markers'), true, $cmarkersChk);
+        $inputs .= wf_CheckInput(self::PROUTE_EDITMAP_METRICS, __('Force map metrics'), true, $metricsChk);
         $inputs.= wf_HiddenInput(self::PROUTE_EDITMAPID, $id);
         $inputs.= wf_Submit(__('Create'));
         $result = wf_Form('', 'POST', $inputs, 'glamour');
@@ -794,7 +832,13 @@ class CustMaps {
     public function mapCreate($name) {
         $nameFiltered = ubRouting::filters($name, 'mres');
         $nameFiltered = ubRouting::filters($nameFiltered, 'safe');
+        $clustering = ubRouting::checkPost(self::PROUTE_NEWMAP_CLUSTERING) ? 1 : 0;
+        $cmarkers = ubRouting::checkPost(self::PROUTE_NEWMAP_CMARKERS) ? 1 : 0;
+        $metrics = ubRouting::checkPost(self::PROUTE_NEWMAP_METRICS) ? 1 : 0;
         $this->mapsDb->data('name', $nameFiltered);
+        $this->mapsDb->data('clustering', $clustering);
+        $this->mapsDb->data('cmarkers', $cmarkers);
+        $this->mapsDb->data('metrics', $metrics);
         $this->mapsDb->create();
         $newId = $this->mapsDb->getLastId();
         log_register('CUSTMAPS CREATE MAP `' . $name . '` ID [' . $newId . ']');
@@ -834,7 +878,13 @@ class CustMaps {
         $name = ubRouting::filters($name, 'mres');
         $name = ubRouting::filters($name, 'safe');
         if (isset($this->allMaps[$id])) {
+            $clustering = ubRouting::checkPost(self::PROUTE_EDITMAP_CLUSTERING) ? 1 : 0;
+            $cmarkers = ubRouting::checkPost(self::PROUTE_EDITMAP_CMARKERS) ? 1 : 0;
+            $metrics = ubRouting::checkPost(self::PROUTE_EDITMAP_METRICS) ? 1 : 0;
             $this->mapsDb->data('name', $name);
+            $this->mapsDb->data('clustering', $clustering);
+            $this->mapsDb->data('cmarkers', $cmarkers);
+            $this->mapsDb->data('metrics', $metrics);
             $this->mapsDb->where('id', '=', $id);
             $this->mapsDb->save();
             log_register('CUSTMAPS EDIT MAP [' . $id . '] SET `' . $name . '`');
