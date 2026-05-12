@@ -15,3 +15,7 @@ $lang['def']['Save line'] = 'Зберегти лінію';
 $lang['def']['Hotkey'] = 'Комбінація клавіш';
 $lang['def']['right to use custom maps'] = 'Право використовувати користувацькі мапи';
 $lang['def']['Fibers'] = 'Волокон';
+$lang['def']['Edit on map'] = 'Редагувати на мапі';
+$lang['def']['Points count'] = 'Кількість точок';
+$lang['def']['Created at'] = 'Дата створення';
+$lang['def']['Updated at'] = 'Дата оновлення';

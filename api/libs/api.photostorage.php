@@ -287,6 +287,9 @@ class PhotoStorage {
         if ($this->scope == 'CUSTMAPMARKERS') {
             $result = wf_BackLink('?module=custmaps&edititem=' . $this->itemId);
         }
+        if ($this->scope == 'CUSTMAPLINES') {
+            $result = wf_BackLink('?module=custmaps&editline=' . $this->itemId);
+        }
         if ($this->scope == 'WAREHOUSEITEMTYPE') {
             $result = wf_BackLink('?module=warehouse&itemtypes=true');
         }
