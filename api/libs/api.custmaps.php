@@ -272,7 +272,7 @@ class CustMaps {
                 }
             }
         }
-        
+
         if ($useClustering) {
             $this->mapCore->setClustering(true, $this->clustringOptions);
         }
@@ -748,7 +748,7 @@ class CustMaps {
         $result = '';
         $result .= wf_BackLink(self::URL_ME . '&' . self::ROUTE_SHOWMAP . '=' . $mapid);
         $result .= wf_delimiter();
-        $result .= wf_JqDtEmbed($columns, $dataArr, false, 'Objects', 100, $opts);
+        $result .= wf_JqDtEmbed($columns, $dataArr, false, 'Markers', 100, $opts);
         return ($result);
     }
 
@@ -819,6 +819,11 @@ class CustMaps {
         $result = '';
         if (cfr('CUSTMAPEDIT')) {
             $result = wf_modalAuto(wf_img('skins/add_icon.png') . ' ' . __('Create'), __('Create new map'), $this->mapCreateForm(), 'ubButton');
+            if (cfr('ROOT')) {
+                if (@$this->altCfg['VOLS_ENABLED']) {
+                 $result .= wf_Link('?module=volzconvert', wf_img('skins/icon_puzzle.png') .' '.__('Migration'). ' ' . __('VOLS'), false, 'ubButton');
+                }
+            }
             $result.= wf_delimiter();
         }
         return ($result);

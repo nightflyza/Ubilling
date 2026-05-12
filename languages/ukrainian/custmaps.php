@@ -29,3 +29,6 @@ $lang['def']['Make sure File Storage is enabled if you need attachments migrated
 $lang['def']['Convert'] = 'Конвертувати';
 $lang['def']['Show map'] = 'Показати карту';
 $lang['def']['VOLS to CustMaps'] = 'VOLS -> CustMaps';
+$lang['def']['Force clustering'] = 'Примусова кластеризація';
+$lang['def']['Force canvas markers'] = 'Примусове використання canvas маркерів';
+$lang['def']['Force map metrics'] = 'Відлагодження мапи';

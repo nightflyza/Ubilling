@@ -1,7 +1,3 @@
-ALTER TABLE `custmaps` ADD `clustering` tinyint NOT NULL DEFAULT '0' AFTER `name`;
-ALTER TABLE `custmaps` ADD `cmarkers` tinyint NOT NULL DEFAULT '0' AFTER `clustering`;
-ALTER TABLE `custmaps` ADD `metrics` tinyint NOT NULL DEFAULT '0' AFTER `cmarkers`;
-
 CREATE TABLE IF NOT EXISTS `custmaps_lines` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `mapid` int(11) NOT NULL DEFAULT '0',
@@ -19,3 +15,6 @@ CREATE TABLE IF NOT EXISTS `custmaps_lines` (
   KEY `idx_updated_at` (`updated_at`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
+ALTER TABLE `custmaps` ADD `clustering` tinyint NOT NULL DEFAULT '0' AFTER `name`;
+ALTER TABLE `custmaps` ADD `cmarkers` tinyint NOT NULL DEFAULT '0' AFTER `clustering`;
+ALTER TABLE `custmaps` ADD `metrics` tinyint NOT NULL DEFAULT '0' AFTER `cmarkers`;
