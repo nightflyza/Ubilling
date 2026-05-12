@@ -213,7 +213,7 @@ class FileStorage {
      * 
      * @return void
      */
-    protected function registerFile($filename) {
+    public function registerFile($filename) {
         if ((!empty($this->scope)) AND ( !empty($this->itemId))) {
             $filename = ubRouting::filters($filename, 'mres');
             $date = curdatetime();

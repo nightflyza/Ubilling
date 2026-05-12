@@ -323,6 +323,7 @@ class CustMaps {
             'camera' => __('Camera'), // камера
             'wifi' => __('WiFi'), // wifi
             'waterfall' => __('Waterfall'), // водоспад
+            'other' => __('Other'),
         );
     }
 
@@ -365,6 +366,9 @@ class CustMaps {
                 break;
             case 'waterfall':
                 $result = 'marker.waterfall';
+                break;
+            case 'other':
+                $result = 'marker.blue';
                 break;
             default :
                 $result = 'marker.blue';

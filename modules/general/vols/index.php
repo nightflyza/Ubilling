@@ -84,6 +84,9 @@ if (cfr('VOLS')) {
                     $this->html .= wf_Link(self::URL_MAP_EDIT, __('Edit'), false, 'ubButton');
                     break;
             }
+            if (cfr('ROOT')) {
+                $this->html .= wf_Link('?module=volzconvert', __('VOLZ maps converter'), false, 'ubButton');
+            }
             $this->html .= wf_delimiter(1);
             return $this->html;
         }
