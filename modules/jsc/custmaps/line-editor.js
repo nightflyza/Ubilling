@@ -8,6 +8,7 @@
  * @param {string} config.finishBtnId
  * @param {string} config.cancelBtnId
  * @param {string} config.undoBtnId
+ * @param {string} [config.lengthReadoutId] — DOM id of span showing length in metres (read-only)
  * @param {number} [config.initialEditLineId]
  * @param {string} [config.defaultColor]
  * @param {number} [config.defaultFibersAmount]
@@ -30,6 +31,7 @@ window.ubCustmapsLineEditorInit = function(map, config) {
     var ubFinishBtnId = config.finishBtnId || "";
     var ubCancelBtnId = config.cancelBtnId || "";
     var ubUndoBtnId = config.undoBtnId || "";
+    var ubLengthReadoutId = config.lengthReadoutId ? String(config.lengthReadoutId) : "";
     var ubInitialEditLineId = config.initialEditLineId ? parseInt(String(config.initialEditLineId), 10) : 0;
     if (isNaN(ubInitialEditLineId)) {
         ubInitialEditLineId = 0;
@@ -136,8 +138,15 @@ window.ubCustmapsLineEditorInit = function(map, config) {
         if (geoField) {
             geoField.value = JSON.stringify(points);
         }
+        var lengthMStr = ubLineDistance(points).toFixed(2);
         if (lengthField) {
-            lengthField.value = ubLineDistance(points).toFixed(2);
+            lengthField.value = lengthMStr;
+        }
+        if (ubLengthReadoutId) {
+            var lengthReadout = document.getElementById(ubLengthReadoutId);
+            if (lengthReadout) {
+                lengthReadout.textContent = lengthMStr;
+            }
         }
         if (lineMeta) {
             if (nameField && typeof lineMeta.name !== "undefined") {
@@ -218,6 +227,126 @@ window.ubCustmapsLineEditorInit = function(map, config) {
         }
     }
 
+    /**
+     * Reads stroke color and width from the line editor form (same fields as save uses).
+     */
+    function ubReadFormLineStyle() {
+        var colorField = document.querySelector('input[name="newline_style_color"]');
+        var widthField = document.querySelector('select[name="newline_style_width"]');
+        var color = ubDefaultColor;
+        var width = ubDefaultWidth;
+        if (colorField && colorField.value) {
+            color = String(colorField.value);
+        }
+        if (widthField && widthField.value) {
+            width = parseInt(String(widthField.value), 10);
+            if (isNaN(width) || width < 1) {
+                width = ubDefaultWidth;
+            }
+        }
+        return { color: color, weight: width };
+    }
+
+    /**
+     * Leaflet.Editable draws the segment to the cursor with forward/backward "line guides"
+     * (default weight 1, dashed). Match them to the chosen style so preview matches the final line.
+     */
+    function ubStyleEditableLineGuides(color, weight) {
+        var tools = map.editTools;
+        if (!tools) {
+            return;
+        }
+        var w = weight;
+        if (isNaN(w) || w < 1) {
+            w = 1;
+        }
+        var guideStyle = {
+            color: color,
+            weight: w,
+            opacity: 0.92,
+            dashArray: ""
+        };
+        if (tools.forwardLineGuide && typeof tools.forwardLineGuide.setStyle === "function") {
+            tools.forwardLineGuide.setStyle(guideStyle);
+        }
+        if (tools.backwardLineGuide && typeof tools.backwardLineGuide.setStyle === "function") {
+            tools.backwardLineGuide.setStyle(guideStyle);
+        }
+    }
+
+    /**
+     * Applies current form color/width to the polyline being drawn and to Editable line guides.
+     */
+    function ubSyncDrawingVisualsFromForm() {
+        var st = ubReadFormLineStyle();
+        if (ubDrawingLine && typeof ubDrawingLine.setStyle === "function") {
+            ubDrawingLine.setStyle({
+                color: st.color,
+                weight: st.weight,
+                opacity: 1
+            });
+        }
+        ubStyleEditableLineGuides(st.color, st.weight);
+    }
+
+    /**
+     * Dims all map polylines except the one in focus (active edit or draw target).
+     */
+    function ubRefreshLineFocusVisuals() {
+        var focusLine = null;
+        if (ubDrawingLine && map.hasLayer(ubDrawingLine)) {
+            focusLine = ubDrawingLine;
+        } else {
+            if (ubActiveLine && map.hasLayer(ubActiveLine)) {
+                focusLine = ubActiveLine;
+            }
+        }
+        map.eachLayer(function(layer) {
+            if (!layer || !(layer instanceof L.Polyline) || layer instanceof L.Polygon) {
+                return;
+            }
+            if (typeof layer.setStyle !== "function") {
+                return;
+            }
+            if (focusLine && layer === focusLine) {
+                layer.setStyle({ opacity: 1 });
+                if (typeof layer.bringToFront === "function") {
+                    layer.bringToFront();
+                }
+            } else {
+                if (focusLine) {
+                    layer.setStyle({ opacity: 0.42 });
+                } else {
+                    layer.setStyle({ opacity: 0.8 });
+                }
+            }
+        });
+    }
+
+    function ubWireFormStyleListeners(panelRoot) {
+        var root = panelRoot || document;
+        var colorField = root.querySelector('input[name="newline_style_color"]');
+        var widthField = root.querySelector('select[name="newline_style_width"]');
+        var onFormStyleChange = function() {
+            if (ubDrawingLine && map.hasLayer(ubDrawingLine)) {
+                ubSyncDrawingVisualsFromForm();
+            } else {
+                if (ubActiveLine && map.hasLayer(ubActiveLine)) {
+                    var st = ubReadFormLineStyle();
+                    ubApplyLineStyle(ubActiveLine, st.color, st.weight);
+                    ubRefreshLineFocusVisuals();
+                }
+            }
+        };
+        if (colorField) {
+            colorField.addEventListener("input", onFormStyleChange);
+            colorField.addEventListener("change", onFormStyleChange);
+        }
+        if (widthField) {
+            widthField.addEventListener("change", onFormStyleChange);
+        }
+    }
+
     function ubUndoActiveLineChanges() {
         if (!ubActiveLine) {
             return;
@@ -242,6 +371,7 @@ window.ubCustmapsLineEditorInit = function(map, config) {
             ubActiveLine.disableEdit();
         }
         ubSyncFormFields();
+        ubRefreshLineFocusVisuals();
     }
 
     function ubIsTypingContext() {
@@ -313,19 +443,14 @@ window.ubCustmapsLineEditorInit = function(map, config) {
             if (typeof ubActiveLine.disableEdit === "function") {
                 ubActiveLine.disableEdit();
             }
-            if (typeof ubActiveLine.setStyle === "function") {
-                ubActiveLine.setStyle({opacity: 0.8});
-            }
         }
         ubActiveLine = line;
         if (typeof ubActiveLine.enableEdit === "function") {
             ubActiveLine.enableEdit();
         }
-        if (typeof ubActiveLine.setStyle === "function") {
-            ubActiveLine.setStyle({opacity: 1});
-        }
         ubRememberLineState(ubActiveLine);
         ubSyncFormFields();
+        ubRefreshLineFocusVisuals();
     }
 
     function ubFinishDrawing() {
@@ -359,29 +484,24 @@ window.ubCustmapsLineEditorInit = function(map, config) {
         ubActiveLine = null;
         ubIsDrawingMode = false;
         ubSyncFormFields();
+        ubRefreshLineFocusVisuals();
     }
 
     function ubStartDrawing() {
         ubCancelDrawing();
         var colorField = document.querySelector('input[name="newline_style_color"]');
-        var widthField = document.querySelector('select[name="newline_style_width"]');
-        var drawColor = ubGenerateRandomLineColor();
-        var drawWidth = ubDefaultWidth;
         if (colorField) {
-            colorField.value = drawColor;
+            colorField.value = ubGenerateRandomLineColor();
         }
-        if (widthField && widthField.value) {
-            drawWidth = parseInt(widthField.value, 10);
-            if (isNaN(drawWidth)) {
-                drawWidth = ubDefaultWidth;
-            }
-        }
+        var st = ubReadFormLineStyle();
         ubIsDrawingMode = true;
         ubDrawingLine = map.editTools.startPolyline(undefined, {
-            color: drawColor,
-            weight: drawWidth,
-            opacity: 0.8
+            color: st.color,
+            weight: st.weight,
+            opacity: 1
         });
+        ubSyncDrawingVisualsFromForm();
+        ubRefreshLineFocusVisuals();
     }
 
     function ubMakeLineEditable(line) {
@@ -435,6 +555,7 @@ window.ubCustmapsLineEditorInit = function(map, config) {
             container.innerHTML = ubLinePanelHtml;
             L.DomEvent.disableClickPropagation(container);
             L.DomEvent.disableScrollPropagation(container);
+            ubWireFormStyleListeners(container);
             return container;
         };
         ubEditorPanelControl.addTo(map);
@@ -496,6 +617,8 @@ window.ubCustmapsLineEditorInit = function(map, config) {
             ubActiveLine._ubLineMeta = null;
             ubRememberLineState(ubActiveLine);
             ubSyncFormFields();
+            ubSyncDrawingVisualsFromForm();
+            ubRefreshLineFocusVisuals();
         }
     });
 
@@ -515,6 +638,8 @@ window.ubCustmapsLineEditorInit = function(map, config) {
         if (ubDrawingLine) {
             ubActiveLine = ubDrawingLine;
             ubSyncFormFields();
+            ubSyncDrawingVisualsFromForm();
+            ubRefreshLineFocusVisuals();
         }
     });
 
@@ -530,5 +655,6 @@ window.ubCustmapsLineEditorInit = function(map, config) {
     }
     setTimeout(function() {
         ubSyncFormFields();
+        ubRefreshLineFocusVisuals();
     }, 0);
 };

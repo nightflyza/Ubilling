@@ -130,6 +130,49 @@ class CustMaps {
     const LINE_DEFAULT_WIDTH = 2;
     const LINE_EDITOR_LIB='modules/jsc/custmaps/line-editor.js';
 
+    const ROUTE_SHOWMAP = 'showmap';
+    const ROUTE_DELETEMAP = 'deletemap';
+    const ROUTE_SHOWITEMS = 'showitems';
+    const ROUTE_SHOWLINES = 'showlines';
+    const ROUTE_DELETEITEM = 'deleteitem';
+    const ROUTE_EDITITEM = 'edititem';
+    const ROUTE_MODIFYLINE = 'modifyline';
+    const ROUTE_DELETELINE = 'deleteline';
+    const ROUTE_MAPEDIT = 'mapedit';
+    const ROUTE_LINEEDIT = 'lineedit';
+    const ROUTE_CL = 'cl';
+    const ROUTE_MAPLIST = 'maplist';
+
+    const PROUTE_NEWMAPNAME = 'newmapname';
+    const PROUTE_EDITMAPID = 'editmapid';
+    const PROUTE_EDITMAPNAME = 'editmapname';
+    const PROUTE_NEWITEMGEO = 'newitemgeo';
+    const PROUTE_NEWITEMTYPE = 'newitemtype';
+    const PROUTE_NEWITEMNAME = 'newitemname';
+    const PROUTE_NEWITEMLOCATION = 'newitemlocation';
+    const PROUTE_NEWLINE_MAPID = 'newline_mapid';
+    const PROUTE_NEWLINE_LINEID = 'newline_lineid';
+    const PROUTE_NEWLINE_STYLE_WIDTH = 'newline_style_width';
+    const PROUTE_NEWLINE_STYLE_COLOR = 'newline_style_color';
+    const PROUTE_NEWLINE_GEO = 'newline_geo';
+    const PROUTE_NEWLINE_NAME = 'newline_name';
+    const PROUTE_NEWLINE_FIBERS_AMOUNT = 'newline_fibers_amount';
+    const PROUTE_NEWLINE_LENGTH_M = 'newline_length_m';
+    const PROUTE_NEWLINE_DESCRIPTION = 'newline_description';
+    const PROUTE_EDITITEMID = 'edititemid';
+    const PROUTE_EDITITEMTYPE = 'edititemtype';
+    const PROUTE_EDITITEMGEO = 'edititemgeo';
+    const PROUTE_EDITITEMNAME = 'edititemname';
+    const PROUTE_EDITITEMLOCATION = 'edititemlocation';
+    const PROUTE_EDITLINEID = 'editlineid';
+    const PROUTE_EDITLINE_NAME = 'editline_name';
+    const PROUTE_EDITLINE_FIBERS_AMOUNT = 'editline_fibers_amount';
+    const PROUTE_EDITLINE_LENGTH_M = 'editline_length_m';
+    const PROUTE_EDITLINE_STYLE_COLOR = 'editline_style_color';
+    const PROUTE_EDITLINE_STYLE_WIDTH = 'editline_style_width';
+    const PROUTE_EDITLINE_DESCRIPTION = 'editline_description';
+    const PROUTE_EDITLINE_GEO = 'editline_geo';
+
     public function __construct() {
         $this->setShowMapId();
         $this->initMessages();
@@ -142,6 +185,16 @@ class CustMaps {
         $this->loadMaps();
         $this->loadItems();
         $this->loadLines();
+    }
+
+    /**
+     * URL of the custom maps list screen (module root)
+     *
+     * @return string
+     */
+    public static function urlMapList() {
+        $result = self::URL_ME . '&' . self::ROUTE_MAPLIST . '=true';
+        return ($result);
     }
 
     /**
@@ -170,8 +223,8 @@ class CustMaps {
      * @return void
      */
     protected function setShowMapId() {
-        if (ubRouting::checkGet('showmap')) {
-            $mapId = ubRouting::get('showmap', 'int');
+        if (ubRouting::checkGet(self::ROUTE_SHOWMAP)) {
+            $mapId = ubRouting::get(self::ROUTE_SHOWMAP, 'int');
             if (!empty($mapId)) {
                 $this->showMapId = ubRouting::filters($mapId, 'int');
             }
@@ -259,16 +312,16 @@ class CustMaps {
      */
     protected function setItemTypes() {
         $this->itemTypes = array(
-            'pillar' => __('Pillar'),
-            'sump' => __('Sump'),
-            'coupling' => __('Coupling'),
-            'node' => __('Node'),
-            'box' => __('Box'),
-            'amplifier' => __('Amplifier'),
-            'optrec' => __('Optical reciever'),
-            'camera' => __('Camera'),
-            'wifi' => __('WiFi'),
-            'waterfall' => __('Waterfall'),
+            'pillar' => __('Pillar'), // опора
+            'sump' => __('Sump'), // колодязь
+            'coupling' => __('Coupling'), // муфта
+            'node' => __('Node'), // вузол
+            'box' => __('Box'), // ящик
+            'amplifier' => __('Amplifier'), // підсилювач
+            'optrec' => __('Optical reciever'), // оптичний приймач
+            'camera' => __('Camera'), // камера
+            'wifi' => __('WiFi'), // wifi
+            'waterfall' => __('Waterfall'), // водоспад
         );
     }
 
@@ -382,16 +435,16 @@ class CustMaps {
      */
     protected function mapControls() {
         $result = '';
-        $result .= wf_BackLink('?module=custmaps');
-        if (ubRouting::checkGet('showmap')) {
-            $mapId = ubRouting::get('showmap', 'int');
+        $result .= wf_BackLink(self::urlMapList());
+        if (ubRouting::checkGet(self::ROUTE_SHOWMAP)) {
+            $mapId = ubRouting::get(self::ROUTE_SHOWMAP, 'int');
             if (cfr('CUSTMAPEDIT')) {
-                $result .= wf_Link('?module=custmaps&showmap=' . $mapId . '&mapedit=true', wf_img('skins/ymaps/target.png') . ' ' . __('Edit markers'), false, 'ubButton');
-                $result .= wf_Link('?module=custmaps&showmap=' . $mapId . '&lineedit=true', wf_img('skins/ymaps/edit.png') . ' ' . __('Edit lines'), false, 'ubButton');
+                $result .= wf_Link(self::URL_ME . '&' . self::ROUTE_SHOWMAP . '=' . $mapId . '&' . self::ROUTE_MAPEDIT . '=true', wf_img('skins/ymaps/target.png') . ' ' . __('Edit markers'), false, 'ubButton');
+                $result .= wf_Link(self::URL_ME . '&' . self::ROUTE_SHOWMAP . '=' . $mapId . '&' . self::ROUTE_LINEEDIT . '=true', wf_img('skins/ymaps/edit.png') . ' ' . __('Edit lines'), false, 'ubButton');
             }
 
-            $result .= wf_Link('?module=custmaps&showitems=' . $mapId, wf_img('skins/icon_mapplacemark16.png') . ' ' . __('Markers'), false, 'ubButton');
-            $result .= wf_Link('?module=custmaps&showlines=' . $mapId, wf_img('skins/icon_mapline16.png') . ' ' . __('Lines'), false, 'ubButton');
+            $result .= wf_Link(self::URL_ME . '&' . self::ROUTE_SHOWITEMS . '=' . $mapId, wf_img('skins/icon_mapplacemark16.png') . ' ' . __('Markers'), false, 'ubButton');
+            $result .= wf_Link(self::URL_ME . '&' . self::ROUTE_SHOWLINES . '=' . $mapId, wf_img('skins/icon_mapline16.png') . ' ' . __('Lines'), false, 'ubButton');
         }
         $result .= wf_delimiter();
         return ($result);
@@ -404,10 +457,10 @@ class CustMaps {
      */
     protected function mapLayersControls() {
         $result = '';
-        if (ubRouting::checkGet('showmap')) {
-            $mapId = ubRouting::get('showmap', 'int');
-            if (ubRouting::checkGet('cl')) {
-                $custLayers = ubRouting::get('cl');
+        if (ubRouting::checkGet(self::ROUTE_SHOWMAP)) {
+            $mapId = ubRouting::get(self::ROUTE_SHOWMAP, 'int');
+            if (ubRouting::checkGet(self::ROUTE_CL)) {
+                $custLayers = ubRouting::get(self::ROUTE_CL);
             } else {
                 $custLayers = '';
             }
@@ -421,11 +474,11 @@ class CustMaps {
                 $result .= wf_delimiter(0);
                 $result .= wf_tag('b') . __('Additional layers') .': '. wf_tag('b', true);
                 if (!empty($activeLayers)) {
-                    $result .= wf_Link('?module=custmaps&showmap=' . $mapId, wf_img('skins/icon_cleanup.png') . ' ' . $this->mapGetName($mapId), false);
+                    $result .= wf_Link(self::URL_ME . '&' . self::ROUTE_SHOWMAP . '=' . $mapId, wf_img('skins/icon_cleanup.png') . ' ' . $this->mapGetName($mapId), false);
                 }
                 foreach ($this->allMaps as $cmapId => $cmapData) {
                     if ($cmapId != $mapId and !in_array($cmapId, $activeLayers)) {
-                        $result .= ' ' . wf_Link('?module=custmaps&showmap=' . $mapId . '&cl=' . $cmapId . '_' . $this->filterLayers($custLayers, $cmapId . '_'), wf_img('skins/icon_map_small.png') . ' ' . $this->mapGetName($cmapId), false);
+                        $result .= ' ' . wf_Link(self::URL_ME . '&' . self::ROUTE_SHOWMAP . '=' . $mapId . '&' . self::ROUTE_CL . '=' . $cmapId . '_' . $this->filterLayers($custLayers, $cmapId . '_'), wf_img('skins/icon_map_small.png') . ' ' . $this->mapGetName($cmapId), false);
                     }
                 }
             }
@@ -441,33 +494,34 @@ class CustMaps {
     public function renderMapList() {
         $result = $this->mapListControls();
 
-        
+        if (!empty($this->allMaps)) {
         $cells= wf_TableCell(__('Name'));
         $cells.= wf_TableCell(__('Actions'));
         $rows = wf_TableRow($cells, 'row1');
-
-        if (!empty($this->allMaps)) {
             foreach ($this->allMaps as $io => $each) {
                 
-                $nameLink = wf_Link('?module=custmaps&showmap=' . $each['id'], $each['name'], false);
+                $nameLink = wf_Link(self::URL_ME . '&' . self::ROUTE_SHOWMAP . '=' . $each['id'], $each['name'], false);
                 $cells= wf_TableCell($nameLink,'90%');
                 $actLinks = '';
                 if (cfr('CUSTMAPEDIT')) {
-                    $deletionUrl = self::URL_ME . '&deletemap=' . $each['id'];
-                    $cancelUrl = self::URL_ME;
+                    $deletionUrl = self::URL_ME . '&' . self::ROUTE_DELETEMAP . '=' . $each['id'];
+                    $cancelUrl = self::urlMapList();
                     $deleteTitle = __('Delete') . ' ' . $each['name'] . '?';
                     $deletionDialog = wf_ConfirmDialog($deletionUrl, web_delete_icon(), $this->messages->getDeleteAlert(), '', $cancelUrl, $deleteTitle);
                     $actLinks.= $deletionDialog . ' ';
                     $actLinks.= wf_modalAuto(web_edit_icon(), __('Edit'), $this->mapEditForm($each['id']));
                 }
-                $actLinks.= wf_Link('?module=custmaps&showmap=' . $each['id'], wf_img('skins/icon_map_small.png', __('Show')), false);
+                $actLinks.= wf_Link(self::URL_ME . '&' . self::ROUTE_SHOWMAP . '=' . $each['id'], wf_img('skins/icon_map_small.png', __('Show')), false);
 
                 $cells.= wf_TableCell($actLinks);
                 $rows.= wf_TableRow($cells, 'row5');
             }
-        }
+        
 
         $result.= wf_TableBody($rows, '100%', '0', 'sortable');
+        } else {
+            $result.= $this->messages->getStyledMessage(__('Nothing to show'), 'info');
+        }
         return ($result);
     }
 
@@ -481,13 +535,11 @@ class CustMaps {
         $itemid = ubRouting::filters($itemid, 'int');
         $result = '';
         if (isset($this->allItems[$itemid])) {
-            $result.= wf_BackLink('?module=custmaps&showitems=' . $this->allItems[$itemid]['mapid']);
-            $result.= wf_delimiter();
-            $inputs = wf_HiddenInput('edititemid', $itemid);
-            $inputs.= wf_Selector('edititemtype', $this->itemTypes, __('Type'), $this->allItems[$itemid]['type'], true);
-            $inputs.= wf_TextInput('edititemgeo', __('Geo location'), $this->allItems[$itemid]['geo'], true, '20', 'geo');
-            $inputs.= wf_TextInput('edititemname', __('Name'), $this->allItems[$itemid]['name'], true, '20');
-            $inputs.= wf_TextInput('edititemlocation', __('Location'), $this->allItems[$itemid]['location'], true, '20');
+            $inputs = wf_HiddenInput(self::PROUTE_EDITITEMID, $itemid);
+            $inputs.= wf_Selector(self::PROUTE_EDITITEMTYPE, $this->itemTypes, __('Type'), $this->allItems[$itemid]['type'], true);
+            $inputs.= wf_TextInput(self::PROUTE_EDITITEMGEO, __('Geo location'), $this->allItems[$itemid]['geo'], true, '20', 'geo');
+            $inputs.= wf_TextInput(self::PROUTE_EDITITEMNAME, __('Name'), $this->allItems[$itemid]['name'], true, '20');
+            $inputs.= wf_TextInput(self::PROUTE_EDITITEMLOCATION, __('Location'), $this->allItems[$itemid]['location'], true, '20');
             if (cfr('CUSTMAPEDIT')) {
                 $inputs.=wf_delimiter(0);
                 $inputs.= wf_Submit(__('Save'));
@@ -500,7 +552,7 @@ class CustMaps {
     }
 
     /**
-     * Renders marker edit UI: form, optional photostorage link, optional additional comments.
+     * Renders marker edit UI: edit form and minimap side by side in a flex row (when geo is set),
      *
      * @param int $itemId
      *
@@ -509,37 +561,9 @@ class CustMaps {
     public function renderMarkerEdit($itemId) {
         $result = '';
         $itemId = ubRouting::filters($itemId, 'int');
-        $itemName=$this->allItems[$itemId]['name'];
-        show_window(__('Edit') . ': ' . $itemName, $this->itemEditForm($itemId));
-
-        $itemAttachControls='';
-        $itemAttachments='';
-
-        if (isset($this->altCfg['PHOTOSTORAGE_ENABLED']) and $this->altCfg['PHOTOSTORAGE_ENABLED']) {
-            $photostorage = new PhotoStorage('CUSTMAPMARKERS', $itemId);
-            $itemAttachControls .= wf_Link('?module=photostorage&scope=CUSTMAPMARKERS&itemid=' . $itemId . '&mode=list', wf_img('skins/photostorage.png') . ' ' . __('Upload images'), false, 'ubButton');
-            $itemAttachments .= $photostorage->renderImagesRaw();
-        }
-
-        if (isset($this->altCfg['FILESTORAGE_ENABLED']) and $this->altCfg['FILESTORAGE_ENABLED']) {
-            $fileStorage = new FileStorage('CUSTMAPMARKERS', $itemId);
-            $callbackUrl= base64_encode(self::URL_ME . '&edititem=' . $itemId);
-            $itemAttachControls .= $fileStorage->renderNavigationButton(' '.__('Upload files'), 'ubButton', '&callback=' . $callbackUrl);
-            $itemAttachments .= $fileStorage->renderFilesPreview(false, '', '', 64);
-        }
-
-        //render attachments UI
-        if (!empty($itemAttachControls)) {
-            $attachmentsUi='';
-            if (cfr('CUSTMAPEDIT')) {
-              $attachmentsUi.= $itemAttachControls;
-              $attachmentsUi.= wf_delimiter();
-            }
-            $attachmentsUi.=$itemAttachments;
-            show_window('', $attachmentsUi);
-        }
-
-        //minimap here if item has geo location
+        $itemName = $this->allItems[$itemId]['name'];
+        $editForm = $this->itemEditForm($itemId);
+        $miniMapBlock = '';
         if (!empty($this->allItems[$itemId]['geo'])) {
             $findingZoom = $this->ymapsCfg['FINDING_ZOOM'];
             $miniMap = new MapCore('custmapmarkerminimap');
@@ -552,8 +576,54 @@ class CustMaps {
                 'popupTitle' => $this->allItems[$itemId]['location'],
                 'tooltip' => $markerContent
             ));
-            show_window('', $miniMap->renderContainer('100%', '350px'));
-            show_window('', $miniMap->render());
+            $miniMapBlock = $miniMap->renderContainer('100%', '300px') . $miniMap->render();
+        }
+
+        $mainWindowContent = '';
+        if (!empty($this->allItems[$itemId]['geo'])) {
+            $splitWrapOpts = 'style="display:flex;flex-wrap:wrap;align-items:flex-start;gap:12px;width:100%;box-sizing:border-box;"';
+            $colBorder = 'border:1px solid #d8d8d8;';
+            $formColOpts = 'style="flex:0 0 auto;min-width:220px;max-width:100%;box-sizing:border-box;' . $colBorder . 'padding:8px;border-radius:2px;"';
+            $mapColOpts = 'style="flex:1 1 0%;min-width:0;max-width:100%;box-sizing:border-box;' . $colBorder . 'padding:8px;border-radius:2px;"';
+            $formCol = wf_tag('div', false, '', $formColOpts) . $editForm . wf_tag('div', true);
+            $mapCol = wf_tag('div', false, '', $mapColOpts) . $miniMapBlock . wf_tag('div', true);
+            $mainWindowContent = wf_tag('div', false, '', $splitWrapOpts) . $formCol . $mapCol . wf_tag('div', true);
+        } else {
+            $mainWindowContent = $editForm;
+        }
+        show_window(__('Edit') . ': ' . $itemName, $mainWindowContent);
+
+        $itemControls='';
+        if (isset($this->allItems[$itemId])) {
+            $itemControls.= wf_BackLink(self::URL_ME . '&' . self::ROUTE_SHOWITEMS . '=' . $this->allItems[$itemId]['mapid']);
+        }
+        
+        $itemAttachControls = '';
+        $itemAttachControls.= $itemControls;
+        $itemAttachments = '';
+
+        if (isset($this->altCfg['PHOTOSTORAGE_ENABLED']) and $this->altCfg['PHOTOSTORAGE_ENABLED']) {
+            $photostorage = new PhotoStorage('CUSTMAPMARKERS', $itemId);
+            $itemAttachControls .= wf_Link('?module=photostorage&scope=CUSTMAPMARKERS&itemid=' . $itemId . '&mode=list', wf_img('skins/photostorage.png') . ' ' . __('Upload images'), false, 'ubButton');
+            $itemAttachments .= $photostorage->renderImagesRaw();
+        }
+
+        if (isset($this->altCfg['FILESTORAGE_ENABLED']) and $this->altCfg['FILESTORAGE_ENABLED']) {
+            $fileStorage = new FileStorage('CUSTMAPMARKERS', $itemId);
+            $callbackUrl = base64_encode(self::URL_ME . '&' . self::ROUTE_EDITITEM . '=' . $itemId);
+            $itemAttachControls .= $fileStorage->renderNavigationButton(' ' . __('Upload files'), 'ubButton', '&callback=' . $callbackUrl);
+            $itemAttachments .= $fileStorage->renderFilesPreview(false, '', '', 64);
+        }
+
+        //render attachments UI
+        if (!empty($itemAttachControls)) {
+            $attachmentsUi = '';
+            if (cfr('CUSTMAPEDIT')) {
+                $attachmentsUi .= $itemAttachControls;
+                $attachmentsUi .= wf_delimiter();
+            }
+            $attachmentsUi .= $itemAttachments;
+            show_window('', $attachmentsUi);
         }
 
         //render additional comments
@@ -614,10 +684,10 @@ class CustMaps {
                     $indicator = $adcomments->getCommentsIndicator($each['id']);
                     $actLinks = '';
                     if (cfr('CUSTMAPEDIT')) {
-                        $actLinks .= wf_JSAlertStyled('?module=custmaps&deleteitem=' . $each['id'], web_delete_icon(), $this->messages->getDeleteAlert()) . ' ';
-                        $actLinks .= wf_Link('?module=custmaps&edititem=' . $each['id'], web_edit_icon()) . ' ';
+                        $actLinks .= wf_JSAlertStyled(self::URL_ME . '&' . self::ROUTE_DELETEITEM . '=' . $each['id'], web_delete_icon(), $this->messages->getDeleteAlert()) . ' ';
+                        $actLinks .= wf_Link(self::URL_ME . '&' . self::ROUTE_EDITITEM . '=' . $each['id'], web_edit_icon()) . ' ';
                     } else {
-                        $actLinks .= wf_Link('?module=custmaps&edititem=' . $each['id'], web_edit_icon('Show'), false) . ' ';
+                        $actLinks .= wf_Link(self::URL_ME . '&' . self::ROUTE_EDITITEM . '=' . $each['id'], web_edit_icon('Show'), false) . ' ';
                     }
                     $actLinks .= $indicator;
 
@@ -634,7 +704,7 @@ class CustMaps {
         }
 
         $result = '';
-        $result .= wf_BackLink('?module=custmaps&showmap=' . $mapid);
+        $result .= wf_BackLink(self::URL_ME . '&' . self::ROUTE_SHOWMAP . '=' . $mapid);
         $result .= wf_delimiter();
         $result .= wf_JqDtEmbed($columns, $dataArr, false, 'Objects', 100, $opts);
         return ($result);
@@ -667,7 +737,7 @@ class CustMaps {
      * @return string
      */
     protected function mapCreateForm() {
-        $inputs = wf_TextInput('newmapname', __('Name'), '', true, '30');
+        $inputs = wf_TextInput(self::PROUTE_NEWMAPNAME, __('Name'), '', true, '30');
         $inputs.= wf_Submit(__('Create'));
         $result = wf_Form('', 'POST', $inputs, 'glamour');
         return ($result);
@@ -681,8 +751,8 @@ class CustMaps {
      * @return string
      */
     protected function mapEditForm($id) {
-        $inputs = wf_TextInput('editmapname', __('Name'), $this->allMaps[$id]['name'], true, '30');
-        $inputs.= wf_HiddenInput('editmapid', $id);
+        $inputs = wf_TextInput(self::PROUTE_EDITMAPNAME, __('Name'), $this->allMaps[$id]['name'], true, '30');
+        $inputs.= wf_HiddenInput(self::PROUTE_EDITMAPID, $id);
         $inputs.= wf_Submit(__('Create'));
         $result = wf_Form('', 'POST', $inputs, 'glamour');
         return ($result);
@@ -793,9 +863,9 @@ class CustMaps {
                     $content = $this->itemGetTypeName($each['type']) . ': ' . $each['name'];
                     $controls = '';
                     if (cfr('CUSTMAPEDIT')) {
-                        $controls = wf_Link('?module=custmaps&edititem=' . $each['id'], web_edit_icon(), false);
+                        $controls = wf_Link(self::URL_ME . '&' . self::ROUTE_EDITITEM . '=' . $each['id'], web_edit_icon(), false);
                     } else {
-                        $controls = wf_Link('?module=custmaps&edititem=' . $each['id'], web_edit_icon('View'), false);
+                        $controls = wf_Link(self::URL_ME . '&' . self::ROUTE_EDITITEM . '=' . $each['id'], web_edit_icon('View'), false);
                     }
                     $this->mapCore->addMarker($each['geo'], $content, array(
                         'icon' => $icon,
@@ -902,7 +972,7 @@ class CustMaps {
                         $content.= __('Length') . ': ' . $lineData['length_m'] . '<br>';
                         $content.= __('Description') . ': ' . $lineData['description'] . '<br>';
                         if (cfr('CUSTMAPEDIT')) {
-                            $content.= wf_Link('?module=custmaps&showmap=' . $id . '&lineedit=true&editline=' . $lineId, web_edit_icon(), false);
+                            $content.= wf_Link(self::URL_ME . '&' . self::ROUTE_SHOWMAP . '=' . $id . '&' . self::ROUTE_LINEEDIT . '=true&' . self::ROUTE_MODIFYLINE . '=' . $lineId, web_edit_icon(), false);
                         }
                         $title = $lineData['name'];
                         $this->mapCore->addPolyline($points, $content, array(
@@ -938,16 +1008,16 @@ class CustMaps {
         $result = '';
         if (isset($this->allLines[$lineid])) {
             $lineData = $this->allLines[$lineid];
-            $result.= wf_BackLink('?module=custmaps&showlines=' . $lineData['mapid']);
+            $result.= wf_BackLink(self::URL_ME . '&' . self::ROUTE_SHOWLINES . '=' . $lineData['mapid']);
             $result.= wf_delimiter();
-            $inputs = wf_HiddenInput('editlineid', $lineid);
-            $inputs.= wf_TextInput('editline_name', __('Name'), $lineData['name'], false, 25);
-            $inputs.= wf_Selector('editline_fibers_amount', $this->lineGetFibersAmountOptions(), __('Fibers amount'), $lineData['fibers_amount'], true);
-            $inputs.= wf_TextInput('editline_length_m', __('Length'), $lineData['length_m'], true, 25);
-            $inputs.= wf_ColorInput('editline_style_color', __('Color'), $lineData['style_color'], true);
-            $inputs.= wf_Selector('editline_style_width', $this->lineGetWidthOptions(), __('Line width'), $lineData['style_width'], true);
-            $inputs.= wf_TextInput('editline_description', __('Description'), $lineData['description'], false, 25);
-            $inputs.= wf_TextArea('editline_geo', __('Geometry') . ' [[lat,lng],[lat,lng]]', $lineData['geo'], true, '35x4');
+            $inputs = wf_HiddenInput(self::PROUTE_EDITLINEID, $lineid);
+            $inputs.= wf_TextInput(self::PROUTE_EDITLINE_NAME, __('Name'), $lineData['name'], false, 25);
+            $inputs.= wf_Selector(self::PROUTE_EDITLINE_FIBERS_AMOUNT, $this->lineGetFibersAmountOptions(), __('Fibers amount'), $lineData['fibers_amount'], true);
+            $inputs.= wf_TextInput(self::PROUTE_EDITLINE_LENGTH_M, __('Length'), $lineData['length_m'], true, 25);
+            $inputs.= wf_ColorInput(self::PROUTE_EDITLINE_STYLE_COLOR, __('Color'), $lineData['style_color'], true);
+            $inputs.= wf_Selector(self::PROUTE_EDITLINE_STYLE_WIDTH, $this->lineGetWidthOptions(), __('Line width'), $lineData['style_width'], true);
+            $inputs.= wf_TextInput(self::PROUTE_EDITLINE_DESCRIPTION, __('Description'), $lineData['description'], false, 25);
+            $inputs.= wf_TextArea(self::PROUTE_EDITLINE_GEO, __('Geometry') . ' [[lat,lng],[lat,lng]]', $lineData['geo'], true, '35x4');
             $inputs.= wf_Submit(__('Save'));
             $result.= wf_Form('', 'POST', $inputs, '');
         } else {
@@ -973,8 +1043,8 @@ class CustMaps {
                 if ($lineData['mapid'] == $mapid) {
                     $actLinks = '';
                     if (cfr('CUSTMAPEDIT')) {
-                        $actLinks .= wf_JSAlertStyled('?module=custmaps&deleteline=' . $lineId, web_delete_icon(), $this->messages->getDeleteAlert()) . ' ';
-                        $actLinks .= wf_JSAlertStyled('?module=custmaps&showmap=' . $mapid . '&lineedit=true&editline=' . $lineId, web_edit_icon(), $this->messages->getEditAlert()) . ' ';
+                        $actLinks .= wf_JSAlertStyled(self::URL_ME . '&' . self::ROUTE_DELETELINE . '=' . $lineId, web_delete_icon(), $this->messages->getDeleteAlert()) . ' ';
+                        $actLinks .= wf_JSAlertStyled(self::URL_ME . '&' . self::ROUTE_SHOWMAP . '=' . $mapid . '&' . self::ROUTE_LINEEDIT . '=true&' . self::ROUTE_MODIFYLINE . '=' . $lineId, web_edit_icon(), $this->messages->getEditAlert()) . ' ';
                     }
 
                     $dataArr[] = array(
@@ -989,7 +1059,7 @@ class CustMaps {
         }
 
         $result = '';
-        $result .= wf_BackLink('?module=custmaps&showmap=' . $mapid);
+        $result .= wf_BackLink(self::URL_ME . '&' . self::ROUTE_SHOWMAP . '=' . $mapid);
         $result .= wf_delimiter();
         $result .= wf_JqDtEmbed($columns, $dataArr, false, 'Lines', 100, $opts);
         return ($result);
@@ -1135,9 +1205,9 @@ class CustMaps {
      * @return string
      */
     protected function itemLocationForm() {
-        $result = wf_Selector('newitemtype', $this->itemTypes, __('Type'), '', true);
-        $result.= wf_TextInput('newitemname', __('Name'), '', true, 20);
-        $result.= wf_TextInput('newitemlocation', __('Location'), '', true, 20);
+        $result = wf_Selector(self::PROUTE_NEWITEMTYPE, $this->itemTypes, __('Type'), '', true);
+        $result.= wf_TextInput(self::PROUTE_NEWITEMNAME, __('Name'), '', true, 20);
+        $result.= wf_TextInput(self::PROUTE_NEWITEMLOCATION, __('Location'), '', true, 20);
         $result.= wf_Submit(__('Create'));
         return ($result);
     }
@@ -1196,7 +1266,7 @@ class CustMaps {
     public function mapLocationEditor() {
         $title = wf_tag('b') . __('Place coordinates') . wf_tag('b', true);
         $data = $this->itemLocationForm();
-        $this->mapCore->addLocationEditor('newitemgeo', $title, $data);
+        $this->mapCore->addLocationEditor(self::PROUTE_NEWITEMGEO, $title, $data);
         $result = '';
         return ($result);
     }
@@ -1225,21 +1295,27 @@ class CustMaps {
      * Returns line location form for map editor
      *
      * @param int $mapid
+     * @param string $lengthReadoutId
+     * 
      * @return string
      */
-    protected function lineLocationForm($mapid) {
+    protected function lineLocationForm($mapid, $lengthReadoutId) {
         $mapid = ubRouting::filters($mapid, 'int');
         $lineColor = $this->lineGetRandomColor();
-        $inputs = wf_HiddenInput('newline_mapid', $mapid);
-        $inputs.= wf_HiddenInput('newline_lineid', '');
-        $inputs.= wf_HiddenInput('newline_geo', '');
-        $inputs.= wf_TextInput('newline_name', __('Name'), '', true, 20);
-        $inputs.= wf_Selector('newline_fibers_amount', $this->lineGetFibersAmountOptions(), __('Fibers amount'), strval(self::LINE_DEFAULT_FIBERS_AMOUNT), true);
-        $inputs.= wf_TextInput('newline_length_m', __('Length'), '0', true, 8);
-        $inputs.= wf_ColorInput('newline_style_color', __('Color'), $lineColor, true, 'ubLineEditorColor_' . $mapid);
-        $inputs.= wf_Selector('newline_style_width', $this->lineGetWidthOptions(), __('Line width'), strval(self::LINE_DEFAULT_WIDTH), true);
-        $inputs.= wf_TextInput('newline_description', __('Description'), '', false, 20);
-        $inputs.= wf_tag('br');
+        $inputs = wf_HiddenInput(self::PROUTE_NEWLINE_MAPID, $mapid);
+        $inputs.= wf_HiddenInput(self::PROUTE_NEWLINE_LINEID, '');
+        $inputs.= wf_HiddenInput(self::PROUTE_NEWLINE_GEO, '');
+        $inputs.= wf_TextInput(self::PROUTE_NEWLINE_NAME, __('Name'), '', true, 20);
+        $inputs.= wf_Selector(self::PROUTE_NEWLINE_FIBERS_AMOUNT, $this->lineGetFibersAmountOptions(), __('Fibers amount'), strval(self::LINE_DEFAULT_FIBERS_AMOUNT), true);
+        $inputs.= wf_ColorInput(self::PROUTE_NEWLINE_STYLE_COLOR, __('Color'), $lineColor, true, 'ubLineEditorColor_' . $mapid);
+        $inputs.= wf_Selector(self::PROUTE_NEWLINE_STYLE_WIDTH, $this->lineGetWidthOptions(), __('Line width'), strval(self::LINE_DEFAULT_WIDTH), true);
+        $inputs.= wf_TextInput(self::PROUTE_NEWLINE_DESCRIPTION, __('Description'), '', false, 20);
+        $inputs.= wf_HiddenInput(self::PROUTE_NEWLINE_LENGTH_M, '0');
+        $inputs.= wf_tag('div', false, 'ubLineEditorLengthReadout');
+        $inputs.= __('Length') . ': ';
+        $inputs.= wf_tag('span', false, '', 'id="' . $lengthReadoutId . '"') . '0.00' . wf_tag('span', true);
+        $inputs.= ' ' . __('m') . wf_tag('div', true);
+        
         $inputs.= wf_Submit(__('Save line'));
         $result = wf_Form('', 'POST', $inputs, 'glamour');
         return ($result);
@@ -1253,8 +1329,9 @@ class CustMaps {
      */
     public function mapLineEditor($mapid) {
         $mapid = ubRouting::filters($mapid, 'int');
+        $lengthReadoutId = 'ubLineEditorLengthReadout_' . $mapid;
         $title = wf_tag('b') . __('Line editor') . wf_tag('b', true);
-        $data = $this->lineLocationForm($mapid);
+        $data = $this->lineLocationForm($mapid, $lengthReadoutId);
         $drawBtnId = 'ubLineEditorDrawBtn_' . $mapid;
         $finishBtnId = 'ubLineEditorFinishBtn_' . $mapid;
         $cancelBtnId = 'ubLineEditorCancelBtn_' . $mapid;
@@ -1274,7 +1351,8 @@ class CustMaps {
             'finishBtnId' => $finishBtnId,
             'cancelBtnId' => $cancelBtnId,
             'undoBtnId' => $undoBtnId,
-            'initialEditLineId' => (ubRouting::checkGet('editline') ? ubRouting::get('editline', 'int') : 0),
+            'lengthReadoutId' => $lengthReadoutId,
+            'initialEditLineId' => (ubRouting::checkGet(self::ROUTE_MODIFYLINE) ? ubRouting::get(self::ROUTE_MODIFYLINE, 'int') : 0),
             'defaultColor' => self::LINE_DEFAULT_COLOR,
             'defaultFibersAmount' => self::LINE_DEFAULT_FIBERS_AMOUNT,
             'defaultWidth' => self::LINE_DEFAULT_WIDTH,
@@ -1283,7 +1361,7 @@ class CustMaps {
         if ($lineEditorConfigJs === false) {
             $lineEditorConfigJs = '{}';
         }
-        $this->mapCore->addScriptSrc(self::LINE_EDITOR_LIB);
+        $this->mapCore->addScriptSrc(self::LINE_EDITOR_LIB.'?nc='.time()); // prevent lib caching
         $lineEditorJs = '
             (function() {
                 if (typeof ubCustmapsLineEditorInit !== "function") {
