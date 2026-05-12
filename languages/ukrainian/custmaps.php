@@ -19,3 +19,4 @@ $lang['def']['Edit on map'] = 'Редагувати на мапі';
 $lang['def']['Points count'] = 'Кількість точок';
 $lang['def']['Created at'] = 'Дата створення';
 $lang['def']['Updated at'] = 'Дата оновлення';
+$lang['def']['Manhole'] = 'Колодязь';

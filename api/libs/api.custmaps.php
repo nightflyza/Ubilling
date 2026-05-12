@@ -314,7 +314,7 @@ class CustMaps {
     protected function setItemTypes() {
         $this->itemTypes = array(
             'pillar' => __('Pillar'), // опора
-            'sump' => __('Sump'), // колодязь
+            'manhole' => __('Manhole'), // колодязь
             'coupling' => __('Coupling'), // муфта
             'node' => __('Node'), // вузол
             'box' => __('Box'), // коробка
@@ -326,7 +326,7 @@ class CustMaps {
         );
     }
 
-        /**
+    /**
      * Returns icon for some item type
      * 
      * @param string $type
@@ -339,7 +339,7 @@ class CustMaps {
             case 'pillar':
                 $result = 'marker.green';
                 break;
-            case 'sump':
+            case 'manhole':
                 $result = 'marker.brown';
                 break;
             case 'coupling':

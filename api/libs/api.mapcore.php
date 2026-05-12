@@ -137,7 +137,7 @@ class MapCore {
      */
     protected $fpsMeterPosition = 'bottomleft';
 
-      /**
+    /**
      * Canonical icon key => image path
      *
      * @var array
