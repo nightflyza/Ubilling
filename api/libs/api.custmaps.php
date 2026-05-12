@@ -594,36 +594,45 @@ class CustMaps {
         }
         show_window(__('Edit') . ': ' . $itemName, $mainWindowContent);
 
-        $itemControls='';
+        $itemControls = '';
         if (isset($this->allItems[$itemId])) {
-            $itemControls.= wf_BackLink(self::URL_ME . '&' . self::ROUTE_SHOWITEMS . '=' . $this->allItems[$itemId]['mapid']);
+            $itemControls .= wf_BackLink(self::URL_ME . '&' . self::ROUTE_SHOWITEMS . '=' . $this->allItems[$itemId]['mapid']);
         }
-        
-        $itemAttachControls = '';
-        $itemAttachControls.= $itemControls;
+
+        $itemUploadControls = '';
         $itemAttachments = '';
 
         if (isset($this->altCfg['PHOTOSTORAGE_ENABLED']) and $this->altCfg['PHOTOSTORAGE_ENABLED']) {
             $photostorage = new PhotoStorage('CUSTMAPMARKERS', $itemId);
-            $itemAttachControls .= wf_Link('?module=photostorage&scope=CUSTMAPMARKERS&itemid=' . $itemId . '&mode=list', wf_img('skins/photostorage.png') . ' ' . __('Upload images'), false, 'ubButton');
+            if (cfr('CUSTMAPEDIT')) {
+                $itemUploadControls .= wf_Link('?module=photostorage&scope=CUSTMAPMARKERS&itemid=' . $itemId . '&mode=list', wf_img('skins/photostorage.png') . ' ' . __('Upload images'), false, 'ubButton');
+            }
             $itemAttachments .= $photostorage->renderImagesRaw();
         }
 
         if (isset($this->altCfg['FILESTORAGE_ENABLED']) and $this->altCfg['FILESTORAGE_ENABLED']) {
             $fileStorage = new FileStorage('CUSTMAPMARKERS', $itemId);
-            $callbackUrl = base64_encode(self::URL_ME . '&' . self::ROUTE_EDITITEM . '=' . $itemId);
-            $itemAttachControls .= $fileStorage->renderNavigationButton(' ' . __('Upload files'), 'ubButton', '&callback=' . $callbackUrl);
+            if (cfr('CUSTMAPEDIT')) {
+                $callbackUrl = base64_encode(self::URL_ME . '&' . self::ROUTE_EDITITEM . '=' . $itemId);
+                $itemUploadControls .= $fileStorage->renderNavigationButton(' ' . __('Upload files'), 'ubButton', '&callback=' . $callbackUrl);
+            }
             $itemAttachments .= $fileStorage->renderFilesPreview(false, '', '', 64);
         }
 
         //render attachments UI
-        if (!empty($itemAttachControls)) {
-            $attachmentsUi = '';
-            if (cfr('CUSTMAPEDIT')) {
-                $attachmentsUi .= $itemAttachControls;
+        $attachmentsUi = '';
+        $attachmentsUi .= $itemControls;
+        if (!empty($itemUploadControls)) {
+            $attachmentsUi .= $itemUploadControls;
+            $attachmentsUi .= wf_delimiter();
+        } else {
+            if (!empty($itemAttachments)) {
                 $attachmentsUi .= wf_delimiter();
             }
-            $attachmentsUi .= $itemAttachments;
+        }
+        $attachmentsUi .= $itemAttachments;
+
+        if (!empty($attachmentsUi)) {
             show_window('', $attachmentsUi);
         }
 
@@ -864,9 +873,9 @@ class CustMaps {
                     $content = $this->itemGetTypeName($each['type']) . ': ' . $each['name'];
                     $controls = '';
                     if (cfr('CUSTMAPEDIT')) {
-                        $controls = wf_Link(self::URL_ME . '&' . self::ROUTE_EDITITEM . '=' . $each['id'], web_edit_icon(), false);
+                        $controls = wf_Link(self::URL_ME . '&' . self::ROUTE_EDITITEM . '=' . $each['id'], web_icon_extended(__('Change')), false);
                     } else {
-                        $controls = wf_Link(self::URL_ME . '&' . self::ROUTE_EDITITEM . '=' . $each['id'], web_edit_icon('View'), false);
+                        $controls = wf_Link(self::URL_ME . '&' . self::ROUTE_EDITITEM . '=' . $each['id'], web_icon_extended('View'), false);
                     }
                     $this->mapCore->addMarker($each['geo'], $content, array(
                         'icon' => $icon,
@@ -1007,8 +1016,12 @@ class CustMaps {
                         $content.= __('Length') . ': ' . $lineData['length_m'] . '<br>';
                         $content.= __('Description') . ': ' . $lineData['description'] . '<br>';
                         if (cfr('CUSTMAPEDIT')) {
-                            $content.= wf_Link(self::URL_ME . '&' . self::ROUTE_SHOWMAP . '=' . $id . '&' . self::ROUTE_LINEEDIT . '=true&' . self::ROUTE_MODIFYLINE . '=' . $lineId, web_edit_icon(), false);
+                            $content.= wf_Link(self::URL_ME . '&' . self::ROUTE_SHOWMAP . '=' . $id . '&' . self::ROUTE_LINEEDIT . '=true&' . self::ROUTE_MODIFYLINE . '=' . $lineId, web_edit_icon(__('Edit on map')), false);
+                            $content.= wf_Link(self::URL_ME . '&' . self::ROUTE_EDITLINE . '=' . $lineId, web_icon_extended(__('Change')), false);
+                        } else {
+                            $content.= wf_Link(self::URL_ME . '&' . self::ROUTE_EDITLINE . '=' . $lineId, web_icon_extended(__('View')), false);
                         }
+
                         $title = $lineData['name'];
                         $this->mapCore->addPolyline($points, $content, array(
                             'color' => $lineColor,
@@ -1137,7 +1150,6 @@ class CustMaps {
             }
 
             $mainWindowContent = '';
-            $backToLines = wf_BackLink(self::URL_ME . '&' . self::ROUTE_SHOWLINES . '=' . $lineData['mapid']) . wf_delimiter();
             if (!empty($miniMapBlock)) {
                 $splitWrapOpts = 'style="display:flex;flex-wrap:wrap;align-items:flex-start;gap:12px;width:100%;box-sizing:border-box;"';
                 $colBorder = 'border:1px solid #d8d8d8;';
@@ -1145,35 +1157,48 @@ class CustMaps {
                 $mapColOpts = 'style="flex:1 1 0%;min-width:0;max-width:100%;box-sizing:border-box;' . $colBorder . 'padding:8px;border-radius:2px;"';
                 $formCol = wf_tag('div', false, '', $formColOpts) . $editForm . wf_tag('div', true);
                 $mapCol = wf_tag('div', false, '', $mapColOpts) . $miniMapBlock . wf_tag('div', true);
-                $mainWindowContent = $backToLines . wf_tag('div', false, '', $splitWrapOpts) . $formCol . $mapCol . wf_tag('div', true);
+                $mainWindowContent = wf_tag('div', false, '', $splitWrapOpts) . $formCol . $mapCol . wf_tag('div', true);
             } else {
-                $mainWindowContent = $backToLines . $editForm;
+                $mainWindowContent = $editForm;
             }
             show_window(__('Edit') . ': ' . $lineName, $mainWindowContent);
 
-            $lineAttachControls = '';
+            $lineControls = '';
+            $lineControls .= wf_BackLink(self::URL_ME . '&' . self::ROUTE_SHOWLINES . '=' . $lineData['mapid']);
+
+            $lineUploadControls = '';
             $lineAttachments = '';
 
             if (isset($this->altCfg['PHOTOSTORAGE_ENABLED']) and $this->altCfg['PHOTOSTORAGE_ENABLED']) {
                 $photostorage = new PhotoStorage('CUSTMAPLINES', $lineId);
-                $lineAttachControls .= wf_Link('?module=photostorage&scope=CUSTMAPLINES&itemid=' . $lineId . '&mode=list', wf_img('skins/photostorage.png') . ' ' . __('Upload images'), false, 'ubButton');
+                if (cfr('CUSTMAPEDIT')) {
+                    $lineUploadControls .= wf_Link('?module=photostorage&scope=CUSTMAPLINES&itemid=' . $lineId . '&mode=list', wf_img('skins/photostorage.png') . ' ' . __('Upload images'), false, 'ubButton');
+                }
                 $lineAttachments .= $photostorage->renderImagesRaw();
             }
 
             if (isset($this->altCfg['FILESTORAGE_ENABLED']) and $this->altCfg['FILESTORAGE_ENABLED']) {
                 $fileStorage = new FileStorage('CUSTMAPLINES', $lineId);
-                $callbackUrl = base64_encode(self::URL_ME . '&' . self::ROUTE_EDITLINE . '=' . $lineId);
-                $lineAttachControls .= $fileStorage->renderNavigationButton(' ' . __('Upload files'), 'ubButton', '&callback=' . $callbackUrl);
+                if (cfr('CUSTMAPEDIT')) {
+                    $callbackUrl = base64_encode(self::URL_ME . '&' . self::ROUTE_EDITLINE . '=' . $lineId);
+                    $lineUploadControls .= $fileStorage->renderNavigationButton(' ' . __('Upload files'), 'ubButton', '&callback=' . $callbackUrl);
+                }
                 $lineAttachments .= $fileStorage->renderFilesPreview(false, '', '', 64);
             }
 
-            if (!empty($lineAttachControls)) {
-                $attachmentsUi = '';
-                if (cfr('CUSTMAPEDIT')) {
-                    $attachmentsUi .= $lineAttachControls;
+            $attachmentsUi = '';
+            $attachmentsUi .= $lineControls;
+            if (!empty($lineUploadControls)) {
+                $attachmentsUi .= $lineUploadControls;
+                $attachmentsUi .= wf_delimiter();
+            } else {
+                if (!empty($lineAttachments)) {
                     $attachmentsUi .= wf_delimiter();
                 }
-                $attachmentsUi .= $lineAttachments;
+            }
+            $attachmentsUi .= $lineAttachments;
+
+            if (!empty($attachmentsUi)) {
                 show_window('', $attachmentsUi);
             }
 
