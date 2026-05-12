@@ -117,6 +117,14 @@ class MapCore {
     protected $rememberLayer=false;
 
     /**
+     * When true, all marker attachments go inside a L.layerGroup on the map
+     * so callers can show/hide markers by adding/removing that group.
+     *
+     * @var bool
+     */
+    protected $markerToggleShellEnabled = false;
+
+    /**
      * Enables FPS meter overlay control
      *
      * @var bool
@@ -387,6 +395,33 @@ class MapCore {
             $this->rememberLayer = false;
         }
         return ($this);
+    }
+
+    /**
+     * When enabled, markers (cluster/canvas/plain) are parented under one
+     * L.layerGroup exposed as ubMarkerToggleShell in the rendered map script.
+     *
+     * @param bool $enabled
+     *
+     * @return object
+     */
+    public function setMarkerToggleShellEnabled($enabled = true) {
+        if ($enabled) {
+            $this->markerToggleShellEnabled = true;
+        } else {
+            $this->markerToggleShellEnabled = false;
+        }
+        return ($this);
+    }
+
+    /**
+     * Returns map container DOM id used by Leaflet
+     *
+     * @return string
+     */
+    public function getContainerId() {
+        $result = $this->container;
+        return ($result);
     }
 
     /**
@@ -1313,6 +1348,7 @@ class MapCore {
         $rememberZoomJs = ($this->rememberZoom) ? 'true' : 'false';
         $rememberPositionJs = ($this->rememberPosition) ? 'true' : 'false';
         $rememberLayerJs = ($this->rememberLayer) ? 'true' : 'false';
+        $markerToggleShellJs = ($this->markerToggleShellEnabled) ? 'true' : 'false';
 
         if (!empty($this->tileLayer)) {
             $tileLayerOSM = $this->tileLayer;
@@ -1495,18 +1531,25 @@ class MapCore {
                     console.warn("MapCore: canvas markers and clustering are both enabled; clustering is ignored because canvas markers mode is active.");
                 }
             }
-            var ubMarkerLayer = map;
+            var ubMarkerToggleShellEnabled = ' . $markerToggleShellJs . ';
+            var ubMarkerToggleShell = null;
+            if (ubMarkerToggleShellEnabled) {
+                ubMarkerToggleShell = L.layerGroup();
+                ubMarkerToggleShell.addTo(map);
+            }
+            var ubMarkerTargetParent = ubMarkerToggleShell || map;
+            var ubMarkerLayer = ubMarkerTargetParent;
             if (ubForceCanvasMarkers) {
                 if (typeof L.MarkersCanvas === "function" && typeof RBush === "function") {
                     // Render canvas markers in markerPane to keep them above vector overlays.
                     ubMarkerLayer = new L.MarkersCanvas({pane: "markerPane"});
-                    ubMarkerLayer.addTo(map);
+                    ubMarkerLayer.addTo(ubMarkerTargetParent);
                     if (ubMarkerLayer._canvas && ubMarkerLayer._canvas.style) {
                         // Keep circles/polygons interactive under markerPane canvas layer.
                         ubMarkerLayer._canvas.style.pointerEvents = "none";
                     }
                 } else {
-                    ubMarkerLayer = map;
+                    ubMarkerLayer = ubMarkerTargetParent;
                     if (window.console && typeof console.warn === "function") {
                         console.warn("MapCore: leaflet-markers-canvas or RBush is unavailable, canvas markers disabled.");
                     }
@@ -1515,9 +1558,9 @@ class MapCore {
                 if (ubClusterEnabled) {
                     if (typeof L.markerClusterGroup === "function") {
                         ubMarkerLayer = L.markerClusterGroup(' . $clusterOptionsJs . ');
-                        map.addLayer(ubMarkerLayer);
+                        ubMarkerTargetParent.addLayer(ubMarkerLayer);
                     } else {
-                        ubMarkerLayer = map;
+                        ubMarkerLayer = ubMarkerTargetParent;
                         if (window.console && typeof console.warn === "function") {
                             console.warn("MapCore: local markercluster plugin is unavailable, clustering disabled.");
                         }

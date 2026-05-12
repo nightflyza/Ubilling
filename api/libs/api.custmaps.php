@@ -129,6 +129,7 @@ class CustMaps {
     const LINE_DEFAULT_FIBERS_AMOUNT = 0;
     const LINE_DEFAULT_WIDTH = 2;
     const LINE_EDITOR_LIB='modules/jsc/custmaps/line-editor.js';
+    const MARKERS_TOGGLE_LIB = 'modules/jsc/custmaps/markers-toggle.js';
 
     const ROUTE_SHOWMAP = 'showmap';
     const ROUTE_DELETEMAP = 'deletemap';
@@ -286,6 +287,9 @@ class CustMaps {
         //force saving state of each map
         $this->mapCore->setRememberZoom($rememberZoom);
         $this->mapCore->setRememberPosition($rememberPosition);
+        if ($this->showMapId) {
+            $this->mapCore->setMarkerToggleShellEnabled(true);
+        }
         
     }
 
@@ -341,16 +345,16 @@ class CustMaps {
      */
     protected function setItemTypes() {
         $this->itemTypes = array(
-            'pillar' => __('Pillar'), // опора
-            'manhole' => __('Manhole'), // колодязь
-            'coupling' => __('Coupling'), // муфта
-            'node' => __('Node'), // вузол
-            'box' => __('Box'), // коробка
-            'amplifier' => __('Amplifier'), // підсилювач
-            'optrec' => __('Optical reciever'), // оптичний приймач
-            'camera' => __('Camera'), // камера
-            'wifi' => __('WiFi'), // wifi
-            'waterfall' => __('Waterfall'), // водоспад
+            'pillar' => __('Pillar'), 
+            'manhole' => __('Manhole'),
+            'coupling' => __('Coupling'),
+            'node' => __('Node'), 
+            'box' => __('Box'), 
+            'amplifier' => __('Amplifier'),
+            'optrec' => __('Optical reciever'), 
+            'camera' => __('Camera'), 
+            'wifi' => __('WiFi'),
+            'waterfall' => __('Waterfall'), 
             'other' => __('Other'),
         );
     }
@@ -1534,9 +1538,45 @@ class CustMaps {
         $this->mapCore->setCenter($this->center);
         $this->mapCore->setZoom($this->zoom);
         $this->mapCore->setType($this->ymapsCfg['TYPE']);
+        $this->registerCustmapMarkersToggleControl();
         $result .= $this->mapCore->render();
         $result .= $this->mapLayersControls();
         return ($result);
+    }
+
+    /**
+     * Adds a map control to show/hide marker layers and persists choice in localStorage.
+     *
+     * @return void
+     */
+    protected function registerCustmapMarkersToggleControl() {
+        if (empty($this->showMapId)) {
+            return;
+        }
+        $toggleConfig = array(
+            'storageKey' => 'ubCustmap_markersVisible_' . $this->mapCore->getContainerId(),
+            'iconMarkersOn' => 'skins/icon_fullmap16.png',
+            'iconMarkersOff' => 'skins/icon_briefmap16.png',
+            'titleShowMarkers' => __('Show markers'),
+            'titleHideMarkers' => __('Hide markers'),
+        );
+        $toggleConfigJs = json_encode($toggleConfig, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT);
+        if ($toggleConfigJs === false) {
+            $toggleConfigJs = '{}';
+        }
+        $this->mapCore->addScriptSrc(self::MARKERS_TOGGLE_LIB . '?nc=' . time());
+        $markersToggleJs = '
+            (function() {
+                if (typeof ubCustmapsMarkersToggleInit !== "function") {
+                    if (window.console && typeof console.warn === "function") {
+                        console.warn("CustMaps: markers-toggle.js is not loaded");
+                    }
+                    return;
+                }
+                ubCustmapsMarkersToggleInit(map, ' . $toggleConfigJs . ');
+            })();
+        ';
+        $this->mapCore->addRawJs($markersToggleJs);
     }
 
     /**
