@@ -146,6 +146,23 @@ class MapCore {
     protected $fpsMeterPosition = 'bottomleft';
 
     /**
+     * Per-category counters of objects added via public add* methods.
+     *
+     * @var array
+     */
+    protected $objectCounts = array(
+        'markers' => 0,
+        'dynamicMarkers' => 0,
+        'lines' => 0,
+        'polylines' => 0,
+        'circles' => 0,
+        'circleMarkers' => 0,
+        'polygons' => 0,
+        'rectangles' => 0,
+        'geoJsonLayers' => 0
+    );
+
+    /**
      * Canonical icon key => image path
      *
      * @var array
@@ -491,8 +508,19 @@ class MapCore {
         $result = array(
             'placemarks' => $this->placemarks,
             'extraCode' => $this->extraCode,
-            'usedIcons' => $this->usedIcons
+            'usedIcons' => $this->usedIcons,
+            'objectCounts' => $this->objectCounts
         );
+        return ($result);
+    }
+
+    /**
+     * Returns per-category counters of objects added via public add* methods
+     *
+     * @return array
+     */
+    public function getObjectCounts() {
+        $result = $this->objectCounts;
         return ($result);
     }
 
@@ -520,6 +548,9 @@ class MapCore {
                 $this->placemarks = '';
                 $this->extraCode = '';
                 $this->usedIcons = array();
+                foreach ($this->objectCounts as $countKey => $countVal) {
+                    $this->objectCounts[$countKey] = 0;
+                }
             }
 
             if (isset($mapObjects['placemarks'])) {
@@ -531,6 +562,17 @@ class MapCore {
             if (isset($mapObjects['usedIcons'])) {
                 if (is_array($mapObjects['usedIcons'])) {
                     $this->usedIcons = array_merge($this->usedIcons, $mapObjects['usedIcons']);
+                }
+            }
+            if (isset($mapObjects['objectCounts'])) {
+                if (is_array($mapObjects['objectCounts'])) {
+                    foreach ($mapObjects['objectCounts'] as $countKey => $countVal) {
+                        if (isset($this->objectCounts[$countKey])) {
+                            $this->objectCounts[$countKey] += (int) $countVal;
+                        } else {
+                            $this->objectCounts[$countKey] = (int) $countVal;
+                        }
+                    }
                 }
             }
         }
@@ -731,6 +773,7 @@ class MapCore {
         }
 
         $this->placemarks .= $this->buildMarkerJs($markerId, $coords, $iconKey, $iconPath, $popupHtml, $tooltip);
+        $this->objectCounts['markers']++;
 
         return ($this);
     }
@@ -795,6 +838,7 @@ class MapCore {
         if (!empty($tooltip)) {
             $this->placemarks .= 'ubMarkerDyn_' . $markerId . '.bindTooltip(' . $jsTooltip . ', {sticky: true});';
         }
+        $this->objectCounts['dynamicMarkers']++;
         return ($this);
     }
 
@@ -838,6 +882,7 @@ class MapCore {
         if (!empty($hint)) {
             $this->placemarks .= 'ubCircle_' . $circleId . '.bindTooltip(' . $jsHint . ', {sticky: true});';
         }
+        $this->objectCounts['circles']++;
         return ($this);
     }
 
@@ -872,6 +917,7 @@ class MapCore {
         if (!empty($hint)) {
             $this->placemarks .= 'ubLine_' . $lineId . '.bindTooltip(' . $this->quoteJs($hint) . ', {sticky: true});';
         }
+        $this->objectCounts['lines']++;
         return ($this);
     }
 
@@ -940,6 +986,7 @@ class MapCore {
             }
             $this->placemarks .= 'ubPolyline_' . $polylineId . '._ubLineMeta = ' . $lineMetaJs . ';';
         }
+        $this->objectCounts['polylines']++;
         return ($this);
     }
 
@@ -999,6 +1046,7 @@ class MapCore {
         if (!empty($hint)) {
             $this->placemarks .= 'ubPolygon_' . $polygonId . '.bindTooltip(' . $this->quoteJs($hint) . ', {sticky: true});';
         }
+        $this->objectCounts['polygons']++;
         return ($this);
     }
 
@@ -1058,6 +1106,7 @@ class MapCore {
         if (!empty($hint)) {
             $this->placemarks .= 'ubRect_' . $rectId . '.bindTooltip(' . $this->quoteJs($hint) . ', {sticky: true});';
         }
+        $this->objectCounts['rectangles']++;
         return ($this);
     }
 
@@ -1112,6 +1161,7 @@ class MapCore {
         if (!empty($hint)) {
             $this->placemarks .= 'ubCircleMarker_' . $circleMarkerId . '.bindTooltip(' . $this->quoteJs($hint) . ', {sticky: true});';
         }
+        $this->objectCounts['circleMarkers']++;
         return ($this);
     }
 
@@ -1322,6 +1372,7 @@ class MapCore {
         if (!empty($hint)) {
             $this->placemarks .= 'ubGeoJson_' . $layerId . '.bindTooltip(' . $this->quoteJs($hint) . ', {sticky: true});';
         }
+        $this->objectCounts['geoJsonLayers']++;
         return ($this);
     }
 
@@ -1414,6 +1465,19 @@ class MapCore {
         $fpsMeterEnabledJs = ($this->fpsMeterEnabled) ? 'true' : 'false';
         $fpsMeterIntervalJs = (int) $this->fpsMeterInterval;
         $fpsMeterPositionJs = $this->quoteJs($this->fpsMeterPosition);
+
+        $objectCountsTotal = 0;
+        $objectCountsStr = '';
+        foreach ($this->objectCounts as $countKey => $countVal) {
+            $countVal = (int) $countVal;
+            $objectCountsTotal += $countVal;
+            if ($objectCountsStr !== '') {
+                $objectCountsStr .= ', ';
+            }
+            $objectCountsStr .= $countKey . '=' . $countVal;
+        }
+        $objectCountsSummary = 'total=' . $objectCountsTotal . ', ' . $objectCountsStr;
+        $objectCountsSummaryJs = $this->quoteJs($objectCountsSummary);
         if (!empty($this->extraScriptSrcs)) {
             foreach ($this->extraScriptSrcs as $eachScriptSrc) {
                 $result .= wf_tag('script', false, '', 'src="' . $eachScriptSrc . '"') . wf_tag('script', true);
@@ -1627,6 +1691,7 @@ class MapCore {
                         ", rememberPosition=" + ubMapOptionsSnapshot.rememberPosition +
                         ", rememberLayer=" + ubMapOptionsSnapshot.rememberLayer
                     );
+                    console.info("[MapCore #' . $this->container . '] objects " + ' . $objectCountsSummaryJs . ');
                 }
             }
 
