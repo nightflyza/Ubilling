@@ -57,6 +57,12 @@ window.ubCustmapsLineEditorInit = function(map, config) {
     var ubLineStyles = {};
     var ubLineMetas = {};
     var ubLineById = {};
+    /** Marching-ants dash animation for the line in edit/draw focus */
+    var ubMarchRafId = null;
+    var ubLastMarchLine = null;
+    var ubMarchDashOffset = 0;
+    var UB_MARCH_DASH_ARRAY = "10, 14";
+    var UB_MARCH_DASH_CYCLE = 240;
 
     if (!map.options.editable) {
         map.options.editable = true;
@@ -227,6 +233,100 @@ window.ubCustmapsLineEditorInit = function(map, config) {
         }
     }
 
+    function ubCancelMarchRaf() {
+        if (ubMarchRafId !== null) {
+            if (typeof cancelAnimationFrame === "function") {
+                cancelAnimationFrame(ubMarchRafId);
+            }
+            ubMarchRafId = null;
+        }
+    }
+
+    function ubStripMarchFromLine(line) {
+        if (line && typeof line.setStyle === "function") {
+            line.setStyle({
+                dashArray: null,
+                dashOffset: null
+            });
+        }
+    }
+
+    /**
+     * Same focus rule as ubRefreshLineFocusVisuals (drawing line wins over active).
+     */
+    function ubComputeFocusLine() {
+        var result = null;
+        if (ubDrawingLine && map.hasLayer(ubDrawingLine)) {
+            result = ubDrawingLine;
+        } else {
+            if (ubActiveLine && map.hasLayer(ubActiveLine)) {
+                result = ubActiveLine;
+            }
+        }
+        return result;
+    }
+
+    function ubLineQualifiesForMarch(line) {
+        var ok = false;
+        if (line && map.hasLayer(line)) {
+            if (ubDrawingLine === line) {
+                ok = true;
+            } else {
+                if (ubActiveLine === line && typeof line.editEnabled === "function" && line.editEnabled()) {
+                    ok = true;
+                }
+            }
+        }
+        return ok;
+    }
+
+    function ubMarchAntsSync() {
+        var focus = ubComputeFocusLine();
+        var focusOk = focus ? ubLineQualifiesForMarch(focus) : false;
+        if (ubLastMarchLine) {
+            if (!focusOk || focus !== ubLastMarchLine) {
+                if (map.hasLayer(ubLastMarchLine)) {
+                    ubStripMarchFromLine(ubLastMarchLine);
+                }
+            }
+        }
+        if (!focusOk || !focus) {
+            ubCancelMarchRaf();
+            ubLastMarchLine = null;
+            return;
+        }
+        if (ubLastMarchLine !== focus) {
+            ubLastMarchLine = focus;
+            ubMarchDashOffset = 0;
+        }
+        var st = ubReadFormLineStyle();
+        focus.setStyle({
+            color: st.color,
+            weight: st.weight,
+            opacity: 1,
+            dashArray: UB_MARCH_DASH_ARRAY,
+            dashOffset: ubMarchDashOffset
+        });
+        if (ubMarchRafId !== null) {
+            return;
+        }
+        var tick = function() {
+            ubMarchRafId = null;
+            var f = ubComputeFocusLine();
+            if (!f || f !== ubLastMarchLine || !map.hasLayer(f) || !ubLineQualifiesForMarch(f)) {
+                if (ubLastMarchLine && map.hasLayer(ubLastMarchLine)) {
+                    ubStripMarchFromLine(ubLastMarchLine);
+                }
+                ubLastMarchLine = null;
+                return;
+            }
+            ubMarchDashOffset = (ubMarchDashOffset + 1) % UB_MARCH_DASH_CYCLE;
+            f.setStyle({ dashOffset: ubMarchDashOffset });
+            ubMarchRafId = requestAnimationFrame(tick);
+        };
+        ubMarchRafId = requestAnimationFrame(tick);
+    }
+
     /**
      * Reads stroke color and width from the line editor form (same fields as save uses).
      */
@@ -321,6 +421,7 @@ window.ubCustmapsLineEditorInit = function(map, config) {
                 }
             }
         });
+        ubMarchAntsSync();
     }
 
     function ubWireFormStyleListeners(panelRoot) {
