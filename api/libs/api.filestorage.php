@@ -87,7 +87,7 @@ class FileStorage {
      *
      * @var string
      */
-    private $storagePath = 'content/documents/filestorage/';
+    protected $storagePath = 'content/documents/filestorage/';
 
     /**
      * Some predefined paths and URLs
@@ -146,7 +146,7 @@ class FileStorage {
     }
 
     /**
-     * Returns configured files storage directory path (relative to app root or as set in alter.ini).
+     * Returns configured files storage directory path 
      *
      * @return string
      */
@@ -262,12 +262,18 @@ class FileStorage {
      * Registers uploaded file in database
      * 
      * @param string $filename
+     * @param string $origname optional original client file name for download display
      * 
      * @return void
      */
-    public function registerFile($filename) {
+    public function registerFile($filename, $origname = '') {
         if ((!empty($this->scope)) AND ( !empty($this->itemId))) {
             $filename = ubRouting::filters($filename, 'mres');
+            $orignameStored = '';
+            if (!empty($origname)) {
+                $orignameStored = ubRouting::filters($origname, 'safe');
+                $orignameStored = ubRouting::filters($orignameStored, 'mres');
+            }
             $date = curdatetime();
 
             $this->storageDb->data('scope', $this->scope);
@@ -275,6 +281,7 @@ class FileStorage {
             $this->storageDb->data('date', $date);
             $this->storageDb->data('admin', $this->myLogin);
             $this->storageDb->data('filename', $filename);
+            $this->storageDb->data('origname', $orignameStored);
             $this->storageDb->create();
 
             log_register('FILESTORAGE CREATE SCOPE `' . $this->scope . '` ITEM [' . $this->itemId . ']');
@@ -428,12 +435,13 @@ class FileStorage {
     /**
      * Renders file preview icon
      * 
-     * @param string $filename
-     * @param int $size
+     * @param string $filename stored file name (used for icon type by extension and default img title)
+     * @param int|string $size
+     * @param string $origname optional original name for img title when non-empty
      * 
      * @return string
      */
-    protected function renderFilePreviewIcon($filename, $size = '') {
+    protected function renderFilePreviewIcon($filename, $size = '', $origname = '') {
         $result = '';
         if (!empty($filename)) {
             $fileTypeIconsPath = 'skins/fileicons/';
@@ -444,11 +452,16 @@ class FileStorage {
                 $fileTypeIcon = $customTypeIcon;
             }
 
+            $imgTitle = $filename;
+            if (!empty($origname)) {
+                $imgTitle = $origname;
+            }
+
             //custom icon size
             if ($size) {
-                $result .= wf_img_sized($customTypeIcon, $filename, $size);
+                $result .= wf_img_sized($customTypeIcon, $imgTitle, $size);
             } else {
-                $result .= wf_img($fileTypeIcon, $filename);
+                $result .= wf_img($fileTypeIcon, $imgTitle);
             }
         }
         return($result);
@@ -482,13 +495,17 @@ class FileStorage {
         if (!empty($this->allFiles)) {
             foreach ($this->allFiles as $io => $eachFile) {
                 if (($eachFile['scope'] == $this->scope) AND ( $eachFile['item'] == $this->itemId)) {
+                    $fileOrigname = '';
+                    if (isset($eachFile['origname']) AND ( !empty($eachFile['origname']))) {
+                        $fileOrigname = $eachFile['origname'];
+                    }
                     $result .= wf_tag('div', false, '', 'style="border: 0px dotted; float:left; margin:2px;"');
                     $result .= wf_tag('center');
                     if (cfr('FILESTORAGE')) {
                         $fileDownloadUrl = self::URL_ME . '&scope=' . $this->scope . '&itemid=' . $this->itemId . '&download=' . $eachFile['id'];
-                        $result .= wf_Link($fileDownloadUrl, $this->renderFilePreviewIcon($eachFile['filename'], $iconSize));
+                        $result .= wf_Link($fileDownloadUrl, $this->renderFilePreviewIcon($eachFile['filename'], $iconSize, $fileOrigname));
                     } else {
-                        $result .= $this->renderFilePreviewIcon($eachFile['filename'], $iconSize);
+                        $result .= $this->renderFilePreviewIcon($eachFile['filename'], $iconSize, $fileOrigname);
                     }
                     $result .= wf_tag('center', true);
                     $result .= wf_tag('div', true);
@@ -533,11 +550,15 @@ class FileStorage {
         if (!empty($this->allFiles)) {
             foreach ($this->allFiles as $io => $eachFile) {
                 if (($eachFile['scope'] == $this->scope) AND ( $eachFile['item'] == $this->itemId)) {
+                    $fileOrigname = '';
+                    if (isset($eachFile['origname']) AND ( !empty($eachFile['origname']))) {
+                        $fileOrigname = $eachFile['origname'];
+                    }
                     $dimensions = 'width:' . ($this->filePreviewSize + 220) . 'px;';
                     $dimensions .= 'height:' . ($this->filePreviewSize + 60) . 'px;';
                     $result .= wf_tag('div', false, '', 'style="border: 1px dotted; float:left;  ' . $dimensions . ' margin:15px;" id="ajRefCont_' . $eachFile['id'] . '"');
                     $result .= wf_tag('center');
-                    $result .= $this->renderFilePreviewIcon($eachFile['filename']);
+                    $result .= $this->renderFilePreviewIcon($eachFile['filename'], '', $fileOrigname);
                     $result .= $this->fileControls($eachFile['id']);
                     $result .= wf_tag('center', true);
                     $result .= wf_tag('div', true);
@@ -566,8 +587,12 @@ class FileStorage {
         }
         if (!empty($fileId)) {
             @$filename = $this->allFiles[$fileId]['filename'];
+            $downloadAs = '';
+            if (!empty($this->allFiles[$fileId]['origname'])) {
+                $downloadAs = $this->allFiles[$fileId]['origname'];
+            }
             if (file_exists($this->storagePath . $filename)) {
-                zb_DownloadFile($this->storagePath . $filename, 'default');
+                zb_DownloadFile($this->storagePath . $filename, 'default', $downloadAs);
             } else {
                 show_error(__('File not exist'));
             }
@@ -635,10 +660,14 @@ class FileStorage {
                     $originalFileName = zb_TranslitString($file['name']); //prevent cyrillic filenames on FS
                     $newFilename = zb_rand_string(6) . '_' . $originalFileName;
                     $newSavePath = $this->storagePath . $newFilename;
+                    $clientOriginalName = '';
+                    if (isset($_FILES['filestorageFileUpload']['name'])) {
+                        $clientOriginalName = $_FILES['filestorageFileUpload']['name'];
+                    }
                     @move_uploaded_file($_FILES['filestorageFileUpload']['tmp_name'], $newSavePath);
                     if (file_exists($newSavePath)) {
                         $uploadResult = $this->messages->getStyledMessage(__('File upload complete'), 'success');
-                        $this->registerFile($newFilename);
+                        $this->registerFile($newFilename, $clientOriginalName);
                         ubRouting::nav(self::URL_ME . '&scope=' . $this->scope . '&itemid=' . $this->itemId . '&mode=loader&uldd=1' . $callBackUrl);
                     } else {
                         $uploadResult = $this->messages->getStyledMessage(__('File upload failed'), 'error');

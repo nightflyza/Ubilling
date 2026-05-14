@@ -351,7 +351,7 @@ class VolzConvert {
                 }
                 $fullDest = $destDir . '/' . $newFilename;
                 if (@copy($resolved, $fullDest)) {
-                    $fs->registerFile($newFilename);
+                    $fs->registerFile($newFilename, $baseName);
                     $result = true;
                 } else {
                     $result = false;
