@@ -90,6 +90,13 @@ class PhotoStorage {
     protected $storageUrlPrefix = '';
 
     /**
+     * Allowed image file extensions for uploads (lowercase, without dot)
+     *
+     * @var array
+     */
+    protected $allowedExtensions = array("jpg", "gif", "png", "jpeg");
+
+    /**
      * Some predefined paths and URLs
      */
     const UPLOAD_URL_WEBC = '?module=photostorage&uploadcamphoto=true';
@@ -538,6 +545,14 @@ class PhotoStorage {
 
         $result = wf_AjaxLoader();
 
+        if (ubRouting::checkGet('batchok')) {
+            $batchCnt = vf(ubRouting::get('batchok'), 3);
+            if (!empty($batchCnt) and $batchCnt != '0') {
+                $result .= wf_tag('span', false, 'alert_success') . __('Photos uploaded successfully') . ': ' . $batchCnt . wf_tag('span', true);
+                $result .= wf_delimiter();
+            }
+        }
+
         if (!empty($this->allimages)) {
             foreach ($this->allimages as $io => $eachimage) {
                 if (($eachimage['scope'] == $this->scope) and ($eachimage['item'] == $this->itemId)) {
@@ -811,6 +826,80 @@ class PhotoStorage {
     }
 
     /**
+     * Normalizes $_FILES['photostorageFileUpload'] for single or multiple (name="photostorageFileUpload[]") uploads.
+     *
+     * @return array list of array('tmp_name'=>string,'name'=>string,'error'=>int)
+     */
+    protected function normalizePhotostorageFileUploads() {
+        $result = array();
+        if (isset($_FILES['photostorageFileUpload'])) {
+            $f = $_FILES['photostorageFileUpload'];
+            if (isset($f['tmp_name']) and is_array($f['tmp_name'])) {
+                foreach ($f['tmp_name'] as $idx => $tmp) {
+                    $oneName = '';
+                    if (isset($f['name'][$idx])) {
+                        $oneName = $f['name'][$idx];
+                    }
+                    $oneErr = UPLOAD_ERR_NO_FILE;
+                    if (isset($f['error'][$idx])) {
+                        $oneErr = $f['error'][$idx];
+                    }
+                    $result[] = array('tmp_name' => $tmp, 'name' => $oneName, 'error' => $oneErr);
+                }
+            } else {
+                if (isset($f['tmp_name'])) {
+                    $oneErr = UPLOAD_ERR_NO_FILE;
+                    if (isset($f['error'])) {
+                        $oneErr = $f['error'];
+                    }
+                    $oneName = '';
+                    if (isset($f['name'])) {
+                        $oneName = $f['name'];
+                    }
+                    $result[] = array('tmp_name' => $f['tmp_name'], 'name' => $oneName, 'error' => $oneErr);
+                }
+            }
+        }
+        return ($result);
+    }
+
+    /**
+     * Converts php.ini size shorthand (e.g. 8M, 512K) to bytes.
+     *
+     * @param string $sizeStr
+     *
+     * @return int
+     */
+    protected function parseIniSizeToBytes($sizeStr) {
+        $result = 0;
+        $sizeStr = trim($sizeStr);
+        if ($sizeStr != '') {
+            $last = strtolower(substr($sizeStr, -1));
+            $numericPart = $sizeStr;
+            $multiplier = 1;
+            if ($last == 'g') {
+                $multiplier = 1073741824;
+                $numericPart = substr($sizeStr, 0, -1);
+            } else {
+                if ($last == 'm') {
+                    $multiplier = 1048576;
+                    $numericPart = substr($sizeStr, 0, -1);
+                } else {
+                    if ($last == 'k') {
+                        $multiplier = 1024;
+                        $numericPart = substr($sizeStr, 0, -1);
+                    }
+                }
+            }
+            $num = (float) $numericPart;
+            if ($num >= 0) {
+                $result = (int) round($num * $multiplier);
+            }
+        }
+        return ($result);
+    }
+
+    /**
      * Catches file upload in background
      *
      * @param string $customBackLink
@@ -819,63 +908,99 @@ class PhotoStorage {
      */
     public function catchFileUpload($customBackLink = '') {
         if (wf_CheckGet(array('uploadfilephoto'))) {
+            $uploadResult = '';
             if (!empty($this->scope)) {
-                $allowedExtensions = array("jpg", "gif", "png", "jpeg");
-                $fileAccepted = true;
-                foreach ($_FILES as $file) {
-                    if ($file['tmp_name'] > '') {
-                        //TODO: in PHP 7.1 following string generates notice
-                        if (@!in_array(end(explode(".", strtolower($file['name']))), $allowedExtensions)) {
-                            $fileAccepted = false;
+                $normalizedFiles = $this->normalizePhotostorageFileUploads();
+                $toProcess = array();
+                if (!empty($normalizedFiles)) {
+                    foreach ($normalizedFiles as $io => $eachNorm) {
+                        if (isset($eachNorm['error']) and $eachNorm['error'] === UPLOAD_ERR_OK and !empty($eachNorm['tmp_name'])) {
+                            $toProcess[] = $eachNorm;
                         }
                     }
                 }
 
-                if ($fileAccepted) {
-                    //upload successful?
-                    if (file_exists(@$_FILES['photostorageFileUpload']['tmp_name'])) {
-                        //checking image validity
-                        $pixelCraft = new PixelCraft();
-                        if ($pixelCraft->isImageValid($_FILES['photostorageFileUpload']['tmp_name'])) {
-                            $newFilename = date("Y_m_d_His") . '_' . zb_rand_string(8) . '_upload.jpg';
-                            $newSavePath = $this->storagePath . $newFilename;
-                            @move_uploaded_file($_FILES['photostorageFileUpload']['tmp_name'], $newSavePath);
-                            if (file_exists($newSavePath)) {
-                                $uploadResult = wf_tag('span', false, 'alert_success') . __('Photo upload complete') . wf_tag('span', true);
-
-                                //image postprocessing 
-                                if (@$this->altCfg['PHOTOSTORAGE_POSTPROCESSING']) {
-                                    $uploadResult .= $this->imagePostProcessing($newSavePath);
-                                }
-
-                                $this->registerImage($newFilename);
-
-                                // forwarding $customBackLink back to renderUploadForm() routine
-                                if (empty($customBackLink)) {
-                                    $customBackLink = '';
-                                } else {
-                                    $customBackLink = '&custombacklink=' . $customBackLink;
-                                }
-
-                                ubRouting::nav(self::MODULE_URL . '&scope=' . $this->scope . '&itemid=' . $this->itemId . '&mode=loader&preview=' . $newFilename . $customBackLink);
-                            } else {
-                                $uploadResult = wf_tag('span', false, 'alert_error') . __('Photo upload failed') . wf_tag('span', true);
-                            }
+                if (empty($toProcess)) {
+                    $uploadResult = wf_tag('span', false, 'alert_error') . __('Photo upload failed') . ': ' . __('File not found') . wf_tag('span', true);
+                } else {
+                    $pixelCraft = new PixelCraft();
+                    $successCount = 0;
+                    $savedFilenames = array();
+                    $errorMessages = array();
+                    foreach ($toProcess as $io => $eachFile) {
+                        $dispName = $eachFile['name'];
+                        if ($dispName == '') {
+                            $dispName = __('File');
+                        }
+                        $nameLower = strtolower($eachFile['name']);
+                        $nameParts = explode(".", $nameLower);
+                        $ext = end($nameParts);
+                        if (!in_array($ext, $this->allowedExtensions)) {
+                            $errorMessages[] = $dispName . ': ' . __('Photo upload failed') . ': ' . self::EX_WRONG_EXT;
                         } else {
-                            $uploadResult = wf_tag('span', false, 'alert_error') . __('Photo upload failed') . ': ' . __('File') . ' ' . __('is corrupted') . wf_tag('span', true);
+                            if (!file_exists($eachFile['tmp_name'])) {
+                                $errorMessages[] = $dispName . ': ' . __('Photo upload failed') . ': ' . __('File not found');
+                            } else {
+                                if (!$pixelCraft->isImageValid($eachFile['tmp_name'])) {
+                                    $errorMessages[] = $dispName . ': ' . __('Photo upload failed') . ': ' . __('File') . ' ' . __('is corrupted');
+                                } else {
+                                    $newFilename = date("Y_m_d_His") . '_' . zb_rand_string(8) . '_upload.jpg';
+                                    $newSavePath = $this->storagePath . $newFilename;
+                                    @move_uploaded_file($eachFile['tmp_name'], $newSavePath);
+                                    if (file_exists($newSavePath)) {
+                                        if (@$this->altCfg['PHOTOSTORAGE_POSTPROCESSING']) {
+                                            $this->imagePostProcessing($newSavePath);
+                                        }
+                                        $this->registerImage($newFilename);
+                                        $successCount++;
+                                        $savedFilenames[] = $newFilename;
+                                    } else {
+                                        $errorMessages[] = $dispName . ': ' . __('Photo upload failed');
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    $totalAttempted = count($toProcess);
+                    if ($successCount == $totalAttempted and $successCount > 0) {
+                        if (empty($customBackLink)) {
+                            $customBackLinkParam = '';
+                        } else {
+                            $customBackLinkParam = '&custombacklink=' . $customBackLink;
+                        }
+                        if ($successCount == 1) {
+                            ubRouting::nav(self::MODULE_URL . '&scope=' . $this->scope . '&itemid=' . $this->itemId . '&mode=loader&preview=' . $savedFilenames[0] . $customBackLinkParam);
+                        } else {
+                            ubRouting::nav(self::MODULE_URL . '&scope=' . $this->scope . '&itemid=' . $this->itemId . '&mode=list&batchok=' . $successCount . $customBackLinkParam);
                         }
                     } else {
-                        $uploadResult = wf_tag('span', false, 'alert_error') . __('Photo upload failed') . ': ' . __('File not found') . wf_tag('span', true);
+                        if ($successCount > 0) {
+                            $uploadResult .= wf_tag('span', false, 'alert_success') . __('Photos uploaded successfully') . ': ' . $successCount . wf_tag('span', true);
+                            if (!empty($errorMessages)) {
+                                $uploadResult .= wf_tag('span', false, 'alert_warning') . ' ' . __('Some photos failed to upload') . wf_tag('span', true);
+                            }
+                        }
+                        if (!empty($errorMessages)) {
+                            foreach ($errorMessages as $ei => $errLine) {
+                                $uploadResult .= wf_tag('br');
+                                $uploadResult .= wf_tag('span', false, 'alert_error') . $errLine . wf_tag('span', true);
+                            }
+                        } else {
+                            if ($successCount == 0) {
+                                $uploadResult .= wf_tag('span', false, 'alert_error') . __('Photo upload failed') . wf_tag('span', true);
+                            }
+                        }
                     }
-                } else {
-                    $uploadResult = wf_tag('span', false, 'alert_error') . __('Photo upload failed') . ': ' . self::EX_WRONG_EXT . wf_tag('span', true);
                 }
             } else {
                 $uploadResult = wf_tag('span', false, 'alert_error') . __('Strange exeption') . ': ' . self::EX_NOSCOPE . wf_tag('span', true);
             }
 
-            show_window('', $uploadResult);
-            show_window('', wf_BackLink(self::MODULE_URL . '&scope=' . $this->scope . '&itemid=' . $this->itemId . '&mode=loader'));
+            if ($uploadResult != '') {
+                show_window('', $uploadResult);
+                show_window('', wf_BackLink(self::MODULE_URL . '&scope=' . $this->scope . '&itemid=' . $this->itemId . '&mode=loader'));
+            }
         }
     }
 
@@ -895,11 +1020,23 @@ class PhotoStorage {
 
         $postUrl = self::UPLOAD_URL_FILE . '&scope=' . $this->scope . '&itemid=' . $this->itemId . $customBackLink;
         $inputs = wf_tag('form', false, 'photostorageuploadform', 'action="' . $postUrl . '" enctype="multipart/form-data" method="POST"');
-        $inputs .= wf_tag('input', false, '', 'type="file" name="photostorageFileUpload" accept="image/*" required');
-        $inputs .= wf_Submit(__('Upload').' '.__('image'));
+        $inputs .= wf_tag('input', false, '', 'type="file" name="photostorageFileUpload[]" accept="image/*" multiple required');
+        $inputs .= wf_Submit(__('Upload images'));
         $inputs .= wf_tag('form', true);
 
-        $result = $inputs;
+        $result = '';
+        $maxPerFileBytes = $this->parseIniSizeToBytes(ini_get('upload_max_filesize'));
+        $maxPostBytes = $this->parseIniSizeToBytes(ini_get('post_max_size'));
+        $result .= $inputs;
+
+        if ($maxPerFileBytes > 0 and $maxPostBytes > 0) {
+            $msgSorry = __('Photostorage upload limit sorry') . zb_convertSize($maxPostBytes) . '.';
+            $uploadJs = wf_tag('script', false, '', 'type="text/javascript"');
+            $uploadJs .= '(function(){var forms=document.getElementsByClassName("photostorageuploadform");var maxPer=parseInt(' . (int) $maxPerFileBytes . ',10);var maxPost=parseInt(' . (int) $maxPostBytes . ',10);var mSorry=' . json_encode($msgSorry) . ';var j=0;for(j=0;j<forms.length;j++){(function(form){form.onsubmit=function(ev){var inp=form.querySelector("input[type=file]");if(!inp||!inp.files||!inp.files.length){return true;}var i=0;var total=0;for(i=0;i<inp.files.length;i++){total+=inp.files[i].size;}for(i=0;i<inp.files.length;i++){if(inp.files[i].size>maxPer){if(ev&&ev.preventDefault){ev.preventDefault();}alert("\""+inp.files[i].name+"\":\\n"+mSorry);return false;}}if(total>maxPost){if(ev&&ev.preventDefault){ev.preventDefault();}alert(mSorry);return false;}return true;};})(forms[j]);}})();';
+            $uploadJs .= wf_tag('script', true);
+            $result .= $uploadJs;
+            $result .= wf_delimiter();
+        }
         $result .= wf_delimiter(2);
         if (wf_CheckGet(array('preview'))) {
             $result .= wf_img_sized($this->getImageUrl(ubRouting::get('preview')), __('Preview'), $this->photoCfg['IMGLIST_PREV_W'], $this->photoCfg['IMGLIST_PREV_H']);
@@ -923,27 +1060,17 @@ class PhotoStorage {
     /**
      * Returns webcamera snapshot form
      * 
-     * @param bool $avatarMode use crop by WEBCAM_AVA_CROP property
-     * 
      * @return string
      */
-    public function renderWebcamForm($avatarMode = false) {
+    public function renderWebcamForm() {
         $result = '';
 
         $init = wf_tag('link', false, '', 'href="modules/jsc/webcamlib/style.css" rel="stylesheet"') . wf_tag('link', true);
-
-        if ($avatarMode) {
-            $prev_w = $this->photoCfg['WEBCAM_PREV_W'];
-            $prev_h = $this->photoCfg['WEBCAM_PREV_H'];
-            $dest_w = $this->photoCfg['WEBCAM_RESULT_W'];
-            $dest_h = $this->photoCfg['WEBCAM_RESULT_H'];
-        } else {
-            $prev_w = $this->photoCfg['WEBCAM_PREV_W'];
-            $prev_h = $this->photoCfg['WEBCAM_PREV_H'];
-            $dest_w = $this->photoCfg['WEBCAM_RESULT_W'];
-            $dest_h = $this->photoCfg['WEBCAM_RESULT_H'];
-        }
-
+        $prev_w = $this->photoCfg['WEBCAM_PREV_W'];
+        $prev_h = $this->photoCfg['WEBCAM_PREV_H'];
+        $dest_w = $this->photoCfg['WEBCAM_RESULT_W'];
+        $dest_h = $this->photoCfg['WEBCAM_RESULT_H'];
+ 
         $uploadUrl = self::UPLOAD_URL_WEBC . '&scope=' . $this->scope . '&itemid=' . $this->itemId;
 
         $labelCapture = wf_img('skins/photostorage.png') . ' ' . __('Take snapshot');

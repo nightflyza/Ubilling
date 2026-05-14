@@ -3167,4 +3167,3 @@ $lang['def']['Uplink'] = 'Аплинк';
 $lang['def']['Hataraku Maou-sama!'] = 'Tareas estadísticas por administrador';
 $lang['def']['Graphs URL'] = 'URL de ancho de banda';
 
-?>

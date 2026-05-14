@@ -33,11 +33,7 @@ if ($altCfg['PHOTOSTORAGE_ENABLED']) {
                 switch ($modeSet) {
                     //webcamera snapshot
                     case 'cam':
-                        show_window(__('Webcamera snapshot'), $photoStorage->renderWebcamForm(false));
-                        break;
-                    //webcamera cropped snapshot
-                    case 'avacam':
-                        show_window(__('Webcamera snapshot') . ' - ' . __('avatar'), $photoStorage->renderWebcamForm(true));
+                        show_window(__('Webcamera snapshot'), $photoStorage->renderWebcamForm());
                         break;
                     //just file upload interface
                     case 'loader':

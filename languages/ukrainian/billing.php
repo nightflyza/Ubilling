@@ -3678,3 +3678,6 @@ $lang['def']['Terrain'] = 'Ландшафт';
 $lang['def']['Waterfall'] = 'Водоспад';
 $lang['def']['image'] = 'зображення';
 $lang['def']['file'] = 'файл';
+$lang['def']['Photos uploaded successfully'] = 'Зображення успішно завантажено';
+$lang['def']['Some photos failed to upload'] = 'Деякі зображення не вдалося завантажити';
+$lang['def']['Photostorage upload limit sorry'] = 'Вибачте, обмеження для ваших завантажень: ';
