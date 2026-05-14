@@ -638,9 +638,9 @@ class FileStorage {
             $callBackUrl = '&callback=' . ubRouting::get('callback');
         }
         $postUrl = self::URL_UPLOAD_FILE . '&scope=' . $this->scope . '&itemid=' . $this->itemId . $callBackUrl;
-        $inputs = wf_tag('form', false, 'glamour', 'action="' . $postUrl . '" enctype="multipart/form-data" method="POST"');
+        $inputs = wf_tag('form', false, 'photostorageuploadform', 'action="' . $postUrl . '" enctype="multipart/form-data" method="POST"');
         $inputs .= wf_tag('input', false, '', 'type="file" name="filestorageFileUpload"');
-        $inputs .= wf_Submit(__('Upload'));
+        $inputs .= wf_Submit(__('Upload').' '.__('file'));
         $inputs .= wf_tag('form', true);
 
         $result = $inputs;

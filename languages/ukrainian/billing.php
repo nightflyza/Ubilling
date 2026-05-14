@@ -3676,3 +3676,5 @@ $lang['def']['Full'] = 'Повний';
 $lang['def']['Brief'] = 'Стисло';
 $lang['def']['Terrain'] = 'Ландшафт';
 $lang['def']['Waterfall'] = 'Водоспад';
+$lang['def']['image'] = 'зображення';
+$lang['def']['file'] = 'файл';
