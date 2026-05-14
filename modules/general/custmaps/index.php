@@ -30,8 +30,13 @@ if (cfr('CUSTMAP')) {
         //editing existing custom map name
         if (ubRouting::checkPost(array($custmaps::PROUTE_EDITMAPID, $custmaps::PROUTE_EDITMAPNAME))) {
             if (cfr('CUSTMAPEDIT')) {
-                $custmaps->mapEdit(ubRouting::post($custmaps::PROUTE_EDITMAPID, 'int'), ubRouting::post($custmaps::PROUTE_EDITMAPNAME));
-                ubRouting::nav(CustMaps::urlMapList());
+                $editedMapId = ubRouting::post($custmaps::PROUTE_EDITMAPID, 'int');
+                $custmaps->mapEdit($editedMapId, ubRouting::post($custmaps::PROUTE_EDITMAPNAME));
+                if (ubRouting::checkGet($custmaps::ROUTE_MAPCONFIG)) {
+                    ubRouting::nav($custmaps::URL_ME . '&' . $custmaps::ROUTE_MAPCONFIG . '=' . $editedMapId);
+                } else {
+                    ubRouting::nav(CustMaps::urlMapList());
+                }
             } else {
                 show_error(__('Permission denied'));
             }
@@ -106,14 +111,28 @@ if (cfr('CUSTMAP')) {
         }
 
         if (!ubRouting::checkGet($custmaps::ROUTE_SHOWMAP)) {
-            if (ubRouting::checkGet($custmaps::ROUTE_SHOWITEMS)) {
-                $showItemsMapId = ubRouting::get($custmaps::ROUTE_SHOWITEMS, 'int');
-                show_window(__('Markers') . ': ' . $custmaps->mapGetName($showItemsMapId), $custmaps->renderItemsList($showItemsMapId));
-            } else {
-                if (ubRouting::checkGet($custmaps::ROUTE_SHOWLINES)) {
-                    $showLinesMapId = ubRouting::get($custmaps::ROUTE_SHOWLINES, 'int');
-                    show_window(__('Lines') . ': ' . $custmaps->mapGetName($showLinesMapId), $custmaps->renderLinesList($showLinesMapId));
+            if (ubRouting::checkGet($custmaps::ROUTE_MAPCONFIG)) {
+                if (cfr('CUSTMAPEDIT')) {
+                    $cfgMapId = ubRouting::get($custmaps::ROUTE_MAPCONFIG, 'int');
+                    $cfgMapTitle = $custmaps->mapGetName($cfgMapId);
+                    $cfgWinTitle = __('Configure map');
+                    if (!empty($cfgMapTitle)) {
+                        $cfgWinTitle = __('Configure map') . ': ' . $cfgMapTitle;
+                    }
+                    show_window($cfgWinTitle, $custmaps->renderMapConfigPage($cfgMapId));
+                    zb_BillingStats(true);
                 } else {
+                    show_error(__('Permission denied'));
+                }
+            } else {
+                if (ubRouting::checkGet($custmaps::ROUTE_SHOWITEMS)) {
+                    $showItemsMapId = ubRouting::get($custmaps::ROUTE_SHOWITEMS, 'int');
+                    show_window(__('Markers') . ': ' . $custmaps->mapGetName($showItemsMapId), $custmaps->renderItemsList($showItemsMapId));
+                } else {
+                    if (ubRouting::checkGet($custmaps::ROUTE_SHOWLINES)) {
+                        $showLinesMapId = ubRouting::get($custmaps::ROUTE_SHOWLINES, 'int');
+                        show_window(__('Lines') . ': ' . $custmaps->mapGetName($showLinesMapId), $custmaps->renderLinesList($showLinesMapId));
+                    } else {
                     if (ubRouting::checkGet($custmaps::ROUTE_EDITITEM)) {
                         $editItemId = ubRouting::get($custmaps::ROUTE_EDITITEM, 'int');
                         if (ubRouting::checkPost(array($custmaps::PROUTE_EDITITEMID, $custmaps::PROUTE_EDITITEMTYPE))) {
@@ -186,6 +205,7 @@ if (cfr('CUSTMAP')) {
                         }
                     }
                 }
+            }
             }
         } else {
             $mapId = ubRouting::get($custmaps::ROUTE_SHOWMAP, 'int');

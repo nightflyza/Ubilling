@@ -34,3 +34,5 @@ $lang['def']['VOLS to CustMaps'] = 'VOLS -> CustMaps';
 $lang['def']['Force clustering'] = 'Примусова кластеризація';
 $lang['def']['Force canvas markers'] = 'Примусове використання canvas маркерів';
 $lang['def']['Force map metrics'] = 'Відлагодження мапи';
+$lang['def']['Configure map'] = 'Налаштувати мапу';
+$lang['def']['Delete map'] = 'Видалити мапу';

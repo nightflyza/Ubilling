@@ -144,6 +144,7 @@ class CustMaps {
     const ROUTE_LINEEDIT = 'lineedit';
     const ROUTE_CL = 'cl';
     const ROUTE_MAPLIST = 'maplist';
+    const ROUTE_MAPCONFIG = 'mapconfig';
 
     const PROUTE_NEWMAPNAME = 'newmapname';
     const PROUTE_EDITMAPID = 'editmapid';
@@ -202,6 +203,19 @@ class CustMaps {
      */
     public static function urlMapList() {
         $result = self::URL_ME . '&' . self::ROUTE_MAPLIST . '=true';
+        return ($result);
+    }
+
+    /**
+     * URL of the map configuration screen (name, clustering, etc.)
+     *
+     * @param int $id
+     *
+     * @return string
+     */
+    public static function urlMapConfig($id) {
+        $id = ubRouting::filters($id, 'int');
+        $result = self::URL_ME . '&' . self::ROUTE_MAPCONFIG . '=' . $id;
         return ($result);
     }
 
@@ -541,12 +555,7 @@ class CustMaps {
                 $cells= wf_TableCell($nameLink,'90%');
                 $actLinks = '';
                 if (cfr('CUSTMAPEDIT')) {
-                    $deletionUrl = self::URL_ME . '&' . self::ROUTE_DELETEMAP . '=' . $each['id'];
-                    $cancelUrl = self::urlMapList();
-                    $deleteTitle = __('Delete') . ' ' . $each['name'] . '?';
-                    $deletionDialog = wf_ConfirmDialog($deletionUrl, web_delete_icon(), $this->messages->getDeleteAlert(), '', $cancelUrl, $deleteTitle);
-                    $actLinks.= $deletionDialog . ' ';
-                    $actLinks.= wf_modalAuto(web_edit_icon(), __('Edit'), $this->mapEditForm($each['id']));
+                    $actLinks.= wf_Link(self::urlMapConfig($each['id']), web_icon_extended(__('Configure map')), false) . ' ';
                 }
                 $actLinks.= wf_Link(self::URL_ME . '&' . self::ROUTE_SHOWMAP . '=' . $each['id'], wf_img('skins/icon_map_small.png', __('Show')), false);
 
@@ -809,8 +818,36 @@ class CustMaps {
         $inputs .= wf_CheckInput(self::PROUTE_EDITMAP_CMARKERS, __('Force canvas markers'), true, $cmarkersChk);
         $inputs .= wf_CheckInput(self::PROUTE_EDITMAP_METRICS, __('Force map metrics'), true, $metricsChk);
         $inputs.= wf_HiddenInput(self::PROUTE_EDITMAPID, $id);
-        $inputs.= wf_Submit(__('Create'));
+        $inputs.= wf_Submit(__('Save'));
         $result = wf_Form('', 'POST', $inputs, 'glamour');
+        return ($result);
+    }
+
+    /**
+     * Map settings page: back link and edit form  
+     *
+     * @param int $id
+     *
+     * @return string
+     */
+    public function renderMapConfigPage($id) {
+        $result = '';
+        $id = ubRouting::filters($id, 'int');
+        if (isset($this->allMaps[$id])) {
+            $result .= wf_BackLink(self::urlMapList());
+            $result .= wf_delimiter();
+            $result .= $this->mapEditForm($id);
+            if (cfr('CUSTMAPEDIT')) {
+                $result .= wf_delimiter(0);
+                $deletionUrl = self::URL_ME . '&' . self::ROUTE_DELETEMAP . '=' . $id;
+                $cancelUrl = self::urlMapConfig($id);
+                $mapName = $this->mapGetName($id);
+                $deleteTitle = __('Delete') . ' ' . $mapName . '?';
+                $result .= wf_ConfirmDialog($deletionUrl, web_delete_icon().' '.__('Delete map'), $this->messages->getDeleteAlert(), 'ubButton', $cancelUrl, $deleteTitle);
+            }
+        } else {
+            $result .= $this->messages->getStyledMessage(__('Something went wrong'), 'error');
+        }
         return ($result);
     }
 
