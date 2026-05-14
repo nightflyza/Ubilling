@@ -44,4 +44,3 @@ if ($altCfg['FILESTORAGE_ENABLED']) {
 } else {
     show_error(__('This module disabled'));
 }
-?>
