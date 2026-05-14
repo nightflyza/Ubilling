@@ -496,7 +496,7 @@ class ADcomments {
     }
 
     /**
-     * Checks have item some additional comments and return native indicator
+     * Checks have item some additional comments and return comments count
      * 
      * @param string $item
      * 

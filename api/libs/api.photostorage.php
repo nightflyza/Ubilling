@@ -131,7 +131,7 @@ class PhotoStorage {
     /**
      * Object scope item Id setter
      * 
-     * @param string $scope Object actual id in current scope
+     * @param string $itemid Object actual id in current scope
      * 
      * @return void
      */
@@ -329,6 +329,23 @@ class PhotoStorage {
         if (isset($this->imagesCount[$this->scope][$itemId])) {
             $result = $this->imagesCount[$this->scope][$itemId];
         }
+        return ($result);
+    }
+
+    /**
+     * Returns indicator of images count for some itemId in current scope
+     * 
+     * @param string $itemId
+     * 
+     * @return string
+     */
+    public function getImagesIndicator($itemId, $size = '') {
+        $result = '';
+        $imagesCount = $this->getImagesCount($itemId);
+        if ($imagesCount > 0) {
+            $size = (!$size) ? 16 : $size;
+            $result = wf_img_sized('skins/photostorage_green.png', __('Photostorage') . ' (' . $imagesCount . ')', $size, $size);
+        } 
         return ($result);
     }
 
@@ -709,7 +726,7 @@ class PhotoStorage {
      * 
      * @param string $filePath
      * 
-     * @return void
+     * @return string
      */
     public function imagePostProcessing($filePath) {
         $result = '';

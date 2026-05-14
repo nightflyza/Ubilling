@@ -20,6 +20,13 @@ class FileStorage {
     protected $allFiles = array();
 
     /**
+     * Contains loaded files count for each item in some scope as scope=>itemid=>count
+     *
+     * @var array
+     */
+    protected $filesCount = array();
+
+    /**
      * Contains current filestorage items scope
      *
      * @var string
@@ -39,6 +46,13 @@ class FileStorage {
      * @var string
      */
     protected $myLogin = '';
+
+    /**
+     * Flag for preventing multiple database requests when building files count map
+     *
+     * @var bool
+     */
+    protected $filesLoadedFlag = false;
 
     /**
      * Current instance database abstraction layer placeholder
@@ -169,7 +183,7 @@ class FileStorage {
     /**
      * Object scope item Id setter
      * 
-     * @param string $scope Object actual id in current scope
+     * @param string $itemid Object actual id in current scope
      * 
      * @return void
      */
@@ -203,6 +217,16 @@ class FileStorage {
     protected function loadAllFiles() {
         if ((!empty($this->scope)) AND ( !empty($this->itemId))) {
             $this->allFiles = $this->storageDb->getAll('id');
+            $this->filesLoadedFlag = true;
+            if (!empty($this->allFiles)) {
+                foreach ($this->allFiles as $io => $eachFile) {
+                    if (isset($this->filesCount[$eachFile['scope']][$eachFile['item']])) {
+                        $this->filesCount[$eachFile['scope']][$eachFile['item']]++;
+                    } else {
+                        $this->filesCount[$eachFile['scope']][$eachFile['item']] = 1;
+                    }
+                }
+            }
         }
     }
 
@@ -332,6 +356,44 @@ class FileStorage {
             $result = wf_BackLink($customBackLinkURL);
         }
 
+        return ($result);
+    }
+
+    /**
+     * Returns count of loaded files for some itemid in current scope
+     *
+     * @param string $itemId
+     *
+     * @return int
+     */
+    public function getFilesCount($itemId) {
+        $result = 0;
+        $this->itemId = $itemId;
+        if (!$this->filesLoadedFlag) {
+            $this->loadAllFiles();
+        }
+
+        if (isset($this->filesCount[$this->scope][$itemId])) {
+            $result = $this->filesCount[$this->scope][$itemId];
+        }
+        return ($result);
+    }
+
+    /**
+     * Returns indicator of files count for some itemId in current scope
+     *
+     * @param string $itemId
+     * @param string $size
+     *
+     * @return string
+     */
+    public function getFilesIndicator($itemId, $size = '') {
+        $result = '';
+        $filesCountVal = $this->getFilesCount($itemId);
+        if ($filesCountVal > 0) {
+            $size = (!$size) ? 16 : $size;
+            $result = wf_img_sized('skins/filestorage16.png', __('Filestorage') . ' (' . $filesCountVal . ')', $size, $size);
+        }
         return ($result);
     }
 

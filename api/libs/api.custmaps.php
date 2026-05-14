@@ -728,23 +728,28 @@ class CustMaps {
     public function renderItemsList($mapid) {
         $mapid = ubRouting::filters($mapid, 'int');
         $opts = '"order": [[ 0, "desc" ]]';
-        $columns = array('ID', 'Type', 'Geo location', 'Name', 'Location', 'Actions');
+        $columns = array('ID', 'Type', 'Geo location', 'Name', 'Location', 'Other' ,'Actions');
         $dataArr = array();
 
         $adcomments = new ADcomments('CUSTMAPMARKERS');
+        $photostorage = new PhotoStorage('CUSTMAPMARKERS');
+        $fileStorage = new FileStorage('CUSTMAPMARKERS');
 
         if (!empty($this->allItems)) {
             foreach ($this->allItems as $io => $each) {
                 if ($each['mapid'] == $mapid) {
-                    $indicator = $adcomments->getCommentsIndicator($each['id']);
+                    $adCommentsIndicator = $adcomments->getCommentsIndicator($each['id']);
+                    $photostorageIndicator = $photostorage->getImagesIndicator($each['id']);
+                    $fileStorageIndicator = $fileStorage->getFilesIndicator($each['id']);
                     $actLinks = '';
+                    $attachments = '';
                     if (cfr('CUSTMAPEDIT')) {
                         $actLinks .= wf_JSAlertStyled(self::URL_ME . '&' . self::ROUTE_DELETEITEM . '=' . $each['id'], web_delete_icon(), $this->messages->getDeleteAlert()) . ' ';
                         $actLinks .= wf_Link(self::URL_ME . '&' . self::ROUTE_EDITITEM . '=' . $each['id'], web_icon_extended(__('Change'))) . ' ';
                     } else {
                         $actLinks .= wf_Link(self::URL_ME . '&' . self::ROUTE_EDITITEM . '=' . $each['id'], web_icon_extended(__('Show')), false) . ' ';
                     }
-                    $actLinks .= $indicator;
+                    $attachments .= ' '.$adCommentsIndicator .' '. $photostorageIndicator .' '. $fileStorageIndicator;
 
                     $dataArr[] = array(
                         $each['id'],
@@ -752,6 +757,7 @@ class CustMaps {
                         $each['geo'],
                         $each['name'],
                         $each['location'],
+                        $attachments,
                         $actLinks,
                     );
                 }
@@ -1350,16 +1356,21 @@ class CustMaps {
     public function renderLinesList($mapid) {
         $mapid = ubRouting::filters($mapid, 'int');
         $opts = '"order": [[ 0, "desc" ]]';
-        $columns = array('ID', 'Name', 'Fibers', __('Length'). ' (' . __('m') . ')', 'Actions');
+        $columns = array('ID', 'Name', 'Fibers', __('Length'). ' (' . __('m') . ')', 'Other' ,'Actions');
         $dataArr = array();
 
         $adcomments = new ADcomments('CUSTMAPLINES');
+        $photostorage = new PhotoStorage('CUSTMAPLINES');
+        $fileStorage = new FileStorage('CUSTMAPLINES');
 
         if (!empty($this->allLines)) {
             foreach ($this->allLines as $lineId => $lineData) {
                 if ($lineData['mapid'] == $mapid) {
-                    $indicator = $adcomments->getCommentsIndicator($lineId);
+                    $adCommentsIndicator = $adcomments->getCommentsIndicator($lineId);
+                    $photostorageIndicator = $photostorage->getImagesIndicator($lineId);
+                    $fileStorageIndicator = $fileStorage->getFilesIndicator($lineId);
                     $actLinks = '';
+                    $attachments = '';
                     if (cfr('CUSTMAPEDIT')) {
                         $actLinks .= wf_JSAlertStyled(self::URL_ME . '&' . self::ROUTE_DELETELINE . '=' . $lineId, web_delete_icon(), $this->messages->getDeleteAlert()) . ' ';
                         $actLinks .= wf_JSAlertStyled(self::URL_ME . '&' . self::ROUTE_SHOWMAP . '=' . $mapid . '&' . self::ROUTE_LINEEDIT . '=true&' . self::ROUTE_MODIFYLINE . '=' . $lineId, web_edit_icon(__('Edit on map')), $this->messages->getEditAlert()) . ' ';
@@ -1367,13 +1378,15 @@ class CustMaps {
                     } else {
                         $actLinks .= wf_Link(self::URL_ME . '&' . self::ROUTE_EDITLINE . '=' . $lineId, web_icon_extended(__('View')), false) . ' ';
                     }
-                    $actLinks .= $indicator;
+
+                    $attachments .= ' '.$adCommentsIndicator .' '. $photostorageIndicator .' '. $fileStorageIndicator;
 
                     $dataArr[] = array(
                         $lineId,
                         $lineData['name'],
                         $lineData['fibers_amount'],
                         round($lineData['length_m']),
+                        $attachments,
                         $actLinks,
                     );
                 }
