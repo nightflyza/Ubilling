@@ -18,3 +18,4 @@ CREATE TABLE IF NOT EXISTS `custmaps_lines` (
 ALTER TABLE `custmaps` ADD `clustering` tinyint NOT NULL DEFAULT '0' AFTER `name`;
 ALTER TABLE `custmaps` ADD `cmarkers` tinyint NOT NULL DEFAULT '0' AFTER `clustering`;
 ALTER TABLE `custmaps` ADD `metrics` tinyint NOT NULL DEFAULT '0' AFTER `cmarkers`;
+ALTER TABLE `filestorage` ADD `origname` varchar(255) NOT NULL DEFAULT '' AFTER `filename`;

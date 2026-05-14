@@ -344,13 +344,13 @@ class VolzConvert {
                     $transBase = 'file';
                 }
                 $newFilename = zb_rand_string(6) . '_' . $transBase;
-                $destDir = RCMS_ROOT_PATH . rtrim(FileStorage::STORAGE_PATH, '/\\');
+                $fs = new FileStorage($scope, (string) $newItemId);
+                $destDir = RCMS_ROOT_PATH . rtrim($fs->getStoragePath(), '/\\');
                 if (!is_dir($destDir)) {
                     @mkdir($destDir, 0755, true);
                 }
                 $fullDest = $destDir . '/' . $newFilename;
                 if (@copy($resolved, $fullDest)) {
-                    $fs = new FileStorage($scope, (string) $newItemId);
                     $fs->registerFile($newFilename);
                     $result = true;
                 } else {

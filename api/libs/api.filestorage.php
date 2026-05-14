@@ -83,10 +83,16 @@ class FileStorage {
     protected $messages = '';
 
     /**
+     * Contains files storage path. May be specified in FILESTORAGE_DIRECTORY option.
+     *
+     * @var string
+     */
+    private $storagePath = 'content/documents/filestorage/';
+
+    /**
      * Some predefined paths and URLs
      */
     const TABLE_STORAGE = 'filestorage';
-    const STORAGE_PATH = 'content/documents/filestorage/';
     const URL_ME = '?module=filestorage';
     const URL_UPLOAD_FILE = '?module=filestorage&uploadfile=true';
     const EX_NOSCOPE = 'NO_OBJECT_SCOPE_SET';
@@ -103,6 +109,7 @@ class FileStorage {
     public function __construct($scope = '', $itemid = '') {
         $this->initMessages();
         $this->loadAlter();
+        $this->setOptions();
         $this->setAllowedExtenstions();
         $this->setScope($scope);
         $this->setItemid($itemid);
@@ -125,6 +132,27 @@ class FileStorage {
     protected function loadAlter() {
         global $ubillingConfig;
         $this->altCfg = $ubillingConfig->getAlter();
+    }
+
+    /**
+     * Sets some current instance specific options.
+     *
+     * @return void
+     */
+    protected function setOptions() {
+        if (@$this->altCfg['FILESTORAGE_DIRECTORY']) {
+            $this->storagePath = $this->altCfg['FILESTORAGE_DIRECTORY'];
+        }
+    }
+
+    /**
+     * Returns configured files storage directory path (relative to app root or as set in alter.ini).
+     *
+     * @return string
+     */
+    public function getStoragePath() {
+        $result = $this->storagePath;
+        return ($result);
     }
 
     /**
@@ -538,8 +566,8 @@ class FileStorage {
         }
         if (!empty($fileId)) {
             @$filename = $this->allFiles[$fileId]['filename'];
-            if (file_exists(self::STORAGE_PATH . $filename)) {
-                zb_DownloadFile(self::STORAGE_PATH . $filename, 'default');
+            if (file_exists($this->storagePath . $filename)) {
+                zb_DownloadFile($this->storagePath . $filename, 'default');
             } else {
                 show_error(__('File not exist'));
             }
@@ -563,9 +591,9 @@ class FileStorage {
         }
         if (!empty($fileId)) {
             @$filename = $this->allFiles[$fileId]['filename'];
-            if (file_exists(self::STORAGE_PATH . $filename)) {
+            if (file_exists($this->storagePath . $filename)) {
                 if (cfr('FILESTORAGEDELETE')) {
-                    unlink(self::STORAGE_PATH . $filename);
+                    unlink($this->storagePath . $filename);
                     $this->unregisterFile($fileId);
                     $deleteResult = $this->messages->getStyledMessage(__('Deleted'), 'warning');
                 } else {
@@ -606,7 +634,7 @@ class FileStorage {
                 if ($fileAccepted) {
                     $originalFileName = zb_TranslitString($file['name']); //prevent cyrillic filenames on FS
                     $newFilename = zb_rand_string(6) . '_' . $originalFileName;
-                    $newSavePath = self::STORAGE_PATH . $newFilename;
+                    $newSavePath = $this->storagePath . $newFilename;
                     @move_uploaded_file($_FILES['filestorageFileUpload']['tmp_name'], $newSavePath);
                     if (file_exists($newSavePath)) {
                         $uploadResult = $this->messages->getStyledMessage(__('File upload complete'), 'success');

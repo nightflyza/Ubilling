@@ -4366,12 +4366,19 @@ function zb_AnalyticsTaskmanGetCountYear($year) {
  * 
  * @param string $filePath
  * @param string $contentType
+ * @param string $customFileName
+ * 
+ * @return void
  * @throws Exception
  */
-function zb_DownloadFile($filePath, $contentType = '') {
+function zb_DownloadFile($filePath, $contentType = '', $customFileName = '') {
     if (!empty($filePath)) {
         if (file_exists($filePath)) {
             log_register("DOWNLOAD FILE `" . $filePath . "`");
+            $downloadFileName = basename($filePath);
+            if (!empty($customFileName)) {
+                $downloadFileName = $customFileName;
+            }
 
             if (($contentType == '') or ($contentType == 'default')) {
                 $contentType = 'application/octet-stream';
@@ -4404,7 +4411,7 @@ function zb_DownloadFile($filePath, $contentType = '') {
 
             header('Content-Type: ' . $contentType);
             header("Content-Transfer-Encoding: Binary");
-            header("Content-disposition: attachment; filename=\"" . basename($filePath) . "\"");
+            header("Content-disposition: attachment; filename=\"" . $downloadFileName . "\"");
             header("Content-Description: File Transfer");
             header("Accept-Ranges: 'bytes'");
             header("Content-Length: " . filesize($filePath));
