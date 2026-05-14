@@ -641,7 +641,10 @@ class CustMaps {
 
         $itemControls = '';
         if (isset($this->allItems[$itemId])) {
-            $itemControls .= wf_BackLink(self::URL_ME . '&' . self::ROUTE_SHOWITEMS . '=' . $this->allItems[$itemId]['mapid']);
+            $markersUrl = self::URL_ME . '&' . self::ROUTE_SHOWITEMS . '=' . $this->allItems[$itemId]['mapid'];
+            $mapUrl=self::URL_ME . '&' . self::ROUTE_SHOWMAP . '=' . $this->allItems[$itemId]['mapid'];
+            $itemControls .= wf_Link($mapUrl,wf_img('skins/icon_map_small.png').' '.__('Back').' '.__('to map'), false, 'ubButton');
+            $itemControls .= wf_Link($markersUrl,wf_img('skins/icon_mapplacemark16.png').' '.__('Back').' '.__('to markers'), false, 'ubButton');
         }
 
         $itemUploadControls = '';
@@ -1270,8 +1273,11 @@ class CustMaps {
             show_window(__('Edit') . ': ' . $lineName, $mainWindowContent);
 
             $lineControls = '';
-            $lineControls .= wf_BackLink(self::URL_ME . '&' . self::ROUTE_SHOWLINES . '=' . $lineData['mapid']);
-
+            $linesUrl = self::URL_ME . '&' . self::ROUTE_SHOWLINES . '=' . $lineData['mapid'];
+            $mapUrl=self::URL_ME . '&' . self::ROUTE_SHOWMAP . '=' . $lineData['mapid'];
+            $lineControls .= wf_Link($mapUrl,wf_img('skins/icon_map_small.png').' '.__('Back').' '.__('to map'), false, 'ubButton');
+            $lineControls .= wf_Link($linesUrl,wf_img('skins/icon_mapline16.png').' '.__('Back').' '.__('to lines'), false, 'ubButton');
+            
             $lineUploadControls = '';
             $lineAttachments = '';
 
