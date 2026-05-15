@@ -31,18 +31,18 @@ function zbs_ShowUserPayments($login) {
                     $dateCells = $eachpayment['date'];
                 }
 
-                $cells = la_TableCell($dateCells);
+                $cells = la_TableCell($dateCells, '', '', 'data-label="' . __('Date') . '"');
                 if (isset($usConfig['PAYMENTS_ROUND_SUMM']) AND $usConfig['PAYMENTS_ROUND_SUMM']) {
-                    $cells .= la_TableCell(web_roundValue($eachpayment['summ'], 2));
-                    $cells .= la_TableCell(web_roundValue($eachpayment['balance'], 2));
+                    $cells .= la_TableCell(web_roundValue($eachpayment['summ'], 2), '', '', 'data-label="' . __('Sum') . '"');
+                    $cells .= la_TableCell(web_roundValue($eachpayment['balance'], 2), '', '', 'data-label="' . __('Balance before') . '"');
                 } else {
-                    $cells .= la_TableCell($eachpayment['summ']);
-                    $cells .= la_TableCell($eachpayment['balance']);
+                    $cells .= la_TableCell($eachpayment['summ'], '', '', 'data-label="' . __('Sum') . '"');
+                    $cells .= la_TableCell($eachpayment['balance'], '', '', 'data-label="' . __('Balance before') . '"');
                 }
-                $rows .= la_TableRow($cells, 'row2');
+                $rows .= la_TableRow($cells, 'row3');
             }
         }
-        $result = la_TableBody($rows, '100%', 0);
+        $result = la_TableBody($rows, '100%', 0, 'mobile-table');
         show_window(__('Last payments'), $result);
     } else {
         $result = __('This module is disabled');
