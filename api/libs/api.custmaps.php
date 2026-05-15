@@ -440,6 +440,30 @@ class CustMaps {
     }
 
     /**
+     * Renders attachments indicators with hidden sort key for datatables
+     *
+     * @param int $itemId
+     * @param ADcomments $adcomments
+     * @param PhotoStorage $photostorage
+     * @param FileStorage $fileStorage
+     *
+     * @return string
+     */
+    protected function renderAttachmentsCell($itemId, $adcomments, $photostorage, $fileStorage) {
+        $commentsCount = $adcomments->getCommentsCount($itemId);
+        $imagesCount = $photostorage->getImagesCount($itemId);
+        $filesCount = $fileStorage->getFilesCount($itemId);
+        $sortKey = str_pad($commentsCount, 5, '0', STR_PAD_LEFT)
+            . str_pad($imagesCount, 5, '0', STR_PAD_LEFT)
+            . str_pad($filesCount, 5, '0', STR_PAD_LEFT);
+        $indicators = ' ' . $adcomments->getCommentsIndicator($itemId)
+            . ' ' . $photostorage->getImagesIndicator($itemId)
+            . ' ' . $fileStorage->getFilesIndicator($itemId);
+        $result = wf_tag('span', false, '', 'style="display:none;"') . $sortKey . wf_tag('span', true) . $indicators;
+        return ($result);
+    }
+
+    /**
      * Loads all existing custom maps items into private data property
      * 
      * @return void
@@ -750,17 +774,13 @@ class CustMaps {
         if (!empty($this->allItems)) {
             foreach ($this->allItems as $io => $each) {
                 if ($each['mapid'] == $mapid) {
-                    $adCommentsIndicator = $adcomments->getCommentsIndicator($each['id']);
-                    $photostorageIndicator = $photostorage->getImagesIndicator($each['id']);
-                    $fileStorageIndicator = $fileStorage->getFilesIndicator($each['id']);
                     $actLinks = '';
-                    $attachments = '';
                     if (cfr('CUSTMAPEDIT')) {
                         $actLinks .= wf_Link(self::URL_ME . '&' . self::ROUTE_EDITITEM . '=' . $each['id'], web_icon_extended(__('Change'))) . ' ';
                     } else {
                         $actLinks .= wf_Link(self::URL_ME . '&' . self::ROUTE_EDITITEM . '=' . $each['id'], web_icon_extended(__('Show')), false) . ' ';
                     }
-                    $attachments .= ' '.$adCommentsIndicator .' '. $photostorageIndicator .' '. $fileStorageIndicator;
+                    $attachments = $this->renderAttachmentsCell($each['id'], $adcomments, $photostorage, $fileStorage);
 
                     $dataArr[] = array(
                         $each['id'],
@@ -1389,19 +1409,14 @@ class CustMaps {
         if (!empty($this->allLines)) {
             foreach ($this->allLines as $lineId => $lineData) {
                 if ($lineData['mapid'] == $mapid) {
-                    $adCommentsIndicator = $adcomments->getCommentsIndicator($lineId);
-                    $photostorageIndicator = $photostorage->getImagesIndicator($lineId);
-                    $fileStorageIndicator = $fileStorage->getFilesIndicator($lineId);
                     $actLinks = '';
-                    $attachments = '';
                     if (cfr('CUSTMAPEDIT')) {
                         $actLinks .= wf_JSAlertStyled(self::URL_ME . '&' . self::ROUTE_SHOWMAP . '=' . $mapid . '&' . self::ROUTE_LINEEDIT . '=true&' . self::ROUTE_MODIFYLINE . '=' . $lineId, web_edit_icon(__('Edit on map')), $this->messages->getEditAlert()) . ' ';
                         $actLinks .= wf_Link(self::URL_ME . '&' . self::ROUTE_EDITLINE . '=' . $lineId, web_icon_extended(__('Change')), false) . ' ';
                     } else {
                         $actLinks .= wf_Link(self::URL_ME . '&' . self::ROUTE_EDITLINE . '=' . $lineId, web_icon_extended(__('View')), false) . ' ';
                     }
-
-                    $attachments .= ' '.$adCommentsIndicator .' '. $photostorageIndicator .' '. $fileStorageIndicator;
+                    $attachments = $this->renderAttachmentsCell($lineId, $adcomments, $photostorage, $fileStorage);
 
                     $dataArr[] = array(
                         $lineId,
