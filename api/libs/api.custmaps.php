@@ -689,6 +689,15 @@ class CustMaps {
             $adcomments = new ADcomments('CUSTMAPMARKERS');
             show_window(__('Additional comments'), $adcomments->renderComments($itemId));
         }
+
+        if (cfr('CUSTMAPEDIT') and isset($this->allItems[$itemId])) {
+            $deletionUrl = self::URL_ME . '&' . self::ROUTE_DELETEITEM . '=' . $itemId;
+            $cancelUrl = self::URL_ME . '&' . self::ROUTE_EDITITEM . '=' . $itemId;
+            $deleteTitle = __('Delete') . ' ' . $itemName . '?';
+            $deleteUi = wf_delimiter(0);
+            $deleteUi .= wf_ConfirmDialog($deletionUrl, web_delete_icon() . ' ' . __('Delete marker'), $this->messages->getDeleteAlert(), 'ubButton', $cancelUrl, $deleteTitle);
+            show_window('', $deleteUi);
+        }
         return ($result);
     }
 
@@ -747,7 +756,6 @@ class CustMaps {
                     $actLinks = '';
                     $attachments = '';
                     if (cfr('CUSTMAPEDIT')) {
-                        $actLinks .= wf_JSAlertStyled(self::URL_ME . '&' . self::ROUTE_DELETEITEM . '=' . $each['id'], web_delete_icon(), $this->messages->getDeleteAlert()) . ' ';
                         $actLinks .= wf_Link(self::URL_ME . '&' . self::ROUTE_EDITITEM . '=' . $each['id'], web_icon_extended(__('Change'))) . ' ';
                     } else {
                         $actLinks .= wf_Link(self::URL_ME . '&' . self::ROUTE_EDITITEM . '=' . $each['id'], web_icon_extended(__('Show')), false) . ' ';
@@ -1277,7 +1285,7 @@ class CustMaps {
             $mapUrl=self::URL_ME . '&' . self::ROUTE_SHOWMAP . '=' . $lineData['mapid'];
             $lineControls .= wf_Link($mapUrl,wf_img('skins/icon_map_small.png').' '.__('Back').' '.__('to map'), false, 'ubButton');
             $lineControls .= wf_Link($linesUrl,wf_img('skins/icon_mapline16.png').' '.__('Back').' '.__('to lines'), false, 'ubButton');
-            
+
             $lineUploadControls = '';
             $lineAttachments = '';
 
@@ -1317,6 +1325,15 @@ class CustMaps {
             if (isset($this->altCfg['ADCOMMENTS_ENABLED']) and $this->altCfg['ADCOMMENTS_ENABLED']) {
                 $adcomments = new ADcomments('CUSTMAPLINES');
                 show_window(__('Additional comments'), $adcomments->renderComments($lineId));
+            }
+
+            if (cfr('CUSTMAPEDIT')) {
+                $deletionUrl = self::URL_ME . '&' . self::ROUTE_DELETELINE . '=' . $lineId;
+                $cancelUrl = self::URL_ME . '&' . self::ROUTE_EDITLINE . '=' . $lineId;
+                $deleteTitle = __('Delete') . ' ' . $lineName . '?';
+                $deleteUi = wf_delimiter(0);
+                $deleteUi .= wf_ConfirmDialog($deletionUrl, web_delete_icon() . ' ' . __('Delete line'), $this->messages->getDeleteAlert(), 'ubButton', $cancelUrl, $deleteTitle);
+                show_window('', $deleteUi);
             }
         } else {
             show_error(__('Line') . ': ' . __('Not found'));
@@ -1378,7 +1395,6 @@ class CustMaps {
                     $actLinks = '';
                     $attachments = '';
                     if (cfr('CUSTMAPEDIT')) {
-                        $actLinks .= wf_JSAlertStyled(self::URL_ME . '&' . self::ROUTE_DELETELINE . '=' . $lineId, web_delete_icon(), $this->messages->getDeleteAlert()) . ' ';
                         $actLinks .= wf_JSAlertStyled(self::URL_ME . '&' . self::ROUTE_SHOWMAP . '=' . $mapid . '&' . self::ROUTE_LINEEDIT . '=true&' . self::ROUTE_MODIFYLINE . '=' . $lineId, web_edit_icon(__('Edit on map')), $this->messages->getEditAlert()) . ' ';
                         $actLinks .= wf_Link(self::URL_ME . '&' . self::ROUTE_EDITLINE . '=' . $lineId, web_icon_extended(__('Change')), false) . ' ';
                     } else {
