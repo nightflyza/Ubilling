@@ -48,7 +48,7 @@ if (cfr('CUSTMAP')) {
                 if (cfr('CUSTMAPEDIT')) {
                     $showMapId = ubRouting::get($custmaps::ROUTE_SHOWMAP, 'int');
                     $custmaps->itemCreate($showMapId, ubRouting::post($custmaps::PROUTE_NEWITEMTYPE), ubRouting::post($custmaps::PROUTE_NEWITEMGEO), ubRouting::post($custmaps::PROUTE_NEWITEMNAME), ubRouting::post($custmaps::PROUTE_NEWITEMLOCATION));
-                    ubRouting::nav($custmaps::URL_ME . '&' . $custmaps::ROUTE_SHOWMAP . '=' . $showMapId . '&' . $custmaps::ROUTE_MAPEDIT . '=true');
+                    ubRouting::nav($custmaps::URL_ME . '&' . $custmaps::ROUTE_SHOWMAP . '=' . $showMapId . '&' . $custmaps::ROUTE_MARKEREDIT . '=true');
                 } else {
                     show_error(__('Permission denied'));
                 }
@@ -228,7 +228,7 @@ if (cfr('CUSTMAP')) {
                 }
             }
             
-            if (ubRouting::checkGet(array($custmaps::ROUTE_MAPEDIT, $custmaps::ROUTE_SHOWMAP))) {
+            if (ubRouting::checkGet(array($custmaps::ROUTE_MARKEREDIT, $custmaps::ROUTE_SHOWMAP))) {
                 if (cfr('CUSTMAPEDIT')) {
                     $custmaps->mapLocationEditor();
                 }

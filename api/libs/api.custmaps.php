@@ -140,7 +140,7 @@ class CustMaps {
     const ROUTE_MODIFYLINE = 'modifyline';
     const ROUTE_EDITLINE = 'editline';
     const ROUTE_DELETELINE = 'deleteline';
-    const ROUTE_MAPEDIT = 'mapedit';
+    const ROUTE_MARKEREDIT = 'markersedit';
     const ROUTE_LINEEDIT = 'lineedit';
     const ROUTE_CL = 'cl';
     const ROUTE_MAPLIST = 'maplist';
@@ -490,7 +490,7 @@ class CustMaps {
         if (ubRouting::checkGet(self::ROUTE_SHOWMAP)) {
             $mapId = ubRouting::get(self::ROUTE_SHOWMAP, 'int');
             if (cfr('CUSTMAPEDIT')) {
-                $result .= wf_Link(self::URL_ME . '&' . self::ROUTE_SHOWMAP . '=' . $mapId . '&' . self::ROUTE_MAPEDIT . '=true', wf_img('skins/ymaps/target.png') . ' ' . __('Edit markers'), false, 'ubButton');
+                $result .= wf_Link(self::URL_ME . '&' . self::ROUTE_SHOWMAP . '=' . $mapId . '&' . self::ROUTE_MARKEREDIT . '=true', wf_img('skins/ymaps/target.png') . ' ' . __('Edit markers'), false, 'ubButton');
                 $result .= wf_Link(self::URL_ME . '&' . self::ROUTE_SHOWMAP . '=' . $mapId . '&' . self::ROUTE_LINEEDIT . '=true', wf_img('skins/ymaps/edit.png') . ' ' . __('Edit lines'), false, 'ubButton');
             }
 
