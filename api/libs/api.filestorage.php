@@ -595,6 +595,7 @@ class FileStorage {
                 zb_DownloadFile($this->storagePath . $filename, 'default', $downloadAs);
             } else {
                 show_error(__('File not exist'));
+                log_register('FILESTORAGE DOWNLOAD FAILED `' . $this->storagePath . $filename.'` NOT_EXIST');
             }
         } else {
             show_error(__('File not exists'));
