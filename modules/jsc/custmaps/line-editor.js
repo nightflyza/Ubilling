@@ -13,6 +13,7 @@
  * @param {string} [config.defaultColor]
  * @param {number} [config.defaultFibersAmount]
  * @param {number} [config.defaultWidth]
+ * @param {boolean} [config.animLineEdit] — marching-ants on focused line (from CUSTMAP_ANIM_LINEEDIT)
  */
 window.ubCustmapsLineEditorInit = function(map, config) {
     if (typeof L.Editable !== "function") {
@@ -47,6 +48,10 @@ window.ubCustmapsLineEditorInit = function(map, config) {
         if (!isNaN(ubParsedDefaultWidth)) {
             ubDefaultWidth = ubParsedDefaultWidth;
         }
+    }
+    var ubAnimLineEdit = true;
+    if (typeof config.animLineEdit !== "undefined" && config.animLineEdit !== null) {
+        ubAnimLineEdit = !!config.animLineEdit;
     }
 
     var ubActiveLine = null;
@@ -281,6 +286,16 @@ window.ubCustmapsLineEditorInit = function(map, config) {
     }
 
     function ubMarchAntsSync() {
+        if (!ubAnimLineEdit) {
+            if (ubLastMarchLine) {
+                if (map.hasLayer(ubLastMarchLine)) {
+                    ubStripMarchFromLine(ubLastMarchLine);
+                }
+            }
+            ubCancelMarchRaf();
+            ubLastMarchLine = null;
+            return;
+        }
         var focus = ubComputeFocusLine();
         var focusOk = focus ? ubLineQualifiesForMarch(focus) : false;
         if (ubLastMarchLine) {

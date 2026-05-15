@@ -1722,6 +1722,10 @@ class CustMaps {
         $panelHtml .= '<button type="button" id="' . $undoBtnId . '" class="ubButton" style="width:100%; text-align:left;" title="' . $hkLabel . ': Ctrl+Z">' . wf_img('skins/undo_icon.png') . ' ' . __('Undo changes') . '</button>';
         $panelHtml .= '</div>';
         $panelHtml .= $data;
+        $animLineEdit = true;
+        if (isset($this->altCfg['CUSTMAP_ANIM_LINEEDIT']) and !$this->altCfg['CUSTMAP_ANIM_LINEEDIT']) {
+            $animLineEdit = false;
+        }
         $lineEditorConfig = array(
             'panelHtml' => $panelHtml,
             'drawBtnId' => $drawBtnId,
@@ -1733,6 +1737,7 @@ class CustMaps {
             'defaultColor' => self::LINE_DEFAULT_COLOR,
             'defaultFibersAmount' => self::LINE_DEFAULT_FIBERS_AMOUNT,
             'defaultWidth' => self::LINE_DEFAULT_WIDTH,
+            'animLineEdit' => $animLineEdit,
         );
         $lineEditorConfigJs = json_encode($lineEditorConfig, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT);
         if ($lineEditorConfigJs === false) {
