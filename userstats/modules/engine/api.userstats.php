@@ -180,7 +180,7 @@ function zbs_CheckDbSchema() {
  * @param string $login existing users login
  * @param double $userBalance current users balance
  * @param string $userTariff users tariff
- * @param bool   $rawdays show only days count
+ * @param bool   $rawDays show only days count
  * @return string
  */
 function zbs_GetOnlineLeftCount($login, $userBalance, $userTariff, $rawDays = false) {
@@ -495,7 +495,9 @@ function zbs_AddressGetFulladdresslist() {
 }
 
 /**
- * Returns array of availble user address as login=>array('cityname' = ..., 'streetname' = ..., 'buildnum' = ..., 'apt' = ...)
+ * Returns array of availble user address as login=>array('cityname' = ..., 'streetname' = ..., 'buildnum' = ..., 'apt' = ...)\
+ * 
+ * @param string $login
  * 
  * @return array
  */
@@ -548,8 +550,6 @@ function zbs_UserGetStargazerData($login) {
 
 /**
  * Returns array of all stargazer user data
- * 
- * @param string $login
  * 
  * @return array
  */
@@ -2030,7 +2030,7 @@ function zbs_UserShowProfile($login) {
             }
 
             //modal dialog construction
-            $paymentidqr = la_modalAuto(la_img($iconsPath . 'qrcode.png', 'QR-code'), $qrTitle, la_tag('center') . la_img($qrUrl) . la_tag('center', true), '', '300', '250');
+            $paymentidqr = la_modalAuto(la_img($iconsPath . 'qrcode.png', 'QR-code'), $qrTitle, la_tag('center') . la_img($qrUrl) . la_tag('center', true));
         }
     }
 
@@ -2218,7 +2218,7 @@ function zbs_UserShowProfile($login) {
                 $qrGenerator='modules/jsc/qrgen.php?data=';
                 $qrUrl =  $qrGenerator . base64_encode($tgBotUrl).'&be=true';
                 $qrTitle = __('Connect to bot');
-                $tgBotQr = la_modalAuto(la_img($iconsPath . 'qrcode.png', 'QR-code'), $qrTitle, la_tag('center') . la_img($qrUrl) . la_tag('center', true), '', '300', '250');
+                $tgBotQr = la_modalAuto(la_img($iconsPath . 'qrcode.png', 'QR-code'), $qrTitle, la_tag('center') . la_img($qrUrl) . la_tag('center', true));
             }
         }
         $profile .= la_tag('tr');
@@ -2828,7 +2828,7 @@ function zbs_UserGetTariff($login) {
 /**
  * Returns user current tariff price
  * 
- * @param string $login
+ * @param string $tariff
  * @return float
  */
 function zbs_UserGetTariffPrice($tariff) {
@@ -2841,7 +2841,7 @@ function zbs_UserGetTariffPrice($tariff) {
 /**
  * Returns user current tariff data array
  * 
- * @param string $login
+ * @param string $tariff
  * @return array
  */
 function zbs_UserGetTariffData($tariff) {
@@ -2973,8 +2973,8 @@ function zbs_GetHelpdeskDeniedAll() {
 /**
  * Rounds $value to $precision digits
  * 
- * @param $value digit to round
- * @param $precision amount of digits after point
+ * @param float $value digit to round
+ * @param int $precision amount of digits after point
  * 
  * @return string
  */
@@ -3060,6 +3060,8 @@ function zbs_CustomBackground() {
 /**
  * Checks is some new/unread announcements available?
  * 
+ * @param string $login
+ * 
  * @return bool
  */
 function zbs_AnnouncementsAvailable($login) {
@@ -3099,6 +3101,8 @@ function zbs_AnnouncementsAvailable($login) {
 /**
  * Renders new/unread announcements notification
  * 
+ * @param string $login
+ * 
  * @return void
  */
 function zbs_AnnouncementsNotice($login) {
@@ -3130,9 +3134,9 @@ function zbs_IntroLoadText() {
 
 /**
  * Loads current freeze days charge data for user
- *
- * @param $login
- *
+ * 
+ * @param string $login
+ * 
  * @return array
  */
 function zbs_getFreezeDaysChargeData($login) {
@@ -3269,10 +3273,10 @@ function zbs_GetUserDBFees($login, $date_from = '', $date_to = '') {
 /**
  * Returns all additional fee-payments(based on negative sums) with optional filters
  *
- * @param $login
- * @param $date_from
- * @param $date_to
- * @param $whereStr
+ * @param string $login
+ * @param string $date_from
+ * @param string $date_to
+ * @param string $whereStr
  *
  * @return array
  * @throws Exception
@@ -3341,8 +3345,8 @@ function zbs_GetUserAdditionalFees($login, $date_from = '', $date_to = '', $wher
 /**
  * Concats 2 arrays with numerical keys avoiding key duplicates
  *
- * @param $arr1
- * @param $arr2
+ * @param array $arr1
+ * @param array $arr2
  *
  * @return mixed
  */
@@ -3404,9 +3408,9 @@ function zbs_GetTariffsDataAll($excludeLousy = false) {
 
 /**
  * Check if user already has tag
- * @param type $login string
- * @param type $tagid int
- * @return type boolean
+ * @param string $login
+ * @param int $tagid
+ * @return bool
  */
 function stg_check_user_tag($login, $tagid) {
     $login = mysql_real_escape_string($login);
@@ -3420,8 +3424,8 @@ function stg_check_user_tag($login, $tagid) {
 /**
  *
  * add sms tag for user to remind him about apropos payment
- * @param type $login string
- * @param type $tagid integer
+ * @param string $login
+ * @param int $tagid
  */
 function stg_add_user_tag($login, $tagid) {
     $login = mysql_real_escape_string($login);
@@ -3433,8 +3437,8 @@ function stg_add_user_tag($login, $tagid) {
 
 /**
  * delete sms tag
- * @param type $login
- * @param type $tagid
+ * @param string $login
+ * @param int $tagid
  */
 function stg_del_user_tagid($login, $tagid) {
     $login = mysql_real_escape_string($login);
