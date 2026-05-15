@@ -129,19 +129,20 @@ function zbs_UserGetLoginByIp($ip) {
         return ($result['login']);
     } else {
         if ($glob_conf['auth'] == 'ip') {
-            if ((isset($glob_conf['authfailredir']))) {
-                if (!empty($glob_conf['authfailredir'])) {
+            if (!empty($glob_conf['authfailredir'])) {
                     rcms_redirect($glob_conf['authfailredir']);
-                    die('Unknown user');
-                } else {
-                    die('Unknown user EX_EMPTY_AUTHFAILREDIR');
-                }
-            } else {
-                die('Unknown user EX_NO_AUTHFAILREDIR_DEFINED');
+            }
+
+            if (@$glob_conf['IM_JUST_PIDAR']) {
+                print('<!-- PDDTCD -->');
+            }
+
+            die('Unknown user');
             }
         }
-    }
-}
+ }
+    
+
 
 /**
  * Checks is table with some name exists, and returns int value 0/1 used as bool (Oo)
