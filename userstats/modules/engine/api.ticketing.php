@@ -208,13 +208,13 @@
                 } else {
                     $ticketstatus = la_img($iconsPath . 'anunread.gif') . ' ' . __('Open');
                 }
-                $cells = la_TableCell($eachticket['date']);
-                $cells .= la_TableCell($ticketstatus);
-                $cells .= la_TableCell(la_Link('?module=ticketing&showticket=' . $eachticket['id'], __('View')));
-                $rows .= la_TableRow($cells, 'row2');
+                $cells = la_TableCell($eachticket['date'], '', '', 'data-label="' . __('Date') . '"');
+                $cells .= la_TableCell($ticketstatus, '', '', 'data-label="' . __('Status') . '"');
+                $cells .= la_TableCell(la_Link('?module=ticketing&showticket=' . $eachticket['id'], __('View')), '', '', 'data-label="' . __('Actions') . '"');
+                $rows .= la_TableRow($cells, 'row3');
             }
         }
-        $result = la_TableBody($rows, '100%', 0);
+        $result = la_TableBody($rows, '100%', 0, 'mobile-table');
         return ($result);
     }
 
