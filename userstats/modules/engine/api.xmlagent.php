@@ -343,7 +343,7 @@ class XMLAgent {
     /**
      * Chooses the destination according to GET params
      *
-     * @param $user_login
+     * @param string $user_login
      *
      * @return void
      */
@@ -594,7 +594,7 @@ class XMLAgent {
     /**
      * Data collector for "payments" request
      *
-     * @param $login
+     * @param string $login
      *
      * @return array
      */
@@ -737,7 +737,7 @@ class XMLAgent {
     /**
      * Data collector for "tickets" request
      *
-     * @param $login
+     * @param string $login
      *
      * @return array
      */
@@ -770,7 +770,7 @@ class XMLAgent {
     /**
      * Data collector for "opayz" request
      *
-     * @param $login
+     * @param string $login
      *
      * @return array
      */
@@ -810,7 +810,7 @@ class XMLAgent {
     /**
      * Data collector for "ukv" request
      *
-     * @param $login
+     * @param string $login
      *
      * @return array
      */
@@ -827,7 +827,7 @@ class XMLAgent {
     /**
      * Data collector for "agentassigned" request
      *
-     * @param $login
+     * @param string $login
      *
      * @return array
      */
@@ -844,7 +844,7 @@ class XMLAgent {
     /**
      * Data collector for "userdata" request
      *
-     * @param $login
+     * @param string $login
      *
      * @return array
      */
@@ -995,7 +995,7 @@ class XMLAgent {
     /**
      * Data collector for "tariffvservices" request
      *
-     * @param $login
+     * @param string $login
      *
      * @return array
      */
@@ -1106,7 +1106,7 @@ class XMLAgent {
     /**
      * Data collector for "feecharges" request
      *
-     * @param $login
+     * @param string $login
      *
      * @return array
      */
@@ -1145,7 +1145,7 @@ class XMLAgent {
     /**
      * Returns user's current freezing data and status
      *
-     * @param $login
+     * @param string $login
      *
      * @return array
      *
@@ -1220,7 +1220,7 @@ class XMLAgent {
     /**
      * Makes user frozen
      *
-     * @param $login
+     * @param string $login
      *
      * @return array
      */
@@ -1254,7 +1254,7 @@ class XMLAgent {
      * Makes user UNfrozen
      * Use with EXTREME CARE
      *
-     * @param $login
+     * @param string $login
      *
      * @return array
      */
@@ -1285,9 +1285,9 @@ class XMLAgent {
     /**
      * Support request creation routine
      *
-     * @param $login
-     * @param $tickettext
-     * @param $replyID
+     * @param string $login
+     * @param string $tickettext
+     * @param string $replyID
      *
      * @return array[]
      * @throws Exception
@@ -1345,7 +1345,7 @@ class XMLAgent {
     /**
      * Sign up request creation routine
      *
-     * @param $requestBody
+     * @param string $requestBody
      *
      * @return array[]
      * @throws Exception
@@ -1397,7 +1397,7 @@ class XMLAgent {
      * Yep, this one, probably, should be somewhere in "tariffchanger" module
      * Well, it probably will, when "tariffchanger" will get a separate Class definition
      *
-     * @param $userTariff
+     * @param string $userTariff
      *
      * @return false|string[]
      */
