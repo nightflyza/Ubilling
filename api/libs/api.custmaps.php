@@ -1363,8 +1363,9 @@ class CustMaps {
 
     /**
      * Returns line edit form
-     * TODO: make it better later
+     * 
      * @param int $lineid
+     * 
      * @return string
      */
     public function lineEditForm($lineid) {

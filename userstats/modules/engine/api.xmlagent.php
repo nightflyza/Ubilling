@@ -1059,7 +1059,7 @@ class XMLAgent {
     /**
      * Returns tariff list the user is allowed to switch to
      *
-     * @param $login
+     * @param string $login
      *
      * @return array
      */
@@ -1083,6 +1083,19 @@ class XMLAgent {
         if (!empty($tariffsAllowedTo)) {
             foreach ($tariffsAllowedTo as $io => $item) {
                 $result[$io]['tariff'] = $item;
+                                
+                // Some tariff price
+                $tariffData = zbs_UserGetTariffData($item);
+                if (!empty($tariffData) && isset($tariffData['Fee'])) {
+                    $price = $tariffData['Fee'];
+                    if ($price == 0) {
+                        $result[$io]['price'] = "0";
+                    } else {
+                        $result[$io]['price'] = number_format($price, 2, '.', '');
+                    }
+                } else {
+                    $result[$io]['price'] = null;
+                }
             }
         }
 
