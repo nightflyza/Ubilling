@@ -1944,7 +1944,7 @@ function zb_AddAddressExtenSave($login, $makeEdit, $postalcode = '', $towndistr 
 /**
  * Removes extended address info record from DB
  *
- * @param $login
+ * @param string $login
  */
 function zb_AddAddressExtenDelete($login) {
     $tabAddrExten = new nya_address_extended();
@@ -2024,7 +2024,7 @@ function zb_AddressExtenGetAllCached() {
 /**
  * Tries to get extended address info for certain $login from cache
  *
- * @param $login
+ * @param string $login
  *
  * @return array
  */
