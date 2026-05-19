@@ -1887,6 +1887,7 @@ function zb_SwitchReplaceForm($fromSwitchId) {
     $paramsNp = array();
     $employee = array();
     $employee = ts_GetActiveEmployee();
+    $messages=new UbillingMessageHelper();
 
     if (!empty($raw)) {
         foreach ($raw as $io => $eachNp) {
@@ -1894,12 +1895,21 @@ function zb_SwitchReplaceForm($fromSwitchId) {
         }
     }
 
-    $inputs = wf_HiddenInput('switchreplace', $fromSwitchId);
-    $inputs .= wf_SelectorSearchable('toswtichreplace', $paramsNp, 'NP ' . __('Switch'), '', false);
-    $inputs .= wf_SelectorSearchable('replaceemployeeid', $employee, __('Worker'), '', false);
-    $inputs .= wf_Submit('Save');
-    $result = wf_Form('', 'POST', $inputs, 'glamour');
-    $result .= wf_CleanDiv();
+    if (!empty($paramsNp)) {
+        if (!empty($employee)) {
+        $inputs = wf_HiddenInput('switchreplace', $fromSwitchId);
+        $inputs .= wf_SelectorSearchable('toswtichreplace', $paramsNp, 'NP ' . __('Switch'), '', false);
+        $inputs .= wf_SelectorSearchable('replaceemployeeid', $employee, __('Worker'), '', false);
+        $inputs .= wf_Submit('Save');
+        $result = wf_Form('', 'POST', $inputs, 'glamour');
+        $result .= wf_CleanDiv();
+        } else {
+            $result .= $messages->getStyledMessage(__('No job types and employee available').'.', 'error');
+        }
+    } else {
+        $result .= $messages->getStyledMessage(__('Nothing to replace').'. '. __('Any NP switches found').'.', 'error');
+    }
+
     $result .= wf_delimiter();
     $result .= wf_BackLink('?module=switches&edit=' . $fromSwitchId);
     return ($result);
