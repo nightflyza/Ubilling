@@ -1,39 +1,6 @@
 <?php
 
 if (cfr('SWITCHES')) {
-
-    /**
-     * Returns some switch psycho-pass
-     * 
-     * @param int $count
-     * 
-     * @return string
-     */
-    function zb_SwitchesPsychoPass($count) {
-        $result = '';
-
-        if ($count <= 3) {
-            $color = '#00b12e';
-        }
-        if (($count > 3)) {
-            $color = '#c3cf00';
-        }
-        if (($count > 5)) {
-            $color = '#e56600';
-        }
-
-        if (($count > 7)) {
-            $color = '#e53000';
-        }
-
-        if ($count == 0) {
-            $color = '';
-        }
-
-        $result = wf_tag('font', false, '', 'color="' . $color . '"') . $count . wf_tag('font', true);
-        return ($result);
-    }
-
     if (ubRouting::checkGet('ajax')) {
         $alllinks = array();
         $allSwitches = array();
@@ -55,8 +22,6 @@ if (cfr('SWITCHES')) {
             }
         }
 
-
-
         if (!empty($allSwitches)) {
             foreach ($allSwitches as $ia => $each) {
                 if (!empty($each['parentid'])) {
@@ -75,7 +40,6 @@ if (cfr('SWITCHES')) {
         if (!empty($psychoPower)) {
             foreach ($psychoPower as $io => $parentCount) {
                 $switchData = $allSwitches[$io];
-
                 $data[] = $switchData['id'];
                 $data[] = $switchData['ip'];
                 $data[] = $switchData['location'];
@@ -87,8 +51,10 @@ if (cfr('SWITCHES')) {
                 $json->addRow($data);
                 unset($data);
             }
-            $json->getJson();
+           
         }
+
+        $json->getJson();
     }
 
 

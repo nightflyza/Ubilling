@@ -2066,3 +2066,36 @@ function zb_SwitchBackgroundIcmpPing($ip) {
 
     die(wf_tag('pre') . $icmpPingResult . wf_tag('pre', true));
 }
+
+
+/**
+ * Returns some switch psycho-pass
+ * 
+ * @param int $count
+ * 
+ * @return string
+ */
+function zb_SwitchesPsychoPass($count) {
+        $result = '';
+        $color = '';
+        if ($count <= 3) {
+            $color = '#00b12e';
+        }
+        if (($count > 3)) {
+            $color = '#c3cf00';
+        }
+        if (($count > 5)) {
+            $color = '#e56600';
+        }
+
+        if (($count > 7)) {
+            $color = '#e53000';
+        }
+
+        if ($count == 0) {
+            $color = '';
+        }
+
+        $result = wf_tag('font', false, '', 'color="' . $color . '"') . $count . wf_tag('font', true);
+        return ($result);
+ }
