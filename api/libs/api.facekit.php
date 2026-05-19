@@ -5,7 +5,17 @@
  */
 class FaceKit {
 
-    //some predefined stuff
+    /**
+     * Allowed file extensions
+     *
+     * @var array
+     */
+    protected $allowedExtensions = array('jpg', 'jpeg', 'png', 'gif');
+
+
+    /**
+     * Some predefined stuff
+     */
     const PATH_ORIG = 'content/documents/facekit/';
     const PATH_DUMMY = 'skins/admava.png';
     const PATH_AVATARS = 'content/avatars/';
@@ -14,8 +24,23 @@ class FaceKit {
     const PROUTE_ADMINLOGIN = 'adminlogin';
     const PROUTE_STARTUPLOAD = 'facekitStartUpload';
 
+  
     public function __construct() {
-        //yare yare daze
+//        
+//  
+//                  .---.
+//             '-.  |   |  .-'         
+//               ___|   |___          
+//          -=  [           ]  =-    
+//              `---.   .---'         
+//           __||__ |   | __||__      
+//           '-..-' |   | '-..-'   
+//             ||   |   |   ||     
+//             ||_.-|   |-,_||     
+//           .-"`   `"`'`   `"-.   
+//         .'                   '.
+// Truly, I say to you, today you will be with me in Paradise
+//
     }
 
 
@@ -63,13 +88,20 @@ class FaceKit {
      * @param int $size
      * @param string $class
      * @param string $title
+     * @param bool $cacheBust append file mtime to URL (preview form only)
      * 
      * @return string
      */
-    public static function getAvatar($admLogin, $size = '64', $class = '', $title = '') {
+    public static function getAvatar($admLogin, $size = '64', $class = '', $title = '', $cacheBust = false) {
         $admLogin = ubRouting::filters($admLogin, 'mres');
         $size = ubRouting::filters($size, 'int');
         $fullUrl = FaceKit::getAvatarUrl($admLogin, $size);
+        if ($cacheBust) {
+            $avaPath = self::PATH_AVATARS . $admLogin . '_' . $size . '.' . self::DEFAULT_EXT;
+            if (file_exists($avaPath)) {
+                $fullUrl .= '?' . filemtime($avaPath);
+            }
+        }
         $result = wf_tag('img', false, $class, 'src="' . $fullUrl . '" alt="avatar" title="' . $title . '"');
         return ($result);
     }
@@ -107,6 +139,8 @@ class FaceKit {
     /**
      * Renders avatar upload form
      * 
+     * @param string $adminLogin
+     * 
      * @return string
      */
     protected function renderAvatarUploadForm($adminLogin) {
@@ -135,26 +169,25 @@ class FaceKit {
                     $adminLogin = ubRouting::post('adminlogin');
                 }
             }
-            $allowedExtensions = array('jpg', 'jpeg', 'png', 'gif');
-            $fileAccepted = true;
-            foreach ($_FILES as $file) {
-                if ($file['tmp_name'] > '') {
-                    if (@!in_array(end(explode(".", strtolower($file['name']))), $allowedExtensions)) {
-                        $fileAccepted = false;
-                    }
+            $fileAccepted = false;
+            $uploadedFile = array();
+            if (isset($_FILES[self::PROUTE_FILEUPLOAD])) {
+                $uploadedFile = $_FILES[self::PROUTE_FILEUPLOAD];
+            }
+            if (!empty($uploadedFile['tmp_name']) and isset($uploadedFile['error']) and $uploadedFile['error'] === UPLOAD_ERR_OK) {
+                $fileExtension = pathinfo(strtolower($uploadedFile['name']), PATHINFO_EXTENSION);
+                if (in_array($fileExtension, $this->allowedExtensions)) {
+                    $fileAccepted = true;
                 }
             }
 
             if ($fileAccepted) {
-                //upload successful?
-                if (file_exists(@$_FILES[self::PROUTE_FILEUPLOAD]['tmp_name'])) {
-
-                    //checking image validity
+                if (file_exists($uploadedFile['tmp_name'])) {
                     $pixelCraft = new PixelCraft();
-                    if ($pixelCraft->isImageValid($_FILES[self::PROUTE_FILEUPLOAD]['tmp_name'])) {
+                    if ($pixelCraft->isImageValid($uploadedFile['tmp_name'])) {
                         $newFilename = $adminLogin . '.' . self::DEFAULT_EXT;
                         $newSavePath = self::PATH_ORIG . $newFilename;
-                        @move_uploaded_file($_FILES[self::PROUTE_FILEUPLOAD]['tmp_name'], $newSavePath);
+                        @move_uploaded_file($uploadedFile['tmp_name'], $newSavePath);
                         if (file_exists($newSavePath)) {
                             log_register('FACEKIT AVATAR UPLOAD SUCCESS {' . $adminLogin . '}');
                             $uploadResult = wf_tag('span', false, 'alert_success') . __('Photo upload complete') . wf_tag('span', true);
@@ -202,7 +235,7 @@ class FaceKit {
 
         foreach ($previewSizes as $size) {
             $result .= wf_tag('div', false, '', $previewStyle);
-            $result .= FaceKit::getAvatar($myLogin, $size);
+            $result .= FaceKit::getAvatar($myLogin, $size, '', '', true);
             $result .= wf_delimiter(0);
             $result .= $size . 'x' . $size;
             $result .= wf_tag('div', true);
