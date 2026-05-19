@@ -276,7 +276,6 @@ class ArpDiag {
             $allUserIps = array_flip($allUserIps);
             $allUserIpMacs = zb_UserGetAllIpMACs();
             $allSwitchesIps = $this->getAllSwitchesIps();
-            $allSwitchesMac = array();
 
             $raw = explodeRows($raw);
 
@@ -291,7 +290,7 @@ class ArpDiag {
                          */
                         $ip = zb_ExtractIpAddress($each);
                         $mac = zb_ExtractMacAddress($each);
-                        $hostType = $this->getHostLink($allUserIps, $allUserAddress, $allSwitchesIps, $ip, $mac);
+                        $hostType = $this->getHostLink($allUserIps, $allUserAddress, $allSwitchesIps, $ip);
                         $jsonItem[] = $ip;
                         $jsonItem[] = $mac;
                         $jsonItem[] = $hostType;

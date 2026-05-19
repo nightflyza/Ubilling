@@ -79,7 +79,7 @@ class AerialAlerts {
     /**
      * Inits system caching instance for further usage
      * 
-     * @return
+     * @return void
      */
     protected function initCache() {
         $this->cache = new UbillingCache();

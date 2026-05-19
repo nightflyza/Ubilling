@@ -104,6 +104,27 @@ class Announcements {
     protected $cacheTime = 2592000; //month by default
 
     /**
+     * System message helper object placeholder
+     *
+     * @var object
+     */
+    protected $messages = '';
+
+    /**
+     * Contains all addresses data
+     *
+     * @var array
+     */
+    protected $allAddress = array();
+
+    /**
+     * Contains all real names data
+     *
+     * @var array
+     */
+    protected $allRealNames = array();
+
+    /**
      * Contains default announcements cache key name
      */
 
@@ -218,7 +239,8 @@ class Announcements {
      * Init admin Name
      * 
      * @param string $admin
-     * @return void
+     * 
+     * @return string
      */
     protected function initAdminName($admin) {
         $result = '';
@@ -292,6 +314,7 @@ class Announcements {
     /**
      * Loads all avaible votes result from databases
      * 
+     * @param int $ann_id
      * @return array
      */
     public function loadAnnounceHistory($ann_id) {
@@ -307,8 +330,12 @@ class Announcements {
     /**
      * Create Announce on database
      * 
-     * @param int $public, $type, $title, $text
-     * @return void
+     * @param int $public
+     * @param int $type
+     * @param string $title
+     * @param string $text
+     * 
+     * @return int
      */
     protected function createAnnounce($title, $text, $public, $type) {
         $ann_id = '';
@@ -335,7 +362,9 @@ class Announcements {
     /**
      * Change Announce data on database
      * 
-     * @param int $ann_id, array $new_ann_data
+     * @param int $ann_id, array 
+     * @param array $new_ann_data
+     * 
      * @return void
      */
     protected function editAnnounce($ann_id, $new_ann_data) {
@@ -377,7 +406,6 @@ class Announcements {
     /**
      * Deletes all data about Announce from database by ID
      * 
-     * @param int $ann_id
      * @return void
      */
     public function deleteAnnounceData() {
@@ -391,7 +419,7 @@ class Announcements {
     /**
      * updates some existing announcement in database
      * 
-     * @param int  $id   existing announcement ID
+     * @param array $announcements_data
      * 
      * @return void
      */
@@ -433,8 +461,6 @@ class Announcements {
 
     /**
      * returns announcement edit form
-     * 
-     * @param int $id existing announcement ID
      *  
      * @return string
      */
@@ -579,8 +605,6 @@ class Announcements {
     /**
      * Renders list of users which acquainted with some announcement
      * 
-     * @param int $id
-     * 
      * @return string
      */
     public function renderAcquaintedUsers() {
@@ -597,9 +621,7 @@ class Announcements {
     /**
      * Renders list of users which acquainted with some announcement
      * 
-     * @param int $id
-     * 
-     * @return string
+     * @return void
      */
     public function ajaxAvaibAcquaintedUsers() {
         $json = new wf_JqDtHelper();
@@ -770,5 +792,3 @@ class AdminAnnouncements extends Announcements {
     }
 
 }
-
-?>

@@ -197,8 +197,6 @@ class ApacheZen {
     /**
      * Renders the few last lines from data source.
      * 
-     * @param bool $errorLog
-     * 
      * @return string
      */
     public function render() {

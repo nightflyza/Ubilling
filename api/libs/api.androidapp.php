@@ -413,7 +413,7 @@ class AndroidApp {
     /**
      * Filtering variables
      * 
-     * @param string $str some string for filter
+     * @param string $strOrigin some string for filter
      * 
      * @return void
      */
@@ -429,6 +429,7 @@ class AndroidApp {
     /**
      * Creates new comment in database
      * 
+     * @param string $id task ID
      * @param string $text text for new comment
      * 
      * @return void
