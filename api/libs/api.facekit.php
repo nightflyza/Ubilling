@@ -88,11 +88,11 @@ class FaceKit {
      * @param int $size
      * @param string $class
      * @param string $title
-     * @param bool $cacheBust append file mtime to URL (preview form only)
      * 
      * @return string
      */
-    public static function getAvatar($admLogin, $size = '64', $class = '', $title = '', $cacheBust = false) {
+    public static function getAvatar($admLogin, $size = '64', $class = '', $title = '') {
+        $cacheBust = true;
         $admLogin = ubRouting::filters($admLogin, 'mres');
         $size = ubRouting::filters($size, 'int');
         $fullUrl = FaceKit::getAvatarUrl($admLogin, $size);
@@ -235,7 +235,7 @@ class FaceKit {
 
         foreach ($previewSizes as $size) {
             $result .= wf_tag('div', false, '', $previewStyle);
-            $result .= FaceKit::getAvatar($myLogin, $size, '', '', true);
+            $result .= FaceKit::getAvatar($myLogin, $size, '', '');
             $result .= wf_delimiter(0);
             $result .= $size . 'x' . $size;
             $result .= wf_tag('div', true);
