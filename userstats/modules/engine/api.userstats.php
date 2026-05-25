@@ -1806,11 +1806,11 @@ function zbs_UserChangePassword($login) {
 
         // Edit form construct
         $inputs = wf_tag('label') . __('Current password') . wf_tag('label', true) . wf_tag('br');
-        $inputs .= wf_PasswordInput('upassword', '', '', true, '', false) . wf_tag('br');
+        $inputs .= wf_PasswordInput('upassword', '', '', true, '', true) . wf_tag('br');
         $inputs .= wf_tag('label') . __('New password') . wf_tag('label', true) . wf_tag('br');
-        $inputs .= wf_PasswordInput('newpassword', '', '', true, '', false);
+        $inputs .= wf_PasswordInput('newpassword', '', '', true, '', true);
         $inputs .= wf_tag('label') . __('Confirm new password') . wf_tag('label', true) . wf_tag('br');
-        $inputs .= wf_PasswordInput('confirmnewpassword', '', '', true, '', false) . wf_tag('br');
+        $inputs .= wf_PasswordInput('confirmnewpassword', '', '', true, '', true) . wf_tag('br');
         $inputs .= wf_Submit(__('Change password'));
 
         $form = wf_Form('index.php', "POST", $inputs, 'glamour');
