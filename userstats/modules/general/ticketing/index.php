@@ -63,7 +63,10 @@ if ($us_config['TICKETING_ENABLED']) {
 
                 //let view it
                 show_window(__('Help request') . ': ' . $ticketid, zbs_TicketShowWithReplies($ticketid));
-                show_window(__('Reply'), zbs_TicketReplyForm($ticketid));
+
+                if ($ticketdata['status']==0) {
+                 show_window(__('Reply'), zbs_TicketReplyForm($ticketid));
+                }
              } else {
                 show_window(__('Error'), __('No such ticket'));
              }
