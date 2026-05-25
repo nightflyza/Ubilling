@@ -441,7 +441,7 @@ function wf_Submit($value, $CtrlID = '', $options = '') {
 /**
  * Return submit web form element for which you can specify class and other options
  *
- * @param $value
+ * @param string $value 
  * @param string $class
  * @param string $name
  * @param string $caption
@@ -2005,7 +2005,7 @@ function wf_AjaxContainer($containerName, $options = '', $content = '') {
  *
  * @param string $containerName container name aka ID
  * @param string $options misc options like size/display if required
- * @param srring $content default container content
+ * @param string $content default container content
  *
  * @return string
  */
@@ -2115,7 +2115,7 @@ $(function() {
  * Returns Chart source
  *
  * @param string $data      - CSV formatted data
- * @param string $widht     - graph width in pixels
+ * @param string $width     - graph width in pixels
  * @param string $height    - graph height in pixels
  * @param bool   $errorbars - display error bars around data series
  *
@@ -2197,7 +2197,7 @@ function wf_Graph($data, $width = '500', $height = '300', $errorbars = false, $G
  * Returns Chart source by data loaded from the file - acceptable for huge data sets
  *
  * @param string $datafile  - existing CSV file path
- * @param string $widht     - graph width in pixels
+ * @param string $width     - graph width in pixels
  * @param string $height    - graph height in pixels
  * @param bool   $errorbars - display error bars around data series
  *
@@ -2663,7 +2663,7 @@ function wf_CleanDiv() {
  * Renders JQuery Data Table with some embedded data
  *
  * @param array $columns columns names array
- * @param string $data data array to render
+ * @param array $dataArr data array to render
  * @param bool $saveState grid state saving - conflicts with default sort order
  * @param string $objects object names
  * @param int $rowsCount rows count to default display
@@ -2987,9 +2987,9 @@ function wf_JQDTMarkRowJS($columnNum, $searchVal, $truncateURL = '', $truncatePa
 /**
  * Retruns a JS snippet for processing JQDT "details" functional
  *
- * @param $ajaxURL                  - URL to retrive data into "details" DIV
- * @param $colIndex                 - above-level JQDT column index to get the AJAX data from
- * @param $jqdtID                   - above-level JQDT DOM ID
+ * @param string $ajaxURL                  - URL to retrive data into "details" DIV
+ * @param int $colIndex                 - above-level JQDT column index to get the AJAX data from
+ * @param string $jqdtID                   - above-level JQDT DOM ID
  * @param string $ajaxMethod
  * @param string $jsFuncName        - JS function name which will be called on processing the "details click"
  * @param string $divContainerCSS   - some CSS for "details" DIV
@@ -3088,8 +3088,8 @@ function wf_JQDTRefreshButton($jqdtID = '', $jqdtIDSelector = '', $class = '', $
 /**
  * Outputs a hex color based text string without # at begin, like an ac1c09
  *
- * @param $text String of text
- * @param $palette Integer between 0 and 100
+ * @param string $text String of text
+ * @param string $palette Integer between 0 and 100
  *
  * @return string
  */
@@ -3520,8 +3520,8 @@ function wf_Spoiler($Content, $Title = '', $Closed = false, $SpoilerID = '', $Ou
 /**
  * Returns JS for a control which will be responsible for opening dynamic modal windows via ajax call to a specific URL
  *
- * @param $ajaxURL
- * @param $dataArray
+ * @param string $ajaxURL
+ * @param array $dataArray
  * @param string $controlId
  * @param bool $wrapWithJSScriptTag
  * @param string $queryType
@@ -3590,8 +3590,8 @@ function wf_JSAjaxModalOpener($ajaxURL, $dataArray, $controlId = '', $wrapWithJS
 /**
  * Returns JS for a link which will be responsible for opening an assigned modal window
  *
- * @param $ajaxURL
- * @param $ajaxDataArr
+ * @param string $ajaxURL
+ * @param array $ajaxDataArr
  * @param string $title
  * @param string $icon
  * @param string $linkCSSClass
@@ -3705,7 +3705,7 @@ function wf_jsAjaxFormSubmit($submitFormClasses, $submitFormIDCtrlClass, $jqdtID
  * Returns a simple wrapper for a JS function with ajax request which can be used later for multiple "callers"
  * e.g. - to delete record from DB or whatever
  *
- * @param $funcName
+ * @param string $funcName
  * @param string $jqdtID
  * @param string $jqdtIDSelector
  * @param string $errorFormIDParamName
@@ -3774,9 +3774,9 @@ function wf_jsAjaxCustomFunc($funcName, $jqdtID = '', $jqdtIDSelector = '', $err
 /**
  * JS snippet for a filtering form for JQDT. Needs a bit of specific handling
  *
- * @param $ajaxURLStr
- * @param $formID
- * @param $jqdtID
+ * @param string $ajaxURLStr
+ * @param string $formID
+ * @param string $jqdtID
  *
  * @return string
  */
@@ -3820,30 +3820,8 @@ function wf_jsAjaxFilterFormSubmit($ajaxURLStr, $formID, $jqdtID) {
  *      When a user selects a value in AboveLevelSelector we take that array from hidden input and walk through it -
  *      when we find a key equal to selected in AboveLevelSelector value - we take that element in a variable
  *      to build a new contents for a child selector. And the same for each key which equals to selected from AboveLevelSelector value
-
- *
- *
- * @param string $webSelectorID
- * @param string $webSelectorIDToFilter
- * @param string $filterDataElemID
- * @param string $filterFuncName
- * @param bool   $blankFirstRow
- * @param string $blankFirstRowVal
- * @param string $blankFirstRowDispVal
- *
  * @return string
  */
-/* function wf_jsWebSelectorFilter($webSelectorID, $webSelectorIDToFilter, $filterDataElemID,
-  $webSelChangeFuncName = '', $filterFuncName = '',
-  $blankFirstRow = false, $blankFirstRowVal = '0', $blankFirstRowDispVal = '----') {
-
-  $webSelChangeFuncName   = (empty($webSelChangeFuncName) ? 'funcChange_' . $webSelectorIDToFilter : $webSelChangeFuncName);
-  $filterFuncName         = (empty($filterFuncName) ? 'funcFilter_' . $webSelectorIDToFilter : $filterFuncName);
-  $webSelectRunChange     = (empty($webSelectorIDToFilter) ? "" : "$('#" . $webSelectorIDToFilter . "').change();");
-  $firstRowBlank          = ($blankFirstRow ? "var newselect = '<option value=\"" . $blankFirstRowVal . "\">" . $blankFirstRowDispVal . "</option>';" : "");
- */
-
-
 function wf_jsWebSelectorFilter() {
     $result = '
     
@@ -3904,13 +3882,13 @@ function wf_EncloseWithJSTags($content) {
 /**
  * Generates tabbed UI for almost any data.
  *
- * @param $tabsDivID - ID of the main tab div
- * @param $tabsList - array of: tab ID => array('tab_options' => 'options',
+ * @param string $tabsDivID - ID of the main tab div
+ * @param array $tabsList - array of: tab ID => array('tab_options' => 'options',
  *                                              'tab_caption' => 'caption,
  *                                              'additional_data' => 'anything')
  *                    which represents the tabs itself.
  *                    Additional data can be anything, like some JS script or comments or whatever.
- * @param $tabsBody - array of: div ID => array('div_options' => 'options',
+ * @param array $tabsBody - array of: div ID => array('div_options' => 'options',
  *                                              'tab_body_data' => 'data'
  *                                              'additional_data' => 'anything')
  *                    which represents the divs with tabs data.
@@ -4096,9 +4074,10 @@ function wf_JSElemInsertedCatcherFunc() {
  * @param array $params as stepname=>decription
  * @param int $current
  *
- * @return type
+ * @return string
  */
 function wf_StepsMeter($params, $current) {
+    $result = '';
     $style = wf_tag('style');
     $style .= " 
    .steps{
@@ -4240,7 +4219,7 @@ function wf_StepsMeter($params, $current) {
  * @param string $alerttext
  * @param string $class
  * @param string $cancelUrl
- * @param string $customDialogTitle
+ * @param string $customWindowTitle
  *
  * @return string
  */
@@ -4585,7 +4564,6 @@ function wf_SelectorSearchable($name, $params, $label, $selected = '', $br = fal
  * @param string $label
  * @param string $selected
  * @param bool $br
- * @param string $options
  * 
  * @return string
  */
