@@ -107,8 +107,11 @@
      * @param string $to
      * @param string $text
      * @param string $replyto
+     * 
+     * @return int
      */
     function zbs_TicketCreate($from, $to, $text, $replyto = 'NULL') {
+        $result=0;
         $from = ubRouting::filters($from, 'mres');
         $to = ubRouting::filters($to, 'mres');
         $date = curdatetime();
@@ -126,9 +129,11 @@
             $logEvent = 'TICKET CREATE (' . $from . ') REPLY TO [' . $replyto . ']';
         } else {
             $lastId = simple_get_lastid('ticketing');
+            $result = $lastId;
             $logEvent = 'TICKET CREATE (' . $from . ') NEW [' . $lastId . ']';
         }
         log_register($logEvent);
+        return ($result);
     }
 
     /**

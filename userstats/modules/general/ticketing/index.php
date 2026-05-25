@@ -17,7 +17,10 @@ if ($us_config['TICKETING_ENABLED']) {
             if (!empty($newtickettext)) {
                 if (!isset($us_helpdenied[$user_login])) {
                     if (zbs_spamCheck()) {
-                        zbs_TicketCreate($user_login, 'NULL', $newtickettext);
+                        $newTicketId = zbs_TicketCreate($user_login, 'NULL', $newtickettext);
+                        if ($newTicketId) {
+                            ubRouting::nav("?module=ticketing&showticket=" . $newTicketId);
+                        }
                     }
                 }
                 ubRouting::nav("?module=ticketing");
