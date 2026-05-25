@@ -490,20 +490,20 @@ class USReminder {
      */
     protected function renderMobilesForm($mobile = '', $mobileExt = array()) {
         if (!empty($mobile)) {
-            $mobileText = __("Your current main cell phone number is") . ": " . la_nbsp(4) . la_tag('b') . $mobile . la_tag('b', true);
+            $mobileText = __("Your current main cell phone number is") . ": " . wf_nbsp(4) . wf_tag('b') . $mobile . wf_tag('b', true);
         } else {
             $mobileText = __("Your have empty main cell phone number") . "." . " ";
             $mobileText.= ($this->uscfgReminderNumberChangeAllowed) ? __("Please enter and save it using the form below") . "." : '';
         }
 
         if ($this->uscfgReminderUseExtMobiles and !empty($mobileExt)) {
-            $mobileText.= la_delimiter();
+            $mobileText.= wf_delimiter();
             $mobileText.= __('You provider has also enabled notifications to additional cell phone numbers specified in your profile. You may find those below (however - you can\'t modify them directly from here, only via request to your provider support)') . ':';
-            $mobileText.= la_delimiter(0);
+            $mobileText.= wf_delimiter(0);
             $extMobiles = '';
 
             foreach ($mobileExt as $extMob) {
-                $extMobiles.= la_nbsp(4) . $extMob . la_delimiter(0);
+                $extMobiles.= wf_nbsp(4) . $extMob . wf_delimiter(0);
             }
 
             $mobileText.= $extMobiles;
@@ -525,7 +525,7 @@ class USReminder {
     protected function renderEmailForm($email = '') {
         $emailText = (empty($email))
                       ? __("You E-mail is empty") . "." . " "
-                      : __("Your current E-mail is") . ": " . la_nbsp(4) . la_tag('b') . $email . la_tag('b', true);
+                      : __("Your current E-mail is") . ": " . wf_nbsp(4) . wf_tag('b') . $email . wf_tag('b', true);
 
         if ($this->uscfgReminderEmailChangeAllowed) {
             $emailText.= (empty($email)) ? __("You may add it using the form below") . "." : '';
@@ -541,13 +541,13 @@ class USReminder {
      * @return string
      */
     protected function renderChangeMobileForm() {
-        $inputs = la_HiddenInput('changemobile', 'true');
-        $inputs.= la_tag('span', false, '', 'style="text-align: right;"');
+        $inputs = wf_HiddenInput('changemobile', 'true');
+        $inputs.= wf_tag('span', false, '', 'style="text-align: right;"');
         $inputs.= $this->uscfgReminderPrefix . ' ';
-        $inputs.= la_tag('span', true);
-        $inputs.= la_TextInput('mobile', '', '', '', '', 'mobile');
-        $inputs.= la_Submit(__('Change main cell phone number'), 'full-width-occupy');
-        $form   = la_Form("", 'POST', $inputs, 'form-grid-2cols', '', '', 'style="justify-content: center;"');
+        $inputs.= wf_tag('span', true);
+        $inputs.= wf_TextInput('mobile', '', '', '', '', 'mobile');
+        $inputs.= wf_Submit(__('Change main cell phone number'), '', 'class="full-width-occupy"');
+        $form   = wf_Form("", 'POST', $inputs, 'form-grid-2cols', '', '', '', 'style="justify-content: center;"');
 
         return ($form);
     }
@@ -558,10 +558,10 @@ class USReminder {
      * @return string
      */
     protected function renderChangeEmailForm() {
-        $inputs = la_HiddenInput('changemail', 'true');
-        $inputs.= la_TextInput('email', '', '', '', '', 'email', 'full-width-occupy');
-        $inputs.= la_Submit(__('Change E-mail'), 'full-width-occupy');
-        $form = la_Form("", 'POST', $inputs, 'form-grid-2cols', '', '', 'style="justify-content: center;"');
+        $inputs = wf_HiddenInput('changemail', 'true');
+        $inputs.= wf_TextInput('email', '', '', '', '', 'email', 'full-width-occupy');
+        $inputs.= wf_Submit(__('Change E-mail'), '', 'class="full-width-occupy"');
+        $form = wf_Form("", 'POST', $inputs, 'form-grid-2cols', '', '', '', 'style="justify-content: center;"');
 
         return ($form);
     }
@@ -572,11 +572,11 @@ class USReminder {
      * @return string
      */
     protected function renderChangeReminderTypeForm() {
-        $pbiOptions = la_RadioInput('pbiopts', 'SMS only', 'pbismsonly', false, (!$this->userPBISMSON and !$this->userPBIOnlyON));
-        $pbiOptions.= la_RadioInput('pbiopts', 'PrivatBank invoices only', 'pbiinvonly', false, $this->userPBIOnlyON);
-        $pbiOptions.= la_RadioInput('pbiopts', 'PrivatBank invoices and SMS', 'pbiinvsms', false, $this->userPBISMSON);
-        $pbiOptions.= la_Submit(__('Change reminder type'), 'full-width-occupy');
-        $pbiForm    = la_Form("", 'POST', $pbiOptions, 'form-grid-2cols', '', '', 'style="justify-content: center;"');
+        $pbiOptions = wf_RadioInput('pbiopts', 'SMS only', 'pbismsonly', false, (!$this->userPBISMSON and !$this->userPBIOnlyON));
+        $pbiOptions.= wf_RadioInput('pbiopts', 'PrivatBank invoices only', 'pbiinvonly', false, $this->userPBIOnlyON);
+        $pbiOptions.= wf_RadioInput('pbiopts', 'PrivatBank invoices and SMS', 'pbiinvsms', false, $this->userPBISMSON);
+        $pbiOptions.= wf_Submit(__('Change reminder type'), '', 'class="full-width-occupy"');
+        $pbiForm    = wf_Form("", 'POST', $pbiOptions, 'form-grid-2cols', '', '', '', 'style="justify-content: center;"');
 
         return ($pbiForm);
     }
@@ -606,10 +606,10 @@ class USReminder {
             }
         }
 
-        $inputs.= la_HiddenInput($toggleSwitch, 'true');
-        $inputs.= la_CheckInput('agree', __('I am sure that I am an adult and have read everything that is written above'), false, false);
-        $inputs.= la_Submit($toggleText, 'full-width-occupy');
-        $form   = la_Form("", 'POST', $inputs, 'form-grid-2cols', '', '', 'style="justify-content: center; grid-template-columns: auto;"');
+        $inputs.= wf_HiddenInput($toggleSwitch, 'true');
+        $inputs.= wf_CheckInput('agree', __('I am sure that I am an adult and have read everything that is written above'), false, false);
+        $inputs.= wf_Submit($toggleText, '', 'class="full-width-occupy"');
+        $form   = wf_Form("", 'POST', $inputs, 'form-grid-2cols', '', '', '', 'style="justify-content: center; grid-template-columns: auto;"');
 
         return ($form);
     }
@@ -635,40 +635,40 @@ class USReminder {
         }
 
         if ($this->userReminderON) {
-            $formContents.= __("Your payments reminder is currently enabled via") . ' ' . la_tag('b') . __($reminderType) . la_tag('b', true) . ".";
+            $formContents.= __("Your payments reminder is currently enabled via") . ' ' . wf_tag('b') . __($reminderType) . wf_tag('b', true) . ".";
 
             if ($this->uscfgReminderPBIEnabled) {
-                $formContents.= la_delimiter(0) . la_tag('sup') . la_tag('b') . '*' . la_tag('b', true) . la_tag('sup', true);
+                $formContents.= wf_delimiter(0) . wf_tag('sup') . wf_tag('b') . '*' . wf_tag('b', true) . wf_tag('sup', true);
                 $formContents.= __('Pay attention that PrivatBank invoices are designed to remind about Internet service balance only') . '. ';
             }
 
             if ($this->uscfgReminderEnabled != 2) {
-                $formContents.= la_delimiter() . __('You will be reminded within') . ' ' . $this->uscfgReminderDaysTreshold . ' ' .
+                $formContents.= wf_delimiter() . __('You will be reminded within') . ' ' . $this->uscfgReminderDaysTreshold . ' ' .
                                 __('days') . ' ' . __('until the expiration of the service') . '. ';
             }
 
             if ($this->uscfgReminderConsiderCredit) {
                 $daysCredit = (empty($this->uscfgReminderDaysTresholdCredit)) ? $this->uscfgReminderDaysTreshold : $this->uscfgReminderDaysTresholdCredit;
-                $formContents.= la_delimiter(0) . __('You will be reminded within') . ' ' . $daysCredit . ' ' . __('days') . ' ' . __('before the credit expire date') . '. ';
+                $formContents.= wf_delimiter(0) . __('You will be reminded within') . ' ' . $daysCredit . ' ' . __('days') . ' ' . __('before the credit expire date') . '. ';
             }
 
             if ($this->uscfgReminderConsiderCAP) {
                 $daysCAP = (empty($this->uscfgReminderDaysTresholdCAP)) ? $this->uscfgReminderDaysTreshold : $this->uscfgReminderDaysTresholdCAP;
-                $formContents.= la_delimiter(0) . __('You will be reminded within') . ' ' . $daysCAP . ' ' . __('days') . ' ' . __('before inactiveness penalty will be applied') . '. ';
+                $formContents.= wf_delimiter(0) . __('You will be reminded within') . ' ' . $daysCAP . ' ' . __('days') . ' ' . __('before inactiveness penalty will be applied') . '. ';
             }
 
             if ($this->uscfgReminderConsiderFrozen) {
                 $daysFrozen = (empty($this->uscfgReminderDaysTresholdFrozen)) ? $this->uscfgReminderDaysTreshold : $this->uscfgReminderDaysTresholdFrozen;
-                $formContents.= la_delimiter(0) . __('You will be reminded within') . ' ' . $daysFrozen . ' ' . __('days') . ' ' . __('before available freeze days run out') . '. ';
+                $formContents.= wf_delimiter(0) . __('You will be reminded within') . ' ' . $daysFrozen . ' ' . __('days') . ' ' . __('before available freeze days run out') . '. ';
             }
 
             if ($this->uscfgReminderTurnONOFFAble) {
-                $formContents.= la_tag('hr');
+                $formContents.= wf_tag('hr');
                 $formContents.= __("Disable payments reminder to your cell phones") . '?';
                 $formContents.= $this->renderONOFFReminderForm();
 
                 if ($this->uscfgReminderPBIEnabled) {
-                    $formContents.= la_tag('hr');
+                    $formContents.= wf_tag('hr');
                     $formContents.= __('You may change your cell phones reminder type using the form below. But keep in mind this action will not affect the reminder ON/OFF state itself.');
                     $formContents.= $this->renderChangeReminderTypeForm();
                 }
@@ -678,23 +678,23 @@ class USReminder {
 
             // check user's cell phone availability and show appropriate form/message
             if (empty($this->userMobile)) {
-                $formContents.= la_delimiter(0);
+                $formContents.= wf_delimiter(0);
                 $formContents.= __("You can't enable payments cell phone numbers reminder - your main cell phone number is empty") . ".";
             } elseif ($this->uscfgReminderTurnONOFFAble) {
                 if ($this->checkUserMobileIsCorrect($this->userMobile)) {
-                    $formContents.= la_delimiter(0);
+                    $formContents.= wf_delimiter(0);
                     $formContents.= __("You can enable payments reminder") . '. ';
                     $formContents.= __("It costs") . " " . $this->uscfgReminderPrice . ' ' . $this->uscfgCurrency . " " .
-                                     __("per month") . "." . la_delimiter(0);
+                                     __("per month") . "." . wf_delimiter(0);
 
                     if ($this->uscfgReminderPBIEnabled and $this->pbionlyFeeExcluded) {
-                        $formContents.= la_tag('sup') . la_tag('b') . '*' . la_tag('b', true) . la_tag('sup', true);
+                        $formContents.= wf_tag('sup') . wf_tag('b') . '*' . wf_tag('b', true) . wf_tag('sup', true);
                         $formContents.= __('But if you will enable PrivatBank invoices only - reminder service will be free of charge, although activation cost will still be charged') . '.';
                     }
 
                     if ($this->uscfgReminderInstantFeeON) {
-                        $formContents.= la_delimiter();
-                        $formContents.= la_tag('b') . __("Attention") . la_tag('b', true) . "," . " " . __("activation cost is") .
+                        $formContents.= wf_delimiter();
+                        $formContents.= wf_tag('b') . __("Attention") . wf_tag('b', true) . "," . " " . __("activation cost is") .
                                          " " . $this->uscfgReminderPrice . " " . $this->uscfgCurrency . " " .
                                          __("and will be charged at once") . ".";
                     }
@@ -702,14 +702,14 @@ class USReminder {
                     $formContents.= $this->renderONOFFReminderForm();
 
                     /*if ($this->uscfgReminderPBIEnabled) {
-                        $formContents.= la_tag('hr');
+                        $formContents.= wf_tag('hr');
                         $formContents.= __('You may change your cell phone numbers reminder type using the form below.
                                             But keep in mind this action will not affect the reminder ON/OFF state itself.');
                         $formContents .= $this->renderChangeReminderTypeForm();
                     }*/
                 } else {
-                    $formContents.= la_delimiter(0);
-                    $formContents.= la_tag('b') . __('Wrong mobile format') . la_tag('b', true);
+                    $formContents.= wf_delimiter(0);
+                    $formContents.= wf_tag('b') . __('Wrong mobile format') . wf_tag('b', true);
                 }
             }
         }
@@ -717,23 +717,23 @@ class USReminder {
         // check E-mail reminder status and user's e-mail availability and show appropriate form/message
         if ($this->uscfgReminderEmailEnabled) {
             if ($this->userEmailReminderON) {
-                $formContents.= la_tag('hr');
+                $formContents.= wf_tag('hr');
                 $formContents.= __("Payments reminder is currently enabled for your E-mail") . '.';
 
                 if ($this->uscfgReminderTurnONOFFAble) {
-                    $formContents.= la_delimiter();
+                    $formContents.= wf_delimiter();
                     $formContents.= __("Disable payments reminder to your E-mail") . '?';
                     $formContents.= $this->renderONOFFReminderForm(true);
                 }
             } else {
-                $formContents.= la_tag('hr');
+                $formContents.= wf_tag('hr');
                 $formContents.= __('Reminder service to your E-mail is disabled for you') . '.';
 
                 if (empty($this->userEmail)) {
-                    $formContents.= la_delimiter(0);
+                    $formContents.= wf_delimiter(0);
                     $formContents.= __("You can't enable payments E-mail reminder - your E-mail is empty") . '.';
                 } elseif ($this->uscfgReminderTurnONOFFAble) {
-                    $formContents.= la_tag('hr');
+                    $formContents.= wf_tag('hr');
                     $formContents.= __("Enable payments reminder to my E-mail") . '.';
                     $formContents.= $this->renderONOFFReminderForm(true);
                 }
@@ -742,11 +742,11 @@ class USReminder {
 
         if (!$this->uscfgReminderTurnONOFFAble) {
             $ticketingStr = ($this->uscfgTicketingEnabled
-                            ? '( ' . la_Link(self::URL_TICKETING, __('for example - using "Ticketing service"')) . ')'
+                            ? '( ' . wf_Link(self::URL_TICKETING, __('for example - using "Ticketing service"')) . ')'
                             : '');
-            $formContents.= la_tag('hr');
+            $formContents.= wf_tag('hr');
             $formContents.= __('You\'re not allowed to change the state of the reminder service by yourself') . '.';
-            $formContents.= la_delimiter(0);
+            $formContents.= wf_delimiter(0);
             $formContents.= __('If you want to enable/disable reminder service - please contact provider support') . '. ' . $ticketingStr;
         }
 
@@ -874,7 +874,7 @@ class USReminder {
         if (!empty($logMessage)) { log_register($logMessage); }
 
         if ($policyNotAccepted) {
-            show_window(__('Sorry'), la_tag('span', false, '', 'style="color: orangered; font-weight: 600;"') . __('You must accept our policy') . la_tag('span', true));
+            show_window(__('Sorry'), wf_tag('span', false, '', 'style="color: orangered; font-weight: 600;"') . __('You must accept our policy') . wf_tag('span', true));
         } elseif (!$this->uscfgReminderTurnONOFFAble) {
             show_window(__('Sorry'), __('You\'re not allowed to change reminder service state'));
         } else {

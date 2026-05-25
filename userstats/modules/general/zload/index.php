@@ -19,12 +19,12 @@ if ($us_config['ZL_ENABLED']) {
             $url=$ldata[1];
             $title=$ldata[2];
       
-            $cells=  la_TableCell(la_Link($url, la_img($icon)));
-            $cells.= la_TableCell(la_tag('h3').la_Link($url, $title).la_tag('h3',true));
-            $rows.=la_TableRow($cells);
+            $cells=  wf_TableCell(wf_Link($url, wf_img($icon)));
+            $cells.= wf_TableCell(wf_tag('h3').wf_Link($url, $title).wf_tag('h3',true));
+            $rows.=wf_TableRow($cells);
         }
     }
-    $result=la_TableBody($rows, '', 0);
+    $result=wf_TableBody($rows, '', 0);
     
     show_window(__('Downloads'),$result);
     }

@@ -6,12 +6,12 @@
  * @return string
  */
 function zbs_PaycardsShowForm() {
-    $inputs = la_tag('br');
+    $inputs = wf_tag('br');
     $inputs .= __('Payment card number') . ' ';
-    $inputs .= la_TextInput('paycard', '', '', false, 25);
-    $inputs .= la_Submit(__('Use this card'));
-    $inputs .= la_delimiter();
-    $form = la_Form('', 'POST', $inputs, '');
+    $inputs .= wf_TextInput('paycard', '', '', false, 25);
+    $inputs .= wf_Submit(__('Use this card'));
+    $inputs .= wf_delimiter();
+    $form = wf_Form('', 'POST', $inputs, '');
 
     return ($form);
 }

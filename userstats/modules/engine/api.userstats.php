@@ -291,7 +291,7 @@ function zbs_GetOnlineLeftCount($login, $userBalance, $userTariff, $rawDays = fa
                 $totalVsrvPrice = web_roundValue($totalVsrvPrice, 2);
             }
 
-            $balanceExpire .= la_delimiter(0) . '(' . __('including additional services') . ' ' . $totalVsrvPrice . ' ' . $us_config['currency']
+            $balanceExpire .= wf_delimiter(0) . '(' . __('including additional services') . ' ' . $totalVsrvPrice . ' ' . $us_config['currency']
                 . ' / ' . __($tariffPeriod) . ')';
         }
     } else {
@@ -300,11 +300,11 @@ function zbs_GetOnlineLeftCount($login, $userBalance, $userTariff, $rawDays = fa
         if (isset($us_config['ONLINELEFT_CREDIT'])) {
             if ($us_config['ONLINELEFT_CREDIT']) {
                 if ($us_config['SC_ENABLED']) {
-                    $creditControl = ' ' . la_Link('?module=creditor', __('Get credit') . '?', false, '');
+                    $creditControl = ' ' . wf_Link('?module=creditor', __('Get credit') . '?', false, '');
                 }
             }
         }
-        $balanceExpire = la_tag('span', false, '', 'style="color:red;"') . ', ' . __('indebtedness!') . ' ' . $creditControl . la_tag('span', true);
+        $balanceExpire = wf_tag('span', false, '', 'style="color:red;"') . ', ' . __('indebtedness!') . ' ' . $creditControl . wf_tag('span', true);
     }
 
     if ($rawDays) {
@@ -368,17 +368,17 @@ function zbs_GetPowerTariffMaxDay() {
  * @return void
  */
 function zbs_LoginForm() {
-    $inputs = la_tag('label') . __('Login') . la_tag('label', true) . la_tag('br');
-    $inputs .= la_TextInput('ulogin', '', '', true);
-    $inputs .= la_tag('label') . __('Password') . la_tag('label', true) . la_tag('br');
-    $inputs .= la_PasswordInput('upassword', '', '', true);
+    $inputs = wf_tag('label') . __('Login') . wf_tag('label', true) . wf_tag('br');
+    $inputs .= wf_TextInput('ulogin', '', '', true);
+    $inputs .= wf_tag('label') . __('Password') . wf_tag('label', true) . wf_tag('br');
+    $inputs .= wf_PasswordInput('upassword', '', '', true, '', false);
 
-    $inputs .= la_Submit(__('Enter'));
-    $form = la_Form('', 'POST', $inputs, 'loginform');
+    $inputs .= wf_Submit(__('Enter'));
+    $form = wf_Form('', 'POST', $inputs, 'loginform');
 
-    $cells = la_TableCell($form, '', '', 'align="center"');
-    $rows = la_TableRow($cells);
-    $result = la_TableBody($rows, '100%', 0);
+    $cells = wf_TableCell($form, '', '', 'align="center"');
+    $rows = wf_TableRow($cells);
+    $result = wf_TableBody($rows, '100%', 0);
 
     show_window(__('Login with your account'), $result);
 }
@@ -394,11 +394,11 @@ function zbs_LogoutForm($return = false) {
     global $us_config;
     if ($us_config['auth'] == 'login' or $us_config['auth'] == 'both') {
         $form = '';
-        $inputs = la_HiddenInput('ulogout', 'true');
-        $inputs .= la_Submit(__('Logout'));
+        $inputs = wf_HiddenInput('ulogout', 'true');
+        $inputs .= wf_Submit(__('Logout'));
         if (isset($_COOKIE['upassword'])) {
             if ($_COOKIE['upassword'] != 'nopassword') {
-                $form .= la_Form('', 'POST', $inputs);
+                $form .= wf_Form('', 'POST', $inputs);
             }
         }
 
@@ -422,8 +422,8 @@ function zbs_LangSelector() {
         $allangs = rcms_scandir("languages");
 
         if (!empty($allangs)) {
-            $inputs = la_tag('select', false, '', 'name="changelang" onChange="this.form.submit();"');
-            $inputs .= la_tag('option', false, '', 'value="-"') . __('Language') . la_tag('option', true);
+            $inputs = wf_tag('select', false, '', 'name="changelang" onChange="this.form.submit();"');
+            $inputs .= wf_tag('option', false, '', 'value="-"') . __('Language') . wf_tag('option', true);
             foreach ($allangs as $eachlang) {
                 $langIdPath = 'languages/' . $eachlang . '/langid.txt';
                 if (file_exists($langIdPath)) {
@@ -431,11 +431,11 @@ function zbs_LangSelector() {
                 } else {
                     $eachlangid = $eachlang;
                 }
-                $inputs .= la_tag('option', false, '', 'value="' . $eachlang . '"') . $eachlangid . la_tag('option', true);
+                $inputs .= wf_tag('option', false, '', 'value="' . $eachlang . '"') . $eachlangid . wf_tag('option', true);
             }
-            $inputs .= la_tag('select', true);
+            $inputs .= wf_tag('select', true);
             $inputs .= ' ';
-            $form = la_Form('', 'GET', $inputs);
+            $form = wf_Form('', 'GET', $inputs);
         }
     } else {
         $form = '';
@@ -1582,9 +1582,9 @@ function zbs_vservicesShow($login, $currency) {
     if (!empty($userServices)) {
         $userServices = $userServices[$login];
 
-        $cells = la_TableCell(__('Service'), '60%');
-        $cells .= la_TableCell(__('Terms'));
-        $rows = la_TableRow($cells, 'row1');
+        $cells = wf_TableCell(__('Service'), '60%');
+        $cells .= wf_TableCell(__('Terms'));
+        $rows = wf_TableRow($cells, 'row1');
 
         foreach ($userServices as $eachDBID => $eachsSrvice) {
             if ($vservicesPeriodON) {
@@ -1601,14 +1601,14 @@ function zbs_vservicesShow($login, $currency) {
                 }
             }
 
-            $cells = la_TableCell($eachsSrvice['vsrvname']);
-            $cells .= la_TableCell($servicePrice);
-            $rows .= la_TableRow($cells, 'row3');
+            $cells = wf_TableCell($eachsSrvice['vsrvname']);
+            $cells .= wf_TableCell($servicePrice);
+            $rows .= wf_TableRow($cells, 'row3');
         }
 
-        $result .= la_tag('br');
-        $result .= la_tag('h3') . __('Additional services') . la_tag('h3', true);
-        $result .= la_TableBody($rows, '100%', 0);
+        $result .= wf_tag('br');
+        $result .= wf_tag('h3') . __('Additional services') . wf_tag('h3', true);
+        $result .= wf_TableBody($rows, '100%', 0);
     }
 
     if ($us_config['VSERVICES_SHOW'] == 2) {
@@ -1634,9 +1634,9 @@ function zbs_CUDShow($login, $us_config) {
             $data = simple_query($query);
             if (!empty($data)) {
                 $discount = $data['discount'];
-                $cells = la_TableCell(__('Discount'), '', 'row1');
-                $cells .= la_TableCell($discount . '%');
-                $result = la_TableRow($cells);
+                $cells = wf_TableCell(__('Discount'), '', 'row1');
+                $cells .= wf_TableCell($discount . '%');
+                $result = wf_TableRow($cells);
             }
         }
     }
@@ -1652,11 +1652,11 @@ function zbs_CUDShow($login, $us_config) {
  */
 function zbs_PCPromoCodesForm($login) {
     $result = '';
-    $inputs = la_tag('br');
-    $inputs .= la_TextInput('promocard', '', '', false, 25, '');
-    $inputs .= la_Submit(__('Use the promo code'), 'anreadbutton');
-    $inputs .= la_delimiter();
-    $result .= la_Form('', 'POST', $inputs, '');
+    $inputs = wf_tag('br');
+    $inputs .= wf_TextInput('promocard', '', '', false, 25, '');
+    $inputs .= wf_Submit(__('Use the promo code'), '', 'class="anreadbutton"');
+    $inputs .= wf_delimiter();
+    $result .= wf_Form('', 'POST', $inputs, '');
     return ($result);
 }
 
@@ -1676,23 +1676,23 @@ function zbs_getPromoAwesomeness($promoCode = '') {
         $awesomenessRnd = array_rand($awesomeness);
         $awesomeness = $awesomeness[$awesomenessRnd];
         //ugly hack to prevent elements autofocusing
-        $result .= la_TextInput('dontfocusonlinks', '', '', false, '', '', '', '', 'style="width: 0; height: 0; top: -100px; position: absolute;"');
-        $result .= la_tag('center');
-        $result .= la_img_sized('skins/awesomeness/' . $awesomeness, '', '256');
-        $result .= la_delimiter();
+        $result .= wf_TextInput('dontfocusonlinks', '', '', false, '', '', '', '', 'style="width: 0; height: 0; top: -100px; position: absolute;"');
+        $result .= wf_tag('center');
+        $result .= wf_img_sized('skins/awesomeness/' . $awesomeness, '', '256');
+        $result .= wf_delimiter();
         $result .= __('Congratulations! You have successfully used a promo code');
         if (!empty($promoCode)) {
             $result .= ' ' . $promoCode;
         }
-        $result .= '. ' . la_tag('br');
+        $result .= '. ' . wf_tag('br');
         if (@$us_config['PC_QUEUED']) {
             $result .= __('The funds are already on the way and will be on your account in a minute or two') . '.';
         } else {
             $result .= __('The funds are already in your account') . '.';
         }
-        $result .= la_delimiter();
-        $result .= la_Link('index.php', __('I see'), false, 'anreadbutton');
-        $result .= la_tag('center', true);
+        $result .= wf_delimiter();
+        $result .= wf_Link('index.php', __('I see'), false, 'anreadbutton');
+        $result .= wf_tag('center', true);
     }
 
     return ($result);
@@ -1717,7 +1717,7 @@ function zbs_PCPromoCodesController($login) {
             $bruteCheck = zbs_PayCardCheckBrute($user_ip, $pc_brute);
             //success notification
             if (ubRouting::checkGet('successcode')) {
-                $result .= la_modalOpened(__('Success') . '!', zbs_getPromoAwesomeness(ubRouting::get('successcode')));
+                $result .= wf_modalOpened(__('Success') . '!', zbs_getPromoAwesomeness(ubRouting::get('successcode')));
             }
 
             //promocode request processing
@@ -1757,10 +1757,10 @@ function zbs_PCPromoCodesController($login) {
                 $form = zbs_PCPromoCodesForm($login);
             }
 
-            $control = la_modalAuto(__('I have promo code'), __('Use the promo code'), $form, '');
-            $cells = la_TableCell(__('Promo code'), '', 'row1');
-            $cells .= la_TableCell($control);
-            $result .= la_TableRow($cells);
+            $control = wf_modalAuto(__('I have promo code'), __('Use the promo code'), $form, '');
+            $cells = wf_TableCell(__('Promo code'), '', 'row1');
+            $cells .= wf_TableCell($control);
+            $result .= wf_TableRow($cells);
         }
     }
     return ($result);
@@ -1776,7 +1776,7 @@ function zbs_UserChangePassword($login) {
     $result = '';
     if (isset($login)) {
         // change password  if need
-        if (la_CheckPost(array('newpassword', 'confirmnewpassword'))) {
+        if (wf_CheckPost(array('newpassword', 'confirmnewpassword'))) {
             if ($_POST['newpassword'] == $_POST['confirmnewpassword']) {
                 $current_password = zbs_UserGetStargazerData($login);
                 $current_password = $current_password['Password'];
@@ -1792,29 +1792,29 @@ function zbs_UserChangePassword($login) {
                         rcms_redirect("index.php");
                     } else {
                         $content = __('Password must contain 5 and more characters');
-                        $result .= la_modalOpened(__('Error'), $content, 300, 200);
+                        $result .= wf_modalOpened(__('Error'), $content, 300, 200);
                     }
                 } else {
                     $content = __('Incorrect current password');
-                    $result .= la_modalOpened(__('Error'), $content, 300, 200);
+                    $result .= wf_modalOpened(__('Error'), $content, 300, 200);
                 }
             } else {
                 $content = __('Passwords do not match');
-                $result .= la_modalOpened(__('Error'), $content, 300, 200);
+                $result .= wf_modalOpened(__('Error'), $content, 300, 200);
             }
         }
 
         // Edit form construct
-        $inputs = la_tag('label') . __('Current password') . la_tag('label', true) . la_tag('br');
-        $inputs .= la_PasswordInput('upassword', '', '', true) . la_tag('br');
-        $inputs .= la_tag('label') . __('New password') . la_tag('label', true) . la_tag('br');
-        $inputs .= la_PasswordInput('newpassword', '', '', true);
-        $inputs .= la_tag('label') . __('Confirm new password') . la_tag('label', true) . la_tag('br');
-        $inputs .= la_PasswordInput('confirmnewpassword', '', '', true) . la_tag('br');
-        $inputs .= la_Submit(__('Change password'));
+        $inputs = wf_tag('label') . __('Current password') . wf_tag('label', true) . wf_tag('br');
+        $inputs .= wf_PasswordInput('upassword', '', '', true, '', false) . wf_tag('br');
+        $inputs .= wf_tag('label') . __('New password') . wf_tag('label', true) . wf_tag('br');
+        $inputs .= wf_PasswordInput('newpassword', '', '', true, '', false);
+        $inputs .= wf_tag('label') . __('Confirm new password') . wf_tag('label', true) . wf_tag('br');
+        $inputs .= wf_PasswordInput('confirmnewpassword', '', '', true, '', false) . wf_tag('br');
+        $inputs .= wf_Submit(__('Change password'));
 
-        $form = la_Form('index.php', "POST", $inputs, 'glamour');
-        $result .= la_modal(__('Change password'), __('Change password'), $form, '', 300, 370);
+        $form = wf_Form('index.php', "POST", $inputs, 'glamour');
+        $result .= wf_modal(__('Change password'), __('Change password'), $form, '', 300, 370);
     }
     return ($result);
 }
@@ -1905,7 +1905,7 @@ function zbs_UserShowProfile($login) {
         if (!empty($us_config['PUBLIC_OFFER'])) {
             $publicOfferUrl = $us_config['PUBLIC_OFFER'];
             $publicOfferCaption = (empty($us_config['PUBLIC_OFFER_CAPTION']) ? __('Public offer') : $us_config['PUBLIC_OFFER_CAPTION']);
-            $contract = la_Link($publicOfferUrl, $publicOfferCaption, false, '');
+            $contract = wf_Link($publicOfferUrl, $publicOfferCaption, false, '');
         }
     }
 
@@ -2030,13 +2030,13 @@ function zbs_UserShowProfile($login) {
             }
 
             //modal dialog construction
-            $paymentidqr = la_modalAuto(la_img($iconsPath . 'qrcode.png', 'QR-code'), $qrTitle, la_tag('center') . la_img($qrUrl) . la_tag('center', true));
+            $paymentidqr = wf_modalAuto(wf_img($iconsPath . 'qrcode.png', 'QR-code'), $qrTitle, wf_tag('center') . wf_img($qrUrl) . wf_tag('center', true));
         }
     }
 
     //draw order link
     if ($us_config['DOCX_SUPPORT']) {
-        $zdocsLink = ' ' . la_Link('?module=zdocs', __('Draw order'), false, 'printorder');
+        $zdocsLink = ' ' . wf_Link('?module=zdocs', __('Draw order'), false, 'printorder');
     } else {
         $zdocsLink = '';
     }
@@ -2066,7 +2066,7 @@ function zbs_UserShowProfile($login) {
             }
         }
 
-        $tariffSpeeds = la_TableRow(la_TableCell(__('Tariff speed'), '', 'row1') . la_TableCell($showSpeed));
+        $tariffSpeeds = wf_TableRow(wf_TableCell(__('Tariff speed'), '', 'row1') . wf_TableCell($showSpeed));
     } else {
         $tariffSpeeds = '';
     }
@@ -2077,95 +2077,95 @@ function zbs_UserShowProfile($login) {
         $Cash = $userdata['Cash'];
     }
 
-    $profile = la_tag('table', false, '', 'width="100%" border="0" cellpadding="2" cellspacing="3"');
-    $profile .= la_tag('tr');
-    $profile .= la_TableCell(__('Address'), '', 'row1');
-    $profile .= la_TableCell(@$alladdress[$login]);
-    $profile .= la_tag('tr', true);
+    $profile = wf_tag('table', false, '', 'width="100%" border="0" cellpadding="2" cellspacing="3"');
+    $profile .= wf_tag('tr');
+    $profile .= wf_TableCell(__('Address'), '', 'row1');
+    $profile .= wf_TableCell(@$alladdress[$login]);
+    $profile .= wf_tag('tr', true);
 
-    $profile .= la_tag('tr');
-    $profile .= la_TableCell(__('Real name'), '', 'row1');
-    $profile .= la_TableCell(@$allrealnames[$login]);
-    $profile .= la_tag('tr', true);
+    $profile .= wf_tag('tr');
+    $profile .= wf_TableCell(__('Real name'), '', 'row1');
+    $profile .= wf_TableCell(@$allrealnames[$login]);
+    $profile .= wf_tag('tr', true);
 
     if (!@$us_config['LOGINHIDE']) {
-        $profile .= la_tag('tr');
-        $profile .= la_TableCell(__('Login'), '', 'row1');
-        $profile .= la_TableCell($login);
-        $profile .= la_tag('tr', true);
+        $profile .= wf_tag('tr');
+        $profile .= wf_TableCell(__('Login'), '', 'row1');
+        $profile .= wf_TableCell($login);
+        $profile .= wf_tag('tr', true);
     }
 
     if (!@$us_config['PASSWORDSHIDE']) {
-        $profile .= la_tag('tr');
-        $profile .= la_TableCell(__('Password'), '', 'row1');
-        $profile .= la_TableCell($userpassword);
-        $profile .= la_tag('tr', true);
+        $profile .= wf_tag('tr');
+        $profile .= wf_TableCell(__('Password'), '', 'row1');
+        $profile .= wf_TableCell($userpassword);
+        $profile .= wf_tag('tr', true);
     }
-    $profile .= la_tag('tr');
-    $profile .= la_TableCell(__('IP'), '', 'row1');
-    $profile .= la_TableCell($userdata['IP']);
-    $profile .= la_tag('tr', true);
+    $profile .= wf_tag('tr');
+    $profile .= wf_TableCell(__('IP'), '', 'row1');
+    $profile .= wf_TableCell($userdata['IP']);
+    $profile .= wf_tag('tr', true);
 
-    $profile .= la_tag('tr');
-    $profile .= la_TableCell(__('Phone'), '', 'row1');
-    $profile .= la_TableCell($phone);
-    $profile .= la_tag('tr', true);
+    $profile .= wf_tag('tr');
+    $profile .= wf_TableCell(__('Phone'), '', 'row1');
+    $profile .= wf_TableCell($phone);
+    $profile .= wf_tag('tr', true);
 
-    $profile .= la_tag('tr');
-    $profile .= la_TableCell(__('Mobile'), '', 'row1');
-    $profile .= la_TableCell($mobile);
-    $profile .= la_tag('tr', true);
+    $profile .= wf_tag('tr');
+    $profile .= wf_TableCell(__('Mobile'), '', 'row1');
+    $profile .= wf_TableCell($mobile);
+    $profile .= wf_tag('tr', true);
 
     if (@$us_config['SHOW_EXT_MOBILES']) {
         $mobilesExt = new UserstatsMobilesExt($login);
-        $profile .= la_tag('tr');
-        $profile .= la_TableCell(__('Additional mobile'), '', 'row1');
-        $profile .= la_TableCell($mobilesExt->renderUserMobiles());
-        $profile .= la_tag('tr', true);
+        $profile .= wf_tag('tr');
+        $profile .= wf_TableCell(__('Additional mobile'), '', 'row1');
+        $profile .= wf_TableCell($mobilesExt->renderUserMobiles());
+        $profile .= wf_tag('tr', true);
     }
 
     if ($renderEmailFlag) {
-        $profile .= la_tag('tr');
-        $profile .= la_TableCell(__('Email'), '', 'row1');
-        $profile .= la_TableCell($email);
-        $profile .= la_tag('tr', true);
+        $profile .= wf_tag('tr');
+        $profile .= wf_TableCell(__('Email'), '', 'row1');
+        $profile .= wf_TableCell($email);
+        $profile .= wf_tag('tr', true);
     }
 
     if ($us_config['OPENPAYZ_ENABLED']) {
-        $profile .= la_tag('tr');
-        $payIdAbbr = la_tag('abbr', false, '', 'title="' . __('Payment ID is used to make online payments using a variety of payment systems as well as the funding of accounts using the terminals') . '"');
+        $profile .= wf_tag('tr');
+        $payIdAbbr = wf_tag('abbr', false, '', 'title="' . __('Payment ID is used to make online payments using a variety of payment systems as well as the funding of accounts using the terminals') . '"');
         $payIdAbbr .= __('Payment ID');
-        $payIdAbbr .= la_tag('abbr', true);
+        $payIdAbbr .= wf_tag('abbr', true);
 
-        $profile .= la_TableCell($payIdAbbr, '', 'row1');
-        $profile .= la_TableCell($paymentid . ' ' . $paymentidqr);
-        $profile .= la_tag('tr', true);
+        $profile .= wf_TableCell($payIdAbbr, '', 'row1');
+        $profile .= wf_TableCell($paymentid . ' ' . $paymentidqr);
+        $profile .= wf_tag('tr', true);
     }
 
-    $profile .= la_tag('tr');
-    $profile .= la_TableCell(__('Contract'), '', 'row1');
-    $profile .= la_TableCell($contract);
-    $profile .= la_tag('tr', true);
+    $profile .= wf_tag('tr');
+    $profile .= wf_TableCell(__('Contract'), '', 'row1');
+    $profile .= wf_TableCell($contract);
+    $profile .= wf_tag('tr', true);
 
-    $profile .= la_tag('tr');
-    $profile .= la_TableCell(__('Balance'), '', 'row1');
-    $profile .= la_TableCell($Cash . ' ' . $us_currency . $balanceExpire . $zdocsLink);
-    $profile .= la_tag('tr', true);
+    $profile .= wf_tag('tr');
+    $profile .= wf_TableCell(__('Balance'), '', 'row1');
+    $profile .= wf_TableCell($Cash . ' ' . $us_currency . $balanceExpire . $zdocsLink);
+    $profile .= wf_tag('tr', true);
 
-    $profile .= la_tag('tr');
-    $profile .= la_TableCell(__('Credit'), '', 'row1');
-    $profile .= la_TableCell($userdata['Credit'] . ' ' . $us_currency);
-    $profile .= la_tag('tr', true);
+    $profile .= wf_tag('tr');
+    $profile .= wf_TableCell(__('Credit'), '', 'row1');
+    $profile .= wf_TableCell($userdata['Credit'] . ' ' . $us_currency);
+    $profile .= wf_tag('tr', true);
 
-    $profile .= la_tag('tr');
-    $profile .= la_TableCell(__('Credit Expire'), '', 'row1');
-    $profile .= la_TableCell($credexpire);
-    $profile .= la_tag('tr', true);
+    $profile .= wf_tag('tr');
+    $profile .= wf_TableCell(__('Credit Expire'), '', 'row1');
+    $profile .= wf_TableCell($credexpire);
+    $profile .= wf_tag('tr', true);
 
-    $profile .= la_tag('tr');
-    $profile .= la_TableCell(__('Tariff'), '', 'row1');
-    $profile .= la_TableCell(__($userdata['Tariff']));
-    $profile .= la_tag('tr', true);
+    $profile .= wf_tag('tr');
+    $profile .= wf_TableCell(__('Tariff'), '', 'row1');
+    $profile .= wf_TableCell(__($userdata['Tariff']));
+    $profile .= wf_tag('tr', true);
 
 
     //tariff price here
@@ -2173,18 +2173,18 @@ function zbs_UserShowProfile($login) {
     if (!empty($tariffPriceApocrypha)) {
         $tariffPriceLabel = $tariffPriceApocrypha;
     }
-    $profile .= la_tag('tr');
-    $profile .= la_TableCell(__('Tariff price'), '', 'row1');
-    $profile .= la_TableCell($tariffPriceLabel);
-    $profile .= la_tag('tr', true);
+    $profile .= wf_tag('tr');
+    $profile .= wf_TableCell(__('Tariff price'), '', 'row1');
+    $profile .= wf_TableCell($tariffPriceLabel);
+    $profile .= wf_tag('tr', true);
 
     //render custom fee day
     if (@$us_config['POWERTARIFFS_ENABLED']) {
         if ($feeDay != 0) {
-            $profile .= la_tag('tr');
-            $profile .= la_TableCell(__('Day of the next tariff fee'), '', 'row1');
-            $profile .= la_TableCell($feeDay);
-            $profile .= la_tag('tr', true);
+            $profile .= wf_tag('tr');
+            $profile .= wf_TableCell(__('Day of the next tariff fee'), '', 'row1');
+            $profile .= wf_TableCell($feeDay);
+            $profile .= wf_tag('tr', true);
         }
     }
 
@@ -2198,15 +2198,15 @@ function zbs_UserShowProfile($login) {
     }
 
 
-    $profile .= la_tag('tr');
-    $profile .= la_TableCell(__('Tariff change'), '', 'row1');
-    $profile .= la_TableCell($tariffChangeLabel);
-    $profile .= la_tag('tr', true);
+    $profile .= wf_tag('tr');
+    $profile .= wf_TableCell(__('Tariff change'), '', 'row1');
+    $profile .= wf_TableCell($tariffChangeLabel);
+    $profile .= wf_tag('tr', true);
 
-    $profile .= la_tag('tr');
-    $profile .= la_TableCell(__('Account state'), '', 'row1');
-    $profile .= la_TableCell($passive_state . $down_state);
-    $profile .= la_tag('tr', true);
+    $profile .= wf_tag('tr');
+    $profile .= wf_TableCell(__('Account state'), '', 'row1');
+    $profile .= wf_TableCell($passive_state . $down_state);
+    $profile .= wf_tag('tr', true);
 
     if (@$us_config['TG_BOTNAME']) {
         $tgBotQr='';
@@ -2218,19 +2218,19 @@ function zbs_UserShowProfile($login) {
                 $qrGenerator='modules/jsc/qrgen.php?data=';
                 $qrUrl =  $qrGenerator . base64_encode($tgBotUrl).'&be=true';
                 $qrTitle = __('Connect to bot');
-                $tgBotQr = la_modalAuto(la_img($iconsPath . 'qrcode.png', 'QR-code'), $qrTitle, la_tag('center') . la_img($qrUrl) . la_tag('center', true));
+                $tgBotQr = wf_modalAuto(wf_img($iconsPath . 'qrcode.png', 'QR-code'), $qrTitle, wf_tag('center') . wf_img($qrUrl) . wf_tag('center', true));
             }
         }
-        $profile .= la_tag('tr');
-        $profile .= la_TableCell(__('Telegram bot'), '', 'row1');
-        $profile .= la_TableCell(la_Link($tgBotUrl, __('Connect to bot') . '!').$tgBotQr);
-        $profile .= la_tag('tr', true);
+        $profile .= wf_tag('tr');
+        $profile .= wf_TableCell(__('Telegram bot'), '', 'row1');
+        $profile .= wf_TableCell(wf_Link($tgBotUrl, __('Connect to bot') . '!').$tgBotQr);
+        $profile .= wf_tag('tr', true);
     }
 
     $profile .= zbs_CUDShow($login, $us_config);
     $profile .= zbs_PCPromoCodesController($login);
 
-    $profile .= la_tag('table', true);
+    $profile .= wf_tag('table', true);
 
     //show assigned virtual services if available
     if (isset($us_config['VSERVICES_SHOW'])) {
@@ -2293,16 +2293,16 @@ function zbs_UserTraffStats($login) {
     /**
      * Current month traffic stats
      */
-    $result .= la_tag('h3') . __('Current month traffic stats') . la_tag('h3', true);
+    $result .= wf_tag('h3') . __('Current month traffic stats') . wf_tag('h3', true);
 
     $cells = '';
     if ($renderClassColumns) {
-        $cells .= la_TableCell(__('Traffic classes'));
+        $cells .= wf_TableCell(__('Traffic classes'));
     }
-    $cells .= la_TableCell(__('Downloaded'));
-    $cells .= la_TableCell(__('Uploaded'));
-    $cells .= la_TableCell(__('Total'));
-    $rows = la_TableRow($cells, 'row1');
+    $cells .= wf_TableCell(__('Downloaded'));
+    $cells .= wf_TableCell(__('Uploaded'));
+    $cells .= wf_TableCell(__('Total'));
+    $rows = wf_TableRow($cells, 'row1');
 
     if (!empty($alldirs)) {
         foreach ($alldirs as $io => $eachdir) {
@@ -2344,34 +2344,34 @@ function zbs_UserTraffStats($login) {
 
             $cells = '';
             if ($renderClassColumns) {
-                $cells .= la_TableCell($eachdir['rulename'], '', '', 'data-label="' . __('Traffic classes') . '"');
+                $cells .= wf_TableCell($eachdir['rulename'], '', '', 'data-label="' . __('Traffic classes') . '"');
             }
-            $cells .= la_TableCell(zbs_convert_size($downup['D' . $eachdir['rulenumber']]), '', '', 'data-label="' . __('Downloaded') . '"');
-            $cells .= la_TableCell(zbs_convert_size($downup['U' . $eachdir['rulenumber']]), '', '', 'data-label="' . __('Uploaded') . '"');
-            $cells .= la_TableCell(zbs_convert_size(($downup['U' . $eachdir['rulenumber']] + $downup['D' . $eachdir['rulenumber']])), '', '', 'data-label="' . __('Total') . '"');
-            $rows .= la_TableRow($cells, 'row3');
+            $cells .= wf_TableCell(zbs_convert_size($downup['D' . $eachdir['rulenumber']]), '', '', 'data-label="' . __('Downloaded') . '"');
+            $cells .= wf_TableCell(zbs_convert_size($downup['U' . $eachdir['rulenumber']]), '', '', 'data-label="' . __('Uploaded') . '"');
+            $cells .= wf_TableCell(zbs_convert_size(($downup['U' . $eachdir['rulenumber']] + $downup['D' . $eachdir['rulenumber']])), '', '', 'data-label="' . __('Total') . '"');
+            $rows .= wf_TableRow($cells, 'row3');
         }
     }
 
-    $result .= la_TableBody($rows, '100%', 0, 'mobile-table');
-    $result .= la_delimiter();
+    $result .= wf_TableBody($rows, '100%', 0, 'mobile-table');
+    $result .= wf_delimiter();
 
     /**
      * traffic stats by previous months
      */
     
-    $result .= la_tag('h3') . __('Previous month traffic stats') . la_tag('h3', true);
+    $result .= wf_tag('h3') . __('Previous month traffic stats') . wf_tag('h3', true);
 
-    $cells = la_TableCell(__('Year'));
-    $cells .= la_TableCell(__('Month'));
+    $cells = wf_TableCell(__('Year'));
+    $cells .= wf_TableCell(__('Month'));
     if ($renderClassColumns) {
-        $cells .= la_TableCell(__('Traffic classes'));
+        $cells .= wf_TableCell(__('Traffic classes'));
     }
-    $cells .= la_TableCell(__('Downloaded'));
-    $cells .= la_TableCell(__('Uploaded'));
-    $cells .= la_TableCell(__('Total'));
-    $cells .= la_TableCell(__('Cash'));
-    $rows = la_TableRow($cells, 'row1');
+    $cells .= wf_TableCell(__('Downloaded'));
+    $cells .= wf_TableCell(__('Uploaded'));
+    $cells .= wf_TableCell(__('Total'));
+    $cells .= wf_TableCell(__('Cash'));
+    $rows = wf_TableRow($cells, 'row1');
 
     if (!empty($alldirs)) {
         foreach ($alldirs as $io => $eachdir) {
@@ -2420,21 +2420,21 @@ function zbs_UserTraffStats($login) {
 
             if (!empty($allprevmonth)) {
                 foreach ($allprevmonth as $io2 => $eachprevmonth) {
-                    $cells = la_TableCell($eachprevmonth['year'], '', '', 'data-label="' . __('Year') . '"');
-                    $cells .= la_TableCell(__($monthnames[$eachprevmonth['month']]), '', '', 'data-label="' . __('Month') . '"');
+                    $cells = wf_TableCell($eachprevmonth['year'], '', '', 'data-label="' . __('Year') . '"');
+                    $cells .= wf_TableCell(__($monthnames[$eachprevmonth['month']]), '', '', 'data-label="' . __('Month') . '"');
                     if ($renderClassColumns) {
-                        $cells .= la_TableCell($eachdir['rulename'], '', '', 'data-label="' . __('Traffic classes') . '"');
+                        $cells .= wf_TableCell($eachdir['rulename'], '', '', 'data-label="' . __('Traffic classes') . '"');
                     }
-                    $cells .= la_TableCell(zbs_convert_size($eachprevmonth['D' . $eachdir['rulenumber']]), '', '', 'data-label="' . __('Downloaded') . '"');
-                    $cells .= la_TableCell(zbs_convert_size($eachprevmonth['U' . $eachdir['rulenumber']]), '', '', 'data-label="' . __('Uploaded') . '"');
-                    $cells .= la_TableCell(zbs_convert_size(($eachprevmonth['U' . $eachdir['rulenumber']] + $eachprevmonth['D' . $eachdir['rulenumber']])), '', '', 'data-label="' . __('Total') . '"');
-                    $cells .= la_TableCell(round($eachprevmonth['cash'], 2), '', '', 'data-label="' . __('Cash') . '"');
-                    $rows .= la_TableRow($cells, 'row3');
+                    $cells .= wf_TableCell(zbs_convert_size($eachprevmonth['D' . $eachdir['rulenumber']]), '', '', 'data-label="' . __('Downloaded') . '"');
+                    $cells .= wf_TableCell(zbs_convert_size($eachprevmonth['U' . $eachdir['rulenumber']]), '', '', 'data-label="' . __('Uploaded') . '"');
+                    $cells .= wf_TableCell(zbs_convert_size(($eachprevmonth['U' . $eachdir['rulenumber']] + $eachprevmonth['D' . $eachdir['rulenumber']])), '', '', 'data-label="' . __('Total') . '"');
+                    $cells .= wf_TableCell(round($eachprevmonth['cash'], 2), '', '', 'data-label="' . __('Cash') . '"');
+                    $rows .= wf_TableRow($cells, 'row3');
                 }
             }
         }
     }
-    $result .= la_TableBody($rows, '100%', 0, 'mobile-table');
+    $result .= wf_TableBody($rows, '100%', 0, 'mobile-table');
 
     return ($result);
 }
@@ -2502,14 +2502,14 @@ function zbs_ModulesMenuShow($icons = false) {
     //AFU help
     if (!@$globconf['IM_JUST_PIDAR']) {
         $afuUrl = 'https://ubilling.net.ua/rds/defense/';
-        $afuIcon = la_img($skinPath . 'iconz/afu.png');
+        $afuIcon = wf_img($skinPath . 'iconz/afu.png');
         if (@$globconf['AFU_URL']) {
             $afuUrl = $globconf['AFU_URL'];
         }
         if ($icons) {
-            $result .= la_tag('li') . la_Link($afuUrl, $afuIcon . ' ' . __('Support AFU')) . la_tag('li', true);
+            $result .= wf_tag('li') . wf_Link($afuUrl, $afuIcon . ' ' . __('Support AFU')) . wf_tag('li', true);
         } else {
-            $result .= la_tag('li') . la_Link($afuUrl, __('Support AFU')) . la_tag('li', true);
+            $result .= wf_tag('li') . wf_Link($afuUrl, __('Support AFU')) . wf_tag('li', true);
         }
     }
 
@@ -3072,8 +3072,8 @@ function zbs_AnnouncementsAvailable($login) {
     if (!empty($data)) {
         if (isset($us_config['AN_MODAL']) and !empty($us_config['AN_MODAL'])) {
             $inputs = '';
-            $inputs .= la_tag('br');
-            $inputs .= la_HiddenInput('anmarkasread', $data[0]['id']);
+            $inputs .= wf_tag('br');
+            $inputs .= wf_HiddenInput('anmarkasread', $data[0]['id']);
 
             if ($data[0]['type'] == 'text') {
                 $eachtext = strip_tags($data[0]['text']);
@@ -3083,12 +3083,12 @@ function zbs_AnnouncementsAvailable($login) {
             if ($data[0]['type'] == 'html') {
                 $inputs .= $data[0]['text'];
             }
-            $inputs .= la_tag('br');
-            $inputs .= la_tag('br');
-            $inputs .= la_Submit('Mark as read');
-            $form = la_Form('?module=announcements', "POST", $inputs, 'glamour');
+            $inputs .= wf_tag('br');
+            $inputs .= wf_tag('br');
+            $inputs .= wf_Submit('Mark as read');
+            $form = wf_Form('?module=announcements', "POST", $inputs, 'glamour');
 
-            $result = la_modalOpened($data[0]['title'], $form);
+            $result = wf_modalOpened($data[0]['title'], $form);
         } else {
             $result = TRUE;
         }
@@ -3114,10 +3114,10 @@ function zbs_AnnouncementsNotice($login) {
         if ($availableAnnouncements !== TRUE) {
             $result .= $availableAnnouncements;
         }
-        $cells = la_TableCell(la_Link('?module=announcements', la_img($iconsPath . 'alert.gif'), true, 'announcementslink'));
-        $cells .= la_TableCell(la_Link('?module=announcements', __('Some announcements are available'), true, 'announcementslink'));
-        $rows = la_TableRow($cells);
-        $result .= la_TableBody($rows, '100%', 0, 'announcementstable');
+        $cells = wf_TableCell(wf_Link('?module=announcements', wf_img($iconsPath . 'alert.gif'), true, 'announcementslink'));
+        $cells .= wf_TableCell(wf_Link('?module=announcements', __('Some announcements are available'), true, 'announcementslink'));
+        $rows = wf_TableRow($cells);
+        $result .= wf_TableBody($rows, '100%', 0, 'announcementstable');
         show_window('', $result);
     }
 }
@@ -3187,7 +3187,7 @@ function zbs_AerialAlertNotification() {
             if (!empty($alertsData)) {
                 if (isset($alertsData['region']) and isset($alertsData['alert']) and isset($alertsData['changed'])) {
                     if ($alertsData['alert']) {
-                        $alertStyle = la_tag('style');
+                        $alertStyle = wf_tag('style');
                         $alertStyle .= '
                               .alert_aerial {
                                 display: block;
@@ -3205,11 +3205,11 @@ function zbs_AerialAlertNotification() {
                                 font-size: 24px;
                                 } 
                             ';
-                        $alertStyle .= la_tag('style', true);
+                        $alertStyle .= wf_tag('style', true);
                         $alertText = $alertStyle;
-                        $alertText .= la_tag('div', false, 'alert_aerial');
-                        $alertText .= la_img($iconsPath . 'nuclear_bomb.png', __('Aerial alert')) . ' ' . $alertsData['region'] . ' ' . __('since') . ' ' . $alertsData['changed'];
-                        $alertText .= la_tag('div', true);
+                        $alertText .= wf_tag('div', false, 'alert_aerial');
+                        $alertText .= wf_img($iconsPath . 'nuclear_bomb.png', __('Aerial alert')) . ' ' . $alertsData['region'] . ' ' . __('since') . ' ' . $alertsData['changed'];
+                        $alertText .= wf_tag('div', true);
                         show_window(__('Aerial alert') . '!', $alertText);
                     }
                 }

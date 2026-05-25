@@ -219,12 +219,12 @@ class OmegaTvFrontend {
                 if (!empty($currentDevices)) {
 
                     foreach ($currentDevices as $io => $each) {
-                        $cells = la_TableCell($each['uniq']);
-                        $cells .= la_TableCell(date("Y-m-d H:i:s", $each['activation_data']));
-                        $cells .= la_TableCell($each['model']);
-                        $deviceControls = la_JSAlert('?module=omegatv&deletedevice=' . $each['uniq'], __('Delete'), __('Are you sure') . '?');
-                        $cells .= la_TableCell($deviceControls);
-                        $rows .= la_TableRow($cells, 'row3');
+                        $cells = wf_TableCell($each['uniq']);
+                        $cells .= wf_TableCell(date("Y-m-d H:i:s", $each['activation_data']));
+                        $cells .= wf_TableCell($each['model']);
+                        $deviceControls = wf_JSAlert('?module=omegatv&deletedevice=' . $each['uniq'], __('Delete'), __('Are you sure') . '?');
+                        $cells .= wf_TableCell($deviceControls);
+                        $rows .= wf_TableRow($cells, 'row3');
                         $devCount++;
                     }
                 }
@@ -232,32 +232,32 @@ class OmegaTvFrontend {
                 if (!empty($currentPlaylists)) {
 
                     foreach ($currentPlaylists as $io => $each) {
-                        $cells = la_TableCell($each['uniq']);
+                        $cells = wf_TableCell($each['uniq']);
                         $actDate = ($each['activation_data']) ? date("Y-m-d H:i:s", $each['activation_data']) : '-';
-                        $cells .= la_TableCell($actDate);
-                        $playlistControls = la_Link($each['url'], __('Playlist'));
-                        $cells .= la_TableCell($playlistControls);
-                        $deviceControls = la_JSAlert('?module=omegatv&deleteplaylist=' . $each['uniq'], __('Delete'), __('Are you sure') . '?');
-                        $cells .= la_TableCell($deviceControls);
-                        $rows .= la_TableRow($cells, 'row3');
+                        $cells .= wf_TableCell($actDate);
+                        $playlistControls = wf_Link($each['url'], __('Playlist'));
+                        $cells .= wf_TableCell($playlistControls);
+                        $deviceControls = wf_JSAlert('?module=omegatv&deleteplaylist=' . $each['uniq'], __('Delete'), __('Are you sure') . '?');
+                        $cells .= wf_TableCell($deviceControls);
+                        $rows .= wf_TableRow($cells, 'row3');
                         $devCount++;
                     }
                 }
 
-                $result .= la_TableBody($rows, '100%', 0, 'sortable');
+                $result .= wf_TableBody($rows, '100%', 0, 'sortable');
             }
 
             //maximum devices limit
             if ($devCount < $this->maxDevices) {
                 //new device activation
-                if (la_CheckGet(array('getcode'))) {
+                if (wf_CheckGet(array('getcode'))) {
                     $actCode = $this->getDeviceActivationCode();
-                    $result .= la_tag('br');
-                    $result .= la_tag('h3', false) . __('Activation code') . ': ' . $actCode . la_tag('h3', true);
+                    $result .= wf_tag('br');
+                    $result .= wf_tag('h3', false) . __('Activation code') . ': ' . $actCode . wf_tag('h3', true);
                 } else {
-                    $result .= la_tag('br');
-                    $actCodeControl = la_Link('?module=omegatv&getcode=true', __('Get device activation code'));
-                    $newPlControl = la_Link('?module=omegatv&newplaylist=true', __('Add playlist'));
+                    $result .= wf_tag('br');
+                    $actCodeControl = wf_Link('?module=omegatv&getcode=true', __('Get device activation code'));
+                    $newPlControl = wf_Link('?module=omegatv&newplaylist=true', __('Add playlist'));
                     $result .= $actCodeControl . ' / ' . $newPlControl;
                 }
             } else {
@@ -306,32 +306,32 @@ class OmegaTvFrontend {
         if (!empty($this->allTariffs)) {
             foreach ($this->allTariffs as $io => $each) {
                 $headerType = ($each['type'] == 'base') ? 'mgheaderprimary' : 'mgheader';
-                $freeAppend = la_delimiter();
+                $freeAppend = wf_delimiter();
                 $tariffFee = $each['fee'];
-                $primaryLabel = ($each['type'] == 'base') ? la_img($iconsPath . 'ok_small.png') : la_img($iconsPath . 'unavail_small.png');
-                $subscribedLabel = ($this->isUserSubscribed($this->userLogin, $each['id'])) ? la_img($iconsPath . 'ok_small.png') : la_img($iconsPath . 'unavail_small.png');
+                $primaryLabel = ($each['type'] == 'base') ? wf_img($iconsPath . 'ok_small.png') : wf_img($iconsPath . 'unavail_small.png');
+                $subscribedLabel = ($this->isUserSubscribed($this->userLogin, $each['id'])) ? wf_img($iconsPath . 'ok_small.png') : wf_img($iconsPath . 'unavail_small.png');
 
-                $tariffInfo = la_tag('div', false, $headerType) . $each['tariffname'] . la_tag('div', true);
-                $cells = la_TableCell(la_tag('b') . __('Fee') . la_tag('b', true));
-                $cells .= la_TableCell($tariffFee . ' ' . $this->usConfig['currency']);
-                $rows = la_TableRow($cells);
-                $cells = la_TableCell(la_tag('b') . __('Base') . la_tag('b', true));
-                $cells .= la_TableCell($primaryLabel);
-                $rows .= la_TableRow($cells);
-                $cells = la_TableCell(la_tag('b') . __('You subscribed') . la_tag('b', true));
-                $cells .= la_TableCell($subscribedLabel);
-                $rows .= la_TableRow($cells);
-                $tariffInfo .= la_TableBody($rows, '100%', 0);
+                $tariffInfo = wf_tag('div', false, $headerType) . $each['tariffname'] . wf_tag('div', true);
+                $cells = wf_TableCell(wf_tag('b') . __('Fee') . wf_tag('b', true));
+                $cells .= wf_TableCell($tariffFee . ' ' . $this->usConfig['currency']);
+                $rows = wf_TableRow($cells);
+                $cells = wf_TableCell(wf_tag('b') . __('Base') . wf_tag('b', true));
+                $cells .= wf_TableCell($primaryLabel);
+                $rows .= wf_TableRow($cells);
+                $cells = wf_TableCell(wf_tag('b') . __('You subscribed') . wf_tag('b', true));
+                $cells .= wf_TableCell($subscribedLabel);
+                $rows .= wf_TableRow($cells);
+                $tariffInfo .= wf_TableBody($rows, '100%', 0);
                 $tariffInfo .= $freeAppend;
 
 
                 if ($this->checkBalance()) {
                     if ($this->isUserSubscribed($this->userLogin, $each['id'])) {
-                        $subscribeControl = la_Link('?module=omegatv&unsubscribe=' . $each['tariffid'], __('Unsubscribe'), false, 'mgunsubcontrol');
+                        $subscribeControl = wf_Link('?module=omegatv&unsubscribe=' . $each['tariffid'], __('Unsubscribe'), false, 'mgunsubcontrol');
                     } else {
                         if ($this->checkUserProtection($each['id'])) {
                             $alertText = __('I have thought well and understand that I activate this service for myself not by chance and completely meaningfully and I am aware of all the consequences.');
-                            $subscribeControl = la_ConfirmDialog('?module=omegatv&subscribe=' . $each['tariffid'], __('Subscribe'), $alertText, 'mgsubcontrol', '?module=omegatv');
+                            $subscribeControl = wf_ConfirmDialog('?module=omegatv&subscribe=' . $each['tariffid'], __('Subscribe'), $alertText, 'mgsubcontrol', '?module=omegatv');
                         } else {
                             $subscribeControl = __('The amount of money in your account is not sufficient to process subscription');
                         }
@@ -343,7 +343,7 @@ class OmegaTvFrontend {
                     $tariffInfo .= __('The amount of money in your account is not sufficient to process subscription');
                 }
 
-                $result .= la_tag('div', false, 'mgcontainer') . $tariffInfo . la_tag('div', true);
+                $result .= wf_tag('div', false, 'mgcontainer') . $tariffInfo . wf_tag('div', true);
             }
         }
         return ($result);

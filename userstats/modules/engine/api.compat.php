@@ -40,6 +40,28 @@ function zbs_LoadLang($language) {
 }
 
 /**
+ * Returns current locale in two letter format compatible with jQuery UI datepicker etc.
+ * Emulates main billing curlang() function behavior in userstats environment.
+ *
+ * @return string
+ */
+function curlang() {
+    $usConfig = zbs_LoadConfig();
+    $lang = isset($usConfig['lang']) ? $usConfig['lang'] : 'english';
+    $langMap = array(
+        'english' => 'en',
+        'russian' => 'ru',
+        'ukrainian' => 'uk',
+    );
+    if (isset($langMap[$lang])) {
+        $result = $langMap[$lang];
+    } else {
+        $result = $lang;
+    }
+    return ($result);
+}
+
+/**
  * Returns localized string by current lang
  * 
  * @global string $langglobal
@@ -348,24 +370,24 @@ function zbs_Linkify($text, $imgWidth = '100%', $imgLazy = true, $youtubeEmbed =
             
             // Check if it's a Shorts URL for vertical aspect ratio
             if (strpos($url, '/shorts/') !== false) {
-                $containerDiv = la_tag('div', false, 'youtube-container', 'style="position: relative; width: 100%; max-width: 315px; margin: 0 auto;"');
-                $aspectDiv = la_tag('div', false, '', 'style="position: relative; width: 100%; height: 0; padding-bottom: 177.78%;"');
-                $iframe = la_tag('iframe', false, '', 'src="' . $embedUrl . '" frameborder="0" allowfullscreen style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;"');
-                $iframe .= la_tag('iframe', true);
+                $containerDiv = wf_tag('div', false, 'youtube-container', 'style="position: relative; width: 100%; max-width: 315px; margin: 0 auto;"');
+                $aspectDiv = wf_tag('div', false, '', 'style="position: relative; width: 100%; height: 0; padding-bottom: 177.78%;"');
+                $iframe = wf_tag('iframe', false, '', 'src="' . $embedUrl . '" frameborder="0" allowfullscreen style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;"');
+                $iframe .= wf_tag('iframe', true);
                 $aspectDiv .= $iframe;
-                $aspectDiv .= la_tag('div', true);
+                $aspectDiv .= wf_tag('div', true);
                 $containerDiv .= $aspectDiv;
-                $containerDiv .= la_tag('div', true);
+                $containerDiv .= wf_tag('div', true);
                 return $containerDiv;
             } else {
-                $containerDiv = la_tag('div', false, 'youtube-container', 'style="position: relative; width: 100%; max-width: 560px; margin: 0 auto;"');
-                $aspectDiv = la_tag('div', false, '', 'style="position: relative; width: 100%; height: 0; padding-bottom: 56.25%;"');
-                $iframe = la_tag('iframe', false, '', 'src="' . $embedUrl . '" frameborder="0" allowfullscreen style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;"');
-                $iframe .= la_tag('iframe', true);
+                $containerDiv = wf_tag('div', false, 'youtube-container', 'style="position: relative; width: 100%; max-width: 560px; margin: 0 auto;"');
+                $aspectDiv = wf_tag('div', false, '', 'style="position: relative; width: 100%; height: 0; padding-bottom: 56.25%;"');
+                $iframe = wf_tag('iframe', false, '', 'src="' . $embedUrl . '" frameborder="0" allowfullscreen style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;"');
+                $iframe .= wf_tag('iframe', true);
                 $aspectDiv .= $iframe;
-                $aspectDiv .= la_tag('div', true);
+                $aspectDiv .= wf_tag('div', true);
                 $containerDiv .= $aspectDiv;
-                $containerDiv .= la_tag('div', true);
+                $containerDiv .= wf_tag('div', true);
                 return $containerDiv;
             }
         }
@@ -373,14 +395,14 @@ function zbs_Linkify($text, $imgWidth = '100%', $imgLazy = true, $youtubeEmbed =
         // Check for image files
         if (preg_match('/\.(jpg|png|gif|webp|jpeg)$/i', $url)) {
             if ($imgLazy) {
-                $imgTag = la_tag('img', false, 'responsive-image', 'src="' . htmlspecialchars($url) . '" style="max-width: ' . $imgWidth . '; height: auto; display: block; margin: 0 auto;" loading="lazy"');
+                $imgTag = wf_tag('img', false, 'responsive-image', 'src="' . htmlspecialchars($url) . '" style="max-width: ' . $imgWidth . '; height: auto; display: block; margin: 0 auto;" loading="lazy"');
             } else {
-                $imgTag = la_tag('img', false, 'responsive-image', 'src="' . htmlspecialchars($url) . '" style="max-width: ' . $imgWidth . '; height: auto; display: block; margin: 0 auto;"');
+                $imgTag = wf_tag('img', false, 'responsive-image', 'src="' . htmlspecialchars($url) . '" style="max-width: ' . $imgWidth . '; height: auto; display: block; margin: 0 auto;"');
             }
-            return la_link($url, $imgTag, false, '', 'target="_blank"');
+            return wf_Link($url, $imgTag, false, '', 'target="_blank"');
         }
 
-        return la_Link($url, htmlspecialchars($url), false, '', 'target="_blank"');
+        return wf_Link($url, htmlspecialchars($url), false, '', 'target="_blank"');
     }, $text);
 
     return ($result);

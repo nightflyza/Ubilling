@@ -273,54 +273,54 @@ class TrinityTvFrontend {
      */
     public function renderSubscribeForm() {
         $result = '';
-        $result .= la_tag('b') . __('Attention!') . la_tag('b', true) . ' ';
-        $result .= __('When activated subscription account will be charged fee the equivalent value of the subscription.') . la_delimiter();
+        $result .= wf_tag('b') . __('Attention!') . wf_tag('b', true) . ' ';
+        $result .= __('When activated subscription account will be charged fee the equivalent value of the subscription.') . wf_delimiter();
 
         if (!empty($this->allTariffs)) {
             foreach ($this->allTariffs as $tariff) {
 
                 $tariffFee = $tariff['fee'];
 
-                $tariffInfo = la_tag('div', false, 'trinity-col') . la_tag('div', false, 'trinity-bl1');
+                $tariffInfo = wf_tag('div', false, 'trinity-col') . wf_tag('div', false, 'trinity-bl1');
 
-                $tariffInfo .= la_tag('div', false, 'trinity-price');
-                $tariffInfo .= la_tag('b', false, 's') . $tariffFee . la_tag('b', true, 's');
-                $tariffInfo .= la_tag('sup', false) . $this->usConfig['currency'] . ' ' . la_tag('br') . ' ' . __('per month') . la_tag('sup', true);
-                $tariffInfo .= la_tag('div', true, 'trinity-price');
+                $tariffInfo .= wf_tag('div', false, 'trinity-price');
+                $tariffInfo .= wf_tag('b', false, 's') . $tariffFee . wf_tag('b', true, 's');
+                $tariffInfo .= wf_tag('sup', false) . $this->usConfig['currency'] . ' ' . wf_tag('br') . ' ' . __('per month') . wf_tag('sup', true);
+                $tariffInfo .= wf_tag('div', true, 'trinity-price');
 
 
-                $tariffInfo .= la_tag('div', false, 'trinity-green s') . $tariff['name'] . la_tag('div', true, 'trinity-green s');
-                $tariffInfo .= la_tag('br');
+                $tariffInfo .= wf_tag('div', false, 'trinity-green s') . $tariff['name'] . wf_tag('div', true, 'trinity-green s');
+                $tariffInfo .= wf_tag('br');
 
                 if (!empty($tariff['description'])) {
                     $desc = $tariff['description'];
                 } else {
-                    $desc = __('Terms') . ': ' . la_tag('br') . $tariff['name'] . la_tag('br') . la_tag('br');
+                    $desc = __('Terms') . ': ' . wf_tag('br') . $tariff['name'] . wf_tag('br') . wf_tag('br');
                 }
                 if (@$this->usConfig['TRINITYTV_CHANLIST_URL']) {
-                    $descriptionLabel = la_Link($this->usConfig['TRINITYTV_CHANLIST_URL'], $desc);
+                    $descriptionLabel = wf_Link($this->usConfig['TRINITYTV_CHANLIST_URL'], $desc);
                 } else {
                     $descriptionLabel = $desc;
                 }
-                $tariffInfo .= la_tag('div', false, 'trinity-list') . $descriptionLabel . la_tag('div', true, 'trinity-list');
+                $tariffInfo .= wf_tag('div', false, 'trinity-list') . $descriptionLabel . wf_tag('div', true, 'trinity-list');
 
                 if ($this->checkBalance()) {
 
                     if ($this->isUserSubscribed($this->userLogin, $tariff['id'])) {
-                        $tariffInfo .= la_Link($this->urlMe . '&unsubscribe=' . $tariff['id'], __('Unsubscribe'), false, 'trinity-button-u');
+                        $tariffInfo .= wf_Link($this->urlMe . '&unsubscribe=' . $tariff['id'], __('Unsubscribe'), false, 'trinity-button-u');
                     } else {
                         if ($this->checkUserProtection($tariff['id'])) {
                             $alertText = __('I have thought well and understand that I activate this service for myself not by chance and completely meaningfully and I am aware of all the consequences.');
-                            $tariffInfo .= la_ConfirmDialog($this->urlMe . '&subscribe=' . $tariff['id'], __('Subscribe'), $alertText, 'trinity-button-s', $this->urlMe);
+                            $tariffInfo .= wf_ConfirmDialog($this->urlMe . '&subscribe=' . $tariff['id'], __('Subscribe'), $alertText, 'trinity-button-s', $this->urlMe);
                         } else {
-                            $tariffInfo .= la_tag('div', false, 'trinity-list') . __('The amount of money in your account is not sufficient to process subscription') . la_tag('div', true, 'trinity-list');
+                            $tariffInfo .= wf_tag('div', false, 'trinity-list') . __('The amount of money in your account is not sufficient to process subscription') . wf_tag('div', true, 'trinity-list');
                         }
                     }
                 } else {
-                    $tariffInfo .= la_tag('div', false, 'trinity-list') . __('The amount of money in your account is not sufficient to process subscription') . la_tag('div', true, 'trinity-list');
+                    $tariffInfo .= wf_tag('div', false, 'trinity-list') . __('The amount of money in your account is not sufficient to process subscription') . wf_tag('div', true, 'trinity-list');
                 }
 
-                $tariffInfo .= la_tag('div', true, 'trinity-bl1') . la_tag('div', true, 'trinity-col');
+                $tariffInfo .= wf_tag('div', true, 'trinity-bl1') . wf_tag('div', true, 'trinity-col');
 
 
                 $result .= $tariffInfo;
@@ -476,23 +476,23 @@ class TrinityTvFrontend {
         $result = '';
         $iconsPath = zbs_GetCurrentSkinPath($this->usConfig) . 'iconz/';
         if (!empty($this->allSubscribers)) {
-            $cells = la_TableCell(__('Tariff'));
-            $cells .= la_TableCell(__('Date'));
-            $cells .= la_TableCell(__('Active'));
-            $rows = la_TableRow($cells, 'row1');
+            $cells = wf_TableCell(__('Tariff'));
+            $cells .= wf_TableCell(__('Date'));
+            $cells .= wf_TableCell(__('Active'));
+            $rows = wf_TableRow($cells, 'row1');
 
             foreach ($this->allSubscribers as $io => $each) {
                 if ($each['login'] == $this->userLogin) {
-                    $cells = la_TableCell(@$this->allTariffs[$each['tariffid']]['name']);
-                    $activeFlag = ($each['active']) ? la_img($iconsPath . 'anread.gif') : la_img($iconsPath . 'anunread.gif');
-                    $cells .= la_TableCell($each['actdate']);
-                    $cells .= la_TableCell($activeFlag);
-                    $rows .= la_TableRow($cells, 'row2');
+                    $cells = wf_TableCell(@$this->allTariffs[$each['tariffid']]['name']);
+                    $activeFlag = ($each['active']) ? wf_img($iconsPath . 'anread.gif') : wf_img($iconsPath . 'anunread.gif');
+                    $cells .= wf_TableCell($each['actdate']);
+                    $cells .= wf_TableCell($activeFlag);
+                    $rows .= wf_TableRow($cells, 'row2');
                 }
             }
 
-            $result = la_TableBody($rows, '100%', 0);
-            $result .= la_tag('br');
+            $result = wf_TableBody($rows, '100%', 0);
+            $result .= wf_tag('br');
         }
         return ($result);
     }
@@ -513,12 +513,12 @@ class TrinityTvFrontend {
             //check for device count limit
             if ($devicesCount < $this->deviceLimit) {
                 // Add device
-                $result .= la_modalAuto(__('Assign device by MAC'), __('Assign device'), $this->renderDeviceAddForm(), 'trinity-button');
+                $result .= wf_modalAuto(__('Assign device by MAC'), __('Assign device'), $this->renderDeviceAddForm(), 'trinity-button');
 
                 // Add device by MAC
-                $result .= la_modalAuto(__('Assign device by Code'), __('Assign device'), $this->renderDeviceByCodeAddForm(), 'trinity-button');
+                $result .= wf_modalAuto(__('Assign device by Code'), __('Assign device'), $this->renderDeviceByCodeAddForm(), 'trinity-button');
 
-                $result .= la_tag('br') . la_tag('br');
+                $result .= wf_tag('br') . wf_tag('br');
             } else {
                 $noMoreDevs = true;
             }
@@ -526,34 +526,34 @@ class TrinityTvFrontend {
             $deletionAlertText = __('Delete') . '? ' . __('Are you sure') . '?';
             $deletionCancelUrl = $this->urlMe;
 
-            $cells = la_TableCell(__('MAC') . ' ' . __('Address'));
-            $cells .= la_TableCell(__('Date'));
-            $cells .= la_TableCell(__('Actions'));
-            $rows = la_TableRow($cells, 'row1');
+            $cells = wf_TableCell(__('MAC') . ' ' . __('Address'));
+            $cells .= wf_TableCell(__('Date'));
+            $cells .= wf_TableCell(__('Actions'));
+            $rows = wf_TableRow($cells, 'row1');
 
             if (!empty($devices)) {
                 foreach ($devices as $device) {
                     $deviceLabel = (!empty($device['mac'])) ? $device['mac'] : '-';
-                    $cells = la_TableCell($deviceLabel);
-                    $cells .= la_TableCell($device['created_at']);
+                    $cells = wf_TableCell($deviceLabel);
+                    $cells .= wf_TableCell($device['created_at']);
                     if (!empty($device['mac'])) {
-                        $deviceControls = la_JSAlert($this->urlMe . '&deletedevice=' . $device['mac'], __('Delete'), __('Are you sure') . '?');
+                        $deviceControls = wf_JSAlert($this->urlMe . '&deletedevice=' . $device['mac'], __('Delete'), __('Are you sure') . '?');
 
                         $deletionUrl = $this->urlMe . '&deletedevice=' . $device['mac'];
-                        $deviceControls = la_ConfirmDialog($deletionUrl, __('Delete'), $deletionAlertText, '', $deletionCancelUrl);
+                        $deviceControls = wf_ConfirmDialog($deletionUrl, __('Delete'), $deletionAlertText, '', $deletionCancelUrl);
                     } else {
                         //device by ID deletion workaround
-                        $deviceControls = la_JSAlert($this->urlMe . '&deletedeviceid=' . $device['id'], __('Delete'), __('Are you sure') . '?');
+                        $deviceControls = wf_JSAlert($this->urlMe . '&deletedeviceid=' . $device['id'], __('Delete'), __('Are you sure') . '?');
                         $deletionUrl = $this->urlMe . '&deletedeviceid=' . $device['id'];
-                        $deviceControls = la_ConfirmDialog($deletionUrl, __('Delete'), $deletionAlertText, '', $deletionCancelUrl);
+                        $deviceControls = wf_ConfirmDialog($deletionUrl, __('Delete'), $deletionAlertText, '', $deletionCancelUrl);
                     }
-                    $cells .= la_TableCell($deviceControls);
+                    $cells .= wf_TableCell($deviceControls);
 
-                    $rows .= la_TableRow($cells, 'row3');
+                    $rows .= wf_TableRow($cells, 'row3');
                 }
             }
 
-            $result .= la_TableBody($rows, '100%', 0, 'sortable');
+            $result .= wf_TableBody($rows, '100%', 0, 'sortable');
             if ($noMoreDevs) {
                 $result .= __('Devices count limit is exceeded');
             }
@@ -568,10 +568,10 @@ class TrinityTvFrontend {
      */
     protected function renderDeviceAddForm() {
         $result = '';
-        $inputs = la_HiddenInput('device', 'true');
-        $inputs .= la_TextInput('mac', __('MAC'), '', true, 20, 'mac');
-        $inputs .= la_Submit(__('Assign device'));
-        $result .= la_Form('', 'POST', $inputs, 'glamour', '', false);
+        $inputs = wf_HiddenInput('device', 'true');
+        $inputs .= wf_TextInput('mac', __('MAC'), '', true, 20, 'mac');
+        $inputs .= wf_Submit(__('Assign device'));
+        $result .= wf_Form('', 'POST', $inputs, 'glamour');
         return ($result);
     }
 
@@ -582,10 +582,10 @@ class TrinityTvFrontend {
      */
     protected function renderDeviceByCodeAddForm() {
         $result = '';
-        $inputs = la_HiddenInput('device', 'true');
-        $inputs .= la_TextInput('code', __('Code'), '', true, 20, 'digits');
-        $inputs .= la_Submit(__('Assign device'));
-        $result .= la_Form('', 'POST', $inputs, 'glamour');
+        $inputs = wf_HiddenInput('device', 'true');
+        $inputs .= wf_TextInput('code', __('Code'), '', true, 20, 'digits');
+        $inputs .= wf_Submit(__('Assign device'));
+        $result .= wf_Form('', 'POST', $inputs, 'glamour');
         return ($result);
     }
 

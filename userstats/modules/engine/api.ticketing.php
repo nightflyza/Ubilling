@@ -6,10 +6,10 @@
      * @return string
      */
     function zbs_spambotsTrap() {
-        $result = la_tag('input', false, 'somemagic', 'type="text" name="surname"');
-        $result .= la_tag('input', false, '', 'type="text" name="lastname" style="display:none;"');
-        $result .= la_tag('input', false, 'somemagic', 'type="text" name="seenoevil"');
-        $result .= la_tag('input', false, 'somemagic', 'type="text" name="mobile"');
+        $result = wf_tag('input', false, 'somemagic', 'type="text" name="surname"');
+        $result .= wf_tag('input', false, '', 'type="text" name="lastname" style="display:none;"');
+        $result .= wf_tag('input', false, 'somemagic', 'type="text" name="seenoevil"');
+        $result .= wf_tag('input', false, 'somemagic', 'type="text" name="mobile"');
         return ($result);
     }
 
@@ -149,13 +149,13 @@
         $textAreaAttr = 'class="' . $textAreaClass . '" style="' . $textAreaStyle . '"';
         
         $inputs = zbs_spambotsTrap();
-        $inputs .= la_tag('div', false, 'form-group');
-        $inputs .= la_tag('textarea', false, '', 'name="newticket" id="' . la_InputId() . '" ' . $textAreaAttr);
-        $inputs .= la_tag('textarea', true);
-        $inputs .= la_tag('div', true);
-        $inputs .= la_Submit(__('Post'));
+        $inputs .= wf_tag('div', false, 'form-group');
+        $inputs .= wf_tag('textarea', false, '', 'name="newticket" id="' . wf_InputId() . '" ' . $textAreaAttr);
+        $inputs .= wf_tag('textarea', true);
+        $inputs .= wf_tag('div', true);
+        $inputs .= wf_Submit(__('Post'));
 
-        $result = la_Form('', 'POST', $inputs, '');
+        $result = wf_Form('', 'POST', $inputs, '');
         return ($result);
     }
 
@@ -176,12 +176,12 @@
             $textAreaAttr = 'class="' . $textAreaClass . '" style="' . $textAreaStyle . '"';
             
             $inputs = zbs_spambotsTrap();
-            $inputs .= la_tag('div', false, 'form-group');
-            $inputs .= la_tag('textarea', false, '', 'name="replyticket" id="' . la_InputId() . '" ' . $textAreaAttr);
-            $inputs .= la_tag('textarea', true);
-            $inputs .= la_tag('div', true);
-            $inputs .= la_Submit(__('Post'));
-            $result = la_Form('', 'POST', $inputs, '');
+            $inputs .= wf_tag('div', false, 'form-group');
+            $inputs .= wf_tag('textarea', false, '', 'name="replyticket" id="' . wf_InputId() . '" ' . $textAreaAttr);
+            $inputs .= wf_tag('textarea', true);
+            $inputs .= wf_tag('div', true);
+            $inputs .= wf_Submit(__('Post'));
+            $result = wf_Form('', 'POST', $inputs, '');
         } else {
             $result = __('Closed');
         }
@@ -201,25 +201,25 @@
         $allmytickets = zbs_TicketsGetAllMy($user_login);
 
         
-        $cells = la_TableCell(__('Date'));
-        $cells .= la_TableCell(__('Status'));
-        $cells .= la_TableCell(__('Actions'));
-        $rows = la_TableRow($cells, 'row1');
+        $cells = wf_TableCell(__('Date'));
+        $cells .= wf_TableCell(__('Status'));
+        $cells .= wf_TableCell(__('Actions'));
+        $rows = wf_TableRow($cells, 'row1');
 
         if (!empty($allmytickets)) {
             foreach ($allmytickets as $io => $eachticket) {
                 if ($eachticket['status']) {
-                    $ticketstatus = la_img($iconsPath . 'anread.gif') . ' ' . __('Closed');
+                    $ticketstatus = wf_img($iconsPath . 'anread.gif') . ' ' . __('Closed');
                 } else {
-                    $ticketstatus = la_img($iconsPath . 'anunread.gif') . ' ' . __('Open');
+                    $ticketstatus = wf_img($iconsPath . 'anunread.gif') . ' ' . __('Open');
                 }
-                $cells = la_TableCell($eachticket['date'], '', '', 'data-label="' . __('Date') . '"');
-                $cells .= la_TableCell($ticketstatus, '', '', 'data-label="' . __('Status') . '"');
-                $cells .= la_TableCell(la_Link('?module=ticketing&showticket=' . $eachticket['id'], __('View')), '', '', 'data-label="' . __('Actions') . '"');
-                $rows .= la_TableRow($cells, 'row3');
+                $cells = wf_TableCell($eachticket['date'], '', '', 'data-label="' . __('Date') . '"');
+                $cells .= wf_TableCell($ticketstatus, '', '', 'data-label="' . __('Status') . '"');
+                $cells .= wf_TableCell(wf_Link('?module=ticketing&showticket=' . $eachticket['id'], __('View')), '', '', 'data-label="' . __('Actions') . '"');
+                $rows .= wf_TableRow($cells, 'row3');
             }
         }
-        $result = la_TableBody($rows, '100%', 0, 'mobile-table');
+        $result = wf_TableBody($rows, '100%', 0, 'mobile-table');
         return ($result);
     }
 
@@ -238,36 +238,36 @@
         $ticketreplies = zbs_TicketGetReplies($ticketid);
 
         if (!empty($ticketdata)) {
-            $ticketAva = la_img($iconzPath . 'userava.png');
+            $ticketAva = wf_img($iconzPath . 'userava.png');
 
-            $cells = la_TableCell(__('User'));
-            $cells .= la_TableCell($ticketdata['date']);
-            $rows = la_TableRow($cells, 'row1');
-            $cells = la_TableCell($ticketAva, '', '', 'valign="top"');
-            $cells .= la_TableCell(zbs_Linkify(nl2br($ticketdata['text'])));
-            $rows .= la_TableRow($cells, 'row2');
+            $cells = wf_TableCell(__('User'));
+            $cells .= wf_TableCell($ticketdata['date']);
+            $rows = wf_TableRow($cells, 'row1');
+            $cells = wf_TableCell($ticketAva, '', '', 'valign="top"');
+            $cells .= wf_TableCell(zbs_Linkify(nl2br($ticketdata['text'])));
+            $rows .= wf_TableRow($cells, 'row2');
         }
         if (!empty($ticketreplies)) {
             foreach ($ticketreplies as $io => $eachreply) {
 
                 if ($eachreply['from'] == 'NULL') {
-                    $ticketAva = la_img($iconzPath . 'admava.png');
+                    $ticketAva = wf_img($iconzPath . 'admava.png');
                     $ticketFrom = __('Support');
                 } else {
-                    $ticketAva = la_img($iconzPath . 'userava.png');
+                    $ticketAva = wf_img($iconzPath . 'userava.png');
                     $ticketFrom = __('User');
                 }
 
-                $cells = la_TableCell($ticketFrom);
-                $cells .= la_TableCell($eachreply['date']);
-                $rows .= la_TableRow($cells, 'row1');
-                $cells = la_TableCell($ticketAva, '', '', 'valign="top"');
-                $cells .= la_TableCell(zbs_Linkify(nl2br($eachreply['text']),'80%'));
-                $rows .= la_TableRow($cells, 'row3');
+                $cells = wf_TableCell($ticketFrom);
+                $cells .= wf_TableCell($eachreply['date']);
+                $rows .= wf_TableRow($cells, 'row1');
+                $cells = wf_TableCell($ticketAva, '', '', 'valign="top"');
+                $cells .= wf_TableCell(zbs_Linkify(nl2br($eachreply['text']),'80%'));
+                $rows .= wf_TableRow($cells, 'row3');
             }
         }
 
-        $result = la_TableBody($rows, '100%', 0);
+        $result = wf_TableBody($rows, '100%', 0);
         return ($result);
     }
 
@@ -281,17 +281,17 @@
         global $user_login;
         $allmymessages = zbs_MessagesGetAllMy($user_login);
 
-        $cells = la_TableCell(__('Date'));
-        $cells .= la_TableCell(__('Message'));
-        $rows = la_TableRow($cells, 'row1');
+        $cells = wf_TableCell(__('Date'));
+        $cells .= wf_TableCell(__('Message'));
+        $rows = wf_TableRow($cells, 'row1');
 
         if (!empty($allmymessages)) {
             foreach ($allmymessages as $io => $eachmessage) {
-                $cells = la_TableCell($eachmessage['date']);
-                $cells .= la_TableCell($eachmessage['text']);
-                $rows .= la_TableRow($cells, 'row2');
+                $cells = wf_TableCell($eachmessage['date']);
+                $cells .= wf_TableCell($eachmessage['text']);
+                $rows .= wf_TableRow($cells, 'row2');
             }
-            $result = la_TableBody($rows, '100%', 0);
+            $result = wf_TableBody($rows, '100%', 0);
             show_window(__('Messages from administration'), $result);
         }
     }

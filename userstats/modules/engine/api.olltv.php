@@ -192,7 +192,7 @@ class OllTvInterface {
      */
     protected function webBoolLed($state) {
         $iconsPath = zbs_GetCurrentSkinPath($this->usConfig) . 'iconz/';
-        $result = ($state) ? la_img($iconsPath . 'anread.gif', __('Yes')) : la_img($iconsPath . 'anunread.gif', __('No'));
+        $result = ($state) ? wf_img($iconsPath . 'anread.gif', __('Yes')) : wf_img($iconsPath . 'anunread.gif', __('No'));
         return($result);
     }
 
@@ -207,27 +207,27 @@ class OllTvInterface {
             $mainTariff = @$this->tariffsData[$this->subscriberData['tariffid']];
 
             if (!empty($mainTariff)) {
-                $cells = la_TableCell(__('Active'));
-                $cells .= la_TableCell(__('Tariff'));
-                $cells .= la_TableCell(__('Primary'));
-                $cells .= la_TableCell(__('Fee'));
-                $rows = la_TableRow($cells, 'row1');
-                $cells = la_TableCell($this->webBoolLed($this->subscriberData['active']));
-                $cells .= la_TableCell($mainTariff['name']);
-                $cells .= la_TableCell($this->webBoolLed($mainTariff['main']));
-                $cells .= la_TableCell($mainTariff['fee'] . ' ' . $this->usConfig['currency']);
-                $rows .= la_TableRow($cells, 'row3');
+                $cells = wf_TableCell(__('Active'));
+                $cells .= wf_TableCell(__('Tariff'));
+                $cells .= wf_TableCell(__('Primary'));
+                $cells .= wf_TableCell(__('Fee'));
+                $rows = wf_TableRow($cells, 'row1');
+                $cells = wf_TableCell($this->webBoolLed($this->subscriberData['active']));
+                $cells .= wf_TableCell($mainTariff['name']);
+                $cells .= wf_TableCell($this->webBoolLed($mainTariff['main']));
+                $cells .= wf_TableCell($mainTariff['fee'] . ' ' . $this->usConfig['currency']);
+                $rows .= wf_TableRow($cells, 'row3');
 
                 $additionalTariff = @$this->tariffsData[$this->subscriberData['addtariffid']];
                 if ($additionalTariff) {
-                    $cells = la_TableCell($this->webBoolLed($this->subscriberData['active']));
-                    $cells .= la_TableCell($additionalTariff['name']);
-                    $cells .= la_TableCell($this->webBoolLed($additionalTariff['main']));
-                    $cells .= la_TableCell($additionalTariff['fee'] . ' ' . $this->usConfig['currency']);
-                    $rows .= la_TableRow($cells, 'row3');
+                    $cells = wf_TableCell($this->webBoolLed($this->subscriberData['active']));
+                    $cells .= wf_TableCell($additionalTariff['name']);
+                    $cells .= wf_TableCell($this->webBoolLed($additionalTariff['main']));
+                    $cells .= wf_TableCell($additionalTariff['fee'] . ' ' . $this->usConfig['currency']);
+                    $rows .= wf_TableRow($cells, 'row3');
                 }
 
-                $result .= la_TableBody($rows, '100%', 0, 'resp-table');
+                $result .= wf_TableBody($rows, '100%', 0, 'resp-table');
             } else {
                 $result = __('No subscriptions yet');
             }
@@ -329,23 +329,23 @@ class OllTvInterface {
      */
     public function renderSubscribeForm() {
         $result = '';
-        $result .= la_tag('b') . __('Attention!') . la_tag('b', true) . ' ';
-        $result .= __('When activated subscription account will be charged fee the equivalent value of the subscription.') . '!' . la_delimiter();
+        $result .= wf_tag('b') . __('Attention!') . wf_tag('b', true) . ' ';
+        $result .= __('When activated subscription account will be charged fee the equivalent value of the subscription.') . '!' . wf_delimiter();
         if (!empty($this->tariffsData)) {
             foreach ($this->tariffsData as $serviceId => $tariff) {
                 $subControl = '';
                 $tariffFee = $tariff['fee'];
 
-                $tariffInfo = la_tag('div', false, 'olltv-col') . la_tag('div', false, 'olltv-bl1');
+                $tariffInfo = wf_tag('div', false, 'olltv-col') . wf_tag('div', false, 'olltv-bl1');
 
-                $tariffInfo .= la_tag('div', false, 'olltv-price');
-                $tariffInfo .= la_tag('b', false, 's') . $tariffFee . la_tag('b', true, 's');
-                $tariffInfo .= la_tag('sup', false) . $this->usConfig['currency'] . ' ' . la_tag('br') . ' ' . __('per month') . la_tag('sup', true);
-                $tariffInfo .= la_tag('div', true, 'olltv-price');
+                $tariffInfo .= wf_tag('div', false, 'olltv-price');
+                $tariffInfo .= wf_tag('b', false, 's') . $tariffFee . wf_tag('b', true, 's');
+                $tariffInfo .= wf_tag('sup', false) . $this->usConfig['currency'] . ' ' . wf_tag('br') . ' ' . __('per month') . wf_tag('sup', true);
+                $tariffInfo .= wf_tag('div', true, 'olltv-price');
 
 
-                $tariffInfo .= la_tag('div', false, 'olltv-yellow s') . $tariff['name'] . la_tag('div', true, 'olltv-yellow s');
-                $tariffInfo .= la_tag('br');
+                $tariffInfo .= wf_tag('div', false, 'olltv-yellow s') . $tariff['name'] . wf_tag('div', true, 'olltv-yellow s');
+                $tariffInfo .= wf_tag('br');
 
                 if (!empty($tariff['chans'])) {
                     $desc = $tariff['chans'];
@@ -355,12 +355,12 @@ class OllTvInterface {
 
                 $descriptionLabel = $desc;
 
-                $tariffInfo .= la_tag('div', false, 'olltv-list') . $descriptionLabel . la_tag('div', true, 'olltv-list');
+                $tariffInfo .= wf_tag('div', false, 'olltv-list') . $descriptionLabel . wf_tag('div', true, 'olltv-list');
 
                 if ($this->checkBalance()) {
 
                     if ($this->isUserSubscribed($tariff['id'])) {
-                        $subControl .= la_Link(self::URL_ME . '&unsubscribe=' . $tariff['id'], __('Unsubscribe'), false, 'olltv-button-u');
+                        $subControl .= wf_Link(self::URL_ME . '&unsubscribe=' . $tariff['id'], __('Unsubscribe'), false, 'olltv-button-u');
                         $tariffInfo .= $subControl;
                     } else {
                         if ($this->checkUserProtection($tariff['id'])) {
@@ -371,7 +371,7 @@ class OllTvInterface {
                                 $controlLabel = __('Subscribe');
                             }
 
-                            $subControl .= la_ConfirmDialog(self::URL_ME . '&subscribe=' . $tariff['id'], $controlLabel, $alertText, 'olltv-button-s', self::URL_ME);
+                            $subControl .= wf_ConfirmDialog(self::URL_ME . '&subscribe=' . $tariff['id'], $controlLabel, $alertText, 'olltv-button-s', self::URL_ME);
                             //hide case of resurrection via additional tariffs
                             if (!$tariff['main'] AND @ !$this->subscriberData['active']) {
                                 $subControl = __('Additional services');
@@ -383,14 +383,14 @@ class OllTvInterface {
                             }
                             $tariffInfo .= $subControl;
                         } else {
-                            $tariffInfo .= la_tag('div', false, 'olltv-list') . __('The amount of money in your account is not sufficient to process subscription') . la_tag('div', true, 'olltv-list');
+                            $tariffInfo .= wf_tag('div', false, 'olltv-list') . __('The amount of money in your account is not sufficient to process subscription') . wf_tag('div', true, 'olltv-list');
                         }
                     }
                 } else {
-                    $tariffInfo .= la_tag('div', false, 'olltv-list') . __('The amount of money in your account is not sufficient to process subscription') . la_tag('div', true, 'olltv-list');
+                    $tariffInfo .= wf_tag('div', false, 'olltv-list') . __('The amount of money in your account is not sufficient to process subscription') . wf_tag('div', true, 'olltv-list');
                 }
 
-                $tariffInfo .= la_tag('div', true, 'olltv-bl1') . la_tag('div', true, 'olltv-col');
+                $tariffInfo .= wf_tag('div', true, 'olltv-bl1') . wf_tag('div', true, 'olltv-col');
 
 
                 $result .= $tariffInfo;
@@ -410,36 +410,36 @@ class OllTvInterface {
         $subDevices = $this->getRemoteData('devdata=' . $this->myLogin);
         $devCount = 0;
         if (!empty($subDevices)) {
-            $cells = la_TableCell(__('ID'));
-            $cells .= la_TableCell(__('Date'));
-            $cells .= la_TableCell(__('Serial'));
-            $cells .= la_TableCell(__('MAC'));
-            $cells .= la_TableCell(__('Code'));
+            $cells = wf_TableCell(__('ID'));
+            $cells .= wf_TableCell(__('Date'));
+            $cells .= wf_TableCell(__('Serial'));
+            $cells .= wf_TableCell(__('MAC'));
+            $cells .= wf_TableCell(__('Code'));
 
-            $rows = la_TableRow($cells, 'row1');
+            $rows = wf_TableRow($cells, 'row1');
 
             foreach ($subDevices as $io => $eachDevice) {
-                $cells = la_TableCell($eachDevice['ID']);
-                $cells .= la_TableCell($eachDevice['date_added']);
-                $cells .= la_TableCell($eachDevice['serial_number']);
-                $cells .= la_TableCell($eachDevice['mac']);
-                $cells .= la_TableCell($eachDevice['binding_code']);
-                $rows .= la_TableRow($cells, 'row5');
+                $cells = wf_TableCell($eachDevice['ID']);
+                $cells .= wf_TableCell($eachDevice['date_added']);
+                $cells .= wf_TableCell($eachDevice['serial_number']);
+                $cells .= wf_TableCell($eachDevice['mac']);
+                $cells .= wf_TableCell($eachDevice['binding_code']);
+                $rows .= wf_TableRow($cells, 'row5');
                 $devCount++;
             }
-            $result .= la_TableBody($rows, '100%', 0, 'resp-table');
-            $result .= la_delimiter();
+            $result .= wf_TableBody($rows, '100%', 0, 'resp-table');
+            $result .= wf_delimiter();
         }
 
 
         if ($this->subscriberData['code']) {
             $containerStyle = 'style="border:1px solid; text-align:center; width:100%; display:block;"';
-            $result .= la_tag('span', false, 'resp-table', $containerStyle);
+            $result .= wf_tag('span', false, 'resp-table', $containerStyle);
             $result .= __('You can activate your new devices by logging on oll.tv with mobile') . ' ';
-            $result .= la_tag('b') . $this->subscriberData['phone'] . la_tag('b', true) . ' ';
-            $result .= __('and code') . ' ' . la_tag('b') . $this->subscriberData['code'] . la_tag('b', true);
-            $result .= la_delimiter(0);
-            $result .= la_tag('span', true);
+            $result .= wf_tag('b') . $this->subscriberData['phone'] . wf_tag('b', true) . ' ';
+            $result .= __('and code') . ' ' . wf_tag('b') . $this->subscriberData['code'] . wf_tag('b', true);
+            $result .= wf_delimiter(0);
+            $result .= wf_tag('span', true);
         }
 
         return($result);

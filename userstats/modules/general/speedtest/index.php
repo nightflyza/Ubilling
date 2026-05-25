@@ -92,7 +92,7 @@ if ($us_config['SP_ENABLED']) {
             }
 
             $this->url = $this->usConf['SP_URL'];
-            $this->notice = la_delimiter() . __('The test may not be accurate and is dependent on the type and configuration of client software. The results of tests can influence the type of browser settings firewall, flash player, active anti-virus scanning of HTTP traffic function, active downloads, etc');
+            $this->notice = wf_delimiter() . __('The test may not be accurate and is dependent on the type and configuration of client software. The results of tests can influence the type of browser settings firewall, flash player, active anti-virus scanning of HTTP traffic function, active downloads, etc');
         }
 
         /**
@@ -103,10 +103,10 @@ if ($us_config['SP_ENABLED']) {
          * @return string
          */
         protected function getContainer($data) {
-            $result = la_tag('div', false, '', 'style="clear: both;"') . la_tag('div', true);
-            $result.=la_tag('center', false);
+            $result = wf_tag('div', false, '', 'style="clear: both;"') . wf_tag('div', true);
+            $result.=wf_tag('center', false);
             $result.=$data;
-            $result.=la_tag('center', true);
+            $result.=wf_tag('center', true);
             $result.=' ' . $this->notice;
             return ($result);
         }
@@ -143,7 +143,7 @@ if ($us_config['SP_ENABLED']) {
          */
         protected function getIframe() {
             $result = '';
-            $result.=la_tag('iframe', false, '', 'width="'.$this->width.'" height="'.$this->height.'" frameborder="0" src="' . $this->url . '"') . la_tag('iframe', true);
+            $result.=wf_tag('iframe', false, '', 'width="'.$this->width.'" height="'.$this->height.'" frameborder="0" src="' . $this->url . '"') . wf_tag('iframe', true);
             return ($result);
         }
 

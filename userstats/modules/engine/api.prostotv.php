@@ -218,7 +218,7 @@ class PTVInterface {
      */
     protected function webBoolLed($state) {
         $iconsPath = zbs_GetCurrentSkinPath($this->usConfig) . 'iconz/';
-        $result = ($state) ? la_img($iconsPath . 'anread.gif') : la_img($iconsPath . 'anunread.gif');
+        $result = ($state) ? wf_img($iconsPath . 'anread.gif') : wf_img($iconsPath . 'anunread.gif');
         return($result);
     }
 
@@ -232,19 +232,19 @@ class PTVInterface {
         if (!empty($this->subscriberData)) {
             $mainTariff = @$this->tariffsData[$this->subscriberData['maintariff']];
 
-            $cells = la_TableCell(__('Active'));
-            $cells .= la_TableCell(__('Tariff'));
-            $cells .= la_TableCell(__('Primary'));
-            $cells .= la_TableCell(__('Fee'));
-            $rows = la_TableRow($cells, 'row1');
+            $cells = wf_TableCell(__('Active'));
+            $cells .= wf_TableCell(__('Tariff'));
+            $cells .= wf_TableCell(__('Primary'));
+            $cells .= wf_TableCell(__('Fee'));
+            $rows = wf_TableRow($cells, 'row1');
             if (!empty($mainTariff)) {
-                $cells = la_TableCell($this->webBoolLed($this->subscriberData['active']));
-                $cells .= la_TableCell($mainTariff['name']);
-                $cells .= la_TableCell($this->webBoolLed($mainTariff['main']));
-                $cells .= la_TableCell($mainTariff['fee'] . ' ' . $this->usConfig['currency']);
-                $rows .= la_TableRow($cells, 'row1');
+                $cells = wf_TableCell($this->webBoolLed($this->subscriberData['active']));
+                $cells .= wf_TableCell($mainTariff['name']);
+                $cells .= wf_TableCell($this->webBoolLed($mainTariff['main']));
+                $cells .= wf_TableCell($mainTariff['fee'] . ' ' . $this->usConfig['currency']);
+                $rows .= wf_TableRow($cells, 'row1');
             }
-            $result .= la_TableBody($rows, '100%', 0, 'resp-table');
+            $result .= wf_TableBody($rows, '100%', 0, 'resp-table');
         } else {
             $result = __('No subscriptions yet');
         }
@@ -321,23 +321,23 @@ class PTVInterface {
     public function renderSubscribeForm() {
         $result = '';
         $result = '';
-        $result .= la_tag('b') . __('Attention!') . la_tag('b', true) . ' ';
-        $result .= __('When activated subscription account will be charged fee the equivalent value of the subscription.') . la_delimiter();
+        $result .= wf_tag('b') . __('Attention!') . wf_tag('b', true) . ' ';
+        $result .= __('When activated subscription account will be charged fee the equivalent value of the subscription.') . wf_delimiter();
         if (!empty($this->tariffsData)) {
             foreach ($this->tariffsData as $serviceId => $tariff) {
 
                 $tariffFee = $tariff['fee'];
 
-                $tariffInfo = la_tag('div', false, 'trinity-col') . la_tag('div', false, 'trinity-bl1');
+                $tariffInfo = wf_tag('div', false, 'trinity-col') . wf_tag('div', false, 'trinity-bl1');
 
-                $tariffInfo .= la_tag('div', false, 'trinity-price');
-                $tariffInfo .= la_tag('b', false, 's') . $tariffFee . la_tag('b', true, 's');
-                $tariffInfo .= la_tag('sup', false) . $this->usConfig['currency'] . ' ' . la_tag('br') . ' ' . __('per month') . la_tag('sup', true);
-                $tariffInfo .= la_tag('div', true, 'trinity-price');
+                $tariffInfo .= wf_tag('div', false, 'trinity-price');
+                $tariffInfo .= wf_tag('b', false, 's') . $tariffFee . wf_tag('b', true, 's');
+                $tariffInfo .= wf_tag('sup', false) . $this->usConfig['currency'] . ' ' . wf_tag('br') . ' ' . __('per month') . wf_tag('sup', true);
+                $tariffInfo .= wf_tag('div', true, 'trinity-price');
 
 
-                $tariffInfo .= la_tag('div', false, 'trinity-green s') . $tariff['name'] . la_tag('div', true, 'trinity-green s');
-                $tariffInfo .= la_tag('br');
+                $tariffInfo .= wf_tag('div', false, 'trinity-green s') . $tariff['name'] . wf_tag('div', true, 'trinity-green s');
+                $tariffInfo .= wf_tag('br');
 
                 if (!empty($tariff['chans'])) {
                     $desc = $tariff['chans'];
@@ -347,25 +347,25 @@ class PTVInterface {
 
                 $descriptionLabel = $desc;
 
-                $tariffInfo .= la_tag('div', false, 'trinity-list') . $descriptionLabel . la_tag('div', true, 'trinity-list');
+                $tariffInfo .= wf_tag('div', false, 'trinity-list') . $descriptionLabel . wf_tag('div', true, 'trinity-list');
 
                 if ($this->checkBalance()) {
 
                     if ($this->isUserSubscribed($tariff['serviceid'])) {
-                        $tariffInfo .= la_Link(self::URL_ME . '&unsubscribe=' . $tariff['serviceid'], __('Unsubscribe'), false, 'trinity-button-u');
+                        $tariffInfo .= wf_Link(self::URL_ME . '&unsubscribe=' . $tariff['serviceid'], __('Unsubscribe'), false, 'trinity-button-u');
                     } else {
                         if ($this->checkUserProtection($tariff['serviceid'])) {
                             $alertText = __('I have thought well and understand that I activate this service for myself not by chance and completely meaningfully and I am aware of all the consequences.');
-                            $tariffInfo .= la_ConfirmDialog(self::URL_ME . '&subscribe=' . $tariff['serviceid'], __('Subscribe'), $alertText, 'trinity-button-s', self::URL_ME);
+                            $tariffInfo .= wf_ConfirmDialog(self::URL_ME . '&subscribe=' . $tariff['serviceid'], __('Subscribe'), $alertText, 'trinity-button-s', self::URL_ME);
                         } else {
-                            $tariffInfo .= la_tag('div', false, 'trinity-list') . __('The amount of money in your account is not sufficient to process subscription') . la_tag('div', true, 'trinity-list');
+                            $tariffInfo .= wf_tag('div', false, 'trinity-list') . __('The amount of money in your account is not sufficient to process subscription') . wf_tag('div', true, 'trinity-list');
                         }
                     }
                 } else {
-                    $tariffInfo .= la_tag('div', false, 'trinity-list') . __('The amount of money in your account is not sufficient to process subscription') . la_tag('div', true, 'trinity-list');
+                    $tariffInfo .= wf_tag('div', false, 'trinity-list') . __('The amount of money in your account is not sufficient to process subscription') . wf_tag('div', true, 'trinity-list');
                 }
 
-                $tariffInfo .= la_tag('div', true, 'trinity-bl1') . la_tag('div', true, 'trinity-col');
+                $tariffInfo .= wf_tag('div', true, 'trinity-bl1') . wf_tag('div', true, 'trinity-col');
 
 
                 $result .= $tariffInfo;
@@ -387,24 +387,24 @@ class PTVInterface {
             $subscriberId = $subData['id'];
             $userLogin = $this->myLogin;
 
-            $cells = la_TableCell(__('Login'));
-            $cells .= la_TableCell(__('Password'));
-            $cells .= la_TableCell(__('Actions'));
-            $rows = la_TableRow($cells, 'row1');
+            $cells = wf_TableCell(__('Login'));
+            $cells .= wf_TableCell(__('Password'));
+            $cells .= wf_TableCell(__('Actions'));
+            $rows = wf_TableRow($cells, 'row1');
             foreach ($subData['devices'] as $io => $eachDevice) {
-                $cells = la_TableCell($eachDevice['login']);
-                $cells .= la_TableCell($eachDevice['password']);
-                $devDelForm = la_ConfirmDialog(self::URL_ME . '&deldev=' . $eachDevice['id'], __('Delete'), __('Are you sure') . '?', '', self::URL_ME);
-                $cells .= la_TableCell($devDelForm);
-                $rows .= la_TableRow($cells, 'row5');
+                $cells = wf_TableCell($eachDevice['login']);
+                $cells .= wf_TableCell($eachDevice['password']);
+                $devDelForm = wf_ConfirmDialog(self::URL_ME . '&deldev=' . $eachDevice['id'], __('Delete'), __('Are you sure') . '?', '', self::URL_ME);
+                $cells .= wf_TableCell($devDelForm);
+                $rows .= wf_TableRow($cells, 'row5');
                 $devCount++;
             }
-            $result .= la_TableBody($rows, '100%', 0, 'resp-table');
+            $result .= wf_TableBody($rows, '100%', 0, 'resp-table');
         }
 
         if ($this->subscriberId) {
             if ($devCount < $this->maxDev) {
-                $result .= la_Link(self::URL_ME . '&newdev=true', __('Assign device'), false, 'trinity-button');
+                $result .= wf_Link(self::URL_ME . '&newdev=true', __('Assign device'), false, 'trinity-button');
             } else {
                 $result .= __('Devices count limit is exceeded');
             }
@@ -422,24 +422,24 @@ class PTVInterface {
         $subData = $this->fullData;
         $plCount = 0;
         if (!empty($subData['playlists'])) {
-            $cells = la_TableCell(__('Date'));
-            $cells .= la_TableCell(__('Playlist'));
-            $cells .= la_TableCell(__('Actions'));
-            $rows = la_TableRow($cells, 'row1');
+            $cells = wf_TableCell(__('Date'));
+            $cells .= wf_TableCell(__('Playlist'));
+            $cells .= wf_TableCell(__('Actions'));
+            $rows = wf_TableRow($cells, 'row1');
             foreach ($subData['playlists'] as $io => $eachPlaylist) {
-                $cells = la_TableCell($eachPlaylist['created']);
-                $cells .= la_TableCell(la_Link($eachPlaylist['url'], __('Download')));
-                $plDevForm = la_ConfirmDialog(self::URL_ME . '&delpl=' . $eachPlaylist['id'], __('Delete'), __('Are you sure') . '?', '', self::URL_ME);
-                $cells .= la_TableCell($plDevForm);
-                $rows .= la_TableRow($cells, 'row3');
+                $cells = wf_TableCell($eachPlaylist['created']);
+                $cells .= wf_TableCell(wf_Link($eachPlaylist['url'], __('Download')));
+                $plDevForm = wf_ConfirmDialog(self::URL_ME . '&delpl=' . $eachPlaylist['id'], __('Delete'), __('Are you sure') . '?', '', self::URL_ME);
+                $cells .= wf_TableCell($plDevForm);
+                $rows .= wf_TableRow($cells, 'row3');
                 $plCount++;
             }
-            $result .= la_TableBody($rows, '100%', 0, 'resp-table');
+            $result .= wf_TableBody($rows, '100%', 0, 'resp-table');
         }
 
         if ($this->subscriberId) {
             if ($plCount < $this->maxPl) {
-                $result .= la_Link(self::URL_ME . '&newpl=true', __('Add playlist'), false, 'trinity-button');
+                $result .= wf_Link(self::URL_ME . '&newpl=true', __('Add playlist'), false, 'trinity-button');
             } else {
                 $result .= __('Devices count limit is exceeded');
             }

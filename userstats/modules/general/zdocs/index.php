@@ -19,7 +19,7 @@ if ($us_config['DOCX_SUPPORT']) {
     }
 
 
-    if (la_CheckGet(array('print'))) {
+    if (wf_CheckGet(array('print'))) {
         if (!@$us_config['DOCX_DENY_SELFGEN']) {
             $templateId = vf($_GET['print'], 3);
             if (!empty($templateId)) {
@@ -30,7 +30,7 @@ if ($us_config['DOCX_SUPPORT']) {
                         //template is ok
                         show_window(__('Document creation'), $documents->customDocumentFieldsForm());
                         //try to parse template
-                        if (la_CheckPost(array('customfields'))) {
+                        if (wf_CheckPost(array('customfields'))) {
 
                             $templatePath = $documents->tEMPLATES_PATH;
                             $documentsSavePath = $documents->dOCUMENTS_PATH;
@@ -76,7 +76,7 @@ if ($us_config['DOCX_SUPPORT']) {
     //show docs list
     show_window(__('Previous documents'), $documents->renderUserDocuments());
     //document downloading subroutine
-    if (la_CheckGet(array('documentdownload'))) {
+    if (wf_CheckGet(array('documentdownload'))) {
         $documents->downloadUserDocument($_GET['documentdownload']);
     }
 } else {

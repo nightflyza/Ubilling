@@ -260,20 +260,20 @@ class UsProfileDocuments {
      */
     public function renderTemplatesList() {
         $cells = '';
-        $cells.= la_TableCell(__('Names'));
-        $rows = la_TableRow($cells, 'row1');
+        $cells.= wf_TableCell(__('Names'));
+        $rows = wf_TableRow($cells, 'row1');
 
         if (!empty($this->templates)) {
             foreach ($this->templates as $io => $each) {
                 if ($each['public'] == 1) {
                     $cells = '';
-                    $actlinks = la_Link('?module=zdocs&print=' . $each['id'], $each['name'], false, '');
-                    $cells.= la_TableCell($actlinks);
-                    $rows.= la_TableRow($cells, 'row3');
+                    $actlinks = wf_Link('?module=zdocs&print=' . $each['id'], $each['name'], false, '');
+                    $cells.= wf_TableCell($actlinks);
+                    $rows.= wf_TableRow($cells, 'row3');
                 }
             }
         }
-        $result = la_TableBody($rows, '100%', '0', '');
+        $result = wf_TableBody($rows, '100%', '0', '');
         return ($result);
     }
 
@@ -331,23 +331,23 @@ class UsProfileDocuments {
      * @return string
      */
     public function renderUserDocuments() {
-        $cells = la_TableCell(__('ID'));
-        $cells.= la_TableCell(__('Date'));
-        $cells.= la_TableCell(__('Document name'));
-        $rows = la_TableRow($cells, 'row1');
+        $cells = wf_TableCell(__('ID'));
+        $cells.= wf_TableCell(__('Date'));
+        $cells.= wf_TableCell(__('Document name'));
+        $rows = wf_TableRow($cells, 'row1');
 
         if (!empty($this->userDocuments)) {
             foreach ($this->userDocuments as $io => $each) {
-                $cells = la_TableCell($each['id']);
-                $cells.= la_TableCell($each['date']);
+                $cells = wf_TableCell($each['id']);
+                $cells.= wf_TableCell($each['date']);
                 @$templateName = $this->templates[$each['templateid']]['name'];
-                $downloadLink = la_Link('?module=zdocs&documentdownload=' . $each['id'], $templateName, false, '');
-                $cells.= la_TableCell($downloadLink);
-                $rows.= la_TableRow($cells, 'row3');
+                $downloadLink = wf_Link('?module=zdocs&documentdownload=' . $each['id'], $templateName, false, '');
+                $cells.= wf_TableCell($downloadLink);
+                $rows.= wf_TableRow($cells, 'row3');
             }
         }
 
-        $result = la_TableBody($rows, '100%', '0', '');
+        $result = wf_TableBody($rows, '100%', '0', '');
         return ($result);
     }
 
@@ -369,16 +369,16 @@ class UsProfileDocuments {
             }
         }
 
-        $inputs = la_DatePickerPreset('customdate', date("Y-m-d"));
-        $inputs.= la_tag('br');
-        $inputs.= la_TextInput('customrealname', __('Real Name'), @$this->userData[$this->userLogin]['REALNAME'], true, '20');
-        $inputs.= la_TextInput('customphone', __('Phone'), @$this->userData[$this->userLogin]['PHONE'], true, '10');
-        $inputs.= la_Selector('customservice', $availServices, __('Service'), '', 'true');
-        $inputs.= la_TextInput('customnotes', __('Notes'), '', true, '20');
-        $inputs.= la_TextInput('customsum', __('Sum'), @$this->userData[$this->userLogin]['TARIFFPRICE'], true, '10');
-        $inputs.= la_HiddenInput('customfields', 'true');
-        $inputs.= la_Submit(__('Create'));
-        $result = la_Form('', 'POST', $inputs, 'glamour');
+        $inputs = wf_DatePickerPreset('customdate', date("Y-m-d"));
+        $inputs.= wf_tag('br');
+        $inputs.= wf_TextInput('customrealname', __('Real Name'), @$this->userData[$this->userLogin]['REALNAME'], true, '20');
+        $inputs.= wf_TextInput('customphone', __('Phone'), @$this->userData[$this->userLogin]['PHONE'], true, '10');
+        $inputs.= wf_Selector('customservice', $availServices, __('Service'), '', 'true');
+        $inputs.= wf_TextInput('customnotes', __('Notes'), '', true, '20');
+        $inputs.= wf_TextInput('customsum', __('Sum'), @$this->userData[$this->userLogin]['TARIFFPRICE'], true, '10');
+        $inputs.= wf_HiddenInput('customfields', 'true');
+        $inputs.= wf_Submit(__('Create'));
+        $result = wf_Form('', 'POST', $inputs, 'glamour');
         return ($result);
     }
 
@@ -389,7 +389,7 @@ class UsProfileDocuments {
      */
     public function setCustomFields() {
         $pdvPercent = $this->altcfg['DOCX_NDS'];
-        if (la_CheckPost(array('customfields'))) {
+        if (wf_CheckPost(array('customfields'))) {
             $morph = new UBMorph();
             @$this->customFields['CUSTDATE'] = $_POST['customdate'];
             @$this->customFields['CUSTREALNAME'] = $_POST['customrealname'];

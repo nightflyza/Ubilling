@@ -88,13 +88,13 @@ function zbs_AnnouncementsShow() {
     if (!empty($all)) {
         foreach ($all as $io => $each) {
             if (empty($each['annid'])) {
-                $readControl = la_Link('?module=announcements&anmarkasread=' . $each['id'], la_img($iconsPath . 'anunread.gif', __('Mark as read'))) . ' ';
-                $readButton = la_Link('?module=announcements&anmarkasread=' . $each['id'], __('Mark as read'), false, 'anunreadbutton');
+                $readControl = wf_Link('?module=announcements&anmarkasread=' . $each['id'], wf_img($iconsPath . 'anunread.gif', __('Mark as read'))) . ' ';
+                $readButton = wf_Link('?module=announcements&anmarkasread=' . $each['id'], __('Mark as read'), false, 'anunreadbutton');
             } else {
-                $readControl = la_Link('?module=announcements&anmarkasunread=' . $each['id'], la_img($iconsPath . 'anread.gif', __('Mark as unread'))) . ' ';
-                $readButton = la_Link('?module=announcements&anmarkasunread=' . $each['id'], __('Mark as unread'), false, 'anreadbutton');
+                $readControl = wf_Link('?module=announcements&anmarkasunread=' . $each['id'], wf_img($iconsPath . 'anread.gif', __('Mark as unread'))) . ' ';
+                $readButton = wf_Link('?module=announcements&anmarkasunread=' . $each['id'], __('Mark as unread'), false, 'anreadbutton');
             }
-            $result .= la_tag('h3', false, 'row1', '') . $readControl . $each['title'] . '&nbsp;' . la_tag('h3', true);
+            $result .= wf_tag('h3', false, 'row1', '') . $readControl . $each['title'] . '&nbsp;' . wf_tag('h3', true);
 
             if ($each['type'] == 'text') {
                 $eachtext = strip_tags($each['text']);
@@ -106,10 +106,10 @@ function zbs_AnnouncementsShow() {
             }
 
             if (@$us_config['AN_BUTTONS']) {
-                $result .= la_tag('br') . $readButton;
+                $result .= wf_tag('br') . $readButton;
             }
 
-            $result .= la_delimiter();
+            $result .= wf_delimiter();
         }
     } else {
         show_window(__('Sorry'), __('There are not any announcements.'));

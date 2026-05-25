@@ -12,7 +12,7 @@ if (@$us_config['MG_ENABLED']) {
         $megogo->setLogin($user_login);
 
 //try subscribe service
-        if (la_CheckGet(array('subscribe'))) {
+        if (wf_CheckGet(array('subscribe'))) {
             $subscribeResult = $megogo->pushSubscribeRequest($_GET['subscribe']);
             if (!$subscribeResult) {
                 rcms_redirect('?module=megogo');
@@ -21,7 +21,7 @@ if (@$us_config['MG_ENABLED']) {
             }
         }
 //try unsubscribe service 
-        if (la_CheckGet(array('unsubscribe'))) {
+        if (wf_CheckGet(array('unsubscribe'))) {
             $unsubscribeResult = $megogo->pushUnsubscribeRequest($_GET['unsubscribe']);
             if (!$unsubscribeResult) {
                 rcms_redirect('?module=megogo');
@@ -35,7 +35,7 @@ if (@$us_config['MG_ENABLED']) {
             show_window(__('Your subscriptions'), $megogo->renderSubscribtions());
             show_window(__('Authorization data'), $megogo->renderCredentials());
             // following mechanics is deprecated and will be deleted in future releases.
-            //show_window('', la_Link($megogo->getAuthButtonURL(), __('Go to MEGOGO'), true, 'mgviewcontrol'));
+            //show_window('', wf_Link($megogo->getAuthButtonURL(), __('Go to MEGOGO'), true, 'mgviewcontrol'));
         }
 
 
@@ -45,7 +45,7 @@ if (@$us_config['MG_ENABLED']) {
         //user guide link
         if (isset($us_config['MG_GUIDE_URL'])) {
             if (!empty($us_config['MG_GUIDE_URL'])) {
-                show_window('', la_Link($us_config['MG_GUIDE_URL'], __('Instructions for subscription'), false, 'mgguidecontrol'));
+                show_window('', wf_Link($us_config['MG_GUIDE_URL'], __('Instructions for subscription'), false, 'mgguidecontrol'));
             }
         }
     } else {

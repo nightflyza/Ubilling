@@ -109,14 +109,14 @@ class Polls {
                 $inputs = '';
                 $poll_data = $this->getPollData($avaible_poll);
                 foreach ($option_data[$avaible_poll] as $id => $option) {
-                    $inputs.= la_RadioInput('vote', $option, $id, true);
+                    $inputs.= wf_RadioInput('vote', $option, $id, true);
                 }
-                $inputs.= la_HiddenInput('poll_id', $avaible_poll);
-                $inputs.= la_tag('br');
-                $inputs.= la_Submit('Vote');
-                $form = la_Form("", "POST", $inputs, 'glamour');
+                $inputs.= wf_HiddenInput('poll_id', $avaible_poll);
+                $inputs.= wf_tag('br');
+                $inputs.= wf_Submit('Vote');
+                $form = wf_Form("", "POST", $inputs, 'glamour');
 
-                $result = la_modalOpened($poll_data['title'], $form);
+                $result = wf_modalOpened($poll_data['title'], $form);
             }
         }
         return ($result);
@@ -151,23 +151,23 @@ class Polls {
         $result = '';
         $votes_data = $this->loadUserVotes();
         if ($votes_data) {
-            $cells = la_TableCell(__('Title'));
-            $cells.= la_TableCell(__('Start date poll'));
-            $cells.= la_TableCell(__('End date poll'));
-            $cells.= la_TableCell(__('Answer'));
-            $cells.= la_TableCell(__('Voting date'));
-            $rows = la_TableRow($cells, 'row1');
+            $cells = wf_TableCell(__('Title'));
+            $cells.= wf_TableCell(__('Start date poll'));
+            $cells.= wf_TableCell(__('End date poll'));
+            $cells.= wf_TableCell(__('Answer'));
+            $cells.= wf_TableCell(__('Voting date'));
+            $rows = wf_TableRow($cells, 'row1');
 
             foreach ($votes_data as $value) {
-                $cells = la_TableCell($value['title']);
-                $cells.= la_TableCell($value['start_date']);
-                $cells.= la_TableCell($value['end_date']);
-                $cells.= la_TableCell($value['text']);
-                $cells.= la_TableCell($value['date']);
-                $rows.= la_TableRow($cells, 'row2');
+                $cells = wf_TableCell($value['title']);
+                $cells.= wf_TableCell($value['start_date']);
+                $cells.= wf_TableCell($value['end_date']);
+                $cells.= wf_TableCell($value['text']);
+                $cells.= wf_TableCell($value['date']);
+                $rows.= wf_TableRow($cells, 'row2');
             }
 
-            $result = la_TableBody($rows, '100%', '');
+            $result = wf_TableBody($rows, '100%', '');
         } else {
             $result = __('You have not yet responded to polls');
         }

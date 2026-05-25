@@ -156,12 +156,12 @@ if ($us_config['ADSERVICE_ENABLED']) {
                 }
             }
         }
-        $selector = la_Selector('tagid', $selectData, '', '', false);
-        $selector.= la_delimiter();
-        $selector.= la_CheckInput('agree', __('I am sure that I am an adult and have read everything that is written above'), false, false);
-        $selector.= la_delimiter();
-        $selector.= la_Submit(__('Order'));
-        $form = la_Form('', 'POST', $selector);
+        $selector = wf_Selector('tagid', $selectData, '', '', false);
+        $selector.= wf_delimiter();
+        $selector.= wf_CheckInput('agree', __('I am sure that I am an adult and have read everything that is written above'), false, false);
+        $selector.= wf_delimiter();
+        $selector.= wf_Submit(__('Order'));
+        $form = wf_Form('', 'POST', $selector);
         return($form);
     }
 
@@ -173,20 +173,20 @@ if ($us_config['ADSERVICE_ENABLED']) {
      * @return string
      */
     function AdServicesList($serviceCost, $currency) {
-        $cell = la_TableCell(__('Aditional service name'));
-        $cell.= la_TableCell(__('Cost'));
-        $rows = la_TableRow($cell, 'row1');
+        $cell = wf_TableCell(__('Aditional service name'));
+        $cell.= wf_TableCell(__('Cost'));
+        $rows = wf_TableRow($cell, 'row1');
         if (!empty($serviceCost)) {
             foreach ($serviceCost as $allCost) {
                 $data = explode(":", $allCost);
                 $name = trim($data[0]);
                 $cost = trim($data[1]);
-                $cell = la_TableCell($name);
-                $cell.= la_TableCell($cost . " " . $currency);
-                $rows.= la_TableRow($cell, 'row3');
+                $cell = wf_TableCell($name);
+                $cell.= wf_TableCell($cost . " " . $currency);
+                $rows.= wf_TableRow($cell, 'row3');
             }
         }
-        $result = la_TableBody($rows, '100%', 0, '');
+        $result = wf_TableBody($rows, '100%', 0, '');
         return($result);
     }
 
@@ -245,9 +245,9 @@ if ($us_config['ADSERVICE_ENABLED']) {
         $imagesPath = $skinPath . 'images/';
         $allSheduled = GetAllSheduled($availableServices, $login);
         $allActivated = GetAllActivated($availableServices, $login);
-        $cells = la_TableCell(__('Service name'));
-        $cells.= la_TableCell(__('Status'));
-        $rows = la_TableRow($cells, 'row1');
+        $cells = wf_TableCell(__('Service name'));
+        $cells.= wf_TableCell(__('Status'));
+        $rows = wf_TableRow($cells, 'row1');
         if (!empty($availableServices)) {
             foreach ($availableServices as $eachService) {
                 $each = explode(":", $eachService);
@@ -256,7 +256,7 @@ if ($us_config['ADSERVICE_ENABLED']) {
                 if (!empty($allSheduled)) {
                     foreach ($allSheduled as $eachSheduled) {
                         if ($eachSheduled['param'] == $tagid) {
-                            $cells = la_TableCell($name);
+                            $cells = wf_TableCell($name);
                             $action = '';
                             if ($eachSheduled['action'] == 'tagadd') {
                                 $action = __('activated');
@@ -264,8 +264,8 @@ if ($us_config['ADSERVICE_ENABLED']) {
                             if ($eachSheduled['action'] == 'tagdel') {
                                 $action = __('deactivated');
                             }
-                            $cells.= la_TableCell(__('Sheduled') . ' ' . __($action) . ' ' . la_JSAlert('?module=advservice&delete_shedule=' . $eachSheduled['param'], la_img($imagesPath.'delete.gif'), __('You realy want to abort service activation') . '?'));
-                            $rows.= la_TableRow($cells, 'row3');
+                            $cells.= wf_TableCell(__('Sheduled') . ' ' . __($action) . ' ' . wf_JSAlert('?module=advservice&delete_shedule=' . $eachSheduled['param'], wf_img($imagesPath.'delete.gif'), __('You realy want to abort service activation') . '?'));
+                            $rows.= wf_TableRow($cells, 'row3');
                         }
                     }
                 }
@@ -273,16 +273,16 @@ if ($us_config['ADSERVICE_ENABLED']) {
                 if (!empty($allActivated)) {
                     foreach ($allActivated as $eachActivated) {
                         if ($eachActivated['tagid'] == $tagid) {
-                            $cells = la_TableCell($name);
-                            $cells.= la_TableCell(__('Active') . la_JSAlert('?module=advservice&delete_service=' . $eachActivated['tagid'], la_img($imagesPath.'delete.gif'), __('You realy want to deactivate service') . '?'));
-                            $rows.=la_TableRow($cells, 'row3');
+                            $cells = wf_TableCell($name);
+                            $cells.= wf_TableCell(__('Active') . wf_JSAlert('?module=advservice&delete_service=' . $eachActivated['tagid'], wf_img($imagesPath.'delete.gif'), __('You realy want to deactivate service') . '?'));
+                            $rows.=wf_TableRow($cells, 'row3');
                         }
                     }
                 }
             }
         }
 
-        $table = la_TableBody($rows, '100%', 0, '');
+        $table = wf_TableBody($rows, '100%', 0, '');
         return($table);
     }
 
@@ -361,12 +361,12 @@ if ($us_config['ADSERVICE_ENABLED']) {
         }
 
         if (!empty($url)) {
-            $show_pdf = la_tag('iframe src="' . $url . '" width="600px" height="800px"');
-            $show_pdf.= la_tag('iframe', true);
-            $inputs = la_CheckInput('custom_agreement', __('I have read text above and agree with terms of use'), FALSE, FALSE);
-            $inputs.= la_delimiter();
-            $inputs.= la_Submit(__('Order'));
-            $show_pdf.= la_Form("", "POST", $inputs);
+            $show_pdf = wf_tag('iframe src="' . $url . '" width="600px" height="800px"');
+            $show_pdf.= wf_tag('iframe', true);
+            $inputs = wf_CheckInput('custom_agreement', __('I have read text above and agree with terms of use'), FALSE, FALSE);
+            $inputs.= wf_delimiter();
+            $inputs.= wf_Submit(__('Order'));
+            $show_pdf.= wf_Form("", "POST", $inputs);
             show_window(__("You must accept license agreement"), $show_pdf);
         }
         if (isset($_POST['custom_agreement'])) {

@@ -240,23 +240,23 @@ if (@$us_config['VISOR_ENABLED']) {
 
             if ($this->chanPreviewContainer == 'mjpeg') {
                 if ($fullUrl) {
-                    $result .= la_Link($fullUrl, la_img_sized($streamUrl, '', $width, $height));
+                    $result .= wf_Link($fullUrl, wf_img_sized($streamUrl, '', $width, $height));
                 } else {
-                    $result .= la_img_sized($streamUrl, '', $width, $height);
+                    $result .= wf_img_sized($streamUrl, '', $width, $height);
                 }
             }
 
             if ($this->chanPreviewContainer == 'hls') {
                 $autoPlayMode = ($autoPlay) ? 'true' : 'false';
                  $lang = 'lang: "' . $this->lang . '", ';
-                $uniqId = 'hlsplayer' . la_InputId();
-                $result .= la_tag('script', false, '', 'src="modules/jsc/playerjs/w7.js"') . la_tag('script', true);
-                $result .= la_tag('div', false, '', 'id="' . $uniqId . '" style="width:' . $width . '; height:' . $height . ';"') . la_tag('div', true);
-                $result .= la_tag('script', false);
+                $uniqId = 'hlsplayer' . wf_InputId();
+                $result .= wf_tag('script', false, '', 'src="modules/jsc/playerjs/w7.js"') . wf_tag('script', true);
+                $result .= wf_tag('div', false, '', 'id="' . $uniqId . '" style="width:' . $width . '; height:' . $height . ';"') . wf_tag('div', true);
+                $result .= wf_tag('script', false);
                 $result .= 'var player = new Playerjs({id:"' . $uniqId . '", ' . $lang . ' file:"' . $streamUrl . '", autoplay:' . $autoPlayMode . '});';
-                $result .= la_tag('script', true);
+                $result .= wf_tag('script', true);
                 if ($fullUrl) {
-                    $result .= la_Link($fullUrl, __('View'), false, '');
+                    $result .= wf_Link($fullUrl, __('View'), false, '');
                 }
             }
             return ($result);
@@ -276,7 +276,7 @@ if (@$us_config['VISOR_ENABLED']) {
             $channelFilter = (!empty($channelGuid)) ? $channelGuid : '';
 
             if ($channelFilter) {
-                $result .= la_Link('?module=visor&previewchannels=true', __('Back'), true, 'anunreadbutton');
+                $result .= wf_Link('?module=visor&previewchannels=true', __('Back'), true, 'anunreadbutton');
             }
 
             if (@$this->userstatsCfg['API_URL'] and @$this->userstatsCfg['API_KEY']) {
@@ -313,9 +313,9 @@ if (@$us_config['VISOR_ENABLED']) {
                                             if (!$channelFilter) {
                                                 $fullQualUrl = '?module=visor&previewchannels=true&fullpreview=' . $eachChanGuid;
                                             }
-                                            $result .= la_tag('div', false, '', 'style="float:left; width:' . $previewWidth . '; height:' . $previewHeight . '; margin:5px; overflow:hidden;"');
+                                            $result .= wf_tag('div', false, '', 'style="float:left; width:' . $previewWidth . '; height:' . $previewHeight . '; margin:5px; overflow:hidden;"');
                                             $result .= $this->renderChannelPlayer($eachUrl, $previewWidth, $previewHeight, true, $fullQualUrl);
-                                            $result .= la_tag('div', true);
+                                            $result .= wf_tag('div', true);
                                         }
                                     }
                                 }
@@ -364,57 +364,57 @@ if (@$us_config['VISOR_ENABLED']) {
 
                         if ($this->myUserData['chargecams']) {
                             $primaryAddress = (isset($this->allAddress[$this->myLogin])) ? $this->allAddress[$this->myLogin] : $this->myLogin;
-                            $result .= __('Money for cameras will be charged from your primary account') . ' ' . la_Link('index.php', $primaryAddress) . ' ';
+                            $result .= __('Money for cameras will be charged from your primary account') . ' ' . wf_Link('index.php', $primaryAddress) . ' ';
                             $result .= __('if no funds for further cameras functioning') . '. ';
                             $result .= __('Your primary account balance now is') . ' ' . $this->allUsers[$this->myLogin]['Cash'] . ' ';
                             if ($this->userstatsCfg['OPENPAYZ_ENABLED']) {
                                 $result .= $currency . '. ' . __('You can recharge it with following Payment ID') . ': ' . $allPayIds[$this->myLogin];
                             }
-                            $result .= la_delimiter();
+                            $result .= wf_delimiter();
                         }
-                        $result .= la_tag('h3') . __('Your cameras') . la_tag('h3', true);
-                        $cells = la_TableCell(__('Address'));
-                        $cells .= la_TableCell(__('Payment ID'));
-                        $cells .= la_TableCell(__('Balance'));
-                        $cells .= la_TableCell(__('Fee'));
-                        $rows = la_TableRow($cells, 'row1');
+                        $result .= wf_tag('h3') . __('Your cameras') . wf_tag('h3', true);
+                        $cells = wf_TableCell(__('Address'));
+                        $cells .= wf_TableCell(__('Payment ID'));
+                        $cells .= wf_TableCell(__('Balance'));
+                        $cells .= wf_TableCell(__('Fee'));
+                        $rows = wf_TableRow($cells, 'row1');
                         foreach ($this->myCameras as $io => $eachCam) {
                             $cameraLogin = $eachCam['login'];
                             $cameraTariff = $this->allUsers[$cameraLogin]['Tariff'];
                             $cameraFee = (isset($allTariffsFee[$cameraTariff])) ? $allTariffsFee[$cameraTariff] : 0;
 
                             if (isset($this->allUsers[$cameraLogin])) {
-                                $cells = la_TableCell(@$this->allAddress[$cameraLogin]);
-                                $cells .= la_TableCell(@$allPayIds[$cameraLogin]);
-                                $cells .= la_TableCell(@$this->allUsers[$cameraLogin]['Cash']);
-                                $cells .= la_TableCell($cameraFee . ' ' . $currency);
-                                $rows .= la_TableRow($cells, 'row3');
+                                $cells = wf_TableCell(@$this->allAddress[$cameraLogin]);
+                                $cells .= wf_TableCell(@$allPayIds[$cameraLogin]);
+                                $cells .= wf_TableCell(@$this->allUsers[$cameraLogin]['Cash']);
+                                $cells .= wf_TableCell($cameraFee . ' ' . $currency);
+                                $rows .= wf_TableRow($cells, 'row3');
                                 $totalCamerasPrice += $cameraFee;
                             }
                         }
 
-                        $totalPriceLabel = __('Total') . ' ' . la_tag('nobr') . $totalCamerasPrice . la_tag('nobr', true) . ' ' . $currency;
-                        $cells = la_TableCell('');
-                        $cells .= la_TableCell('');
-                        $cells .= la_TableCell('');
-                        $cells .= la_TableCell($totalPriceLabel);
-                        $rows .= la_TableRow($cells, 'row1');
-                        $result .= la_TableBody($rows, '100%', 0, 'resp-table');
+                        $totalPriceLabel = __('Total') . ' ' . wf_tag('nobr') . $totalCamerasPrice . wf_tag('nobr', true) . ' ' . $currency;
+                        $cells = wf_TableCell('');
+                        $cells .= wf_TableCell('');
+                        $cells .= wf_TableCell('');
+                        $cells .= wf_TableCell($totalPriceLabel);
+                        $rows .= wf_TableRow($cells, 'row1');
+                        $result .= wf_TableBody($rows, '100%', 0, 'resp-table');
 
                         $myChansCount = $this->getChansCount();
                         //user have some channels assigned
                         if ($myChansCount > 0) {
-                            $result .= la_tag('br');
-                            if (!la_CheckGet(array('previewchannels'))) {
-                                $result .= la_Link('?module=visor&previewchannels=true', __('View'), false, 'anreadbutton');
+                            $result .= wf_tag('br');
+                            if (!wf_CheckGet(array('previewchannels'))) {
+                                $result .= wf_Link('?module=visor&previewchannels=true', __('View'), false, 'anreadbutton');
                             } else {
-                                if (!la_CheckGet(array('fullpreview'))) {
+                                if (!wf_CheckGet(array('fullpreview'))) {
                                     $backUrl = '?module=visor';
                                 } else {
                                     $backUrl = '?module=visor&previewchannels=true';
                                 }
-                                $result .= la_Link($backUrl, __('Back'), false, 'anunreadbutton') . ' ';
-                                $result .= la_Link('?module=visor&software=true', __('Settings'), false, 'anreadbutton');
+                                $result .= wf_Link($backUrl, __('Back'), false, 'anunreadbutton') . ' ';
+                                $result .= wf_Link('?module=visor&software=true', __('Settings'), false, 'anreadbutton');
                             }
                         }
                     } else {
@@ -445,33 +445,33 @@ if (@$us_config['VISOR_ENABLED']) {
                     $authData = json_decode($rawData, true);
                     if (!empty($authData)) {
                         $cells = '';
-                        $cells .= la_TableCell(__('Host'));
+                        $cells .= wf_TableCell(__('Host'));
                         if ($dvrFullFlag) {
-                            $cells .= la_TableCell(__('IP'));
-                            $cells .= la_TableCell(__('Port'));
+                            $cells .= wf_TableCell(__('IP'));
+                            $cells .= wf_TableCell(__('Port'));
                         }
-                        $cells .= la_TableCell(__('Login'));
-                        $cells .= la_TableCell(__('Password'));
-                        $cells .= la_TableCell(__('Actions'));
-                        $rows = la_TableRow($cells, 'row1');
+                        $cells .= wf_TableCell(__('Login'));
+                        $cells .= wf_TableCell(__('Password'));
+                        $cells .= wf_TableCell(__('Actions'));
+                        $rows = wf_TableRow($cells, 'row1');
 
                         foreach ($authData as $io => $each) {
                             $cells = '';
-                            $cells = la_TableCell($each['dvrname']);
+                            $cells = wf_TableCell($each['dvrname']);
                             if ($dvrFullFlag) {
-                                $cells .= la_TableCell($each['ip']);
-                                $cells .= la_TableCell($each['port']);
+                                $cells .= wf_TableCell($each['ip']);
+                                $cells .= wf_TableCell($each['port']);
                             }
 
-                            $cells .= la_TableCell($each['login']);
-                            $cells .= la_TableCell($each['password']);
+                            $cells .= wf_TableCell($each['login']);
+                            $cells .= wf_TableCell($each['password']);
 
-                            $actLink = (!empty($each['weburl'])) ? la_Link($each['weburl'], __('Go to'), false, 'anreadbutton', 'target="_BLANK"') : '';
-                            $cells .= la_TableCell($actLink);
-                            $rows .= la_TableRow($cells, 'row3');
+                            $actLink = (!empty($each['weburl'])) ? wf_Link($each['weburl'], __('Go to'), false, 'anreadbutton', 'target="_BLANK"') : '';
+                            $cells .= wf_TableCell($actLink);
+                            $rows .= wf_TableRow($cells, 'row3');
                         }
 
-                        $result .= la_TableBody($rows, '100%', 0, 'resp-table');
+                        $result .= wf_TableBody($rows, '100%', 0, 'resp-table');
                     }
                 }
             }
@@ -488,10 +488,10 @@ if (@$us_config['VISOR_ENABLED']) {
             if (@$this->userstatsCfg['VISOR_SOFTWARE']) {
                 $rawSoft = explode(',', $this->userstatsCfg['VISOR_SOFTWARE']);
                 if (!empty($rawSoft)) {
-                    $result .= la_tag('br');
+                    $result .= wf_tag('br');
                     foreach ($rawSoft as $ia => $eachLink) {
                         $eachLink = explode('|', $eachLink);
-                        $result .= la_Link($eachLink[1], la_img($eachLink[0], $eachLink[2]), false, '', 'target="_BLANK"') . ' ';
+                        $result .= wf_Link($eachLink[1], wf_img($eachLink[0], $eachLink[2]), false, '', 'target="_BLANK"') . ' ';
                     }
                 }
             }
@@ -501,23 +501,23 @@ if (@$us_config['VISOR_ENABLED']) {
 
     $visor = new ZBSVisorInterface($user_login);
     //Surveillance user profile
-    if (!la_CheckGet(array('fullpreview')) and !la_CheckGet(array('software'))) {
+    if (!wf_CheckGet(array('fullpreview')) and !wf_CheckGet(array('software'))) {
         show_window(__('Surveillance'), $visor->renderProfile());
     }
 
     //channels preview
-    if (la_CheckGet(array('previewchannels'))) {
-        if (!la_CheckGet(array('fullpreview'))) {
+    if (wf_CheckGet(array('previewchannels'))) {
+        if (!wf_CheckGet(array('fullpreview'))) {
             show_window(__('View'), $visor->getMyChannelsPreview()); //low qual
         } else {
             show_window(__('View'), $visor->getMyChannelsPreview($_GET['fullpreview'], true)); //only one full qual
         }
     }
 
-    if (la_CheckGet(array('software'))) {
+    if (wf_CheckGet(array('software'))) {
         $authData = $visor->renderDvrAuthData();
         if (!empty($authData)) {
-            show_window('', la_Link('?module=visor&previewchannels=true', __('Back'), true, 'anunreadbutton'));
+            show_window('', wf_Link('?module=visor&previewchannels=true', __('Back'), true, 'anunreadbutton'));
             if (@$us_config['VISOR_SOFTWARE']) {
                 show_window(__('Downloads'), $visor->renderSoftwareList());
             }

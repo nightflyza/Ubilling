@@ -32,13 +32,13 @@ function zbs_VServicesGetPrice($login, $tariffData) {
  * @return string
  */
 function zbs_ShowCreditForm() {
-    $inputs = la_tag('center');
-    $inputs .= la_HiddenInput('setcredit', 'true');
-    $inputs .= la_CheckInput('agree', __('I am sure that I am an adult and have read everything that is written above'), false, false);
-    $inputs .= la_delimiter();
-    $inputs .= la_Submit(__('Set me credit please'));
-    $inputs .= la_tag('center', true);
-    $form = la_Form("", 'POST', $inputs, '');
+    $inputs = wf_tag('center');
+    $inputs .= wf_HiddenInput('setcredit', 'true');
+    $inputs .= wf_CheckInput('agree', __('I am sure that I am an adult and have read everything that is written above'), false, false);
+    $inputs .= wf_delimiter();
+    $inputs .= wf_Submit(__('Set me credit please'));
+    $inputs .= wf_tag('center', true);
+    $form = wf_Form("", 'POST', $inputs, '');
 
     return($form);
 }

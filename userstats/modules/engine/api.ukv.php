@@ -168,44 +168,44 @@ class UserstatsUkv {
                 $apt = '';
             }
 
-            $cells = la_TableCell(__('Address'), '', 'row1');
-            $cells.=la_TableCell($this->users[$userid]['city'] . ' ' . $this->users[$userid]['street'] . ' ' . $this->users[$userid]['build'] . $apt);
-            $rows = la_TableRow($cells, 'row3');
+            $cells = wf_TableCell(__('Address'), '', 'row1');
+            $cells.=wf_TableCell($this->users[$userid]['city'] . ' ' . $this->users[$userid]['street'] . ' ' . $this->users[$userid]['build'] . $apt);
+            $rows = wf_TableRow($cells, 'row3');
 
-            $cells = la_TableCell(__('Real name'), '', 'row1');
-            $cells.=la_TableCell($this->users[$userid]['realname']);
-            $rows.= la_TableRow($cells, 'row3');
+            $cells = wf_TableCell(__('Real name'), '', 'row1');
+            $cells.=wf_TableCell($this->users[$userid]['realname']);
+            $rows.= wf_TableRow($cells, 'row3');
 
-            $cells = la_TableCell(__('Contract'), '', 'row1');
-            $cells.=la_TableCell($this->users[$userid]['contract']);
-            $rows.= la_TableRow($cells, 'row3');
+            $cells = wf_TableCell(__('Contract'), '', 'row1');
+            $cells.=wf_TableCell($this->users[$userid]['contract']);
+            $rows.= wf_TableRow($cells, 'row3');
 
-            $cells = la_TableCell(__('Phone'), '', 'row1');
-            $cells.=la_TableCell($this->users[$userid]['phone']);
-            $rows.= la_TableRow($cells, 'row3');
+            $cells = wf_TableCell(__('Phone'), '', 'row1');
+            $cells.=wf_TableCell($this->users[$userid]['phone']);
+            $rows.= wf_TableRow($cells, 'row3');
 
-            $cells = la_TableCell(__('Mobile'), '', 'row1');
-            $cells.=la_TableCell($this->users[$userid]['mobile']);
-            $rows.= la_TableRow($cells, 'row3');
+            $cells = wf_TableCell(__('Mobile'), '', 'row1');
+            $cells.=wf_TableCell($this->users[$userid]['mobile']);
+            $rows.= wf_TableRow($cells, 'row3');
 
-            $cells = la_TableCell(__('Tariff'), '', 'row1');
-            $cells.=la_TableCell(@$this->tariffs[$this->users[$userid]['tariffid']]['tariffname']);
-            $rows.= la_TableRow($cells, 'row3');
+            $cells = wf_TableCell(__('Tariff'), '', 'row1');
+            $cells.=wf_TableCell(@$this->tariffs[$this->users[$userid]['tariffid']]['tariffname']);
+            $rows.= wf_TableRow($cells, 'row3');
 
-            $cells = la_TableCell(__('Tariff change'), '', 'row1');
-            $cells.=la_TableCell(@$this->tariffs[$this->users[$userid]['tariffnmid']]['tariffname']);
-            $rows.= la_TableRow($cells, 'row3');
+            $cells = wf_TableCell(__('Tariff change'), '', 'row1');
+            $cells.=wf_TableCell(@$this->tariffs[$this->users[$userid]['tariffnmid']]['tariffname']);
+            $rows.= wf_TableRow($cells, 'row3');
 
-            $cells = la_TableCell(__('Tariff price'), '', 'row1');
-            $cells.=la_TableCell($this->tariffs[$this->users[$userid]['tariffid']]['price'] . ' ' . $this->usCfg['currency']);
-            $rows.= la_TableRow($cells, 'row3');
+            $cells = wf_TableCell(__('Tariff price'), '', 'row1');
+            $cells.=wf_TableCell($this->tariffs[$this->users[$userid]['tariffid']]['price'] . ' ' . $this->usCfg['currency']);
+            $rows.= wf_TableRow($cells, 'row3');
 
-            $cells = la_TableCell(__('Balance'), '', 'row1');
-            $cells.=la_TableCell($this->users[$userid]['cash'] . ' ' . $this->usCfg['currency']);
-            $rows.= la_TableRow($cells, 'row3');
+            $cells = wf_TableCell(__('Balance'), '', 'row1');
+            $cells.=wf_TableCell($this->users[$userid]['cash'] . ' ' . $this->usCfg['currency']);
+            $rows.= wf_TableRow($cells, 'row3');
 
 
-            $result = la_TableBody($rows, '100%', '0', '');
+            $result = wf_TableBody($rows, '100%', '0', '');
         }
 
         return ($result);
@@ -223,19 +223,19 @@ class UserstatsUkv {
         $result = '';
         $this->loadPayments($userid);
         if (!empty($this->payments)) {
-            $cells = la_TableCell(__('Date'));
-            $cells.= la_TableCell(__('Payment'));
-            $cells.= la_TableCell(__('Balance'));
-            $rows = la_TableRow($cells, 'row1');
+            $cells = wf_TableCell(__('Date'));
+            $cells.= wf_TableCell(__('Payment'));
+            $cells.= wf_TableCell(__('Balance'));
+            $rows = wf_TableRow($cells, 'row1');
 
             foreach ($this->payments as $io => $each) {
-                $cells = la_TableCell($each['date']);
-                $cells.= la_TableCell($each['summ']);
-                $cells.= la_TableCell($each['balance']);
-                $rows.= la_TableRow($cells, 'row3');
+                $cells = wf_TableCell($each['date']);
+                $cells.= wf_TableCell($each['summ']);
+                $cells.= wf_TableCell($each['balance']);
+                $rows.= wf_TableRow($cells, 'row3');
             }
 
-            $result = la_TableBody($rows, '100%', '0');
+            $result = wf_TableBody($rows, '100%', '0');
         } else {
             $result = __('No payments to display');
         }

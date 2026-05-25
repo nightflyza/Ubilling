@@ -14,7 +14,7 @@ if (@$us_config['SWEETTV_ENABLED']) {
         $trinitytvFront->setLogin($user_login);
 
         //try subscribe service
-        if (la_CheckGet(array('subscribe'))) {
+        if (wf_CheckGet(array('subscribe'))) {
 
             $subscribeResult = $trinitytvFront->pushSubscribeRequest($_GET['subscribe']);
 
@@ -26,7 +26,7 @@ if (@$us_config['SWEETTV_ENABLED']) {
         }
 
         //try unsubscribe service
-        if (la_CheckGet(array('unsubscribe'))) {
+        if (wf_CheckGet(array('unsubscribe'))) {
             $unsubscribeResult = $trinitytvFront->pushUnsubscribeRequest($_GET['unsubscribe']);
             if (!$unsubscribeResult) {
                 rcms_redirect($modUrl);
@@ -36,7 +36,7 @@ if (@$us_config['SWEETTV_ENABLED']) {
         }
 
         //try delete device
-        if (la_CheckGet(array('deletedevice'))) {
+        if (wf_CheckGet(array('deletedevice'))) {
             $delDeviceResult = $trinitytvFront->pushDeviceDeleteRequest($_GET['deletedevice']);
             if (!$delDeviceResult) {
                 rcms_redirect($modUrl);
@@ -46,7 +46,7 @@ if (@$us_config['SWEETTV_ENABLED']) {
         }
 
         //device deletion by its ID
-        if (la_CheckGet(array('deletedeviceid'))) {
+        if (wf_CheckGet(array('deletedeviceid'))) {
             $delDeviceResult = $trinitytvFront->pushDeviceIdDeleteRequest($_GET['deletedeviceid']);
             if (!$delDeviceResult) {
                 rcms_redirect($modUrl);
@@ -56,10 +56,10 @@ if (@$us_config['SWEETTV_ENABLED']) {
         }
 
         // manual add device
-        if (la_CheckPost(array('device'))) {
+        if (wf_CheckPost(array('device'))) {
             if ($trinitytvFront->canAddMoreDevices()) {
                 // add device by mac
-                if (la_CheckPost(array('mac'))) {
+                if (wf_CheckPost(array('mac'))) {
                     $addDeviceResult = $trinitytvFront->pushDeviceAddMacRequest($_POST['mac']);
                     if (!$addDeviceResult) {
                         rcms_redirect($modUrl);
@@ -69,7 +69,7 @@ if (@$us_config['SWEETTV_ENABLED']) {
                 }
 
                 // add device by code
-                if (la_CheckPost(array('code'))) {
+                if (wf_CheckPost(array('code'))) {
                     $addDeviceResult = $trinitytvFront->pushDeviceAddCodeRequest($_POST['code']);
                     if (!$addDeviceResult) {
                         rcms_redirect($modUrl);
@@ -92,10 +92,10 @@ if (@$us_config['SWEETTV_ENABLED']) {
             show_window(__('Devices'), $trinitytvFront->renderDevices());
             //display some guide links if required
             if (@$us_config['TRINITYTV_GUIDE_URL']) {
-                $guideLink = la_Link($us_config['TRINITYTV_GUIDE_URL'], __('How to configure your devices and use service'), false, 'trinity-button');
+                $guideLink = wf_Link($us_config['TRINITYTV_GUIDE_URL'], __('How to configure your devices and use service'), false, 'trinity-button');
                 show_window('', $guideLink);
             }
-            show_window('', la_tag('br'));
+            show_window('', wf_tag('br'));
         }
 
 

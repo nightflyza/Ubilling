@@ -51,25 +51,25 @@ if (@$us_config['OM_ENABLED']) {
         $omegaFront->setLogin($user_login);
 
         //device deletion
-        if (la_CheckGet(array('deletedevice'))) {
+        if (wf_CheckGet(array('deletedevice'))) {
             $omegaFront->pushDeviceDelete($_GET['deletedevice']);
             rcms_redirect('?module=omegatv');
         }
 
         //playlist deletion
-        if (la_CheckGet(array('deleteplaylist'))) {
+        if (wf_CheckGet(array('deleteplaylist'))) {
             $omegaFront->pushPlaylistDelete($_GET['deleteplaylist']);
             rcms_redirect('?module=omegatv');
         }
 
         //new playlist creation
-        if (la_CheckGet(array('newplaylist'))) {
+        if (wf_CheckGet(array('newplaylist'))) {
             $omegaFront->pushPlaylistAssign();
             rcms_redirect('?module=omegatv');
         }
 
         //subscription for some tariff
-        if (la_CheckGet(array('subscribe'))) {
+        if (wf_CheckGet(array('subscribe'))) {
             $subscribeResult = $omegaFront->pushSubscribeRequest($_GET['subscribe']);
             if (empty($subscribeResult)) {
                 rcms_redirect('?module=omegatv');
@@ -79,7 +79,7 @@ if (@$us_config['OM_ENABLED']) {
         }
 
         //unsubscription of some tariff
-        if (la_CheckGet(array('unsubscribe'))) {
+        if (wf_CheckGet(array('unsubscribe'))) {
             $unsubscribeResult = $omegaFront->pushUnsubscribeRequest($_GET['unsubscribe']);
             if (empty($unsubscribeResult)) {
                 rcms_redirect('?module=omegatv');
@@ -92,7 +92,7 @@ if (@$us_config['OM_ENABLED']) {
             //default sub/unsub form
             show_window(__('Attention'), __('On unsubscription will be charged fee the equivalent value of the subscription.'));
             show_window(__('Available subscribtions'), $omegaFront->renderSubscribeForm());
-            $accountIdLabel = la_tag('h3') . __('Your account ID is') . ': ' . $omegaFront->generateCustormerId($user_login) . la_tag('h3', true) . la_tag('br');
+            $accountIdLabel = wf_tag('h3') . __('Your account ID is') . ': ' . $omegaFront->generateCustormerId($user_login) . wf_tag('h3', true) . wf_tag('br');
             show_window('', $accountIdLabel);
         }
 
@@ -104,7 +104,7 @@ if (@$us_config['OM_ENABLED']) {
 
         //link to web-player
         $viewUrl = $omegaFront->getViewButtonURL();
-        $viewLink = la_tag('a', false, 'mgviewcontrol', 'href="' . $viewUrl . '" target="_BLANK"') . __('View online') . la_tag('a', true);
+        $viewLink = wf_tag('a', false, 'mgviewcontrol', 'href="' . $viewUrl . '" target="_BLANK"') . __('View online') . wf_tag('a', true);
         show_window('', $viewLink);
     } else {
         show_window(__('Sorry'), __('You can not use this service'));

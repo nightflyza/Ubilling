@@ -206,7 +206,7 @@ class YTVInterface {
      */
     protected function webBoolLed($state) {
         $iconsPath = zbs_GetCurrentSkinPath($this->usConfig) . 'iconz/';
-        $result = ($state) ? la_img($iconsPath . 'anread.gif') : la_img($iconsPath . 'anunread.gif');
+        $result = ($state) ? wf_img($iconsPath . 'anread.gif') : wf_img($iconsPath . 'anunread.gif');
         return($result);
     }
 
@@ -222,19 +222,19 @@ class YTVInterface {
             $mainTariff = @$this->tariffsData[$this->subscriberData['maintariff']];
 
 
-            $cells = la_TableCell(__('Active'));
-            $cells .= la_TableCell(__('Tariff'));
-            $cells .= la_TableCell(__('Primary'));
-            $cells .= la_TableCell(__('Fee'));
-            $rows = la_TableRow($cells, 'row1');
+            $cells = wf_TableCell(__('Active'));
+            $cells .= wf_TableCell(__('Tariff'));
+            $cells .= wf_TableCell(__('Primary'));
+            $cells .= wf_TableCell(__('Fee'));
+            $rows = wf_TableRow($cells, 'row1');
             if (!empty($mainTariff)) {
-                $cells = la_TableCell($this->webBoolLed($this->subscriberData['active']));
-                $cells .= la_TableCell($mainTariff['name']);
-                $cells .= la_TableCell($this->webBoolLed($mainTariff['main']));
-                $cells .= la_TableCell($mainTariff['fee'] . ' ' . $this->usConfig['currency']);
-                $rows .= la_TableRow($cells, 'row1');
+                $cells = wf_TableCell($this->webBoolLed($this->subscriberData['active']));
+                $cells .= wf_TableCell($mainTariff['name']);
+                $cells .= wf_TableCell($this->webBoolLed($mainTariff['main']));
+                $cells .= wf_TableCell($mainTariff['fee'] . ' ' . $this->usConfig['currency']);
+                $rows .= wf_TableRow($cells, 'row1');
             }
-            $result .= la_TableBody($rows, '100%', 0, 'resp-table');
+            $result .= wf_TableBody($rows, '100%', 0, 'resp-table');
         } else {
             $result = __('No subscriptions yet');
         }
@@ -317,34 +317,34 @@ class YTVInterface {
             $userPassword = isset($userCredentials['password']) ? $userCredentials['password'] : '';
 
             // User auth data:
-            $result .= la_tag('div', false, '', 'style="width:100%; border:1px solid #d8dee9; border-radius:6px; padding:12px; box-sizing:border-box;"');
-            $result .= la_tag('div', false, 'youtv-red s','style="text-align:center;"') . __('Authorization data') . la_tag('div', true);
+            $result .= wf_tag('div', false, '', 'style="width:100%; border:1px solid #d8dee9; border-radius:6px; padding:12px; box-sizing:border-box;"');
+            $result .= wf_tag('div', false, 'youtv-red s','style="text-align:center;"') . __('Authorization data') . wf_tag('div', true);
 
-            $cells = la_TableCell(__('Login'), '25%', '', 'style="font-weight:bold; vertical-align:top;"');
-            $cells .= la_TableCell(htmlentities($userEmail, ENT_QUOTES, 'UTF-8'), '', '', 'style="font-family:monospace;"');
-            $rows = la_TableRow($cells, 'row1');
+            $cells = wf_TableCell(__('Login'), '25%', '', 'style="font-weight:bold; vertical-align:top;"');
+            $cells .= wf_TableCell(htmlentities($userEmail, ENT_QUOTES, 'UTF-8'), '', '', 'style="font-family:monospace;"');
+            $rows = wf_TableRow($cells, 'row1');
 
-            $cells = la_TableCell(__('Password'), '25%', '', 'style="font-weight:bold; vertical-align:top;"');
-            $cells .= la_TableCell(htmlentities($userPassword, ENT_QUOTES, 'UTF-8'), '', '', 'style="font-family:monospace;"');
-            $rows .= la_TableRow($cells, 'row1');
+            $cells = wf_TableCell(__('Password'), '25%', '', 'style="font-weight:bold; vertical-align:top;"');
+            $cells .= wf_TableCell(htmlentities($userPassword, ENT_QUOTES, 'UTF-8'), '', '', 'style="font-family:monospace;"');
+            $rows .= wf_TableRow($cells, 'row1');
 
-            $result .= la_TableBody($rows, '100%', 0, 'resp-table');
-            $result .= la_tag('div', true);
-            $result .= la_delimiter();
+            $result .= wf_TableBody($rows, '100%', 0, 'resp-table');
+            $result .= wf_tag('div', true);
+            $result .= wf_delimiter();
 
             // youtv promo start
-            $result .= la_tag('div', false, 'text-center', 'style="background: url(//youtv.ua/assets/images/svg/components/abstract-shapes-19.svg) center no-repeat;"');
-            $result .= la_tag('h2') . __('Convenient applications') . la_tag('h2', true);
-            $result .= la_tag('p') . __('Modern youtv applications for various devices.') . la_tag('p', true);
-            $result .= la_tag('div', false, 'mt-2 mx-n8')
-                . la_Link('https://play.google.com/store/apps/details?id=ua.youtv.youtv&amp;hl=uk', la_img('skins/paper/iconz/google_play.png'))
-                . la_Link('https://apps.apple.com/us/app/you-tv-onlajn-tv/id1176282993?l=uk', la_img('skins/paper/iconz/app_store.png'))
-                . la_tag('div', true);
-            $result .= la_tag('div', false, 'mt-2 mx-n8')
-                . la_Link('https://play.google.com/store/apps/details?id=ua.youtv.androidtv&hl=uk', la_img('skins/paper/iconz/smart_tv.png'))
-                . la_Link('https://appgallery.huawei.com/#/app/C103041047', la_img('skins/paper/iconz/app_gallery.png'))
-                . la_tag('div', true);
-            $result .= la_tag('div', true); 
+            $result .= wf_tag('div', false, 'text-center', 'style="background: url(//youtv.ua/assets/images/svg/components/abstract-shapes-19.svg) center no-repeat;"');
+            $result .= wf_tag('h2') . __('Convenient applications') . wf_tag('h2', true);
+            $result .= wf_tag('p') . __('Modern youtv applications for various devices.') . wf_tag('p', true);
+            $result .= wf_tag('div', false, 'mt-2 mx-n8')
+                . wf_Link('https://play.google.com/store/apps/details?id=ua.youtv.youtv&amp;hl=uk', wf_img('skins/paper/iconz/google_play.png'))
+                . wf_Link('https://apps.apple.com/us/app/you-tv-onlajn-tv/id1176282993?l=uk', wf_img('skins/paper/iconz/app_store.png'))
+                . wf_tag('div', true);
+            $result .= wf_tag('div', false, 'mt-2 mx-n8')
+                . wf_Link('https://play.google.com/store/apps/details?id=ua.youtv.androidtv&hl=uk', wf_img('skins/paper/iconz/smart_tv.png'))
+                . wf_Link('https://appgallery.huawei.com/#/app/C103041047', wf_img('skins/paper/iconz/app_gallery.png'))
+                . wf_tag('div', true);
+            $result .= wf_tag('div', true); 
 
         } else {
             $result = '';
@@ -361,24 +361,24 @@ class YTVInterface {
     public function renderSubscribeForm() {
         $result = '';
 
-        $result .= la_tag('b') . __('Attention!') . la_tag('b', true) . ' ';
+        $result .= wf_tag('b') . __('Attention!') . wf_tag('b', true) . ' ';
 
-        $result .= __('When activated subscription account will be charged fee the equivalent value of the subscription.') . la_delimiter();
+        $result .= __('When activated subscription account will be charged fee the equivalent value of the subscription.') . wf_delimiter();
         if (!empty($this->tariffsData)) {
             foreach ($this->tariffsData as $serviceId => $tariff) {
 
                 $tariffFee = $tariff['fee'];
 
-                $tariffInfo = la_tag('div', false, 'youtv-col') . la_tag('div', false, 'youtv-bl1');
+                $tariffInfo = wf_tag('div', false, 'youtv-col') . wf_tag('div', false, 'youtv-bl1');
 
-                $tariffInfo .= la_tag('div', false, 'youtv-price');
-                $tariffInfo .= la_tag('b', false, 's') . $tariffFee . la_tag('b', true, 's');
-                $tariffInfo .= la_tag('sup', false) . $this->usConfig['currency'] . ' ' . la_tag('br') . ' ' . __('per month') . la_tag('sup', true);
-                $tariffInfo .= la_tag('div', true, 'youtv-price');
+                $tariffInfo .= wf_tag('div', false, 'youtv-price');
+                $tariffInfo .= wf_tag('b', false, 's') . $tariffFee . wf_tag('b', true, 's');
+                $tariffInfo .= wf_tag('sup', false) . $this->usConfig['currency'] . ' ' . wf_tag('br') . ' ' . __('per month') . wf_tag('sup', true);
+                $tariffInfo .= wf_tag('div', true, 'youtv-price');
 
 
-                $tariffInfo .= la_tag('div', false, 'youtv-red s') . $tariff['name'] . la_tag('div', true, 'youtv-red s');
-                $tariffInfo .= la_tag('br');
+                $tariffInfo .= wf_tag('div', false, 'youtv-red s') . $tariff['name'] . wf_tag('div', true, 'youtv-red s');
+                $tariffInfo .= wf_tag('br');
 
                 if (!empty($tariff['chans'])) {
                     $desc = $tariff['chans'];
@@ -388,25 +388,25 @@ class YTVInterface {
 
                 $descriptionLabel = $desc;
 
-                $tariffInfo .= la_tag('div', false, 'youtv-list') . $descriptionLabel . la_tag('div', true, 'youtv-list');
+                $tariffInfo .= wf_tag('div', false, 'youtv-list') . $descriptionLabel . wf_tag('div', true, 'youtv-list');
 
                 if ($this->checkBalance()) {
 
                     if ($this->isUserSubscribed($tariff['serviceid'])) {
-                        $tariffInfo .= la_Link(self::URL_ME . '&unsubscribe=' . $tariff['serviceid'], __('Unsubscribe'), false, 'youtv-button-u');
+                        $tariffInfo .= wf_Link(self::URL_ME . '&unsubscribe=' . $tariff['serviceid'], __('Unsubscribe'), false, 'youtv-button-u');
                     } else {
                         if ($this->checkUserProtection($tariff['serviceid'])) {
                             $alertText = __('I have thought well and understand that I activate this service for myself not by chance and completely meaningfully and I am aware of all the consequences.');
-                            $tariffInfo .= la_ConfirmDialog(self::URL_ME . '&subscribe=' . $tariff['serviceid'], __('Subscribe'), $alertText, 'youtv-button-s', self::URL_ME);
+                            $tariffInfo .= wf_ConfirmDialog(self::URL_ME . '&subscribe=' . $tariff['serviceid'], __('Subscribe'), $alertText, 'youtv-button-s', self::URL_ME);
                         } else {
-                            $tariffInfo .= la_tag('div', false, 'youtv-list') . __('The amount of money in your account is not sufficient to process subscription') . la_tag('div', true, 'youtv-list');
+                            $tariffInfo .= wf_tag('div', false, 'youtv-list') . __('The amount of money in your account is not sufficient to process subscription') . wf_tag('div', true, 'youtv-list');
                         }
                     }
                 } else {
-                    $tariffInfo .= la_tag('div', false, 'youtv-list') . __('The amount of money in your account is not sufficient to process subscription') . la_tag('div', true, 'youtv-list');
+                    $tariffInfo .= wf_tag('div', false, 'youtv-list') . __('The amount of money in your account is not sufficient to process subscription') . wf_tag('div', true, 'youtv-list');
                 }
 
-                $tariffInfo .= la_tag('div', true, 'youtv-bl1') . la_tag('div', true, 'youtv-col');
+                $tariffInfo .= wf_tag('div', true, 'youtv-bl1') . wf_tag('div', true, 'youtv-col');
 
 
                 $result .= $tariffInfo;

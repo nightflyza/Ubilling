@@ -201,48 +201,48 @@ class MegogoFrontend {
     public function renderSubscribeForm() {
         $result = '';
         $iconsPath = zbs_GetCurrentSkinPath($this->usConfig) . 'iconz/';
-        $result .= la_tag('b') . __('Attention!') . la_tag('b', true) . ' ';
-        $result .= __('When activated subscription account will be charged fee the equivalent value of the subscription.') . la_delimiter();
+        $result .= wf_tag('b') . __('Attention!') . wf_tag('b', true) . ' ';
+        $result .= __('When activated subscription account will be charged fee the equivalent value of the subscription.') . wf_delimiter();
         if (!empty($this->allTariffs)) {
             foreach ($this->allTariffs as $io => $each) {
                 $headerType = ($each['primary']) ? 'mgheaderprimary' : 'mgheader';
-                $freePeriodLabel = ($each['freeperiod']) ? la_img($iconsPath . 'ok_small.png', __('Available')) : la_img($iconsPath . 'unavail_small.png', __('Unavailable'));
-                $freeAppend = la_delimiter();
+                $freePeriodLabel = ($each['freeperiod']) ? wf_img($iconsPath . 'ok_small.png', __('Available')) : wf_img($iconsPath . 'unavail_small.png', __('Unavailable'));
+                $freeAppend = wf_delimiter();
                 $tariffFee = $each['fee'];
                 if ($each['freeperiod']) {
                     if (!$this->checkFreePeriodAvail($this->userLogin)) {
-                        $freePeriodLabel = la_img($iconsPath . 'unavail_small.png', __('Unavailable'));
-                        $freeAppend = la_delimiter();
+                        $freePeriodLabel = wf_img($iconsPath . 'unavail_small.png', __('Unavailable'));
+                        $freeAppend = wf_delimiter();
                     } else {
-                        $freeAppend = la_tag('center') . la_tag('strong') . __('Try it now for free!') . la_tag('strong', true) . la_tag('center', true) . la_tag('br');
+                        $freeAppend = wf_tag('center') . wf_tag('strong') . __('Try it now for free!') . wf_tag('strong', true) . wf_tag('center', true) . wf_tag('br');
                         $tariffFee = 0;
                     }
                 }
 
-                $primaryLabel = ($each['primary']) ? la_img($iconsPath . 'ok_small.png') : la_img($iconsPath . 'unavail_small.png');
-                $tariffInfo = la_tag('div', false, $headerType) . $each['name'] . la_tag('div', true);
-                $cells = la_TableCell(la_tag('b') . __('Fee') . la_tag('b', true));
-                $cells .= la_TableCell($tariffFee . ' ' . $this->usConfig['currency']);
-                $rows = la_TableRow($cells);
-                $cells = la_TableCell(la_tag('b') . __('Free period') . la_tag('b', true));
-                $cells .= la_TableCell($freePeriodLabel);
-                $rows .= la_TableRow($cells);
-                $cells = la_TableCell(la_tag('b') . __('Primary') . la_tag('b', true));
-                $cells .= la_TableCell($primaryLabel);
-                $rows .= la_TableRow($cells);
-                $tariffInfo .= la_TableBody($rows, '100%', 0);
+                $primaryLabel = ($each['primary']) ? wf_img($iconsPath . 'ok_small.png') : wf_img($iconsPath . 'unavail_small.png');
+                $tariffInfo = wf_tag('div', false, $headerType) . $each['name'] . wf_tag('div', true);
+                $cells = wf_TableCell(wf_tag('b') . __('Fee') . wf_tag('b', true));
+                $cells .= wf_TableCell($tariffFee . ' ' . $this->usConfig['currency']);
+                $rows = wf_TableRow($cells);
+                $cells = wf_TableCell(wf_tag('b') . __('Free period') . wf_tag('b', true));
+                $cells .= wf_TableCell($freePeriodLabel);
+                $rows .= wf_TableRow($cells);
+                $cells = wf_TableCell(wf_tag('b') . __('Primary') . wf_tag('b', true));
+                $cells .= wf_TableCell($primaryLabel);
+                $rows .= wf_TableRow($cells);
+                $tariffInfo .= wf_TableBody($rows, '100%', 0);
                 $tariffInfo .= $freeAppend;
 
 
 
                 if ($this->checkBalance()) {
                     if ($this->isUserSubscribed($this->userLogin, $each['id'])) {
-                        $subscribeControl = la_Link('?module=megogo&unsubscribe=' . $each['id'], __('Unsubscribe'), false, 'mgunsubcontrol');
+                        $subscribeControl = wf_Link('?module=megogo&unsubscribe=' . $each['id'], __('Unsubscribe'), false, 'mgunsubcontrol');
                     } else {
                         $userProtection = $this->checkUserProtection($each['id']);
                         if ($userProtection) {
                             $alertText = __('I have thought well and understand that I activate this service for myself not by chance and completely meaningfully and I am aware of all the consequences.');
-                            $subscribeControl = la_ConfirmDialog('?module=megogo&subscribe=' . $each['id'], __('Subscribe'), $alertText, 'mgsubcontrol', '?module=megogo');
+                            $subscribeControl = wf_ConfirmDialog('?module=megogo&subscribe=' . $each['id'], __('Subscribe'), $alertText, 'mgsubcontrol', '?module=megogo');
                         } else {
                             //money issues
                             if ($userProtection === false) {
@@ -261,7 +261,7 @@ class MegogoFrontend {
                     $tariffInfo .= __('The amount of money in your account is not sufficient to process subscription');
                 }
 
-                $result .= la_tag('div', false, 'mgcontainer') . $tariffInfo . la_tag('div', true);
+                $result .= wf_tag('div', false, 'mgcontainer') . $tariffInfo . wf_tag('div', true);
             }
         }
         return ($result);
@@ -418,29 +418,29 @@ class MegogoFrontend {
         $result = '';
         $iconsPath = zbs_GetCurrentSkinPath($this->usConfig) . 'iconz/';
         if (!empty($this->allSubscribers)) {
-            $cells = la_TableCell(__('Date'));
-            $cells .= la_TableCell(__('Tariff'));
-            $cells .= la_TableCell(__('Active'));
-            $cells .= la_TableCell(__('Primary'));
-            $cells .= la_TableCell(__('Free period'));
-            $rows = la_TableRow($cells, 'row1');
+            $cells = wf_TableCell(__('Date'));
+            $cells .= wf_TableCell(__('Tariff'));
+            $cells .= wf_TableCell(__('Active'));
+            $cells .= wf_TableCell(__('Primary'));
+            $cells .= wf_TableCell(__('Free period'));
+            $rows = wf_TableRow($cells, 'row1');
 
             foreach ($this->allSubscribers as $io => $each) {
                 if ($each['login'] == $this->userLogin) {
-                    $freePeriodFlag = ($each['freeperiod']) ? la_img($iconsPath . 'anread.gif') : la_img($iconsPath . 'anunread.gif');
-                    $primaryFlag = ($each['primary']) ? la_img($iconsPath . 'anread.gif') : la_img($iconsPath . 'anunread.gif');
-                    $activeFlag = ($each['active']) ? la_img($iconsPath . 'anread.gif') : la_img($iconsPath . 'anunread.gif');
-                    $cells = la_TableCell($each['actdate']);
-                    $cells .= la_TableCell(@$this->allTariffs[$each['tariffid']]['name']);
-                    $cells .= la_TableCell($activeFlag);
-                    $cells .= la_TableCell($primaryFlag);
-                    $cells .= la_TableCell($freePeriodFlag);
-                    $rows .= la_TableRow($cells, 'row2');
+                    $freePeriodFlag = ($each['freeperiod']) ? wf_img($iconsPath . 'anread.gif') : wf_img($iconsPath . 'anunread.gif');
+                    $primaryFlag = ($each['primary']) ? wf_img($iconsPath . 'anread.gif') : wf_img($iconsPath . 'anunread.gif');
+                    $activeFlag = ($each['active']) ? wf_img($iconsPath . 'anread.gif') : wf_img($iconsPath . 'anunread.gif');
+                    $cells = wf_TableCell($each['actdate']);
+                    $cells .= wf_TableCell(@$this->allTariffs[$each['tariffid']]['name']);
+                    $cells .= wf_TableCell($activeFlag);
+                    $cells .= wf_TableCell($primaryFlag);
+                    $cells .= wf_TableCell($freePeriodFlag);
+                    $rows .= wf_TableRow($cells, 'row2');
                 }
             }
 
-            $result = la_TableBody($rows, '100%', 0, 'resp-table');
-            $result .= la_tag('br');
+            $result = wf_TableBody($rows, '100%', 0, 'resp-table');
+            $result .= wf_tag('br');
             //$result .= __('To view the purchased subscription register or log in to Megogo.net, by clicking the button below');
         }
         return ($result);
@@ -458,13 +458,13 @@ class MegogoFrontend {
         if (!empty($userCredentials)) {
             $userCredentials = $userCredentials[0];
             $containerStyle = 'style="border:1px solid; text-align:center; width:100%; display:block;"';
-            $result .= la_tag('span', false, 'resp-table', $containerStyle);
-            $result .= __('Your login and password to usage with MEGOGO are') . ' ' . la_delimiter(1);
-            $result .= __('Login') . ': ' . la_tag('b') . $userCredentials['email'] . la_tag('b', true) . la_tag('br');
-            $result .= __('Password') . ': ' . la_tag('b') . $userCredentials['password'] . la_tag('b', true) . la_delimiter(1);
-            $result .= __('To start using the MEGOGO service, click the button') . ' ' . la_Link('http://megogo.net/login', 'Continue', false, 'anreadbutton', 'target=_blank');
-            $result .= la_delimiter(1);
-            $result .= la_tag('span', true);
+            $result .= wf_tag('span', false, 'resp-table', $containerStyle);
+            $result .= __('Your login and password to usage with MEGOGO are') . ' ' . wf_delimiter(1);
+            $result .= __('Login') . ': ' . wf_tag('b') . $userCredentials['email'] . wf_tag('b', true) . wf_tag('br');
+            $result .= __('Password') . ': ' . wf_tag('b') . $userCredentials['password'] . wf_tag('b', true) . wf_delimiter(1);
+            $result .= __('To start using the MEGOGO service, click the button') . ' ' . wf_Link('http://megogo.net/login', 'Continue', false, 'anreadbutton', 'target=_blank');
+            $result .= wf_delimiter(1);
+            $result .= wf_tag('span', true);
         }
         return($result);
     }
