@@ -253,8 +253,8 @@
                 $cells = wf_TableCell($ticketFrom);
                 $cells .= wf_TableCell($eachreply['date']);
                 $rows .= wf_TableRow($cells, 'row1');
-                $cells = wf_TableCell($ticketAva, '', '', 'valign="top"');
-                $cells .= wf_TableCell(zbs_Linkify(nl2br($eachreply['text']), '80%'));
+                $cells = wf_TableCell($ticketAva, '10%', '', 'valign="top"');
+                $cells .= wf_TableCell(zbs_Linkify(nl2br($eachreply['text']), '90%'));
                 $rows .= wf_TableRow($cells, 'row3');
             }
             $result = wf_TableBody($rows, '100%', 0);
@@ -279,12 +279,11 @@
 
         if (!empty($ticketdata)) {
             $ticketAva = wf_img($iconzPath . 'userava.png');
-
             $cells = wf_TableCell(__('User'));
             $cells .= wf_TableCell($ticketdata['date']);
             $rows = wf_TableRow($cells, 'row1');
-            $cells = wf_TableCell($ticketAva, '', '', 'valign="top"');
-            $cells .= wf_TableCell(zbs_Linkify(nl2br($ticketdata['text'])));
+            $cells = wf_TableCell($ticketAva, '10%', '', 'valign="top"');
+            $cells .= wf_TableCell(zbs_Linkify(nl2br($ticketdata['text'])),'90%');
             $rows .= wf_TableRow($cells, 'row2');
             $result .= wf_TableBody($rows, '100%', 0);
 
