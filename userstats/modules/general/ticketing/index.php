@@ -31,7 +31,10 @@ if ($us_config['TICKETING_ENABLED']) {
             show_window(__('Create new help request'), zbs_TicketCreateForm());
         }
 
-        show_window(__('Previous help requests'), zbs_TicketsShowMy());
+        $previousTickets=zbs_TicketsShowMy();
+        if (!empty($previousTickets)) {
+            show_window(__('Previous help requests'), $previousTickets);
+        }
         zbs_MessagesShowMy();
     } else {
         $ticketid = ubRouting::get('showticket', 'int');

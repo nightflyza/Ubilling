@@ -192,21 +192,22 @@
      * Returns available tickets list
      * 
      * @global string $user_login
+     * 
      * @return string
      */
     function zbs_TicketsShowMy() {
         global $user_login;
+        $result='';
         $skinPath = zbs_GetCurrentSkinPath();
         $iconsPath = $skinPath . 'iconz/';
         $allmytickets = zbs_TicketsGetAllMy($user_login);
 
-        
-        $cells = wf_TableCell(__('Date'));
-        $cells .= wf_TableCell(__('Status'));
-        $cells .= wf_TableCell(__('Actions'));
-        $rows = wf_TableRow($cells, 'row1');
-
         if (!empty($allmytickets)) {
+            $cells = wf_TableCell(__('Date'));
+            $cells .= wf_TableCell(__('Status'));
+            $cells .= wf_TableCell(__('Actions'));
+            $rows = wf_TableRow($cells, 'row1');
+
             foreach ($allmytickets as $io => $eachticket) {
                 if ($eachticket['status']) {
                     $ticketstatus = wf_img($iconsPath . 'anread.gif') . ' ' . __('Closed');
@@ -218,8 +219,9 @@
                 $cells .= wf_TableCell(wf_Link('?module=ticketing&showticket=' . $eachticket['id'], __('View')), '', '', 'data-label="' . __('Actions') . '"');
                 $rows .= wf_TableRow($cells, 'row3');
             }
+            $result = wf_TableBody($rows, '100%', 0, 'mobile-table');
         }
-        $result = wf_TableBody($rows, '100%', 0, 'mobile-table');
+      
         return ($result);
     }
 
