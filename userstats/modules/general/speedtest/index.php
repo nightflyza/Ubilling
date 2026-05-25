@@ -32,7 +32,7 @@ if ($us_config['SP_ENABLED']) {
         /**
          * Contains default disclaimer for service
          *
-         * @var array
+         * @var string
          */
         protected $notice = '';
 
@@ -179,4 +179,4 @@ if ($us_config['SP_ENABLED']) {
 } else {
     show_window(__('Sorry'), __('Unfortunately speedtest is now disabled'));
 }
-?>
+
