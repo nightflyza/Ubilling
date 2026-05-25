@@ -224,33 +224,22 @@
     }
 
     /**
-     * Returns ticket with all replies
-     * 
+     * Renders all of existing ticket replies block
+     *
      * @param int $ticketid
      * @return string
      */
-    function zbs_TicketShowWithReplies($ticketid) {
+    function zbs_TicketReplies($ticketid) {
         global $us_config;
         $ticketid = ubRouting::filters($ticketid, 'int');
         $curSkinPath = zbs_GetCurrentSkinPath($us_config);
         $iconzPath = $curSkinPath . 'iconz/';
-        $ticketdata = zbs_TicketGetData($ticketid);
         $ticketreplies = zbs_TicketGetReplies($ticketid);
-        $rows='';
+        $result = '';
+        $rows = '';
 
-        if (!empty($ticketdata)) {
-            $ticketAva = wf_img($iconzPath . 'userava.png');
-
-            $cells = wf_TableCell(__('User'));
-            $cells .= wf_TableCell($ticketdata['date']);
-            $rows = wf_TableRow($cells, 'row1');
-            $cells = wf_TableCell($ticketAva, '', '', 'valign="top"');
-            $cells .= wf_TableCell(zbs_Linkify(nl2br($ticketdata['text'])));
-            $rows .= wf_TableRow($cells, 'row2');
-        }
         if (!empty($ticketreplies)) {
             foreach ($ticketreplies as $io => $eachreply) {
-
                 if ($eachreply['from'] == 'NULL') {
                     $ticketAva = wf_img($iconzPath . 'admava.png');
                     $ticketFrom = __('Support');
@@ -263,12 +252,46 @@
                 $cells .= wf_TableCell($eachreply['date']);
                 $rows .= wf_TableRow($cells, 'row1');
                 $cells = wf_TableCell($ticketAva, '', '', 'valign="top"');
-                $cells .= wf_TableCell(zbs_Linkify(nl2br($eachreply['text']),'80%'));
+                $cells .= wf_TableCell(zbs_Linkify(nl2br($eachreply['text']), '80%'));
                 $rows .= wf_TableRow($cells, 'row3');
             }
+            $result = wf_TableBody($rows, '100%', 0);
         }
+        return ($result);
+    }
 
-        $result = wf_TableBody($rows, '100%', 0);
+    /**
+     * Returns ticket with all replies
+     * 
+     * @param int $ticketid
+     * @return string
+     */
+    function zbs_TicketShowWithReplies($ticketid) {
+        global $us_config;
+        $ticketid = ubRouting::filters($ticketid, 'int');
+        $curSkinPath = zbs_GetCurrentSkinPath($us_config);
+        $iconzPath = $curSkinPath . 'iconz/';
+        $ticketdata = zbs_TicketGetData($ticketid);
+        $result = '';
+        $rows = '';
+
+        if (!empty($ticketdata)) {
+            $ticketAva = wf_img($iconzPath . 'userava.png');
+
+            $cells = wf_TableCell(__('User'));
+            $cells .= wf_TableCell($ticketdata['date']);
+            $rows = wf_TableRow($cells, 'row1');
+            $cells = wf_TableCell($ticketAva, '', '', 'valign="top"');
+            $cells .= wf_TableCell(zbs_Linkify(nl2br($ticketdata['text'])));
+            $rows .= wf_TableRow($cells, 'row2');
+            $result .= wf_TableBody($rows, '100%', 0);
+
+            //replies list block with dynamic refresh
+            $ticketRepliesZen = new ZenFlow('ticketreplies_' . $ticketid, zbs_TicketReplies($ticketid), 3000);
+            $ticketRepliesZen->setContainerSpanType(true);
+            $ticketRepliesZen->setSoundOnChange('modules/jsc/sounds/message.mp3');
+            $result .= $ticketRepliesZen->render();
+        }
         return ($result);
     }
 
