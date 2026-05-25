@@ -288,7 +288,7 @@
             $result .= wf_TableBody($rows, '100%', 0);
 
             //replies list block with dynamic refresh
-            $ticketRepliesZen = new ZenFlow('ticketreplies_' . $ticketid, zbs_TicketReplies($ticketid), 3000);
+            $ticketRepliesZen = new ZenFlow('ustreplies_' . $ticketid, zbs_TicketReplies($ticketid), 3000);
             $ticketRepliesZen->setContainerSpanType(true);
             $ticketRepliesZen->setSoundOnChange('modules/jsc/sounds/message.mp3');
             $result .= $ticketRepliesZen->render();

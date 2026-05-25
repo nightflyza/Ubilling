@@ -6,9 +6,6 @@ $us_config = zbs_LoadConfig();
 $us_helpdenied = zbs_GetHelpdeskDeniedAll();
 
 if ($us_config['TICKETING_ENABLED']) {
-
-    
-
     if (!ubRouting::checkGet('showticket')) {
         //mb post new ticket?
         if (ubRouting::checkPost('newticket')) {
@@ -64,6 +61,7 @@ if ($us_config['TICKETING_ENABLED']) {
                 //let view it
                 show_window(__('Help request') . ': ' . $ticketid, zbs_TicketShowWithReplies($ticketid));
 
+                //show reply form only for open tickets
                 if ($ticketdata['status']==0) {
                  show_window(__('Reply'), zbs_TicketReplyForm($ticketid));
                 }
