@@ -1,4 +1,15 @@
+.payment-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 14px;
+    max-width: 100%;
+    margin: auto;
+    perspective: 1000px;
+}
+
 .opbackend {
+    position: relative;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -6,28 +17,78 @@
     padding: 10px;
     margin: 5px;
     border: solid 1px #EEE;
-    border-radius: 10px;
+    border-radius: 14px;
     text-align: center;
     font-size: 10pt;
     overflow: hidden;
-    box-shadow: 3px 3px 4px rgba(0, 0, 0, 0);
+    background: #fff;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
     width: 200px;
     height: 200px;
-    transition: box-shadow 0.3s ease-in-out, transform 0.2s;
+    cursor: pointer;
+    transition: transform 0.45s cubic-bezier(0.2, 0.8, 0.2, 1.25),
+                box-shadow 0.45s ease,
+                border-color 0.45s ease;
+    will-change: transform;
+}
+
+.opbackend::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -80%;
+    width: 50%;
+    height: 100%;
+    background: linear-gradient(120deg,
+        transparent 0%,
+        rgba(255, 255, 255, 0.55) 50%,
+        transparent 100%);
+    transform: skewX(-20deg);
+    pointer-events: none;
+    z-index: 2;
 }
 
 .opbackend:hover {
-    box-shadow: 3px 3px 6px rgba(50, 50, 50, 0.5);
-    transform: translateY(-2px);
+    transform: translateY(-6px) scale(1.04);
+    box-shadow:
+        0 14px 30px rgba(0, 0, 0, 0.18),
+        0 4px 10px rgba(0, 0, 0, 0.1);
 }
 
-.payment-container {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 10px;
-    max-width: 100%;
-    margin: auto;
+.opbackend:hover::after {
+    animation: opbackend-shine 0.95s ease-out forwards;
+}
+
+.opbackend:active {
+    transform: translateY(-2px) scale(1.01);
+    transition-duration: 0.1s;
+}
+
+.opbackend input[type="image"],
+.opbackend input[type="submit"] {
+    position: relative;
+    z-index: 1;
+    transition: transform 0.45s cubic-bezier(0.2, 0.8, 0.2, 1.25);
+}
+
+.opbackend:hover input[type="image"],
+.opbackend:hover input[type="submit"] {
+    transform: scale(1.06);
+}
+
+@keyframes opbackend-shine {
+    0%   { left: -80%; }
+    100% { left: 130%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .opbackend,
+    .opbackend::after,
+    .opbackend input[type="image"],
+    .opbackend input[type="submit"] {
+        animation: none !important;
+        transition: none !important;
+    }
 }
 
 @media (max-width: 600px) {

@@ -70,6 +70,13 @@ if ($us_config['OPENPAYZ_ENABLED']) {
          */
         protected $skinPath = '';
 
+        /**
+         * Constructor
+         * 
+         * @param string $ip
+         * 
+         * @return void
+         */
         public function __construct($ip) {
             $this->setIp($ip);
             $this->setSkinPath();
@@ -217,4 +224,4 @@ if ($us_config['OPENPAYZ_ENABLED']) {
 } else {
     show_window(__('Sorry'), __('Unfortunately online payments are disabled'));
 }
-?>
+
