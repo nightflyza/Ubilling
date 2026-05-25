@@ -236,6 +236,7 @@
         $iconzPath = $curSkinPath . 'iconz/';
         $ticketdata = zbs_TicketGetData($ticketid);
         $ticketreplies = zbs_TicketGetReplies($ticketid);
+        $rows='';
 
         if (!empty($ticketdata)) {
             $ticketAva = wf_img($iconzPath . 'userava.png');
