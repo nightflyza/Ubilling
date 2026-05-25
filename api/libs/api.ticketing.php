@@ -1248,8 +1248,9 @@ function web_TicketDialogue($ticketid) {
     }
 
     //replies list block
-    if (!ubRouting::checkGet('editreply') and !empty($ticketreplies) and !$ticketdata['status']) {
+    if (!ubRouting::checkGet('editreply') and !$ticketdata['status']) {
         $ticketRepliesZen=new ZenFlow('ticketreplies_'.$ticketid, web_TicketReplies($ticketid),3000);
+        $ticketRepliesZen->setContainerSpanType(true);
         $ticketRepliesZen->setSoundOnChange('modules/jsc/sounds/message.mp3');
         $result .= $ticketRepliesZen->render();
     } else {

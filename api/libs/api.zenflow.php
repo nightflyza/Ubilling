@@ -41,6 +41,13 @@ class ZenFlow {
     protected $soundOnChange = '';
 
     /**
+     * AJAX Container span type flag
+     *
+     * @var bool
+     */
+    protected $containerSpanType=false;
+
+    /**
      * Contains some predefined routes
      */
     const ROUTE_ZENFLOW = 'zenflow';
@@ -97,6 +104,17 @@ class ZenFlow {
         $this->debug = $state;
     }
 
+    /**
+     * Sets AJAX Container type div (false) or span (true)
+     *
+     * @param bool $type
+     *
+     * @return void
+     */
+    public function setContainerSpanType($type=false) {
+        $this->containerSpanType = $type;
+    }
+
 
     /**
      * Set sound file path to be played on content updates
@@ -137,9 +155,17 @@ class ZenFlow {
             $soundPlayback = '';
 
             if (!empty($requestUrl)) {
-                $result .= wf_AjaxContainer($container, '', $this->content);
+                if ($this->containerSpanType) {
+                $result .= wf_AjaxContainerSpan($container, '', $this->content);
+                } else {
+                    $result .= wf_AjaxContainer($container, '', $this->content);
+                }
                 if ($this->debug) {
-                    $result .= wf_AjaxContainer($debugArea, '', '');
+                    if ($this->containerSpanType) {
+                        $result .= wf_AjaxContainerSpan($debugArea, '', '');
+                    } else {
+                        $result .= wf_AjaxContainer($debugArea, '', '');
+                    }
                     $debugCode .= '  
                     var debugTimestamp' . $this->flowId . ' = new Date();
                     var debutTimeLabel' . $this->flowId . ' = debugTimestamp' . $this->flowId . '.toLocaleTimeString();
