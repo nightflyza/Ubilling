@@ -1332,9 +1332,12 @@ function web_TicketsCalendar() {
             } else {
                 $coloring = '';
             }
+
+            $ticketTitle=$rawTime . ' ' . @$allAddress[$each['from']];
+            $ticketTitle=ubRouting::filters($ticketTitle, 'safe');
             $calendarData .= "
                       {
-                        title: '" . $rawTime . ' ' . @$allAddress[$each['from']] . "',
+                        title: '" . $ticketTitle . "',
                         url: '?module=ticketing&showticket=" . $each['id'] . "',
                         start: new Date(" . $date . "),
                         end: new Date(" . $date . "),
