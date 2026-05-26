@@ -290,7 +290,7 @@
             //replies list block with dynamic refresh
             $ticketRepliesZen = new ZenFlow('ustreplies_' . $ticketid, zbs_TicketReplies($ticketid), 3000);
             $ticketRepliesZen->setContainerSpanType(true);
-            $ticketRepliesZen->setSoundOnChange('modules/jsc/sounds/message.mp3');
+            $ticketRepliesZen->setSoundOnChange('modules/jsc/sounds/shortmessage.mp3');
             $result .= $ticketRepliesZen->render();
         }
         return ($result);
