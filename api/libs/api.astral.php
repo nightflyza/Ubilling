@@ -1540,6 +1540,8 @@ function wf_FullCalendar($data, $options = '', $useHTMLInTitle = false, $useHTML
     $dragdropON = ($ubillingConfig->getAlterParam('CALENDAR_DRAG_AND_DROP_ON') and !empty($ajaxURLForDnD));
     $dndConfirmON = $ubillingConfig->getAlterParam('CALENDAR_DRAG_AND_DROP_CONFIRM_ON');
     $titlesSearchON = $ubillingConfig->getAlterParam('CALENDAR_TITLES_SEARCH_ON');
+    $weekMondayON = $ubillingConfig->getAlterParam('CALENDAR_WEEK_MONDAY_ON');
+    $firstDayOpt = $weekMondayON ? 'firstDay: 1,' : '';
     $viewLoad = '';
     $viewSetup = '';
     $viewSave = '';
@@ -1606,6 +1608,7 @@ function wf_FullCalendar($data, $options = '', $useHTMLInTitle = false, $useHTML
                         " . $htmlInTitle . "                         
                         theme: true,
                         weekends: true,
+                        " . $firstDayOpt . "
                         timeFormat: 'H(:mm)',
                         displayEventTime: false,
                         height: 'auto',
