@@ -264,8 +264,7 @@ class ChartMancer {
     /**
      * Returns a decimal RGB color based on text string as array(r/g/b)
      *
-     * @param $text Some string of text
-     * @param $palette palette string
+     * @param string $text Some string of text
      *
      * @return array
      */
@@ -280,6 +279,8 @@ class ChartMancer {
 
     /**
      * Checks is array contains valid RGB values or not?
+     * 
+     * @param array $colorArray Contains RGB decimal values as r/g/b keys
      * 
      * @return bool
      */
@@ -504,9 +505,9 @@ class ChartMancer {
      *
      * @param  array  $textColor  default text color RGB decimal values.
      *
-     * @return  self
+     * @return void
      */
-    public function setTextColor(array $textColor) {
+    public function setTextColor($textColor) {
         if ($this->checkColor($textColor)) {
             $this->textColor = $textColor;
         }
@@ -525,6 +526,8 @@ class ChartMancer {
 
     /**
      * Sets maximum dataset value rendering on chart flag
+     * 
+     * @param bool $displayPeakValue
      *
      * @return  void
      */
@@ -558,6 +561,8 @@ class ChartMancer {
 
     /**
      * Sets custom colors overrides as array of RGB decimal values.
+     * 
+     * @param array $customColors
      * 
      * @return void
      */
@@ -617,7 +622,7 @@ class ChartMancer {
      * Renders chart as PNG image into browser or into specified file
      * 
      * @param array $data chart dataset
-     * @param string $filename filename to export chart. May be empty for rendering to browser
+     * @param string $fileName filename to export chart. May be empty for rendering to browser
      *                         may contain name of .png file to save as file on FS, or be like 
      *                         base64 or base64html to return chart as base64 encoded string
      * 
@@ -710,7 +715,7 @@ class ChartMancer {
         // Init image
         $chart = imagecreate($this->imageWidth, $this->imageHeight);
 
-        // Chart backgroun color setup
+        // Chart background color setup
         if ($this->backgroundTransparent) {
             imagealphablending($chart, false);
             $backgroundColor = imagecolorallocatealpha($chart, 255, 255, 255, 127);
@@ -817,7 +822,7 @@ class ChartMancer {
                             'colorIdx' => $i
                         );
 
-                        //thats prevents overdraw folloving values with first (totals) column
+                        //thats prevents overdraw following values with first (totals) column
                         if ($this->drawFirstColumnAlways) {
                             if ($i != 0) {
                                 $renderedBars[$x1 . '|' . $y1 . '|' . $x2 . '|' . $y2] = '1';
@@ -848,7 +853,7 @@ class ChartMancer {
                 $x2 = $itemX + $this->barWidth / 2;
                 $y2 = $gridBottom - 1;
 
-                //explict conversion to avoid implict precision warnings
+                //explicit conversion to avoid implict precision warnings
                 $x1 = (int) $x1;
                 $y1 = (int) $y1;
                 $x2 = (int) $x2;
@@ -899,7 +904,7 @@ class ChartMancer {
             $itemX += $barSpacing;
         }
 
-        // Optional chart chartTitle?
+        // Optional chart title?
         if ($this->chartTitle) {
             $titleX = ($this->imageWidth - $this->gridLeft) / 2.3;
             imagettftext($chart, $this->fontSize + 8, 0, (int) $titleX, 24, $labelColor, $this->font, $this->chartTitle);
@@ -987,7 +992,7 @@ class ChartMancer {
      * Renders pie chart as PNG image into browser or into specified file
      * 
      * @param array $data chart dataset
-     * @param string $filename filename to export chart. May be empty for rendering to browser
+     * @param string $fileName filename to export chart. May be empty for rendering to browser
      *                         may contain name of .png file to save as file on FS, or be like 
      *                         base64 or base64html to return chart as base64 encoded string
      * 
@@ -1137,7 +1142,7 @@ class ChartMancer {
 
         if (empty($fileName)) {
             header('Content-Type: image/png');
-            
+
             $result = imagepng($chart);
             if (phpversion() < '8.0.0') {
                 imagedestroy($chart);
@@ -1164,7 +1169,9 @@ class ChartMancer {
      * @param GdImage $image chart image instance to export
      * @param bool $htmlData data ready to embed as img src HTML base64 data (data URI scheme)
      * 
-     * @return void
+     * @throws Exception
+     * 
+     * @return void|string
      */
     public function getChartBase($image, $htmlData = false) {
         $result = '';
