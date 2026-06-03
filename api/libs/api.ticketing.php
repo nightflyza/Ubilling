@@ -1316,7 +1316,8 @@ function web_TicketDialogue($ticketid) {
  * @return string
  */
 function web_TicketsCalendar() {
-    $query = "SELECT * from `ticketing` WHERE `to` IS NULL AND `replyid` IS NULL ORDER BY `date` ASC";
+    
+    $query = "SELECT * from `ticketing` WHERE `to` IS NULL AND `replyid` and `date` > DATE_SUB(CURDATE(), INTERVAL 12 MONTH) ORDER BY `date` ASC";
     $all = simple_queryall($query);
     $allAddress = zb_AddressGetFulladdresslistCached();
     $result = '';
