@@ -421,6 +421,19 @@ function zbs_LangSelector() {
     if ($glob_conf['allowclang']) {
         $allangs = rcms_scandir("languages");
 
+        $selectable = zbs_GetLanguagesSelectable($glob_conf);
+        if (!empty($selectable)) {
+            $allangsFiltered = array();
+            if (!empty($allangs)) {
+                foreach ($allangs as $eachlang) {
+                    if (isset($selectable[$eachlang])) {
+                        $allangsFiltered[] = $eachlang;
+                    }
+                }
+            }
+            $allangs = $allangsFiltered;
+        }
+
         if (!empty($allangs)) {
             $inputs = wf_tag('select', false, '', 'name="changelang" onChange="this.form.submit();"');
             $inputs .= wf_tag('option', false, '', 'value="-"') . __('Language') . wf_tag('option', true);

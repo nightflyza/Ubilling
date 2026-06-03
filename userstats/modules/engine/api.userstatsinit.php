@@ -20,6 +20,10 @@ if ($statsconfig['allowclang']) {
     } else {
         $lang = $statsconfig['lang'];
     }
+
+    if (!zbs_IsLanguageSelectable($lang, $statsconfig)) {
+        $lang = $statsconfig['lang'];
+    }
 }
 
 setcookie("zbs_lang", $lang, time() + 2592000);

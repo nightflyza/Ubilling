@@ -12,6 +12,53 @@ function zbs_LoadConfig() {
 }
 
 /**
+ * Returns map of selectable language folder names from LANGUAGES_SELECTABLE.
+ * Empty array means all installed languages are selectable.
+ *
+ * @param array $usConfig
+ *
+ * @return array
+ */
+function zbs_GetLanguagesSelectable($usConfig = array()) {
+    $result = array();
+    if (empty($usConfig)) {
+        $usConfig = zbs_LoadConfig();
+    }
+    if (isset($usConfig['LANGUAGES_SELECTABLE']) and (trim($usConfig['LANGUAGES_SELECTABLE']) != '')) {
+        $selectableRaw = explode(',', $usConfig['LANGUAGES_SELECTABLE']);
+        foreach ($selectableRaw as $eachSelectable) {
+            $eachSelectable = trim($eachSelectable);
+            if ($eachSelectable != '') {
+                $result[$eachSelectable] = true;
+            }
+        }
+    }
+    return ($result);
+}
+
+/**
+ * Returns true if language folder name is allowed for user selection.
+ *
+ * @param string $language
+ * @param array  $usConfig
+ *
+ * @return bool
+ */
+function zbs_IsLanguageSelectable($language, $usConfig = array()) {
+    $selectable = zbs_GetLanguagesSelectable($usConfig);
+    if (empty($selectable)) {
+        $result = true;
+    } else {
+        if (isset($selectable[$language])) {
+            $result = true;
+        } else {
+            $result = false;
+        }
+    }
+    return ($result);
+}
+
+/**
  * Loads required locale lang and returns array of loalized strings
  * 
  * @param string  $language
