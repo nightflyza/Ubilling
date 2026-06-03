@@ -135,7 +135,7 @@ class ubRouting {
      * Returns filtered data
      * 
      * @param mixed $rawData data to be filtered
-     * @param string $filtering filtering options. Possible values: raw, int, mres, callback, fi, vf, nb, float, login, safe, gigasafe
+     * @param string $filtering filtering options. Possible values: raw, int, mres, callback, fi, vf, nb, float, login, safe, emsafe, gigasafe
      * @param string|array/filter name $callback callback function name or names array to filter variable value. Or const filter name of php.net/filter
      * 
      * @return mixed|false
@@ -181,12 +181,33 @@ class ubRouting {
                 } else {
                     $rawData = self::replaceQuotes($rawData);
                     $rawData = strip_tags($rawData);
+                    $rawData = str_replace(array("'", '`'), '’', $rawData);
                 }
 
-                $allowedChars = 'a-zA-Z0-9А-Яа-яЁёЇїІіЄєҐґ\w++«»№=_\ ,\.\-:;!?\(\){}\/\r\n\x{200d}\x{2600}-\x{1FAFF}' . $callback;
+                $allowedChars = 'a-zA-Z0-9А-Яа-яЁёЇїІіЄєҐґ\w++«»№’=_\ ,\.\-:;!?\(\){}\/\r\n\x{200d}\x{2600}-\x{1FAFF}' . $callback;
                 $regex = '#[^' . $allowedChars . ']#u';
                 $filteredData = preg_replace($regex, '', $rawData);
                 $filteredData = str_replace('--', '', $filteredData);
+                return ($filteredData);
+            case 'emsafe':
+                //identical to "safe" but additionally strips 4-byte UTF-8 chars (code points >= U+10000)
+                //that overflow MySQL utf8mb3 columns/connections and truncate the stored string.
+                //3-byte emoji (<= U+FFFF) like heart U+2764 + U+FE0F are preserved.
+                $rawData = preg_replace('/\0/s', '', $rawData);
+                if (strpos($callback, 'HTML') !== false) {
+                    $callback = str_replace('HTML', '', $rawData);
+                } else {
+                    $rawData = self::replaceQuotes($rawData);
+                    $rawData = strip_tags($rawData);
+                    $rawData = str_replace(array("'", '`'), '’', $rawData);
+                }
+
+                $allowedChars = 'a-zA-Z0-9А-Яа-яЁёЇїІіЄєҐґ\w++«»№’=_\ ,\.\-:;!?\(\){}\/\r\n\x{200d}\x{2600}-\x{1FAFF}' . $callback;
+                $regex = '#[^' . $allowedChars . ']#u';
+                $filteredData = preg_replace($regex, '', $rawData);
+                $filteredData = str_replace('--', '', $filteredData);
+                //drop any remaining 4-byte UTF-8 characters (U+10000 .. U+10FFFF)
+                $filteredData = preg_replace('#[\x{10000}-\x{10FFFF}]#u', '', $filteredData);
                 return ($filteredData);
             case 'gigasafe':
                 $rawData = preg_replace('/\0/s', '', $rawData);
@@ -249,7 +270,7 @@ class ubRouting {
      * Returns some variable value with optional filtering from GET scope
      * 
      * @param string $name name of variable to extract
-     * @param string $filtering filtering options. Possible values: raw, int, mres, callback
+     * @param string $filtering filtering options. Possible values: raw, int, mres, callback, fi, vf, nb, float, login, safe, emsafe, gigasafe
      * @param string|array $callback callback function name or names array to filter variable value
      * 
      * @return mixed|false
@@ -266,7 +287,7 @@ class ubRouting {
      * Returns some variable value with optional filtering from POST scope
      * 
      * @param string $name name of variable to extract
-     * @param string $filtering filtering options. Possible values: raw, int, mres, callback, fi, vf, nb, float, login, safe, gigasafe
+     * @param string $filtering filtering options. Possible values: raw, int, mres, callback, fi, vf, nb, float, login, safe, emsafe, gigasafe
      * @param string $callback callback function name to filter variable value
      * 
      * @return mixed|false
@@ -280,7 +301,7 @@ class ubRouting {
     }
 
     /**
-     * Short rcms_redirect replacement
+     * Redirects user to some specified URL
      * 
      * @param string $url URL to perform redirect
      * @param bool $header Use header redirect instead of JS document.location
@@ -289,7 +310,11 @@ class ubRouting {
      */
     public static function nav($url, $header = false) {
         if (!empty($url)) {
-            rcms_redirect($url, $header);
+            if ($header) {
+                @header('Location: ' . $url);
+            } else {
+                print('<script language="javascript">document.location.href="' . $url . '";</script>');
+            }
         }
     }
 
@@ -368,7 +393,7 @@ class ubRouting {
      * @global array $argv
      * 
      * @param string $name name of variable to extract from CLI options
-     * @param string $filtering filtering options. Possible values: raw, int, mres, callback
+     * @param string $filtering filtering options. Possible values: raw, int, mres, callback, fi, vf, nb, float, login, safe, emsafe, gigasafe
      * @param string $callback callback function name to filter variable value
      * 
      * @return mixed|false

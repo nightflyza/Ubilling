@@ -118,7 +118,7 @@
         $replyto = ubRouting::filters($replyto, 'gigasafe');
 
         $text=strip_tags($text);
-        $text=ubRouting::filters($text, 'safe');
+        $text=ubRouting::filters($text, 'emsafe');
         $text = ubRouting::filters($text, 'mres');
         
         $query = "INSERT INTO `ticketing` (`id` ,`date` ,`replyid` , `status` ,`from` ,`to` ,`text`)

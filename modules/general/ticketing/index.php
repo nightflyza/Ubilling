@@ -56,7 +56,7 @@ if (cfr('TICKETING')) {
                 $originaladdress = zb_TicketGetData(ubRouting::post('postreply', 'int'));
                 $originaladdress = $originaladdress['from'];
                 $admin = whoami();
-                $newTicketId = zb_TicketCreate('NULL', $originaladdress, ubRouting::post('replytext', 'safe'), ubRouting::post('postreply', 'int'), $admin);
+                $newTicketId = zb_TicketCreate('NULL', $originaladdress, ubRouting::post('replytext', 'emsafe'), ubRouting::post('postreply', 'int'), $admin);
                 
                 //posting message also to Telegram
                 if (ubRouting::checkPost(array('cttgsendmsg', 'cttgchatid'))) {

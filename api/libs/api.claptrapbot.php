@@ -1444,7 +1444,7 @@ class ClapTrapBot extends WolfDispatcher {
                     $messageAuthor=($each['from']==$this->myLogin) ? __('User') : __('Support');
                     $result.=$this->icons['CALENDAR'] .' '. $each['date'] .' ('.$messageAuthor.') '.$ticketStatus. PHP_EOL;
                     $ticketText=strip_tags($each['text']);
-                    $ticketText=ubRouting::filters($ticketText,'safe');
+                    $ticketText=ubRouting::filters($ticketText,'emsafe');
                     $result.= $each['text'].PHP_EOL;
                     $result.= $this->icons['DELIMITER'].PHP_EOL;
                 }
@@ -1587,7 +1587,8 @@ class ClapTrapBot extends WolfDispatcher {
                 $replyToTicketId=$this->getTicketReplyId();
                 $newTicketText=$this->receivedData['text']; 
                 $newTicketText=strip_tags($newTicketText);
-                $newTicketText=ubRouting::filters($newTicketText,'safe');
+                $newTicketText=ubRouting::filters($newTicketText,'emsafe');
+
                 if (!empty($newTicketText)) {
                     //text length check now is limited by GET request size limit
                     if (mb_strlen($newTicketText, 'UTF-8') <= $this->ticketTextLimit) {

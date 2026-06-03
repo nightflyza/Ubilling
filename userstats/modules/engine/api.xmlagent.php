@@ -1300,8 +1300,10 @@ class XMLAgent {
 
         if (!isset($ticketDeniedUsers[$login])) {
         if (!empty($login) and !empty($tickettext)) {
-            $from = mysql_real_escape_string($login);
-            $text = mysql_real_escape_string(strip_tags($tickettext));
+            $from = ubRouting::filters($login, 'mres');
+            $text = strip_tags($tickettext);
+            $text = ubRouting::filters($text, 'emsafe');
+            $text = ubRouting::filters($text, 'mres');
             $date = curdatetime();
 
             $ticketDB = new NyanORM('ticketing');
