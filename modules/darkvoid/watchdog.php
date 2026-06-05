@@ -10,7 +10,7 @@ if (isset($darkVoidContext['altCfg']['WATCHDOG_ENABLED'])) {
             $result .= wf_Link('?module=watchdog', wf_img('skins/maintenance.png', __('Watchdog') . ': ' . __('Disabled')));
         }
 
-        if ($watchDogSmsSilence) {
+        if (($watchDogSmsSilence) AND (@!$darkVoidContext['altCfg']['WATCHDOG_SILENCE_NOTIFY_DISABLED'])) {
             $result .= wf_Link('?module=watchdog', wf_img('skins/smssilence.png', __('Watchdog') . ': ' . __('SMS silence')));
         }
     }
