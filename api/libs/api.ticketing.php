@@ -1316,9 +1316,13 @@ function web_TicketDialogue($ticketid) {
  * @return string
  */
 function web_TicketsCalendar() {
-    
-    $query = "SELECT * from `ticketing` WHERE `to` IS NULL AND `replyid` and `date` > DATE_SUB(CURDATE(), INTERVAL 12 MONTH) ORDER BY `date` ASC";
-    $all = simple_queryall($query);
+    $ticketsDb=new NyanORM('ticketing');
+    $ticketsDb->where('to','is', 'NULL');
+    $ticketsDb->where('replyid','is', 'NULL');
+    $ticketsDb->where('date', '>', date('Y-m-d', strtotime('-12 month')));
+    $ticketsDb->orderby('date', 'ASC');
+    $all = $ticketsDb->getAll();
+
     $allAddress = zb_AddressGetFulladdresslistCached();
     $result = '';
     $calendarData = '';
