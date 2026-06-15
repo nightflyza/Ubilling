@@ -221,6 +221,13 @@ class Reminder {
     protected $rmdPBIUserFilterPaysysList = '';
 
     /**
+     * Placeholder for REMINDER_PBI_PAYMENTID_AS_BILLIDENTIFIER alter.ini option
+     *
+     * @var int
+     */
+    protected $rmdPBIPaymentIDAsBillidentifier = 0;
+
+    /**
      * Contains array of user logins filtered by OpenPayz payment systems listed in $rmdPBIUserFilterPaysysList
      *
      * @var array
@@ -272,6 +279,7 @@ class Reminder {
     const OPAYZ_CUSTOMERS_TABLE = 'op_customers';
     const CONTRAGENTS_SQL_WHERE_RAW = " `internal_paysys_name` = 'PRIVAT_INVOICE_PUSH' ";
     const OMAEURL_DEBUG_FILE = 'exports/REMINDER_OMAEURL_DEBUG';
+    const REMINDER_DEBUG_FILE = 'exports/REMINDER_DEBUG';
 
     /**
      * it's a magic
@@ -316,44 +324,44 @@ class Reminder {
      * @throws Exception
      */
     protected function loadOptions() {
-        $this->rmdMode = ubRouting::filters($this->ubConfig->getAlterParam('REMINDER_ENABLED'), 'int');
-        $this->rmdTagID = ubRouting::filters($this->ubConfig->getAlterParam('REMINDER_TAGID'), 'int');
-        $this->rmdDaysThreshold = ubRouting::filters($this->ubConfig->getAlterParam('REMINDER_DAYS_THRESHOLD'), 'int');
-        $this->rmdUseExtMobiles = ubRouting::filters($this->ubConfig->getAlterParam('REMINDER_USE_EXTMOBILES'), 'fi', FILTER_VALIDATE_BOOLEAN);
-        $this->rmdDebugON = ubRouting::filters($this->ubConfig->getAlterParam('REMINDER_DEBUG_ENABLED'), 'fi', FILTER_VALIDATE_BOOLEAN);
-        $this->rmdConsiderCredits = ubRouting::filters($this->ubConfig->getAlterParam('REMINDER_CONSIDER_CREDIT'), 'fi', FILTER_VALIDATE_BOOLEAN);
-        $this->rmdDaysThresholdCredit = ubRouting::filters($this->ubConfig->getAlterParam('REMINDER_DAYS_THRESHOLD_CREDIT'), 'int');
-        $this->rmdCAPDayLimit = ubRouting::filters($this->ubConfig->getAlterParam('CAP_DAYLIMIT'), 'int');
-        $this->rmdConsiderCAP = ubRouting::filters($this->ubConfig->getAlterParam('REMINDER_CONSIDER_CAP'), 'fi', FILTER_VALIDATE_BOOLEAN);
-        $this->rmdDaysThresholdCAP = ubRouting::filters($this->ubConfig->getAlterParam('REMINDER_DAYS_THRESHOLD_CAP'), 'int');
-        $this->rmdConsiderFrozen = ubRouting::filters($this->ubConfig->getAlterParam('REMINDER_CONSIDER_FROZEN'), 'fi', FILTER_VALIDATE_BOOLEAN);
-        $this->rmdDaysThresholdFrozen = ubRouting::filters($this->ubConfig->getAlterParam('REMINDER_DAYS_THRESHOLD_FROZEN'), 'int');
-        $this->rmdPhonePrefix = $this->ubConfig->getAlterParam('REMINDER_PREFIX');
-        $this->rmdPhonePrefix = empty($this->rmdPhonePrefix) ? '' : $this->rmdPhonePrefix;
-        $this->rmdTemplate = $this->ubConfig->getAlterParam('REMINDER_TEMPLATE');
-        $this->rmdTemplateCredit = $this->ubConfig->getAlterParam('REMINDER_TEMPLATE_CREDIT');
-        $this->rmdTemplateCAP = $this->ubConfig->getAlterParam('REMINDER_TEMPLATE_CAP');
-        $this->rmdTemplateFrozen = $this->ubConfig->getAlterParam('REMINDER_TEMPLATE_FROZEN');
-        $this->rmdForceTranslit = ubRouting::filters($this->ubConfig->getAlterParam('REMINDER_FORCE_TRANSLIT', true), 'fi', FILTER_VALIDATE_BOOLEAN);
+        $this->rmdMode                          = ubRouting::filters($this->ubConfig->getAlterParam('REMINDER_ENABLED'), 'int');
+        $this->rmdTagID                         = ubRouting::filters($this->ubConfig->getAlterParam('REMINDER_TAGID'), 'int');
+        $this->rmdDaysThreshold                 = ubRouting::filters($this->ubConfig->getAlterParam('REMINDER_DAYS_THRESHOLD'), 'int');
+        $this->rmdUseExtMobiles                 = ubRouting::filters($this->ubConfig->getAlterParam('REMINDER_USE_EXTMOBILES'), 'fi', FILTER_VALIDATE_BOOLEAN);
+        $this->rmdDebugON                       = ubRouting::filters($this->ubConfig->getAlterParam('REMINDER_DEBUG_ENABLED'), 'fi', FILTER_VALIDATE_BOOLEAN);
+        $this->rmdConsiderCredits               = ubRouting::filters($this->ubConfig->getAlterParam('REMINDER_CONSIDER_CREDIT'), 'fi', FILTER_VALIDATE_BOOLEAN);
+        $this->rmdDaysThresholdCredit           = ubRouting::filters($this->ubConfig->getAlterParam('REMINDER_DAYS_THRESHOLD_CREDIT'), 'int');
+        $this->rmdCAPDayLimit                   = ubRouting::filters($this->ubConfig->getAlterParam('CAP_DAYLIMIT'), 'int');
+        $this->rmdConsiderCAP                   = ubRouting::filters($this->ubConfig->getAlterParam('REMINDER_CONSIDER_CAP'), 'fi', FILTER_VALIDATE_BOOLEAN);
+        $this->rmdDaysThresholdCAP              = ubRouting::filters($this->ubConfig->getAlterParam('REMINDER_DAYS_THRESHOLD_CAP'), 'int');
+        $this->rmdConsiderFrozen                = ubRouting::filters($this->ubConfig->getAlterParam('REMINDER_CONSIDER_FROZEN'), 'fi', FILTER_VALIDATE_BOOLEAN);
+        $this->rmdDaysThresholdFrozen           = ubRouting::filters($this->ubConfig->getAlterParam('REMINDER_DAYS_THRESHOLD_FROZEN'), 'int');
+        $this->rmdPhonePrefix                   = $this->ubConfig->getAlterParam('REMINDER_PREFIX');
+        $this->rmdPhonePrefix                   = empty($this->rmdPhonePrefix) ? '' : $this->rmdPhonePrefix;
+        $this->rmdTemplate                      = $this->ubConfig->getAlterParam('REMINDER_TEMPLATE');
+        $this->rmdTemplateCredit                = $this->ubConfig->getAlterParam('REMINDER_TEMPLATE_CREDIT');
+        $this->rmdTemplateCAP                   = $this->ubConfig->getAlterParam('REMINDER_TEMPLATE_CAP');
+        $this->rmdTemplateFrozen                = $this->ubConfig->getAlterParam('REMINDER_TEMPLATE_FROZEN');
+        $this->rmdForceTranslit                 = ubRouting::filters($this->ubConfig->getAlterParam('REMINDER_FORCE_TRANSLIT', true), 'fi', FILTER_VALIDATE_BOOLEAN);
 
         // PrivatBank Invoices options
-        $this->rmdPrivatBankInvoicesON = $this->ubConfig->getAlterParam('REMINDER_PRIVATBANK_INVOICE_PUSH', false);
-        $this->rmdPBIAuthLogin = $this->ubConfig->getAlterParam('REMINDER_PBI_AUTH_LOGIN', '');
-        $this->rmdPBIURL = $this->ubConfig->getAlterParam('REMINDER_PBI_URL', '');
-        $this->rmdPBIOnlyTagID = ubRouting::filters($this->ubConfig->getAlterParam('REMINDER_PBI_ONLY_TAG_ID', 0), 'int');
-        $this->rmdPBIAndSMSTagID = ubRouting::filters($this->ubConfig->getAlterParam('REMINDER_PBI_AND_SMS_TAG_ID', 0), 'int');
-        $this->rmdPBIDayTariffMultiplier = $this->ubConfig->getAlterParam('REMINDER_PBI_DAY_TARIFF_MULTIPLIER', 1);
-        $this->rmdPBIUserFilterPaysysList = $this->ubConfig->getAlterParam('REMINDER_PBI_USER_FILTER_PAYSYS_LIST', '');
+        $this->rmdPrivatBankInvoicesON          = $this->ubConfig->getAlterParam('REMINDER_PRIVATBANK_INVOICE_PUSH', false);
+        $this->rmdPBIAuthLogin                  = $this->ubConfig->getAlterParam('REMINDER_PBI_AUTH_LOGIN', '');
+        $this->rmdPBIURL                        = $this->ubConfig->getAlterParam('REMINDER_PBI_URL', '');
+        $this->rmdPBIOnlyTagID                  = ubRouting::filters($this->ubConfig->getAlterParam('REMINDER_PBI_ONLY_TAG_ID', 0), 'int');
+        $this->rmdPBIAndSMSTagID                = ubRouting::filters($this->ubConfig->getAlterParam('REMINDER_PBI_AND_SMS_TAG_ID', 0), 'int');
+        $this->rmdPBIDayTariffMultiplier        = $this->ubConfig->getAlterParam('REMINDER_PBI_DAY_TARIFF_MULTIPLIER', 1);
+        $this->rmdPBIUserFilterPaysysList       = $this->ubConfig->getAlterParam('REMINDER_PBI_USER_FILTER_PAYSYS_LIST', '');
+        $this->rmdPBIPaymentIDAsBillidentifier  = $this->ubConfig->getAlterParam('REMINDER_PBI_PAYMENTID_AS_BILLIDENTIFIER', 0);
 
         if (!ubRouting::filters($this->ubConfig->getAlterParam('CAP_ENABLED'), 'fi', FILTER_VALIDATE_BOOLEAN)
-                or empty($this->rmdCAPDayLimit)) {
+            or empty($this->rmdCAPDayLimit)) {
 
             $this->rmdConsiderCAP = false;
             log_register('REMINDER WARNING: CAP CONSIDERING DISABLED BECAUSE CAP SERVICE IS OFF');
         }
 
         if (!ubRouting::filters($this->ubConfig->getAlterParam('FREEZE_DAYS_CHARGE_ENABLED'), 'fi', FILTER_VALIDATE_BOOLEAN)) {
-
             $this->rmdConsiderFrozen = false;
             log_register('REMINDER WARNING: FROZEN CONSIDERING DISABLED BECAUSE FREEZE DAYS CHARGE SERVICE IS OFF');
         }
@@ -509,6 +517,9 @@ class Reminder {
         $userAddress  = empty($this->AllTemplates[$login]['address']) ? '' : $this->AllTemplates[$login]['address'];
         $userAgent    = zb_AgentAssignedGetDataFast($login, $userAddress);
 
+        $this->debugReminderRAW('Template login data:' . "\n" . print_r($this->AllTemplates[$login], true) . "\n", true, true);
+        $this->debugReminderRAW('Login contragent data:' . "\n" . print_r($userAgent, true) . "\n", true, true);
+
         if (!empty($this->rmdPBIContragentsData[$userAgent['id']])) {
             $userAgentFullData  = $this->rmdPBIContragentsData[$userAgent['id']];
             $userTariff         = $this->AllTemplates[$login]['tariff'];
@@ -519,6 +530,16 @@ class Reminder {
             $invoiceCloseDate   = $invoiceCloseDate->format('Y-m-d');
             $userCellPhoneNum   = $this->AllTemplates[$login]['mobile'];
             $userCellPhoneNum   = preg_match('/^(\+38|38)/', $userCellPhoneNum) ? $userCellPhoneNum : $this->rmdPhonePrefix . $userCellPhoneNum;
+            
+            if (empty($this->rmdPBIPaymentIDAsBillidentifier) or $this->rmdPBIPaymentIDAsBillidentifier == 0) {
+                $userBillIdent  = $this->AllTemplates[$login]['contract'];
+            } elseif ($this->rmdPBIPaymentIDAsBillidentifier == 1) {
+                $userBillIdent  = $this->AllTemplates[$login]['payid'];
+            } elseif ($this->rmdPBIPaymentIDAsBillidentifier == 2) {
+                $userBillIdent  = empty($this->AllTemplates[$login]['contract']) ? $this->AllTemplates[$login]['payid'] : $this->AllTemplates[$login]['contract'];
+            } else {
+                $userBillIdent  = 'unknow_identifier';
+            }
 
             $invoiceArray = array(
                                 'invoicetype'    => 'S',
@@ -536,15 +557,15 @@ class Reminder {
                                 'invclosingdate' => $invoiceCloseDate,
                                 'extparams'      => array('param' => array(array(
                                                             'name'  => 'bill_identifier',
-                                                            'value' => $this->AllTemplates[$login]['contract']
+                                                            'value' => $userBillIdent
                                                             )
                                                         )
                                                     )
                                 );
 
-            $this->debugReminderRAW('invoiceArray  ' . print_r($invoiceArray, true));
+            $this->debugReminderRAW('invoiceArray:    ' . print_r($invoiceArray, true) . "\n", true);
             $invoiceArray = json_encode($invoiceArray);
-            $this->debugReminderRAW('invoiceJSON  ' . $invoiceArray);
+            $this->debugReminderRAW('invoiceJSON:    ' . $invoiceArray . "\n", true);
         }
 
         return ($invoiceArray);
@@ -628,12 +649,13 @@ class Reminder {
                             $this->omaeURL->dataPostRaw($invoice);
                             $sendResult = $this->omaeURL->response();
                             file_put_contents(self::FLAGPREFIX . $eachLogin, '');
+                            $this->debugReminderRAW('User Login data:' . "\n" . print_r($userLoginData, true) . "\n", true, true);
                         } elseif ($paysysFilterForUsersNeeded) {
                             $this->debugReminderRAW(' ERROR sending PB invoice for user: ' . $eachLogin . ' - login not found by OPAYZ PAYSYS filter');
                         }
 
                         // PB invoice send result debugging
-                        $this->debugReminderRAW(' PBI send result  ' . $sendResult);
+                        $this->debugReminderRAW(' PBI send result:    ' . $sendResult . "\n\n", true);
                         $this->debugReminderRAW(' PBI OMAEURL lastRequestInfo  ' . print_r($this->omaeURL->lastRequestInfo(), true));
                         $this->debugReminderRAW(' PBI OMAEURL error  ' . print_r($this->omaeURL->error(), true));
                     }
@@ -781,12 +803,13 @@ class Reminder {
                     $invoice = $this->createPBInvoice($eachLogin);
                     $this->omaeURL->dataPostRaw($invoice);
                     $sendResult = $this->omaeURL->response();
+                    $this->debugReminderRAW('User Login data:' . "\n" . print_r($userLoginData, true) . "\n", true, true);
                 } elseif ($paysysFilterForUsersNeeded) {
                     $this->debugReminderRAW(' ERROR sending PB invoice for user: ' . $eachLogin . ' - login not found by OPAYZ PAYSYS filter');
                 }
 
-                // PB invoice send result debugging
-                $this->debugReminderRAW(' PBI send result  ' . $sendResult);
+                // PB invoice send result debugging                
+                $this->debugReminderRAW(' PBI send result:    ' . $sendResult . "\n\n", true);
                 $this->debugReminderRAW(' PBI OMAEURL lastRequestInfo  ' . print_r($this->omaeURL->lastRequestInfo(), true));
                 $this->debugReminderRAW(' PBI OMAEURL error  ' . print_r($this->omaeURL->error(), true));
             }
@@ -881,8 +904,16 @@ class Reminder {
      *
      * @return void
      */
-    private function debugReminderRAW($logmsg) {
-        if ($this->rmdDebugON) { log_register('REMINDER:  ' . $logmsg); }
+    private function debugReminderRAW($logmsg, $saveAsFile = false, $fileOnly = false) {
+        if ($this->rmdDebugON) {            
+            if ($saveAsFile) {
+                file_put_contents(self::REMINDER_DEBUG_FILE, $logmsg, FILE_APPEND);
+            } 
+            
+            if (!$fileOnly) {
+                log_register('REMINDER:  ' . $logmsg);
+            }
+        }
     }
 
 }
