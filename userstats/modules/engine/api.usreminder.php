@@ -287,9 +287,9 @@ class USReminder {
         $this->uscfgReminderNumberLen           = $this->usConfig->getUstasParam('REMINDER_NUMBER_LENGTH', 0);
         $this->uscfgReminderDaysTreshold        = $this->usConfig->getUstasParam('REMINDER_DAYS_THRESHOLD', 0);
         $this->uscfgReminderPrefix              = $this->usConfig->getUstasParam('REMINDER_PREFIX', '');
-        $this->uscfgReminderInstantFeeON                 = $this->usConfig->getUstasParam('REMINDER_FEE', 0);
+        $this->uscfgReminderInstantFeeON        = $this->usConfig->getUstasParam('REMINDER_FEE', 0);
         $this->uscfgReminderCashTypeID          = $this->usConfig->getUstasParam('REMINDER_CASHTYPEID', 0);
-        $this->uscfgReminderTurnONOFFAble         = $this->usConfig->getUstasParam('REMINDER_TURNOFF', 0);
+        $this->uscfgReminderTurnONOFFAble       = $this->usConfig->getUstasParam('REMINDER_TURNOFF', 0);
         $this->uscfgReminderNumberChangeAllowed = $this->usConfig->getUstasParam('REMINDER_CHANGE_NUMBER', 0);
         $this->uscfgReminderEmailEnabled        = $this->usConfig->getUstasParam('REMINDER_EMAIL_ENABLED', 0);
         $this->uscfgReminderEmailTagID          = $this->usConfig->getUstasParam('REMINDER_EMAIL_TAGID', 0);
