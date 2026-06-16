@@ -138,6 +138,7 @@ function wf_TextInput($name, $label = '', $value = '', $br = false, $size = '', 
     $pattern = ($pattern == 'dirpath') ? 'pattern="^\/?(?:[^\/ ]+\/)*[^\/ ]*\/?$" placeholder="some/dir/" title="' . __('This field can contain relative or absolute directories paths') . ': some/dir/, dir/"' : $pattern;
     $pattern = ($pattern == 'fullpath') ? 'pattern="^\/(?:[^\/ ]+\/?)+$" placeholder="/some/dir/file" title="' . __('This field can only contain absolute Unix-style paths starting with /') . ': /some/dir/file ' . __('or') . ' /some/dir/"' : $pattern;
     $pattern = ($pattern == 'pathorurl') ? 'pattern="^(https?://[^ ]+|/[^ ]*|[^ ]+/[^ ]*)$" placeholder="some/path or http://domain.com/path" title="' . __('This field can accept URLs or paths') . ': http://someurl.com/, some/dir/file, /some/dir/"' : $pattern;
+    $pattern = ($pattern == 'digits-comma-list') ? 'pattern="^\d+(,\d+)*$" placeholder="0" title="' . __('This field can only contain digits and commas(no leading/trailing commas allowed)') . '"' : $pattern;
 
     $result = '<input type="text" name="' . $name . '" value="' . $value . '" ' . $input_size . ' id="' . $inputid . '" class="' . $class . '" ' . $opts . ' ' . $pattern . '>' . "\n";
     if ($label != '') {
