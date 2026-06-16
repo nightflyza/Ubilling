@@ -37,3 +37,4 @@ modules/general/testing/
 .idea
 .cursor/
 DEMO_MODE
+.vscode/

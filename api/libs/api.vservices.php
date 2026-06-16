@@ -89,7 +89,7 @@ function web_VserviceAddForm() {
     $inputs .= wf_Selector('newpriority', web_priority_selector(6, true), __('Priority'), '', false, false, '', '', '', true);
     $inputs .= wf_TextInput('newfee', __('Fee'), '', false, '', '', '', '', '', true);
     $inputs .= wf_TextInput('newperiod', __('Charge period in days'), '', false, '', '', '', '', '', true);
-    $inputs .= wf_TextInput('newexcludetags', __('Excluded user tags') . '*', '', false, '', '', '', '', '', true);
+    $inputs .= wf_TextInput('newexcludetags', __('Excluded user tags') . '*', '', false, '', 'digits-comma-list', '', '', '', true);
     $inputs .= wf_tag('span', false, 'full-width-occupy');
     $inputs .= '*' . __('Users with this tag IDs will be excluded form current service processing. Tag IDs should be separated with coma.');
     $inputs .= wf_tag('span', true);
@@ -135,7 +135,7 @@ function web_VserviceEditForm($vserviceId) {
         $inputs .= wf_Selector('editpriority', $priorities, __('Priority'), $serviceData['priority'],  false, false, '', '', '', true);
         $inputs .= wf_TextInput('editfee', __('Fee'), $serviceData['price'], false, '5', '', '', '', '', true);
         $inputs .= wf_TextInput('editperiod', __('Charge period in days'), $serviceData['charge_period_days'], false, '5', 'digits', '', '', '', true);
-        $inputs .= wf_TextInput('editexcludetags', __('Excluded user tags'), $serviceData['exclude_tags'], false, '5', 'digits', '', '', '', true);
+        $inputs .= wf_TextInput('editexcludetags', __('Excluded user tags'), $serviceData['exclude_tags'], false, '5', 'digits-comma-list', '', '', '', true);
         $inputs .= wf_tag('span', false, 'full-width-occupy');
         $inputs .= '*' . __('Users with this tag IDs will be excluded form current service processing. Tag IDs should be separated with coma.');
         $inputs .= wf_tag('span', true);
