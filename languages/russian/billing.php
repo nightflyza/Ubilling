@@ -3654,3 +3654,4 @@ $lang['def']['file'] = 'файл';
 $lang['def']['Photos uploaded successfully'] = 'Изображения успешно загружены';
 $lang['def']['Some photos failed to upload'] = 'Не удалось загрузить некоторые изображения';
 $lang['def']['Photostorage upload limit sorry'] = 'Извините, ограничение для ваших загрузок: ';
+$lang['def']['Import'] = 'Импорт';

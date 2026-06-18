@@ -128,8 +128,10 @@ class CustMaps {
     const LINE_DEFAULT_COLOR = '#f57601';
     const LINE_DEFAULT_FIBERS_AMOUNT = 0;
     const LINE_DEFAULT_WIDTH = 2;
+
     const LINE_EDITOR_LIB='modules/jsc/custmaps/line-editor.js';
     const MARKERS_TOGGLE_LIB = 'modules/jsc/custmaps/markers-toggle.js';
+    const KML_IMPORT_TMP_PATH = 'exports/';
 
     const ROUTE_SHOWMAP = 'showmap';
     const ROUTE_DELETEMAP = 'deletemap';
@@ -145,6 +147,9 @@ class CustMaps {
     const ROUTE_CL = 'cl';
     const ROUTE_MAPLIST = 'maplist';
     const ROUTE_MAPCONFIG = 'mapconfig';
+    const ROUTE_KMLIMPORT = 'kmlimport';
+    const ROUTE_KMLIMPORT_OK = 'kmlimport_ok';
+    const ROUTE_KMLEXPORT = 'kmlexport';
 
     const PROUTE_NEWMAPNAME = 'newmapname';
     const PROUTE_EDITMAPID = 'editmapid';
@@ -181,6 +186,9 @@ class CustMaps {
     const PROUTE_EDITLINE_STYLE_WIDTH = 'editline_style_width';
     const PROUTE_EDITLINE_DESCRIPTION = 'editline_description';
     const PROUTE_EDITLINE_GEO = 'editline_geo';
+    const PROUTE_KMLIMPORT = 'kmlimport';
+    const PROUTE_KMLIMPORT_FILE = 'custmaps_kml_upload';
+    const PROUTE_KMLIMPORT_ITEMTYPE = 'kmlimport_itemtype';
 
     public function __construct() {
         $this->setShowMapId();
@@ -216,6 +224,29 @@ class CustMaps {
     public static function urlMapConfig($id) {
         $id = ubRouting::filters($id, 'int');
         $result = self::URL_ME . '&' . self::ROUTE_MAPCONFIG . '=' . $id;
+        return ($result);
+    }
+
+    /**
+     * URL of the KML import screen
+     *
+     * @return string
+     */
+    public static function urlKmlImport() {
+        $result = self::URL_ME . '&' . self::ROUTE_KMLIMPORT . '=true';
+        return ($result);
+    }
+
+    /**
+     * URL of the KML export download for map
+     *
+     * @param int $id
+     *
+     * @return string
+     */
+    public static function urlMapKmlExport($id) {
+        $id = ubRouting::filters($id, 'int');
+        $result = self::URL_ME . '&' . self::ROUTE_KMLEXPORT . '=' . $id;
         return ($result);
     }
 
@@ -839,6 +870,35 @@ class CustMaps {
     }
 
     /**
+     * Returns KML import upload form
+     *
+     * @return string
+     */
+    protected function mapKmlImportForm() {
+        $postUrl = self::urlKmlImport();
+        $inputs = wf_tag('form', false, 'photostorageuploadform', 'action="' . $postUrl . '" enctype="multipart/form-data" method="POST"');
+        $inputs .= wf_tag('input', false, '', 'type="file" name="' . self::PROUTE_KMLIMPORT_FILE . '" accept=".kml,.kmz"');
+        $inputs .= wf_Selector(self::PROUTE_KMLIMPORT_ITEMTYPE, $this->itemTypes, __('Markers type'), 'box', true);
+        $inputs .= wf_HiddenInput(self::PROUTE_KMLIMPORT, '1');
+        $inputs .= wf_Submit(__('Import'));
+        $inputs .= wf_tag('form', true);
+        $result = $inputs;
+        return ($result);
+    }
+
+    /**
+     * Renders KML import page with upload form
+     *
+     * @return string
+     */
+    public function renderKmlImportPage() {
+        $result = wf_BackLink(self::urlMapList());
+        $result .= wf_delimiter();
+        $result .= $this->mapKmlImportForm();
+        return ($result);
+    }
+
+    /**
      * Returns custom map editing form
      * 
      * @param int $id
@@ -872,6 +932,9 @@ class CustMaps {
         $id = ubRouting::filters($id, 'int');
         if (isset($this->allMaps[$id])) {
             $result .= wf_BackLink(self::urlMapList());
+            if (cfr('CUSTMAPEDIT')) {
+                $result .= wf_Link(self::urlMapKmlExport($id), wf_img('skins/icon_download.png') . ' ' . __('Export'), false, 'ubButton');
+            }
             $result .= wf_delimiter();
             $result .= $this->mapEditForm($id);
             if (cfr('CUSTMAPEDIT')) {
@@ -897,6 +960,8 @@ class CustMaps {
         $result = '';
         if (cfr('CUSTMAPEDIT')) {
             $result = wf_modalAuto(wf_img('skins/add_icon.png') . ' ' . __('Create'), __('Create new map'), $this->mapCreateForm(), 'ubButton');
+            $result .= wf_Link(self::urlKmlImport(), wf_img('skins/icon_puzzle.png') . ' ' . __('Import'), false, 'ubButton');
+
             if (cfr('ROOT')) {
                 if (@$this->altCfg['VOLS_ENABLED']) {
                  $result .= wf_Link('?module=volzconvert', wf_img('skins/icon_puzzle.png') .' '.__('Migration'). ' ' . __('VOLS'), false, 'ubButton');
@@ -925,6 +990,365 @@ class CustMaps {
         $this->mapsDb->create();
         $newId = $this->mapsDb->getLastId();
         log_register('CUSTMAPS CREATE MAP `' . $name . '` ID [' . $newId . ']');
+    }
+
+    /**
+     * Imports KML/KMZ file into a new custom map
+     *
+     * @param string $tmpPath readable path to uploaded file in exports/
+     * @param string $originalFilename original client filename
+     * @param string $markerType CustMaps marker type key for imported points
+     *
+     * @return array keys: success, error, map_id, marks, lines
+     */
+    public function mapImportFromKml($tmpPath, $originalFilename, $markerType) {
+        $result = array(
+            'success' => false,
+            'error' => '',
+            'map_id' => 0,
+            'marks' => 0,
+            'lines' => 0,
+        );
+        $mapId = 0;
+        $tmpPath = trim((string) $tmpPath);
+        $originalFilename = trim((string) $originalFilename);
+        if ($tmpPath === '' or !is_readable($tmpPath) or !is_file($tmpPath)) {
+            $result['error'] = __('File upload failed');
+        } else {
+            $ext = strtolower(pathinfo($originalFilename, PATHINFO_EXTENSION));
+            if ($ext !== 'kml' and $ext !== 'kmz') {
+                $result['error'] = __('Wrong file type');
+            } else {
+                $markerType = ubRouting::filters($markerType, 'mres');
+                if (!isset($this->itemTypes[$markerType])) {
+                    $markerType = 'other';
+                }
+                $baseName = pathinfo($originalFilename, PATHINFO_FILENAME);
+                if ($baseName === '') {
+                    $baseName = 'imported';
+                }
+                $mapNameRaw = $baseName . ' ' . curdatetime();
+                $mapName = $this->truncateImportField($this->sanitizeImportText($mapNameRaw), 255);
+
+                $this->mapCreate($mapName);
+                $mapId = (int) $this->mapsDb->getLastId();
+                if ($mapId <= 0) {
+                    $result['error'] = __('Something went wrong');
+                } else {
+                    $this->loadMaps();
+                    $kml = new TinyKML();
+                    $loaded = $kml->loadFromFile($tmpPath);
+                    if ($loaded === false) {
+                        $kmlError = $kml->getLastError();
+                        $this->mapDelete($mapId);
+                        if ($kmlError !== '') {
+                            $result['error'] = $kmlError;
+                        } else {
+                            $result['error'] = __('Something went wrong');
+                        }
+                    } else {
+                        $marksCount = 0;
+                        $linesCount = 0;
+                        $importFailed = false;
+                        $importError = '';
+
+                        $points = $kml->getPoints();
+                        if (!empty($points)) {
+                            foreach ($points as $io => $eachPoint) {
+                                $itemName = isset($eachPoint['name']) ? $eachPoint['name'] : '';
+                                $itemLocation = isset($eachPoint['description']) ? $eachPoint['description'] : '';
+                                $itemName = $this->truncateImportField($this->sanitizeImportText($itemName), 255);
+                                $itemLocation = $this->truncateImportField($this->sanitizeImportText($itemLocation), 255);
+                                $lat = isset($eachPoint['lat']) ? $eachPoint['lat'] : '';
+                                $lng = isset($eachPoint['lng']) ? $eachPoint['lng'] : '';
+                                if ($lat !== '' and $lng !== '' and is_numeric($lat) and is_numeric($lng)) {
+                                    $geo = (float) $lat . ',' . (float) $lng;
+                                    try {
+                                        $this->itemCreate($mapId, $markerType, $geo, $itemName, $itemLocation);
+                                        $marksCount = $marksCount + 1;
+                                    } catch (Exception $e) {
+                                        $importFailed = true;
+                                        $importError = $e->getMessage();
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+
+                        if ($importFailed === false) {
+                            $kmlLines = $kml->getLines();
+                            if (!empty($kmlLines)) {
+                                foreach ($kmlLines as $lio => $eachLine) {
+                                    $lineName = isset($eachLine['name']) ? $eachLine['name'] : '';
+                                    $lineDescr = isset($eachLine['description']) ? $eachLine['description'] : '';
+                                    $lineName = $this->truncateImportField($this->sanitizeImportText($lineName), 255);
+                                    $lineDescr = $this->sanitizeImportText($lineDescr);
+                                    $lineColor = self::LINE_DEFAULT_COLOR;
+                                    if (isset($eachLine['color']) and trim((string) $eachLine['color']) !== '') {
+                                        $lineColor = trim((string) $eachLine['color']);
+                                    }
+                                    $lineWidth = self::LINE_DEFAULT_WIDTH;
+                                    if (isset($eachLine['width']) and (int) $eachLine['width'] > 0) {
+                                        $lineWidth = (int) $eachLine['width'];
+                                    }
+                                    $geoPoints = array();
+                                    if (isset($eachLine['points']) and is_array($eachLine['points'])) {
+                                        foreach ($eachLine['points'] as $pio => $eachPt) {
+                                            if (is_array($eachPt) and isset($eachPt['lat']) and isset($eachPt['lng'])) {
+                                                if (is_numeric($eachPt['lat']) and is_numeric($eachPt['lng'])) {
+                                                    $geoPoints[] = array((float) $eachPt['lat'], (float) $eachPt['lng']);
+                                                }
+                                            }
+                                        }
+                                    }
+                                    if (count($geoPoints) > 1) {
+                                        $lineGeo = json_encode($geoPoints);
+                                        $lineLengthM = sprintf('%.2f', $this->lineCalcLengthMeters($geoPoints));
+                                        try {
+                                            $this->lineCreate(
+                                                $mapId,
+                                                $lineName,
+                                                self::LINE_DEFAULT_FIBERS_AMOUNT,
+                                                $lineLengthM,
+                                                $lineColor,
+                                                $lineWidth,
+                                                $lineDescr,
+                                                $lineGeo
+                                            );
+                                            $linesCount = $linesCount + 1;
+                                        } catch (Exception $e) {
+                                            $importFailed = true;
+                                            $importError = $e->getMessage();
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        if ($importFailed) {
+                            $this->mapDelete($mapId);
+                            if ($importError !== '') {
+                                $result['error'] = $importError;
+                            } else {
+                                $result['error'] = __('Something went wrong');
+                            }
+                        } else {
+                            $result['success'] = true;
+                            $result['map_id'] = $mapId;
+                            $result['marks'] = $marksCount;
+                            $result['lines'] = $linesCount;
+                            log_register('CUSTMAPS KML IMPORT MAP [' . $mapId . '] MARKS [' . $marksCount . '] LINES [' . $linesCount . ']');
+                        }
+                    }
+                }
+            }
+        }
+        return ($result);
+    }
+
+    /**
+     * Renders KML import result summary
+     *
+     * @param int $mapId
+     * @param int $marks
+     * @param int $lines
+     *
+     * @return string
+     */
+    public function renderKmlImportResult($mapId, $marks, $lines) {
+        $result = '';
+        $mapId = ubRouting::filters($mapId, 'int');
+        $marks = (int) $marks;
+        $lines = (int) $lines;
+        if ($mapId > 0) {
+            $msg = __('Done') . ': ' . __('Markers') . ' ' . $marks . ', ' . __('Lines') . ' ' . $lines;
+            $result .= $this->messages->getStyledMessage($msg, 'success');
+            $result .= wf_delimiter();
+            $mapUrl = self::URL_ME . '&' . self::ROUTE_SHOWMAP . '=' . $mapId;
+            $result .= wf_Link($mapUrl, wf_img('skins/icon_map_small.png').' '.__('Show map'), false, 'ubButton');
+            $result .= wf_delimiter();
+            $result .= wf_BackLink(self::urlMapList());
+        } else {
+            $result .= $this->messages->getStyledMessage(__('Something went wrong'), 'error');
+        }
+        return ($result);
+    }
+
+    /**
+     * Builds KML document string for map objects
+     *
+     * @param int $mapId
+     *
+     * @return string
+     */
+    public function mapExportToKml($mapId) {
+        $result = '';
+        $mapId = ubRouting::filters($mapId, 'int');
+        if (isset($this->allMaps[$mapId])) {
+            $kml = new TinyKML();
+            $documentName = $this->mapGetName($mapId);
+            if (!empty($this->allItems)) {
+                foreach ($this->allItems as $io => $each) {
+                    if (($each['mapid'] == $mapId) and (!empty($each['geo']))) {
+                        $parts = explode(',', $each['geo']);
+                        if (count($parts) >= 2) {
+                            $lat = trim($parts[0]);
+                            $lng = trim($parts[1]);
+                            if ($lat !== '' and $lng !== '' and is_numeric($lat) and is_numeric($lng)) {
+                                $itemName = isset($each['name']) ? $each['name'] : '';
+                                $itemLocation = isset($each['location']) ? $each['location'] : '';
+                                $itemType = isset($each['type']) ? $each['type'] : 'other';
+                                $itemDescription = $this->itemGetTypeName($itemType) . ':';
+                                if ($itemLocation !== '') {
+                                    $itemDescription .= ' ' . $itemLocation;
+                                }
+                                $kml->addPoint($itemName, $lat, $lng, $itemDescription);
+                            }
+                        }
+                    }
+                }
+            }
+            if (!empty($this->allLines)) {
+                foreach ($this->allLines as $lineId => $lineData) {
+                    if (($lineData['mapid'] == $mapId) and (!empty($lineData['geo']))) {
+                        $geoPoints = json_decode($lineData['geo'], true);
+                        if (is_array($geoPoints)) {
+                            $lineName = isset($lineData['name']) ? $lineData['name'] : '';
+                            $lineDescr = isset($lineData['description']) ? $lineData['description'] : '';
+                            $lineColor = isset($lineData['style_color']) ? $lineData['style_color'] : '';
+                            $lineWidth = 0;
+                            if (isset($lineData['style_width'])) {
+                                $lineWidth = (int) $lineData['style_width'];
+                            }
+                            $kml->addLine($lineName, $geoPoints, $lineDescr, $lineColor, $lineWidth);
+                        }
+                    }
+                }
+            }
+            $result = $kml->toString($documentName);
+        }
+        return ($result);
+    }
+
+    /**
+     * Sends map KML export as file download
+     *
+     * @param int $mapId
+     *
+     * @return void
+     */
+    public function mapExportKmlSend($mapId) {
+        $mapId = ubRouting::filters($mapId, 'int');
+        if (!isset($this->allMaps[$mapId])) {
+            show_error(__('Something went wrong'));
+        } else {
+            $kmlBody = $this->mapExportToKml($mapId);
+            $fileName = $this->mapExportKmlFileName($mapId);
+            header('Content-Type: application/vnd.google-earth.kml+xml');
+            header('Content-Transfer-Encoding: Binary');
+            header('Content-Disposition: attachment; filename="' . $fileName . '"');
+            header('Content-Description: File Transfer');
+            echo $kmlBody;
+            log_register('CUSTMAPS KML EXPORT MAP [' . $mapId . ']');
+            die();
+        }
+    }
+
+    /**
+     * Returns safe download filename for map KML export
+     *
+     * @param int $mapId
+     *
+     * @return string
+     */
+    protected function mapExportKmlFileName($mapId) {
+        $timePart = curdatetime();
+        $timePart = str_replace(' ', '_', $timePart);
+        $timePart = str_replace(':', '-', $timePart);
+        $result = 'custmap_' . (int) $mapId . '_' . $timePart . '.kml';
+        $mapName = $this->mapGetName($mapId);
+        if ($mapName !== '') {
+            $safe = zb_TranslitString($mapName);
+            $safe = ubRouting::filters($safe, 'safe');
+            $safe = str_replace(' ', '_', $safe);
+            $safe = preg_replace('/[^a-zA-Z0-9._-]/', '_', $safe);
+            if ($safe !== '') {
+                $result = $safe . '_' . $timePart . '.kml';
+            }
+        }
+        return ($result);
+    }
+
+    /**
+     * Calculates polyline length in meters using haversine formula
+     *
+     * Points as array of array(lat, lng)
+     *
+     * @param array $points
+     *
+     * @return float
+     */
+    protected function lineCalcLengthMeters($points) {
+        $result = 0.0;
+        if (is_array($points)) {
+            $pointCount = count($points);
+            if ($pointCount > 1) {
+                $earthRadius = 6371000;
+                $idx = 0;
+                while ($idx < ($pointCount - 1)) {
+                    $lat1 = deg2rad((float) $points[$idx][0]);
+                    $lng1 = deg2rad((float) $points[$idx][1]);
+                    $lat2 = deg2rad((float) $points[$idx + 1][0]);
+                    $lng2 = deg2rad((float) $points[$idx + 1][1]);
+                    $dLat = $lat2 - $lat1;
+                    $dLng = $lng2 - $lng1;
+                    $a = sin($dLat / 2) * sin($dLat / 2) + cos($lat1) * cos($lat2) * sin($dLng / 2) * sin($dLng / 2);
+                    $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
+                    $result = $result + ($earthRadius * $c);
+                    $idx++;
+                }
+            }
+        }
+        return ($result);
+    }
+
+    /**
+     * Sanitizes imported text: strip_tags then ubRouting safe filter
+     *
+     * @param string $str
+     *
+     * @return string
+     */
+    protected function sanitizeImportText($str) {
+        $result = strip_tags((string) $str);
+        $result = ubRouting::filters($result, 'safe');
+        return ($result);
+    }
+
+    /**
+     * Truncates import field value to max length
+     *
+     * @param string $str
+     * @param int $maxLen
+     *
+     * @return string
+     */
+    protected function truncateImportField($str, $maxLen) {
+        $result = (string) $str;
+        $maxLen = (int) $maxLen;
+        if ($maxLen > 0) {
+            if (function_exists('mb_substr')) {
+                if (mb_strlen($result, 'UTF-8') > $maxLen) {
+                    $result = mb_substr($result, 0, $maxLen, 'UTF-8');
+                }
+            } else {
+                if (strlen($result) > $maxLen) {
+                    $result = substr($result, 0, $maxLen);
+                }
+            }
+        }
+        return ($result);
     }
 
     /**

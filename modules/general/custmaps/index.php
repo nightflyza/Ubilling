@@ -17,6 +17,15 @@ if (cfr('CUSTMAP')) {
             }
         }
 
+        // KML export download
+        if (ubRouting::checkGet($custmaps::ROUTE_KMLEXPORT)) {
+            if (cfr('CUSTMAPEDIT')) {
+                $custmaps->mapExportKmlSend(ubRouting::get($custmaps::ROUTE_KMLEXPORT, 'int'));
+            } else {
+                show_error(__('Permission denied'));
+            }
+        }
+
         //custom map deletion
         if (ubRouting::checkGet($custmaps::ROUTE_DELETEMAP)) {
             if (cfr('CUSTMAPEDIT')) {
@@ -110,6 +119,61 @@ if (cfr('CUSTMAP')) {
             }
         }
 
+        if (ubRouting::checkGet($custmaps::ROUTE_KMLIMPORT_OK)) {
+            if (cfr('CUSTMAPEDIT')) {
+                $okMapId = ubRouting::get('mapid', 'int');
+                $okMarks = ubRouting::get('m', 'int');
+                $okLines = ubRouting::get('l', 'int');
+                if (!empty($okMapId)) {
+                    show_window(__('Import') . ' KML', $custmaps->renderKmlImportResult($okMapId, $okMarks, $okLines));
+                    zb_BillingStats(true);
+                } else {
+                    show_error(__('Something went wrong'));
+                }
+            } else {
+                show_error(__('Permission denied'));
+            }
+        } else {
+            if (ubRouting::checkGet($custmaps::ROUTE_KMLIMPORT)) {
+                if (cfr('CUSTMAPEDIT')) {
+                    if (ubRouting::checkPost($custmaps::PROUTE_KMLIMPORT)) {
+                        $fileField = $custmaps::PROUTE_KMLIMPORT_FILE;
+                        if (isset($_FILES[$fileField]) and is_uploaded_file($_FILES[$fileField]['tmp_name'])) {
+                            $originalName = $_FILES[$fileField]['name'];
+                            $ext = strtolower(pathinfo($originalName, PATHINFO_EXTENSION));
+                            if ($ext === 'kml' or $ext === 'kmz') {
+                                $safeBase = preg_replace('/[^a-zA-Z0-9._-]/', '_', basename($originalName));
+                                $tmpPath = $custmaps::KML_IMPORT_TMP_PATH . 'custmaps_kml_' . time() . '_' . $safeBase;
+                                if (@move_uploaded_file($_FILES[$fileField]['tmp_name'], $tmpPath)) {
+                                    $markerType = ubRouting::post($custmaps::PROUTE_KMLIMPORT_ITEMTYPE);
+                                    $importResult = $custmaps->mapImportFromKml($tmpPath, $originalName, $markerType);
+                                    @unlink($tmpPath);
+                                    if (!empty($importResult['success'])) {
+                                        $redirUrl = $custmaps::URL_ME . '&' . $custmaps::ROUTE_KMLIMPORT_OK . '=1';
+                                        $redirUrl .= '&mapid=' . (int) $importResult['map_id'];
+                                        $redirUrl .= '&m=' . (int) $importResult['marks'];
+                                        $redirUrl .= '&l=' . (int) $importResult['lines'];
+                                        ubRouting::nav($redirUrl);
+                                    } else {
+                                        $errText = !empty($importResult['error']) ? $importResult['error'] : __('Something went wrong');
+                                        show_error($errText);
+                                    }
+                                } else {
+                                    show_error(__('File upload failed'));
+                                }
+                            } else {
+                                show_error(__('Wrong file type'));
+                            }
+                        } else {
+                            show_error(__('File upload failed'));
+                        }
+                    }
+                    show_window(__('Import') . ' KML', $custmaps->renderKmlImportPage());
+                    zb_BillingStats(true);
+                } else {
+                    show_error(__('Permission denied'));
+                }
+            } else {
         if (!ubRouting::checkGet($custmaps::ROUTE_SHOWMAP)) {
             if (ubRouting::checkGet($custmaps::ROUTE_MAPCONFIG)) {
                 if (cfr('CUSTMAPEDIT')) {
@@ -241,6 +305,8 @@ if (cfr('CUSTMAP')) {
             }
 
             show_window($custmaps->mapGetName($mapId), $custmaps->mapInit());
+        }
+            }
         }
     } else {
         show_error(__('This module is disabled'));

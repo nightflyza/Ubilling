@@ -41,3 +41,4 @@ $lang['def']['Delete line'] = 'Видалити лінію';
 $lang['def']['to markers'] = 'до міток';
 $lang['def']['to map'] = 'до мапи';
 $lang['def']['to lines'] = 'до ліній';
+$lang['def']['Markers type'] = 'Тип міток';
