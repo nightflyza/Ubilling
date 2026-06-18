@@ -1249,8 +1249,8 @@ class CustMaps {
             header('Content-Transfer-Encoding: Binary');
             header('Content-Disposition: attachment; filename="' . $fileName . '"');
             header('Content-Description: File Transfer');
-            echo $kmlBody;
-            log_register('CUSTMAPS KML EXPORT MAP [' . $mapId . ']');
+            print($kmlBody);
+            log_register('CUSTMAPS KML EXPORT MAP [' . $mapId . '] AS `' . $fileName . '`');
             die();
         }
     }
