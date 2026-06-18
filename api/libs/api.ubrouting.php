@@ -136,7 +136,7 @@ class ubRouting {
      * 
      * @param mixed $rawData data to be filtered
      * @param string $filtering filtering options. Possible values: raw, int, mres, callback, fi, vf, nb, float, login, safe, emsafe, gigasafe
-     * @param string|array/filter name $callback callback function name or names array to filter variable value. Or const filter name of php.net/filter
+     * @param string|array/filter $callback callback function name or names array to filter variable value. Or const filter name of php.net/filter
      * 
      * @return mixed|false
      * 
@@ -144,6 +144,11 @@ class ubRouting {
      */
     public static function filters($rawData, $filtering = 'raw', $callback = '') {
         $result = false;
+        if ($filtering != 'raw') {
+            if (is_array($rawData) or is_object($rawData)) {
+                return false;
+            }
+        }
         switch ($filtering) {
             case 'raw':
                 return ($rawData);
