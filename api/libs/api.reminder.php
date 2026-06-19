@@ -237,21 +237,21 @@ class Reminder {
     /**
      * Placeholder for UbillingConfig object
      *
-     * @var null
+     * @var object
      */
     protected $ubConfig = null;
 
     /**
      * Placeholder for MobilesExt object
      *
-     * @var null
+     * @var object
      */
     protected $extMobilesObj = null;
 
     /**
      * OMAEURL instance placeholder
      *
-     * @var null
+     * @var object
      */
     protected $omaeURL = null;
 
