@@ -934,16 +934,17 @@ class CustMaps {
             $result .= wf_BackLink(self::urlMapList());
             if (cfr('CUSTMAPEDIT')) {
                 $result .= wf_Link(self::urlMapKmlExport($id), wf_img('skins/icon_download.png') . ' ' . __('Export'), false, 'ubButton');
-            }
-            $result .= wf_delimiter();
-            $result .= $this->mapEditForm($id);
-            if (cfr('CUSTMAPEDIT')) {
+                $result .= wf_delimiter();
+                $result .= $this->mapEditForm($id);
+            
                 $result .= wf_delimiter(0);
                 $deletionUrl = self::URL_ME . '&' . self::ROUTE_DELETEMAP . '=' . $id;
                 $cancelUrl = self::urlMapConfig($id);
                 $mapName = $this->mapGetName($id);
                 $deleteTitle = __('Delete') . ' ' . $mapName . '?';
                 $result .= wf_ConfirmDialog($deletionUrl, web_delete_icon().' '.__('Delete map'), $this->messages->getDeleteAlert(), 'ubButton', $cancelUrl, $deleteTitle);
+            } else {
+                $result .= $this->messages->getStyledMessage(__('Access denied'), 'error');
             }
         } else {
             $result .= $this->messages->getStyledMessage(__('Something went wrong'), 'error');
