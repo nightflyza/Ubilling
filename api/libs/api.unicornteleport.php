@@ -386,7 +386,10 @@ class UnicornTeleport {
         $rsdCommand=$this->sudoPath.' '.$this->grepPath.' "Password" '.$this->saveStargazerConfPath;
         $rsdOutput=shell_exec($rsdCommand);
         if (!empty($rsdOutput)) {
-            $this->teleportData['rsdpass']=trim(explode('=', $rsdOutput)[1]);
+            $rsdParts = explode('=', $rsdOutput, 2);
+            if (isset($rsdParts[1])) {
+                $this->teleportData['rsdpass'] = trim($rsdParts[1]);
+            }
         }
         $this->currentRelease=trim(file_get_contents('RELEASE'));
     }

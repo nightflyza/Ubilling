@@ -195,7 +195,8 @@ class JunBGP {
                 if (!empty($each)) {
                     if (ispos($each, $oid)) {
                         $index = $idx;
-                        $oidPart = trim(explode('=', $each)[0]);
+                        $eachParts = explode('=', $each);
+                        $oidPart = trim($eachParts[0]);
                         $oidSuffix = str_replace($oid, '', $oidPart);
                         $oidParts = explode('.', trim($oidSuffix, '.'));
                         $ipParts = array_slice($oidParts, -4);
