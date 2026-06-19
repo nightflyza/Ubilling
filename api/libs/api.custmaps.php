@@ -942,7 +942,7 @@ class CustMaps {
                 $cancelUrl = self::urlMapConfig($id);
                 $mapName = $this->mapGetName($id);
                 $deleteTitle = __('Delete') . ' ' . $mapName . '?';
-                $result .= wf_ConfirmDialog($deletionUrl, web_delete_icon().' '.__('Delete map'), $this->messages->getDeleteAlert(), 'ubButton', $cancelUrl, $deleteTitle);
+                $result .= wf_ConfirmDialog($deletionUrl, wf_img('skins/icon_thrash16.png').' '.__('Delete map'), $this->messages->getDeleteAlert(), 'confirmcancel', $cancelUrl, $deleteTitle);
             } else {
                 $result .= $this->messages->getStyledMessage(__('Access denied'), 'error');
             }
