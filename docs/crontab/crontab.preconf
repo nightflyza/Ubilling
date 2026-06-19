@@ -20,4 +20,5 @@
 5 3 5 * *       /bin/ubapi "onusigcompressor"
 */2 * * * *     /bin/ubapi "opprocessing"
 */10 * * * *    /bin/ubapi "buildsmap"
+*/30 * * * *    /opt/sphinx/bin/indexer --config /opt/sphinx/etc/sphinx.conf --all --rotate
 
