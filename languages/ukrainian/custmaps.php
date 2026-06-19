@@ -42,3 +42,6 @@ $lang['def']['to markers'] = 'до міток';
 $lang['def']['to map'] = 'до мапи';
 $lang['def']['to lines'] = 'до ліній';
 $lang['def']['Markers type'] = 'Тип міток';
+$lang['def']['Map statistics'] = 'Статистика мапи';
+$lang['def']['Total length'] = 'Загальна довжина';
+$lang['def']['Markers without geo location'] = 'Мітки без геолокації';

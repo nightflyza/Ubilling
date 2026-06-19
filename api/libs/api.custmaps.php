@@ -921,6 +921,100 @@ class CustMaps {
     }
 
     /**
+     * Renders basic map statistics like lines and markers count, length, etc.
+     *
+     * @param int $id
+     * 
+     * @return string
+     */
+    protected function renderMapStats($id) {
+        $result = '';
+        $id = ubRouting::filters($id, 'int');
+        if (isset($this->allMaps[$id])) {
+            $markersCount = 0;
+            $markersNoGeo = 0;
+            $markersByType = array();
+            $linesCount = 0;
+            $totalLengthM = 0.0;
+            $totalFibers = 0;
+
+            if (!empty($this->allItems)) {
+                foreach ($this->allItems as $io => $each) {
+                    if ($each['mapid'] == $id) {
+                        $markersCount++;
+                        $geoEmpty = true;
+                        if (isset($each['geo']) and strlen(trim((string) $each['geo'])) > 0) {
+                            $geoEmpty = false;
+                        }
+                        if ($geoEmpty) {
+                            $markersNoGeo++;
+                        }
+                        $itemType = $each['type'];
+                        if (!isset($markersByType[$itemType])) {
+                            $markersByType[$itemType] = 0;
+                        }
+                        $markersByType[$itemType]++;
+                    }
+                }
+            }
+
+            if (!empty($this->allLines)) {
+                foreach ($this->allLines as $lineId => $lineData) {
+                    if ($lineData['mapid'] == $id) {
+                        $linesCount++;
+                        $totalLengthM = $totalLengthM + (float) $lineData['length_m'];
+                        if (isset($lineData['fibers_amount'])) {
+                            $totalFibers = $totalFibers + (int) $lineData['fibers_amount'];
+                        }
+                    }
+                }
+            }
+
+            $markersVal = wf_Link(self::URL_ME . '&' . self::ROUTE_SHOWITEMS . '=' . $id, $markersCount, false);
+            $linesVal = wf_Link(self::URL_ME . '&' . self::ROUTE_SHOWLINES . '=' . $id, $linesCount, false);
+            $lengthVal = round($totalLengthM) . ' ' . __('m');
+
+            $result .= wf_tag('h3') . __('Map statistics') . wf_tag('h3', true);
+
+            $cells = wf_TableCell(__('Parameter'), '50%');
+            $cells .= wf_TableCell(__('Value'), '50%');
+            $rows = wf_TableRow($cells, 'row1');
+
+            $statsRows = array(
+                array(__('Markers'), $markersVal),
+                array(__('Lines'), $linesVal),
+                array(__('Total length'), $lengthVal),
+                array(__('Fibers') . ' (' . __('Total') . ')', $totalFibers),
+                array(__('Markers without geo location'), $markersNoGeo),
+            );
+            foreach ($statsRows as $statRow) {
+                $cells = wf_TableCell($statRow[0]);
+                $cells .= wf_TableCell($statRow[1]);
+                $rows .= wf_TableRow($cells, 'row5');
+            }
+            $result .= wf_TableBody($rows, '100%', 0, '');
+       
+            if (!empty($markersByType)) {
+                arsort($markersByType);
+                $cells = wf_TableCell(__('Type'), '70%');
+                $cells .= wf_TableCell(__('Count'), '30%');
+                $typeRows = wf_TableRow($cells, 'row1');
+                foreach ($markersByType as $typeKey => $typeCount) {
+                    $typeName = $this->itemGetTypeName($typeKey);
+                    $cells = wf_TableCell($typeName);
+                    $cells .= wf_TableCell($typeCount);
+                    $typeRows .= wf_TableRow($cells, 'row5');
+                }
+                $result .= wf_delimiter(0);
+                $result .= wf_tag('h4') . __('Markers type') . wf_tag('h4', true);
+                $result .= wf_TableBody($typeRows, '100%', 0, 'sortable');
+            }
+        }
+        return ($result);
+    }
+
+
+    /**
      * Map settings page: back link and edit form  
      *
      * @param int $id
@@ -936,6 +1030,8 @@ class CustMaps {
                 $result .= wf_Link(self::urlMapKmlExport($id), wf_img('skins/icon_download.png') . ' ' . __('Export'), false, 'ubButton');
                 $result .= wf_delimiter();
                 $result .= $this->mapEditForm($id);
+                $result .= wf_delimiter();
+                $result .= $this->renderMapStats($id);
             
                 $result .= wf_delimiter(0);
                 $deletionUrl = self::URL_ME . '&' . self::ROUTE_DELETEMAP . '=' . $id;

@@ -41,3 +41,7 @@ $lang['def']['Delete line'] = 'Удалить линию';
 $lang['def']['to markers'] = 'к меткам';
 $lang['def']['to map'] = 'к карте';
 $lang['def']['to lines'] = 'к линиям';
+$lang['def']['Markers type'] = 'Тип меток';
+$lang['def']['Map statistics'] = 'Статистика карты';
+$lang['def']['Total length'] = 'Общая длина';
+$lang['def']['Markers without geo location'] = 'Метки без геолокации';
