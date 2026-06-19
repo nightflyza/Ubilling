@@ -750,7 +750,7 @@ class CustMaps {
             $cancelUrl = self::URL_ME . '&' . self::ROUTE_EDITITEM . '=' . $itemId;
             $deleteTitle = __('Delete') . ' ' . $itemName . '?';
             $deleteUi = wf_delimiter(0);
-            $deleteUi .= wf_ConfirmDialog($deletionUrl, web_delete_icon() . ' ' . __('Delete marker'), $this->messages->getDeleteAlert(), 'ubButton', $cancelUrl, $deleteTitle);
+            $deleteUi .= wf_ConfirmDialog($deletionUrl, wf_img('skins/icon_thrash16.png') . ' ' . __('Delete marker'), $this->messages->getDeleteAlert(), 'dangerButton', $cancelUrl, $deleteTitle);
             show_window('', $deleteUi);
         }
         return ($result);
@@ -942,7 +942,7 @@ class CustMaps {
                 $cancelUrl = self::urlMapConfig($id);
                 $mapName = $this->mapGetName($id);
                 $deleteTitle = __('Delete') . ' ' . $mapName . '?';
-                $result .= wf_ConfirmDialog($deletionUrl, wf_img('skins/icon_thrash16.png').' '.__('Delete map'), $this->messages->getDeleteAlert(), 'confirmcancel', $cancelUrl, $deleteTitle);
+                $result .= wf_ConfirmDialog($deletionUrl, wf_img('skins/icon_thrash16.png').' '.__('Delete map'), $this->messages->getDeleteAlert(), 'dangerButton', $cancelUrl, $deleteTitle);
             } else {
                 $result .= $this->messages->getStyledMessage(__('Access denied'), 'error');
             }
@@ -1777,7 +1777,7 @@ class CustMaps {
                 $cancelUrl = self::URL_ME . '&' . self::ROUTE_EDITLINE . '=' . $lineId;
                 $deleteTitle = __('Delete') . ' ' . $lineName . '?';
                 $deleteUi = wf_delimiter(0);
-                $deleteUi .= wf_ConfirmDialog($deletionUrl, web_delete_icon() . ' ' . __('Delete line'), $this->messages->getDeleteAlert(), 'ubButton', $cancelUrl, $deleteTitle);
+                $deleteUi .= wf_ConfirmDialog($deletionUrl, wf_img('skins/icon_thrash16.png') . ' ' . __('Delete line'), $this->messages->getDeleteAlert(), 'dangerButton', $cancelUrl, $deleteTitle);
                 show_window('', $deleteUi);
             }
         } else {
