@@ -96,7 +96,7 @@ function zb_TemplateGetAllUserData() {
     $userdata = array();
     $alluserdata = zb_UserGetAllStargazerData();
     $tariffspeeds = zb_TariffGetAllSpeeds();
-    $tariffprices = zb_TariffGetPricesAll();
+    $tariffprices = zb_TariffGetPricesAll();    
     $multinetdata = zb_MultinetGetAllData();
     $allcontracts = zb_UserGetAllLoginContracts();
     $allrealnames = zb_UserGetAllRealnames();
@@ -116,6 +116,7 @@ function zb_TemplateGetAllUserData() {
         }
     }
 
+    $allVservicesTotalCosts = zb_VservicesGetAllUsersPricesPeriod();
 
     if ($altcfg['OPENPAYZ_SUPPORT']) {
         if ($altcfg['OPENPAYZ_REALID']) {
@@ -197,6 +198,9 @@ function zb_TemplateGetAllUserData() {
             } else {
                 $userdata[$eachuser['login']]['moneylack'] = @$tariffprices[$eachuser['TariffChange']] - $eachuser['Cash'];
             }
+
+            // {VSERVICESTOTALCOST}
+            $userdata[$eachuser['login']]['vsrvtotalcost'] = @$allVservicesTotalCosts[$eachuser['login']];
         }
     }
 
@@ -224,6 +228,7 @@ function zb_TemplateReplaceAll($template, $alluserdata) {
             $result = str_ireplace('{CASH}', $each['cash'], $result);
             $result = str_ireplace('{CREDIT}', $each['credit'], $result);
             $result = str_ireplace('{LACK}', $each['moneylack'], $result);
+            $result = str_ireplace('{VSERVICESTOTALCOST}', $each['vsrvtotalcost'], $result);
             $result = str_ireplace('{DOWN}', $each['down'], $result);
             $result = str_ireplace('{PASSIVE}', $each['passive'], $result);
             $result = str_ireplace('{AO}', $each['ao'], $result);

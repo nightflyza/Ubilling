@@ -228,6 +228,20 @@ class Reminder {
     protected $rmdPBIPaymentIDAsBillidentifier = 0;
 
     /**
+     * Placeholder for REMINDER_PBI_USE_MONEYLACK alter.ini option
+     *
+     * @var boolean
+     */
+    protected $rmdPBIUseMoneyLack = false;
+
+    /**
+     * Placeholder for REMINDER_PBI_CONSIDER_VSERVICES_PRICE alter.ini option
+     *
+     * @var boolean
+     */
+    protected $rmdPBIConsiderVservicesPrice = false;
+
+    /**
      * Contains array of user logins filtered by OpenPayz payment systems listed in $rmdPBIUserFilterPaysysList
      *
      * @var array
@@ -353,6 +367,8 @@ class Reminder {
         $this->rmdPBIDayTariffMultiplier        = $this->ubConfig->getAlterParam('REMINDER_PBI_DAY_TARIFF_MULTIPLIER', 1);
         $this->rmdPBIUserFilterPaysysList       = $this->ubConfig->getAlterParam('REMINDER_PBI_USER_FILTER_PAYSYS_LIST', '');
         $this->rmdPBIPaymentIDAsBillidentifier  = $this->ubConfig->getAlterParam('REMINDER_PBI_PAYMENTID_AS_BILLIDENTIFIER', 0);
+        $this->rmdPBIUseMoneyLack               = $this->ubConfig->getAlterParam('REMINDER_PBI_USE_MONEYLACK', false);
+        $this->rmdPBIConsiderVservicesPrice     = $this->ubConfig->getAlterParam('REMINDER_PBI_CONSIDER_VSERVICES_PRICE', false);
 
         if (!ubRouting::filters($this->ubConfig->getAlterParam('CAP_ENABLED'), 'fi', FILTER_VALIDATE_BOOLEAN)
             or empty($this->rmdCAPDayLimit)) {
@@ -523,6 +539,8 @@ class Reminder {
         if (!empty($this->rmdPBIContragentsData[$userAgent['id']])) {
             $userAgentFullData  = $this->rmdPBIContragentsData[$userAgent['id']];
             $userTariff         = $this->AllTemplates[$login]['tariff'];
+            $userCash           = $this->AllTemplates[$login]['cash'];
+            $userVsrvTotalCost  = $this->AllTemplates[$login]['vsrvtotalcost'];
             $userTariffData     = zb_TariffGetData($userTariff);
             $userTariffPeriod   = $userTariffData['period'];
             $userTariffPrice    = ($userTariffPeriod == 'day') ? $userTariffData['Fee'] * $this->rmdPBIDayTariffMultiplier : $userTariffData['Fee'];
@@ -530,6 +548,14 @@ class Reminder {
             $invoiceCloseDate   = $invoiceCloseDate->format('Y-m-d');
             $userCellPhoneNum   = $this->AllTemplates[$login]['mobile'];
             $userCellPhoneNum   = preg_match('/^(\+38|38)/', $userCellPhoneNum) ? $userCellPhoneNum : $this->rmdPhonePrefix . $userCellPhoneNum;
+
+            if ($this->rmdPBIUseMoneyLack) {
+                $userTariffPrice = $userTariffPrice - $userCash;
+            }
+
+            if ($this->rmdPBIConsiderVservicesPrice) {
+                $userTariffPrice = $userTariffPrice + $userVsrvTotalCost;
+            }
             
             if (empty($this->rmdPBIPaymentIDAsBillidentifier) or $this->rmdPBIPaymentIDAsBillidentifier == 0) {
                 $userBillIdent  = $this->AllTemplates[$login]['contract'];
