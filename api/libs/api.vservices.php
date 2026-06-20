@@ -685,6 +685,59 @@ function zb_VservicesGetUserPricePeriod($login, $defaultPeriod = 'month') {
 }
 
 /**
+ * Similar to "zb_VservicesGetAllUsersPricesPeriod()", but returns price total of all virtual services fees assigned to all users in the system,
+ * considering services fee charge periods, as an array: ["userLogin" => "totalVsrvCost"] 
+ * 
+ * @return array
+ */
+function zb_VservicesGetAllUsersPricesPeriod() {
+    $allUsersVservices  = zb_VservicesGetUsersAll('', true);
+    $allUsersTariffs    = zb_TariffsGetAllUsers();
+    $allTariffData      = zb_TariffGetAllData();
+    $totalAllVsrvPrice  = array();
+    $userVsrvs          = array();
+    $curMonthDays       = date('t');
+
+    if (!empty($allUsersVservices)) {
+        foreach ($allUsersVservices as $eachLogin => $eachVsrvData) {
+            $totalVsrvPrice = 0;
+            $userVsrvs = $eachVsrvData;
+
+            if (empty($allUsersTariffs[$eachLogin]) or $allUsersTariffs[$eachLogin] = '*_NO_TARIFF_*') {
+                //continue;
+                $tariffPeriod = 'month';    // yeah, no Tariff at all but some virtual services there - who are we to even restrict that?
+            } else {
+                $userTariffData = $allTariffData[$allUsersTariffs[$eachLogin]];
+                $tariffPeriod = isset($tariffData['period']) ? $tariffData['period'] : 'month';
+            }
+
+            foreach ($userVsrvs as $eachTagDBID => $eachSrvData) {
+                $curVsrvPrice = $eachSrvData['price'];
+                $curVsrvDaysPeriod = $eachSrvData['daysperiod'];
+                $dailyVsrvPrice = 0;
+
+                // getting daily vservice price
+                if (!empty($curVsrvDaysPeriod)) {
+                    $dailyVsrvPrice = ($curVsrvDaysPeriod > 1) ? $curVsrvPrice / $curVsrvDaysPeriod : $curVsrvPrice;
+                }
+
+                // if vservice has no charge period set and $dailyVsrvPrice == 0
+                // then virtual service price is considered as for global $tariffPeriod period
+                if ($tariffPeriod == 'month') {
+                    $totalVsrvPrice += (empty($dailyVsrvPrice)) ? $curVsrvPrice : $dailyVsrvPrice * $curMonthDays;
+                } else {
+                    $totalVsrvPrice += (empty($dailyVsrvPrice)) ? $curVsrvPrice : $dailyVsrvPrice;
+                }
+            }
+
+            $totalAllVsrvPrice[$eachLogin] = $totalVsrvPrice;
+        }
+    }
+
+    return ($totalAllVsrvPrice);
+}
+
+/**
  * Returns all users with assigned virtual services as array:
  *         login => array($tagDBID => vServicePrice1)
  *
