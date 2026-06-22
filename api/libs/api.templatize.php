@@ -199,8 +199,30 @@ function zb_TemplateGetAllUserData() {
                 $userdata[$eachuser['login']]['moneylack'] = @$tariffprices[$eachuser['TariffChange']] - $eachuser['Cash'];
             }
 
-            // {VSERVICESTOTALCOST}
-            $userdata[$eachuser['login']]['vsrvtotalcost'] = @$allVservicesTotalCosts[$eachuser['login']];
+            if (empty($allVservicesTotalCosts[$eachuser['login']])) {
+                $userdata[$eachuser['login']]['vsrvtotalcost'] = 0;
+                $userdata[$eachuser['login']]['lackvsrvtotalcost'] = empty($userdata[$eachuser['login']]['moneylack']) ? 0 : $userdata[$eachuser['login']]['moneylack'];
+                
+                if (@empty($eachuser['TariffChange'])) {
+                    $userdata[$eachuser['login']]['tariffvsrvtotalcost'] = @$tariffprices[$eachuser['Tariff']];
+                } else {
+                    $userdata[$eachuser['login']]['tariffvsrvtotalcost'] = @$tariffprices[$eachuser['TariffChange']];                  
+                }
+            } else {
+                // {VSERVICESTOTALCOST}
+                $userdata[$eachuser['login']]['vsrvtotalcost'] = $allVservicesTotalCosts[$eachuser['login']];                
+                // {LACKPLUSVSRVTOTALCOST}
+                $userdata[$eachuser['login']]['lackvsrvtotalcost'] = empty($userdata[$eachuser['login']]['moneylack']) 
+                                                                        ? $userdata[$eachuser['login']]['vsrvtotalcost'] 
+                                                                        : $userdata[$eachuser['login']]['moneylack'] + $userdata[$eachuser['login']]['vsrvtotalcost'];
+
+                // {TARIFFPLUSVSRVTOTALCOST}
+                if (@empty($eachuser['TariffChange'])) {
+                    $userdata[$eachuser['login']]['tariffvsrvtotalcost'] = @$tariffprices[$eachuser['Tariff']] + $userdata[$eachuser['login']]['vsrvtotalcost'];
+                } else {
+                    $userdata[$eachuser['login']]['tariffvsrvtotalcost'] = @$tariffprices[$eachuser['TariffChange']] + $userdata[$eachuser['login']]['vsrvtotalcost'];
+                }
+            }
         }
     }
 
@@ -228,7 +250,9 @@ function zb_TemplateReplaceAll($template, $alluserdata) {
             $result = str_ireplace('{CASH}', $each['cash'], $result);
             $result = str_ireplace('{CREDIT}', $each['credit'], $result);
             $result = str_ireplace('{LACK}', $each['moneylack'], $result);
-            $result = str_ireplace('{VSERVICESTOTALCOST}', $each['vsrvtotalcost'], $result);
+            $result = str_ireplace('{VSERVICESTOTALCOST}', $each['vsrvtotalcost'], $result);            
+            $result = str_ireplace('{LACKPLUSVSRVTOTALCOST}', $each['lackvsrvtotalcost'], $result);            
+            $result = str_ireplace('{TARIFFPLUSVSRVTOTALCOST}', $each['tariffvsrvtotalcost'], $result);
             $result = str_ireplace('{DOWN}', $each['down'], $result);
             $result = str_ireplace('{PASSIVE}', $each['passive'], $result);
             $result = str_ireplace('{AO}', $each['ao'], $result);
@@ -298,7 +322,9 @@ function zb_TemplateReplace($login, $template, $alluserdata) {
         $result = str_ireplace('{CURDATE}', curdate(), $result);
         $result = str_ireplace('{CREDIT}', $alluserdata[$login]['credit'], $result);
         $result = str_ireplace('{LACK}', $alluserdata[$login]['moneylack'], $result);
-        $result = str_ireplace('{VSERVICESTOTALCOST}', $alluserdata['vsrvtotalcost'], $result);
+        $result = str_ireplace('{VSERVICESTOTALCOST}', $alluserdata[$login]['vsrvtotalcost'], $result);
+        $result = str_ireplace('{LACKPLUSVSRVTOTALCOST}', $alluserdata[$login]['lackvsrvtotalcost'], $result);
+        $result = str_ireplace('{TARIFFPLUSVSRVTOTALCOST}', $alluserdata[$login]['tariffvsrvtotalcost'], $result);
         $result = str_ireplace('{DOWN}', $alluserdata[$login]['down'], $result);
         $result = str_ireplace('{PASSIVE}', $alluserdata[$login]['passive'], $result);
         $result = str_ireplace('{AO}', $alluserdata[$login]['ao'], $result);
