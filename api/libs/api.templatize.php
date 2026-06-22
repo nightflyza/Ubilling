@@ -298,6 +298,7 @@ function zb_TemplateReplace($login, $template, $alluserdata) {
         $result = str_ireplace('{CURDATE}', curdate(), $result);
         $result = str_ireplace('{CREDIT}', $alluserdata[$login]['credit'], $result);
         $result = str_ireplace('{LACK}', $alluserdata[$login]['moneylack'], $result);
+        $result = str_ireplace('{VSERVICESTOTALCOST}', $alluserdata['vsrvtotalcost'], $result);
         $result = str_ireplace('{DOWN}', $alluserdata[$login]['down'], $result);
         $result = str_ireplace('{PASSIVE}', $alluserdata[$login]['passive'], $result);
         $result = str_ireplace('{AO}', $alluserdata[$login]['ao'], $result);
