@@ -198,16 +198,21 @@ class SmsClubMobi extends SMSServiceApi {
                     $statusEntries = $parsedResult['response']['entries']['entry'];
 
                     if ( isset($statusEntries['smscid']) and isset($statusEntries['state'])) {
-                        $messageId = $statusEntries['smscid'];
-                        $messageStatus = $statusEntries['state'];
-                        $decodedMessageStatus = $this->decodeMobiSmsStatusMsg($messageStatus);
+                        if (is_array($statusEntries['smscid']) or is_array($statusEntries['state'])) {
+                            log_register('SENDDOG SmsClubMobi failed to check messages statuses. Server answer: ' . print_r($statusEntries, true));
+                        } else {
+                            $messageId = $statusEntries['smscid'];                        
+                            $messageStatus = $statusEntries['state'];
+                            
+                            $decodedMessageStatus = $this->decodeMobiSmsStatusMsg($messageStatus);
 
-                        $query = "UPDATE `sms_history` SET `date_statuschk` = '" . curdatetime() . "', 
-                                                            `delivered` = '" . $decodedMessageStatus['DeliveredStatus'] . "', 
-                                                            `no_statuschk` = '" . $decodedMessageStatus['NoStatusCheck'] . "', 
-                                                            `send_status` = '" . $decodedMessageStatus['StatusMsg'] . "' 
-                                                WHERE `srvmsgself_id` = '" . $messageId . "';";
-                        nr_query($query);
+                            $query = "UPDATE `sms_history` SET `date_statuschk` = '" . curdatetime() . "', 
+                                                                `delivered` = '" . $decodedMessageStatus['DeliveredStatus'] . "', 
+                                                                `no_statuschk` = '" . $decodedMessageStatus['NoStatusCheck'] . "', 
+                                                                `send_status` = '" . $decodedMessageStatus['StatusMsg'] . "' 
+                                                    WHERE `srvmsgself_id` = '" . $messageId . "';";
+                            nr_query($query);
+                        }
                     } else {
                         foreach ($statusEntries as $io => $EachEntry) {
                             $messageId = $EachEntry['smscid'];
