@@ -200,7 +200,7 @@ class SendDog {
     /**
      * Dirty input data filtering 
      * 
-     * @param $string - string to filter
+     * @param string $string - string to filter
      * 
      * @return string
      */
@@ -451,7 +451,7 @@ class SendDog {
      * Cuts international codes like "+38", "+7" from phone number
      * This function might be supplemented with new country codes and refactored
      *
-     * @param $PhoneNumber
+     * @param string $PhoneNumber
      *
      * @return bool|mixed|string
      */
