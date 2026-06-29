@@ -146,7 +146,7 @@ class ClapTrapMgr {
     protected $fundsFlow = '';
 
     /**
-     * Contains tags for internet users
+     * Contains tags for internet users as login=>array(tagid=>tagname)
      *
      * @var array
      */
@@ -215,7 +215,6 @@ class ClapTrapMgr {
         $this->loadTagTypes();
         $this->loadInetTags();
         $this->loadUsers();
-        $this->loadDownUsers();
         $this->loadOpCustomers();
         $this->loadTemplates();
         $this->loadFilters();
@@ -334,12 +333,7 @@ class ClapTrapMgr {
      * @return void
      */
     protected function loadCities() {
-        $all = zb_AddressGetCityAllData();
-        if (!empty($all)) {
-            foreach ($all as $io => $each) {
-                $this->allCities[$each['id']] = $each;
-            }
-        }
+        $this->allCities = zb_AddressGetFullCityNames();
     }
 
     /**
@@ -348,10 +342,9 @@ class ClapTrapMgr {
      * @return void
      */
     protected function loadTariffs() {
-        $query = "SELECT * from `tariffs`";
-        $all = simple_queryall($query);
-        if (!empty($all)) {
-            foreach ($all as $io => $each) {
+        $allTariffsData=zb_TariffGetAllData();
+        if (!empty($allTariffsData)) {
+            foreach ($allTariffsData as $io => $each) {
                 $this->allTariffs[$each['name']] = $each;
                 $this->allTariffPrices[$each['name']] = $each['Fee'];
             }
@@ -364,28 +357,16 @@ class ClapTrapMgr {
      * @return void
      */
     protected function loadTagTypes() {
-        $query = "SELECT * from `tagtypes`";
-        $all = simple_queryall($query);
-        if (!empty($all)) {
-            foreach ($all as $io => $each) {
-                $this->allTagTypes[$each['id']] = $each['tagname'];
-            }
-        }
+        $this->allTagTypes=stg_get_alltagnames();
     }
 
     /**
-     * Loads array of all tagtypes set to users
+     * Loads user tags as login=>array(tagid=>tagname)
      *
      * @return void
      */
     protected function loadInetTags() {
-        $query = "SELECT * from `tags`";
-        $all = simple_queryall($query);
-        if (!empty($all)) {
-            foreach ($all as $io => $each) {
-                $this->inetTags[$each['login']][] = $each['tagid'];
-            }
-        }
+        $this->inetTags = zb_UserGetAllTags();
     }
 
     /**
@@ -395,57 +376,24 @@ class ClapTrapMgr {
      */
     protected function loadUsers() {
         $this->allUserData = zb_UserGetAllDataCache();
-    }
-
-    /**
-     * Loads available users down states
-     *
-     * @return void
-     */
-    protected function loadDownUsers() {
-        $query = "SELECT `login`,`Down` from `users`";
-        $all = simple_queryall($query);
-        if (!empty($all)) {
-            foreach ($all as $io => $each) {
-                $this->downUsers[$each['login']] = $each['Down'];
+        if (!empty($this->allUserData)) {
+            foreach ($this->allUserData as $login => $userData) {
+              $this->downUsers[$login] = $userData['Down'];
             }
         }
     }
 
     /**
-     * Sets up OpenPayz paymentIDs array
+     * Sets up OpenPayz paymentIDs as login=>paymentid into protected property for further usage
      *
      * @return void
      */
     protected function loadOpCustomers() {
-        $this->opCustomers = $this->getOpenPayzCustomers();
-    }
-
-    /**
-     * Returns list of OpenPayz customers as login=>paymentid
-     *
-     * @return array
-     */
-    protected function getOpenPayzCustomers() {
-        $result = array();
         if ($this->altCfg['OPENPAYZ_SUPPORT']) {
-            if ($this->altCfg['OPENPAYZ_REALID']) {
-                $query = "SELECT `realid`,`virtualid` from `op_customers`";
-                $allcustomers = simple_queryall($query);
-                if (!empty($allcustomers)) {
-                    foreach ($allcustomers as $io => $eachcustomer) {
-                        $result[$eachcustomer['realid']] = $eachcustomer['virtualid'];
-                    }
-                }
-            } else {
-                if (!empty($this->allUserData)) {
-                    foreach ($this->allUserData as $io => $each) {
-                        $result[$each['login']] = ip2int($each['ip']);
-                    }
-                }
-            }
+            $openPayz=new OpenPayz(false,true);
+            $allCustomerPaymentIds=$openPayz->getCustomers();
+            $this->opCustomers=array_flip($allCustomerPaymentIds);
         }
-        return ($result);
     }
 
     /**
@@ -765,8 +713,8 @@ class ClapTrapMgr {
         $result = '';
         $citiesParams = array('' => __('Any'));
         if (!empty($this->allCities)) {
-            foreach ($this->allCities as $io => $each) {
-                $citiesParams[$each['cityname']] = $each['cityname'];
+            foreach ($this->allCities as $cityId => $cityName) {
+                $citiesParams[$cityId] = $cityName;
             }
         }
 
@@ -935,12 +883,8 @@ class ClapTrapMgr {
     protected function checkInetTagId($login, $tagId) {
         $result = false;
         if (isset($this->inetTags[$login])) {
-            if (!empty($this->inetTags[$login])) {
-                foreach ($this->inetTags[$login] as $io => $each) {
-                    if ($each == $tagId) {
-                        $result = true;
-                    }
-                }
+            if (isset($this->inetTags[$login][$tagId])) {
+                $result = true;
             }
         }
         return ($result);
