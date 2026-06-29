@@ -126,6 +126,13 @@ class ExistentialHorse {
     protected $docsisFlag = false;
 
     /**
+     * Is ClapTrapBot enabled?
+     *
+     * @var bool
+     */
+    protected $clapTrapFlag = false;
+
+    /**
      * Year to display results
      *
      * @var string
@@ -179,6 +186,7 @@ class ExistentialHorse {
     const TABLE_WDYC = 'wdycinfo';
     const TABLE_SIGREQ = 'sigreq';
     const TABLE_CAPABS = 'capab';
+    const TABLE_CLAPTRAP_AUTH = 'ct_auth';
 
 //                   /\,%,_
 //                   \%%%/,\
@@ -288,6 +296,11 @@ class ExistentialHorse {
             $this->docsisFlag = true;
         }
 
+        //ClapTrapBot enabled?
+        if ($this->altCfg['CLAPTRAPBOT_ENABLED']) {
+            $this->clapTrapFlag = true;
+        }
+
         //custom cashtypeids for cash stats 
         $this->cashIds = array(1 => 1); // default cash cashtypeid
         if (isset($this->altCfg['EXHORSE_CASHIDS'])) {
@@ -365,6 +378,8 @@ class ExistentialHorse {
         $this->storeTmp['a_outtotalanswered'] = 0;
         $this->storeTmp['a_outtotalcallsduration'] = 0;
         $this->storeTmp['a_outaveragecallduration'] = 0;
+        $this->storeTmp['ct_totalusers'] = 0;
+        $this->storeTmp['ct_activeusers'] = 0;
     }
 
     /**
@@ -774,6 +789,27 @@ class ExistentialHorse {
     }
 
     /**
+     * Collects ClapTrapBot authorized users stats from ct_auth
+     * 
+     * @return void
+     */
+    protected function preprocessClapTrapData() {
+        if ($this->clapTrapFlag) {
+            $ctAuthDb = new NyanORM(self::TABLE_CLAPTRAP_AUTH);
+            $allCtUsers = $ctAuthDb->getAll();
+
+            if (!empty($allCtUsers)) {
+                foreach ($allCtUsers as $io => $eachUser) {
+                    $this->storeTmp['ct_totalusers']++;
+                    if ($eachUser['active'] == 1) {
+                        $this->storeTmp['ct_activeusers']++;
+                    }
+                }
+            }
+        }
+    }
+
+    /**
      * Preprocessing tickets, sigreqs, capabs and other single data inputs
      * 
      * @return void
@@ -849,6 +885,7 @@ class ExistentialHorse {
         $this->preprocessEquipmentData();
         $this->preprocessTeleponyData();
         $this->preprocessWdycData();
+        $this->preprocessClapTrapData();
         $this->preprocessMisc();
         $this->saveHorseData();
         $this->cleanupDb();
@@ -979,6 +1016,7 @@ class ExistentialHorse {
         $equipSwitchesChartData = array(0 => array(__('Month'), __('Switches')));
         $equipPonChartData = array(0 => array(__('Month'), __('PON ONU')));
         $equipDocsisChartData = array(0 => array(__('Month'), __('DOCSIS modems')));
+        $clapTrapChartData = array(0 => array(__('Month'), __('Total'), __('Active')));
         $citySignupsTmp = array();
 
 
@@ -1319,6 +1357,7 @@ class ExistentialHorse {
                 $result .= wf_TableBody($rows, '100%', 0, '');
             }
 
+
             //Users relationship
             $result .= wf_tag('h2') . __('Relationships with the universe') . wf_tag('h2', true);
             $cells = wf_TableCell(__('Month'));
@@ -1377,6 +1416,33 @@ class ExistentialHorse {
                 }
                 $result .= wf_gchartsLine($tasksChartData, __('Tasks'), '100%', '300px', $chartsOptions);
             }
+
+                        //ClapTrapBot users
+                        if ($this->clapTrapFlag) {
+                            $result .= wf_tag('h2') . __('Telegram bot') . wf_tag('h2', true);
+                            $cells = wf_TableCell(__('Month'));
+                            $cells .= wf_TableCell(__('Total'));
+                            $cells .= wf_TableCell(__('Active'));
+                            $rows = wf_TableRow($cells, 'row1');
+                            foreach ($yearData as $yearNum => $monthArr) {
+                                foreach ($monthArr as $monthNum => $each) {
+                                    $yearDisplay = ($allTimeFlag) ? $yearNum . ' ' : '';
+                                    $ctTotalUsers = (isset($each['ct_totalusers'])) ? $each['ct_totalusers'] : 0;
+                                    $ctActiveUsers = (isset($each['ct_activeusers'])) ? $each['ct_activeusers'] : 0;
+                                    $cells = wf_TableCell($yearDisplay . $months[$monthNum]);
+                                    $cells .= wf_TableCell($ctTotalUsers);
+                                    $cells .= wf_TableCell($ctActiveUsers . ' (' . zb_PercentValue($ctTotalUsers, $ctActiveUsers) . '%)');
+                                    $rows .= wf_TableRow($cells, 'row3');
+                                    $yearDisplay = ($monthNum == '01') ? $yearDisplay : '';
+                                    $clapTrapChartData[] = array($yearDisplay . $months[$monthNum], $ctTotalUsers, $ctActiveUsers);
+                                }
+                            }
+                            $result .= wf_TableBody($rows, '100%', 0, '');
+                            if ($chartsFlag) {
+                                $result .= wf_gchartsLine($clapTrapChartData, 'ClapTrapBot', '100%', '300px', $chartsOptions);
+                            }
+                        }
+            
 
             //Equipment
             $result .= wf_tag('h2') . __('Equipment') . wf_tag('h2', true);

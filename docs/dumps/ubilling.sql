@@ -3125,3 +3125,6 @@ CREATE TABLE IF NOT EXISTS `ct_templates` (
   `text` text NOT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
+
+ALTER TABLE `exhorse` ADD `ct_totalusers` INT NULL DEFAULT NULL;
+ALTER TABLE `exhorse` ADD `ct_activeusers` INT NULL DEFAULT NULL;
