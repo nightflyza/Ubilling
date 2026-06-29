@@ -180,10 +180,11 @@ class UbillingTelegram {
      * @param string $message
      * @param bool $translit
      * @param string $module
+     * @param string $botToken
      * 
      * @return bool
      */
-    public function sendMessage($chatid, $message, $translit = false, $module = '') {
+    public function sendMessage($chatid, $message, $translit = false, $module = '', $botToken = '') {
         $result = false;
         $chatid = trim($chatid);
         $module = (!empty($module)) ? ' MODULE ' . $module : '';
@@ -207,7 +208,11 @@ class UbillingTelegram {
 
 
             $storedata = 'CHATID="' . $chatid . '"' . "\n";
+            if (!empty($botToken)) {
+                $storedata .= 'BOTTOKEN="' . $botToken . '"' . "\n";
+            }
             $storedata .= 'MESSAGE="' . $message . '"' . "\n";
+            
             file_put_contents($filename, $storedata);
             log_register('UTLG SEND MESSAGE FOR `' . $chatid . '` AS `' . $prefix . $queueId . '_' . $offset . '` ' . $module);
             $result = true;
@@ -241,6 +246,9 @@ class UbillingTelegram {
                 $result[$io]['filename'] = $eachmessage;
                 $result[$io]['date'] = $messageDate;
                 $result[$io]['chatid'] = $messageData['CHATID'];
+                if (isset($messageData['BOTTOKEN'])) {
+                    $result[$io]['bottoken'] = $messageData['BOTTOKEN'];
+                }
                 $result[$io]['message'] = $messageData['MESSAGE'];
             }
         }

@@ -433,14 +433,39 @@ class SendDog {
      * @return int
      */
     public function telegramProcessing() {
-        $telegram = new UbillingTelegram($this->settings['TELEGRAM_BOTTOKEN']);
-        $messagesCount = $telegram->getQueueCount();
+        $tgApi['default'] = new UbillingTelegram($this->settings['TELEGRAM_BOTTOKEN']);
+        $messagesCount = $tgApi['default']->getQueueCount();
+
         if ($messagesCount > 0) {
-            $allMessagesData = $telegram->getQueueData();
+            $allMessagesData = $tgApi['default']->getQueueData();
             if (!empty($allMessagesData)) {
                 foreach ($allMessagesData as $io => $eachmessage) {
-                    $telegram->directPushMessage($eachmessage['chatid'], $eachmessage['message']);
-                    $telegram->deleteMessage($eachmessage['filename']);
+                    if (empty($eachmessage['bottoken'])) {
+                        // using global bot token as default
+                        $tgApi['default']->directPushMessage($eachmessage['chatid'], $eachmessage['message']);
+                    } else {
+                        // using custom bot token
+                        $tokenHash=md5($eachmessage['bottoken']);
+                        if (!isset($tgApi[$tokenHash])) {
+                            // creating new bot instance with custom bot token if it's not exists
+                            $tgApi[$tokenHash] = new UbillingTelegram($eachmessage['bottoken']);
+                        }
+                        $tgApi[$tokenHash]->directPushMessage($eachmessage['chatid'], $eachmessage['message']);
+                    }
+
+                    // deleting message from queue
+                    $tgApi['default']->deleteMessage($eachmessage['filename']);
+
+                     //forced timeout for sending in microseconds
+                     if (isset($this->altCfg['SENDDOG_TG_TIMEOUT_MS'])) {
+                        if (!empty($this->altCfg['SENDDOG_TG_TIMEOUT_MS'])) {
+                            $timeoutMs=intval($this->altCfg['SENDDOG_TG_TIMEOUT_MS']);
+                            $timeoutMs=$timeoutMs*1000;
+                            if ($timeoutMs > 0) {
+                                usleep($timeoutMs);
+                            }
+                        }
+                    }
                 }
             }
         }
