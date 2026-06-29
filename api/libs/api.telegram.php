@@ -906,7 +906,7 @@ class UbillingTelegram {
     /**
      * Returns chat data array by its chatId
      * 
-     * @param int chatId
+     * @param int $chatId
      * 
      * @return array
      */
