@@ -187,6 +187,7 @@ class UbillingTelegram {
     public function sendMessage($chatid, $message, $translit = false, $module = '', $botToken = '') {
         $result = false;
         $chatid = trim($chatid);
+        $botToken = trim($botToken);
         $module = (!empty($module)) ? ' MODULE ' . $module : '';
         $prefix = 'tlg_';
         if (!empty($chatid)) {

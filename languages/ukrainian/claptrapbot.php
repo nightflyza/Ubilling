@@ -93,3 +93,6 @@ $lang['def']['Send to Telegram'] = 'Надіслати в Telegram';
 $lang['def']['Send also to Telegram'] = 'Надіслати також в Telegram';
 $lang['def']['Edited'] = 'Відредаговано';
 $lang['def']['n/a'] = 'н/д';
+$lang['def']['Messages sending'] = 'Розсилка повідомлень';
+$lang['def']['Chat IDs extracted'] = 'ID чатів видобуто';
+$lang['def']['Messages for all extracted chat IDs stored in sending queue'] = 'Повідомлення для всіх видобутих ID чатів зберігаються в черзі розсилання';
