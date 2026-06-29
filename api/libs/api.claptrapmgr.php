@@ -552,7 +552,6 @@ class ClapTrapMgr {
      */
     public function createTemplate($name, $text) {
         $name = ubRouting::filters($name, 'mres');
-        $text = ubRouting::filters($text, 'emsafe');
         $text = ubRouting::filters($text, 'mres');
         $this->templatesDb->data('name', $name);
         $this->templatesDb->data('text', $text);
@@ -596,7 +595,6 @@ class ClapTrapMgr {
         $result = '';
         if (isset($this->templates[$templateId])) {
             $name = ubRouting::filters($name, 'mres');
-            $text = ubRouting::filters($text, 'emsafe');
             $text = ubRouting::filters($text, 'mres');
             $this->templatesDb->data('name', $name);
             $this->templatesDb->data('text', $text);
