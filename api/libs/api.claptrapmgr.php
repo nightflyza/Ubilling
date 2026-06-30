@@ -200,6 +200,7 @@ class ClapTrapMgr {
     const URL_MACROHELP = 'http://wiki.ubilling.net.ua/doku.php?id=templating&#smszilla';
     const TABLE_TEMPLATES = 'ct_templates';
     const TABLE_FILTERS = 'ct_filters';
+    const REMOTEAPI_ACTION = 'ctzilla';
 
     public function __construct() {
         $this->loadAlter();
@@ -207,19 +208,31 @@ class ClapTrapMgr {
         $this->setOptions();
         $this->initTelegram();
         $this->initBotInstance();
-        //required only for messages sending
-        if (ubRouting::checkGet(self::ROUTE_SENDING)) {
-        $this->initTemplatesFiltersDb();
-        $this->loadCities();
-        $this->loadTariffs();
-        $this->loadTagTypes();
-        $this->loadInetTags();
-        $this->loadUsers();
-        $this->loadOpCustomers();
-        $this->loadTemplates();
-        $this->loadFilters();
-        $this->loadBotAuth();
+        if (ubRouting::checkGet(self::ROUTE_SENDING) or $this->isRemoteApiSendingCall()) {
+            $this->initTemplatesFiltersDb();
+            $this->loadCities();
+            $this->loadTariffs();
+            $this->loadTagTypes();
+            $this->loadInetTags();
+            $this->loadUsers();
+            $this->loadOpCustomers();
+            $this->loadTemplates();
+            $this->loadFilters();
+            $this->loadBotAuth();
         }
+    }
+
+    /**
+     * Detects remote API background sending call
+     *
+     * @return bool
+     */
+    protected function isRemoteApiSendingCall() {
+        $result = false;
+        if (ubRouting::get('action') == self::REMOTEAPI_ACTION) {
+            $result = ubRouting::checkGet(array('filterid', 'templateid'));
+        }
+        return ($result);
     }
 
     /**
@@ -1145,6 +1158,9 @@ class ClapTrapMgr {
         $json = new wf_JqDtHelper();
         $data = array();
         $realSending = (ubRouting::checkPost('sendingperform')) ? true : false;
+        if (!$realSending) {
+            $realSending = (ubRouting::checkGet(array('key', 'action', 'filterid', 'templateid'))) ? true : false;
+        }
         $sendCounter = 0;
 
         if (!empty($this->filteredChatIds) and isset($this->templates[$templateId])) {
