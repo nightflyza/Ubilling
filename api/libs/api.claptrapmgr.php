@@ -118,11 +118,18 @@ class ClapTrapMgr {
     protected $supportedMacro = array();
 
     /**
-     * Contains bot auth data as login=>authData
+     * Contains bot auth data as id=>authData
      *
      * @var array
      */
-    protected $botAuth = array();
+    protected $botAuthRaw = array();
+
+    /**
+     * Contains active bot chat IDs grouped by login as login=>array(chatid)
+     *
+     * @var array
+     */
+    protected $botAuthGrouped = array();
 
     /**
      * Contains entities that passed full filter set
@@ -132,7 +139,7 @@ class ClapTrapMgr {
     protected $filteredEntities = array();
 
     /**
-     * Contains filtered chat IDs as login=>chatid
+     * Contains filtered chat IDs as login=>array(chatid)
      *
      * @var array
      */
@@ -440,14 +447,44 @@ class ClapTrapMgr {
     }
 
     /**
-     * Loads bot auth data
+     * Loads bot auth data and builds active chat IDs grouped by login
      *
      * @return void
      */
     protected function loadBotAuth() {
+        $this->botAuthRaw = array();
+        $this->botAuthGrouped = array();
         if (!empty($this->botInstance)) {
-            $this->botAuth = $this->botInstance->getAuthDataAll();
+            $this->botAuthRaw = $this->botInstance->getAuthDataRaw();
+            if (!empty($this->botAuthRaw)) {
+                foreach ($this->botAuthRaw as $eachIndex => $eachAuth) {
+                    if (!empty($eachAuth['active']) and $eachAuth['active'] == '1' and !empty($eachAuth['chatid'])) {
+                        $eachLogin = $eachAuth['login'];
+                        if (!isset($this->botAuthGrouped[$eachLogin])) {
+                            $this->botAuthGrouped[$eachLogin] = array();
+                        }
+                        if (!in_array($eachAuth['chatid'], $this->botAuthGrouped[$eachLogin])) {
+                            $this->botAuthGrouped[$eachLogin][] = $eachAuth['chatid'];
+                        }
+                    }
+                }
+            }
         }
+    }
+
+    /**
+     * Returns total count of filtered chat IDs across all logins
+     *
+     * @return int
+     */
+    protected function getFilteredChatIdsCount() {
+        $result = 0;
+        if (!empty($this->filteredChatIds)) {
+            foreach ($this->filteredChatIds as $eachLogin => $eachChatIds) {
+                $result += sizeof($eachChatIds);
+            }
+        }
+        return ($result);
     }
 
     /**
@@ -908,9 +945,9 @@ class ClapTrapMgr {
      */
     protected function initBaseFilteredEntities() {
         $this->filteredEntities = array();
-        if (!empty($this->botAuth) and !empty($this->allUserData)) {
-            foreach ($this->botAuth as $eachLogin => $eachAuth) {
-                if (!empty($eachAuth['active']) and $eachAuth['active'] == '1' and !empty($eachAuth['chatid'])) {
+        if (!empty($this->botAuthGrouped) and !empty($this->allUserData)) {
+            foreach ($this->botAuthGrouped as $eachLogin => $eachChatIds) {
+                if (!empty($eachChatIds)) {
                     if (isset($this->allUserData[$eachLogin])) {
                         $this->filteredEntities[$eachLogin] = $this->allUserData[$eachLogin];
                     }
@@ -928,9 +965,9 @@ class ClapTrapMgr {
         $this->filteredChatIds = array();
         if (!empty($this->filteredEntities)) {
             foreach ($this->filteredEntities as $eachLogin => $each) {
-                if (isset($this->botAuth[$eachLogin])) {
-                    if (!empty($this->botAuth[$eachLogin]['chatid'])) {
-                        $this->filteredChatIds[$eachLogin] = $this->botAuth[$eachLogin]['chatid'];
+                if (isset($this->botAuthGrouped[$eachLogin])) {
+                    if (!empty($this->botAuthGrouped[$eachLogin])) {
+                        $this->filteredChatIds[$eachLogin] = $this->botAuthGrouped[$eachLogin];
                     }
                 }
             }
@@ -1056,7 +1093,7 @@ class ClapTrapMgr {
                 show_window(__('Filters workflow visualization'), $this->renderFilterStats());
             }
             $this->extractChatIds();
-            $sendingStats = $this->messages->getStyledMessage(__('Entities filtered') . ': ' . sizeof($this->filteredEntities) . ' ' . __('Chat IDs extracted') . ': ' . sizeof($this->filteredChatIds), 'info');
+            $sendingStats = $this->messages->getStyledMessage(__('Entities filtered') . ': ' . sizeof($this->filteredEntities) . ' ' . __('Chat IDs extracted') . ': ' . $this->getFilteredChatIdsCount(), 'info');
             if (ubRouting::checkPost('sendingperform')) {
                 if (!empty($this->token) and !empty($this->telegram)) {
                     $sendingStats .= $this->messages->getStyledMessage(__('Messages for all extracted chat IDs stored in sending queue'), 'success');
@@ -1164,22 +1201,25 @@ class ClapTrapMgr {
         $sendCounter = 0;
 
         if (!empty($this->filteredChatIds) and isset($this->templates[$templateId])) {
-            foreach ($this->filteredChatIds as $userLogin => $chatId) {
-                if (!empty($chatId)) {
+            foreach ($this->filteredChatIds as $userLogin => $eachChatIds) {
+                if (!empty($eachChatIds)) {
                     $userLink = wf_Link('?module=userprofile&username=' . $userLogin, web_profile_icon() . ' ' . $this->filteredEntities[$userLogin]['fulladress']);
                     $messageText = $this->generateMessageText($templateId, $userLogin);
                     $textLen = mb_strlen($messageText, 'utf-8');
+                    foreach ($eachChatIds as $eachChatId) {
+                        if (!empty($eachChatId)) {
+                            $data[] = $userLink . ' ' . $this->filteredEntities[$userLogin]['realname'];
+                            $data[] = $eachChatId;
+                            $data[] = $messageText;
+                            $data[] = $textLen;
+                            $json->addRow($data);
+                            unset($data);
 
-                    $data[] = $userLink . ' ' . $this->filteredEntities[$userLogin]['realname'];
-                    $data[] = $chatId;
-                    $data[] = $messageText;
-                    $data[] = $textLen;
-                    $json->addRow($data);
-                    unset($data);
-
-                    if ($realSending and !empty($this->token) and !empty($this->telegram)) {
-                        $this->telegram->sendMessage($chatId, $messageText, false, 'CLAPTRAPMGR', $this->token);
-                        $sendCounter++;
+                            if ($realSending and !empty($this->token) and !empty($this->telegram)) {
+                                $this->telegram->sendMessage($eachChatId, $messageText, false, 'CLAPTRAPMGR', $this->token);
+                                $sendCounter++;
+                            }
+                        }
                     }
                 }
             }
@@ -1748,27 +1788,62 @@ class ClapTrapMgr {
     }
 
     /**
+     * Renders chat ID activity as LED indicator
+     *
+     * @param bool $activity
+     * @param string $chatId
+     *
+     * @return string
+     */
+    protected function chatIdLed($activity, $chatId='') {
+        $result = '';
+        if ($activity) {
+            $result = wf_img('skins/icon_active.gif', $chatId);
+        } else {
+            $result = wf_img('skins/icon_inactive.gif', $chatId);
+        }
+        return ($result);
+    }
+
+    /**
      * Renders auth data as users list with additional columns
      *
      * @return string
      */
     public function renderAuthData() {
         $result = '';
-        $authData = $this->botAuth;
+        $authData = $this->botAuthRaw;
         if (empty($authData) and !empty($this->botInstance)) {
-            $authData = $this->botInstance->getAuthDataAll();
+            $authData = $this->botInstance->getAuthDataRaw();
         }
+
         if (!empty($authData)) {
             $userLogins = array();
             $extraColumns = array();
+            $groupedAuth = array();
+            foreach ($authData as $eachIndex => $eachData) {
+                $eachLogin = $eachData['login'];
+                if (!isset($groupedAuth[$eachLogin])) {
+                    $groupedAuth[$eachLogin] = array();
+                    $userLogins[] = $eachLogin;
+                }
+                $groupedAuth[$eachLogin][] = $eachData;
+            }
             $allChatIds = array();
             $allRegDates = array();
             $allTgActive = array();
-            foreach ($authData as $eachLogin => $eachData) {
-                $userLogins[] = $eachLogin;
-                $allChatIds[$eachLogin] = $eachData['chatid'];
-                $allRegDates[$eachLogin] = $eachData['date'];
-                $allTgActive[$eachLogin] = web_bool_led($eachData['active']);
+            foreach ($groupedAuth as $eachLogin => $eachAuthRows) {
+                $chatIdParts = array();
+                $dateParts = array();
+                $activeParts = array();
+                foreach ($eachAuthRows as $eachRow) {
+                    $chatIdParts[] = $eachRow['chatid'];
+                    $dateParts[] = $eachRow['date'];
+                    $activeParts[] = $this->chatIdLed($eachRow['active'], $eachRow['chatid']);
+                }
+                $allChatIds[$eachLogin] = implode(', ', $chatIdParts);
+                $allRegDates[$eachLogin] = implode(', ', $dateParts);
+                $allTgActive[$eachLogin] = implode(' ', $activeParts);
             }
             $extraColumns['Chat ID'] = $allChatIds;
             $extraColumns['Signup date'] = $allRegDates;
