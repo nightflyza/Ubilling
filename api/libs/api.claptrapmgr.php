@@ -582,7 +582,7 @@ class ClapTrapMgr {
      * @return string
      */
     public function deleteTemplate($templateId) {
-        $templateId = vf($templateId, 3);
+        $templateId = ubRouting::filters($templateId, 'int');
         $result = '';
         if (isset($this->templates[$templateId])) {
             $this->templatesDb->where('id', '=', $templateId);
@@ -604,7 +604,7 @@ class ClapTrapMgr {
      * @return string
      */
     public function saveTemplate($templateId, $name, $text) {
-        $templateId = vf($templateId, 3);
+        $templateId = ubRouting::filters($templateId, 'int');
         $result = '';
         if (isset($this->templates[$templateId])) {
             $name = ubRouting::filters($name, 'mres');
@@ -664,7 +664,7 @@ class ClapTrapMgr {
      * @return string
      */
     public function renderTemplateEditForm($templateId) {
-        $templateId = vf($templateId, 3);
+        $templateId = ubRouting::filters($templateId, 'int');
         $result = '';
         if (isset($this->templates[$templateId])) {
             $templateData = $this->templates[$templateId];
@@ -872,7 +872,7 @@ class ClapTrapMgr {
      */
     public function deleteFilter($filterId) {
         $result = '';
-        $filterId = vf($filterId, 3);
+        $filterId = ubRouting::filters($filterId, 'int');
         if (isset($this->filters[$filterId])) {
             $this->filtersDb->where('id', '=', $filterId);
             $this->filtersDb->delete();
@@ -1027,8 +1027,8 @@ class ClapTrapMgr {
      */
     public function filtersPreprocessing($filterId, $templateId) {
         $result = array();
-        $filterId = vf($filterId, 3);
-        $templateId = vf($templateId, 3);
+        $filterId = ubRouting::filters($filterId, 'int');
+        $templateId = ubRouting::filters($templateId, 'int');
         if (isset($this->filters[$filterId])) {
             $filterData = $this->filters[$filterId]['filters'];
             $filterData = json_decode($filterData, true);
