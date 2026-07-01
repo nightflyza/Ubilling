@@ -466,6 +466,9 @@ class ClapTrapBot extends WolfDispatcher {
             $commandsAvailable[$this->icons['BACK'].' '.__('Back to requests')] = 'actionSupport';
         }
 
+        if ($this->isFeatureEnabled('credit')) {
+            $commandsAvailable[$this->icons['CREDIT'].' '.__('Yes, i want credit')] = 'actionCredit';
+        }
         
         //enabled features commands
         if (!empty($this->featuresEnabled)) {
@@ -843,7 +846,7 @@ class ClapTrapBot extends WolfDispatcher {
                     $this->actionCreateSupportTicket();
                 } else {
                     if ($this->loggedIn) {
-                        if ($currentContext!='auth') {
+                        if ($currentContext!='auth' and $currentContext != 'creditdialog' and $currentContext != 'creditditagree') {
                          $this->sendToUser($this->icons['WARNING'].' '.__('This will not work').': '.__('To contact us, go to the Support section'));
                          $this->actionKeyboard(__('Select an action').' '. $this->icons['DOWN']);
                         }
