@@ -3682,3 +3682,5 @@ $lang['def']['Photos uploaded successfully'] = 'Зображення успіш�
 $lang['def']['Some photos failed to upload'] = 'Деякі зображення не вдалося завантажити';
 $lang['def']['Photostorage upload limit sorry'] = 'Вибачте, обмеження для ваших завантажень: ';
 $lang['def']['Import'] = 'Імпорт';
+$lang['def']['Overfilled PON interfaces'] = 'Переповнені PON інтерфейси';
+$lang['def']['Overfilled'] = 'Переповнено';

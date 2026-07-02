@@ -3342,8 +3342,12 @@ class PONizer {
                             $interfaceFillColorEnd = wf_tag('b', true) . wf_tag('font', true);
                         }
 
+                        $interfaceFillSuffix = '';
+                        if ($eachInterfacePercent >= 100) {
+                            $interfaceFillSuffix = ' - ' . __('Overfilled') . '!';
+                        }
 
-                        $interfaceFillLabel = $interfaceFillColor . $eachInterfaceCount . ' (' . $eachInterfacePercent . '%)' . $interfaceFillColorEnd;
+                        $interfaceFillLabel = $interfaceFillColor . $eachInterfaceCount . ' (' . $eachInterfacePercent . '%)' . $interfaceFillSuffix . $interfaceFillColorEnd;
 
                         if (!empty($avgSignalCount)) {
                             if ($avgSignalCount >= 3) {

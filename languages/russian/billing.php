@@ -3655,3 +3655,5 @@ $lang['def']['Photos uploaded successfully'] = 'Изображения успе�
 $lang['def']['Some photos failed to upload'] = 'Не удалось загрузить некоторые изображения';
 $lang['def']['Photostorage upload limit sorry'] = 'Извините, ограничение для ваших загрузок: ';
 $lang['def']['Import'] = 'Импорт';
+$lang['def']['Overfilled PON interfaces'] = 'Переполненные PON интерфейсы';
+$lang['def']['Overfilled'] = 'Переполнено';
