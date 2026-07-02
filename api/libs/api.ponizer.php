@@ -22,7 +22,7 @@ class PONizer {
     /**
      * List for serial = id
      *
-     * @var type
+     * @var array
      */
     protected $onuSerialIdList = array();
 
@@ -302,7 +302,7 @@ class PONizer {
     /**
      * Deferred loading flag
      *
-     * @var boolt
+     * @var bool
      */
     protected $deferredLoadingFlag = false;
 
@@ -1283,6 +1283,70 @@ class PONizer {
     }
 
     /**
+     * Returns OLT PON interfaces with ONU count at or above port capacity limit as array oltid/ip/name/interface/count
+     *
+     * @return array[] 
+     */
+    public function getOLTOverfilledInterfaces() {
+        $result = array();
+        $onuMaxCountConf = @$this->altCfg['PON_ONU_PORT_MAX'];
+
+        if (empty($onuMaxCountConf)) {
+            return ($result);
+        }
+
+        $oltData = new OLTAttractor();
+
+        foreach ($this->allOltDevices as $oltId => $eachOltData) {
+            $oltModelId = @$this->allOltSnmp[$oltId]['modelid'];
+            $snmpTemplatesMaxPort = @$this->snmpTemplates[$oltModelId]['define']['PON_ONU_PORT_MAX'];
+            $onuMaxCount = (!empty($snmpTemplatesMaxPort)) ? $snmpTemplatesMaxPort : $onuMaxCountConf;
+
+            if (empty($onuMaxCount)) {
+                continue;
+            }
+
+            $oltData->setOltId($oltId);
+            $interfaces = $oltData->readInterfaces();
+
+            if (empty($interfaces)) {
+                continue;
+            }
+
+            $oltInterfacesFilled = array();
+
+            foreach ($interfaces as $eachMac => $eachInterface) {
+                $cleanInterface = strstr($eachInterface, ':', true);
+                if ($cleanInterface === false) {
+                    $cleanInterface = $eachInterface;
+                }
+
+                if (isset($oltInterfacesFilled[$cleanInterface])) {
+                    $oltInterfacesFilled[$cleanInterface]++;
+                } else {
+                    $oltInterfacesFilled[$cleanInterface] = 1;
+                }
+            }
+
+            $oltIp = @$this->allOltIps[$oltId];
+
+            foreach ($oltInterfacesFilled as $eachInterface => $eachInterfaceCount) {
+                if ($eachInterfaceCount >= $onuMaxCount) {
+                    $result[] = array(
+                        'oltid' => $oltId,
+                        'ip' => $oltIp,
+                        'name' => $eachOltData,
+                        'interface' => $eachInterface,
+                        'count' => $eachInterfaceCount,
+                    );
+                }
+            }
+        }
+
+        return ($result);
+    }
+
+    /**
      * Returns int for ONU has or has not some of subscribers login assignment
      * May return array with status, login and OLT location and IP
      *
@@ -1347,7 +1411,7 @@ class PONizer {
      *
      * @param string $onuIdent existing ONU MAC or serial 
      *
-     * @return int/0 - on not found
+     * @return int|0 - on not found
      */
     public function getOnuIDbyIdent($onuIdent) {
         $result = 0;
@@ -1548,7 +1612,7 @@ class PONizer {
      * @param string $serial
      * @param string $login
      *
-     * @return int/0 - if something went wrong
+     * @return int|0 - if something went wrong
      */
     public function onuCreate($onumodelid, $oltid, $ip, $mac, $serial, $login) {
         $macF = strtolower($mac);
@@ -1901,6 +1965,8 @@ class PONizer {
 
     /**
      * returns vendor by MAC search control if this enabled in config
+     * 
+     * @param string $mac
      *
      * @return string
      */
@@ -2284,8 +2350,8 @@ class PONizer {
     /**
      * Renders ONU UNI port operational status if available
      *
-     * @param $onuId
-     * @param $signalStatsData
+     * @param int $onuId
+     * @param array $signalStatsData
      *
      * @return string
      */
@@ -2440,7 +2506,7 @@ class PONizer {
             $oltNavControl = '';
             if ($this->ponizerUseTabUI) {
                 if (isset($this->allOltDevices[$this->allOnu[$onuId]['oltid']])) {
-                    $oltNavIcon = wf_img('skins/pon_icon.gif', __('Go to OLT'), '16', '16');
+                    $oltNavIcon = wf_img_sized('skins/pon_icon.gif', __('Go to OLT'), '16', '16');
                     $oltSwitchIcon=wf_img_sized('skins/switch16.png', __('Go to switch'), '16', '16');
                     $oltNavControl = '';
                     if (cfr('SWITCHES')) {
@@ -4302,8 +4368,8 @@ class PONizer {
     /**
      * Returns ONU create and assign form for user profile module
      *
-     * @param $userLogin
-     * @param $allUserData
+     * @param string $userLogin
+     * @param array $allUserData
      *
      * @return string
      */
@@ -4509,7 +4575,7 @@ class PONizer {
     /**
      * Validate ONUs MAC against regex and return bool value
      *
-     * @param $onuMAC
+     * @param string $onuMAC
      *
      * @return bool
      */
@@ -4722,8 +4788,9 @@ class PONizer {
     /**
      * Tries to return the current "realtime" ONU signal value
      *
-     * @param $oltID
-     * @param $onumac
+     * @param int $oltID
+     * @param string $onumac
+     * @param bool $getTxSgnal
      *
      * @return float|int|string
      */
@@ -4826,8 +4893,8 @@ class PONizer {
     /**
      * Tries to return some of the extended "realtime" ONU info, like Tx signal, last reg/dereg time, alive time
      *
-     * @param $oltID
-     * @param $onumac
+     * @param int $oltID
+     * @param string $onumac
      *
      * @return array
      */
@@ -4931,7 +4998,7 @@ class PONizer {
     /**
      * Tries to return the current "realtime" OLT uptime value
      *
-     * @param $oltID
+     * @param int $oltID
      * @param bool $fromCache
      *
      * @return bool|string
@@ -4971,7 +5038,7 @@ class PONizer {
     /**
      * Tries to make BDCOM Reg/Dereg dates human readable
      *
-     * @param $hexOIDVal
+     * @param string $hexOIDVal
      *
      * @return string
      */

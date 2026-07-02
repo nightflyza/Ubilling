@@ -1,5 +1,6 @@
 [define]
 DEVICE="BDCOM OLT P3600-08"
+;PON_ONU_PORT_MAX=64
 
 [signal]
 SIGNALMODE="HAL"
