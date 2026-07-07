@@ -1873,7 +1873,7 @@ class MultiGen {
      * @return int
      */
     protected function transformSpeedBits($speed, $offset = 1024) {
-        $result = $speed * $offset;
+        @$result = $speed * $offset;
 
         return ($result);
     }
