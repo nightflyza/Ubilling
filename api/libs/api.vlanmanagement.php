@@ -1747,7 +1747,7 @@ class VlanManagement {
                     $svlan_id = $allSwitchQinq[$switchId]['svlan_id'];
                     $this->svlanDb->where('id', '=', $svlan_id);
                     $svlans = $this->svlanDb->getAll('id');
-                    if (isset($svlan[$svlan_id])) {
+                    if (isset($svlans[$svlan_id])) {
                         $svlan = $svlans[$svlan_id]['svlan'];
                         $cvlan = $startCvlan + $port;
                     }
