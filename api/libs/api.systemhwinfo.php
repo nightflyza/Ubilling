@@ -166,6 +166,34 @@ class SystemHwInfo {
     protected $diskStats = array();
 
     /**
+     * Contains disk IO rates as deviceName=>rateData after sampling
+     *
+     * @var array
+     */
+    protected $diskIoRatesByDevice = array();
+
+    /**
+     * Contains disk IO rates as mountPoint=>rateData
+     *
+     * @var array
+     */
+    protected $diskIoStats = array();
+
+    /**
+     * Flag: disk IO rates already sampled for this instance
+     *
+     * @var bool
+     */
+    protected $diskIoSampleDone = false;
+
+    /**
+     * Seconds used for the last disk IO sample interval
+     *
+     * @var int
+     */
+    protected $diskIoSampleSeconds = 1;
+
+    /**
      * The paths for some of system executable binaries
      *
      * @var string 
@@ -175,6 +203,10 @@ class SystemHwInfo {
     protected $catPath = '/bin/cat';
     protected $grepPath = '/usr/bin/grep';
     protected $headPath = '/usr/bin/head';
+    protected $dfPath = '/bin/df';
+    protected $iostatPath = '/usr/sbin/iostat';
+    protected $zpoolPath = '/sbin/zpool';
+    protected $glabelPath = '/sbin/glabel';
 
 
     public function __construct() {
@@ -234,10 +266,15 @@ class SystemHwInfo {
             case 'FreeBSD':
                 $this->sysctlPath = '/sbin/sysctl';
                 $this->catPath = '/bin/cat';
+                $this->dfPath = '/bin/df';
+                $this->iostatPath = '/usr/sbin/iostat';
+                $this->zpoolPath = '/sbin/zpool';
+                $this->glabelPath = '/sbin/glabel';
                 break;
             case 'Linux':
                 $this->sysctlPath = '/usr/sbin/sysctl';
                 $this->catPath = '/usr/bin/cat';
+                $this->dfPath = '/usr/bin/df';
                 break;
         }
     }
@@ -489,6 +526,546 @@ class SystemHwInfo {
     public function getAllDiskStats() {
         $this->setDiskStats();
         return ($this->diskStats);
+    }
+
+    /**
+     * Normalizes filesystem device string from df into a kernel diskstats/iostat/zpool name
+     *
+     * @param string $deviceRaw
+     *
+     * @return string
+     */
+    protected function normalizeDiskDeviceName($deviceRaw) {
+        $result = '';
+        $deviceRaw = trim($deviceRaw);
+        if (!empty($deviceRaw)) {
+            if (strpos($deviceRaw, '/dev/') === 0) {
+                $isLabelPath = preg_match('#^/dev/(?:gpt|ufs|label|diskid)/#', $deviceRaw);
+                // FreeBSD GPT/UFS/glabel providers often do not realpath() to ada/nvd names
+                $labelResolved = $this->resolveFreeBsdLabelDevice($deviceRaw);
+                if (!empty($labelResolved)) {
+                    $result = $labelResolved;
+                } else {
+                    if (!$isLabelPath) {
+                        $resolved = $deviceRaw;
+                        if (file_exists($deviceRaw)) {
+                            $realPath = realpath($deviceRaw);
+                            if ($realPath) {
+                                $resolved = $realPath;
+                            }
+                        }
+                        $result = basename($resolved);
+                    }
+                }
+            } else {
+                // ZFS dataset/pool names from df: zroot, zroot/ROOT/default, tank/wrstorage
+                if (!$this->isPseudoFilesystem($deviceRaw)) {
+                    $result = $deviceRaw;
+                }
+            }
+        }
+        return ($result);
+    }
+
+    /**
+     * Checks for pseudo/virtual filesystems that have no useful block IO stats
+     *
+     * @param string $fsName
+     *
+     * @return bool
+     */
+    protected function isPseudoFilesystem($fsName) {
+        $result = false;
+        $pseudo = array(
+            'devfs' => true,
+            'procfs' => true,
+            'fdescfs' => true,
+            'tmpfs' => true,
+            'linprocfs' => true,
+            'linsysfs' => true,
+            'none' => true,
+        );
+        if (isset($pseudo[$fsName])) {
+            $result = true;
+        }
+        return ($result);
+    }
+
+    /**
+     * Resolves FreeBSD /dev/gpt|/dev/ufs|/dev/label name into geom component (e.g. ada0p3)
+     *
+     * @param string $deviceRaw
+     *
+     * @return string
+     */
+    protected function resolveFreeBsdLabelDevice($deviceRaw) {
+        $result = '';
+        if ($this->os == 'FreeBSD' and preg_match('#^/dev/((?:gpt|ufs|label|diskid)/.+)$#', $deviceRaw, $m)) {
+            $labelKey = $m[1];
+            $statusRaw = '';
+            if (file_exists($this->glabelPath)) {
+                $statusRaw = $this->grabCmdOutput($this->glabelPath, 'status');
+            }
+            if (empty($statusRaw) and file_exists('/sbin/geom')) {
+                $statusRaw = $this->grabCmdOutput('/sbin/geom', 'label status');
+            }
+            if (!empty($statusRaw)) {
+                $lines = preg_split("/\n/", $statusRaw, -1, PREG_SPLIT_NO_EMPTY);
+                if (!empty($lines)) {
+                    foreach ($lines as $io => $line) {
+                        $parts = preg_split("/\s+/", trim($line));
+                        if (count($parts) >= 3 and $parts[0] == $labelKey) {
+                            $component = $parts[count($parts) - 1];
+                            $result = basename($component);
+                        }
+                    }
+                }
+            }
+        }
+        return ($result);
+    }
+
+    /**
+     * Extracts ZFS pool name from dataset string (zroot/ROOT/default -> zroot)
+     *
+     * @param string $dataset
+     *
+     * @return string
+     */
+    protected function extractZfsPoolName($dataset) {
+        $result = '';
+        if (!empty($dataset) and strpos($dataset, '/dev/') !== 0 and !$this->isPseudoFilesystem($dataset)) {
+            // block-like names must not be treated as ZFS pools
+            if (!preg_match('/^\/dev\//', $dataset)) {
+                if (strpos($dataset, '/') !== false) {
+                    $parts = explode('/', $dataset);
+                    if (!empty($parts[0])) {
+                        $result = $parts[0];
+                    }
+                } else {
+                    // bare pool name mounted somewhere
+                    if (!preg_match('/^(ada|da|nvd|nda|md|cd|pass|vtbd|mfid|aacd)[0-9]/', $dataset)) {
+                        $result = $dataset;
+                    }
+                }
+            }
+        }
+        return ($result);
+    }
+
+    /**
+     * Returns parent whole-disk name for a partition device if detectable
+     *
+     * @param string $deviceName
+     *
+     * @return string
+     */
+    protected function getParentDiskDevice($deviceName) {
+        $result = '';
+        if (!empty($deviceName)) {
+            if (preg_match('/^(nvme[0-9]+n[0-9]+)p[0-9]+$/', $deviceName, $m)) {
+                $result = $m[1];
+            } else {
+                if (preg_match('/^(mmcblk[0-9]+)p[0-9]+$/', $deviceName, $m)) {
+                    $result = $m[1];
+                } else {
+                    if (preg_match('/^([a-z]+[0-9]+)p[0-9]+$/', $deviceName, $m)) {
+                        // FreeBSD GEOM GPT: ada0p1, nvd0p1, da0p2
+                        $result = $m[1];
+                    } else {
+                        if (preg_match('/^([a-z]+[0-9]+)s[0-9]+[a-z]?$/', $deviceName, $m)) {
+                            // FreeBSD MBR slices: ada0s1a
+                            $result = $m[1];
+                        } else {
+                            if (preg_match('/^([a-z]+)[0-9]+$/', $deviceName, $m)) {
+                                // Linux partitions: sda1, vdb3
+                                $result = $m[1];
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return ($result);
+    }
+
+    /**
+     * Resolves block device name for a path/mountpoint via df -P
+     *
+     * @param string $mountPoint
+     *
+     * @return string
+     */
+    public function getDiskDevice($mountPoint) {
+        $result = '';
+        if (!empty($mountPoint) and file_exists($this->dfPath)) {
+            $raw = $this->grabCmdOutput($this->dfPath, '-P ' . escapeshellarg($mountPoint));
+            if (!empty($raw)) {
+                $lines = preg_split("/\n/", $raw, -1, PREG_SPLIT_NO_EMPTY);
+                if (count($lines) >= 2) {
+                    $parts = preg_split("/\s+/", trim($lines[1]));
+                    if (!empty($parts[0])) {
+                        $result = $this->normalizeDiskDeviceName($parts[0]);
+                    }
+                }
+            }
+        }
+        return ($result);
+    }
+
+    /**
+     * Reads Linux /proc/diskstats cumulative IO counters as device=>counterData
+     *
+     * @return array
+     */
+    protected function readLinuxDiskIoCounters() {
+        $result = array();
+        $diskStatsPath = '/proc/diskstats';
+        if (file_exists($diskStatsPath)) {
+            $raw = file_get_contents($diskStatsPath);
+            if (is_string($raw) and !empty($raw)) {
+                $lines = preg_split("/\n/", $raw, -1, PREG_SPLIT_NO_EMPTY);
+                if (!empty($lines)) {
+                    foreach ($lines as $io => $line) {
+                        $parts = preg_split("/\s+/", trim($line));
+                        // name + at least writes/sectors fields
+                        if (count($parts) >= 10) {
+                            $deviceName = $parts[2];
+                            $result[$deviceName] = array(
+                                'device' => $deviceName,
+                                'reads' => floatval($parts[3]),
+                                'writes' => floatval($parts[7]),
+                                'sectors_read' => floatval($parts[5]),
+                                'sectors_written' => floatval($parts[9]),
+                            );
+                        }
+                    }
+                }
+            }
+        }
+        return ($result);
+    }
+
+    /**
+     * Calculates IO rates from two cumulative counter snapshots
+     *
+     * @param array $before
+     * @param array $after
+     * @param float $elapsedSeconds
+     *
+     * @return array
+     */
+    protected function calcDiskIoRatesFromCounters($before, $after, $elapsedSeconds) {
+        $result = array();
+        if (!empty($after) and $elapsedSeconds > 0) {
+            foreach ($after as $deviceName => $afterCounters) {
+                if (isset($before[$deviceName])) {
+                    $beforeCounters = $before[$deviceName];
+                    $deltaReads = $afterCounters['reads'] - $beforeCounters['reads'];
+                    $deltaWrites = $afterCounters['writes'] - $beforeCounters['writes'];
+                    $deltaSectorsRead = $afterCounters['sectors_read'] - $beforeCounters['sectors_read'];
+                    $deltaSectorsWritten = $afterCounters['sectors_written'] - $beforeCounters['sectors_written'];
+
+                    if ($deltaReads < 0) {
+                        $deltaReads = 0;
+                    }
+                    if ($deltaWrites < 0) {
+                        $deltaWrites = 0;
+                    }
+                    if ($deltaSectorsRead < 0) {
+                        $deltaSectorsRead = 0;
+                    }
+                    if ($deltaSectorsWritten < 0) {
+                        $deltaSectorsWritten = 0;
+                    }
+
+                    $readIops = $deltaReads / $elapsedSeconds;
+                    $writeIops = $deltaWrites / $elapsedSeconds;
+                    // diskstats sectors are always 512-byte units
+                    $readBps = ($deltaSectorsRead * 512) / $elapsedSeconds;
+                    $writeBps = ($deltaSectorsWritten * 512) / $elapsedSeconds;
+
+                    $result[$deviceName] = array(
+                        'device' => $deviceName,
+                        'read_bps' => round($readBps, 2),
+                        'write_bps' => round($writeBps, 2),
+                        'read_iops' => round($readIops, 2),
+                        'write_iops' => round($writeIops, 2),
+                        'iops' => round(($readIops + $writeIops), 2),
+                        'sample_seconds' => round($elapsedSeconds, 2),
+                    );
+                }
+            }
+        }
+        return ($result);
+    }
+
+    /**
+     * Samples Linux disk IO rates via /proc/diskstats dual snapshot
+     *
+     * @param int $sampleSeconds
+     *
+     * @return array
+     */
+    protected function sampleLinuxDiskIoRates($sampleSeconds) {
+        $result = array();
+        $before = $this->readLinuxDiskIoCounters();
+        if (!empty($before)) {
+            $startedAt = microtime(true);
+            sleep($sampleSeconds);
+            $after = $this->readLinuxDiskIoCounters();
+            $elapsed = microtime(true) - $startedAt;
+            if ($elapsed <= 0) {
+                $elapsed = $sampleSeconds;
+            }
+            $result = $this->calcDiskIoRatesFromCounters($before, $after, $elapsed);
+        }
+        return ($result);
+    }
+
+    /**
+     * Samples FreeBSD disk IO rates via iostat -x (second report = interval rates)
+     *
+     * @param int $sampleSeconds
+     *
+     * @return array
+     */
+    protected function sampleFreeBsdDiskIoRates($sampleSeconds) {
+        $result = array();
+        if (file_exists($this->iostatPath)) {
+            $raw = $this->grabCmdOutput($this->iostatPath, '-x -w ' . intval($sampleSeconds) . ' -c 2');
+            if (!empty($raw)) {
+                $lines = preg_split("/\n/", $raw, -1, PREG_SPLIT_NO_EMPTY);
+                $blocks = array();
+                $currentBlock = array();
+                if (!empty($lines)) {
+                    foreach ($lines as $io => $line) {
+                        $lineTrim = trim($line);
+                        if ($lineTrim === '') {
+                            // skip
+                        } else {
+                            if (stripos($lineTrim, 'extended device statistics') !== false) {
+                                if (!empty($currentBlock)) {
+                                    $blocks[] = $currentBlock;
+                                    $currentBlock = array();
+                                }
+                            } else {
+                                if (stripos($lineTrim, 'device') === 0) {
+                                    // header inside a block
+                                } else {
+                                    $currentBlock[] = $lineTrim;
+                                }
+                            }
+                        }
+                    }
+                    if (!empty($currentBlock)) {
+                        $blocks[] = $currentBlock;
+                    }
+                }
+
+                $rateLines = array();
+                if (!empty($blocks)) {
+                    // last block is the sampled interval; if only one - use it
+                    $rateLines = $blocks[count($blocks) - 1];
+                }
+
+                if (!empty($rateLines)) {
+                    foreach ($rateLines as $idx => $lineTrim) {
+                        $parts = preg_split("/\s+/", $lineTrim);
+                        // device r/s w/s kr/s kw/s ...
+                        if (count($parts) >= 5) {
+                            $deviceName = $parts[0];
+                            // skip CAM pass-through nodes
+                            if (strpos($deviceName, 'pass') !== 0) {
+                                $readIops = floatval($parts[1]);
+                                $writeIops = floatval($parts[2]);
+                                $readBps = floatval($parts[3]) * 1024;
+                                $writeBps = floatval($parts[4]) * 1024;
+                                $result[$deviceName] = array(
+                                    'device' => $deviceName,
+                                    'read_bps' => round($readBps, 2),
+                                    'write_bps' => round($writeBps, 2),
+                                    'read_iops' => round($readIops, 2),
+                                    'write_iops' => round($writeIops, 2),
+                                    'iops' => round(($readIops + $writeIops), 2),
+                                    'sample_seconds' => $sampleSeconds,
+                                );
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return ($result);
+    }
+
+    /**
+     * Samples FreeBSD ZFS pool IO rates via zpool iostat -Hp
+     *
+     * @param int $sampleSeconds
+     *
+     * @return array
+     */
+    protected function sampleFreeBsdZpoolIoRates($sampleSeconds) {
+        $result = array();
+        if (file_exists($this->zpoolPath)) {
+            $raw = $this->grabCmdOutput($this->zpoolPath, 'iostat -Hp ' . intval($sampleSeconds) . ' 2');
+            if (!empty($raw)) {
+                $lines = preg_split("/\n/", $raw, -1, PREG_SPLIT_NO_EMPTY);
+                if (!empty($lines)) {
+                    foreach ($lines as $io => $line) {
+                        $parts = preg_split("/\s+/", trim($line));
+                        // name alloc free read_ops write_ops read_bytes write_bytes
+                        if (count($parts) >= 7) {
+                            $poolName = $parts[0];
+                            if ($poolName != 'pool' and strpos($poolName, '-') !== 0) {
+                                $readIops = floatval($parts[3]);
+                                $writeIops = floatval($parts[4]);
+                                $readBps = floatval($parts[5]);
+                                $writeBps = floatval($parts[6]);
+                                // last occurrence per pool is the interval sample
+                                $result[$poolName] = array(
+                                    'device' => $poolName,
+                                    'read_bps' => round($readBps, 2),
+                                    'write_bps' => round($writeBps, 2),
+                                    'read_iops' => round($readIops, 2),
+                                    'write_iops' => round($writeIops, 2),
+                                    'iops' => round(($readIops + $writeIops), 2),
+                                    'sample_seconds' => $sampleSeconds,
+                                );
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return ($result);
+    }
+
+    /**
+     * Ensures disk IO rates were sampled once for this instance (all devices)
+     *
+     * @param int $sampleSeconds
+     *
+     * @return void
+     */
+    protected function ensureDiskIoRates($sampleSeconds = 1) {
+        if (!$this->diskIoSampleDone) {
+            $sampleSeconds = intval($sampleSeconds);
+            if ($sampleSeconds < 1) {
+                $sampleSeconds = 1;
+            }
+            $this->diskIoSampleSeconds = $sampleSeconds;
+            $rates = array();
+            switch ($this->os) {
+                case 'Linux':
+                    $rates = $this->sampleLinuxDiskIoRates($sampleSeconds);
+                    break;
+                case 'FreeBSD':
+                    $rates = $this->sampleFreeBsdDiskIoRates($sampleSeconds);
+                    $zpoolRates = $this->sampleFreeBsdZpoolIoRates($sampleSeconds);
+                    if (!empty($zpoolRates)) {
+                        foreach ($zpoolRates as $poolName => $poolRates) {
+                            $rates[$poolName] = $poolRates;
+                        }
+                    }
+                    break;
+            }
+            $this->diskIoRatesByDevice = $rates;
+            $this->diskIoSampleDone = true;
+        }
+    }
+
+    /**
+     * Looks up sampled IO rates for a device name with partition→disk and ZFS pool fallback
+     *
+     * @param string $deviceName
+     *
+     * @return array
+     */
+    protected function lookupDiskIoRatesByDevice($deviceName) {
+        $result = array();
+        if (!empty($deviceName) and !empty($this->diskIoRatesByDevice)) {
+            if (isset($this->diskIoRatesByDevice[$deviceName])) {
+                $result = $this->diskIoRatesByDevice[$deviceName];
+            } else {
+                $parentDevice = $this->getParentDiskDevice($deviceName);
+                if (!empty($parentDevice) and isset($this->diskIoRatesByDevice[$parentDevice])) {
+                    $result = $this->diskIoRatesByDevice[$parentDevice];
+                } else {
+                    $zfsPool = $this->extractZfsPoolName($deviceName);
+                    if (!empty($zfsPool) and isset($this->diskIoRatesByDevice[$zfsPool])) {
+                        $result = $this->diskIoRatesByDevice[$zfsPool];
+                    }
+                }
+            }
+        }
+        return ($result);
+    }
+
+    /**
+     * Returns current disk IO rates for a mountpoint/path.
+     * Uses a single dual-sample per SystemHwInfo instance.
+     *
+     * Result keys: device, read_bps, write_bps, read_iops, write_iops, iops, sample_seconds
+     *
+     * @param string $mountPoint
+     * @param int $sampleSeconds
+     *
+     * @return array
+     */
+    public function getDiskIoStat($mountPoint, $sampleSeconds = 1) {
+        $result = array();
+        if (!empty($mountPoint)) {
+            $this->ensureDiskIoRates($sampleSeconds);
+            $deviceName = $this->getDiskDevice($mountPoint);
+            if (!empty($deviceName)) {
+                $rates = $this->lookupDiskIoRatesByDevice($deviceName);
+                if (!empty($rates)) {
+                    $result = $rates;
+                    // keep requested partition name visible when fallback to parent was used
+                    $result['device'] = $deviceName;
+                    if ($rates['device'] != $deviceName) {
+                        $result['device_stats'] = $rates['device'];
+                    }
+                }
+            }
+        }
+        return ($result);
+    }
+
+    /**
+     * Returns disk IO rates for all preset mountpoints as mountPoint=>ioStat
+     *
+     * @param int $sampleSeconds
+     *
+     * @return array
+     */
+    public function getAllDiskIoStats($sampleSeconds = 1) {
+        $result = array();
+        $this->ensureDiskIoRates($sampleSeconds);
+        if (!empty($this->mountPoints)) {
+            foreach ($this->mountPoints as $idx => $eachMountPoint) {
+                $eachIoStat = $this->getDiskIoStat($eachMountPoint, $sampleSeconds);
+                if (!empty($eachIoStat)) {
+                    $result[$eachMountPoint] = $eachIoStat;
+                }
+            }
+        }
+        $this->diskIoStats = $result;
+        return ($result);
+    }
+
+    /**
+     * Returns sampled disk IO rates keyed by device name
+     *
+     * @param int $sampleSeconds
+     *
+     * @return array
+     */
+    public function getAllDiskIoRatesByDevice($sampleSeconds = 1) {
+        $this->ensureDiskIoRates($sampleSeconds);
+        return ($this->diskIoRatesByDevice);
     }
 
 
