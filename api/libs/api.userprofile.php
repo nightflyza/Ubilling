@@ -1994,6 +1994,27 @@ class UserProfile {
     }
 
     /**
+     * Returns churn reason link control
+     * 
+     * @return string
+     */
+    protected function getChurnReasonControl() {
+        $result = '';
+        if (@$this->alterCfg['CHURN_REASONS_ENABLED']) {
+            if (cfr('CHURNREASONS')) {
+            $churnReasons = new ChurnReasons($this->login);
+            $churneditUrl = $churnReasons::URL_ME.'&'.$churnReasons::ROUTE_LOGIN.'='.$this->login;
+            $result =' '. wf_Link($churneditUrl, wf_img_sized('skins/churn16.png', __('Churn reason'), '10', '10'), false);
+            $thisUserReasons=$churnReasons->textRender($this->login);
+            if (!empty($thisUserReasons)) {
+                $result .= ' ('. $thisUserReasons.')';
+            }
+            }
+        }
+        return ($result);
+    }
+
+    /**
      * Returns WiFi CPE user controls
      * 
      * @return string
@@ -2688,7 +2709,7 @@ class UserProfile {
         }
 
         //Disable aka Down flag row
-        $profile .= $this->addRow(__('Disabled'), $downicon . web_trigger($this->userdata['Down']), true);
+        $profile .= $this->addRow(__('Disabled').$this->getChurnReasonControl(), $downicon . web_trigger($this->userdata['Down']), true);
 
         //Compact ONU signal here
         $profile .= $this->getPonSignalControlCompact();

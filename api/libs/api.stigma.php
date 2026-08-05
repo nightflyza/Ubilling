@@ -162,6 +162,17 @@ class Stigma {
     const ROUTE_ITEMID = 'stitemid';
     const ROUTE_STATE = 'stchstate';
     const ROUTE_ICONSIZE = 'stis';
+    const ROUTE_REPORT_DATE_FROM = 'stdatefrom';
+    const ROUTE_REPORT_DATE_TO = 'stdateto';
+    const ROUTE_REPORT_STATE = 'strepstate';
+    const ROUTE_REPORT_BUCKET = 'strepbucket';
+
+    /**
+     * Extended report link modes
+     */
+    const LINK_MODE_NONE = 'none';
+    const LINK_MODE_USERS = 'users';
+    const LINK_MODE_URL = 'url';
 
     /**
      * Creates new stigma on selected scope
@@ -977,6 +988,433 @@ class Stigma {
             $result .= wf_TableBody($rows, '100%', 0, 'sortable');
         } else {
             $result .= $messages->getStyledMessage(__('Nothing to show'), 'warning');
+        }
+        return($result);
+    }
+
+    /**
+     * Renders extended report with optional date range and clickable counts.
+     *
+     * Supported $options keys:
+     *   dateFrom      string  Y-m-d custom range start (optional)
+     *   dateTo        string  Y-m-d custom range end (optional)
+     *   showDateForm  bool    render two datepickers (default true)
+     *   showAdmins    bool    show admin column in drill-down (default false)
+     *   linkMode      string  none|users|url (default none)
+     *   linkUrl       string  URL template with %ITEMID% and %STATE% placeholders (for linkMode=url)
+     *   baseUrl       string  report page URL for form/drill-down links
+     *
+     * @param array $options
+     *
+     * @return string
+     */
+    public function renderExtendedReport($options = array()) {
+        $result = '';
+        if (!is_array($options)) {
+            $options = array();
+        }
+
+        $showDateForm = true;
+        if (isset($options['showDateForm'])) {
+            $showDateForm = ($options['showDateForm']) ? true : false;
+        }
+
+        $showAdmins = false;
+        if (isset($options['showAdmins'])) {
+            $showAdmins = ($options['showAdmins']) ? true : false;
+        }
+        $options['showAdmins'] = $showAdmins;
+
+        $linkMode = self::LINK_MODE_NONE;
+        if (isset($options['linkMode']) and !empty($options['linkMode'])) {
+            $linkMode = $options['linkMode'];
+        }
+        $options['linkMode'] = $linkMode;
+
+        $baseUrl = $this->getExtendedReportBaseUrl($options);
+        $options['baseUrl'] = $baseUrl;
+
+        $dateFrom = '';
+        $dateTo = '';
+        if (isset($options['dateFrom']) and isset($options['dateTo'])) {
+            if (!empty($options['dateFrom']) and !empty($options['dateTo'])) {
+                $dateFrom = $options['dateFrom'];
+                $dateTo = $options['dateTo'];
+            }
+        }
+
+        if (ubRouting::checkGet(array(self::ROUTE_REPORT_DATE_FROM, self::ROUTE_REPORT_DATE_TO))) {
+            $dateFrom = ubRouting::get(self::ROUTE_REPORT_DATE_FROM, 'mres');
+            $dateTo = ubRouting::get(self::ROUTE_REPORT_DATE_TO, 'mres');
+        } else {
+            if (ubRouting::checkPost(array(self::ROUTE_REPORT_DATE_FROM, self::ROUTE_REPORT_DATE_TO))) {
+                $dateFrom = ubRouting::post(self::ROUTE_REPORT_DATE_FROM, 'mres');
+                $dateTo = ubRouting::post(self::ROUTE_REPORT_DATE_TO, 'mres');
+            }
+        }
+
+        if (!empty($dateFrom) and !empty($dateTo)) {
+            if (!zb_checkDate($dateFrom) or !zb_checkDate($dateTo)) {
+                $dateFrom = '';
+                $dateTo = '';
+            }
+        }
+
+        $rangeMode = false;
+        if (!empty($dateFrom) and !empty($dateTo)) {
+            $rangeMode = true;
+        }
+
+        if ($showDateForm) {
+            $result .= $this->renderExtendedReportDateForm($baseUrl, $dateFrom, $dateTo);
+        }
+
+        if (ubRouting::checkGet(array(self::ROUTE_REPORT_STATE, self::ROUTE_REPORT_BUCKET))) {
+            $result .= $this->renderExtendedReportDrillDown($options, $dateFrom, $dateTo);
+        } else {
+            $result .= $this->renderExtendedReportTable($options, $dateFrom, $dateTo, $rangeMode);
+        }
+
+        return($result);
+    }
+
+    /**
+     * Builds base URL for extended report links (without report-specific routes).
+     *
+     * @param array $options
+     *
+     * @return string
+     */
+    protected function getExtendedReportBaseUrl($options = array()) {
+        $result = '';
+        if (isset($options['baseUrl']) and !empty($options['baseUrl'])) {
+            $result = $options['baseUrl'];
+        } else {
+            $reportRoutes = array(
+                self::ROUTE_REPORT_DATE_FROM => true,
+                self::ROUTE_REPORT_DATE_TO => true,
+                self::ROUTE_REPORT_STATE => true,
+                self::ROUTE_REPORT_BUCKET => true,
+                self::ROUTE_ICONSIZE => true,
+                self::ROUTE_ITEMID => true,
+                self::ROUTE_SCOPE => true,
+                self::ROUTE_STATE => true
+            );
+            $getVars = ubRouting::rawGet();
+            if (!empty($getVars)) {
+                $url = '?';
+                foreach ($getVars as $getVar => $getVal) {
+                    if (!isset($reportRoutes[$getVar])) {
+                        $url .= $getVar . '=' . $getVal . '&';
+                    }
+                }
+                $result = rtrim($url, '&');
+            } else {
+                $result = $this->baseUrl;
+            }
+        }
+        return($result);
+    }
+
+    /**
+     * Renders date range form for extended report.
+     *
+     * @param string $baseUrl
+     * @param string $dateFrom
+     * @param string $dateTo
+     *
+     * @return string
+     */
+    protected function renderExtendedReportDateForm($baseUrl, $dateFrom = '', $dateTo = '') {
+        $result = '';
+        $inputs = '';
+        $query = '';
+        $urlParts = parse_url($baseUrl);
+        if (isset($urlParts['query']) and !empty($urlParts['query'])) {
+            $query = $urlParts['query'];
+        }
+
+        if (!empty($query)) {
+            $params = array();
+            parse_str($query, $params);
+            if (!empty($params)) {
+                foreach ($params as $key => $val) {
+                    if ($key != self::ROUTE_REPORT_DATE_FROM and $key != self::ROUTE_REPORT_DATE_TO and $key != self::ROUTE_REPORT_STATE and $key != self::ROUTE_REPORT_BUCKET) {
+                        $inputs .= wf_HiddenInput($key, $val);
+                    }
+                }
+            }
+        }
+
+        $presetFrom = (!empty($dateFrom)) ? $dateFrom : curdate();
+        $presetTo = (!empty($dateTo)) ? $dateTo : curdate();
+        $inputs .= __('Date from') . ' ' . wf_DatePickerPreset(self::ROUTE_REPORT_DATE_FROM, $presetFrom, true) . ' ';
+        $inputs .= __('Date to') . ' ' . wf_DatePickerPreset(self::ROUTE_REPORT_DATE_TO, $presetTo, true) . ' ';
+        $inputs .= wf_SubmitClassed(__('Show'), 'ubButton','', wf_img('skins/icon_search.png').' '.__('Show'));
+
+        if (!empty($dateFrom) and !empty($dateTo)) {
+            $inputs .= ' '.wf_Link($baseUrl, wf_img('skins/icon_cleanup.png').' '.__('All time'), false, 'ubButton');
+        }
+        $result .= wf_Form('?', 'GET', $inputs, 'glamour');
+
+        $result .= wf_CleanDiv();
+        $result .= wf_tag('br');
+        return($result);
+    }
+
+    /**
+     * Returns from/to dates for selected report bucket.
+     *
+     * @param string $bucket day|week|month|year|all|custom
+     * @param string $dateFrom
+     * @param string $dateTo
+     *
+     * @return array
+     */
+    protected function getExtendedReportBucketDates($bucket, $dateFrom = '', $dateTo = '') {
+        $result = array('from' => '', 'to' => '');
+        switch ($bucket) {
+            case 'custom':
+                $result['from'] = $dateFrom;
+                $result['to'] = $dateTo;
+                break;
+            case 'day':
+                $result['from'] = curdate();
+                $result['to'] = curdate();
+                break;
+            case 'week':
+                $result['from'] = date("Y-m-d", strtotime('monday this week'));
+                $result['to'] = date("Y-m-d", strtotime('sunday this week'));
+                break;
+            case 'month':
+                $result['from'] = curmonth() . '-01';
+                $result['to'] = curmonth() . '-' . date("t");
+                break;
+            case 'year':
+                $result['from'] = curyear() . '-01-01';
+                $result['to'] = curyear() . '-12-31';
+                break;
+            case 'all':
+            default:
+                $result['from'] = '';
+                $result['to'] = '';
+                break;
+        }
+        return($result);
+    }
+
+    /**
+     * Formats count cell as plain value or drill-down link.
+     *
+     * @param int    $count
+     * @param string $stateId
+     * @param string $bucket
+     * @param array  $options
+     * @param string $dateFrom
+     * @param string $dateTo
+     *
+     * @return string
+     */
+    protected function formatExtendedReportCountCell($count, $stateId, $bucket, $options, $dateFrom = '', $dateTo = '') {
+        $result = '0';
+        $count = ($count) ? $count : 0;
+        $linkMode = isset($options['linkMode']) ? $options['linkMode'] : self::LINK_MODE_NONE;
+        $baseUrl = isset($options['baseUrl']) ? $options['baseUrl'] : '';
+
+        if ($count > 0) {
+            if ($linkMode == self::LINK_MODE_NONE or empty($baseUrl)) {
+                $result = $count;
+            } else {
+                $url = $baseUrl . '&' . self::ROUTE_REPORT_STATE . '=' . $stateId . '&' . self::ROUTE_REPORT_BUCKET . '=' . $bucket;
+                if ($bucket == 'custom' and !empty($dateFrom) and !empty($dateTo)) {
+                    $url .= '&' . self::ROUTE_REPORT_DATE_FROM . '=' . $dateFrom . '&' . self::ROUTE_REPORT_DATE_TO . '=' . $dateTo;
+                }
+                $result = wf_Link($url, $count);
+            }
+        }
+        return($result);
+    }
+
+    /**
+     * Renders extended report summary table (buckets or custom range).
+     *
+     * @param array  $options
+     * @param string $dateFrom
+     * @param string $dateTo
+     * @param bool   $rangeMode
+     *
+     * @return string
+     */
+    protected function renderExtendedReportTable($options, $dateFrom = '', $dateTo = '', $rangeMode = false) {
+        $result = '';
+        $messages = new UbillingMessageHelper();
+        $availStates = $this->getAllStates();
+
+        if (!empty($availStates)) {
+            if ($rangeMode) {
+                $dataRange = $this->getReportData($dateFrom, $dateTo);
+                $periodLabel = $dateFrom . ' - ' . $dateTo;
+
+                $cells = wf_TableCell(__('Job'), '40%');
+                $cells .= wf_TableCell($periodLabel);
+                $rows = wf_TableRow($cells, 'row1');
+
+                foreach ($availStates as $eachStateId => $eachStateDesc) {
+                    $stateLabel = __($eachStateDesc);
+                    $stateIcon = $this->getStateIcon($eachStateId);
+                    $rangeCount = isset($dataRange[$eachStateId]['count']) ? $dataRange[$eachStateId]['count'] : 0;
+
+                    $cells = wf_TableCell(wf_img_sized($stateIcon, $stateLabel, '10') . ' ' . $stateLabel);
+                    $cells .= wf_TableCell($this->formatExtendedReportCountCell($rangeCount, $eachStateId, 'custom', $options, $dateFrom, $dateTo));
+                    $rows .= wf_TableRow($cells, 'row5');
+                }
+                $result .= wf_TableBody($rows, '100%', 0, 'sortable');
+            } else {
+                $dateCurrentDay = curdate();
+                $dateMonthBegin = curmonth() . '-01';
+                $dateMonthEnd = curmonth() . '-' . date("t");
+                $dateWeekBegin = date("Y-m-d", strtotime('monday this week'));
+                $dateWeekEnd = date("Y-m-d", strtotime('sunday this week'));
+                $dateYearBegin = curyear() . '-01-01';
+                $dateYearEnd = curyear() . '-12-31';
+
+                $dataDay = $this->getReportData($dateCurrentDay, $dateCurrentDay);
+                $dataWeek = $this->getReportData($dateWeekBegin, $dateWeekEnd);
+                $dataMonth = $this->getReportData($dateMonthBegin, $dateMonthEnd);
+                $dataYear = $this->getReportData($dateYearBegin, $dateYearEnd);
+                $dataAllTime = $this->getReportData();
+
+                $cells = wf_TableCell(__('Job'), '30%');
+                $cells .= wf_TableCell(__('Day'));
+                $cells .= wf_TableCell(__('Week'));
+                $cells .= wf_TableCell(__('Month'));
+                $cells .= wf_TableCell(__('Year'));
+                $cells .= wf_TableCell(__('All time'));
+                $rows = wf_TableRow($cells, 'row1');
+
+                foreach ($availStates as $eachStateId => $eachStateDesc) {
+                    $stateLabel = __($eachStateDesc);
+                    $stateIcon = $this->getStateIcon($eachStateId);
+
+                    $dayCount = isset($dataDay[$eachStateId]['count']) ? $dataDay[$eachStateId]['count'] : 0;
+                    $weekCount = isset($dataWeek[$eachStateId]['count']) ? $dataWeek[$eachStateId]['count'] : 0;
+                    $monthCount = isset($dataMonth[$eachStateId]['count']) ? $dataMonth[$eachStateId]['count'] : 0;
+                    $yearCount = isset($dataYear[$eachStateId]['count']) ? $dataYear[$eachStateId]['count'] : 0;
+                    $allTimeCount = isset($dataAllTime[$eachStateId]['count']) ? $dataAllTime[$eachStateId]['count'] : 0;
+
+                    $cells = wf_TableCell(wf_img_sized($stateIcon, $stateLabel, '10') . ' ' . $stateLabel);
+                    $cells .= wf_TableCell($this->formatExtendedReportCountCell($dayCount, $eachStateId, 'day', $options));
+                    $cells .= wf_TableCell($this->formatExtendedReportCountCell($weekCount, $eachStateId, 'week', $options));
+                    $cells .= wf_TableCell($this->formatExtendedReportCountCell($monthCount, $eachStateId, 'month', $options));
+                    $cells .= wf_TableCell($this->formatExtendedReportCountCell($yearCount, $eachStateId, 'year', $options));
+                    $cells .= wf_TableCell($this->formatExtendedReportCountCell($allTimeCount, $eachStateId, 'all', $options));
+                    $rows .= wf_TableRow($cells, 'row5');
+                }
+                $result .= wf_TableBody($rows, '100%', 0, 'sortable');
+            }
+        } else {
+            $result .= $messages->getStyledMessage(__('Nothing to show'), 'warning');
+        }
+        return($result);
+    }
+
+    /**
+     * Renders drill-down details for a clicked report count.
+     *
+     * @param array  $options
+     * @param string $dateFrom
+     * @param string $dateTo
+     *
+     * @return string
+     */
+    protected function renderExtendedReportDrillDown($options, $dateFrom = '', $dateTo = '') {
+        $result = '';
+        $messages = new UbillingMessageHelper();
+        $baseUrl = isset($options['baseUrl']) ? $options['baseUrl'] : '';
+        $linkMode = isset($options['linkMode']) ? $options['linkMode'] : self::LINK_MODE_NONE;
+        $linkUrl = isset($options['linkUrl']) ? $options['linkUrl'] : '';
+        $stateId = ubRouting::get(self::ROUTE_REPORT_STATE, 'mres');
+        $bucket = ubRouting::get(self::ROUTE_REPORT_BUCKET, 'mres');
+
+        $backUrl = $baseUrl;
+        if ($bucket == 'custom' and !empty($dateFrom) and !empty($dateTo)) {
+            $backUrl .= '&' . self::ROUTE_REPORT_DATE_FROM . '=' . $dateFrom . '&' . self::ROUTE_REPORT_DATE_TO . '=' . $dateTo;
+        }
+        $result .= wf_BackLink($backUrl) . wf_delimiter();
+
+        $availStates = $this->getAllStates();
+        if (!isset($availStates[$stateId])) {
+            $result .= $messages->getStyledMessage(__('Nothing to show'), 'warning');
+        } else {
+            $bucketDates = $this->getExtendedReportBucketDates($bucket, $dateFrom, $dateTo);
+            $reportData = $this->getReportData($bucketDates['from'], $bucketDates['to']);
+            $itemIds = array();
+            if (isset($reportData[$stateId]['itemids']) and !empty($reportData[$stateId]['itemids'])) {
+                $itemIds = $reportData[$stateId]['itemids'];
+            }
+
+            if (empty($itemIds)) {
+                $result .= $messages->getStyledMessage(__('Nothing to show'), 'warning');
+            } else {
+                $stateLabel = __($availStates[$stateId]);
+                $stateIcon = $this->getStateIcon($stateId);
+                $result .= wf_tag('b', false) . wf_img_sized($stateIcon, $stateLabel, '16') . ' ' . $stateLabel . wf_tag('b', true);
+                $result .= wf_delimiter();
+
+                $showAdmins = false;
+                if (isset($options['showAdmins']) and $options['showAdmins']) {
+                    $showAdmins = true;
+                }
+
+                if ($linkMode == self::LINK_MODE_USERS) {
+                    if (cfr('USERPROFILE')) {
+                        $loginsArr = array();
+                        $adminColumn = array();
+                        $dateColumn = array();
+                        foreach ($itemIds as $itemId => $adminLogin) {
+                            $loginsArr[] = $itemId;
+                            if ($showAdmins) {
+                                $adminColumn[$itemId] = $adminLogin;
+                            }
+                            $dateColumn[$itemId] = isset($this->allStigmas[$itemId]['date']) ? $this->allStigmas[$itemId]['date'] : '-';
+                        }
+                        $extraColumns = array();
+                        if ($showAdmins) {
+                            $extraColumns[__('Admin')] = $adminColumn;
+                        }
+                        $extraColumns[__('Date')] = $dateColumn;
+                        $result .= web_UserArrayShower($loginsArr, $extraColumns);
+                    } else {
+                        $result .= $messages->getStyledMessage(__('Access denied'), 'error');
+                    }
+                } else {
+                    if ($linkMode == self::LINK_MODE_URL) {
+                        $cells = wf_TableCell(__('Object'));
+                        if ($showAdmins) {
+                            $cells .= wf_TableCell(__('Admin'));
+                        }
+                        $cells .= wf_TableCell(__('Date'));
+                        $rows = wf_TableRow($cells, 'row1');
+                        foreach ($itemIds as $itemId => $adminLogin) {
+                            $objectLabel = $itemId;
+                            if (!empty($linkUrl)) {
+                                $objectHref = str_replace(array('%ITEMID%', '%STATE%'), array(urlencode($itemId), urlencode($stateId)), $linkUrl);
+                                $objectLabel = wf_Link($objectHref, $itemId);
+                            }
+                            $itemDate = isset($this->allStigmas[$itemId]['date']) ? $this->allStigmas[$itemId]['date'] : '-';
+                            $cells = wf_TableCell($objectLabel);
+                            if ($showAdmins) {
+                                $cells .= wf_TableCell($adminLogin);
+                            }
+                            $cells .= wf_TableCell($itemDate);
+                            $rows .= wf_TableRow($cells, 'row5');
+                        }
+                        $result .= wf_TableBody($rows, '100%', 0, 'sortable');
+                    } else {
+                        $result .= $messages->getStyledMessage(__('Nothing to show'), 'warning');
+                    }
+                }
+            }
         }
         return($result);
     }

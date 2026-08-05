@@ -24,6 +24,13 @@ if (cfr('METABOLISM')) {
             case Metabolism::R_LIFECYCLE:
                 show_window(__('Lifecycle'), $metabolism->renderLifecycle());
                 break;
+            case Metabolism::R_CHURNREASONS:
+                if (cfr('CHURNREASONS')) {
+                    show_window(__('Churn reasons'), $metabolism->renderChurnReasons());
+                } else {
+                    log_register('METABOLISM CHURNREASONS ACCESS VIOLATION');
+                }
+                break;
             default:
                 show_error(__('Strange exception'));
                 break;

@@ -1642,7 +1642,7 @@ function web_bar($count, $total) {
  * Returns all months with names in two digit notation
  * 
  * @param string $number
- * @return array/string
+ * @return array|string
  */
 function months_array($number = null) {
     $months = array(

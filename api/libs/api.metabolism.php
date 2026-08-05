@@ -103,6 +103,7 @@ class Metabolism {
     const ROUTE_RENDER = 'render';
     const R_PAYMENTS = 'payments';
     const R_SIGNUPS = 'signups';
+    const R_CHURNREASONS = 'churnreasons';
     const R_LIFECYCLE = 'lifecycle';
     const ROUTE_LIFECYCLE_USERS = 'lifecycle_users';
     const ROUTE_LIFECYCLE_YEAR = 'lifecycle_year';
@@ -265,6 +266,11 @@ class Metabolism {
         }
         if (cfr('REPORTSIGNUP')) {
             $result .= wf_Link(self::URL_ME . '&' . self::ROUTE_RENDER . '=' . self::R_SIGNUPS, web_icon_charts() . ' ' . __('Signups'), false, 'ubButton') . ' ';
+        }
+        if (cfr('CHURNREASONS')) {
+            if (@$this->altCfg['CHURN_REASONS_ENABLED']) {
+            $result .= wf_Link(self::URL_ME . '&' . self::ROUTE_RENDER . '=' . self::R_CHURNREASONS, wf_img_sized('skins/churn16.png', '', '16', '16').' '. __('Churn reasons'), false, 'ubButton') . ' ';
+            }
         }
         
         $result .= wf_CleanDiv();
@@ -895,6 +901,23 @@ class Metabolism {
         $result .= wf_tag('b', false) . __('Total lost') . ': ' . $totalLost . wf_tag('b', true);
         $result .= wf_tag('br');
         $result .= wf_tag('b', false) . __('Survived') . ': ' . $totalSurvived . wf_tag('b', true);
+        return ($result);
+    }
+
+
+    /**
+     * Renders churn reasons report
+     * 
+     * @return string
+     */
+    public function renderChurnReasons() {
+        $result = '';
+        $churnReasons = new ChurnReasons();
+        $result .= $churnReasons->renderExtendedReport(array(
+            'linkMode' => 'users',
+            'showDateForm' => true,
+            'baseUrl' => self::URL_ME . '&' . self::ROUTE_RENDER . '=' . self::R_CHURNREASONS
+        ));
         return ($result);
     }
 }
