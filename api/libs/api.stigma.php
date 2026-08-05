@@ -1001,7 +1001,7 @@ class Stigma {
      *   showDateForm  bool    render two datepickers (default true)
      *   showAdmins    bool    show admin column in drill-down (default false)
      *   linkMode      string  none|users|url (default none)
-     *   linkUrl       string  URL template with %ITEMID% and %STATE% placeholders (for linkMode=url)
+     *   linkUrl       string  URL template with {ITEMID} and {STATE} placeholders (for linkMode=url)
      *   baseUrl       string  report page URL for form/drill-down links
      *
      * @param array $options
@@ -1398,7 +1398,7 @@ class Stigma {
                         foreach ($itemIds as $itemId => $adminLogin) {
                             $objectLabel = $itemId;
                             if (!empty($linkUrl)) {
-                                $objectHref = str_replace(array('%ITEMID%', '%STATE%'), array(urlencode($itemId), urlencode($stateId)), $linkUrl);
+                                $objectHref = str_replace(array('{ITEMID}', '{STATE}'), array(urlencode($itemId), urlencode($stateId)), $linkUrl);
                                 $objectLabel = wf_Link($objectHref, $itemId);
                             }
                             $itemDate = isset($this->allStigmas[$itemId]['date']) ? $this->allStigmas[$itemId]['date'] : '-';
