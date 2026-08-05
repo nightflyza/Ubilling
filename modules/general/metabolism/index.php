@@ -26,7 +26,11 @@ if (cfr('METABOLISM')) {
                 break;
             case Metabolism::R_CHURNREASONS:
                 if (cfr('CHURNREASONS')) {
+                    if ($ubillingConfig->getAlterParam('CHURN_REASONS_ENABLED')) {
                     show_window(__('Churn reasons'), $metabolism->renderChurnReasons());
+                    } else {
+                        show_error(__('This module is disabled'));
+                    }
                 } else {
                     log_register('METABOLISM CHURNREASONS ACCESS VIOLATION');
                 }
