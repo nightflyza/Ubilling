@@ -10,3 +10,5 @@ $lang['def']['Disconnected due to debts'] = 'Отключен из-за долг
 $lang['def']['Left the country'] = 'Выехал из страны';
 $lang['def']['Rented apartment'] = 'Арендовал квартиру';
 $lang['def']['Died'] = 'Умер';
+$lang['def']['right to manage churn reasons'] = 'Право на управление причинами оттока абонентов';
+$lang['def']['Not satisfied with the service'] = 'Недоволен сервисом';
