@@ -1,0 +1,12 @@
+# PUMB OpenPayz frontend routing
+# Prefer path-based URLs; fallback ?method= works without rewrite.
+
+RewriteEngine On
+
+# Do not rewrite real files/dirs
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
+# /check /confirm /payment-notification /status /report → index.php?method=...
+RewriteRule ^(check|confirm|payment-notification|status|report)/?$ index.php?method=$1 [L,QSA]
