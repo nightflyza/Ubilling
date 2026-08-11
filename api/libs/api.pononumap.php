@@ -664,14 +664,16 @@ class PONONUMap {
             $this->mapCore->setType($this->mapsCfg['TYPE']);
             $result .= $this->mapCore->render();
             //some stats here
-            $result .= $this->messages->getStyledMessage(__('Total') . ' ' . __('ONU') . ': ' . $totalOnuCount, 'info');
-            $result .= $this->messages->getStyledMessage(__('ONU rendered on map') . ': ' . $marksRendered, 'success');
-            if ($marksNoGeo > 0) {
-                $result .= $this->messages->getStyledMessage(__('User builds not placed on map') . ': ' . $marksNoGeo, 'warning');
-            }
+            if (cfr('PONEDIT')) {
+                $result .= $this->messages->getStyledMessage(__('Total') . ' ' . __('ONU') . ': ' . $totalOnuCount, 'info');
+                $result .= $this->messages->getStyledMessage(__('ONU rendered on map') . ': ' . $marksRendered, 'success');
+                if ($marksNoGeo > 0) {
+                    $result .= $this->messages->getStyledMessage(__('User builds not placed on map') . ': ' . $marksNoGeo, 'warning');
+                }
 
-            if ($marksNoUser > 0) {
-                $result .= $this->messages->getStyledMessage(__('ONU without assigned user') . ': ' . $marksNoUser, 'warning');
+                if ($marksNoUser > 0) {
+                    $result .= $this->messages->getStyledMessage(__('ONU without assigned user') . ': ' . $marksNoUser, 'warning');
+                }
             }
         } else {
             $result = array();
