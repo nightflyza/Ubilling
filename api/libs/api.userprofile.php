@@ -466,6 +466,8 @@ class UserProfile {
     /**
      * Returns raw plugins data. Plugins initialization files must be stored in CONFIG_PATH
      * 
+     * @param string $filename
+     * 
      * @return array
      */
     protected function loadPluginsRaw($filename) {
@@ -623,6 +625,8 @@ class UserProfile {
     /**
      * load plugins overlay data
      * 
+     * @param string $filename
+     * 
      * @return string
      */
     protected function loadPluginsOverlay($filename) {
@@ -753,6 +757,7 @@ class UserProfile {
      * @param string $header Header cell data that will be displayed left
      * @param string $data   Row data that will be displayed right
      * @param bool   $highlight Highlight row as "important"?
+     * @param int    $cellwidth Cell width in pixels
      * 
      * @return string
      */
@@ -770,6 +775,12 @@ class UserProfile {
 
     /**
      * returns task control for getMainControls
+     * 
+     * @param string $link     Link URL
+     * @param string $icon     Icon URL
+     * @param string $title    Title
+     * @param string $shorttitle Short title
+     * @param string $right    Right permission
      * 
      * @return string 
      */
@@ -796,7 +807,6 @@ class UserProfile {
     /**
      * Returns primary prifile controls with most used actions
      * 
-     * @param string $login Existing Ubilling user login
      * 
      * @return string
      */
@@ -1713,7 +1723,7 @@ class UserProfile {
     /**
      * Returns PB fast controls for all user phones available
      *
-     * @return void
+     * @return void|string
      */
     protected function getPbFastUrlControls() {
         $result = '';
@@ -1817,7 +1827,7 @@ class UserProfile {
     /**
      * returns easy credit controller if feature is enabled
      * 
-     * @return
+     * @return string
      */
     protected function getEasyCreditController() {
         $result = '';

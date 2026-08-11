@@ -113,7 +113,7 @@ class DeferredSale {
     /**
      * Catches sale request and performs sale
      * 
-     * @return void/string on error
+     * @return void|string on error
      */
     public function catchRequest() {
         $result = '';
