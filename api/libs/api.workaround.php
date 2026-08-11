@@ -6653,23 +6653,53 @@ function zb_isHttpsRequest() {
  */
 function web_GPSLocationFillInputControl($inputId) {
     $result = '';
+    $msgNoGeo = addslashes(__('Sorry, your browser does not support HTML5 geolocation'));
+    $msgDenied = addslashes(__('Location permission denied. Allow location access in browser settings'));
+    $msgUnavailable = addslashes(__('Unable to determine location. Check that GPS is enabled'));
+    $msgTimeout = addslashes(__('Location request timed out. Try again'));
+
     $result .= wf_tag('script');
     $result .= '
         function getGeoPosition() {
-            if(navigator.geolocation) {
+            if (navigator.geolocation) {
                 document.getElementById("gpswaitcontainer").innerHTML = " <img src=skins/ui-anim_basic_16x16.gif width=12> ";
-                navigator.geolocation.getCurrentPosition(function(position) {
-                var positionData = position.coords.latitude + "," + position.coords.longitude;
-                document.getElementById("' . $inputId . '").value = positionData;
-                document.getElementById("gpswaitcontainer").innerHTML = "";
-                });
+                navigator.geolocation.getCurrentPosition(
+                    function (position) {
+                        var positionData = position.coords.latitude + "," + position.coords.longitude;
+                        document.getElementById("' . $inputId . '").value = positionData;
+                        document.getElementById("gpswaitcontainer").innerHTML = "";
+                    },
+                    function (error) {
+                        var errorMessage = "";
+                        switch (error.code) {
+                            case error.PERMISSION_DENIED:
+                                errorMessage = "' . $msgDenied . '";
+                                break;
+                            case error.POSITION_UNAVAILABLE:
+                                errorMessage = "' . $msgUnavailable . '";
+                                break;
+                            case error.TIMEOUT:
+                                errorMessage = "' . $msgTimeout . '";
+                                break;
+                            default:
+                                errorMessage = "' . $msgUnavailable . '";
+                        }
+                        document.getElementById("gpswaitcontainer").innerHTML = " <span class=\"alert_error\">" + errorMessage + "</span>";
+                    },
+                    {
+                        enableHighAccuracy: true,
+                        timeout: 15000,
+                        maximumAge: 30000
+                    }
+                );
             } else {
-                alert("' . __('Sorry, your browser does not support HTML5 geolocation') . '");
+                document.getElementById("gpswaitcontainer").innerHTML = " <span class=\"alert_error\">' . $msgNoGeo . '</span>";
             }
         }';
     $result .= wf_tag('script', true);
     $result .= wf_tag('div', false, '', 'id="gpswaitcontainer" style="float:left;"') . wf_tag('div', true);
     $result .= wf_tag('button', false, '', 'type="button" onclick="getGeoPosition();"') . 'GPS ' . __('Location') . wf_tag('button', true);
+    
     return ($result);
 }
 

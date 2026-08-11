@@ -472,6 +472,31 @@ function zb_AddressChangeBuildGeo($buildId, $geo) {
 }
 
 /**
+ * Checks is geo format valid (latitude, longitude + minimum accuracy 3 decimal places)
+ * 
+ * @param string $geo
+ * 
+ * @return bool
+ */
+function zb_checkGeoFormat($geo) {
+    $result = false;
+    $geo = trim($geo);
+    if (!empty($geo)) {
+        if (preg_match('/^-?\d{1,2}\.\d{3,}\s?,\s?-?\d{1,3}\.\d{3,}$/', $geo)) {
+            $parts = explode(',', $geo);
+            $lat = (float) trim($parts[0]);
+            $lon = (float) trim($parts[1]);
+            if ($lat >= -90 and $lat <= 90) {
+                if ($lon >= -180 and $lon <= 180) {
+                    $result = true;
+                }
+            }
+        }
+    }
+    return ($result);
+}
+
+/**
  * Returns build data by its ID
  * 
  * @param int $buildid

@@ -922,13 +922,19 @@ class UserProfile {
     protected function getBuildLocatorExt($userBuildId, $currentGeo) {
         $result = '';
         $locContent = '';
-        if (cfr('BUILDS')) {
+        if (cfr('BUILDS') or cfr('BUILDSGEO')) {
             if (ubRouting::checkPost(array('blextbuildid', 'blextbuildgeo'))) {
+                if (zb_checkGeoFormat(ubRouting::post('blextbuildgeo'))) {
                 zb_AddressChangeBuildGeo(ubRouting::post('blextbuildid'), ubRouting::post('blextbuildgeo'));
                 ubRouting::nav(self::URL_PROFILE . $this->login);
+                } else {
+                    show_error(__('Invalid geo format or accuracy is too low'));
+                    log_register('BUILD CHANGE GEO ['.ubRouting::post('blextbuildid').'] `' . ubRouting::post('blextbuildgeo') . '` FAIL');
+                }
             }
             $locInputs = wf_HiddenInput('blextbuildid', $userBuildId);
-            $locInputs .= wf_TextInput('blextbuildgeo', __('Geo location'), $currentGeo, false, 15, 'geo', '', 'blextbuildgeo');
+            $locInputs .= wf_TextInput('blextbuildgeo', __('Geo location'), $currentGeo, false, 20, 'geo', '', 'blextbuildgeo');
+            
             //GPS geolocation accessible?
             if (zb_isHttpsRequest()) {
                 $locInputs .= wf_delimiter();
@@ -938,7 +944,10 @@ class UserProfile {
             $locContent .= wf_Form('', 'POST', $locInputs, 'glamour');
             $locContent .= wf_delimiter();
         }
-        $locContent .= wf_Link('?module=usersmap&locfinder=true&placebld=' . $userBuildId, wf_img_sized('skins/ymaps/target.png', __('Place on map'), '10') . ' ' . __('Place on map'), false, 'ubButton');
+
+        if (cfr('BUILDS')) {
+            $locContent .= wf_Link('?module=usersmap&locfinder=true&placebld=' . $userBuildId, wf_img_sized('skins/ymaps/target.png', __('Place on map'), '10') . ' ' . __('Place on map'), false, 'ubButton');
+        }
         $result .= wf_modalAuto(wf_img_sized('skins/ymaps/target.png', __('Place on map') . ': ' . $this->useraddress, '10'), __('Place on map') . ': ' . $this->useraddress, $locContent);
         return ($result);
     }
@@ -961,7 +970,6 @@ class UserProfile {
                     $userBuildId = $this->aptdata['buildid'];
                     //extended build locator
                     if (@$this->alterCfg['BUILDLOCATOR_EXTENDED']) {
-
                         $buildLocator .= $this->getBuildLocatorExt($userBuildId, $thisUserBuildGeo);
                     } else {
                         //default build locator
