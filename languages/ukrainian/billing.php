@@ -3690,3 +3690,7 @@ $lang['def']['Sorry, your browser does not support HTML5 geolocation'] = 'На �
 $lang['def']['Location permission denied. Allow location access in browser settings'] = 'Доступ до геолокації заборонено. Дозвольте визначення місцезнаходження в налаштуваннях браузера';
 $lang['def']['Unable to determine location. Check that GPS is enabled'] = 'Не вдалося визначити місцезнаходження. Перевірте, що GPS увімкнено';
 $lang['def']['Location request timed out. Try again'] = 'Час очікування геолокації вичерпано. Спробуйте ще раз';
+$lang['def']['Geography report'] = 'Географічний звіт';
+$lang['def']['KATOTTG settlement'] = 'Населений пункт КАТОТТГ';
+$lang['def']['right to view agent geography report'] = 'Право переглядати географічний звіт по агентах';
+$lang['def']['Premises'] = 'Приміщення';

@@ -1031,4 +1031,19 @@ class KATOTTG {
 
         return ($result);
     }
+
+    /**
+     * Renders an external lookup link for a KATOTTG code
+     *
+     * @param string $code
+     *
+     * @return string
+     */
+    public function renderLookupControl($code) {
+        $result = '';
+        if (!empty($code)) {
+            $result .= wf_Link(self::URL_CHECK . $code, wf_img('skins/question.png', __('Check')), false, '', 'target="_blank"');
+        }
+        return ($result);
+    }
 }

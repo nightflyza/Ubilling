@@ -618,7 +618,8 @@ function web_AgentAssignAutoShow() {
  * @param string $login
  * @param array $allassigns
  * @param array $alladdress
- * @return int/bool
+ * 
+ * @return int|bool
  */
 function zb_AgentAssignCheckLogin($login, $allassigns, $alladdress) {
     global $ubillingConfig;
@@ -660,43 +661,44 @@ function zb_AgentAssignCheckLogin($login, $allassigns, $alladdress) {
  * @param array $allassigns
  * @param string $address
  * @param array $allassignsstrict
- * @return array
+ * 
+ * @return int
  */
 function zb_AgentAssignCheckLoginFast($login, $allassigns, $address, $allassignsstrict) {
     global $ubillingConfig;
     $alter_cfg = $ubillingConfig->getAlter();
     $result = array();
-    //быстренько проверяем нету ли принудительной привязки по логину
+    //швиденько перевіряємо чи немає жорсткої привязки по логіну
     if (isset($allassignsstrict[$login])) {
         $result = $allassignsstrict[$login];
         return ($result);
     }
 
-    // если пользователь куда-то заселен
+    // якщо користувач кудись заселений
     if (!empty($address)) {
-        // возвращаем дефолтного агента если присваиваний нет вообще
+        // повертаємо дефолтного агента якщо присвоєнь немає взагалі
         if (empty($allassigns)) {
             $result = $alter_cfg['DEFAULT_ASSIGN_AGENT'];
         } else {
-            //если какие-то присваивалки есть
+            //якщо є якісь адресні присвоєння
             $useraddress = $address;
 
-            // проверяем для каждой присваивалки попадает ли она под нашего абонента
+            // перевіряємо для кожного присвоєння чи підходить воно під нашого абонента
             foreach ($allassigns as $io => $eachassign) {
                 if (strpos($useraddress, $eachassign['streetname']) !== false) {
                     $result = $eachassign['ahenid'];
                     break;
                 } else {
-                    // и если не нашли - возвращаем  умолчательного
+                    // і якщо не знайшли - повертаємо дефолтного агента
                     $result = $alter_cfg['DEFAULT_ASSIGN_AGENT'];
                 }
             }
         }
     } else {
-        //если пользователь бомжует - возвращаем тоже умолчательного
+        //якщо користувач бомжує - повертаємо тож дефолтного агента
         $result = $alter_cfg['DEFAULT_ASSIGN_AGENT'];
     }
-    // если присваивание выключено возвращаем умолчального
+    // якщо присвоєння вимкнено - повертаємо дефолтного агента
     if (!$alter_cfg['AGENTS_ASSIGN']) {
         $result = $alter_cfg['DEFAULT_ASSIGN_AGENT'];
     }
@@ -998,7 +1000,7 @@ function zb_PrintCheckLoadTemplate() {
  * 
  * @param string $whoami
  * 
- * @return array/string
+ * @return array|string
  */
 function zb_PrintCheckLoadCassNames($whoami = false) {
     $names = rcms_parse_ini_file(CONFIG_PATH . 'cass.ini');
@@ -1121,6 +1123,9 @@ function zb_RegContrAhentSelect($name, $selected = '') {
 
 /**
  * Renders agent strict assign form
+ * 
+ * @param string $login
+ * @param int $currentassign
  * 
  * @return string
  */

@@ -89,8 +89,16 @@ class ReportStreets {
      */
     protected $passportsFlag = false;
 
+    /**
+     * Contains default agent ID if set
+     *
+     * @var int
+     */
+    protected $defaultAgentId = 0;
+
     public function __construct() {
         $this->setDates();
+        $this->loadConfig();
         $this->initPayments();
         $this->loadCities();
         $this->loadStreets();
@@ -101,6 +109,16 @@ class ReportStreets {
         $this->countBuilds();
         $this->loadAllAssigns();
         $this->loadAgents();
+    }
+
+    /**
+     * Loads config opions into private data property
+     * 
+     * @return void
+     */
+    protected function loadConfig() {
+        global $ubillingConfig;
+        $this->defaultAgentId = $ubillingConfig->getAlterParam('DEFAULT_ASSIGN_AGENT', 0);
     }
 
     /**
@@ -393,6 +411,14 @@ class ReportStreets {
                 } else {
                     $streetAgentName = '';
                     $cellsClass = 'row3';
+                    //default agent name if set
+                    if ($this->defaultAgentId) {
+                        if (isset($this->agents[$this->defaultAgentId])) {
+                            $streetAgentName = $this->agents[$this->defaultAgentId];
+                        } else {
+                            $streetAgentName = __('Not exists');
+                        }
+                    }
                 }
 
                 $cells = wf_TableCell($streetid, '', $cellsClass);
