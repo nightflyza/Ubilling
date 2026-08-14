@@ -34,6 +34,9 @@ if ($ubillingConfig->getAlterParam('CHURN_REASONS_ENABLED')) {
 }
 show_window('', $profileControls);
 
+} else {
+    show_error(__('Strange exception') . ': ' . __('Empty login'));
+    show_window('', wf_tag('center') . wf_img('skins/unicornwrong.png') . wf_tag('center', true));  
 }
 
 } else {
