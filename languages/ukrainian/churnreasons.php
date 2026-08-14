@@ -12,3 +12,4 @@ $lang['def']['Rented apartment'] = 'Орендував квартиру';
 $lang['def']['Died'] = 'Помер';
 $lang['def']['right to manage churn reasons'] = 'Право на керування причинами відтоку абонентів';
 $lang['def']['Not satisfied with the service'] = 'Незадоволений сервісом';
+$lang['def']['Returned to family'] = 'Повернувся в родину';

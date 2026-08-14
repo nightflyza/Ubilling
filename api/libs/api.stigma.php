@@ -90,6 +90,14 @@ class Stigma {
     protected $animated = true;
 
     /**
+     * Allow unsetting currently selected radiolist state by clicking it again.
+     * Ignored for checklist type.
+     *
+     * @var bool
+     */
+    protected $cancelable = false;
+
+    /**
      * Taskman logging flag/parameter name. Disabled if empty.
      *
      * @var string
@@ -344,6 +352,10 @@ class Stigma {
 
                     if (isset($raw['stigmasettings']['RENDERER'])) {
                         $this->renderer = $raw['stigmasettings']['RENDERER'];
+                    }
+
+                    if (isset($raw['stigmasettings']['CANCELABLE'])) {
+                        $this->cancelable = ($raw['stigmasettings']['CANCELABLE']) ? true : false;
                     }
 
                     foreach ($raw as $io => $each) {
@@ -763,10 +775,14 @@ class Stigma {
         if (isset($this->allStigmas[$itemId])) {
             $currentStates = $this->getItemStates($itemId);
             if ($this->type == 'radiolist') {
-//state is changed?
-                if (!isset($currentStates[$state])) {
-                    $this->setState($itemId, $state);
-                    $this->logStigmaChange($itemId, 'Changed', $state);
+                if ($this->cancelable and isset($currentStates[$state])) {
+                    $this->setState($itemId, '');
+                    $this->logStigmaChange($itemId, 'Deleted', $state);
+                } else {
+                    if (!isset($currentStates[$state])) {
+                        $this->setState($itemId, $state);
+                        $this->logStigmaChange($itemId, 'Changed', $state);
+                    }
                 }
             }
 

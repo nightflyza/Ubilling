@@ -1,14 +1,16 @@
 <?php
 if (cfr('DOWN')) {
 
-if (isset ($_GET['username'])) {
-    $login=vf($_GET['username']);
+if (ubRouting::checkGet('username')) {
+    $login=ubRouting::filters(ubRouting::get('username'),'login');
+    $userAddress=zb_UserGetFullAddress($login);
+
        // change down  if need
-       if (isset ($_POST['newdown'])) {
-        $down=$_POST['newdown'];
+       if (ubRouting::checkPost('newdown',false)) {
+        $down=ubRouting::filters(ubRouting::post('newdown'),'int');
         $billing->setdown($login,$down);
         log_register('DOWN CHANGE ('.$login.') ON `'.$down.'`');
-        rcms_redirect("?module=downedit&username=".$login);
+        ubRouting::nav('?module=downedit&username='.$login);
     }
 
     $current_down=zb_UserGetStargazerData($login);
@@ -20,13 +22,20 @@ if (isset ($_GET['username'])) {
 $fieldname=__('Current Down state');
 $fieldkey='newdown';
 $form=web_EditorTrigerDataForm($fieldname, $fieldkey, $useraddress, $current_down);
-$form.=web_UserControls($login);
-// show form
-show_window(__('Edit Down'), $form);
+$profileControls=web_UserControls($login);
+show_window(__('Edit Down').' '.$userAddress, $form);
+
+if ($ubillingConfig->getAlterParam('CHURN_REASONS_ENABLED')) {
+    if (cfr('CHURNREASONS')) {
+    $churnReasons = new ChurnReasons($login);
+    $churnReasonsInterface=$churnReasons->renderChurnController();
+    show_window(__('Churn reason'), $churnReasonsInterface);
+    }
+}
+show_window('', $profileControls);
+
 }
 
 } else {
       show_error(__('You cant control this module'));
 }
-
-?>

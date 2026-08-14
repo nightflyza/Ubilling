@@ -2021,7 +2021,8 @@ class UserProfile {
         if (@$this->alterCfg['CHURN_REASONS_ENABLED']) {
             if (cfr('CHURNREASONS')) {
             $churnReasons = new ChurnReasons($this->login);
-            $churneditUrl = $churnReasons::URL_ME.'&'.$churnReasons::ROUTE_LOGIN.'='.$this->login;
+            //$churneditUrl = $churnReasons::URL_ME.'&'.$churnReasons::ROUTE_LOGIN.'='.$this->login;
+            $churneditUrl = '?module=downedit&username='.$this->login;
             $result =' '. wf_Link($churneditUrl, wf_img_sized('skins/churn16.png', __('Churn reason'), '10', '10'), false);
             $thisUserReasons=$churnReasons->textRender($this->login);
             if (!empty($thisUserReasons)) {

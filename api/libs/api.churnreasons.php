@@ -23,6 +23,13 @@ class ChurnReasons {
      */
     protected $messages='';
 
+    /**
+     * Default size for churn reasons rendering
+     *
+     * @var int
+     */
+    protected $defaultSize = 100;
+
     // some other predefined stuff
     const STIGMA_SCOPE = 'CHURNREASONS';
     const LOG_TABLE='churnreasons';
@@ -90,7 +97,7 @@ class ChurnReasons {
         $result='';
         if (!empty($this->userLogin)) {
           $this->reasonsStigma->stigmaController('CUSTOM:'.self::LOG_TABLE);
-          $result.=$this->reasonsStigma->render($this->userLogin);
+          $result.=$this->reasonsStigma->render($this->userLogin, $this->defaultSize);
 
         } else {
             $result.=$this->messages->getStyledMessage(__('User login is required'),'error');
