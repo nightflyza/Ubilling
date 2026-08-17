@@ -1267,7 +1267,7 @@ class XMLAgent {
 
             if ($frozenState == '1') {
                 //lets UNfreeze account
-                executor('-u' . $login . ' -i 0');
+                billing_unfreeze($login);
                 log_register('CHANGE Passive (' . $login . ') ON 0');
                 log_register('XMLAGENT: REST API is the source of previous action');
 

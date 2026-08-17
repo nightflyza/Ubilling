@@ -145,24 +145,9 @@ function zbs_CreditCheckAllowed($sc_allowed, $usertariff) {
 function zbs_CreditDoTheCredit($user_login, $tariffprice, $sc_price, $scend, $sc_cashtypeid) {
     global $us_config;
     $creditLimit = $tariffprice + $sc_price;
-    $remoteFlag = false;
-    if (isset($us_config['SC_REMOTE'])) {
-        if ($us_config['SC_REMOTE']) {
-            $remoteFlag = true;
-        }
-    }
 
-    if (!$remoteFlag) {
-        //default sgconf routines
-        billing_setcredit($user_login, $creditLimit);
-        billing_setcreditexpire($user_login, $scend);
-        zbs_PaymentLog($user_login, '-' . $sc_price, $sc_cashtypeid, "SCFEE");
-        billing_addcash($user_login, '-' . $sc_price);
-    } else {
-        //remote API callback
-        $remoteApiRequest = '&action=sc&login=' . $user_login . '&cr=' . $creditLimit . '&end=' . $scend . '&fee=' . $sc_price . '&ct=' . $sc_cashtypeid;
-        $remoteResult = zbs_remoteApiRequest($remoteApiRequest);
-    }
+    $remoteApiRequest = '&action=sc&login=' . $user_login . '&cr=' . $creditLimit . '&end=' . $scend . '&fee=' . $sc_price . '&ct=' . $sc_cashtypeid;
+    zbs_remoteApiRequest($remoteApiRequest);
 
     zbs_CreditLogPush($user_login);
     log_register('CHANGE Credit (' . $user_login . ') ON ' . $creditLimit);
@@ -172,13 +157,13 @@ function zbs_CreditDoTheCredit($user_login, $tariffprice, $sc_price, $scend, $sc
         if ($us_config['SC_MTAPI_FIX']) {
             //Reset via Down flag
             if ($us_config['SC_MTAPI_FIX'] == 1) {
-                executor('-u ' . $user_login . ' -d 1');
-                executor('-u ' . $user_login . ' -d 0');
+                billing_setdown($user_login, 1);
+                billing_setdown($user_login, 0);
             }
             //Reset via AO flag
             if ($us_config['SC_MTAPI_FIX'] == 2) {
-                executor('-u ' . $user_login . ' --always-online 0');
-                executor('-u ' . $user_login . ' --always-online 1');
+                billing_setao($user_login, 0);
+                billing_setao($user_login, 1);
             }
         }
     }
@@ -468,4 +453,4 @@ if (ubRouting::checkGet('agentcredit')) {
     //zbs_XMLAgentRender($scAgentResult, 'data', '', $agentOutputFormat, false);
     XMLAgent::renderResponse($scAgentResult, 'data', '', $agentOutputFormat, false);
 }
-?>
+

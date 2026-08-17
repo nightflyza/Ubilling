@@ -2643,27 +2643,16 @@ function zbs_PaymentLog($login, $summ, $cashtypeid, $note) {
 }
 
 /**
- * Runs sgconfig in system shell
- * 
- * @param string $command
- * @param bool $debug
- * 
+ * Performs userstats core Stargazer mutation via Remote API
+ *
+ * @param string $operation
+ * @param string $login
+ * @param string $value
+ *
  * @return void
  */
-function executor($command, $debug = false) {
-    $globconf = zbs_LoadConfig();
-    $SGCONF = $globconf['SGCONF'];
-    $STG_HOST = $globconf['STG_HOST'];
-    $STG_PORT = $globconf['STG_PORT'];
-    $STG_LOGIN = $globconf['STG_LOGIN'];
-    $STG_PASSWD = $globconf['STG_PASSWD'];
-    $configurator = $SGCONF . ' set -s ' . $STG_HOST . ' -p ' . $STG_PORT . ' -a' . $STG_LOGIN . ' -w' . $STG_PASSWD . ' ' . $command;
-    if ($debug) {
-        print($configurator . "\n");
-        print(shell_exec($configurator));
-    } else {
-        shell_exec($configurator);
-    }
+function zbs_UserstatsCoreRequest($operation, $login, $value) {
+    zbs_remoteApiRequest('&action=uscore&param=' . urlencode($operation) . '&login=' . urlencode($login) . '&value=' . urlencode($value));
 }
 
 /**
@@ -2675,7 +2664,7 @@ function executor($command, $debug = false) {
  * @return void
  */
 function billing_addcash($login, $cash) {
-    executor('-u' . $login . ' -c ' . $cash);
+    zbs_UserstatsCoreRequest('addcash', $login, $cash);
 }
 
 /**
@@ -2687,7 +2676,7 @@ function billing_addcash($login, $cash) {
  * @return void
  */
 function billing_setcredit($login, $credit) {
-    executor('-u' . $login . ' -r ' . $credit);
+    zbs_UserstatsCoreRequest('setcredit', $login, $credit);
 }
 
 /**
@@ -2699,7 +2688,7 @@ function billing_setcredit($login, $credit) {
  * @return void
  */
 function billing_setcreditexpire($login, $creditexpire) {
-    executor('-u' . $login . ' -E ' . $creditexpire);
+    zbs_UserstatsCoreRequest('setcreditexpire', $login, $creditexpire);
 }
 
 /**
@@ -2711,7 +2700,7 @@ function billing_setcreditexpire($login, $creditexpire) {
  * @return void
  */
 function billing_setcash($login, $cash) {
-    executor('-u' . $login . ' -v ' . $cash);
+    zbs_UserstatsCoreRequest('setcash', $login, $cash);
 }
 
 /**
@@ -2723,7 +2712,7 @@ function billing_setcash($login, $cash) {
  * @return void
  */
 function billing_settariff($login, $tariff) {
-    executor('-u' . $login . ' -t ' . $tariff);
+    zbs_UserstatsCoreRequest('settariff', $login, $tariff);
 }
 
 /**
@@ -2735,7 +2724,7 @@ function billing_settariff($login, $tariff) {
  * @return void
  */
 function billing_settariffnm($login, $tariff) {
-    executor('-u' . $login . ' -t ' . $tariff . ':delayed');
+    zbs_UserstatsCoreRequest('settariffnm', $login, $tariff);
 }
 
 /**
@@ -2746,7 +2735,42 @@ function billing_settariffnm($login, $tariff) {
  * @return void
  */
 function billing_freeze($login) {
-    executor('-u' . $login . ' -i 1');
+    zbs_UserstatsCoreRequest('setpassive', $login, 1);
+}
+
+/**
+ * Unfreezes user by its login
+ *
+ * @param string $login
+ *
+ * @return void
+ */
+function billing_unfreeze($login) {
+    zbs_UserstatsCoreRequest('setpassive', $login, 0);
+}
+
+/**
+ * Sets Down flag for user
+ *
+ * @param string $login
+ * @param int $state
+ *
+ * @return void
+ */
+function billing_setdown($login, $state) {
+    zbs_UserstatsCoreRequest('setdown', $login, $state);
+}
+
+/**
+ * Sets AlwaysOnline flag for user
+ *
+ * @param string $login
+ * @param int $state
+ *
+ * @return void
+ */
+function billing_setao($login, $state) {
+    zbs_UserstatsCoreRequest('setao', $login, $state);
 }
 
 /**
@@ -2757,7 +2781,7 @@ function billing_freeze($login) {
  * @return void
  */
 function billing_setpassword($login, $password) {
-    executor('-u' . $login . ' -o ' . $password);;
+    zbs_UserstatsCoreRequest('setpassword', $login, $password);
 }
 
 /**
@@ -3172,7 +3196,9 @@ function zbs_remoteApiRequest($requestUrl) {
     if (isset($usConfig['API_URL']) and isset($usConfig['API_KEY'])) {
         if (!empty($usConfig['API_URL']) and !empty($usConfig['API_KEY'])) {
             $apiBase = $usConfig['API_URL'] . '/?module=remoteapi&key=' . $usConfig['API_KEY'];
-            @$result .= file_get_contents($apiBase . $requestUrl);
+            $remoteApi = new OmaeUrl($apiBase . $requestUrl);
+            $remoteApi->setUserAgent('UbillingUserstats');
+            $result .= $remoteApi->response();
         } else {
             die('ERROR: API_KEY/API_URL is empty!');
         }
