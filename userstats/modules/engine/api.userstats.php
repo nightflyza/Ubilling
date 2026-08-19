@@ -2643,6 +2643,27 @@ function zbs_PaymentLog($login, $summ, $cashtypeid, $note) {
 }
 
 /**
+ * Checks API connectivity
+ * 
+ * @return bool
+ */
+function zbs_CheckApiConnectivity() {
+   $result=false;
+            $apiRequestReply= zbs_remoteApiRequest('&action=uscore&operation=isalivecheck');
+            if (json_validate($apiRequestReply)) {
+                $apiRequestReply = json_decode($apiRequestReply, true);
+                if (isset($apiRequestReply['error']) and isset($apiRequestReply['operation'])) {
+                    if ($apiRequestReply['error'] == false and $apiRequestReply['operation'] == 'isalivecheck') {
+                        $result = true;
+                    }
+                }
+            }
+        
+    return ($result);
+}
+    
+
+/**
  * Performs userstats core Stargazer mutation via Remote API
  *
  * @param string $operation
@@ -2652,7 +2673,7 @@ function zbs_PaymentLog($login, $summ, $cashtypeid, $note) {
  * @return void
  */
 function zbs_UserstatsCoreRequest($operation, $login, $value) {
-    zbs_remoteApiRequest('&action=uscore&param=' . urlencode($operation) . '&login=' . urlencode($login) . '&value=' . urlencode($value));
+    zbs_remoteApiRequest('&action=uscore&operation=' . urlencode($operation) . '&login=' . urlencode($login) . '&value=' . urlencode($value));
 }
 
 /**
@@ -2782,6 +2803,29 @@ function billing_setao($login, $state) {
  */
 function billing_setpassword($login, $password) {
     zbs_UserstatsCoreRequest('setpassword', $login, $password);
+}
+
+/**
+ * Resets user session
+ *
+ * @param string $login
+ *
+ * @return void
+ */
+function billing_resetuser($login) {
+    zbs_UserstatsCoreRequest('reset', $login, '');
+}
+
+/**
+ * Changes user MAC address
+ *
+ * @param string $login
+ * @param string $mac
+ *
+ * @return void
+ */
+function billing_setmac($login, $mac) {
+    zbs_UserstatsCoreRequest('setmac', $login, $mac);
 }
 
 /**
@@ -3195,7 +3239,7 @@ function zbs_remoteApiRequest($requestUrl) {
     $result = '';
     if (isset($usConfig['API_URL']) and isset($usConfig['API_KEY'])) {
         if (!empty($usConfig['API_URL']) and !empty($usConfig['API_KEY'])) {
-            $apiBase = $usConfig['API_URL'] . '/?module=remoteapi&key=' . $usConfig['API_KEY'];
+            $apiBase = rtrim($usConfig['API_URL'], '/') . '/?module=remoteapi&key=' . $usConfig['API_KEY'];
             $remoteApi = new OmaeUrl($apiBase . $requestUrl);
             $remoteApi->setUserAgent('UbillingUserstats');
             $result .= $remoteApi->response();

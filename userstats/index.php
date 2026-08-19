@@ -34,10 +34,22 @@ $user_login = zbs_UserGetLoginByIp($user_ip);
 $us_config = zbs_LoadConfig();
 $us_access = zbs_GetUserStatsDeniedAll();
 
+// check if current user has been banned?
 if (!empty($us_access) and !empty($user_login)) {
     if (isset($us_access[$user_login])) {
         $accDeniedBody = file_get_contents('modules/jsc/youshallnotpass.html');
         die($accDeniedBody);
+    }
+}
+
+//check for API connectivity
+if (isset($us_config['API_CHECK'])) {
+    if ($us_config['API_CHECK']) {
+        $api_check = zbs_CheckApiConnectivity();
+        if (!$api_check) {
+            $connectivityErrorBody = file_get_contents('modules/jsc/apiconnfail.html');
+            die($connectivityErrorBody);
+        }
     }
 }
 
