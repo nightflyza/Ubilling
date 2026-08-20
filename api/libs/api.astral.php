@@ -1547,10 +1547,18 @@ function wf_FullCalendar($data, $options = '', $useHTMLInTitle = false, $useHTML
     $viewSetup = '';
     $viewSave = '';
     if ($saveViewState) {
-        $viewLoad = "var savedView = localStorage.getItem('calendarView') || 'month';";
+        $viewLoad = "var savedView = 'month';
+                    try {
+                        var _cv = localStorage.getItem('calendarView');
+                        if (_cv == 'month' || _cv == 'basicWeek' || _cv == 'basicDay' || _cv == 'listMonth') {
+                            savedView = _cv;
+                        }
+                    } catch (e) {}";
         $viewSetup = "defaultView: savedView,";
         $viewSave = ",viewRender: function(view) {
-                        localStorage.setItem('calendarView', view.name);
+                        try {
+                            localStorage.setItem('calendarView', view.name);
+                        } catch (e) {}
                     }";
     }
 
