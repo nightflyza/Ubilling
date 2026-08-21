@@ -3694,3 +3694,4 @@ $lang['def']['Geography report'] = 'Географічний звіт';
 $lang['def']['KATOTTG settlement'] = 'Населений пункт КАТОТТГ';
 $lang['def']['right to view agent geography report'] = 'Право переглядати географічний звіт по агентах';
 $lang['def']['Premises'] = 'Приміщення';
+$lang['def']['Private house'] = 'Приватний будинок';

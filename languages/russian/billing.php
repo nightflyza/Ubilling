@@ -3663,3 +3663,4 @@ $lang['def']['Sorry, your browser does not support HTML5 geolocation'] = 'К с�
 $lang['def']['Location permission denied. Allow location access in browser settings'] = 'Доступ к геолокации запрещен. Разрешите определение местоположения в настройках браузера';
 $lang['def']['Unable to determine location. Check that GPS is enabled'] = 'Не удалось определить местоположение. Проверьте, что GPS включен';
 $lang['def']['Location request timed out. Try again'] = 'Время ожидания геолокации истекло. Попробуйте еще раз';
+$lang['def']['Private house'] = 'Частный дом';

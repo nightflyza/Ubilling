@@ -81,6 +81,7 @@ class ReportBuilds {
     const URL_ME = '?module=report_builds';
     const ROUTE_AJLIST = 'ajaxbuildslist';
     const ROUTE_EXPORTS = 'exportcontrols';
+    const ROUTE_GEO = 'geocontrols';
     const PROUTE_FILTERS = 'applynewfilters';
     const PROUTE_FILTERCITY = 'filtercityid';
     const PROUTE_FILTERSTREET = 'filterstreetid';
@@ -100,7 +101,7 @@ class ReportBuilds {
      * 
      * @global object $ubillingConfig
      * 
-     * @return vod
+     * @return void
      */
     protected function loadConfigs() {
         global $ubillingConfig;
@@ -262,6 +263,11 @@ class ReportBuilds {
                     'Actions'
                 );
             }
+
+            //optional geo column before actions
+            if (ubRouting::checkGet(self::ROUTE_GEO)) {
+                array_splice($columns, -1, 0, array('Geo location'));
+            }
             $opts = '"order": [[ 1, "asc" ]]';
 
             //optional ID column
@@ -287,6 +293,10 @@ class ReportBuilds {
                 if (ubRouting::checkPost(self::PROUTE_FILTERSTREET)) {
                     $filters .= '&' . self::PROUTE_FILTERSTREET . '=' . ubRouting::post(self::PROUTE_FILTERSTREET);
                 }
+            }
+
+            if (ubRouting::checkGet(self::ROUTE_GEO)) {
+                $filters .= '&' . self::ROUTE_GEO . '=true';
             }
 
             $ajaxSource = self::URL_ME . '&' . self::ROUTE_AJLIST . '=true' . $filters;
@@ -387,14 +397,19 @@ class ReportBuilds {
                             $ownerLabel = $buildPassport['owner'] . ' ' . $buildPassport['ownername'] . ' ' . $buildPassport['ownercontact'];
                             $ownerPhone = $buildPassport['ownerphone'];
                             $floors = $buildPassport['floors'];
-                            $type = ($buildPassport['anthill']) ? wf_img('skins/ymaps/build.png', __('Apartment house')) : wf_img('skins/ymaps/home.png');
+                            $type = '?';
+                            if ($buildPassport['anthill']) {
+                                $type = wf_img('skins/ymaps/build.png', __('Apartment house')).' '.'A';
+                            } else {
+                                $type = wf_img('skins/ymaps/home.png',__('Private house')).' '.'P';
+                            }
                             $entrances = $buildPassport['entrances'];
                             $apts = $buildPassport['apts'];
                             $accessNotices = $buildPassport['accessnotices'];
                         } else {
                             $ownerLabel = '';
                             $ownerPhone = '';
-                            $type = wf_img('skins/ymaps/home.png');
+                            $type = wf_img('skins/ymaps/home.png',__('Private house')).' '.'P';
                             $floors = '';
                             $entrances = '';
                             $apts = '';
@@ -419,6 +434,10 @@ class ReportBuilds {
 
                         $data[] = $signupsPercent;
                         $data[] = $accessNotices;
+                    }
+
+                    if (ubRouting::checkGet(self::ROUTE_GEO)) {
+                        $data[] = $each['geo'];
                     }
 
                     $actionLinks = '';
