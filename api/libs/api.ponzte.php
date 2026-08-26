@@ -461,7 +461,7 @@ class PonZte {
      * Converts binary string to human readable format like epon-olt_1/1/10:16
      * 
      * @param array $match
-     * @param boolg $default
+     * @param bool $default
      * 
      * @return string
      */
@@ -626,6 +626,8 @@ class PonZte {
 
     /**
      * Getting signals => snmp interface id.
+     * 
+     * @param array $data
      * 
      * @return array
      */
@@ -969,8 +971,6 @@ class PonZte {
     /**
      * Parsing distance for ZTE/Huawei GPON 
      * 
-     * @param array $distIndex
-     * 
      * @return void
      */
     protected function distanceParseGpon() {
@@ -988,7 +988,11 @@ class PonZte {
 
     /**
     * Parses FDB, VLAN, Interface for ZTE C6XX series
-    *
+    * 
+    * @param array $line
+    * @param array $decParts
+    * @param int $counter
+    * 
     * @return array
     */
     protected function fdbParseC6XX(array $line, $decParts, $counter = 1) {
@@ -1186,7 +1190,7 @@ class PonZte {
     /**
      * Parsing serial number in binary format and coverting it to needed format.
      * 
-     * @param array $rawSn
+     * @param string $rawSn
      * 
      * @return string
      */
@@ -1251,10 +1255,7 @@ class PonZte {
 
     /**
      * Parses uptime data and saves it into uptime cache
-     *
-     * @param int $oltid
-     * @param string $uptimeRaw
-     *
+     * 
      * @return void
      */
     protected function uptimeParse() {
@@ -1270,9 +1271,6 @@ class PonZte {
 
     /**
      * Parses temperature data and saves it into uptime cache
-     *
-     * @param int $oltid
-     * @param string $uptimeRaw
      *
      * @return void
      */
