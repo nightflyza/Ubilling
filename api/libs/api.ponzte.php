@@ -749,10 +749,17 @@ class PonZte {
      * @return void
      */
     protected function snIndexProcess() {
-        $this->snIndex = $this->snmpwalk($this->currentSnmpTemplate['signal']['SNINDEX']);
+        $oid = $this->currentSnmpTemplate['signal']['SNINDEX'];
+        if (isset($this->currentSnmpTemplate['signal']['SNINDEXFIX']) and $this->currentSnmpTemplate['signal']['SNINDEXFIX']) {
+            $data = $this->snmp->walk($this->oltFullAddress, $this->oltCommunity, $oid, PONizer::SNMPCACHE);
+            // try to split multiline STRING values into one row
+            $this->snIndex = preg_split('/\r?\n(?=' . preg_quote($oid, '/') . ')/', trim($data)); 
+        } else {
+            $this->snIndex = $this->snmpwalk($oid); // broken for multiline STRING values
+        }
         foreach ($this->snIndex as $io => &$value) {
             $value = $this->strRemove($this->currentSnmpTemplate['signal']['SNVALUE'], $value);
-            $value = $this->strRemoveOidWithDot($this->currentSnmpTemplate['signal']['SNINDEX'], $value);
+            $value = $this->strRemoveOidWithDot($oid, $value);
             $value = trim($value);
         }
     }
