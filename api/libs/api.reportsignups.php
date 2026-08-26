@@ -569,8 +569,6 @@ class ReportSignups {
         $totalCount = 0;
         $frozenCount = 0;
         $aliveCount = 0;
-        $chartDataMonth = array();
-        $chartDataDay = array();
 
         $signups = $this->getSignups($cmonth . '%');
 
@@ -650,11 +648,6 @@ class ReportSignups {
                 $tablecells .= wf_TableCell($profilelink);
                 if (ispos($eachsignup['date'], $curdate)) {
                     $rowClass = 'todaysig';
-                    if (isset($chartDataDay[$administratorName])) {
-                        $chartDataDay[$administratorName] ++;
-                    } else {
-                        $chartDataDay[$administratorName] = 1;
-                    }
                 } else {
                     $rowClass = 'row5';
                 }
@@ -663,12 +656,6 @@ class ReportSignups {
                 }
                 if (empty($sigTariff)) {
                     $rowClass = 'sigdeleteduser';
-                }
-
-                if (isset($chartDataMonth[$administratorName])) {
-                    $chartDataMonth[$administratorName] ++;
-                } else {
-                    $chartDataMonth[$administratorName] = 1;
                 }
 
                 if ($deleatableFlag) {
@@ -692,10 +679,6 @@ class ReportSignups {
         $result .= wf_img_sized('skins/icon_stats_16.gif', '', '12') . ' ' . __('Total') . ': ' . $totalCount . wf_tag('br');
         $result .= wf_img_sized('skins/icon_ok.gif', '', '12') . ' ' . __('Alive') . ': ' . $aliveCount . wf_tag('br');
         $result .= wf_img_sized('skins/icon_passive.gif', '', '12') . ' ' . __('Frozen') . ': ' . $frozenCount . wf_tag('br');
-        if ($this->admRenderEnabled) {
-            $result .= wf_tag('br');
-            $result .= $this->renderChart($chartDataMonth, $chartDataDay);
-        }
 
         $reportTitle = (empty($yearMonth)) ? __('Current month user signups') : __('User signups by month') . ' ' . $cmonth;
         show_window($reportTitle, $result);
@@ -711,27 +694,64 @@ class ReportSignups {
      */
     protected function renderChart($dataMonth, $dataDay) {
         $result = '';
-        if ($this->admRenderEnabled) {
-            $options = "chartArea: {  width: '90%', height: '90%' },  pieSliceText: 'value-and-percentage', legend : {position: 'right'}, ";
-            if (!empty($dataMonth)) {
-                $chartMonth = wf_gcharts3DPie($dataMonth, __('Month'), '400px;', '300px;', $options);
-            } else {
-                $chartMonth = '';
-            }
-            if (!empty($dataDay)) {
-                $chartDay = wf_gcharts3DPie($dataDay, __('Today'), '400px;', '300px;', $options);
-            } else {
-                $chartDay = '';
-            }
-
-            $cells = wf_TableCell($chartMonth);
-            $cells .= wf_TableCell($chartDay);
-            $rows = wf_TableRow($cells);
-
-            $result .= wf_tag('h3') . __('Administrators') . wf_tag('h3', true);
-            $result .= wf_TableBody($rows, '100%', '0', '');
+        $options = "chartArea: {  width: '90%', height: '90%' },  pieSliceText: 'value-and-percentage', legend : {position: 'right'}, ";
+        if (!empty($dataMonth)) {
+            $chartMonth = wf_gcharts3DPie($dataMonth, __('Month'), '400px;', '300px;', $options);
+        } else {
+            $chartMonth = '';
         }
+        if (!empty($dataDay)) {
+            $chartDay = wf_gcharts3DPie($dataDay, __('Today'), '400px;', '300px;', $options);
+        } else {
+            $chartDay = '';
+        }
+
+        $cells = wf_TableCell($chartMonth);
+        $cells .= wf_TableCell($chartDay);
+        $rows = wf_TableRow($cells);
+        $result .= wf_TableBody($rows, '100%', '0', '');
         return ($result);
+    }
+
+    /**
+     * Shows administrators signups charts for selected or current month
+     *
+     * @return void
+     */
+    protected function renderAdmins() {
+        if ($this->admRenderEnabled) {
+            if (!ubRouting::checkGet(self::ROUTE_MONTH)) {
+                $cmonth = curmonth();
+            } else {
+                $cmonth = ubRouting::get(self::ROUTE_MONTH, 'mres');
+            }
+
+            $allsignups = $this->getSignups($cmonth . '%');
+            $chartDataMonth = array();
+            $chartDataDay = array();
+            $curdate = curdate();
+            if (!empty($allsignups)) {
+                $employeeLogins = ts_GetAllEmployeeLoginsAssocCached();
+                foreach ($allsignups as $io => $eachsignup) {
+                    $administratorName = (isset($employeeLogins[$eachsignup['admin']])) ? $employeeLogins[$eachsignup['admin']] : $eachsignup['admin'];
+                    if (isset($chartDataMonth[$administratorName])) {
+                        $chartDataMonth[$administratorName] ++;
+                    } else {
+                        $chartDataMonth[$administratorName] = 1;
+                    }
+                    if (ispos($eachsignup['date'], $curdate)) {
+                        if (isset($chartDataDay[$administratorName])) {
+                            $chartDataDay[$administratorName] ++;
+                        } else {
+                            $chartDataDay[$administratorName] = 1;
+                        }
+                    }
+                }
+            }
+
+            $result = $this->renderChart($chartDataMonth, $chartDataDay);
+            show_window(__('Administrators'), $result);
+        }
     }
 
     /**
@@ -846,6 +866,7 @@ class ReportSignups {
                 show_window('', $this->cemetery->renderChart());
             }
             $this->renderMonth(ubRouting::get(self::ROUTE_MONTH));
+            $this->renderAdmins();
         } else {
             $this->renderDeadUsers(ubRouting::get(self::ROUTE_DEADUSERS));
         }
