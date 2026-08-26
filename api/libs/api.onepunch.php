@@ -460,7 +460,7 @@ class OnePunch {
      * 
      * @param array $scriptData
      * 
-     * @return void/string on error
+     * @return void|string on error
      */
     public function installScript($scriptData) {
         $result = '';
