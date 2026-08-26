@@ -83,6 +83,13 @@ class SigMap {
     protected $allUsersCityData = array();
 
     /**
+     * Contains per-city signups data as cityname=>count
+     *
+     * @var array
+     */
+    protected $citiesSignups = array();
+
+    /**
      * Contains per-street signups data as cityname+streetname=>count
      *
      * @var array
@@ -198,7 +205,7 @@ class SigMap {
     }
 
     /**
-     * Groups signups by build geo, fills streetsSignups stats, adds markers to mapCore (MapCore API).
+     * Groups signups by build geo, fills citiesSignups and streetsSignups stats, adds markers to map 
      *
      * @param array $userSignups
      *
@@ -208,6 +215,7 @@ class SigMap {
         $this->noGeoBuilds = 0;
         $this->deletedUsers = 0;
         $this->registeredUsers = 0;
+        $this->citiesSignups = array();
         $this->streetsSignups = array();
         $buildsData = array();
         if (!empty($userSignups)) {
@@ -235,6 +243,13 @@ class SigMap {
                 $userCity = (isset($this->allUsersCityData[$each['login']])) ? $this->allUsersCityData[$each['login']] : '';
                 $userStreet = (isset($this->allUsersStreetData[$each['login']])) ? $this->allUsersStreetData[$each['login']] : '';
                 $userStreetFull = $userCity . ' ' . $userStreet;
+                if (!empty($userCity)) {
+                    if (isset($this->citiesSignups[$userCity])) {
+                        $this->citiesSignups[$userCity] ++;
+                    } else {
+                        $this->citiesSignups[$userCity] = 1;
+                    }
+                }
                 if (!empty($userStreetFull)) {
                     if (isset($this->streetsSignups[$userStreetFull])) {
                         $this->streetsSignups[$userStreetFull] ++;
@@ -316,7 +331,24 @@ class SigMap {
             $result .= $this->messages->getStyledMessage(__('Already deleted users') . ': ' . $this->deletedUsers, 'error');
         }
 
+        if ($this->citiesSignups) {
+            $cells = wf_TableCell(__('City'));
+            $cells .= wf_TableCell(__('Signups'));
+            $rows = wf_TableRow($cells, 'row1');
+            foreach ($this->citiesSignups as $cityName => $cityCount) {
+                $cells = wf_TableCell($cityName);
+                $cells .= wf_TableCell($cityCount);
+                $rows .= wf_TableRow($cells, 'row5');
+            }
+            
+            $result .= wf_delimiter(0);
+            $result .= wf_tag('strong') . __('Cities') . wf_tag('strong', true);
+            $result .= wf_TableBody($rows, '100%', 0, 'sortable');
+        }
+
         if ($this->streetsSignups) {
+            $result .= wf_delimiter(0);
+            $result .= wf_tag('strong') . __('Streets') . wf_tag('strong', true);
             $cells = wf_TableCell(__('Street'));
             $cells .= wf_TableCell(__('Signups'));
             $rows = wf_TableRow($cells, 'row1');
@@ -325,7 +357,7 @@ class SigMap {
                 $cells .= wf_TableCell($streetCount);
                 $rows .= wf_TableRow($cells, 'row5');
             }
-            $result .= wf_delimiter();
+            $result .= wf_delimiter(0);
             $result .= wf_TableBody($rows, '100%', 0, 'sortable');
         }
 

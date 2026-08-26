@@ -11,4 +11,3 @@ if (cfr('REPORTSIGNUP') AND cfr('USERSMAP')) {
 } else {
     show_error(__('Access denied'));
 }
-?>
