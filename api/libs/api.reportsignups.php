@@ -759,8 +759,8 @@ class ReportSignups {
                 }
             }
 
-            $tablecells = wf_TableCell(__('Tariff'));
-            $tablecells .= wf_TableCell(__('Count'));
+            $tablecells = wf_TableCell(__('Tariff'),'25%');
+            $tablecells .= wf_TableCell(__('Count'),'25%');
             $tablecells .= wf_TableCell(__('Visual'), '50%');
             $tablerows = wf_TableRow($tablecells, 'row1');
 
@@ -807,8 +807,8 @@ class ReportSignups {
             }
 
             if (!empty($cityCounts)) {
-                $cells = wf_TableCell(__('City'));
-                $cells .= wf_TableCell(__('Signups'));
+                $cells = wf_TableCell(__('City'),'25%');
+                $cells .= wf_TableCell(__('Count'),'25%');
                 $cells .= wf_TableCell(__('Visual'), '50%');
                 $rows = wf_TableRow($cells, 'row1');
                 foreach ($cityCounts as $cityName => $cityCount) {
