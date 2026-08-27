@@ -748,6 +748,7 @@ class MapCore {
      * - tooltip: marker tooltip text - will be shown on mouseover
      * - popupTitle: popup title - will be shown in popup
      * - popupFooter: popup footer - will be shown in popup
+     * - id: optional stable key stored in ubMapMarkers for later JS access
      *
      * @return object
      */
@@ -757,6 +758,7 @@ class MapCore {
         $tooltip = isset($options['tooltip']) ? $options['tooltip'] : '';
         $popupTitle = isset($options['popupTitle']) ? $options['popupTitle'] : '';
         $popupFooter = isset($options['popupFooter']) ? $options['popupFooter'] : '';
+        $registryId = isset($options['id']) ? $options['id'] : '';
         $iconPath = self::resolveIconPath($icon);
         $iconKey = self::normalizeIconKey($icon);
         $this->usedIcons[$iconKey] = $iconPath;
@@ -772,7 +774,7 @@ class MapCore {
             $popupHtml .= '<br>' . $popupFooter;
         }
 
-        $this->placemarks .= $this->buildMarkerJs($markerId, $coords, $iconKey, $iconPath, $popupHtml, $tooltip);
+        $this->placemarks .= $this->buildMarkerJs($markerId, $coords, $iconKey, $iconPath, $popupHtml, $tooltip, $registryId);
         $this->objectCounts['markers']++;
 
         return ($this);
@@ -787,6 +789,7 @@ class MapCore {
      * @param array $options - Supported options:
      * - icon: canonical icon key, also you can use custom icon by registering it with registerIcon method
      * - tooltip: marker tooltip text - will be shown on mouseover
+     * - id: optional stable key stored in ubMapMarkers for later JS access
      *
      * @return object
      */
@@ -794,6 +797,7 @@ class MapCore {
         $markerId = wf_InputId();
         $icon = isset($options['icon']) ? $options['icon'] : 'marker.blue';
         $tooltip = isset($options['tooltip']) ? $options['tooltip'] : $title;
+        $registryId = isset($options['id']) ? $options['id'] : '';
         $iconPath = self::resolveIconPath($icon);
         $iconKey = self::normalizeIconKey($icon);
         $this->usedIcons[$iconKey] = $iconPath;
@@ -808,7 +812,9 @@ class MapCore {
         $this->placemarks .= '
             var ubIconDyn_' . $markerId . ' = ubMapGetCachedIcon(' . $jsIconKey . ', ' . $jsIconPath . ');
             var ubMarkerDyn_' . $markerId . ' = L.marker([' . $coords . '], {icon: ubIconDyn_' . $markerId . '});
+            ubMarkerDyn_' . $markerId . '._ubMapIconKey = ' . $jsIconKey . ';
             ubMapAttachMarker(ubMarkerDyn_' . $markerId . ');
+            ' . $this->buildMarkerRegistryJs('ubMarkerDyn_' . $markerId, $registryId) . '
             ubMarkerDyn_' . $markerId . '.bindPopup(' . $jsLoading . ', {maxWidth: 320, minWidth: 50, maxHeight: 600, closeButton: true, closeOnEscapeKey: true});
             ubMarkerDyn_' . $markerId . '._popupHtml = null;
 
@@ -1124,6 +1130,7 @@ class MapCore {
      * - fillOpacity: fill opacity 0..1 (default: 0.5)
      * - hint: tooltip text shown on mouseover
      * - popupTitle: popup title shown above popup content
+     * - id: optional stable key stored in ubMapMarkers for later JS access
      *
      * @return object
      */
@@ -1135,6 +1142,7 @@ class MapCore {
         $fillOpacity = isset($options['fillOpacity']) ? $options['fillOpacity'] : 0.5;
         $hint = isset($options['hint']) ? $options['hint'] : '';
         $popupTitle = isset($options['popupTitle']) ? $options['popupTitle'] : '';
+        $registryId = isset($options['id']) ? $options['id'] : '';
 
         $popupHtml = '';
         if (!empty($popupTitle)) {
@@ -1161,6 +1169,7 @@ class MapCore {
         if (!empty($hint)) {
             $this->placemarks .= 'ubCircleMarker_' . $circleMarkerId . '.bindTooltip(' . $this->quoteJs($hint) . ', {sticky: true});';
         }
+        $this->placemarks .= $this->buildMarkerRegistryJs('ubCircleMarker_' . $circleMarkerId, $registryId);
         $this->objectCounts['circleMarkers']++;
         return ($this);
     }
@@ -1639,6 +1648,22 @@ class MapCore {
                 }
                 return ubMarker;
             }
+            var ubMapMarkers = {};
+            function ubMapRegisterMarker(markerKey, ubMarker) {
+                if (markerKey) {
+                    ubMapMarkers[markerKey] = ubMarker;
+                }
+                return ubMarker;
+            }
+            function ubMapRefreshMarkerLayer() {
+                if (ubForceCanvasMarkers && ubMarkerLayer && typeof ubMarkerLayer.redraw === "function") {
+                    ubMarkerLayer.redraw();
+                } else {
+                    if (ubClusterEnabled && ubMarkerLayer && typeof ubMarkerLayer.refreshClusters === "function") {
+                        ubMarkerLayer.refreshClusters();
+                    }
+                }
+            }
 
             var roadmap = L.tileLayer("' . $tileLayerOSM . '", {
                 maxZoom: 18,
@@ -1842,10 +1867,11 @@ class MapCore {
      * @param string $iconPath
      * @param string $popupHtml
      * @param string $tooltip
+     * @param string $registryId
      *
      * @return string
      */
-    protected function buildMarkerJs($markerId, $coords, $iconKey, $iconPath, $popupHtml, $tooltip) {
+    protected function buildMarkerJs($markerId, $coords, $iconKey, $iconPath, $popupHtml, $tooltip, $registryId = '') {
         $result = '';
         $jsPopup = $this->quoteJs($popupHtml);
         $jsTooltip = $this->quoteJs($tooltip);
@@ -1854,13 +1880,51 @@ class MapCore {
         $result .= '
             var ubIcon_' . $markerId . ' = ubMapGetCachedIcon(' . $jsIconKey . ', ' . $jsIconPath . ');
             var ubMarker_' . $markerId . ' = L.marker([' . $coords . '], {icon: ubIcon_' . $markerId . '});
+            ubMarker_' . $markerId . '._ubMapIconKey = ' . $jsIconKey . ';
             ubMapAttachMarker(ubMarker_' . $markerId . ');
+            ' . $this->buildMarkerRegistryJs('ubMarker_' . $markerId, $registryId) . '
         ';
         if (!empty($popupHtml)) {
             $result .= 'ubMarker_' . $markerId . '.bindPopup(' . $jsPopup . ', {maxWidth: 320, minWidth: 50, maxHeight: 600, closeButton: true, closeOnEscapeKey: true});';
         }
         if (!empty($tooltip)) {
             $result .= 'ubMarker_' . $markerId . '.bindTooltip(' . $jsTooltip . ', {sticky: true});';
+        }
+        return ($result);
+    }
+
+    /**
+     * Sanitizes optional marker registry key
+     *
+     * @param string $markerKey
+     *
+     * @return string
+     */
+    protected function normalizeMarkerRegistryId($markerKey) {
+        $result = '';
+        $markerKey = trim((string) $markerKey);
+        if ($markerKey !== '') {
+            $cleanKey = preg_replace('/[^A-Za-z0-9_\-\.]/', '', $markerKey);
+            if ($cleanKey !== null) {
+                $result = $cleanKey;
+            }
+        }
+        return ($result);
+    }
+
+    /**
+     * Builds JS that stores a marker in the global ubMapMarkers registry
+     *
+     * @param string $jsVarName
+     * @param string $registryId
+     *
+     * @return string
+     */
+    protected function buildMarkerRegistryJs($jsVarName, $registryId) {
+        $result = '';
+        $registryId = $this->normalizeMarkerRegistryId($registryId);
+        if (!empty($registryId) and !empty($jsVarName)) {
+            $result .= 'ubMapRegisterMarker(' . $this->quoteJs($registryId) . ', ' . $jsVarName . ');';
         }
         return ($result);
     }

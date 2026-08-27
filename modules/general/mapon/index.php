@@ -1,16 +1,21 @@
 <?php
 
 $altCfg = $ubillingConfig->getAlter();
+$ajaxUnits = ubRouting::checkGet(MapOn::ROUTE_AJAX_UNITS);
 if ($altCfg['MAPON_ENABLED']) {
     if (cfr('MAPON')) {
         $mapsConfig = $ubillingConfig->getYmaps();
         $mapon = new MapOn();
 
         try {
-            $unitIdFilter = (ubRouting::checkGet('filterunit')) ? ubRouting::get('filterunit') : '';
-            $lastRouteFlag = ubRouting::checkGet('alldayroutes') ? false : true;
-            $dateFrom = (ubRouting::checkPost('datefrom')) ? ubRouting::post('datefrom') : curdate();
-            $dateTo = (ubRouting::checkPost('dateto')) ?  ubRouting::post('dateto') : curdate();
+            $unitIdFilter = (ubRouting::checkGet(MapOn::ROUTE_FILTER_UNIT)) ? ubRouting::get(MapOn::ROUTE_FILTER_UNIT) : '';
+            if ($ajaxUnits) {
+                header('Content-Type: application/json');
+                die(json_encode($mapon->getLiveUnitsData($unitIdFilter)));
+            }
+            $lastRouteFlag = ubRouting::checkGet(MapOn::ROUTE_ALLDAY_ROUTES) ? false : true;
+            $dateFrom = (ubRouting::checkPost(MapOn::PROUTE_DATE_FROM)) ? ubRouting::post(MapOn::PROUTE_DATE_FROM) : curdate();
+            $dateTo = (ubRouting::checkPost(MapOn::PROUTE_DATE_TO)) ?  ubRouting::post(MapOn::PROUTE_DATE_TO) : curdate();
             $units = $mapon->getUnits();
             $unitDrivers = array();
             $lastDrivingCoords = '';
@@ -26,22 +31,22 @@ if ($altCfg['MAPON_ENABLED']) {
                 
 
                 //additional layers should be rendered first, under vehicles/routes
-                if (ubRouting::checkGet('layerswitches')) {
+                if (ubRouting::checkGet(MapOn::ROUTE_LAYER_SWITCHES)) {
                     $switchMap = new SwitchMap();
                     $mapCore->injectPlacemarks($switchMap->getSwitchesPlacemarks());
                 }
 
-                if (ubRouting::checkGet('layerbuilds')) {
+                if (ubRouting::checkGet(MapOn::ROUTE_LAYER_BUILDS)) {
                     $buildsMap = new BuildsMap();
                     $mapCore->injectPlacemarks($buildsMap->getBuildsPlacemarks());
                 }
 
-                if (ubRouting::checkGet('layertasks')) {
+                if (ubRouting::checkGet(MapOn::ROUTE_LAYER_TASKS)) {
                     $taskmap = new TasksMap();
                     $mapCore->injectPlacemarks($taskmap->getPlacemarks($taskmap->getTodayTasks()));
                 }
 
-                if (ubRouting::checkGet('layeranyonetasks')) {
+                if (ubRouting::checkGet(MapOn::ROUTE_LAYER_ANYONE_TASKS)) {
                     if ($ubillingConfig->getAlterParam('TASKMAN_ANYONE_EMPLOYEEID')) {
                         $anyoneEmployeeId = $ubillingConfig->getAlterParam('TASKMAN_ANYONE_EMPLOYEEID');
                         $taskmap = new TasksMap();
@@ -53,52 +58,25 @@ if ($altCfg['MAPON_ENABLED']) {
                     if (!empty($unitIdFilter) and $each['unitid'] != $unitIdFilter) {
                         continue;
                     }
-                  
-                //vehicle state based icon selection
-                  switch ($each['state']) {
-                            case 'standing':
-                                $icon = 'vehicle.red';
-                                break;
-                            case'driving':
-                                $icon = 'vehicle.green';
-                                break;
-                            default :
-                                $icon = 'vehicle.yellow';
-                                break;
-                        }
-                  
 
                     if (!isset($unitDrivers[$each['unitid']])) {
                         $unitDrivers[$each['unitid']] = $each['driver'];
                     }
 
-                    $carName = $each['driver'] . ' - ' . $each['number'];
-                    $state = $each['label'] . ' - ' . __($each['state']);
-                    $mileage = __('Total mileage') . ': ' . ($each['mileage'] / 1000) . ' ' . __('kilometer');
-                    $speed = ($each['speed']) ? $each['speed'] : 0;
-                    $voltage = $each['supply_voltage'];
-                    $carParams = __('Speed') . ': ' . $speed . ' ' . __('km/h') . wf_tag('br');
-                    $carParams .= __('Voltage') . ': ' . $voltage . ' ' . __('Volt');
-                    $carParams .= wf_delimiter(1) . $each['lat'] . ',' . $each['lng'];
-                    $carLabel = $mileage . wf_tag('br') . $carParams;
-                    $carLinkLast = '?module=mapon&filterunit=' . $each['unitid'];
-                    $carLinkToday = '?module=mapon&filterunit=' . $each['unitid'] . '&alldayroutes=true';
-                    $carSearchControls = trim(wf_Link($carLinkLast, wf_img('skins/icon_search_small.gif',__('Last trip')))) . ' ';
-                    $carSearchControls .= trim(wf_Link($carLinkToday, wf_img('skins/icon_time_small.png',__('All trips'))));
-                    
-                    $carLabel.= wf_delimiter(0).$carSearchControls;
+                    $markerData = $mapon->getUnitMarkerData($each);
                     $markerOptions = array(
-                        'icon' => $icon,
-                        'popupTitle' => $state,
-                        'popupFooter' => $carLabel
+                        'id' => $markerData['id'],
+                        'icon' => $markerData['icon'],
+                        'popupTitle' => $markerData['popupTitle'],
+                        'popupFooter' => $markerData['popupFooter']
                     );
-                    $mapCore->addMarker($each['lat'] . ',' . $each['lng'], $carName, $markerOptions);
+                    $mapCore->addMarker($markerData['lat'] . ',' . $markerData['lng'], $markerData['popupContent'], $markerOptions);
 
                     if ($each['state'] == 'driving') {
                         $lastDrivingCoords = array(
                             'lat' => floatval($each['lat']),
                             'lng' => floatval($each['lng']),
-                            'name' => $carName
+                            'name' => $markerData['popupContent']
                         );
                     }
                 }
@@ -161,24 +139,24 @@ if ($altCfg['MAPON_ENABLED']) {
                 $controls = '';
                  //date selection form
                  $dateInputs = '<!--ugly hack to prevent datepicker autoopen --> <input type="text" name="shittyhack" style="width: 0; height: 0; top: -100px; position: absolute;"/>';
-                 $dateInputs .= wf_DatePickerPreset('datefrom', $dateFrom) . ' ' .__('Date from').' ';
-                 $dateInputs .= wf_DatePickerPreset('dateto', $dateTo) . ' ' .__('Date to').' ';
+                 $dateInputs .= wf_DatePickerPreset(MapOn::PROUTE_DATE_FROM, $dateFrom) . ' ' .__('Date from').' ';
+                 $dateInputs .= wf_DatePickerPreset(MapOn::PROUTE_DATE_TO, $dateTo) . ' ' .__('Date to').' ';
                  $dateInputs .= wf_Submit(__('Show'));
                  $dateForm = wf_Form('', 'POST', $dateInputs, 'glamour');
                  $controls .= wf_modalAuto(web_icon_calendar() . ' ' . __('Date'), __('Date'), $dateForm, 'ubButton');
                  
-                if (ubRouting::checkGet('filterunit')) {
-                    $controls .= wf_Link('?module=mapon', wf_img('skins/car_small.png') . ' ' . __('All').' '.__('Cars'), false, 'ubButton') . ' ';
+                if (ubRouting::checkGet(MapOn::ROUTE_FILTER_UNIT)) {
+                    $controls .= wf_Link(MapOn::URL_ME, wf_img('skins/car_small.png') . ' ' . __('All').' '.__('Cars'), false, 'ubButton') . ' ';
                 }
-                $controls .= wf_Link('?module=mapon', wf_img('skins/icon_last_small.png') . ' ' . __('Last trip'), false, 'ubButton') . ' ';
-                $controls .= wf_Link('?module=mapon&alldayroutes=true', wf_img('skins/icon_routes_small.png') . ' ' . __('All trips'), false, 'ubButton');
-                $controls .= wf_Link('?module=mapon&layerswitches=true', wf_img('skins/ymaps/network.png') . ' ' . __('Switches map'), false, 'ubButton');
-                $controls .= wf_Link('?module=mapon&layerbuilds=true', wf_img('skins/ymaps/build.png') . ' ' . __('Builds map'), false, 'ubButton');
-                $controls .= wf_Link('?module=mapon&layertasks=true', wf_img('skins/track_icon.png') . ' ' . __('Tasks'), false, 'ubButton');
+                $controls .= wf_Link(MapOn::URL_ME, wf_img('skins/icon_last_small.png') . ' ' . __('Last trip'), false, 'ubButton') . ' ';
+                $controls .= wf_Link(MapOn::URL_ME . '&' . MapOn::ROUTE_ALLDAY_ROUTES . '=true', wf_img('skins/icon_routes_small.png') . ' ' . __('All trips'), false, 'ubButton');
+                $controls .= wf_Link(MapOn::URL_ME . '&' . MapOn::ROUTE_LAYER_SWITCHES . '=true', wf_img('skins/ymaps/network.png') . ' ' . __('Switches map'), false, 'ubButton');
+                $controls .= wf_Link(MapOn::URL_ME . '&' . MapOn::ROUTE_LAYER_BUILDS . '=true', wf_img('skins/ymaps/build.png') . ' ' . __('Builds map'), false, 'ubButton');
+                $controls .= wf_Link(MapOn::URL_ME . '&' . MapOn::ROUTE_LAYER_TASKS . '=true', wf_img('skins/track_icon.png') . ' ' . __('Tasks'), false, 'ubButton');
              
                 //tasks for anyone optional control here
                 if ($ubillingConfig->getAlterParam('TASKMAN_ANYONE_EMPLOYEEID')) {
-                    $controls .= wf_Link('?module=mapon&layeranyonetasks=true', wf_img('skins/backprofile.png') . ' ' . __('Unallocated tasks'), false, 'ubButton');
+                    $controls .= wf_Link(MapOn::URL_ME . '&' . MapOn::ROUTE_LAYER_ANYONE_TASKS . '=true', wf_img('skins/backprofile.png') . ' ' . __('Unallocated tasks'), false, 'ubButton');
                 }
 
                 show_window('', $controls);
@@ -202,7 +180,10 @@ if ($altCfg['MAPON_ENABLED']) {
                 
 
                 //render map
-                $mapCore->addLocationEditor('maponpointlocation', __('Place coordinates'), '');
+                $mapCore->addLocationEditor(MapOn::PROUTE_POINT_LOCATION, __('Place coordinates'), '');
+                if ($mapon->isLiveRefreshEnabled()) {
+                    $mapCore->addRawJs($mapon->getLiveUpdateJs($mapon->getLiveAjaxUrl($unitIdFilter)));
+                }
                 $container = $mapCore->renderContainer('100%', '650px');
                 $container .= $mapCore->render();
                 
@@ -213,11 +194,23 @@ if ($altCfg['MAPON_ENABLED']) {
                 show_warning(__('Nothing to show'));
             }
         } catch (ApiException $e) {
+            if ($ajaxUnits) {
+                header('Content-Type: application/json');
+                die(json_encode(array()));
+            }
             show_error(__('Something went wrong') . ': ' . 'API error code: ' . $e->getCode() . ', ' . $e->getMessage());
         }
     } else {
+        if ($ajaxUnits) {
+            header('Content-Type: application/json');
+            die(json_encode(array()));
+        }
         show_error(__('Access denied'));
     }
 } else {
+    if ($ajaxUnits) {
+        header('Content-Type: application/json');
+        die(json_encode(array()));
+    }
     show_error(__('This module is disabled'));
 }
