@@ -268,6 +268,29 @@ class OphanimFlow {
     }
 
     /**
+     * Returns all users current month aggregated traffic as login=>array(download,upload,total)
+     * 
+     * @return array
+     */
+    public function getAllUsersDetailedTraff() {
+        $result = array();
+        $this->traffDb->selectable(array('login', 'D0', 'U0'));
+        $this->traffDb->where('year', '=', $this->currentYear);
+        $this->traffDb->where('month', '=', $this->currentMonth);
+        $raw = $this->traffDb->getAll();
+        if (!empty($raw)) {
+            foreach ($raw as $io => $each) {
+                $result[$each['login']] = array(
+                    'download' => $each['D0'],
+                    'upload' => $each['U0'],
+                    'total' => $each['D0'] + $each['U0']
+                );
+            }
+        }
+        return($result);
+    }
+
+    /**
      * Життя майне, як хвилина
      * Кожна смертна година
      * Пручатись варто

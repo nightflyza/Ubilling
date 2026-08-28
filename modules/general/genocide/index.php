@@ -60,7 +60,7 @@ if (cfr('GENOCIDE')) {
          */
         protected $messages = '';
         /**
-         * Contains preloaded all users traffic summary as login=>bytes
+         * Contains preloaded all users traffic summary as login=>array(download,upload,total)
          *
          * @var array
          */
@@ -231,7 +231,9 @@ if (cfr('GENOCIDE')) {
             $ophanimFlag = $ubillingConfig->getAlterParam(OphanimFlow::OPTION_ENABLED);
             if (!empty($this->allUserStgData)) {
                 foreach ($this->allUserStgData as $io => $each) {
-                    $this->allUsersTraffic[$each['login']] = ($each['D0'] + $each['U0']);
+                    $this->allUsersTraffic[$each['login']]['total'] = ($each['D0'] + $each['U0']);
+                    $this->allUsersTraffic[$each['login']]['download'] = $each['D0'];
+                    $this->allUsersTraffic[$each['login']]['upload'] = $each['U0'];
                 }
             }
 
@@ -244,7 +246,9 @@ if (cfr('GENOCIDE')) {
                 if (!empty($all)) {
                     foreach ($all as $io => $each) {
                         if (isset($this->allUsersTraffic[$each['login']])) {
-                            $this->allUsersTraffic[$each['login']] += ($each['D0'] + $each['U0']);
+                            $this->allUsersTraffic[$each['login']]['total'] += ($each['D0'] + $each['U0']);
+                            $this->allUsersTraffic[$each['login']]['download'] += $each['D0'];
+                            $this->allUsersTraffic[$each['login']]['upload'] += $each['U0'];
                         }
                     }
                 }
@@ -252,13 +256,13 @@ if (cfr('GENOCIDE')) {
 
             if ($ophanimFlag) {
                 $ophanimFlow = new OphanimFlow();
-                $all = $ophanimFlow->getAllUsersAggrTraff();
+                $all = $ophanimFlow->getAllUsersDetailedTraff();
                 if (!empty($all)) {
-                    if (!empty($all)) {
-                        foreach ($all as $login => $counters) {
-                            if (isset($this->allUsersTraffic[$login])) {
-                                $this->allUsersTraffic[$login] += $counters;
-                            }
+                    foreach ($all as $login => $counters) {
+                        if (isset($this->allUsersTraffic[$login])) {
+                            $this->allUsersTraffic[$login]['total'] += $counters['total'];
+                            $this->allUsersTraffic[$login]['download'] += $counters['download'];
+                            $this->allUsersTraffic[$login]['upload'] += $counters['upload'];
                         }
                     }
                 }
@@ -303,7 +307,7 @@ if (cfr('GENOCIDE')) {
                 if (isset($this->tariffLimits[$userTariff])) {
                     if (isset($this->allUsersTraffic[$eachLogin])) {
                         $curDayLimit = $this->tariffLimits[$userTariff] * $this->dayNum;
-                        if ($this->allUsersTraffic[$eachLogin] > $curDayLimit) {
+                        if ($this->allUsersTraffic[$eachLogin]['total'] > $curDayLimit) {
                             $result[$eachLogin] = $this->allUsersTraffic[$eachLogin];
                         }
                     }
@@ -375,6 +379,7 @@ if (cfr('GENOCIDE')) {
          */
         protected function renderUsers() {
             $result = '';
+            $usersCount = 0;
             $genocideUsers = $this->getGenocideUsers();
             if (!empty($genocideUsers)) {
                 $tablecells = wf_TableCell(__('Login'));
@@ -382,6 +387,8 @@ if (cfr('GENOCIDE')) {
                 $tablecells .= wf_TableCell(__('Real Name'));
                 $tablecells .= wf_TableCell(__('Tariff'));
                 $tablecells .= wf_TableCell(__('IP'));
+                $tablecells .= wf_TableCell(__('Downloaded'));
+                $tablecells .= wf_TableCell(__('Uploaded'));
                 $tablecells .= wf_TableCell(__('Traffic'));
                 $tablerows = wf_TableRow($tablecells, 'row1');
 
@@ -393,10 +400,14 @@ if (cfr('GENOCIDE')) {
                     $tablecells .= wf_TableCell($userData['realname']);
                     $tablecells .= wf_TableCell($userData['Tariff']);
                     $tablecells .= wf_TableCell($userData['ip'], '', '', 'sorttable_customkey="' . ip2int($userData['ip']) . '"');
-                    $tablecells .= wf_TableCell(stg_convert_size($eachTraffic), '', '', 'sorttable_customkey="' . $eachTraffic . '"');
+                    $tablecells .= wf_TableCell(stg_convert_size($eachTraffic['download']), '', '', 'sorttable_customkey="' . $eachTraffic['download'] . '"');
+                    $tablecells .= wf_TableCell(stg_convert_size($eachTraffic['upload']), '', '', 'sorttable_customkey="' . $eachTraffic['upload'] . '"');
+                    $tablecells .= wf_TableCell(stg_convert_size($eachTraffic['total']), '', '', 'sorttable_customkey="' . $eachTraffic['total'] . '"');
                     $tablerows .= wf_TableRow($tablecells, 'row5');
+                    $usersCount++;
                 }
                 $result .= wf_TableBody($tablerows, '100%', '0', 'sortable');
+                $result .= wf_tag('p') . __('Total') . ': ' . $usersCount . wf_tag('br');
             } else {
                 $result .= $this->messages->getStyledMessage(__('Nothing found'), 'success');
             }
