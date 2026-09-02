@@ -134,7 +134,7 @@ class WolfDispatcher {
     /**
      * Contains all called actions/methods
      *
-     * @var string
+     * @var array
      */
     protected $calledActions = array();
 

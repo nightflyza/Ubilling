@@ -96,3 +96,4 @@ $lang['def']['n/a'] = 'н/д';
 $lang['def']['Messages sending'] = 'Розсилка повідомлень';
 $lang['def']['Chat IDs extracted'] = 'ID чатів видобуто';
 $lang['def']['Messages for all extracted chat IDs stored in sending queue'] = 'Повідомлення для всіх видобутих ID чатів зберігаються в черзі розсилання';
+$lang['def']['Images, audio, files and other attachments will be ignored by the bot'] = 'Картинки, аудіо, файли та інші вкладення будуть проігноровані ботом';

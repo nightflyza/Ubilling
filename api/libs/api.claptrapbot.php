@@ -832,6 +832,50 @@ class ClapTrapBot extends WolfDispatcher {
 
 
     /**
+     * Checks if current update contains media or other non-text attachments
+     *
+     * @return bool
+     */
+    protected function hasUnsupportedMedia() {
+        $result = false;
+        $mediaFields = array('photo', 'video', 'document', 'voice', 'audio', 'video_note', 'sticker', 'location', 'contact');
+        if (!empty($this->receivedData)) {
+            foreach ($mediaFields as $io => $field) {
+                if (!empty($this->receivedData[$field])) {
+                    $result = true;
+                    break;
+                }
+            }
+        }
+        return ($result);
+    }
+
+    /**
+     * Notifies user that media attachments are ignored by the bot
+     *
+     * @return void
+     */
+    protected function notifyIgnoredMedia() {
+        $this->sendToUser($this->icons['WARNING'] . ' ' . __('Images, audio, files and other attachments will be ignored by the bot'));
+    }
+
+    /**
+     * Dummy method which will be executed on receive empty text actions on listener
+     *
+     * @return void
+     */
+    protected function handleEmptyText() {
+        if ($this->loggedIn and $this->isFeatureEnabled('support')) {
+            $currentContext = $this->getContext();
+            if ($currentContext == 'support' or ispos($currentContext, 'viewsupportthread_')) {
+                if ($this->hasUnsupportedMedia()) {
+                    $this->notifyIgnoredMedia();
+                }
+            }
+        }
+    }
+
+    /**
      * Magic middleware to handle raw-text inputs from user
      *
      * @return void
@@ -1597,6 +1641,9 @@ class ClapTrapBot extends WolfDispatcher {
 
             $currentContext=$this->getContext();
             if ($currentContext=='support' or ispos($currentContext, 'viewsupportthread_')) {
+                if ($this->hasUnsupportedMedia()) {
+                    $this->notifyIgnoredMedia();
+                }
                 $replyToTicketId=$this->getTicketReplyId();
                 $newTicketText=$this->receivedData['text']; 
                 $newTicketText=strip_tags($newTicketText);
