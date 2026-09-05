@@ -694,11 +694,14 @@ class SwitchMap {
         $ymZoom = $ymconf['ZOOM'];
         $ymType = $ymconf['TYPE'];
         if (ubRouting::checkGet('finddevice')) {
-            $ymZoom = $ymconf['FINDING_ZOOM'];
-            $ymCenter = ubRouting::get('finddevice', 'vf');
-            if ($ymconf['FINDING_CIRCLE']) {
-                $radius = 30;
-                $this->mapCore->addCircle($ymCenter, $radius, __('Search area radius') . ' ' . $radius . ' ' . __('meters'), array('hint' => __('Search area')));
+            $findGeo = ubRouting::get('finddevice');
+            if (zb_checkGeoFormat($findGeo)) {
+                $ymZoom = $ymconf['FINDING_ZOOM'];
+                $ymCenter = $findGeo;
+                if ($ymconf['FINDING_CIRCLE']) {
+                    $radius = 30;
+                    $this->mapCore->addCircle($ymCenter, $radius, __('Search area radius') . ' ' . $radius . ' ' . __('meters'), array('hint' => __('Search area')));
+                }
             }
         }
 

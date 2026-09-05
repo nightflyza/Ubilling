@@ -317,11 +317,14 @@ class BuildsMap {
         
 
         if (ubRouting::checkGet('findbuild')) {
-            $ymZoom = $ymconf['FINDING_ZOOM'];
-            $ymCenter = ubRouting::get('findbuild', 'vf');
-            if ($ymconf['FINDING_CIRCLE']) {
-                $radius = 30;
-                $this->mapCore->addCircle($ymCenter, $radius, __('Search area radius') . ' ' . $radius . ' ' . __('meters'), array('hint' => __('Search area')));
+            $findGeo = ubRouting::get('findbuild');
+            if (zb_checkGeoFormat($findGeo)) {
+                $ymZoom = $ymconf['FINDING_ZOOM'];
+                $ymCenter = $findGeo;
+                if ($ymconf['FINDING_CIRCLE']) {
+                    $radius = 30;
+                    $this->mapCore->addCircle($ymCenter, $radius, __('Search area radius') . ' ' . $radius . ' ' . __('meters'), array('hint' => __('Search area')));
+                }
             }
         }
 
