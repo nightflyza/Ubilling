@@ -64,10 +64,15 @@ if (cfr('BUILDS')) {
                     $FoundBuildID = checkBuildOnStreetExists(ubRouting::post('editbuildnum'), $streetid, $buildid);
 
                     if (empty($FoundBuildID)) {
-                        simple_update_field('build', 'buildnum', trim(ubRouting::post('editbuildnum')), "WHERE `id`='" . $buildid . "'");
-                        zb_AddressChangeBuildGeo($buildid, ubRouting::post('editbuildgeo'));
-                        log_register("BUILD CHANGE [" . $buildid . "] NUM `" . trim(ubRouting::post('editbuildnum')) . "`");
-                        die();
+                        if (zb_AddressChangeBuildGeo($buildid, ubRouting::post('editbuildgeo'))) {
+                            simple_update_field('build', 'buildnum', trim(ubRouting::post('editbuildnum')), "WHERE `id`='" . $buildid . "'");
+                            log_register("BUILD CHANGE [" . $buildid . "] NUM `" . trim(ubRouting::post('editbuildnum')) . "`");
+                            die();
+                        } else {
+                            $messages = new UbillingMessageHelper();
+                            $errormes = $messages->getStyledMessage(__('Invalid geo format or accuracy is too low'), 'error', 'style="margin: auto 0; padding: 10px 3px; width: 100%;"');
+                            die(wf_modalAutoForm(__('Error'), $errormes, ubRouting::post('errfrmid'), '', true));
+                        }
                     } else {
                         $messages = new UbillingMessageHelper();
                         $errormes = $messages->getStyledMessage(__('Build with such number already exists on this street with ID: ') . $FoundBuildID, 'error', 'style="margin: auto 0; padding: 10px 3px; width: 100%;"');

@@ -456,19 +456,26 @@ function zb_AddressChangeBuildNum($buildid, $buildnum) {
 }
 
 /**
- * Changes some exising build geo location
+ * Changes some existing build geo location.
  * 
  * @param int $buildId
  * @param string $geo
  * 
- * @return void
+ * @return bool
  */
 function zb_AddressChangeBuildGeo($buildId, $geo) {
+    $result = false;
     $buildId = ubRouting::filters($buildId, 'int');
-    $buildGeo = ubRouting::filters($geo, 'mres');
-    $buildGeo = preg_replace('/[^0-9\.,]/i', '', $buildGeo);
-    simple_update_field('build', 'geo', $buildGeo, "WHERE `id`='" . $buildId . "'");
-    log_register('BUILD CHANGE GEO [' . $buildId . ']  `' . $buildGeo . '`');
+    $buildGeo = trim(ubRouting::filters($geo, 'mres'));
+    if (empty($buildGeo) or zb_checkGeoFormat($buildGeo)) {
+        $buildGeo = preg_replace('/[^0-9\.,-]/i', '', $buildGeo);
+        simple_update_field('build', 'geo', $buildGeo, "WHERE `id`='" . $buildId . "'");
+        log_register('BUILD CHANGE GEO [' . $buildId . ']  `' . $buildGeo . '`');
+        $result = true;
+    } else {
+        log_register('BUILD CHANGE GEO [' . $buildId . '] `' . $buildGeo . '` FAIL');
+    }
+    return ($result);
 }
 
 /**

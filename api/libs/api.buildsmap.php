@@ -107,8 +107,11 @@ class BuildsMap {
     public function saveBuildPlacement() {
         if (ubRouting::checkPost(array('buildplacing', 'placecoords'))) {
             if (cfr('BUILDS')) {
-                zb_AddressChangeBuildGeo(ubRouting::post('buildplacing'), ubRouting::post('placecoords'));
-                ubRouting::nav('?module=usersmap&locfinder=true');
+                if (zb_AddressChangeBuildGeo(ubRouting::post('buildplacing'), ubRouting::post('placecoords'))) {
+                    ubRouting::nav('?module=usersmap&locfinder=true');
+                } else {
+                    show_error(__('Invalid geo format or accuracy is too low'));
+                }
             } else {
                 show_window(__('Error'), __('Access denied'));
             }
