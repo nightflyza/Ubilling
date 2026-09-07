@@ -1765,6 +1765,7 @@ $lang['def']['Display city input'] = 'Показывать поле ввода �
 $lang['def']['Show city input as combobox'] = 'Показывать поле ввода города как комбобокс';
 $lang['def']['Show street input as combobox'] = 'Показывать поле ввода улицы в виде комбобокса';
 $lang['def']['Display email field'] = 'Показывать поле ввода электропочты';
+$lang['def']['Display notes field'] = 'Показывать поле примечаний';
 $lang['def']['Render spambots protection traps'] = 'Использовать защиту от спамботов';
 $lang['def']['City and streets hide lists'] = 'Список скрываемых городов и улиц';
 $lang['def']['Database connections caching'] = 'Кэширование выборок из БД';

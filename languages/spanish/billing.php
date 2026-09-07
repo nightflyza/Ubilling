@@ -1765,6 +1765,7 @@ $lang['def']['Display city input'] = 'Mostrar campo de entrada de ciudad';
 $lang['def']['Show city input as combobox'] = 'Mostrar entrada de ciudad como cuadro combinado';
 $lang['def']['Show street input as combobox'] = 'Mostrar campo de entrada de calle como cuadro combinado';
 $lang['def']['Display email field'] = 'Mostrar campo de entrada de correo electrónico';
+$lang['def']['Display notes field'] = 'Mostrar campo de notas';
 $lang['def']['Render spambots protection traps'] = 'Use protección contra spambot';
 $lang['def']['City and streets hide lists'] = 'Lista de ciudades y calles ocultas.';
 $lang['def']['Database connections caching'] = 'Almacenamiento en caché de muestras de bases de datos';

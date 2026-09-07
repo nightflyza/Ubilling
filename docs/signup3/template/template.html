@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="<?=$templateData['HTML_LANG']; ?>">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title><?=__('Signup'); ?></title>
+    <link rel="stylesheet" href="template/style.css">
+    <script src="modules/jsc/jquery/jquery.min.js"></script>
+</head>
+<body>
+    <div class="sn-page">
+        <header class="sn-header">
+            <div class="sn-brand">
+                <?php if (!empty($templateData['ISP_LINK'])) { ?>
+                <?=$templateData['ISP_LINK']; ?>
+                <?php } ?>
+                <div class="sn-titles">
+                    <?php if (!empty($templateData['ISP_NAME'])) { ?>
+                    <h1><?=$templateData['ISP_NAME']; ?></h1>
+                    <?php } ?>
+                    <p><?=__('Signup request'); ?></p>
+                </div>
+            </div>
+        </header>
+        <main class="sn-layout<?php if (empty($templateData['SIDEBAR_TEXT'])) { echo ' sn-layout-single'; } ?>">
+            <div class="sn-card">
+                <?=$ContentContainer; ?>
+            </div>
+            <?php if (!empty($templateData['SIDEBAR_TEXT'])) { ?>
+            <aside class="sn-aside">
+                <div class="sn-card sn-aside-card">
+                    <?=$templateData['SIDEBAR_TEXT']; ?>
+                </div>
+            </aside>
+            <?php } ?>
+        </main>
+    </div>
+</body>
+</html>

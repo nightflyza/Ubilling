@@ -37,6 +37,80 @@ class SignupRequests {
     const URL_ME = '?module=sigreq';
 
     /**
+     * Field length limits matching sigreq columns
+     */
+    const LEN_STREET = 255;
+    const LEN_BUILD = 40;
+    const LEN_APT = 40;
+    const LEN_REALNAME = 255;
+    const LEN_PHONE = 255;
+    const LEN_SERVICE = 255;
+    const LEN_NOTES = 4096;
+    const LEN_EMAIL = 255;
+    const LEN_IP = 40;
+
+    /**
+     * Default service stored when offered services list is empty
+     */
+    const DEFAULT_SERVICE = 'Internet';
+
+    /**
+     * Public form config flags and strings
+     *
+     * @var array
+     */
+    protected $publicConfig = array();
+
+    /**
+     * Hidden city/street names as name=>name
+     *
+     * @var array
+     */
+    protected $hideouts = array();
+
+    /**
+     * Available cities as name=>name after HIDEOUTS filter
+     *
+     * @var array
+     */
+    protected $cities = array();
+
+    /**
+     * Available streets as name=>name after HIDEOUTS filter
+     *
+     * @var array
+     */
+    protected $streets = array();
+
+    /**
+     * Offered services as name=>name
+     *
+     * @var array
+     */
+    protected $services = array();
+
+    /**
+     * Offered tariffs as name=>name
+     *
+     * @var array
+     */
+    protected $tariffs = array();
+
+    /**
+     * Public form data already loaded flag
+     *
+     * @var bool
+     */
+    protected $publicFormLoaded = false;
+
+    /**
+     * NyanORM instance for sigreq table
+     *
+     * @var object
+     */
+    protected $sigreqDb = '';
+
+    /**
      * Creates new sigreq instance
      * 
      * @return void
@@ -44,6 +118,7 @@ class SignupRequests {
     public function __construct() {
         $this->loadAlter();
         $this->initMessages();
+        $this->initDatabase();
     }
 
     /**
@@ -66,13 +141,22 @@ class SignupRequests {
     }
 
     /**
+     * Inits NyanORM instance for signup requests table
+     *
+     * @return void
+     */
+    protected function initDatabase() {
+        $this->sigreqDb = new NyanORM('sigreq');
+    }
+
+    /**
      * loads signup requests into private data property
      * 
      * @return void
      */
     protected function loadRequests() {
-        $query = "SELECT * from `sigreq` ORDER BY `id` DESC;";
-        $allreqs = simple_queryall($query);
+        $this->sigreqDb->orderBy('id', 'DESC');
+        $allreqs = $this->sigreqDb->getAll();
         if (!empty($allreqs)) {
             $this->requests = $allreqs;
         }
@@ -163,8 +247,8 @@ class SignupRequests {
      * @return void
      */
     public function renderCalendar() {
-        $query = "SELECT * from `sigreq` ORDER BY `date` ASC";
-        $all = simple_queryall($query);
+        $this->sigreqDb->orderBy('date', 'ASC');
+        $all = $this->sigreqDb->getAll();
         $result = '';
         $calendarData = '';
         $confControl = '';
@@ -200,21 +284,25 @@ class SignupRequests {
     /**
      * returns signup request data by selected ID
      * 
-     * @param int $requid Existing signup request ID
+     * @param int $reqid Existing signup request ID
      * 
      * @return array
      */
     protected function getData($reqid) {
+        $result = array();
         $requid = ubRouting::filters($reqid, 'int');
-        $query = "SELECT * from `sigreq` WHERE `id`='" . $requid . "'";
-        $result = simple_query($query);
-        return($result);
+        $this->sigreqDb->where('id', '=', $requid);
+        $all = $this->sigreqDb->getAll();
+        if (!empty($all)) {
+            $result = $all[0];
+        }
+        return ($result);
     }
 
     /**
      * shows selected signup request by its ID
      * 
-     * @param int $requid Existing signup request ID
+     * @param int $reqid Existing signup request ID
      * 
      * @return void
      */
@@ -329,7 +417,9 @@ class SignupRequests {
      */
     public function setDone($reqid) {
         $requid = ubRouting::filters($reqid, 'int');
-        simple_update_field('sigreq', 'state', '1', "WHERE `id`='" . $requid . "'");
+        $this->sigreqDb->where('id', '=', $requid);
+        $this->sigreqDb->data('state', '1');
+        $this->sigreqDb->save();
         log_register('SIGREQ DONE [' . $requid . ']');
     }
 
@@ -342,7 +432,9 @@ class SignupRequests {
      */
     public function setUnDone($reqid) {
         $requid = ubRouting::filters($reqid, 'int');
-        simple_update_field('sigreq', 'state', '0', "WHERE `id`='" . $requid . "'");
+        $this->sigreqDb->where('id', '=', $requid);
+        $this->sigreqDb->data('state', '0');
+        $this->sigreqDb->save();
         log_register('SIGREQ UNDONE [' . $requid . ']');
     }
 
@@ -355,8 +447,8 @@ class SignupRequests {
      */
     public function deleteReq($reqid) {
         $requid = ubRouting::filters($reqid, 'int');
-        $query = "DELETE from `sigreq` WHERE `id`='" . $requid . "'";
-        nr_query($query);
+        $this->sigreqDb->where('id', '=', $requid);
+        $this->sigreqDb->delete();
         log_register('SIGREQ DELETE [' . $requid . ']');
     }
 
@@ -366,9 +458,452 @@ class SignupRequests {
      * @return int
      */
     public function getAllNewCount() {
-        $query = "SELECT COUNT(`id`) from `sigreq` WHERE `state`='0'";
-        $result = simple_query($query);
-        $result = $result['COUNT(`id`)'];
+        $this->sigreqDb->where('state', '=', '0');
+        $result = $this->sigreqDb->getFieldsCount('id');
+        return ($result);
+    }
+
+    /**
+     * Splits CSV config value into name=>name map
+     *
+     * @param string $raw
+     *
+     * @return array
+     */
+    protected function parseCsvMap($raw) {
+        $result = array();
+        if (!empty($raw)) {
+            $tmpArr = explode(',', $raw);
+            if (!empty($tmpArr)) {
+                foreach ($tmpArr as $io => $each) {
+                    $item = trim($each);
+                    if ($item != '') {
+                        $result[$item] = $item;
+                    }
+                }
+            }
+        }
+        return ($result);
+    }
+
+    /**
+     * Loads sigreqconf, cities, streets, services, tariffs and applies HIDEOUTS
+     *
+     * @return void
+     */
+    protected function loadPublicFormData() {
+        if (!$this->publicFormLoaded) {
+            $this->publicConfig = array(
+                'CITY_DISPLAY' => false,
+                'CITY_SELECTABLE' => false,
+                'STREET_SELECTABLE' => false,
+                'EMAIL_DISPLAY' => false,
+                'SPAM_TRAPS' => false,
+                'NOTES_DISPLAY' => true,
+                'CACHING' => false,
+                'ISP_NAME' => '',
+                'ISP_URL' => '',
+                'ISP_LOGO' => '',
+                'SIDEBAR_TEXT' => '',
+                'GREETING_TEXT' => ''
+            );
+
+            $boolFlags = array(
+                'CITY_DISPLAY' => 1,
+                'CITY_SELECTABLE' => 1,
+                'STREET_SELECTABLE' => 1,
+                'EMAIL_DISPLAY' => 1,
+                'SPAM_TRAPS' => 1,
+                'CACHING' => 1
+            );
+            $stringKeys = array(
+                'ISP_NAME' => 1,
+                'ISP_URL' => 1,
+                'ISP_LOGO' => 1,
+                'SIDEBAR_TEXT' => 1,
+                'GREETING_TEXT' => 1
+            );
+
+            $confDb = new NyanORM('sigreqconf');
+            $allConf = $confDb->getAll();
+            if (!empty($allConf)) {
+                foreach ($allConf as $io => $each) {
+                    $confKey = $each['key'];
+                    $confValue = $each['value'];
+                    if (isset($boolFlags[$confKey])) {
+                        $this->publicConfig[$confKey] = true;
+                    } else {
+                        if (isset($stringKeys[$confKey])) {
+                            $this->publicConfig[$confKey] = $confValue;
+                        } else {
+                            if ($confKey == 'SERVICES') {
+                                $this->services = $this->parseCsvMap($confValue);
+                            } else {
+                                if ($confKey == 'TARIFFS') {
+                                    $this->tariffs = $this->parseCsvMap($confValue);
+                                } else {
+                                    if ($confKey == 'HIDEOUTS') {
+                                        $this->hideouts = $this->parseCsvMap($confValue);
+                                    } else {
+                                        if ($confKey == 'NOTES_HIDDEN') {
+                                            $this->publicConfig['NOTES_DISPLAY'] = false;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            $cityDb = new NyanORM('city');
+            $cityDb->selectable('id,cityname');
+            $cityDb->orderBy('id', 'ASC');
+            $allCities = $cityDb->getAll();
+            if (!empty($allCities)) {
+                foreach ($allCities as $io => $each) {
+                    $cityName = $each['cityname'];
+                    if (!isset($this->hideouts[$cityName])) {
+                        $this->cities[$cityName] = $cityName;
+                    }
+                }
+            }
+
+            $streetDb = new NyanORM('street');
+            $streetDb->selectable('id,streetname');
+            $allStreets = $streetDb->getAll();
+            if (!empty($allStreets)) {
+                foreach ($allStreets as $io => $each) {
+                    $streetName = $each['streetname'];
+                    if (!isset($this->hideouts[$streetName])) {
+                        $this->streets[$streetName] = $streetName;
+                    }
+                }
+            }
+
+            if (!empty($this->streets)) {
+                natsort($this->streets);
+            }
+
+            $this->publicFormLoaded = true;
+        }
+    }
+
+    /**
+     * Returns JSON payload for public signup3 form. HIDEOUTS stay on backend.
+     *
+     * @return array
+     */
+    public function getPublicPayload() {
+        $this->loadPublicFormData();
+        $result = array(
+            'error' => false,
+            'config' => array(
+                'CITY_DISPLAY' => $this->publicConfig['CITY_DISPLAY'],
+                'CITY_SELECTABLE' => $this->publicConfig['CITY_SELECTABLE'],
+                'STREET_SELECTABLE' => $this->publicConfig['STREET_SELECTABLE'],
+                'EMAIL_DISPLAY' => $this->publicConfig['EMAIL_DISPLAY'],
+                'SPAM_TRAPS' => $this->publicConfig['SPAM_TRAPS'],
+                'NOTES_DISPLAY' => $this->publicConfig['NOTES_DISPLAY'],
+                'CACHING' => $this->publicConfig['CACHING'],
+                'ISP_NAME' => $this->publicConfig['ISP_NAME'],
+                'ISP_URL' => $this->publicConfig['ISP_URL'],
+                'ISP_LOGO' => $this->publicConfig['ISP_LOGO'],
+                'SIDEBAR_TEXT' => $this->publicConfig['SIDEBAR_TEXT'],
+                'GREETING_TEXT' => $this->publicConfig['GREETING_TEXT'],
+                'SERVICES' => array_values($this->services),
+                'TARIFFS' => array_values($this->tariffs)
+            ),
+            'cities' => array_values($this->cities),
+            'streets' => array_values($this->streets)
+        );
+        return ($result);
+    }
+
+    /**
+     * Extracts a scalar string field from raw API data
+     *
+     * @param array $raw
+     * @param string $name
+     *
+     * @return string
+     */
+    protected function extractField($raw, $name) {
+        $result = '';
+        if (isset($raw[$name])) {
+            if (!is_array($raw[$name]) and !is_object($raw[$name])) {
+                $result = $raw[$name];
+            }
+        }
+        return ($result);
+    }
+
+    /**
+     * Trim and drop NUL bytes without mutating letters/apostrophes
+     *
+     * @param string $data
+     *
+     * @return string
+     */
+    protected function plainText($data) {
+        $result = '';
+        if (!is_array($data) and !is_object($data)) {
+            $result = trim($data);
+            $result = ubRouting::filters($result, 'nb');
+        }
+        return ($result);
+    }
+
+    /**
+     * Trims, strips tags/NUL and cuts value to column length
+     *
+     * @param string $data
+     * @param int $maxLen
+     * @param bool $emsafe
+     *
+     * @return string
+     */
+    protected function sanitizeText($data, $maxLen, $emsafe = false) {
+        $result = '';
+        if (!is_array($data) and !is_object($data)) {
+            $result = trim($data);
+            $result = ubRouting::filters($result, 'nb');
+            if ($emsafe) {
+                $result = ubRouting::filters($result, 'emsafe');
+            } else {
+                $result = ubRouting::filters($result, 'safe');
+            }
+            if (strlen($result) > $maxLen) {
+                $result = substr($result, 0, $maxLen);
+            }
+        }
+        return ($result);
+    }
+
+    /**
+     * Keeps only phone-safe characters
+     *
+     * @param string $data
+     *
+     * @return string
+     */
+    protected function sanitizePhone($data) {
+        $result = $this->sanitizeText($data, self::LEN_PHONE);
+        $result = preg_replace('#[^0-9+\(\)\.\- ]#u', '', $result);
+        return ($result);
+    }
+
+    /**
+     * Validates and cuts visitor IP
+     *
+     * @param string $data
+     *
+     * @return string
+     */
+    protected function sanitizeIp($data) {
+        $result = '';
+        if (!is_array($data) and !is_object($data)) {
+            $rawIp = trim($data);
+            if (filter_var($rawIp, FILTER_VALIDATE_IP)) {
+                if (strlen($rawIp) <= self::LEN_IP) {
+                    $result = $rawIp;
+                }
+            }
+        }
+        return ($result);
+    }
+
+    /**
+     * Detects filled honeypot fields
+     *
+     * @param array $raw
+     *
+     * @return bool
+     */
+    protected function isHoneypotFilled($raw) {
+        $result = false;
+        $traps = array('surname', 'lastname', 'seenoevil', 'mobile');
+        if (!empty($raw)) {
+            foreach ($traps as $io => $trap) {
+                $trapValue = $this->extractField($raw, $trap);
+                if (trim($trapValue) != '') {
+                    $result = true;
+                }
+            }
+        }
+        return ($result);
+    }
+
+    /**
+     * Creates signup request from public API payload.
+     *
+     * @param array $raw
+     *
+     * @return array
+     */
+    public function createFromApi($raw) {
+        $result = array(
+            'error' => true,
+            'created' => false,
+            'id' => 0,
+            'error_message' => 'EMPTY_REQUEST'
+        );
+
+        if (!empty($raw) and is_array($raw)) {
+            $this->loadPublicFormData();
+            if ($this->isHoneypotFilled($raw)) {
+                $result['error'] = false;
+                $result['created'] = true;
+                $result['id'] = 0;
+                $result['error_message'] = '';
+            } else {
+                $cityRaw = $this->plainText($this->extractField($raw, 'city'));
+                $streetRaw = $this->plainText($this->extractField($raw, 'street'));
+                $serviceRaw = $this->plainText($this->extractField($raw, 'service'));
+                $tariffRaw = $this->plainText($this->extractField($raw, 'tariff'));
+                $allowFail = '';
+                $hiddenHit = false;
+                $city = '';
+                $street = '';
+                $service = '';
+                $tariff = '';
+
+                if ($this->publicConfig['CITY_DISPLAY']) {
+                    if ($this->publicConfig['CITY_SELECTABLE']) {
+                        if ($cityRaw != '') {
+                            if (isset($this->cities[$cityRaw])) {
+                                $city = $this->cities[$cityRaw];
+                            } else {
+                                $allowFail = 'INVALID_CITY';
+                            }
+                        }
+                    } else {
+                        $city = $this->sanitizeText($cityRaw, self::LEN_STREET);
+                        if (($city != '') and isset($this->hideouts[$city])) {
+                            $hiddenHit = true;
+                        }
+                    }
+                }
+
+                if ($this->publicConfig['STREET_SELECTABLE']) {
+                    if (isset($this->streets[$streetRaw])) {
+                        $street = $this->streets[$streetRaw];
+                    } else {
+                        $allowFail = 'INVALID_STREET';
+                    }
+                } else {
+                    $street = $this->sanitizeText($streetRaw, self::LEN_STREET);
+                    if (isset($this->hideouts[$street])) {
+                        $hiddenHit = true;
+                    }
+                }
+
+                if (!empty($this->services)) {
+                    if ($serviceRaw != '') {
+                        if (isset($this->services[$serviceRaw])) {
+                            $service = $this->services[$serviceRaw];
+                        } else {
+                            $allowFail = 'INVALID_SERVICE';
+                        }
+                    }
+                } else {
+                    $service = self::DEFAULT_SERVICE;
+                }
+
+                if (!empty($this->tariffs)) {
+                    if ($tariffRaw != '') {
+                        if (isset($this->tariffs[$tariffRaw])) {
+                            $tariff = $this->tariffs[$tariffRaw];
+                        } else {
+                            $allowFail = 'INVALID_TARIFF';
+                        }
+                    }
+                }
+
+                $build = $this->sanitizeText($this->extractField($raw, 'build'), self::LEN_BUILD);
+                $apt = $this->sanitizeText($this->extractField($raw, 'apt'), self::LEN_APT);
+                $realname = $this->sanitizeText($this->extractField($raw, 'realname'), self::LEN_REALNAME);
+                $phone = $this->sanitizePhone($this->extractField($raw, 'phone'));
+                $email = '';
+                if ($this->publicConfig['EMAIL_DISPLAY']) {
+                    $email = $this->sanitizeText($this->extractField($raw, 'email'), self::LEN_EMAIL);
+                }
+                $notes = '';
+                if ($this->publicConfig['NOTES_DISPLAY']) {
+                    $notes = $this->sanitizeText($this->extractField($raw, 'notes'), self::LEN_NOTES, true);
+                }
+                $ip = $this->sanitizeIp($this->extractField($raw, 'ip'));
+
+                if ($email != '') {
+                    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                        $allowFail = 'INVALID_EMAIL';
+                    }
+                }
+
+                if ($allowFail != '') {
+                    $result['error_message'] = $allowFail;
+                } else {
+                    if (($street == '') or ($build == '') or ($realname == '') or ($phone == '')) {
+                        $result['error_message'] = 'REQUIRED_FIELDS';
+                    } else {
+                        if ($hiddenHit) {
+                            $result['error_message'] = 'HIDDEN_ADDRESS';
+                        } else {
+                            $streetPacked = $street;
+                            if ($city != '') {
+                                $streetPacked = $city . ' ' . $street;
+                                if (strlen($streetPacked) > self::LEN_STREET) {
+                                    $streetPacked = substr($streetPacked, 0, self::LEN_STREET);
+                                }
+                            }
+                            if ($apt == '') {
+                                $apt = '0';
+                            }
+                            if ($service == '') {
+                                $service = 'No';
+                            }
+
+                            $notesPacked = '';
+                            if ($notes != '') {
+                                $notesPacked .= $notes . "\n";
+                            }
+                            if ($tariff != '') {
+                                $notesPacked .= 'Tariff: ' . $tariff . "\n";
+                            }
+                            if ($email != '') {
+                                $notesPacked .= 'Email: ' . $email . "\n";
+                            }
+                            if (strlen($notesPacked) > self::LEN_NOTES) {
+                                $notesPacked = substr($notesPacked, 0, self::LEN_NOTES);
+                            }
+
+                            $this->sigreqDb->data('date', ubRouting::filters(date('Y-m-d H:i:s'), 'mres'));
+                            $this->sigreqDb->data('state', '0');
+                            $this->sigreqDb->data('ip', ubRouting::filters($ip, 'mres'));
+                            $this->sigreqDb->data('street', ubRouting::filters($streetPacked, 'mres'));
+                            $this->sigreqDb->data('build', ubRouting::filters($build, 'mres'));
+                            $this->sigreqDb->data('apt', ubRouting::filters($apt, 'mres'));
+                            $this->sigreqDb->data('realname', ubRouting::filters($realname, 'mres'));
+                            $this->sigreqDb->data('phone', ubRouting::filters($phone, 'mres'));
+                            $this->sigreqDb->data('service', ubRouting::filters($service, 'mres'));
+                            $this->sigreqDb->data('notes', ubRouting::filters($notesPacked, 'mres'));
+                            $this->sigreqDb->create();
+                            $newId = $this->sigreqDb->getLastId();
+                            if (!empty($newId)) {
+                                log_register('SIGREQ CREATED [' . $newId . ']');
+                                $result['error'] = false;
+                                $result['created'] = true;
+                                $result['id'] = $newId;
+                                $result['error_message'] = '';
+                            } else {
+                                $result['error_message'] = 'CREATE_FAILED';
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         return ($result);
     }
 
@@ -445,6 +980,34 @@ class SignupConfig {
     }
 
     /**
+     * Saves a posted string config value, including empty strings that hide a field
+     *
+     * @param string $postName
+     * @param string $confKey
+     * @param bool $allowHtml
+     *
+     * @return void
+     */
+    protected function saveStringConf($postName, $confKey, $allowHtml = false) {
+        if (ubRouting::checkPost($postName, false)) {
+            $newValue = '';
+            $filtered = '';
+            if ($allowHtml) {
+                $filtered = ubRouting::post($postName, 'safe', 'HTML');
+            } else {
+                $filtered = ubRouting::post($postName, 'safe');
+            }
+            if (is_string($filtered)) {
+                $newValue = $filtered;
+            }
+            if ($this->diffConf($confKey, $newValue)) {
+                $this->setConf($confKey, $newValue);
+                log_register('SIGREQCONF CHANGED ' . $confKey);
+            }
+        }
+    }
+
+    /**
      * checks diff key text data
      * 
      * @param string $key key to check
@@ -476,6 +1039,10 @@ class SignupConfig {
         $citySelFlag = $this->checkConf('CITY_SELECTABLE');
         $streetSelFlag = $this->checkConf('STREET_SELECTABLE');
         $emailDispFlag = $this->checkConf('EMAIL_DISPLAY');
+        $notesDispFlag = true;
+        if ($this->checkConf('NOTES_HIDDEN')) {
+            $notesDispFlag = false;
+        }
         $spamDispFlag = $this->checkConf('SPAM_TRAPS');
         $cachingFlag = $this->checkConf('CACHING');
 
@@ -483,6 +1050,7 @@ class SignupConfig {
         $inputs.= wf_CheckInput('newcityselectable', __('Show city input as combobox'), true, $citySelFlag);
         $inputs.= wf_CheckInput('newstreetselectable', __('Show street input as combobox'), true, $streetSelFlag);
         $inputs.= wf_CheckInput('newemaildisplay', __('Display email field'), true, $emailDispFlag);
+        $inputs.= wf_CheckInput('newnotesdisplay', __('Display notes field'), true, $notesDispFlag);
         $inputs.= wf_CheckInput('newespamtraps', __('Render spambots protection traps'), true, $spamDispFlag);
         $inputs.= wf_CheckInput('newcaching', __('Database connections caching'), true, $cachingFlag);
 
@@ -561,6 +1129,18 @@ class SignupConfig {
                 log_register('SIGREQCONF DISABLED EMAIL_DISPLAY');
             }
         }
+        //notes input (missing key means shown, NOTES_HIDDEN hides it)
+        if (ubRouting::checkPost('newnotesdisplay')) {
+            if ($this->checkConf('NOTES_HIDDEN')) {
+                $this->deleteConf('NOTES_HIDDEN');
+                log_register('SIGREQCONF ENABLED NOTES_DISPLAY');
+            }
+        } else {
+            if (!$this->checkConf('NOTES_HIDDEN')) {
+                $this->setConf('NOTES_HIDDEN', 'NOP');
+                log_register('SIGREQCONF DISABLED NOTES_DISPLAY');
+            }
+        }
         //spamtraps
         if (ubRouting::checkPost('newespamtraps')) {
             if (!$this->checkConf('SPAM_TRAPS')) {
@@ -585,77 +1165,14 @@ class SignupConfig {
                 log_register('SIGREQCONF DISABLED CACHING');
             }
         }
-        //isp name
-        if (ubRouting::checkPost('newispname')) {
-            $ispName = ubRouting::post('newispname', 'safe');
-            if ($this->diffConf('ISP_NAME', $ispName)) {
-                $this->setConf('ISP_NAME', $ispName);
-                log_register('SIGREQCONF CHANGED ISP_NAME');
-            }
-        }
-
-        //isp url
-        if (ubRouting::checkPost('newispurl')) {
-            $ispUrl = ubRouting::post('newispurl', 'safe');
-            if ($this->diffConf('ISP_URL', $ispUrl)) {
-                $this->setConf('ISP_URL', $ispUrl);
-                log_register('SIGREQCONF CHANGED ISP_URL');
-            }
-        }
-
-        //isp logo
-        if (ubRouting::checkPost('newisplogo')) {
-            $ispLogo = ubRouting::post('newisplogo', 'safe');
-            if ($this->diffConf('ISP_LOGO', $ispLogo)) {
-                $this->setConf('ISP_LOGO', $ispLogo);
-                log_register('SIGREQCONF CHANGED ISP_LOGO');
-            }
-        }
-
-        //sidebar
-        if (ubRouting::checkPost('newsidebartext')) {
-            $sidebarText = ubRouting::post('newsidebartext', 'safe', 'HTML');
-            if ($this->diffConf('SIDEBAR_TEXT', $sidebarText)) {
-                $this->setConf('SIDEBAR_TEXT', $sidebarText);
-                log_register('SIGREQCONF CHANGED SIDEBAR_TEXT');
-            }
-        }
-
-        //greeting
-        if (ubRouting::checkPost('newgreetingtext')) {
-            $greetingText = ubRouting::post('newgreetingtext', 'safe', 'HTML');
-            if ($this->diffConf('GREETING_TEXT', $greetingText)) {
-                $this->setConf('GREETING_TEXT', $greetingText);
-                log_register('SIGREQCONF CHANGED GREETING_TEXT');
-            }
-        }
-
-        //services
-        if (ubRouting::checkPost('newservices')) {
-            $services = ubRouting::post('newservices', 'safe');
-            if ($this->diffConf('SERVICES', $services)) {
-                $this->setConf('SERVICES', $services);
-                log_register('SIGREQCONF CHANGED SERVICES');
-            }
-        }
-
-        //tariffs
-        if (ubRouting::checkPost('newtariffs')) {
-            $tariffs = ubRouting::post('newtariffs', 'safe');
-            if ($this->diffConf('TARIFFS', $tariffs)) {
-                $this->setConf('TARIFFS', $tariffs);
-                log_register('SIGREQCONF CHANGED TARIFFS');
-            }
-        }
-
-        //hideouts
-        if (ubRouting::checkPost('newhideouts')) {
-            $hideouts = ubRouting::post('newhideouts', 'safe');
-            if ($this->diffConf('HIDEOUTS', $hideouts)) {
-                $this->setConf('HIDEOUTS', $hideouts);
-                log_register('SIGREQCONF CHANGED HIDEOUTS');
-            }
-        }
+        $this->saveStringConf('newispname', 'ISP_NAME');
+        $this->saveStringConf('newispurl', 'ISP_URL');
+        $this->saveStringConf('newisplogo', 'ISP_LOGO');
+        $this->saveStringConf('newsidebartext', 'SIDEBAR_TEXT', true);
+        $this->saveStringConf('newgreetingtext', 'GREETING_TEXT', true);
+        $this->saveStringConf('newservices', 'SERVICES');
+        $this->saveStringConf('newtariffs', 'TARIFFS');
+        $this->saveStringConf('newhideouts', 'HIDEOUTS');
     }
 
 }

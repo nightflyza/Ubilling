@@ -16,6 +16,7 @@
 /multinet/
 /phpsysinfo/
 /content/*.cache.dat
+docs/signup3/cache/config.dat
 /content/documents/wifi_cpe_sig_hist/
 exports/*
 !exports/pondata/
