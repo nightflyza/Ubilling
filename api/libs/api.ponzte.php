@@ -492,7 +492,7 @@ class PonZte {
                 . '/'
                 . $match[self::DESC_OLT]
                 . ':'
-                . $match[self::DESC_ONU]
+                . @$match[self::DESC_ONU]
             );
         } else {
             return ($typeName[$match[self::DESC_PONTYPE]]
