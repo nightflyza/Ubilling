@@ -321,10 +321,33 @@ a.sn-submit {
     overflow: hidden;
 }
 
+.sn-copy {
+    width: min(1080px, calc(100% - 32px));
+    margin: 0 auto;
+    padding: 0 0 20px;
+    text-align: right;
+    font-size: 11px;
+    line-height: 1.2;
+}
+
+.sn-copy a {
+    color: #cfcfcf;
+    text-decoration: none;
+}
+
+.sn-copy a:hover,
+.sn-copy a:focus {
+    color: #c0c0c0;
+}
+
 @media (max-width: 800px) {
     .sn-page {
         width: calc(100% - 20px);
         padding: 16px 0 32px;
+    }
+
+    .sn-copy {
+        width: calc(100% - 20px);
     }
 
     .sn-layout,
