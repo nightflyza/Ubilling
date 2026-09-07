@@ -55,6 +55,13 @@ class SNMPHelper {
     protected $debug = false;
 
     /**
+     * Extra CLI string concatenated into system snmpwalk command 
+     *
+     * @var string
+     */
+    protected $walkOptions = '';
+
+    /**
      * Native PHP snmp functions timeout
      * @var int
      */
@@ -168,17 +175,27 @@ class SNMPHelper {
     }
 
     /**
+     * Sets extra system snmpwalk CLI options string
+     *
+     * @param string $options
+     *
+     * @return void
+     */
+    public function setWalkOptions($options) {
+        $this->walkOptions = $options;
+    }
+
+    /**
      * Executes system SNMP walk interface
      * 
      * @param string $ip
      * @param string $community
      * @param string $oid
      * @param bool   $cache
-     * @param bool   $nowait
      * @return string
      */
     protected function snmpWalkSystem($ip, $community, $oid, $cache = true) {
-        $command = $this->pathWalk . ' -c ' . $community . ' -Cc ' . $ip . ' ' . $oid;
+        $command = $this->pathWalk . $this->walkOptions . ' -c ' . $community . ' -Cc ' . $ip . ' ' . $oid;
         $cachetime = time() - $this->cacheTime;
         $cachepath = self::CACHE_PATH;
         $cacheFile = $cachepath . $ip . '_' . $oid;
@@ -231,7 +248,6 @@ class SNMPHelper {
      * @param string $community
      * @param string $oid
      * @param bool   $cache
-     * @param bool   $nowait
      * @return string
      */
     protected function snmpWalkNative($ip, $community, $oid, $cache = true) {
@@ -285,7 +301,6 @@ class SNMPHelper {
      * @param string $community
      * @param string $oid
      * @param bool   $cache
-     * @param bool   $nowait
      * @return string
      */
     protected function snmpWalkClass($ip, $community, $oid, $cache = true) {
@@ -447,7 +462,6 @@ class SNMPHelper {
      * @param string $community
      * @param string $oid
      * @param bool   $cache
-     * @param bool   $nowait
      * @return string
      */
     public function walk($ip, $community, $oid, $cache = true) {

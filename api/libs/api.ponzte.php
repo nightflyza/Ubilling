@@ -752,12 +752,20 @@ class PonZte {
      */
     protected function snIndexProcess() {
         $oid = $this->currentSnmpTemplate['signal']['SNINDEX'];
+        $forceHex = false;
+        if (isset($this->currentSnmpTemplate['signal']['SNFORCEHEXMODE']) and $this->currentSnmpTemplate['signal']['SNFORCEHEXMODE']) {
+            $forceHex = true;
+            $this->snmp->setWalkOptions(' -Ox');
+        }
         if (isset($this->currentSnmpTemplate['signal']['SNINDEXFIX']) and $this->currentSnmpTemplate['signal']['SNINDEXFIX']) {
             $data = $this->snmp->walk($this->oltFullAddress, $this->oltCommunity, $oid, PONizer::SNMPCACHE);
             // try to split multiline STRING values into one row
-            $this->snIndex = preg_split('/\r?\n(?=' . preg_quote($oid, '/') . ')/', trim($data)); 
+            $this->snIndex = preg_split('/\r?\n(?=' . preg_quote($oid, '/') . ')/', trim($data));
         } else {
             $this->snIndex = $this->snmpwalk($oid); // broken for multiline STRING values
+        }
+        if ($forceHex) {
+            $this->snmp->setWalkOptions('');
         }
         foreach ($this->snIndex as $io => &$value) {
             $value = $this->strRemove($this->currentSnmpTemplate['signal']['SNVALUE'], $value);
@@ -1175,7 +1183,7 @@ class PonZte {
                 $tmpSn = explode(" ", $rawSn);
                 $check = trim($tmpSn[0]);
                 if ($check == 'STRING:') {
-                    $naturalSn = $this->serialNumberBinaryParse($tmpSn[1]);
+                    $naturalSn = $this->serialNumberBinaryParse($this->snmpWalkStringDecode($rawSn));
                 } else {
                     $naturalSn = $this->serialNumberHexParse($tmpSn);
                 }
@@ -1185,6 +1193,60 @@ class PonZte {
         }
         unset($this->snIndex);
         $this->snIndex = $result;
+    }
+
+    /**
+     * Decodes snmpwalk STRING: "..." into raw octet bytes.
+     * Keeps spaces and unescapes \", \\, \n, \r, \t. Real newlines from SNINDEXFIX stay as-is.
+     *
+     * @param string $rawSn value after "=", e.g. STRING: "HWTCP-e\""
+     *
+     * @return string
+     */
+    protected function snmpWalkStringDecode($rawSn) {
+        $result = '';
+        $payload = trim($rawSn);
+        if (strpos($payload, 'STRING:') === 0) {
+            $payload = trim(substr($payload, 7));
+        }
+        if (strlen($payload) >= 2 and $payload[0] == '"') {
+            $decoded = '';
+            $len = strlen($payload);
+            $i = 1;
+            while ($i < $len) {
+                $ch = $payload[$i];
+                if ($ch == '\\' and ($i + 1) < $len) {
+                    $next = $payload[$i + 1];
+                    switch ($next) {
+                        case 'n':
+                            $decoded .= "\n";
+                            break;
+                        case 'r':
+                            $decoded .= "\r";
+                            break;
+                        case 't':
+                            $decoded .= "\t";
+                            break;
+                        default:
+                            // \", \\ or unknown escape - take next char literally
+                            $decoded .= $next;
+                            break;
+                    }
+                    $i += 2;
+                } else {
+                    if ($ch == '"') {
+                        break;
+                    } else {
+                        $decoded .= $ch;
+                        $i++;
+                    }
+                }
+            }
+            $result = $decoded;
+        } else {
+            $result = trim($payload, '"');
+        }
+        return ($result);
     }
 
     /**
