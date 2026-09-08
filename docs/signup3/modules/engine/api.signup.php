@@ -49,6 +49,13 @@ class SignupService {
     protected $burstLimit = 60;
 
     /**
+     * Optional salt for daily JS-proof token
+     *
+     * @var string
+     */
+    protected $tokenSalt = '';
+
+    /**
      * Remote payload
      *
      * @var array
@@ -67,14 +74,14 @@ class SignupService {
      *
      * @var array
      */
-    protected $required = array('street', 'build', 'realname', 'phone');
+    protected $required = array('snln', 'build', 'realname', 'phone');
 
     /**
      * Honeypot field names
      *
      * @var array
      */
-    protected $spamTraps = array('surname', 'lastname', 'seenoevil', 'actualmobile');
+    protected $spamTraps = array('surname', 'lastname', 'seenoevil', 'actualmobile', 'crnwp', 'nqwp');
 
     /**
      * Creates signup3 service instance
@@ -94,6 +101,9 @@ class SignupService {
         }
         if (isset($snConfig['burstlimit'])) {
             $this->burstLimit = intval($snConfig['burstlimit']);
+        }
+        if (isset($snConfig['TOKEN_SALT'])) {
+            $this->tokenSalt = $snConfig['TOKEN_SALT'];
         }
         $this->assertCacheWritable();
         $this->debugRequestStart();
@@ -604,7 +614,7 @@ class SignupService {
     }
 
     /**
-     * City input
+     * City input. Form name is snplc  
      *
      * @return string
      */
@@ -613,9 +623,9 @@ class SignupService {
         if ($this->cfgFlag('CITY_DISPLAY')) {
             $cities = $this->cfgList('cities', true);
             if ($this->cfgFlag('CITY_SELECTABLE') and !empty($cities)) {
-                $control = wf_SelectorSearchable('city', $this->selectorParams($cities, true), '', '', false);
+                $control = wf_SelectorSearchable('snplc', $this->selectorParams($cities, true), '', '', false, ' autocomplete="off"');
             } else {
-                $control = wf_TextInput('city', '', '', false, '', '', 'sn-control', '', 'autocomplete="address-level2"');
+                $control = wf_TextInput('snplc', '', '', false, '', '', 'sn-control', '', 'autocomplete="off"');
             }
             $result = $this->fieldWrap(__('Town'), $control, true);
         }
@@ -623,16 +633,16 @@ class SignupService {
     }
 
     /**
-     * Street input
+     * Street input. Form name is snln  
      *
      * @return string
      */
     protected function streetInput() {
         $streets = $this->cfgList('streets', true);
         if ($this->cfgFlag('STREET_SELECTABLE') and !empty($streets)) {
-            $control = wf_SelectorSearchable('street', $this->selectorParams($streets, true), '', '', false);
+            $control = wf_SelectorSearchable('snln', $this->selectorParams($streets, true), '', '', false, ' autocomplete="off"');
         } else {
-            $control = wf_TextInput('street', '', '', false, '', '', 'sn-control', '', 'autocomplete="address-line1"');
+            $control = wf_TextInput('snln', '', '', false, '', '', 'sn-control', '', 'autocomplete="off"');
         }
         $result = $this->fieldWrap(__('Street'), $control, true);
         return ($result);
@@ -652,6 +662,63 @@ class SignupService {
             $result .= wf_TextInput('seenoevil', '', '', false, '', '', '', '', 'tabindex="-1" autocomplete="new-password"');
             $result .= wf_TextInput('actualmobile', '', '', false, '', '', '', '', 'tabindex="-1" autocomplete="new-password"');
             $result .= wf_tag('div', true);
+            $result .= wf_tag('div', false, 'sn-hp-dn', 'aria-hidden="true"');
+            $result .= wf_TextInput('crnwp', '', '', false, '', '', '', '', 'tabindex="-1" autocomplete="new-password"');
+            $result .= wf_tag('div', true);
+            $result .= wf_TextInput('nqwp', '', '', false, '', '', '', '', 'tabindex="-1" autocomplete="new-password" style="display:none" aria-hidden="true"');
+            $result .= wf_HiddenInput('unicrnpwr', '', 'unicrnpwr');
+        }
+        return ($result);
+    }
+
+    /**
+     * Daily JS-proof token: md5(Y-m-d) or md5(Y-m-d + TOKEN_SALT)
+     *
+     * @param string $day
+     *
+     * @return string
+     */
+    protected function jsProofToken($day) {
+        $raw = $day;
+        if ($this->tokenSalt != '') {
+            $raw .= $this->tokenSalt;
+        }
+        $result = md5($raw);
+        return ($result);
+    }
+
+    /**
+     * True when posted unicrnpwr matches today's or yesterday's token
+     *
+     * @return bool
+     */
+    protected function jsProofValid() {
+        $result = false;
+        $posted = $this->filterPost('unicrnpwr', 'raw');
+        $today = $this->jsProofToken(date('Y-m-d'));
+        $yesterday = $this->jsProofToken(date('Y-m-d', (time() - 86400)));
+        if ($posted === $today) {
+            $result = true;
+        } else {
+            if ($posted === $yesterday) {
+                $result = true;
+            }
+        }
+        return ($result);
+    }
+
+    /**
+     * Fills unicrnpwr on form submit
+     *
+     * @return string
+     */
+    protected function jsProofScript() {
+        $result = '';
+        if ($this->cfgFlag('SPAM_TRAPS')) {
+            $token = $this->jsProofToken(date('Y-m-d'));
+            $result .= wf_tag('script', false, '', 'type="text/javascript"');
+            $result .= '(function(){var t="' . $token . '";jQuery(function(){jQuery("#signup_form form").submit(function(){jQuery("#unicrnpwr").val(t);});});})();';
+            $result .= wf_tag('script', true);
         }
         return ($result);
     }
@@ -672,7 +739,7 @@ class SignupService {
         $inputs .= $this->cityInput();
         $inputs .= $this->streetInput();
 
-        $build = wf_TextInput('build', '', '', false, '', '', 'sn-control', '', 'autocomplete="address-line2"');
+        $build = wf_TextInput('build', '', '', false, '', '', 'sn-control', '', 'autocomplete="off"');
         $apt = wf_TextInput('apt', '', '', false, '', '', 'sn-control', '', 'inputmode="numeric"');
         $inputs .= wf_tag('div', false, 'sn-row');
         $inputs .= $this->fieldWrap(__('Build'), $build, true, 'sn-col');
@@ -718,6 +785,7 @@ class SignupService {
 
         $result = wf_tag('div', false, '', 'id="signup_form"');
         $result .= wf_Form('', 'POST', $inputs, 'sn-form');
+        $result .= $this->jsProofScript();
         $result .= wf_tag('div', true);
         return ($result);
     }
@@ -768,71 +836,89 @@ class SignupService {
             sn_DebugLog('createRequest honeypot hit field=' . $trapHit . ' fake success, skip RemoteAPI');
         } else {
             sn_DebugLog('createRequest honeypot clean');
-            $needFields = $this->required;
-            if (!$this->cfgFlag('NAME_DISPLAY', true)) {
-                $needFields = array();
-                foreach ($this->required as $io => $each) {
-                    if ($each != 'realname') {
-                        $needFields[] = $each;
-                    }
-                }
+            $jsProofOk = true;
+            if ($this->cfgFlag('SPAM_TRAPS')) {
+                $jsProofOk = $this->jsProofValid();
+                sn_DebugLog('createRequest jsproof ok=' . intval($jsProofOk) . ' post=' . $this->debugDump($this->filterPost('unicrnpwr', 'raw')));
             }
-            $missing = array();
-            foreach ($needFields as $io => $each) {
-                $present = ubRouting::checkPost($each);
-                sn_DebugLog('required ' . $each . ' ok=' . intval($present) . ' raw=' . $this->debugDump($this->filterPost($each)));
-                if (!$present) {
-                    $missing[] = $each;
-                }
-            }
-            if (ubRouting::checkPost($needFields)) {
-                sn_DebugLog('createRequest required fields ok');
-                if ($this->burstAllow()) {
-                    $visitorIp = '';
-                    if (isset($_SERVER['REMOTE_ADDR'])) {
-                        $visitorIp = $_SERVER['REMOTE_ADDR'];
-                    }
-                    $realname = $this->filterPost('realname');
-                    if (!$this->cfgFlag('NAME_DISPLAY', true)) {
-                        $realname = 'Not specified';
-                    }
-                    $payload = array(
-                        'city' => $this->filterPost('city', 'nb'),
-                        'street' => $this->filterPost('street', 'nb'),
-                        'build' => $this->filterPost('build'),
-                        'apt' => $this->filterPost('apt'),
-                        'realname' => $realname,
-                        'phone' => $this->filterPost('phone'),
-                        'email' => $this->filterPost('email'),
-                        'service' => $this->filterPost('service', 'nb'),
-                        'tariff' => $this->filterPost('tariff', 'nb'),
-                        'notes' => $this->filterPost('notes', 'emsafe'),
-                        'ip' => $visitorIp
-                    );
-                    sn_DebugLog('createRequest payload=' . $this->debugDump($payload));
-                    $reply = $this->apiRequest('create', json_encode($payload));
-                    if (!empty($reply) and isset($reply['created']) and $reply['created']) {
-                        $result = true;
-                        sn_DebugLog('createRequest RemoteAPI created=1');
-                    } else {
-                        $apiMessage = '';
-                        if (isset($reply['error_message'])) {
-                            $apiMessage = $reply['error_message'];
+            if (!$jsProofOk) {
+                $result = true;
+                sn_DebugLog('createRequest jsproof miss, fake success, skip RemoteAPI');
+            } else {
+                $needFields = $this->required;
+                if (!$this->cfgFlag('NAME_DISPLAY', true)) {
+                    $needFields = array();
+                    foreach ($this->required as $io => $each) {
+                        if ($each != 'realname') {
+                            $needFields[] = $each;
                         }
-                        sn_DebugLog('createRequest RemoteAPI failed error_message=' . $apiMessage . ' reply=' . $this->debugDump($reply));
-                        if ($apiMessage == 'REQUIRED_FIELDS') {
-                            $this->lastError = sn_RequiredHint();
+                    }
+                }
+                $missing = array();
+                foreach ($needFields as $io => $each) {
+                    $present = ubRouting::checkPost($each);
+                    sn_DebugLog('required ' . $each . ' ok=' . intval($present) . ' raw=' . $this->debugDump($this->filterPost($each)));
+                    if (!$present) {
+                        $missing[] = $each;
+                    }
+                }
+                if (ubRouting::checkPost($needFields)) {
+                    sn_DebugLog('createRequest required fields ok');
+                    if ($this->burstAllow()) {
+                        $visitorIp = '';
+                        if (isset($_SERVER['REMOTE_ADDR'])) {
+                            $visitorIp = $_SERVER['REMOTE_ADDR'];
+                        }
+                        $realname = $this->filterPost('realname');
+                        if (!$this->cfgFlag('NAME_DISPLAY', true)) {
+                            $realname = 'Not specified';
+                        }
+                        $city = $this->filterPost('snplc', 'nb');
+                        if ($city == '') {
+                            $city = $this->filterPost('city', 'nb');
+                        }
+                        $street = $this->filterPost('snln', 'nb');
+                        if ($street == '') {
+                            $street = $this->filterPost('street', 'nb');
+                        }
+                        $payload = array(
+                            'city' => $city,
+                            'street' => $street,
+                            'build' => $this->filterPost('build'),
+                            'apt' => $this->filterPost('apt'),
+                            'realname' => $realname,
+                            'phone' => $this->filterPost('phone'),
+                            'email' => $this->filterPost('email'),
+                            'service' => $this->filterPost('service', 'nb'),
+                            'tariff' => $this->filterPost('tariff', 'nb'),
+                            'notes' => $this->filterPost('notes', 'emsafe'),
+                            'ip' => $visitorIp
+                        );
+                        sn_DebugLog('createRequest payload=' . $this->debugDump($payload));
+                        $reply = $this->apiRequest('create', json_encode($payload));
+                        if (!empty($reply) and isset($reply['created']) and $reply['created']) {
+                            $result = true;
+                            sn_DebugLog('createRequest RemoteAPI created=1');
                         } else {
-                            $this->lastError = __('Unable to send signup request');
+                            $apiMessage = '';
+                            if (isset($reply['error_message'])) {
+                                $apiMessage = $reply['error_message'];
+                            }
+                            sn_DebugLog('createRequest RemoteAPI failed error_message=' . $apiMessage . ' reply=' . $this->debugDump($reply));
+                            if ($apiMessage == 'REQUIRED_FIELDS') {
+                                $this->lastError = sn_RequiredHint();
+                            } else {
+                                $this->lastError = __('Unable to send signup request');
+                            }
                         }
+                    } else {
+                        $this->lastError = __('Unable to send signup request');
+                        sn_DebugLog('createRequest blocked by burstlimit');
                     }
                 } else {
-                    $this->lastError = __('Unable to send signup request');
-                    sn_DebugLog('createRequest blocked by burstlimit');
+                    $this->lastError = sn_RequiredHint();
+                    sn_DebugLog('createRequest missing required ' . $this->debugDump($missing));
                 }
-            } else {
-                $this->lastError = sn_RequiredHint();
-                sn_DebugLog('createRequest missing required ' . $this->debugDump($missing));
             }
         }
 

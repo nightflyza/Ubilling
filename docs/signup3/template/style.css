@@ -321,6 +321,10 @@ a.sn-submit {
     overflow: hidden;
 }
 
+.sn-hp-dn {
+    display: none;
+}
+
 .sn-copy {
     width: min(1080px, calc(100% - 32px));
     margin: 0 auto;
