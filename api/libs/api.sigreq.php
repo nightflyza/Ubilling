@@ -681,15 +681,38 @@ class SignupRequests {
     }
 
     /**
-     * Keeps only phone-safe characters
+     * Keeps only digits in a phone number
      *
      * @param string $data
      *
      * @return string
      */
     protected function sanitizePhone($data) {
-        $result = $this->sanitizeText($data, self::LEN_PHONE);
-        $result = preg_replace('#[^0-9+\(\)\.\- ]#u', '', $result);
+        $result = '';
+        if (!is_array($data) and !is_object($data)) {
+            $digits = ubRouting::filters(trim($data), 'int');
+            if (is_string($digits) or is_numeric($digits)) {
+                $result = strval($digits);
+            }
+            if (strlen($result) > self::LEN_PHONE) {
+                $result = substr($result, 0, self::LEN_PHONE);
+            }
+        }
+        return ($result);
+    }
+
+    /**
+     * Final strip_tags pass before storing a field
+     *
+     * @param string $data
+     *
+     * @return string
+     */
+    protected function finalizeField($data) {
+        $result = '';
+        if (!is_array($data) and !is_object($data)) {
+            $result = strip_tags($data);
+        }
         return ($result);
     }
 
@@ -877,16 +900,16 @@ class SignupRequests {
                                 $notesPacked = substr($notesPacked, 0, self::LEN_NOTES);
                             }
 
-                            $this->sigreqDb->data('date', ubRouting::filters(date('Y-m-d H:i:s'), 'mres'));
-                            $this->sigreqDb->data('state', '0');
-                            $this->sigreqDb->data('ip', ubRouting::filters($ip, 'mres'));
-                            $this->sigreqDb->data('street', ubRouting::filters($streetPacked, 'mres'));
-                            $this->sigreqDb->data('build', ubRouting::filters($build, 'mres'));
-                            $this->sigreqDb->data('apt', ubRouting::filters($apt, 'mres'));
-                            $this->sigreqDb->data('realname', ubRouting::filters($realname, 'mres'));
-                            $this->sigreqDb->data('phone', ubRouting::filters($phone, 'mres'));
-                            $this->sigreqDb->data('service', ubRouting::filters($service, 'mres'));
-                            $this->sigreqDb->data('notes', ubRouting::filters($notesPacked, 'mres'));
+                            $this->sigreqDb->data('date', ubRouting::filters($this->finalizeField(date('Y-m-d H:i:s')), 'mres'));
+                            $this->sigreqDb->data('state', ubRouting::filters($this->finalizeField('0'), 'mres'));
+                            $this->sigreqDb->data('ip', ubRouting::filters($this->finalizeField($ip), 'mres'));
+                            $this->sigreqDb->data('street', ubRouting::filters($this->finalizeField($streetPacked), 'mres'));
+                            $this->sigreqDb->data('build', ubRouting::filters($this->finalizeField($build), 'mres'));
+                            $this->sigreqDb->data('apt', ubRouting::filters($this->finalizeField($apt), 'mres'));
+                            $this->sigreqDb->data('realname', ubRouting::filters($this->finalizeField($realname), 'mres'));
+                            $this->sigreqDb->data('phone', ubRouting::filters($this->finalizeField($phone), 'mres'));
+                            $this->sigreqDb->data('service', ubRouting::filters($this->finalizeField($service), 'mres'));
+                            $this->sigreqDb->data('notes', ubRouting::filters($this->finalizeField($notesPacked), 'mres'));
                             $this->sigreqDb->create();
                             $newId = $this->sigreqDb->getLastId();
                             if (!empty($newId)) {
