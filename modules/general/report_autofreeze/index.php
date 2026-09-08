@@ -32,13 +32,28 @@ if (cfr('REPORTAUTOFREEZE')) {
          */
         protected $interval = '';
 
+        /**
+         * System messages object placeholder
+         *
+         * @var object
+         */
+        protected $messages ='';
+
         public function __construct($date = '') {
-//load actual data
+            $this->initMessages();
             $this->loadData($date);
-//load currently frozen users
             $this->loadFrozen();
-//sets default calendar position
             $this->interval = $date;
+        }
+
+
+        /**
+         * Initializes system messages object
+         * 
+         * @return void
+         */
+        protected function initMessages() {
+            $this->messages = new UbillingMessageHelper();
         }
 
         /**
@@ -107,43 +122,26 @@ if (cfr('REPORTAUTOFREEZE')) {
          * @return string
          */
         public function render() {
-            $allAddress = zb_AddressGetFulladdresslistCached();
-            $allRealNames = zb_UserGetAllRealnames();
-            $stargazerUsers = zb_UserGetAllStargazerData();
-            $allUsers = array();
-            if (!empty($stargazerUsers)) {
-                foreach ($stargazerUsers as $io => $each) {
-                    $allUsers[$each['login']] = $each['Credit'];
-                }
-            }
-
-            $cells = wf_TableCell(__('ID'));
-            $cells .= wf_TableCell(__('Date'));
-            $cells .= wf_TableCell(__('Login'));
-            $cells .= wf_TableCell(__('Address'));
-            $cells .= wf_TableCell(__('Real Name'));
-            $cells .= wf_TableCell(__('Cash'));
-            $rows = wf_TableRow($cells, 'row1');
-
+            $result = '';
+            $logins = array();
+            $dateColumn = array();
             if (!empty($this->data)) {
                 foreach ($this->data as $io => $each) {
-                    $cells = wf_TableCell($each['id']);
-                    $cells .= wf_TableCell($each['date']);
-                    $loginLink = wf_Link("?module=userprofile&username=" . @$each['login'], web_profile_icon() . ' ' . @$each['login'], false, '');
-                    $cells .= wf_TableCell($loginLink);
-                    $cells .= wf_TableCell(@$allAddress[$each['login']]);
-                    $cells .= wf_TableCell(@$allRealNames[$each['login']]);
-                    $cells .= wf_TableCell(@$each['balance']);
-//deleded users indication
-                    if (@isset($allUsers[$each['login']])) {
-                        $rowClass = 'row3';
-                    } else {
-                        $rowClass = 'sigdeleteduser';
+                    if (isset($each['login']) and !empty($each['login'])) {
+                        $login = $each['login'];
+                        $logins[$login] = $login;
+                        $dateColumn[$login] = $each['date'];
                     }
-                    $rows .= wf_TableRow($cells, $rowClass);
                 }
             }
-            $result = wf_TableBody($rows, '100%', '0', 'sortable');
+
+            if (!empty($logins)) {
+                $extraColumns = array();
+                $extraColumns['Date'] = $dateColumn;
+                $result .= web_UserArrayShower($logins, $extraColumns, true);
+            } else {
+                $result .= $this->messages->getStyledMessage(__('Nothing to show'), 'info');
+            }
             return ($result);
         }
 
@@ -153,7 +151,7 @@ if (cfr('REPORTAUTOFREEZE')) {
          * @return string
          */
         public function renderFrozen() {
-            $result = web_UserArrayShower($this->frozen);
+            $result = web_UserArrayShower($this->frozen,array(), true);
             return ($result);
         }
 
@@ -207,7 +205,7 @@ if (cfr('REPORTAUTOFREEZE')) {
                     }
                 }
             }
-            $result .= web_UserArrayShower($this->unfrozen);
+            $result .= web_UserArrayShower($this->unfrozen,array(), true);
             $result .= wf_tag('br');
             $result .= wf_tag('b') . __('Date') . wf_tag('b', true) . ': ' . $showDate;
             return($result);
@@ -230,7 +228,7 @@ if (cfr('REPORTAUTOFREEZE')) {
 
     }
 
-    $datePush = (wf_CheckPost(array('date'))) ? $dateSelector = $_POST['date'] : $dateSelector = '';
+    $datePush = (ubRouting::checkPost(array('date'))) ? $dateSelector = ubRouting::post('date') : $dateSelector = '';
     $autoFreezeReport = new ReportAutoFreeze($dateSelector);
 //default route
     if (!ubRouting::checkGet(array('showfrozen')) AND ! ubRouting::checkGet('resurrected')) {
