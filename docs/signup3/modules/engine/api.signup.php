@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Public signup3 service - talks to Ubilling remoteapi only
+ * Signup request service
  */
 class SignupService {
 
@@ -14,6 +14,11 @@ class SignupService {
      * API HTTP timeout seconds
      */
     const API_TIMEOUT = 15;
+
+    /**
+     * Burst window in seconds
+     */
+    const BURST_WINDOW = 60;
 
     /**
      * Remote API URL from ini
@@ -35,6 +40,13 @@ class SignupService {
      * @var int
      */
     protected $cacheTimeout = 3600;
+
+    /**
+     * Max create requests per BURST_WINDOW (0 disables)
+     *
+     * @var int
+     */
+    protected $burstLimit = 60;
 
     /**
      * Remote payload
@@ -62,7 +74,7 @@ class SignupService {
      *
      * @var array
      */
-    protected $spamTraps = array('surname', 'lastname', 'seenoevil', 'mobile');
+    protected $spamTraps = array('surname', 'lastname', 'seenoevil', 'actualmobile');
 
     /**
      * Creates signup3 service instance
@@ -80,8 +92,144 @@ class SignupService {
         if (isset($snConfig['cachetimeout'])) {
             $this->cacheTimeout = $snConfig['cachetimeout'];
         }
+        if (isset($snConfig['burstlimit'])) {
+            $this->burstLimit = intval($snConfig['burstlimit']);
+        }
+        $this->assertCacheWritable();
+        $this->debugRequestStart();
         $this->payload = $this->loadRemoteConfig();
         $this->setTemplateData();
+    }
+
+    /**
+     * One-line dump for debug.log
+     *
+     * @param mixed $data
+     *
+     * @return string
+     */
+    protected function debugDump($data) {
+        $result = '';
+        if (is_array($data) or is_object($data)) {
+            $encoded = json_encode($data);
+            if ($encoded === false) {
+                $result = print_r($data, true);
+            } else {
+                $result = $encoded;
+            }
+        } else {
+            $result = strval($data);
+        }
+        $result = str_replace(array("\r", "\n"), ' ', $result);
+        if (strlen($result) > 4000) {
+            $result = substr($result, 0, 4000) . '...';
+        }
+        return ($result);
+    }
+
+    /**
+     * Logs request context at the beginning of a page hit
+     *
+     * @return void
+     */
+    protected function debugRequestStart() {
+        $method = '';
+        $uri = '';
+        $ip = '';
+        $ua = '';
+        if (isset($_SERVER['REQUEST_METHOD'])) {
+            $method = $_SERVER['REQUEST_METHOD'];
+        }
+        if (isset($_SERVER['REQUEST_URI'])) {
+            $uri = $_SERVER['REQUEST_URI'];
+        }
+        if (isset($_SERVER['REMOTE_ADDR'])) {
+            $ip = $_SERVER['REMOTE_ADDR'];
+        }
+        if (isset($_SERVER['HTTP_USER_AGENT'])) {
+            $ua = $_SERVER['HTTP_USER_AGENT'];
+        }
+        sn_DebugLog('--- request start ---');
+        sn_DebugLog('http method=' . $method . ' uri=' . $uri . ' ip=' . $ip);
+        sn_DebugLog('ua=' . $ua);
+        if (!empty($_GET)) {
+            sn_DebugLog('GET ' . $this->debugDump($_GET));
+        }
+        if (!empty($_POST)) {
+            sn_DebugLog('POST ' . $this->debugDump($_POST));
+        } else {
+            sn_DebugLog('POST empty');
+        }
+    }
+
+    /**
+     * Stops the site if cache/ cannot be used
+     *
+     * @return void
+     */
+    protected function assertCacheWritable() {
+        $path = self::CACHE_PATH;
+        $ok = false;
+        if (is_dir($path)) {
+            if (is_writable($path)) {
+                $ok = true;
+            }
+        }
+        if (!$ok) {
+            die('Fatal error: cache directory is not writable - fix directory permissions');
+        }
+    }
+
+    /**
+     * Global create burst: true if another signup may call RemoteAPI
+     *
+     * @return bool
+     */
+    protected function burstAllow() {
+        $result = false;
+        if ($this->burstLimit <= 0) {
+            $result = true;
+            sn_DebugLog('burst disabled burstlimit=0 allow=1');
+        } else {
+            $path = self::CACHE_PATH . 'burst.dat';
+            $now = time();
+            $fh = fopen($path, 'c+');
+            if ($fh) {
+                if (flock($fh, LOCK_EX)) {
+                    $start = $now;
+                    $count = 0;
+                    $raw = stream_get_contents($fh);
+                    if ($raw != '') {
+                        $parts = explode(':', trim($raw));
+                        if (sizeof($parts) == 2) {
+                            $start = intval($parts[0]);
+                            $count = intval($parts[1]);
+                        }
+                    }
+                    if (($start + self::BURST_WINDOW) <= $now) {
+                        sn_DebugLog('burst window reset oldstart=' . $start . ' oldcount=' . $count);
+                        $start = $now;
+                        $count = 0;
+                    }
+                    if ($count < $this->burstLimit) {
+                        $count++;
+                        $result = true;
+                    }
+                    sn_DebugLog('burst start=' . $start . ' count=' . $count . '/' . $this->burstLimit . ' allow=' . intval($result));
+                    ftruncate($fh, 0);
+                    rewind($fh);
+                    fwrite($fh, $start . ':' . $count);
+                    fflush($fh);
+                    flock($fh, LOCK_UN);
+                } else {
+                    sn_DebugLog('burst flock failed');
+                }
+                fclose($fh);
+            } else {
+                sn_DebugLog('burst fopen failed path=' . $path);
+            }
+        }
+        return ($result);
     }
 
     /**
@@ -108,6 +256,7 @@ class SignupService {
                 'STREET_SELECTABLE' => false,
                 'EMAIL_DISPLAY' => false,
                 'SPAM_TRAPS' => false,
+                'NAME_DISPLAY' => true,
                 'NOTES_DISPLAY' => true,
                 'CACHING' => false,
                 'ISP_NAME' => '',
@@ -215,6 +364,11 @@ class SignupService {
      */
     protected function apiRequest($param, $rawBody = '') {
         $result = array();
+        $safeUrl = rtrim($this->apiUrl, '/') . '/?module=remoteapi&key=***&action=sigreq&param=' . $param;
+        sn_DebugLog('apiRequest start param=' . $param . ' url=' . $safeUrl);
+        if ($rawBody != '') {
+            sn_DebugLog('apiRequest body=' . $this->debugDump($rawBody));
+        }
         if ((!empty($this->apiUrl)) and (!empty($this->apiKey))) {
             $omae = new OmaeUrl($this->apiEndpoint($param));
             $omae->setTimeout(self::API_TIMEOUT);
@@ -224,14 +378,29 @@ class SignupService {
                 $omae->dataPostRaw($rawBody);
             }
             $response = $omae->response();
+            $curlError = $omae->error();
+            sn_DebugLog('apiRequest http=' . $omae->httpCode() . ' bytes=' . strlen($response));
+            if (!empty($curlError)) {
+                sn_DebugLog('apiRequest curl ' . $this->debugDump($curlError));
+            }
             if (!$omae->error()) {
                 if (!empty($response)) {
+                    sn_DebugLog('apiRequest raw=' . $this->debugDump($response));
                     $decoded = json_decode($response, true);
                     if (is_array($decoded)) {
                         $result = $decoded;
+                        sn_DebugLog('apiRequest json=' . $this->debugDump($decoded));
+                    } else {
+                        sn_DebugLog('apiRequest json_decode failed');
                     }
+                } else {
+                    sn_DebugLog('apiRequest empty response');
                 }
+            } else {
+                sn_DebugLog('apiRequest aborted due to curl error');
             }
+        } else {
+            sn_DebugLog('apiRequest skipped empty API_URL or API_KEY');
         }
         return ($result);
     }
@@ -247,11 +416,16 @@ class SignupService {
         $useCache = false;
 
         if (file_exists($cacheName)) {
+            $age = time() - filemtime($cacheName);
+            sn_DebugLog('config cache exists age=' . $age . 's ttl=' . $this->cacheTimeout);
             if ((filemtime($cacheName) + $this->cacheTimeout) > time()) {
                 $useCache = true;
             } else {
+                sn_DebugLog('config cache expired, unlink');
                 @unlink($cacheName);
             }
+        } else {
+            sn_DebugLog('config cache missing');
         }
 
         if ($useCache) {
@@ -260,26 +434,73 @@ class SignupService {
                 $decoded = json_decode($rawData, true);
                 if (is_array($decoded) and isset($decoded['config'])) {
                     $result = $decoded;
+                    sn_DebugLog('config loaded from cache CACHING=' . intval($this->payloadCachingFlag($decoded)) . ' cities=' . $this->debugCount($decoded, 'cities') . ' streets=' . $this->debugCount($decoded, 'streets'));
                 } else {
                     $useCache = false;
+                    sn_DebugLog('config cache JSON invalid');
                 }
             } else {
                 $useCache = false;
+                sn_DebugLog('config cache empty file');
             }
         }
 
         if (!$useCache) {
+            sn_DebugLog('config fetching remoteapi');
             $remote = $this->apiRequest('config');
             if (!empty($remote) and isset($remote['config'])) {
                 $result = $remote;
+                $writeCache = false;
                 if (isset($remote['config']['CACHING'])) {
                     if ($remote['config']['CACHING']) {
-                        @file_put_contents($cacheName, json_encode($remote));
+                        $writeCache = true;
                     }
                 }
+                sn_DebugLog('config remote ok CACHING=' . intval($writeCache) . ' cities=' . $this->debugCount($remote, 'cities') . ' streets=' . $this->debugCount($remote, 'streets'));
+                if ($writeCache) {
+                    @file_put_contents($cacheName, json_encode($remote));
+                    sn_DebugLog('config cache written');
+                }
+            } else {
+                sn_DebugLog('config remote failed, using empty payload');
             }
         }
 
+        return ($result);
+    }
+
+    /**
+     * CACHING flag from a payload
+     *
+     * @param array $payload
+     *
+     * @return bool
+     */
+    protected function payloadCachingFlag($payload) {
+        $result = false;
+        if (isset($payload['config']['CACHING'])) {
+            if ($payload['config']['CACHING']) {
+                $result = true;
+            }
+        }
+        return ($result);
+    }
+
+    /**
+     * Count of a root list in payload
+     *
+     * @param array $payload
+     * @param string $key
+     *
+     * @return int
+     */
+    protected function debugCount($payload, $key) {
+        $result = 0;
+        if (isset($payload[$key])) {
+            if (is_array($payload[$key])) {
+                $result = sizeof($payload[$key]);
+            }
+        }
         return ($result);
     }
 
@@ -426,10 +647,10 @@ class SignupService {
         $result = '';
         if ($this->cfgFlag('SPAM_TRAPS')) {
             $result .= wf_tag('div', false, 'sn-hp', 'aria-hidden="true"');
-            $result .= wf_TextInput('surname', '', '', false, '', '', '', '', 'tabindex="-1" autocomplete="off"');
-            $result .= wf_TextInput('lastname', '', '', false, '', '', '', '', 'tabindex="-1" autocomplete="off"');
-            $result .= wf_TextInput('seenoevil', '', '', false, '', '', '', '', 'tabindex="-1" autocomplete="off"');
-            $result .= wf_TextInput('mobile', '', '', false, '', '', '', '', 'tabindex="-1" autocomplete="off"');
+            $result .= wf_TextInput('surname', '', '', false, '', '', '', '', 'tabindex="-1" autocomplete="new-password"');
+            $result .= wf_TextInput('lastname', '', '', false, '', '', '', '', 'tabindex="-1" autocomplete="new-password"');
+            $result .= wf_TextInput('seenoevil', '', '', false, '', '', '', '', 'tabindex="-1" autocomplete="new-password"');
+            $result .= wf_TextInput('actualmobile', '', '', false, '', '', '', '', 'tabindex="-1" autocomplete="new-password"');
             $result .= wf_tag('div', true);
         }
         return ($result);
@@ -441,6 +662,7 @@ class SignupService {
      * @return string
      */
     public function renderForm() {
+        sn_DebugLog('renderForm SPAM_TRAPS=' . intval($this->cfgFlag('SPAM_TRAPS')) . ' NAME_DISPLAY=' . intval($this->cfgFlag('NAME_DISPLAY', true)) . ' EMAIL_DISPLAY=' . intval($this->cfgFlag('EMAIL_DISPLAY')) . ' NOTES_DISPLAY=' . intval($this->cfgFlag('NOTES_DISPLAY', true)) . ' CITY_DISPLAY=' . intval($this->cfgFlag('CITY_DISPLAY')));
         $inputs = wf_HiddenInput('createrequest', 'true');
         $greeting = $this->cfgString('GREETING_TEXT');
         if ($greeting != '') {
@@ -459,8 +681,10 @@ class SignupService {
 
         $inputs .= $this->spamTrapsInput();
 
-        $realname = wf_TextInput('realname', '', '', false, '', '', 'sn-control', '', 'autocomplete="name"');
-        $inputs .= $this->fieldWrap(__('Real name'), $realname, true);
+        if ($this->cfgFlag('NAME_DISPLAY', true)) {
+            $realname = wf_TextInput('realname', '', '', false, '', '', 'sn-control', '', 'autocomplete="name"');
+            $inputs .= $this->fieldWrap(__('Your name'), $realname, true);
+        }
 
         $phone = wf_TextInput('phone', '', '', false, '', 'mobile', 'sn-control', '', 'inputmode="tel" autocomplete="tel"');
         $inputs .= $this->fieldWrap(__('Phone'), $phone, true);
@@ -523,51 +747,100 @@ class SignupService {
     public function createRequest() {
         $result = false;
         $this->lastError = '';
+        sn_DebugLog('createRequest start');
+
+        $trapHit = '';
+        foreach ($this->spamTraps as $io => $each) {
+            $trapVal = '';
+            if (isset($_POST[$each])) {
+                $trapVal = $_POST[$each];
+            }
+            sn_DebugLog('honeypot ' . $each . ' set=' . intval(isset($_POST[$each])) . ' empty=' . intval(empty($_POST[$each])) . ' value=' . $this->debugDump($trapVal));
+        }
 
         if (ubRouting::checkPost($this->spamTraps, true, true)) {
-            $result = true;
-        } else {
-            if (ubRouting::checkPost($this->required)) {
-                $visitorIp = '';
-                if (isset($_SERVER['REMOTE_ADDR'])) {
-                    $visitorIp = $_SERVER['REMOTE_ADDR'];
+            foreach ($this->spamTraps as $io => $each) {
+                if (!empty($_POST[$each])) {
+                    $trapHit = $each;
                 }
-                $payload = array(
-                    'city' => $this->filterPost('city', 'nb'),
-                    'street' => $this->filterPost('street', 'nb'),
-                    'build' => $this->filterPost('build'),
-                    'apt' => $this->filterPost('apt'),
-                    'realname' => $this->filterPost('realname'),
-                    'phone' => $this->filterPost('phone'),
-                    'email' => $this->filterPost('email'),
-                    'service' => $this->filterPost('service', 'nb'),
-                    'tariff' => $this->filterPost('tariff', 'nb'),
-                    'notes' => $this->filterPost('notes', 'emsafe'),
-                    'ip' => $visitorIp,
-                    'surname' => '',
-                    'lastname' => '',
-                    'seenoevil' => '',
-                    'mobile' => ''
-                );
-                $reply = $this->apiRequest('create', json_encode($payload));
-                if (!empty($reply) and isset($reply['created']) and $reply['created']) {
-                    $result = true;
-                } else {
-                    $apiMessage = '';
-                    if (isset($reply['error_message'])) {
-                        $apiMessage = $reply['error_message'];
+            }
+            $result = true;
+            sn_DebugLog('createRequest honeypot hit field=' . $trapHit . ' fake success, skip RemoteAPI');
+        } else {
+            sn_DebugLog('createRequest honeypot clean');
+            $needFields = $this->required;
+            if (!$this->cfgFlag('NAME_DISPLAY', true)) {
+                $needFields = array();
+                foreach ($this->required as $io => $each) {
+                    if ($each != 'realname') {
+                        $needFields[] = $each;
                     }
-                    if ($apiMessage == 'REQUIRED_FIELDS') {
-                        $this->lastError = sn_RequiredHint();
+                }
+            }
+            $missing = array();
+            foreach ($needFields as $io => $each) {
+                $present = ubRouting::checkPost($each);
+                sn_DebugLog('required ' . $each . ' ok=' . intval($present) . ' raw=' . $this->debugDump($this->filterPost($each)));
+                if (!$present) {
+                    $missing[] = $each;
+                }
+            }
+            if (ubRouting::checkPost($needFields)) {
+                sn_DebugLog('createRequest required fields ok');
+                if ($this->burstAllow()) {
+                    $visitorIp = '';
+                    if (isset($_SERVER['REMOTE_ADDR'])) {
+                        $visitorIp = $_SERVER['REMOTE_ADDR'];
+                    }
+                    $realname = $this->filterPost('realname');
+                    if (!$this->cfgFlag('NAME_DISPLAY', true)) {
+                        $realname = 'Not specified';
+                    }
+                    $payload = array(
+                        'city' => $this->filterPost('city', 'nb'),
+                        'street' => $this->filterPost('street', 'nb'),
+                        'build' => $this->filterPost('build'),
+                        'apt' => $this->filterPost('apt'),
+                        'realname' => $realname,
+                        'phone' => $this->filterPost('phone'),
+                        'email' => $this->filterPost('email'),
+                        'service' => $this->filterPost('service', 'nb'),
+                        'tariff' => $this->filterPost('tariff', 'nb'),
+                        'notes' => $this->filterPost('notes', 'emsafe'),
+                        'ip' => $visitorIp,
+                        'surname' => '',
+                        'lastname' => '',
+                        'seenoevil' => '',
+                        'mobile' => ''
+                    );
+                    sn_DebugLog('createRequest payload=' . $this->debugDump($payload));
+                    $reply = $this->apiRequest('create', json_encode($payload));
+                    if (!empty($reply) and isset($reply['created']) and $reply['created']) {
+                        $result = true;
+                        sn_DebugLog('createRequest RemoteAPI created=1');
                     } else {
-                        $this->lastError = __('Unable to send signup request');
+                        $apiMessage = '';
+                        if (isset($reply['error_message'])) {
+                            $apiMessage = $reply['error_message'];
+                        }
+                        sn_DebugLog('createRequest RemoteAPI failed error_message=' . $apiMessage . ' reply=' . $this->debugDump($reply));
+                        if ($apiMessage == 'REQUIRED_FIELDS') {
+                            $this->lastError = sn_RequiredHint();
+                        } else {
+                            $this->lastError = __('Unable to send signup request');
+                        }
                     }
+                } else {
+                    $this->lastError = __('Unable to send signup request');
+                    sn_DebugLog('createRequest blocked by burstlimit');
                 }
             } else {
                 $this->lastError = sn_RequiredHint();
+                sn_DebugLog('createRequest missing required ' . $this->debugDump($missing));
             }
         }
 
+        sn_DebugLog('createRequest end result=' . intval($result) . ' lastError=' . $this->lastError);
         return ($result);
     }
 }

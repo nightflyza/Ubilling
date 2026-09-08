@@ -264,7 +264,7 @@ body {
 
 .sn-row {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     gap: 14px;
 }
 
@@ -328,10 +328,11 @@ a.sn-submit {
     text-align: right;
     font-size: 11px;
     line-height: 1.2;
+    color: #cfcfcf;
 }
 
 .sn-copy a {
-    color: #cfcfcf;
+    color: inherit;
     text-decoration: none;
 }
 
@@ -350,9 +351,12 @@ a.sn-submit {
         width: calc(100% - 20px);
     }
 
-    .sn-layout,
-    .sn-row {
+    .sn-layout {
         grid-template-columns: 1fr;
+    }
+
+    .sn-row {
+        gap: 10px;
     }
 
     .sn-card {

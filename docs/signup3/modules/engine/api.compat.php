@@ -80,9 +80,32 @@ if (isset($snConfig['lang'])) {
 }
 $langglobal = sn_LoadLang($lang);
 $templateData = array();
+$templateData['DEBUG_GT'] = '';
 $templateData['HTML_LANG'] = 'en';
 if ($lang == 'ukrainian') {
     $templateData['HTML_LANG'] = 'uk';
+}
+
+/**
+ * Appends a line to cache/debug.log when debug=1
+ *
+ * @param string $message
+ *
+ * @return void
+ */
+function sn_DebugLog($message) {
+    global $snConfig;
+    $enabled = false;
+    if (isset($snConfig['debug'])) {
+        if ($snConfig['debug']) {
+            $enabled = true;
+        }
+    }
+    if ($enabled) {
+        $pid = getmypid();
+        $line = date('Y-m-d H:i:s') . ' [' . $pid . '] ' . $message . PHP_EOL;
+        file_put_contents('cache/debug.log', $line, FILE_APPEND);
+    }
 }
 
 /**

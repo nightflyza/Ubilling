@@ -196,7 +196,7 @@ class SignupRequests {
 
                 $profileLink = (!empty($loginDetect)) ? ' ' . wf_Link('?module=userprofile&username=' . $loginDetect, web_profile_icon()) : '';
                 $jsonItem[] = ubRouting::filters($reqaddr, 'safe') . $profileLink;
-                $jsonItem[] = ubRouting::filters($eachreq['realname'], 'safe');
+                $jsonItem[] = ubRouting::filters(__($eachreq['realname']), 'safe');
                 $jsonItem[] = ubRouting::filters($eachreq['phone'], 'safe');
 
                 if ($this->altcfg['ADCOMMENTS_ENABLED']) {
@@ -351,7 +351,7 @@ class SignupRequests {
         $rows.= wf_TableRow($cells, 'row3');
 
         $cells = wf_TableCell(__('Real Name'));
-        $cells.=wf_TableCell(ubRouting::filters($reqdata['realname'], 'safe'));
+        $cells.=wf_TableCell(ubRouting::filters(__($reqdata['realname']), 'safe'));
         $rows.= wf_TableRow($cells, 'row3');
 
         $cells = wf_TableCell(__('Phone'));
@@ -499,6 +499,7 @@ class SignupRequests {
                 'STREET_SELECTABLE' => false,
                 'EMAIL_DISPLAY' => false,
                 'SPAM_TRAPS' => false,
+                'NAME_DISPLAY' => true,
                 'NOTES_DISPLAY' => true,
                 'CACHING' => false,
                 'ISP_NAME' => '',
@@ -547,6 +548,10 @@ class SignupRequests {
                                     } else {
                                         if ($confKey == 'NOTES_HIDDEN') {
                                             $this->publicConfig['NOTES_DISPLAY'] = false;
+                                        } else {
+                                            if ($confKey == 'NAME_HIDDEN') {
+                                                $this->publicConfig['NAME_DISPLAY'] = false;
+                                            }
                                         }
                                     }
                                 }
@@ -604,6 +609,7 @@ class SignupRequests {
                 'STREET_SELECTABLE' => $this->publicConfig['STREET_SELECTABLE'],
                 'EMAIL_DISPLAY' => $this->publicConfig['EMAIL_DISPLAY'],
                 'SPAM_TRAPS' => $this->publicConfig['SPAM_TRAPS'],
+                'NAME_DISPLAY' => $this->publicConfig['NAME_DISPLAY'],
                 'NOTES_DISPLAY' => $this->publicConfig['NOTES_DISPLAY'],
                 'CACHING' => $this->publicConfig['CACHING'],
                 'ISP_NAME' => $this->publicConfig['ISP_NAME'],
@@ -846,6 +852,9 @@ class SignupRequests {
                 $build = $this->sanitizeText($this->extractField($raw, 'build'), self::LEN_BUILD);
                 $apt = $this->sanitizeText($this->extractField($raw, 'apt'), self::LEN_APT);
                 $realname = $this->sanitizeText($this->extractField($raw, 'realname'), self::LEN_REALNAME);
+                if (!$this->publicConfig['NAME_DISPLAY']) {
+                    $realname = 'Not specified';
+                }
                 $phone = $this->sanitizePhone($this->extractField($raw, 'phone'));
                 $email = '';
                 if ($this->publicConfig['EMAIL_DISPLAY']) {
@@ -1062,6 +1071,10 @@ class SignupConfig {
         $citySelFlag = $this->checkConf('CITY_SELECTABLE');
         $streetSelFlag = $this->checkConf('STREET_SELECTABLE');
         $emailDispFlag = $this->checkConf('EMAIL_DISPLAY');
+        $nameDispFlag = true;
+        if ($this->checkConf('NAME_HIDDEN')) {
+            $nameDispFlag = false;
+        }
         $notesDispFlag = true;
         if ($this->checkConf('NOTES_HIDDEN')) {
             $notesDispFlag = false;
@@ -1073,6 +1086,7 @@ class SignupConfig {
         $inputs.= wf_CheckInput('newcityselectable', __('Show city input as combobox'), true, $citySelFlag);
         $inputs.= wf_CheckInput('newstreetselectable', __('Show street input as combobox'), true, $streetSelFlag);
         $inputs.= wf_CheckInput('newemaildisplay', __('Display email field'), true, $emailDispFlag);
+        $inputs.= wf_CheckInput('newnamedisplay', __('Display name field'), true, $nameDispFlag);
         $inputs.= wf_CheckInput('newnotesdisplay', __('Display notes field'), true, $notesDispFlag);
         $inputs.= wf_CheckInput('newespamtraps', __('Render spambots protection traps'), true, $spamDispFlag);
         $inputs.= wf_CheckInput('newcaching', __('Database connections caching'), true, $cachingFlag);
@@ -1150,6 +1164,18 @@ class SignupConfig {
             if ($this->checkConf('EMAIL_DISPLAY')) {
                 $this->deleteConf('EMAIL_DISPLAY');
                 log_register('SIGREQCONF DISABLED EMAIL_DISPLAY');
+            }
+        }
+        //name input (missing key means shown, NAME_HIDDEN hides it)
+        if (ubRouting::checkPost('newnamedisplay')) {
+            if ($this->checkConf('NAME_HIDDEN')) {
+                $this->deleteConf('NAME_HIDDEN');
+                log_register('SIGREQCONF ENABLED NAME_DISPLAY');
+            }
+        } else {
+            if (!$this->checkConf('NAME_HIDDEN')) {
+                $this->setConf('NAME_HIDDEN', 'NOP');
+                log_register('SIGREQCONF DISABLED NAME_DISPLAY');
             }
         }
         //notes input (missing key means shown, NOTES_HIDDEN hides it)

@@ -3,7 +3,11 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title><?=__('Signup'); ?></title>
+    <title><?=__('Signup'); ?> 
+        <?php if (!empty($templateData['ISP_NAME'])) { 
+        print(' - '.$templateData['ISP_NAME']);
+        } ?>
+    </title>
     <link rel="stylesheet" href="template/style.css">
     <script src="modules/jsc/jquery/jquery.min.js"></script>
 </head>
@@ -36,7 +40,7 @@
         </main>
     </div>
     <footer class="sn-copy">
-        <a href="https://ubilling.net.ua" target="_blank">Powered by Ubilling</a>
+        <a href="https://ubilling.net.ua" target="_blank">Powered by Ubilling</a><?php if (!empty($templateData['DEBUG_GT'])) { ?><span class="sn-gt"><?=$templateData['DEBUG_GT']; ?></span><?php } ?>
     </footer>
 </body>
 </html>

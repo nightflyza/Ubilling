@@ -17,21 +17,27 @@ $signup = new SignupService();
 
 if (!ubRouting::checkPost(array('createrequest'))) {
     if (!ubRouting::checkGet(array('success'))) {
+        sn_DebugLog('index show form');
         show_window('', $signup->renderForm());
     } else {
+        sn_DebugLog('index show success');
         $successBody = wf_tag('p') . __('Your inquiry will be dealt with in the shortest possible time, and you will be contacted by our representative for details of connection.') . wf_tag('p', true);
         $successBody .= wf_Link('index.php', 'Back', false, 'sn-submit');
         show_window(__('Thank you'), $successBody);
     }
 } else {
+    sn_DebugLog('index handle create POST');
     $request = $signup->createRequest();
+    sn_DebugLog('index createRequest returned=' . intval($request));
     if ($request) {
+        sn_DebugLog('index redirect ?success=yeah');
         rcms_redirect('?success=yeah');
     } else {
         $errorText = $signup->getLastError();
         if ($errorText == '') {
             $errorText = sn_RequiredHint();
         }
+        sn_DebugLog('index show error');
         $errorBody = wf_tag('p') . $errorText . wf_tag('p', true);
         $errorBody .= wf_Link('index.php', 'Try again', false, 'sn-submit');
         show_window(__('Error'), $errorBody, 'sn-window-error');
@@ -42,7 +48,7 @@ if (isset($snConfig['debug'])) {
     if ($snConfig['debug']) {
         $mtime = explode(' ', microtime());
         $totaltime = $mtime[0] + $mtime[1] - $starttime;
-        show_window(__('Debug'), 'GT: ' . round($totaltime, 4));
+        $templateData['DEBUG_GT'] = ' |  GT: ' . round($totaltime, 4);
     }
 }
 
