@@ -807,11 +807,7 @@ class SignupService {
                         'service' => $this->filterPost('service', 'nb'),
                         'tariff' => $this->filterPost('tariff', 'nb'),
                         'notes' => $this->filterPost('notes', 'emsafe'),
-                        'ip' => $visitorIp,
-                        'surname' => '',
-                        'lastname' => '',
-                        'seenoevil' => '',
-                        'mobile' => ''
+                        'ip' => $visitorIp
                     );
                     sn_DebugLog('createRequest payload=' . $this->debugDump($payload));
                     $reply = $this->apiRequest('create', json_encode($payload));

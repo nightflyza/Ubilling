@@ -743,27 +743,6 @@ class SignupRequests {
     }
 
     /**
-     * Detects filled honeypot fields
-     *
-     * @param array $raw
-     *
-     * @return bool
-     */
-    protected function isHoneypotFilled($raw) {
-        $result = false;
-        $traps = array('surname', 'lastname', 'seenoevil', 'mobile');
-        if (!empty($raw)) {
-            foreach ($traps as $io => $trap) {
-                $trapValue = $this->extractField($raw, $trap);
-                if (trim($trapValue) != '') {
-                    $result = true;
-                }
-            }
-        }
-        return ($result);
-    }
-
-    /**
      * Creates signup request from public API payload.
      *
      * @param array $raw
@@ -780,22 +759,16 @@ class SignupRequests {
 
         if (!empty($raw) and is_array($raw)) {
             $this->loadPublicFormData();
-            if ($this->isHoneypotFilled($raw)) {
-                $result['error'] = false;
-                $result['created'] = true;
-                $result['id'] = 0;
-                $result['error_message'] = '';
-            } else {
-                $cityRaw = $this->plainText($this->extractField($raw, 'city'));
-                $streetRaw = $this->plainText($this->extractField($raw, 'street'));
-                $serviceRaw = $this->plainText($this->extractField($raw, 'service'));
-                $tariffRaw = $this->plainText($this->extractField($raw, 'tariff'));
-                $allowFail = '';
-                $hiddenHit = false;
-                $city = '';
-                $street = '';
-                $service = '';
-                $tariff = '';
+            $cityRaw = $this->plainText($this->extractField($raw, 'city'));
+            $streetRaw = $this->plainText($this->extractField($raw, 'street'));
+            $serviceRaw = $this->plainText($this->extractField($raw, 'service'));
+            $tariffRaw = $this->plainText($this->extractField($raw, 'tariff'));
+            $allowFail = '';
+            $hiddenHit = false;
+            $city = '';
+            $street = '';
+            $service = '';
+            $tariff = '';
 
                 if ($this->publicConfig['CITY_DISPLAY']) {
                     if ($this->publicConfig['CITY_SELECTABLE']) {
@@ -922,7 +895,6 @@ class SignupRequests {
                             $this->sigreqDb->create();
                             $newId = $this->sigreqDb->getLastId();
                             if (!empty($newId)) {
-                                log_register('SIGREQ CREATED [' . $newId . ']');
                                 $result['error'] = false;
                                 $result['created'] = true;
                                 $result['id'] = $newId;
@@ -933,7 +905,12 @@ class SignupRequests {
                         }
                     }
                 }
-            }
+        }
+
+        if ($result['created']) {
+            log_register('SIGREQ CREATED [' . $result['id'] . ']');
+        } else {
+            log_register('SIGREQ CREATE FAIL `' . $result['error_message'] . '`');
         }
 
         return ($result);

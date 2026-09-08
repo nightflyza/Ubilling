@@ -41,9 +41,14 @@ if (ubRouting::get('action') == 'sigreq') {
             header('Pragma: no-cache');
             die(json_encode($sigreqReply));
         } else {
+            log_register('SIGREQ FAIL `UNKNOWN_PARAM`');
             die('ERROR:UNKNOWN_PARAM');
         }
     } else {
+        $sigreqOp = ubRouting::get('param', 'gigasafe');
+        if ($sigreqOp == 'create') {
+            log_register('SIGREQ CREATE FAIL `DISABLED`');
+        }
         die('ERROR:SIGREQ_DISABLED');
     }
 }
