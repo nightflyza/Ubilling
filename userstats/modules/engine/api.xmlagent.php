@@ -639,7 +639,7 @@ class XMLAgent {
             '<pre>',
             '<a>'
         );
-        $text = strip_tags($text, $telegramAllowedTags);
+        $text = strip_tags($text, implode('', $telegramAllowedTags));
         return ($text);
     }
 
