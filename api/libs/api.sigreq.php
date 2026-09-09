@@ -687,6 +687,27 @@ class SignupRequests {
     }
 
     /**
+     * Trims email without the safe filter that would drop @
+     *
+     * @param string $data
+     *
+     * @return string
+     */
+    protected function sanitizeEmail($data) {
+        $result = '';
+        if (!is_array($data) and !is_object($data)) {
+            $result = trim($data);
+            $result = ubRouting::filters($result, 'nb');
+            $result = strip_tags($result);
+            $result = preg_replace('/\s+/', '', $result);
+            if (strlen($result) > self::LEN_EMAIL) {
+                $result = substr($result, 0, self::LEN_EMAIL);
+            }
+        }
+        return ($result);
+    }
+
+    /**
      * Keeps only digits in a phone number
      *
      * @param string $data
@@ -831,7 +852,7 @@ class SignupRequests {
                 $phone = $this->sanitizePhone($this->extractField($raw, 'phone'));
                 $email = '';
                 if ($this->publicConfig['EMAIL_DISPLAY']) {
-                    $email = $this->sanitizeText($this->extractField($raw, 'email'), self::LEN_EMAIL);
+                    $email = $this->sanitizeEmail($this->extractField($raw, 'email'));
                 }
                 $notes = '';
                 if ($this->publicConfig['NOTES_DISPLAY']) {

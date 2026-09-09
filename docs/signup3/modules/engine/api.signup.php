@@ -888,7 +888,7 @@ class SignupService {
                             'apt' => $this->filterPost('apt'),
                             'realname' => $realname,
                             'phone' => $this->filterPost('phone'),
-                            'email' => $this->filterPost('email'),
+                            'email' => $this->filterPost('email', 'nb'),
                             'service' => $this->filterPost('service', 'nb'),
                             'tariff' => $this->filterPost('tariff', 'nb'),
                             'notes' => $this->filterPost('notes', 'emsafe'),
