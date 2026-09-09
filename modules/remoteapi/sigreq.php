@@ -1,10 +1,29 @@
 <?php
 
 /**
- * Public signup requests API for signup3
+ * Signup requests API implementation
  *
  * GET  /?module=remoteapi&key=SERIAL&action=sigreq&param=config
  * POST /?module=remoteapi&key=SERIAL&action=sigreq&param=create
+ * 
+ * POST create payload format: JSON body (Content-Type: application/json)
+ *   {
+ *     "city":     "",   // optional; used if CITY_DISPLAY. If CITY_SELECTABLE, must be from cities list
+ *     "street":   "",   // required. If STREET_SELECTABLE, must be from streets list
+ *     "build":    "",   // required
+ *     "apt":      "",   // optional; empty stored as "0"
+ *     "realname": "",   // required unless NAME_DISPLAY is off (then backend stores "Not specified")
+ *     "phone":    "",   // required; digits only
+ *     "email":    "",   // optional; accepted only if EMAIL_DISPLAY
+ *     "service":  "",   // optional; if SERVICES list is not empty, must match it. Empty list -> "Internet"
+ *     "tariff":   "",   // optional; if TARIFFS list is not empty, must match it. 
+ *     "notes":    "",   // optional; accepted only if NOTES_DISPLAY
+ *     "ip":       ""    // optional visitor IP
+ *   }
+ * 
+ * Reply: { "error": bool, "created": bool, "id": int, "error_message": "" }
+ * error_message: EMPTY_REQUEST, REQUIRED_FIELDS, INVALID_CITY, INVALID_STREET,
+ *   INVALID_SERVICE, INVALID_TARIFF, INVALID_EMAIL, HIDDEN_ADDRESS, CREATE_FAILED
  *
  * @return void
  */
