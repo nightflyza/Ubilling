@@ -1020,7 +1020,7 @@ class PONBoxes {
             if (!empty($onuUser)) {
                 // Address search
                 $onuUserAddress = @$this->allUserAddress[$onuUser];
-                if (!empty($onuUserAddress) && !empty($linksIndexes['byAddress'][$onuUserAddress])) {
+                if (!empty($onuUserAddress) and !empty($linksIndexes['byAddress'][$onuUserAddress])) {
                     foreach ($linksIndexes['byAddress'][$onuUserAddress] as $boxId => $linkId) {
                         $result[$boxId] = $linkId;
                     }
@@ -1067,7 +1067,7 @@ class PONBoxes {
                     if (!empty($onuUser)) {
                         //address search
                         $onuUserAddress = @$this->allUserAddress[$onuUser];
-                        if ($eachLink['address'] == $onuUserAddress) {
+                        if (!empty($onuUserAddress) and $eachLink['address'] == $onuUserAddress) {
                             $result[$eachLink['boxid']] = $eachLink['id'];
                         }
 
