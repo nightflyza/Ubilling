@@ -61,6 +61,7 @@ if (cfr('SIGREQ')) {
                     //display signup requests calendar
                     $signups->renderCalendar();
                 }
+                zb_BillingStats(true);
             }
         } else {
             //signup requests service configuration
