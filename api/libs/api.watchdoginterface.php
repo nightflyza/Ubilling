@@ -572,7 +572,7 @@ class WatchDogInterface {
             }
         }
 
-        $inputs = wf_Selector('previousalertsearch', $availTaskNames, __('Name'), '', false);
+        $inputs = wf_SelectorSearchable('previousalertsearch', $availTaskNames, __('Name'), '', false);
         $inputs .= wf_Submit(__('Search'));
         $result = wf_Form("", 'POST', $inputs, 'glamour');
 
@@ -596,7 +596,7 @@ class WatchDogInterface {
                 if (ispos($each['event'], $request)) {
                     $cells = wf_TableCell($each['date']);
                     $cells .= wf_TableCell($each['event']);
-                    $rows .= wf_TableRow($cells, 'row3');
+                    $rows .= wf_TableRow($cells, 'row5');
                     $counter++;
                 }
             }
