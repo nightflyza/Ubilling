@@ -248,7 +248,7 @@ class ClapTrapBot extends WolfDispatcher {
         }
 
         if (isset($this->altCfg[self::OPTION_FEATURES])) {
-            $this->featuresEnabled = explode(',', $this->altCfg[self::OPTION_FEATURES]);
+            $this->featuresEnabled = array_map('trim', explode(',', $this->altCfg[self::OPTION_FEATURES]));
         }
 
         if (isset($this->altCfg[self::OPTION_SYSTEM_CURRENCY])) {
