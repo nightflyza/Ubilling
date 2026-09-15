@@ -38,6 +38,7 @@ $us_access = zbs_GetUserStatsDeniedAll();
 if (!empty($us_access) and !empty($user_login)) {
     if (isset($us_access[$user_login])) {
         $accDeniedBody = file_get_contents('modules/jsc/youshallnotpass.html');
+        header('HTTP/1.1 403 Forbidden');
         die($accDeniedBody);
     }
 }
@@ -48,6 +49,7 @@ if (isset($us_config['API_CHECK'])) {
         $api_check = zbs_CheckApiConnectivity();
         if (!$api_check) {
             $connectivityErrorBody = file_get_contents('modules/jsc/apiconnfail.html');
+            header('HTTP/1.1 503 Service Unavailable');
             die($connectivityErrorBody);
         }
     }
