@@ -1057,7 +1057,7 @@ class WolfDispatcher {
     /**
      * Edits a message by its ID in a specified chat.
      *
-     * @param string $message The new text of the message.
+     * @param string $messageText The new text of the message.
      * @param int $chatId The ID of the chat in which the message will be edited.
      * @param int $messageId The ID of the message to be edited.
      * 
