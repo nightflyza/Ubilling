@@ -635,7 +635,7 @@ class ReportSignups {
                         }
                     }
                 } else {
-                    $userState .= wf_img_sized('skins/icon_skull.png', __('Deleted'), '12');
+                    $userState .= wf_img_sized('skins/skull.png', __('Deleted'), '12');
                     $userStateMark = 'D';
                 }
                 $tablecells .= wf_TableCell($userState, '', '', 'sorttable_customkey="' . $userStateMark . '"');
