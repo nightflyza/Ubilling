@@ -733,6 +733,11 @@ class PonZte {
                     $match[self::DESC_ONU] += 1;
                     return ($this->stdDecodeOutput($match));
                 case 9:
+                    // ZTE C300 EPON: slot number is encoded across shelf+slot fields
+                    if (isset($this->currentSnmpTemplate['define']['DEVICE']) and $this->currentSnmpTemplate['define']['DEVICE'] == 'ZTE 300') {
+                        $match[self::DESC_SLOT] += ($match[self::DESC_SHELF] * 16);
+                        $match[self::DESC_SHELF] = 0;
+                    }
                     return ($this->stdDecodeOutput($match));
                 case 10:
                     $match[self::DESC_SLOT] += 1;
