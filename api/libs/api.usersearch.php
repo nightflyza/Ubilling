@@ -52,8 +52,10 @@ function web_UserSearchFieldsForm() {
  */
 function zb_UserSearchFields($query, $searchtype) {
     global $ubillingConfig;
-    $query = mysql_real_escape_string(trim($query));
-    $searchtype = vf($searchtype);
+    $allFoundLogins = array();
+    $query = trim($query);
+    $query = ubRouting::filters($query,'mres');
+    $searchtype = ubRouting::filters($searchtype,'gigasafe');
     $altercfg = $ubillingConfig->getAlter();
     $mobileExtFlag = $ubillingConfig->getAlterParam('MOBILES_EXT');
 
@@ -148,7 +150,6 @@ function zb_UserSearchFields($query, $searchtype) {
     }
     //mac-address search
     if ($searchtype == 'mac') {
-        $allfoundlogins = array();
         $allMacs = zb_UserGetAllMACs();
         $searchMacPart = strtolower($query);
         $searchMacPart = RemoveMacAddressSeparator($searchMacPart);
@@ -158,7 +159,7 @@ function zb_UserSearchFields($query, $searchtype) {
             $allMacs = array_flip($allMacs);
             foreach ($allMacs as $eachMac => $macLogin) {
                 if (ispos($eachMac, $searchMacPart)) {
-                    $allfoundlogins[] = $macLogin;
+                    $allFoundLogins[] = $macLogin;
                 }
             }
         }
@@ -177,22 +178,22 @@ function zb_UserSearchFields($query, $searchtype) {
         }
     }
 
-    // пытаемся изобразить результат
+    // trying to render some results
     if ($searchtype != 'mac') {
         $allresults = simple_queryall($query);
-        $allfoundlogins = array();
+        $allFoundLogins = array();
         if (!empty($allresults)) {
             foreach ($allresults as $io => $eachresult) {
-                $allfoundlogins[] = $eachresult['login'];
+                $allFoundLogins[] = $eachresult['login'];
             }
-            //если таки по четкому адресу искали - давайте уж в профиль со старта
+            //if we searched by exact address, let's redirect to profile
             if ($searchtype == 'apt') {
-                rcms_redirect("?module=userprofile&username=" . $eachresult['login']);
+                ubRouting::nav("?module=userprofile&username=" . $eachresult['login']);
             }
         }
     }
 
-    $result = web_UserArrayShower($allfoundlogins);
+    $result = web_UserArrayShower($allFoundLogins);
     return ($result);
 }
 
@@ -207,7 +208,7 @@ function zb_UserSearchAllFields($query, $render = true) {
     $notesSearchFlag = $ubillingConfig->getAlterParam('SEARCH_NOTES');
     $mobileExtFlag = $ubillingConfig->getAlterParam('MOBILES_EXT');
 
-    $allfoundlogins = array();
+    $allFoundLogins = array();
     if (strlen($query) >= 3) {
         $search_data_array = zb_UserGetAllDataCache();
 
@@ -238,13 +239,13 @@ function zb_UserSearchAllFields($query, $render = true) {
         $search_part = preg_quote($search_part, '/');
         foreach ($search_data_array as $login => $data) {
             if (preg_grep('/' . $search_part . '/iu', $data)) {
-                $allfoundlogins[] = $login;
+                $allFoundLogins[] = $login;
             }
         }
         if ($render) {
-            $result = web_UserArrayShower($allfoundlogins);
+            $result = web_UserArrayShower($allFoundLogins);
         } else {
-            $result = $allfoundlogins;
+            $result = $allFoundLogins;
         }
     } else {
         $messages = new UbillingMessageHelper();
@@ -284,8 +285,8 @@ function web_UserSearchCFForm() {
  * @return array
  */
 function zb_UserSearchCF($typeid, $query) {
-    $typeid = vf($typeid);
-    $query = mysql_real_escape_string($query);
+    $typeid = ubRouting::filters($typeid,'int');
+    $query = ubRouting::filters($query,'mres');
     $result = array();
     $dataquery = "SELECT `login` from `cfitems` WHERE `typeid`='" . $typeid . "' AND `content`LIKE '%" . $query . "%'";
     $allusers = simple_queryall($dataquery);
@@ -479,7 +480,7 @@ function web_CorpsSearchForm() {
 function zb_UserSearchAddressPartial($query, $searchExtenAddr = false) {
     global $ubillingConfig;
     $altercfg = $ubillingConfig->getAlter();
-    $query = mysql_real_escape_string($query);
+    $query = ubRouting::filters($query,'mres');
 
     if (!$altercfg['SEARCHADDR_AUTOCOMPLETE']) {
         $query = strtolower_utf8($query);
