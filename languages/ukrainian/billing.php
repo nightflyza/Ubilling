@@ -3698,3 +3698,7 @@ $lang['def']['KATOTTG settlement'] = 'Населений пункт КАТОТТ
 $lang['def']['right to view agent geography report'] = 'Право переглядати географічний звіт по агентах';
 $lang['def']['Premises'] = 'Приміщення';
 $lang['def']['Private house'] = 'Приватний будинок';
+$lang['def']['With coordinates'] = 'З координатами';
+$lang['def']['Without coordinates'] = 'Без координат';
+$lang['def']['Minimum users in build'] = 'Мінімум користувачів у будинку';
+$lang['def']['Use build ID'] = 'Використовувати ID будинку';
