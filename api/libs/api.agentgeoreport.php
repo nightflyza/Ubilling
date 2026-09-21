@@ -143,7 +143,7 @@ class AgentGeoReport {
      *
      * @var string
      */
-    protected $exportFormat = 'csv';
+    protected $exportFormat = 'xlsx';
 
     /**
      * Use build DB id in coverage export ID column
@@ -224,11 +224,11 @@ class AgentGeoReport {
             }
         }
 
-        $this->exportFormat = self::FORMAT_CSV;
+        $this->exportFormat = self::FORMAT_XLSX;
         if (ubRouting::checkGet(self::ROUTE_EXPORT_FORMAT)) {
             $format = ubRouting::get(self::ROUTE_EXPORT_FORMAT);
-            if ($format == self::FORMAT_XLSX) {
-                $this->exportFormat = self::FORMAT_XLSX;
+            if ($format == self::FORMAT_CSV) {
+                $this->exportFormat = self::FORMAT_CSV;
             }
         }
 
@@ -526,7 +526,7 @@ class AgentGeoReport {
         $inputs .= wf_Selector(self::ROUTE_EXPORT_MODE, $modeParams, __('Coverage'), self::MODE_BUILDS, true);
         $inputs .= wf_Selector(self::ROUTE_EXPORT_GEO, $geoParams, __('Place coordinates'), '0', true);
         $inputs .= wf_TextInput(self::ROUTE_EXPORT_MINUSERS, __('Minimum users in build'), '0', true, 3);
-        $inputs .= wf_Selector(self::ROUTE_EXPORT_FORMAT, $formatParams, __('Export format'), self::FORMAT_CSV, true);
+        $inputs .= wf_Selector(self::ROUTE_EXPORT_FORMAT, $formatParams, __('Export format'), self::FORMAT_XLSX, true);
         $inputs .= wf_CheckInput(self::ROUTE_EXPORT_BUILDID, __('Use build ID'), true, true);
         $inputs .= wf_Submit(__('Export'));
         $result = wf_Form('', 'GET', $inputs, 'glamour');
