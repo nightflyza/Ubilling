@@ -17,6 +17,9 @@ function web_UserSearchFieldsForm() {
     $fieldinputs .= wf_RadioInput('searchtype', 'Email', 'email', true);
     $fieldinputs .= wf_RadioInput('searchtype', 'Notes', 'note', true);
     $fieldinputs .= wf_RadioInput('searchtype', 'Contract', 'contract', true);
+    if ($altCfg['CONDET_ENABLED']) {
+        $fieldinputs .= wf_RadioInput('searchtype', 'Cable seal', 'seal', true);
+    }
     if ($altCfg['OPENPAYZ_SUPPORT']) {
         $fieldinputs .= wf_RadioInput('searchtype', 'Payment ID', 'payid', true);
     }
@@ -103,9 +106,11 @@ function zb_UserSearchFields($query, $searchtype) {
         $mask = (isset($strictsearch[$searchtype]) ? '' : '%');
         $query = "SELECT `login` from `users` WHERE `IP` LIKE '" . $mask . $query . $mask . "'";
     }
-    if ($searchtype == 'seal') {
-        $mask = (isset($strictsearch[$searchtype]) ? '' : '%');
-        $query = "SELECT `login` from `condet` WHERE `seal` LIKE '" . $mask . $query . $mask . "'";
+    if ($altercfg['CONDET_ENABLED']) {
+        if ($searchtype == 'seal') {
+            $mask = (isset($strictsearch[$searchtype]) ? '' : '%');
+            $query = "SELECT `login` from `condet` WHERE `seal` LIKE '" . $mask . $query . $mask . "'";
+        }
     }
     if ($searchtype == 'swid') {
         $mask = (isset($strictsearch[$searchtype]) ? '' : '%');
