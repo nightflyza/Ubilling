@@ -153,6 +153,27 @@ class AgentGeoReport {
     protected $exportUseBuildId = 1;
 
     /**
+     * Export only apartment houses flag
+     *
+     * @var int
+     */
+    protected $exportOnlyApartmentHouses = 0;
+
+    /**
+     * BUILD_EXTENDED option based flag
+     *
+     * @var bool
+     */
+    protected $buildPassportsFlag = false;
+
+    /**
+     * Build passports instance placeholder
+     *
+     * @var object
+     */
+    protected $buildPassports = '';
+
+    /**
      * Some predefined stuff
      */
     const URL_ME = '?module=report_agentgeo';
@@ -164,6 +185,8 @@ class AgentGeoReport {
     const ROUTE_EXPORT_MINUSERS = 'exportminusers';
     const ROUTE_EXPORT_FORMAT = 'exportformat';
     const ROUTE_EXPORT_BUILDID = 'exportbuildid';
+    const ROUTE_EXPORT_APARTMENT = 'exportapartment';
+    const ROUTE_EXPORT_PREVIEW = 'exportpreview';
     const MODE_BUILDS = 'builds';
     const MODE_PREMISES = 'premises';
     const FORMAT_CSV = 'csv';
@@ -174,6 +197,7 @@ class AgentGeoReport {
         $this->loadCities();
         $this->loadStreets();
         $this->loadBuilds();
+        $this->initBuildPassports();
         $this->loadAgents();
         $this->loadAssigns();
         $this->loadUsers();
@@ -192,6 +216,9 @@ class AgentGeoReport {
         $this->katottgEnabled = $ubillingConfig->getAlterParam('KATOTTG_ENABLED');
         if ($this->katottgEnabled) {
             $this->katottg = new KATOTTG();
+        }
+        if ($ubillingConfig->getAlterParam('BUILD_EXTENDED')) {
+            $this->buildPassportsFlag = true;
         }
     }
 
@@ -239,6 +266,11 @@ class AgentGeoReport {
                 $this->exportUseBuildId = 1;
             }
         }
+
+        $this->exportOnlyApartmentHouses = 0;
+        if (ubRouting::checkGet(self::ROUTE_EXPORT_APARTMENT)) {
+            $this->exportOnlyApartmentHouses = 1;
+        }
     }
 
     /**
@@ -266,6 +298,37 @@ class AgentGeoReport {
      */
     protected function loadBuilds() {
         $this->builds = zb_AddressGetBuildAllDataAssoc();
+    }
+
+    /**
+     * Inits build passports object when BUILD_EXTENDED is enabled
+     *
+     * @return void
+     */
+    protected function initBuildPassports() {
+        if ($this->buildPassportsFlag) {
+            $this->buildPassports = new BuildPassport();
+        }
+    }
+
+    /**
+     * Checks is build marked as apartment house in passport
+     *
+     * @param int $buildId
+     *
+     * @return bool
+     */
+    protected function isApartmentHouse($buildId) {
+        $result = false;
+        if ($this->buildPassportsFlag and !empty($this->buildPassports)) {
+            $passportData = $this->buildPassports->getPassportData($buildId);
+            if (!empty($passportData)) {
+                if ($passportData['anthill']) {
+                    $result = true;
+                }
+            }
+        }
+        return ($result);
     }
 
     /**
@@ -524,10 +587,14 @@ class AgentGeoReport {
         $inputs .= wf_HiddenInput(self::ROUTE_EXPORT_AGENT, $agentId);
         $inputs .= wf_HiddenInput(self::ROUTE_EXPORT_CITY, $cityId);
         $inputs .= wf_Selector(self::ROUTE_EXPORT_MODE, $modeParams, __('Coverage'), self::MODE_BUILDS, true);
-        $inputs .= wf_Selector(self::ROUTE_EXPORT_GEO, $geoParams, __('Place coordinates'), '0', true);
+        $inputs .= wf_Selector(self::ROUTE_EXPORT_GEO, $geoParams, __('Place coordinates'), '1', true);
         $inputs .= wf_TextInput(self::ROUTE_EXPORT_MINUSERS, __('Minimum users in build'), '0', true, 3);
         $inputs .= wf_Selector(self::ROUTE_EXPORT_FORMAT, $formatParams, __('Export format'), self::FORMAT_XLSX, true);
         $inputs .= wf_CheckInput(self::ROUTE_EXPORT_BUILDID, __('Use build ID'), true, true);
+        if ($this->buildPassportsFlag) {
+            $inputs .= wf_CheckInput(self::ROUTE_EXPORT_APARTMENT, __('Apartment house') . ' ' . __('only'), true, true);
+        }
+        $inputs .= wf_SubmitClassed('1', '', self::ROUTE_EXPORT_PREVIEW, __('Preview')) . ' ';
         $inputs .= wf_Submit(__('Export'));
         $result = wf_Form('', 'GET', $inputs, 'glamour');
         return ($result);
@@ -682,20 +749,243 @@ class AgentGeoReport {
     }
 
     /**
+     * Checks is coverage preview requested
+     *
+     * @return bool
+     */
+    public function isPreviewRequest() {
+        $result = false;
+        if (ubRouting::checkGet(self::ROUTE_EXPORT_AGENT) and ubRouting::checkGet(self::ROUTE_EXPORT_CITY)) {
+            if (ubRouting::checkGet(self::ROUTE_EXPORT_PREVIEW)) {
+                $result = true;
+            }
+        }
+        return ($result);
+    }
+
+    /**
      * Handles coverage export request if present
      *
      * @return void
      */
     public function catchExportRequest() {
         if (ubRouting::checkGet(self::ROUTE_EXPORT_AGENT) and ubRouting::checkGet(self::ROUTE_EXPORT_CITY)) {
-            $agentId = ubRouting::get(self::ROUTE_EXPORT_AGENT, 'int');
-            $cityId = ubRouting::get(self::ROUTE_EXPORT_CITY, 'int');
-            if ($this->exportFormat == self::FORMAT_XLSX) {
-                $this->exportCoverageXLSX($agentId, $cityId, $this->exportMode, $this->exportWithGeo, $this->exportMinUsers);
-            } else {
-                $this->exportCoverageCSV($agentId, $cityId, $this->exportMode, $this->exportWithGeo, $this->exportMinUsers);
+            if (!$this->isPreviewRequest()) {
+                $agentId = ubRouting::get(self::ROUTE_EXPORT_AGENT, 'int');
+                $cityId = ubRouting::get(self::ROUTE_EXPORT_CITY, 'int');
+                if ($this->exportFormat == self::FORMAT_XLSX) {
+                    $this->exportCoverageXLSX($agentId, $cityId, $this->exportMode, $this->exportWithGeo, $this->exportMinUsers);
+                } else {
+                    $this->exportCoverageCSV($agentId, $cityId, $this->exportMode, $this->exportWithGeo, $this->exportMinUsers);
+                }
             }
         }
+    }
+
+    /**
+     * Renders coverage export preview map and table
+     *
+     * @return string
+     */
+    public function renderCoveragePreview() {
+        $result = '';
+        $messages = new UbillingMessageHelper();
+        $agentId = ubRouting::get(self::ROUTE_EXPORT_AGENT, 'int');
+        $cityId = ubRouting::get(self::ROUTE_EXPORT_CITY, 'int');
+        $rows = $this->collectCoverageRows($agentId, $cityId, $this->exportMode, $this->exportWithGeo, $this->exportMinUsers);
+        $cityName = $this->getCityName($cityId);
+        $agentName = $agentId;
+        if (isset($this->agents[$agentId])) {
+            $agentName = $this->agents[$agentId];
+        }
+
+        $backUrl = self::URL_ME;
+        $result .= wf_BackLink($backUrl) . wf_delimiter();
+        $result .= wf_tag('b') . $agentName . ' / ' . $cityName . wf_tag('b', true);
+        $result .= wf_delimiter(0);
+
+        if (empty($rows)) {
+            $result .= $messages->getStyledMessage(__('Nothing found'), 'warning');
+        } else {
+            $result .= $this->renderCoveragePreviewMap($rows);
+
+            $result .= wf_delimiter(0);
+            $result .= __('Coverage') . ': ';
+        if ($this->exportMode == self::MODE_PREMISES) {
+            $result .= __('Premises');
+        } else {
+            $result .= __('Builds');
+        }
+        $result .= ', ';
+        if ($this->exportWithGeo) {
+            $result .= __('With coordinates');
+        } else {
+            $result .= __('Without coordinates');
+        }
+        if ($this->exportMinUsers > 0) {
+            $result .= ', ' . __('Minimum users in build') . ': ' . $this->exportMinUsers;
+        }
+        if ($this->buildPassportsFlag and $this->exportOnlyApartmentHouses) {
+            $result .= ', ' . __('Apartment house') . ' ' . __('only');
+        }
+            $result .= wf_delimiter(0);
+            $result .= $this->renderCoveragePreviewTable($rows);
+        }
+        return ($result);
+    }
+
+    /**
+     * Renders coverage preview map for collected rows
+     *
+     * @param array $rows
+     *
+     * @return string
+     */
+    protected function renderCoveragePreviewMap($rows) {
+        $result = '';
+        $messages = new UbillingMessageHelper();
+        $map = new MapCore('agentgeopreview');
+        
+        $mappedCount = 0;
+        $centerGeo = '';
+
+        if (!empty($rows)) {
+            foreach ($rows as $io => $row) {
+                $buildId = 0;
+                if (isset($row['build_id'])) {
+                    $buildId = $row['build_id'];
+                }
+                $geoRaw = '';
+                if (isset($this->builds[$buildId])) {
+                    if (isset($this->builds[$buildId]['geo'])) {
+                        $geoRaw = $this->builds[$buildId]['geo'];
+                    }
+                }
+                $geoParts = $this->parseBuildGeo($geoRaw);
+                if (empty($geoParts['lat']) or empty($geoParts['lon'])) {
+                    continue;
+                }
+
+                $coords = $geoParts['lat'] . ',' . $geoParts['lon'];
+                if (empty($centerGeo)) {
+                    $centerGeo = $coords;
+                }
+
+                $title = $row['street'] . ' ' . $row['build'];
+                $popup = __('Street') . ': ' . $row['street'] . wf_tag('br');
+                $popup .= __('Build') . ': ' . $row['build'] . wf_tag('br');
+                $usersCount = 0;
+                if (isset($this->usersPerBuild[$buildId])) {
+                    $usersCount = $this->usersPerBuild[$buildId];
+                }
+                $popup .= __('Users') . ': ' . $usersCount . wf_tag('br');
+                $popup .= __('Geo location') . ': ' . $coords;
+
+                $icon = 'marker.building';
+                if ($this->buildPassportsFlag) {
+                    if ($this->isApartmentHouse($buildId)) {
+                        $icon = 'marker.building';
+                    } else {
+                        $icon = 'marker.house';
+                    }
+                }
+
+                $map->addMarker($coords, $popup, array(
+                    'icon' => $icon,
+                    'tooltip' => $title,
+                    'popupTitle' => $title
+                ));
+                $mappedCount++;
+            }
+        }
+
+        if ($mappedCount > 0) {
+            if (!empty($centerGeo)) {
+                $map->setCenter($centerGeo);
+            }
+            $result .= $map->renderContainer('100%', '500px');
+            $result .= $map->render();
+            $result .= wf_tag('br') . __('Builds') . ' ' . __('on') . ' ' . __('Map') . ': ' . $mappedCount;
+        } else {
+            $result .= $messages->getStyledMessage(__('No builds with geo location found'), 'info');
+        }
+
+        $totalRows = sizeof($rows);
+        if ($totalRows > $mappedCount) {
+            $result .= wf_tag('br') . __('Without coordinates') . ': ' . ($totalRows - $mappedCount);
+        }
+        return ($result);
+    }
+
+    /**
+     * Renders coverage preview table for collected rows
+     *
+     * @param array $rows
+     *
+     * @return string
+     */
+    protected function renderCoveragePreviewTable($rows) {
+        $cells = wf_TableCell(__('ID'));
+        $cells .= wf_TableCell(__('Street'));
+        $cells .= wf_TableCell(__('Build'));
+        $cells .= wf_TableCell(__('Users'));
+        if ($this->buildPassportsFlag) {
+            $cells .= wf_TableCell(__('Type'));
+        }
+        $cells .= wf_TableCell(__('Geo location'));
+        $tableRows = wf_TableRow($cells, 'row1');
+
+        if (!empty($rows)) {
+            foreach ($rows as $io => $row) {
+                $buildId = 0;
+                if (isset($row['build_id'])) {
+                    $buildId = $row['build_id'];
+                }
+                $usersCount = 0;
+                if (isset($this->usersPerBuild[$buildId])) {
+                    $usersCount = $this->usersPerBuild[$buildId];
+                }
+                $geoLabel = '';
+                $lon = '';
+                $lat = '';
+                if (isset($row['lon'])) {
+                    $lon = $row['lon'];
+                }
+                if (isset($row['lat'])) {
+                    $lat = $row['lat'];
+                }
+                if (empty($lon) or empty($lat)) {
+                    if (isset($this->builds[$buildId])) {
+                        if (isset($this->builds[$buildId]['geo'])) {
+                            $geoParts = $this->parseBuildGeo($this->builds[$buildId]['geo']);
+                            $lat = $geoParts['lat'];
+                            $lon = $geoParts['lon'];
+                        }
+                    }
+                }
+                if ((!empty($lat)) and (!empty($lon))) {
+                    $geoLabel = $lat . ', ' . $lon;
+                }
+
+                $cells = wf_TableCell($buildId);
+                $cells .= wf_TableCell($row['street']);
+                $cells .= wf_TableCell($row['build']);
+                $cells .= wf_TableCell($usersCount);
+                if ($this->buildPassportsFlag) {
+                    $typeLabel = __('Private house');
+                    if ($this->isApartmentHouse($buildId)) {
+                        $typeLabel = __('Apartment house');
+                    }
+                    $cells .= wf_TableCell($typeLabel);
+                }
+                $cells .= wf_TableCell($geoLabel);
+                $tableRows .= wf_TableRow($cells, 'row5');
+            }
+        }
+
+        $result = wf_TableBody($tableRows, '100%', '0', 'sortable');
+        $result .= __('Total') . ': ' . sizeof($rows);
+        return ($result);
     }
 
     /**
@@ -804,6 +1094,12 @@ class AgentGeoReport {
                     continue;
                 }
 
+                if ($this->buildPassportsFlag and $this->exportOnlyApartmentHouses) {
+                    if (!$this->isApartmentHouse($buildId)) {
+                        continue;
+                    }
+                }
+
                 $buildData = $this->builds[$buildId];
                 $streetName = '';
                 $streetId = $buildData['streetid'];
@@ -827,6 +1123,7 @@ class AgentGeoReport {
                 }
 
                 $row = array(
+                    'build_id' => $buildId,
                     'id' => '',
                     'oblast' => '',
                     'district' => '',
@@ -854,6 +1151,8 @@ class AgentGeoReport {
 
     /**
      * Returns coverage export column headers
+     * 
+     * TODO: make this headers loadable from some config
      *
      * @param int $withGeo
      *
@@ -925,27 +1224,19 @@ class AgentGeoReport {
         $cityName = $this->getCityName($cityId);
         $result = '';
 
-        if ($withGeo) {
-            $result .= 'ID;Область;Район;Тип населеного пункту;Населений пункт;Тип вулиці;Вулиця;Будинок;Корпус;Тривалість роботи без електроенергії;Довгота;Широта' . "\n";
-        } else {
-            $result .= 'ID;Область;Район;Тип населеного пункту;Населений пункт;Тип вулиці;Вулиця;Будинок;Корпус;Тривалість роботи без електроенергії' . "\n";
+        $headers = $this->getCoverageExportHeaders($withGeo);
+        $csvHeader = array();
+        foreach ($headers as $io => $header) {
+            $csvHeader[] = $this->escapeCsvField($header);
         }
+        $result .= implode(';', $csvHeader) . "\n";
 
         if (!empty($rows)) {
             foreach ($rows as $io => $row) {
+                $cells = $this->coverageRowToCells($row, $withGeo);
                 $csvRow = array();
-                $csvRow[] = $this->escapeCsvField($row['id']);
-                $csvRow[] = $this->escapeCsvField($row['oblast']);
-                $csvRow[] = $this->escapeCsvField($row['district']);
-                $csvRow[] = $this->escapeCsvField($row['settlement_type']);
-                $csvRow[] = $this->escapeCsvField($row['settlement']);
-                $csvRow[] = $this->escapeCsvField($row['street_type']);
-                $csvRow[] = $this->escapeCsvField($row['build']);
-                $csvRow[] = $this->escapeCsvField($row['corpus']);
-                $csvRow[] = $row['power_hours'];
-                if ($withGeo) {
-                    $csvRow[] = $this->escapeCsvField($row['lon']);
-                    $csvRow[] = $this->escapeCsvField($row['lat']);
+                foreach ($cells as $cellIndex => $cellValue) {
+                    $csvRow[] = $this->escapeCsvField($cellValue);
                 }
                 $result .= implode(';', $csvRow) . "\n";
             }

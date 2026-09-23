@@ -3702,3 +3702,7 @@ $lang['def']['With coordinates'] = 'З координатами';
 $lang['def']['Without coordinates'] = 'Без координат';
 $lang['def']['Minimum users in build'] = 'Мінімум користувачів у будинку';
 $lang['def']['Use build ID'] = 'Використовувати ID будинку';
+$lang['def']['only'] = 'тільки';
+$lang['def']['Longitude'] = 'Довгота';
+$lang['def']['Latitude'] = 'Широта';
+$lang['def']['No builds with geo location found'] = 'Не знайдено будинків з геокоординатами';
