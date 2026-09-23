@@ -19,6 +19,13 @@ class MapCore {
     protected $zoom = 15;
 
     /**
+     * Maximum map and tile layers zoom level
+     *
+     * @var int
+     */
+    protected $maxZoom = 19;
+
+    /**
      * Base layer type: roadmap, satellite, hybrid, terrain
      *
      * @var string
@@ -363,6 +370,18 @@ class MapCore {
      */
     public function setZoom($zoom) {
         $this->zoom = (int) $zoom;
+        return ($this);
+    }
+
+    /**
+     * Sets maximum map and tile layers zoom level
+     *
+     * @param int $maxZoom - maximum zoom level
+     *
+     * @return object
+     */
+    public function setMaxZoom($maxZoom) {
+        $this->maxZoom = (int) $maxZoom;
         return ($this);
     }
 
@@ -1494,7 +1513,7 @@ class MapCore {
         }
         $result .= wf_tag('script', false, '', 'type = "text/javascript"');
         $result .= '
-            var map = L.map("' . $this->container . '", {maxZoom: 18});
+            var map = L.map("' . $this->container . '", {maxZoom: ' . (int) $this->maxZoom . '});
             var ubMapZoomStorageKey = "ubMapCore_zoom_' . $this->container . '";
             var ubMapRememberZoom = ' . $rememberZoomJs . ';
             var ubMapRequestedZoom = ' . (int) $this->zoom . ';
@@ -1666,13 +1685,13 @@ class MapCore {
             }
 
             var roadmap = L.tileLayer("' . $tileLayerOSM . '", {
-                maxZoom: 18,
+                maxZoom: ' . (int) $this->maxZoom . ',
                 attribution: \'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors\ ' . $this->additionalAttributions . '\',
                 ' . $tileLayerCustoms . '
             });
-            var satellite = L.tileLayer("' . $tileLayerSatellite . '", {maxZoom: 18, attribution: "© Google"});
-            var hybrid = L.tileLayer("' . $tileLayerHybrid . '", {maxZoom: 18, attribution: "© Google"});
-            var terrain = L.tileLayer("' . $tileLayerTerrain . '", {maxZoom: 18, attribution: "© Google"});
+            var satellite = L.tileLayer("' . $tileLayerSatellite . '", {maxZoom: ' . (int) $this->maxZoom . ', attribution: "© Google"});
+            var hybrid = L.tileLayer("' . $tileLayerHybrid . '", {maxZoom: ' . (int) $this->maxZoom . ', attribution: "© Google"});
+            var terrain = L.tileLayer("' . $tileLayerTerrain . '", {maxZoom: ' . (int) $this->maxZoom . ', attribution: "© Google"});
 
             var ubMapRememberLayer = ' . $rememberLayerJs . ';
             var ubMapLayerStorageKey = "ubMapCore_layer_' . $this->container . '";
