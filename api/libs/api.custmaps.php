@@ -133,6 +133,9 @@ class CustMaps {
     const MARKERS_TOGGLE_LIB = 'modules/jsc/custmaps/markers-toggle.js';
     const KML_IMPORT_TMP_PATH = 'exports/';
 
+    const OPTION_ANIM = 'CUSTMAP_ANIM_LINEEDIT';
+    const OPTION_FIBERS = 'CUSTMAP_FIBERS_AMOUNTS';
+
     const ROUTE_SHOWMAP = 'showmap';
     const ROUTE_DELETEMAP = 'deletemap';
     const ROUTE_SHOWITEMS = 'showitems';
@@ -381,6 +384,41 @@ class CustMaps {
     protected function setDefaults() {
         $this->center = $this->ymapsCfg['CENTER'];
         $this->zoom = $this->ymapsCfg['ZOOM'];
+    }
+
+    /**
+     * Returns fibers amount options for line editor
+     *
+     * @return array
+     */
+    protected function lineGetFibersAmountOptions() {
+        $result = array(
+            '0' => '-',
+            '1' => '1',
+            '2' => '2',
+            '4' => '4',
+            '8' => '8',
+            '12' => '12',
+            '24' => '24',
+            '48' => '48',
+            '96' => '96',
+        );
+
+        //additional fibers amount options
+        if (isset($this->altCfg[self::OPTION_FIBERS]) and !empty($this->altCfg[self::OPTION_FIBERS])) {
+            $extraFibers = explode(',', $this->altCfg[self::OPTION_FIBERS]);
+            if (!empty($extraFibers)) {
+                foreach ($extraFibers as $eachCustomFiber) {
+                    $eachCustomFiber = trim($eachCustomFiber);
+                    if (!empty($eachCustomFiber) and is_numeric($eachCustomFiber)) {
+                        $result[$eachCustomFiber] = $eachCustomFiber;
+                    }
+                }
+                ksort($result, SORT_NUMERIC);
+            }
+        }
+
+        return ($result);
     }
 
     /**
@@ -2201,27 +2239,6 @@ class CustMaps {
         return ($result);
     }
 
-    /**
-     * Returns fibers amount options for line editor
-     * 
-     * @return array
-     */
-    protected function lineGetFibersAmountOptions() {
-        $result = array(
-            '0'=>'-',
-            '1'=>'1',
-            '2'=>'2',
-            '4'=>'4',
-            '8'=>'8',
-            '12'=>'12',
-            '24'=>'24',
-            '48'=>'48',
-            '96'=>'96',
-            '144'=>'144',
-            '216'=>'216',
-        );
-        return ($result);
-    }
 
     /**
      * Returns line location form for map editor
@@ -2278,7 +2295,7 @@ class CustMaps {
         $panelHtml .= '</div>';
         $panelHtml .= $data;
         $animLineEdit = true;
-        if (isset($this->altCfg['CUSTMAP_ANIM_LINEEDIT']) and !$this->altCfg['CUSTMAP_ANIM_LINEEDIT']) {
+        if (isset($this->altCfg[self::OPTION_ANIM]) and !$this->altCfg[self::OPTION_ANIM]) {
             $animLineEdit = false;
         }
         $lineEditorConfig = array(
