@@ -356,7 +356,11 @@ class ReportBuilds {
             $adComments = new ADcomments('BUILDS');
         }
 
-        $actBoxStyle = wf_tag('div', false, '', 'style="width:60px;"');
+        $actBoxWidth = '60px';
+        if ($this->buildPassportsFlag) {
+            $actBoxWidth = '90px';
+        }
+        $actBoxStyle = wf_tag('div', false, '', 'style="width:' . $actBoxWidth . ';"');
         $actBoxStyleEnd = wf_tag('div', true);
 
         if (!empty($this->allBuilds)) {
@@ -383,6 +387,7 @@ class ReportBuilds {
                 }
 
                 if ($filtersPassed) {
+                    $passportMissing = false;
                     if (cfr('ROOT')) {
                         $data[] = $each['id'];
                     }
@@ -407,6 +412,7 @@ class ReportBuilds {
                             $apts = $buildPassport['apts'];
                             $accessNotices = $buildPassport['accessnotices'];
                         } else {
+                            $passportMissing = true;
                             $ownerLabel = '';
                             $ownerPhone = '';
                             $type = wf_img('skins/ymaps/home.png',__('Private house')).' '.'P';
@@ -446,6 +452,10 @@ class ReportBuilds {
                             $actionLinks .= $adComments->getCommentsIndicator($each['id']) . ' ';
                         }
                         $actionLinks .= wf_Link($passportUrl . $each['id'], wf_img('skins/icon_buildpassport.png', __('Build passport'))) . ' ';
+                        if ($passportMissing and cfr('BUILDS')) {
+                            $createPassportUrl = $passportUrl . $each['id'] . '&' . BuildPassport::ROUTE_CREATE . '=true';
+                            $actionLinks .= wf_Link($createPassportUrl, wf_img('skins/icon_addrow.png', __('Create').' '. __('Build passport'))) . ' ';
+                        }
                     }
 
                     if (!empty($each['geo'])) {

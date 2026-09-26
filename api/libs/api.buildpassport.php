@@ -45,6 +45,7 @@ class BuildPassport {
      */
     const URL_PASSPORT = '?module=buildpassport';
     const ROUTE_BUILD = 'buildid';
+    const ROUTE_CREATE = 'createnewpassport';
     const DATA_SOURCE = 'buildpassport';
     const EX_NO_OWNERS = 'EMPTY_OWNERS_PARAM';
     const EX_NO_OPTS = 'NOT_ENOUGHT_OPTIONS';
@@ -116,7 +117,7 @@ class BuildPassport {
     /**
      * returns some build passport edit form
      * 
-     * @praram $buildid existing build id
+     * @praram int $buildid existing build id
      * 
      * @return string
      */
@@ -290,6 +291,25 @@ class BuildPassport {
 
             //reload actual data after saving changes
             $this->loadData();
+        }
+    }
+
+    /**
+     * Creates an empty passport for a build when one does not exist yet
+     *
+     * @param int $buildId
+     *
+     * @return void
+     */
+    public function createEmptyPassport($buildId) {
+        $buildId = ubRouting::filters($buildId, 'int');
+        if (!empty($buildId)) {
+            if (!isset($this->allPassportData[$buildId])) {
+                $this->passportsDb->data('buildid', $buildId);
+                $this->passportsDb->create();
+                log_register('BUILD PASSPORT CREATE [' . $buildId . ']');
+                $this->loadData();
+            }
         }
     }
 

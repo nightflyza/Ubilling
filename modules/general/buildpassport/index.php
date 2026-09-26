@@ -9,6 +9,16 @@ if (cfr('BUILDPASSPORT')) {
             $allBuildsAddress = zb_AddressGetBuildAllAddress();
             $buildLabel = @$allBuildsAddress[$buildId];
 
+            if (!empty($buildId)) {
+                if (ubRouting::checkGet(BuildPassport::ROUTE_CREATE)) {
+                    if (cfr('BUILDS')) {
+                        $passport->createEmptyPassport($buildId);
+                    } else {
+                        show_error(__('Access denied'));
+                    }
+                }
+            }
+
             //passport navigation here
             if (ubRouting::checkGet('back')) {
                 $rawBack = ubRouting::get('back');
