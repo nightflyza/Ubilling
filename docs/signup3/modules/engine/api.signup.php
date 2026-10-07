@@ -624,7 +624,7 @@ class SignupService {
         if ($this->cfgFlag('CITY_DISPLAY')) {
             $cities = $this->cfgList('cities', true);
             if ($this->cfgFlag('CITY_SELECTABLE') and !empty($cities)) {
-                $control = wf_SelectorSearchable('snplc', $this->selectorParams($cities, true), '', '', false, ' autocomplete="off"');
+                $control = str_replace("\n", '', wf_SelectorSearchable('snplc', $this->selectorParams($cities, true), '', '', false, ' autocomplete="off"'));
             } else {
                 $control = wf_TextInput('snplc', '', '', false, '', '', 'sn-control', '', 'autocomplete="off"');
             }
@@ -641,7 +641,7 @@ class SignupService {
     protected function streetInput() {
         $streets = $this->cfgList('streets', true);
         if ($this->cfgFlag('STREET_SELECTABLE') and !empty($streets)) {
-            $control = wf_SelectorSearchable('snln', $this->selectorParams($streets, true), '', '', false, ' autocomplete="off"');
+            $control = str_replace("\n", '', wf_SelectorSearchable('snln', $this->selectorParams($streets, true), '', '', false, ' autocomplete="off"'));
         } else {
             $control = wf_TextInput('snln', '', '', false, '', '', 'sn-control', '', 'autocomplete="off"');
         }
