@@ -424,11 +424,12 @@ class SignupService {
         $result = $this->emptyPayload();
         $cacheName = self::CACHE_PATH . 'config.dat';
         $useCache = false;
+        $mtime = @filemtime($cacheName);
 
-        if (file_exists($cacheName)) {
-            $age = time() - filemtime($cacheName);
+        if ($mtime !== false) {
+            $age = time() - $mtime;
             sn_DebugLog('config cache exists age=' . $age . 's ttl=' . $this->cacheTimeout);
-            if ((filemtime($cacheName) + $this->cacheTimeout) > time()) {
+            if (($mtime + $this->cacheTimeout) > time()) {
                 $useCache = true;
             } else {
                 sn_DebugLog('config cache expired, unlink');
