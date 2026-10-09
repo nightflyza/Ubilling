@@ -277,7 +277,7 @@ class PONCdata17 extends PONProto {
     }
 
     /**
-     * Parses & stores ONU last dereg reasons by plastic index with BDCOM-like coloring
+     * Parses & stores ONU last dereg reasons by plastic index with coloring
      *
      * @param int   $oltid
      * @param array $deregIndex
