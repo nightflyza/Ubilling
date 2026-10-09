@@ -1,13 +1,12 @@
 [define]
-;C-Data FD1732S
-DEVICE="C-Data FD1732S"
+;C-Data XGSPON OLT FD1700S-B3 platform (e.g. FD1732S)
+DEVICE="CDATA_FD1700S"
 
 [signal]
 SIGNALMODE="HAL"
 COLLECTORNAME="PONCdata17"
 
-; Can be "bulk" or "single". With "single" poll type ONU Rx signals will be queried individually, 
-; on a per-ONU basis(yeah, many-many SNMP requests). Default - "bulk".
+;Can be "bulk" or "single". With "single" poll type ONU Rx signals will be queried individually, on a per-ONU basis(yeah, many-many SNMP requests). Default - "bulk".
 ;SIGNAL_POLL_TYPE="bulk"
 
 SIGINDEX=".1.3.6.1.4.1.17409.2.8.4.4.1.4"
@@ -16,6 +15,7 @@ SIGVALUE="INTEGER:"
 MACVALUE="Hex-STRING:"
 OFFSET="100"
 OFFSETMODE="div"
+;FD1700S marks offline ONU optical Rx/Tx as -4000 (shown as -40 after /100)
 DOWNVALUE="-4000"
 
 [misc]
@@ -24,7 +24,7 @@ DISTINDEX=".1.3.6.1.4.1.17409.2.8.4.1.1.9"
 DISTVALUE="INTEGER:"
 
 ;; FDB index OID + DEC FDB MAC + VLAN = plastic index.
-;; On FD1732S Gauge32 often points to uplink eth ifIndex, not ONU plastic - FDB cache may stay empty.
+;; On FD1700S Gauge32 often points to uplink eth ifIndex, not ONU plastic - FDB cache may stay empty.
 FDBMACINDEX=".1.3.6.1.4.1.17409.2.3.2.4.2.1.4"
 FDBMACVALUE="Gauge32:"
 

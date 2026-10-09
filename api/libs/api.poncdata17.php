@@ -1,12 +1,12 @@
 <?php
 
 /**
- * OLT C-Data FD1732S hardware abstraction layer
+ * OLT C-Data FD1700S-B3 (XGSPON) hardware abstraction layer
  */
 class PONCdata17 extends PONProto {
 
     /**
-     * C-Data FD1732S devices polling
+     * C-Data FD1700S devices polling
      *
      * @return void
      */
@@ -39,7 +39,7 @@ class PONCdata17 extends PONProto {
         $macIndexProcessed = $this->macParseCdata17($macIndex);
 
         if ($signalPollType == 'bulk') {
-            // FD1732S SIGINDEX suffix is plastic.0.ponIfIndex - do not strip .0.0
+            // FD1700S SIGINDEX suffix is plastic.0.ponIfIndex - do not strip .0.0
             $sigIndex = $this->walkCleared($oltIPPORT, $oltCommunity,
                                            $this->snmpTemplates[$oltModelId]['signal']['SIGINDEX'],
                                            '',
@@ -174,7 +174,7 @@ class PONCdata17 extends PONProto {
 
     /**
      * Performs signal preprocessing for sig/mac index arrays and stores it into cache.
-     * SIGINDEX keys on FD1732S look like plastic.0.ponIfIndex - use plastic only.
+     * SIGINDEX keys on FD1700S look like plastic.0.ponIfIndex - use plastic only.
      *
      * @param int   $oltid
      * @param array $sigIndex
@@ -415,7 +415,7 @@ class PONCdata17 extends PONProto {
                 $tmpEtherIdx = 'eth' . trim($tmpEtherIdx, '.');
 
                 $tmpONUDevIdx = substr($tmpDevIdxEtherIdx, 0, $tmpDevIdxEtherIdxLen - $tmpEtherIdxLen - 2);
-                // FD1732S: 1 - up, 2 - down (UI expects 1/0)
+                // FD1700S: 1 - up, 2 - down (UI expects 1/0)
                 $tmpUniStatus = trim(trim($line[1]), '"');
                 $tmpUniStatus = ($tmpUniStatus == 1) ? 1 : 0;
                 $uniStats[$tmpONUDevIdx] = array($tmpEtherIdx => $tmpUniStatus);
