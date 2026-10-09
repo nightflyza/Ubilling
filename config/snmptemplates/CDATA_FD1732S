@@ -1,0 +1,61 @@
+[define]
+;C-Data FD1732S
+DEVICE="CDATA_FD1732S"
+
+[signal]
+SIGNALMODE="HAL"
+COLLECTORNAME="PONCdata17"
+
+;Can be "bulk" or "single". With "single" poll type ONU Rx signals will be queried individually, on a per-ONU basis(yeah, many-many SNMP requests). Default - "bulk".
+;SIGNAL_POLL_TYPE="bulk"
+
+SIGINDEX=".1.3.6.1.4.1.17409.2.8.4.4.1.4"
+MACINDEX=".1.3.6.1.4.1.17409.2.8.4.1.1.3"
+SIGVALUE="INTEGER:"
+MACVALUE="Hex-STRING:"
+OFFSET="100"
+OFFSETMODE="div"
+DOWNVALUE="65535"
+
+[misc]
+ONU_RENDER_MODE="serial"
+DISTINDEX=".1.3.6.1.4.1.17409.2.8.4.1.1.9"
+DISTVALUE="INTEGER:"
+
+;; FDB index OID + DEC FDB MAC + VLAN = plastic index.
+;; On FD1732S Gauge32 often points to uplink eth ifIndex, not ONU plastic - FDB cache may stay empty.
+FDBMACINDEX=".1.3.6.1.4.1.17409.2.3.2.4.2.1.4"
+FDBMACVALUE="Gauge32:"
+
+;ONU interface description, e.g. STRING: "gpon 0/1/1 onu 1"
+INTERFACEINDEX=".1.3.6.1.4.1.17409.2.8.4.1.1.2"
+INTERFACEVALUE="STRING:"
+INTERFACEADDPONPREFIX=""
+
+DEREGREASON=".1.3.6.1.4.1.17409.2.8.4.1.1.103"
+DEREGVALUE="STRING:"
+
+LASTALIVETIME=".1.3.6.1.4.1.17409.2.8.4.1.1.12"
+LASTALIVETIMEVAL="Counter32:"
+
+UNIOPERSTATUS=".1.3.6.1.4.1.17409.2.8.5.1.1.5"
+UNIOPERSTATUSVALUE="INTEGER:"
+
+[onu]
+CONTROLMODE="CDATAFD17"
+RELOADONUINDEX=".1.3.6.1.4.1.17409.2.8.4.1.1.10"
+DEREGONUINDEX=".1.3.6.1.4.1.17409.2.8.4.1.1.11"
+ONUTXSIGNAL=".1.3.6.1.4.1.17409.2.8.4.4.1.5"
+ONUTXSIGNALVAL="INTEGER:"
+ONURXSIGNAL=".1.3.6.1.4.1.17409.2.8.4.4.1.4"
+ONURXSIGNALVAL="INTEGER:"
+;Case of the serial number characters:
+;   0 - no case convert
+;   1 - lowercase
+;   2 - uppercase
+SERIAL_CASE_MODE="0"
+
+[system]
+CPULOAD=".1.3.6.1.4.1.34592.1.3.100.1.8.1.0"
+UPTIME=".1.3.6.1.4.1.17409.2.3.1.2.1.1.5"
+TEMPERATURE=".1.3.6.1.4.1.34592.1.3.100.1.8.6.0"

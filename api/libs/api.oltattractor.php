@@ -146,7 +146,7 @@ class OLTAttractor {
      * 
      * @param string $dataContainerName
      * 
-     * @return int/bool on error
+     * @return int|bool on error
      */
     protected function extractOltID($dataContainerName) {
         $result = false;
@@ -185,7 +185,7 @@ class OLTAttractor {
      * Returns content of all OLT data containers with some path and mark
      * 
      * @param string $containerPath
-     * @param string $containerPath
+     * @param string $containerMark
      * 
      * @return array 
      */
