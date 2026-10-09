@@ -277,7 +277,7 @@ class PONCdata17 extends PONProto {
     }
 
     /**
-     * Parses & stores ONU last dereg reasons by plastic index
+     * Parses & stores ONU last dereg reasons by plastic index with BDCOM-like coloring
      *
      * @param int   $oltid
      * @param array $deregIndex
@@ -289,6 +289,28 @@ class PONCdata17 extends PONProto {
         $oltid = vf($oltid, 3);
         $deregTmp = array();
         $result = array();
+        
+        $deregColorsMap = array(
+            'dying-gasp' => '"#6500FF"',
+            'dying gasp' => '"#6500FF"',
+            'power off' => '"#6500FF"',
+            'power-off' => '"#6500FF"',
+            'los' => '"#F80000"',
+            'losi' => '"#F80000"',
+            'pon-los' => '"#F80000"',
+            'wire down' => '"#F80000"',
+            'lofi' => '"#F80000"',
+            'loai' => '"#F80000"',
+            'loami' => '"#F80000"',
+            'deactivation' => '"#FF4400"',
+            'disable' => '"#FF4400"',
+            'admin down' => '"#FF4400"',
+            'admin-down' => '"#FF4400"',
+            'reboot' => '"#000000"',
+            'omcc-down' => '"#000000"',
+            'lcdg' => '"#000000"',
+            'normal' => '"#00B20E"'
+        );
 
         if ((!empty($deregIndex)) and (!empty($macIndexProcessed))) {
             foreach ($deregIndex as $io => $eachdereg) {
@@ -297,7 +319,21 @@ class PONCdata17 extends PONProto {
                 if (isset($line[1])) {
                     $lastDeregRaw = trim(trim($line[1]), '"');
                     $devIndex = trim($line[0]);
-                    $deregTmp[$devIndex] = $lastDeregRaw;
+                    $deregKey = strtolower($lastDeregRaw);
+                    $txtColor = '"#000000"';
+                    $deregText = $lastDeregRaw;
+
+                    if (isset($deregColorsMap[$deregKey])) {
+                        $txtColor = $deregColorsMap[$deregKey];
+                    }
+
+                    if ($deregText === '') {
+                        $deregText = __('On ho');
+                    }
+
+                    $deregTmp[$devIndex] = wf_tag('font', false, '', 'color=' . $txtColor) .
+                            $deregText .
+                            wf_tag('font', true);
                 }
             }
 
