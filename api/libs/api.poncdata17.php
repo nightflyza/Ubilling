@@ -415,7 +415,9 @@ class PONCdata17 extends PONProto {
                 $tmpEtherIdx = 'eth' . trim($tmpEtherIdx, '.');
 
                 $tmpONUDevIdx = substr($tmpDevIdxEtherIdx, 0, $tmpDevIdxEtherIdxLen - $tmpEtherIdxLen - 2);
+                // FD1732S: 1 - up, 2 - down (UI expects 1/0)
                 $tmpUniStatus = trim(trim($line[1]), '"');
+                $tmpUniStatus = ($tmpUniStatus == 1) ? 1 : 0;
                 $uniStats[$tmpONUDevIdx] = array($tmpEtherIdx => $tmpUniStatus);
             }
 
