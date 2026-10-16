@@ -475,6 +475,8 @@ class WHSales {
     /**
      * Returns existing report name by its ID
      * 
+     * @param int $reportId
+     * 
      * @return string
      */
     public function getReportName($reportId) {
@@ -482,6 +484,19 @@ class WHSales {
         $result = '';
         if (isset($this->allReportNames[$reportId])) {
             $result .= $this->allReportNames[$reportId];
+        }
+        return($result);
+    }
+
+    /**
+     * Checks is current report year set to all time mode
+     * 
+     * @return bool
+     */
+    protected function isAllTime() {
+        $result = false;
+        if ($this->showYear == '1488') {
+            $result = true;
         }
         return($result);
     }
@@ -496,6 +511,7 @@ class WHSales {
      */
     protected function filterOutcomes($allOutcomes, $reportItemIds) {
         $result = array();
+        $allTime = $this->isAllTime();
         $yearMask = $this->showYear . '-';
         if (!empty($allOutcomes)) {
             foreach ($allOutcomes as $io => $each) {
@@ -503,9 +519,10 @@ class WHSales {
                     //ignore storage movements, mistakes or cancellations
                     if ($each['desttype'] != 'storage' AND
                             $each['desttype'] != 'mistake' AND
-                            $each['desttype'] != 'cancellation'AND
-                            ispos($each['date'], $yearMask)) {
-                        $result[$io] = $each;
+                            $each['desttype'] != 'cancellation') {
+                        if ($allTime or ispos($each['date'], $yearMask)) {
+                            $result[$io] = $each;
+                        }
                     }
                 }
             }
@@ -520,7 +537,7 @@ class WHSales {
      */
     protected function renderYearSelector() {
         $result = '';
-        $inputs = wf_YearSelectorPreset(self::PROUTE_YEAR, __('Year'), false, ubRouting::post(self::PROUTE_YEAR)) . ' ';
+        $inputs = wf_YearSelectorPreset(self::PROUTE_YEAR, __('Year'), false, $this->showYear, true) . ' ';
         $inputs .= wf_Submit(__('Show'));
         $result .= wf_Form('', 'POST', $inputs, 'glamour');
         return($result);
@@ -731,8 +748,13 @@ class WHSales {
         $dateMonthEnd = curmonth() . '-' . date("t");
         $dateWeekBegin = date("Y-m-d", strtotime('monday this week'));
         $dateWeekEnd = date("Y-m-d", strtotime('sunday this week'));
-        $dateYearBegin = $this->showYear . '-01-01';
-        $dateYearEnd = $this->showYear . '-12-31';
+        if ($this->isAllTime()) {
+            $dateYearBegin = '1970-01-01';
+            $dateYearEnd = '2099-12-31';
+        } else {
+            $dateYearBegin = $this->showYear . '-01-01';
+            $dateYearEnd = $this->showYear . '-12-31';
+        }
         //year selector here
         $result .= $this->renderYearSelector();
         $result .= wf_delimiter(0);
@@ -769,7 +791,7 @@ class WHSales {
                     $cells .= wf_TableCell(__('Day'), '15%');
                     $cells .= wf_TableCell(__('Week'), '15%');
                     $cells .= wf_TableCell(__('Month'), '15%');
-                    $cells .= wf_TableCell(__('Year'), '15%');
+                    $cells .= wf_TableCell(__('Total'), '15%');
                     $rows = wf_TableRow($cells, 'row1');
 
                     foreach ($reportItemIds as $eachItemId => $eachRecId) {
@@ -808,7 +830,7 @@ class WHSales {
                     $cells .= wf_TableCell(__('Day'), '15%');
                     $cells .= wf_TableCell(__('Week'), '15%');
                     $cells .= wf_TableCell(__('Month'), '15%');
-                    $cells .= wf_TableCell(__('Year'), '15%');
+                    $cells .= wf_TableCell(__('Total'), '15%');
                     $rows = wf_TableRow($cells, 'row1');
 
                     foreach ($reportItemIds as $eachItemId => $eachRecId) {
@@ -848,7 +870,7 @@ class WHSales {
                     $cells .= wf_TableCell(__('Day'), '15%');
                     $cells .= wf_TableCell(__('Week'), '15%');
                     $cells .= wf_TableCell(__('Month'), '15%');
-                    $cells .= wf_TableCell(__('Year'), '15%');
+                    $cells .= wf_TableCell(__('Total'), '15%');
                     $rows = wf_TableRow($cells, 'row1');
                     $sellStats = array(
                         'summarycount' => array(
