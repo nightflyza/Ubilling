@@ -227,7 +227,7 @@ class WHSales {
      * 
      * @param string $name
      * 
-     * @return void/string
+     * @return void|string
      */
     public function createReport($name) {
         $nameF = ubRouting::filters($name, 'mres');
@@ -273,7 +273,7 @@ class WHSales {
      * 
      * @param int $reportId
      * 
-     * @return void/error
+     * @return void|error
      */
     public function deleteReport($reportId) {
         $reportId = ubRouting::filters($reportId, 'int');
@@ -609,13 +609,13 @@ class WHSales {
     }
 
     /**
-     * Render sold items year profit chart
+     * Render sold items year money turnover chart
      * 
      * @param array $allOutcomes
      * 
      * @return string
      */
-    protected function renderChartProfit($allOutcomes) {
+    protected function renderChartMoney($allOutcomes) {
         $result = '';
         $chartData = array();
         $chartData[] = array(__('Month'), __('Money'));
@@ -633,6 +633,7 @@ class WHSales {
                             },
                                 'curveType': 'function',
                                 'pointSize': 3,
+                                'colors': ['#27ae60'],
                                 'crosshair': {
                                 trigger: 'none'
                             },";
@@ -654,6 +655,61 @@ class WHSales {
 
             if (sizeof($chartData) > 1) {
                 $result .= wf_gchartsLine($chartData, __('Money'), '100%;', '300px;', $chartOptions);
+            }
+        }
+        return($result);
+    }
+
+    /**
+     * Render sold items year profit chart based on middle income prices
+     * 
+     * @param array $allOutcomes
+     * @param array $midPrices
+     * 
+     * @return string
+     */
+    protected function renderChartProfit($allOutcomes, $midPrices) {
+        $result = '';
+        $chartData = array();
+        $chartData[] = array(__('Month'), __('Profit'));
+        if (!empty($allOutcomes)) {
+            $profitStats = array();
+            $chartOptions = "
+             'focusTarget': 'category',
+                                'hAxis': {
+                                'color': 'none',
+                                    'baselineColor': 'none',
+                            },
+                                'vAxis': {
+                                'color': 'none',
+                                    'baselineColor': 'none',
+                            },
+                                'curveType': 'function',
+                                'pointSize': 3,
+                                'colors': ['#e74c3c'],
+                                'crosshair': {
+                                trigger: 'none'
+                            },";
+
+            foreach ($allOutcomes as $io => $each) {
+                $monthNum = date("Y-m", strtotime($each['date']));
+                $itemMidPrice = (isset($midPrices[$each['itemtypeid']])) ? $midPrices[$each['itemtypeid']] : 0;
+                $itemProfit = ($each['price'] * $each['count']) - ($each['count'] * $itemMidPrice);
+
+                if (isset($profitStats[$monthNum])) {
+                    $profitStats[$monthNum] += $itemProfit;
+                } else {
+                    $profitStats[$monthNum] = $itemProfit;
+                }
+            }
+            if (!empty($profitStats)) {
+                foreach ($profitStats as $eachMonth => $monthStat) {
+                    $chartData[] = array($eachMonth, $monthStat);
+                }
+            }
+
+            if (sizeof($chartData) > 1) {
+                $result .= wf_gchartsLine($chartData, __('Profit'), '100%;', '300px;', $chartOptions);
             }
         }
         return($result);
@@ -867,7 +923,8 @@ class WHSales {
 
                     //some charts here
                     $result .= $this->renderChartCount($yearOutcomes);
-                    $result .= $this->renderChartProfit($yearOutcomes);
+                    $result .= $this->renderChartMoney($yearOutcomes);
+                    $result .= $this->renderChartProfit($yearOutcomes, $midPrices);
                 } else {
                     $result .= $this->messages->getStyledMessage(__('Nothing to show'), 'info');
                 }
