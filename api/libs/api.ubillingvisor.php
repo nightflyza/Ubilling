@@ -511,6 +511,8 @@ class UbillingVisor {
         if (@$this->altCfg['DDT_ENABLED']) {
             $result .= wf_Link(self::URL_ME . self::URL_TARCHANGE, wf_img_sized('skins/icon_tariff.gif', '', '16') . ' ' . __('Tariff will change'), false, 'ubButton') . ' ';
         }
+
+        $result .= wf_Link('?module=cameramap', wf_img('skins/icon_map_small.png') . ' ' . __('Cameras map'), false, 'ubButton') . ' ';
         return ($result);
     }
 

@@ -61,5 +61,7 @@ $lang['def']['Storage'] = 'Сховище';
 $lang['def']['Recording now is running'] = 'Запис зараз триває';
 $lang['def']['Recording is not running'] = 'Запис не запущено';
 $lang['def']['Recording'] = 'Запис';
-$lang['def'][''] = '';
+$lang['def']['Cameras map'] = 'Мапа камер';
+$lang['def']['Surveillance users'] = 'Користувачі відеоспостереження';
+
 

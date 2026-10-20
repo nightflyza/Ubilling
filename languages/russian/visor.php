@@ -61,3 +61,4 @@ $lang['def']['Storage'] = 'Хранилище';
 $lang['def']['Recording now is running'] = 'Запись происходит';
 $lang['def']['Recording is not running'] = 'Запись остановлена';
 $lang['def']['Recording'] = 'Запись';
+$lang['def']['Cameras map'] = 'Карта камер';
