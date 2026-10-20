@@ -661,8 +661,8 @@ class Generators {
             $device = $this->allDevices[$deviceId];
             $latestResuelPrice=$this->getLatestRefuelPrice($deviceId);
             $inputs = wf_HiddenInput(self::PROUTE_REFUEL_DEVICE, $deviceId);
-            $inputs .= wf_TextInput(self::PROUTE_REFUEL_LITERS, __('Litre'), '', true, 6, 'float');
-            $inputs .= wf_TextInput(self::PROUTE_REFUEL_PRICE, __('Price'), $latestResuelPrice, true, 4, 'finance');
+            $inputs .= wf_TextInput(self::PROUTE_REFUEL_LITERS, __('Liters refueled'), '', true, 6, 'float');
+            $inputs .= wf_TextInput(self::PROUTE_REFUEL_PRICE, __('Price per liter'), $latestResuelPrice, true, 4, 'finance');
             $inputs .= wf_Submit(__('Refuel'));
             $form = wf_Form('', 'POST', $inputs, 'glamour');
             $result = wf_modalAuto(wf_img('skins/icon_fuel.png',__('Refuel')), __('Refuel'), $form, '');
@@ -1497,8 +1497,8 @@ class Generators {
             $refuelTime = date('H:i', strtotime($refuel['date']));
             
             $inputs = wf_HiddenInput(self::PROUTE_EDIT_REFUEL, $refuelId);
-            $inputs .= wf_TextInput(self::PROUTE_REFUEL_LITERS, __('Litre'), round($refuel['liters'], 2), false, 6, 'float') . ' ';
-            $inputs .= wf_TextInput(self::PROUTE_REFUEL_PRICE, __('Price'), round($refuel['price'], 2), false, 4, 'finance') . ' ';
+            $inputs .= wf_TextInput(self::PROUTE_REFUEL_LITERS, __('Liters refueled'), round($refuel['liters'], 2), false, 6, 'float') . ' ';
+            $inputs .= wf_TextInput(self::PROUTE_REFUEL_PRICE, __('Price per liter'), round($refuel['price'], 2), false, 4, 'finance') . ' ';
             $inputs .= wf_DatePickerPreset('refueldate', $refuelDate, true);
             $inputs .= wf_tag('label') . __('Date') . wf_tag('label', true) . ' ';
             $inputs .= wf_TimePickerPreset('refueltime', $refuelTime, __('Time'), false) . ' ';

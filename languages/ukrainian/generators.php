@@ -35,3 +35,5 @@ $lang['def']['right to start/stop generators'] = 'Право запускати/
 $lang['def']['Fuel level'] = 'Рівень пального';
 $lang['def']['All events'] = 'Всі події';
 $lang['def']['Low fuel level'] = 'Низький рівень пального';
+$lang['def']['Price per liter'] = 'Ціна за літр';
+$lang['def']['Liters refueled'] = 'Літрів заправлено';
