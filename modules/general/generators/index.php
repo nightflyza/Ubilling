@@ -124,6 +124,10 @@ if (cfr('GENERATORS')) {
         if (ubRouting::checkGet($generators::ROUTE_VIEW_MAP)) {
             show_window(__('Map'), $generators->renderDevicesMap());
         }
+
+        if (ubRouting::checkGet($generators::ROUTE_VIEW_REPORT)) {
+            show_window(__('Report'), $generators->renderReport());
+        }
         
     } else {
         show_error(__('This module is disabled'));

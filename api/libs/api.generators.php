@@ -117,6 +117,7 @@ class Generators {
     const ROUTE_VIEW_REFUELS_ALL='refuelsall';
     const ROUTE_EDIT_REFUEL = 'editrefuelid';
     const ROUTE_VIEW_MAP='rendermap';
+    const ROUTE_VIEW_REPORT = 'report';
 
     //some form routes here
     const PROUTE_NEW_DEVICE = 'createdevice';
@@ -140,6 +141,8 @@ class Generators {
     const PROUTE_SERVICE_DATE = 'servicedate';
     const PROUTE_SERVICE_TIME = 'servicetime';
     const PROUTE_EDIT_SERVICE = 'editservice';
+    const PROUTE_DATE_FROM = 'datefrom';
+    const PROUTE_DATE_TO = 'dateto';
 
     //other stuff
     const WATCHER_PID='GENERATORS';
@@ -483,6 +486,9 @@ class Generators {
 
         $mapUrl = self::URL_ME . '&' . self::ROUTE_VIEW_MAP . '=true';
         $result .= wf_Link($mapUrl, wf_img('skins/icon_map_small.png') . ' ' . __('Map'), false, 'ubButton') . ' ';
+
+        $reportUrl = self::URL_ME . '&' . self::ROUTE_VIEW_REPORT . '=true';
+        $result .= wf_Link($reportUrl, wf_img('skins/ukv/report.png') . ' ' . __('Report'), false, 'ubButton') . ' ';
         
         return ($result);
     }
@@ -1718,6 +1724,238 @@ class Generators {
                 $result[$device['id']] = $this->calculateInTankLevel($device['id']);
             }
         }
+        return ($result);
+    }
+
+    /**
+     * Returns report date range from POST or defaults (month start - today)
+     *
+     * @return array
+     */
+    protected function getReportDateRange() {
+        $result = array(
+            'from' => date('Y-m') . '-01',
+            'to' => curdate()
+        );
+
+        if (ubRouting::checkPost(self::PROUTE_DATE_FROM)) {
+            $result['from'] = ubRouting::post(self::PROUTE_DATE_FROM, 'mres');
+        }
+
+        if (ubRouting::checkPost(self::PROUTE_DATE_TO)) {
+            $result['to'] = ubRouting::post(self::PROUTE_DATE_TO, 'mres');
+        }
+
+        return ($result);
+    }
+
+    /**
+     * Returns device running time in seconds clipped to date range
+     *
+     * @param int $deviceId
+     * @param string $dateFrom
+     * @param string $dateTo
+     *
+     * @return int
+     */
+    protected function getDeviceRuntimeSecondsInRange($deviceId, $dateFrom, $dateTo) {
+        $result = 0;
+        $deviceId = ubRouting::filters($deviceId, 'int');
+        $rangeStart = strtotime($dateFrom . ' 00:00:00');
+        $rangeEnd = strtotime($dateTo . ' 23:59:59');
+        $currentTime = strtotime(curdatetime());
+
+        if ($rangeStart and $rangeEnd and $rangeEnd >= $rangeStart) {
+            $deviceEvents = array();
+            if (!empty($this->allEvents)) {
+                foreach ($this->allEvents as $io => $event) {
+                    if ($event['genid'] == $deviceId) {
+                        $deviceEvents[] = $event;
+                    }
+                }
+            }
+
+            if (!empty($deviceEvents)) {
+                usort($deviceEvents, function ($a, $b) {
+                    return strtotime($a['date']) - strtotime($b['date']);
+                });
+
+                $pendingStart = 0;
+                foreach ($deviceEvents as $io => $event) {
+                    $eventTime = strtotime($event['date']);
+                    if ($event['event'] == 'start') {
+                        $pendingStart = $eventTime;
+                    } else {
+                        if ($event['event'] == 'stop' and $pendingStart > 0) {
+                            $runStart = $pendingStart;
+                            $runEnd = $eventTime;
+                            $overlapStart = ($runStart > $rangeStart) ? $runStart : $rangeStart;
+                            $overlapEnd = ($runEnd < $rangeEnd) ? $runEnd : $rangeEnd;
+                            if ($overlapEnd > $overlapStart) {
+                                $result += ($overlapEnd - $overlapStart);
+                            }
+                            $pendingStart = 0;
+                        }
+                    }
+                }
+
+                if ($pendingStart > 0) {
+                    $deviceRunning = (isset($this->allDevices[$deviceId]) and $this->allDevices[$deviceId]['running']);
+                    if ($deviceRunning) {
+                        $runEnd = ($currentTime < $rangeEnd) ? $currentTime : $rangeEnd;
+                        $overlapStart = ($pendingStart > $rangeStart) ? $pendingStart : $rangeStart;
+                        if ($runEnd > $overlapStart) {
+                            $result += ($runEnd - $overlapStart);
+                        }
+                    }
+                }
+            }
+        }
+
+        return ($result);
+    }
+
+    /**
+     * Returns device start events count for date range
+     *
+     * @param int $deviceId
+     * @param string $dateFrom
+     * @param string $dateTo
+     *
+     * @return int
+     */
+    protected function getDeviceStartsCountInRange($deviceId, $dateFrom, $dateTo) {
+        $result = 0;
+        $deviceId = ubRouting::filters($deviceId, 'int');
+
+        if (!empty($this->allEvents)) {
+            foreach ($this->allEvents as $io => $event) {
+                if ($event['genid'] == $deviceId and $event['event'] == 'start') {
+                    if (zb_isDateBetween($dateFrom, $dateTo, $event['date'])) {
+                        $result++;
+                    }
+                }
+            }
+        }
+
+        return ($result);
+    }
+
+    /**
+     * Returns refuel liters and cost totals per device for date range
+     *
+     * @param string $dateFrom
+     * @param string $dateTo
+     *
+     * @return array
+     */
+    protected function getRefuelsTotalsInRange($dateFrom, $dateTo) {
+        $result = array();
+
+        if (!empty($this->allRefuels)) {
+            foreach ($this->allRefuels as $io => $refuel) {
+                if (zb_isDateBetween($dateFrom, $dateTo, $refuel['date'])) {
+                    $deviceId = $refuel['genid'];
+                    if (!isset($result[$deviceId])) {
+                        $result[$deviceId] = array(
+                            'liters' => 0,
+                            'cost' => 0
+                        );
+                    }
+                    $result[$deviceId]['liters'] += $refuel['liters'];
+                    $result[$deviceId]['cost'] += ($refuel['liters'] * $refuel['price']);
+                }
+            }
+        }
+
+        return ($result);
+    }
+
+    /**
+     * Renders generators period report with motohours, fuel consumption and refuels
+     *
+     * @return string
+     */
+    public function renderReport() {
+        $result = '';
+        $dateRange = $this->getReportDateRange();
+        $dateFrom = $dateRange['from'];
+        $dateTo = $dateRange['to'];
+        $actionUrl = self::URL_ME . '&' . self::ROUTE_VIEW_REPORT . '=true';
+
+        $inputs = wf_DatePickerPreset(self::PROUTE_DATE_FROM, $dateFrom, true) . ' ' . __('From') . ' ';
+        $inputs .= wf_DatePickerPreset(self::PROUTE_DATE_TO, $dateTo, true) . ' ' . __('To') . ' ';
+        $inputs .= wf_Submit(__('Show'));
+        $result .= wf_Form($actionUrl, 'POST', $inputs, 'glamour');
+        $result .= wf_delimiter();
+
+        if (!empty($this->allDevices)) {
+            $refuelsTotals = $this->getRefuelsTotalsInRange($dateFrom, $dateTo);
+            $columns = array(
+                __('Device'),
+                __('Starts'),
+                __('Motohours'),
+                __('Fuel consumption') .' ('.__('litre').')',
+                __('Refuels').' ('.__('litre').')',
+                __('Total cost')
+            );
+            $data = array();
+            $totalStarts = 0;
+            $totalSeconds = 0;
+            $totalFuel = 0;
+            $totalLiters = 0;
+            $totalCost = 0;
+
+            foreach ($this->allDevices as $deviceId => $device) {
+                $startsCount = $this->getDeviceStartsCountInRange($deviceId, $dateFrom, $dateTo);
+                $seconds = $this->getDeviceRuntimeSecondsInRange($deviceId, $dateFrom, $dateTo);
+                $fuelConsumed = $this->calculateFuelConsumption($deviceId, $seconds);
+                $litersRefueled = 0;
+                $refuelCost = 0;
+                if (isset($refuelsTotals[$deviceId])) {
+                    $litersRefueled = $refuelsTotals[$deviceId]['liters'];
+                    $refuelCost = $refuelsTotals[$deviceId]['cost'];
+                }
+
+                if ($seconds > 0 or $litersRefueled > 0 or $startsCount > 0) {
+                    $deviceName = $device['model'] . ' - ' . $device['address'];
+                    $motohours = round($seconds / 3600, 2);
+                    $data[] = array(
+                        $deviceName,
+                        $startsCount,
+                        $motohours,
+                        round($fuelConsumed, 2),
+                        round($litersRefueled, 2),
+                        round($refuelCost, 2)
+                    );
+                    $totalStarts += $startsCount;
+                    $totalSeconds += $seconds;
+                    $totalFuel += $fuelConsumed;
+                    $totalLiters += $litersRefueled;
+                    $totalCost += $refuelCost;
+                }
+            }
+
+            if (!empty($data)) {
+                $opts = '"order": [[ 0, "asc" ]], "dom": \'<"F"lfB>rti<"F"ps>\',  buttons: [\'csv\', \'excel\', \'pdf\', \'print\']';
+                $result .= wf_JqDtEmbed($columns, $data, false, __('Report'), 50, $opts);
+                $result .= wf_delimiter(0);
+                $result .= __('Starts') . ': ' . $totalStarts . wf_tag('br');
+                $result .= __('Motohours') . ': ' . round($totalSeconds / 3600, 2) . wf_tag('br');
+                $result .= __('Fuel consumption') . ': ' . round($totalFuel, 2) . ' ' . __('litre') . wf_tag('br');
+                $result .= __('Liters refueled') . ': ' . round($totalLiters, 2) . ' ' . __('litre') . wf_tag('br');
+                $result .= __('Total refuels cost') . ': ' . round($totalCost, 2);
+            } else {
+                $result .= $this->messages->getStyledMessage(__('Nothing to show'), 'warning');
+            }
+        } else {
+            $result .= $this->messages->getStyledMessage(__('Nothing to show'), 'warning');
+        }
+
+        $backUrl = self::URL_ME . '&' . self::ROUTE_DEVICES . '=true';
+        $result .= wf_delimiter();
+        $result .= wf_BackLink($backUrl);
+
         return ($result);
     }
 }
