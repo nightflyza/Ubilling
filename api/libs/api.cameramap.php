@@ -130,7 +130,7 @@ class CameraMap {
     public function drawCameras() {
         $footerDelimiter = wf_tag('br');
         $visorIcon = wf_img('skins/icon_camera_small.png', __('Video surveillance user profile'));
-        $profileIcon = web_profile_icon();
+        $profileIcon = wf_img('skins/icon_user_16.gif', __('Profile'));
 
         if (!empty($this->allCams)) {
             foreach ($this->allCams as $io => $each) {
