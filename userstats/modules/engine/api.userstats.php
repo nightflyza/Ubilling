@@ -24,7 +24,7 @@ function zbs_UserCheckLoginAuth($login, $password) {
                     $result = $data['IP'];
                 }
             }
-        }
+        }  
     }
     return ($result);
 }
@@ -41,7 +41,7 @@ function zbs_UserDetectIp($debug = false) {
 
     //force REST API auth
     if (ubRouting::checkGet('uberlogin', 'uberpassword')) {
-        $ip = zbs_UserCheckLoginAuth(ubRouting::get('uberlogin','login'), ubRouting::get('uberpassword','gigasafe'));
+        $ip = zbs_UserCheckLoginAuth(ubRouting::get('uberlogin'), ubRouting::get('uberpassword'));
         if (!empty($ip)) {
             return ($ip);
         } else {
