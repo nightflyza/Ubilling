@@ -1,21 +1,21 @@
 <?php
 
 /**
- * Returns user IP by password auth
+ * Returns user IP by password auth or empty string if auth failed
  * 
- * @param string $login
- * @param string $password
+ * @param string $login login of user
+ * @param string $password md5 hash of password
  * 
  * @return string|void on error
  */
 function zbs_UserCheckLoginAuth($login, $password) {
     $result = '';
-    $loginRaw=$login;
-    $passwordRaw=$password;
+    $loginRaw = $login;
+    $passwordRaw = $password;
     $loginFiltered = ubRouting::filters($login, 'login');
     $passwordFiltered = ubRouting::filters($password, 'gigasafe');
-    
-    if ($loginFiltered===$loginRaw and $passwordFiltered===$passwordRaw) {
+
+    if ($loginFiltered === $loginRaw and $passwordFiltered === $passwordRaw) {
         if (!empty($loginFiltered) and (!empty($passwordFiltered))) {
             if (is_string($loginFiltered) and is_string($passwordFiltered)) {
                 $query = "SELECT `IP` from `users` WHERE `login`='" . $loginFiltered . "' AND MD5(`password`)='" . $passwordFiltered . "'";
@@ -24,7 +24,7 @@ function zbs_UserCheckLoginAuth($login, $password) {
                     $result = $data['IP'];
                 }
             }
-        }  
+        }
     }
     return ($result);
 }
@@ -38,8 +38,9 @@ function zbs_UserCheckLoginAuth($login, $password) {
 function zbs_UserDetectIp($debug = false) {
     $glob_conf = zbs_LoadConfig();
     $ip = '';
+    $tryCookieAuth = false;
 
-    //force REST API auth
+    //force REST API auth - raw GET, validation inside zbs_UserCheckLoginAuth
     if (ubRouting::checkGet('uberlogin', 'uberpassword')) {
         $ip = zbs_UserCheckLoginAuth(ubRouting::get('uberlogin'), ubRouting::get('uberpassword'));
         if (!empty($ip)) {
@@ -57,13 +58,7 @@ function zbs_UserDetectIp($debug = false) {
 
     //password based auth
     if ($glob_conf['auth'] == 'login') {
-        if ((isset($_COOKIE['ulogin'])) and (isset($_COOKIE['upassword']))) {
-            if (is_string($_COOKIE['ulogin']) and is_string($_COOKIE['upassword'])) {
-                $ulogin = trim(vf($_COOKIE['ulogin']));
-                $upassword = trim(vf($_COOKIE['upassword']));
-                $ip = zbs_UserCheckLoginAuth($ulogin, $upassword);
-            }
-        }
+        $tryCookieAuth = true;
     }
 
     //trying to find user by IP, than if failed - login based auth.
@@ -79,12 +74,15 @@ function zbs_UserDetectIp($debug = false) {
         }
 
         if (!$authorizedByIp) {
-            if ((isset($_COOKIE['ulogin'])) and (isset($_COOKIE['upassword']))) {
-                if (is_string($_COOKIE['ulogin']) and is_string($_COOKIE['upassword'])) {
-                    $ulogin = trim(vf($_COOKIE['ulogin']));
-                    $upassword = trim(vf($_COOKIE['upassword']));
-                    $ip = zbs_UserCheckLoginAuth($ulogin, $upassword);
-                }
+            $tryCookieAuth = true;
+        }
+    }
+
+    //cookie credentials are untrusted - same path as uberlogin/uberpassword
+    if ($tryCookieAuth) {
+        if ((isset($_COOKIE['ulogin'])) and (isset($_COOKIE['upassword']))) {
+            if (is_string($_COOKIE['ulogin']) and is_string($_COOKIE['upassword'])) {
+                $ip = zbs_UserCheckLoginAuth($_COOKIE['ulogin'], $_COOKIE['upassword']);
             }
         }
     }

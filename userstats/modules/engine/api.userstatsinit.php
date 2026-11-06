@@ -31,15 +31,17 @@ $langglobal = zbs_LoadLang($lang);
 
 //if enabled login based auth
 if ($statsconfig['auth'] == 'login' or $statsconfig['auth'] == 'both') {
-    if ((isset($_POST['ulogin'])) and isset($_POST['upassword'])) {
-        if (is_string($_POST['ulogin']) and is_string($_POST['upassword'])) {
-            //setting auth cookies subroutine
-            $ulogin = trim(vf($_POST['ulogin']));
-            $upassword = trim(vf($_POST['upassword']));
-            $upassword = md5($upassword);
-            setcookie("ulogin", $ulogin, time() + 2592000);
-            setcookie("upassword", $upassword, time() + 2592000);
-            rcms_redirect("index.php");
+    if (ubRouting::checkPost(array('ulogin', 'upassword'))) {
+        $loginRaw = ubRouting::post('ulogin');
+        $passwordRaw = ubRouting::post('upassword');
+        if (is_string($loginRaw) and is_string($passwordRaw)) {
+            $loginFiltered = ubRouting::filters($loginRaw, 'login');
+            if ($loginFiltered === $loginRaw and (!empty($loginFiltered))) {
+                $passwordHash = md5($passwordRaw);
+                setcookie("ulogin", $loginFiltered, time() + 2592000);
+                setcookie("upassword", $passwordHash, time() + 2592000);
+                rcms_redirect("index.php");
+            }
         }
     }
 

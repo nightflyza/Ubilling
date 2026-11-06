@@ -18,6 +18,7 @@ header("Pragma: no-cache");
 define('USERSTATS_LIBS_PATH', 'modules/engine/');
 require_once(USERSTATS_LIBS_PATH . 'api.mysql.php');
 require_once(USERSTATS_LIBS_PATH . 'api.compat.php');
+require_once(USERSTATS_LIBS_PATH . 'api.ubrouting.php');
 require_once(USERSTATS_LIBS_PATH . 'api.userstatsinit.php');
 
 $userstatsEngineLibs = rcms_scandir(USERSTATS_LIBS_PATH, '*.php');
