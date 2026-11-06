@@ -5,22 +5,24 @@
  * 
  * @param string $login
  * @param string $password
- * @return string/void on error
+ * 
+ * @return string|void on error
  */
 function zbs_UserCheckLoginAuth($login, $password) {
     $result = '';
-    $login = vf($login);
-    $login = preg_replace('#[^a-z0-9A-Z\-_\.]#Uis', '', $login);
-    $login = preg_replace('/\0/s', '', $login);
-    $password = vf($password);
-    $password = preg_replace('#[^a-z0-9A-Z\-_\.]#Uis', '', $password);
-    $password = preg_replace('/\0/s', '', $password);
-    if (!empty($login) and (!empty($password))) {
-        if (is_string($login) and is_string($password)) {
-            $query = "SELECT `IP` from `users` WHERE `login`='" . $login . "' AND MD5(`password`)='" . $password . "'";
-            $data = simple_query($query);
-            if (!empty($data)) {
-                $result = $data['IP'];
+    $loginRaw=$login;
+    $passwordRaw=$password;
+    $loginFiltered = ubRouting::filters($login, 'login');
+    $passwordFiltered = ubRouting::filters($password, 'gigasafe');
+    
+    if ($loginFiltered===$loginRaw and $passwordFiltered===$passwordRaw) {
+        if (!empty($loginFiltered) and (!empty($passwordFiltered))) {
+            if (is_string($loginFiltered) and is_string($passwordFiltered)) {
+                $query = "SELECT `IP` from `users` WHERE `login`='" . $loginFiltered . "' AND MD5(`password`)='" . $passwordFiltered . "'";
+                $data = simple_query($query);
+                if (!empty($data)) {
+                    $result = $data['IP'];
+                }
             }
         }
     }
