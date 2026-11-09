@@ -27,7 +27,7 @@ class TrinityTvApi {
      *
      * @var string
      */
-    protected $urlApi = 'http://partners.trinity-tv.net/partners';
+    protected $urlApi = 'https://partners.trinity-tv.net/partners';
 
     /**
      * Debug flag
