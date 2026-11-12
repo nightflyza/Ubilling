@@ -434,8 +434,8 @@ class XMLAgent {
 
                 if (ubRouting::checkGet('feecharges')) {
                     $subSection     = 'feecharge';
-                    $date_from      = ubRouting::checkGet('datefrom') ? ubRouting::get('datefrom') : '';
-                    $date_to        = ubRouting::checkGet('dateto') ? ubRouting::get('dateto') : '';
+                    $date_from      = ubRouting::checkGet('datefrom') ? ubRouting::get('datefrom','mres') : '';
+                    $date_to        = ubRouting::checkGet('dateto') ? ubRouting::get('dateto','mres') : '';
                     $resultToRender = $this->getUserFeeCharges($user_login, $date_from, $date_to);
                 }
 
@@ -458,7 +458,7 @@ class XMLAgent {
                     and ubRouting::get('tickettype') == self::TICKET_TYPE_SUPPORT
                 ) {
                     $text           = base64_decode(ubRouting::get('tickettext','raw'));
-                    $replyID        = ubRouting::checkGet('reply_id') ? ubRouting::get('reply_id') : 0;
+                    $replyID        = ubRouting::checkGet('reply_id') ? ubRouting::get('reply_id', 'int') : 0;
                     $debugData      = empty($replyID) ? 'replyID: ' . $replyID . '  ' . $text : $text;
                     $restapiMethod  = 'supportticketcreate';
                     $resultToRender = $this->createSupportTicket($user_login, $text, $replyID);
@@ -1112,11 +1112,15 @@ class XMLAgent {
      */
     protected function getUserFeeCharges($login, $date_from = '', $date_to = '') {
         $feeCharges         = array();
+        
+        $date_from = zbs_checkDate($date_from) ? $date_from : '';
+        $date_to = zbs_checkDate($date_to) ? $date_to : '';
+
         $vservicesLabeled   = zbs_VservicesGetAllNamesLabeled();
         $tmpFees            = zbs_GetUserDBFees($login, $date_from, $date_to);
         $tmpAdditionalFees  = zbs_GetUserAdditionalFees($login, $date_from, $date_to);
         $allFees            = zbs_concatArraysAvoidDuplicateKeys($tmpFees, $tmpAdditionalFees);
-
+       
         if (!empty($allFees)) {
             ksort($allFees);
         }
@@ -1138,7 +1142,7 @@ class XMLAgent {
                 }
             }
         }
-
+        
         return ($feeCharges);
     }
 
@@ -1294,6 +1298,7 @@ class XMLAgent {
      */
     protected function createSupportTicket($login, $tickettext, $replyID) {
         $ticketID = 0;
+        $replyID  = ubRouting::filters($replyID, 'int');
         $replyID  = empty($replyID) ? 'NULL' : $replyID;
         $result   = array();
         $ticketDeniedUsers=zbs_GetHelpdeskDeniedAll();
@@ -1345,7 +1350,64 @@ class XMLAgent {
 
 
     /**
+     * Extracts scalar string field from decoded signup JSON
+     *
+     * @param array $raw
+     * @param string $name
+     *
+     * @return string
+     */
+    protected function extractSignupField($raw, $name) {
+        $result = '';
+        if (isset($raw[$name])) {
+            if (!is_array($raw[$name]) and !is_object($raw[$name])) {
+                $result = strval($raw[$name]);
+            }
+        }
+        return ($result);
+    }
+
+    /**
+     * Sanitizes signup text field and cuts it to column length
+     *
+     * @param string $data
+     * @param int $maxLen
+     * @param bool $emsafe
+     *
+     * @return string
+     */
+    protected function sanitizeSignupText($data, $maxLen, $emsafe = false) {
+        $result = '';
+        if (!is_array($data) and !is_object($data)) {
+            $result = trim($data);
+            $result = ubRouting::filters($result, 'nb');
+            if ($emsafe) {
+                $result = ubRouting::filters($result, 'emsafe');
+            } else {
+                $result = ubRouting::filters($result, 'safe');
+            }
+            if (strlen($result) > $maxLen) {
+                $result = substr($result, 0, $maxLen);
+            }
+        }
+        return ($result);
+    }
+
+    /**
      * Sign up request creation routine
+     *
+     * Expected $requestBody JSON structure:
+     * {
+     *   "ip": "app_IP_addr",
+     *   "street": "Some_City Some_Street",
+     *   "build": "111",
+     *   "apt": "222",
+     *   "realname": "FirstName LastName",
+     *   "phone": "0551234567",
+     *   "service": "Internet",
+     *   "notes": "Some important notes here"
+     * }
+     * date/state are set server-side and ignored from client input.
      *
      * @param string $requestBody
      *
@@ -1354,29 +1416,42 @@ class XMLAgent {
      */
     protected function createSignUpRequest($requestBody) {
         $sigreqID = 0;
-        $result   = array();
+        $result = array();
 
-// expected $requestBody JSON structure:
-/*
-{
-    "date": "2024-02-29 19:57:50",
-    "state": 0,
-    "ip": "app_IP_addr",
-    "street": "Some_City Some_Street",
-    "build": "111",
-    "apt": "222",
-    "realname": "FirstName LastName",
-    "phone": "0551234567",
-    "service": "Internet",
-    "notes": "Some important notes here"
-}
-*/
         if (!empty($requestBody)) {
-            $requestBody = json_decode($requestBody);
-            $sigreqDB = new NyanORM('sigreq');
-            $sigreqDB->dataArr($requestBody);
-            $sigreqDB->create();
-            $sigreqID = $sigreqDB->getLastId();
+            $decodedBody = json_decode($requestBody, true);
+            if (is_array($decodedBody)) {
+                $street = $this->sanitizeSignupText($this->extractSignupField($decodedBody, 'street'), 255);
+                $build = $this->sanitizeSignupText($this->extractSignupField($decodedBody, 'build'), 40);
+                $apt = $this->sanitizeSignupText($this->extractSignupField($decodedBody, 'apt'), 40);
+                $realname = $this->sanitizeSignupText($this->extractSignupField($decodedBody, 'realname'), 255);
+                $service = $this->sanitizeSignupText($this->extractSignupField($decodedBody, 'service'), 255);
+                $notes = $this->sanitizeSignupText($this->extractSignupField($decodedBody, 'notes'), 4096, true);
+                $phone = ubRouting::filters(trim($this->extractSignupField($decodedBody, 'phone')), 'int');
+                if (strlen($phone) > 255) {
+                    $phone = substr($phone, 0, 255);
+                }
+
+                $ip = '';
+                $rawIp = trim($this->extractSignupField($decodedBody, 'ip'));
+                if (filter_var($rawIp, FILTER_VALIDATE_IP) and strlen($rawIp) <= 40) {
+                    $ip = $rawIp;
+                }
+
+                $sigreqDB = new NyanORM('sigreq');
+                $sigreqDB->data('date', ubRouting::filters(curdatetime(), 'mres'));
+                $sigreqDB->data('state', '0');
+                $sigreqDB->data('ip', ubRouting::filters($ip, 'mres'));
+                $sigreqDB->data('street', ubRouting::filters($street, 'mres'));
+                $sigreqDB->data('build', ubRouting::filters($build, 'mres'));
+                $sigreqDB->data('apt', ubRouting::filters($apt, 'mres'));
+                $sigreqDB->data('realname', ubRouting::filters($realname, 'mres'));
+                $sigreqDB->data('phone', ubRouting::filters($phone, 'mres'));
+                $sigreqDB->data('service', ubRouting::filters($service, 'mres'));
+                $sigreqDB->data('notes', ubRouting::filters($notes, 'mres'));
+                $sigreqDB->create();
+                $sigreqID = $sigreqDB->getLastId();
+            }
         }
 
         if (empty($sigreqID)) {

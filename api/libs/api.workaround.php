@@ -5000,17 +5000,23 @@ function zb_CheckPHPExtensions() {
 }
 
 /**
- * Validate a Gregorian date 
- * 
+ * Validate a Gregorian date in strict MySQL date format Y-m-d
+ *
  * @param string $date Date in MySQL format
+ *
  * @return bool
  */
 function zb_checkDate($date) {
-    $explode = explode('-', $date);
-    @$year = $explode[0];
-    @$month = $explode[1];
-    @$day = $explode[2];
-    $result = @checkdate($month, $day, $year);
+    $result = false;
+    if (is_string($date) and preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) {
+        $parts = explode('-', $date);
+        $year = (int) $parts[0];
+        $month = (int) $parts[1];
+        $day = (int) $parts[2];
+        if (checkdate($month, $day, $year)) {
+            $result = true;
+        }
+    }
     return ($result);
 }
 

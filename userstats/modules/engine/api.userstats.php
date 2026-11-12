@@ -3570,3 +3570,24 @@ function zbs_ManifestCatchRequest() {
         $manifestor->render();
     }
 }
+
+/**
+ * Validate a Gregorian date in strict MySQL date format Y-m-d
+ *
+ * @param string $date Date in MySQL format
+ *
+ * @return bool
+ */
+function zbs_checkDate($date) {
+    $result = false;
+    if (is_string($date) and preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) {
+        $parts = explode('-', $date);
+        $year = (int) $parts[0];
+        $month = (int) $parts[1];
+        $day = (int) $parts[2];
+        if (checkdate($month, $day, $year)) {
+            $result = true;
+        }
+    }
+    return ($result);
+}
