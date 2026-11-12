@@ -130,7 +130,7 @@ class YTVInterface {
      * @return array
      */
     protected function getSubscriberData() {
-        $request = 'subdata=' . $this->myLogin;
+        $request = 'subdata=' . urlencode($this->myLogin);
         $result = $this->getRemoteData($request);
 
         return($result);
@@ -177,7 +177,7 @@ class YTVInterface {
      * @return array
      */
     protected function getFullData() {
-        $request = 'fulldata=' . $this->myLogin;
+        $request = 'fulldata=' . urlencode($this->myLogin);
         $result = $this->getRemoteData($request);
         return($result);
     }
@@ -425,7 +425,7 @@ class YTVInterface {
     protected function getCredentials($userLogin) {
         $result = array();
         if (!empty($userLogin)) {
-            $resultRaw = $this->getRemoteData('getcredentials=' . $userLogin);
+            $resultRaw = $this->getRemoteData('getcredentials=' . urlencode($userLogin));
             if (!empty($resultRaw)) {
                 $result = $resultRaw;
             }
@@ -441,7 +441,7 @@ class YTVInterface {
      * @return void
      */
     public function unsubscribe($tariffId) {
-        $request = 'unsub=' . $tariffId . '&subid=' . $this->subscriberId;
+        $request = 'unsub=' . urlencode($tariffId) . '&subid=' . urlencode($this->subscriberId);
         $this->getRemoteData($request);
     }
 
@@ -453,7 +453,7 @@ class YTVInterface {
      * @return void
      */
     public function subscribe($tariffId) {
-        $request = 'subserv=' . $tariffId . '&sublogin=' . $this->myLogin;
+        $request = 'subserv=' . urlencode($tariffId) . '&sublogin=' . urlencode($this->myLogin);
         $this->getRemoteData($request);
     }
 

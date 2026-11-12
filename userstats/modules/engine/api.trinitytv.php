@@ -336,7 +336,7 @@ class TrinityTvFrontend {
      * @return bool|string
      */
     public function pushDeviceAddMacRequest($mac) {
-        $action = $this->apiUrl . '?module=remoteapi&key=' . $this->apiKey . '&action=trinitytvcontrol&param=adddevice&userlogin=' . $this->userLogin . '&mac=' . $mac;
+        $action = $this->apiUrl . '?module=remoteapi&key=' . urlencode($this->apiKey) . '&action=trinitytvcontrol&param=adddevice&userlogin=' . urlencode($this->userLogin) . '&mac=' . urlencode($mac);
         @$result = file_get_contents($action);
 
         return ($result);
@@ -349,7 +349,7 @@ class TrinityTvFrontend {
      * @return bool|string
      */
     public function pushDeviceAddCodeRequest($code) {
-        $action = $this->apiUrl . '?module=remoteapi&key=' . $this->apiKey . '&action=trinitytvcontrol&param=adddevice&userlogin=' . $this->userLogin . '&code=' . $code;
+        $action = $this->apiUrl . '?module=remoteapi&key=' . urlencode($this->apiKey) . '&action=trinitytvcontrol&param=adddevice&userlogin=' . urlencode($this->userLogin) . '&code=' . urlencode($code);
         @$result = file_get_contents($action);
 
         return ($result);
@@ -362,7 +362,7 @@ class TrinityTvFrontend {
      * @return bool|string
      */
     public function pushDeviceDeleteRequest($mac) {
-        $action = $this->apiUrl . '?module=remoteapi&key=' . $this->apiKey . '&action=trinitytvcontrol&param=deldevice&userlogin=' . $this->userLogin . '&mac=' . $mac;
+        $action = $this->apiUrl . '?module=remoteapi&key=' . urlencode($this->apiKey) . '&action=trinitytvcontrol&param=deldevice&userlogin=' . urlencode($this->userLogin) . '&mac=' . urlencode($mac);
         @$result = file_get_contents($action);
         return ($result);
     }
@@ -374,7 +374,7 @@ class TrinityTvFrontend {
      * @return bool|string
      */
     public function pushDeviceIdDeleteRequest($deviceId) {
-        $action = $this->apiUrl . '?module=remoteapi&key=' . $this->apiKey . '&action=trinitytvcontrol&param=deldeviceid&userlogin=' . $this->userLogin . '&devid=' . $deviceId;
+        $action = $this->apiUrl . '?module=remoteapi&key=' . urlencode($this->apiKey) . '&action=trinitytvcontrol&param=deldeviceid&userlogin=' . urlencode($this->userLogin) . '&devid=' . urlencode($deviceId);
         @$result = file_get_contents($action);
         return ($result);
     }
@@ -386,7 +386,7 @@ class TrinityTvFrontend {
      * @return bool|string
      */
     public function pushSubscribeRequest($tariffid) {
-        $action = $this->apiUrl . '?module=remoteapi&key=' . $this->apiKey . '&action=trinitytvcontrol&param=subscribe&userlogin=' . $this->userLogin . '&tariffid=' . $tariffid;
+        $action = $this->apiUrl . '?module=remoteapi&key=' . urlencode($this->apiKey) . '&action=trinitytvcontrol&param=subscribe&userlogin=' . urlencode($this->userLogin) . '&tariffid=' . urlencode($tariffid);
         @$result = file_get_contents($action);
 
         return ($result);
@@ -399,7 +399,7 @@ class TrinityTvFrontend {
      * @return bool|string
      */
     public function pushUnsubscribeRequest($tariffid) {
-        $action = $this->apiUrl . '?module=remoteapi&key=' . $this->apiKey . '&action=trinitytvcontrol&param=unsubscribe&userlogin=' . $this->userLogin . '&tariffid=' . $tariffid;
+        $action = $this->apiUrl . '?module=remoteapi&key=' . urlencode($this->apiKey) . '&action=trinitytvcontrol&param=unsubscribe&userlogin=' . urlencode($this->userLogin) . '&tariffid=' . urlencode($tariffid);
         @$result = file_get_contents($action);
         return ($result);
     }

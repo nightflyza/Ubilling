@@ -143,7 +143,7 @@ class PTVInterface {
      * @return array
      */
     protected function getSubscriberData() {
-        $request = 'subdata=' . $this->myLogin;
+        $request = 'subdata=' . urlencode($this->myLogin);
         $result = $this->getRemoteData($request);
         return($result);
     }
@@ -189,7 +189,7 @@ class PTVInterface {
      * @return array
      */
     protected function getFullData() {
-        $request = 'fulldata=' . $this->myLogin;
+        $request = 'fulldata=' . urlencode($this->myLogin);
         $result = $this->getRemoteData($request);
         return($result);
     }
@@ -454,7 +454,7 @@ class PTVInterface {
      * @return void
      */
     public function createNewDevice() {
-        $request = 'newdev=' . $this->subscriberId;
+        $request = 'newdev=' . urlencode($this->subscriberId);
         $this->getRemoteData($request);
     }
 
@@ -466,7 +466,7 @@ class PTVInterface {
      * $return void
      */
     public function deleteDevice($devId) {
-        $request = 'deldev=' . $devId . '&subid=' . $this->subscriberId;
+        $request = 'deldev=' . urlencode($devId) . '&subid=' . urlencode($this->subscriberId);
         $this->getRemoteData($request);
     }
 
@@ -476,7 +476,7 @@ class PTVInterface {
      * @return void
      */
     public function createPlaylist() {
-        $request = 'newpl=' . $this->subscriberId;
+        $request = 'newpl=' . urlencode($this->subscriberId);
         $this->getRemoteData($request);
     }
 
@@ -488,7 +488,7 @@ class PTVInterface {
      * @return void
      */
     public function deletePlaylist($playlistId) {
-        $request = 'delpl=' . $playlistId . '&subid=' . $this->subscriberId;
+        $request = 'delpl=' . urlencode($playlistId) . '&subid=' . urlencode($this->subscriberId);
         $this->getRemoteData($request);
     }
 
@@ -500,7 +500,7 @@ class PTVInterface {
      * @return void
      */
     public function unsubscribe($tariffId) {
-        $request = 'unsub=' . $tariffId . '&subid=' . $this->subscriberId;
+        $request = 'unsub=' . urlencode($tariffId) . '&subid=' . urlencode($this->subscriberId);
         $this->getRemoteData($request);
     }
 
@@ -512,7 +512,7 @@ class PTVInterface {
      * @return void
      */
     public function subscribe($tariffId) {
-        $request = 'subserv=' . $tariffId . '&sublogin=' . $this->myLogin;
+        $request = 'subserv=' . urlencode($tariffId) . '&sublogin=' . urlencode($this->myLogin);
         $this->getRemoteData($request);
     }
 

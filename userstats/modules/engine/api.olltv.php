@@ -128,7 +128,7 @@ class OllTvInterface {
      * @return array
      */
     protected function getSubscriberData() {
-        $request = 'subdata=' . $this->myLogin;
+        $request = 'subdata=' . urlencode($this->myLogin);
         $result = $this->getRemoteData($request);
         return($result);
     }
@@ -407,7 +407,7 @@ class OllTvInterface {
      */
     public function renderDevices() {
         $result = '';
-        $subDevices = $this->getRemoteData('devdata=' . $this->myLogin);
+        $subDevices = $this->getRemoteData('devdata=' . urlencode($this->myLogin));
         $devCount = 0;
         if (!empty($subDevices)) {
             $cells = wf_TableCell(__('ID'));
@@ -453,7 +453,7 @@ class OllTvInterface {
      * @return void
      */
     public function unsubscribe($tariffId) {
-        $request = 'unsub=' . $tariffId . '&sublogin=' . $this->myLogin;
+        $request = 'unsub=' . urlencode($tariffId) . '&sublogin=' . urlencode($this->myLogin);
         $this->getRemoteData($request);
     }
 
@@ -465,7 +465,7 @@ class OllTvInterface {
      * @return void
      */
     public function subscribe($tariffId) {
-        $request = 'subserv=' . $tariffId . '&sublogin=' . $this->myLogin;
+        $request = 'subserv=' . urlencode($tariffId) . '&sublogin=' . urlencode($this->myLogin);
         $this->getRemoteData($request);
     }
 

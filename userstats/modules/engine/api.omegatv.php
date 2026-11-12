@@ -424,7 +424,7 @@ class OmegaTvFrontend {
      */
     public function getViewButtonURL() {
         $result = '';
-        $action = $this->apiUrl . '?module=remoteapi&key=' . $this->apiKey . '&action=omcontrol&param=viewurl&userlogin=' . $this->userLogin;
+        $action = $this->apiUrl . '?module=remoteapi&key=' . urlencode($this->apiKey) . '&action=omcontrol&param=viewurl&userlogin=' . urlencode($this->userLogin);
         @$result = file_get_contents($action);
         return ($result);
     }
@@ -436,7 +436,7 @@ class OmegaTvFrontend {
      */
     public function getDeviceActivationCode() {
         $result = '';
-        $action = $this->apiUrl . '?module=remoteapi&key=' . $this->apiKey . '&action=omcontrol&param=getcode&userlogin=' . $this->userLogin;
+        $action = $this->apiUrl . '?module=remoteapi&key=' . urlencode($this->apiKey) . '&action=omcontrol&param=getcode&userlogin=' . urlencode($this->userLogin);
         @$result = file_get_contents($action);
         return ($result);
     }
@@ -448,7 +448,7 @@ class OmegaTvFrontend {
      */
     public function getDevicesData() {
         $result = '';
-        $action = $this->apiUrl . '?module=remoteapi&key=' . $this->apiKey . '&action=omcontrol&param=getdevices&userlogin=' . $this->userLogin;
+        $action = $this->apiUrl . '?module=remoteapi&key=' . urlencode($this->apiKey) . '&action=omcontrol&param=getdevices&userlogin=' . urlencode($this->userLogin);
         @$result = file_get_contents($action);
         return ($result);
     }
@@ -460,7 +460,7 @@ class OmegaTvFrontend {
      */
     public function getPlaylistsData() {
         $result = '';
-        $action = $this->apiUrl . '?module=remoteapi&key=' . $this->apiKey . '&action=omcontrol&param=getplaylists&userlogin=' . $this->userLogin;
+        $action = $this->apiUrl . '?module=remoteapi&key=' . urlencode($this->apiKey) . '&action=omcontrol&param=getplaylists&userlogin=' . urlencode($this->userLogin);
         @$result = file_get_contents($action);
         return ($result);
     }
@@ -474,7 +474,7 @@ class OmegaTvFrontend {
      */
     public function pushDeviceDelete($uniq) {
         $result = '';
-        $action = $this->apiUrl . '?module=remoteapi&key=' . $this->apiKey . '&action=omcontrol&param=deletedev&userlogin=' . $this->userLogin . '&uniq=' . $uniq;
+        $action = $this->apiUrl . '?module=remoteapi&key=' . urlencode($this->apiKey) . '&action=omcontrol&param=deletedev&userlogin=' . urlencode($this->userLogin) . '&uniq=' . urlencode($uniq);
         @$result = file_get_contents($action);
         return ($result);
     }
@@ -488,7 +488,7 @@ class OmegaTvFrontend {
      */
     public function pushPlaylistDelete($uniq) {
         $result = '';
-        $action = $this->apiUrl . '?module=remoteapi&key=' . $this->apiKey . '&action=omcontrol&param=deletepl&userlogin=' . $this->userLogin . '&uniq=' . $uniq;
+        $action = $this->apiUrl . '?module=remoteapi&key=' . urlencode($this->apiKey) . '&action=omcontrol&param=deletepl&userlogin=' . urlencode($this->userLogin) . '&uniq=' . urlencode($uniq);
         @$result = file_get_contents($action);
         return ($result);
     }
@@ -502,7 +502,7 @@ class OmegaTvFrontend {
      */
     public function pushPlaylistAssign() {
         $result = '';
-        $action = $this->apiUrl . '?module=remoteapi&key=' . $this->apiKey . '&action=omcontrol&param=assignpl&userlogin=' . $this->userLogin;
+        $action = $this->apiUrl . '?module=remoteapi&key=' . urlencode($this->apiKey) . '&action=omcontrol&param=assignpl&userlogin=' . urlencode($this->userLogin);
         @$result = file_get_contents($action);
         return ($result);
     }
@@ -516,7 +516,7 @@ class OmegaTvFrontend {
      */
     public function pushSubscribeRequest($tariffId) {
         $result = '';
-        $action = $this->apiUrl . '?module=remoteapi&key=' . $this->apiKey . '&action=omcontrol&param=subscribe&userlogin=' . $this->userLogin . '&tariffid=' . $tariffId;
+        $action = $this->apiUrl . '?module=remoteapi&key=' . urlencode($this->apiKey) . '&action=omcontrol&param=subscribe&userlogin=' . urlencode($this->userLogin) . '&tariffid=' . urlencode($tariffId);
         @$result = file_get_contents($action);
         return ($result);
     }
@@ -530,7 +530,7 @@ class OmegaTvFrontend {
      */
     public function pushUnsubscribeRequest($tariffId) {
         $result = '';
-        $action = $this->apiUrl . '?module=remoteapi&key=' . $this->apiKey . '&action=omcontrol&param=unsubscribe&userlogin=' . $this->userLogin . '&tariffid=' . $tariffId;
+        $action = $this->apiUrl . '?module=remoteapi&key=' . urlencode($this->apiKey) . '&action=omcontrol&param=unsubscribe&userlogin=' . urlencode($this->userLogin) . '&tariffid=' . urlencode($tariffId);
         @$result = file_get_contents($action);
         return ($result);
     }

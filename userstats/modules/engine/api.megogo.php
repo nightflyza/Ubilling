@@ -273,7 +273,7 @@ class MegogoFrontend {
      * @return void/string on error
      */
     public function pushSubscribeRequest($tariffid) {
-        $action = $this->apiUrl . '?module=remoteapi&key=' . $this->apiKey . '&action=mgcontrol&param=subscribe&userlogin=' . $this->userLogin . '&tariffid=' . $tariffid;
+        $action = $this->apiUrl . '?module=remoteapi&key=' . urlencode($this->apiKey) . '&action=mgcontrol&param=subscribe&userlogin=' . urlencode($this->userLogin) . '&tariffid=' . urlencode($tariffid);
         @$result = file_get_contents($action);
         return ($result);
     }
@@ -284,7 +284,7 @@ class MegogoFrontend {
      * @return void/string on error
      */
     public function pushUnsubscribeRequest($tariffid) {
-        $action = $this->apiUrl . '?module=remoteapi&key=' . $this->apiKey . '&action=mgcontrol&param=unsubscribe&userlogin=' . $this->userLogin . '&tariffid=' . $tariffid;
+        $action = $this->apiUrl . '?module=remoteapi&key=' . urlencode($this->apiKey) . '&action=mgcontrol&param=unsubscribe&userlogin=' . urlencode($this->userLogin) . '&tariffid=' . urlencode($tariffid);
         @$result = file_get_contents($action);
         return ($result);
     }
@@ -314,7 +314,7 @@ class MegogoFrontend {
      */
     public function getAuthButtonURL() {
         $result = '';
-        $action = $this->apiUrl . '?module=remoteapi&key=' . $this->apiKey . '&action=mgcontrol&param=auth&userlogin=' . $this->userLogin;
+        $action = $this->apiUrl . '?module=remoteapi&key=' . urlencode($this->apiKey) . '&action=mgcontrol&param=auth&userlogin=' . urlencode($this->userLogin);
         $result = file_get_contents($action);
         return ($result);
     }
