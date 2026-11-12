@@ -1248,7 +1248,7 @@ function web_TicketDialogue($ticketid) {
     }
 
     //replies list block
-    if (!ubRouting::checkGet('editreply') and !$ticketdata['status']) {
+    if (!ubRouting::checkGet('editreply')) {
         $ticketRepliesZen=new ZenFlow('ticketreplies_'.$ticketid, web_TicketReplies($ticketid),3000);
         $ticketRepliesZen->setContainerSpanType(true);
         $ticketRepliesZen->setSoundOnChange('modules/jsc/sounds/message.mp3');
