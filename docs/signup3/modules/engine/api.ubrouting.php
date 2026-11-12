@@ -135,7 +135,7 @@ class ubRouting {
      * Returns filtered data
      * 
      * @param mixed $rawData data to be filtered
-     * @param string $filtering filtering options. Possible values: raw, int, mres, callback, fi, vf, nb, float, login, safe, emsafe, gigasafe
+     * @param string $filtering filtering options. Possible values: raw, int, mres, callback, fi, vf, nb, float, cash, login, safe, emsafe, gigasafe
      * @param string|array/filter $callback callback function name or names array to filter variable value. Or const filter name of php.net/filter
      * 
      * @return mixed|false
@@ -151,21 +151,31 @@ class ubRouting {
         }
         switch ($filtering) {
             case 'raw':
+                //returns raw data as is
                 return ($rawData);
                 break;
             case 'int':
+                //only digits value
                 return (preg_replace("#[^0-9]#Uis", '', $rawData));
                 break;
             case 'mres':
-                return (mysql_real_escape_string($rawData));
+                //basic string escaping
+                if (function_exists('mysql_real_escape_string')) {
+                    return (mysql_real_escape_string($rawData));
+                } else {
+                    return (self::pseudoMres($rawData));
+                }
                 break;
             case 'vf':
+                //string without special characters: ~@+?%/;=*><"'-
                 return (preg_replace("#[~@\+\?\%\/\;=\*\>\<\"\'\-]#Uis", '', $rawData));
                 break;
             case 'nb':
+                //string without null bytes
                 return (preg_replace('/\0/s', '', $rawData));
                 break;
             case 'float':
+                //float (only digits and dot decimal separator) value 
                 $filteredResult = preg_replace("#[^0-9.]#Uis", '', $rawData);
                 if (is_numeric($filteredResult)) {
                     return ($filteredResult);
@@ -173,13 +183,24 @@ class ubRouting {
                     return (false);
                 }
                 break;
+            case 'cash':
+                //money amount: 0, 1, 1.50, -5, -1084.23 (optional dot decimal separator only)
+                $filteredResult = trim($rawData);
+                if (preg_match('/^-?[0-9]+(\.[0-9]+)?$/', $filteredResult)) {
+                    return ($filteredResult);
+                } else {
+                    return (false);
+                }
+                break;
             case 'login':
+                //basic login can contain only letters, digits, dots and underscores
                 $filteredResult = str_replace(' ', '_', $rawData);
                 $loginAllowedChars = 'a-z0-9A-Z_\.' . $callback;
                 $filteredLogin = preg_replace("#[^" . $loginAllowedChars . "]#Uis", '', $filteredResult);
                 return ($filteredLogin);
                 break;
             case 'safe':
+                //string without null bytes, html tags, quotes, double quotes, backticks, dashes, etc.
                 $rawData = preg_replace('/\0/s', '', $rawData);
                 if (strpos($callback, 'HTML') !== false) {
                     $callback = str_replace('HTML', '', $rawData);
@@ -215,6 +236,7 @@ class ubRouting {
                 $filteredData = preg_replace('#[\x{10000}-\x{10FFFF}]#u', '', $filteredData);
                 return ($filteredData);
             case 'gigasafe':
+                //only letters and digits
                 $rawData = preg_replace('/\0/s', '', $rawData);
                 $allowedChars = 'a-zA-Z0-9' . $callback;
                 $regex = '#[^' . $allowedChars . ']#u';
@@ -258,6 +280,23 @@ class ubRouting {
         }
         return ($result);
     }
+
+    /**
+     * MySQL-like string escaping without active database connection
+     *
+     * @param string $data raw string to escape
+     *
+     * @return string
+     */
+    public static function pseudoMres($data) {
+        $result = str_replace(
+            array('\\', "\0", "\n", "\r", "'", '"', "\x1a"),
+            array('\\\\', '\\0', '\\n', '\\r', "\\'", '\\"', '\\Z'),
+            $data
+        );
+        return ($result);
+    }
+
     /**
      * Replaces double quotes in a string with special characters.
      *
@@ -275,7 +314,7 @@ class ubRouting {
      * Returns some variable value with optional filtering from GET scope
      * 
      * @param string $name name of variable to extract
-     * @param string $filtering filtering options. Possible values: raw, int, mres, callback, fi, vf, nb, float, login, safe, emsafe, gigasafe
+     * @param string $filtering filtering options. Possible values: raw, int, mres, callback, fi, vf, nb, float, cash, login, safe, emsafe, gigasafe
      * @param string|array $callback callback function name or names array to filter variable value
      * 
      * @return mixed|false
@@ -292,7 +331,7 @@ class ubRouting {
      * Returns some variable value with optional filtering from POST scope
      * 
      * @param string $name name of variable to extract
-     * @param string $filtering filtering options. Possible values: raw, int, mres, callback, fi, vf, nb, float, login, safe, emsafe, gigasafe
+     * @param string $filtering filtering options. Possible values: raw, int, mres, callback, fi, vf, nb, float, cash, login, safe, emsafe, gigasafe
      * @param string $callback callback function name to filter variable value
      * 
      * @return mixed|false
@@ -398,7 +437,7 @@ class ubRouting {
      * @global array $argv
      * 
      * @param string $name name of variable to extract from CLI options
-     * @param string $filtering filtering options. Possible values: raw, int, mres, callback, fi, vf, nb, float, login, safe, emsafe, gigasafe
+     * @param string $filtering filtering options. Possible values: raw, int, mres, callback, fi, vf, nb, float, cash, login, safe, emsafe, gigasafe
      * @param string $callback callback function name to filter variable value
      * 
      * @return mixed|false
