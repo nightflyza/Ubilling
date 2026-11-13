@@ -3667,3 +3667,9 @@ $lang['def']['Location permission denied. Allow location access in browser setti
 $lang['def']['Unable to determine location. Check that GPS is enabled'] = 'Не удалось определить местоположение. Проверьте, что GPS включен';
 $lang['def']['Location request timed out. Try again'] = 'Время ожидания геолокации истекло. Попробуйте еще раз';
 $lang['def']['Private house'] = 'Частный дом';
+$lang['def']['Confirmed'] = 'Подтверждено';
+$lang['def']['Deaths'] = 'Смертей';
+$lang['def']['Recovered'] = 'Выздоровело';
+$lang['def']['Country'] = 'Страна';
+$lang['def']['World'] = 'Мир';
+$lang['def']['For the last day'] = 'За последние сутки';
