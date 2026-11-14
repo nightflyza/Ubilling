@@ -1745,7 +1745,15 @@ class MapCore {
                 "' . __('Satellite') . '": satellite,
                 "' . __('Terrain') . '": terrain
             };
-            var geoControl = new L.Control.Geocoder({showResultIcons: true, errorMessage: "' . __('Nothing found') . '", placeholder: "' . __('Search') . '"});
+            var geoControl = new L.Control.Geocoder({
+                showResultIcons: true,
+                errorMessage: "' . __('Nothing found') . '",
+                placeholder: "' . __('Search') . '",
+                geocoder: L.Control.Geocoder.latLng({
+                    next: L.Control.Geocoder.nominatim(),
+                    sizeInMeters: 200
+                })
+            });
             geoControl.addTo(map);
 
             L.easyPrint({
