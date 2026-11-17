@@ -250,6 +250,14 @@ class XMLAgent {
     protected $selfUnFreezeAllowed = false;
 
     /**
+     * Placeholder for XMLAGENT_DISABLE_CALLS "userstats.ini" option.
+     * Map of disabled REST call GET-param names.
+     *
+     * @var array
+     */
+    protected $disabledCalls = array();
+
+    /**
      * Contains auth key (MD5 hash of the current UB instance serial) from the incoming request
      *
      * @var string
@@ -311,6 +319,7 @@ class XMLAgent {
         $this->debugDeep                        = $this->usConfig->getUstasParam('XMLAGENT_DEBUG_DEEP_ON', false);
         $this->extendedAuthON                   = $this->usConfig->getUstasParam('XMLAGENT_EXTENDED_AUTH_ON', false);
         $this->selfUnFreezeAllowed              = $this->usConfig->getUstasParam('XMLAGENT_SELF_UNFREEZE_ALLOWED', false);
+        $this->disabledCalls                    = $this->parseDisabledCalls($this->usConfig->getUstasParam('XMLAGENT_DISABLE_CALLS', ''));
         $this->uscfgUKVEnabled                  = $this->usConfig->getUstasParam('UKV_ENABLED', false);
 
         $this->uscfgFreezeSelfON                = $this->usConfig->getUstasParam('AF_ENABLED', false);
@@ -338,6 +347,64 @@ class XMLAgent {
         $result = empty($result) ? '' : $result['ubid']['value'];
 
         return($result);
+    }
+
+    /**
+     * Parses XMLAGENT_DISABLE_CALLS comma-separated list into a lookup map
+     *
+     * @param string $rawList
+     *
+     * @return array
+     */
+    protected function parseDisabledCalls($rawList = '') {
+        $result = array();
+        if (!empty($rawList)) {
+            $parts = explode(',', $rawList);
+            if (!empty($parts)) {
+                foreach ($parts as $io => $each) {
+                    $each = trim($each);
+                    if ($each !== '') {
+                        $result[$each] = true;
+                    }
+                }
+            }
+        }
+        return ($result);
+    }
+
+    /**
+     * Checks whether a REST call GET-param name is disabled via XMLAGENT_DISABLE_CALLS
+     *
+     * @param string $callName
+     *
+     * @return bool
+     */
+    protected function isCallDisabled($callName = '') {
+        $result = false;
+        if (!empty($callName) and !empty($this->disabledCalls) and isset($this->disabledCalls[$callName])) {
+            $result = true;
+        }
+        return ($result);
+    }
+
+    /**
+     * Detects which known XMLAgent call was requested via GET
+     *
+     * @param array $knownCalls
+     *
+     * @return string
+     */
+    protected function detectRequestedCall($knownCalls = array()) {
+        $result = '';
+        if (!empty($knownCalls)) {
+            foreach ($knownCalls as $io => $eachCall) {
+                if (ubRouting::checkGet($eachCall)) {
+                    $result = $eachCall;
+                    break;
+                }
+            }
+        }
+        return ($result);
     }
 
     /**
@@ -370,133 +437,144 @@ class XMLAgent {
         $messages       = false;
         $restapiMethod  = '';
         $debugData      = '';
-        $getUserData    = !(ubRouting::checkGet(array(
-                                    'payments',
-                                    'announcements',
-                                    'tickets',
-                                    'opayz',
-                                    'agentassigned',
-                                    'tariffvservices',
-                                    'activetariffsvservices',
-                                    'tarifftoswitchallowed',
-                                    'feecharges',
-                                    'ticketcreate',
-                                    'freezedata',
-                                    'dofreeze',
-                                    'dounfreeze',
-                                    'ukv',
-                                    'annreadall',
-                                    'justauth',
-                                    ),
-                                true, true)
-                            );
+        $knownCalls     = array(
+            'payments',
+            'announcements',
+            'tickets',
+            'opayz',
+            'agentassigned',
+            'tariffvservices',
+            'activetariffsvservices',
+            'tarifftoswitchallowed',
+            'feecharges',
+            'ticketcreate',
+            'freezedata',
+            'dofreeze',
+            'dounfreeze',
+            'ukv',
+            'annreadall',
+            'justauth',
+        );
+        $requestedCall  = $this->detectRequestedCall($knownCalls);
+        $callDisabled   = $this->isCallDisabled($requestedCall);
+        $getUserData    = !(ubRouting::checkGet($knownCalls, true, true));
 
-        if (!empty($user_login)) {
-            if ($getUserData) {
-                $mainSection    = 'userdata';
-                $restapiMethod  = 'getuserdata';
-                $resultToRender = $this->getUserData($user_login);
-            } else {
-                if (ubRouting::checkGet('payments') and $this->uscfgPaymentsON) {
-                    $subSection     = 'payment';
-                    $resultToRender = $this->getUserPayments($user_login);
-                }
+        // Disabled call: keep silent empty response, do not fall through to userdata
+        if ($callDisabled) {
+            $getUserData = false;
+            $restapiMethod = $requestedCall;
+        }
 
-                if (ubRouting::checkGet('tickets') and $this->uscfgTicketingON) {
-                    $subSection     = 'ticket';
-                    $resultToRender = $this->getUserTickets($user_login);
-                }
+        if (!$callDisabled) {
+            if (!empty($user_login)) {
+                if ($getUserData) {
+                    $mainSection    = 'userdata';
+                    $restapiMethod  = 'getuserdata';
+                    $resultToRender = $this->getUserData($user_login);
+                } else {
+                    if (ubRouting::checkGet('payments') and $this->uscfgPaymentsON) {
+                        $subSection     = 'payment';
+                        $resultToRender = $this->getUserPayments($user_login);
+                    }
 
-                if (ubRouting::checkGet('opayz') and $this->uscfgOpenPayzON) {
-                    $subSection     = 'paysys';
-                    $resultToRender = $this->getUserOpenPayz($user_login);
-                }
+                    if (ubRouting::checkGet('tickets') and $this->uscfgTicketingON) {
+                        $subSection     = 'ticket';
+                        $resultToRender = $this->getUserTickets($user_login);
+                    }
 
-                if (ubRouting::checkGet('ukv') and $this->uscfgUKVEnabled) {
-                    $restapiMethod  = 'ukv';
-                    $resultToRender = $this->getUKVUserData($user_login);
-                }
+                    if (ubRouting::checkGet('opayz') and $this->uscfgOpenPayzON) {
+                        $subSection     = 'paysys';
+                        $resultToRender = $this->getUserOpenPayz($user_login);
+                    }
 
-                if (ubRouting::checkGet('agentassigned')) {
-                    $subSection     = 'agentdata';
-                    $resultToRender = $this->getUserContrAgent($user_login);
-                }
+                    if (ubRouting::checkGet('ukv') and $this->uscfgUKVEnabled) {
+                        $restapiMethod  = 'ukv';
+                        $resultToRender = $this->getUKVUserData($user_login);
+                    }
 
-                if (ubRouting::checkGet('tariffvservices')) {
-                    $subSection     = 'tariffvservices';
-                    $resultToRender = $this->getUserTariffAndVservices($user_login);
-                }
+                    if (ubRouting::checkGet('agentassigned')) {
+                        $subSection     = 'agentdata';
+                        $resultToRender = $this->getUserContrAgent($user_login);
+                    }
 
-                if (ubRouting::checkGet('tarifftoswitchallowed')) {
-                    $subSection     = 'tarifftoswitchallowed';
-                    $resultToRender = $this->getTariffsToSwitchAllowed($user_login);
-                }
+                    if (ubRouting::checkGet('tariffvservices')) {
+                        $subSection     = 'tariffvservices';
+                        $resultToRender = $this->getUserTariffAndVservices($user_login);
+                    }
 
-                if (ubRouting::checkGet('feecharges')) {
-                    $subSection     = 'feecharge';
-                    $date_from      = ubRouting::checkGet('datefrom') ? ubRouting::get('datefrom','mres') : '';
-                    $date_to        = ubRouting::checkGet('dateto') ? ubRouting::get('dateto','mres') : '';
-                    $resultToRender = $this->getUserFeeCharges($user_login, $date_from, $date_to);
-                }
+                    if (ubRouting::checkGet('tarifftoswitchallowed')) {
+                        $subSection     = 'tarifftoswitchallowed';
+                        $resultToRender = $this->getTariffsToSwitchAllowed($user_login);
+                    }
 
-                if (ubRouting::checkGet('freezedata')) {
-                    $mainSection    = 'freezedata';
-                    $resultToRender = $this->getUserFreezeData($user_login);
-                }
+                    if (ubRouting::checkGet('feecharges')) {
+                        $subSection     = 'feecharge';
+                        $date_from      = ubRouting::checkGet('datefrom') ? ubRouting::get('datefrom','mres') : '';
+                        $date_to        = ubRouting::checkGet('dateto') ? ubRouting::get('dateto','mres') : '';
+                        $resultToRender = $this->getUserFeeCharges($user_login, $date_from, $date_to);
+                    }
 
-                if (ubRouting::checkGet('dofreeze')) {
-                    $mainSection    = 'dofreeze';
-                    $resultToRender = $this->doFreeze($user_login);
-                }
+                    if (ubRouting::checkGet('freezedata')) {
+                        $mainSection    = 'freezedata';
+                        $resultToRender = $this->getUserFreezeData($user_login);
+                    }
 
-                if (ubRouting::checkGet('dounfreeze')) {
-                    $mainSection    = 'dounfreeze';
-                    $resultToRender = $this->doUNFreeze($user_login);
-                }
+                    if (ubRouting::checkGet('dofreeze')) {
+                        $mainSection    = 'dofreeze';
+                        $resultToRender = $this->doFreeze($user_login);
+                    }
 
-                if (ubRouting::checkGet(array('ticketcreate', 'tickettext', 'tickettype'))
-                    and ubRouting::get('tickettype') == self::TICKET_TYPE_SUPPORT
-                ) {
-                    $text           = base64_decode(ubRouting::get('tickettext','raw'));
-                    $replyID        = ubRouting::checkGet('reply_id') ? ubRouting::get('reply_id', 'int') : 0;
-                    $debugData      = empty($replyID) ? 'replyID: ' . $replyID . '  ' . $text : $text;
-                    $restapiMethod  = 'supportticketcreate';
-                    $resultToRender = $this->createSupportTicket($user_login, $text, $replyID);
+                    if (ubRouting::checkGet('dounfreeze')) {
+                        $mainSection    = 'dounfreeze';
+                        $resultToRender = $this->doUNFreeze($user_login);
+                    }
+
+                    if (ubRouting::checkGet(array('ticketcreate', 'tickettext', 'tickettype'))
+                        and ubRouting::get('tickettype') == self::TICKET_TYPE_SUPPORT
+                    ) {
+                        $text           = base64_decode(ubRouting::get('tickettext','raw'));
+                        $replyID        = ubRouting::checkGet('reply_id') ? ubRouting::get('reply_id', 'int') : 0;
+                        $debugData      = empty($replyID) ? 'replyID: ' . $replyID . '  ' . $text : $text;
+                        $restapiMethod  = 'supportticketcreate';
+                        $resultToRender = $this->createSupportTicket($user_login, $text, $replyID);
+                    }
                 }
+            }
+
+            if (ubRouting::checkGet('justauth')) {
+                $restapiMethod  = 'justauth';
+                $resultToRender = $this->justAuth($user_login);
+            }
+
+            if (ubRouting::checkGet('announcements') and $this->uscfgAnnouncementsON) {
+                $messages       = true;
+                $restapiMethod  = 'announcements';
+                $resultToRender = $this->getAnnouncements($user_login);
+            }
+
+            if (ubRouting::checkGet('annreadall')) {
+                $restapiMethod  = 'annreadall';
+                $resultToRender = $this->markAllAnnouncementsAsRead($user_login);
+            }
+
+            if (ubRouting::checkGet('activetariffsvservices')) {
+                $subSection     = 'activetariffsvservices';
+                $resultToRender = $this->getAllTariffsVservices();
+            }
+
+            if (ubRouting::checkGet(array('ticketcreate', 'tickettype'))
+                and ubRouting::get('tickettype') == self::TICKET_TYPE_SIGNUP) {
+
+                $requestJSON    = file_get_contents("php://input");
+                $debugData      = $requestJSON;
+                $restapiMethod  = 'signupticketcreate';
+                $resultToRender = $this->createSignUpRequest($requestJSON);
             }
         }
 
-        if (ubRouting::checkGet('justauth')) {
-            $restapiMethod  = 'justauth';
-            $resultToRender = $this->justAuth($user_login);
+        if (!$callDisabled) {
+            $restapiMethod = (empty($restapiMethod) and !empty($subSection)) ? $subSection : (empty($mainSection) ? $restapiMethod : $mainSection);
         }
-
-        if (ubRouting::checkGet('announcements') and $this->uscfgAnnouncementsON) {
-            $messages       = true;
-            $restapiMethod  = 'announcements';
-            $resultToRender = $this->getAnnouncements($user_login);
-        }
-
-        if (ubRouting::checkGet('annreadall')) {
-            $restapiMethod  = 'annreadall';
-            $resultToRender = $this->markAllAnnouncementsAsRead($user_login);
-        }
-
-        if (ubRouting::checkGet('activetariffsvservices')) {
-            $subSection     = 'activetariffsvservices';
-            $resultToRender = $this->getAllTariffsVservices();
-        }
-
-        if (ubRouting::checkGet(array('ticketcreate', 'tickettype'))
-            and ubRouting::get('tickettype') == self::TICKET_TYPE_SIGNUP) {
-
-            $requestJSON    = file_get_contents("php://input");
-            $debugData      = $requestJSON;
-            $restapiMethod  = 'signupticketcreate';
-            $resultToRender = $this->createSignUpRequest($requestJSON);
-        }
-
-        $restapiMethod  = (empty($restapiMethod) and !empty($subSection)) ? $subSection : (empty($mainSection) ? $restapiMethod : $mainSection);
 
         $this->debugLog($restapiMethod, $debugData);
         $this->renderResponse($resultToRender, $mainSection, $subSection, $outputFormat, $messages);
