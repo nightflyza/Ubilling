@@ -1439,6 +1439,9 @@ class MapCore {
                 var searchInput = document.querySelector(".leaflet-control-geocoder-form input");
                 if (searchInput) {
                     searchInput.value = ' . $this->quoteJs($this->searchPrefill) . ';
+                    if (geoControl && geoControl._expand) {
+                        geoControl._expand();
+                    }
                 }
             ';
         }
