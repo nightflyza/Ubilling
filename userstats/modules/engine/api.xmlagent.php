@@ -373,7 +373,7 @@ class XMLAgent {
     }
 
     /**
-     * Checks whether a REST call GET-param name is disabled via XMLAGENT_DISABLE_CALLS
+     * Checks whether an API call/method is disabled via XMLAGENT_DISABLE_CALLS
      *
      * @param string $callName
      *
@@ -388,22 +388,247 @@ class XMLAgent {
     }
 
     /**
-     * Detects which known XMLAgent call was requested via GET
+     * Returns list of known XMLAgent call names (GET param keys)
      *
-     * @param array $knownCalls
+     * @return array
+     */
+    protected function getKnownApiCalls() {
+        $result = array(
+            'payments',
+            'announcements',
+            'tickets',
+            'opayz',
+            'agentassigned',
+            'tariffvservices',
+            'activetariffsvservices',
+            'tarifftoswitchallowed',
+            'feecharges',
+            'ticketcreate',
+            'freezedata',
+            'dofreeze',
+            'dounfreeze',
+            'ukv',
+            'annreadall',
+            'justauth',
+        );
+        return ($result);
+    }
+
+    /**
+     * Detects a single requested API call from GET.
+     * Uses query-string order: only the first matching known call is accepted.
      *
      * @return string
      */
-    protected function detectRequestedCall($knownCalls = array()) {
+    protected function detectRequestedCall() {
         $result = '';
+        $knownMap = array();
+        $knownCalls = $this->getKnownApiCalls();
+
         if (!empty($knownCalls)) {
             foreach ($knownCalls as $io => $eachCall) {
-                if (ubRouting::checkGet($eachCall)) {
-                    $result = $eachCall;
+                $knownMap[$eachCall] = true;
+            }
+        }
+
+        if (!empty($_GET) and !empty($knownMap)) {
+            foreach ($_GET as $paramName => $paramValue) {
+                if (isset($knownMap[$paramName]) and ubRouting::checkGet($paramName)) {
+                    $result = $paramName;
                     break;
                 }
             }
         }
+
+        return ($result);
+    }
+
+    /**
+     * Empty dispatch payload used by runApiCall/dispatchApiCall
+     *
+     * @return array
+     */
+    protected function emptyDispatchResult() {
+        $result = array(
+            'data'          => array(),
+            'mainSection'   => 'data',
+            'subSection'    => '',
+            'messages'      => false,
+            'restapiMethod' => '',
+            'debugData'     => '',
+        );
+        return ($result);
+    }
+
+    /**
+     * Runs exactly one API call. Disable gate lives here, around method execution.
+     *
+     * @param string $callName empty means default getuserdata
+     * @param string $user_login
+     *
+     * @return array
+     */
+    protected function runApiCall($callName = '', $user_login = '') {
+        $result = $this->emptyDispatchResult();
+        $methodName = ($callName === '') ? 'getuserdata' : $callName;
+        $result['restapiMethod'] = $methodName;
+
+        if (!$this->isCallDisabled($methodName)) {
+            $result = $this->dispatchApiCall($methodName, $user_login);
+        }
+
+        if (empty($result['restapiMethod']) and !empty($result['subSection'])) {
+            $result['restapiMethod'] = $result['subSection'];
+        } else {
+            if (empty($result['restapiMethod']) and !empty($result['mainSection'])) {
+                $result['restapiMethod'] = $result['mainSection'];
+            }
+        }
+
+        return ($result);
+    }
+
+    /**
+     * Dispatches a single resolved API method name to its collector/action
+     *
+     * @param string $methodName
+     * @param string $user_login
+     *
+     * @return array
+     */
+    protected function dispatchApiCall($methodName = '', $user_login = '') {
+        $result = $this->emptyDispatchResult();
+        $result['restapiMethod'] = $methodName;
+
+        switch ($methodName) {
+            case 'getuserdata':
+                if (!empty($user_login)) {
+                    $result['mainSection'] = 'userdata';
+                    $result['data'] = $this->getUserData($user_login);
+                }
+                break;
+
+            case 'payments':
+                if (!empty($user_login) and $this->uscfgPaymentsON) {
+                    $result['subSection'] = 'payment';
+                    $result['data'] = $this->getUserPayments($user_login);
+                }
+                break;
+
+            case 'tickets':
+                if (!empty($user_login) and $this->uscfgTicketingON) {
+                    $result['subSection'] = 'ticket';
+                    $result['data'] = $this->getUserTickets($user_login);
+                }
+                break;
+
+            case 'opayz':
+                if (!empty($user_login) and $this->uscfgOpenPayzON) {
+                    $result['subSection'] = 'paysys';
+                    $result['data'] = $this->getUserOpenPayz($user_login);
+                }
+                break;
+
+            case 'ukv':
+                if (!empty($user_login) and $this->uscfgUKVEnabled) {
+                    $result['data'] = $this->getUKVUserData($user_login);
+                }
+                break;
+
+            case 'agentassigned':
+                if (!empty($user_login)) {
+                    $result['subSection'] = 'agentdata';
+                    $result['data'] = $this->getUserContrAgent($user_login);
+                }
+                break;
+
+            case 'tariffvservices':
+                if (!empty($user_login)) {
+                    $result['subSection'] = 'tariffvservices';
+                    $result['data'] = $this->getUserTariffAndVservices($user_login);
+                }
+                break;
+
+            case 'tarifftoswitchallowed':
+                if (!empty($user_login)) {
+                    $result['subSection'] = 'tarifftoswitchallowed';
+                    $result['data'] = $this->getTariffsToSwitchAllowed($user_login);
+                }
+                break;
+
+            case 'feecharges':
+                if (!empty($user_login)) {
+                    $dateFrom = ubRouting::checkGet('datefrom') ? ubRouting::get('datefrom', 'mres') : '';
+                    $dateTo = ubRouting::checkGet('dateto') ? ubRouting::get('dateto', 'mres') : '';
+                    $result['subSection'] = 'feecharge';
+                    $result['data'] = $this->getUserFeeCharges($user_login, $dateFrom, $dateTo);
+                }
+                break;
+
+            case 'freezedata':
+                if (!empty($user_login)) {
+                    $result['mainSection'] = 'freezedata';
+                    $result['data'] = $this->getUserFreezeData($user_login);
+                }
+                break;
+
+            case 'dofreeze':
+                if (!empty($user_login)) {
+                    $result['mainSection'] = 'dofreeze';
+                    $result['data'] = $this->doFreeze($user_login);
+                }
+                break;
+
+            case 'dounfreeze':
+                if (!empty($user_login)) {
+                    $result['mainSection'] = 'dounfreeze';
+                    $result['data'] = $this->doUNFreeze($user_login);
+                }
+                break;
+
+            case 'ticketcreate':
+                if (ubRouting::checkGet(array('ticketcreate', 'tickettext', 'tickettype'))
+                    and ubRouting::get('tickettype') == self::TICKET_TYPE_SUPPORT
+                    and !empty($user_login)
+                ) {
+                    $text = base64_decode(ubRouting::get('tickettext', 'raw'));
+                    $replyID = ubRouting::checkGet('reply_id') ? ubRouting::get('reply_id', 'int') : 0;
+                    $result['debugData'] = empty($replyID) ? 'replyID: ' . $replyID . '  ' . $text : $text;
+                    $result['restapiMethod'] = 'supportticketcreate';
+                    $result['data'] = $this->createSupportTicket($user_login, $text, $replyID);
+                } else {
+                    if (ubRouting::checkGet(array('ticketcreate', 'tickettype'))
+                        and ubRouting::get('tickettype') == self::TICKET_TYPE_SIGNUP
+                    ) {
+                        $requestJSON = file_get_contents('php://input');
+                        $result['debugData'] = $requestJSON;
+                        $result['restapiMethod'] = 'signupticketcreate';
+                        $result['data'] = $this->createSignUpRequest($requestJSON);
+                    }
+                }
+                break;
+
+            case 'justauth':
+                $result['data'] = $this->justAuth($user_login);
+                break;
+
+            case 'announcements':
+                if ($this->uscfgAnnouncementsON) {
+                    $result['messages'] = true;
+                    $result['data'] = $this->getAnnouncements($user_login);
+                }
+                break;
+
+            case 'annreadall':
+                $result['data'] = $this->markAllAnnouncementsAsRead($user_login);
+                break;
+
+            case 'activetariffsvservices':
+                $result['subSection'] = 'activetariffsvservices';
+                $result['data'] = $this->getAllTariffsVservices();
+                break;
+        }
+
         return ($result);
     }
 
@@ -431,153 +656,17 @@ class XMLAgent {
             $this->renderResponse(array(array('reason' => 'wrong_uberauth')), 'error', '', $outputFormat);
         }
 
-        $resultToRender = array();
-        $mainSection    = 'data';
-        $subSection     = '';
-        $messages       = false;
-        $restapiMethod  = '';
-        $debugData      = '';
-        $knownCalls     = array(
-            'payments',
-            'announcements',
-            'tickets',
-            'opayz',
-            'agentassigned',
-            'tariffvservices',
-            'activetariffsvservices',
-            'tarifftoswitchallowed',
-            'feecharges',
-            'ticketcreate',
-            'freezedata',
-            'dofreeze',
-            'dounfreeze',
-            'ukv',
-            'annreadall',
-            'justauth',
+        $requestedCall = $this->detectRequestedCall();
+        $dispatch = $this->runApiCall($requestedCall, $user_login);
+
+        $this->debugLog($dispatch['restapiMethod'], $dispatch['debugData']);
+        $this->renderResponse(
+            $dispatch['data'],
+            $dispatch['mainSection'],
+            $dispatch['subSection'],
+            $outputFormat,
+            $dispatch['messages']
         );
-        $requestedCall  = $this->detectRequestedCall($knownCalls);
-        $callDisabled   = $this->isCallDisabled($requestedCall);
-        $getUserData    = !(ubRouting::checkGet($knownCalls, true, true));
-
-        // Disabled call: keep silent empty response, do not fall through to userdata
-        if ($callDisabled) {
-            $getUserData = false;
-            $restapiMethod = $requestedCall;
-        }
-
-        if (!$callDisabled) {
-            if (!empty($user_login)) {
-                if ($getUserData) {
-                    $mainSection    = 'userdata';
-                    $restapiMethod  = 'getuserdata';
-                    $resultToRender = $this->getUserData($user_login);
-                } else {
-                    if (ubRouting::checkGet('payments') and $this->uscfgPaymentsON) {
-                        $subSection     = 'payment';
-                        $resultToRender = $this->getUserPayments($user_login);
-                    }
-
-                    if (ubRouting::checkGet('tickets') and $this->uscfgTicketingON) {
-                        $subSection     = 'ticket';
-                        $resultToRender = $this->getUserTickets($user_login);
-                    }
-
-                    if (ubRouting::checkGet('opayz') and $this->uscfgOpenPayzON) {
-                        $subSection     = 'paysys';
-                        $resultToRender = $this->getUserOpenPayz($user_login);
-                    }
-
-                    if (ubRouting::checkGet('ukv') and $this->uscfgUKVEnabled) {
-                        $restapiMethod  = 'ukv';
-                        $resultToRender = $this->getUKVUserData($user_login);
-                    }
-
-                    if (ubRouting::checkGet('agentassigned')) {
-                        $subSection     = 'agentdata';
-                        $resultToRender = $this->getUserContrAgent($user_login);
-                    }
-
-                    if (ubRouting::checkGet('tariffvservices')) {
-                        $subSection     = 'tariffvservices';
-                        $resultToRender = $this->getUserTariffAndVservices($user_login);
-                    }
-
-                    if (ubRouting::checkGet('tarifftoswitchallowed')) {
-                        $subSection     = 'tarifftoswitchallowed';
-                        $resultToRender = $this->getTariffsToSwitchAllowed($user_login);
-                    }
-
-                    if (ubRouting::checkGet('feecharges')) {
-                        $subSection     = 'feecharge';
-                        $date_from      = ubRouting::checkGet('datefrom') ? ubRouting::get('datefrom','mres') : '';
-                        $date_to        = ubRouting::checkGet('dateto') ? ubRouting::get('dateto','mres') : '';
-                        $resultToRender = $this->getUserFeeCharges($user_login, $date_from, $date_to);
-                    }
-
-                    if (ubRouting::checkGet('freezedata')) {
-                        $mainSection    = 'freezedata';
-                        $resultToRender = $this->getUserFreezeData($user_login);
-                    }
-
-                    if (ubRouting::checkGet('dofreeze')) {
-                        $mainSection    = 'dofreeze';
-                        $resultToRender = $this->doFreeze($user_login);
-                    }
-
-                    if (ubRouting::checkGet('dounfreeze')) {
-                        $mainSection    = 'dounfreeze';
-                        $resultToRender = $this->doUNFreeze($user_login);
-                    }
-
-                    if (ubRouting::checkGet(array('ticketcreate', 'tickettext', 'tickettype'))
-                        and ubRouting::get('tickettype') == self::TICKET_TYPE_SUPPORT
-                    ) {
-                        $text           = base64_decode(ubRouting::get('tickettext','raw'));
-                        $replyID        = ubRouting::checkGet('reply_id') ? ubRouting::get('reply_id', 'int') : 0;
-                        $debugData      = empty($replyID) ? 'replyID: ' . $replyID . '  ' . $text : $text;
-                        $restapiMethod  = 'supportticketcreate';
-                        $resultToRender = $this->createSupportTicket($user_login, $text, $replyID);
-                    }
-                }
-            }
-
-            if (ubRouting::checkGet('justauth')) {
-                $restapiMethod  = 'justauth';
-                $resultToRender = $this->justAuth($user_login);
-            }
-
-            if (ubRouting::checkGet('announcements') and $this->uscfgAnnouncementsON) {
-                $messages       = true;
-                $restapiMethod  = 'announcements';
-                $resultToRender = $this->getAnnouncements($user_login);
-            }
-
-            if (ubRouting::checkGet('annreadall')) {
-                $restapiMethod  = 'annreadall';
-                $resultToRender = $this->markAllAnnouncementsAsRead($user_login);
-            }
-
-            if (ubRouting::checkGet('activetariffsvservices')) {
-                $subSection     = 'activetariffsvservices';
-                $resultToRender = $this->getAllTariffsVservices();
-            }
-
-            if (ubRouting::checkGet(array('ticketcreate', 'tickettype'))
-                and ubRouting::get('tickettype') == self::TICKET_TYPE_SIGNUP) {
-
-                $requestJSON    = file_get_contents("php://input");
-                $debugData      = $requestJSON;
-                $restapiMethod  = 'signupticketcreate';
-                $resultToRender = $this->createSignUpRequest($requestJSON);
-            }
-        }
-
-        if (!$callDisabled) {
-            $restapiMethod = (empty($restapiMethod) and !empty($subSection)) ? $subSection : (empty($mainSection) ? $restapiMethod : $mainSection);
-        }
-
-        $this->debugLog($restapiMethod, $debugData);
-        $this->renderResponse($resultToRender, $mainSection, $subSection, $outputFormat, $messages);
     }
 
 
