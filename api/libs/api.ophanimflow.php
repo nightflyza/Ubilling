@@ -61,11 +61,19 @@ class OphanimFlow {
      */
     protected $ophanimUrls = array();
 
+    /**
+     * Consistency mode flag - accumulate traffic across IP changes via LAST_D/LAST_U
+     * 
+     * @var bool
+     */
+    protected $consistencyFlag = false;
+
     //some predefined stuff here
     const TABLE_TRAFFDATA = 'ophtraff';
     const API_ENDPOINT = '/?module=gettraff';
     const OPTION_ENABLED = 'OPHANIMFLOW_ENABLED';
     const OPTION_URLS = 'OPHANIMFLOW_URLS';
+    const OPTION_CONSISTENCY = 'OPHANIMFLOW_CONSISTENCY';
     const OPTION_DIMENSIONS='OPHANIM_DIMENSIONS';
     const PID_SYNC='OPHANIMTRAFF';
 
@@ -115,6 +123,12 @@ class OphanimFlow {
                 }
             }
         }
+
+        if (isset($this->altCfg[self::OPTION_CONSISTENCY])) {
+            if ($this->altCfg[self::OPTION_CONSISTENCY]) {
+                $this->consistencyFlag = true;
+            }
+        }
     }
 
     /**
@@ -153,21 +167,10 @@ class OphanimFlow {
                 if (isset($this->allUserIps[$eachIp])) {
                     $userLogin = $this->allUserIps[$eachIp];
                     if (isset($this->traffStats[$userLogin])) {
-                        //existing record
-                        $savedData = $this->traffStats[$userLogin];
-                        $recordId = $savedData['id'];
-                        $savedDl = $savedData['D0'];
-                        $savedUl = $savedData['U0'];
-
-                        $newDl = $eachTraffData['dl'];
-                        $newUl = $eachTraffData['ul'];
-
-                        //traffic counters changed?
-                        if ($newDl != $savedDl OR $newUl != $savedUl) {
-                            $this->traffDb->data('D0', $newDl);
-                            $this->traffDb->data('U0', $newUl);
-                            $this->traffDb->where('id', '=', $recordId);
-                            $this->traffDb->save(true, true);
+                        if ($this->consistencyFlag) {
+                            $this->updateTraffConsistency($userLogin, $eachTraffData);
+                        } else {
+                            $this->updateTraffMirror($userLogin, $eachTraffData);
                         }
                     } else {
                         //new record always with 0 at start to prevent previous month traffic shift
@@ -176,9 +179,123 @@ class OphanimFlow {
                         $this->traffDb->data('year', $this->currentYear);
                         $this->traffDb->data('D0', 0);
                         $this->traffDb->data('U0', 0);
+                        if ($this->consistencyFlag) {
+                            $this->traffDb->data('LAST_D', 0);
+                            $this->traffDb->data('LAST_U', 0);
+                        }
                         $this->traffDb->create();
                     }
                 }
+            }
+        }
+    }
+
+    /**
+     * Original behavior - mirror OphanimFlow IP counters into D0/U0 as-is
+     * 
+     * @param string $userLogin
+     * @param array $eachTraffData
+     * 
+     * @return void
+     */
+    protected function updateTraffMirror($userLogin, $eachTraffData) {
+        $savedData = $this->traffStats[$userLogin];
+        $recordId = $savedData['id'];
+        $savedDl = $savedData['D0'];
+        $savedUl = $savedData['U0'];
+        $newDl = $eachTraffData['dl'];
+        $newUl = $eachTraffData['ul'];
+
+        //traffic counters changed?
+        if ($newDl != $savedDl or $newUl != $savedUl) {
+            $this->traffDb->data('D0', $newDl);
+            $this->traffDb->data('U0', $newUl);
+            $this->traffDb->where('id', '=', $recordId);
+            $this->traffDb->save(true, true);
+            $this->traffStats[$userLogin]['D0'] = $newDl;
+            $this->traffStats[$userLogin]['U0'] = $newUl;
+        }
+    }
+
+    /**
+     * Consistency behavior - accumulate D0/U0 across IP changes using LAST_D/LAST_U baselines
+     * 
+     * @param string $userLogin
+     * @param array $eachTraffData
+     * 
+     * @return void
+     */
+    protected function updateTraffConsistency($userLogin, $eachTraffData) {
+        $savedData = $this->traffStats[$userLogin];
+        $recordId = $savedData['id'];
+        $savedDl = $savedData['D0'];
+        $savedUl = $savedData['U0'];
+        $newDl = $eachTraffData['dl'];
+        $newUl = $eachTraffData['ul'];
+
+        $lastDlRaw = null;
+        $lastUlRaw = null;
+        if (isset($savedData['LAST_D'])) {
+            $lastDlRaw = $savedData['LAST_D'];
+        }
+        if (isset($savedData['LAST_U'])) {
+            $lastUlRaw = $savedData['LAST_U'];
+        }
+
+        $lastMissing = false;
+        if ($lastDlRaw === null or $lastDlRaw === '' or $lastUlRaw === null or $lastUlRaw === '') {
+            $lastMissing = true;
+        }
+
+        if ($lastMissing) {
+            // first run after enabling consistency - seed baselines
+            $resultDl = $savedDl;
+            $resultUl = $savedUl;
+            if (($savedDl == 0 or $savedDl === null or $savedDl === '') and ($savedUl == 0 or $savedUl === null or $savedUl === '')) {
+                // empty month record - adopt current ophanim counters
+                $resultDl = $newDl;
+                $resultUl = $newUl;
+            }
+
+            $this->traffDb->data('D0', $resultDl);
+            $this->traffDb->data('U0', $resultUl);
+            $this->traffDb->data('LAST_D', $newDl);
+            $this->traffDb->data('LAST_U', $newUl);
+            $this->traffDb->where('id', '=', $recordId);
+            $this->traffDb->save(true, true);
+            $this->traffStats[$userLogin]['D0'] = $resultDl;
+            $this->traffStats[$userLogin]['U0'] = $resultUl;
+            $this->traffStats[$userLogin]['LAST_D'] = $newDl;
+            $this->traffStats[$userLogin]['LAST_U'] = $newUl;
+        } else {
+            $resultDl = $savedDl;
+            $resultUl = $savedUl;
+
+            if ($newDl >= $lastDlRaw) {
+                $resultDl = $savedDl + ($newDl - $lastDlRaw);
+            } else {
+                // counter reset or IP change
+                $resultDl = $savedDl + $newDl;
+            }
+
+            if ($newUl >= $lastUlRaw) {
+                $resultUl = $savedUl + ($newUl - $lastUlRaw);
+            } else {
+                // counter reset or IP change
+                $resultUl = $savedUl + $newUl;
+            }
+
+            if ($resultDl != $savedDl or $resultUl != $savedUl or $newDl != $lastDlRaw or $newUl != $lastUlRaw) {
+                $this->traffDb->data('D0', $resultDl);
+                $this->traffDb->data('U0', $resultUl);
+                $this->traffDb->data('LAST_D', $newDl);
+                $this->traffDb->data('LAST_U', $newUl);
+                $this->traffDb->where('id', '=', $recordId);
+                $this->traffDb->save(true, true);
+                $this->traffStats[$userLogin]['D0'] = $resultDl;
+                $this->traffStats[$userLogin]['U0'] = $resultUl;
+                $this->traffStats[$userLogin]['LAST_D'] = $newDl;
+                $this->traffStats[$userLogin]['LAST_U'] = $newUl;
             }
         }
     }
