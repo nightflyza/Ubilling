@@ -151,6 +151,8 @@ if (cfr('OPTION82')) {
          * @return void
          */
         function opt82_SetOption($ip, $option) {
+            $ip = mysql_real_escape_string($ip);
+            $option = mysql_real_escape_string($option);
             $query = "UPDATE `nethosts` SET `option`='" . $option . "' WHERE `ip`='" . $ip . "'";
             nr_query($query);
             log_register("OPT82 SET " . $ip . ' `' . $option . '`');
