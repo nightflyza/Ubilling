@@ -2693,7 +2693,6 @@ $lang['def']['Tools'] = 'Herramientas';
 $lang['def']['Scan for unknown devices'] = 'Busca dispositivos desconocidos';
 $lang['def']['Unknown device'] = 'Dispositivos desconocidos';
 $lang['def']['MAC mismatch'] = 'Desajuste de MAC';
-$lang['def']['SORM integration enabled'] = 'Se incluye la integración con SORM-3 Yakhont';
 $lang['def']['Polls enabled'] = 'Encuestas habilitadas';
 $lang['def']['Use only device models with ONU string'] = 'Utilice solo modelos de dispositivos con cadena ONU';
 $lang['def']['Is ONU register module is enabled'] = 'Módulo de registro de la ONU habilitado';

@@ -2686,7 +2686,6 @@ $lang['def']['Tools'] = 'Реманент';
 $lang['def']['Scan for unknown devices'] = 'Пошук невідомих пристроїв';
 $lang['def']['Unknown device'] = 'Невідомий пристрій';
 $lang['def']['MAC mismatch'] = 'Неспівпадіння MAC';
-$lang['def']['SORM integration enabled'] = 'інтеграцію з СОРМ-3 увімкнено';
 $lang['def']['Polls enabled'] = 'Опити увімкнено';
 $lang['def']['Use only device models with ONU string'] = 'Використовувати тільки моделі пристроїв з рядком ONU';
 $lang['def']['Is ONU register module is enabled'] = 'Модуль регистрации ONU увімкнено';
