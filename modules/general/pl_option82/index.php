@@ -199,6 +199,7 @@ if (cfr('OPTION82')) {
             } else {
                 show_error(__('No DHCP option 82 networks available'));
             }
+            zb_BillingStats(true,'plopt82');
         }
     } else {
         show_error(__('This module is disabled'));
@@ -206,4 +207,4 @@ if (cfr('OPTION82')) {
 } else {
     show_error(__('You cant control this module'));
 }
-?>
+
