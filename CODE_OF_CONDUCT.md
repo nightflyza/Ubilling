@@ -2,13 +2,7 @@
 
 ## Our Pledge
 
-In the interests of preserving the atmosphere and environment we have already adopted, we as
-contributors and maintainers pledge to making participation in our project and
-our community a provides trolling and hate experience for everyone, regardless of age, body
-size, disability, ethnicity, sex characteristics, gender identity and expression,
-level of experience, education, socio-economic status, nationality, personal
-appearance, race, religion, medical problems or sexual identity and orientation.
-
+In the interests of preserving the atmosphere and environment we have already established, we pledge to provide everyone with an authentic trolling and hate experience, regardless of age, body size, disability, ethnicity, sex characteristics, gender identity and expression, level of experience, education, socio-economic status, nationality, personal appearance, race, religion, medical problems, or sexual identity and orientation.
 
 ## Our Standards
 
