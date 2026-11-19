@@ -59,10 +59,7 @@ if (cfr('SYSLOAD')) {
     $globconf = $ubillingConfig->getBilling();
     $alterconf = $ubillingConfig->getAlter();
     $monit_url = '';
-    if (!empty($globconf['PHPSYSINFO'])) {
-        $monit_url = MODULES_DOWNLOADABLE . $globconf['PHPSYSINFO'];
-    }
-
+    
     $cache_info = $alterconf['UBCACHE_STORAGE'];
 
     //custom scripts output handling. We must run this before all others.
@@ -88,29 +85,6 @@ if (cfr('SYSLOAD')) {
     //loaded modules info
     $loadedModulesCode = zb_ListLoadedModules();
     $sysInfoData .= wf_modal(wf_img('skins/icon_puzzle.png') . ' ' . __('Loaded modules'), __('Loaded modules'), $loadedModulesCode, 'ubButton', 1020, 570);
-
-    //phpsysinfo frame
-    if (!empty($monit_url)) {
-        if (file_exists($monit_url . '/index.php')) {
-            $monitCode = wf_tag('iframe', false, '', 'src="' . $monit_url . '" width="1000" height="500" frameborder="0"') . wf_tag('iframe', true);
-            $sysInfoData .= wf_modalAuto(wf_img('skins/snmp.png') . ' ' . __('phpSysInfo'), __('System health with phpSysInfo'), $monitCode, 'ubButton');
-        } else {
-            //installing phpsysinfo
-            if (ubRouting::checkGet(array('phpsysinfoinstall'))) {
-                if (cfr('ROOT')) {
-                    zb_InstallPhpsysinfo();
-                    $installNotification = wf_tag('span', false, 'alert_success') . __('Done') . '! ' . __('Refresh page') . '.' . wf_tag('span', true);
-                    die($installNotification);
-                } else {
-                    die(wf_tag('span', false, 'alert_error') . __('Access denied') . wf_tag('span', true));
-                }
-            }
-            $monitCode = wf_AjaxLink('?module=report_sysload&phpsysinfoinstall=true', wf_img('skins/icon_download.png') . ' ' . __('Download') . ' ' . __('phpSysInfo'), 'phpsysinfoinstall', true, 'ubButton');
-            $monitCode .= wf_AjaxContainer('phpsysinfoinstall');
-
-            $sysInfoData .= wf_modalAuto(wf_img('skins/snmp.png') . ' ' . __('phpSysInfo'), __('System health with phpSysInfo'), $monitCode, 'ubButton');
-        }
-    }
 
     //xhprof installation
     if (ubRouting::checkGet('xhprofmoduleinstall')) {

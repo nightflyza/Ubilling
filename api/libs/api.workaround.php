@@ -5441,25 +5441,6 @@ function zb_CacheKeyDestroy($key) {
     return ($result);
 }
 
-/**
- * Downloads and unpacks phpsysinfo distro
- * 
- * @global object $ubillingConfig
- * 
- * @return void
- */
-function zb_InstallPhpsysinfo() {
-    global $ubillingConfig;
-    $billCfg = $ubillingConfig->getBilling();
-    $phpSysInfoDir = $billCfg['PHPSYSINFO'];
-    if (!empty($phpSysInfoDir)) {
-        if (cfr('ROOT')) {
-            $upd = new UbillingUpdateStuff();
-            $upd->downloadRemoteFile('http://ubilling.net.ua/packages/phpsysinfo.tar.gz', 'exports/', 'phpsysinfo.tar.gz');
-            $upd->extractTgz('exports/phpsysinfo.tar.gz', MODULES_DOWNLOADABLE . $phpSysInfoDir);
-        }
-    }
-}
 
 /**
  * Downloads and unpacks xhprof distro
