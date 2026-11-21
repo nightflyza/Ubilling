@@ -49,7 +49,7 @@ class IpayMasterPass {
     /**
      * Contains all available openpayz customers
      *
-     * @var arrays
+     * @var array
      */
     protected $allCustomers = array();
 
@@ -318,7 +318,7 @@ class IpayZ {
     protected $currency = '';
     protected $lifeTime = 24;
     protected $payDesc = '';
-    protected $UrlApi = 'https://api.ipay.ua';
+    protected $UrlApi = 'https://checkout.ipay.ua/api302';
     protected $api = '';
 
     public function __construct() {
@@ -359,7 +359,8 @@ class IpayZ {
         if ($status != 200) {
             die('Error: call to URL ' . $this->UrlApi . ' failed with status ' . $status . ', response ' . $response . ', curl_error ' . curl_error($curl) . ', curl_errno ' . curl_errno($curl));
         }
-        curl_close($curl);
+    
+       // curl_close($curl); 
         $result = $response;
         return ($result);
     }
