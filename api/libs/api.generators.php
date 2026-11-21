@@ -126,6 +126,7 @@ class Generators {
     const PROUTE_DEV_FUEL_TYPE = 'devfueltype';
     const PROUTE_DEV_TANK_VOLUME = 'devtankvolume';
     const PROUTE_DEV_FUEL_CONSUMPTION = 'devfuelconsumption';
+    const PROUTE_DEV_INTANK = 'devintank';
     const PROUTE_DEV_ADDRESS = 'devaddress';
     const PROUTE_DEV_GEO = 'devgeo';
     const PROUTE_DEV_MOTO_HOURS = 'devmotohours';
@@ -134,6 +135,7 @@ class Generators {
     const PROUTE_REFUEL_DEVICE = 'refueldevice';
     const PROUTE_REFUEL_LITERS = 'refuelliters';
     const PROUTE_REFUEL_PRICE = 'refuelprice';
+    const PROUTE_REFUEL_FULLTANK = 'refuelfulltank';
     const PROUTE_EDIT_REFUEL = 'editrefuel';
     const PROUTE_SERVICE_DEVICE = 'servicedevice';
     const PROUTE_SERVICE_MOTO_HOURS = 'servicemotohours';
@@ -669,6 +671,7 @@ class Generators {
             $inputs = wf_HiddenInput(self::PROUTE_REFUEL_DEVICE, $deviceId);
             $inputs .= wf_TextInput(self::PROUTE_REFUEL_LITERS, __('Liters refueled'), '', true, 6, 'float');
             $inputs .= wf_TextInput(self::PROUTE_REFUEL_PRICE, __('Price per liter'), $latestResuelPrice, true, 4, 'finance');
+            $inputs .= wf_CheckInput(self::PROUTE_REFUEL_FULLTANK, __('Filled to full tank'), true, false);
             $inputs .= wf_Submit(__('Refuel'));
             $form = wf_Form('', 'POST', $inputs, 'glamour');
             $result = wf_modalAuto(wf_img('skins/icon_fuel.png',__('Refuel')), __('Refuel'), $form, '');
@@ -717,18 +720,20 @@ class Generators {
                     $currentIntank = $this->allDevices[$deviceId]['intank'];
                     $tankVolume = $this->allDevices[$deviceId]['tankvolume'];
                     $newIntank = $currentIntank + $liters;
+                    $fullTank = (ubRouting::checkPost(self::PROUTE_REFUEL_FULLTANK)) ? 1 : 0;
                     
                     if ($newIntank <= $tankVolume) {
                         $this->refuelsDb->data('genid', $deviceId);
                         $this->refuelsDb->data('date', curdatetime());
                         $this->refuelsDb->data('liters', $liters);
                         $this->refuelsDb->data('price', $price);
+                        $this->refuelsDb->data('fulltank', $fullTank);
                         $this->refuelsDb->create();
                         
                         $this->setDeviceIntank($deviceId, $newIntank);
                         $this->loadDevices();
                         
-                        log_register('GENERATORS DEVICE REFUEL [' . $deviceId . '] LITERS `' . $liters . '` PRICE `' . $price . '`');
+                        log_register('GENERATORS DEVICE REFUEL [' . $deviceId . '] LITERS `' . $liters . '` PRICE `' . $price . '` FULLTANK `' . $fullTank . '`');
                     } else {
                         $result = __('Tank overflow') . ': ' . __('Maximum') . ' ' . $tankVolume . ' ' . __('litre');
                     }
@@ -873,6 +878,7 @@ class Generators {
             
             $inputs .= wf_Selector(self::PROUTE_DEV_FUEL_TYPE, $this->fuelTypes, __('Fuel type') . $sup, $device['fuel'], true);
             $inputs .= wf_TextInput(self::PROUTE_DEV_TANK_VOLUME, __('Tank volume'), $device['tankvolume'], true, 4, 'digits');
+            $inputs .= wf_TextInput(self::PROUTE_DEV_INTANK, __('In tank'), round($device['intank'], 2), true, 4, 'float');
             $inputs .= wf_TextInput(self::PROUTE_DEV_FUEL_CONSUMPTION, __('Fuel consumption'), $device['consumption'], true, 4, 'float');
             $inputs .= wf_TextInput(self::PROUTE_DEV_MOTO_HOURS, __('Motohours'), $device['motohours'], true, 8, 'float');
             $inputs .= wf_TextInput(self::PROUTE_DEV_SERVICE_INTERVAL, __('Service interval'), $device['serviceinterval'], true, 4, 'digits');
@@ -906,26 +912,31 @@ class Generators {
                 $newGeo = ubRouting::post(self::PROUTE_DEV_GEO, 'mres');
                 $newFuelType = ubRouting::post(self::PROUTE_DEV_FUEL_TYPE, 'gigasafe');
                 $newTankVolume = ubRouting::post(self::PROUTE_DEV_TANK_VOLUME, 'int');
+                $newIntank = ubRouting::post(self::PROUTE_DEV_INTANK, 'float');
                 $newFuelConsumption = ubRouting::post(self::PROUTE_DEV_FUEL_CONSUMPTION, 'float');
                 $newMotohours = ubRouting::post(self::PROUTE_DEV_MOTO_HOURS, 'float');
                 $newServiceInterval = ubRouting::post(self::PROUTE_DEV_SERVICE_INTERVAL, 'int');
                 $newOpAlias = ubRouting::post(self::PROUTE_DEV_OP_ALIAS, 'mres');
-                
 
-                if (!empty($newModel) AND !empty($newAddress) AND !empty($newFuelType)) {
-                    $this->devicesDb->where('id', '=', $deviceId);
-                    $this->devicesDb->data('model', $newModel);
-                    $this->devicesDb->data('address', $newAddress);
-                    $this->devicesDb->data('geo', $newGeo);
-                    $this->devicesDb->data('fuel', $newFuelType);
-                    $this->devicesDb->data('tankvolume', $newTankVolume);
-                    $this->devicesDb->data('consumption', $newFuelConsumption);
-                    $this->devicesDb->data('motohours', $newMotohours);
-                    $this->devicesDb->data('serviceinterval', $newServiceInterval);
-                    $this->devicesDb->data('opalias', $newOpAlias);
-                    $this->devicesDb->save();
-                    $this->loadDevices();
-                    log_register('GENERATORS DEVICE EDIT [' . $deviceId . ']');
+                if (!empty($newModel) and !empty($newAddress) and !empty($newFuelType)) {
+                    if ($newIntank >= 0 and $newIntank <= $newTankVolume) {
+                        $this->devicesDb->where('id', '=', $deviceId);
+                        $this->devicesDb->data('model', $newModel);
+                        $this->devicesDb->data('address', $newAddress);
+                        $this->devicesDb->data('geo', $newGeo);
+                        $this->devicesDb->data('fuel', $newFuelType);
+                        $this->devicesDb->data('tankvolume', $newTankVolume);
+                        $this->devicesDb->data('intank', $newIntank);
+                        $this->devicesDb->data('consumption', $newFuelConsumption);
+                        $this->devicesDb->data('motohours', $newMotohours);
+                        $this->devicesDb->data('serviceinterval', $newServiceInterval);
+                        $this->devicesDb->data('opalias', $newOpAlias);
+                        $this->devicesDb->save();
+                        $this->loadDevices();
+                        log_register('GENERATORS DEVICE EDIT [' . $deviceId . '] INTANK `' . $newIntank . '`');
+                    } else {
+                        $result = __('Invalid tank level') . ': ' . __('Minimum') . ' 0, ' . __('Maximum') . ' ' . $newTankVolume . ' ' . __('litre');
+                    }
                 }
             }
         } else {
@@ -1432,7 +1443,8 @@ class Generators {
                 __('Device'),
                 __('Liters'),
                 __('Price'),
-                __('Total')
+                __('Total'),
+                __('Full tank')
             );
 
             if (cfr('GENERATORSMGMT')) {
@@ -1449,12 +1461,14 @@ class Generators {
                 }
                 
                 $editDialog='';
+                $fullTankLabel = (!empty($refuel['fulltank'])) ? __('Yes') : __('No');
 
                 $dataRow=array($refuel['date'],
                 $deviceName,
                 round($refuel['liters'], 2) . ' ' . __('litre'),
                 round($refuel['price'], 2),
-                round($refuel['liters'] * $refuel['price'], 2)
+                round($refuel['liters'] * $refuel['price'], 2),
+                $fullTankLabel
                 );
 
                 if (cfr('GENERATORSMGMT')) {
@@ -1502,12 +1516,14 @@ class Generators {
             $refuelDate = date('Y-m-d', strtotime($refuel['date']));
             $refuelTime = date('H:i', strtotime($refuel['date']));
             
+            $fullTankChecked = (!empty($refuel['fulltank'])) ? true : false;
             $inputs = wf_HiddenInput(self::PROUTE_EDIT_REFUEL, $refuelId);
             $inputs .= wf_TextInput(self::PROUTE_REFUEL_LITERS, __('Liters refueled'), round($refuel['liters'], 2), false, 6, 'float') . ' ';
             $inputs .= wf_TextInput(self::PROUTE_REFUEL_PRICE, __('Price per liter'), round($refuel['price'], 2), false, 4, 'finance') . ' ';
             $inputs .= wf_DatePickerPreset('refueldate', $refuelDate, true);
             $inputs .= wf_tag('label') . __('Date') . wf_tag('label', true) . ' ';
             $inputs .= wf_TimePickerPreset('refueltime', $refuelTime, __('Time'), false) . ' ';
+            $inputs .= wf_CheckInput(self::PROUTE_REFUEL_FULLTANK, __('Filled to full tank'), true, $fullTankChecked);
             $inputs .= wf_Submit(__('Save'));
             $result = wf_Form('', 'POST', $inputs, 'glamour');
         }
@@ -1543,13 +1559,16 @@ class Generators {
                 $price = ubRouting::post(self::PROUTE_REFUEL_PRICE, 'float');
                 $refuelDate = ubRouting::post('refueldate', 'mres');
                 $refuelTime = ubRouting::post('refueltime', 'mres');
+                $fullTank = (ubRouting::checkPost(self::PROUTE_REFUEL_FULLTANK)) ? 1 : 0;
                 
                 if ($liters > 0) {
                     $refuelDateTime = $refuel['date'];
                     if (!empty($refuelDate) AND !empty($refuelTime)) {
                         $refuelDateTime = $refuelDate . ' ' . $refuelTime . ':00';
-                    } elseif (!empty($refuelDate)) {
-                        $refuelDateTime = $refuelDate . ' ' . date('H:i:s');
+                    } else {
+                        if (!empty($refuelDate)) {
+                            $refuelDateTime = $refuelDate . ' ' . date('H:i:s');
+                        }
                     }
                     
                     $deviceId = $refuel['genid'];
@@ -1566,13 +1585,14 @@ class Generators {
                             $this->refuelsDb->data('date', $refuelDateTime);
                             $this->refuelsDb->data('liters', $liters);
                             $this->refuelsDb->data('price', $price);
+                            $this->refuelsDb->data('fulltank', $fullTank);
                             $this->refuelsDb->save();
                             
                             $this->setDeviceIntank($deviceId, $newIntank);
                             $this->loadDevices();
                             $this->loadRefuels();
                             
-                            log_register('GENERATORS DEVICE REFUEL UPDATE [' . $deviceId . '] REFUEL [' . $refuelId . '] LITERS `' . $liters . '` PRICE `' . $price . '`');
+                            log_register('GENERATORS DEVICE REFUEL UPDATE [' . $deviceId . '] REFUEL [' . $refuelId . '] LITERS `' . $liters . '` PRICE `' . $price . '` FULLTANK `' . $fullTank . '`');
                         } else {
                             $result = __('Invalid tank level') . ': ' . __('Minimum') . ' 0, ' . __('Maximum') . ' ' . $tankVolume . ' ' . __('litre');
                         }
@@ -1750,19 +1770,19 @@ class Generators {
     }
 
     /**
-     * Returns device running time in seconds clipped to date range
+     * Returns device running time in seconds between two datetimes
      *
      * @param int $deviceId
-     * @param string $dateFrom
-     * @param string $dateTo
+     * @param string $dateTimeFrom
+     * @param string $dateTimeTo
      *
      * @return int
      */
-    protected function getDeviceRuntimeSecondsInRange($deviceId, $dateFrom, $dateTo) {
+    protected function getDeviceRuntimeSecondsBetween($deviceId, $dateTimeFrom, $dateTimeTo) {
         $result = 0;
         $deviceId = ubRouting::filters($deviceId, 'int');
-        $rangeStart = strtotime($dateFrom . ' 00:00:00');
-        $rangeEnd = strtotime($dateTo . ' 23:59:59');
+        $rangeStart = strtotime($dateTimeFrom);
+        $rangeEnd = strtotime($dateTimeTo);
         $currentTime = strtotime(curdatetime());
 
         if ($rangeStart and $rangeEnd and $rangeEnd >= $rangeStart) {
@@ -1809,6 +1829,83 @@ class Generators {
                         }
                     }
                 }
+            }
+        }
+
+        return ($result);
+    }
+
+    /**
+     * Returns device running time in seconds clipped to date range
+     *
+     * @param int $deviceId
+     * @param string $dateFrom
+     * @param string $dateTo
+     *
+     * @return int
+     */
+    protected function getDeviceRuntimeSecondsInRange($deviceId, $dateFrom, $dateTo) {
+        $result = $this->getDeviceRuntimeSecondsBetween($deviceId, $dateFrom . ' 00:00:00', $dateTo . ' 23:59:59');
+        return ($result);
+    }
+
+    /**
+     * Returns measured fuel rate from full-tank refuel pairs in date range
+     *
+     * @param int $deviceId
+     * @param string $dateFrom
+     * @param string $dateTo
+     *
+     * @return array
+     */
+    protected function getMeasuredFuelRateInRange($deviceId, $dateFrom, $dateTo) {
+        $result = array(
+            'rate' => 0,
+            'liters' => 0,
+            'hours' => 0,
+            'pairs' => 0
+        );
+        $deviceId = ubRouting::filters($deviceId, 'int');
+        $fullRefuels = array();
+
+        if (!empty($this->allRefuels)) {
+            foreach ($this->allRefuels as $io => $refuel) {
+                if ($refuel['genid'] == $deviceId and !empty($refuel['fulltank'])) {
+                    $fullRefuels[] = $refuel;
+                }
+            }
+        }
+
+        if (!empty($fullRefuels)) {
+            usort($fullRefuels, function ($a, $b) {
+                return strtotime($a['date']) - strtotime($b['date']);
+            });
+
+            $totalLiters = 0;
+            $totalSeconds = 0;
+            $pairsCount = 0;
+            $prevRefuel = null;
+
+            foreach ($fullRefuels as $io => $refuel) {
+                if ($prevRefuel !== null) {
+                    if (zb_isDateBetween($dateFrom, $dateTo, $refuel['date'])) {
+                        $seconds = $this->getDeviceRuntimeSecondsBetween($deviceId, $prevRefuel['date'], $refuel['date']);
+                        if ($seconds > 0) {
+                            $totalLiters += $refuel['liters'];
+                            $totalSeconds += $seconds;
+                            $pairsCount++;
+                        }
+                    }
+                }
+                $prevRefuel = $refuel;
+            }
+
+            if ($totalSeconds > 0 and $pairsCount > 0) {
+                $hours = $totalSeconds / 3600;
+                $result['liters'] = $totalLiters;
+                $result['hours'] = $hours;
+                $result['pairs'] = $pairsCount;
+                $result['rate'] = $totalLiters / $hours;
             }
         }
 
@@ -1896,6 +1993,8 @@ class Generators {
                 __('Starts'),
                 __('Motohours'),
                 __('Fuel consumption') .' ('.__('litre').')',
+                __('Configured rate') .' ('.__('litre').'/'.__('hour').')',
+                __('Measured rate') .' ('.__('litre').'/'.__('hour').')',
                 __('Refuels').' ('.__('litre').')',
                 __('Total cost')
             );
@@ -1910,6 +2009,7 @@ class Generators {
                 $startsCount = $this->getDeviceStartsCountInRange($deviceId, $dateFrom, $dateTo);
                 $seconds = $this->getDeviceRuntimeSecondsInRange($deviceId, $dateFrom, $dateTo);
                 $fuelConsumed = $this->calculateFuelConsumption($deviceId, $seconds);
+                $measuredRate = $this->getMeasuredFuelRateInRange($deviceId, $dateFrom, $dateTo);
                 $litersRefueled = 0;
                 $refuelCost = 0;
                 if (isset($refuelsTotals[$deviceId])) {
@@ -1917,14 +2017,23 @@ class Generators {
                     $refuelCost = $refuelsTotals[$deviceId]['cost'];
                 }
 
-                if ($seconds > 0 or $litersRefueled > 0 or $startsCount > 0) {
+                if ($seconds > 0 or $litersRefueled > 0 or $startsCount > 0 or $measuredRate['pairs'] > 0) {
                     $deviceName = $device['model'] . ' - ' . $device['address'];
                     $motohours = round($seconds / 3600, 2);
+                    $configuredRate = round($device['consumption'], 2);
+                    $measuredRateLabel = '-';
+                    if ($measuredRate['pairs'] > 0 and $measuredRate['hours'] > 0) {
+                        $measuredRateLabel = round($measuredRate['rate'], 2)
+                            . ' (' . round($measuredRate['liters'], 2) . ' ' . __('litre')
+                            . ' / ' . round($measuredRate['hours'], 2) . ' ' . __('hours') . ')';
+                    }
                     $data[] = array(
                         $deviceName,
                         $startsCount,
                         $motohours,
                         round($fuelConsumed, 2),
+                        $configuredRate,
+                        $measuredRateLabel,
                         round($litersRefueled, 2),
                         round($refuelCost, 2)
                     );

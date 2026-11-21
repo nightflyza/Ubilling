@@ -39,3 +39,7 @@ $lang['def']['Price per liter'] = 'Ціна за літр';
 $lang['def']['Liters refueled'] = 'Літрів заправлено';
 $lang['def']['Total refuels cost'] = 'Загальна вартість заправки';
 $lang['def']['Starts'] = 'Запуски';
+$lang['def']['Filled to full tank'] = 'Заправлено до повного баку';
+$lang['def']['Full tank'] = 'Повний бак';
+$lang['def']['Configured rate'] = 'Налаштований розхід';
+$lang['def']['Measured rate'] = 'Виміряний розхід';
