@@ -775,6 +775,10 @@ submit {
     .ubproductname {
         font-size: 12pt;
     }
+
+    .tbqsearchform {
+        display: none !important;
+    }
 }
 
 @media only screen and (max-width: 800px) {
@@ -785,8 +789,6 @@ submit {
     .user p {
         display: none;
     }
-
-
 }
 
 /* UBIM contactlist */

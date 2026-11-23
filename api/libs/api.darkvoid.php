@@ -181,7 +181,7 @@ class DarkVoid {
     /**
      * Sets private login property
      * 
-     * @return
+     * @return void
      */
     protected function setMyLogin() {
         $this->myLogin = whoami();
@@ -190,7 +190,7 @@ class DarkVoid {
     /**
      * Loads global alter.ini config into protected property
      * 
-     * @global type $ubillingConfig
+     * @global object $ubillingConfig
      * @return void
      */
     protected function loadAlter() {
