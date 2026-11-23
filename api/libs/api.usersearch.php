@@ -16,6 +16,9 @@ function web_UserSearchFieldsForm() {
     $fieldinputs .= wf_RadioInput('searchtype', 'Mobile', 'mobile', true);
     $fieldinputs .= wf_RadioInput('searchtype', 'Email', 'email', true);
     $fieldinputs .= wf_RadioInput('searchtype', 'Notes', 'note', true);
+    if ($altCfg['ADCOMMENTS_ENABLED']) {
+        $fieldinputs .= wf_RadioInput('searchtype', 'Additional comments', 'adcomment', true);
+    }
     $fieldinputs .= wf_RadioInput('searchtype', 'Contract', 'contract', true);
     if ($altCfg['CONDET_ENABLED']) {
         $fieldinputs .= wf_RadioInput('searchtype', 'Cable seal', 'seal', true);
@@ -99,6 +102,12 @@ function zb_UserSearchFields($query, $searchtype) {
     if ($searchtype == 'note') {
         $mask = (isset($strictsearch[$searchtype]) ? '' : '%');
         $query = "SELECT `login` from `notes` WHERE `note` LIKE '" . $mask . $query . $mask . "'";
+    }
+    if ($altercfg['ADCOMMENTS_ENABLED']) {
+        if ($searchtype == 'adcomment') {
+            $mask = (isset($strictsearch[$searchtype]) ? '' : '%');
+            $query = "SELECT DISTINCT `item` AS `login` from `adcomments` WHERE `scope` = 'USERNOTES' AND `text` LIKE '" . $mask . $query . $mask . "'";
+        }
     }
     if ($searchtype == 'contract') {
         $mask = (isset($strictsearch[$searchtype]) ? '' : '%');
@@ -206,6 +215,7 @@ function zb_UserSearchFields($query, $searchtype) {
 function zb_UserSearchAllFields($query, $render = true) {
     global $ubillingConfig;
     $notesSearchFlag = $ubillingConfig->getAlterParam('SEARCH_NOTES');
+    $adCommentsFlag = $ubillingConfig->getAlterParam('ADCOMMENTS_ENABLED');
     $mobileExtFlag = $ubillingConfig->getAlterParam('MOBILES_EXT');
 
     $allFoundLogins = array();
@@ -218,6 +228,23 @@ function zb_UserSearchAllFields($query, $render = true) {
                 foreach ($allUserNotes as $noteLogin => $noteText) {
                     if (isset($search_data_array[$noteLogin])) {
                         $search_data_array[$noteLogin]['note'] = $noteText;
+                    }
+                }
+            }
+
+            // also search in additional comments if enabled
+            if ($adCommentsFlag) {
+                $adComments = new ADcomments('USERNOTES');
+                $allAdComments = $adComments->getScopeItemsCommentsAll();
+                if (!empty($allAdComments)) {
+                    foreach ($allAdComments as $commentLogin => $commentsList) {
+                        if (isset($search_data_array[$commentLogin])) {
+                            $adCommentTexts = array();
+                            foreach ($commentsList as $io => $eachComment) {
+                                $adCommentTexts[] = $eachComment['text'];
+                            }
+                            $search_data_array[$commentLogin]['adcomment'] = implode(' ', $adCommentTexts);
+                        }
                     }
                 }
             }
@@ -543,6 +570,12 @@ function zb_UserSearchTypeLocalize($searchtype, $query = '') {
             break;
         case 'Note':
             $result .= __('Note');
+            break;
+        case 'note':
+            $result .= __('Notes');
+            break;
+        case 'adcomment':
+            $result .= __('Additional comments');
             break;
         case 'contract':
             $result .= __('Contract');
