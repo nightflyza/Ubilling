@@ -63,7 +63,7 @@ class PrivatMultiserv extends PaySysProto {
     /**
      * Paysys merchant credentials from CONTRAGENT EXT INFO module
      *
-     * @var string
+     * @var array
      */
     protected $merchantCreds = '';
 
@@ -208,7 +208,7 @@ class PrivatMultiserv extends PaySysProto {
             $tmpServiceCode = $eachMerch['internal_paysys_srv_id'];
             $tmpServiceName = $eachMerch['paysys_token'];
             $tmpPercent     = $eachMerch['paysys_secret_key'];
-            $tmpAmountToPay = ($tmpPercent / 100) * $this->paymentSum;
+            $tmpAmountToPay = (floatval($tmpPercent) / 100) * $this->paymentSum;
 
             $tmpDebtServiceBlock = '
             <DebtService  serviceCode="' . $tmpServiceCode . '" >
@@ -236,8 +236,6 @@ class PrivatMultiserv extends PaySysProto {
     /**
      * Extracts some essential data, like VirtualID, payment sum, transaction reference ID
      * from a certain PB request, as their payload quite differs
-     *
-     * @param $paymentMethod
      *
      * @return void
      */
