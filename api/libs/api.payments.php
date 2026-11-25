@@ -252,8 +252,10 @@ function zb_CashDeleteCashtype($cashtypeid) {
  * @return float
  */
 function zb_PaymentsGetYearSumm($year) {
-    $year = vf($year);
-    $query = "SELECT SUM(`summ`) from `payments` WHERE `date` LIKE '" . $year . "-%' AND `summ` > 0";
+    $year = vf($year, 3);
+    $yearBegin = $year . '-01-01 00:00:00';
+    $yearEnd = $year . '-12-31 23:59:59';
+    $query = "SELECT SUM(`summ`) from `payments` WHERE `date` BETWEEN '" . $yearBegin . "' AND '" . $yearEnd . "' AND `summ` > 0";
     $result = simple_query($query);
     return ($result['SUM(`summ`)']);
 }
