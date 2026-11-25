@@ -409,7 +409,7 @@ class OpenPayz {
         $year = ubRouting::filters($year, 'int');
         $transactionId = ubRouting::filters($transactionId, 'int');
         if (!empty($year) and $year != '1488') {
-            $this->transactionsDb->where('date', 'LIKE', $year . '-%');
+            $this->transactionsDb->whereRaw("`date` BETWEEN '" . $year . "-01-01 00:00:00' AND '" . $year . "-12-31 23:59:59'");
         }
 
         if ($transactionId) {
@@ -1208,7 +1208,8 @@ class OpenPayz {
         } else {
             //date current year filtering 
             if (!$renderAll) {
-                $this->transactionsDb->where('date', 'LIKE', curyear() . '-%');
+                $curYear = curyear();
+                $this->transactionsDb->whereRaw("`date` BETWEEN '" . $curYear . "-01-01 00:00:00' AND '" . $curYear . "-12-31 23:59:59'");
             }
         }
 
