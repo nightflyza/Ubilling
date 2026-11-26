@@ -115,12 +115,12 @@ function formatDuration($seconds) {
         return round($seconds, 2) . "s";
     } elseif ($seconds < 3600) {
         $minutes = floor($seconds / 60);
-        $remainingSeconds = $seconds % 60;
+        $remainingSeconds = fmod($seconds, 60);
         return $minutes . "m " . round($remainingSeconds, 2) . "s";
     } else {
         $hours = floor($seconds / 3600);
-        $minutes = floor(($seconds % 3600) / 60);
-        $remainingSeconds = $seconds % 60;
+        $minutes = floor(fmod($seconds, 3600) / 60);
+        $remainingSeconds = fmod($seconds, 60);
         return $hours . "h " . $minutes . "m " . round($remainingSeconds, 2) . "s";
     }
 }
