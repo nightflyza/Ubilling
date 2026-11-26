@@ -59,7 +59,7 @@ function ipay_CheckTransaction($hash) {
 }
 
 //catch some xml notification
-$xml = $_POST['xml'];
+@$xml = $_POST['xml'];
 
 if (!empty($xml)) {
     $xml = str_replace('\"', '"', $xml);
