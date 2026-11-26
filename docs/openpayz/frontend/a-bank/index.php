@@ -257,7 +257,15 @@ function abank_ReplySearch($customerid, $UsrBalanceDecimals = -1) {
         $alladdress = abank_AddressGetFulladdresslist();
         $allmobiles = abank_UserGetAllMobiles();
         $userdata = abank_UserGetStargazerData($customerLogin);
-        $userBalance = ($UsrBalanceDecimals < 0) ? $userdata['Cash'] : (($UsrBalanceDecimals == 0) ? intval($userdata['Cash'], 10) : round($userdata['Cash'], $UsrBalanceDecimals, PHP_ROUND_HALF_EVEN));
+        if ($UsrBalanceDecimals < 0) {
+            $userBalance = $userdata['Cash'];
+        } else {
+            if ($UsrBalanceDecimals == 0) {
+                $userBalance = intval($userdata['Cash'], 10);
+            } else {
+                $userBalance = round($userdata['Cash'], $UsrBalanceDecimals, PHP_ROUND_HALF_EVEN);
+            }
+        }
 
         if (FULL_DEBTINFO) {
             $recommendedPay = '0.0';

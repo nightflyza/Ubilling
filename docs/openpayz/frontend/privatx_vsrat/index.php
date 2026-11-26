@@ -273,7 +273,15 @@ function pbx_ReplyAfterPreearch($customerid, $UsrBalanceDecimals = -1) {
         $agentData = getAgentData($customerLogin);
         $companyData = '';
 
-        $userBalance = ($UsrBalanceDecimals < 0) ? $userdata['Cash'] : (($UsrBalanceDecimals == 0) ? intval($userdata['Cash'], 10) : round($userdata['Cash'], $UsrBalanceDecimals, PHP_ROUND_HALF_EVEN));
+        if ($UsrBalanceDecimals < 0) {
+            $userBalance = $userdata['Cash'];
+        } else {
+            if ($UsrBalanceDecimals == 0) {
+                $userBalance = intval($userdata['Cash'], 10);
+            } else {
+                $userBalance = round($userdata['Cash'], $UsrBalanceDecimals, PHP_ROUND_HALF_EVEN);
+            }
+        }
 
         $recommendedPay = '0.0';
         $debt = '0.0';
@@ -340,7 +348,15 @@ function pbx_ReplySearch($customerid, $UsrBalanceDecimals = -1) {
         $alladdress = pbx_AddressGetFulladdresslist();
         $allmobiles = pbx_UserGetAllMobiles();
         $userdata = pbx_UserGetStargazerData($customerLogin);
-        $userBalance = ($UsrBalanceDecimals < 0) ? $userdata['Cash'] : (($UsrBalanceDecimals == 0) ? intval($userdata['Cash'], 10) : round($userdata['Cash'], $UsrBalanceDecimals, PHP_ROUND_HALF_EVEN));
+        if ($UsrBalanceDecimals < 0) {
+            $userBalance = $userdata['Cash'];
+        } else {
+            if ($UsrBalanceDecimals == 0) {
+                $userBalance = intval($userdata['Cash'], 10);
+            } else {
+                $userBalance = round($userdata['Cash'], $UsrBalanceDecimals, PHP_ROUND_HALF_EVEN);
+            }
+        }
 
 //normal reply
         $templateOk = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>

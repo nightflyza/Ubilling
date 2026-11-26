@@ -196,9 +196,15 @@ class PrivatMultiserv extends PaySysProto {
      */
     protected function getXMLServiceGroupBlock() {
         $userdata   = $this->getUserStargazerData($this->subscriberLogin);
-        $userBalance = ($this->subscriberBalanceDecimals < 0)
-            ? $userdata['Cash'] : (($this->subscriberBalanceDecimals == 0)
-                ? intval($userdata['Cash'], 10) : round($userdata['Cash'], $this->subscriberBalanceDecimals, PHP_ROUND_HALF_EVEN));
+        if ($this->subscriberBalanceDecimals < 0) {
+            $userBalance = $userdata['Cash'];
+        } else {
+            if ($this->subscriberBalanceDecimals == 0) {
+                $userBalance = intval($userdata['Cash'], 10);
+            } else {
+                $userBalance = round($userdata['Cash'], $this->subscriberBalanceDecimals, PHP_ROUND_HALF_EVEN);
+            }
+        }
         $xmlServiceGroupBlock = '
         <ServiceGroup>
         ';

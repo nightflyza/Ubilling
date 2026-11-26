@@ -162,11 +162,16 @@ function pbx_ReplySearch($customerid, $userEnterAmount = 100) {
                         $template.= '<ServiceGroup>';
                         foreach ($agentsExtInfo as $id => $paysysPrefix) {
                             $agentId = $gooseResult->agentsextinfo->{$id}->agentid;
-                            $userBalance = (USER_BALANCE_DECIMALS < 0) 
-                                            ? $gooseResult->user->Cash * $gooseResult->agents->{$agentId}->splitvalue / 100
-                                            : ((USER_BALANCE_DECIMALS == 0) 
-                                            ? intval($gooseResult->user->Cash * $gooseResult->agents->{$agentId}->splitvalue / 100, 10) 
-                                            : round($gooseResult->user->Cash * $gooseResult->agents->{$agentId}->splitvalue / 100, USER_BALANCE_DECIMALS, PHP_ROUND_HALF_EVEN));
+                            $agentCashShare = $gooseResult->user->Cash * $gooseResult->agents->{$agentId}->splitvalue / 100;
+                            if (USER_BALANCE_DECIMALS < 0) {
+                                $userBalance = $agentCashShare;
+                            } else {
+                                if (USER_BALANCE_DECIMALS == 0) {
+                                    $userBalance = intval($agentCashShare, 10);
+                                } else {
+                                    $userBalance = round($agentCashShare, USER_BALANCE_DECIMALS, PHP_ROUND_HALF_EVEN);
+                                }
+                            }
                             $template.= '
                                     <DebtService serviceCode="' . $gooseResult->agents->{$agentId}->extinfo->{$id}->internal_paysys_srv_id . '">
                                           <CompanyInfo mfo="' . $gooseResult->agents->{$agentId}->bankcode . '" okpo="' . $gooseResult->agents->{$agentId}->edrpo . '" account="' . $gooseResult->agents->{$agentId}->bankacc . '" >
