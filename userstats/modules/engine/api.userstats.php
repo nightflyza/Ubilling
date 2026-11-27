@@ -991,7 +991,7 @@ function zbs_UserShowXmlAgentData($login) {
 
             if (!empty($allTickets)) {
                 foreach ($allTickets as $io => $each) {
-                    if ($each['from'] == $login or $each['to'] == $login or isset($myTickets[$each['replyid']])) {
+                    if ($each['from'] == $login or $each['to'] == $login or isset($myTickets[(string) $each['replyid']])) {
                         $myTickets[$each['id']] = $each['id'];
                         $ticketsArr[$each['id']]['id'] = $each['id'];
                         $ticketsArr[$each['id']]['date'] = $each['date'];

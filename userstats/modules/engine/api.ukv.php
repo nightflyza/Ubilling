@@ -268,8 +268,10 @@ class UserstatsUkv {
                 $userData= $this->users[$userId];
                 $aptString=(!empty($userData['apt'])) ? '/' . $userData['apt'] : '';
                 $addressString=$userData['city'] . ' ' . $userData['street'] . ' ' . $userData['build'] . $aptString;
-                $tariffName=$this->getTariffName($userData['tariffid']);
-                $tariffnmName=$this->getTariffName($userData['tariffnmid']);
+                $tariffId = ($userData['tariffid'] === null) ? '' : $userData['tariffid'];
+                $tariffnmId = ($userData['tariffnmid'] === null) ? '' : $userData['tariffnmid'];
+                $tariffName = $this->getTariffName($tariffId);
+                $tariffnmName = $this->getTariffName($tariffnmId);
                 $tariffnmDate=$userData['tariffnmdate'];
                 $cash=$userData['cash'];
                 $result=array(
